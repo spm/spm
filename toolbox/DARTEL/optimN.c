@@ -1,4 +1,4 @@
-/* $Id: optimN.c 2600 2009-01-12 13:14:02Z john $ */
+/* $Id: optimN.c 2644 2009-01-23 13:01:50Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -38,7 +38,7 @@ static void choldc(int n, double a[], double p[])
     sm0  = 1e-16;
     for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
     sm0 *= 1e-4;
-    for(i=0; i<n; i++) a[i*n+i] += sm0;
+ /* for(i=0; i<n; i++) a[i*n+i] += sm0; */
 
     for(i=0; i<n; i++)
     {
@@ -49,7 +49,7 @@ static void choldc(int n, double a[], double p[])
                sm -= a[i*n+k] * a[j*n+k];
             if(i==j)
             {
-                if(sm <= sm0) {printf("\n ** %g %g  **\n", sm, sm0); sm = sm0;}
+                if(sm <= sm0) sm = sm0;
                 p[i] = sqrt(sm);
             }
             else

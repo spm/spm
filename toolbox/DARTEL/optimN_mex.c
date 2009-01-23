@@ -1,14 +1,14 @@
-/* $Id: optimN_mex.c 1128 2008-02-01 12:27:39Z john $ */
+/* $Id: optimN_mex.c 2644 2009-01-23 13:01:50Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
 #include <math.h>
 #include "optimN.h"
 
-void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    const int *dmp;
-    int nd, i, dm[4];
+    int nd, i;
+     int dm[4];
     int   cyc=1, nit=1, rtype=0;
     float *A, *b, *x, *scratch;
     static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
@@ -65,7 +65,7 @@ void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for(i=0; i<dm[3]; i++)
             scal[i] = 1.0;
     }
-    plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
+    plhs[0] = mxCreateNumericArray(4,(unsigned int *)dm, mxSINGLE_CLASS, mxREAL);
 
     A       = (float *)mxGetPr(prhs[0]);
     b       = (float *)mxGetPr(prhs[1]);
@@ -75,9 +75,10 @@ void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mxFree((void *)scratch);
 }
 
-void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    int nd, i, dm[4];
+    int nd, i;
+     int dm[4];
     int rtype = 0;
     static double param[] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
     double scal[256];
@@ -119,7 +120,7 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
             scal[i] = 1.0;
     }
  
-    plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
+    plhs[0] = mxCreateNumericArray(nd, (unsigned int *)dm, mxSINGLE_CLASS, mxREAL);
 
     if (rtype==1)
         LtLf_me((int *)dm, (float *)mxGetPr(prhs[0]), param, scal, (float *)mxGetPr(plhs[0]));

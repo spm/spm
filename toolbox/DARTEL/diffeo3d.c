@@ -1,10 +1,11 @@
-/* $Id: diffeo3d.c 2479 2008-11-19 16:16:51Z guillaume $ */
+/* %Id$ */
 /* (c) John Ashburner (2007) */
 
 #include <mex.h>
 #include <math.h>
 #include <stdio.h>
 #include "optimizer3d.h"
+extern double floor(double x);
 extern double   log(double x);
 extern double   exp(double x);
 #define LOG(x) (((x)>0) ? log(x+0.001): -6.9078)
@@ -969,8 +970,133 @@ void pushc(int dm[], int m, int n, float def[], float pf[], float po[], float so
     }
 }
 
+/* Similar to above, except with a multiplication by the inverse of the Jacobians.
+   This is used for geodesic shooting */
+void pushc_grads(int dm[], int m, float def[], float J[], float pf[], float po[])
+{
+    int   ix, iy, iz, ix1, iy1, iz1, i, j, mm;
+    int   tmpz, tmpy;
+    float *px, *py, *pz;
+    float *pj11, *pj12, *pj13, *pj21, *pj22, *pj23, *pj31, *pj32, *pj33;
+    double dx1, dx2, dy1, dy2, dz1, dz2;
 
-int pow2(int k)
+    px = def;
+    py = def+m;
+    pz = def+m*2;
+    mm = dm[0]*dm[1]*dm[2];
+
+    pj11 = J;
+    pj21 = J+m;
+    pj31 = J+m*2;
+    pj12 = J+m*3;
+    pj22 = J+m*4;
+    pj32 = J+m*5;
+    pj13 = J+m*6;
+    pj23 = J+m*7;
+    pj33 = J+m*8;
+
+    for(i=0; i<m; i++)
+    {
+        double x, y, z;
+
+        if (mxIsFinite(pf[i]))
+        {
+            int   o000, o100, o010, o110, o001, o101, o011, o111;
+            float w000, w100, w010, w110, w001, w101, w011, w111;
+            float j11, j12, j13, j21, j22, j23, j31, j32, j33;
+            float ij11, ij12, ij13, ij21, ij22, ij23, ij31, ij32, ij33, dj;
+            float rf[3], f1, f2, f3;
+
+            x    = px[i]-1.0; /* Subtract 1 because of MATLAB indexing */
+            y    = py[i]-1.0;
+            z    = pz[i]-1.0;
+
+            j11  = pj11[i]; j12  = pj12[i]; j13  = pj13[i];
+            j21  = pj21[i]; j22  = pj22[i]; j23  = pj23[i];
+            j31  = pj31[i]; j32  = pj32[i]; j33  = pj33[i];
+
+            ij11 = j22*j33-j23*j32;
+            ij12 = j13*j32-j12*j33;
+            ij13 = j12*j23-j13*j22;
+            dj   = j11*ij11 + j21*ij12 + j31*ij13;
+            if (dj<0.01) dj = 0.01;
+            dj   = 1.0/dj;
+
+            ij11*= dj;
+            ij12*= dj;
+            ij13*= dj;
+            ij21 = (j23*j31-j21*j33)*dj;
+            ij22 = (j11*j33-j13*j31)*dj;
+            ij23 = (j13*j21-j11*j23)*dj;
+            ij31 = (j21*j32-j22*j31)*dj;
+            ij32 = (j12*j31-j11*j32)*dj;
+            ij33 = (j11*j22-j12*j21)*dj;
+
+            f1 = pf[i];
+            f2 = pf[i+m];
+            f3 = pf[i+m*2];
+
+            rf[0] = ij11*f1 + ij21*f2 + ij31*f3;
+            rf[1] = ij12*f1 + ij22*f2 + ij32*f3;
+            rf[2] = ij13*f1 + ij23*f2 + ij33*f3;
+
+            ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+            iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+            iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+
+            /* Weights for trilinear interpolation */
+            w000 = dx2*dy2*dz2;
+            w100 = dx1*dy2*dz2;
+            w010 = dx2*dy1*dz2;
+            w110 = dx1*dy1*dz2;
+            w001 = dx2*dy2*dz1;
+            w101 = dx1*dy2*dz1;
+            w011 = dx2*dy1*dz1;
+            w111 = dx1*dy1*dz1;
+
+            ix   = WRAP(ix, dm[0]);
+            iy   = WRAP(iy, dm[1]);
+            iz   = WRAP(iz, dm[2]);
+            ix1  = WRAP(ix+1, dm[0]);
+            iy1  = WRAP(iy+1, dm[1]);
+            iz1  = WRAP(iz+1, dm[2]);
+
+            /* Neighbouring voxels used for trilinear interpolation */
+            tmpz  = dm[1]*iz;
+            tmpy  = dm[0]*(iy + tmpz);
+            o000  = ix +tmpy;
+            o100  = ix1+tmpy;
+            tmpy  = dm[0]*(iy1 + tmpz);
+            o010  = ix +tmpy;
+            o110  = ix1+tmpy;
+            tmpz  = dm[1]*iz1;
+            tmpy  = dm[0]*(iy + tmpz);
+            o001  = ix +tmpy;
+            o101  = ix1+tmpy;
+            tmpy  = dm[0]*(iy1 + tmpz);
+            o011  = ix +tmpy;
+            o111  = ix1+tmpy;
+
+            for (j=0; j<3; j++)
+            {
+                /* Increment the images themselves */
+                float *pj = po+mm*j;
+                float  f  = rf[j];
+                pj[o000] += f*w000;
+                pj[o100] += f*w100;
+                pj[o010] += f*w010;
+                pj[o110] += f*w110;
+                pj[o001] += f*w001;
+                pj[o101] += f*w101;
+                pj[o011] += f*w011;
+                pj[o111] += f*w111;
+            }
+        }
+    }
+}
+
+
+static int pow2(int k)
 {
     int j0, td = 1;
     for(j0=0; j0<k; j0++)
@@ -981,7 +1107,7 @@ int pow2(int k)
 /*
  * t0 = Id + v0*sc
  */
-void smalldef(int dm[], double sc, float v0[], float t0[])
+static void smalldef(int dm[], double sc, float v0[], float t0[])
 {
     int j0, j1, j2;
     int m = dm[0]*dm[1]*dm[2];
@@ -1006,7 +1132,7 @@ void smalldef(int dm[], double sc, float v0[], float t0[])
  * t0 = Id + v0*sc
  * J0 = Id + I+diag(v0)*sc
  */
-void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[])
+static void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[])
 {
     int j0, j1, j2;
     int m = dm[0]*dm[1]*dm[2];
@@ -1093,11 +1219,56 @@ void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[])
     }
 }
 
+/* Minimum and maximum of the divergence */
+void minmax_div(int dm[], float v0[], double mnmx[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    float *v1 = v0+m, *v2 = v1+m;
+    float div, maxdiv = -1e32, mindiv = 1e32;
+
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        int j2m1, j2p1;
+        j2m1 = WRAP(j2-1,dm[2]);
+        j2p1 = WRAP(j2+1,dm[2]);
+
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            int j1m1, j1p1;
+            j1m1 = WRAP(j1-1,dm[1]);
+            j1p1 = WRAP(j1+1,dm[1]);
+
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                int om1, op1;
+
+                om1 = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                div = v0[op1]-v0[om1];
+
+                om1 = j0+dm[0]*(j1m1+dm[1]*j2);
+                op1 = j0+dm[0]*(j1p1+dm[1]*j2);
+                div+= v1[op1]-v1[om1];
+
+                om1 = j0+dm[0]*(j1+dm[1]*j2m1);
+                op1 = j0+dm[0]*(j1+dm[1]*j2p1);
+                div+= v2[op1]-v2[om1];
+
+                if (div<mindiv) mindiv = div;
+                if (div>maxdiv) maxdiv = div;
+            }
+        }
+    }
+    mnmx[0] = (double)mindiv;
+    mnmx[1] = (double)maxdiv;
+}
+
 /*
  * t0 = Id + v0*sc
  * J0 = Id + |I+diag(v0)*sc|
  */
-void smalldef_jacdet(int dm[], double sc, float v0[], float t0[], float J0[])
+static void smalldef_jacdet(int dm[], double sc, float v0[], float t0[], float J0[])
 {
     int j0, j1, j2;
     int m = dm[0]*dm[1]*dm[2];
@@ -1154,9 +1325,26 @@ void smalldef_jacdet(int dm[], double sc, float v0[], float t0[], float J0[])
 }
 
 /*
+ * Jacobian determinant field
+ */
+void determinant(int dm[], float J0[], float d[])
+{
+    int m = dm[0]*dm[1]*dm[2];
+    int j;
+    double j00, j01, j02, j10, j11, j12, j20, j21, j22;
+    for(j=0; j<m; j++)
+    {
+        j00  = J0[j    ]; j01 = J0[j+m*3]; j02 = J0[j+m*6];
+        j10  = J0[j+m  ]; j11 = J0[j+m*4]; j12 = J0[j+m*7];
+        j20  = J0[j+m*2]; j21 = J0[j+m*5]; j22 = J0[j+m*8];
+        d[j] = j00*(j11*j22-j12*j21)+j10*(j02*j21-j01*j22)+j20*(j01*j12-j02*j11);
+    }
+}
+
+/*
  * J0 := J0*inv(I+diag(v0)*sc)
  */
-void jac_div_smalldef(int dm[], double sc, float v0[], float J0[])
+static void jac_div_smalldef(int dm[], double sc, float v0[], float J0[])
 {
     int j0, j1, j2;
     int m = dm[0]*dm[1]*dm[2];
@@ -1328,7 +1516,7 @@ void expdefdet(int dm[], int k, double sc, float v[], float t0[], float t1[], fl
 }
 
 
-double smalldef_objfun_mn(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
+static double smalldef_objfun_mn(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
     int j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
@@ -1496,7 +1684,7 @@ double smalldef_objfun_mn(int dm[], float f[], float g[], float v[], float jd[],
     return(ssl);
 }
 
-double smalldef_objfun2(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
+static double smalldef_objfun2(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
     int j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
@@ -1616,7 +1804,7 @@ double smalldef_objfun2(int dm[], float f[], float g[], float v[], float jd[], d
     return(0.5*ssl);
 }
 
-double smalldef_objfun(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
+static double smalldef_objfun(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
     int j,j0,j1,j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
@@ -1690,7 +1878,7 @@ double smalldef_objfun(int dm[], float f[], float g[], float v[], float jd[], do
     return(0.5*ssl);
 }
 
-double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
+static double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
     int j, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
@@ -1861,10 +2049,10 @@ double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0
     return(ssl);
 }
 
-double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
+static double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
     int j, m = dm[0]*dm[1]*dm[2];
-    double ssl = 0.0, dt = 1.0;
+    double ssl = 0.0;
     
     for(j=0; j<m; j++)
     {
@@ -1981,7 +2169,7 @@ double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[]
     return(0.5*ssl);
 }
 
-double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
+static double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
     int j, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0, dt = 1.0;
@@ -2057,7 +2245,7 @@ double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[],
 }
 
 
-void squaring(int dm[], int k, int save_transf, float b[], float A[], float t0[], float t1[], float J0[], float J1[])
+static void squaring(int dm[], int k, int save_transf, float b[], float A[], float t0[], float t1[], float J0[], float J1[])
 {
     int i, j, m = dm[0]*dm[1]*dm[2];
     float *ptr = t0;

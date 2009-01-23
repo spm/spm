@@ -1,4 +1,4 @@
-/* $Id: diffeo2d.c 2479 2008-11-19 16:16:51Z guillaume $ */
+/* %Id$ */
 /* (c) John Ashburner (2007) */
 
 #include <math.h>
@@ -6,6 +6,8 @@
 #include "optimizer2d.h"
 
 #define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
+
+extern double floor();
 
 void bracket(int dm[], double *A, double *B, double *C)
 {

@@ -1,4 +1,4 @@
-/* $Id: optimizer3d.c 1354 2008-04-10 10:49:50Z john $ */
+/* $Id: optimizer3d.c 2644 2009-01-23 13:01:50Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -29,6 +29,204 @@ extern double log(double x);
 #   define BOUND(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
 #endif
 
+static double sumsq_le_noa(int dm[], float b[], double s[], float u[])
+{
+    double ss = 0.0;
+    int k;
+    double mu = s[3], lam = s[4], id = s[5];
+    double wx0, wx1, wx2, wy0, wy1, wy2, wz0, wz1, wz2, wxy, wxz, wyz;
+
+    wx0 = 2*mu*(s[1]*s[1]+s[2]*s[2])+(4*mu+2*lam)*s[0]*s[0] + id;
+    wy0 = 2*mu*(s[0]*s[0]+s[2]*s[2])+(4*mu+2*lam)*s[1]*s[1] + id;
+    wz0 = 2*mu*(s[0]*s[0]+s[1]*s[1])+(4*mu+2*lam)*s[2]*s[2] + id;
+
+    wx1 = -(2*mu+lam)*s[0]*s[0];
+    wy1 = -(2*mu+lam)*s[1]*s[1];
+    wz1 = -(2*mu+lam)*s[2]*s[2];
+
+    wx2 = -mu*s[0]*s[0];
+    wy2 = -mu*s[1]*s[1];
+    wz2 = -mu*s[2]*s[2];
+
+    wxy = 0.25*(lam+mu)*s[0]*s[1];
+    wxz = 0.25*(lam+mu)*s[0]*s[2];
+    wyz = 0.25*(lam+mu)*s[1]*s[2];
+
+    for(k=0; k<dm[2]; k++)
+    {
+        int j, km1,kp1;
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+
+        for(j=0; j<dm[1]; j++)
+        {
+            float *pux, *puy, *puz, *pbx, *pby, *pbz;
+            int i, jm1,jp1;
+
+            pux  = u+dm[0]*(j+dm[1]*k);
+            puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
+            puz  = u+dm[0]*(j+dm[1]*(k+dm[2]*2));
+            pbx  = b+dm[0]*(j+dm[1]*k);
+            pby  = b+dm[0]*(j+dm[1]*(k+dm[2]));
+            pbz  = b+dm[0]*(j+dm[1]*(k+dm[2]*2));
+
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+
+            for(i=0; i<dm[0]; i++)
+            {
+                int im1,ip1;
+                float *px = pux+i, *py = puy+i, *pz = puz+i;
+                double tmp;
+
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
+
+                tmp =  wx0*px[0]
+                     + wx1*(px[ip1] + px[im1])
+                     + wy2*(px[jp1] + px[jm1])
+                     + wz2*(px[kp1] + px[km1])
+                     + wxy*(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1])
+                     + wxz*(pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
+                     - pbx[i];
+                ss += tmp*tmp;
+
+                tmp =  wy0*py[0]
+                     + wx2*(py[ip1] + py[im1])
+                     + wy1*(py[jp1] + py[jm1])
+                     + wz2*(py[kp1] + py[km1])
+                     + wxy*(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1])
+                     + wyz*(pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
+                     - pby[i];
+                ss += tmp*tmp;
+
+                tmp =  wz0*pz[0]
+                     + wx2*(pz[ip1] + pz[im1])
+                     + wy2*(pz[jp1] + pz[jm1])
+                     + wz1*(pz[kp1] + pz[km1])
+                     + wxz*(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1])
+                     + wyz*(py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
+                     - pbz[i];
+                ss += tmp*tmp;
+
+            }
+        }
+    }
+    return(ss);
+}
+
+static void relax_le_noa(int dm[], float b[], double s[], int nit, float u[])
+{
+    int it;
+    double regx, regy, regz;
+    double mu = s[3], lam = s[4], id = s[5];
+    double wx0, wx1, wx2, wy0, wy1, wy2, wz0, wz1, wz2, wxy, wxz, wyz;
+
+    wx0 = 2*mu*(s[1]*s[1]+s[2]*s[2])+(4*mu+2*lam)*s[0]*s[0] + id;
+    wy0 = 2*mu*(s[0]*s[0]+s[2]*s[2])+(4*mu+2*lam)*s[1]*s[1] + id;
+    wz0 = 2*mu*(s[0]*s[0]+s[1]*s[1])+(4*mu+2*lam)*s[2]*s[2] + id;
+
+    wx1 = -(2*mu+lam)*s[0]*s[0];
+    wy1 = -(2*mu+lam)*s[1]*s[1];
+    wz1 = -(2*mu+lam)*s[2]*s[2];
+
+    wx2 = -mu*s[0]*s[0];
+    wy2 = -mu*s[1]*s[1];
+    wz2 = -mu*s[2]*s[2];
+
+    wxy = 0.25*(lam+mu)*s[0]*s[1];
+    wxz = 0.25*(lam+mu)*s[0]*s[2];
+    wyz = 0.25*(lam+mu)*s[1]*s[2];
+
+    /* For stability in Gauss-Seidel relaxation, the magnitude of the diagonal element must
+       exceed the sum of the magnitudes of the off diagonal elements of each column or row
+       (see e.g. http://www.mathpages.com/home/kmath175/kmath175.htm).
+       This should stabilise the relaxation, providing the second derives are positive definite. */
+    regx = (4.0*(wxy+wxz)-2.0*(wx1+wy2+wz2)) - wx0; if (regx<0.0) regx = 0.0; regx += wx0;
+    regy = (4.0*(wxy+wyz)-2.0*(wx2+wy1+wz2)) - wy0; if (regy<0.0) regy = 0.0; regy += wy0;
+    regz = (4.0*(wxz+wyz)-2.0*(wx2+wy2+wz1)) - wz0; if (regz<0.0) regz = 0.0; regz += wz0;
+
+#   ifdef VERBOSE
+        for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
+        printf("%dx%dx%d (%g,%g,%g): ", dm[0],dm[1],dm[2], regx,regy,regz);
+#   endif
+
+    for(it=0; it<2*nit; it++)
+    {
+        int k, kstart;
+        /* double ss = 0.0; */
+        kstart = it%2;
+        for(k=0; k<dm[2]; k++)
+        {
+            int j, jstart, km1, kp1;
+            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+
+            jstart = (kstart==(k%2));
+            for(j=0; j<dm[1]; j++)
+            {
+                float *pux, *puy, *puz, *pbx, *pby, *pbz;
+                int i, istart, jm1,jp1;
+
+                pux  = u+dm[0]*(j+dm[1]* k);
+                puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
+                puz  = u+dm[0]*(j+dm[1]*(k+dm[2]*2));
+                pbx  = b+dm[0]*(j+dm[1]* k);
+                pby  = b+dm[0]*(j+dm[1]*(k+dm[2]));
+                pbz  = b+dm[0]*(j+dm[1]*(k+dm[2]*2));
+
+                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+
+                istart = (jstart==(j%2));
+                for(i=istart; i<dm[0]; i+=2)
+                {
+                    int im1,ip1;
+                    float *px = pux+i, *py = puy+i, *pz = puz+i;
+
+                    im1 = BOUND(i-1,dm[0])-i;
+                    ip1 = BOUND(i+1,dm[0])-i;
+
+                    *px +=(pbx[i] - (wx0*px[0]
+                                   + wx1*(px[ip1] + px[im1])
+                                   + wy2*(px[jp1] + px[jm1])
+                                   + wz2*(px[kp1] + px[km1])
+                                   + wxy*(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1])
+                                   + wxz*(pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])))/regx;;
+
+                    *py +=(pby[i] - (wy0*py[0]
+                                   + wx2*(py[ip1] + py[im1])
+                                   + wy1*(py[jp1] + py[jm1])
+                                   + wz2*(py[kp1] + py[km1])
+                                   + wxy*(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1])
+                                   + wyz*(pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])))/regy;
+
+                    *pz +=(pbz[i] - (wz0*pz[0]
+                                   + wx2*(pz[ip1] + pz[im1])
+                                   + wy2*(pz[jp1] + pz[jm1])
+                                   + wz1*(pz[kp1] + pz[km1])
+                                   + wxz*(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1])
+                                   + wyz*(py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])))/regz;
+                }
+            }
+        }
+
+#       ifdef VERBOSE
+            printf(" %g", sumsq_le_noa(dm, b, s, u));
+#       endif
+    }
+#   ifdef VERBOSE
+        printf("\n");
+#   endif
+}
+
+static void solve33_noa(float b[], double t, float u[])
+{
+    u[0] = b[0]/t;
+    u[1] = b[1]/t;
+    u[2] = b[2]/t;
+}
+
 static void Atimesp1(int dm[], float A[], float p[], float Ap[])
 {
     int i, m = dm[0]*dm[1]*dm[2];
@@ -45,7 +243,7 @@ static void Atimesp1(int dm[], float A[], float p[], float Ap[])
     }
 }
 
-double sumsq_le(int dm[], float a[], float b[], double s[], float u[])
+static double sumsq_le(int dm[], float a[], float b[], double s[], float u[])
 {
     double ss = 0.0;
     int k;
@@ -349,7 +547,7 @@ static void Atimesp_le(int dm[], float A[], double param[], float p[], float Ap[
 }
 
 
-double sumsq_me(int dm[], float a[], float b[], double s[], float u[])
+static double sumsq_me(int dm[], float a[], float b[], double s[], float u[])
 {
     double w000, w001, w010, w100;
     double ss = 0.0;
@@ -563,7 +761,7 @@ static void Atimesp_me(int dm[], float A[], double param[], float p[], float Ap[
     Atimesp1(dm, A, p, Ap);
 }
 
-double sumsq_be(int dm[], float a[], float b[], double s[], float u[])
+static double sumsq_be(int dm[], float a[], float b[], double s[], float u[])
 {
     double w000,w100,w200,
            w010,w110,
@@ -1149,7 +1347,7 @@ static double wt2(double x)
         return(0.0);
 }
 
-static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
+static void resized_plane(int na[], float *a,  int nc[], float *c, float *b)
 {
     int i, j, o,om,op;
     double loc, s, w, wm, wp;
@@ -1188,7 +1386,7 @@ static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
     }
 }
 
-void resize(int na[], float *a, int nc[], float *c, float *b)
+void resize(int na[], float *a,  int nc[], float *c, float *b)
 {
     int j, k, o=-999999,om,op, m, oo;
     double loc, s, w, wm, wp;
@@ -1253,7 +1451,7 @@ static void rescale(int n, float *a, double s)
         a[i] *= s;
 }
 
-static void restrict(int n, int na[], float *a, int nc[], float *c, float *b)
+static void restrict(int n,  int na[], float *a,  int nc[], float *c, float *b)
 {
     int i;
     for(i=0; i<n; i++)
@@ -1262,7 +1460,7 @@ static void restrict(int n, int na[], float *a, int nc[], float *c, float *b)
     }
 }
 
-static void prolong(int n, int na[], float *a, int nc[], float *c, float *b)
+static void prolong(int n,  int na[], float *a,  int nc[], float *c, float *b)
 {
     int i;
     for(i=0; i<n; i++)
@@ -1319,7 +1517,7 @@ void fmg3(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int
           float *u0, float *scratch)
 {
     int i, j, ng, bs;
-    int    n[32][3], m[32];
+     int n[32][3], m[32];
     float *bo[32], *a[32], *b[32], *u[32], *res, *rbuf;
     double param[32][6];
     void (*relax)(), (*Atimesp)();
@@ -1405,17 +1603,49 @@ void fmg3(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int
         param[j][5] = param[0][5];
     }
 
-    solve33(a[ng-1], bo[ng-1], param0[5], u[ng-1]);
+    if (u[0][0]==0)
+    {
+     /* solve33(a[ng-1], bo[ng-1], param0[5], u[ng-1]); */
+        relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
 
-    for(j=ng-2; j>=0; j--)
+        for(j=ng-2; j>=0; j--)
+        {
+            int jc;
+            prolong(3,n[j+1],u[j+1],n[j],u[j],rbuf);
+            if(j>0) copy(3*m[j],bo[j],b[j]);
+            for(jc=0; jc<c; jc++)
+            {
+                int jj;
+                for(jj=j; jj<ng-1; jj++)
+                {
+                    relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
+                    Atimesp(n[jj], a[jj], param[jj], u[jj], res);
+                    for(i=0; i<3*m[jj]; i++)
+                        res[i] = b[jj][i] - res[i];
+                    restrict(3,n[jj],res,n[jj+1],b[jj+1],rbuf);
+                    zeros(3*m[jj+1],u[jj+1]);
+                }
+             /* solve33(a[ng-1], b[ng-1], param0[5], u[ng-1]); */
+                relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
+                for(jj=ng-2; jj>=j; jj--)
+                {
+                    prolong(3,n[jj+1],u[jj+1],n[jj],res,rbuf);
+                    addto(3*m[jj], u[jj], res);
+                    relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
+                }
+            }
+        }
+    }
+    else
     {
         int jc;
-        prolong(3,n[j+1],u[j+1],n[j],u[j],rbuf);
-        if(j>0) copy(3*m[j],bo[j],b[j]);
+        for(j=1; j<ng; j++)
+            restrict(3,n[j-1],u[j-1],n[j],u[j],rbuf);
+
         for(jc=0; jc<c; jc++)
         {
             int jj;
-            for(jj=j; jj<ng-1; jj++)
+            for(jj=0; jj<ng-1; jj++)
             {
                 relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
                 Atimesp(n[jj], a[jj], param[jj], u[jj], res);
@@ -1424,8 +1654,10 @@ void fmg3(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int
                 restrict(3,n[jj],res,n[jj+1],b[jj+1],rbuf);
                 zeros(3*m[jj+1],u[jj+1]);
             }
-            solve33(a[ng-1], b[ng-1], param0[5], u[ng-1]);
-            for(jj=ng-2; jj>=j; jj--)
+         /* solve33(a[ng-1], b[ng-1], param0[5], u[ng-1]); */
+            relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
+
+            for(jj=ng-2; jj>=0; jj--)
             {
                 prolong(3,n[jj+1],u[jj+1],n[jj],res,rbuf);
                 addto(3*m[jj], u[jj], res);
@@ -1434,5 +1666,165 @@ void fmg3(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int
         }
     }
     /* printf("end=%g\n", sumsq(n0, a0, b0, param[0], u0)); */
+}
+
+int fmg3_scratchsize_noa(int n0[])
+{
+    int    n[32][3], m[32], bs, j;
+    bs = 0;
+    n[0][0] = n0[0];
+    n[0][1] = n0[1];
+    n[0][2] = n0[2];
+
+    for(j=1; j<16; j++)
+    {
+        n[j][0] = ceil(n[j-1][0]/2.0);
+        n[j][1] = ceil(n[j-1][1]/2.0);
+        n[j][2] = ceil(n[j-1][2]/2.0);
+        m[j]    = n[j][0]*n[j][1]*n[j][2];
+        bs += m[j];
+        if ((n[j][0]<2) && (n[j][1]<2) && (n[j][2]<2))
+            break;
+    }
+    return((3*n0[0]*n0[1]*n0[2] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + 9*bs));
+}
+
+/*
+    Full Multigrid solver.  See Numerical Recipes (second edition) for more
+    information
+*/
+void fmg3_noa(int n0[], float *b0, int rtype, double param0[], int c, int nit,
+          float *u0, float *scratch)
+{
+    int i, j, ng, bs;
+     int n[32][3], m[32];
+    float *bo[32], *b[32], *u[32], *res, *rbuf;
+    double param[32][6];
+    void (*relax)(), (*LtLf)();
+    double (*sumsq)();
+
+    if (rtype == 0)
+    {
+        relax = relax_le_noa;
+        LtLf  = LtLf_le;
+        sumsq = sumsq_le_noa;
+    }
+    else
+        return;
+
+    bo[0]   = b0;
+    b[0]    = b0;
+    u[0]    = u0;
+    n[0][0] = n0[0];
+    n[0][1] = n0[1];
+    n[0][2] = n0[2];
+    m[0]    = n0[0]*n0[1]*n0[2];
+    param[0][0] = param0[0];
+    param[0][1] = param0[1];
+    param[0][2] = param0[2];
+    param[0][3] = param0[3];
+    param[0][4] = param0[4];
+    param[0][5] = param0[5];
+
+    ng = 1;
+    bs = 0;
+    for(j=1; j<16; j++)
+    {
+        n[j][0] = ceil(n[j-1][0]/2.0);
+        n[j][1] = ceil(n[j-1][1]/2.0);
+        n[j][2] = ceil(n[j-1][2]/2.0);
+        m[j]    = n[j][0]*n[j][1]*n[j][2];
+        ng ++;
+        bs += m[j];
+        if ((n[j][0]<2) && (n[j][1]<2) && (n[j][2]<2))
+            break;
+    }
+
+    res    = scratch;
+    rbuf   = scratch + 3*m[0];
+    bo[1]  = scratch + 3*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1];
+    b[1]   = scratch + 3*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + 3*bs;
+    u[1]   = scratch + 3*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + 6*bs;
+
+    for(j=2; j<ng; j++)
+    {
+        bo[j] = bo[j-1]+3*m[j-1];
+        b[j]  =  b[j-1]+3*m[j-1];
+        u[j]  =  u[j-1]+3*m[j-1];
+    }
+
+    for(j=1; j<ng; j++)
+    {
+        restrict(3,n[j-1],bo[j-1],n[j],bo[j],rbuf);
+
+        param[j][0] = param0[0]*(double)n[j][0]/n0[0];
+        param[j][1] = param0[1]*(double)n[j][1]/n0[1];
+        param[j][2] = param0[2]*(double)n[j][2]/n0[2];
+        param[j][3] = param[0][3];
+        param[j][4] = param[0][4];
+        param[j][5] = param[0][5];
+    }
+
+    if (u[0][0]==0)
+    {
+     /* solve33_noa(bo[ng-1], param0[5], u[ng-1]); */
+        relax(n[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
+
+        for(j=ng-2; j>=0; j--)
+        {
+            int jc;
+            prolong(3,n[j+1],u[j+1],n[j],u[j],rbuf);
+            if(j>0) copy(3*m[j],bo[j],b[j]);
+            for(jc=0; jc<c; jc++)
+            {
+                int jj;
+                for(jj=j; jj<ng-1; jj++)
+                {
+                    relax(n[jj], b[jj], param[jj], nit, u[jj]);
+                    LtLf(n[jj], u[jj], param[jj], res);
+                    for(i=0; i<3*m[jj]; i++)
+                        res[i] = b[jj][i] - res[i];
+                    restrict(3,n[jj],res,n[jj+1],b[jj+1],rbuf);
+                    zeros(3*m[jj+1],u[jj+1]);
+                }
+             /* solve33_noa(b[ng-1], param0[5], u[ng-1]); */
+                relax(n[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
+                for(jj=ng-2; jj>=j; jj--)
+                {
+                    prolong(3,n[jj+1],u[jj+1],n[jj],res,rbuf);
+                    addto(3*m[jj], u[jj], res);
+                    relax(n[jj], b[jj], param[jj], nit, u[jj]);
+                }
+            }
+        }
+    }
+    else
+    {
+        int jc;
+        for(j=1; j<ng; j++)
+            restrict(3,n[j-1],u[j-1],n[j],u[j],rbuf);
+
+        for(jc=0; jc<c; jc++)
+        {
+            int jj;
+            for(jj=0; jj<ng-1; jj++)
+            {
+                relax(n[jj], b[jj], param[jj], nit, u[jj]);
+                LtLf(n[jj], u[jj], param[jj], res);
+                for(i=0; i<3*m[jj]; i++)
+                    res[i] = b[jj][i] - res[i];
+                restrict(3,n[jj],res,n[jj+1],b[jj+1],rbuf);
+                zeros(3*m[jj+1],u[jj+1]);
+            }
+         /* solve33_noa(b[ng-1], param0[5], u[ng-1]); */
+            relax(n[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]);
+            for(jj=ng-2; jj>=0; jj--)
+            {
+                prolong(3,n[jj+1],u[jj+1],n[jj],res,rbuf);
+                addto(3*m[jj], u[jj], res);
+                relax(n[jj], b[jj], param[jj], nit, u[jj]);
+            }
+        }
+    }
 }
 

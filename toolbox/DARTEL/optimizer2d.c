@@ -1,4 +1,4 @@
-/* $Id: optimizer2d.c 964 2007-10-19 16:35:34Z john $ */
+/* $Id: optimizer2d.c 2644 2009-01-23 13:01:50Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -850,13 +850,6 @@ void resize(int na[], double *a, int nc[], double *c, double *b)
         for(bp=b, cp=c+i, ap=bp+na[0]*nc[1]; bp<ap; bp+=na[0], cp+=nc[0])
             *cp = wm*bp[om]+w*bp[o]+wp*bp[op];
     }
-}
-
-static void rescale(int n, double *a, double s)
-{
-    int i;
-    for(i=0; i<n; i++)
-        a[i] *= s;
 }
 
 static void restrict(int n, int na[], double *a, int nc[], double *c, double *b)

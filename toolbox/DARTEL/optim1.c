@@ -1,11 +1,11 @@
-/* $Id: optim1.c 2461 2008-11-12 12:58:16Z guillaume $ */
+/* $Id: optim1.c 2644 2009-01-23 13:01:50Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
 #include "mex.h"
 #include "optim1.h"
 #define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
-extern double sqrt(double x), log(double x);
+extern double sqrt(double x), floor(double x), log(double x);
 
 static void Atimesp1(int dm[], double A[], double p[], double Ap[])
 {
