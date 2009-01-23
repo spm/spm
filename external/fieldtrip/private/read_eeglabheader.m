@@ -30,6 +30,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabheader.m,v $
+% Revision 1.2  2009/01/23 15:35:46  roboos
+% create default channel names if EEG.chanlocs.labels is missing
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -63,7 +66,14 @@ header.nChans      = EEG.nbchan;
 header.nSamples    = EEG.pnts;
 header.nSamplesPre = -EEG.xmin*EEG.srate;
 header.nTrials     = EEG.trials;
-header.label       = { EEG.chanlocs.labels }';
+try
+  header.label       = { EEG.chanlocs.labels }';
+catch
+  warning('creating default channel names');
+  for i=1:header.nSamples
+    header.label{i} = sprintf('chan%03d', i);
+  end
+end
 for ind = 1:length( EEG.chanlocs )
   header.elec.label{ind} = EEG.chanlocs(ind).labels;
   if ~isempty(EEG.chanlocs(ind).X)

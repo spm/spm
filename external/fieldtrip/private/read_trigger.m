@@ -18,6 +18,12 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.4  2009/01/23 16:18:15  roboos
+% changed indentation
+%
+% Revision 1.3  2009/01/23 12:22:15  vlalit
+% A fix to avoid an 'almost infinite' loop in case of noisy event channels.
+%
 % Revision 1.2  2009/01/23 10:32:55  vlalit
 % New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
 %
@@ -57,11 +63,11 @@ begsample   = keyval('begsample',   varargin);
 endsample   = keyval('endsample',   varargin);
 chanindx    = keyval('chanindx',    varargin);
 detectflank = keyval('detectflank', varargin);
+denoise     = keyval('denoise',     varargin); if isempty(denoise),     denoise = 1;      end
 trigshift   = keyval('trigshift',   varargin); if isempty(trigshift),   trigshift = 0;    end
 trigpadding = keyval('trigpadding', varargin); if isempty(trigpadding), trigpadding = 1;  end
 fixctf      = keyval('fixctf',      varargin); if isempty(fixctf),      fixctf = 0;       end
 fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0;  end
-
 
 if isempty(begsample)
   begsample = 1;
@@ -74,6 +80,18 @@ end
 % read the trigger channel as raw data, can safely assume that it is continuous
 dat = read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
 
+% Detect situations where the channel value changes almost at every time
+% step which are likely to be noise
+if denoise
+  for i=1:length(chanindx)
+    if (sum(diff(find(diff(dat(i,:))~=0)) == 1)/length(dat(i,:))) > 0.8
+      warning(['trigger channel ' hdr.label{chanindx(i)} ' looks like noise and will be ignored']);
+      dat(i,:) = 0;
+    end
+  end
+end
+
+
 if fixctf
   % correct for reading the data as signed 32-bit integer, whereas it should be interpreted as an unsigned int
   dat(dat<0) = dat(dat<0) + 2^32;
@@ -82,20 +100,20 @@ end
 if fixneuromag
   % according to Joachim Gross, real events always have triggers > 5
   % this is probably to avoid the noisefloor
-  dat(dat<6) = 0;
+  dat(dat<5) = 0;
 end
 
 for i=1:length(chanindx)
   % process each trigger channel independently
   channel = hdr.label{chanindx(i)};
   trig    = dat(i,:);
-  
+
   if trigpadding
-      pad = trig(1);
+    pad = trig(1);
   else
-      pad = 0;
-  end 
-  
+    pad = 0;
+  end
+
   switch detectflank
     case 'up'
       % convert the trigger into an event with a value at a specific sample
