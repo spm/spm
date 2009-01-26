@@ -1,19 +1,19 @@
 function [data] = selectdata(varargin)
 
-%this function serves to concatenate the input data-structures along the
-%compatible dimensions and thus is a more general implementation of
-%appenddata, which only raw data. Moreover, it can be used to equate the
-%data of different conditions to match e.g. in channels time-axis etc
-%Moreover, it can be used as a generalization to ...average with 'keepindividual'
+% this function serves to concatenate the input data-structures along the
+% compatible dimensions and thus is a more general implementation of
+% appenddata, which only raw data. Moreover, it can be used to equate the
+% data of different conditions to match e.g. in channels time-axis etc
+% Moreover, it can be used as a generalization to ...average with 'keepindividual'
 %
-%Finally, this function serves to subselect regions-of-interest from the input data,
-%either or not averaging across the specified dimensions
-%supported input: -freq
+% Finally, this function serves to subselect regions-of-interest from the input data,
+% either or not averaging across the specified dimensions
+% supported input: -freq
 %                 -timelock (not yet)
 %                 -source   (not yet)
 %                 -volume   (not yet)
 %
-%supported options: -foilim
+% supported options: -foilim
 %                   -latency
 %                   -roi
 %                   -channel (FIXME this is also done by preprocessing?)
@@ -27,24 +27,29 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.4  2009/01/26 20:53:11  roboos
+% ensure that some options are true|false
+% changes some whitespace
+%
 % Revision 1.3  2009/01/12 17:05:58  roboos
 % fixed some whitespace
 %
 
-%check the input data and options
+% check the input data and options
 isdata  = find(cellfun(@isstruct,varargin));
 keyvals = setdiff(1:length(varargin),isdata);
 
 data = varargin(isdata);
 kvp  = varargin(keyvals);
 for k = 1:length(data)
-  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source'});
+  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume'});
   [dtype{k}, dimord{k}]  = datatype(data{k});
 end
 
 if ~all(strcmp(dtype{1},dtype)),
   error('different types of input-data is not supported');
 end
+
 isfreq   = datatype(data{1},'freq');
 istlck   = datatype(data{1},'timelock');
 issource = datatype(data{1},'source');
@@ -57,11 +62,19 @@ selroi   = keyval('roi',     kvp); selectroi  = ~isempty(selroi);
 selrpt   = keyval('rpt',     kvp); selectrpt  = ~isempty(selrpt);
 param    = keyval('param',   kvp); if isempty(param), param = 'all'; end
 
-avgoverchan  = keyval('avgoverchan',  kvp);
-avgoverfreq  = keyval('avgoverfreq',  kvp);
-avgovertime  = keyval('avgovertime',  kvp);
-avgoverroi   = keyval('avgoverroi',   kvp);
-avgoverrpt   = keyval('avgoverrpt',   kvp);
+avgoverchan  = keyval('avgoverchan',  kvp); if isempty(avgoverchan), avgoverchan = false; end
+avgoverfreq  = keyval('avgoverfreq',  kvp); if isempty(avgoverfreq), avgoverchan = false; end
+avgovertime  = keyval('avgovertime',  kvp); if isempty(avgovertime), avgoverchan = false; end
+avgoverroi   = keyval('avgoverroi',   kvp); if isempty(avgoverroi),  avgoverroi  = false; end
+avgoverrpt   = keyval('avgoverrpt',   kvp); if isempty(avgoverrpt),  avgoverrpt  = false; end
+
+% create anonymous function and apply it to the boolean input arguments
+istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || x==1);
+avgoverchan = istrue(avgoverchan);
+avgoverfreq = istrue(avgoverfreq);
+avgovertime = istrue(avgovertime);
+avgoverroi  = istrue(avgoverroi);
+avgoverrpt  = istrue(avgoverrpt);
 
 if length(data)>1 && selectrpt,
   error('multiple data-structure and subselection of trials is not supported');
@@ -72,11 +85,15 @@ if any(~strmatch(dimord{1},dimord))
   error('inconsistent dimord');
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% from here on the data is concatenated
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if length(data)>1,
   % determine the way to concatenate
 
   if issource || isvolume,
-    param = parameterselection(param, data{1}); %FIXME check consistency across input data of presence of specific parameters
+    param = parameterselection(param, data{1}); % FIXME check consistency across input data of presence of specific parameters
   else
     param = {param};
   end
@@ -90,17 +107,17 @@ if length(data)>1,
     try,
       dimdat = getfield(data{1}, dimtok{k});
     catch
-      %dimtok is probably 'rpt' or so
+      % dimtok is probably 'rpt' or so
       dimdat = getsubfield(data{1}, param{1});
     end
     for m = 2:length(data)
       try,
         dimdat2 = getfield(data{m},dimtok{k});
       catch
-        %dimtok is probably 'rpt' or so
+        % dimtok is probably 'rpt' or so
         dimdat2 = getsubfield(data{m}, param{1});
       end
-      try, dimmat(k,m) = all(dimdat(:)==dimdat2(:)); catch end;
+      try, dimmat(k,m) = all(dimdat(:)==dimdat2(:));            catch end;
       try, dimmat(k,m) = all(cellfun(@isequal,dimdat,dimdat2)); catch end;
     end
   end
@@ -110,7 +127,7 @@ if length(data)>1,
     error('ambiguous dimensions for concatenation');
   end
 
-  %concatenate the data
+  % concatenate the data
   for k = 1:length(param)
     tmp = cell(1,length(data));
     for m = 1:length(tmp)
@@ -119,7 +136,7 @@ if length(data)>1,
     data{1} = setsubfield(data{1}, param{k}, cat(catdim,tmp{:}));
   end
 
-  %concatenate the relevant descriptive fields in the data-structure
+  % concatenate the relevant descriptive fields in the data-structure
   if ~strcmp(dimtok{catdim},'rpt') && ~strcmp(dimtok{catdim},'rpttap'),
     for k = 1:length(data)
       if k==1,
@@ -134,11 +151,11 @@ if length(data)>1,
     end
     data{1} = setsubfield(data{1}, dimtok{catdim}, tmp);
   else
-    %no such field as {'label','time','freq','pos'} has to be concatenated
+    % no such field as {'label','time','freq','pos'} has to be concatenated
     sortflag = 0;
   end
 
-  %concatenate the relevant descriptive fields in the data-structure (continued)
+  % concatenate the relevant descriptive fields in the data-structure (continued)
   tryfields = {'cumsumcnt' 'cumtapcnt' 'dof'};
   for k = 1:length(tryfields)
     try,
@@ -154,12 +171,12 @@ if length(data)>1,
     end
   end
 
-  %FIXME this is ugly: solve it
+  % FIXME this is ugly: solve it
   if issource || isvolume,
     data{1}.dim(catdim) = max(size(tmp));
   end
 
-  %sort concatenated data FIXME this is also ugly and depends on tmp
+  % sort concatenated data FIXME this is also ugly and depends on tmp
   if sortflag && ~iscell(tmp),
     [srt, ind] = sort(tmp, 2);
     data{1} = setsubfield(data{1}, dimtok{catdim}, tmp(ind));
@@ -173,23 +190,27 @@ if length(data)>1,
     %in this case (ugly!) tmp is probably a cell-array containing functional data
   end
 
-  %remove unspecified parameters
+  % remove unspecified parameters
   rmparam = setdiff(parameterselection('all',data{1}),param);
   for k = 1:length(rmparam)
     data{1} = rmsubfield(data{1}, rmparam{k});
   end
 
-  %keep the first structure only
+  % keep the first structure only
   data = data{1};
+
 else
-  %nothing to do
+  % nothing to do
   data = data{1};
 end
 
-%do subselection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% from here on a subset is selected from the data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if selectrpt,
   if ~isfreq,
-    %do nothing
+    % do nothing
   else
     dimtok = tokenize(data.dimord, '_');
     if strcmp(dimtok{1}, 'rpttap'),
@@ -197,13 +218,16 @@ if selectrpt,
     end
   end
 end
+
 if selectchan,
   selchan = match_str(data.label, channelselection(selchan, data.label));
 end
+
 if selectfoi,
   if length(selfoi)==1, selfoi(2) = selfoi; end;
   selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
 end
+
 if selecttime,
   if length(seltime)==1, seltime(2) = seltime; end;
   seltime = nearest(data.time, seltime(1)):nearest(data.time, seltime(2));
@@ -214,9 +238,9 @@ if isfreq,
   dimtok  = tokenize(data.dimord, '_');
   chandim = strmatch('chan', dimtok);
 
-  %hard-coded assumption is that the order in dimord is always chan first (could be 1 or 2), then freq, then time
+  % hard-coded assumption is that the order in dimord is always chan first (could be 1 or 2), then freq, then time
   if isfield(data, 'fourierspctrm')
-    if chandim==1, %FIXME this is actually impossible
+    if chandim==1, % FIXME this is actually impossible
       if selectchan, data.fourierspctrm = data.fourierspctrm(selchan,:,:); end
       if selectfoi,  data.fourierspctrm = data.fourierspctrm(:,selfoi,:);  end
       if selecttime, data.fourierspctrm = data.fourierspctrm(:,:,seltime); end
@@ -252,7 +276,7 @@ if isfreq,
     end
   end
 
-  if selectrpt,  data.cumtapcnt = data.cumtapcnt(selrpt); end %FIXME mtconvol
+  if selectrpt,  data.cumtapcnt = data.cumtapcnt(selrpt); end % FIXME mtconvol
   if selectchan, data.label     = data.label(selchan);    end
   if selectfoi,  data.freq      = data.freq(selfoi);      end
   if selecttime, data.time      = data.time(seltime);     end
@@ -276,20 +300,20 @@ elseif istlck,
   end
   if isfield(data, 'avg'),
     if selectrpt,  data     = rmfield(data, 'avg'); end;
-    if selectchan, data.avg = data.avg(selchan,:); end;
-    if selecttime, data.avg = data.avg(:,seltime); end;
+    if selectchan, data.avg = data.avg(selchan,:);  end;
+    if selecttime, data.avg = data.avg(:,seltime);  end;
   end
   if isfield(data, 'var'),
     if selectrpt,  data     = rmfield(data, 'var'); end;
-    if selectchan, data.var = data.var(selchan,:); end;
-    if selecttime, data.var = data.var(:,seltime); end;
+    if selectchan, data.var = data.var(selchan,:);  end;
+    if selecttime, data.var = data.var(:,seltime);  end;
   end
   if isfield(data, 'cov'),
     if hastrl,
       if selectrpt,  data.cov = data.cov(selrpt,:,:);        end;
       if selectchan, data.cov = data.cov(:,selchan,selchan); end;
     else
-      if selectchan, data.cov = data.cov(selchan,selchan); end;
+      if selectchan, data.cov = data.cov(selchan,selchan);   end;
     end
   end
   if isfield(data, 'blcov'),
@@ -297,7 +321,7 @@ elseif istlck,
       if selectrpt,  data.blcov = data.blcov(selrpt,:,:);        end;
       if selectchan, data.blcov = data.blcov(:,selchan,selchan); end;
     else
-      if selectchan, data.blcov = data.blcov(selchan,selchan); end;
+      if selectchan, data.blcov = data.blcov(selchan,selchan);   end;
     end
   end
   if selectrpt,
@@ -314,5 +338,8 @@ elseif istlck,
   end
 
 elseif issource,
+  error('this is not yet implemented');
+
 elseif isvolume,
+  error('this is not yet implemented');
 end

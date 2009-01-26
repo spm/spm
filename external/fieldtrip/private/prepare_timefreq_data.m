@@ -35,6 +35,10 @@ function [cfg, data] = prepare_timefreq_data(cfg, varargin);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: prepare_timefreq_data.m,v $
+% Revision 1.28  2009/01/26 12:44:38  marvger
+% added control condition when computing output.dof; computed
+% incorrectly for single trial data. probably needs a more elegant solution.
+%
 % Revision 1.27  2006/09/05 10:42:25  roboos
 % added fixdimord for backward compatibility with old data (toi->time etc)
 %
@@ -531,7 +535,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: prepare_timefreq_data.m,v 1.27 2006/09/05 10:42:25 roboos Exp $';
+cfg.version.id = '$Id: prepare_timefreq_data.m,v 1.28 2009/01/26 12:44:38 marvger Exp $';
 
 cfg.previous = [];
 % remember the configuration details from the input data
@@ -670,7 +674,7 @@ if ~(size(output.dat,1)==Nrepl && size(output.dat,2)==Nchan && size(output.dat,3
   end
 end
 
-if isfield(input,'dof')
+if isfield(input,'dof') && numel(input.dof)==Nrepl*Nfreq*Ntime
     output.dof=reshape(input.dof, Nrepl, Nfreq, Ntime);
 end;
 
