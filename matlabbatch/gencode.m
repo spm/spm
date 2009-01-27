@@ -43,9 +43,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 2165 2008-09-24 14:01:06Z volkmar $
+% $Id: gencode.m 2657 2009-01-27 16:24:01Z volkmar $
 
-rev = '$Rev: 2165 $'; %#ok
+rev = '$Rev: 2657 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
@@ -147,13 +147,12 @@ else
                 end
             end
         otherwise
-            if isobject(item)
+            if isobject(item) || ~(isnumeric(item) || islogical(item))
+                str = {sprintf('warning(''%s: No code generated for object of class %s.'')', tag, class(item))};
                 % Objects need to have their own gencode method implemented
-                cfg_message('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' must be implemented as object method.', class(item));
-            elseif ~(isnumeric(item) || islogical(item))
-                cfg_message('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' not implemented.', class(item));
-            end
-            if issparse(item)
+                cfg_message('matlabbatch:gencode:unknown', ...
+                            '%s: Code generation for objects of class ''%s'' must be implemented as object method.', tag, class(item));
+            elseif issparse(item)
                 % recreate sparse matrix from indices
                 [tmpi tmpj tmps] = find(item);
                 [stri tagi cindi ccnti] = gencode(tmpi);
