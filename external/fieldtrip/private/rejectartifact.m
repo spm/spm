@@ -7,33 +7,33 @@ function [cfg] = rejectartifact(cfg,data)
 % You should start by detecting the artifacts in the data using the
 % function ARTIFACT_xxx where xxx is the type of artifact. Subsequently
 % REJECTARTIFACT looks at the detected artifacts and removes them from
-% the trial definition.
+% the trial definition or from the data.
 %
 % Use as
 %   cfg = rejectartifact(cfg)
-% or as
-%   data = rejectartifact(cfg,data)
+% with the cfg as obtained from DEFINETRIAL, or as
+%   data = rejectartifact(cfg, data)
+% with the data as obtained from PREPROCESSING
 %
-% The following configuration options are supported for both:
-%   cfg.artfctdef.reject        = 'none', 'partial' or 'complete' (default = 'complete')
-%   cfg.artfctdef.minaccepttim  = length in seconds (default = 0.1)
-%   cfg.artfctdef.feedback      = 'yes' or 'no' (default = 'no')
-%   cfg.artfctdef.writerej      = filename of rejection file
+% The following configuration options are supported:
+%   cfg.artfctdef.reject          = 'none', 'partial' or 'complete' (default = 'complete')
+%   cfg.artfctdef.minaccepttim    = length in seconds (default = 0.1)
+%   cfg.artfctdef.feedback        = 'yes' or 'no' (default = 'no')
+%   cfg.artfctdef.eog.artifact    = Nx2 matrix with artifact segments, this is added to the cfg by using ARTIFACT_EOG
+%   cfg.artfctdef.jump.artifact   = Nx2 matrix with artifact segments, this is added to the cfg by using ARTIFACT_JUMP
+%   cfg.artfctdef.muscle.artifact = Nx2 matrix with artifact segments, this is added to the cfg by using ARTIFACT_MUSCLE
+%   cfg.artfctdef.zvalue.artifact = Nx2 matrix with artifact segments, this is added to the cfg by using ARTIFACT_ZVALUE
+%   cfg.artfctdef.xxx.artifact    = Nx2 matrix with artifact segments, this should be added by your own artifact detection function
 %
 % A trial that contains an artifact can be rejected completely or
-% partially. In case of partial rejection, a minimum triallength of cleaned
-% 'sub'trials can be specified. One can also not reject the artifacts, in
-% which case they will only be marked in the appropriate output
-% configuration section. This is usefull for manual inspection of the
-% artifacts.
+% partially. In case of partial rejection, a minimum length of the
+% resulting sub-trials can be specified.
 %
 % Output:
-% - If cfg is used as the only inputparameter, a cfg with a new trl is the output.
-% - If cfg and data are both inputparameters, data without trials containing 
-%   artifacts is the output.
+%   If cfg is used as the only input parameter, a cfg with a new trl is the output.
+%   If cfg and data are both input parameters, a new raw data structure with only the clean data segments is the output.
 %
-% See also ARTIFACT_EOG, ARTIFACT_MUSCLE, ARTIFACT_JUMP, ARTIFACT_MANUAL,
-% ARTIFACT_THRESHOLD, ARTIFACT_CLIP, ARTIFACT_ECG
+% See also ARTIFACT_EOG, ARTIFACT_MUSCLE, ARTIFACT_JUMP, ARTIFACT_MANUAL, ARTIFACT_THRESHOLD, ARTIFACT_CLIP, ARTIFACT_ECG
 
 % Undocumented local options:
 % cfg.headerfile
@@ -46,11 +46,15 @@ function [cfg] = rejectartifact(cfg,data)
 % cfg.rejecteog         = 'no' or 'yes'
 % cfg.rejectjump        = 'no' or 'yes'
 % cfg.rejectfile        = string with filename
+% cfg.artfctdef.writerej = filename of rejection file
 % cfg.artfctdef.type    = cell-array with strings, e.g. {'eog', 'muscle' 'jump'}
 
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.46  2009/01/27 17:11:42  roboos
+% updated the help
+%
 % Revision 1.45  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -434,7 +438,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectartifact.m,v 1.45 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: rejectartifact.m,v 1.46 2009/01/27 17:11:42 roboos Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;
