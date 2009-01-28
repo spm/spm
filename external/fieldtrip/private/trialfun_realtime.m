@@ -14,6 +14,9 @@ function trl = trialfun_realtime(cfg)
 % Copyright (C) 2009, Marcel van Gerven
 %
 % $Log: trialfun_realtime.m,v $
+% Revision 1.3  2009/01/28 20:46:44  marvger
+% samples are forced to be > 0
+%
 % Revision 1.2  2009/01/28 10:56:39  marvger
 % we do not consider samples before minsample+1 in asynchronous mode
 %
@@ -45,10 +48,10 @@ function trl = trialfun_asynchronous(cfg)
 
   if strcmp(cfg.bufferdata, 'last') % only get last block
 
-    begsample  = cfg.hdr.nSamples*cfg.hdr.nTrials - cfg.blocksize(2) + 1;
+    begsample  = max(1,cfg.hdr.nSamples*cfg.hdr.nTrials - cfg.blocksize(2) + 1);
 
     if begsample >= (prevSample + cfg.blocksize(1))
-      endsample  = cfg.hdr.nSamples*cfg.hdr.nTrials;
+      endsample  = max(1,cfg.hdr.nSamples*cfg.hdr.nTrials);
       trl = [trl; [begsample endsample 0 nan]];
     end
 
@@ -61,9 +64,9 @@ function trl = trialfun_asynchronous(cfg)
 
       if newsamples>=sum(cfg.blocksize)
 
-        % we do not consider samples that have already been processed
-        begsample  = max(cfg.minsample+1,prevSample+cfg.blocksize(1));
-        endsample  = max(cfg.minsample+1,prevSample+sum(cfg.blocksize));        
+        % we do not consider samples < 1
+        begsample  = max(1,prevSample+cfg.blocksize(1));
+        endsample  = max(1,prevSample+sum(cfg.blocksize));        
         
         trl = [trl; [begsample endsample 0 nan]];
         prevSample = endsample;
@@ -94,8 +97,9 @@ function trl = trialfun_synchronous(cfg)
     if isempty(cfg.triggers) || (~isempty(m1) && m1)
       % catched a trigger of interest
 
-      begsample = cfg.event(j).sample + cfg.blocksize(1);
-      endsample = begsample + cfg.blocksize(2);
+      % we do not consider samples < 1
+      begsample = max(1,cfg.event(j).sample + cfg.blocksize(1));
+      endsample = max(1,begsample + cfg.blocksize(2));
 
       trl = [trl; [begsample endsample begsample + offset curtrig]];
 
