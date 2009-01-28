@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.8  2009/01/28 18:29:07  vlalit
+% Added '4d' type to BTi case
+%
 % Revision 1.7  2009/01/23 10:32:55  vlalit
 % New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
 %
@@ -85,7 +88,7 @@ switch fileformat
                 getfield(orig.MRI_Info, shape.fid.label{i}));
         end
 
-    case {'4d_xyz', '4d_m4d', '4d_hs'}
+    case {'4d_xyz', '4d_m4d', '4d_hs', '4d'}
         [p, f, x] = fileparts(filename);
         if ~strcmp(fileformat, '4d_hs')
             filename = fullfile(p, 'hs_file');
