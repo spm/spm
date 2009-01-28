@@ -17,7 +17,7 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_priors.m 2506 2008-11-30 12:52:41Z klaas $
+% $Id: spm_dcm_priors.m 2661 2009-01-28 20:21:42Z karl $
  
 
 % nonlinear DCM?
@@ -81,11 +81,11 @@ end
 % HEMODYNAMIC PRIORS
 %==========================================================================
 % P(1) - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(1) ~ 1sec
-% P(2) - auto-regulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(2)) ~ 10 sec
+% P(2) - auto-regulation  - d(ds/dt)/df)  2*pi*sqrt(1/P(2)) ~ 10 sec
 % P(3) - transit time               (t0)  ~ 1 sec
 % P(4) - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
 % P(5) - resting oxygen extraction  (E0)  ~ range 20 - 50%
-% P(6) - ratio of intra- to extravascular components of the gradient echo signal:
+% P(6) - ratio: intra- to extravascular components of gradient echo signal:
 %        epsilon (prior mean = 1, log-normally distributed scaling factor)
 [qE,qC] = spm_hdm_priors(0);
 
@@ -94,8 +94,8 @@ end
 %==========================================================================
 qC      = kron(qC,eye(n,n));
 qE      = kron(qE,ones(n,1));
-pE    = [pE; qE; pE_D];
-pC    = blkdiag(pC,qC,pC_D);
+pE      = [pE; qE; pE_D];
+pC      = blkdiag(pC,qC,pC_D);
 
 
 return

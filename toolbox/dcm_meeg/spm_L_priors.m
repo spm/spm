@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_L_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_L_priors.m 2661 2009-01-28 20:21:42Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -52,9 +52,9 @@ catch
     m = n;
 end
 
-% location priors (8 mm)
+% location priors (4 mm)
 %--------------------------------------------------------------------------
-if location, V = 8^2; else, V = 0; end
+if location, V = 2^2; else, V = 0; end
  
 % parameters for electromagnetic forward model
 %==========================================================================
