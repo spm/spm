@@ -13,6 +13,16 @@ function [type, dimord] = datatype(data, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: datatype.m,v $
+% Revision 1.5  2009/01/28 15:00:45  roboos
+% fixed detection of timelock for covariance
+%
+% Revision 1.4  2009/01/28 14:08:30  roboos
+% added )
+%
+% Revision 1.3  2009/01/28 14:08:08  roboos
+% return 'unknown'
+% detect timelock in case of only data.trial or data.cov
+%
 % Revision 1.2  2008/12/19 09:12:54  roboos
 % added support for desired type, returning boolean
 %
@@ -23,7 +33,7 @@ function [type, dimord] = datatype(data, desired)
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
 israw      = isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
 isfreq     = isfield(data, 'label') && isfield(data, 'freq') && (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'fourierspctrm'));
-istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && isfield(data, 'avg') && isnumeric(data.avg);
+istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp     = isfield(data, 'topo') || isfield(data, 'topolabel');
 isspike    = isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
 isvolume   = isfield(data, 'transform') && isfield(data, 'dim');
@@ -46,6 +56,8 @@ elseif issource
   type = 'source';
 elseif isdip
   type = 'dip';
+else
+  type = 'unknown';
 end
 
 if nargin>1

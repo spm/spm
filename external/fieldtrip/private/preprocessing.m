@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.106  2009/01/28 10:24:04  jansch
+% changed dataformat in call to checkdata into datatype
+%
 % Revision 1.105  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -383,7 +386,7 @@ if nargin>1
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % the input data must be raw
-  data = checkdata(data, 'dataformat', 'raw', 'hasoffset', 'yes');
+  data = checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes');
 
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
@@ -641,7 +644,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.105 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.106 2009/01/28 10:24:04 jansch Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

@@ -33,6 +33,16 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.6  2009/01/28 12:14:53  roboos
+% fixed handling of variable trial length for raw2timelock, esp. in case the trials are of equal length but shifted
+% update the trial definition after raw2timelock
+%
+% Revision 1.5  2009/01/28 10:24:22  jansch
+% updated raw2timelock
+%
+% Revision 1.4  2009/01/28 09:09:40  jansch
+% added handling of source data with time and frequency dimensions.
+%
 % Revision 1.3  2008/12/04 08:23:34  jansch
 % added the option to toggle between fourier and sparsewithpow in fixcsd
 %
@@ -430,7 +440,20 @@ if issource || isvolume,
   param = parameterselection('all', data);
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the volumes that is found into a linear vector
-  if issource, dim   = [size(data.pos, 1) 1]; end
+  if issource,
+    if isfield(data, 'dimord'),
+      dimtok = tokenize(data.dimord, '_');
+      if ~isempty(strmatch('time',dimtok)), Ntime = length(data.time); else Ntime = 1; end
+      if ~isempty(strmatch('freq',dimtok)), Nfreq = length(data.freq); else Nfreq = 1; end
+    else
+      Nfreq = 1; Ntime = 1;
+    end
+  end
+  if issource && Nfreq>1,
+    dim = [size(data.pos, 1) Nfreq Ntime]; data.dim = dim;
+  elseif issource,
+    dim = [size(data.pos, 1) Ntime]; dim;
+  end
   % ensure consistent dimensions of the volumetric data
   % reshape each of the volumes that is found into a 3D array
   if isvolume, dim   = data.dim;              end
@@ -450,7 +473,11 @@ if issource || isvolume,
       data = setfield(data, sub1, tmp1);
     else
       tmp  = getfield(data, param{i});
-      tmp  = reshape(tmp, dim);
+      if prod(size(tmp))==prod(dim),
+        tmp  = reshape(tmp, dim);
+      else
+        tmp  = reshape(tmp, [dim(1) 1]);
+      end
       data = setfield(data, param{i}, tmp);
     end
   end
@@ -571,13 +598,13 @@ elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
 
   % this is what freqdescriptives currently does as an intermediate step
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpttap',   dimtok)), 
+  if ~isempty(strmatch('rpttap',   dimtok)),
     nrpt = length(data.cumtapcnt);
     flag = 0;
-  else 
+  else
     nrpt = 1;
     flag = 1;
-  end 
+  end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
 
@@ -597,14 +624,14 @@ elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
     cmbindx   = zeros(ncmb,2);
     labelcmb  = cell(ncmb,2);
     for k = 1:ncmb
-      ch1 = find(strcmp(data.label, channelcmb(k,1)));    
+      ch1 = find(strcmp(data.label, channelcmb(k,1)));
       ch2 = find(strcmp(data.label, channelcmb(k,2)));
       if ~isempty(ch1) && ~isempty(ch2),
         cmbindx(k,:)  = [ch1 ch2];
         labelcmb(k,:) = data.label([ch1 ch2])';
-      end    
+      end
     end
-    
+
     crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
     for p = 1:nrpt
       indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
@@ -612,25 +639,25 @@ elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
       tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
       crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
     end
-%    for k = 1:ntim
-%      for m = 1:nfrq
-%        for p = 1:nrpt
-%          indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
-%          tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
-%          tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
-%          crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
-%        end
-%      end
-%    end
+    %    for k = 1:ntim
+    %      for m = 1:nfrq
+    %        for p = 1:nrpt
+    %          indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+    %          tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
+    %          tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
+    %          crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+    %        end
+    %      end
+    %    end
     data.crsspctrm = crsspctrm;
     data.labelcmb  = labelcmb;
   end
   data.powspctrm = powspctrm;
   data           = rmfield(data, 'fourierspctrm');
-  if nrpt>1, 
+  if nrpt>1,
     if ntim>1,
       data.dimord = 'rpt_chan_freq_time';
-    else  
+    else
       data.dimord = 'rpt_chan_freq';
     end
   else
@@ -641,15 +668,15 @@ elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
     end
   end
   if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
-  
+
 
 elseif (strcmp(current, 'sparse')  && strcmp(desired, 'sparsewithpow'))
   % convert back to crsspctrm/powspctrm representation: useful for plotting functions etc
 
 
 elseif (strcmp(current, 'full')          && strcmp(desired, 'fourier')) || ...
- (strcmp(current, 'sparse')        && strcmp(desired, 'fourier')) || ...
- (strcmp(current, 'sparsewithpow') && strcmp(desired, 'fourier'))
+    (strcmp(current, 'sparse')        && strcmp(desired, 'fourier')) || ...
+    (strcmp(current, 'sparsewithpow') && strcmp(desired, 'fourier'))
   % this is not possible
 
 elseif strcmp(current, 'full')          && strcmp(desired, 'sparse')
@@ -659,52 +686,52 @@ elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
   if isempty(channelcmb), error('no channel combinations are specified'); end
   % this is what freqdescriptives currently does as an intermediate step
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpttap',   dimtok)), 
+  if ~isempty(strmatch('rpttap',   dimtok)),
     nrpt = length(data.cumtapcnt);
     flag = 0;
-  else 
+  else
     nrpt = 1;
     flag = 1;
-  end 
+  end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
   ncmb      = size(channelcmb,1);
   cmbindx   = zeros(ncmb,2);
   labelcmb  = cell(ncmb,2);
   for k = 1:ncmb
-    ch1 = find(strcmp(data.label, channelcmb(k,1)));    
+    ch1 = find(strcmp(data.label, channelcmb(k,1)));
     ch2 = find(strcmp(data.label, channelcmb(k,2)));
     if ~isempty(ch1) && ~isempty(ch2),
       cmbindx(k,:)  = [ch1 ch2];
       labelcmb(k,:) = data.label([ch1 ch2])';
-    end    
+    end
   end
-  
+
   crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
   sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
   %for k = 1:ntim
   %  for m = 1:nfrq
-      %for p = 1:nrpt
-      %  indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
-      %  tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
-      %  tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
-      %  crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
-      %end
-      for p = 1:nrpt
-        indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
-        tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),:,:);
-        tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
-	crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
-      end
+  %for p = 1:nrpt
+  %  indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+  %  tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
+  %  tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
+  %  crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+  %end
+  for p = 1:nrpt
+    indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+    tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),:,:);
+    tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
+    crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+  end
   %  end
   %end
   data.crsspctrm = crsspctrm;
   data.labelcmb  = labelcmb;
   data           = rmfield(data, 'fourierspctrm');
-  if nrpt>1, 
+  if nrpt>1,
     if ntim>1,
       data.dimord = 'rpt_chan_freq_time';
-    else  
+    else
       data.dimord = 'rpt_chan_freq';
     end
   else
@@ -715,12 +742,12 @@ elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
     end
   end
   if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
-  
+
 
 elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'sparse')
 
   % this is what freqdescriptives currently does as an intermediate step,
-  % and will be the new default representation for sparse data i.e. autospectra 
+  % and will be the new default representation for sparse data i.e. autospectra
   % as {'A' 'A'} in labelcmb
   if isfield(data, 'crsspctrm'),
     dimtok         = tokenize(data.dimord, '_');
@@ -738,10 +765,10 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
 
   % this is how it is currently and the desired functionality of prepare_freq_matrices
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpttap',   dimtok)), 
+  if ~isempty(strmatch('rpttap',   dimtok)),
     nrpt = length(data.cumtapcnt);
     flag = 0;
-  else 
+  else
     nrpt = 1;
     flag = 1;
   end
@@ -756,16 +783,16 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
       for p = 1:nrpt
         indx   = (sumtapcnt(p)+1):sumtapcnt(p+1);
         tmpdat = transpose(data.fourierspctrm(indx,:,m,k));
-	crsspctrm(p,:,:,m,k) = (tmpdat*tmpdat')./data.cumtapcnt(p);
+        crsspctrm(p,:,:,m,k) = (tmpdat*tmpdat')./data.cumtapcnt(p);
       end
     end
   end
   data.crsspctrm = crsspctrm;
   data           = rmfield(data, 'fourierspctrm');
-  if nrpt>1, 
+  if nrpt>1,
     if ntim>1,
       data.dimord = 'rpt_chan_chan_freq_time';
-    else  
+    else
       data.dimord = 'rpt_chan_chan_freq';
     end
   else
@@ -780,20 +807,20 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
 elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
 
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpt',   dimtok)), 
+  if ~isempty(strmatch('rpt',   dimtok)),
     nrpt = size(data.crsspctrm,1);
     flag = 0;
-  else 
+  else
     nrpt = 1;
     data.crsspctrm = reshape(data.crsspctrm, [1 size(data.crsspctrm)]);
     flag = 1;
-  end 
+  end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
   nchan     = length(data.label);
   cmbindx   = zeros(nchan);
   for k = 1:size(data.labelcmb,1)
-    ch1 = find(strcmp(data.label, data.labelcmb(k,1)));    
+    ch1 = find(strcmp(data.label, data.labelcmb(k,1)));
     ch2 = find(strcmp(data.label, data.labelcmb(k,2)));
     if ~isempty(ch1) && ~isempty(ch2), cmbindx(ch1,ch2) = k; end
   end
@@ -803,18 +830,18 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
       for p = 1:nrpt
         tmpdat = nan+zeros(nchan);
         tmpdat(find(cmbindx)) = data.crsspctrm(p,cmbindx(find(cmbindx)),m,k);
-	tmpdat                = ctranspose(tmpdat);
-	tmpdat(find(cmbindx)) = data.crsspctrm(p,cmbindx(find(cmbindx)),m,k);
-	crsspctrm(p,:,:,m,k)  = tmpdat;
+        tmpdat                = ctranspose(tmpdat);
+        tmpdat(find(cmbindx)) = data.crsspctrm(p,cmbindx(find(cmbindx)),m,k);
+        crsspctrm(p,:,:,m,k)  = tmpdat;
       end
     end
   end
   data.crsspctrm = crsspctrm;
   data           = rmfield(data, 'labelcmb');
-  if nrpt>1, 
+  if nrpt>1,
     if ntim>1,
       data.dimord = 'rpt_chan_chan_freq_time';
-    else  
+    else
       data.dimord = 'rpt_chan_chan_freq';
     end
   else
@@ -825,9 +852,9 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
     end
   end
   if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
-  
+
 elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
-  
+
   % this is how is currently done in prepare_freq_matrices
   data = checkdata(data, 'cmbrepresentation', 'sparse');
   data = checkdata(data, 'cmbrepresentation', 'full');
@@ -854,7 +881,7 @@ ygrid = 1:data.dim(2);
 zgrid = 1:data.dim(3);
 [x y z] = ndgrid(xgrid, ygrid, zgrid);
 ind =  [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
-pos = data.pos;             % these are the positions expressed in head coordinates	
+pos = data.pos;             % these are the positions expressed in head coordinates
 % represent the positions in a manner that is compatible with the homogenous matrix multiplication, i.e. pos = H * ind
 ind = ind'; ind(4,:) = 1;
 pos = pos'; pos(4,:) = 1;
@@ -870,13 +897,20 @@ if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = freq2raw(freq)
-if ~strcmp(freq.dimord, 'rpt_chan_freq_time')
+
+if strcmp(freq.dimord, 'rpt_chan_freq_time')
+  dat = freq.powspctrm;
+elseif strcmp(freq.dimord, 'rpttap_chan_freq_time')
+  warning('converting fourier representation into raw data format. this is experimental code');
+  dat = freq.fourierspctrm;
+else
   error('this only works for dimord=''rpt_chan_freq_time''');
 end
-nrpt  = size(freq.powspctrm,1);
-nchan = size(freq.powspctrm,2);
-nfreq = size(freq.powspctrm,3);
-ntime = size(freq.powspctrm,4);
+
+nrpt  = size(dat,1);
+nchan = size(dat,2);
+nfreq = size(dat,3);
+ntime = size(dat,4);
 data = [];
 % create the channel labels like "MLP11@12Hz""
 k = 0;
@@ -889,7 +923,7 @@ end
 % reshape and copy the data as if it were timecourses only
 for i=1:nrpt
   data.time{i}  = freq.time;
-  data.trial{i} = reshape(freq.powspctrm(i,:,:,:), nchan*nfreq, ntime);
+  data.trial{i} = reshape(dat(i,:,:,:), nchan*nfreq, ntime);
   if any(isnan(data.trial{i}(1,:))),
     tmp = data.trial{i}(1,:);
     begsmp = find(isfinite(tmp),1,'first');
@@ -912,18 +946,39 @@ if ntrial==1
   data        = rmfield(data, 'trial');
   data.dimord = 'chan_time';
 else
-  nsample  = size(data.trial{1},2);
-  tmptrial = zeros(ntrial, nchan, nsample);
+  % determine the location of the trials relative to the resulting combined time axis
+  begtime  = cellfun(@min,  data.time);
+  endtime  = cellfun(@max,  data.time);
+  begsmp   = round((begtime - min(begtime)) * data.fsample) + 1;
+  endsmp   = round((endtime - min(begtime)) * data.fsample) + 1;
+
+  % create a combined time axis and concatenate all trials
+  tmptime  = min(begtime):(1/data.fsample):max(endtime);
+  tmptrial = zeros(ntrial, nchan, length(tmptime)) + nan;
+  tmpdof   = zeros(1, length(tmptime));
   for i=1:ntrial
-    if ~isequal(data.time{i}, data.time{1})
-      error('this conversion is only supported for trials of equal length and not shifted relative to each other');
-    else
-      tmptrial(i,:,:) = data.trial{i};
-    end
+    tmptrial(i,:,begsmp(i):endsmp(i)) = data.trial{i};
+    tmpdof  (    begsmp(i):endsmp(i)) = tmpdof(begsmp(i):endsmp(i)) + 1;
   end
-  data.avg     = reshape(mean(tmptrial, 1), nchan, nsample);
+
+  % update the trial definition
+  trl = findcfg(data.cfg, 'trl');
+  if ~isempty(trl)
+    begpad = begsmp - min(begsmp);   % number of nan-samples added to the begin
+    endpad = max(endsmp) - endsmp;   % number of nan-samples added to the end
+    data.cfg.trlold = trl;
+    trl(:,1) = trl(:,1) - begpad(:);
+    trl(:,2) = trl(:,2) + endpad(:);
+    trl(:,3) = trl(:,3) - begpad(:);
+    data.cfg.trl = trl;
+  end
+
+  % construct the output timelocked data
+  data.avg     = reshape(nanmean(tmptrial,     1), nchan, length(tmptime));
+  data.var     = reshape(nanvar (tmptrial, [], 1), nchan, length(tmptime)); % this is not persee required
+  data.dof     = repmat(tmpdof, [nchan 1]);
   data.trial   = tmptrial;
-  data.time    = data.time{1};
+  data.time    = tmptime;
   data.dimord = 'rpt_chan_time';
 end
 
@@ -972,4 +1027,3 @@ if isfield(data, 'cov'),        data = rmfield(data, 'cov'); end
 if isfield(data, 'dimord'),     data = rmfield(data, 'dimord'); end
 if isfield(data, 'numsamples'), data = rmfield(data, 'numsamples'); end
 if isfield(data, 'dof'),        data = rmfield(data, 'dof'); end
-

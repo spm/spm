@@ -29,6 +29,9 @@ function [sens] = read_fcdc_elec(varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_fcdc_elec.m,v $
+% Revision 1.10  2009/01/28 14:45:46  roboos
+% added fieldtripdefs (thanks to Verena)
+%
 % Revision 1.9  2008/12/16 21:22:23  roboos
 % changed some comments and documentation
 %
@@ -37,6 +40,8 @@ function [sens] = read_fcdc_elec(varargin)
 %
 % Revision 1.7  2007/03/14 08:45:36  roboos
 % also recognize ctf_ds and deal with it just as res4
+
+fieldtripdefs
 
 % use the low-level reading function
 [sens] = read_sens(varargin{:});

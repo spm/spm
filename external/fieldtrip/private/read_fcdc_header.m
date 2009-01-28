@@ -25,6 +25,9 @@ function [hdr] = read_fcdc_header(varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_header.m,v $
+% Revision 1.47  2009/01/28 14:45:46  roboos
+% added fieldtripdefs (thanks to Verena)
+%
 % Revision 1.46  2008/12/16 21:21:49  roboos
 % reverted to the original interface, i.e. not with variable keyval input but with a fixed list
 %
@@ -32,6 +35,8 @@ function [hdr] = read_fcdc_header(varargin)
 % replaced all functional code by a call to the new low-level "fileio" function, it is now only an empty wrapper
 % updated the documentation
 %
+
+fieldtripdefs
 
 % use the low-level reading function
 [hdr] = read_header(varargin{:});

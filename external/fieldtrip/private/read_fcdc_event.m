@@ -39,6 +39,9 @@ function [event] = read_fcdc_event(varargin)
 % Copyright (C) 2004-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_event.m,v $
+% Revision 1.48  2009/01/28 14:45:46  roboos
+% added fieldtripdefs (thanks to Verena)
+%
 % Revision 1.47  2008/12/16 21:22:23  roboos
 % changed some comments and documentation
 %
@@ -46,6 +49,8 @@ function [event] = read_fcdc_event(varargin)
 % replaced all functional code by a call to the new low-level "fileio" function, it is now only an empty wrapper
 % updated the documentation
 %
+
+fieldtripdefs
 
 % use the low-level reading function
 [event] = read_event(varargin{:});

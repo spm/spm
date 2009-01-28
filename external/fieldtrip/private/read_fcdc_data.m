@@ -25,6 +25,9 @@ function [dat] = read_fcdc_data(filename, header, begsample, endsample, chanindx
 % Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_data.m,v $
+% Revision 1.44  2009/01/28 14:45:46  roboos
+% added fieldtripdefs (thanks to Verena)
+%
 % Revision 1.43  2008/12/16 21:21:50  roboos
 % reverted to the original interface, i.e. not with variable keyval input but with a fixed list
 %
@@ -33,7 +36,9 @@ function [dat] = read_fcdc_data(filename, header, begsample, endsample, chanindx
 % updated the documentation
 %
 
-% set the defaults for teh optional input arguments
+fieldtripdefs
+
+% set the defaults for the optional input arguments
 if nargin<5
   chanindx = [];
 end
