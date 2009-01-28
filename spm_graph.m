@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 2496 2008-11-27 13:40:32Z karl $
+% $Id: spm_graph.m 2663 2009-01-28 20:24:36Z karl $
 
 
 
@@ -195,7 +195,7 @@ XYZstr = sprintf(' at [%g, %g, %g]',xyz);
 
 
 %-Compute residuals
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isempty(y)
 
     % make R = NaN so it will not be plotted

@@ -10,11 +10,11 @@ function [Y] = spm_get_data(V,XYZ)
 % see spm_sample_vol
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_get_data.m 2237 2008-09-29 17:39:53Z guillaume $
-
-
+% $Id: spm_get_data.m 2663 2009-01-28 20:24:36Z karl $
+ 
+ 
 % ensure V is an array of handle structures
 %--------------------------------------------------------------------------
 if ~isstruct(V)
@@ -23,21 +23,21 @@ if ~isstruct(V)
         V = cat(2,V{:});
     end
 end
-
+ 
 % get data
 %--------------------------------------------------------------------------
 Y     = zeros(length(V),size(XYZ,2));
 for i = 1:length(V)
-    
-        % check files exists, if not try pwd
+ 
+    % check files exists and try pwd
     %----------------------------------------------------------------------
     if ~spm_existfile(V(i).fname)
-        [p,n,e]    = fileparts(V(i).fname);
-        V(i).fname = [n e];
+        [p,n,e]     = fileparts(V(i).fname);
+        V(i).fname  = [n,e];
     end
-
-    %-Load mask image within current mask & update mask
+ 
+    %-Load data
     %----------------------------------------------------------------------
     Y(i,:) = spm_sample_vol(V(i),XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+ 
 end
-

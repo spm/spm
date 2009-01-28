@@ -43,10 +43,31 @@ function [D] = spm_eeg_invert(D, val)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
+% 
+% This routine solves ill-posed linear models of the following form
+%
+% [AY{1}...AY{n}] = L(1} * [J{1}...J{1}]   +  [e{1}...e{n}]
+%
+% where AY{i} are the spatially normalized or adjusted data from subject i
+% that would have been seen if the lead-field L{i} = L{1}. The ensuing
+% Gaussian process priors on sources are then used to estimate subject-specific
+% MAP estimates of J{i} using
+%
+% Y{i} = L(i} * J{i}  +  e{i}
+%
+% Here, A{i}  = L{1}*pinv(L{i}) => 
+%       AY{i} = A(i}*L(i}*J{i}
+%             = L(1}*J{i}
+%
+% See: Electromagnetic source reconstruction for group studies.
+% Litvak V, Friston K.
+% NeuroImage. 2008 Oct 1;42(4):1490-8.
+%
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 2352 2008-10-17 11:53:53Z karl $
+% $Id: spm_eeg_invert.m 2663 2009-01-28 20:24:36Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
