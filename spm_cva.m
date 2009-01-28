@@ -15,11 +15,13 @@ function [CVA] = spm_cva(xSPM,SPM,hReg)
 % 
 % CVA.XYZ      =  locations of voxels (mm)
 % CVA.xyz      =  seed voxel location (mm)
+% CVA.VOX      =  dimension of voxels (mm)
 % 
 % CVA.V        =  canonical vectors  (data)
 % CVA.v        =  canonical variates (data)
 % CVA.W        =  canonical vectors  (design)
 % CVA.w        =  canonical variates (design)
+% CVA.C        =  canonical contrast (design)
 % 
 % CVA.chi      =  Chi-squared statistics testing D >= i
 % CVA.df       =  d.f.
@@ -78,9 +80,19 @@ function [CVA] = spm_cva(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_cva.m 2583 2008-12-20 12:00:03Z karl $
+% $Id: spm_cva.m 2662 2009-01-28 20:23:11Z karl $
  
- 
+
+% review old analysis or proceed with a new one
+%--------------------------------------------------------------------------
+switch questdlg('new canonical variaiates analaysis?');
+    case {'No'}
+        CVA = spm_cva_results;
+        return
+    case {'Cancel'}
+        return
+end
+
 % get figure handles
 %--------------------------------------------------------------------------
 Fcva   = spm_figure('GetWin','MVB');
@@ -108,9 +120,8 @@ xyzmm  = spm_results_ui('GetCoords');
  
 %-Specify search volume
 %--------------------------------------------------------------------------
-str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
-SPACE  = spm_input('Search volume...','!+1','m',...
-                 {['Sphere', str],['Box', str],'Image'},['S','B','I']);
+SPACE  = spm_input('Search volume...','!+1','b',...
+                  {'Sphere','Box','Image'},['S','B','I']);
 Q      = ones(1,size(SPM.xVol.XYZ, 2));
 XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
 XYZmm  = XYZmm(1:3,:);
@@ -173,102 +184,59 @@ try,  X0 = [X0 SPM.xGX.gSF]; end          % add global estimate
 X   = full(X*c);
 X0  = spm_svd(X0);
  
- 
+
 %-Dimension reduction (if necessary)
 %==========================================================================
 U   = spm_mvb_U(Y,'compact',X0,XYZ);
 U   = spm_svd(U);
 Y   = Y*U;
+
  
 %-Canonical Variates Analysis
 %==========================================================================
+
+% remove null space of contrast
+%--------------------------------------------------------------------------
+Y     = Y - X0*(X0'*Y);
+X     = X - X0*(X0'*X);
+P     = pinv(X);
  
 % degrees of freedom
 %--------------------------------------------------------------------------
 [n,b] = size(X);                       
 [n,m] = size(Y);
+b     = rank(X);
+h     = min(b,m);
 f     = n - b - size(X0,2);
- 
-% remove null space of contrast
-%--------------------------------------------------------------------------
-Y     = Y - X0*(X0'*Y);
-X     = X - X0*(X0'*X);
  
  
 % generalised eigensolution for treatment and residual sum of squares
 %--------------------------------------------------------------------------
-T     = X*(pinv(X)*Y);
+T     = X*(P*Y);
 SST   = T'*T;
 SSR   = Y - T;
 SSR   = SSR'*SSR;
 [v,d] = eig(SSR\SST);
 [q,r] = sort(-real(diag(d)));
-r     = r(1:b);
+r     = r(1:h);
 d     = real(d(r,r));
 v     = real(v(:,r));
 V     = U*v;                          % canonical vectors  (data)
 v     = Y*v;                          % canonical variates (data)
-W     = pinv(X)*v;                    % canonical vectors  (design)
+W     = P*v;                          % canonical vectors  (design)
 w     = X*W;                          % canonical variates (design)
 C     = c*W;                          % canonical contrast (design)
  
 % inference on dimensionality - p(i) test of D >= i; Wilk’s Lambda := p(1)
 %--------------------------------------------------------------------------
 cval  = log(diag(d) + 1);
-for i = 1:b
-  chi(i) = (f - (m - b + 1)/2)*sum(cval(i:b));
+for i = 1:h
+  chi(i) = (f - (m - b + 1)/2)*sum(cval(i:h));
   df(i)  = (m - i + 1)*(b - i + 1);
   p(i)   = 1 - spm_Xcdf(chi(i),df(i));
 end
  
- 
-% show results
-%==========================================================================
-spm_figure('GetWin','MVB');
- 
-% maximum intensity projection (first canonical image)
-%--------------------------------------------------------------------------
-subplot(2,2,1)
-VOX      = xSPM.VOX;
-spm_mip(V(:,1).*(V(:,1) > 0),XYZ(1:3,:),diag(VOX))
-axis image
-title({'(Principal) canonical image',[name ':' con]})
- 
-% inference and canonical variates
-%--------------------------------------------------------------------------
-Xstr{1} = 'Dimensionality';
-Xstr{2} = ['Chi-squared: ' sprintf('%6.1f ',chi)];
-Xstr{3} = ['           df: ' sprintf('%6.0f ',df)];
 
-subplot(2,2,2)
-bar(log(p)); hold on
-plot([0 (b + 1)],log(0.05)*[1 1],'r:','LineWidth',4), hold off
-xlabel(Xstr)
-ylabel('log p-value')
-axis square
-title({'Test of dimensionality';sprintf('minimum p = %.2e',min(p))})
- 
-subplot(2,2,3)
-plot(w,v,'.')
-xlabel('prediction')
-ylabel('response')
-axis square
-title('Canonical variates')
-
-
-% canonical contrast
-%--------------------------------------------------------------------------
-i     = find(p < 0.05);
-if isempty(i)
-    i = 1;
-end
-subplot(2,2,4)
-bar(C(:,i))
-xlabel('Parameter')
-axis square
-title('Significant canonical contrasts')
- 
- 
 % save results
 %==========================================================================
  
@@ -283,7 +251,7 @@ CVA.X0       = X0;           % null space of contrast
  
 CVA.XYZ      = XYZ;          % locations of voxels (mm)
 CVA.xyz      = xyzmm;        % seed voxel location (mm)
-CVA.VOX      = VOX;          % locations of voxels (mm)
+CVA.VOX      = xSPM.VOX;     % dimension of voxels (mm)
  
 CVA.V        = V;            % canonical vectors  (data)
 CVA.v        = v;            % canonical variates (data)
@@ -297,11 +265,15 @@ CVA.p        = p;            % p-values
  
  
 % save
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 save(fullfile(SPM.swd,name),'CVA')
 assignin('base','CVA',CVA)
  
+% display results
+%--------------------------------------------------------------------------
+spm_cva_results(CVA);
+
 %-Reset title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 set(Finter,'Name',header)
 spm('Pointer','Arrow')
