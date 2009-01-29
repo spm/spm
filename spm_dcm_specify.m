@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 2510 2008-11-30 16:54:19Z klaas $
+% $Id: spm_dcm_specify.m 2671 2009-01-29 19:37:36Z klaas $
 
 Finter = spm_figure('GetWin','Interactive');
 WS     = spm('WinScale');
@@ -241,7 +241,8 @@ if spm_input(str,2,'y/n',[1 0])
         end
     end
     delete(q)
-
+else
+    nlDCM = 0;
 end
             
             
