@@ -9,7 +9,7 @@ function [output] = volumelookup(cfg, volume)
 %   (1) [mask]  = volumelookup(cfg, volume)
 % or
 %   (2) [labels] = volumelookup(cfg, volume)
-
+%
 % where volume can be:
 %   mri    is the output of READ_FCDC_MRI
 %   source is the output of SOURCEANALYSIS
@@ -50,6 +50,9 @@ function [output] = volumelookup(cfg, volume)
 % Copyright (C) 2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: volumelookup.m,v $
+% Revision 1.4  2009/01/29 13:54:57  ingnie
+% changed help
+%
 % Revision 1.3  2009/01/27 10:09:49  ingnie
 % added mask2label functionality
 %

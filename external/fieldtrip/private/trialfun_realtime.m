@@ -14,6 +14,9 @@ function trl = trialfun_realtime(cfg)
 % Copyright (C) 2009, Marcel van Gerven
 %
 % $Log: trialfun_realtime.m,v $
+% Revision 1.4  2009/01/29 10:35:48  marvger
+% more error checking
+%
 % Revision 1.3  2009/01/28 20:46:44  marvger
 % samples are forced to be > 0
 %
@@ -42,17 +45,23 @@ end
 
 function trl = trialfun_asynchronous(cfg)
   
-  prevSample = cfg.minsample;
-
   trl = [];
+  
+  prevSample = cfg.minsample;
 
   if strcmp(cfg.bufferdata, 'last') % only get last block
 
-    begsample  = max(1,cfg.hdr.nSamples*cfg.hdr.nTrials - cfg.blocksize(2) + 1);
+    % begsample starts blocksize(2) samples before the end
+    begsample  = cfg.hdr.nSamples*cfg.hdr.nTrials - cfg.blocksize(2);
 
+    % begsample should be blocksize(1) samples away from the previous read
     if begsample >= (prevSample + cfg.blocksize(1))
-      endsample  = max(1,cfg.hdr.nSamples*cfg.hdr.nTrials);
-      trl = [trl; [begsample endsample 0 nan]];
+      
+      endsample  = cfg.hdr.nSamples*cfg.hdr.nTrials;
+
+      if begsample < endsample && begsample > 0
+        trl = [begsample endsample 0 nan];
+      end
     end
 
   else % get all blocks
@@ -62,13 +71,17 @@ function trl = trialfun_asynchronous(cfg)
       % see whether new samples are available
       newsamples = (cfg.hdr.nSamples*cfg.hdr.nTrials-prevSample);
 
+      keyboard
+      % if newsamples exceeds the offset plus length specified in blocksize
       if newsamples>=sum(cfg.blocksize)
 
         % we do not consider samples < 1
         begsample  = max(1,prevSample+cfg.blocksize(1));
         endsample  = max(1,prevSample+sum(cfg.blocksize));        
         
-        trl = [trl; [begsample endsample 0 nan]];
+        if begsample < endsample && endsample <= cfg.hdr.nSamples*cfg.hdr.nTrials
+          trl = [trl; [begsample endsample 0 nan]];
+        end
         prevSample = endsample;
 
       else
