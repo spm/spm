@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 2446 2008-11-05 16:05:14Z vladimir $
+% $Id: spm_eeg_convert_ui.m 2667 2009-01-29 11:42:49Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -14,7 +14,7 @@ end
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEEG data conversion ',0);
 
 if ~isfield(S, 'dataset')
-    S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
+    S.dataset = spm_select(1, '.*', 'Select M/EEG data file');
 end
 
 if isempty(S.dataset)
