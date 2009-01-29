@@ -5,12 +5,13 @@ function res = chantype(this, varargin)
 %   type - type (string: 'EEG', 'MEG', 'LFP' etc.)
 %
 % FORMAT chantype(this, ind), chantype(this)
-% Sets channel types to default using Fieldtrip channelselection
+% Sets channel types to default using Fieldtrip channelselection with
+% chantype(this,[],[])
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2563 2008-12-15 13:35:08Z vladimir $
+% $Id: chantype.m 2668 2009-01-29 12:11:54Z christophe $
 
 
 if length(varargin)>=2
@@ -22,7 +23,7 @@ if length(varargin)>=2
     end
 
     if isempty(type)
-        types = {'EEG', 'MEG', 'MEGREF', 'EMG', 'EOG'};
+        types = {'EEG', 'MEG', 'MEGREF', 'EMG', 'EOG', 'ECG'};
 
         for i=1:length(types)
             if isempty(ind), break; end
@@ -44,10 +45,12 @@ if length(varargin)>=2
             ind1 = setdiff(1:numel(this.other.origchantypes.label),...
                 strmatch('unknown', this.other.origchantypes.type, 'exact'));
             
-            [sel1, sel2] = spm_match_str(chanlabels(this, ind), this.other.origchantypes.label(ind1));
+            [sel1, sel2] = spm_match_str(chanlabels(this, ind), ...
+                                    this.other.origchantypes.label(ind1));
             
             if ~isempty(sel1)
-                this = chantype(this, ind(sel1), upper(this.other.origchantypes.type(ind1(sel2))));
+                this = chantype(this, ind(sel1), ...
+                        upper(this.other.origchantypes.type(ind1(sel2))));
                 ind(sel1) = [];
             end
         end
