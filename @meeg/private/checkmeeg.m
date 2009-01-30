@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2617 2009-01-19 18:49:16Z vladimir $
+% $Id: checkmeeg.m 2676 2009-01-30 16:51:34Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -130,6 +130,7 @@ else
             disp('checkmeeg: data scale missing, assigning default');
             meegstruct.data.scale = ones(Nchannels, 1, Ntrials);
         else
+            % Jump out if datascale missing and not in float format
             disp('checkmeeg: data scale missing');
             return
         end
@@ -141,9 +142,11 @@ else
 
     if isa(meegstruct.data.y, 'file_array')
         try
-            % Try reading data
+            % Try reading data, i.e. check if it's a "good" filearray
             meegstruct.data.y(1, 1, 1);
         catch
+            % save original scale, just in case
+            sav_sc = meegstruct.data.y.scl_slope;
             meegstruct.data.y = [];
         end
     end
@@ -158,9 +161,11 @@ else
         switch(meegstruct.transform.ID)
             % note: scale no longer used, must insure data is in some float
             % format
+            % still re-introduce the scaling if it is available, allowing
+            % the use of copied (raw) integer data files
             case 'time'
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
+                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);                 
 
             case {'TF', 'TFphase'}
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
@@ -174,9 +179,13 @@ else
             otherwise
                 error('Unknown transform type');
         end
+        % and restore original scale, if available (exist) & useful (~=[])
+        if exist('sav_sc','var') && ~isempty(sav_sc)
+            meegstruct.data.y.scl_slope = sav_sc;
+        end
 
-    end
-
+    end  
+    
     switch(meegstruct.transform.ID)
         case 'time'
             if Ntrials>1
