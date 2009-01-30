@@ -12,9 +12,9 @@ function newjobs = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_load_jobs.m 2673 2009-01-30 13:34:53Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2673 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
@@ -40,6 +40,7 @@ for cf = 1:numel(filenames)
             end;
         case '.m'
             opwd = pwd;
+            cfg_validatejobname(nam, false);                
             try
                 if ~isempty(p)
                     cd(p);

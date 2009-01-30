@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: cfg_util.m 2673 2009-01-30 13:34:53Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 2673 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -703,6 +703,11 @@ switch lower(cmd),
                 case '.mat',
                     save(varargin{2},'matlabbatch','-v6');
                 case '.m'
+                    % check whether n is a valid MATLAB .m file
+                    % name. Depending on the message settings for
+                    % 'matlabbatch:validatejobname:soft' this will either
+                    % throw an error, or a valid filename will be used.
+                    n = cfg_validatejobname(n, false);
                     jobstr = gencode(matlabbatch, tag);
                     fid = fopen(fullfile(p, [n '.m']),'w');
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');

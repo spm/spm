@@ -14,9 +14,9 @@ function [item, defaults] = val2def(item, defaults, funname, deftag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: copyright_cfg.m 269 2008-05-23 07:15:10Z glauche $
+% $Id: val2def.m 2673 2009-01-30 13:34:53Z volkmar $
 
-rev = '$Rev: 269 $'; %#ok
+rev = '$Rev: 2673 $'; %#ok
 
 csubs = substruct('.', treepart(item, true));
 citems = subsref(item, csubs);

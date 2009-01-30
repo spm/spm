@@ -1,4 +1,4 @@
-function cfg_message(varargin)
+function varargout = cfg_message(varargin)
 
 % function cfg_message(msgid, msgfmt, varargin)
 % Display a message. The message identifier msgid will be looked up in a
@@ -20,16 +20,20 @@ function cfg_message(varargin)
 % .verbose
 % .backtrace   - control verbosity and backtrace, one of 'on' or 'off'
 %
-% function cfg_message('on'|'off', 'verbose'|'backtrace', msgidregexp)
+% function [oldsts msgids] = cfg_message('on'|'off', 'verbose'|'backtrace', msgidregexp)
 % Set verbosity and backtrace display for all messages where msgid
 % matches msgidregexp. To match a message id exactly, use the regexp
 % '^msgid$'.
 %
-% function cfg_message('none'|'stdout'|'stderr'|'syslog', 'destination', msgidregexp)
+% function [olddest msgids] = cfg_message('none'|'stdout'|'stderr'|'syslog', 'destination', msgidregexp)
 % Set destination for all messages matching msgidregexp.
 %
-% function cfg_message('info'|'warning'|'error', msgidregexp)
+% function [oldlvl msgids] = cfg_message('info'|'warning'|'error', 'level', msgidregexp)
 % Set severity level for all messages matching msgidregexp.
+%
+% For all matching message ids and message templates, the old value and
+% the id are returned as cell strings. These can be used to restore
+% previous settings one-by-one.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -38,9 +42,9 @@ function cfg_message(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_message.m 1873 2008-07-01 15:23:40Z volkmar $
+% $Id: cfg_message.m 2673 2009-01-30 13:34:53Z volkmar $
 
-rev = '$Rev: 1873 $'; %#ok
+rev = '$Rev: 2673 $'; %#ok
 
 if nargin < 1 || isempty(varargin{1})
     return;
@@ -63,7 +67,8 @@ if ~(ischar(varargin{1}) && size(varargin{1},1) == 1) && ...
           'First argument must be a one-line character string or an errorstruct.');
     return;
 end
-if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', 'syslog'}))
+if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', ...
+                        'syslog', 'info', 'warning', 'error'}))
     % Set message properties
     if nargin ~= 3
         cfg_message('matlabbatch:cfg_message', ...
@@ -81,6 +86,11 @@ if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', 'syslog'})
         cfg_message('matlabbatch:cfg_message', ...
               'Message property must be ''destination''.');
         return;
+    elseif any(strcmpi(varargin{1}, {'info', 'warning', 'error'})) && ...
+            ~strcmpi(varargin{2}, 'level')
+        cfg_message('matlabbatch:cfg_message', ...
+              'Message property must be ''level''.');
+        return;
     end
     if ~ischar(varargin{3}) || size(varargin{3},1) ~= 1
         cfg_message('matlabbatch:cfg_message', ...
@@ -91,6 +101,9 @@ if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', 'syslog'})
     msgprop   = lower(varargin{2});
     msgregexp = varargin{3};
     sel = findcfg(msgcfg, msgregexp);
+    % Save properties and matching ids
+    oldmsgprops = {msgcfg(sel).(msgprop)};
+    mchmsgids   = {msgcfg(sel).identifier};
     if any(sel)
         % Set property on all matching messages
         [msgcfg(sel).(msgprop)] = deal(msgstate);
@@ -105,6 +118,9 @@ if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', 'syslog'})
     if ~ismsgid(msgregexp)
         % Update templates
         sel = strcmp(msgregexp, {msgtpl.identifier});
+        % Save properties and matching ids
+        oldtplprops = {msgtpl(sel).(msgprop)};
+        mchtplids   = {msgtpl(sel).identifier};
         if any(sel)
             % Update literally matching regexps
             [msgtpl(sel).(msgprop)] = deal(msgstate);
@@ -116,46 +132,8 @@ if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', 'syslog'})
         end
         cfg_get_defaults('msgtpl',msgtpl);
     end
-elseif any(strcmpi(varargin{1}, {'info', 'warning', 'error'}))
-    % Set message level
-    if nargin ~= 2
-        cfg_message('matlabbatch:cfg_message', ...
-              'Must specify level and msgidregexp.');
-        return;
-    end
-    if ~ischar(varargin{2}) || size(varargin{2},1) ~= 1
-        cfg_message('matlabbatch:cfg_message', ...
-              'Second argument must be a one-line character string.');
-        return;
-    end
-    msglvl    = lower(varargin{1});
-    msgregexp = varargin{2};
-    sel = findcfg(msgcfg, msgregexp);
-    if any(sel)
-        % Set message level
-        [msgcfg(sel).level] = deal(msglvl);
-        cfg_get_defaults('msgcfg',msgcfg);
-    elseif ismsgid(msgregexp)
-        % Add new rule, if msgregexp is a valid id
-        msgcfg(end+1)          = msgdef;
-        msgcfg(end).identifier = msgregexp;
-        msgcfg(end).level      = msglvl;
-        cfg_get_defaults('msgcfg',msgcfg);
-    end
-    if ~ismsgid(msgregexp)
-        % Update templates
-        sel = strcmp(msgregexp, {msgtpl.identifier});
-        if any(sel)
-            % Update literally matching regexps
-            [msgtpl(sel).level] = deal(msglvl);
-        else
-            % Add new template rule
-            msgtpl(end+1)          = msgdef;
-            msgtpl(end).identifier = msgregexp;
-            msgtpl(end).level      = msglvl;
-        end
-        cfg_get_defaults('msgtpl',msgtpl);
-    end
+    varargout{1} = {oldmsgprops{:} oldtplprops{:}};
+    varargout{2} = {mchmsgids{:} mchtplids{:}};
 else
     % Issue message
     if isstruct(varargin{1})

@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2308 2008-10-06 16:05:26Z volkmar $
+% $Id: cfg_ui.m 2673 2009-01-30 13:34:53Z volkmar $
 
-rev = '$Rev: 2308 $'; %#ok
+rev = '$Rev: 2673 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1084,8 +1084,13 @@ if strcmpi(cmd,'continue')
         local_pointer('watch');
         cfg_util('deljob',udmodlist(1).cjob);
         udmodlist = local_init_udmodlist;
-        udmodlist.wd = fileparts(files{1});
-        udmodlist.cjob = cfg_util('initjob', files);
+        try
+            udmodlist.wd = fileparts(files{1});
+            udmodlist.cjob = cfg_util('initjob', files);
+        catch
+            l = lasterror;
+            errordlg(l.message,'Error loading job', 'modal');
+        end    
         set(handles.modlist, 'userdata', udmodlist);
         local_showjob(hObject);
         local_pointer('arrow');
@@ -1113,9 +1118,14 @@ if isempty(e) || ~any(strcmp(e,{'.mat','.m'}))
     e1 = {'.mat','.m'};
     file = sprintf('%s%s%s', n, e, e1{idx});
 end
-cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
-udmodlist.modified = false;
-set(handles.modlist,'userdata',udmodlist);
+try
+    cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
+    udmodlist.modified = false;
+    set(handles.modlist,'userdata',udmodlist);
+catch
+    l = lasterror;
+    errordlg(l.message,'Error saving job', 'modal');
+end
 local_pointer('arrow');
 
 % --------------------------------------------------------------------
@@ -1457,7 +1467,7 @@ switch lower(cmd)
             cfg_util('deljob', udmodlist.cjob);
         end;
         set(hObject,'Visible','off');
-        udmodlist = [];
+        udmodlist = local_init_udmodlist;
         set(handles.modlist,'userdata',udmodlist);
     case 'hide'
         set(hObject,'Visible','off');
