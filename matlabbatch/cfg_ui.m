@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: cfg_ui.m 2674 2009-01-30 14:15:48Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 2674 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -996,7 +996,7 @@ local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 
 % Check udmodlist
 udmodlist = get(handles.modlist, 'userdata');
-if isempty(udmodlist) || ~cfg_util('isjob_id', udmodlist.cjob)
+if isempty(udmodlist) || ~(~isempty(udmodlist.cjob) && cfg_util('isjob_id', udmodlist.cjob))
     udmodlist = local_init_udmodlist;
     udmodlist.cjob = cfg_util('initjob');
     set(handles.modlist, 'userdata', udmodlist);
