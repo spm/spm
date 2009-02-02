@@ -66,6 +66,10 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.28  2009/02/02 13:05:44  roboos
+% addec bemcp
+% give warning once in case of eeg infinite medium
+%
 % Revision 1.27  2008/07/22 10:17:15  roboos
 % replaced identical with strcmp
 %
@@ -309,7 +313,7 @@ elseif ismeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if isempty(warning_issued)
         % give the warning only once
-        warning('assuming magnetic dipole in infinite vacuum');
+        warning('assuming magnetic dipole in an infinite vacuum');
         warning_issued = 1;
       end
 
@@ -462,11 +466,20 @@ elseif iseeg
         error('more than 4 concentric spheres are not supported');
       end
 
-    case {'bem', 'dipoli', 'asa', 'avo'}
+    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % EEG boundary element method volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       lf = eeg_leadfieldb(pos, sens.pnt, vol);
+
+    case 'infinite'
+      % the conductivity of the medium is not known
+      if isempty(warning_issued)
+        % give the warning only once
+        warning('assuming electric dipole in an infinite medium with unit conductivity');
+        warning_issued = 1;
+      end
+      lf = inf_medium_leadfield(pos, sens.pnt, 1);
 
     otherwise
       error('unsupported volume conductor model for EEG');

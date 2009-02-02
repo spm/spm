@@ -13,6 +13,12 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.3  2009/02/02 13:05:22  roboos
+% small fix in cpbem->bemcp
+%
+% Revision 1.2  2009/02/02 12:58:27  roboos
+% added bemcp implementation
+%
 % Revision 1.1  2009/01/21 10:32:38  roboos
 % moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
 %
@@ -73,7 +79,7 @@ if nargin>1
   % return a boolean flag
   switch desired
     case 'bem'
-      type = any(strcmp(type, {'bem', 'dipoli', 'asa', 'avo'}));
+      type = any(strcmp(type, {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}));
     otherwise
       type = any(strcmp(type, desired));
   end

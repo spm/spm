@@ -32,6 +32,10 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.11  2009/02/02 13:06:40  roboos
+% added bemcp
+% changed handling of vertex->electrode interpolation, now also possible if bem system matrix only describes the skin surface
+%
 % Revision 1.10  2009/01/19 12:13:49  roboos
 % added code at the end to determine the brain and the skin compartment
 %
@@ -216,7 +220,7 @@ elseif iseeg
       end
       sens.pnt = pnt;
 
-    case {'bem', 'dipoli', 'asa', 'avo'}
+    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -240,31 +244,38 @@ elseif iseeg
           % compute linear interpolation from triangle vertices towards electrodes
           el   = project_elec(sens.pnt, vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri);
           tra  = transfer_elec(vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri, el);
-          % construct the transfer from all vertices (also brain/skull) towards electrodes
-          vol.tra = [];
-          for i=1:length(vol.bnd)
-            if i==vol.skin
-              vol.tra = [vol.tra, tra];
-            else
-              vol.tra = [vol.tra, zeros(size(el,1), size(vol.bnd(i).pnt,1))];
+          if size(vol.mat,1)==size(vol.bnd(vol.skin).pnt,1)
+            % construct the transfer from only the skin vertices towards electrodes
+            interp = tra;
+          else
+            % construct the transfer from all vertices (also brain/skull) towards electrodes
+            interp = [];
+            for i=1:length(vol.bnd)
+              if i==vol.skin
+                interp = [interp, tra];
+              else
+                interp = [interp, zeros(size(el,1), size(vol.bnd(i).pnt,1))];
+              end
             end
           end
-          vol.tra    = sparse(vol.tra); % convert to sparse matrix to speed up multiplications
-          % incorporate the transfer and the system matrix into one matrix
+          % convert to sparse matrix to speed up the subsequent multiplication
+          interp    = sparse(interp);
+          % incorporate the linear interpolation matrix and the system matrix into one matrix
           % this speeds up the subsequent repeated leadfield computations
           fprintf('combining electrode transfer and system matrix\n');
-          vol.mat = vol.tra * vol.mat;
-          vol = rmfield(vol, 'tra');
+          vol.mat = interp * vol.mat;
+          % FIXME should I also add the electrode labels to the volume definition?
         end
         % ensure that the model potential will be average referenced
-        vol.mat = avgref(vol.mat);
+        avg = mean(vol.mat, 1);
+        vol.mat = vol.mat - repmat(avg, size(vol.mat,1), 1);
       end
 
     otherwise
       error('unsupported volume conductor model for EEG');
   end
 
-  % FIXME this needs carefull throught to ensure that the average referencing which is now done here and there, and that the linear interpolation in case of BEM are all dealt with consistently
+  % FIXME this needs carefull thought to ensure that the average referencing which is now done here and there, and that the linear interpolation in case of BEM are all dealt with consistently
   % % always ensure that there is a linear transfer matrix for
   % % rereferencing the EEG potential
   % if ~isfield(sens, 'tra');
