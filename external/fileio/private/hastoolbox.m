@@ -3,13 +3,16 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % HASTOOLBOX tests whether an external toolbox is installed. Optionally
 % it will try to determine the path to the toolbox and install it
 % automatically.
-% 
+%
 % Use as
 %   [status] = hastoolbox(toolbox, autoadd, silent)
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.26  2009/02/02 12:57:21  roboos
+% added bemcp, image, tcp_udp_ip
+%
 % Revision 1.25  2009/01/19 15:02:21  roboos
 % added mne for fiff access
 %
@@ -113,7 +116,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 persistent previous
 if isempty(previous)
   previous = struct;
-elseif isfield(previous, fixname(toolbox)) 
+elseif isfield(previous, fixname(toolbox))
   status = previous.(fixname(toolbox));
   return
 end
@@ -138,10 +141,11 @@ url = {
   'YOKOGAWA'   'see http://www.yokogawa.co.jp, or contact Nobuhiko Takahashi'
   'BEOWULF'    'see http://oostenveld.net, or contact Robert Oostenveld'
   'MENTAT'     'see http://oostenveld.net, or contact Robert Oostenveld'
-  'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth' 
+  'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth'
   '4D-VERSION' 'contact Christian Wienbruch'
   'SIGNAL'     'see http://www.mathworks.com/products/signal'
   'OPTIM'      'see http://www.mathworks.com/products/optim'
+  'IMAGE'      'see http://www.mathworks.com/products/image'
   'FASTICA'    'see http://www.cis.hut.fi/projects/ica/fastica'
   'BRAINSTORM' 'see http://neuroimage.ucs.edu/brainstorm'
   'FILEIO'     'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:fileio'
@@ -151,7 +155,9 @@ url = {
   'NLXNETCOM'  'see http://www.neuralynx.com'
   'DIPOLI'     'see ftp://ftp.fcdonders.nl/pub/fieldtrip/external'
   'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
-};
+  'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
+  'BEMCP'      'contact Christophe Phillips'
+  };
 
 if nargin<2
   % default is not to add the path automatically
@@ -210,6 +216,8 @@ switch toolbox
     status = exist('medfilt1');
   case 'OPTIM'
     status  = (exist('fmincon') && exist('fminunc'));
+  case 'IMAGE'
+    status = exist('bwlabeln');
   case 'FASTICA'
     status  = exist('fastica', 'file');
   case 'BRAINSTORM'
@@ -230,6 +238,10 @@ switch toolbox
     status  = exist('dipoli.m', 'file');
   case 'MNE'
     status  = (exist('fiff_read_meas_info', 'file') && exist('fiff_setup_read_raw', 'file'));
+  case 'TCP_UDP_IP'
+    status  = (exist('pnet', 'file') && exist('pnet_getvar', 'file') && exist('pnet_putvar', 'file'));
+  case 'BEMCP'
+    status  = (exist('Cij_cog', 'file') && exist('Cij_lin', 'file') && exist('Cij_cst', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
@@ -267,11 +279,11 @@ if autoadd && ~status
 
   % use the matlab subdirectory in your homedirectory, this works on unix and mac
   prefix = [getenv('HOME') '/matlab'];
-  if ~status 
+  if ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
- if ~status
+  if ~status
     % the toolbox is not on the path and cannot be added
     sel = find(strcmp(url(:,1), toolbox));
     if ~isempty(sel)
