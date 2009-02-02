@@ -57,6 +57,9 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.11  2009/02/02 16:27:41  roboos
+% changed order of detecting sens.grad/elec on Vladimirs request, don't know why
+%
 % Revision 1.10  2008/09/10 09:12:11  roboos
 % added alternative definition of channel names without a space in the label for neuromag 122 and 306
 %
@@ -96,10 +99,10 @@ function [type] = senstype(sens, desired)
 if isa(sens, 'struct')
   if isfield(sens, 'sens')
     sens = sens.sens;
-  elseif isfield(sens, 'elec')
-    sens = sens.elec;
   elseif isfield(sens, 'grad')
     sens = sens.grad;
+  elseif isfield(sens, 'elec')
+    sens = sens.elec;
   end
 elseif isa(sens, 'cell')
   dum.label = sens; sens = dum; clear dum
