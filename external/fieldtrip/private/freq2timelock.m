@@ -13,6 +13,9 @@ function [timelock, cfg] = freq2timelock(cfg, freq);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: freq2timelock.m,v $
+% Revision 1.5  2009/02/02 13:22:27  jansch
+% changed 'chancmb' into 'chan' (line 32)
+%
 % Revision 1.4  2006/05/10 08:19:45  roboos
 % added dimord to the output
 %
@@ -29,7 +32,7 @@ function [timelock, cfg] = freq2timelock(cfg, freq);
 if isfield(freq, 'fourierspctrm')
   fprintf('constructing real/imag data representation from single trial fourier representation\n');
   % select the complex amplitude at the frequency of interest
-  cdim = dimnum(freq.dimord, 'chancmb');  % should be 2
+  cdim = dimnum(freq.dimord, 'chan');  % should be 2
   fdim = dimnum(freq.dimord, 'freq');     % should be 3
   fbin = nearest(freq.freq, cfg.frequency);
   cfg.frequency = freq.freq(fbin);

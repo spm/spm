@@ -14,7 +14,6 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 %   vol.bnd	structure array with vertices and triangles of each boundary
 %   vol.cond	conductivity of all compartments
 %   vol.mat 	system matrix, which can include the electrode interpolation
-%   vol.tra 	transfer matrix for interpolation from vertices to electrodes
 %
 % the compartment boundaries are described by a structure array with
 %   vol.bnd(i).pnt
@@ -23,6 +22,12 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: eeg_leadfieldb.m,v $
+% Revision 1.3  2009/02/02 13:12:53  roboos
+% small fix, cpbem->bemcp
+%
+% Revision 1.2  2009/02/02 12:59:26  roboos
+% added bemcp implementation, do not use vol.tra any more, made some changes to the checks on the input structures, use voltype in switch ladder
+%
 % Revision 1.1  2009/01/21 10:32:38  roboos
 % moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
 %
@@ -38,31 +43,13 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % made separate function for BEM, based on part of eeg_leadfield.m
 %
 
-isavo    = 0;  % system matrix computed using code from Adriaan van Oosterom
-isdipoli = 0;  % system matrix computed using Thom Oostendorp's DIPOLI
-isasa    = 0;  % system matrix computed using ASA from www.ant-neuro.com
 
-% determine the type of BEM system matrix
-if     isfield(vol, 'type') && strcmp(vol.type, 'dipoli')
-  isdipoli = 1;
-elseif isfield(vol, 'type') && strcmp(vol.type, 'avo')
-  isavo = 1;
-elseif isfield(vol, 'type') && strcmp(vol.type, 'asa')
-  isasa = 1;
-else
-  % default is to assume ASA, see http://www.ant-neuro.com
-  isasa = 1;
-end
-
-% determine the number of compartments
-ncmp = length(vol.cond);
-
-% do some tests for the correctness of the model
+% do some sanity checks
 if ~isfield(vol, 'bnd')
   error('there are no compartment boundaries present');
 end
 
-if length(vol.bnd)~=ncmp
+if length(vol.bnd)~=length(vol.cond)
   error('the number of compartments in the volume in ambiguous');
 end
 
@@ -70,63 +57,77 @@ if ~isfield(vol, 'mat')
   error('there is no BEM system matrix present');
 end
 
-if isfield(vol, 'tra') & size(vol.tra,2)~=size(vol.mat,1)
-  error('ambiguity between electrode transfer matrix and system matrix');
+% determine the number of compartments
+ncmp = length(vol.bnd);
+
+% the number of rows in the leadfield matrix should either correspond to
+% the number of electrodes, to the number of vertices of the skin
+% compartment or to the total number of vertices
+nelc  = size(elc, 1);
+nskin = size(vol.bnd(vol.skin).pnt,1);
+nall  = 0;
+for i=1:ncmp
+  nall = nall + size(vol.bnd(i).pnt,1);
+end
+if size(vol.mat,1)==nelc
+  % the output leadfield corresponds to the number of electrodes
+elseif size(vol.mat,1)==nskin
+  % the output leadfield corresponds to the number skin vertices
+elseif size(vol.mat,1)==nall
+  % the output leadfield corresponds to the total number of vertices
+else
+  error('unexpected size of vol.mat')
 end
 
-if isfield(vol, 'tra') & ~isempty(elc) & size(vol.tra,1)~=size(elc,1)
-  error('ambiguity between number of electrodes and transfer matrix');
-end
-
-if ~isfield(vol, 'tra') & ~isempty(elc) & size(vol.mat,1)~=size(elc,1)
-  error('ambiguity between number of electrodes and system matrix');
-end
-
-if ~isfield(vol, 'source')
-  % determine the source compartment
-  if ncmp==1
-    % there is only one compartment
-    vol.source = 1;
-  else
-    % try to locate the innermost compartment and
-    % assume that the sources are in the innermost compartment
-    innermost = find_innermost_boundary(vol.bnd);
-    warning(sprintf('assuming that BEM compartment %d contains the sources', innermost));
-    vol.source = innermost;
-  end
-end
 % determine the conductivity of the source compartment
 cond = vol.cond(vol.source);
 
 % compute the infinite medium potential on all vertices
-if isavo
-  % the code by Adriaan van Oosterom does not implement isolated source approach
-  lf = [];
-  for i=1:ncmp
-    lf = [lf; inf_medium_leadfield(pos, vol.bnd(i).pnt, mean(vol.sigmas(i,:)))];
-  end
-elseif isdipoli
-  % concatenate the vertices of all compartment boundaries in a single Nx3 matrix
-  pnt = [];
-  for i=1:ncmp
-    pnt = [pnt; vol.bnd(i).pnt];
-  end
-  % dipoli incorporates the conductivity into the system matrix
-  lf = inf_medium_leadfield(pos, pnt, 1);
-elseif isasa
-  % concatenate the vertices of all compartment boundaries in a single Nx3 matrix
-  pnt = [];
-  for i=1:ncmp
-    pnt = [pnt; vol.bnd(i).pnt];
-  end
-  % assume that isolated potential approach was used
-  lf = inf_medium_leadfield(pos, pnt, cond);
-end
+switch voltype(vol)
+  case 'avo'
+    % the system matrix was computed using code from Adriaan van Oosterom
+    % the code by Adriaan van Oosterom does not implement isolated source approach
+    lf = [];
+    for i=1:ncmp
+      lf = [lf; inf_medium_leadfield(pos, vol.bnd(i).pnt, mean(vol.sigmas(i,:)))];
+    end
 
-% compute bounded medium potential on all vertices
+  case 'dipoli'
+    % the system matrix was computed using Thom Oostendorp's DIPOLI
+    % concatenate the vertices of all compartment boundaries in a single Nx3 matrix
+    pnt = [];
+    for i=1:ncmp
+      pnt = [pnt; vol.bnd(i).pnt];
+    end
+    % dipoli incorporates the conductivity into the system matrix
+    lf = inf_medium_leadfield(pos, pnt, 1);
+
+  case 'asa'
+    % the system matrix was computed using ASA from www.ant-neuro.com
+    % concatenate the vertices of all compartment boundaries in a single Nx3 matrix
+    pnt = [];
+    for i=1:ncmp
+      pnt = [pnt; vol.bnd(i).pnt];
+    end
+    % assume that isolated potential approach was used
+    lf = inf_medium_leadfield(pos, pnt, cond);
+
+  case 'bemcp'
+    % the system matrix was computed using code from Christopher Phillips
+    cond = [vol.cond 0]; % add the conductivity of air for simplicity
+    lf = cell(1,ncmp);
+    % loop over boundaries and compute the leadfield for each
+    for i=1:ncmp
+      co = (cond(i)+cond(i+1))/2 ;
+      lf{i} = inf_medium_leadfield(pos, vol.bnd(i).pnt, co);
+    end
+    % concatenate the leadfields
+    lf = cat(1, lf{:});
+
+  otherwise
+    error('unsupported type of volume conductor (%s)\n', voltype(vol));
+end % switch voltype
+
+% compute the bounded medium potential on all vertices
+% this may include the bilinear interpolation from vertices towards electrodes
 lf = vol.mat * lf;
-
-% optionally do bilinear interpolation from vertices towards electrodes
-if isfield(vol, 'tra')
-  lf = vol.tra * lf;
-end

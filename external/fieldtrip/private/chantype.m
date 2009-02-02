@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.8  2009/02/02 12:09:28  vlalit
+% Added back support of generic desired types 'meg' and 'ref'.
+%
 % Revision 1.7  2009/01/29 18:51:53  vlalit
 % Some cosmetic changes + detection of additional channel types based on label
 %
@@ -256,9 +259,12 @@ end
 
 if nargin>1
     % return a boolean vector
-    type = strcmp(desired, type);
+    if isequal(desired, 'meg') || isequal(desired, 'ref')
+        type = strncmp(desired, type, 3);
+    else
+        type = strcmp(desired, type);
+    end
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

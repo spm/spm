@@ -119,6 +119,13 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.43  2009/02/02 09:56:34  roboos
+% there was still some confusion in the code w.r.t. x/y swapping to
+% position the nose at the top of the figure. That is now completely
+% being taken care of in the prepare_layout function. The x/y swapping
+% caused a layout of conrado not to work, hence I have removed the
+% x/y swapping alltogether.
+%
 % Revision 1.42  2009/01/19 11:56:24  roboos
 % moved the command to plot the contour line to after the one to plot the surface, to ensure that the contour lines remain on top also when you export with painters rendering (thanks to Paolo Toffanin)
 % some small cleanups
@@ -307,11 +314,12 @@ if isfield(cfg, 'update') && strcmp(cfg.update, 'yes')
     xi = update.xi;
     yi = update.yi;
     % Interpolate the topographic data
-    Zi = griddata(y', x, data, yi', xi, cfg.interpolation);
+    Zi = griddata(x', y, data, xi', yi, cfg.interpolation);
     % keep the same NaNs
     Zi(isnan(update.Zi)) = NaN;
-    delta = xi(2)-xi(1); % length of grid entry
-    surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
+    deltax = xi(2)-xi(1); % length of grid entry
+    deltay = yi(2)-yi(1); % length of grid entry
+    surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)),Zi,'EdgeColor','none','FaceColor',cfg.shading);
     return
   end
 end
@@ -396,11 +404,13 @@ else
 end
 clear chanX chanY
 
-% the default head coordinate system is with the x-axis towards the nose
-% to ensure that the nose in the figure points towards the top of the
-% figure, the x and y axis have to be swapped
-y = cfg.layout.pos(:,1);
-x = cfg.layout.pos(:,2);
+% The whole figure will be created with the x-axis along the horizontal
+% dimension of the figure and the y-axis along the vertical dimension. This
+% means that for data coming from a system with a head-coordinate system in
+% which the x-axis points to the nose (e.g. CTF), the layout should be 90
+% degrees rotated relative to the head coordinates.
+x = cfg.layout.pos(:,1);
+y = cfg.layout.pos(:,2);
 
 if isfield(cfg, 'outline')
   error('the option cfg.outline is not supported any more, please contact Robert for a detailled explanation');
@@ -467,8 +477,8 @@ elseif isnumeric(cfg.commentpos)
   y_COMNT = 0.9*((y_COMNT-min(y))/(max(y)-min(y))-0.5);
 end
 
-ha = gca;
-cla
+gca;
+cla;
 hold on
 
 if ~strcmp(cfg.style,'blank')
@@ -491,9 +501,9 @@ if ~strcmp(cfg.style,'blank')
     ymax = max(cfg.layout.pos(:,2));
   end
 
-  xi         = linspace(xmin,xmax,cfg.gridscale);   % x-axis description (row vector)
-  yi         = linspace(ymin,ymax,cfg.gridscale);   % y-axis description (row vector)
-  [Xi,Yi,Zi] = griddata(y', x, data, yi', xi, cfg.interpolation); % Interpolate the topographic data
+  xi         = linspace(xmin,xmax,cfg.gridscale);   % x-axis for interpolation (row vector)
+  yi         = linspace(ymin,ymax,cfg.gridscale);   % y-axis for interpolation (row vector)
+  [Xi,Yi,Zi] = griddata(x', y, data, xi', yi, cfg.interpolation); % Interpolate the topographic data
 
   % calculate colormap limits
   m = size(colormap,1);
@@ -509,7 +519,8 @@ if ~strcmp(cfg.style,'blank')
     amin = cfg.maplimits(1);
     amax = cfg.maplimits(2);
   end
-  delta = xi(2)-xi(1); % length of grid entry
+  deltax = xi(2)-xi(1); % length of grid entry
+  deltay = yi(2)-yi(1); % length of grid entry
 
   if isfield(cfg.layout, 'mask')
     % apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
@@ -536,7 +547,7 @@ if ~strcmp(cfg.style,'blank')
     contour(Xi,Yi,Zi,cfg.contournum,cfg.contcolor);
   elseif strcmp(cfg.style,'both')
     % first draw the surface, then the contour, to ensure that after exporting the contour lines are "on top"
-    h = surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
+    h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
     if exist('maskZ','var'),
       set(h, 'AlphaData', maskZ);
       alim([0 1]);
@@ -544,7 +555,7 @@ if ~strcmp(cfg.style,'blank')
     end
     contour(Xi,Yi,Zi,cfg.contournum,cfg.contcolor);
   elseif strcmp(cfg.style,'straight')
-    h = surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
+    h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
     if exist('maskZ','var'),
       set(h, 'AlphaData', maskZ);
       alim([0 1]);
@@ -558,47 +569,46 @@ if ~strcmp(cfg.style,'blank')
   caxis([amin amax]); % set coloraxis
 end
 
-
 % Plot electrodes:
 if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
   if ischar(cfg.highlight)
-    plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
+    plot(x,y,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
-    plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth);
+    plot(x(normal),        y(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth);
   elseif iscell(cfg.highlight)
-    plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
+    plot(y,y,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
     for iCell = 1:length(cfg.highlight)
-      plot(y(cfg.highlight{iCell}), x(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
+      plot(x(cfg.highlight{iCell}), y(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
     end
   else
     error('Unknown highlight type');
   end;
 elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
   if isnumeric(cfg.highlight)
-    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',cfg.hllinewidth);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;
 elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes')
   for i = 1:numChan
-    text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
+    text(x(i), y(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers')
   for i = 1:numChan
-    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize',cfg.efontsize);
+    text(x(i), y(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize',cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'dotnum')
   for i = 1:numChan
-    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
+    text(x(i), y(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
   if ischar(cfg.highlight)
-    plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
+    plot(x, y, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
-    plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth', cfg.hllinewidth);
+    plot(x(normal)       , y(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth', cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;

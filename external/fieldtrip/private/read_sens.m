@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.12  2009/02/02 16:10:15  vlalit
+% Provide the 'headertype' argument to the internal read_header call.
+%
 % Revision 1.11  2009/01/23 10:32:55  vlalit
 % New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
 %
@@ -133,10 +136,13 @@ switch fileformat
     end
 
   case 'besa_sfp'
-    tmp        = importdata(filename);
-    sens.label = tmp.textdata;
-    sens.pnt   = tmp.data;
-
+    fid        = fopen(filename);
+    tmp        = textscan(fid, ' %[^ \t]%n%n%n');
+    fclose(fid);
+     
+    sens.label = tmp{1};
+    sens.pnt   = [tmp{2:4}];
+   
   case 'neuromag_mne'
     hastoolbox('fileio');
     hdr = read_header(filename,'headerformat','neuromag_mne');
@@ -151,7 +157,7 @@ switch fileformat
     % check the availability of the required low-level toolbox
     % this is required because the read_sens function is also on itself included in the forwinv toolbox
     hastoolbox('fileio');
-    hdr = read_header(filename);
+    hdr = read_header(filename, 'headerformat', fileformat);
     sens = hdr.grad;
     
     
