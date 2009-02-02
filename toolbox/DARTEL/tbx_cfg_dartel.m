@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 2283 2008-10-01 14:25:09Z john $
+% $Id: tbx_cfg_dartel.m 2680 2009-02-02 18:59:22Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -299,7 +299,7 @@ param.val{3}.val{1} = 4; % K
 param.val{4}.val{1} = 1;
 val{5} = param;
 param.val{1}.val{1} = 3; % iits
-param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
 param.val{3}.val{1} = 6; % K
 param.val{4}.val{1} = 0.5;
 val{6} = param;
@@ -553,7 +553,7 @@ param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
 param.val{3}.val{1} = 4; % K
 val{5} = param;
 param.val{1}.val{1} = 3; % iits
-param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
 param.val{3}.val{1} = 6; % K
 val{6} = param;
 
@@ -1093,7 +1093,7 @@ rform.values{3} = double(2);
 rparam         = cfg_entry;
 rparam.tag     = 'rparam';
 rparam.name    = 'Reg params';
-rparam.val{1} = double([0.125 0.0625 9.99999999999999955e-07]);
+rparam.val{1} = double([0.25 0.125 1e-06]);
 rparam.help    = {'For linear elasticity, the parameters are `mu'', `lambda'' and `id''. For membrane and bending energy, the parameters are `lambda'', unused and `id''. The term `id'' is for penalising absolute displacements, and should therefore be small.'};
 rparam.strtype = 'e';
 rparam.num     = [1 3];

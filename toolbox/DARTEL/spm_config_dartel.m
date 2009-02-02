@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_dartel.m 2611 2009-01-16 19:11:27Z john $
+% $Id: spm_config_dartel.m 2680 2009-02-02 18:59:22Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 %_______________________________________________________________________
@@ -234,7 +234,7 @@ param.val{3}.val{1} = 4; % K
 param.val{4}.val{1} = 1;
 params.val{5} = param;
 param.val{1}.val{1} = 3; % iits
-param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
 param.val{3}.val{1} = 6; % K
 param.val{4}.val{1} = 0.5;
 params.val{6} = param;
@@ -571,7 +571,7 @@ rform.help = {[...
 'form of this energy term is specified. '...
 'Three different forms of regularisation can currently be used.']};
 rparam = entry('Reg params','rparam','e',[1 3]);
-rparam.val = {[0.125 0.0625 1e-6]};
+rparam.val = {[0.25 0.125 1e-6]};
 rparam.help = {...
 ['For linear elasticity, the parameters are `mu'', `lambda'' and `id''. ',...
  'For membrane and bending energy, '...
