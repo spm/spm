@@ -1,92 +1,37 @@
 function r = spm_gamrnd(a,b,varargin)
-% THE GAMMA DISTRIBUTION
+% Random arrays from gamma distribution
+% FUNCTION r = spm_gamrnd(a,b,m,n,...)
 %
-% The standard form of the GAMMA distribution:
+% a       - shape parameter
+% b       - scale parameter
+% m,n,... - dimensions of the output array [optional]
 %
-%   pdf(y) = y^(a-1)*exp(-y)/gamma(a);  y>=0, a>0
-%   cdf(y) = gammainc(y, a);
+% r       - array of random numbers chosen from the gamma distribution
+%__________________________________________________________________________
 %
-%   Mean = a;
-%   Variance = a;
-%   Skewness = 2/sqrt(a);
-%   Kurtosis = 6/a;
-%   Mode = a-1;
-%
-% The general form of the GAMMA distribution:
-%
-%   pdf(y) = ((y-m)/b).^(a-1) .* exp(-(y-m)/b)/ (b*gamma(a));  y>=m; a>0; b>0
-%   cdf(y) = gammainc((y-m)/b, a);  y>=m; a>0; b>0
-%
-%   Mean = m + a*b;
-%   Variance = a*b^2;
-%   Skewness = 2/sqrt(a);
-%   Kurtosis = 6/a;
-%   Mode = m + b*(a-1);
-%
-% PARAMETERS:
-%   m - location
-%   b - scale; b>0
-%   a - shape; a>0
-%
-% SUPPORT:
-%   y,   y>=0   - standard GAMMA distribution
-%    or
-%   y,   y>=m   - generalized GAMMA distribution
-%
-% CLASS:
-%   Continuous skewed distributions
-%
-% NOTES:
-% 1. The GAMMA distribution approaches a NORMAL distribution as a goes to Inf
-% 5. GAMMA(m, b, a), where a is an integer, is the Erlang distribution.
-% 6. GAMMA(m, b, 1) is the Exponential distribution.
-% 7. GAMMA(0, 2, nu/2) is the Chi-square distribution with nu degrees of freedom.
-%
-% USAGE:
-%   randraw('gamma', a, sampleSize) - generate sampleSize number
-%         of variates from standard GAMMA distribution with shape parameter 'a';
-%   randraw('gamma', [m, b, a], sampleSize) - generate sampleSize number
-%         of variates from generalized GAMMA distribution
-%         with location parameter 'm', scale parameter 'b' and shape parameter 'a';
-%   randraw('gamma') - help for GAMMA distribution;
-%
-% EXAMPLES:
-%  1.   y = randraw('gamma', [2], [1 1e5]);
-%  2.   y = randraw('gamma', [0 10 2], 1, 1e5);
-%  3.   y = randraw('gamma', [3], 1e5 );
-%  4.   y = randraw('gamma', [1/3], 1e5 );
-%  5.   y = randraw('gamma', [1 3 2], [1e5 1] );
-%  6.   randraw('gamma');
-%
-% END gamma HELP END gama HELP
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%
-% $Id: spm_gamrnd.m 2635 2009-01-21 09:43:47Z maria $
-
-% Method:
-%
-% Reference:
+% Reference
+% 
 % George Marsaglia and Wai Wan Tsang, "A Simple Method for Generating Gamma
-%   Variables": ACM Transactions on Mathematical Software, Vol. 26, No. 3,
-%   September 2000, Pages 363-372
-
-%   EFFICIENT RANDOM VARIATES GENERATOR
+% Variables": ACM Transactions on Mathematical Software, Vol. 26, No. 3,
+% September 2000, Pages 363-372
 %
-%   http://www.mathworks.com/matlabcentral/fileexchange/7309
+% Part of RANDRAW - Efficient Random Variates Generator:
+% http://www.mathworks.com/matlabcentral/fileexchange/7309
+% Alex Bar Guy  &  Alexander Podgaetsky
 %
-%  Version 1.1 - April 2005 -  Bug fix:   Generation from binomial distribution using only 'binomial'
-%                                   usage string was changed to 'binom' ( 'binomial' works too ).
-%  Version 1.0 - March 2005 -  Initial version
-%  Alex Bar Guy  &  Alexander Podgaetsky
+% Version 1.1
+%
+% Any comments and suggestions please send to:
 %    alex@wavion.co.il
-
+% 
 % These programs are distributed in the hope that they will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Any comments and suggestions please send to:
-%    alex@wavion.co.il
+% Alex Bar Guy & Alexander Podgaetsky
+% $Id: spm_gamrnd.m 2685 2009-02-03 19:16:00Z guillaume $
 
 error(nargchk(2,Inf,nargin));
 
@@ -96,11 +41,9 @@ else
     sampleSize = [varargin{1:end}];
 end
 
-m = 0;
-
 if a < 1
     % If a<1, one can use GAMMA(a)=GAMMA(1+a)*UNIFORM(0,1)^(1/a);
-    r = m + b*(spm_gamrnd(1+a, 1, sampleSize)).*(rand(sampleSize).^(1/a));
+    r = spm_gamrnd(1+a, 1, sampleSize) .* (rand(sampleSize).^(1/a));
 
 else
 
@@ -154,6 +97,6 @@ else
         indxs = indxs( ~l );
     end % while ~isempty(indxs)
 
-    r = m + b*r;
-
 end % if a < 1, else ...
+
+r = b .* r;

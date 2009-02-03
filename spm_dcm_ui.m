@@ -71,7 +71,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 2630 2009-01-20 17:11:57Z cc $
+% $Id: spm_dcm_ui.m 2685 2009-02-03 19:16:00Z guillaume $
 
 
 % Get figure handles
@@ -144,11 +144,9 @@ case 'review',
 %==========================================================================
 case 'compare',
     
-    %spm('FnBanner','spm_dcm_compare');
+    spm('FnBanner','spm_api_bmc');
     
-    spm_jobman('Interactive','','spm.stats.bms.bms_dcm')
-
-    %spm_dcm_compare;
+    spm_jobman('Interactive','','spm.stats.bms.bms_dcm');
 
     
 %==========================================================================
@@ -180,10 +178,4 @@ end
 spm_clf(Finter);
 spm('Pointer','Arrow');
 set(Finter,'Name',header);
-if strcmpi(Action, 'compare')
-    spm_input('Thank you',3,'d');
-else
-    spm_input('Thank you',1,'d');
-end
-
-return
+spm_input('Thank you',1,'d');
