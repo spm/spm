@@ -24,7 +24,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % Ps    - Sorted p-values
 % Ts    - Sorted statistic values
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % The Benjamini & Hochberch (1995) False Discovery Rate (FDR) procedure
 % finds a threshold u such that the expected FDR is at most q.
@@ -75,22 +75,22 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % Benjamini & Yekutieli (2001), "The Control of the false discovery rate
 % in multiple testing under dependency". To appear, Annals of Statistics.
 % Available at http://www.math.tau.ac.il/~benja 
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uc_FDR.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 if (nargin<6), Vm = []; end
 
 % Set Benjamini & Yeuketeli cV for independence/PosRegDep case
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cV = 1; 
 
 
 % Load, mask & sort statistic image (if needed)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isstruct(Vs)
   Ts = spm_read_vols(Vs(1));
   for i = 2:length(Vs)
@@ -99,7 +99,7 @@ if isstruct(Vs)
   if ~isempty(Vm)
     if isstruct(Vm)
       Ts(spm_read_vols(Vm)==0) = [];
-    elseif (prod(size(Vm))==1)
+    elseif (numel(Vm)==1)
       Ts(Ts==Vm) = [];
     else 
       Ts = Ts(Vm);
@@ -112,7 +112,7 @@ end
 
 
 % Calculate p values of image (if needed)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isstruct(Vs)
   if      STAT == 'Z'
     Ps = (1-spm_Ncdf(Ts)).^n;
@@ -131,13 +131,13 @@ S = length(Ps);
 
 
 % Calculate FDR inequality RHS
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fi  = (1:S)'/S*q/cV;
 
 
 % Find threshold
-%-----------------------------------------------------------------------
-I = max(find(Ps<=Fi));
+%--------------------------------------------------------------------------
+I = find(Ps<=Fi, 1, 'last' );
 if isempty(I)
   if STAT == 'P'
     u = 0;

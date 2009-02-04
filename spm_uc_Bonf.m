@@ -8,6 +8,7 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 %       'T' - T - field
 %       'X' - Chi squared field
 %       'F' - F - field
+%       'P' - P - value
 % S     - Voxel count
 % n     - number of conjoint SPMs
 %
@@ -22,7 +23,7 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_Bonf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uc_Bonf.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 u   = spm_u((a/S).^(1/n),df,STAT);

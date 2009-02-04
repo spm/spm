@@ -68,7 +68,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_P_FDR.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_P_FDR.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 
@@ -109,7 +109,7 @@ for i = 1:length(Z)
 
     % Find PZ(i) in Ps, or smallest Ps(j) s.t. Ps(j) >= PZ(i)
     %---------------------------------------------------------------
-    I = min(find(Ps>=PZ(i)));  
+    I = find(Ps>=PZ(i), 1 );  
 
     % -"Adjusted" p-values
     %---------------------------------------------------------------

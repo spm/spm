@@ -8,16 +8,18 @@ function [u] = spm_u(a,df,STAT)
 %               'T' - T - field
 %               'X' - Chi squared field
 %               'F' - F - field
+%               'P' - P - value
 %
 % u     - critical height {uncorrected}
-%___________________________________________________________________________
-% spm_u returns the uncorrected critical threshold at a specified significance
+%__________________________________________________________________________
 %
-%___________________________________________________________________________
+% spm_u returns the uncorrected critical threshold at a specified 
+% significance
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_u.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_u.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 if     STAT == 'Z'

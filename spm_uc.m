@@ -14,7 +14,7 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 %
 % u     - critical height {corrected}
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_uc corrected critical thresholds, using the minimum of different
 % valid methods.
@@ -24,15 +24,15 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 %     spm_uc_RF
 %     spm_uc_Bonf
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uc.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni.
-global NOBONF; if ~isempty(NOBONF) & NOBONF, S = []; end
+global NOBONF; if ~isempty(NOBONF) && NOBONF, S = []; end
 
 if (nargin<6), S = []; end
 

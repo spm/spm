@@ -44,7 +44,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_P_RF.m 2690 2009-02-04 21:44:28Z guillaume $
 
 
 
@@ -53,7 +53,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 
 % get EC densities
 %---------------------------------------------------------------------------
-D       = max(find(R));
+D       = find(R, 1, 'last' );
 R       = R(1:D);
 G       = sqrt(pi)./gamma(([1:D])/2);
 EC      = spm_ECdensity(STAT,Z,df);
@@ -75,7 +75,7 @@ En      = EN/EM(D);         % En = EN/EM(D);
 % Appropriate for SPM{Z} and high d.f. SPM{T}
 %---------------------------------------------------------------------------
 D       = D - 1;
-if     ~k | ~D
+if     ~k || ~D
 
     p    = 1;
 
@@ -88,7 +88,17 @@ elseif STAT == 'T'
 
     beta = (gamma(D/2 + 1)/En)^(2/D);
     p    = exp(-beta*(k^(2/D)));
-
+%     disp(p);
+%     %disp('CHANGED BY JC');
+%     th = Z;
+%     V2R = 9.4959e-04;
+%     EC2= 4*log(2)/(2*pi)^(3/2)*(exp(-th^2/2)*th); %from Worsley 1996
+%     sFWHM = 10.1742;
+%     c=sFWHM^D*th^(D/2)*normcdf(-th)/(EC2*gamma(D/2+1)); %Worsley's 'c' from SPM 2003
+%     %c=sFWHM^D*(2*pi)^(D/2)*(4*log(2))^(-D/2)/gamma(D/2+1); %Karl's 'c'
+%     p=exp(-th*(3^D*k/c)^(2/D));
+%     disp(p);
+%     disp('########');
 elseif STAT == 'X'
 
     beta = (gamma(D/2 + 1)/En)^(2/D);
@@ -108,10 +118,10 @@ P       = 1 - spm_Pcdf(c - 1,(Em + eps)*p);
 
 % set P and p = [] for non-implemented cases
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-if k > 0 & n > 1
+if k > 0 && n > 1
     P    = []; p = [];
 end
-if k > 0 & (STAT == 'X' | STAT == 'F')
+if k > 0 && (STAT == 'X' || STAT == 'F')
     P    = []; p = [];
 end
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
