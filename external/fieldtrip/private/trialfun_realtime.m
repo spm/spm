@@ -14,6 +14,9 @@ function trl = trialfun_realtime(cfg)
 % Copyright (C) 2009, Marcel van Gerven
 %
 % $Log: trialfun_realtime.m,v $
+% Revision 1.5  2009/02/04 13:59:46  marvger
+% removed keyboard command
+%
 % Revision 1.4  2009/01/29 10:35:48  marvger
 % more error checking
 %
@@ -71,7 +74,6 @@ function trl = trialfun_asynchronous(cfg)
       % see whether new samples are available
       newsamples = (cfg.hdr.nSamples*cfg.hdr.nTrials-prevSample);
 
-      keyboard
       % if newsamples exceeds the offset plus length specified in blocksize
       if newsamples>=sum(cfg.blocksize)
 

@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.28  2009/02/04 16:58:31  roboos
+% fixed backward compatibility bug in related to isfield, thanks to Irina
+%
 % Revision 1.27  2009/01/21 10:02:58  roboos
 % explicit handling of config->struct in case configuration tracking is used
 % changed default handling, don't use try-catch any more (thanks to Ivar)
@@ -181,10 +184,10 @@ end
 % check whether cfg.layout already contains a valid layout structure (this can
 % happen when higher level plotting functions are called with cfg.layout set to
 % a lay structure)
-if isstruct(cfg.layout) && all(isfield(cfg.layout, {'pos';'width';'height';'label'}))
+if isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && isfield(cfg.layout, 'width') && isfield(cfg.layout, 'height')
   lay = cfg.layout;
 
-elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pos';'label'}))
+elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && (~isfield(cfg.layout, 'width') || ~isfield(cfg.layout, 'height'))
   lay = cfg.layout;
   % add width and height for multiplotting
   d = dist(lay.pos');

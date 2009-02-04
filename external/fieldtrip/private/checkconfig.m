@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.11  2009/02/04 09:09:59  roboos
+% fixed filename to headerfile/datafile cvonversion in case of ctf_old
+%
 % Revision 1.10  2009/01/21 11:27:02  marvger
 % automatically set dataformat and headerformat if unspecified
 %
@@ -501,6 +504,10 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
       case {'ctf_ds', 'ctf_old'}
         % convert CTF filename into filenames
         [path, file, ext] = fileparts(filename);
+        if any(strcmp(ext, {'.res4' '.meg4', '.1_meg4' '.2_meg4' '.3_meg4' '.4_meg4' '.5_meg4' '.6_meg4' '.7_meg4' '.8_meg4' '.9_meg4'}))
+          filename = path;
+          [path, file, ext] = fileparts(filename);
+        end
         if isempty(path) && isempty(file)
           % this means that the dataset was specified as the present working directory, i.e. only with '.'
           filename = pwd;

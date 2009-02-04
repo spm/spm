@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.7  2009/02/04 16:42:41  roboos
+% use the datatype helper function
+%
 % Revision 1.6  2009/01/28 12:14:53  roboos
 % fixed handling of variable trial length for raw2timelock, esp. in case the trials are of equal length but shifted
 % update the trial definition after raw2timelock
@@ -197,7 +200,7 @@ function [data] = checkdata(data, varargin)
 
 % get the optional input arguments
 feedback      = keyval('feedback',      varargin); if isempty(feedback), feedback = 'no'; end
-datatype      = keyval('datatype',      varargin);
+dtype         = keyval('datatype',      varargin); % should not conflict with the datatype function
 dimord        = keyval('dimord',        varargin);
 stype         = keyval('senstype',      varargin); % senstype is a function name which should not be masked
 ismeg         = keyval('ismeg',         varargin);
@@ -213,14 +216,14 @@ keepoutside   = keyval('keepoutside',  varargin);
 
 % determine the type of input data
 % this can be raw, freq, timelock, comp, spike, source, volume, dip
-israw      = isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
-isfreq     = isfield(data, 'label') && isfield(data, 'freq') && (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'fourierspctrm'));
-istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && isfield(data, 'avg') && isnumeric(data.avg);
-iscomp     = isfield(data, 'topo') || isfield(data, 'topolabel');
-isspike    = isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
-isvolume   = isfield(data, 'transform') && isfield(data, 'dim');
-issource   = isfield(data, 'pos');
-isdip      = isfield(data, 'dip');
+israw      = datatype(data, 'raw');
+isfreq     = datatype(data, 'freq');
+istimelock = datatype(data, 'timelock');
+iscomp     = datatype(data, 'comp');
+isspike    = datatype(data, 'spike');
+isvolume   = datatype(data, 'volume');
+issource   = datatype(data, 'source');
+isdip      = datatype(data, 'dip');
 
 if ~isequal(feedback, 'no')
   if israw
@@ -258,6 +261,13 @@ if isfreq || istimelock || iscomp
   data = fixdimord(data);
 end
 
+if istimelock
+  % remove the unwanted fields
+  if isfield(data, 'numsamples'),       data = rmfield(data, 'numsamples');       end
+  if isfield(data, 'numcovsamples'),    data = rmfield(data, 'numcovsamples');    end
+  if isfield(data, 'numblcovsamples'),  data = rmfield(data, 'numblcovsamples');  end
+end
+
 if issource && isvolume
   % it should be either one or the other
   % the choise here is to represent it as volume description since that is simpler to handle
@@ -269,15 +279,15 @@ if issource && isvolume
   issource = 0;
 end
 
-if ~isempty(datatype)
-  if ~isa(datatype, 'cell')
-    datatype = {datatype};
+if ~isempty(dtype)
+  if ~isa(dtype, 'cell')
+    dtype = {dtype};
   end
 
   okflag = 0;
-  for i=1:length(datatype)
+  for i=1:length(dtype)
     % check that the data matches with one or more of the required datatypes
-    switch datatype{i}
+    switch dtype{i}
       case 'raw'
         okflag = okflag + israw;
       case 'freq'
@@ -294,38 +304,38 @@ if ~isempty(datatype)
         okflag = okflag + issource;
       case 'dip'
         okflag = okflag + isdip;
-    end % switch datatype
-  end % for datatype
+    end % switch dtype
+  end % for dtype
 
   if ~okflag
     % try to convert the data
-    for iCell = 1:length(datatype)
-      if isequal(datatype(iCell), {'source'}) && isvolume
+    for iCell = 1:length(dtype)
+      if isequal(dtype(iCell), {'source'}) && isvolume
         data = volume2source(data);
         isvolume = 0;
         issource = 1;
         okflag = 1;
-      elseif isequal(datatype(iCell), {'volume'}) && issource
+      elseif isequal(dtype(iCell), {'volume'}) && issource
         data = source2volume(data);
         isvolume = 1;
         issource = 0;
         okflag = 1;
-      elseif isequal(datatype(iCell), {'raw'}) && issource
+      elseif isequal(dtype(iCell), {'raw'}) && issource
         data = data2raw(data);
         issource = 0;
         israw = 1;
         okflag = 1;
-      elseif isequal(datatype(iCell), {'raw'}) && istimelock
+      elseif isequal(dtype(iCell), {'raw'}) && istimelock
         data = timelock2raw(data);
         istimelock = 0;
         israw = 1;
         okflag = 1;
-      elseif isequal(datatype(iCell), {'timelock'}) && israw
+      elseif isequal(dtype(iCell), {'timelock'}) && israw
         data = raw2timelock(data);
         israw = 0;
         istimelock = 1;
         okflag = 1;
-      elseif isequal(datatype(iCell), {'raw'}) && isfreq
+      elseif isequal(dtype(iCell), {'raw'}) && isfreq
         data = freq2raw(data);
         isfreq = 0;
         israw = 1;
@@ -336,11 +346,11 @@ if ~isempty(datatype)
 
   if ~okflag
     % construct an error message
-    if length(datatype)>1
-      str = sprintf('%s, ', datatype{1:(end-2)});
-      str = sprintf('%s%s or %s', str, datatype{end-1}, datatype{end});
+    if length(dtype)>1
+      str = sprintf('%s, ', dtype{1:(end-2)});
+      str = sprintf('%s%s or %s', str, dtype{end-1}, dtype{end});
     else
-      str = datatype{1};
+      str = dtype{1};
     end
     str = sprintf('This function requires %s data as input.', str);
     error(str);
@@ -955,10 +965,8 @@ else
   % create a combined time axis and concatenate all trials
   tmptime  = min(begtime):(1/data.fsample):max(endtime);
   tmptrial = zeros(ntrial, nchan, length(tmptime)) + nan;
-  tmpdof   = zeros(1, length(tmptime));
   for i=1:ntrial
     tmptrial(i,:,begsmp(i):endsmp(i)) = data.trial{i};
-    tmpdof  (    begsmp(i):endsmp(i)) = tmpdof(begsmp(i):endsmp(i)) + 1;
   end
 
   % update the trial definition
@@ -974,9 +982,9 @@ else
   end
 
   % construct the output timelocked data
-  data.avg     = reshape(nanmean(tmptrial,     1), nchan, length(tmptime));
-  data.var     = reshape(nanvar (tmptrial, [], 1), nchan, length(tmptime)); % this is not persee required
-  data.dof     = repmat(tmpdof, [nchan 1]);
+  % data.avg     = reshape(nanmean(tmptrial,     1), nchan, length(tmptime));
+  % data.var     = reshape(nanvar (tmptrial, [], 1), nchan, length(tmptime))
+  % data.dof     = reshape(sum(~isnan(tmptrial), 1), nchan, length(tmptime));
   data.trial   = tmptrial;
   data.time    = tmptime;
   data.dimord = 'rpt_chan_time';

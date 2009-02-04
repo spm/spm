@@ -55,6 +55,12 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.88  2009/02/04 13:29:03  roboos
+% deal with missing BalanceCoefs in the file using try-catch and isfield (e.g. ArtifactMEG.ds)
+%
+% Revision 1.87  2009/02/04 09:09:59  roboos
+% fixed filename to headerfile/datafile cvonversion in case of ctf_old
+%
 % Revision 1.86  2009/01/23 16:22:44  roboos
 % changed indentation and whitespace
 % changed input arguments to mne2grad
@@ -379,6 +385,10 @@ switch headerformat
   case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if any(strcmp(ext, {'.res4' '.meg4', '.1_meg4' '.2_meg4' '.3_meg4' '.4_meg4' '.5_meg4' '.6_meg4' '.7_meg4' '.8_meg4' '.9_meg4'}))
+      filename = path;
+      [path, file, ext] = fileparts(filename);
+    end
     if isempty(path) && isempty(file)
       % this means that the dataset was specified as the present working directory, i.e. only with '.'
       filename = pwd;
@@ -454,23 +464,21 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
     % fprintf('got header from cache\n');
     hdr = rmfield(cacheheader, 'details');
 
-    % update the number of samples from the datasets themselves
+    % for realtime analysis EOF chasing the res4 does not correctly
+    % estimate the number of samples, so we compute it on the fly
     switch filetype(datafile)
-
-      case 'ctf_meg4'
-
+      case {'ctf_ds' 'ctf_meg4' 'ctf_old' 'read_ctf_res4'}
         sz = 0;
         files = dir([filename '/*.*meg4']);
         for j=1:numel(files)
           sz = sz + files(j).bytes;
         end
         hdr.nTrials = floor((sz - 8) / (hdr.nChans*4) / hdr.nSamples);
-
     end
 
     return;
-  end
-end
+  end % if the details correspond
+end % if cache
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -656,22 +664,38 @@ switch headerformat
       hdr.label{i} = strtok(hdr.label{i}, '-');
     end
     % read the balance coefficients, these are used to compute the synthetic gradients
-    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'NONE', 'T');
-    orig.BalanceCoefs.none.alphaMEG  = alphaMEG;
-    orig.BalanceCoefs.none.MEGlist   = MEGlist;
-    orig.BalanceCoefs.none.Refindex  = Refindex;
-    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
-    orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
-    orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
-    orig.BalanceCoefs.G1BR.Refindex  = Refindex;
-    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
-    orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
-    orig.BalanceCoefs.G2BR.MEGlist   = MEGlist;
-    orig.BalanceCoefs.G2BR.Refindex  = Refindex;
-    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
-    orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
-    orig.BalanceCoefs.G3BR.MEGlist   = MEGlist;
-    orig.BalanceCoefs.G3BR.Refindex  = Refindex;
+    try
+      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'NONE', 'T');
+      orig.BalanceCoefs.none.alphaMEG  = alphaMEG;
+      orig.BalanceCoefs.none.MEGlist   = MEGlist;
+      orig.BalanceCoefs.none.Refindex  = Refindex;
+    catch
+      warning('cannot read balancing coefficients for NONE');
+    end
+    try
+      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
+      orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
+      orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
+      orig.BalanceCoefs.G1BR.Refindex  = Refindex;
+    catch
+      warning('cannot read balancing coefficients for G1BR');
+    end
+    try
+      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
+      orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
+      orig.BalanceCoefs.G2BR.MEGlist   = MEGlist;
+      orig.BalanceCoefs.G2BR.Refindex  = Refindex;
+    catch
+      warning('cannot read balancing coefficients for G2BR');
+    end
+    try
+      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
+      orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
+      orig.BalanceCoefs.G3BR.MEGlist   = MEGlist;
+      orig.BalanceCoefs.G3BR.Refindex  = Refindex;
+    catch
+      warning('cannot read balancing coefficients for G3BR');
+    end
     % add a gradiometer structure for forward and inverse modelling
     try
       hdr.grad = ctf2grad(orig);
@@ -682,15 +706,14 @@ switch headerformat
       warning('could not construct gradiometer definition from the header');
     end
 
-    % for realtime analysis eof chasing the res4 does not correctly
-    % estimate the number of samples so we compute it on the fly from the
+    % for realtime analysis EOF chasing the res4 does not correctly
+    % estimate the number of samples, so we compute it on the fly from the
     % meg4 file sizes.
     sz = 0;
     files = dir([filename '/*.*meg4']);
     for j=1:numel(files)
       sz = sz + files(j).bytes;
     end
-
     hdr.nTrials = floor((sz - 8) / (hdr.nChans*4) / hdr.nSamples);
 
     % add the original header details

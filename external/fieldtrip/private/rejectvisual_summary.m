@@ -83,10 +83,12 @@ while interactive
 
   subplot(2,2,2);
   plot(maxperchan,1:nchan, '.');
+  abc = axis; axis([abc(1:2) 1 nchan]);
   ylabel('channel number');
 
   subplot(2,2,3);
   plot(1:ntrl, maxpertrl, '.');
+  abc = axis; axis([1 ntrl abc(3:4)]);
   xlabel('trial number');
 
   [toggle, interactive] = smartinput('toggle the following trials [number, 0=interactive]: ', []);

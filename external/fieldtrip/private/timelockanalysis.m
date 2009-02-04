@@ -1,4 +1,4 @@
-function [timelock] = timelockanalysis(cfg, data);
+function [timelock] = timelockanalysis(cfg, data)
 
 % TIMELOCKANALYSIS performs timelocked analysis such as averaging
 % and covariance computation
@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.59  2009/02/04 16:44:06  roboos
+% remove numsamples, numcovsamples and numblcovsamples from the output, since these are not used anywhere
+%
 % Revision 1.58  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -638,7 +641,6 @@ end
 timelock.avg        = avg;
 timelock.var        = var;
 timelock.fsample    = data.fsample;
-timelock.numsamples = numsamples;
 timelock.time       = linspace(cfg.latency(1), cfg.latency(2), size(avg,2));
 timelock.dof        = dof;
 timelock.label      = data.label(chansel);
@@ -650,11 +652,9 @@ else
 end
 if strcmp(cfg.covariance, 'yes')
   timelock.cov = covsig;
-  timelock.numcovsamples = numcovsigsamples;
 end
 if strcmp(cfg.blcovariance, 'yes')
   timelock.blcov = covbl;
-  timelock.numcovblsamples = numcovblsamples;
 end
 if isfield(data, 'grad')
   % copy the gradiometer array along
@@ -677,7 +677,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.58 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.59 2009/02/04 16:44:06 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
