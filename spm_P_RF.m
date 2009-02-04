@@ -44,7 +44,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_P_RF.m 2691 2009-02-04 21:46:04Z guillaume $
 
 
 
@@ -88,17 +88,7 @@ elseif STAT == 'T'
 
     beta = (gamma(D/2 + 1)/En)^(2/D);
     p    = exp(-beta*(k^(2/D)));
-%     disp(p);
-%     %disp('CHANGED BY JC');
-%     th = Z;
-%     V2R = 9.4959e-04;
-%     EC2= 4*log(2)/(2*pi)^(3/2)*(exp(-th^2/2)*th); %from Worsley 1996
-%     sFWHM = 10.1742;
-%     c=sFWHM^D*th^(D/2)*normcdf(-th)/(EC2*gamma(D/2+1)); %Worsley's 'c' from SPM 2003
-%     %c=sFWHM^D*(2*pi)^(D/2)*(4*log(2))^(-D/2)/gamma(D/2+1); %Karl's 'c'
-%     p=exp(-th*(3^D*k/c)^(2/D));
-%     disp(p);
-%     disp('########');
+
 elseif STAT == 'X'
 
     beta = (gamma(D/2 + 1)/En)^(2/D);
