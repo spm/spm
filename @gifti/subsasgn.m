@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: subsasgn.m 2687 2009-02-04 17:14:42Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -41,6 +41,7 @@ switch subs(1).type
                         error('This should not happen.');
                 end
                 this.data{n}.attributes.Intent = in;
+                this.data{n}.attributes.DataType = dt;
             end
             if strcmp(subs(1).subs,'mat')
                 if length(subs) > 1
@@ -54,10 +55,9 @@ switch subs(1).type
                     end
                 end
             else
-                 this.data{n}.attributes.DataType = dt;
                 if strcmp(subs(1).subs,'faces')
                     if length(subs) > 1
-                        this.data{n}.data = int32(builtin('subsasgn',this.data{n}.data,subs(2:end),A) - 1);
+                        this.data{n}.data = int32(builtin('subsasgn',this.data{n}.data,subs(2:end),A-1));
                     else
                         this.data{n}.data = int32(A - 1);
                     end
