@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.74  2009/02/04 09:09:59  roboos
+% fixed filename to headerfile/datafile cvonversion in case of ctf_old
+%
 % Revision 1.73  2009/01/23 16:18:36  roboos
 % cleaned up neuromag_mne
 %
@@ -322,6 +325,10 @@ switch dataformat
   case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if any(strcmp(ext, {'.res4' '.meg4', '.1_meg4' '.2_meg4' '.3_meg4' '.4_meg4' '.5_meg4' '.6_meg4' '.7_meg4' '.8_meg4' '.9_meg4'}))
+      filename = path;
+      [path, file, ext] = fileparts(filename);
+    end
     if isempty(path) && isempty(file)
       % this means that the dataset was specified as the present working directory, i.e. only with '.'
       filename = pwd;

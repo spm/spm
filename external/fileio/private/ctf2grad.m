@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.2  2009/02/04 13:29:03  roboos
+% deal with missing BalanceCoefs in the file using try-catch and isfield (e.g. ArtifactMEG.ds)
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -147,36 +150,41 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
 
   grad.label = label([selMEG selREF]);
   grad.unit  = 'cm';
-  
-  % convert the balancing coefficients into a montage that can be used with
-  % the apply_montage function
-  meglabel          = label(hdr.BalanceCoefs.G1BR.MEGlist);
-  reflabel          = label(hdr.BalanceCoefs.G1BR.Refindex);
-  nmeg              = length(meglabel);
-  nref              = length(reflabel);
-  montage.labelorg  = cat(1, meglabel, reflabel);
-  montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G1BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
-  grad.balance.G1BR = montage;
 
-  meglabel          = label(hdr.BalanceCoefs.G2BR.MEGlist);
-  reflabel          = label(hdr.BalanceCoefs.G2BR.Refindex);
-  nmeg              = length(meglabel);
-  nref              = length(reflabel);
-  montage.labelorg  = cat(1, meglabel, reflabel);
-  montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
-  grad.balance.G2BR = montage;
+  % convert the balancing coefficients into a montage that can be used with the apply_montage function
+  if isfield(hdr.BalanceCoefs, 'G1BR')
+    meglabel          = label(hdr.BalanceCoefs.G1BR.MEGlist);
+    reflabel          = label(hdr.BalanceCoefs.G1BR.Refindex);
+    nmeg              = length(meglabel);
+    nref              = length(reflabel);
+    montage.labelorg  = cat(1, meglabel, reflabel);
+    montage.labelnew  = cat(1, meglabel, reflabel);
+    montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G1BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+    grad.balance.G1BR = montage;
+  end
 
-  meglabel          = label(hdr.BalanceCoefs.G3BR.MEGlist);
-  reflabel          = label(hdr.BalanceCoefs.G3BR.Refindex);
-  nmeg              = length(meglabel);
-  nref              = length(reflabel);
-  montage.labelorg  = cat(1, meglabel, reflabel);
-  montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
-  grad.balance.G3BR = montage;
-  
+  if isfield(hdr.BalanceCoefs, 'G2BR')
+    meglabel          = label(hdr.BalanceCoefs.G2BR.MEGlist);
+    reflabel          = label(hdr.BalanceCoefs.G2BR.Refindex);
+    nmeg              = length(meglabel);
+    nref              = length(reflabel);
+    montage.labelorg  = cat(1, meglabel, reflabel);
+    montage.labelnew  = cat(1, meglabel, reflabel);
+    montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+    grad.balance.G2BR = montage;
+  end
+
+  if isfield(hdr.BalanceCoefs, 'G3BR')
+    meglabel          = label(hdr.BalanceCoefs.G3BR.MEGlist);
+    reflabel          = label(hdr.BalanceCoefs.G3BR.Refindex);
+    nmeg              = length(meglabel);
+    nref              = length(reflabel);
+    montage.labelorg  = cat(1, meglabel, reflabel);
+    montage.labelnew  = cat(1, meglabel, reflabel);
+    montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+    grad.balance.G3BR = montage;
+  end
+
   if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
     grad.balance.current = 'none';
   elseif all([hdr.res4.senres(selMEG).grad_order_no]==1)
@@ -194,7 +202,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
     grad = apply_montage(grad, getfield(grad.balance, grad.balance.current));
   end
 
-  
+
 elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % the header was read using the open-source matlab code that originates from CTF and that was modified by the FCDC
