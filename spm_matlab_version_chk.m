@@ -1,5 +1,5 @@
 function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
-% SPM_MATLAB_VERSION_CHK Check a version number against a Toolbox version.
+% Check a version number against a Toolbox version.
 %    FORMAT [STATUS FIELDSUSED] = SPM_MATLAB_VERSION(CHK,TBX)
 %
 %    This function checks if a user supplied version number is less than, 
@@ -56,7 +56,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_matlab_version_chk.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % output variable
 %--------------------------------------------------------------------------

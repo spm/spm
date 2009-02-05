@@ -1,5 +1,4 @@
 function D = spm_eeg_inv_vbecd_gui(D,val)
-%
 % GUI function for the VB-ECD inversion
 % - load the necessary data, if not provided
 % - fill in all the necessary bits for the VB-ECD inversion routine,
@@ -15,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2534 2008-12-08 10:16:46Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2696 2009-02-05 20:29:48Z guillaume $
 
 %%
 % Load data, if necessary

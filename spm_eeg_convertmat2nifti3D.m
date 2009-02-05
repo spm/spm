@@ -1,6 +1,5 @@
 function S = spm_eeg_convertmat2nifti3D(S)
-
-% Convert epoched EEG/ERP data from SPM- to analyze format by projecting
+% Convert epoched EEG/ERP data from SPM to NIfTI format by projecting
 % onto the scalp surface
 % FORMAT spm_eeg_convertmat2nifti3D(S)
 %
@@ -29,7 +28,7 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2438 2008-11-04 11:21:19Z stefan $
+% $Id: spm_eeg_convertmat2nifti3D.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 

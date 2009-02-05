@@ -1,4 +1,5 @@
 function varargout = spm_eeg_inv_model(action,varargin)
+% Generate the head model for the solution of the forward problem
 % spm_eeg_inv_model is a multi-purpose routine that deals with the generation
 % of the head model for the solution of the forward problem.
 %
@@ -231,7 +232,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_model.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_model.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % Format of 'model' structure :
 % #############################
@@ -292,7 +293,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_model.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_model.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 spm('FigName','Realistic head model');

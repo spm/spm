@@ -1,5 +1,4 @@
 function ds = spm_uw_estimate(P,par)
-%
 % Estimation of partial derivatives of EPI deformation fields.
 %
 % FORMAT [ds] = spm_uw_estimate((P),(par))
@@ -170,7 +169,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_uw_estimate.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 global defaults

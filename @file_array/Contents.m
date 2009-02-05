@@ -1,4 +1,3 @@
-%
 % File Array Object
 %
 %   file_array   - create a file_array
@@ -46,6 +45,6 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: Contents.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: Contents.m 2696 2009-02-05 20:29:48Z guillaume $
 
 

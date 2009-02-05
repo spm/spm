@@ -1,4 +1,5 @@
-function Dout = spm_eeg_merge_TF(S);
+function Dout = spm_eeg_merge_TF(S)
+% Concatenate epoched single trial files containing time-frequency data
 % FORMAT D = spm_eeg_merge_TF(S)
 %
 % S         - optional input struct
@@ -20,7 +21,7 @@ function Dout = spm_eeg_merge_TF(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel
-% $Id: spm_eeg_merge_TF.m 2438 2008-11-04 11:21:19Z stefan $
+% $Id: spm_eeg_merge_TF.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge TF',0);
 

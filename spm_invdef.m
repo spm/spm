@@ -1,5 +1,5 @@
 function varargout = spm_invdef(varargin)
-% Create the inverse of a deformation field.
+% Create the inverse of a deformation field - a compiled routine
 % FORMAT [Y1,Y2,Y3] = spm_invdef(X1,X2,X3,dimY,MX,MY)
 %   X1, X2 & X3 - Three components of original deformation field.
 %                 Note that these point from voxels to a coordinate
@@ -28,9 +28,8 @@ function varargout = spm_invdef(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_invdef.m 1271 2008-03-28 15:06:48Z john $
+% $Id: spm_invdef.m 2696 2009-02-05 20:29:48Z guillaume $
 
-[pth,nam,ext ] = fileparts(mfilename);
-error('The function "%s" is not compiled for %s in MATLAB %s.\nSee %s%csrc%cMakefile for information about how you may be able to compile it.\n',...
-      nam, computer,version,spm('dir'),filesep,filesep);
+%-This is merely the help file for the compiled routine
+error('spm_invdef.c not compiled - see Makefile')
 

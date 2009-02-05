@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2436 2008-11-04 10:46:27Z stefan $
+% $Id: spm_eeg_grandmean.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -54,7 +54,7 @@ end
 Nfiles = length(D);
 
 
-%% Check dimension of the data files
+% Check dimension of the data files
 % This applies to # of channels, # of samples, # of conditions, sampling
 % rate, and # of frequencies (if time-frequency data).
 nc = zeros(Nfiles,1);
@@ -168,7 +168,7 @@ end
 
 
 
-%% Initialization
+% Initialization
 % output
 Do = D{1};
 
@@ -211,7 +211,7 @@ end
 w = zeros(Do.nchannels, Ntypes);
 
 
-%% Do the averaging
+% Do the averaging
 spm_progress_bar('Init', Ntypes, 'responses averaged'); drawnow;
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end

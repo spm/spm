@@ -1,6 +1,6 @@
 function ima = spm_erode(varargin)
-% Performs a 2 or 3D erode on ima using either the supplied
-% kernel or a standard 6-connectivity kernel.
+% Perform an erosion on an image (2D or 3D)
+% It uses either the supplied kernel or a standard 6-connectivity kernel.
 % FORMAT: ima = spm_erode(ima)
 % or
 % FORMAT: ima = spm_erode(ima,kernel)
@@ -33,7 +33,7 @@ function ima = spm_erode(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_erode.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_erode.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 if exist('spm_dilate_erode')~=3 

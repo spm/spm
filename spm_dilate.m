@@ -1,6 +1,6 @@
 function ima = spm_dilate(varargin)
-% Performs a 2 or 3D dilate on ima using either the supplied
-% kernel or a standard 6-connectivity kernel.
+% Perform a dilation on an image (2D or 3D) 
+% It uses either the supplied kernel or a standard 6-connectivity kernel.
 % FORMAT: ima = spm_dilate(ima)
 % or
 % FORMAT: ima = spm_dilate(ima,kernel)
@@ -33,7 +33,7 @@ function ima = spm_dilate(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_dilate.m 1930 2008-07-18 11:49:51Z christophe $
+% $Id: spm_dilate.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 if exist('spm_dilate_erode')~=3 

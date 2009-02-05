@@ -1,18 +1,18 @@
 function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
-% function spm_slice_timing(P, sliceorder, refslice, timing)
+% Correct differences in slice acquisition times
+% FORMAT spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % INPUT:
-%   P       nimages x ? Matrix with filenames
-%                       can also be a cell array of the above (multiple subj).
-%   sliceorder  slice acquisition order, a vector of integers, each
-%                       integer referring the slice number in the image file
-%           (1=first), and the order of integers representing their
-%           temporal acquisition order
-%   refslice    slice for time 0
-%   timing      additional information for sequence timing
-%           timing(1) = time between slices
-%           timing(2) = time between last slices and next volume
-%       prefix          filename prefix for corrected image files,
-%                       defaults to 'a'
+%   P          - nimages x ? Matrix with filenames
+%                can also be a cell array of the above (multiple subj).
+%   sliceorder - slice acquisition order, a vector of integers, each
+%                integer referring the slice number in the image file
+%                (1=first), and the order of integers representing their
+%                temporal acquisition order
+%   refslice   - slice for time 0
+%   timing     - additional information for sequence timing
+%                timing(1) = time between slices
+%                timing(2) = time between last slices and next volume
+%   prefix     - filename prefix for corrected image files, defaults to 'a'
 %
 %   If no input is specified the function serves as a GUI           
 %
@@ -98,10 +98,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_slice_timing.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_slice_timing.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 1143 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 2696 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 

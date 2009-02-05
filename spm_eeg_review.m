@@ -1,15 +1,16 @@
-function [] = spm_eeg_review(D,flag,inv)
-% function for general review (display) of SPM meeg object
-% FORMAT spm_eeg_review(D)
+function spm_eeg_review(D,flag,inv)
+% General review (display) of SPM meeg object
+% FORMAT spm_eeg_review(D,flags,inv)
 %
-% IN:
-%   - D: meeg object
-%   - flag: (optional) switch to any of the displays.
+% INPUT:
+% D      - meeg object
+% flag   - switch to any of the displays (optional)
+% inv    - 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2424 2008-10-31 17:07:08Z jean $
+% $Id: spm_eeg_review.m 2696 2009-02-05 20:29:48Z guillaume $
 
 D = struct(D);
 

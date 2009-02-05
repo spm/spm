@@ -1,5 +1,5 @@
 function varargout = spm_get_lm(varargin)
-% Identification of local maxima in 3(or 2)D volume. 
+% Identification of local maxima in 3(or 2)D volume - a compiled routine
 %
 % FORMAT: INDEX = spm_get_lm(VOL,LIST)
 %
@@ -20,7 +20,7 @@ function varargout = spm_get_lm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: spm_get_lm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_lm.m 2696 2009-02-05 20:29:48Z guillaume $
 
-
+%-This is merely the help file for the compiled routine
 error('spm_get_lm.c not compiled - see Makefile');

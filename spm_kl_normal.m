@@ -1,5 +1,5 @@
 function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
-% Calculate the KL distance between two multivariate normal densities
+% KL divergence between two multivariate normal densities
 % FORMAT [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
 %
 % KL (Q||P) = <log Q/P> where avg is wrt Q
@@ -12,7 +12,7 @@ function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_normal.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kl_normal.m 2696 2009-02-05 20:29:48Z guillaume $
 
 d=length(m_q);
 m_q=m_q(:);

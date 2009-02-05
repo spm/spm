@@ -1,11 +1,11 @@
 function modality = spm_eeg_modality_ui(D, scalp)
-% spm_eeg_modality_ui - tries to determine the main modality
-% of an meeg object. If confused, asks the user.
-% _________________________________________________________________________________
+% Determine the main modality of an meeg object. 
+% If confused, asks the user
+% _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_modality_ui.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_eeg_modality_ui.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin == 1
     scalp = 0;

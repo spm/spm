@@ -1,4 +1,5 @@
 function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
+% Calculates the leadfield in a 3-shell sphere head model for dipoles
 % FUNCTION Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr)
 % Calculates the leadfield in a 3-shell sphere head model for a set of
 % distributed dipoles. As this is a spherical model, the solution is analytical
@@ -21,7 +22,7 @@ function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_Lana.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_Lana.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin<6
     sigma = [.33 .004 .33];

@@ -1,5 +1,5 @@
 function [D] = spm_eeg_invert_ui(varargin)
-% GUI for ReML inversion of forward model for EEG-EMG
+% GUI for ReML inversion of forward model for EEG-MEG
 % FORMAT [D] = spm_eeg_invert_ui(D,val)
 % ReML estimation of regularisation hyperparameters using the
 % spatio-temporal hierarchy implicit in EEG data
@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 2257 2008-09-30 16:31:14Z christophe $
+% $Id: spm_eeg_invert_ui.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % initialise
 %--------------------------------------------------------------------------

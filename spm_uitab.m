@@ -1,6 +1,7 @@
 function [handles] = spm_uitab(hparent,labels,callbacks,...
     tag,active,height,tab_height)
-% function [handles] = spm_uitab(hfig,labels,callbacks,...
+% Create tabs in the SPM Graphics window
+% FORMAT [handles] = spm_uitab(hfig,labels,callbacks,...
 %    tag,active,height,tab_height)
 % This functiuon creates tabs in the SPM graphics window.
 % These tabs may be associated with different sets of axes and uicontrol,
@@ -25,7 +26,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,...
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2543 2008-12-09 19:44:24Z jean $
+% $Id: spm_uitab.m 2696 2009-02-05 20:29:48Z guillaume $
 
 Ntabs = length(labels);
 

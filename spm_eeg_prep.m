@@ -1,13 +1,15 @@
 function D = spm_eeg_prep(S)
-% spm_eeg_prep function performs several tasks
-% for preparation of converted MEEG data for further analysis
-% FORMAT spm_eeg_prep(S)
-%   S - configuration struct (obligatory)
+% Prepare converted M/EEG data for further analysis
+%
+% FORMAT D = spm_eeg_prep(S)
+% S        - configuration structure
+%
+% D        - MEEG object
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_eeg_prep.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin==0;
     spm_eeg_prep_ui;

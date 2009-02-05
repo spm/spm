@@ -1,4 +1,5 @@
-function [pt_mm] = spm_eeg_inv_vx2mm(pt_vx,M);
+function [pt_mm] = spm_eeg_inv_vx2mm(pt_vx,M)
+% Apply a transformation (vox -> mm) to a set of points
 % FORMAT [pt_mm] = spm_eeg_inv_vx2mm(pt_vx,M);
 % Transforms point(s) 'pt_vx' voxel coordinates into mm coordinates 'pt_mm'
 % according to the transformation matrix 'M'.
@@ -7,7 +8,7 @@ function [pt_mm] = spm_eeg_inv_vx2mm(pt_vx,M);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_vx2mm.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_vx2mm.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if size(pt_vx,1)==3
     Npt = size(pt_vx,2);

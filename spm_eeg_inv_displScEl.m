@@ -1,13 +1,14 @@
 function [p,f] = spm_eeg_inv_displScEl(varargin)
-% p = spm_eeg_inv_displScEl(scalp,electr) or spm_eeg_inv_displScEl(model)
-%
-% Display a tessalated surface, in color, with the electrodes on top.
-% 'spm_eeg_inv_displScEl' returns handle to patch of the scalp
+% Display  a tessalated surface, in color, with the electrodes on top
+% FORMAT spm_eeg_inv_displScEl(model)
+%        p = spm_eeg_inv_displScEl(scalp,electr) 
+%        
+% Return the  handle to patch of the scalp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_displScEl.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_displScEl.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin < 2
     if nargin == 0

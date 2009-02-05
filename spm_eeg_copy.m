@@ -1,45 +1,42 @@
-function newD = spm_eeg_copy(S)
-% function used for epoching continuous EEG/MEG data
-% FORMAT D = spm_eeg_epochs(S)
-%
-% S  - filename or input struct (optional)
+function D = spm_eeg_copy(S)
+% Copy EEG/MEG data to new files
+% FORMAT D = spm_eeg_copy(S)
+% S           - input struct (optional)
 % (optional) fields of S:
-% S.D         - MEEG object or filename of MEEG mat-file
-% S.newname   - name for the new dataset
-% 
+%   S.D       - MEEG object or filename of MEEG mat-file
+%   S.newname - filename for the new dataset
+%
+% D           - MEEG object of the new dataset
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 2198 2008-09-25 17:54:45Z vladimir $
+% $Id: spm_eeg_copy.m 2696 2009-02-05 20:29:48Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEEG copy',0);
-
-if nargin == 0
-    S =[];
+% get MEEG object
+%--------------------------------------------------------------------------
+try
+    D   = S.D;
+catch
+    D = spm_select(1, 'mat', 'Select M/EEG mat file');
+    S.D = D;
 end
 
-if ~isfield(S, 'D')
-    S.D = spm_select(1, 'mat', 'Select M/EEG mat file');
-end
+D       = spm_eeg_load(D);
 
-D = S.D;
-
-if ~isa(D, 'meeg')
-    try
-        D = spm_eeg_load(D);
-    catch
-        error(sprintf('Trouble reading file %s', D));
-    end
-end
-
+% get filename for the new dataset
+%--------------------------------------------------------------------------
 if ~isfield(S, 'newname')
     S.newname = spm_input('New file name:', '+1', 's');
 end
 
 S.newname = [spm_str_manip(S.newname, 'rt') '.dat'];
 
-newD = clone(D, S.newname);
+% copy dataset (.mat and .dat)
+%--------------------------------------------------------------------------
+Dnew = clone(D, S.newname);
+copyfile(D.fnamedat, Dnew.fnamedat, 'f');
 
-save(newD);
-
-copyfile(D.fnamedat, newD.fnamedat, 'f');
+D = Dnew;
+D = D.history('spm_eeg_copy', S); % maybe not?
+save(D);

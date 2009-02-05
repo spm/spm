@@ -1,72 +1,90 @@
 function [D, montage] = spm_eeg_montage(S)
-% rereference EEG data to new reference channel(s)
+% Rereference EEG data to new reference channel(s)
 % FORMAT [D, montage] = spm_eeg_montage(S)
 %
-% S         - struct (optional)
+% S                    - input structure (optional)
 % (optional) fields of S:
-% S.D         - meeg object of filename of SPM EEG file
-% S.montage - (optional)
-% A montage is specified as a structure with the fields
-%   montage.tra      = MxN matrix
-%   montage.labelnew = Mx1 cell-array - new labels
-%   montage.labelorg = Nx1 cell-array - original labels
-% S.keepothers = 'yes' - keep the channels not involved in the montage (default)
-%                        'no' - discard the channels not involved in the montage 
-% S.blocksize - size of blocks used internally to split large continuous files
-%               default ~20Mb.
+%   S.D                - MEEG object or filename of M/EEG mat-file
+%   S.montage          - (optional)
+%     A montage is specified as a structure with the fields:
+%     montage.tra      - MxN matrix
+%     montage.labelnew - Mx1 cell-array: new labels
+%     montage.labelorg - Nx1 cell-array: original labels
+%     or as a filename of a mat-file containing the montage structure.
+%   S.keepothers       - 'yes'/'no': keep or discart the channels not
+%                        involved in the montage [default: 'yes']
+%   S.blocksize        - size of blocks used internally to split large 
+%                        continuous files [default ~20Mb]
 %
 % Output:
-% D         - MEEG data struct (also written to files)
-% montage   - the montage applied
-%_______________________________________________________________________
+% D                    - MEEG object (also written on disk)
+% montage              - the applied montage
+%__________________________________________________________________________
+%
 % spm_eeg_montage applies montage provided or specified by the user to 
-% data and sensors of an MEEG file an produces a new file. It works
+% data and sensors of an MEEG file and produces a new file. It works
 % correctly when no sensors are specified or when data and sensors are
 % consistent (which is ensured by spm_eeg_prep_ui).
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2398 2008-10-24 10:32:34Z vladimir $
+% $Id: spm_eeg_montage.m 2696 2009-02-05 20:29:48Z guillaume $
 
-[Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
+SVNrev = '$Rev: 2696 $';
 
-if nargin == 0
-    S = [];
-end
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG montage'); spm('Pointer','Watch');
 
-if ~isfield(S, 'blocksize'),       S.blocksize = 655360;   end  %20 Mb
-
-if isfield(S, 'D')
+%-Get MEEG object
+%--------------------------------------------------------------------------
+try
     D = S.D;
-else
-    D = spm_select(1, '\.mat$', 'Select MEEG mat file');
+catch
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-if ~isa(D, 'meeg')
-    D = spm_eeg_load(D);
+D = spm_eeg_load(D);
+
+%-Get size of blocks used internally to split large continuous files
+%--------------------------------------------------------------------------
+try
+    S.blocksize;
+catch
+    S.blocksize = 655360; %20 Mb
 end
 
+%-Get montage
+%--------------------------------------------------------------------------
 if ~isfield(S, 'montage')
     res = spm_input('How to specify the montage?', '+1', 'gui|file');
     switch res
         case 'gui'
-            montage = [];
             montage.labelorg = D.chanlabels;
             montage.labelnew = montage.labelorg;
-            montage.tra = eye(length(montage.labelorg));
+            montage.tra      = eye(length(montage.labelorg));
             montage.labelnew = montage.labelorg;
-            S.montage = spm_eeg_montage_ui(montage);
+            S.montage        = spm_eeg_montage_ui(montage);
         case 'file'
-            S.montage = spm_select(1, '\.mat$', 'Select a montage file');
+            S.montage = spm_select(1, 'mat$', 'Select a montage file');
     end
 end
 
 if ischar(S.montage)
-    montage = load(S.montage);
-    name = fieldnames(montage);
-    S.montage = getfield(montage, name{1});
+    try
+        montage = load(S.montage);
+    catch
+        error(sprintf('Could not read montage file %s.',S.montage));
+    end
+    if ismember('montage', fieldnames(montage))
+        S.montage = montage.montage;
+    else
+        error(sprintf('Invalid montage file %s.',S.montage));
+    end
 end
 
 montage = S.montage;
@@ -74,7 +92,6 @@ montage = S.montage;
 if ~all(isfield(montage, {'labelnew', 'labelorg', 'tra'})) || ...
         any([isempty(montage.labelnew), isempty(montage.labelorg), isempty(montage.tra)]) || ...
         length(montage.labelnew) ~= size(montage.tra, 1) || length(montage.labelorg) ~= size(montage.tra, 2)
-
     error('Insufficient or illegal montage specification.');
 end
 
@@ -84,13 +101,15 @@ montage.tra      = montage.tra(:, selempty);
 montage.labelorg = montage.labelorg(selempty);
 
 % add columns for the channels that are not involved in the montage
-[add, ind] = setdiff(D.chanlabels, montage.labelorg);
-chlab = D.chanlabels; % this fixes subsref troubles!
-add = chlab(sort(ind));
+[add, ind]       = setdiff(D.chanlabels, montage.labelorg);
+chlab            = D.chanlabels;
+add              = chlab(sort(ind));
 
+%-Get keepothers input field
+%--------------------------------------------------------------------------
 if ~isfield(S, 'keepothers')
     if ~isempty(add)
-       S.keepothers = spm_input('Keep the other channels?', '+1', 'yes|no'); 
+       S.keepothers  = spm_input('Keep the other channels?', '+1', 'yes|no'); 
     else
         S.keepothers = 'yes';
     end
@@ -127,9 +146,10 @@ end
 montage.tra        = montage.tra(:,selmont);
 montage.labelorg   = montage.labelorg(selmont);
 
-spm('Pointer', 'Watch');drawnow;
+spm('Pointer', 'Watch');
 
-% generate new meeg object with new filenames
+%-Generate new MEEG object with new filenames
+%--------------------------------------------------------------------------
 Dnew = clone(D, ['M' fnamedat(D)], [m D.nsamples D.ntrials]);
 
 nblocksamples = floor(S.blocksize/max(D.nchannels, m));
@@ -145,7 +165,7 @@ if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
 elseif  D.ntrials == 1, Ibar = [1:ceil(D.nsamples./nblocksamples)]; 
 else Ibar = [1:D.ntrials]; end
 
-spm_progress_bar('Init', Ibar(end), 'applying montage'); drawnow;
+spm_progress_bar('Init', Ibar(end), 'applying montage');
 
 for i = 1:D.ntrials
     for j = 1:nblocks
@@ -154,7 +174,7 @@ for i = 1:D.ntrials
             montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
 
         if D.ntrials == 1 && ismember(j, Ibar)
-            spm_progress_bar('Set', j); drawnow;
+            spm_progress_bar('Set', j);
         end
     end
 
@@ -165,7 +185,7 @@ for i = 1:D.ntrials
 
 
     if D.ntrials>1 && ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+        spm_progress_bar('Set', i);
     end
 end
 
@@ -174,8 +194,9 @@ Dnew = chanlabels(Dnew, 1:Dnew.nchannels, montage.labelnew);
 % Set channel types to default
 Dnew = chantype(Dnew, [], []);
 
+%-Apply montage to sensors
+%--------------------------------------------------------------------------
 sensortypes = {'MEG'}; % EEG disabled for now
-% apply montage to sensors
 for i = 1:length(sensortypes)
     sens = D.sensors(sensortypes{i});
     if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
@@ -191,7 +212,8 @@ for i = 1:length(sensortypes)
     Dnew = sensors(Dnew, sensortypes{i}, sens);
 end
 
-% Assign default EEG sensor positions if possible
+%-Assign default EEG sensor positions if possible
+%--------------------------------------------------------------------------
 if ~isempty(strmatch('EEG', Dnew.chantype, 'exact')) && isempty(Dnew.sensors('EEG'))
     S1 = [];
     S1.task = 'defaulteegsens';
@@ -201,8 +223,9 @@ if ~isempty(strmatch('EEG', Dnew.chantype, 'exact')) && isempty(Dnew.sensors('EE
     Dnew = spm_eeg_prep(S1);
 end
 
-% Create 2D positions for MEG (when there are no EEG sensors)
+%-Create 2D positions for MEG (when there are no EEG sensors)
 % by projecting the 3D positions to 2D
+%--------------------------------------------------------------------------
 if ~isempty(strmatch('MEG', Dnew.chantype, 'exact')) &&...
     ~isempty(Dnew.sensors('MEG')) && isempty(Dnew.sensors('EEG'))
     S1 = [];
@@ -216,10 +239,13 @@ end
 
 [ok, Dnew] = check(Dnew, 'basic');
 
-spm_progress_bar('Clear');
-
+%-Save new evoked M/EEG dataset
+%--------------------------------------------------------------------------
 D = Dnew;
 D = D.history('spm_eeg_montage', S);
 save(D);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm_progress_bar('Clear');
+spm('FigName','M/EEG montage: done'); spm('Pointer','Arrow');

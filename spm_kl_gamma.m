@@ -1,5 +1,5 @@
 function [d] = spm_kl_gamma (b_q,c_q,b_p,c_p)
-% KL divergence for Gamma densities
+% KL divergence between two Gamma densities
 % FORMAT [d] = spm_kl_gamma (b_q,c_q,b_p,c_p)
 %
 % KL (Q||P) = <log Q/P> where avg is wrt Q
@@ -10,7 +10,7 @@ function [d] = spm_kl_gamma (b_q,c_q,b_p,c_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_gamma.m 1276 2008-03-28 18:29:19Z guillaume $
+% $Id: spm_kl_gamma.m 2696 2009-02-05 20:29:48Z guillaume $
 
 digamma_c_q=psi(c_q);
 d=(c_q-1)*digamma_c_q-log(b_q)-c_q-gammaln(c_q);

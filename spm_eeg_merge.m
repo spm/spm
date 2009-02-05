@@ -1,4 +1,5 @@
 function Dout = spm_eeg_merge(S)
+% Concatenate epoched single trial files
 % FORMAT D = spm_eeg_merge(S)
 %
 % S         - optional input struct
@@ -11,19 +12,18 @@ function Dout = spm_eeg_merge(S)
 %             
 % Output:
 % D         - EEG data struct (also written to files)
+%__________________________________________________________________________
 %
-% concatenates epoched single trial files
-%_______________________________________________________________________
 % This function can be used to merge M/EEG files to one file. This is
 % useful whenever the data are distributed over multiple files, but one
 % wants to use all information in one file. For example, when displaying
 % data (SPM displays data from only one file at a time), or merging 
 % information that has been measured in multiple sessions.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2617 2009-01-19 18:49:16Z vladimir $
+% $Id: spm_eeg_merge.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 

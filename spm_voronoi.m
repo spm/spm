@@ -1,5 +1,5 @@
 function [vor, dist] = spm_voronoi(img, seeds, distance)
-% Geodesic Discrete Voronoi Diagram
+% Geodesic Discrete Voronoi Diagram - a compiled routine
 % FORMAT [vor, dist] = spm_voronoi(img, seeds, distance)
 %
 % img       - binary image:  > 0  : inside
@@ -19,7 +19,7 @@ function [vor, dist] = spm_voronoi(img, seeds, distance)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_voronoi.m 2052 2008-09-08 16:30:57Z guillaume $
+% $Id: spm_voronoi.m 2696 2009-02-05 20:29:48Z guillaume $
 
 %-This is merely the help file for the compiled routine
 error('spm_voronoi.c not compiled - see Makefile')

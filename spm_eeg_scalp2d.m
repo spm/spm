@@ -1,11 +1,11 @@
 function [x,y,z] = spm_eeg_scalp2d(D, d)
-% interpolation of data d on scalp. Electrode positions are taken from
-% channel template file ctf.
+% Interpolation of data d on scalp.
+% Electrode positions are taken from channel template file ctf.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner & Stefan Kiebel
-% $Id: spm_eeg_scalp2d.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_scalp2d.m 2696 2009-02-05 20:29:48Z guillaume $
 
 load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
 

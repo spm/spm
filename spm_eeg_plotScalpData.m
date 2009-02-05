@@ -1,23 +1,26 @@
 function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
+% Display interpolated sensor data on the scalp in a new figure
+% FORMAT [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 %
-% function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
+% INPUT:
+%   Z          - the data matrix at the sensors
+%   pos        - the positions of the sensors
+%   ChanLabel  - the names of the sensors
+%   in         - a structure containing some informations related to the 
+%                main PRESELECTDATA window. This entry is not necessary
+% OUTPUT
+%   ZI         - an image of interpolated data onto the scalp
+%   f          - the handle of the figure which displays the interpolated
+%                data
+%__________________________________________________________________________
 %
 % This function creates a figure whose purpose is to display an
 % interpolation of the sensor data on the scalp (an image)
-% IN:
-%   - Z: the data matrix at the sensors
-%   - pos: the positions of the sensors
-%   - ChanLabel: the names of the sensors
-%   - in: a structure containing some informations related to the main
-%   PRESELECTDATA window. This entry is not necessary.
-% OUT:
-%   - ZI: an image of interpolated data onto the scalp.
-%   - f: the handle of the figure which displays the interpolated data.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2543 2008-12-09 19:44:24Z jean $
+% $Id: spm_eeg_plotScalpData.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 if ~exist('in','var') || isempty(in) == 1

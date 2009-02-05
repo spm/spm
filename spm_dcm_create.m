@@ -1,5 +1,4 @@
 function [] = spm_dcm_create (syn_model, source_model, SNR)
-%
 % Specify a DCM model without having to use an SPM.mat file
 % FORMAT [] = spm_dcm_create (syn_model, source_model, SNR)
 %
@@ -20,7 +19,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 1674 2008-05-16 16:00:22Z klaas $
+% $Id: spm_dcm_create.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 Finter = spm_figure('GetWin','Interactive');

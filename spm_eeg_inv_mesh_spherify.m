@@ -1,6 +1,5 @@
 function [pnt, tri] = spm_eeg_inv_mesh_spherify(pnt, tri, varargin)
-
-% MESH_SPHERIFY takes a cortical mesh and scales it so that it fits into a
+% Takes a cortical mesh and scales it so that it fits into a
 % unit sphere.
 %
 % This function determines the points of the original mesh that support a
@@ -22,7 +21,7 @@ function [pnt, tri] = spm_eeg_inv_mesh_spherify(pnt, tri, varargin)
 % Revision 1.1  2008/12/18 16:14:08  roboos
 % new implementation
 %
-% $Id: spm_eeg_inv_mesh_spherify.m 2595 2009-01-08 16:22:44Z vladimir $
+% $Id: spm_eeg_inv_mesh_spherify.m 2696 2009-02-05 20:29:48Z guillaume $
 
 global fb
 if isempty(fb)

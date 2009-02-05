@@ -1,4 +1,5 @@
-function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
+function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info)
+% Generate a mesh covering a binary volume
 % FORMAT ts = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 %
 % Generate a mesh covering a binary volume
@@ -19,7 +20,7 @@ function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesBin.m 1437 2008-04-17 10:34:39Z christophe $
+% $Id: spm_eeg_inv_TesBin.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin > 4
     error('Wrong input arguments for ''TesBin''.') ;

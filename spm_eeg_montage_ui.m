@@ -12,7 +12,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 2612 2009-01-16 19:37:44Z guillaume $
+% $Id: spm_eeg_montage_ui.m 2696 2009-02-05 20:29:48Z guillaume $
 
 error(nargchk(1,1,nargin));
 
@@ -96,9 +96,8 @@ function doLoad(obj,evd,h)
 [t,sts] = spm_select(1,'mat','Load montage file');
 if sts
     montage = load(t);
-    name    = fieldnames(montage);
-    if isequal(name{1},'montage')
-        montage    = getfield(montage, name{1});
+    if ismember('montage', fieldnames(montage))
+        montage    = montage.montage;
         ud         = get(h,'userdata');
         set(ud.ht,'units','pixels');
         pos        = get(ud.ht,'Position');

@@ -1,6 +1,5 @@
 function spm_eeg_inv_vbecd_disp(action,varargin)
-
-% Function to display the dipoles as obtained from the VB-ECD routine.
+% Display the dipoles as obtained from the VB-ECD routine.
 %
 % Use 
 %   spm_eeg_inv_vbecd_disp('Init',D)
@@ -20,7 +19,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2391 2008-10-23 14:20:15Z christophe $
+% $Id: spm_eeg_inv_vbecd_disp.m 2696 2009-02-05 20:29:48Z guillaume $
 
 global st
 % global defaults

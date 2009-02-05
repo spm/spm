@@ -1,10 +1,5 @@
 function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
-
-%___________________________________________________________________
-%
-% spm_eeg_inv_ecd_DrawDip
-%
-% Function to display the dipoles as obtained from the optim routine.
+% Display the dipoles as obtained from the optim routine
 %
 % Use it with arguments or not:
 % - spm_eeg_inv_ecd_DrawDip('Init')
@@ -45,7 +40,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 2696 2009-02-05 20:29:48Z guillaume $
 
 global st
 global defaults

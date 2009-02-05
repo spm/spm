@@ -1,6 +1,6 @@
 function [samef, msg, chgf] = spm_vol_check(varargin)
+% Check spm_vol structs are in same space
 % FORMAT [samef, msg, chgf] = spm_vol_check(V1, V2, ...)
-% checks spm_vol structs are in same space
 %
 % V1, V2, etc      - arrays of spm_vol structs
 %
@@ -11,14 +11,14 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_vol_check.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vol_check.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 [fnames samef msg] = deal({},1,{});
 
 if nargin < 1,
     return;
-end;
+end
 
 for i = 1:numel(varargin),
     vols   = varargin{i};
@@ -26,18 +26,18 @@ for i = 1:numel(varargin),
         if i == 1,
             dims   = cat(3,vols(:).dim);
             mats   = cat(3,vols(:).mat);
-        else,
+        else
             dims   = cat(3,dims,vols(:).dim);
             mats   = cat(3,mats,vols(:).mat);
-        end;
+        end
         fnames = {fnames{:}, vols(:).fname};
-    end;
-end;
+    end
+end
   
 nimgs = size(dims, 3);
 if nimgs < 2,
     return;
-end;
+end
 
 labs = {'dimensions', 'orientation & voxel size'};
 
@@ -53,8 +53,7 @@ if ~isempty(chgi),
         'First difference between image pair:',...
         fnames{e1},...
         fnames{e1+1}};
-end;
-return;
+end
 
 function s = sepcat(strs, sep)
 % returns cell array of strings as one char string, separated by sep
@@ -63,10 +62,9 @@ if nargin < 2,
 end
 if isempty(strs),
     s = '';
-    return;
+    return
 end
 strs = strs(:)';
 strs = [strs; repmat({sep}, 1, length(strs))];
 s    = [strs{1:end-1}];
-return;
 

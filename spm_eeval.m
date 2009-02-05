@@ -1,6 +1,6 @@
 function [p,msg] = spm_eeval(str,Type,n,m)
-% FORMAT [p,msg] = spm_eeval(str,Type,n,m)
 % Expression evaluation
+% FORMAT [p,msg] = spm_eeval(str,Type,n,m)
 % Str  - Expression to work with
 %
 % Type - type of evaluation
@@ -52,7 +52,7 @@ function [p,msg] = spm_eeval(str,Type,n,m)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_eeval.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeval.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 if nargin<4, m=[]; end

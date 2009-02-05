@@ -1,5 +1,5 @@
 function [inverse] = spm_eeg_inv_custom_ui(D)
-% GUI for parameters of inversion of forward model for EEG-EMG
+% GUI for parameters of inversion of forward model for EEG-MEG
 % FORMAT [inverse] = spm_eeg_inv_custom_ui
 % FORMAT [inverse] = spm_eeg_inv_custom_ui(D)
 %
@@ -22,7 +22,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_custom_ui.m 2696 2009-02-05 20:29:48Z guillaume $
  
 % defaults from D is specified
 %==========================================================================

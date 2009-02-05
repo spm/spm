@@ -1,10 +1,8 @@
 function  [out] = spm_eeg_render(m,options)
+% Visualisation routine for the cortical surface
+% FORMAT [out] = spm_eeg_render(m,options)
 %
-% [out] = spm_eeg_render(m,options)
-%
-% This function is a visualization routine, mainly for texture and
-% clustering on the cortical surface.
-% IN:
+% INPUT:
 % - m = MATLAB mesh (containing the fields .faces et .vertices)
 % - options = structure variable:
 %       .texture = texture to be projected onto the mesh
@@ -20,19 +18,22 @@ function  [out] = spm_eeg_render(m,options)
 %       .subplot.bin = flag for figure dividing
 %       .subplot.y = 2D matrix to be plotted in a subfigure (only if the
 %       associated options.subplot.bin = 1)
-% OUT:
+%
+% OUTPUT:
 %   - out: a structure containing the fields:
 %       .hfra: frame structure for movie building
 %       .handles: a structure containing the handles of the created
 %       uicontrols and mesh objects.
+%__________________________________________________________________________
+%
+% This function is a visualization routine, mainly for texture and
+% clustering on the cortical surface.
 % NB: The texture and the clusters can not be visualized at the same time.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2540 2008-12-09 17:14:25Z jean $
-
-
+% $Id: spm_eeg_render.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 %----------------------------------------------------------------------%

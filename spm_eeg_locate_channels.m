@@ -1,5 +1,6 @@
 function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
-% function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
+% Locate channels and generate mask for converting M/EEG data into images
+% FORMAT [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 %
 % Locates channels and generates mask for converting M/EEG data to nifti
 % format ('analysis at sensor level'). If flag interpolate_bad is set to 1,
@@ -23,7 +24,7 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 2346 2008-10-16 12:05:34Z stefan $
+% $Id: spm_eeg_locate_channels.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % put into nXn grid
 [x, y] = meshgrid(1:n, 1:n);

@@ -1,5 +1,5 @@
 function D = spm_eeg_weight_epochs(S);
-% computes contrasts over trials or trial types.
+% Compute contrasts over trials or trial types
 % FORMAT D = spm_eeg_weight_epochs(S)
 %
 % S         - optional input struct
@@ -10,7 +10,7 @@ function D = spm_eeg_weight_epochs(S);
 %             replications (yes (1), no (0))
 % Output:
 % D         - EEG data struct (also written to files)
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_eeg_weight_epochs computes contrasts of data, over epochs of data. The
 % input is a single MEEG file.
@@ -22,11 +22,11 @@ function D = spm_eeg_weight_epochs(S);
 % between trial types in channel space. Another possible use is remove
 % trials from the data file, by using a contrast that contains zeros for
 % the to be removed file.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2543 2008-12-09 19:44:24Z jean $
+% $Id: spm_eeg_weight_epochs.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

@@ -1,5 +1,5 @@
 function [D] = spm_eeg_invert(D, val)
-% ReML inversion of multiple forward models for EEG-EMG
+% ReML inversion of multiple forward models for EEG-MEG
 % FORMAT [D] = spm_eeg_invert(D)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG data
@@ -67,7 +67,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 2663 2009-01-28 20:24:36Z karl $
+% $Id: spm_eeg_invert.m 2696 2009-02-05 20:29:48Z guillaume $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------

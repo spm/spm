@@ -1,5 +1,5 @@
 function [Dtf, Dtf2] = spm_eeg_tf(S)
-% compute instantaneous power and phase in peri-stimulus time and frequency
+% Compute instantaneous power and phase in peri-stimulus time and frequency
 % FORMAT D = spm_eeg_tf(S)
 %
 % D     - filename of EEG-data file or EEG data struct
@@ -23,7 +23,7 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2439 2008-11-04 15:41:33Z stefan $
+% $Id: spm_eeg_tf.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);

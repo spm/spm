@@ -1,4 +1,3 @@
-%
 % NIFTI Object
 %
 %   create     - Create a NIFTI-1 file
@@ -78,5 +77,5 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: Contents.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: Contents.m 2696 2009-02-05 20:29:48Z guillaume $
 

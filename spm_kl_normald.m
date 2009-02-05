@@ -1,5 +1,5 @@
 function [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
-% KL distance between two Gaussians with, possibly, diagonal covariances
+% KL divergence between two Gaussians with, possibly, diagonal covariances
 % FORMAT [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
 %
 % Calculate the KL distance KL (Q||P) = <log Q/P> where avg is wrt Q
@@ -14,7 +14,7 @@ function [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_normald.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kl_normald.m 2696 2009-02-05 20:29:48Z guillaume $
 
 dd=length(m_q);
 

@@ -1,5 +1,5 @@
 function varargout = spm_rmpath(d)
-%SPM_RMPATH recursively removes SPM paths from the MATLAB path
+% Recursively removes SPM paths from the MATLAB path
 %   SPM_RMPATH checks if the file spm.m is found and removes the
 %   path to that file and any subdirectories below it from the MATLAB
 %   path.
@@ -17,7 +17,7 @@ function varargout = spm_rmpath(d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman & Guillaume Flandin
-% $Id: spm_rmpath.m 1818 2008-06-12 14:53:59Z guillaume $ 
+% $Id: spm_rmpath.m 2696 2009-02-05 20:29:48Z guillaume $ 
 
 varargout = {};
 if ~nargin

@@ -6,12 +6,12 @@ function D = spm_eeg_invert_fuse_ui(S)
 %__________________________________________________________________________
 %
 % This is the user interface for spm_eeg_invert_fuse and will save a new
-% D.mat strcutre with the fused MAP esimates of source activity.
+% D.mat structure with the fused MAP estimates of source activity.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_fuse_ui.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_eeg_invert_fuse_ui.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % Load data
 %==========================================================================
@@ -19,7 +19,7 @@ function D = spm_eeg_invert_fuse_ui(S)
 % Gile file names
 %--------------------------------------------------------------------------
 if ~nargin
-    S = spm_select(Inf, '.mat','Select EEG/MEG mat files');
+    S = spm_select(Inf, 'mat','Select EEG/MEG mat files');
 end
 Ns    = size(S,1);
 PWD   = pwd;
@@ -53,7 +53,7 @@ for i = NS
 
     cd(D{i}.path)
 
-    % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
+    % specify cortical mesh size (1 to 4; 1 = 3004, 4 = 7204 dipoles)
     %----------------------------------------------------------------------
     D{i}.inv{val}.mesh.Msize  = 4;
 
@@ -71,7 +71,7 @@ for i = NS
             % get fiduicials and headshape
             %--------------------------------------------------------------
             pol_skip            = 2;
-            pol_file            = spm_select(1,'.pol','Select Polhemus file');
+            pol_file            = spm_select(1,'.*\.pol$','Select Polhemus file');
             [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
             D{i}.inv{val}.datareg.fid_eeg = fid_eeg;
             
@@ -80,7 +80,7 @@ for i = NS
             if strcmp(D{i}.modality,'EEG')
                 sensors = headshape;
             else
-                sensors = load(spm_select(1,'.mat','Select MEG sensor file'));
+                sensors = load(spm_select(1,'mat','Select MEG sensor file'));
                 name    = fieldnames(sensors);
                 sensors = getfield(sensors,name{1});
             end

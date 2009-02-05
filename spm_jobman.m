@@ -1,5 +1,5 @@
 function varargout = spm_jobman(varargin)
-% UI/Batching stuff
+% Main interface for SPM Batch System
 % This function provides a compatibility layer between SPM and matlabbatch.
 % It translates spm_jobman callbacks into matlabbatch callbacks and allows
 % to edit and run SPM5 style batch jobs.
@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 2308 2008-10-06 16:05:26Z volkmar $
+% $Id: spm_jobman.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 if nargin==0

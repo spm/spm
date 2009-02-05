@@ -1,5 +1,5 @@
 function varargout = spm_get_defaults(defstr, varargin)
-
+% Get/set the defaults values associated with an identifier
 % FORMAT defval = spm_get_defaults(defstr)
 % Return the defaults value associated with identifier "defstr". 
 % Currently, this is a '.' subscript reference into the global  
@@ -16,7 +16,7 @@ function varargout = spm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_defaults.m 2513 2008-12-01 13:23:50Z volkmar $
+% $Id: spm_get_defaults.m 2696 2009-02-05 20:29:48Z guillaume $
 
 global defaults;
 if isempty(defaults)

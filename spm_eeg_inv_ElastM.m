@@ -1,8 +1,7 @@
 function ts = spm_eeg_inv_ElastM(ts)
+% Modify mesh to reduce overlong edges, and smooth out "rough" areas
 % FORMAT ts = spm_eeg_inv_ElastM(ts)
 %
-% Modify the mesh in order to reduce overlong edges, and smooth out "rough"
-% areas.
 % The procedure uses an elastic model :
 % At each vertex, the neighbouring triangles and vertices connected 
 % directly are used. Each edge is considered elastic and can be lengthened 
@@ -20,7 +19,7 @@ function ts = spm_eeg_inv_ElastM(ts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_ElastM.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % Connection vertex-to-vertex
 %--------------------------------------------------------------------------

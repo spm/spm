@@ -1,5 +1,5 @@
 function [L,D] = spm_eeg_lgainmat(D,Is)
-% loads (memory maps) a gain matrix
+% Load a gain matrix
 % FORMAT [L,D] = spm_eeg_lgainmat(D,Is)
 % D    - Data structure
 % Is   - indices of vertices
@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 2352 2008-10-17 11:53:53Z karl $
+% $Id: spm_eeg_lgainmat.m 2696 2009-02-05 20:29:48Z guillaume $
  
 % get gain or lead-feild matrix
 %--------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 function varargout = spm_eeg_inv_ErodeGrow(varargin)
+% Erode then grow an image after thresholding it.
 % FORMAT [Iout/Vout] = spm_eeg_inv_ErodeGrow(Iin/Vin,ne,ng,thr_im)
 % 
 % This routine erodes then grows an image after thresholding it.
@@ -22,7 +23,7 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ErodeGrow.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: spm_eeg_inv_ErodeGrow.m 2696 2009-02-05 20:29:48Z guillaume $
 
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2

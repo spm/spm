@@ -1,5 +1,5 @@
 function [K] = spm_sqrtm(V)
-% matrix sqrt for sparse matrices
+% Matrix square root (sqrtm) for sparse matrices
 % FORMAT [K] = spm_sqrtm(V)
 %
 % This routine covers and extends sqrtm functionality by using a
@@ -9,7 +9,7 @@ function [K] = spm_sqrtm(V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sqrtm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_sqrtm.m 2696 2009-02-05 20:29:48Z guillaume $
 
 %--------------------------------------------------------------------------
 n     = length(V);

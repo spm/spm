@@ -1,6 +1,6 @@
 function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
-% Estimation of deformation field (and optionally 
-% Jacobian field) for specified image.
+% Estimation of deformation field (and optionally Jacobian field) 
+% for specified image.
 %
 % FORMAT [def] = spm_get_image_def(i,ds,(defa));
 % or
@@ -42,7 +42,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_image_def.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 

@@ -1,5 +1,5 @@
 function varargout = spm_bwlabel(varargin)
-% Connected component labelling in 2D or 3D. 
+% Connected component labelling in 2D or 3D - a compiled routine
 %
 % FORMAT: [L,NUM] = spm_bwlabel(bw,conn)
 % 
@@ -31,9 +31,9 @@ function varargout = spm_bwlabel(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_bwlabel.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_bwlabel.m 2696 2009-02-05 20:29:48Z guillaume $
 
-
+%-This is merely the help file for the compiled routine
 error('spm_bwlabel.c not compiled - see Makefile');
 
 

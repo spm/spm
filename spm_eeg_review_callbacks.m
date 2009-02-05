@@ -1,9 +1,10 @@
 function [varargout] = spm_eeg_review_callbacks(varargin)
+% Callbacks of the M/EEG Review facility
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2543 2008-12-09 19:44:24Z jean $
+% $Id: spm_eeg_review_callbacks.m 2696 2009-02-05 20:29:48Z guillaume $
 
 try
     D = get(gcf,'userdata');

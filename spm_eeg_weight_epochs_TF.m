@@ -1,5 +1,5 @@
 function D = spm_eeg_weight_epochs_TF(S)
-% computes contrasts over trials or trial types, for time-frequency data.
+% Compute contrasts over trials or trial types, for time-frequency data
 % FORMAT D = spm_eeg_weight_epochs(S)
 %
 % S         - optional input struct
@@ -10,10 +10,10 @@ function D = spm_eeg_weight_epochs_TF(S)
 %             replications (yes (1), no (0))
 % Output:
 % D         - EEG data struct (also written to files)
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
-% spm_eeg_weight_epochs computes contrasts of data, over epochs of data, for time-frequency data. The
-% input is a single MEEG file.
+% spm_eeg_weight_epochs computes contrasts of data, over epochs of data, 
+% for time-frequency data. The input is a single MEEG file.
 % The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts is
 % the number of contrasts and Nepochs the number of epochs, i.e. each row of c
 % contains one contrast vector. The output
@@ -22,11 +22,11 @@ function D = spm_eeg_weight_epochs_TF(S)
 % between trial types in channel space. Another possible use is remove
 % trials from the data file, by using a contrast that contains zeros for
 % the to be removed file.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs_TF.m 2291 2008-10-02 16:40:32Z stefan $
+% $Id: spm_eeg_weight_epochs_TF.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

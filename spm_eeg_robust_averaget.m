@@ -1,12 +1,15 @@
-function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
-% function to apply robust averaging routine to data sets and return the
-% ERP (B) and the weights (Wf)
-% ks is the offest of the weighting function the default is 3.
+function [B,Wf] = spm_eeg_robust_averaget(data,ks,FS)
+% Apply robust averaging routine to data sets 
+% FORMAT [B,Wf] = spm_eeg_robust_averaget(data,ks)
+% data   - data matrix to be averaged
+% ks     - offest of the weighting function (default: 3)
+%
+% Wf     - estimated weights
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 1672 2008-05-16 11:17:14Z james $
+% $Id: spm_eeg_robust_averaget.m 2696 2009-02-05 20:29:48Z guillaume $
 
 if nargin==1
     ks=3;

@@ -1,5 +1,5 @@
 function D = spm_eeg_sort_conditions(S)
-% Function for defining custom order for conditions in a file.
+% Define custom order for conditions in an M/EEG file
 % FORMAT D = spm_eeg_sort_conditions(S)
 % S - existing configuration struct (optional)
 % Fields of S:
@@ -14,7 +14,7 @@ function D = spm_eeg_sort_conditions(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_sort_conditions.m 2446 2008-11-05 16:05:14Z vladimir $
+% $Id: spm_eeg_sort_conditions.m 2696 2009-02-05 20:29:48Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Condition sorting',0);
 

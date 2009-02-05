@@ -1,12 +1,12 @@
-% spm_setup_satfig
+% Satellite figure for SPM Results table
 
 % spm_setup_satfig sets up a satellite figure to allow simultaneous display
 % of table values and overlays.
-%----------------------------------------------------------------------------
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R Gitelman
-% $Id: spm_setup_satfig.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_setup_satfig.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 global SatWindow

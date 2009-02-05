@@ -1,6 +1,5 @@
 function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
-%
-% Manages graphical output for spm_FindFields
+% Manage graphical output for spm_FindFields
 %
 % FORMAT spm_graphwip(mode,p1,...)
 %
@@ -13,7 +12,7 @@ function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uw_show.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 persistent iter;

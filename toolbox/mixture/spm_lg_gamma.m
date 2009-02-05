@@ -1,25 +1,26 @@
 function [lng] = spm_lg_gamma (p,b)
-% Log of generalised gamma function. See eg. Box and Tiao p.427
+% Log of generalised gamma function
 % FORMAT [lng] = spm_lg_gamma(p,b)
 %
-% p          dimension parameter
-% b          degrees of freedom type parameter
-%___________________________________________________________________________
+% p       - dimension parameter
+% b       - degrees of freedom type parameter
+%__________________________________________________________________________
+%
+% References:
+% * Bayesian Inference in Statistical Analysis, Box & Tiao, 1992, p. 427.
+% * Muirhead p. 62.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_lg_gamma.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_lg_gamma.m 2696 2009-02-05 20:29:48Z guillaume $
 
-if ~(b > 0.5*(p-1))
-   disp('Warning in log_gen_gamma: parameter out of range');
+if b <= (p-1)/2
+   warning('Parameter out of range');
    return
 end
 
-lng=(0.5*p*(p-1))*gammaln(0.5);
-for alpha=1:p,
-  % Muirhead (p.62):
-  lng=lng+gammaln(b+0.5*(alpha-1));
+lng = (p*(p-1)/2) * gammaln(0.5);
+for alpha = 1:p
+  lng = lng + gammaln(b+0.5*(alpha-1));
 end
-
-
-

@@ -1,6 +1,6 @@
 function D = spm_eeg_inv_forward(varargin)
+% Compute M/EEG leadfield
 % FORMAT D = spm_eeg_inv_forward(D,val)
-%
 %
 % D                - input struct
 % (optional) fields of S:
@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2534 2008-12-08 10:16:46Z christophe $
+% $Id: spm_eeg_inv_forward.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % initialise
 %--------------------------------------------------------------------------

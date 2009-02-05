@@ -1,4 +1,5 @@
 function [p,hFig] = spm_eeg_inv_displTes(tsurf,c)
+% Display a tessalated surface
 % FORMAT [p,f] = spm_eeg_inv_displTes(tsurf,c)
 %
 % Display a tessalated surface, with color c if provided : 
@@ -8,7 +9,7 @@ function [p,hFig] = spm_eeg_inv_displTes(tsurf,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_displTes.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_displTes.m 2696 2009-02-05 20:29:48Z guillaume $
 
 % mono_c = 1/0 uses monocolor or provided c
 % tri_c = 1/0 , color specified on triangles or vertices

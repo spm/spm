@@ -1,5 +1,5 @@
 function F = spm_Ncdf_jdw(x,u,v)
-% CD) for univariate Normal distributions: J.D.  Willians aproximation
+% Cumulative Distribution Function (CDF) for univariate Normal distributions: J.D.  Williams aproximation
 % FORMAT F = spm_Ncdf_jdw(x,u,v)
 %
 % x - ordinates
@@ -22,7 +22,7 @@ function F = spm_Ncdf_jdw(x,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Ncdf_jdw.m 2209 2008-09-26 18:58:41Z karl $
+% $Id: spm_Ncdf_jdw.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 %-Format arguments

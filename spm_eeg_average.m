@@ -1,42 +1,44 @@
 function D = spm_eeg_average(S)
-% averages each channel over trials or trial types.
+% Average each channel over trials or trial types
 % FORMAT D = spm_eeg_average(S)
 %
-% S         - optional input struct
+% S        - optional input struct
 % (optional) fields of S:
-% D         - filename of EEG mat-file with epoched data
+% D        - MEEG object or filename of M/EEG mat-file with epoched data
+% review   - review data after averaging [default: true]
 %
 % Output:
-% D         - EEG data struct (also written to files)
-%_______________________________________________________________________
+% D        - MEEG object (also written on disk)
+%__________________________________________________________________________
 %
 % spm_eeg_average averages single trial data within trial type.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2438 2008-11-04 11:21:19Z stefan $
+% $Id: spm_eeg_average.m 2696 2009-02-05 20:29:48Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
+SVNrev = '$Rev: 2696 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG averaging'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
-
-
-spm('Pointer', 'Watch'); drawnow;
-
+%-Redirect to Time-Frequency averaging if necessary
+%--------------------------------------------------------------------------
 try
     if D.nfrequencies > 1
         D = spm_eeg_average_TF(S);
@@ -44,41 +46,44 @@ try
     end
 end
 
-
-
-% generate new meeg object with new filenames
+%-Generate new MEEG object with new files
+%--------------------------------------------------------------------------
 Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions]);
-        
+Dnew = type(Dnew, 'evoked');
+
+%-Do the averaging
+%--------------------------------------------------------------------------
+cl   = unique(conditions(D));
 try artefact = D.artefact; catch artefact = []; end
-if ~isempty(artefact)
+if isfield(artefact, 'weights')
+    
+    %-Weighted averaging
+    %======================================================================
     weights = artefact.weights;
     try thresholded = D.thresholded; catch thresholded = []; end
-end
-cl = unique(conditions(D));
-
-if isfield(artefact, 'weights');
+    
     d = zeros(D.nchannels, D.nsamples);
 
     for i = 1:D.nconditions
 
         for j = 1:D.nchannels
-            tempwf=[];
-            ti=0;
-            ts=0;
+            w      = pickconditions(D, cl{i}, true)';
+            ni(i)  = length(w);
+            
+            ti     = 0;
+            ts     = 0;
             while ts==0
-                ti=ti+1;
+                ti = ti+1;
                 ts = (j == thresholded{ti});
-
             end
-            w = pickconditions(D, cl{i}, 1)';
-            ni(i) = length(w);
             if isempty(ts)
-                ind = pickconditions(D, cl{i}, 1);
-                data = squeeze(D(j, :, ind))';
+                ind    = pickconditions(D, cl{i}, 1);
+                data   = squeeze(D(j, :, ind))';
+                tempwf = [];
                 for nl = ind'
                     tempwf = [tempwf, weights(j, (nl-1)*D.nsamples+1:nl*D.nsamples)];
                 end
-                data=data';
+                data   = data';
                 tempwf = reshape(tempwf, D.nsamples, length(ind));
 
                 for t = 1:size(data,1)
@@ -86,61 +91,60 @@ if isfield(artefact, 'weights');
                 end
                 
                 if isfield(artefact, 'Smoothing')
-                    sm=gausswin(artefact.Smoothing);
-                    sm=sm/sum(sm);
-                    mB=mean(B);
-                    B=conv(sm,B-mean(B));
-                    B=B(floor(artefact.Smoothing/2):end-ceil(artefact.Smoothing/2));
-                    B=B+mB;
+                    sm  = gausswin(artefact.Smoothing);
+                    sm  = sm/sum(sm);
+                    mB  = mean(B);
+                    B   = conv(sm,B-mean(B));
+                    B   = B(floor(artefact.Smoothing/2):end-ceil(artefact.Smoothing/2));
+                    B   = B + mB;
                 end
-                d(j, :) =B;
+                d(j, :) = B;
             else
-                d(j,:)=zeros(1,D.nsamples);
+                d(j,:)  = zeros(1,D.nsamples);
             end
-        end
+        end % for j = 1:D.nchannels
+        
         Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
 
-    end
+    end % for i = 1:D.nconditions
+    
 else
-
-
-    spm_progress_bar('Init', D.nconditions, 'Averages done'); drawnow;
+    %-Averaging
+    %======================================================================
+    spm_progress_bar('Init', D.nconditions, 'Averages done');
     if D.nconditions > 100, Ibar = floor(linspace(1, D.nconditions, 100));
     else Ibar = [1:D.nconditions]; end
 
+    ni = zeros(1,D.nconditions);
     for i = 1:D.nconditions
 
-        w = pickconditions(D, deblank(cl{i}), 1)';
-        c = zeros(1, D.ntrials);
-        c(w) = 1;
+        d     = zeros(D.nchannels, D.nsamples);
         
+        w     = pickconditions(D, deblank(cl{i}), true)';
+        c     = zeros(1, D.ntrials);
+        c(w)  = 1;
+
         ni(i) = length(w);
-
-        d = zeros(D.nchannels, D.nsamples);
-
         if ni(i) == 0
             warning('%s: No trials for trial type %d', D.fname, cl{i});
         else
-            c = c./sum(c); % vector of trial-wise weights
+            c = c ./ sum(c); % vector of trial-wise weights
             for j = 1:D.nchannels
-                d(j, :) = c*squeeze(D(j, :, :))';
+                d(j, :) = c * squeeze(D(j, :, :))';
             end
         end
+        
         Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
 
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i);
-            drawnow;
-        end
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
-    end
+    end % for i = 1:D.nconditions
 end
 
 spm_progress_bar('Clear');
 
-Dnew = type(Dnew, 'evoked');
-
-% jump outside methods to reorganise trial structure
+%-Reorganise trial structure
+%--------------------------------------------------------------------------
 sD = struct(Dnew);
 
 [sD.trials.label] = deal([]);
@@ -152,32 +156,38 @@ sD.trials = sD.trials(1:D.nconditions);
 
 for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
 if isfield(sD.other, 'artefact');
-    sD.other=rmfield(sD.other, 'artefact');
+    sD.other = rmfield(sD.other, 'artefact');
 end
 
 Dnew = meeg(sD);
 
+%-Display averaging statistics
+%--------------------------------------------------------------------------
+disp(sprintf('%s: Number of replications per contrast:', Dnew.fname));  %-#
+s  = [];
 cl = D.condlist;
-
-disp(sprintf('%s: Number of replications per contrast:', Dnew.fname))
-s = [];
 for i = 1:D.nconditions
     s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
     if i < D.nconditions
-        s = [s sprintf(', ')];
+        s = [s ', '];
     else
         s = [s '\n'];
     end
 end
-disp(sprintf(s))
+disp(sprintf(s));                                                       %-#
 
+%-Save new evoked M/EEG dataset
+%--------------------------------------------------------------------------
 D = Dnew;
 D = D.history('spm_eeg_average', S);
-
 save(D);
 
+%-Eventually display it
+%--------------------------------------------------------------------------
 if ~isfield(S, 'review') || S.review
     spm_eeg_review(D);
 end
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG averaging: done'); spm('Pointer','Arrow');

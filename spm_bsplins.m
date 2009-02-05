@@ -1,5 +1,5 @@
 function varargout = spm_bsplins(varargin)
-% Sample a volume using B-spline interpolation
+% Sample a volume using B-spline interpolation - a compiled routine
 % FORMAT [f,dfx,dfy,dfz] = spm_bsplins(c,x,y,z,d)
 %   c - volume of B-spline coefficients (from spm_bsplinc)
 %   x,y,z - co-ordinates of sampled points
@@ -40,7 +40,7 @@ function varargout = spm_bsplins(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_bsplins.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_bsplins.m 2696 2009-02-05 20:29:48Z guillaume $
 
 
 %-This is merely the help file for the compiled routine
