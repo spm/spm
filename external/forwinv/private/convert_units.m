@@ -23,6 +23,9 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.6  2009/02/05 10:20:35  roboos
+% added bemcp as volume type
+%
 % Revision 1.5  2009/01/08 17:18:45  roboos
 % fixed bug mom->pos for source structures
 % added unit detection for volumes with a transform and a dim
@@ -73,7 +76,7 @@ else
       case 'nolte'
         size = norm(range(obj.bnd.pnt));
 
-      case {'bem' 'dipoli' 'asa' 'avo'}
+      case {'bem' 'dipoli' 'bemcp' 'asa' 'avo'}
         size = norm(range(obj.bnd(1).pnt));
 
       otherwise

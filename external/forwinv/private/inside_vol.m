@@ -19,6 +19,9 @@ function [inside] = inside_vol(pos, vol)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: inside_vol.m,v $
+% Revision 1.5  2009/02/05 10:20:35  roboos
+% added bemcp as volume type
+%
 % Revision 1.4  2009/01/21 11:15:57  roboos
 % moved function back from forwinv/private into public section, because it is part of the public API
 %
@@ -115,7 +118,7 @@ switch voltype(vol)
     inside  = inside>0;
 
     % realistic BEM volume conductor model
-  case {'bem', 'dipoli', 'asa', 'avo', 'nolte', 'neuromag'}
+  case {'bem', 'dipoli', 'bemcp', 'asa', 'avo', 'nolte', 'neuromag'}
     if ~isfield(vol, 'source')
       % locate the innermost compartment and remember it
       vol.source = find_innermost_boundary(vol.bnd);
