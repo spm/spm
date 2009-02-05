@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.134  2009/02/05 10:22:07  roboos
+% better support for single-trial data, thanks to Vladimir
+%
 % Revision 1.133  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -958,7 +961,7 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
     % HACK: use the default code
     % select the channels of interest
     [dum, datchanindx] = match_str(cfg.channel, data.label);
-    if Ntrials==1
+    if strcmp(data.dimord, 'chan_time')
       % It is in principle possible to have timelockanalysis with
       % keeptrial=yes and only a single trial in the raw data.
       % In that case the covariance should be represented as Nchan*Nchan
@@ -986,7 +989,7 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
   end
 
   % prepare the resampling of the trials, or average the data if multiple trials are present and no resampling is neccessary
-  if (strcmp(cfg.jackknife, 'yes') || strcmp(cfg.bootstrap, 'yes') || strcmp(cfg.pseudovalue, 'yes') || strcmp(cfg.singletrial, 'yes') || strcmp(cfg.rawtrial, 'yes') || strcmp(cfg.randomization, 'yes')) && ~(Ntrials>1)
+  if (strcmp(cfg.jackknife, 'yes') || strcmp(cfg.bootstrap, 'yes') || strcmp(cfg.pseudovalue, 'yes') || strcmp(cfg.singletrial, 'yes') || strcmp(cfg.rawtrial, 'yes') || strcmp(cfg.randomization, 'yes')) && ~strcmp(data.dimord, 'rpt_chan_time')
     error('multiple trials required in the data\n');
 
   elseif strcmp(cfg.permutation, 'yes')
@@ -1260,7 +1263,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.133 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.134 2009/02/05 10:22:07 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

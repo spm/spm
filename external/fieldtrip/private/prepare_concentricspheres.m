@@ -37,6 +37,9 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
 % $Log: prepare_concentricspheres.m,v $
+% Revision 1.2  2009/02/05 10:22:55  roboos
+% don't open new figure, clear the existing one
+%
 % Revision 1.1  2009/01/05 13:06:39  roboos
 % initial version of Vladimir with some extensions/improvements
 %
@@ -73,7 +76,7 @@ Npnt = size(pnt, 1);
 
 % set up an empty figure
 if strcmp(cfg.feedback, 'yes')
-  figure
+  clf
   hold on
   axis equal
   axis vis3d

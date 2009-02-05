@@ -11,6 +11,9 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_freq_matrices.m,v $
+% Revision 1.24  2009/02/05 10:22:07  roboos
+% better support for single-trial data, thanks to Vladimir
+%
 % Revision 1.23  2008/07/11 14:06:43  jansch
 % fixed the cfg.channel freq.label issue for fourierspctrm as well
 %
@@ -171,7 +174,7 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
   end
 
   % this complex rearrangement of channel indices transforms the CSDs into a square matrix
-  if Ntrials==1
+  if strcmp(freq.dimord, 'chan_freq')
     % FIXME this fails in case dimord=rpt_chan_freq and only 1 trial
     Cf = complex(nan*zeros(Nchans,Nchans));
     % first use the complex conjugate for all reversed signal combinations
