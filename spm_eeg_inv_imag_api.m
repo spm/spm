@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_inv_imag_api.m 2699 2009-02-05 21:14:29Z guillaume $
 
 
 spm('defaults','EEG');
@@ -463,12 +463,3 @@ edit spm_eeg_inv_help
 %--------------------------------------------------------------------------
 function group_Callback(hObject, eventdata, handles)
 spm_eeg_inv_group
-
-
-% --- Executes on button press in fusion.
-%--------------------------------------------------------------------------
-function fusion_Callback(hObject, eventdata, handles)
-handles.D = spm_eeg_invert_fuse_ui;
-Reset(hObject, eventdata, handles)
-
-
