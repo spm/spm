@@ -10,6 +10,9 @@ function [grad,elec] = mne2grad(hdr)
 % Laurence Hunt 03/12/2008 (with thanks to Joachim Gross's original script based on fiff_access). lhunt@fmrib.ox.ac.uk
 % 
 % $Log: mne2grad.m,v $
+% Revision 1.6  2009/02/05 18:30:44  vlalit
+% Updates by Laurence to recognize additional Neuromag sensor types
+%
 % Revision 1.5  2009/01/23 18:56:54  vlalit
 % Another bug fix
 %
@@ -44,13 +47,13 @@ end
 %how many Planar gradiometers?
 nPlaGrad = 0;
 for i = 1:orig.nchan;
-  nPlaGrad = nPlaGrad +(orig.chs(i).coil_type==3012);
+  nPlaGrad = nPlaGrad +(orig.chs(i).coil_type==3012|orig.chs(i).coil_type==3013|orig.chs(i).coil_type==3014) ;
 end
 
 %how many Magnetometers?
 nMag = 0;
 for i = 1:orig.nchan;
-  nMag = nMag +(orig.chs(i).coil_type==3022);
+  nMag = nMag +(orig.chs(i).coil_type==3022|orig.chs(i).coil_type==3023|orig.chs(i).coil_type==3024);
 end
 
 %how many EEG channels?
