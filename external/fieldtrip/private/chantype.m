@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.9  2009/02/05 18:30:44  vlalit
+% Updates by Laurence to recognize additional Neuromag sensor types
+%
 % Revision 1.8  2009/02/02 12:09:28  vlalit
 % Added back support of generic desired types 'meg' and 'ref'.
 %
@@ -117,11 +120,26 @@ if senstype(input, 'neuromag')
     elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'chs') && isfield(hdr.orig.chs, 'coil_type')
         %all the chs.kinds and chs.coil_types are obtained from the MNE
         %manual, p.210-211
+        for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==2)' %planar gradiometers
+            type(sel) = {'megplanar'}; %Neuromag-122 planar gradiometer
+        end
         for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3012)' %planar gradiometers
-            type(sel) = {'megplanar'};
+            type(sel) = {'megplanar'}; %Type T1 planar grad
+        end
+        for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3013)' %planar gradiometers
+            type(sel) = {'megplanar'}; %Type T2 planar grad
+        end
+        for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3014)' %planar gradiometers
+            type(sel) = {'megplanar'}; %Type T3 planar grad
         end
         for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3022)' %magnetometers
-            type(sel) = {'megmag'};
+            type(sel) = {'megmag'};    %Type T1 magenetometer
+        end
+        for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3023)' %magnetometers
+            type(sel) = {'megmag'};    %Type T2 magenetometer
+        end
+        for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3024)' %magnetometers
+            type(sel) = {'megmag'};    %Type T3 magenetometer
         end
         for sel=find([hdr.orig.chs.kind]==301)' %MEG reference channel, located far from head
             type(sel) = {'ref'};
