@@ -14,7 +14,7 @@ function D = spm_eeg_downsample(S)
 % original sampling rate. 
 %_______________________________________________________________________
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2459 2008-11-12 11:27:23Z vladimir $
+% $Id: spm_eeg_downsample.m 2695 2009-02-05 11:11:11Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -64,41 +64,64 @@ nsamples_new = size(d2, 2);
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
+now = clock;
 
 % 2nd: resample all
-if ~strcmp(D.type, 'continuous')
+if strcmp(D.type, 'continuous')
+    spm_progress_bar('Init', D.nchannels, 'Channels downsampled'); drawnow;
+    
+    % work on blocks of channels
+    % determine block size, dependent on memory
+    try 
+        evalc('memsz=2/3*feature(''memstats'');'); % 2/3 of largest block of contiguous memory, for Windows platforms
+    catch
+        memsz = 20*1024*1024; % 20 MB otherwise
+    end;
+    datasz=nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
+    blknum=ceil(datasz/memsz);
+    blksz=ceil(nchannels(D)/blknum);
+    
+    % now downsample blocks of channels
+    chncnt=1;
+    for blk=1:blknum
+        % load old meeg object blockwise into workspace 
+        blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
+        Dtemp=D(blkchan,:,1);
+        chncnt=chncnt+blksz;
+        %loop through channels
+        for j = 1:numel(blkchan)
+            d = Dtemp(j,:);
+            Dtemp(j,:)=0; % overwrite Dtemp to save memory
+            Dtemp(j,1:nsamples_new) = resample(d', P, Q)';
+            spm_progress_bar('Set', blkchan(j)); drawnow;
+        end;
+
+        % write Dtempnew to Dnew
+        Dnew(blkchan,:,1)=Dtemp(:,1:nsamples_new,1);
+        clear Dtemp
+
+    end;
+    
+else
     spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
     else Ibar = [1:D.ntrials]; end
-else
-    spm_progress_bar('Init', D.nchannels, 'Channels downsampled'); drawnow;
-    if D.nchannels > 100, Ibar = floor(linspace(1, D.nchannels,100));
-    else Ibar = [1:D.nchannels]; end
-end
+    
+    for i = 1:D.ntrials
+        for j = 1:D.nchannels
+            d = double(squeeze(D(j, :, i)));
+            d2 = resample(d', P, Q)';
 
-now = clock;
+            Dnew(j, 1:nsamples_new, i) = d2;
 
-for i = 1:D.ntrials
-    for j = 1:D.nchannels
-        d = double(squeeze(D(j, :, i)));
-        d2 = resample(d', P, Q)';
-
-        Dnew(j, 1:nsamples_new, i) = d2;
-
-        if strcmp(D.type, 'continuous')
-            if ismember(j, Ibar)
-                spm_progress_bar('Set', j); drawnow;
-            end
         end
-
-    end
-    if ~strcmp(D.type, 'continuous')
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
     end
-
 end
+
+
 
 elapsedTime = etime(clock,now);
 fprintf(['Downsampling took ',num2str(elapsedTime),' sec\n'])
