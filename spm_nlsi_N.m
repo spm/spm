@@ -1,19 +1,23 @@
 function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
-% Bayesian inversion of a nonlinear model of the form G(g)*F(u,p)
+% Bayesian inversion of a linear-nonlinear model of the form F(p)*G(g)'
 % FORMAT [Ep,Eg,Cp,Cg,S,F]= spm_nlsi_N(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
 % 
-% M.IS - A prediction generating function name; this is usually an 
-%        integration scheme for states-sapce models of the form
+% M.IS - IS(p,M,U) A prediction generating function name; usually an 
+%        integration scheme for state-space models of the form
 %
-%     M.f  - f(x,u,p,M) - state equation:  dxdt = f(x,u)
-%     M.G  - G(x,M)     - linear observer: y    = G*x
+%        M.f  - f(x,u,p,M) - state equation:  dxdt = f(x,u)
 %
-% M.FS - function name f(y,M)   - feature selection
+%        that returns hidden states - x; however, it can be any nonlinear
+%        function of the inputs u. I.e., x = IS(p,M,U)
+%
+% M.G  - G(g,M) - linear observer: y = x*G(g,M)'
+%
+% M.FS - function name f(y,M) - feature selection
 %        This [optional] function performs feature selection assuming the
-%        generalized model y = FS(y,M) = FS(G*x,M) + X0*P0 + e
+%        generalized model y = FS(y,M) = FS(x*G',M) + X0*P0 + e
 %
 % M.x  - The expansion point for the states (i.e., the fixed point)
 %
@@ -22,16 +26,16 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % M.pE - prior expectation  - of model parameters - f(x,u,p,M)
 % M.pC - prior covariance   - of model parameters - f(x,u,p,M)
 %
-% M.gE - prior expectation  - of model parameters - G(x,M)
-% M.gC - prior covariance   - of model parameters - G(x,M)
+% M.gE - prior expectation  - of model parameters - G(g,M)
+% M.gC - prior covariance   - of model parameters - G(g,M)
 %
-% M.hE - prior expectation  - E{h}   of precision parameters
-% M.hC - prior covariance   - Cov{h} of precision parameters
+% M.hE - prior expectation  - E{h}   of log-precision parameters
+% M.hC - prior covariance   - Cov{h} of log-precision parameters
 %
 % U.u  - inputs
 % U.dt - sampling interval
 %
-% Y.y  - outputs
+% Y.y  - {[ns,nx],...} - [ns] samples x [nx] channels x {trials}
 % Y.X0 - Confounds or null space
 % Y.dt - sampling interval for outputs
 % Y.Q  - error precision components
@@ -69,7 +73,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2519 2008-12-02 14:37:02Z cc $
+% $Id: spm_nlsi_N.m 2707 2009-02-06 19:51:34Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -124,7 +128,7 @@ if iscell(y)
     
     ns = size(y{1},1);
     
-    % concatenate samples over cell, sensuring the same for prections
+    % concatenate samples over cell, sensuring the same for predictions
     %----------------------------------------------------------------------
     y  = spm_cat(y(:));             
     IS = inline(['spm_cat(' IS '(P,M,U))'],'P','M','U');

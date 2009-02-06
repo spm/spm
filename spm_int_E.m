@@ -42,19 +42,8 @@ function [y] = spm_int_E(P,M,U)
 % matrix exponentials and inversion during the integration. It is probably
 % the best compromise, if the Jacobian is not available explicitly.
 %
-% spm_int_J_nlDCM_fMRI: Identical to spm_int_J, except that it samples
-% predicted responses only at specified time points (i.e. every TR,
-% accounting for slice-timing).  It is an alternative integrator for 
-% nonlinear DCM for fMRI (marginally more accurate, but considerably slower 
-% than spm_int_B_nlDCM_fMRI).
-%
 % spm_int_B: As for spm_int_J but uses a first-order approximation to J
 % based on J(x(t)) = J(x(0)) + dJdx*x(t).
-%
-% spm_int_B_nlDCM_fMRI: Identical to spm_int_B, except that it samples
-% predicted responses only at specified time points (i.e. every TR,
-% accounting for slice-timing).  It is the default integrator for nonlinear
-% DCM for fMRI.
 %
 % spm_int_L: As for spm_int_B but uses J(x(0)).
 %
@@ -69,7 +58,7 @@ function [y] = spm_int_E(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_E.m 2517 2008-12-02 10:36:11Z klaas $
+% $Id: spm_int_E.m 2707 2009-02-06 19:51:34Z karl $
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------

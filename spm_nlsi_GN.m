@@ -4,7 +4,6 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
-% M.nlDCM - 0 = bilinear DCM; 1 = nonlinear DCM
 %
 % M.IS - function name f(P,M,U) - generative model
 %        This function specifies the nonlinear model: 
@@ -28,8 +27,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % M.pE - prior expectation  - E{P}   of model parameters
 % M.pC - prior covariance   - Cov{P} of model parameters
 %
-% M.hE - prior expectation  - E{h}   of precision parameters
-% M.hC - prior covariance   - Cov{h} of precision parameters
+% M.hE - prior expectation  - E{h}   of log-precision parameters
+% M.hC - prior covariance   - Cov{h} of log-precision parameters
 %
 % U.u  - inputs
 % U.dt - sampling interval
@@ -79,7 +78,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2517 2008-12-02 10:36:11Z klaas $
+% $Id: spm_nlsi_GN.m 2707 2009-02-06 19:51:34Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -95,11 +94,7 @@ end
 try
     M.IS;
 catch
-    if ~M.nlDCM
-        M.IS = 'spm_int';
-    else
-        M.IS = 'spm_int_B_nlDCM_fMRI';
-    end
+    M.IS = 'spm_int';
 end
  
 % composition of feature selection and prediction (usually an integrator)
