@@ -166,6 +166,10 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.135  2009/02/06 10:53:10  jansch
+% added experimental possibility to apply prewhitening. fixed incorrect
+% conjugate transposition and replaced by explicit transpose()
+%
 % Revision 1.134  2009/02/05 10:22:07  roboos
 % better support for single-trial data, thanks to Vladimir
 %
@@ -578,6 +582,7 @@ if ~isfield(cfg, 'lambda'),           cfg.lambda = [];            end
 if ~isfield(cfg, 'powmethod'),        cfg.powmethod = [];         end
 if ~isfield(cfg, 'channel'),          cfg.channel = 'all';        end
 if ~isfield(cfg, 'normalize'),        cfg.normalize = 'no';       end
+if ~isfield(cfg, 'prewhiten'),        cfg.prewhiten = 'no';       end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';      end  % the default for this depends on EEG/MEG and is set below
 
 % put the low-level options pertaining to the source reconstruction method in their own field
@@ -603,8 +608,8 @@ end
 % select only those channels that are present in the data
 cfg.channel = channelselection(cfg.channel, data.label); 
 
-if nargin>2 && (strcmp(cfg.randomization, 'no') && strcmp(cfg.permutation, 'no'))
-  error('input of two conditions only makes sense if you want to randomize or permute');
+if nargin>2 && (strcmp(cfg.randomization, 'no') && strcmp(cfg.permutation, 'no') && strcmp(cfg.prewhiten, 'no'))
+  error('input of two conditions only makes sense if you want to randomize or permute, or if you want to prewhiten');
 elseif nargin<3 && (strcmp(cfg.randomization, 'yes') || strcmp(cfg.permutation, 'yes'))
   error('randomization or permutation requires that you give two conditions as input');
 end
@@ -679,11 +684,11 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
     cfg.supchan = channelselection(cfg.supchan, data.label);
 
     % HACK: use some experimental code
-    if nargin>2
+    if nargin>2 && strcmp(cfg.prewhiten, 'no'),
       error('not supported')
     end
     tmpcfg         = cfg;
-    tmpcfg.refchan = [];	% prepare_freq_matrices should not know explitely about the refchan
+    tmpcfg.refchan = ''; % prepare_freq_matrices should not know explicitly about the refchan
     tmpcfg.channel = cfg.channel(:)';
     if isfield(cfg, 'refchan')
       % add the refchan implicitely
@@ -696,6 +701,11 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
 
     % select the data in the channels and the frequency of interest
     [Cf, Cr, Pr, Ntrials, tmpcfg] = prepare_freq_matrices(tmpcfg, data);
+    if strcmp(cfg.prewhiten, 'yes'), 
+      [Cfb, Crb, Prb, Ntrialsb, tmpcfgb] = prepare_freq_matrices(tmpcfg, baseline);
+      Cf      = prewhitening_filter2(squeeze(mean(Cf,1)), squeeze(mean(Cfb,1)));
+      Ntrials = 1;
+    end
 
     if isfield(cfg, 'refchan') && ~isempty(cfg.refchan)
       [dum, refchanindx] = match_str(cfg.refchan, tmpcfg.channel);
@@ -710,19 +720,23 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
     Nchans = length(tmpcfg.channel); % update the number of channels
 
     % if the input data has a complete fourier spectrum, project it through the filters
+    % FIXME it was incorrect , since the 
+    % ' leads to a conjugate transposition check this in beamformer_pcc
     if isfield(data, 'fourierspctrm')
       [dum, datchanindx] = match_str(tmpcfg.channel, data.label);
       fbin = nearest(data.freq, cfg.frequency);
       if strcmp(data.dimord, 'chan_freq')
         avg = data.fourierspctrm(datchanindx, fbin);
       elseif strcmp(data.dimord, 'rpt_chan_freq') || strcmp(data.dimord, 'rpttap_chan_freq'),
-        avg = data.fourierspctrm(:, datchanindx, fbin)';
+        %avg = data.fourierspctrm(:, datchanindx, fbin)';
+        avg = transpose(data.fourierspctrm(:, datchanindx, fbin));
       elseif strcmp(data.dimord, 'chan_freq_time')
         tbin = nearest(data.time, cfg.latency);
         avg = data.fourierspctrm(datchanindx, fbin, tbin);
       elseif strcmp(data.dimord, 'rpt_chan_freq_time') || strcmp(data.dimord, 'rpttap_chan_freq_time'),
         tbin = nearest(data.time, cfg.latency);
-        avg = data.fourierspctrm(:, datchanindx, fbin, tbin)';
+        %avg = data.fourierspctrm(:, datchanindx, fbin, tbin)';
+        avg = transpose(data.fourierspctrm(:, datchanindx, fbin, tbin));
       end
     else
       avg = [];
@@ -863,10 +877,10 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
     Cr  = reshape(Cr , [1 Nchans 1]);
     Pr  = reshape(Pr , [1 1 1]);
   end
-
+  
   % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = cfg2keyval(getfield(cfg, cfg.method));
-
+  
   for i=1:Nrepetitions
     fprintf('scanning repetition %d\n', i);
     if     strcmp(cfg.method, 'dics') && strcmp(submethod, 'dics_power')
@@ -1263,7 +1277,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.134 2009/02/05 10:22:07 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.135 2009/02/06 10:53:10 jansch Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end
