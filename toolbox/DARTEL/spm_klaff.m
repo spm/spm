@@ -1,5 +1,5 @@
 function M = spm_klaff(Nf, Ng)
-% Affine registration by minimising Kullback-Liebler Divergence
+% Affine registration by minimising Kullback-Leibler Divergence
 % FORMAT M = spm_klaff(Nf,Ng)
 % Nf - NIfTI handle for one image
 % Ng - Nifti handle for the other.  If not passed, then
