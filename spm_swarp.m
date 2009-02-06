@@ -15,7 +15,9 @@ function that = spm_swarp(this,def,M)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_swarp.m 2686 2009-02-04 15:19:07Z john $
+% $Id: spm_swarp.m 2705 2009-02-06 15:37:19Z john $
+
+if ~isa(this,'gifti'), this = gifti(this); end
 
 if nargin<2, that = this; return; end
 
@@ -33,8 +35,9 @@ end
 %vrt = this.vertices;
 vrt = subsref(this,substruct('.','vertices'));
 
-vrt = M(1:3,1:4)*[vrt'; ones(1,size(vrt,1))];
-xyz = {double(vrt(:,1)),double(vrt(:,2)),double(vrt(:,3))};
+iM  = inv(M);
+vrt = iM(1:3,1:4)*[vrt'; ones(1,size(vrt,1))];
+xyz = {double(vrt(1,:)'),double(vrt(2,:)'),double(vrt(3,:)')};
 vrt = [spm_bsplins(y(:,:,:,1,1),xyz{:},[1 1 1 0 0 0]),...
        spm_bsplins(y(:,:,:,1,2),xyz{:},[1 1 1 0 0 0]),...
        spm_bsplins(y(:,:,:,1,3),xyz{:},[1 1 1 0 0 0])];
