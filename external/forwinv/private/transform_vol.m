@@ -13,6 +13,9 @@ function [vol] = transform_vol(transform, vol)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: transform_vol.m,v $
+% Revision 1.6  2009/02/06 08:31:19  roboos
+% added bemcp as volume type
+%
 % Revision 1.5  2008/04/18 13:16:25  roboos
 % removed check for scaling
 %
@@ -51,7 +54,7 @@ switch voltype(vol)
       vol.o = apply(transform, vol.o);
     end
 
-  case {'bem', 'dipoli', 'asa', 'avo', 'nolte'}
+  case {'bem', 'dipoli', 'bemcp', 'asa', 'avo', 'nolte'}
     for i=1:length(vol.bnd)
       % apply the transformation to each of the triangulated surface descriptions
       vol.bnd(i).pnt = apply(transform, vol.bnd(i).pnt);
