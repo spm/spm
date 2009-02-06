@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2631 2009-01-20 17:12:47Z cc $
+% $Id: spm_api_erp.m 2709 2009-02-06 19:56:19Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -521,7 +521,7 @@ switch DCM.options.spatial
         
         % forward model (spatial)
         %--------------------------------------------------------------------------
-        DCM = spm_dcm_erp_dipfit(DCM, 0);
+        DCM = spm_dcm_erp_dipfit(DCM);
         set(handles.plot_dipoles,'enable','on')
  
     case{'LFP'}

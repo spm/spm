@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_lgainmat.m 2709 2009-02-06 19:56:19Z karl $
  
 % get gain or lead-feild matrix
 %--------------------------------------------------------------------------
@@ -50,6 +50,7 @@ catch
     G     = load(fullfile(D.path, fname));
     Gname = fieldnames(G);
     L     = sparse(getfield(G, Gname{1}));
+    save(D);
 end
  
  
