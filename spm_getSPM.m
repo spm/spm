@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 2664 2009-01-28 20:25:20Z karl $
+% $Id: spm_getSPM.m 2708 2009-02-06 19:52:48Z karl $
 
 
 %-GUI setup
@@ -215,9 +215,9 @@ catch
     % check the model has been estimated
     %-------------------------------------------------------------------
     str = { 'This model has not been estimated.';...
-        'Would you like to estimate it now?'};
+            'Would you like to estimate it now?'};
     if spm_input(str,1,'bd','yes|no',[1,0],1)
-        [SPM] = spm_spm(SPM);
+         SPM = spm_spm(SPM);
     else
         return
     end
