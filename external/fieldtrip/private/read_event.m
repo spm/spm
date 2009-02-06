@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.86  2009/02/06 10:12:20  roboos
+% incorporated the latest suggestions of Laurence Hunt for neuromag_mne
+%
 % Revision 1.85  2009/01/23 16:17:44  roboos
 % merged neuromag_fif and neuromag_mne
 %
@@ -380,10 +383,13 @@ if iscell(filename)
 end
 
 % get the options
-eventformat      = keyval('eventformat', varargin);
-hdr              = keyval('header',      varargin);
-detectflank      = keyval('detectflank', varargin); % up, down or both
-trigshift        = keyval('trigshift',   varargin); % default is assigned in subfunction
+eventformat      = keyval('eventformat',  varargin);
+hdr              = keyval('header',       varargin);
+detectflank      = keyval('detectflank',  varargin); % up, down or both
+trigshift        = keyval('trigshift',    varargin); % default is assigned in subfunction
+headerformat     = keyval('headerformat', varargin);
+dataformat       = keyval('dataformat',   varargin);
+
 % this allows to read only events in a certain range, supported for selected data formats only
 flt_type         = keyval('type',         varargin);
 flt_value        = keyval('value',        varargin);
@@ -1098,64 +1104,100 @@ switch eventformat
       event(i).duration = hdr.nSamples;           % expressed in samples
     end
 
-    
+
   case {'neuromag_fif' 'neuromag_mne'}
     if strcmp(eventformat, 'neuromag_fif')
       % check that the required low-level toolbox is available
       hastoolbox('meg-pd', 1);
-      headerformat = 'neuromag_fif';
-      dataformat = 'neuromag_fif';
+      if isempty(headerformat), headerformat = eventformat; end
+      if isempty(dataformat),   dataformat   = eventformat; end
     elseif strcmp(eventformat, 'neuromag_mne')
       % check that the required low-level toolbox is available
       hastoolbox('mne', 1);
-      headerformat = 'neuromag_mne';
-      dataformat = 'neuromag_mne';
+      if isempty(headerformat), headerformat = eventformat; end
+      if isempty(dataformat),   dataformat   = eventformat; end
     end
 
     if isempty(hdr)
       hdr = read_header(filename, 'headerformat', headerformat);
     end
 
-    if (hdr.nTrials>1) || (hdr.nSamplesPre~=0)
-      % add the trials to the event structure
-      for i=1:hdr.nTrials
-        event(end+1).type     = 'trial';
-        event(end  ).sample   = (i-1)*hdr.nSamples + 1;
-        event(end  ).value    = [];
-        event(end  ).offset   = -hdr.nSamplesPre;
-        event(end  ).duration =  hdr.nSamples;
+    % note below we've had to include some chunks of code that are only
+    % called if the file is an averaged file, or if the file is continuous.
+    % These are defined in hdr by read_header for neuromag_mne, but do not
+    % exist for neuromag_fif, hence we run the code anyway if the fields do
+    % not exist (this is what happened previously anyway).
+
+    if strcmp(eventformat, 'neuromag_fif')
+      iscontinuous    = 1;
+      isaverage       = 0;
+      isepoched       = 0;
+    elseif strcmp(eventformat, 'neuromag_mne')
+      iscontinuous    = hdr.orig.iscontinuous;
+      isaverage       = hdr.orig.isaverage;
+      isepoched       = hdr.orig.isepoched;
+    end
+
+    if iscontinuous
+      binary     = {'STI 014', 'STI 015', 'STI 016'};
+      binaryindx = match_str(hdr.label, binary);
+      analogindx = strmatch('STI', hdr.label);
+
+      if ~isempty(binaryindx)
+        % add triggers based on the binary trigger channel, this is based on
+        % an email on 14 Sep 2004, at 16:33, Lauri Parkkonen wrote:
+        %   Anke's file is probably quite recent one. It should have normal binary
+        %   coding on STI014 and its "analog" counterparts on STI1 ... STI6,
+        %   swinging between 0 ... +5 volts. These latter channels are virtual,
+        %   i.e., they are generated from STI014 for backwards compatibility. STI1
+        %   is the LSB of STI014 etc. For all the new stuff, I would recommend
+        %   using STI014 as that's the way the triggers will be stored in the future
+        %   (maybe the channel name is going to change to something more reasonable
+        %   like TRIG). Unfortunately, some older files from the 306-channel system
+        %   have the STI014 coded in a different way - the two 8-bit halves code
+        %   the input and output triggers separately.
+        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 0);
+        event   = appendevent(event, trigger);
+      elseif ~isempty(analogindx)
+        % add the triggers to the event structure based on trigger channels with the name "STI xxx"
+        % there are some issues with noise on these analog trigger channels
+        % therefore look for the analog triggers only if no binary trigger channel is present
+        % read the trigger channel and do flank detection
+        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 1);
+        event   = appendevent(event, trigger);
       end
+
+      if hdr.nTrials>1
+        % make an event for each trial as defined in the header
+        for i=1:hdr.nTrials
+          event(end+1).type     = 'trial';
+          event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+          event(end  ).offset   = -hdr.nSamplesPre;
+          event(end  ).duration =  hdr.nSamples;
+          event(end  ).value    =  [];
+        end
+      end
+
+    elseif isaverage
+      % the length of each average can be variable
+      nsamples = zeros(1, length(hdr.orig.evoked));
+      for i=1:length(hdr.orig.evoked)
+        nsamples(i)  = size(hdr.orig.evoked(i).epochs, 2);
+      end
+      begsample = cumsum([1 nsamples]);
+      for i=1:length(hdr.orig.evoked)
+        event(end+1).type     = 'average';
+        event(end  ).sample   = begsample(i);
+        event(end  ).value    = hdr.orig.evoked(i).comment;  % this is a descriptive string
+        event(end  ).offset   = hdr.orig.evoked(i).first;
+        event(end  ).duration = hdr.orig.evoked(i).last - hdr.orig.evoked(i).first + 1;
+      end
+
+    elseif isepoched
+      error('Support for epoched *.fif data is not yet implemented.')
     end
 
-    binary     = {'STI 014', 'STI 015', 'STI 016'};
-    binaryindx = match_str(hdr.label, binary);
-    analogindx = strmatch('STI', hdr.label);
 
-    if ~isempty(binaryindx)
-      % add triggers based on the binary trigger channel, this is based on
-      % an email on 14 Sep 2004, at 16:33, Lauri Parkkonen wrote:
-      %   Anke's file is probably quite recent one. It should have normal binary
-      %   coding on STI014 and its "analog" counterparts on STI1 ... STI6,
-      %   swinging between 0 ... +5 volts. These latter channels are virtual,
-      %   i.e., they are generated from STI014 for backwards compatibility. STI1
-      %   is the LSB of STI014 etc. For all the new stuff, I would recommend
-      %   using STI014 as that's the way the triggers will be stored in the future
-      %   (maybe the channel name is going to change to something more reasonable
-      %   like TRIG). Unfortunately, some older files from the 306-channel system
-      %   have the STI014 coded in a different way - the two 8-bit halves code
-      %   the input and output triggers separately.
-      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 0);
-      event   = appendevent(event, trigger);
-    elseif ~isempty(analogindx)
-      % add the triggers to the event structure based on trigger channels with the name "STI xxx"
-      % there are some issues with noise on these analog trigger channels
-      % therefore look for the analog triggers only if no binary trigger channel is present
-      % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 1);
-      event   = appendevent(event, trigger);
-    end
-
-    
   case {'neuralynx_ttl' 'neuralynx_bin' 'neuralynx_dma' 'neuralynx_sdma'}
     if isempty(hdr)
       hdr = read_header(filename);

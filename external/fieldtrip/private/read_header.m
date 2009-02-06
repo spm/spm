@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.89  2009/02/06 10:12:20  roboos
+% incorporated the latest suggestions of Laurence Hunt for neuromag_mne
+%
 % Revision 1.88  2009/02/04 13:29:03  roboos
 % deal with missing BalanceCoefs in the file using try-catch and isfield (e.g. ArtifactMEG.ds)
 %
@@ -1025,37 +1028,72 @@ switch headerformat
         case 201 % defined as constants by MNE, see p. 217 of MNE manual
           hdr.unit{i} = 'T/m';
         case 112
-          hdr.unit{i}='T';
+          hdr.unit{i} = 'T';
         case 107
-          hdr.unit{i}='V';
+          hdr.unit{i} = 'V';
         case 202
-          hdr.unit{i}='Am';
+          hdr.unit{i} = 'Am';
         otherwise
-          hdr.unit{i}=[];
+          hdr.unit{i} = 'unknown';
       end
     end
 
-    % FIXME don't know how to determine this, but probably the subsequent
-    % data size detection depends on this
+    iscontinuous  = 0;
     isaverage     = 0;
-    isepoched     = 0;
-    iscontinuous  = 1;
+    isepoched     = 0;     % FIXME don't know how to determine this, or whether epoched .fif data exists!
+
+    if isempty(fiff_find_evoked(filename)) % true if file contains no evoked responses
+      iscontinuous = 1;
+    else
+      isaverage    = 1;
+    end
 
     if iscontinuous
       raw = fiff_setup_read_raw(filename);
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
       hdr.nSamplesPre = raw.first_samp;
       hdr.nTrials     = 1;
-      % remember the complete dataset details
-      orig.raw = raw;
-    elseif isepoched
-      error('not yet implemented');
+      orig.raw        = raw; % keep all the details
+
     elseif isaverage
-      error('not yet implemented');
+      evoked_data    = fiff_read_evoked_all(filename);
+      vartriallength = any(diff([evoked_data.evoked.first])) || any(diff([evoked_data.evoked.last]));
+      if vartriallength
+        % there are trials averages with variable durations in the file
+        warning('EVOKED FILE with VARIABLE TRIAL LENGTH! - check data have been processed accurately');
+        hdr.nSamples = 0;
+        for i=1:length(evoked_data.evoked)
+          hdr.nSamples = hdr.nSamples + size(evoked_data.evoked(i).epochs, 2);
+        end
+        % represent it as a continuous file with a single trial
+        % all trial average details will be available through read_event
+        hdr.nSamplesPre = 0;
+        hdr.nTrials     = 1;
+        orig.evoked     = evoked_data.evoked; % this is used by read_data to get the actual data, i.e. to prevent re-reading
+        orig.info       = evoked_data.info;   % keep all the details
+        orig.vartriallength = 1;
+      else
+        % represent it as a file with multiple trials, each trial has the same length
+        % all trial average details will be available through read_event
+        hdr.nSamples    = evoked_data.evoked(1).last - evoked_data.evoked(1).first + 1;
+        hdr.nSamplesPre = evoked_data.evoked(1).first;
+        hdr.nTrials     = length(evoked_data.evoked);
+        orig.evoked     = evoked_data.evoked; % this is used by read_data to get the actual data, i.e. to prevent re-reading
+        orig.info       = evoked_data.info;   % keep all the details
+        orig.vartriallength = 0;
+      end
+
+    elseif isepoched
+      error('Support for epoched *.fif data is not yet implemented.')
     end
 
     % remember the original header details
     hdr.orig = orig;
+
+    % these are useful to know in read_event
+    hdr.orig.isaverage    = isaverage;
+    hdr.orig.iscontinuous = iscontinuous;
+    hdr.orig.isepoched    = isepoched;
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
@@ -1356,7 +1394,6 @@ for i=1:length(lst)
   end
 end
 sel = logical(sel(:));
-lst = lst(sel);
 hdr = hdr(sel);
 tmp = {};
 for i=1:length(hdr)

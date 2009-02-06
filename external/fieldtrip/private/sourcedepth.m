@@ -17,6 +17,9 @@ function [depth] = sourcedepth(pos, vol)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: sourcedepth.m,v $
+% Revision 1.5  2009/02/06 08:31:19  roboos
+% added bemcp as volume type
+%
 % Revision 1.4  2008/04/21 12:09:47  roboos
 % small change to documentation
 %
@@ -54,7 +57,7 @@ case {'singlesphere', 'concentric'}
   depth = sqrt(sum(tmp.^2, 2))-vol.r(vol.source); % positive if outside, negative if inside
 
 % boundary element model
-case {'bem' 'dipoli', 'asa', 'avo', 'nolte', 'neuromag'}
+case {'bem' 'dipoli', 'bemcp', 'asa', 'avo', 'nolte', 'neuromag'}
   if isfield(vol, 'source')
     % use the specified source compartment
     pnt = vol.bnd(vol.source).pnt;

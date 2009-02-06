@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.75  2009/02/06 10:12:20  roboos
+% incorporated the latest suggestions of Laurence Hunt for neuromag_mne
+%
 % Revision 1.74  2009/02/04 09:09:59  roboos
 % fixed filename to headerfile/datafile cvonversion in case of ctf_old
 %
@@ -651,7 +654,7 @@ switch dataformat
     hastoolbox('ctf', 1);
     % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
     if begtrial==endtrial
-      % specify selection as 3x1 vector 
+      % specify selection as 3x1 vector
       trlbegsample = begsample - hdr.nSamples*(begtrial-1); % within the trial
       trlendsample = endsample - hdr.nSamples*(begtrial-1); % within the trial
       dat = getCTFdata(hdr.orig, [trlbegsample; trlendsample; begtrial], chanindx, 'T', 'double');
@@ -683,13 +686,13 @@ switch dataformat
   case 'eeglab_set'
     dat = read_eeglabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
     dimord = 'chans_samples_trials';
-    
+
   case 'spmeeg_mat'
     dat = read_spmeeg_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
-   
+
   case 'ced_spike6mat'
-    dat = read_spike6mat_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);    
-    
+    dat = read_spike6mat_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
+
   case 'eep_avr'
     % check that the required low-level toolbos ix available
     hastoolbox('eeprobe', 1);
@@ -868,8 +871,16 @@ switch dataformat
   case 'neuromag_mne'
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
-    % read the requested data segment
-    dat = fiff_read_raw_segment(hdr.orig.raw,begsample+hdr.nSamplesPre-1,endsample+hdr.nSamplesPre-1,chanindx);
+    if (hdr.orig.iscontinuous)
+      dat = fiff_read_raw_segment(hdr.orig.raw,begsample+hdr.nSamplesPre-1,endsample+hdr.nSamplesPre-1,chanindx);
+      dimord = 'chans_samples';
+    elseif (hdr.orig.isaverage)
+      dat = cat(2, hdr.orig.evoked.epochs);            % concatenate all epochs, this works both when they are of constant or variable length
+      dat = dat(chanindx, begsample:endsample);        % select the desired channels and samples
+      dimord = 'chans_samples';
+    elseif (hdr.orig.isepoched)
+      error('Support for epoched *.fif data is not yet implemented.')
+    end
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
