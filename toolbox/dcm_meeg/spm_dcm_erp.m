@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_dcm_erp.m 2710 2009-02-06 19:57:40Z karl $
 
 % check options
 %==========================================================================
@@ -43,7 +43,7 @@ try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;         end
 try, onset = DCM.options.onset;  catch, onset     = 60;        end
 try, model = DCM.options.model;  catch, model     = 'NMM';     end
 try, lock  = DCM.options.lock;   catch, lock      = 0;         end
-try, loop  = DCM.options.loop;   catch, loop      = 0;         end
+
 
 
 
@@ -54,7 +54,6 @@ DCM    = spm_dcm_erp_dipfit(DCM);
 xY     = DCM.xY;
 xU     = DCM.xU;
 M      = DCM.M;
-M.loop = loop;
 
 % dimensions
 %--------------------------------------------------------------------------
@@ -133,8 +132,8 @@ end
 
 % priors on spatial model
 %--------------------------------------------------------------------------
-DCM.M.dipfit.model = model;
-[gE,gC] = spm_L_priors(DCM.M.dipfit);
+M.dipfit.model = model;
+[gE,gC] = spm_L_priors(M.dipfit);
 
 
 % intial states and equations of motion
@@ -230,7 +229,6 @@ DCM.options.Nmodes = Nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
 DCM.options.lock   = lock;
-DCM.options.loop   = loop;
 
 % store estimates in D
 %--------------------------------------------------------------------------

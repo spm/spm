@@ -4,16 +4,18 @@ function [y] = spm_gen_erp(P,M,U)
 %
 % P - parameters
 % M - neural-mass model structure
-% U - trial-specific effects
+% U - trial-effects
+%   U.X  - between-trial effects (encodes the number of trials)
+%   U.dt - time bins for within-trial effects
 %
-% y - {[ns,nx],...} - predictions for nx states {trials}
+% y - {[ns,nx];...} - predictions for nx states {trials}
 %                   - for ns samples
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 2395 2008-10-23 18:28:16Z karl $
+% $Id: spm_gen_erp.m 2710 2009-02-06 19:57:40Z karl $
 
 % within-trial inputs
 %==========================================================================
