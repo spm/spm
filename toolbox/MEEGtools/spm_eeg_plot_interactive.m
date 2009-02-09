@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 2720 2009-02-09 19:50:46Z vladimir $
 
 D = spm_eeg_load;
 
@@ -27,7 +27,7 @@ data = ft_timelockanalysis([], data);
 cfg = [];
 cfg.interactive = 'yes';
 
-switch spm_eeg_modality_ui(D)
+switch D.modality
     case 'EEG'
         chanind = strmatch('EEG', D.chantype);
         cfg.elec = D.sensors('EEG');

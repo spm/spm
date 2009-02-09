@@ -10,7 +10,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_review.m 2720 2009-02-09 19:50:46Z vladimir $
 
 D = struct(D);
 
@@ -38,9 +38,10 @@ if ~strcmp(D.transform.ID,'time')
 end
 
 %-- Create figure uitabs
-labels = {'EEG','MEG','OTHER','info','source'};
+labels = {'EEG', 'MEG', 'PLANAR', 'OTHER','info','source'};
 callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''eeg'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''meg'')',...
+    'spm_eeg_review_callbacks(''visu'',''main'',''megplanar'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''other'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''info'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''source'')'};
@@ -70,6 +71,8 @@ if exist('flag','var')
         case 2
             spm_eeg_review_callbacks('visu','main','meg')
         case 3
+            spm_eeg_review_callbacks('visu','main','megplanar')    
+        case 4
             spm_eeg_review_callbacks('visu','main','other')
         case 5
             spm_eeg_review_callbacks('visu','main','source')
@@ -148,8 +151,10 @@ end
 %-- Initialize channel info --%
 nc = length(D.channels);
 D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
-D.PSD.MEG.I  = find(strcmp('MEG',{D.channels.type}));
-D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
+D.PSD.MEG.I  = sort([find(strcmp('MEGMAG',{D.channels.type})),...
+    find(strcmp('MEGGRAD',{D.channels.type})) find(strcmp('MEG',{D.channels.type}))]);
+D.PSD.MEGPLANAR.I  = find(strcmp('MEGPLANAR',{D.channels.type}));
+D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
 if ~isempty(D.PSD.EEG.I)
     figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
@@ -165,6 +170,14 @@ if ~isempty(D.PSD.MEG.I)
     D.PSD.MEG.VIZU = out;
 else
     D.PSD.MEG.VIZU = [];
+end
+if ~isempty(D.PSD.MEGPLANAR.I)
+    figure(D.PSD.handles.hfig)
+    set(D.PSD.handles.hfig,'userdata',D);
+    [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEGPLANAR.I);
+    D.PSD.MEGPLANAR.VIZU = out;
+else
+    D.PSD.MEGPLANAR.VIZU = [];
 end
 if ~isempty(D.PSD.other.I)
     figure(D.PSD.handles.hfig)

@@ -9,7 +9,7 @@ function spm_eeg_inv_image_display(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Stefan Kiebel & Karl Friston
-% $Id: spm_eeg_inv_image_display.m 2499 2008-11-28 12:19:48Z guillaume $
+% $Id: spm_eeg_inv_image_display.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 % checks
@@ -31,3 +31,4 @@ spm_check_registration(sMRI);
 spm_orthviews('addcolouredimage',1,wEEG,[1 0 0]);
 spm_orthviews('addcolourbar',1,1);
 spm_orthviews('Redraw');
+rotate3d off;

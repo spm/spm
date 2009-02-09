@@ -7,6 +7,7 @@ function [D] = spm_eeg_invert(D, val)
 % D{i}.inv{val}.inverse:
 %
 %     inverse.trials - D.events.types to invert
+%     inverse.modality modality to use in case of multimodal datasets
 %     inverse.type   - 'GS' Greedy search on MSPs
 %                      'ARD' ARD search on MSPs
 %                      'MSP' GS and ARD multiple sparse priors
@@ -67,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_invert.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -97,7 +98,12 @@ try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
- 
+
+try
+    modality = inverse.modality;  
+catch
+    modality = D{1}.inv{D{1}.val}.forward(1).modality;
+end
  
 %==========================================================================
 % Spatial parameters
@@ -107,14 +113,23 @@ try, woi   = inverse.woi;    catch, woi   = [];                end
 %--------------------------------------------------------------------------
 for i = 1:Nl
     [L D{i}] = spm_eeg_lgainmat(D{i});
-    Nc(i)    = size(L,1);                             % number of channels
+    
     Nd(i)    = size(L,2);                             % number of dipoles
+
+    Ic{i} = setdiff(meegchannels(D{i}, modality), badchannels(D{i}));
+    
+    if isempty(Ic{i})
+        error(['The specified modality is missing from file ' D{i}.fname]);
+    end
+
+    Nc(i)    = length(Ic{i});                         % number of channels
+    
+    if any(diff(Nd))
+        warndlg('please ensure the number of dipoles is the same')
+        return
+    end
 end
-if any(diff(Nd))
-    warndlg('please ensure the number of dipoles is the same')
-    return
-end
- 
+
 % chaeck restriction; assume radii are the same for all VOI
 %--------------------------------------------------------------------------
 Nd    = Nd(1);                                     % number of dipoles
@@ -177,13 +192,13 @@ end
 %--------------------------------------------------------------------------
 TOL   = 16;
 Nmax  = Nm;
-L     = R{1}*spm_eeg_lgainmat(D{1},Is);
+L     = R{1}*spm_eeg_lgainmat(D{1},Is,D{1}.chanlabels(Ic{1}));
 U{1}  = spm_svd(L*L',exp(-TOL));
 Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
 UL{1} = U{1}'*L;
 for i = 2:Nl
-    L     = R{i}*spm_eeg_lgainmat(D{i},Is);
+    L     = R{i}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i}));
     U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
@@ -199,7 +214,7 @@ fprintf('Using %i spatial modes\n',Nm)
  
 % force low-pass filtering for MEG
 %--------------------------------------------------------------------------
-if strcmp(D{1}.inv{val}.modality,'MEG'), hpf = 48; end
+%if strcmp(D{1}.inv{val}.modality,'MEG'), hpf = 48; end
  
  
 Nrmax = Nr;
@@ -250,10 +265,10 @@ for i = 1:Nl
         trial = unique(D{i}.conditions);
     end
     Nt(i) = length(trial);
-    [junk Ic{i}] = spm_match_str(D{i}.inv{D{i}.val}.forward.channels, D{i}.chanlabels);
+      
     for j = 1:Nt(i)
         Y{i,j} = sparse(0);
-        c = D{i}.pickconditions{trial{j}};
+        c = D{i}.pickconditions(trial{j});
         Ne    = length(c);
         for k = 1:Ne
             Y{i,j} = Y{i,j} + R{i}*squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
@@ -442,7 +457,7 @@ for i = 1:Nl
  
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
-    L     = R{i}*spm_eeg_lgainmat(D{i}, Is);
+    L     = R{i}*spm_eeg_lgainmat(D{i}, Is, D{i}.chanlabels(Ic{i}));
     Qe    = R(i);
     Ne    = length(Qe);
     Np    = length(QP);

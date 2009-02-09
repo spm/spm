@@ -1,15 +1,16 @@
-function res = indsample(obj, t)
+function res = indsample(this, t)
 % Method for getting the sample closest to some time point.
 % The time is specified in sec.
-% FORMAT res = indsample(obj, t)
+% FORMAT res = indsample(this, t)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: indsample.m 2418 2008-10-30 10:33:39Z stefan $
+% $Id: indsample.m 2720 2009-02-09 19:50:46Z vladimir $
 
-if obj.Nsamples>0
-    T = time(obj);
-    [m,res] = min(abs(T-t));
-    
+if this.Nsamples>0
+    T = time(this);
+    for i = 1:length(t)
+        [m,res(i)] = min(abs(T-t(i)));
+    end
 end

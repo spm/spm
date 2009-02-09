@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2534 2008-12-08 10:16:46Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % unpack model, priors, data
 %---------------------------
@@ -63,7 +63,6 @@ Vw = full(spm_svd(Tw));
 Vs = full(spm_svd(Ts));
 
 y = P.y;
-y(P.Bad) = [];
 
 dv = 10^-2; % used to compute step-size for gradients
 %---------------
@@ -73,11 +72,17 @@ dv = 10^-2; % used to compute step-size for gradients
 % but ensure the starting points are inside the volume !!!
 Nd = length(mu_s0)/3;
 inside = zeros(Nd,1);
-try 
-    orig = vol.forwpar.center*ones(1,Nd); 
-catch
-    orig = zeros(3,Nd); 
+
+if isfield(vol, 'o')
+    orig = mean(vol.o, 1);
+elseif isfield(vol, 'bnd')
+    orig = mean(vol.bnd(1).pnt, 1);
+else
+    orig = zeros(1,3);
 end
+
+orig = repmat(orig(:), 1, Nd);
+
 mu_sn = zeros(3,Nd);
 while ~all(inside)
     mu_sn(:,~inside) = 20*randn(3,length(find(~inside)))+orig;
@@ -85,8 +90,8 @@ while ~all(inside)
 end
 mu_s = mu_sn(:);
 
-[gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                    dv.*ones(1, length(mu_w0))); %, P.Bad);
+[gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol,...
+                                    dv.*ones(1, length(mu_w0))); 
 [Nc, Np] = size(gmn);
 % ensure data have apropriate scale
 sc_y = norm(y)*10/Nc;

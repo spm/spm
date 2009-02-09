@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 2255 2008-09-30 15:36:59Z vladimir $
+% $Id: spm_eeg_invert_display.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % Number of dipoles to display
 %==========================================================================
@@ -30,6 +30,8 @@ end
 % D - SPM data structure
 %==========================================================================
 model = D.inv{D.val};
+model.mesh = spm_eeg_inv_transform_mesh(eye(4), model.mesh);
+
 con   = min(con,length(model.inverse.J));
 
 try

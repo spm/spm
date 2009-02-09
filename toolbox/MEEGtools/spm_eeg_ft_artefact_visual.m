@@ -10,7 +10,7 @@ function D = spm_eeg_ft_artefact_visual(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 2448 2008-11-07 16:56:07Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 
@@ -36,8 +36,11 @@ end
 
 data = D.ftraw(0);
 
-trlind = 1:length(data.trial);
-data.cfg.trl(:, 4) = trlind;
+trlind = find(~reject(D));
+
+data.trial = data.trial(trlind);
+data.time  = data.time(trlind);
+data.cfg.trl(:, 4) = 1:length(trlind);
 
 cfg=[];
 
@@ -58,7 +61,7 @@ cfg.keepchannel = 'no';
 if isfield(S, 'channel')
     cfg.channel = S.channel;
 else
-    chanind = strmatch(spm_eeg_modality_ui(D), D.chantype);
+    [junk, chanind] = spm_eeg_modality_ui(D, 0, 1);
     cfg.channel = data.label(chanind);
 end
 
@@ -66,9 +69,10 @@ data = ft_rejectvisual(cfg, data);
 
 % Figure out based on the output of FT function what trials and channels to
 % reject
-trlsel(trlind) = 0;
-trlsel(data.cfg.trl(:, 4)) = 1;
-D = reject(D, 1:D.ntrials, ~trlsel);
+trlsel = ones(1, length(trlind));
+trlsel(data.cfg.trl(:, 4)) = 0;
+
+D = reject(D, trlind, trlsel);
 
 badchan = setdiff(cfg.channel, data.label);
 if ~isempty(badchan)

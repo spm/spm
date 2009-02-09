@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2449 2008-11-10 12:36:14Z vladimir $
+% $Id: spm_eeg_inv_group.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 % check if to proceed
@@ -91,9 +91,9 @@ for i = NS
 
     cd(D{i}.path)
 
-    % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
+    % specify cortical mesh size (1 tp 4; 1 = 5125, 2 = 8196 dipoles)
     %----------------------------------------------------------------------
-    Msize  = 4;
+    Msize  = 2;
 
     % use a template head model and associated meshes
     %======================================================================
@@ -108,6 +108,17 @@ end
 % Get inversion parameters
 %==========================================================================
 inverse = spm_eeg_inv_custom_ui(D{1});
+
+% Select modality
+%==========================================================================
+inverse.modality  = spm_eeg_modality_ui(D{1}, 1, 1);
+
+for i = 2:Ns
+    [mod, list] = modality(D{i}, 1, 1);
+    if ~ismember(inverse.modality, list)
+        error([inverse.modality ' modality is missing from ' D{i}.fname]);
+    end
+end
 
 % and save them (assume trials = types)
 %--------------------------------------------------------------------------
@@ -140,8 +151,6 @@ else
     contrast = [];
 end
 
-modality = spm_eeg_modality_ui(D{1}, 1);
-
 % Register and compute a forward model
 %==========================================================================
 for i = NS
@@ -150,7 +159,7 @@ for i = NS
 
     % Forward model
     %----------------------------------------------------------------------
-    D{i} = spm_eeg_inv_datareg_ui(D{i}, 1, modality);
+    D{i} = spm_eeg_inv_datareg_ui(D{i}, 1);
     D{i} = spm_eeg_inv_forward_ui(D{i});
     
     % save forward model

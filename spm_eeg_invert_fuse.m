@@ -1,6 +1,6 @@
-function [D] = spm_eeg_invert_fuse(D)
+function [D] = spm_eeg_invert_fuse(varargin)
 % ReML fusion of multiple forward models for EEG-MEG
-% FORMAT [D] = spm_eeg_invert_fuse(D)
+% FORMAT [D] = spm_eeg_invert_fuse(D, val)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG data
 % Requires:
@@ -18,7 +18,7 @@ function [D] = spm_eeg_invert_fuse(D)
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
 %     inverse.rad    - radius (mm) of VOIs
 %     inverse.lpf    - band-pass filter - low -frequency cut-off (Hz)
-%     inverse.hpf    - band-pass filter - high-frequency cut-off (Hz)
+%     inverse.hpf    - band-pass filter – high-frequency cut-off (Hz)
 %     inverse.Lap    - switch for Laplace transform
 %     inverse.sdv    - standard deviations of Gaussian temporal correlation
 %     inverse.Han    - switch for Hanning window
@@ -53,7 +53,7 @@ function [D] = spm_eeg_invert_fuse(D)
 %                  .
 %                  .
 %                  .
-%             y{n,...,t}  = L(1}                   e{{n,...,t}}
+%             y{n,...,t}  = L(n}                   e{{n,...,t}}
 %
 % Under empirical priors on J{1,...,t} for n data-sets with t trial types.
 %
@@ -61,23 +61,26 @@ function [D] = spm_eeg_invert_fuse(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_eeg_invert_fuse.m 2720 2009-02-09 19:50:46Z vladimir $
+[D, val] = spm_eeg_inv_check(varargin{:}); 
+
+[mod, list] = modality(D, 1, 1);
+
+Nl         = numel(list);                          % number of forward models
  
-% check whether this is a group inversion
-%--------------------------------------------------------------------------
-if ~iscell(D), D = {D}; end
-Nl         = length(D);                          % number of forward models
- 
-% D - SPM data structure
+% D - SPM MEEG object
 %==========================================================================
-inverse    = D{1}.inv{D{1}.val}.inverse;
+inverse    = D.inv{val}.inverse;
  
 % defaults
 %--------------------------------------------------------------------------
 try, type  = inverse.type;   catch, type  = 'GS';              end
 try, s     = inverse.smooth; catch, s     = 0.6;               end
 try, Np    = inverse.Np;     catch, Np    = 256;               end
-try, Nm    = inverse.Nm;     catch, Nm    = 128;               end
+try, Nm    = inverse.Nm;     catch, Nm    = [];                end
+try, Nr    = inverse.Nr;     catch, Nr    = [];                end
+try, NmTOL = inverse.NmTOL;  catch, NmTOL = -16;               end
+try, NrTOL = inverse.NrTOL;  catch, NrTOL = 1;                 end
 try, xyz   = inverse.xyz;    catch, xyz   = [0 0 0];           end
 try, rad   = inverse.rad;    catch, rad   = 128;               end
 try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
@@ -87,13 +90,12 @@ try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
  
-for i =1:Nl
-    try
-        trial{i} = D{i}.inv{D{i}.val}.inverse.trials;
-    catch
-        trial{i} = D{i}.events.types;
-    end
+try
+    trial = inverse.trials;
+catch
+    trial = D.condlist;
 end
+
  
 %==========================================================================
 % Spatial parameters
@@ -101,8 +103,10 @@ end
  
 % Load Gain or Lead-field matrices
 %--------------------------------------------------------------------------
+
 for i = 1:Nl
-    [L{i}, D{i}] = spm_eeg_lgainmat(D{i});
+    Ic{i} = setdiff(meegchannels(D, list{i}), D.badchannels);
+    [L{i}, D] = spm_eeg_lgainmat(D, [], D.chanlabels(Ic{i}));
     Nc(i)  = size(L{i},1);                         % number of channels
     Nd(i)  = size(L{i},2);                         % number of dipoles
 end
@@ -127,8 +131,8 @@ end
  
 % Restrict source space
 %--------------------------------------------------------------------------
-vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
-face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
+vert  = D.inv{val}.mesh.tess_mni.vert;
+face  = D.inv{val}.mesh.tess_mni.face;
 Is    = sparse(Nd,1);
 for i = 1:Nv
     Iv = sum([vert(:,1) - xyz(i,1), ...
@@ -167,32 +171,40 @@ fprintf(' - done\n')
  
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
-TOL   = 16;
-Nmax  = Nm;
-U{1}  = spm_svd(L{1}*L{1}',exp(-TOL));
-Nm    = min(size(U{1},2),Nmax);
-U{1}  = U{1}(:,1:Nm);
-UL{1} = U{1}'*L{1};
-for i = 2:Nl
-    U{i}  = spm_svd(L{i}*L{i}',exp(-TOL));
-    Nm(i) = min(size(U{i},2),Nmax);
-    U{i}  = U{i}(:,1:Nm(i));
-    UL{i} = U{i}'*L{i};
+if isempty(Nm); 
+  Nm = zeros(1,Nl); 
+elseif length(Nm)==1; 
+  Nm = ones(1,Nl)*Nm; 
 end
-fprintf('Using %i spatial modes\n',Nm)
- 
+for i = 1:Nl
+    if Nm(i) > Nc(i)
+      error(sprintf('Specified Nm (%d) must be less than Num Channels (%d)',Nm(i),Nc(i)));
+    end
+    if ~Nm(i)
+        U{i}  = spm_svd(L{i}*L{i}',exp(NmTOL));
+        Nm(i) = size(U{i},2);
+    else
+        U{i}  = spm_svd(L{i}*L{i}',-Inf);
+        U{i}  = U{i}(:,1:Nm(i));
+    end
+    UL{i} = U{i}'*L{i};
+    fprintf('Using %i spatial modes\n',Nm(i))
+end
+
 %==========================================================================
 % Temporal parameters
 %==========================================================================
-Nt    = length(trial{1});                % number of trial types
-Nr    = 8;                               % number of temporal modes
- 
-% Peristimulus time-window (common to all data sets)
-%--------------------------------------------------------------------------
-for i = 1:Nl
-    w(i,:) = [-D{i}.events.start D{i}.events.stop]*1000/D{i}.Radc;
+Nt    = length(trial);                % number of trial types
+if isempty(Nr); 
+  Nr = zeros(1,Nl);
+elseif length(Nr)~=Nl
+  Nr = ones(1,Nl)*Nr(1);
 end
-w     = [max(w(:,1)) min(w(:,2))];
+ 
+% Peristimulus time-window 
+%--------------------------------------------------------------------------
+w = [D.time(1) D.time(end)]*1000;
+
 if length(woi)
     woi(1) = max(woi(1),w(1));
     woi(2) = min(woi(2),w(2));
@@ -202,21 +214,16 @@ end
  
 % get time bins to sample
 %--------------------------------------------------------------------------
-for i = 1:Nl
-    It{i}  = woi*D{i}.Radc/1000 + D{i}.events.start + 1;
-    It{i}  = [max(1,It{i}(1)) min(It{i}(end),size(D{i}.data,2))];
-    Nb(i)  = It{i}(end) - It{i}(1) + 1;
-end
-Nb    = fix(min(Nb));                          % number of time bins
-for i = 1:Nl
-    It{i}  = fix(linspace(It{i}(1),It{i}(2),Nb));
-end
+It  = D.indsample(woi/1000);
+Nb  = fix(It(end) - It(1) + 1);                 % number of time bins
+
+It  = fix(linspace(It(1),It(2),Nb));
+
  
 % Peri-stimulus time
 %--------------------------------------------------------------------------
 woi   = fix(woi);
-pst   = (It{1} - D{1}.events.start - 1);
-pst   = pst/D{1}.Radc*1000;                    % peristimulus time (ms)
+pst   = 1000*D.time(It);                       % peristimulus time (ms)
 dur   = (pst(end) - pst(1))/1000;              % duration (s)
 dct   = ([1:Nb] - 1)/2/dur;                    % DCT frequencies (Hz)
  
@@ -229,39 +236,40 @@ qV    = sparse(K*K');
 %  Frequency subspace
 %--------------------------------------------------------------------------
 T     = spm_dctmtx(Nb,Nb);
-j     = (dct > lpf) & (dct < hpf);
+j      = find( (dct >= lpf) & (dct <= hpf) );
 T     = T(:,j);
 dct   = dct(j);
- 
+
 % get data (with temporal filtering)
 %==========================================================================
 UY    = {};
 AY    = {};
 for i = 1:Nl
     
+    if Nr(i) > size(T,2)
+       warning(sprintf(['Specified Nr (%d) greater than Num Freq components' ...
+		    ' between %d and %d Hz; so using %d'],Nr,lpf,hpf,size(T,2)));
+       Nr(i) = size(T,2);
+    end
+    
     % get channels
     %----------------------------------------------------------------------
-    Ic{i} = setdiff(D{i}.channels.eeg, D{i}.channels.Bad);
     for j = 1:Nt
         UY{i,j} = sparse(0);
-        if isfield(D{i}.events,'reject')
-            c = find(D{i}.events.code == trial{i}(j) & ~D{i}.events.reject);
-        else
-            c = find(D{i}.events.code == trial{i}(j));
-        end
+        c = D.pickconditions(trial{j});
         Ne    = length(c);
         for k = 1:Ne
-            UY{i,j} = UY{i,j} + U{i}'*squeeze(D{i}.data(Ic{i},It{i},c(k)))*T/Ne;
+            UY{i,j} = UY{i,j} + U{i}'*squeeze(D(Ic{i},It,c(k)))*T/Ne;
         end
     end
 end
- 
+
 % rescale under i.i.d. priors
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    UL{i} = UL{i}/sqrt(trace(UL{i}*UL{i}'));
+    UL{i} = UL{i}/sqrt(trace(UL{i}*UL{i}')/Nm(i));
     for j = 1:Nt
-       scale(i,j) = 1/sqrt(trace(UY{i,j}'*UY{i,j}));
+       scale(i,j) = 1/sqrt(trace(UY{i,j}'*UY{i,j})/Nm(i));
     end
 end
 scale = mean(scale,2);
@@ -286,19 +294,25 @@ end
 % temporal projector (at most 8 modes) S = T*v
 %==========================================================================
 for i = 1:Nl
-    [v u] = spm_svd(WY{i}');                       % temporal modes
-    v     = v(:,   1:Nr);
-    u     = u(1:Nr,1:Nr);
-    V{i}  = v;
-    VE(i) = sum(sum(u.^2))/sum(sum(WY{i}.^2));     % variance explained
+    if ~Nr(i)
+        [v u] = spm_svd(WY{i}',NrTOL);            % temporal modes
+        Nr(i) = size(v,2);
+    else
+        [v u] = spm_svd(WY{i}',-Inf);
+        v     = v(:,       1:Nr(i));
+        u     = u(1:Nr(i), 1:Nr(i));
+    end
+    VE(i) = sum(sum(u.^2))/sum(sum(WY{i}.^2));
+    V{i}  = v; 
+    fprintf('Using %i temporal modes, accounting for %0.2f percent variance\n',Nr(i),full(100*VE(i)))
 end
-V   = orth(full(spm_cat(V)));
-VE  = mean(VE);
- 
-fprintf('Using %i temporal modes\n',Nr)
-fprintf('accounting for %0.2f percent variance\n',full(100*VE))
- 
- 
+
+V     = orth(full(spm_cat(V)));
+Nr    = sum(Nr);
+VE    = mean(VE); 
+fprintf('Using %i temporal modes in total...\n',Nr)
+fprintf('...accounting for %0.2f percent variance on average\n',full(100*VE))
+
 % projection and whitening
 %--------------------------------------------------------------------------
 S     = T*V;                                     % temporal projector
@@ -410,6 +424,8 @@ switch(type)
         % Multivariate Bayes
         %------------------------------------------------------------------
         MVB   = spm_mvb(AY,G,[],Q,Qe,16);
+        F1    = MVB.F;
+        h1    = MVB.h;
  
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
@@ -436,7 +452,8 @@ switch(type)
         %------------------------------------------------------------------
         qp          = sparse(0);
         Q           = {Qe{:} LQpL{:}};
-        [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*Nt);
+        [Cy,h,Ph,F1,F1a,F1c] = spm_sp_reml(YY,[],Q,Nr*Nt);
+        h1 = h;
  
         % Spatial priors (QP)
         %------------------------------------------------------------------
@@ -452,6 +469,7 @@ switch(type)
                 end
             end
         end
+	h1=h;
  
         % Accumulate empirical priors
         %------------------------------------------------------------------
@@ -522,8 +540,8 @@ inverse.type   = type;                 % inverse model
 inverse.smooth = s;                    % smoothness (0 - 1)
 inverse.xyz    = xyz;                  % VOI (XYZ)
 inverse.rad    = rad;                  % VOI (radius)
-inverse.scale  = 1;                    % scale factor
- 
+%inverse.scale  = 1;                    % scale factor
+inverse.scale  = scale;                % scale factors
 inverse.M      = M;                    % MAP projector (reduced)
 inverse.J      = J;                    % Conditional expectation
 inverse.Y      = UY;                   % ERP data (reduced)
@@ -539,30 +557,29 @@ inverse.Ic     = Ic;                   % Indices of good channels
 inverse.Nd     = Nd;                   % number of dipoles
 inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
-inverse.F      = F;                    % log-evidence
+try 
+   inverse.F1a    = F1a;                 
+   inverse.F1c    = F1c;                 
+end
+inverse.F1     = F1;                   % log-evidence (first step; with MSP complexity)
+inverse.F      = F;                    % log-evidence (second step; MSP complexity ignored)
 inverse.R2     = R2;                   % variance accounted for (%)
 inverse.VE     = VE;                   % variance explained
 inverse.woi    = woi;                  % time-window inverted
-inverse.h      = h;                    % covariance hyperparameters
- 
- 
-% save in new (fused) structure
+inverse.h1     = h1;                   % covariance hyperparameters (first step)
+inverse.h      = h;                    % covariance hyperparameters (second step)
+inverse.Nm     = Nm;                   % number of spatial modes
+inverse.Nr     = Nr;                   % number of spatial modes
+
 %--------------------------------------------------------------------------
-fname = D{1}.fname;
-for i = 2:Nl
-    fname = [fname '_' D{i}.fname];
-end
-D       = D{1};
-D.val   = 1;
-D.fname = fname;
-D.inv   = D.inv(1);
-D.inv{1}.inverse = inverse;
-D.inv{1}.method  = 'Imaging';
- 
+
+D.inv{val}.inverse = inverse;
+D.inv{val}.method  = 'Imaging';
+
 % and delete old contrasts
 %--------------------------------------------------------------------------
 try
-    D.inv{1} = rmfield(D.inv{1},'contrast');
+    D.inv{val} = rmfield(D.inv{val},'contrast');
 end
  
 % display

@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_eeg_ft2spm.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % If raw format
 if iscell(ftdata.time)
@@ -106,7 +106,11 @@ end
 D = meeg(D);
 
 % Set channel types to default
-D = chantype(D, [], []);
+S1 = [];
+S1.task = 'defaulttype';
+S1.D = D;
+S1.updatehistory = 0;
+D = spm_eeg_prep(S1);
 
 if Ntrials == 1
     D = type(D, 'continuous');

@@ -6,6 +6,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %   S.event - event struct  (optional)
 %   S.fsample - sampling rate
 %   S.dataset - raw dataset (events and fsample can be read from there if absent)
+%   S.inputformat - data type (optional) to force the use of specific data reader
 %   S.timeonset - time of the first sample in the data (default - 0)
 %   S.pretrig - pre-trigger time in ms
 %   S.posttrig - post-trigger time in ms.
@@ -13,7 +14,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype  - string
 %       S.trialdef.eventvalue  - string, numeric or empty
-%   S.review - 1 - review individual trials after selection (0 - not)
+%   S.reviewtrials - 1 - review individual trials after selection (0 - not)
 % OUTPUT:
 %   trl - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
@@ -22,10 +23,14 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2443 2008-11-05 13:29:34Z vladimir $
+% $Id: spm_eeg_definetrial.m 2720 2009-02-09 19:50:46Z vladimir $
 
 if nargin == 0
     S = [];
+end
+
+if ~isfield(S, 'inputformat')
+    S.inputformat = [];
 end
 
 % ------------- Check inputs
@@ -38,16 +43,16 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
     end
     
-    hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
+    hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
     S.fsample = hdr.Fs;
     
-    event = fileio_read_event(S.dataset, 'detectflank', 'both');
+    event = fileio_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
 
     if ~isempty(strmatch('UPPT001', hdr.label))
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1);
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -59,7 +64,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1);
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -170,9 +175,15 @@ for i=1:numel(S.trialdef)
 
     for j=1:length(sel)
         % override the offset of the event
-        trloff = round(0.001*S.pretrig*S.fsample);
+        trloff = round(0.001*S.pretrig*S.fsample);        
         % also shift the begin sample with the specified amount
-        trlbeg = event(sel(j)).sample + trloff;
+        if ismember(event(sel(j)).type, {'trial', 'average'})
+            % In case of trial events treat the 0 time point as time of the
+            % event rather than the beginning of the trial 
+            trlbeg = event(sel(j)).sample - event(sel(j)).offset + trloff;
+        else
+            trlbeg = event(sel(j)).sample + trloff;
+        end
         trldur = round(0.001*(-S.pretrig+S.posttrig)*S.fsample);
         trlend = trlbeg + trldur;
         % add the beginsample, endsample and offset of this trial to the list
@@ -188,11 +199,11 @@ conditionlabels = conditionlabels(sortind);
 
 % ------------- Review selected trials
 
-if ~isfield(S, 'review')
-    S.review = spm_input('Review individual trials?','+1','yes|no',[1 0], 0);
+if ~isfield(S, 'reviewtrials')
+    S.reviewtrials = spm_input('Review individual trials?','+1','yes|no',[1 0], 0);
 end
 
-if S.review
+if S.reviewtrials
 
     eventstrings=cell(size(trl,1),1);
     for i=1:size(trl,1)

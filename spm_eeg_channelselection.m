@@ -6,6 +6,8 @@ function S = spm_eeg_channelselection(S)
 % S.channels - can be 'MEG', 'EEG', 'file', 'gui' or cell array of labels
 % S.chanfile - filename (used in case S.channels = 'file')
 % S.dataset - MEEG dataset name
+% S.inputformat - data type (optional) to force the use of specific data reader
+
 %
 % OUTPUT:
 %   S.channels - cell array of labels
@@ -13,7 +15,7 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_channelselection.m 2720 2009-02-09 19:50:46Z vladimir $
 
 if nargin == 0
     S = [];
@@ -30,7 +32,11 @@ if ~isfield(S, 'dataset')
     S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
 end
 
-hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
+if ~isfield(S, 'inputformat')
+    S.inputformat = [];
+end
+
+hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
 
 if strcmp(S.channels, 'file')
     if ~isfield(S, 'chanfile')
@@ -46,7 +52,7 @@ if strcmp(S.channels, 'file')
 else
     switch S.channels
         case 'eeg'
-            S.channels = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGREF'};
+            S.channels = 'EEG';
         case 'meg'
             S.channels = 'MEG';
         otherwise

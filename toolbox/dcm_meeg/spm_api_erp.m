@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2709 2009-02-06 19:56:19Z karl $
+% $Id: spm_api_erp.m 2720 2009-02-09 19:50:46Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -315,6 +315,7 @@ handles = Xdefault(hObject,handles,m);
 [f,p] = uigetfile({'*.mat'}, 'please select data file');
 if f  == 0, return; end
  
+handles.DCM.xY = [];
 handles.DCM.xY.Dfile = fullfile(p,f);
 D = spm_eeg_load(handles.DCM.xY.Dfile);
  
@@ -333,7 +334,27 @@ if ~ok
     guidata(hObject,handles);    
     return
 end
- 
+
+[mod, list] = modality(D, 0, 1);
+
+if isequal(mod, 'Multimodal')
+    qstr = 'Only one modality can be modelled at a time. Please select.';
+    if numel(list) < 4
+        % Nice looking dialog. Will usually be OK
+        options = [];
+        options.Default = list{1};
+        options.Interpreter = 'none';
+        handles.DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
+    else
+        % Ugly but can accomodate more buttons
+        ind = menu(qstr, list);
+        handles.DCM.xY.modality = list{ind};
+    end
+else
+    handles.DCM.xY.modality = mod;
+end
+
+
 % Assemble and display data
 %--------------------------------------------------------------------------
 Y_Callback(hObject, eventdata, handles);

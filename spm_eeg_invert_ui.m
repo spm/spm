@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_invert_ui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -69,15 +69,28 @@ switch q_rec
         else
             trials = D.condlist;
         end
-
+        
         % Inversion parameters
         %------------------------------------------------------------------
         inverse        = spm_eeg_inv_custom_ui(D);
         inverse.trials = trials;
 
+                
         % invert
         %==================================================================
         D.con               = 1;
         D.inv{val}.inverse  = inverse;
-        D                   = spm_eeg_invert(D);
+        
+        % Modality
+        %------------------------------------------------------------------
+        if strcmp(D.modality(1,1), 'Multimodal')
+            if (spm_input('Multiple modalities','+1','b',{'fuse|select'},[1 0],1))
+                D.inv{val}.inverse.modality = 'Fusion';
+                D = spm_eeg_invert_fuse(D);
+                return;
+            end
+        end
+                  
+        D.inv{val}.inverse.modality  = spm_eeg_modality_ui(D, 1, 1);       
+        D                            = spm_eeg_invert(D);
 end

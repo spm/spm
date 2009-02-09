@@ -19,6 +19,7 @@ function D = spm_eeg_convert(S)
 % S.trlfile - name of the trial definition file
 % S.datatype - data type for the data file one of
 %              'float32-le' (default), 'float64-le'
+% S.inputformat - data type (optional) to force the use of specific data reader
 % S.eventpadding - in sec - the additional time period around each trial
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
@@ -36,7 +37,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2446 2008-11-05 16:05:14Z vladimir $
+% $Id: spm_eeg_convert.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -62,7 +63,7 @@ if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                   
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
 if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                    end
 if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                         end
-
+if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                     end
 
 if ~iscell(S.conditionlabel)
     S.conditionlabel = {S.conditionlabel};
@@ -70,7 +71,7 @@ end
 
 %--------- Read and check header
 
-hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
+hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
 
 if isfield(hdr, 'label')
     [unique_label junk ind]=unique(hdr.label);
@@ -92,13 +93,13 @@ end
 %--------- Read and prepare events
 
 try
-    event = fileio_read_event(S.dataset, 'detectflank', 'both');
+    event = fileio_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
 
     if ~isempty(strmatch('UPPT001', hdr.label))
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1);
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -110,7 +111,7 @@ try
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1);
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -228,6 +229,9 @@ else % Read by trials
         else
             trl = S.trl;
         end
+        
+        trl = double(trl);
+        
         if size(trl, 2) >= 3
             D.timeOnset = unique(trl(:, 3))./D.Fsample;
             trl = trl(:, 1:2);
@@ -256,10 +260,11 @@ else % Read by trials
         readbytrials = 0;
     else
         try
-            trialind = find(strcmp('trial', {event.type}));
+            trialind = sort([strmatch('trial', {event.type}, 'exact'), ...
+                strmatch('average', {event.type}, 'exact')]);
             trl = [event(trialind).sample];
-            trl = trl(:);
-            trl = [trl  trl+[event(trialind).duration]'-1];
+            trl = double(trl(:));
+            trl = [trl  trl+double([event(trialind).duration]')-1];
 
             try
                 offset = unique([event(trialind).offset]);
@@ -285,9 +290,11 @@ else % Read by trials
             end
             if  hdr.nTrials>1 && size(trl, 1)~=hdr.nTrials
                 warning('Mismatch between trial definition in events and in data. Ignoring events');
+                readbytrials = 1;
+            else
+                readbytrials = 0;
             end
-
-            readbytrials = 1;
+            
             event = event(setdiff(1:numel(event), trialind));
         catch
             if hdr.nTrials == 1
@@ -350,10 +357,10 @@ offset = 1;
 for i = 1:ntrial
     if readbytrials
         dat = fileio_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
-            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
+            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
     else
         dat = fileio_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
-            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
+            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
     end
 
     % Sometimes fileio_read_data returns sparse output
@@ -384,18 +391,23 @@ spm_progress_bar('Clear');
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
     D.sensors.meg = forwinv_convert_units(hdr.grad, 'mm');
-elseif isfield(hdr, 'elec')
+end
+if isfield(hdr, 'elec')
     D.sensors.eeg = forwinv_convert_units(hdr.elec, 'mm');
 else
     try
-        D.sensors.eeg = forwinv_convert_units(fileio_read_sens(S.dataset), 'mm');
+        D.sensors.eeg = forwinv_convert_units(fileio_read_sens(S.dataset, 'fileformat', S.inputformat), 'mm');
+        % It might be that read_sens will return the grad for MEG datasets
+        if isfield(D.sensors.eeg, 'ori')
+            D.sensors.eeg = [];
+        end
     catch
         warning('Could not obtain electrode locations automatically.');
     end
 end
 
 try
-    D.fiducials = forwinv_convert_units(fileio_read_headshape(S.dataset), 'mm');
+    D.fiducials = forwinv_convert_units(fileio_read_headshape(S.dataset, 'fileformat', S.inputformat), 'mm');
 catch
     warning('Could not obtain fiducials automatically.');
 end
@@ -407,32 +419,6 @@ D = meeg(D);
 
 % history
 D = D.history('spm_eeg_convert', S);
-
-% Set channel types to default
-D = chantype(D, [], []);
-
-% Assign default EEG sensor positions if possible
-if ~isempty(strmatch('EEG', D.chantype, 'exact')) && isempty(D.sensors('EEG'))
-    S1 = [];
-    S1.task = 'defaulteegsens';
-    S1.updatehistory = 0;
-    S1.D = D;
-    
-    D = spm_eeg_prep(S1);
-end
-
-% Create 2D positions for MEG (when there are no EEG sensors)
-% by projecting the 3D positions to 2D
-if ~isempty(strmatch('MEG', D.chantype, 'exact')) &&...
-    ~isempty(D.sensors('MEG')) && isempty(D.sensors('EEG'))
-    S1 = [];
-    S1.task = 'project3D';
-    S1.modality = 'MEG';
-    S1.updatehistory = 0;
-    S1.D = D;
-    
-    D = spm_eeg_prep(S1);
-end
 
 if isfield(hdr, 'orig')
     if S.saveorigheader
@@ -450,6 +436,50 @@ if isfield(hdr, 'orig')
         D.origchantypes(1).label = hdr.label(sel2);
         D.origchantypes(1).type = origchantypes;
     end
+end
+
+S1 = [];
+S1.task = 'defaulttype';
+S1.D = D;
+S1.updatehistory = 0;
+D = spm_eeg_prep(S1);
+
+% Assign default EEG sensor positions if possible
+if ~isempty(strmatch('EEG', D.chantype, 'exact'))
+    if isempty(D.sensors('EEG'))
+        S1 = [];
+        S1.task = 'defaulteegsens';
+        S1.updatehistory = 0;
+        S1.D = D;
+
+        D = spm_eeg_prep(S1);
+    else
+        S1 = [];
+        S1.task = 'project3D';
+        S1.modality = 'EEG';
+        S1.updatehistory = 0;
+        S1.D = D;
+
+        D = spm_eeg_prep(S1);
+    end
+end
+
+% Create 2D positions for MEG (when there are no EEG sensors)
+% by projecting the 3D positions to 2D
+if ~isempty(strmatch('MEG', D.chantype)) && ~isempty(D.sensors('MEG')) 
+    S1 = [];
+    S1.task = 'project3D';
+    S1.modality = 'MEG';
+    S1.updatehistory = 0;
+    S1.D = D;
+    
+    D = spm_eeg_prep(S1);
+end
+
+% If channel units are available, store them.
+if isfield(hdr, 'unit')
+    [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
+    D = units(D, sel1, hdr.unit(sel2));
 end
 
 % The conditions will later be sorted in the original order they were defined.

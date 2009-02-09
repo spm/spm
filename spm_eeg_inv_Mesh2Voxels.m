@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % checks
 %--------------------------------------------------------------------------
@@ -61,8 +61,9 @@ end
 % extract variables
 %----------------------------------------------------------------------
 sMRIfile = fullfile(spm('dir'),'templates','T2.nii');
-vert     = D.inv{val}.mesh.tess_mni.vert;
-face     = D.inv{val}.mesh.tess_mni.face;
+mesh = spm_eeg_inv_transform_mesh(eye(4), D.inv{val}.mesh);
+vert     = mesh.tess_mni.vert;
+face     = mesh.tess_mni.face;
  
 % Get mesh
 %--------------------------------------------------------------------------

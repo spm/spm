@@ -2,7 +2,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Data registration user-interface routine
 % commands the EEG/MEG data co-registration within original sMRI space
 %
-% FORMAT D = spm_eeg_inv_datareg_ui(D,[val], modality)
+% FORMAT D = spm_eeg_inv_datareg_ui(D,[val])
 % Input:
 % Output:
 % D         - same data struct including the new required files and variables
@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2452 2008-11-10 18:45:32Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -24,16 +24,8 @@ catch
     D.inv{val}.mesh.template = 0;
 end
 
-if nargin > 2
-    modality = varargin{3};
-else
-    modality = spm_eeg_modality_ui(D, 1);
-end
-
-D.inv{val}.modality = modality;
-
 meegfid = D.fiducials;
-mrifid = D.inv{val}.datareg.fid_mri;
+mrifid = D.inv{val}.mesh.fid;
 
 meeglbl = meegfid.fid.label;
 mrilbl = mrifid.fid.label;
@@ -60,7 +52,7 @@ if numel(meeglbl)<3
     error('At least 3 M/EEG fiducials are required for coregistration');
 end
 
-if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label))
+if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
     M1 = eye(4);
 
     S =[];
@@ -68,6 +60,7 @@ if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label))
     S.targetfid = mrifid;
     S.targetfid.fid = S.sourcefid.fid;
 else
+    M1 = [];
     for i = 1:length(meeglbl)
         switch spm_input(['How to specify ' meeglbl{i} ' position?'] , 1, 'select|type|click|skip')
             case 'select'
@@ -114,45 +107,48 @@ else
     %==========================================================================
     S =[];
     S.sourcefid = meegfid;
-    S.targetfid = newmrifid;
-
-    if  D.inv{val}.mesh.template
-        if strcmp(D.inv{val}.modality, 'MEG')
-            S.template = 2;
-        else
-            S.template =1;
-        end
-    else
-        S.template = 0;
-    end
+    S.targetfid = newmrifid; 
 
     if ~isempty(S.sourcefid.pnt)
         S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
     else
         S.useheadshape = 0;
     end
-
-    %--------------------------------------------------------------------------
-
-    M1 = spm_eeg_inv_datareg(S);
 end
 
-switch D.inv{val}.modality
-    case 'EEG'
-        D.inv{val}.datareg.sensors = forwinv_transform_sens(M1, D.sensors(modality));
-        D.inv{val}.datareg.fid_eeg = forwinv_transform_headshape(M1, S.sourcefid);
-        D.inv{val}.datareg.fid_mri = S.targetfid;
-        D.inv{val}.datareg.fromMNI = inv(D.inv{val}.mesh.Affine);
-        D.inv{val}.datareg.toMNI = D.inv{val}.mesh.Affine;
-    case 'MEG'
-        D.inv{val}.forward.vol = forwinv_transform_vol(inv(M1), D.inv{val}.forward.vol);
-        D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.targetfid);
-        D.inv{val}.mesh = spm_eeg_inv_transform_mesh(inv(M1), D.inv{val}.mesh);
-        D.inv{val}.datareg.sensors = D.sensors(modality);
-        D.inv{val}.datareg.fid_eeg = S.sourcefid;
-        D.inv{val}.datareg.toMNI = D.inv{val}.mesh.Affine*M1;
-        D.inv{val}.datareg.fromMNI = inv(D.inv{val}.datareg.toMNI);
+ind = 1;
+D.inv{val}.datareg = struct([]);
 
+if ~isempty(D.sensors('EEG'))
+    if isempty(M1)
+        S.template = (D.inv{val}.mesh.template | S.useheadshape);
+        M1 = spm_eeg_inv_datareg(S);
+    end
+    
+    D.inv{val}.datareg(ind).sensors = forwinv_transform_sens(M1, D.sensors('EEG'));
+    D.inv{val}.datareg(ind).fid_eeg = forwinv_transform_headshape(M1, S.sourcefid);
+    D.inv{val}.datareg(ind).fid_mri = S.targetfid;
+    D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine;
+    D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
+    D.inv{val}.datareg(ind).modality = 'EEG';
+    ind = ind+1;
+end
+
+if ~isempty(D.sensors('MEG'))
+    if  D.inv{val}.mesh.template
+        S.template = 2;
+    else
+        S.template = 0;
+    end
+
+    M1 = spm_eeg_inv_datareg(S);
+
+    D.inv{val}.datareg(ind).sensors = D.sensors('MEG');
+    D.inv{val}.datareg(ind).fid_eeg = S.sourcefid;
+    D.inv{val}.datareg(ind).fid_mri = forwinv_transform_headshape(inv(M1), S.targetfid);
+    D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine*M1;
+    D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
+    D.inv{val}.datareg(ind).modality = 'MEG';
 end
 
 % check and display registration

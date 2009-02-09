@@ -12,7 +12,7 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.options.Fdcm
 %    DCM.options.D
 %    DCM.options.Rft
-%    DCM.options.h    
+%    DCM.options.h
 %
 % sets
 %
@@ -39,9 +39,9 @@ function DCM = spm_dcm_ind_data(DCM)
 %                          i-th trial
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_dcm_ind_data.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -52,6 +52,10 @@ catch
     error('')
 end
 
+if strcmp(Dfile, 'custom')
+    return;
+end
+
 % load D
 %--------------------------------------------------------------------------
 D = spm_eeg_load(Dfile);
@@ -59,15 +63,28 @@ D = spm_eeg_load(Dfile);
 % indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'modality')
-    DCM.xY.modality = spm_eeg_modality_ui(D);
+    [mod, list] = modality(D, 0, 1);
+
+    if isequal(mod, 'Multimodal')
+        qstr = 'Only one modality can be modelled at a time. Please select.';
+        if numel(list) < 4
+            % Nice looking dialog. Will usually be OK
+            options = [];
+            options.Default = list{1};
+            options.Interpreter = 'none';
+            DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
+        else
+            % Ugly but can accomodate more buttons
+            ind = menu(qstr, list);
+            DCM.xY.modality = list{ind};
+        end
+    else
+        DCM.xY.modality = mod;
+    end
 end
 
-modality = DCM.xY.modality;
-channels = D.chanlabels;
-
 if  ~isfield(DCM.xY, 'Ic')
-    Ic = strmatch(modality, D.chantype, 'exact');
-    Ic = setdiff(Ic, D.badchannels);
+    Ic        = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
     DCM.xY.Ic       = Ic;
 end
 
@@ -102,7 +119,7 @@ catch
     error('')
 end
 try
-    DCM.xY.Rft = DCM.options.Rft;                                        
+    DCM.xY.Rft = DCM.options.Rft;
 catch
     % default wavelet number
     %----------------------------------------------------------------------
@@ -120,7 +137,7 @@ end
 % get peristimulus times
 %--------------------------------------------------------------------------
 try
-    
+
     % time window and bins for modelling
     %----------------------------------------------------------------------
     DCM.xY.Time = 1000*D.time; % ms
@@ -128,7 +145,7 @@ try
     T2          = DCM.options.Tdcm(2);
     [i, T1]     = min(abs(DCM.xY.Time - T1));
     [i, T2]     = min(abs(DCM.xY.Time - T2));
-    
+
     % Time [ms] of downsampled data
     %----------------------------------------------------------------------
     Ns          = length(DCM.xY.Time);       % number of bins
@@ -138,7 +155,7 @@ try
     DCM.xY.It   = It;                        % Indices of time bins
     DCM.xY.dt   = DT/D.fsample;                 % sampling in seconds
     Nb          = length(It);                % number of bins
-    
+
 catch
     errordlg('Please specify time window');
     error('')
@@ -171,7 +188,7 @@ Nr         = size(DCM.C,1);            % number of sources
 Ne         = length(trial);            % number of ERPs
 Nm         = DCM.xY.Nm;                % number of frequency modes
 
-% get induced responses (use previous time-frequency results if possible) 
+% get induced responses (use previous time-frequency results if possible)
 %==========================================================================
 try
     if size(DCM.xY.xf,1) == Ne;
@@ -201,14 +218,14 @@ end
 %--------------------------------------------------------------------------
 for i = 1:Nf
     fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
-    
+
     W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
     N    = fix(length(W{1})/2);
     W    = W{1}.*(abs(W{1}) > exp(-8));
     W    = spm_convmtx(W',Ns);
     W    = W(It + N,:);
     M{i} = W*T;
-    
+
 end
 
 % get MAP projector matrix for source components
@@ -220,22 +237,22 @@ clear spm_erp_L
 switch DCM.xY.modality
 
     case{'EEG', 'MEG'}
-        
+
         try
             pos = DCM.Lpos;
         catch
             pos = DCM.M.dipfit.Lpos;
         end
-        
+
         % number of moments per source
         %------------------------------------------------------------------
-        Ng     = 3;   
+        Ng     = 3;
         G.L    = kron(ones(1,Nr),speye(Ng,Ng));
         G.Lpos = kron(pos,ones(1,Ng));
         L      = spm_erp_L(G,DCM.M);
-        MAP    = pinv(L); 
-        
-       
+        MAP    = pinv(L);
+
+
         % add (spatial filtering) re-referencing to MAP projector
         %--------------------------------------------------------------------------
         R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
@@ -244,7 +261,7 @@ switch DCM.xY.modality
     case{'LFP'}
         Ng     = 1;
         MAP    = speye(Nr,Nr);
-        
+
     otherwise
         warndlg('DCM for induced responses requires an ECD model')
         return
@@ -255,17 +272,17 @@ end
 %==========================================================================
 condlabels = D.condlist;
 for i = 1:Ne;
-    
+
     % trial indices
     %----------------------------------------------------------------------
     c = D.pickconditions(condlabels{trial(i)});
-    
+
     % use only the first 512 trials
     %----------------------------------------------------------------------
     try c = c(1:512); end
     Nt    = length(c);
-    
-    
+
+
     % Get data: log(spectral magnitude)
     %----------------------------------------------------------------------
     Ny    = Nb*Nr*Ng;
@@ -278,13 +295,13 @@ for i = 1:Ne;
         end
         fprintf('\nevaluating %i Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
     end
-    
+
     % weight with principal eigenvariate over trials (c.f., averaging)
     %----------------------------------------------------------------------
     u     = spm_svd(Y'*Y);
     u     = full(u(:,1)*sign(max(u(:,1))));
     Y     = reshape(Y*u,Nb,Nr*Ng,Nf);
-    
+
     % sum time-frequency response over moments and remove baseline
     %----------------------------------------------------------------------
     for j = 1:Nr

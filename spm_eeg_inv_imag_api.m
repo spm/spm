@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2699 2009-02-05 21:14:29Z guillaume $
+% $Id: spm_eeg_inv_imag_api.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 spm('defaults','EEG');
@@ -249,6 +249,20 @@ end
 % analysis specification buttons
 %--------------------------------------------------------------------------
 Q  = handles.D.inv{val};
+
+% === This is for backward compatibility with SPM8b. Can be removed after
+% some time
+if isfield(Q, 'mesh') &&...
+        isfield(Q.mesh, 'tess_ctx') && ~isa(Q.mesh.tess_ctx, 'char')
+
+    warning(['This is an old version of SPM8b inversion. ',...
+        'You can only review and export solutions. ',...
+        'Clear and invert again to update']);
+    Q = rmfield(Q, {'mesh', 'datareg', 'forward'});
+end
+% =========================================================================
+
+
 set(handles.new,      'enable','on','value',0)
 set(handles.clear,    'enable','on','value',0)
 set(handles.delete,   'enable','on','value',0)
@@ -318,35 +332,36 @@ set(handles.Movie,        'enable','off','Value',0)
 set(handles.Vis3D,        'enable','off','Value',0)
 set(handles.Image,        'enable','off','Value',0)
 
+set(handles.CreateMeshes,'enable','on')
+set(handles.Reg2tem,'enable','on')
 if isfield(Q, 'mesh')
-    set(handles.CreateMeshes,'enable','on')
-    set(handles.Reg2tem,'enable','on')
     set(handles.DataReg,  'enable','on')
     set(handles.CheckMesh,'enable','on')
     if isfield(Q,'datareg') && isfield(Q.datareg, 'sensors')
         set(handles.Forward, 'enable','on')
         set(handles.CheckReg,'enable','on')
-        if isfield(Q,'forward') && isfield(Q.forward, 'gainmat')
+        if isfield(Q,'forward') && isfield(Q.forward, 'vol')
             set(handles.Inverse,     'enable','on')
             set(handles.CheckForward,'enable','on')
-            if isfield(Q,'inverse')
-                set(handles.CheckInverse,'enable','on')
-                if isfield(Q.inverse,'J')
-                    set(handles.contrast,    'enable','on')
-                    set(handles.Movie,       'enable','on')
-                    set(handles.Vis3D,       'enable','on')
-                    if isfield(Q,'contrast')
-                        set(handles.CheckContrast,'enable','on')
-                        set(handles.Image,        'enable','on')
-                        if isfield(Q.contrast,'fname')
-                            set(handles.CheckImage,'enable','on')
-                        end
-                    end
-                end
+        end
+    end
+end
+if isfield(Q,'inverse')
+    set(handles.CheckInverse,'enable','on')
+    if isfield(Q.inverse,'J')
+        set(handles.contrast,    'enable','on')
+        set(handles.Movie,       'enable','on')
+        set(handles.Vis3D,       'enable','on')
+        if isfield(Q,'contrast')
+            set(handles.CheckContrast,'enable','on')
+            set(handles.Image,        'enable','on')
+            if isfield(Q.contrast,'fname')
+                set(handles.CheckImage,'enable','on')
             end
         end
     end
 end
+
 try
     if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
         set(handles.CheckInverse,'String','mip');
@@ -406,10 +421,8 @@ function CheckInverse_Callback(hObject, eventdata, handles)
 if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
     PST    = str2num(get(handles.PST,'String'));
     spm_eeg_invert_display(handles.D,PST);
-else
-    resdip = handles.D.inv{handles.D.val}.inverse.resdip;
-    sMRI   = handles.D.inv{handles.D.val}.mesh.sMRI
-    spm_eeg_inv_ecd_DrawDip('Init',resdip,sMRI);
+elseif strcmp(handles.D.inv{handles.D.val}.method, 'vbecd')
+    spm_eeg_inv_vbecd_disp('init',handles.D);
 end
 Reset(hObject, eventdata, handles);
 

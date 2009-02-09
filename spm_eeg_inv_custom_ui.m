@@ -22,12 +22,12 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_custom_ui.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % defaults from D is specified
 %==========================================================================
 try
-    woi = fix([-D.events.start D.events.stop]*1000/D.Radc);
+    woi = fix([D.time(1) D.time(end)]*1000);
     if (woi(end) - woi(1)) > 128
         q = 1;
     else

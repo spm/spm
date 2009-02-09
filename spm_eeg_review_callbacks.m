@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2720 2009-02-09 19:50:46Z vladimir $
 
 try
     D = get(gcf,'userdata');
@@ -115,6 +115,8 @@ switch varargin{1}
                         D.PSD.VIZU.modality = 'eeg';
                     case 'meg'
                         D.PSD.VIZU.modality = 'meg';
+                    case 'megplanar'
+                        D.PSD.VIZU.modality = 'megplanar';
                     case 'other'
                         D.PSD.VIZU.modality = 'other';
                     case 'source'
@@ -190,6 +192,9 @@ switch varargin{1}
                         case 'meg'
                             I = D.PSD.MEG.I;
                             in.type = 'MEG';
+                        case 'megplanar'
+                            I = D.PSD.MEGPLANAR.I;
+                            in.type = 'MEGPLANAR';
                         case 'other'
                             I = D.PSD.other.I;
                             in.type = 'other';
@@ -319,6 +324,8 @@ switch varargin{1}
                         D.PSD.EEG.VIZU.visu_scale = varargin{3}*D.PSD.EEG.VIZU.visu_scale;
                     case 'meg'
                         D.PSD.MEG.VIZU.visu_scale = varargin{3}*D.PSD.MEG.VIZU.visu_scale;
+                    case 'megplanar'
+                        D.PSD.MEGPLANAR.VIZU.visu_scale = varargin{3}*D.PSD.MEGPLANAR.VIZU.visu_scale;
                     case 'other'
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
@@ -391,6 +398,8 @@ switch varargin{1}
                                 VIZU = D.PSD.EEG.VIZU;
                             case 'meg'
                                 VIZU = D.PSD.MEG.VIZU;
+                            case 'megplanar'
+                                VIZU = D.PSD.MEGPLANAR.VIZU;
                             case 'other'
                                 VIZU = D.PSD.other.VIZU;
                         end
@@ -613,6 +622,8 @@ switch varargin{1}
                             VIZU = D.PSD.EEG.VIZU;
                         case 'meg'
                             VIZU = D.PSD.MEG.VIZU;
+                        case 'megplanar'
+                            VIZU = D.PSD.MEGPLANAR.VIZU;    
                         case 'other'
                             VIZU = D.PSD.other.VIZU;
                     end
@@ -780,6 +791,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
             VIZU = D.PSD.EEG.VIZU;
         case 'meg'
             VIZU = D.PSD.MEG.VIZU;
+        case 'megplanar'
+            VIZU = D.PSD.MEGPLANAR.VIZU;
         case 'other'
             VIZU = D.PSD.other.VIZU;
         case 'info'
@@ -1241,6 +1254,9 @@ switch D.PSD.VIZU.modality
     case 'meg'
         I = D.PSD.MEG.I;
         VIZU = D.PSD.MEG.VIZU;
+    case 'megplanar'
+        I = D.PSD.MEGPLANAR.I;
+        VIZU = D.PSD.MEGPLANAR.VIZU;    
     case 'other'
         I = D.PSD.other.I;
         VIZU = D.PSD.other.VIZU;
@@ -1324,7 +1340,12 @@ try
 catch
     str{2} = ['Date: ',D.other.inv{invN}.date(1,:)];
 end
-str{3} = ['Modality: ',D.other.inv{invN}.modality];
+if isfield(D.other.inv{invN}.inverse, 'modality')
+    str{3} = ['Modality: ',D.other.inv{invN}.inverse.modality];
+else % For backward compatibility
+    str{3} = ['Modality: ',D.other.inv{invN}.modality];
+end
+    
 if strcmp(D.other.inv{invN}.method,'Imaging')
     source = 'distributed';
 else
@@ -1508,6 +1529,16 @@ if length(cn) == 5  % channel info
                         D.channels(i).type = 'EEG';
                     case 'meg'
                         D.channels(i).type = 'MEG';
+                    case 'megplanar'
+                        D.channels(i).type = 'MEGPLANAR';
+                    case 'megmag'
+                        D.channels(i).type = 'MEGMAG';
+                    case 'meggrad'
+                        D.channels(i).type = 'MEGGRAD';
+                    case 'refmag'
+                        D.channels(i).type = 'REFMAG';
+                    case 'refgrad'
+                        D.channels(i).type = 'REFGRAD';     
                     case 'lfp'
                         D.channels(i).type = 'LFP';
                     case 'veog'
@@ -1534,7 +1565,9 @@ if length(cn) == 5  % channel info
         end
         % Find indices of channel types (these might have been changed)
         D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
-        D.PSD.MEG.I  = find(strcmp('MEG',{D.channels.type}));
+        D.PSD.MEG.I  = sort([find(strcmp('MEGMAG',{D.channels.type})),...
+            find(strcmp('MEGGRAD',{D.channels.type})) find(strcmp('MEG',{D.channels.type}))]);
+        D.PSD.MEGPLANAR.I  = find(strcmp('MEGPLANAR',{D.channels.type}));
         D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
         if ~isempty(D.PSD.EEG.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
@@ -1547,6 +1580,12 @@ if length(cn) == 5  % channel info
             D.PSD.MEG.VIZU = out;
         else
             D.PSD.MEG.VIZU = [];
+        end
+        if ~isempty(D.PSD.MEGPLANAR.I)
+            [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEGPLANAR.I);
+            D.PSD.MEGPLANAR.VIZU = out;
+        else
+            D.PSD.MEGPLANAR.VIZU = [];
         end
         if ~isempty(D.PSD.other.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);

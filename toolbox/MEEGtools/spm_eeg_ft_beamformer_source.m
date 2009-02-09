@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2617 2009-01-19 18:49:16Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -82,7 +82,7 @@ if ~isfield(S, 'outfile')
     S.outfile = spm_input('Output file name', '+1', 's', ['B' D.fname]);
 end
 
-modality = spm_eeg_modality_ui(D);
+modality = spm_eeg_modality_ui(D, 1, 1);
 
 %% ============ Select the data and convert to Fieldtrip struct
 if ~isfield(S, 'conditions')
@@ -129,15 +129,25 @@ if ~isfield(D, 'val')
     D.val = 1;
 end
 
-try
-    vol = D.inv{D.val}.forward.vol;
-    datareg = D.inv{D.val}.datareg;
-catch
-    D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
+if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
+        ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
+        ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+    D = spm_eeg_inv_mesh_ui(D, D.val);
     D = spm_eeg_inv_datareg_ui(D, D.val);
-    vol = D.inv{D.val}.forward.vol;
-    datareg = D.inv{D.val}.datareg;
+    D = spm_eeg_inv_forward_ui(D, D.val);
 end
+
+for m = 1:numel(D.inv{D.val}.forward)
+    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
+        vol  = D.inv{D.val}.forward(m).vol;
+        if isa(vol, 'char')
+            vol = fileio_read_vol(vol);
+        end
+        datareg  = D.inv{D.val}.datareg(m);
+    end
+end
+
+sens = datareg.sensors;
 
 toMNI = datareg.toMNI;
 fromMNI = datareg.fromMNI;
@@ -153,7 +163,7 @@ if isfield(S,'symmetry') && S.symmetry
     toMNI = toMNI*inv(M1);
 end
 
-channel = D.chanlabels(setdiff(D.meegchannels, D.badchannels));
+channel = D.chanlabels(setdiff(meegchannels(D, modality), D.badchannels));
 
 [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', channel);
 

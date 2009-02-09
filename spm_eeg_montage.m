@@ -29,9 +29,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_montage.m 2720 2009-02-09 19:50:46Z vladimir $
 
-SVNrev = '$Rev: 2696 $';
+SVNrev = '$Rev: 2720 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -192,7 +192,11 @@ end
 Dnew = chanlabels(Dnew, 1:Dnew.nchannels, montage.labelnew);
 
 % Set channel types to default
-Dnew = chantype(Dnew, [], []);
+S1 = [];
+S1.task = 'defaulttype';
+S1.D = Dnew;
+S1.updatehistory = 0;
+Dnew = spm_eeg_prep(S1);
 
 %-Apply montage to sensors
 %--------------------------------------------------------------------------

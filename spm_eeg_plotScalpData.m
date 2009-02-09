@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 if ~exist('in','var') || isempty(in) == 1
@@ -57,16 +57,25 @@ pos = pos(:,goodChannels);
 Z = Z(goodChannels,:);
 ChanLabel = ChanLabel(goodChannels);
 
-xmin = min(pos(1,:));
-xmax = max(pos(1,:));
+
+if strcmp(in.type, 'MEGPLANAR')
+    [cZ, cpos, cChanLabel] = combineplanar(Z, pos, ChanLabel);
+else
+    cZ = Z;
+    cpos = pos;
+    cChanLabel = ChanLabel;
+end
+
+xmin = min(cpos(1,:));
+xmax = max(cpos(1,:));
 dx = (xmax-xmin)./100;
-ymin = min(pos(2,:));
-ymax = max(pos(2,:));
+ymin = min(cpos(2,:));
+ymax = max(cpos(2,:));
 dy = (ymax-ymin)./100;
 x = xmin:dx:xmax;
 y = ymin:dy:ymax;
 [XI,YI] = meshgrid(x,y);
-ZI = griddata(pos(1,:)',pos(2,:)',full(double(Z')),XI,YI);
+ZI = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
 
 
 f=figure;
@@ -87,7 +96,7 @@ axis off
 axis equal
 axis tight
 
-fpos = pos;
+fpos = cpos;
 fpos(1,:) = fpos(1,:) - xmin;
 fpos(2,:) = fpos(2,:) - ymin;
 fpos(1,:) = fpos(1,:)./(dx);
@@ -97,17 +106,19 @@ fpos(2,:) = 100-fpos(2,:);  % for display purposes (flipud imagesc)
 figure(f);
 hold on;
 hp = plot(fpos(1,:),fpos(2,:),'ko');
-ht = text(fpos(1,:),fpos(2,:),ChanLabel);
+ht = text(fpos(1,:),fpos(2,:),cChanLabel);
 set(ht,'visible','off')
 axis image
 
 d.interp.XI = XI;
 d.interp.YI = YI;
-d.interp.pos = pos;
+d.interp.pos = cpos;
 d.f = f;
 d.pos = fpos;
 d.goodChannels = goodChannels;
-d.ChanLabel = ChanLabel;
+d.ChanLabel = cChanLabel;
+d.origChanLabel = ChanLabel;
+d.origpos = pos;
 d.hp = hp;
 d.ht = ht;
 d.hi = hi;
@@ -182,6 +193,11 @@ else
 end
 Z = D.data.y(d.in.ind,v,trN);
 Z = Z(d.goodChannels);
+
+if strcmp(d.in.type, 'MEGPLANAR')
+    Z = combineplanar(Z, d.origpos, d.origChanLabel);
+end
+
 clear ud;
 % interpolate data
 ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),full(double(Z)),d.interp.XI,d.interp.YI);
@@ -230,3 +246,39 @@ xyz = xyz - repmat(C,size(xyz,1),1);
 TH = TH - mean(TH);
 [X,Y,Z] = sph2cart(TH,zeros(size(TH)),RAD.*(cos(PHI+pi./2)+1));
 xy = [X(:),Y(:)];
+
+
+function [Z, pos, ChanLabel] = combineplanar(Z, pos, ChanLabel)
+
+chanind = zeros(1, numel(ChanLabel));
+for i = 1:numel(ChanLabel)
+    chanind(i) = sscanf(ChanLabel{i}, 'MEG%d');
+end
+
+pairs = [];
+unpaired = [];
+paired = zeros(length(chanind));
+for i = 1:length(chanind)
+    if ~paired(i)
+
+        cpair = find(abs(chanind - chanind(i))<2);
+
+        if length(cpair) == 1
+            unpaired = [unpaired cpair];
+        else
+            pairs = [pairs; cpair(:)'];
+        end
+        paired(cpair) = 1;
+    end
+end
+
+if ~isempty(unpaired)
+    warning(['Could not pair all channels. Ignoring ' num2str(length(unpaired)) ' unpaired channels.']);
+end
+
+Z = sqrt(Z(pairs(:, 1)).^2 + Z(pairs(:, 2)).^2);
+pos = (pos(:, pairs(:, 1)) + pos(:, pairs(:, 2)))./2;
+ChanLabel = {};
+for i = 1:size(pairs,1)
+    ChanLabel{i} = ['MEG' num2str(min(pairs(i,:))) '+' num2str(max(pairs(i,:)))];
+end

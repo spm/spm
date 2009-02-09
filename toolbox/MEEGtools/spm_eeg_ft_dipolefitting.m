@@ -1,4 +1,4 @@
-% Demo script for interactive artefact rejection using Fieldtrip
+% Demo script for dipole fitting using Fieldtrip
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 2333 2008-10-13 13:19:22Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -30,7 +30,7 @@ if ~ok
     return
 end
 
-modality = spm_eeg_modality_ui(D);
+modality = spm_eeg_modality_ui(D, 1, 1);
 
 
 %% ============ Find or prepare head model
@@ -39,27 +39,36 @@ if ~isfield(D, 'val')
     D.val = 1;
 end
 
-
-try
-    vol = D.inv{D.val}.forward.vol;
-    datareg = D.inv{D.val}.datareg;
-catch
-    D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
+if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
+        ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
+        ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+    D = spm_eeg_inv_mesh_ui(D, D.val);
     D = spm_eeg_inv_datareg_ui(D, D.val);
-    datareg = D.inv{D.val}.datareg;
+    D = spm_eeg_inv_forward_ui(D, D.val);
 end
 
-vol = D.inv{D.val}.forward.vol;
-sens = D.inv{D.val}.datareg.sensors;
+for m = 1:numel(D.inv{D.val}.forward)
+    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
+        vol  = D.inv{D.val}.forward(m).vol;
+        if isa(vol, 'char')
+            vol = fileio_read_vol(vol);
+        end
+        datareg  = D.inv{D.val}.datareg(m);
+    end
+end
 
-M1 = D.inv{D.val}.datareg.toMNI;
+sens = datareg.sensors;
+
+M1 = datareg.toMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 M1(1:3,1:3) =U*V';
 
 vol = forwinv_transform_vol(M1, vol);
 sens = forwinv_transform_sens(M1, sens);
 
-[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{D.val}.forward.channels);
+chanind = setdiff(meegchannels(D, modality), D.badchannels);
+
+[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
 
 %% ============ Select the data and convert to Fieldtrip struct
@@ -74,13 +83,15 @@ if D.ntrials > 1
     data.time =  data.time(ind);
 end
 
-data = ft_timelockanalysis([], data);
+cfg = [];
+cfg.channel = D.chanlabels(chanind);
+
+data = ft_timelockanalysis(cfg, data);
 
 
 %% =========== Configure and run Fieldtrip dipolefitting
 
 cfg=[];
-cfg.channel = D.inv{D.val}.forward.channels;
 cfg.vol = vol;
 cfg.inwardshift = 0;
 cfg.grid.resolution=20;
@@ -108,10 +119,10 @@ cfg.xlim=[min(source.time) max(source.time)];
 cfg.comment ='xlim';
 cfg.commentpos='middlebottom';
 cfg.electrodes='on';
+cfg.rotate = 0;
 
 if strcmp('EEG', modality)
     cfg.elec = sens;
-    cfg.rotate = 0;
 else
     cfg.grad = sens;
 end

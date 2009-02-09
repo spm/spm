@@ -11,8 +11,23 @@ function [ok, this] = check(this, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 1531 2008-05-01 14:17:54Z vladimir $
+% $Id: check.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [ok, this] = checkmeeg(struct(this), option);
 
+
 this = meeg(this);
+
+if ok && strcmp(option, '3d')
+    if ~ismember(modality(this), {'EEG', 'MEG', 'Multimodal'})
+        warning('Unsupported modality for 3D source reconstruction');
+        ok = 0;
+    end
+end
+
+if ok && strcmp(option, 'dcm')
+    if ~ismember(modality(this, 0), {'EEG', 'MEG', 'MEGPLANAR', 'Multimodal', 'LFP'})
+        warning('Unsupported modality for DCM');
+        ok = 0;
+    end
+end

@@ -1,6 +1,5 @@
-function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) %, Bad)
-% Estimate the leadfield matrix for a set of dipoles used in VB-ECD solution
-% FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step, Bad)
+function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) 
+% FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, channels, step, Bad)
 %
 % Estimation of the leadfield matrix and is spatial derivative if required 
 % for a set of dipoles used in the VB-ECD solution
@@ -19,7 +18,7 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) %, Bad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_vbecd_getLF.m 2720 2009-02-09 19:50:46Z vladimir $
  
 gm = [];
 for i = 1:length(s)/3

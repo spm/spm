@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 2710 2009-02-06 19:57:40Z karl $
+% $Id: spm_dcm_erp.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % check options
 %==========================================================================
@@ -276,7 +276,7 @@ if strcmp(M.dipfit.type,'IMG')
     %----------------------------------------------------------------------
     try, val = DCM.val;  catch, val = 1; end
     D     = spm_eeg_load(DCM.xY.Dfile);
-    L     = spm_eeg_lgainmat(D,Is);
+    L     = spm_eeg_lgainmat(D, Is, DCM.xY.name);
     L     = U'*L;
 
     % reduced data (for each trial

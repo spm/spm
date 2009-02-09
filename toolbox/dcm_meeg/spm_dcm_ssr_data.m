@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_dcm_ssr_data.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -72,16 +72,30 @@ end
 % indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'modality')
-    DCM.xY.modality = spm_eeg_modality_ui(D);
+    [mod, list] = modality(D, 0, 1);
+
+    if isequal(mod, 'Multimodal')
+        qstr = 'Only one modality can be modelled at a time. Please select.';
+        if numel(list) < 4
+            % Nice looking dialog. Will usually be OK
+            options = [];
+            options.Default = list{1};
+            options.Interpreter = 'none';
+            DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
+        else
+            % Ugly but can accomodate more buttons
+            ind = menu(qstr, list);
+            DCM.xY.modality = list{ind};
+        end
+    else
+        DCM.xY.modality = mod;
+    end
 end
 
-modality = DCM.xY.modality;
-channels = D.chanlabels;
+
 
 if ~isfield(DCM.xY, 'Ic')
-    Ic = strmatch(modality, D.chantype);
-    Ic = setdiff(Ic, D.badchannels);
-    DCM.xY.Ic = Ic;
+    DCM.xY.Ic  = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
 end
 
 Ic        = DCM.xY.Ic;

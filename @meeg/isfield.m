@@ -8,6 +8,6 @@ function res = isfield(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $$
+% $Id: isfield.m 2720 2009-02-09 19:50:46Z vladimir $
 
 res = isfield(this.other, varargin{:});

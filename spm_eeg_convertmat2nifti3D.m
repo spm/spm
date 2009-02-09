@@ -28,7 +28,7 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_convertmat2nifti3D.m 2720 2009-02-09 19:50:46Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -68,7 +68,22 @@ spm('Pointer', 'Watch'); drawnow
 
 clear D
 for i = 1:Nsub
-    D{i} = spm_eeg_load(deblank(Fname(i,:)));
+    D{i} = spm_eeg_load(deblank(Fname(i,:)));    
+end
+
+modality = spm_eeg_modality_ui(D{1}, 1, 1);
+
+% For multimodal datasets set the types of non-chosen modality
+% to 'Other'. This is not saved in the dataset 
+if isequal(modality, 'MEGPLANAR')
+    error('MEG planar gradiometers are not supported yet.')
+else
+    for i = 1:Nsub
+        otherind = setdiff(1:nchannels(D{i}), strmatch(modality, chantype(D{i})));
+        if ~isempty(otherind)
+            D{i} = chantype(D{i}, otherind, 'Other');
+        end
+    end
 end
 
 for k = 1:Nsub

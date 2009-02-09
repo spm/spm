@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2676 2009-01-30 16:51:34Z christophe $
+% $Id: checkmeeg.m 2720 2009-02-09 19:50:46Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -312,23 +312,8 @@ if strcmp(option, 'basic')
     return;
 end
 
-if strcmp(option, 'dcm')
-    chantypes = getset(meegstruct, 'channels', 'type');   
-    if ~iscell(chantypes)
-        chantypes = {chantypes};
-    end
-    if ismember('LFP', chantypes)
-        if ismember('EEG', chantypes) || ismember('MEG', chantypes)
-            disp('checkmeeg: DCM does not presently support files with both LFP and scalp channels');
-            return;
-        else
-            result = 1;
-            return;
-        end
-    end
-end
 
-if strcmp(option, 'sensfid') || strcmp(option, 'dcm')
+if strcmp(option, 'sensfid') || strcmp(option, 'dcm') || strcmp(option, '3d')
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
@@ -336,7 +321,7 @@ if strcmp(option, 'sensfid') || strcmp(option, 'dcm')
 
     chantypes = getset(meegstruct, 'channels', 'type');
     eegind = strmatch('EEG', chantypes, 'exact');
-    megind = strmatch('MEG', chantypes, 'exact');
+    megind = strmatch('MEG', chantypes);
 
     if ~isempty(eegind)
         if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)
@@ -384,7 +369,7 @@ if strcmp(option, 'sensfid') || strcmp(option, 'dcm')
         return
     end
 
-    nzlbl = {'fidnz', 'nz', 'nas', 'spmnas'};
+    nzlbl = {'fidnz', 'nz', 'nas', 'nasion', 'spmnas'};
     lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl' 'le', 't9', 'spmlpa'};
     relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 't10', 'spmrpa'};
 

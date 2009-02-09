@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_eeg_inv_results.m 2720 2009-02-09 19:50:46Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -125,7 +125,7 @@ for i = 1:length(J)
             JW{i} = sparse(0);
             JWWJ  = sparse(0);
             
-            c = D.pickconditions{trial{i}};
+            c = D.pickconditions(trial{i});
  
             % conditional expectation of contrast (J*W) and its energy
             %------------------------------------------------------------------

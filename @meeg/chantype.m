@@ -5,63 +5,12 @@ function res = chantype(this, varargin)
 %   type - type (string: 'EEG', 'MEG', 'LFP' etc.)
 %
 % FORMAT chantype(this, ind), chantype(this)
-% Sets channel types to default using Fieldtrip channelselection with
-% chantype(this,[],[])
+% Sets channel types to default using Fieldtrip channelselection
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2668 2009-01-29 12:11:54Z christophe $
+% $Id: chantype.m 2720 2009-02-09 19:50:46Z vladimir $
 
-
-if length(varargin)>=2
-    ind = varargin{1};
-    type = varargin{2};
-
-    if isempty(ind)
-        ind = 1:nchannels(this);
-    end
-
-    if isempty(type)
-        types = {'EEG', 'MEG', 'MEGREF', 'EMG', 'EOG', 'ECG'};
-
-        for i=1:length(types)
-            if isempty(ind), break; end
-            lbl = chanlabels(this, ind);
-            
-            if ~iscell(lbl)
-                lbl = {lbl};
-            end
-
-            foundind = spm_match_str(lbl, ft_channelselection(types(i), lbl));
-
-            if ~isempty(foundind)
-                this = chantype(this, ind(foundind), types{i});
-                ind = setdiff(ind, ind(foundind));
-            end
-        end
-
-        if ~isempty(ind) && isfield(this, 'origchantypes')
-            ind1 = setdiff(1:numel(this.other.origchantypes.label),...
-                strmatch('unknown', this.other.origchantypes.type, 'exact'));
-            
-            [sel1, sel2] = spm_match_str(chanlabels(this, ind), ...
-                                    this.other.origchantypes.label(ind1));
-            
-            if ~isempty(sel1)
-                this = chantype(this, ind(sel1), ...
-                        upper(this.other.origchantypes.type(ind1(sel2))));
-                ind(sel1) = [];
-            end
-        end
-        
-        if ~isempty(ind)
-            this = chantype(this, ind, 'Other');
-        end
-
-        res = this;
-        return
-    end
-end
 
 res = getset(this, 'channels', 'type', varargin{:});

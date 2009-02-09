@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_vbecd_gui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 %%
 % Load data, if necessary
@@ -61,57 +61,56 @@ if isfield(D.inv{val},'inverse')
     D.val = val;
 end
 
-% Set time , date, comments & modality
-clck = fix(clock);
-if clck(5) < 10
-    clck = [num2str(clck(4)) ':0' num2str(clck(5))];
-else
-    clck = [num2str(clck(4)) ':' num2str(clck(5))];
+if ~isfield(D.inv{val}, 'date')
+    % Set time , date, comments & modality
+    clck = fix(clock);
+    if clck(5) < 10
+        clck = [num2str(clck(4)) ':0' num2str(clck(5))];
+    else
+        clck = [num2str(clck(4)) ':' num2str(clck(5))];
+    end
+    D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
 end
-D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
-if ~isfield(D.inv{val},'comment'), 
-    D.inv{val}.comment={''}; end
-if ~iscell(D.inv{val}.comment), 
-    D.inv{val}.comment = {D.inv{val}.comment}; end
-D.inv{val}.comment = inputdlg('Comment/Label for this analysis:','', ...
-                    1,D.inv{val}.comment);
+
+if ~isfield(D.inv{val}, 'comment'), 
+   D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
+end
+
 D.inv{val}.method = 'vbecd';
 
+% Struct that collects the inputs for vbecd code
+P = [];
 
-P.Bad = D.badchannels;
-if isfield(D.inv{val},'forward')
-    if isfield(D.inv{val}.forward,'vol')
-        P.forward = struct('vol',D.inv{val}.forward.vol, ...
-                            'sens',[]);
-    else
-        error('Forward model needs to be ready in FT format.!')
+P.modality = 'EEG';
+
+% Uncomment the line below to try other modalities
+%P.modality = spm_eeg_modality_ui(D, 1, 1);
+
+if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
+    for m = 1:numel(D.inv{val}.forward)
+        if strncmp(P.modality, D.inv{val}.forward(m).modality, 3)
+            P.forward.vol  = D.inv{val}.forward(m).vol;
+
+            if ischar(P.forward.vol)
+                P.forward.vol = fileio_read_vol(P.forward.vol);
+            end
+
+            P.forward.sens = D.inv{val}.datareg(m).sensors;
+
+            P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
+        end
     end
-else
-    error('Forward model needs to be ready in FT format.!')
-end
-if isfield(D.inv{val},'datareg')
-    if isfield(D.inv{val}.datareg,'sensors')
-        sens = D.inv{val}.datareg.sensors;
-    else
-        % create the sens structure and try to make sure it contains all
-        % the necessary bits !
-%         [P.forward.vol, P.datareg.sensors] = ...
-%                   forwinv_prepare_vol_sens(P.forward.vol,D.sensors('eeg'));
-        sens = D.sensors('eeg');
-    end
-    if ~isempty(P.Bad)
-        P.forward.sens = remove_bad_chan(sens,P.Bad);
-    else
-        P.forward.sens = sens;
-    end
-%     warning('Can''t find sensors information, still proceeding though.');
-%     end
-else
-    error('Forward model needs to be ready in FT format.!')
 end
 
+if isempty(P.Ic)
+    error(['The specified modality (' P.modality ') is missing from file ' D.fname]);
+else
+    P.channels = D.chanlabels(P.Ic);
+end
+
+ 
 [P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
-    P.forward.vol, P.forward.sens, 'channel', D.inv{val}.forward.channels);
+    P.forward.vol, P.forward.sens, 'channel', P.channels);
 
 %% 
 % Deal with data
@@ -152,13 +151,13 @@ else
 end
 
 % data, averaged over time window considered
-dat_y = squeeze(mean(D(meegchannels(D),ltb,ltr),2));
+dat_y = squeeze(mean(D(P.Ic,ltb,ltr),2));
 
 %%
 % Other bits of the P structure, apart for priors and #dipoles
 %==============================
 
-P.Nc           = length(meegchannels(D))-length(P.Bad);
+P.Nc           = length(P.Ic);
 P.Niter        = 200;  % \_ Using SK default values here...
 P.threshold_dF = 1e-4; % /
 
@@ -379,13 +378,3 @@ save(D)
 spm_eeg_inv_vbecd_disp('init',D)
 
 return
-
-function sens = remove_bad_chan(sens,Bad)
-% remove the bad channels from the sensor structure
-% Nchan = length(sens.label);
-tmp = strvcat(sens.label{:}); %#ok<VCAT>
-tmp(Bad,:) = [];
-sens.label = cellstr(tmp)';
-sens.pnt(Bad,:) = [];
-return
-

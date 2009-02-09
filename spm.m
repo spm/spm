@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 2636 2009-01-21 09:57:20Z guillaume $
+% $Id: spm.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 %=======================================================================
@@ -440,6 +440,7 @@ if strcmpi(defaults.modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'external','fieldtrip'));
     addpath(fullfile(spm('Dir'),'external','fileio'));
     addpath(fullfile(spm('Dir'),'external','forwinv'));
+    addpath(fullfile(spm('Dir'),'external','bemcp'));
     addpath(fullfile(spm('Dir'),'external','ctf'));
     addpath(fullfile(spm('Dir'),'toolbox', 'dcm_meeg'));
 end

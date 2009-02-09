@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2446 2008-11-05 16:05:14Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 spm('pointer','watch')
 
@@ -43,7 +43,7 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
-    chanTypes = {'EEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
+    chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other'};
 
     for i = 1:length(chanTypes)
         CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
@@ -58,18 +58,6 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on',...
         'Separator', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
-
-    CTypesPlanar2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'Planar=>MEG',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
-
-    CTypesMagnetometer2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'Magnetometer=>MEG',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
 
     CTypesDefaultMenu = uimenu(ChanTypeMenu, 'Label', 'Default',...
@@ -120,17 +108,11 @@ if nargin == 0
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
 
-    CoregisterEEGMenu = uimenu(Coor3DMenu, 'Label', 'Coregister (EEG)',...
+    CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
-
-    CoregisterMEGMenu = uimenu(Coor3DMenu, 'Label', 'Coregister (MEG)',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
 
     % ====== 2D projection ===================================
@@ -265,7 +247,7 @@ D = getD;
 if ~isempty(D)
     chanlist ={};
     for i = 1:D.nchannels
-        if strncmp(D.chantype(i), 'MEG', 3)
+        if strncmp(D.chantype(i), 'MEG', 3) || strncmp(D.chantype(i), 'REF', 3)
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i) , ' (nonmodifiable)'];
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
@@ -307,33 +289,17 @@ S.task = 'settype';
 
 switch get(gcbo, 'Label')
     case 'MEGREF=>MEG'
-        S.ind = strmatch('MEGREF', S.D.chantype);
-        S.type = 'MEG';
-        D = spm_eeg_prep(S);
-    case 'Planar=>MEG'              
-        S.type = 'MEG';
-        
-        ind = strmatch('planar', S.D.origchantypes.type, 'exact');
-        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
-        S.D = spm_eeg_prep(S);
-        
-        S.type = 'Other';
-        
-        ind = strmatch('magnetometer', S.D.origchantypes.type, 'exact');
-        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
-        D = spm_eeg_prep(S);
-    case 'Magnetometer=>MEG'   
-        S.type = 'MEG';
-        
-        ind = strmatch('magnetometer', S.D.origchantypes.type, 'exact');
-        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
-        
-        S.D = spm_eeg_prep(S);
-        
-        S.type = 'Other';
-        
-        ind = strmatch('planar', S.D.origchantypes.type, 'exact');
-        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
+        dictionary = {
+            'REFMAG',   'MEGMAG';
+            'REFGRAD',  'MEGGRAD';
+            };               
+                
+        S.ind = spm_match_str(S.D.chantype, dictionary(:,1));
+
+        [sel1, sel2] = spm_match_str(S.D.chantype(S.ind), dictionary(:, 1));
+
+        S.type = dictionary(sel2, 2);
+
         D = spm_eeg_prep(S);
 end
 
@@ -346,9 +312,7 @@ function ChanTypeDefaultCB
 
 S = [];
 S.D = getD;
-S.task = 'settype';
-S.type = [];
-S.ind = 1:S.D.nchannels;
+S.task = 'defaulttype';
 D = spm_eeg_prep(S);
 
 setD(D);
@@ -362,6 +326,19 @@ S = [];
 S.D = getD;
 S.task = 'defaulteegsens';
 
+if strcmp(S.D.modality(1, 0), 'Multimodal')
+    fid = fiducials(S.D);
+    if ~isempty(fid)
+        lblfid = fid.fid.label;
+
+        S.regfid = match_fiducials({'nas'; 'lpa'; 'rpa'}, lblfid);
+        S.regfid(:, 2) = {'spmnas'; 'spmlpa'; 'spmrpa'};
+    else
+        warndlg(strvcat('Could not match EEG fiducials for multimodal dataset.', ...
+            '           EEG coregistration might fail.'));
+    end
+end
+
 D = spm_eeg_prep(S);
 setD(D);
 update_menu;
@@ -371,17 +348,50 @@ update_menu;
 function LoadEEGSensCB
 
 S = [];
-S.D = getD;
+D = getD;
 S.task = 'loadeegsens';
 
 switch get(gcbo, 'Label')
     case 'From *.mat file'
         S.sensfile = spm_select(1,'.mat$','Select EEG sensors file');
         S.source = 'mat';
+        S.headshapefile = spm_select(1,'.mat$','Select EEG fiducials file');
+        S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'nas lpa rpa');
     case 'Convert locations file'
         S.sensfile = spm_select(1, '\.*', 'Select locations file');
         S.source = 'locfile';
 end
+
+if strcmp(D.modality(1, 0), 'Multimodal')   
+    if ~isempty(D.fiducials)
+        S.regfid = {};
+        if strcmp(S.source, 'mat')
+            fidlabel = S.fidlabel;
+            lblshape = {};
+            fidnum = 0;
+            while ~all(isspace(fidlabel))
+                fidnum = fidnum+1;
+                [lblshape{fidnum} fidlabel] = strtok(fidlabel);
+            end
+            if (fidnum < 3)
+                error('At least 3 labeled fiducials are necessary');
+            end
+        else
+            shape = fileio_read_headshape(S.sensfile);
+            lblshape = shape.fid.label;
+        end
+
+        fid = fiducials(D);
+        lblfid = fid.fid.label;
+
+        S.regfid = match_fiducials(lblshape, lblfid);
+    else
+        warndlg(strvcat('Could not match EEG fiducials for multimodal dataset.', ...
+            '           EEG coregistration might fail.'));
+    end
+end
+
+S.D = D;
 
 D = spm_eeg_prep(S);
 
@@ -406,21 +416,6 @@ D = spm_eeg_prep(S);
 %
 % D = spm_eeg_prep(S);
 
-% ============= Assign the fiducials using a mat file or the sensors file
-
-S.task = 'headshape';
-S.D = D;
-S.regfid = {};
-if strcmp(S.source, 'mat')
-    S.headshapefile = spm_select(1,'.mat$','Select EEG fiducials file');
-    S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'nas lpa rpa');
-else
-    S.headshapefile = S.sensfile;
-    S.source = 'convert';
-end
-
-D = spm_eeg_prep(S);
-
 setD(D);
 
 update_menu;
@@ -442,35 +437,7 @@ lblshape = shape.fid.label;
 fid = fiducials(S.D);
 lblfid = fid.fid.label;
 
-if numel(intersect(upper(lblshape), upper(lblfid))) < 3
-    if numel(lblshape)<3 || numel(lblfid)<3
-        warndlg('3 fiducials are required to load headshape');
-        return;
-    else
-        S.regfid = {};
-        for i = 1:length(lblfid)
-            [selection ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
-                'InitialValue', strmatch(upper(lblfid{i}), upper(lblshape)), ...
-                'Name', ['Select matching fiducial for ' lblfid{i}], 'ListSize', [400 300]);
-
-            if ~ok
-                continue
-            end
-
-            S.regfid = [S.regfid; [lblfid(i) lblshape(selection)]];
-        end
-
-        if size(S.regfid, 1) < 3
-            warndlg('3 fiducials are required to load headshape');
-            return;
-        end
-    end
-else
-    [sel1, sel2] = spm_match_str(upper(lblfid), upper(lblshape));
-    lblfid = lblfid(sel1);
-    lblshape = lblshape(sel2);
-    S.regfid = [lblfid(:) lblshape(:)];
-end
+S.regfid = match_fiducials(lblshape, lblfid);
 
 D = spm_eeg_prep(S);
 
@@ -485,14 +452,6 @@ function CoregisterCB
 S = [];
 S.D = getD;
 S.task = 'coregister';
-
-switch get(gcbo, 'Label')
-    case 'Coregister (EEG)'
-        S.modality = 'EEG';
-    case 'Coregister (MEG)'
-        S.modality = 'MEG';
-end
-
 
 D = spm_eeg_prep(S);
 
@@ -512,7 +471,7 @@ D = getD;
 switch get(gcbo, 'Label')
     case 'Edit existing MEG'
         xy = D.coor2D('MEG');
-        label = D.chanlabels(strmatch('MEG', D.chantype, 'exact'));
+        label = D.chanlabels(strmatch('MEG', D.chantype));
     case 'Edit existing EEG'
         xy = D.coor2D('EEG');
         label = D.chanlabels(strmatch('EEG', D.chantype, 'exact'));
@@ -648,7 +607,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
         IsEEG = 'on';
     end
 
-    if ~isempty(strmatch('MEG', D.chantype, 'exact'));
+    if ~isempty(strmatch('MEG', D.chantype));
         IsMEG = 'on';
     end
 
@@ -657,7 +616,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
         IsNeuromag = 'on';
     end
 
-    if ~isempty(strmatch('MEGREF', D.chantype, 'exact'));
+    if ~isempty(strmatch('REF', D.chantype));
         HasChannelsMEGREF = 'on';
     end
 
@@ -717,17 +676,13 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'MEGREF=>MEG'), 'Enable', HasChannelsMEGREF);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Planar=>MEG'), 'Enable', IsNeuromag);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Magnetometer=>MEG'), 'Enable', IsNeuromag);
-
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Assign default'), 'Enable', HasDefaultLocs);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
 
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensors);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (EEG)'), 'Enable', HasSensorsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (MEG)'), 'Enable', HasSensorsMEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensorsMEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', HasSensors);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
@@ -1063,4 +1018,36 @@ switch get(gcbo, 'Label')
         end
 end
 
+
+function regfid = match_fiducials(lblshape, lblfid)
+
+if numel(intersect(upper(lblshape), upper(lblfid))) < 3
+    if numel(lblshape)<3 || numel(lblfid)<3
+        warndlg('3 fiducials are required');
+        return;
+    else
+        regfid = {};
+        for i = 1:length(lblfid)
+            [selection ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
+                'InitialValue', strmatch(upper(lblfid{i}), upper(lblshape)), ...
+                'Name', ['Select matching fiducial for ' lblfid{i}], 'ListSize', [400 300]);
+
+            if ~ok
+                continue
+            end
+
+            regfid = [regfid; [lblfid(i) lblshape(selection)]];
+        end
+
+        if size(regfid, 1) < 3
+            warndlg('3 fiducials are required to load headshape');
+            return;
+        end
+    end
+else
+    [sel1, sel2] = spm_match_str(upper(lblfid), upper(lblshape));
+    lblfid = lblfid(sel1);
+    lblshape = lblshape(sel2);
+    regfid = [lblfid(:) lblshape(:)];
+end
 

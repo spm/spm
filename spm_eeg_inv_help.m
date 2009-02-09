@@ -35,7 +35,10 @@ D =  spm_eeg_inv_mesh_ui(D, 1, Msize, 1);
  
 % Determine the modality of the data (EEG or MEG)
 %--------------------------------------------------------------------------
-modality = spm_eeg_modality_ui(D, 1);
+modality = D.modality;
+if ~ismember(modality, {'EEG', 'MEG'})
+    error('Only unimodal (EEG or MEG) datasets are supported')
+end
 
 % Compute a head model
 %==========================================================================

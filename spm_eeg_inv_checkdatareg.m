@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 2720 2009-02-09 19:50:46Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -17,70 +17,61 @@ function spm_eeg_inv_checkdatareg(varargin)
 
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-switch D.inv{val}.modality
-    case 'EEG'
-        sens = D.inv{val}.datareg.sensors;
-        sensorig = sens;
-    case 'MEG'    
-        cfg = [];
-        cfg.style = '3d';
-        cfg.rotate = 0;
-        cfg.grad = D.sensors('MEG');
-   
-        lay = ft_prepare_layout(cfg);
-          
-        [sel1, sel2] = spm_match_str(D.inv{val}.datareg.sensors.label, lay.label);        
-        
-        sens = [];
-        sens.label = lay.label(sel2, 1);
-        sens.pnt = lay.pos(sel2, :);
-        sensorig = cfg.grad;
-end
-        
-modality = D.inv{val}.modality;
-meegfid = D.inv{val}.datareg.fid_eeg;
-vol = D.inv{val}.forward.vol;
-mrifid = D.inv{val}.datareg.fid_mri;
-mesh = D.inv{val}.mesh;
+datareg = D.inv{val}.datareg;
 
+str = sprintf('%s|', datareg(:).modality);
+str = str(1:(end-1));
+
+ind = spm_input('What to display?','+1', 'b',  str, 1:numel(D.inv{val}.datareg), 1);    
+
+
+% --- Set up variables ---
+%==========================================================================
+modality = datareg(ind).modality;
+meegfid =  datareg(ind).fid_eeg;
+mrifid =   datareg(ind).fid_mri;
+mesh = spm_eeg_inv_transform_mesh(datareg(ind).fromMNI, D.inv{val}.mesh);
+sensors = datareg(ind).sensors;
 
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 subplot(2,1,1)
 
+% --- DISPLAY ANATOMY ---
+%==========================================================================
+Mcortex = mesh.tess_ctx;
+Miskull = mesh.tess_iskull;
+Mscalp  = mesh.tess_scalp;
+
 % Cortical Mesh
 %--------------------------------------------------------------------------
-face    = mesh.tess_ctx.face;
-vert    = mesh.tess_ctx.vert;
+face    = Mcortex.face;
+vert    = Mcortex.vert;
 h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 hold on
 
+% Inner-skull Mesh
+%--------------------------------------------------------------------------
+face    = Miskull.face;
+vert    = Miskull.vert;
+h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
+
 % Scalp Mesh
 %--------------------------------------------------------------------------
-face    = mrifid.tri;
-vert    = mrifid.pnt;
-h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[0 0 0],'FaceColor','none');
-
-
-% Inner volume Mesh
-%--------------------------------------------------------------------------
-face    = vol.bnd(end).tri;
-vert    = vol.bnd(end).pnt;
-h_vol   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
-
+face    = Mscalp.face;
+vert    = Mscalp.vert;
+h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
 % --- DISPLAY SETUP ---
 %==========================================================================
 try
-    Lsens   = sens.pnt;
+    [Lsens, Llabel]   = spm_eeg_layout3D(sensors, modality);
     Lhsp    = meegfid.pnt;
     Lfidmri = mrifid.fid.pnt;
     Lfid    = meegfid.fid.pnt(1:size(Lfidmri, 1), :);
-    Llabel = sens.label;
 catch
     warndlg('please coregister these data')
     return
 end
-
 
 % EEG fiducials or MEG coils (coreg.)
 %--------------------------------------------------------------------------
@@ -116,7 +107,7 @@ zoom(5/3)
 %==========================================================================
 subplot(2,1,2)
 
-[xy, label] = spm_eeg_project3D(sensorig, modality);
+[xy, label] = spm_eeg_project3D(sensors, modality);
 
 % Channel names
 %--------------------------------------------------------------------------

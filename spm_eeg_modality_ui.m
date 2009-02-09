@@ -1,39 +1,39 @@
-function modality = spm_eeg_modality_ui(D, scalp)
-% Determine the main modality of an meeg object. 
-% If confused, asks the user
-% _________________________________________________________________________
+function [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
+% spm_eeg_modality_ui - tries to determine the main modality
+% of an meeg object. If confused, asks the user.
+%
+% FORMAT [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
+%
+% modality - the chosen modality
+% chanind  - indices of the corresponding channels
+% planar   - distinguish between MEG planar and other MEG types
+% _________________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_modality_ui.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_modality_ui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 if nargin == 1
     scalp = 0;
+elseif nargin ==2
+    planar = 0;
 end
 
-% indices of EEG channel (excluding bad channels)
-%--------------------------------------------------------------------------
-% At the moment only the 3 modalities relevant for DCM and 3D source
-% reconstruction are probed.
-if scalp
-    modalities = {'EEG', 'MEG'};
-else
-    modalities = {'EEG', 'MEG', 'LFP'};
-end
+[mod, list] = modality(D, scalp, planar);
 
-modind = sort(unique(spm_match_str(modalities, D.chantype)));
-
-if length(modind)> 1
+if isequal(mod, 'Multimodal')
     qstr = [];
-    for i = 1:length(modind)
+    for i = 1:numel(list)
         if ~isempty(qstr)
             qstr = [qstr '|'];
         end
-        qstr = [qstr modalities{modind(i)}];
+        qstr = [qstr list{i}];
     end
-    modality = spm_input('Which modality?','+1',qstr);
-elseif length(modind) == 1
-    modality = modalities{modind};
+    mod = list{spm_input('Which modality?','+1', 'm', qstr)};
+end
+
+if isequal(mod, 'MEG') && planar
+    chanind = setdiff(strmatch('MEG', D.chantype) , strmatch('MEGPLANAR', D.chantype));
 else
-    error('Could not determine the modality');
+    chanind = strmatch(mod, D.chantype);
 end

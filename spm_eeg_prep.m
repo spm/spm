@@ -9,7 +9,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_prep.m 2720 2009-02-09 19:50:46Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -23,8 +23,48 @@ if isa(D, 'char')
 end
 
 switch S.task
-    case 'settype'        
+    case 'settype'
         D = chantype(D, S.ind, S.type);
+    case 'defaulttype'
+        if isfield(S, 'ind')
+            ind = S.ind;
+        else
+            ind = 1:D.nchannels;
+        end
+
+        dictionary = {
+            'eog',           'EOG';
+            'eeg',           'EEG';
+            'ecg',           'ECG';
+            'lfp',           'LFP';
+            'emg',           'EMG';
+            'meg',           'MEG';
+            'ref',           'REF';
+            'megmag',        'MEGMAG';
+            'megplanar',     'MEGPLANAR';
+            'meggrad',       'MEGGRAD';
+            'refmag',        'REFMAG';
+            'refgrad',       'REFGRAD'
+            };
+
+        D = chantype(D, ind, 'Other');
+
+        if isfield(D, 'origchantypes')
+            [sel1, sel2] = spm_match_str(chanlabels(D, ind), D.origchantypes.label);
+
+            ind  = ind(sel1);
+            type = D.origchantypes.type(sel2);
+        else
+            type = fileio_chantype(D.chanlabels);
+        end
+
+        [sel1, sel2] = spm_match_str(type, dictionary(:, 1));
+
+        spmtype = repmat({'Other'}, 1, numel(type));
+
+        spmtype(sel1) = dictionary(sel2, 2);
+
+        D = chantype(D, ind, spmtype);
     case {'loadtemplate', 'setcoor2d', 'project3D'}
         switch S.task
             case 'loadtemplate'
@@ -76,6 +116,30 @@ switch S.task
                 elec = [];
                 elec.pnt = senspos;
                 elec.label = label;
+                
+                headshape = load(S.headshapefile);
+                name    = fieldnames(headshape);
+                headshape = getfield(headshape,name{1});
+                
+                shape = [];
+
+                fidnum = 0;
+                while ~all(isspace(S.fidlabel))
+                    fidnum = fidnum+1;
+                    [shape.fid.label{fidnum} S.fidlabel] = strtok(S.fidlabel);
+                end
+
+                if (fidnum < 3)  || (size(headshape, 1) < fidnum)
+                    error('At least 3 labeled fiducials are necessary');
+                end
+
+                shape.fid.pnt = headshape(1:fidnum, :);
+
+                if size(headshape, 1) > fidnum
+                    shape.pnt = headshape((fidnum+1):end, :);
+                else
+                    shape.pnt = [];
+                end
             case 'locfile'
                 label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
 
@@ -91,18 +155,33 @@ switch S.task
                         error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
                     end
                 end
+                
+                shape = fileio_read_headshape(S.sensfile);
+
+                % In case electrode file is used for fiducials, the
+                % electrodes can be used as headshape
+                if ~isfield(shape, 'pnt') || isempty(shape.pnt) && ...
+                        size(shape.fid.pnt, 1) > 3
+                    shape.pnt = shape.fid.pnt;
+                end
 
         end
 
         elec = forwinv_convert_units(elec, 'mm');
 
+        if isequal(D.modality(1, 0), 'Multimodal')
+            if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
+                M1 = coreg(D.fiducials, shape, S.regfid);
+                elec = forwinv_transform_sens(M1, elec);
+            else
+                error(['MEG fiducials matched to EEG fiducials are required '...
+                    'to add EEG sensors to a multimodal dataset.']);
+            end
+        else
+            D = fiducials(D, shape);
+        end
+
         D = sensors(D, 'EEG', elec);
-
-        fid = [];
-        fid.fid = elec;
-        fid.pnt = elec.pnt;
-
-        D = fiducials(D, fid);
 
     case 'defaulteegsens'
 
@@ -130,8 +209,6 @@ switch S.task
             fid.fid.pnt = elec.pnt(1:3, :);
             fid.fid.label = elec.label(1:3);
 
-            D = fiducials(D, fid);
-
             [xy, label] = spm_eeg_project3D(D.sensors('EEG'), 'EEG');
 
             [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
@@ -151,6 +228,14 @@ switch S.task
                     D = coor2D(D, sel1, num2cell(xy(:, sel2)));
                 end
             end
+
+            if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
+                M1 = coreg(D.fiducials, fid, S.regfid);
+                D = sensors(D, 'EEG', forwinv_transform_sens(M1, D.sensors('EEG')));
+            else
+                D = fiducials(D, fid);
+            end
+
         end
 
     case 'sens2chan'
@@ -217,30 +302,13 @@ switch S.task
         shape = forwinv_convert_units(shape, 'mm');
 
         fid = D.fiducials;
-        if ~isempty(fid) && ~isempty(S.regfid)
-            [junk, sel1] = spm_match_str(S.regfid(:, 1), fid.fid.label);
-            [junk, sel2] = spm_match_str(S.regfid(:, 2), shape.fid.label);
 
-            S1 = [];
-            S1.targetfid = fid;
-            S1.targetfid.fid.pnt = S1.targetfid.fid.pnt(sel1, :);            
-
-            S1.sourcefid = shape;
-            S1.sourcefid.fid.pnt = S1.sourcefid.fid.pnt(sel2, :);
-            S1.sourcefid.fid.label = S1.sourcefid.fid.label(sel2);
-
-            S1.targetfid.fid.label = S1.sourcefid.fid.label;
-            
-            S1.template = 1;
-            S1.useheadshape = 0;
-
-            M1 = spm_eeg_inv_datareg(S1);
-
+        if ~isempty(fid) && isfield(S, 'regfid') && ~isempty(S.regfid)
+            M1 = coreg(fid, shape, S.regfid);
             shape = forwinv_transform_headshape(M1, shape);
         end
-
-        D = fiducials(D, shape);
-
+        
+        D = fiducials(D, shape);           
     case 'coregister'
         [ok, D] = check(D, 'sensfid');
 
@@ -252,13 +320,14 @@ switch S.task
             val = D.val;
             Msize = D.inv{val}.mesh.Msize;
         catch
-            val = 0;
+            val = 1;
             Msize = 1;
         end
+        
         D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
-        D = spm_eeg_inv_datareg_ui(D, 1, S.modality);
+        D = spm_eeg_inv_datareg_ui(D, val);
 
-        if strcmp(S.modality, 'EEG')
+        if isequal(D.modality(1, 0), 'EEG')
             D = sensors(D, 'EEG', D.inv{1}.datareg.sensors);
             D = fiducials(D, D.inv{1}.datareg.fid_eeg);
         end
@@ -278,4 +347,26 @@ end
 
 if isfield(S, 'save') && S.save
     save(D);
+end
+
+end
+
+function M1 = coreg(fid, shape, regfid)
+[junk, sel1] = spm_match_str(regfid(:, 1), fid.fid.label);
+[junk, sel2] = spm_match_str(regfid(:, 2), shape.fid.label);
+
+S = [];
+S.targetfid = fid;
+S.targetfid.fid.pnt = S.targetfid.fid.pnt(sel1, :);
+
+S.sourcefid = shape;
+S.sourcefid.fid.pnt = S.sourcefid.fid.pnt(sel2, :);
+S.sourcefid.fid.label = S.sourcefid.fid.label(sel2);
+
+S.targetfid.fid.label = S.sourcefid.fid.label;
+
+S.template = 1;
+S.useheadshape = 0;
+
+M1 = spm_eeg_inv_datareg(S);
 end

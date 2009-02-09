@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2543 2008-12-09 19:44:24Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2720 2009-02-09 19:50:46Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -62,6 +62,9 @@ switch D.PSD.VIZU.modality
     case 'meg'
         I = D.PSD.MEG.I;
         scb  =6;
+    case 'megplanar'
+        I = D.PSD.MEGPLANAR.I;
+        scb  =6;    
     case 'other'
         I = D.PSD.other.I;
         scb = [];  % no scalp interpolation button
@@ -128,6 +131,8 @@ switch D.PSD.VIZU.modality
         I = D.PSD.EEG.I;
     case 'meg'
         I = D.PSD.MEG.I;
+    case 'megplanar'
+        I = D.PSD.MEGPLANAR.I;    
     case 'other'
         I = D.PSD.other.I;
 end
@@ -173,6 +178,8 @@ else
                 I = D.PSD.EEG.I;
             case 'meg'
                 I = D.PSD.MEG.I;
+            case 'megplanar'
+                I = D.PSD.MEGPLANAR.I;    
             case 'other'
                 I = D.PSD.other.I;
         end
@@ -253,8 +260,9 @@ if ~~D.PSD.source.VIZU.current
     end
 
     % Create mesh and related objects
-    mesh.vertices = D.other.inv{invN}.mesh.tess_mni.vert;
-    mesh.faces = D.other.inv{invN}.mesh.tess_mni.face;
+    Dmesh = spm_eeg_inv_transform_mesh(eye(4), D.other.inv{invN}.mesh);
+    mesh.vertices = Dmesh.tess_mni.vert;
+    mesh.faces = Dmesh.tess_mni.face;
     options.texture = J(:,indTime);
     options.hfig = D.PSD.handles.hfig;
     options.ParentAxes = D.PSD.handles.axes;

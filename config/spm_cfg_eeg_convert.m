@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2203 2008-09-26 11:40:23Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2720 2009-02-09 19:50:46Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -155,10 +155,18 @@ checkboundary.help = {'1 - check if there are breaks in the file and do not read
                        'across those breaks (default).',...
                    '0 - ignore breaks (not recommended)'};
                
+inputformat = cfg_entry;
+inputformat.tag = 'inputformat';
+inputformat.name = 'Input data format';
+inputformat.strtype = 's';
+inputformat.val = {'autodetect'};
+inputformat.num = [1 inf];
+inputformat.help = {'Force the reader to assume a particular data format (usually not necessary)'};               
+               
 S = cfg_exbranch;
 S.tag = 'eeg_convert';
 S.name = 'M/EEG Conversion';
-S.val = {dataset continuous channels outfile datatype eventpadding blocksize checkboundary};
+S.val = {dataset continuous channels outfile datatype eventpadding blocksize checkboundary inputformat};
 S.help = {'Converts EEG/MEG data.'};
 S.prog = @eeg_convert;
 S.vout = @vout_eeg_convert;
@@ -174,6 +182,10 @@ S.datatype = job.datatype;
 S.eventpadding = job.eventpadding;
 S.blocksize = job.blocksize;
 S.checkboundary = job.checkboundary;
+
+if ~isequal(job.inputformat, 'autodetect')
+    S.inputformat = job.inputformat;
+end
 
 if isfield(S.continuous, 'read')
     S.continuous = 1;

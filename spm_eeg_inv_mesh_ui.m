@@ -12,7 +12,7 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 2452 2008-11-10 18:45:32Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 2720 2009-02-09 19:50:46Z vladimir $
 
 
 % initialise
@@ -26,12 +26,20 @@ if val == 0
 end
 
 if ~isfield(D, 'inv')
-    D.inv = {struct([])};
-end
-
-if ~isfield(D.inv{val}, 'modality')
-    modality = spm_eeg_modality_ui(D, 1);
-    D.inv{val}(1).modality = modality;
+    D.inv = {struct('mesh', [])};
+    clck = fix(clock);
+    if clck(5) < 10
+        clck = [num2str(clck(4)) ':0' num2str(clck(5))];
+    else
+        clck = [num2str(clck(4)) ':' num2str(clck(5))];
+    end
+    D.inv{val}.date    = strvcat(date,clck);
+    D.inv{val}.comment = {''};
+else
+    inv = struct('mesh', []);
+    inv.comment = D.inv{val}.comment;
+    inv.date    = D.inv{val}.date;
+    D.inv{val} = inv;
 end
 
 if nargin>2
@@ -44,27 +52,23 @@ if isempty(template)
     template = spm_input('Select head  model', '+1','template|individual', [1 0]);
 end
 
+if template
+    sMRI = [];
+else
+    % get sMRI file name
+    sMRI = spm_select([0 1],'image','Select subject''s structural MRI (Press Done if none)');
+    if isempty(sMRI)
+        error('No structural MRI selected.');
+    end
+end
+    
 if nargin>3
     Msize = varargin{4};
 else
-    Msize = spm_input('Mesh size (vertices)', '+1','3000|4000|5000|7200', [1 2 3 4]);
+    Msize = spm_input('Cortical mesh', '+1', 'coarse|normal|fine', [1 2 3]);
 end
 
-if template
-    [vol, fid, mesh] = spm_eeg_inv_template(Msize, D.inv{val}.modality);
-else
-    if strcmp(D.inv{val}(1).modality, 'MEG')
-        sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
-        [vol, fid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, D.inv{val}.modality);
-    else
-        warndlg('MRI-based head models are not supported for EEG')
-        return;
-    end
-end
-
-D.inv{val}.mesh = mesh;
-D.inv{val}.datareg.fid_mri = fid;
-D.inv{val}.forward.vol = vol;
+D.inv{val}.mesh = spm_eeg_inv_mesh(sMRI, Msize);
 
 % check meshes and display
 %--------------------------------------------------------------------------
