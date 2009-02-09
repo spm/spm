@@ -13,6 +13,7 @@ function [t,sts] = cfg_getfile(varargin)
 %           'image' - Image files (".img" and ".nii")
 %                     Note that it gives the option to select
 %                     individual volumes of the images.
+%           'mesh'  - Mesh files (".gii" and ".mat")
 %           'xml'   - XML files
 %           'mat'   - Matlab .mat files or .txt files (assumed to contain
 %                     ASCII representation of a 2D-numeric array)
@@ -77,7 +78,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2579 2008-12-19 13:50:36Z volkmar $
+% $Id: cfg_getfile.m 2719 2009-02-09 19:27:55Z guillaume $
 
 t = {};
 sts = false;
@@ -1305,7 +1306,9 @@ if nargin<1, typ     = 'any';   end;
 switch lower(typ),
 case {'any','*'}, code = 0; ext = {'.*'};
 case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'mesh'},    code = 0; ext = {'.*\.gii$','.*\.GII$','.*\.mat$','.*\.MAT$'};
 case {'nifti'},   code = 0; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'gifti'},   code = 0; ext = {'.*\.gii$','.*\.GII$'};
 case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
                             '.*\.img(,[0-9]*){0,1}$',...
                             '.*\.NII(,[0-9]*){0,1}$',...
