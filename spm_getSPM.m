@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 2708 2009-02-06 19:52:48Z karl $
+% $Id: spm_getSPM.m 2712 2009-02-09 14:08:37Z guillaume $
 
 
 %-GUI setup
@@ -225,11 +225,11 @@ end
 
 % check the data and other files have valid filenames
 %-----------------------------------------------------------------------
-SPM.xY.VY     = spm_filename_check(SPM.xY.VY);
-SPM.xVol.VRpv = spm_filename_check(SPM.xVol.VRpv);
-SPM.Vbeta     = spm_filename_check(SPM.Vbeta);
-SPM.VResMS    = spm_filename_check(SPM.VResMS);
-SPM.VM        = spm_filename_check(SPM.VM);
+try, SPM.xY.VY     = spm_filename_check(SPM.xY.VY);     end
+try, SPM.xVol.VRpv = spm_filename_check(SPM.xVol.VRpv); end
+try, SPM.Vbeta     = spm_filename_check(SPM.Vbeta);     end
+try, SPM.VResMS    = spm_filename_check(SPM.VResMS);    end
+try, SPM.VM        = spm_filename_check(SPM.VM);        end
 
 %-Contrast definitions
 %=======================================================================
