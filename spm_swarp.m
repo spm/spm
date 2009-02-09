@@ -15,7 +15,7 @@ function that = spm_swarp(this,def,M)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_swarp.m 2705 2009-02-06 15:37:19Z john $
+% $Id: spm_swarp.m 2713 2009-02-09 15:51:01Z john $
 
 if ~isa(this,'gifti'), this = gifti(this); end
 
@@ -32,15 +32,38 @@ else
     if nargin<3, M = eye(4); end
 end
 
-%vrt = this.vertices;
-vrt = subsref(this,substruct('.','vertices'));
-
+v   = this.vertices;
 iM  = inv(M);
-vrt = iM(1:3,1:4)*[vrt'; ones(1,size(vrt,1))];
-xyz = {double(vrt(1,:)'),double(vrt(2,:)'),double(vrt(3,:)')};
-vrt = [spm_bsplins(y(:,:,:,1,1),xyz{:},[1 1 1 0 0 0]),...
+v   = iM(1:3,1:4)*[v'; ones(1,size(v,1))];
+xyz = {double(v(1,:)'),double(v(2,:)'),double(v(3,:)')};
+v   = [spm_bsplins(y(:,:,:,1,1),xyz{:},[1 1 1 0 0 0]),...
        spm_bsplins(y(:,:,:,1,2),xyz{:},[1 1 1 0 0 0]),...
        spm_bsplins(y(:,:,:,1,3),xyz{:},[1 1 1 0 0 0])];
 
-that = subsasgn(this,substruct('.','vertices'),vrt);
+% Much of the surface data is likely to fall outside the FOV of the deformation
+% field.  For this reason, the following code attempts to extrapolate the surfaces
+% outside this FOV by replacing NaNs in the vertice coordinates by some smooth mesh.
+
+f = this.faces;
+m = size(v,1);
+
+% Gradients
+b = double([v(:,1); v(:,2); v(:,3)]);
+w = isfinite(b);
+b(~w) = 0;
+
+% Hessian
+A = spdiags(w,0,m*3,m*3);
+f = double(f);
+W = sparse(f(:,1),f(:,1),1,m,m) + sparse(f(:,2),f(:,2),1,m,m) + sparse(f(:,3),f(:,3),1,m,m)...
+  - sparse(f(:,1),f(:,2),1,m,m) - sparse(f(:,2),f(:,3),1,m,m) - sparse(f(:,3),f(:,1),1,m,m);
+W = (W'*W + 0.25*W)*1e-2;
+Z = sparse([],[],[],m,m);
+A = A + [W Z Z; Z W Z; Z Z W];
+
+% Solution to simple linear model.
+v = full(reshape(A\b,m,3));
+
+% Generate the gifti structure for the warped data.
+that = subsasgn(this,substruct('.','vertices'),v);
 
