@@ -18,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.5  2009/02/09 13:32:36  roboos
+% only whitespace
+%
 % Revision 1.4  2009/01/23 16:18:15  roboos
 % changed indentation
 %
@@ -90,7 +93,6 @@ if denoise
     end
   end
 end
-
 
 if fixctf
   % correct for reading the data as signed 32-bit integer, whereas it should be interpreted as an unsigned int

@@ -31,6 +31,16 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.78  2009/02/09 14:21:00  roboos
+% added inport of micromed_trc data
+%
+% Revision 1.77  2009/02/09 13:35:16  roboos
+% implemented efficient caching for bci2000,
+% it should be initiated in read_header, subsequently read_data and read_event will reuse the details from the header
+%
+% Revision 1.76  2009/02/09 12:42:27  vlalit
+% Added a check for discontinuous boundary in the case of neuromag_mne evoked data.
+%
 % Revision 1.75  2009/02/06 10:12:20  roboos
 % incorporated the latest suggestions of Laurence Hunt for neuromag_mne
 %
@@ -478,23 +488,27 @@ if checkboundary && hdr.nTrials>1
   end
 end
 
-% implement the caching in a data-format independent way
-if cache && isempty(cachedata)
-  % create a new FieldTrip raw data structure that will hold the data
-  cachedata.label = hdr.label(chanindx);
-  cachedata.fsample = hdr.Fs;
-  cachedata.time    = {};
-  cachedata.trial   = {};
-  cachedata.cfg     = [];
-  cachedata.cfg.trl = zeros(0,3);
-elseif cache && ~isempty(cachedata)
-  % try to fetch the requested segment from the cache
-  try
-    dat = fetch_data(cachedata, 'begsample', begsample', 'endsample', endsample);
-    % fprintf('caching succeeded\n');
-    return
-  catch
-    % fprintf('caching failed\n');
+if strcmp(dataformat, 'bci2000_dat')
+  % caching for BCI2000 is handled in the main section and in read_header
+else
+  % implement the caching in a data-format independent way
+  if cache && isempty(cachedata)
+    % create a new FieldTrip raw data structure that will hold the data
+    cachedata.label = hdr.label(chanindx);
+    cachedata.fsample = hdr.Fs;
+    cachedata.time    = {};
+    cachedata.trial   = {};
+    cachedata.cfg     = [];
+    cachedata.cfg.trl = zeros(0,3);
+  elseif cache && ~isempty(cachedata)
+    % try to fetch the requested segment from the cache
+    try
+      dat = fetch_data(cachedata, 'begsample', begsample', 'endsample', endsample);
+      % fprintf('caching succeeded\n');
+      return
+    catch
+      % fprintf('caching failed\n');
+    end
   end
 end
 
@@ -569,7 +583,15 @@ switch dataformat
     % this requires the load_bcidat mex file to be present on the path
     hastoolbox('BCI2000', 1);
     % this is inefficient, since it reads the complete data
-    [signal, states, parameters, total_samples] = load_bcidat(filename);
+    if isfield(hdr.orig, 'signal') && isfield(hdr.orig, 'states')
+      % assume that the complete data is stored in the header, this speeds up subsequent read operations
+      signal        = hdr.orig.signal;
+      states        = hdr.orig.states;
+      parameters    = hdr.orig.parameters;
+      total_samples = hdr.orig.total_samples;
+    else
+      [signal, states, parameters, total_samples] = load_bcidat(filename);
+    end
     % apply the callibration from AD units to uV
     dat = double(signal(begsample:endsample,chanindx)');
     for i=chanindx(:)'
@@ -765,6 +787,11 @@ switch dataformat
   case {'egi_sbin'}
     dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
     dimord = 'chans_samples_trials';
+    
+  case 'micromed_trc'
+    dat = read_micromed_trc(filename, begsample, endsample);
+    dat = dat(chanindx,:);
+    dimord = 'chans_samples';
 
   case {'mpi_ds', 'mpi_dap'}
     [hdr, dat] = read_mpi_ds(filename);
@@ -876,6 +903,15 @@ switch dataformat
       dimord = 'chans_samples';
     elseif (hdr.orig.isaverage)
       dat = cat(2, hdr.orig.evoked.epochs);            % concatenate all epochs, this works both when they are of constant or variable length
+      if checkboundary
+          trialnumber = [];
+          for i = 1:numel(hdr.orig.evoked)
+              trialnumber = [trialnumber i*ones(size(hdr.orig.evoked(i).times))];
+          end
+          if trialnumber(begsample) ~= trialnumber(endsample)
+              error('requested data segment extends over a discontinuous trial boundary');
+          end
+      end
       dat = dat(chanindx, begsample:endsample);        % select the desired channels and samples
       dimord = 'chans_samples';
     elseif (hdr.orig.isepoched)
@@ -1081,12 +1117,15 @@ elseif requestsamples && strcmp(dimord, 'chans_samples_trials')
   dat = dat(:,begselection2:endselection2);
 end
 
-if cache && requestsamples
-  % add the new segment to the cache
-  % FIMXE the cache size should be limited
-  cachedata.cfg.trl(end+1,:) = [begsample endsample 0];
-  cachedata.trial{end+1} = dat;
-  cachedata.time{end+1} = (1:size(dat,2))/cachedata.fsample;
-  % fprintf('added segment to cache\n');
+if strcmp(dataformat, 'bci2000_dat')
+  % caching for BCI2000 is handled in the main section and in read_header
+else
+  % implement caching in a data independent way
+  if cache && requestsamples
+    % add the new segment to the cache
+    % FIMXE the cache size should be limited
+    cachedata.cfg.trl(end+1,:) = [begsample endsample 0];
+    cachedata.trial{end+1} = dat;
+    cachedata.time{end+1} = (1:size(dat,2))/cachedata.fsample;
+  end
 end
-

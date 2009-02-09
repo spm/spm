@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.94  2009/02/09 14:21:00  roboos
+% added inport of micromed_trc data
+%
 % Revision 1.93  2009/01/07 10:37:55  roboos
 % changed description for neuralynx_sdma, should not have any functional consequences
 %
@@ -364,6 +367,12 @@ elseif filetype_check_extension(filename, '.svl')
   ftype = 'ctf_svl';
   manufacturer = 'CTF';
   content = 'SAM (pseudo-)statistic volumes';
+
+  % known Micromed file types
+elseif filetype_check_extension(filename, '.trc') && filetype_check_header(filename, '* MICROMED')
+  ftype = 'micromed_trc';
+  manufacturer = 'Micromed';
+  content = 'Electrophysiological data';
 
   % known Neuromag file types
 elseif filetype_check_extension(filename, '.fif')

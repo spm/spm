@@ -59,6 +59,14 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.88  2009/02/09 13:35:16  roboos
+% implemented efficient caching for bci2000,
+% it should be initiated in read_header, subsequently read_data and read_event will reuse the details from the header
+%
+% Revision 1.87  2009/02/09 12:41:31  vlalit
+% All the numeric values in events array are converted to double (to prevent problems
+%  with  integer types that can appear for some formats).
+%
 % Revision 1.86  2009/02/06 10:12:20  roboos
 % incorporated the latest suggestions of Laurence Hunt for neuromag_mne
 %
@@ -462,11 +470,17 @@ switch eventformat
   case 'bci2000_dat'
     % this requires the load_bcidat mex file to be present on the path
     hastoolbox('BCI2000', 1);
-    % this is inefficient, since it reads the complete data
-    [signal, states, parameters, total_samples] = load_bcidat(filename);
+    if isfield(hdr.orig, 'signal') && isfield(hdr.orig, 'states')
+      % assume that the complete data is stored in the header, this speeds up subsequent read operations
+      signal        = hdr.orig.signal;
+      states        = hdr.orig.states;
+      parameters    = hdr.orig.parameters;
+      total_samples = hdr.orig.total_samples;
+    else
+      [signal, states, parameters, total_samples] = load_bcidat(filename);
+    end
 
     list = fieldnames(states);
-
     % loop over all states and detect the flanks, the following code was taken from read_trigger
     for i=1:length(list)
       channel   = list{i};
@@ -1504,6 +1518,18 @@ if ~isempty(event)
   if ~isfield(event, 'value'),    for i=1:length(event), event(i).value = [];    end; end
   if ~isfield(event, 'offset'),   for i=1:length(event), event(i).offset = [];   end; end
   if ~isfield(event, 'duration'), for i=1:length(event), event(i).duration = []; end; end
+end
+
+% make sure that all numeric values are double
+if ~isempty(event)
+    for i=1:length(event)
+        if isnumeric(event(i).value)
+            event(i).value = double(event(i).value);
+        end
+        event(i).sample    = double(event(i).sample);
+        event(i).offset    = double(event(i).offset);
+        event(i).duration  = double(event(i).duration);
+    end
 end
 
 if ~isempty(event)

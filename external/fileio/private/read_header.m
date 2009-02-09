@@ -55,6 +55,13 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.91  2009/02/09 14:21:00  roboos
+% added inport of micromed_trc data
+%
+% Revision 1.90  2009/02/09 13:35:16  roboos
+% implemented efficient caching for bci2000,
+% it should be initiated in read_header, subsequently read_data and read_event will reuse the details from the header
+%
 % Revision 1.89  2009/02/06 10:12:20  roboos
 % incorporated the latest suggestions of Laurence Hunt for neuromag_mne
 %
@@ -459,6 +466,8 @@ if ~strcmp(filename, headerfile) && ~filetype(filename, 'ctf_ds')
   headerformat = filetype(filename);        % update the filetype
 end
 
+
+% implement the caching in a data-format independent way
 if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
   % try to get the header from cache
   details = dir(headerfile);
@@ -467,10 +476,10 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
     % fprintf('got header from cache\n');
     hdr = rmfield(cacheheader, 'details');
 
-    % for realtime analysis EOF chasing the res4 does not correctly
-    % estimate the number of samples, so we compute it on the fly
     switch filetype(datafile)
       case {'ctf_ds' 'ctf_meg4' 'ctf_old' 'read_ctf_res4'}
+        % for realtime analysis EOF chasing the res4 does not correctly
+        % estimate the number of samples, so we compute it on the fly
         sz = 0;
         files = dir([filename '/*.*meg4']);
         for j=1:numel(files)
@@ -482,7 +491,6 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
     return;
   end % if the details correspond
 end % if cache
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % read the data with the low-level reading function
@@ -518,35 +526,34 @@ switch headerformat
     hastoolbox('BCI2000', 1);
     % this is inefficient, since it reads the complete data
     [signal, states, parameters, total_samples] = load_bcidat(filename);
-    orig = parameters;
+    % convert into a FieldTrip-like header
+    hdr             = [];
+    hdr.nChans      = size(signal,2);
     hdr.nSamples    = total_samples;
     hdr.nSamplesPre = 0;  % it is continuous
     hdr.nTrials     = 1;  % it is continuous
-    hdr.Fs          = orig.SamplingRate.NumericValue;
-
+    hdr.Fs          = parameters.SamplingRate.NumericValue;
     % there are some differences in the fields that are present in the
     % *.dat files, probably due to different BCI2000 versions
-    if isfield(orig, 'SourceCh') && isfield(orig.SourceCh, 'NumericValue')
-      hdr.nChans      = orig.SourceCh.NumericValue;
-    elseif isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Value')
-      hdr.nChans      = length(orig.ChannelNames.Value);
+    if isfield(parameters, 'ChannelNames') && isfield(parameters.ChannelNames, 'Value') && ~isempty(parameters.ChannelNames.Value)
+      hdr.label       = parameters.ChannelNames.Value;
+    elseif isfield(parameters, 'ChannelNames') && isfield(parameters.ChannelNames, 'Values') && ~isempty(parameters.ChannelNames.Values)
+      hdr.label       = parameters.ChannelNames.Values;
     else
-      error('cannot determine the number of channels from the original BCI2000 header');
-    end
-
-    if isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Value') && ~isempty(orig.ChannelNames.Value)
-      hdr.label       = orig.ChannelNames.Value;
-    elseif isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Values') && ~isempty(orig.ChannelNames.Values)
-      hdr.label       = orig.ChannelNames.Values;
-    else
-      warning('creating fake channel names for bci2000_dat');
+      warning('creating fake channel names');
       for i=1:hdr.nChans
         hdr.label{i} = sprintf('%d', i);
       end
     end
 
-    % remember original header details
-    hdr.orig        = orig;
+    % remember the original header details
+    hdr.orig.parameters       = parameters;
+    % also remember the complete data upon request
+    if cache
+      hdr.orig.signal         = signal;
+      hdr.orig.states         = states;
+      hdr.orig.total_samples  = total_samples;
+    end
 
   case 'besa_avr'
     orig = read_besa_avr(filename);
@@ -560,9 +567,9 @@ switch headerformat
     elseif isfield(orig, 'label') && ischar(orig.label)
       hdr.label = tokenize(orig.label, ' ');
     else
-      warning('creating fake channel names for besa_avr');
+      warning('creating fake channel names');
       for i=1:hdr.nChans
-        hdr.label{i} = sprintf('%03d', i);
+        hdr.label{i} = sprintf('%d', i);
       end
     end
 
@@ -925,8 +932,9 @@ switch headerformat
     hdr.nSamples    = orig.nsamples;
     hdr.nSamplesPre = 0; % since continuous
     hdr.nTrials     = 1; % since continuous
-    for i=1:orig.nchans
-      hdr.label{i} = sprintf('chan%03d', i);
+    warning('creating fake channel names');
+    for i=1:hdr.nChans
+      hdr.label{i} = sprintf('%3d', i);
     end
     % this should be a column vector
     hdr.label = hdr.label(:);
@@ -946,6 +954,23 @@ switch headerformat
       hdr = db_select('fieldtrip.header', {'nChans', 'nSamples', 'nSamplesPre', 'Fs', 'label'}, 1);
       hdr.label = mxDeserialize(hdr.label);
     end
+    
+  case 'micromed_trc'
+    orig = read_micromed_trc(filename);
+    hdr             = [];
+    hdr.Fs          = orig.Rate_Min; % FIXME is this correct?
+    hdr.nChans      = orig.Num_Chan;
+    hdr.nSamples    = orig.Num_Samples;
+    hdr.nSamplesPre = 0; % continuous
+    hdr.nTrials     = 1; % continuous
+    warning('creating fake channel names');
+    for i=1:hdr.nChans
+      hdr.label{i} = sprintf('%3d', i);
+    end
+    % this should be a column vector
+    hdr.label = hdr.label(:);
+    % remember the original header details
+    hdr.orig = orig;
 
   case {'mpi_ds', 'mpi_dap'}
     hdr = read_mpi_ds(filename);
@@ -1217,9 +1242,9 @@ switch headerformat
     hdr.nSamples    = orig.NSamples;
     hdr.nSamplesPre = 0;      % continuous
     hdr.nTrials     = 1;      % continuous
+    warning('creating fake channel names');
     for i=1:hdr.nChans
-      % create fake labels
-      hdr.label{i} = sprintf('%03d', i);
+      hdr.label{i} = sprintf('%d', i);
     end
     % also remember the original header
     hdr.orig        = orig;
@@ -1346,7 +1371,6 @@ if cache && exist(headerfile, 'file')
   % update the header details (including time stampp, size and name)
   cacheheader.details = dir(headerfile);
   % fprintf('added header to cache\n');
-
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
