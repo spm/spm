@@ -15,7 +15,7 @@ function that = spm_swarp(this,def,M)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_swarp.m 2713 2009-02-09 15:51:01Z john $
+% $Id: spm_swarp.m 2717 2009-02-09 17:15:01Z vladimir $
 
 if ~isa(this,'gifti'), this = gifti(this); end
 
@@ -44,25 +44,27 @@ v   = [spm_bsplins(y(:,:,:,1,1),xyz{:},[1 1 1 0 0 0]),...
 % field.  For this reason, the following code attempts to extrapolate the surfaces
 % outside this FOV by replacing NaNs in the vertice coordinates by some smooth mesh.
 
-f = this.faces;
-m = size(v,1);
+if isfield(this, 'faces')
+    f = this.faces;
+    m = size(v,1);
 
-% Gradients
-b = double([v(:,1); v(:,2); v(:,3)]);
-w = isfinite(b);
-b(~w) = 0;
+    % Gradients
+    b = double([v(:,1); v(:,2); v(:,3)]);
+    w = isfinite(b);
+    b(~w) = 0;
 
-% Hessian
-A = spdiags(w,0,m*3,m*3);
-f = double(f);
-W = sparse(f(:,1),f(:,1),1,m,m) + sparse(f(:,2),f(:,2),1,m,m) + sparse(f(:,3),f(:,3),1,m,m)...
-  - sparse(f(:,1),f(:,2),1,m,m) - sparse(f(:,2),f(:,3),1,m,m) - sparse(f(:,3),f(:,1),1,m,m);
-W = (W'*W + 0.25*W)*1e-2;
-Z = sparse([],[],[],m,m);
-A = A + [W Z Z; Z W Z; Z Z W];
+    % Hessian
+    A = spdiags(w,0,m*3,m*3);
+    f = double(f);
+    W = sparse(f(:,1),f(:,1),1,m,m) + sparse(f(:,2),f(:,2),1,m,m) + sparse(f(:,3),f(:,3),1,m,m)...
+        - sparse(f(:,1),f(:,2),1,m,m) - sparse(f(:,2),f(:,3),1,m,m) - sparse(f(:,3),f(:,1),1,m,m);
+    W = (W'*W + 0.25*W)*1e-2;
+    Z = sparse([],[],[],m,m);
+    A = A + [W Z Z; Z W Z; Z Z W];
 
-% Solution to simple linear model.
-v = full(reshape(A\b,m,3));
+    % Solution to simple linear model.
+    v = full(reshape(A\b,m,3));
+end
 
 % Generate the gifti structure for the warped data.
 that = subsasgn(this,substruct('.','vertices'),v);
