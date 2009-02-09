@@ -16,9 +16,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_average.m 2715 2009-02-09 17:10:41Z vladimir $
 
-SVNrev = '$Rev: 2696 $';
+SVNrev = '$Rev: 2715 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Dnew = type(Dnew, 'evoked');
 
 %-Do the averaging
 %--------------------------------------------------------------------------
-cl   = unique(conditions(D));
+cl   = D.condlist;
 try artefact = D.artefact; catch artefact = []; end
 if isfield(artefact, 'weights')
     
