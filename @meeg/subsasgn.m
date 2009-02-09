@@ -4,7 +4,7 @@ function this = subsasgn(this,subs,dat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: subsasgn.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: subsasgn.m 2716 2009-02-09 17:14:15Z vladimir $
 
 if isempty(subs)
     return;
@@ -21,7 +21,7 @@ if strcmp(subs(1).type, '.')
         if isempty(this.other)
             this.other = struct(subs(1).subs, {dat});
         else
-            this.other = subsasgn(this.other, subs, dat);
+            this.other = builtin('subsasgn', this.other, subs, dat);
         end
     end
 elseif strcmp(subs(1).type, '()')

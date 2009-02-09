@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 2333 2008-10-13 13:19:22Z vladimir $
+% $Id: subsref.m 2716 2009-02-09 17:14:15Z vladimir $
 
 if isempty(subs)
     return;
@@ -22,20 +22,22 @@ switch subs(1).type
     case '{}'
     case '.'
         if ismethod(this, subs(1).subs)
-            switch numel(subs)
-                case 1
-                    varargout = {feval(subs(1).subs, this)};
-                case 2
-                    varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
-                otherwise
-                    error('Expression too complicated');
+            if numel(subs) == 1
+                varargout = {feval(subs(1).subs, this)};
+            elseif (numel(subs) == 2) && isequal(subs(2).type,  '()')
+                varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
+            elseif (numel(subs)> 2) && isequal(subs(2).type,  '()')
+                varargout{1} = builtin('subsref', ...
+                    feval(subs(1).subs, this, subs(2).subs{:}),  subs(3:end));
+            else
+                varargout{1} = builtin('subsref', feval(subs(1).subs, this),  subs(2:end));
             end
         elseif isfield(this.other, subs(1).subs)
             field = getfield(this.other, subs(1).subs);
             if numel(subs)==1
                 varargout = {field};
             else
-                varargout ={subsref(field, subs(2:end))};
+                varargout{1} = builtin('subsref', field, subs(2:end));
             end
         else
             error('Reference to non-existent or private meeg method or field.');
