@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_dcm_erp.m 2725 2009-02-10 10:15:18Z vladimir $
 
 % check options
 %==========================================================================
@@ -50,7 +50,7 @@ try, lock  = DCM.options.lock;   catch, lock      = 0;         end
 % Data and spatial model (use h only for de-trending data)
 %==========================================================================
 DCM    = spm_dcm_erp_data(DCM,h);
-DCM    = spm_dcm_erp_dipfit(DCM);
+DCM    = spm_dcm_erp_dipfit(DCM, 1);
 xY     = DCM.xY;
 xU     = DCM.xU;
 M      = DCM.M;

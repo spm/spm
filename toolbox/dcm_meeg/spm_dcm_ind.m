@@ -23,7 +23,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 2420 2008-10-30 20:02:37Z vladimir $
+% $Id: spm_dcm_ind.m 2725 2009-02-10 10:15:18Z vladimir $
 
 
 % check options 
@@ -39,8 +39,12 @@ try, onset = DCM.options.onset; catch, onset              = 80;        end
 
 % Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_dipfit(DCM);
-DCM    = spm_dcm_ind_data(DCM);
+DCM    = spm_dcm_erp_dipfit(DCM, 1);
+
+if ~isfield(DCM.xY, 'source')   
+    DCM    = spm_dcm_ind_data(DCM);
+end
+
 xY     = DCM.xY;
 xU     = DCM.xU;
 xU.dt  = xY.dt;
