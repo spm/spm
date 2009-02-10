@@ -45,6 +45,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.12  2009/02/10 10:51:02  jansch
+% implemented subspace projection (for eigenspace bf, sensor-array subsampling etc)
+%
 % Revision 1.11  2008/12/04 11:45:57  jansch
 % made minor change in fixedori for consistency of code with respect to
 % beamformer_dics (added real() and ctranspose)
@@ -193,12 +196,37 @@ end
 invCy = pinv(Cy + lambda * eye(size(Cy)));
 if isfield(dip, 'subspace')
   fprintf('using source-specific subspace projection\n');
-  % remember the original data prior to the voxel dependant subspace projection
+  % remember the original data prior to the voxel dependent subspace projection
   dat_pre_subspace = dat;
   Cy_pre_subspace  = Cy;
 elseif ~isempty(subspace)
   fprintf('using data-specific subspace projection\n');
   % TODO implement an "eigenspace beamformer" as described in Sekihara et al. 2002 in HBM
+  if numel(subspace)==1,
+    % interpret this as a truncation of the eigenvalue-spectrum
+    % if <1 it is a fraction of the largest eigenvalue
+    % if >=1 it is the number of largest eigenvalues
+    dat_pre_subspace = dat;
+    Cy_pre_subspace  = Cy;
+    [u, s, v] = svd(real(Cy));
+    if subspace<1,
+      sel      = find(diag(s)./s(1,1) > subspace);
+      subspace = max(sel);
+    else
+      Cy       = s(1:subspace,1:subspace);
+      invCy    = diag(1./diag(Cy));
+      subspace = u(:,1:subspace)';
+      dat      = subspace*dat;
+    end
+  else
+    % do something else
+    % probably something like:
+    dat_pre_subspace = dat;
+    Cy_pre_subspace  = Cy;
+    Cy    = subspace*Cy*subspace';
+    invCy = pinv(Cy);
+    dat   = subspace*dat;
+  end
 end
 
 % start the scanning with the proper metric
@@ -215,15 +243,6 @@ for i=1:size(dip.pos,1)
     % compute the leadfield
     lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
   end
-  if fixedori
-    % compute the leadfield for the optimal dipole orientation
-    % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
-    filt = pinv(lf' * invCy * lf) * lf' * invCy;
-    [u, s, v] = svd(real(filt * Cy * ctranspose(filt)));
-    eta = u(:,1);
-    lf  = lf * eta;
-    dipout.ori{i} = eta;
-  end
   if isfield(dip, 'subspace')
     % do subspace projection of the forward model
     lf = dip.subspace{i} * lf;
@@ -234,7 +253,26 @@ for i=1:size(dip.pos,1)
   elseif ~isempty(subspace)
     % do subspace projection of the forward model only
     % TODO implement an "eigenspace beamformer" as described in Sekihara et al. 2002 in HBM
-    lf = subspace * lf;
+    lforig = lf;
+    lf     = subspace * lf;
+    % according to the paper, this boils down to projecting the filter onto the subspace
+    % spanned by the first k eigenvectors [u,s,v] = svd(Cy); filt = ESES*filt; 
+    % ESES = u(:,1:k)*u(:,1:k)';
+    % however, even though it seems that the shape of the filter is identical to the shape
+    % it is obtained with the following code, the w*lf=I does not hold.
+  end
+  if fixedori
+    % compute the leadfield for the optimal dipole orientation
+    % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
+    %filt = pinv(lf' * invCy * lf) * lf' * invCy;
+    %[u, s, v] = svd(real(filt * Cy * ctranspose(filt)));
+    % in this step the filter computation is not necessary, use the quick way to compute the
+    % voxel level covariance (cf. van Veen 1997)
+    [u, s, v] = svd(real(pinv(lf' * invCy *lf)));
+    eta = u(:,1);
+    lf  = lf * eta;
+    if ~isempty(subspace), lforig = lforig * eta; end
+    dipout.ori{i} = eta;
   end
   if isfield(dip, 'filter')
     % use the provided filter
@@ -275,10 +313,18 @@ for i=1:size(dip.pos,1)
     end
   end
   if keepfilter
-    dipout.filter{i} = filt;
+    if ~isempty(subspace)
+      dipout.filter{i} = filt*subspace;
+    else
+      dipout.filter{i} = filt;
+    end
   end
   if keepleadfield
-    dipout.leadfield{i} = lf;
+    if ~isempty(subspace)
+      dipout.leadfield{i} = lforig;
+    else
+      dipout.leadfield{i} = lf;
+    end
   end
   progress(i/size(dip.pos,1), 'scanning grid %d/%d\n', i, size(dip.pos,1));
 end
@@ -336,7 +382,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.11 $  $Date: 2008/12/04 11:45:57 $
+%   $Revision: 1.12 $  $Date: 2009/02/10 10:51:02 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

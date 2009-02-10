@@ -14,6 +14,9 @@ function trl = trialfun_realtime(cfg)
 % Copyright (C) 2009, Marcel van Gerven
 %
 % $Log: trialfun_realtime.m,v $
+% Revision 1.6  2009/02/10 10:53:29  marvger
+% default blocksize set to 0.1 (100 ms blocks as in the realtime protocol)
+%
 % Revision 1.5  2009/02/04 13:59:46  marvger
 % removed keyboard command
 %
@@ -31,7 +34,7 @@ function trl = trialfun_realtime(cfg)
 %
 
   if ~isfield(cfg,'minsample'),   cfg.minsample = 0;        end
-  if ~isfield(cfg,'blocksize'),   cfg.blocksize = [0 1];    end
+  if ~isfield(cfg,'blocksize'),   cfg.blocksize = [0 0.1];  end
   if ~isfield(cfg,'bufferdata'),  cfg.bufferdata = 'first'; end
   if ~isfield(cfg,'triggers'),    cfg.triggers = [];        end
   
