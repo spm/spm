@@ -1,26 +1,31 @@
 function out = spm_run_bms_dcm (varargin)
 
-% API to compare DCMs/Log-evidences and allows one to indentify
-% the best model among models being tested
+% API to compare DCMs on the basis of their log-evidences. Three methods 
+% are available to identify the best among alternative models:
 %
-% This function can report the results from
-%  (1) the single subject BMC using bayes factors (see Penny et al,NeuroImage, 2004)
-%  (2) the lst-level group BMC using ffx method (see Penny et al,NeuroImage, 2004)
-%  (3) the 2nd-level group BMC using rfx method (see Stephan et al,NeuroImage, 2009)
+%  (1) single subject BMS using Bayes factors 
+%     (see Penny et al, NeuroImage, 2004)
+%  (2) fixed effects group BMS using group Bayes factors 
+%     (see Stephan et al,NeuroImage, 2007)
+%  (3) random effects group BMS using exceedance probabilities
+%     (see Stephan et al,NeuroImage, 2009)
+%
+% Note: All functions use the negative free energy (F) as an approximation 
+% to the log model evidence.
 %
 % __________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 2650 2009-01-23 20:17:12Z cc $
+% $Id: spm_run_bms_dcm.m 2724 2009-02-10 09:05:46Z klaas $
 
 job     = varargin{1};
 fname  ='BMS.mat';                  % Output filename
 fname  = [job.dir{1},fname];        % Output filename (including directory)
 F = [];
 N = {};
-% prepare the data
 
+% prepare the data
 if  isempty(job.load_f{1})==0  
     data=job.load_f{1};
     load(data);
