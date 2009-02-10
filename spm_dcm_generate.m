@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_generate.m 2723 2009-02-10 09:03:03Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -56,6 +56,8 @@ try
 catch
     M.TE = 0.04;
 end
+M.nlDCM = 0;  % currently only bilinear DCM
+
 
 % Create P vector for spm_int
 %--------------------------------------------------------------------------
