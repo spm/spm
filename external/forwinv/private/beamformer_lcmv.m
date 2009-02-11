@@ -45,6 +45,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.13  2009/02/11 10:25:43  jansch
+% added some comments
+%
 % Revision 1.12  2009/02/10 10:51:02  jansch
 % implemented subspace projection (for eigenspace bf, sensor-array subsampling etc)
 %
@@ -214,16 +217,18 @@ elseif ~isempty(subspace)
       subspace = max(sel);
     else
       Cy       = s(1:subspace,1:subspace);
+      % this is equivalent to subspace*Cy*subspace' but behaves well numerically
+      % by construction.
       invCy    = diag(1./diag(Cy));
       subspace = u(:,1:subspace)';
       dat      = subspace*dat;
     end
   else
-    % do something else
-    % probably something like:
     dat_pre_subspace = dat;
     Cy_pre_subspace  = Cy;
-    Cy    = subspace*Cy*subspace';
+    Cy    = subspace*Cy*subspace'; % here the subspace can be different from
+    % the singular vectors of Cy, so we have to do the sandwiching as opposed
+    % to line 216
     invCy = pinv(Cy);
     dat   = subspace*dat;
   end
@@ -252,14 +257,15 @@ for i=1:size(dip.pos,1)
     invCy = pinv(dip.subspace{i} * (Cy_pre_subspace + lambda * eye(size(Cy_pre_subspace))) * dip.subspace{i}');
   elseif ~isempty(subspace)
     % do subspace projection of the forward model only
-    % TODO implement an "eigenspace beamformer" as described in Sekihara et al. 2002 in HBM
     lforig = lf;
     lf     = subspace * lf;
-    % according to the paper, this boils down to projecting the filter onto the subspace
+    
+    % according to Kensuke's paper, the eigenspace bf boils down to projecting
+    % the 'traditional' filter onto the subspace
     % spanned by the first k eigenvectors [u,s,v] = svd(Cy); filt = ESES*filt; 
     % ESES = u(:,1:k)*u(:,1:k)';
-    % however, even though it seems that the shape of the filter is identical to the shape
-    % it is obtained with the following code, the w*lf=I does not hold.
+    % however, even though it seems that the shape of the filter is identical to
+    % the shape it is obtained with the following code, the w*lf=I does not hold.
   end
   if fixedori
     % compute the leadfield for the optimal dipole orientation
@@ -382,7 +388,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.12 $  $Date: 2009/02/10 10:51:02 $
+%   $Revision: 1.13 $  $Date: 2009/02/11 10:25:43 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
