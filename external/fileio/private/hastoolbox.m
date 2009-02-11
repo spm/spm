@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.27  2009/02/11 11:03:08  roboos
+% changed naming of the functions of Chris in accordance with SPM8
+%
 % Revision 1.26  2009/02/02 12:57:21  roboos
 % added bemcp, image, tcp_udp_ip
 %
@@ -241,7 +244,7 @@ switch toolbox
   case 'TCP_UDP_IP'
     status  = (exist('pnet', 'file') && exist('pnet_getvar', 'file') && exist('pnet_putvar', 'file'));
   case 'BEMCP'
-    status  = (exist('Cij_cog', 'file') && exist('Cij_lin', 'file') && exist('Cij_cst', 'file'));
+    status  = (exist('bem_Cij_cog', 'file') && exist('bem_Cij_lin', 'file') && exist('bem_Cij_cst', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
