@@ -21,6 +21,10 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: headsurface.m,v $
+% Revision 1.7  2009/02/11 13:48:07  roboos
+% prevent double vertices in the triangulations
+% added a fixme comment for a particilar configuration that has problems
+%
 % Revision 1.6  2007/05/16 12:02:57  roboos
 % use a new subfunction for determining the surface orientation
 %
@@ -70,9 +74,11 @@ if ~isempty(headshape)
     % read the head surface from file
     hs = read_ctf_shape(headshape);
     pnt = hs.pnt;
+    pnt = unique(pnt, 'rows');
     tri = projecttri(pnt);
   elseif isstruct(headshape)
     pnt = headshape.pnt;
+    pnt = unique(pnt, 'rows');
     if isfield(headshape, 'tri')
       tri = headshape.tri;
     else
@@ -151,12 +157,13 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)>=5
   nrm = sqrt(sum(vec.^2,2));
   vec = vec ./ [nrm nrm nrm];
   pnt = vol.o + vec .* [vol.r vol.r vol.r];
+  pnt = unique(pnt, 'rows');
   %  make a triangularization that is needed to find the rim of the helmet
   prj = elproj(pnt);
   tri = delaunay(prj(:,1),prj(:,2));
   % find the lower rim of the helmet shape
-  [pnt,line] = find_mesh_edge(pnt, tri);
-  edgeind    = unique(line(:));
+  [pnt, line] = find_mesh_edge(pnt, tri);
+  edgeind     = unique(line(:));
   % shift the lower rim of the helmet shape down with approximately 1/4th of its radius
   if downwardshift
     dist = mean(sqrt(sum((pnt - repmat(mean(pnt,1), Ncoils, 1)).^2, 2)));
@@ -208,7 +215,10 @@ end
 
 % shift the surface inward with a certain amount
 if ~isempty(inwardshift) && inwardshift~=0
-  ori = normals(pnt, tri, 'vertex');   
+  ori = normals(pnt, tri, 'vertex');
+  % FIXME in case of a icosahedron projected onto a localspheres model, the
+  % surfaceorientation for th elower rim points fails, causing problems
+  % with the inward shift
   tmp = surfaceorientation(pnt, tri, ori);
   % the orientation of the normals should be pointing to the outside of the surface
   if tmp==1
@@ -217,7 +227,7 @@ if ~isempty(inwardshift) && inwardshift~=0
   elseif tmp==-1
     % the normals are inward oriented
     warning('the normals of the surface triangulation are inward oriented');
-    tri = tri(:, [3  2 1]);
+    tri = fliplr(tri);
     ori = -ori;
   else
     warning('cannot determine the orientation of the vertex normals');
@@ -226,6 +236,3 @@ if ~isempty(inwardshift) && inwardshift~=0
   % the orientation is outward, hence shift with a negative amount
   pnt = pnt - inwardshift * ori;
 end
-
-
-return

@@ -27,6 +27,9 @@ function [vol] = prepare_bemmodel(cfg, mri)
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.13  2009/02/11 11:03:42  roboos
+% changed naming of the functions of Chris in accordance with SPM8
+%
 % Revision 1.12  2009/02/02 13:15:04  roboos
 % added bemcp method, removed the incomplete implementation of brainstorm
 %
@@ -128,7 +131,7 @@ elseif strcmp(cfg.method, 'brainstorm')
 
 elseif strcmp(cfg.method, 'bemcp')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % this uses an implementation that was contributed by Christopher Philips
+  % this uses an implementation that was contributed by Christophe Philips
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   hastoolbox('bemcp', 1);
 
@@ -173,31 +176,31 @@ elseif strcmp(cfg.method, 'bemcp')
   % matrix, i.e. C11st = C11-eye(N)
 
   weight = (vol.cond(1)-vol.cond(2))/((vol.cond(1)+vol.cond(2))*2*pi);
-  C11st = Cii_lin(vol.bnd(1).tri,vol.bnd(1).pnt, ...
+  C11st = bem_Cii_lin(vol.bnd(1).tri,vol.bnd(1).pnt, ...
     weight,defl(1),vol.bnd(1).pnt4);
   weight = (vol.cond(1)-vol.cond(2))/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  C21 = Cij_lin(vol.bnd(2).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
+  C21 = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
     weight,defl(1)) ;
   tmp1 = C21/C11st ;
 
   weight = (vol.cond(2)-vol.cond(3))/((vol.cond(1)+vol.cond(2))*2*pi);
-  C12 = Cij_lin(vol.bnd(1).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
+  C12 = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
     weight,defl(2)) ;
   weight = (vol.cond(2)-vol.cond(3))/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  C22st = Cii_lin(vol.bnd(2).tri,vol.bnd(2).pnt, ...
+  C22st = bem_Cii_lin(vol.bnd(2).tri,vol.bnd(2).pnt, ...
     weight,defl(2),vol.bnd(2).pnt4) ;
   tmp2 = C12/C22st ;
 
   % Combine with the effect of surface 3 (scalp) on the first 2
   %------------------------------------------------------------
   weight = (vol.cond(1)-vol.cond(2))/(vol.cond(3)*2*pi) ;
-  C31 = Cij_lin(vol.bnd(3).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
+  C31 = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
     weight,defl(1)) ;
   tmp4 = C31/(- tmp2 * C21 + C11st ) ;
   clear C31 C21 C11st
 
   weight = (vol.cond(2)-vol.cond(3))/(vol.cond(3)*2*pi) ;
-  C32 = Cij_lin(vol.bnd(3).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
+  C32 = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
     weight,defl(2)) ;
   tmp3 = C32/(- tmp1 * C12 + C22st ) ;
   clear  C12 C22st C32
@@ -211,17 +214,17 @@ elseif strcmp(cfg.method, 'bemcp')
   % As the gama1 intermediate matrix is built as the sum of 3 matrices, I can
   % spare some memory by building them one at a time, and summing directly
   weight = vol.cond(3)/((vol.cond(1)+vol.cond(2))*2*pi) ;
-  Ci3 = Cij_lin(vol.bnd(1).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
+  Ci3 = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
     weight,defl(3)) ;
   gama1 = - tmp5*Ci3 ; % gama1 = - tmp5*C13;
 
   weight = vol.cond(3)/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  Ci3 = Cij_lin(vol.bnd(2).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
+  Ci3 = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
     weight,defl(3)) ;
   gama1 = gama1 - tmp6*Ci3; % gama1 = - tmp5*C13 - tmp6*C23;
 
   weight = 1/(2*pi) ;
-  Ci3 = Cii_lin(vol.bnd(3).tri,vol.bnd(3).pnt, ...
+  Ci3 = bem_Cii_lin(vol.bnd(3).tri,vol.bnd(3).pnt, ...
     weight,defl(3),vol.bnd(3).pnt4) ;
   gama1 = gama1 - Ci3; % gama1 = - tmp5*C13 - tmp6*C23 - C33st ;
   clear Ci3 tmp1 tmp2 tmp3 tmp4
