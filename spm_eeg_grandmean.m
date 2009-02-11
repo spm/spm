@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_grandmean.m 2729 2009-02-11 10:37:25Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -54,7 +54,7 @@ end
 Nfiles = length(D);
 
 
-% Check dimension of the data files
+%% Check dimension of the data files
 % This applies to # of channels, # of samples, # of conditions, sampling
 % rate, and # of frequencies (if time-frequency data).
 nc = zeros(Nfiles,1);
@@ -168,7 +168,7 @@ end
 
 
 
-% Initialization
+%% Initialization
 % output
 Do = D{1};
 
@@ -191,12 +191,12 @@ end
 Ntypes = numel(types);
 
 % how many repetitons per trial type
-repl = zeros(1, Ntypes);
+nrepl = zeros(Nfiles, Ntypes);
 for i = 1:Nfiles
     cl{i} = D{i}.conditions;
     for j = 1:D{i}.nconditions
         ind = strmatch(cl{i}{j}, types);
-        repl(ind) =  repl(ind) + D{i}.repl(j);
+        nrepl(i, j) =  D{i}.repl(j);
     end
 end
 
@@ -211,7 +211,7 @@ end
 w = zeros(Do.nchannels, Ntypes);
 
 
-% Do the averaging
+%% Do the averaging
 spm_progress_bar('Init', Ntypes, 'responses averaged'); drawnow;
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
@@ -226,8 +226,8 @@ if strcmp(D{1}.transformtype, 'TF')
                 if ~ismember(j, D{k}.badchannels)
                     ind = strmatch(types(i), cl{k}(:));
                     if ~isempty(ind)
-                        d(j, :, :) = d(j, :, :) + D{k}(j, :, :, ind);
-                        w(j, i) = w(j, i) + 1;
+                        d(j, :, :) = d(j, :, :) + nrepl(k, i)*D{k}(j, :, :, ind);
+                        w(j, i) = w(j, i) + nrepl(k, i);
                     end
                 end
             end
@@ -256,8 +256,8 @@ else
                 if ~ismember(j, D{k}.badchannels)
                     ind = strmatch(types(i), cl{k}(:));
                     if ~isempty(ind)
-                        d(j, :) = d(j, :) + D{k}(j, :, ind);
-                        w(j, i) = w(j, i) + 1;
+                        d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind);
+                        w(j, i) = w(j, i) + nrepl(k, i);
                     end
                 end
             end
@@ -288,20 +288,12 @@ else
     Do = badchannels(Do, 1:Do.nchannels, 0);
 end
 
-% jump to struct to make a few changes
-sD = struct(Do);
-for i = 1:Ntypes
-    sD.trials(i).code = types{i};
-    sD.trials(i).repl = repl(i);
-end
+nrepl = sum(nrepl, 1);
 
-% [sD.trials.repl] = deal(repl);
-try sD.trials = rmfield(sD.trials, 'reject'); end
-try sD.trials = rmfield(sD.trials, 'onset'); end
-try sD.trials = rmfield(sD.trials, 'blinks'); end
-sD.trials = sD.trials(1:Ntypes);
-
-Do = meeg(sD);
+Do = conditions(Do, [], types);
+Do = repl(Do, [], nrepl);
+Do = reject(Do, [], 0);
+Do = trialonset(Do, [], []);
 Do = Do.history('spm_eeg_grandmean', S);
 
 save(Do);

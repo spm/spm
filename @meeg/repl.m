@@ -1,18 +1,10 @@
-function res = repl(obj, ind)
-% Method for getting all replication counts, over trials
-% FORMAT res = repl(obj)
+function res = repl(this, varargin)
+% Method for getting replication counts, over trials
+% FORMAT res = repl(this, index, nrepl)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: repl.m 1373 2008-04-11 14:24:03Z spm $
+% Vladimir Litvak
+% $Id: repl.m 2729 2009-02-11 10:37:25Z vladimir $
 
-if isfield(obj.trials(1), 'repl')
-    res = cat(1, obj.trials.repl);
-else
-    res = zeros(length(obj.trials), 1);
-end
-
-if nargin > 1
-    res = res(ind);
-end
+res = getset(this, 'trials', 'repl', varargin{:});

@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: checkmeeg.m 2729 2009-02-11 10:37:25Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -57,6 +57,9 @@ else
     end
     if ~isfield(meegstruct.trials, 'onset')
         [meegstruct.trials.onset] = deal([]);
+    end
+    if ~isfield(meegstruct.trials, 'repl')
+        [meegstruct.trials.repl] = deal(1);
     end
 end
 
@@ -221,10 +224,6 @@ if ~isfield(meegstruct, 'type') ||...
         meegstruct.type = 'continuous';
     elseif numel(unique({meegstruct.trials.label})) == Ntrials
         meegstruct.type = 'evoked';
-        if ~isfield(meegstruct.trials, 'repl')
-            disp('checkmeeg: missing replications number for evoked data, assuming 1');
-            [meegstruct.trials.repl] = deal(1);
-        end
     else
         meegstruct.type = 'single';
     end
