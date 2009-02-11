@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2729 2009-02-11 10:37:25Z vladimir $
+% $Id: checkmeeg.m 2733 2009-02-11 15:39:48Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -270,6 +270,10 @@ else
                 meegstruct.other = rmfield(meegstruct.other, 'origchantypes');
             end
         end
+    end
+    if isfield(meegstruct.other, 'condlist') && ~isempty(meegstruct.other.condlist)
+        [junk, ind] = unique(meegstruct.other.condlist , 'first');
+        meegstruct.other.condlist = meegstruct.other.condlist(sort(ind));
     end
 end
 
