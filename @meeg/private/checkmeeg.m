@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2733 2009-02-11 15:39:48Z vladimir $
+% $Id: checkmeeg.m 2734 2009-02-11 16:00:06Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -272,8 +272,12 @@ else
         end
     end
     if isfield(meegstruct.other, 'condlist') && ~isempty(meegstruct.other.condlist)
-        [junk, ind] = unique(meegstruct.other.condlist , 'first');
-        meegstruct.other.condlist = meegstruct.other.condlist(sort(ind));
+        % This a workaround for the absence of 'first' option in unique()
+        % of Matlab 7.1 and last occurence being the default
+        clist = meegstruct.other.condlist(end:-1:1);
+        [junk, ind] = unique(clist);
+        clist = clist(sort(ind));
+        meegstruct.other.condlist = clist(end:-1:1);
     end
 end
 
