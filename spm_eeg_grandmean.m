@@ -26,7 +26,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2735 2009-02-12 10:25:09Z vladimir $
+% $Id: spm_eeg_grandmean.m 2737 2009-02-12 12:49:45Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -65,6 +65,18 @@ Nfiles = length(D);
 
 
 %% Check dimension of the data files
+estr = [];
+
+for i = 1:Nfiles
+    flist = [];
+    if ~strcmp(D{i}.type, 'evoked');
+        flist = [flist ' ' D{i}.fname];
+    end
+    if ~isempty(flist)
+       estr = ['The files' flist ' are do not contain averaged (evoked) data.'];
+    end
+end
+
 % This applies to # of channels, # of samples, # of conditions, sampling
 % rate, and # of frequencies (if time-frequency data).
 nc = zeros(Nfiles,1);
@@ -85,7 +97,6 @@ for i = 1:Nfiles
     end
 end
 
-estr = [];
 unc = unique(nc);
 if length(unc)~=1
     ind = zeros(Nfiles,1);

@@ -12,7 +12,7 @@ function [res, list] = modality(this, scalp, planar)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: modality.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: modality.m 2737 2009-02-12 12:49:45Z vladimir $
 
 % Unlike in SPM5, in SPM8 modality is not well defined and is a property
 % of channels rather than the whole file. So this function is only a
@@ -33,7 +33,8 @@ if ~isempty(strmatch('MEG', chantype(this)))
             list = [list {'MEGPLANAR'}];
         end
         if ~isempty(strmatch('MEGGRAD', chantype(this))) ||...
-                ~isempty(strmatch('MEGMAG', chantype(this)))
+                ~isempty(strmatch('MEGMAG', chantype(this))) ||...
+                ~isempty(strmatch('MEG', chantype(this), 'exact'))
             list = [list {'MEG'}];
         end
     else
