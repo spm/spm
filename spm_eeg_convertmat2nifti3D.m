@@ -28,7 +28,7 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_convertmat2nifti3D.m 2740 2009-02-12 16:28:45Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -104,7 +104,7 @@ for k = 1:Nsub
 
     cd(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     
-    d = (D{k}(Cind, :,:));
+    d = spm_cond_units(D{k}(Cind, :,:));
     cl = D{k}.condlist;
 
     for i = 1 : D{k}.nconditions
