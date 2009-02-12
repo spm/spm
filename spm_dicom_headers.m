@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 2499 2008-11-28 12:19:48Z guillaume $
+% $Id: spm_dicom_headers.m 2736 2009-02-12 12:23:21Z john $
 
 if nargin<2, essentials = false; end
 
@@ -479,17 +479,20 @@ return;
 
 %_______________________________________________________________________
 function t = decode_csa2(fp,lim)
-unused = fread(fp,4,'uint8'); % Unused
-unused = fread(fp,4,'uint8'); % Unused
-n   = fread(fp,1,'uint32');
+unused1 = fread(fp,4,'uint8'); % Unused
+unused2 = fread(fp,4,'uint8'); % Unused
+n    = fread(fp,1,'uint32');
+opos = ftell(fp);
 if n>128 || n < 0,
     fseek(fp,lim-4,'cof');
     t = struct('junk','Don''t know how to read this damned file format');
     return;
 end;
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
+pos    = 16;
 for i=1:n,
     t(i).name    = fread(fp,64,'uint8')';
+    pos          = pos + 64;
     msk          = find(~t(i).name)-1;
     if ~isempty(msk),
         t(i).name    = char(t(i).name(1:msk(1)));
@@ -502,9 +505,18 @@ for i=1:n,
     t(i).syngodt = fread(fp,1,'int32')';
     t(i).nitems  = fread(fp,1,'int32')';
     t(i).xx      = fread(fp,1,'int32')'; % 77 or 205
+    pos          = pos + 20;
     for j=1:t(i).nitems
         t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
+        pos              = pos + 16;
         len              = t(i).item(j).xx(2);
+        if len>lim-pos,
+            len = lim-pos;
+            t(i).item(j).val = char(fread(fp,len,'uint8')');
+            fread(fp,rem(4-rem(len,4),4),'uint8');
+            warning('Problem reading Siemens CSA field');
+            return;
+        end
         t(i).item(j).val = char(fread(fp,len,'uint8')');
         fread(fp,rem(4-rem(len,4),4),'uint8');
     end;

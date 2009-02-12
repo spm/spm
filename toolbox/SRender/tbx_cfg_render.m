@@ -82,7 +82,7 @@ SurfaceFile.tag     = 'SurfaceFile';
 SurfaceFile.name    = 'Surface File';
 SurfaceFile.help    = {'Filename of the surf_*.gii file containing the rendering information. This can be generated via the surface extraction routine in SPM. Normally, a surface is extracted from grey and white matter tissue class images, but it is also possible to threshold e.g. an spmT image so that activations can be displayed.'};
 SurfaceFile.filter = 'any';
-SurfaceFile.ufilter = '^surf_.*\.gii$';
+SurfaceFile.ufilter = '.*\.gii$';
 SurfaceFile.num     = [1 1];
 % ---------------------------------------------------------------------
 % Red Red
