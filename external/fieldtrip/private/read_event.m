@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.91  2009/02/12 16:12:06  josdie
+% Correct event timing in offset field rather than assuming same as hdr.nSamplesPre time.
+%
 % Revision 1.90  2009/02/12 11:47:23  vlalit
 % Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
 %  used with permission from the company's representative Mr. Klaus Schellhorn.
@@ -878,7 +881,7 @@ switch eventformat
           if any(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))
               eventCount=eventCount+1;
               event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-              event(eventCount).offset   = -hdr.nSamplesPre;
+              event(eventCount).offset   = -min(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples)))+1;
               event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
               if event(eventCount).duration == 0
                 event(eventCount).type     = 'trigger';
