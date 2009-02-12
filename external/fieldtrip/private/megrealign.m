@@ -77,6 +77,13 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.58  2009/02/11 21:17:22  jansch
+% changed key-sensors from which to compute the transformation matrix between
+% template gradiometer array and original for 4d-248 system. fixed some minor
+% bugs when target and original grad do not contain the same sensors. built
+% in the possibility to prune the leadfield-matrix according to a number of
+% spatial components (i.e. if cfg.pruneratio>1 and integer).
+%
 % Revision 1.57  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -174,12 +181,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Ntemplate = length(cfg.template);
 for i=1:Ntemplate
-  fprintf('reading template helmet position from %s\n', cfg.template{i});
-  template(i) = read_sens(cfg.template{i});
+  if isstr(cfg.template{i}),
+    fprintf('reading template helmet position from %s\n', cfg.template{i});
+    template(i) = read_sens(cfg.template{i});
+  elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'pnt') && isfield(cfg.template{i}, 'ori') && isfield(cfg.template{i}, 'tra'),
+    template(i) = cfg.template{i};
+  end
 end
 
 % to construct the average location of the MEG sensors, 4 channels are needed that should  be sufficiently far apart
-switch sensortype(template(1))
+switch senstype(template(1))
 case {'ctf151' 'ctf275'}
   labC = 'MZC01';
   labF = 'MZF03';
@@ -190,15 +201,16 @@ case {'ctf151_planar' 'ctf275_planar'}
   labF = 'MZF03_dH';
   labL = 'MLC21_dH';
   labR = 'MRC21_dH';
-case {'bti148' 'bti248'}
-  labC = 'A14';
-  labF = 'A2';
-  labL = 'A15';
-case {'bti148_planar' 'bti248_planar'}
+case {'bti148' 'bti148_planar'}
   labC = 'A14';
   labF = 'A2';
   labL = 'A15';
   labR = 'A29';
+case {'bti248' 'bti248_planar'}
+  labC = 'A19';
+  labF = 'A2';
+  labL = 'A44';
+  labR = 'A54';
 otherwise
   % this could in principle be added to the cfg, but better is to have a more exhaustive list here
   error('unsupported MEG system for realigning, please ask on the mailing list');
@@ -307,7 +319,8 @@ tmpcfg.channel = 'MEG'; % include all MEG channels
 [volnew, template.grad] = prepare_headmodel(tmpcfg);
 
 if strcmp(senstype(data.grad), senstype(template.grad))
-  fprintf('mean distance towards template gradiometers is %.2f %s\n', mean(sum((data.grad.pnt-template.grad.pnt).^2, 2).^0.5), template.grad.unit);
+  [id, it] = match_str(data.grad.label, template.grad.label);  
+  fprintf('mean distance towards template gradiometers is %.2f %s\n', mean(sum((data.grad.pnt(id,:)-template.grad.pnt(it,:)).^2, 2).^0.5), template.grad.unit);
 else
   % the projection is from one MEG system to another MEG system, which makes a comparison of the data difficult
   cfg.feedback = 'no';
@@ -346,7 +359,8 @@ for i=1:Ntrials
   data.realign{i} = realign * data.trial{i};
   if strcmp(cfg.verify, 'yes')
     % also compute the residual variance when interpolating
-    rvrealign = rv(data.trial{i}, data.realign{i});
+    [id,it]   = match_str(data.grad.label, template.grad.label);
+    rvrealign = rv(data.trial{i}(id,:), data.realign{i}(it,:));
     fprintf('original -> template             RV %.2f %%\n', 100 * mean(rvrealign));
     datnoalign = noalign * data.trial{i};
     datbkalign = bkalign * data.trial{i};
@@ -362,18 +376,19 @@ if strcmp(cfg.feedback, 'yes')
     
   warning('showing MEG topography (RMS value over time) in the first trial only');
   Nchan = length(data.grad.label);
-  pnt1 = data.grad.pnt(1:Nchan,:);
-  pnt2 = template.grad.pnt(1:Nchan,:);
+  [id,it]   = match_str(data.grad.label, template.grad.label);
+  pnt1 = data.grad.pnt(id,:);
+  pnt2 = template.grad.pnt(it,:);
   prj1 = elproj(pnt1); tri1 = delaunay(prj1(:,1), prj1(:,2));
   prj2 = elproj(pnt2); tri2 = delaunay(prj2(:,1), prj2(:,2));
 
   switch cfg.topoparam
     case 'rms'
-      p1 = sqrt(mean(data.trial{1}.^2, 2));
-      p2 = sqrt(mean(data.realign{1}.^2, 2));
+      p1 = sqrt(mean(data.trial{1}(id,:).^2, 2));
+      p2 = sqrt(mean(data.realign{1}(it,:).^2, 2));
     case 'svd'
-      [u, s, v] = svd(data.trial{1}); p1 = u(:,1);
-      [u, s, v] = svd(data.realign{1}); p2 = u(:,1);
+      [u, s, v] = svd(data.trial{1}(id,:)); p1 = u(:,1);
+      [u, s, v] = svd(data.realign{1}(it,:)); p2 = u(:,1);
     otherwise
       error('unsupported cfg.topoparam');
   end
@@ -449,7 +464,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.57 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.58 2009/02/11 21:17:22 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
@@ -460,7 +475,14 @@ interp.cfg = cfg;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lfi] = prunedinv(lf, r)
 [u, s, v] = svd(lf);
-p = find(s<(s(1,1)*r) & s~=0);
+if r<1,
+  % treat r as a ratio
+  p = find(s<(s(1,1)*r) & s~=0);
+else
+  % treat r as the number of spatial components to keep
+  diagels = 1:(min(size(s))+1):(min(size(s)).^2);
+  p       = diagels((r+1):end);
+end
 fprintf('pruning %d from %d, i.e. removing the %d smallest spatial components\n', length(p), min(size(s)), length(p));
 s(p) = 0;
 s(find(s~=0)) = 1./s(find(s~=0));

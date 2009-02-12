@@ -59,6 +59,13 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.90  2009/02/12 11:47:23  vlalit
+% Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
+%  used with permission from the company's representative Mr. Klaus Schellhorn.
+%
+% Revision 1.89  2009/02/12 02:04:49  josdie
+% Fixed bug in event import for EGI simple binary files with multiple events.
+%
 % Revision 1.88  2009/02/09 13:35:16  roboos
 % implemented efficient caching for bci2000,
 % it should be initiated in read_header, subsequently read_data and read_event will reuse the details from the header
@@ -868,17 +875,19 @@ switch eventformat
     eventCount=0;
     for theEvent=1:size(eventData,1)
       for segment=1:hdr.nTrials
-        eventCount=eventCount+1;
-        event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-        event(eventCount).offset   = -hdr.nSamplesPre;
-        event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
-        if event(eventCount).duration == 0
-          event(eventCount).type     = 'trigger';
-        else
-          event(eventCount).type     = 'trial';
-        end;
-        event(eventCount).value    =  char(EventCodes(theEvent,:));
-      end
+          if any(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))
+              eventCount=eventCount+1;
+              event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+              event(eventCount).offset   = -hdr.nSamplesPre;
+              event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
+              if event(eventCount).duration == 0
+                event(eventCount).type     = 'trigger';
+              else
+                event(eventCount).type     = 'trial';
+              end;
+              event(eventCount).value    =  char(EventCodes(theEvent,:));
+         end
+       end
     end
     for segment=1:hdr.nTrials  % cell information
       eventCount=eventCount+1;
@@ -1403,6 +1412,19 @@ switch eventformat
     %       event(i).sample   = [];
     %     end
 
+   
+  case {'neuroprax_eeg', 'neuroprax_mrk'}     
+    tmp = np_readmarker (filename, 0, inf, 'samples');    
+    event = [];
+    for i = 1:numel(tmp.marker)
+        if isempty(tmp.marker{i})
+            break;
+        end
+        event = [event struct('type', tmp.markernames(i),...
+            'sample', num2cell(tmp.marker{i}),...
+            'value', {tmp.markertyp(i)})];
+    end
+        
   case 'nexstim_nxe'
     event = read_nexstim_event(filename);
 
