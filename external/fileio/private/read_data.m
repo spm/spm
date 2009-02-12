@@ -31,6 +31,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.79  2009/02/12 11:47:23  vlalit
+% Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
+%  used with permission from the company's representative Mr. Klaus Schellhorn.
+%
 % Revision 1.78  2009/02/09 14:21:00  roboos
 % added inport of micromed_trc data
 %
@@ -940,6 +944,10 @@ switch dataformat
     endsample = endsample - (begepoch-1)*hdr.nSamples;  % correct for the number of bytes that were skipped
     dat = dat(:, begsample:endsample);
 
+  case 'neuroprax_eeg'   
+    tmp = np_readdata(filename, hdr.orig, begsample - 1, endsample - begsample + 1, 'samples');
+    dat = tmp.data';
+      
   case 'plexon_ds'
     dat = read_plexon_ds(filename, hdr, begsample, endsample, chanindx);
 

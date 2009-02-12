@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.92  2009/02/12 11:47:23  vlalit
+% Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
+%  used with permission from the company's representative Mr. Klaus Schellhorn.
+%
 % Revision 1.91  2009/02/09 14:21:00  roboos
 % added inport of micromed_trc data
 %
@@ -1159,6 +1163,20 @@ switch headerformat
     hdr.nTrials     = orig.rawdata.samples ./ hdr.nSamples;
     % add a gradiometer structure for forward and inverse modelling
     hdr.grad = fif2grad(filename);
+    % remember the original header details
+    hdr.orig = orig;
+        
+  case 'neuroprax_eeg' 
+    orig = np_readfileinfo(filename);
+              
+    hdr.Fs          = orig.fa;
+    hdr.nChans      = orig.K;
+    hdr.nSamples    = orig.N;
+    hdr.nSamplesPre = 0; % continuous
+    hdr.nTrials     = 1; % continuous
+    hdr.label       = orig.channels(:);
+    hdr.unit        = orig.units(:);
+    
     % remember the original header details
     hdr.orig = orig;
 

@@ -54,6 +54,10 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.95  2009/02/12 11:47:23  vlalit
+% Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
+%  used with permission from the company's representative Mr. Klaus Schellhorn.
+%
 % Revision 1.94  2009/02/09 14:21:00  roboos
 % added inport of micromed_trc data
 %
@@ -499,6 +503,15 @@ elseif filetype_check_extension(filename, '.eeg') && filetype_check_header(filen
   ftype = 'ns_eeg';
   manufacturer = 'Neuroscan';
   content = 'epoched EEG';
+  
+elseif filetype_check_extension(filename, '.eeg') && filetype_check_header(filename, 'V3.0')
+  ftype = 'neuroprax_eeg';
+  manufacturer = 'eldith GmbH';
+  content = 'continuous EEG';  
+elseif filetype_check_extension(filename, '.ee_')
+  ftype = 'neuroprax_mrk';
+  manufacturer = 'eldith GmbH';
+  content = 'EEG markers';  
 
   % known Analyze & SPM file types
 elseif filetype_check_extension(filename, '.hdr')
