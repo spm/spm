@@ -24,7 +24,7 @@ function D = spm_eeg_epochs(S)
 %     S.trialdef.eventtype      - string
 %     S.trialdef.eventvalue     - string, numeric or empty
 %
-%   S.review            - review individual trials after selection [true]
+%   S.reviewtrials      - review individual trials after selection [true]
 %   S.save              - save trial definition [true]
 %
 % Output:
@@ -38,9 +38,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_epochs.m 2741 2009-02-12 17:29:54Z vladimir $
 
-SVNrev = '$Rev: 2696 $';
+SVNrev = '$Rev: 2741 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -82,8 +82,8 @@ if isfield(S, 'trialdef') || nargin == 0
         S_definetrial.trialdef = S.trialdef;
     end
     
-    if isfield(S, 'review')
-        S_definetrial.review = S.review;
+    if isfield(S, 'reviewtrials')
+        S_definetrial.reviewtrials = S.reviewtrials;
     end
     
     if isfield(S, 'save')
