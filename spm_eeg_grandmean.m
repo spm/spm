@@ -7,6 +7,8 @@ function Do = spm_eeg_grandmean(S)
 % P         - filenames (char matrix) of EEG mat-file containing epoched
 %             data
 % Pout      - filename (with or without path) of output file
+% weighted  - average weighted by number of replications in inputs (1)
+%             or not (0).
 %
 % Output:
 % Do        - EEG data struct, result files are saved in the same
@@ -24,9 +26,13 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2729 2009-02-11 10:37:25Z vladimir $
+% $Id: spm_eeg_grandmean.m 2735 2009-02-12 10:25:09Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
+
+if nargin == 0
+    S = [];
+end
 
 try
     P = S.P;
@@ -40,6 +46,10 @@ try
 catch
     [filename, pathname] = uiputfile('*.mat', 'Select output file');
     S.Pout = fullfile(pathname, filename);
+end
+
+if ~isfield(S, 'weighted')
+    S.weighted = spm_input('Weighted average?','+1','yes|no',[1 0], 1);
 end
 
 D = cell(1, size(P, 1));
@@ -190,14 +200,19 @@ end
 
 Ntypes = numel(types);
 
+
 % how many repetitons per trial type
 nrepl = zeros(Nfiles, Ntypes);
 for i = 1:Nfiles
     cl{i} = D{i}.conditions;
     for j = 1:D{i}.nconditions
         ind = strmatch(cl{i}{j}, types);
-        nrepl(i, j) =  D{i}.repl(j);
+        nrepl(i, ind) =  D{i}.repl(j);
     end
+end
+
+if ~S.weighted
+    nrepl = ones(Nfiles, Ntypes);
 end
 
 % generate new meeg object with new filenames
