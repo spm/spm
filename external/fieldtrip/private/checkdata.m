@@ -16,10 +16,10 @@ function [data] = checkdata(data, varargin)
 % Optional input arguments should be specified as key-value pairs and can include
 %   feedback           = yes, no
 %   datatype           = raw, freq, timelock, comp, spike, source, volume, dip
-%   dimord             = any combination of time, freq, chan, refchan, rpt, subj, chancmb, rpttap
+%   dimord             = any combination of time, freq, chan, refchan, rpt, subj, chancmb, rpttap, pos
 %   senstype           = ctf151, ctf275, ctf151_planar, ctf275_planar, neuromag122, neuromag306, bti148, bti248, bti248_planar, magnetometer, electrode
-%   ismeg              = yes, no
 %   inside             = logical, index
+%   ismeg              = yes, no
 %   hastrials          = yes, no
 %   hasoffset          = yes, no (only applies to raw data)
 %   hascumtapcnt       = yes, no (only applies to freq data)
@@ -33,6 +33,10 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.8  2009/02/13 17:35:22  roboos
+% implemented dimord/dim handling for volume and source data, only in case of hasdimord=yes
+% convert source.trial(1:N).pow into source.pow with appropriate reshaping
+%
 % Revision 1.7  2009/02/04 16:42:41  roboos
 % use the datatype helper function
 %
@@ -207,6 +211,7 @@ ismeg         = keyval('ismeg',         varargin);
 inside        = keyval('inside',        varargin); % can be logical or index
 hastrials     = keyval('hastrials',     varargin);
 hasoffset     = keyval('hasoffset',     varargin); if isempty(hasoffset), hasoffset = 'no'; end
+hasdimord     = keyval('hasdimord',     varargin); if isempty(hasdimord), hasdimord = 'no'; end
 hascumtapcnt  = keyval('hascumtapcnt',  varargin);
 hasdof        = keyval('hasdof',        varargin); if isempty(hasdof), hasdof = 'no'; end
 cmbrepresentation = keyval('cmbrepresentation',  varargin);
@@ -224,6 +229,8 @@ isspike    = datatype(data, 'spike');
 isvolume   = datatype(data, 'volume');
 issource   = datatype(data, 'source');
 isdip      = datatype(data, 'dip');
+
+% FIXME use the istrue function on ismeg and hasxxx options
 
 if ~isequal(feedback, 'no')
   if israw
@@ -276,7 +283,7 @@ if issource && isvolume
   if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
   if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
   if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
-  issource = 0;
+  issource = false;
 end
 
 if ~isempty(dtype)
@@ -447,26 +454,82 @@ end
 %end
 
 if issource || isvolume,
-  param = parameterselection('all', data);
-  % ensure consistent dimensions of the source reconstructed data
-  % reshape each of the volumes that is found into a linear vector
-  if issource,
+  % these are not used any more
+  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
+  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
+  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+
+  % the following section is to make a dimord-consistent representation of
+  % volume and source data, taking trials, time and frequency into account
+  if isequal(hasdimord, 'yes') && ~isfield(data, 'dimord')
+
+    % determine the size of the data
     if isfield(data, 'dimord'),
       dimtok = tokenize(data.dimord, '_');
-      if ~isempty(strmatch('time',dimtok)), Ntime = length(data.time); else Ntime = 1; end
-      if ~isempty(strmatch('freq',dimtok)), Nfreq = length(data.freq); else Nfreq = 1; end
+      if ~isempty(strmatch('time', dimtok)), Ntime = length(data.time); else Ntime = 1; end
+      if ~isempty(strmatch('freq', dimtok)), Nfreq = length(data.freq); else Nfreq = 1; end
     else
-      Nfreq = 1; Ntime = 1;
+      Nfreq = 1;
+      Ntime = 1;
+    end
+    if isfield(data, 'trial') && isstruct(data.trial)
+      Nrpt = length(data.trial);
+    else
+      Nrpt = 1;
+    end
+
+    % start with an initial specification of the dimord and dim
+    if (~isfield(data, 'dim') || ~isfield(data, 'dimord'))
+      if issource
+        % at least it should have a Nx3 pos
+        data.dim    = size(data.pos, 1);
+        data.dimord = 'pos';
+      elseif isvolume
+        % at least it should have a 1x3 dim
+        data.dim    = data.dim;
+        data.dimord = 'dim1_dim2_dim3';
+      end
+    end
+
+    % add the additional dimensions
+    if Nfreq>1
+      data.dimord = [data.dimord '_freq'];
+      data.dim    = [data.dim     Nfreq];
+    end
+    if Ntime>1
+      data.dimord = [data.dimord '_time'];
+      data.dim    = [data.dim     Ntime];
+    end
+    if Nrpt>1
+      data.dimord = ['rpt_' data.dimord];
+      data.dim    = [Nrpt   data.dim ];
+    end
+
+    % the nested trial structure is not compatible with dimord
+    if isfield(data, 'trial') && isstruct(data.trial)
+      param = fieldnames(data.trial);
+      for i=1:length(param)
+        if isa(data.trial(1).(param{i}), 'cell')
+          concat = cell(data.dim(1), prod(data.dim(2:end)));
+        else
+          concat = zeros(data.dim(1), prod(data.dim(2:end)));
+        end
+        for j=1:length(data.trial)
+          tmp = data.trial(j).(param{i});
+          concat(j,:) = tmp(:);
+        end % for each trial
+        data.trial = rmfield(data.trial, param{i});
+        data.(param{i}) = reshape(concat, data.dim);
+      end % for each param
+      data = rmfield(data, 'trial');
     end
   end
-  if issource && Nfreq>1,
-    dim = [size(data.pos, 1) Nfreq Ntime]; data.dim = dim;
-  elseif issource,
-    dim = [size(data.pos, 1) Ntime]; dim;
-  end
-  % ensure consistent dimensions of the volumetric data
-  % reshape each of the volumes that is found into a 3D array
-  if isvolume, dim   = data.dim;              end
+
+  % ensure consistent dimensions of the source reconstructed data
+  % reshape each of the source reconstructed parameters
+  dim = [data.dim 1];
+
+  param = parameterselection('all', data);
   for i=1:length(param)
     if any(param{i}=='.')
       % the parameter is nested in a substructure, which can have multiple elements (e.g. source.trial(1).pow, source.trial(2).pow, ...)
@@ -483,18 +546,11 @@ if issource || isvolume,
       data = setfield(data, sub1, tmp1);
     else
       tmp  = getfield(data, param{i});
-      if prod(size(tmp))==prod(dim),
-        tmp  = reshape(tmp, dim);
-      else
-        tmp  = reshape(tmp, [dim(1) 1]);
-      end
+      tmp  = reshape(tmp, dim);
       data = setfield(data, param{i}, tmp);
     end
   end
-  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
-  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
-  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
-  if issource && ~isfield(data, 'dimord'), data.dimord = 'pos'; end
+
 end
 
 if isequal(hastrials,'yes')
@@ -549,22 +605,8 @@ if ~isempty(cmbrepresentation)
 end % cmbrepresentation
 
 if issource && strcmp(keepoutside, 'no'),
-  data = source2sparse(data); %FIXME does this still exist
+  data = source2sparse(data); % FIXME does this still exist?
 end
-
-if ~isempty(sourcedimord)
-  if issource
-    data = fixsource(data, sourcedimord);
-  else
-    error(['This function requires source data with ',sourcedimord,' as dimord']);
-  end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% represent the source structure in a particular manner
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%function source = fixsource(source, desired)
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner
@@ -875,28 +917,41 @@ end
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = volume2source(data)
-xgrid = 1:data.dim(1);
-ygrid = 1:data.dim(2);
-zgrid = 1:data.dim(3);
-[x y z] = ndgrid(xgrid, ygrid, zgrid);
-data.pos = warp_apply(data.transform, [x(:) y(:) z(:)]);
+if isfield(data, 'dimord')
+  % it is a modern source description
+  keyboard
+else
+  % it is an old-fashioned source description
+  xgrid = 1:data.dim(1);
+  ygrid = 1:data.dim(2);
+  zgrid = 1:data.dim(3);
+  [x y z] = ndgrid(xgrid, ygrid, zgrid);
+  data.pos = warp_apply(data.transform, [x(:) y(:) z(:)]);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = source2volume(data)
-% the volume representation requires a homogenous transformation matrix to convert voxel indices to head coordinates
-xgrid = 1:data.dim(1);
-ygrid = 1:data.dim(2);
-zgrid = 1:data.dim(3);
-[x y z] = ndgrid(xgrid, ygrid, zgrid);
-ind =  [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
-pos = data.pos;             % these are the positions expressed in head coordinates
-% represent the positions in a manner that is compatible with the homogenous matrix multiplication, i.e. pos = H * ind
-ind = ind'; ind(4,:) = 1;
-pos = pos'; pos(4,:) = 1;
-% recompute the homogenous transformation matrix
-data.transform = pos / ind;
+if isfield(data, 'dimord')
+  % it is a modern source description
+  keyboard
+else
+  % it is an old-fashioned source description
+  % the volume representation requires a homogenous transformation matrix to convert voxel indices to head coordinates
+  xgrid = 1:data.dim(1);
+  ygrid = 1:data.dim(2);
+  zgrid = 1:data.dim(3);
+  [x y z] = ndgrid(xgrid, ygrid, zgrid);
+  ind =  [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
+  pos = data.pos;             % these are the positions expressed in head coordinates
+  % represent the positions in a manner that is compatible with the homogenous matrix multiplication, i.e. pos = H * ind
+  ind = ind'; ind(4,:) = 1;
+  pos = pos'; pos(4,:) = 1;
+  % recompute the homogenous transformation matrix
+  data.transform = pos / ind;
+end
+
 % remove the unwanted fields
 if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
 if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
