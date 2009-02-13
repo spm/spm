@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.80  2009/02/13 08:02:21  roboos
+% ensure that the requested sample and trial numbers are integers
+%
 % Revision 1.79  2009/02/12 11:47:23  vlalit
 % Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
 %  used with permission from the company's representative Mr. Klaus Schellhorn.
@@ -319,6 +322,24 @@ begsample = double(begsample);
 endsample = double(endsample);
 begtrial  = double(begtrial);
 endtrial  = double(endtrial);
+
+% ensure that the requested sample and trial numbers are integers
+if ~isempty(begsample) && mod(begsample, 1)
+  warning('rounding "begsample" to the nearest integer');
+  begsample = round(begsample);
+end
+if ~isempty(endsample) && mod(endsample, 1)
+  warning('rounding "endsample" to the nearest integer');
+  endsample = round(endsample);
+end
+if ~isempty(begtrial) && mod(begtrial, 1)
+  warning('rounding "begtrial" to the nearest integer');
+  begtrial = round(begtrial);
+end
+if ~isempty(endtrial) && mod(endtrial, 1)
+  warning('rounding "endtrial" to the nearest integer');
+  endtrial = round(endtrial);
+end
 
 % determine the filetype
 if isempty(dataformat)
