@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 2723 2009-02-10 09:03:03Z klaas $
+% $Id: spm_dcm_generate.m 2746 2009-02-14 16:43:58Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ if max(eigval) >= 0
 end
 
 
-% Create model specification for spm_int
+% Create model specification
 %--------------------------------------------------------------------------
 M.f  = 'spm_fx_dcm';
 M.g  = 'spm_gx_dcm';
@@ -56,18 +56,34 @@ try
 catch
     M.TE = 0.04;
 end
-M.nlDCM = 0;  % currently only bilinear DCM
+
+if ~isfield(DCM.M,'nlDCM') || ~isfield(DCM.M,'IS')
+    if isfield(DCM,'d') && any(any(DCM.d(:)))
+        % nonlinear DCM
+        M.nlDCM = 1;
+        M.IS    = 'spm_int_B_nlDCM_fMRI';
+    else
+        % bilinear DCM
+        M.nlDCM = 0;
+        M.IS    = 'spm_int';
+    end
+else
+    M.nlDCM = DCM.M.nlDCM;
+    M.IS    = DCM.M.IS;
+end
 
 
-% Create P vector for spm_int
+% Create parameter vector for integration
 %--------------------------------------------------------------------------
-P=[0; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:)];
+if ~M.nlDCM
+    P=[0; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:)];
+else
+    P=[0; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:); DCM.D(:)];
+end    
 
-
-% Compute hemodynamic response at v sample points
+% Integrate and compute hemodynamic response at v sample points
 %--------------------------------------------------------------------------
-y    = spm_int(P,M,U);
-
+y = feval (M.IS,P,M,U);
 
 % Compute required r: standard deviation of additive noise, for all areas
 %--------------------------------------------------------------------------
@@ -76,7 +92,7 @@ r   = diag(std(y)/SNR);
 % Add noise
 %--------------------------------------------------------------------------
 p       = 1;
-a       = 0;    % AR(1) coeff: for the moment set to zero
+a       = 0;    % AR(1) coefficient set to zero
 a       = [1 -a];
 K       = inv(spdiags(ones(v,1)*a,-[0:p],v,v));
 K       = K*sqrt(v/trace(K*K'));
@@ -99,6 +115,7 @@ DCM.Y = Y;
 
 % Save synthetic DCM
 %--------------------------------------------------------------------------
+DCM.M = M;
 if spm_matlab_version_chk('7') >= 0
     save(syn_model, 'DCM', '-V6');
 else

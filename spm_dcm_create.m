@@ -4,8 +4,8 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 % syn_model     name of the synthetic DCM to be created 
 % source_model  - define new model ('GUI') or 
-%               - import existing model - prompt user to choose it ('import')
-%               - Import existing model (directly specified by directory &
+%               - import existing model via file selector ('import')
+%               - import existing model (directly specified by directory &
 %                 name) 
 %               [default: 'GUI']
 % SNR           signal-to-noise ratio [default: 1]
@@ -15,12 +15,14 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 %
 % This function is very much like spm_dcm_ui('specify') 
 % but inputs etc. are specified either via the user interface or from an
-% existing model.
+% existing model.  Currently, the interface provided by this function does
+% not allow for manual specification of nonlinear DCMs; however, these can 
+% be imported from existing files.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 2723 2009-02-10 09:03:03Z klaas $
+% $Id: spm_dcm_create.m 2746 2009-02-14 16:43:58Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -250,8 +252,7 @@ switch upper(source_model)
         DCM.xY  = xY;
         DCM.v   = v;
         DCM.n   = length(DCM.xY);
-        DCM.TE  = 0.04; % default value for TE
-        DCM.M.nlDCM = 0;  % bilinear DCM
+        DCM.TE  = 0.04;   % default value for TE
 
         
     case 'IMPORT'
