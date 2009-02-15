@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 2746 2009-02-14 16:43:58Z klaas $
+% $Id: spm_dcm_generate.m 2747 2009-02-15 10:53:17Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -57,18 +57,27 @@ catch
     M.TE = 0.04;
 end
 
-if ~isfield(DCM.M,'nlDCM') || ~isfield(DCM.M,'IS')
+if ~isfield(DCM.M,'nlDCM') 
     if isfield(DCM,'d') && any(any(DCM.d(:)))
         % nonlinear DCM
         M.nlDCM = 1;
-        M.IS    = 'spm_int_B_nlDCM_fMRI';
     else
         % bilinear DCM
         M.nlDCM = 0;
-        M.IS    = 'spm_int';
     end
 else
     M.nlDCM = DCM.M.nlDCM;
+end
+
+if ~isfield(DCM.M,'IS')
+    if nlDCM
+        % nonlinear DCM
+        M.IS    = 'spm_int_B_nlDCM_fMRI';
+    else
+        % bilinear DCM
+        M.IS    = 'spm_int';
+    end
+else
     M.IS    = DCM.M.IS;
 end
 

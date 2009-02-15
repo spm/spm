@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2530 2008-12-05 13:28:58Z guillaume $
+% $Id: spm_dcm_estimate.m 2747 2009-02-15 10:53:17Z klaas $
 
  
 % load DCM structure
@@ -40,27 +40,56 @@ end
 a  = DCM.a;                             % switch on endogenous connections
 b  = DCM.b;                             % switch on bilinear modulations
 c  = DCM.c;                             % switch on exogenous connections
-
-% nonlinear DCM?
-if isfield(DCM,'d') && any(any(DCM.d(:)))
-    nlDCM = 1;
-    d     = DCM.d;                      % switch on nonlinear modulations
-    fprintf('\n%s %s\n','Nonlinear DCM:',P);
-    fprintf('%s\n\n','---------------------------------------------:');
-    fprintf('%s\n\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
-    fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
-    fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
-    fprintf('%s %1.3f.\n\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.  You are currently using microtimebins of',DCM.U.dt);
-else
-    nlDCM = 0;
-end
-
 U  = DCM.U;                             % exogenous inpurs 
 Y  = DCM.Y;                             % responses
 X0 = DCM.Y.X0;                          % confounds
-
 n  = DCM.n;
 v  = DCM.v;
+
+
+% check whether this is a nonlinear DCM
+%--------------------------------------------------------------------------
+if ~isfield(DCM.M,'nlDCM') 
+    if isfield(DCM,'d') && any(any(DCM.d(:)))
+        % nonlinear DCM
+        nlDCM = 1;
+        d     = DCM.d; % switch on nonlinear modulations
+        fprintf('\n%s %s\n','Nonlinear DCM:',P);
+        fprintf('%s\n\n','---------------------------------------------:');
+        fprintf('%s\n\n','Please note that this computation will be considerably slower than for a bilinear DCM.');
+        fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
+        fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
+        fprintf('%s\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.');
+        fprintf('%s %1.3f.\n\n','You are currently using microtimebins of',DCM.U.dt);        
+    else
+        % bilinear DCM
+        nlDCM = 0;
+    end
+else
+    nlDCM = DCM.M.nlDCM;
+end
+
+
+% check integrator
+%--------------------------------------------------------------------------
+if ~isfield(DCM.M,'IS')
+    if nlDCM
+        % nonlinear DCM
+        M.IS    = 'spm_int_B_nlDCM_fMRI';
+    else
+        % bilinear DCM
+        M.IS    = 'spm_int';
+    end
+else
+    M.IS    = DCM.M.IS;
+end
+
+% prevent mismatch between DCM structure and integration scheme
+if nlDCM && M.IS == 'spm_int'
+    M.IS    = 'spm_int_B_nlDCM_fMRI';
+    fprintf('%s\n','WARNING: You are trying to run a nonlinear DCM with a bilinear integration scheme (spm_int).');
+    fprintf('%s\n','A nonlinear integration scheme (spm_int_B_nlDCM_fMRI) is used instead.');
+end
 
 
 % check whether TE of acquisition has been defined 
@@ -91,15 +120,6 @@ end
 
 % model specification
 %--------------------------------------------------------------------------
-if ~nlDCM
-    % bilinear DCM
-    M.IS    = 'spm_int';
-    M.nlDCM = 0;
-else
-    % nonlinear DCM
-    M.IS    = 'spm_int_B_nlDCM_fMRI';
-    M.nlDCM = 1;
-end
 M.f   = 'spm_fx_dcm';
 M.g   = 'spm_gx_dcm';
 M.x   = sparse(n*5,1);
@@ -112,6 +132,7 @@ M.N   = 32;
 M.dt  = 16/M.N;
 M.ns  = size(Y.y,1);
 M.TE  = TE;
+M.nlDCM = nlDCM;
 
 
 % fMRI slice time sampling
@@ -126,13 +147,7 @@ try, M.delays = DCM.delays; end
 
 % predicted responses and residuals
 %--------------------------------------------------------------------------
-if ~nlDCM
-    % bilinear DCM
-    y     = spm_int(Ep,M,U);
-else
-    % nonlinear DCM
-    y     = spm_int_J(Ep,M,U);
-end
+y     = feval(M.IS,Ep,M,U);
 R     = Y.y - y;
 R     = R - X0*inv(X0'*X0)*(X0'*R);
 
