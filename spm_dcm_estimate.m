@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2747 2009-02-15 10:53:17Z klaas $
+% $Id: spm_dcm_estimate.m 2748 2009-02-15 12:20:21Z klaas $
 
  
 % load DCM structure
@@ -47,48 +47,49 @@ n  = DCM.n;
 v  = DCM.v;
 
 
+% adopt model specification M if it already exists 
+%--------------------------------------------------------------------------
+if isfield(DCM,'M') 
+    M = DCM.M;
+end
+
+
 % check whether this is a nonlinear DCM
 %--------------------------------------------------------------------------
-if ~isfield(DCM.M,'nlDCM') 
-    if isfield(DCM,'d') && any(any(DCM.d(:)))
-        % nonlinear DCM
-        nlDCM = 1;
-        d     = DCM.d; % switch on nonlinear modulations
-        fprintf('\n%s %s\n','Nonlinear DCM:',P);
-        fprintf('%s\n\n','---------------------------------------------:');
-        fprintf('%s\n\n','Please note that this computation will be considerably slower than for a bilinear DCM.');
-        fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
-        fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
-        fprintf('%s\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.');
-        fprintf('%s %1.3f.\n\n','You are currently using microtimebins of',DCM.U.dt);        
-    else
-        % bilinear DCM
-        nlDCM = 0;
-    end
+if isfield(DCM,'d') && any(any(DCM.d(:)))
+    % nonlinear DCM
+    M.nlDCM = 1;
+    d       = DCM.d; % switch on nonlinear modulations
+    fprintf('\n\n%s %s\n','Nonlinear DCM:',P);
+    fprintf('%s\n\n','--------------------------------------------------------------------------------------');
+    fprintf('%s\n\n','Please note that this computation will be considerably slower than for a bilinear DCM.');
+    fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
+    fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
+    fprintf('%s\n','We found microtime bins of 0.2 s to give stable results; longer time bins may well still work, but you would need to check.');
+    fprintf('%s %1.3f seconds.\n\n','You are currently using microtimebins of',DCM.U.dt);
 else
-    nlDCM = DCM.M.nlDCM;
+    % bilinear DCM
+    M.nlDCM = 0;
 end
 
 
 % check integrator
 %--------------------------------------------------------------------------
-if ~isfield(DCM.M,'IS')
-    if nlDCM
+if ~isfield(M,'IS')
+    if M.nlDCM
         % nonlinear DCM
         M.IS    = 'spm_int_B_nlDCM_fMRI';
     else
         % bilinear DCM
         M.IS    = 'spm_int';
     end
-else
-    M.IS    = DCM.M.IS;
 end
 
 % prevent mismatch between DCM structure and integration scheme
-if nlDCM && M.IS == 'spm_int'
+if M.nlDCM && (length(M.IS) == length('spm_int'))
+    fprintf('\n\n%s\n','WARNING: You are trying to run a nonlinear DCM with a bilinear integration scheme (spm_int).');
+    fprintf('%s\n\n','A nonlinear integration scheme (spm_int_B_nlDCM_fMRI) is used instead.');
     M.IS    = 'spm_int_B_nlDCM_fMRI';
-    fprintf('%s\n','WARNING: You are trying to run a nonlinear DCM with a bilinear integration scheme (spm_int).');
-    fprintf('%s\n','A nonlinear integration scheme (spm_int_B_nlDCM_fMRI) is used instead.');
 end
 
 
@@ -109,7 +110,7 @@ TE = DCM.TE;
 
 % priors - expectations
 %--------------------------------------------------------------------------
-if ~nlDCM
+if ~M.nlDCM
     % bilinear DCM
     [pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
 else
@@ -118,21 +119,20 @@ else
 end
 
 
-% model specification
+% complete model specification
 %--------------------------------------------------------------------------
-M.f   = 'spm_fx_dcm';
-M.g   = 'spm_gx_dcm';
-M.x   = sparse(n*5,1);
-M.pE  = pE;
-M.pC  = pC;
-M.m   = size(U.u,2);
-M.n   = size(M.x,1);
-M.l   = n;
-M.N   = 32;
-M.dt  = 16/M.N;
-M.ns  = size(Y.y,1);
-M.TE  = TE;
-M.nlDCM = nlDCM;
+M.f     = 'spm_fx_dcm';
+M.g     = 'spm_gx_dcm';
+M.x     = sparse(n*5,1);
+M.pE    = pE;
+M.pC    = pC;
+M.m     = size(U.u,2);
+M.n     = size(M.x,1);
+M.l     = n;
+M.N     = 32;
+M.dt    = 16/M.N;
+M.ns    = size(Y.y,1);
+M.TE    = TE;
 
 
 % fMRI slice time sampling
@@ -164,7 +164,7 @@ T          = 0;
 sw = warning('off','SPM:negativeVariance'); % switch off NaN-related warning of spm_Ncdf
 pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
 warning(sw);
-if ~nlDCM
+if ~M.nlDCM
     % bilinear DCM
     [ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
     [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
@@ -180,7 +180,7 @@ end
 % Also record variances - this helps Bayesian inference, e.g. across sessions
 %--------------------------------------------------------------------------
 vv         = diag(Cp);
-if ~nlDCM
+if ~M.nlDCM
     % bilinear DCM
     [vA vB vC]       = spm_dcm_reshape(vv,M.m,n,1);
 else
@@ -213,7 +213,7 @@ DCM.R      = R;
 DCM.y      = y;
 DCM.T      = T;
 DCM.Ce     = Ce;
-if nlDCM
+if M.nlDCM
     % nonlinear DCM
     DCM.D      = D;
     DCM.pD     = pD;
