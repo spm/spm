@@ -26,7 +26,7 @@ function D = spm_eeg_weight_epochs_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs_TF.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_weight_epochs_TF.m 2750 2009-02-16 13:06:27Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -55,6 +55,16 @@ catch
     c = spm_input('Enter contrasts', '1', 'x', '', inf, eye(D.ntrials));
     S.c = c;
 end
+
+Ncontrasts = size(c, 1);
+if ~isfield(S, 'label') || numel(S.label)~=size(c, 1)
+    label = {};
+    for i = 1:Ncontrasts
+        label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
+    end
+    S.label = label;
+end
+
 
 if ~isempty(D.repl)
     try
@@ -121,20 +131,15 @@ end
 
 spm_progress_bar('Clear');
 
-% jump outside methods to reorganise trial structure
-sD = struct(Dnew);
-sD.trials = sD.trials(1:Ncontrasts);
+Dnew = conditions(Dnew, [], S.label);
+Dnew = trialonset(Dnew, [], []);
+Dnew = reject(Dnew, [], 0);
+Dnew = repl(Dnew, [], newrepl);
 
-for i = 1:Ncontrasts
-    sD.trials(i).code = sprintf('contrast %d', i);
-    try sD.trials(i) = rmfield(sD.trials(i), 'onset'); end
-    try sD.trials(i) = rmfield(sD.trials(i), 'reject'); end
-    try sD.trials(i) = rmfield(sD.trials(i), 'blinks'); end
+% remove previous source reconsructions
+if isfield(Dnew,'inv')
+    Dnew = rmfield(Dnew,'inv');
 end
-
-try [sD.trials.repl] = deal(newrepl); end
-
-Dnew = meeg(sD);
 
 D = Dnew;
 D = D.history('spm_eeg_weight_epochs_TF', S);

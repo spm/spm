@@ -6,6 +6,8 @@ function D = spm_eeg_weight_epochs(S);
 % (optional) fields of S:
 % D         - filename of EEG mat-file with epoched data
 % c         - contrast matrix, each row computes a contrast of the data
+% label     - cell array of labels for the contrasts, the same size as
+%             number of rows in c
 % WeightAve - flag whether average should be weighted by number of
 %             replications (yes (1), no (0))
 % Output:
@@ -26,7 +28,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_weight_epochs.m 2750 2009-02-16 13:06:27Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -52,6 +54,16 @@ catch
     S.c = c;
 end
 
+Ncontrasts = size(c, 1);
+if ~isfield(S, 'label') || numel(S.label)~=size(c, 1)
+    label = {};
+    for i = 1:Ncontrasts
+        label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
+    end
+    S.label = label;
+end
+
+
 if ~isempty(D.repl)
     try
         WeightAve = S.WeightAve;
@@ -65,7 +77,6 @@ end
 
 % here should be a sanity check of c
 
-
 spm('Pointer', 'Watch'); drawnow;
 
 if strncmp(D.transformtype, 'TF', 2)
@@ -73,8 +84,6 @@ if strncmp(D.transformtype, 'TF', 2)
     D = spm_eeg_weight_epochs_TF(S);
     return
 end
-
-Ncontrasts = size(c, 1);
 
 % generate new meeg object with new filenames
 % Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
@@ -109,7 +118,7 @@ for i = 1:Ncontrasts
     end
 
     Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
-    
+
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
     if ismember(i, Ibar)
@@ -122,25 +131,16 @@ end
 
 spm_progress_bar('Clear');
 
-% jump outside methods to reorganise trial structure
-sD = struct(Dnew);
-sD.trials = sD.trials(1:Ncontrasts);
 
-for i = 1:Ncontrasts
-    sD.trials(i).code = sprintf('contrast %d', i);
-    try sD.trials(i) = rmfield(sD.trials(i), 'onset'); end
-    try sD.trials(i) = rmfield(sD.trials(i), 'reject'); end
-    try sD.trials(i) = rmfield(sD.trials(i), 'blinks'); end
-end
-
-try [sD.trials.repl] = deal(newrepl); end
+Dnew = conditions(Dnew, [], S.label);
+Dnew = trialonset(Dnew, [], []);
+Dnew = reject(Dnew, [], 0);
+Dnew = repl(Dnew, [], newrepl);
 
 % remove previous source reconsructions
-if isfield(sD.other,'inv')
-    sD.other = rmfield(sD.other,'inv');
+if isfield(Dnew,'inv')
+    Dnew = rmfield(Dnew,'inv');
 end
-Dnew = meeg(sD);
-
 
 D = Dnew;
 D = D.history('spm_eeg_weight_epochs', S);
