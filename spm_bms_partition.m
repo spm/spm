@@ -58,9 +58,7 @@ switch method
           
            % Create new images by summing old the ppms
            % ==============================================================
-           tmp = data{1};
-           vec = find(tmp(1,:) == '\');
-           dir = tmp(1,1:vec(end));
+           dir = [fileparts(BMS.fname),filesep];
            
            data_vol = cell(nb_subsets,1);
            ftmp     = cell(nb_subsets,1);
@@ -126,9 +124,7 @@ switch method
           
            % Create new images by summing old the ppms
            % ==============================================================
-           tmp = data{1};
-           vec = find(tmp(1,:) == '\');
-           dir = tmp(1,1:vec(end));
+           dir = [fileparts(BMS.fname),filesep];
            
            data_vol = cell(nb_subsets,1);
            ftmp     = cell(nb_subsets,1);

@@ -13,7 +13,7 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 2751 2009-02-16 15:50:26Z maria $
+% $Id: spm_run_bms_vis.m 2753 2009-02-16 18:25:22Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -85,25 +85,21 @@ zords_init    = repmat(1,1,xdim*ydim);
 
 % Legend of results being plotted
 % -------------------------------------------------------------------------
-b_str        = find(V.fname == '_');
-separators   = find(V.fname == '\');
-if length(separators) == 0
-   separators=find(V.fname == '/');
-end
-res_name     = V.fname(b_str(end)+1);
-res_model    = V.fname(b_str(end)-1);
-subset_model = V.fname(separators(end)+1:b_str(end)-2);
+[pathstr,name_image] = fileparts(V.fname);
+undersc              = find(name_image=='_');
+res_name             = name_image(undersc(end)+1);
+subset_model         = name_image(1:undersc(end)-1);
 
 % Show results being displayed on graphics window
 switch res_name
        case 'a'        
-            xSPM.str = sprintf('Alphas: %s %s',subset_model,res_model);
+            xSPM.str = sprintf('Alphas: %s',subset_model);
        case 'p'
-            xSPM.str = sprintf('PPM: %s %s',subset_model,res_model);
+            xSPM.str = sprintf('PPM: %s',subset_model);
        case 'x'
-            xSPM.str = sprintf('PPM: %s %s',subset_model,res_model);
+            xSPM.str = sprintf('PPM: %s',subset_model);
        case 'e'
-            xSPM.str = sprintf('EPM: %s %s',subset_model,res_model);
+            xSPM.str = sprintf('EPM: %s',subset_model);
        otherwise
             xSPM.str = '';
 end
