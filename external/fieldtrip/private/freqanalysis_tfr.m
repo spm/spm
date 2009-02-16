@@ -27,6 +27,11 @@ function [freq] = freqanalysis_tfr(cfg, data);
 % Copyright (C) 2003, Ole Jensen, FCDC
 %
 % $Log: freqanalysis_tfr.m,v $
+% Revision 1.23  2009/02/16 20:30:44  jansch
+% changed inconsistent normalization of power. initially, normalization was
+% (2./data.fsample).^2. in other freqanalysis_xxx functions, this normalization
+% is (2./data.fsample)
+%
 % Revision 1.22  2008/11/11 18:59:26  sashae
 % added call to checkconfig at end of function (trackconfig and checksize)
 %
@@ -218,7 +223,7 @@ for i=1:ntrial
   for k=1:size(dat,1)
     for j=1:length(cfg.foi)
       cTmp = conv(dat(k,:),M{j});
-      cTmp = (2*abs(cTmp)/data.fsample).^2;
+      cTmp = 2*(abs(cTmp).^2)/data.fsample;
       cTmp = cTmp(ceil(length(M{j})/2):length(cTmp)-floor(length(M{j})/2));
       cTmp = cTmp(:,1:cfg.downsample:end);
       if strcmp(cfg.keeptrials, 'yes')
@@ -255,7 +260,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.22 2008/11/11 18:59:26 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.23 2009/02/16 20:30:44 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
