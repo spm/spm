@@ -13,7 +13,7 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 2649 2009-01-23 19:41:21Z maria $
+% $Id: spm_run_bms_vis.m 2751 2009-02-16 15:50:26Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -85,20 +85,25 @@ zords_init    = repmat(1,1,xdim*ydim);
 
 % Legend of results being plotted
 % -------------------------------------------------------------------------
-b_str     = find(V.fname=='_');
-res_name  = V.fname(b_str(end)+1);
-res_model = V.fname(b_str(end)-1);
+b_str        = find(V.fname == '_');
+separators   = find(V.fname == '\');
+if length(separators) == 0
+   separators=find(V.fname == '/');
+end
+res_name     = V.fname(b_str(end)+1);
+res_model    = V.fname(b_str(end)-1);
+subset_model = V.fname(separators(end)+1:b_str(end)-2);
 
 % Show results being displayed on graphics window
 switch res_name
        case 'a'        
-            xSPM.str = sprintf('Alphas: model %s',res_model);
+            xSPM.str = sprintf('Alphas: %s %s',subset_model,res_model);
        case 'p'
-            xSPM.str = sprintf('PPM: model %s',res_model);
+            xSPM.str = sprintf('PPM: %s %s',subset_model,res_model);
        case 'x'
-            xSPM.str = sprintf('PPM: model %s',res_model);
+            xSPM.str = sprintf('PPM: %s %s',subset_model,res_model);
        case 'e'
-            xSPM.str = sprintf('EPM: model %s',res_model);
+            xSPM.str = sprintf('EPM: %s %s',subset_model,res_model);
        otherwise
             xSPM.str = '';
 end
@@ -125,6 +130,7 @@ end
 % -------------------------------------------------------------------------
 if ~isempty(z_above)
     
+    z_ps = z_above;
     % Log odds transform
     if odds
        z_odds = log(z_above./(ones(1,length(z_above))-z_above));
@@ -134,10 +140,12 @@ if ~isempty(z_above)
           odds = 0;                     % Don't plot odds
         end
     end
-    
+
     % Save data in xSPM structure
     voxels_mm     = M*[xyz_above;ones(1,size(xyz_above,2))];
     voxels_mm     = voxels_mm(1:3,:);
+    xSPM.swd      = file_fname;
+    xSPM.STAT     = '';
     xSPM.Z        = z_above;
     xSPM.XYZ      = xyz_above;
     xSPM.XYZmm    = voxels_mm;
@@ -146,12 +154,19 @@ if ~isempty(z_above)
     xSPM.DIM      = DIM;
     xSPM.M        = M;
     xSPM.iM       = iM;
+    xSPM.n        = 1;
+    xSPM.k        = 0;
+    xSPM.df       = [];
     xSPM.u        = threshold;
     xSPM.STAT     = '';
     xSPM.VOX      = vox;        
     xSPM.thres    = threshold;
     xSPM.vols     = post;
     xSPM.scale    = odds;
+    xSPM.units    = {'mm'  'mm'  'mm'};
+    xSPM.Ps       = [];
+    xSPM.S        = 0;
+    xSPM.z_ps     = z_ps;
     BMS.xSPM      = xSPM;
     
     % Display results

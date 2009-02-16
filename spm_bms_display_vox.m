@@ -8,7 +8,7 @@ function spm_bms_display_vox(BMS,xyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 2649 2009-01-23 19:41:21Z maria $
+% $Id: spm_bms_display_vox.m 2751 2009-02-16 15:50:26Z maria $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -37,18 +37,22 @@ switch method
                     models        = [models; sprintf('model %d',i)];
                 end
          
+                log_gbf = log(ppm_vox./(1-ppm_vox));
+                
                 % Bar plot
                 figure(Fgraph);
                 spm_results_ui('Clear',Fgraph);
         
-                hvox   = axes('Position',[0.25 0.10 0.5 0.30],'Parent',...
-                    Fgraph,'Visible','off');
+                hvox   = axes('Position',[0.25 0.15 0.5 0.25],'Parent',...
+                Fgraph,'Visible','off');
+            
                 bar(1:nmodels,ppm_vox)
                 set(gca,'XTick',1:nmodels)
                 set(gca,'XTickLabel',1:nmodels)
+                set(gca,'YLim',[0 1])
                 ylabel('Posterior Model Probability','Fontsize',12)
                 xlabel('Models','Fontsize',12)
-                title({'1st-level Bayesian Model Selection';''},...
+                title({'Fixed-effects Bayesian Model Selection';''},...
                 'Fontsize',12);
                 axis square
                 grid on
@@ -89,27 +93,29 @@ switch method
             figure(Fgraph);
             spm_results_ui('Clear',Fgraph); 
         
-            hvox   = axes('Position',[0.20 0.20 0.30 0.15],'Parent',...
+            hvox   = axes('Position',[0.16 0.18 0.30 0.20],'Parent',...
                 Fgraph,'Visible','off');
 
             bar(1:nmodels,exp_r_vox)
             set(gca,'XTick',1:nmodels)
             set(gca,'XTickLabel',1:nmodels)
+            set(gca,'YLim',[0 1])
             ylabel('Expected Posterior Probability','Fontsize',12)
             xlabel('Models','Fontsize',12)
-            title({'2nd-level Bayesian Model Selection';''},'Fontsize',12)
+            title({'Random-effects Bayesian Model Selection';''},'Fontsize',12)
             axis square
             grid on
         
-            hvox   = axes('Position',[0.55 0.20 0.30 0.15],'Parent',...
+            hvox   = axes('Position',[0.55 0.18 0.30 0.20],'Parent',...
                 Fgraph,'Visible','off');
         
             bar(1:nmodels,xp_vox)
             set(gca,'XTick',1:nmodels)
             set(gca,'XTickLabel',1:nmodels)
+            set(gca,'YLim',[0 1])
             ylabel('Exceedance Probability','Fontsize',12)
             xlabel('Models','Fontsize',12)
-            title({'2nd-level Bayesian Model Selection';''},'Fontsize',12)
+            title({'Random-effects Bayesian Model Selection';''},'Fontsize',12)
             axis square
             grid on
 

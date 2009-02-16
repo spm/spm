@@ -41,7 +41,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 2649 2009-01-23 19:41:21Z maria $
+% $Id: spm_run_bms_map.m 2751 2009-02-16 15:50:26Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -228,7 +228,7 @@ switch method
         
         % Save data and BMS
         BMS.fname = fname;
-        BMS.map.ffx.data = job.sess_map;
+        BMS.map.rfx.data = job.sess_map;
         save(out.files{1},'BMS'); 
     
 end
