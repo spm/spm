@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_api_erp.m 2752 2009-02-16 17:26:54Z cc $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1143,6 +1143,8 @@ function Wavelet_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
  
+handles.DCM = spm_dcm_erp_dipfit(handles.DCM, 1);
+
 switch handles.DCM.options.analysis
  
     case{'SSR'}

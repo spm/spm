@@ -35,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 2752 2009-02-16 17:26:54Z cc $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -115,7 +115,7 @@ if ~isfield(D, 'val'), D.val = 1; end
 if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
         ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
         ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
-    D = spm_eeg_inv_mesh_ui(D, D.val, [], []);
+    D = spm_eeg_inv_mesh_ui(D, D.val);
     D = spm_eeg_inv_datareg_ui(D, D.val);
     D = spm_eeg_inv_forward_ui(D, D.val);
     save(D);
