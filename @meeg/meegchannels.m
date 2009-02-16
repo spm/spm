@@ -6,7 +6,7 @@ function ind = meegchannels(this, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: meegchannels.m 2749 2009-02-16 11:30:15Z vladimir $
 
 type = chantype(this);
 
@@ -19,7 +19,7 @@ else
         case 'LFP'
             ind = strmatch('LFP', type, 'exact');
         case 'MEG'
-            ind = sort([strmatch('MEGMAG', type, 'exact'); strmatch('MEGGRAD', type, 'exact')]);
+            ind = sort([strmatch('MEGMAG', type, 'exact'); strmatch('MEGGRAD', type, 'exact'); strmatch('MEG', type, 'exact')]);
         case 'MEGPLANAR'
             ind = strmatch('MEGPLANAR', type, 'exact');
         otherwise
