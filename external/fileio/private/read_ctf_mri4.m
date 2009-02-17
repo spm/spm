@@ -9,6 +9,9 @@ function [mri, hdr, cpersist] = read_ctf_mri4(filename);
 % Copyright (C) 2008 Ivar Clemens
 %
 % $Log: read_ctf_mri4.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.1  2008/11/28 10:25:05  roboos
 % new implementation by Ivar, based on the version 2 reader
 %

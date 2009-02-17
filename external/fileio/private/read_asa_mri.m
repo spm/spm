@@ -16,6 +16,9 @@ function [mri, seg, hdr] = read_asa_mri(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_mri.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.6  2008/11/12 17:02:03  roboos
 % explicitely specify ieee-le in fopen()
 %
