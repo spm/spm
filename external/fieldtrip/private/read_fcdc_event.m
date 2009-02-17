@@ -1,4 +1,4 @@
-function [event] = read_fcdc_event(varargin)
+function [event] = read_fcdc_event(filename)
 
 % READ_FCDC_EVENT reads all events from an EEG/MEG dataset and returns
 % them in a well defined structure. It is a wrapper around different
@@ -39,6 +39,9 @@ function [event] = read_fcdc_event(varargin)
 % Copyright (C) 2004-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_event.m,v $
+% Revision 1.49  2009/02/17 11:08:31  roboos
+% changed varargin into filename for more strict input handling: multiple input arguments are not supported because the (old) read_fcdc_xxx function interface did not support that.
+%
 % Revision 1.48  2009/01/28 14:45:46  roboos
 % added fieldtripdefs (thanks to Verena)
 %
@@ -53,5 +56,5 @@ function [event] = read_fcdc_event(varargin)
 fieldtripdefs
 
 % use the low-level reading function
-[event] = read_event(varargin{:});
+[event] = read_event(filename);
 

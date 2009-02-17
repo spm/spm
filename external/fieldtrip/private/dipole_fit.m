@@ -28,6 +28,10 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.13  2009/02/17 10:57:57  roboos
+% use senstype to determine eeg/meg
+% fixed bug in input pos/mom checking (thanks to Vladimir)
+%
 % Revision 1.12  2009/01/19 12:07:42  roboos
 % fixed bug for symmetry constrained dipole fitting in case of multiple dipoles (thanks to John Iversen)
 % added some checks on the input dipole position and moment
@@ -151,29 +155,10 @@ if isempty(maxiter)
 end
 
 % determine whether it is EEG or MEG
-if ~isstruct(sens) & size(sens,2)==3
-  % definition of electrode positions only, restructure it
-  sens = struct('pnt', sens);
-  iseeg = 1;
-  ismeg = 0;
-elseif isfield(sens, 'type') & strcmp(sens.type, 'electrodes')
-  iseeg = 1;
-  ismeg = 0;
-elseif isfield(sens, 'type') & strcmp(sens.type, 'gradiometers')
-  iseeg = 0;
-  ismeg = 1;
-elseif isfield(sens, 'pnt') & ~isfield(sens, 'ori')
-  iseeg = 1;
-  ismeg = 0;
-elseif isfield(sens, 'pnt') &  isfield(sens, 'ori')
-  iseeg = 0;
-  ismeg = 1;
-else
-  iseeg = 0;
-  ismeg = 0;
-end
+iseeg = senstype(sens, 'eeg');
+ismeg = senstype(sens, 'meg');
 
-if ismeg & iseeg
+if ismeg && iseeg
   % this is something that I might implement in the future
   error('simultaneous EEG and MEG not supported');
 elseif iseeg
@@ -181,22 +166,29 @@ elseif iseeg
   dat = avgref(dat);
 end
 
-% check the input dipole position specification
+% check the input dipole position specification, should be Nx3
 [m, n] = size(dip.pos);
-if n~=3 && m~=1
-  error('input dipole positions should be specified as Nx3 matrix');
-else
+if n==3
+  % this is ok
+elseif m==3
+  % it is possible to translate it into a Nx3 unambiguously
   warning('input dipole positions should be specified as Nx3 matrix');
   dip.pos = dip.pos';
+else
+  error('input dipole positions should be specified as Nx3 matrix');
 end
+
 if isfield(dip, 'mom')
-  % check the input dipole moment specification
-  [m, n] = size(dip.pos);
-  if m~=3 && n~=1
-    error('input dipole moments should be specified as 3xN matrix');
-  else
+  % check the input dipole moment specification, should be 3xN
+  [m, n] = size(dip.mom);
+  if m==3
+    % this is ok
+  elseif n==3
+    % it is possible to translate it into a 3xN unambiguously
     warning('input dipole moments should be specified as 3xN matrix');
     dip.mom = dip.mom';
+  else
+    error('input dipole moments should be specified as 3xN matrix');
   end
 end
 
@@ -283,7 +275,7 @@ function [err, mom] = dipfit_error(param, dat, sens, vol, constr, metric, checki
 
 % flush pending graphics events, ensure that fitting is interruptible
 drawnow;
-if ~isempty(get(0, 'currentfigure')) & strcmp(get(gcf, 'tag'), 'stop')
+if ~isempty(get(0, 'currentfigure')) && strcmp(get(gcf, 'tag'), 'stop')
   % interrupt the fitting
   close;
   error('USER ABORT');

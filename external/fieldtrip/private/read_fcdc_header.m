@@ -1,4 +1,4 @@
-function [hdr] = read_fcdc_header(varargin)
+function [hdr] = read_fcdc_header(filename)
 
 % READ_FCDC_HEADER is a wrapper around different EEG/MEG file importers
 % directly supported formats are CTF, Neuromag, EEP, BrainVision,
@@ -25,6 +25,9 @@ function [hdr] = read_fcdc_header(varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_header.m,v $
+% Revision 1.48  2009/02/17 11:08:31  roboos
+% changed varargin into filename for more strict input handling: multiple input arguments are not supported because the (old) read_fcdc_xxx function interface did not support that.
+%
 % Revision 1.47  2009/01/28 14:45:46  roboos
 % added fieldtripdefs (thanks to Verena)
 %
@@ -39,5 +42,5 @@ function [hdr] = read_fcdc_header(varargin)
 fieldtripdefs
 
 % use the low-level reading function
-[hdr] = read_header(varargin{:});
+[hdr] = read_header(filename);
 

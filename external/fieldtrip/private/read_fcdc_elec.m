@@ -1,4 +1,4 @@
-function [sens] = read_fcdc_elec(varargin)
+function [sens] = read_fcdc_elec(filename)
 
 % READ_FCDC_ELEC read sensor positions from various manufacturers
 % file formats. Currently supported are ASA, BESA, Polhemus and Matlab
@@ -29,6 +29,9 @@ function [sens] = read_fcdc_elec(varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_fcdc_elec.m,v $
+% Revision 1.11  2009/02/17 11:08:31  roboos
+% changed varargin into filename for more strict input handling: multiple input arguments are not supported because the (old) read_fcdc_xxx function interface did not support that.
+%
 % Revision 1.10  2009/01/28 14:45:46  roboos
 % added fieldtripdefs (thanks to Verena)
 %
@@ -44,5 +47,5 @@ function [sens] = read_fcdc_elec(varargin)
 fieldtripdefs
 
 % use the low-level reading function
-[sens] = read_sens(varargin{:});
+[sens] = read_sens(filename);
 
