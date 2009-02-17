@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 2724 2009-02-10 09:05:46Z klaas $
+% $Id: spm_run_bms_dcm.m 2756 2009-02-17 17:23:45Z cc $
 
 job     = varargin{1};
 fname  ='BMS.mat';                  % Output filename
@@ -82,7 +82,7 @@ end
 
 
 % make inference and visualization
-if strcmp(job.method,'FFX');                    %%% 1st-level group BMS
+if strcmp(job.method,'FFX');                    %%% single subject BMS or 1st level( fixed effects) group BMS
 
     P = spm_api_bmc(sum(F,1),N);
 
@@ -93,12 +93,12 @@ if strcmp(job.method,'FFX');                    %%% 1st-level group BMS
             msgbox(str)
             BMS.DCM.ffx.F      = F;
             BMS.DCM.ffx.P      = P;
-            BMS.DCM.ffx.BF     = sum(F,1);
+            BMS.DCM.ffx.SF     = sum(F,1);
             BMS.DCM.ffx.data   = data;
         else
             BMS.DCM.ffx.F     = F;
             BMS.DCM.ffx.P     = P;
-            BMS.DCM.ffx.BF     = sum(F,1);
+            BMS.DCM.ffx.SF     = sum(F,1);
             BMS.DCM.ffx.data  = data;
         end
         save(fname,'BMS')
@@ -106,13 +106,13 @@ if strcmp(job.method,'FFX');                    %%% 1st-level group BMS
     else
         BMS.DCM.ffx.F     = F;
         BMS.DCM.ffx.P     = P;
-        BMS.DCM.ffx.BF     = sum(F,1);
+        BMS.DCM.ffx.SF     = sum(F,1);
         BMS.DCM.ffx.data  = data;
         save(fname,'BMS')
         out.files{1} = fname;
     end
 else
-    % 2nd-level
+    % 2nd-level (random effects) BMS
     if  nm==2
         [alpha,exp_r,xp] = spm_BMS(F, 1e6, 1);
     else
@@ -125,14 +125,14 @@ else
             str = { 'Warning: existing BMS.mat file has been over-written!'};
             msgbox(str)
             BMS.DCM.rfx.F      = F;
-            BMS.DCM.rfx.BF     = sum(F,1);
+            BMS.DCM.rfx.SF     = sum(F,1);
             BMS.DCM.rfx.alpha = alpha';
             BMS.DCM.rfx.exp_r = exp_r';
             BMS.DCM.rfx.xp    = xp';
             BMS.DCM.rfx.data  = data;
         else
             BMS.DCM.rfx.F      = F;
-            BMS.DCM.rfx.BF     = sum(F,1);
+            BMS.DCM.rfx.SF     = sum(F,1);
             BMS.DCM.rfx.alpha  = alpha';
             BMS.DCM.rfx.exp_r  = exp_r';
             BMS.DCM.rfx.xp     = xp';
@@ -142,7 +142,7 @@ else
         out.files{1}= fname;
     else
         BMS.DCM.rfx.F      = F;
-        BMS.DCM.rfx.BF     = sum(F,1);
+        BMS.DCM.rfx.SF     = sum(F,1);
         BMS.DCM.rfx.alpha = alpha';
         BMS.DCM.rfx.exp_r = exp_r';
         BMS.DCM.rfx.xp    = xp';
