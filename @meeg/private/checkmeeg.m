@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2735 2009-02-12 10:25:09Z vladimir $
+% $Id: checkmeeg.m 2755 2009-02-17 11:03:42Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -83,6 +83,12 @@ else
         disp('checkmeeg: no channel type, assigning default');
         [meegstruct.channels.type] = deal('Other');
     end
+    
+    % This is for backward compatibility with early SPM8b. Can be removed
+    % after a while.
+    ind = strmatch('MEGREF', {meegstruct.channels.type}, 'exact');
+    [meegstruct.channels(ind).type] = deal('REF');
+    
     if ~isfield(meegstruct.channels, 'X_plot2D')
         [meegstruct.channels.X_plot2D] = deal([]);
         [meegstruct.channels.Y_plot2D] = deal([]);

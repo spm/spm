@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2755 2009-02-17 11:03:42Z vladimir $
 
 spm('pointer','watch')
 
@@ -294,8 +294,18 @@ switch get(gcbo, 'Label')
             'REFGRAD',  'MEGGRAD';
             };               
                 
-        S.ind = spm_match_str(S.D.chantype, dictionary(:,1));
+        ind = spm_match_str(S.D.chantype, dictionary(:,1));
 
+        grad = S.D.sensors('meg');
+        if ~isempty(grad)
+            % Under some montages only subset of the reference sensors are
+            % in the grad
+            [junk, sel] = intersect(S.D.chanlabels(ind), grad.label);
+            ind = ind(sel);
+        end
+            
+        S.ind = ind;
+        
         [sel1, sel2] = spm_match_str(S.D.chantype(S.ind), dictionary(:, 1));
 
         S.type = dictionary(sel2, 2);
