@@ -12,15 +12,18 @@ function [channel] = channelselection(channel, datachannel)
 % automatically removed from the channel list.
 %
 % E.g.
-%  'gui'     a graphical user interface will pop up to select the channels
 %  'all'     is replaced by all channels in the datafile
+%  'gui'     a graphical user interface will pop up to select the channels
+%  'C*'      is replaced by all channels that mactch the wildcard, e.g. C1, C2, C3, ...
+%  '*1'      is replaced by all channels that mactch the wildcard, e.g. C1, P1, F1, ...
 %  'MEG'     is replaced by all MEG channels (works for CTF, 4D and Neuromag)
 %  'MEGREF'  is replaced by all MEG reference channels (works for CTF and 4D)
-%  'EEG'     is replaced by all recognized EEG channels (this is system dependant)
+%  'EEG'     is replaced by all recognized EEG channels (this is system dependent)
 %  'EEG1020' is replaced by 'Fp1', 'Fpz', 'Fp2', 'F7', 'F3', ...
 %  'EOG'     is replaced by all recognized EOG channels
 %  'EMG'     is replaced by all channels in the datafile starting with 'EMG'
-%  'lfp'     is replaced by all channels in the datafile starting with 'lfp'
+%  'lfp'     is replaced by all channels in the datafile starting with
+%  'lfp'
 %  'mua'     is replaced by all channels in the datafile starting with 'mua'
 %  'spike'   is replaced by all channels in the datafile starting with 'spike'
 %  10        is replaced by the 10th channel in the datafile
@@ -34,8 +37,7 @@ function [channel] = channelselection(channel, datachannel)
 %   'MZ'         for MEG zenith
 %   'ML'         for MEG left
 %   'MR'         for MEG right
-%   'MLx', 'MRx' and 'MZx' with x=C,F,O,P,T for left/right central, frontal,
-%   occipital, parietal and temporal
+%   'MLx', 'MRx' and 'MZx' with x=C,F,O,P,T for left/right central, frontal, occipital, parietal and temporal
 %
 % You can also exclude channels or channel groups using the following syntax
 %   {'all', '-POz', '-Fp1', -EOG'}
@@ -43,14 +45,12 @@ function [channel] = channelselection(channel, datachannel)
 % Note that the order of channels that is returned should correspond with
 % the order of the channels in the data.
 
-% TODO implement the following
-%  'C*'     is replaced by all channels that mactch the wildcard, e.g. C1, C2, C3, ...
-%  '*1'     is replaced by all channels that mactch the wildcard, e.g. C1, P1, F1, ...
-% this can be done using the regexp function
-
-% Copyright (C) 2003-2008, Robert Oostenveld
+% Copyright (C) 2003-2009, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.36  2009/02/18 07:57:07  roboos
+% added support for selection based on wildcards (like 'C*' and '*1')
+%
 % Revision 1.35  2009/01/21 16:59:08  jansch
 % added possibility to select (sets of) references for 4D data
 %
@@ -147,6 +147,20 @@ labellfp  = datachannel(strncmp('lfp', datachannel, length('lfp')));
 labelmua  = datachannel(strncmp('mua', datachannel, length('mua')));
 labelspike  = datachannel(strncmp('spike', datachannel, length('spike')));
 
+% use regular expressions to deal with the wildcards
+labelreg = false(size(datachannel));
+findreg = [];
+for i=1:length(channel)
+  if length(channel{i})>1 && channel{i}(1)=='*'
+    labelreg = labelreg | ~cellfun(@isempty, regexp(datachannel, ['.*' channel{i}(2:end) '$'], 'once'));
+    findreg  = [findreg i];
+  elseif length(channel{i})>1 && channel{i}(end)=='*'
+    labelreg = labelreg | ~cellfun(@isempty, regexp(datachannel, ['^' channel{i}(1:end-1) '.*'], 'once'));
+    findreg  = [findreg i];
+  end
+end
+labelreg = datachannel(labelreg);
+
 % initialize all the system-specific variables to empty
 labelmeg   = [];
 labelmref  = [];
@@ -198,6 +212,7 @@ switch senstype(datachannel)
     labelmrefg = datachannel(strncmp('G', datachannel,  1));
     labelmrefl = datachannel(strncmp('ML', datachannel, 2));
     labelmrefr = datachannel(strncmp('MR', datachannel, 2));
+
   case {'neuromag306', 'neuromag122'}
     % all neuromag MEG channels start with MEG
     % all neuromag EEG channels start with EEG
@@ -208,7 +223,7 @@ switch senstype(datachannel)
     % use an external helper function to define the list with EEG channel names
     labeleeg = senslabel(senstype(datachannel));
 
-end
+end % switch senstype
 
 % figure out if there are bad channels or channel groups that should be excluded
 findbadchannel = strncmp('-', channel, length('-'));      % bad channels start with '-'
@@ -223,6 +238,7 @@ end
 
 % determine if any of the known groups is mentioned in the channel list
 findall        = find(strcmp(channel, 'all'));
+% findreg (for the wildcards) is dealt with in the channel group specification above
 findmeg        = find(strcmp(channel, 'MEG'));
 findemg        = find(strcmp(channel, 'EMG'));
 findeeg        = find(strcmp(channel, 'EEG'));
@@ -264,6 +280,7 @@ findgui        = find(strcmp(channel, 'gui'));
 % remove any occurences of groups in the channel list
 channel([
   findall
+  findreg
   findmeg
   findemg
   findeeg
@@ -300,6 +317,7 @@ channel([
 
 % add the full channel labels to the channel list
 if findall,        channel = [channel; labelall]; end
+if findreg,        channel = [channel; labelreg]; end
 if findmeg,        channel = [channel; labelmeg]; end
 if findemg,        channel = [channel; labelemg]; end
 if findeeg,        channel = [channel; labeleeg]; end
@@ -352,7 +370,7 @@ if findgui
 end
 
 % remove channels that occur more than once, this sorts the channels alphabetically
-[channel, indx] = unique(channel);
+channel = unique(channel);
 
 % undo the sorting, make the order identical to that of the data channels
 [dataindx, indx] = match_str(datachannel, channel);
