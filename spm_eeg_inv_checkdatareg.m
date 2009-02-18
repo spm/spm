@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 2760 2009-02-18 18:38:20Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ ind = spm_input('What to display?','+1', 'b',  str, 1:numel(D.inv{val}.datareg),
 modality = datareg(ind).modality;
 meegfid =  datareg(ind).fid_eeg;
 mrifid =   datareg(ind).fid_mri;
-mesh = spm_eeg_inv_transform_mesh(datareg(ind).fromMNI, D.inv{val}.mesh);
+mesh = spm_eeg_inv_transform_mesh(datareg(ind).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
 sensors = datareg(ind).sensors;
 
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf

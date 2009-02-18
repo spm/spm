@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_forward.m 2760 2009-02-18 18:38:20Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 spm('Pointer', 'Watch');drawnow;
 
 for i = 1:nvol
-    mesh = spm_eeg_inv_transform_mesh(D.inv{val}.datareg(i).fromMNI, D.inv{val}.mesh);
+    mesh = spm_eeg_inv_transform_mesh(D.inv{val}.datareg(i).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
 
     switch D.inv{val}.forward(i).voltype
         case '3-Shell Sphere (experimental)'
