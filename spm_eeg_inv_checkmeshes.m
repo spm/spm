@@ -13,7 +13,7 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_checkmeshes.m 2762 2009-02-19 11:50:33Z vladimir $
 
 
 % initialise
@@ -47,7 +47,28 @@ h_skl   = patch('vertices',Mskl.vert,'faces',Mskl.face,'EdgeColor','r','FaceColo
 %--------------------------------------------------------------------------
 h_slp   = patch('vertices',Mslp.vert,'faces',Mslp.face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
+pls=0.05:0.2:0.9;
+N = nifti(mesh.sMRI);
+d=size(N.dat);
+pls = round(pls.*d(3));
+for i=1:numel(pls),
+    [x,y,z]=ndgrid(1:d(1),1:d(2),pls(i));
+    f1 = N.dat(:,:,pls(i));
+    M = N.mat;
+    x1 = M(1,1)*x+M(1,2)*y+M(1,3)*z+M(1,4);
+    y1 = M(2,1)*x+M(2,2)*y+M(2,3)*z+M(2,4);
+    z1 = M(3,1)*x+M(3,2)*y+M(3,3)*z+M(3,4);
+
+    s=surf(x1,y1,z1,f1);
+    set(s,'EdgeColor','none')
+end
+
+pnt = mesh.fid.fid.pnt;
+h_fid = plot3(pnt(:,1), pnt(:,2), pnt(:,3), '.c', 'MarkerSize', 30);
+h_fid_txt = text(pnt(:,1), pnt(:,2), pnt(:,3), mesh.fid.fid.label);
+
 axis image off;
+colormap('gray');
 view(-135,45);
 rotate3d on
 drawnow
