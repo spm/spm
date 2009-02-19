@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 2479 2008-11-19 16:16:51Z guillaume $
+ * $Id: file2mat.c 2766 2009-02-19 19:30:19Z guillaume $
  * John Ashburner
  */
 
@@ -38,6 +38,7 @@ typedef char *caddr_t;
 
 /*
 http://en.wikipedia.org/wiki/Page_(computing)#Determining_the_page_size_in_a_program
+http://msdn.microsoft.com/en-us/library/aa366763(VS.85).aspx
 */
 int page_size()
 {
@@ -46,7 +47,7 @@ int size = 0;
 #if defined (_WIN32) || defined (_WIN64)
     SYSTEM_INFO info;
     GetSystemInfo (&info);
-    size = (int)info.dwPageSize;
+    size = (int)info.dwAllocationGranularity;
 #else
     size = sysconf(_SC_PAGESIZE);
 #endif 
