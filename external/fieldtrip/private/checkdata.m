@@ -33,6 +33,11 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.9  2009/02/19 09:19:43  jansch
+% built-in pos2dim3d in source2volume, which tries to create a 1x3 dim vector
+% from a list of positions (only if the positions describe a full volume in
+% an ordered (slice by slice) way.
+%
 % Revision 1.8  2009/02/13 17:35:22  roboos
 % implemented dimord/dim handling for volume and source data, only in case of hasdimord=yes
 % convert source.trial(1:N).pow into source.pow with appropriate reshaping
@@ -528,7 +533,7 @@ if issource || isvolume,
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the source reconstructed parameters
   dim = [data.dim 1];
-
+  
   param = parameterselection('all', data);
   for i=1:length(param)
     if any(param{i}=='.')
@@ -919,7 +924,6 @@ end
 function data = volume2source(data)
 if isfield(data, 'dimord')
   % it is a modern source description
-  keyboard
 else
   % it is an old-fashioned source description
   xgrid = 1:data.dim(1);
@@ -933,22 +937,32 @@ end
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = source2volume(data)
+
 if isfield(data, 'dimord')
   % it is a modern source description
-  keyboard
-else
-  % it is an old-fashioned source description
-  % the volume representation requires a homogenous transformation matrix to convert voxel indices to head coordinates
+  
+  %this part depends on the assumption that the list of positions is describing a full 3D volume in 
+  %an ordered way which allows for the extraction of a transformation matrix
+  %i.e. slice by slice
+  try, 
+    data.dim = pos2dim3d(data.pos);
+  catch
+  end
+end
+
+if isfield(data, 'dim') && length(data.dim>=3),
+  % it is an old-fashioned source description, or the source describes a regular 3D volume in pos
   xgrid = 1:data.dim(1);
   ygrid = 1:data.dim(2);
   zgrid = 1:data.dim(3);
   [x y z] = ndgrid(xgrid, ygrid, zgrid);
-  ind =  [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
-  pos = data.pos;             % these are the positions expressed in head coordinates
-  % represent the positions in a manner that is compatible with the homogenous matrix multiplication, i.e. pos = H * ind
+  ind = [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
+  pos = data.pos;            % these are the positions expressed in head coordinates
+  % represent the positions in a manner that is compatible with the homogeneous matrix multiplication, 
+  % i.e. pos = H * ind
   ind = ind'; ind(4,:) = 1;
   pos = pos'; pos(4,:) = 1;
-  % recompute the homogenous transformation matrix
+  % recompute the homogeneous transformation matrix
   data.transform = pos / ind;
 end
 

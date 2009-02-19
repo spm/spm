@@ -1,4 +1,4 @@
-function [cfg, artifact] = artifact_ecg(cfg)
+function [cfg, artifact] = artifact_ecg(cfg, data)
 
 % ARTIFACT_ECG performs a peak-detection on the ECG-channel. The
 % heart activity can be seen in the MEG data as an MCG artifact and
@@ -28,6 +28,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.24  2009/02/19 10:09:47  jansch
+% added possibility to take a data structure as second input
+%
 % Revision 1.23  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -125,12 +128,18 @@ if ~strcmp(cfg.artfctdef.ecg.method, 'zvalue'),
   error('this method is not applicable');
 end
 
+if nargin == 1,
+  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  hdr = read_header(cfg.headerfile);
+  trl = cfg.trl;
+elseif nargin == 2,
+  cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+  hdr = fetch_header(data);
+  trl = findcfg(data.cfg, 'trl');
+end
 artfctdef     = cfg.artfctdef.ecg;
-cfg           = checkconfig(cfg, 'dataset2files', {'yes'});
-cfg           = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-hdr           = read_header(cfg.headerfile);
 padsmp        = round(artfctdef.padding*hdr.Fs);
-trl           = cfg.trl;
 ntrl          = size(trl,1);
 artfctdef.trl = trl;
 artfctdef.channel = channelselection(artfctdef.channel, hdr.label);
@@ -156,7 +165,11 @@ end
 
 % read in the ecg-channel and do blc and squaring
 for j = 1:ntrl
-  ecg{j} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
+  if nargin==1,
+    ecg{j} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
+  elseif nargin==2,
+    ecg{j} = fetch_data(data,        'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
+  end
   ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
   ecg{j} = ecg{j}.^2;
 end
@@ -211,9 +224,11 @@ artfctdef.qrs = pindx;
 %---------------------------------------
 % create trials for qrs-triggered average
 trl = [];
-trl(:,1) = pindx(:) - artfctdef.padding*(hdr.Fs)  ;
-trl(:,2) = pindx(:) + artfctdef.padding*(hdr.Fs)-1;
-trl(:,3) = -artfctdef.padding*(hdr.Fs);
+trl(:,1) = pindx(:) - round(artfctdef.padding*(hdr.Fs))  ;
+trl(:,2) = pindx(:) + round(artfctdef.padding*(hdr.Fs))-1;
+trl(:,3) = -round(artfctdef.padding*(hdr.Fs));
+trl(trl(:,1)<1,:) = [];
+trl(trl(:,2)>hdr.nSamples.*hdr.nTrials,:) = [];
 %------------
 
 % ---------------------
@@ -229,8 +244,13 @@ ntrl   = size(trl,1);
 if ~isempty(sgnind)
   for j = 1:ntrl
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
-    dum = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
-    dat = dat + preproc_baselinecorrect(dum);
+    if nargin==1,
+      dum = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
+      dat = dat + preproc_baselinecorrect(dum);
+    elseif nargin==2,
+      dum = fetch_data(data, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
+      dat = dat + preproc_baselinecorrect(dum);
+    end
   end
 end
 
@@ -244,6 +264,8 @@ acceptpst = 0;
 while acceptpre == 0 || acceptpst == 0,
   h = figure;
   subplot(2,1,1); plot(time, dat(end, :));
+  abc = axis;
+  axis([time(1) time(end) abc(3:4)]);
   subplot(2,1,2);
   axis([time(1) time(end) -1.1*mdat 1.1*mdat]);
   xpos   = -artfctdef.pretim;
@@ -305,4 +327,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.23 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.24 2009/02/19 10:09:47 jansch Exp $';
