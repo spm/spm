@@ -1,6 +1,6 @@
-function [u, Ps] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
+function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Cluster False Discovery critical height threshold
-% FORMAT [u, Ps] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui)
+% FORMAT [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %
 % q     - Prespecified upper bound on False Discovery Rate
 % df    - [df{interest} df{residuals}]
@@ -18,21 +18,22 @@ function [u, Ps] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 %
 % u     - critical extent threshold
 % Ps    - Sorted p-values
+% ue    - critical extent threshold for FWE
 %__________________________________________________________________________
 %
 % References
 %
 % J.R. Chumbley and K.J. Friston, "False discovery rate revisited: FDR and 
 % topological inference using Gaussian random fields". NeuroImage,
-% 44(1):62-70.
+% 44(1):62-70, 2009.
 %
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
-% FDR for NeuroImaging". In Preparation.
+% FDR for NeuroImaging". Under revision.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_uc_clusterFDR.m 2764 2009-02-19 15:30:03Z guillaume $
 
 % Threshold the statistical field 
 %--------------------------------------------------------------------------
@@ -48,8 +49,9 @@ N        = N .* V2R;
 % Compute uncorrected p-values based on N using Random Field Theory
 %--------------------------------------------------------------------------
 Ps       = zeros(1,numel(N));
+Pk       = zeros(1,numel(N));
 for i = 1:length(N)
-    [Pk, Ps(i)] = spm_P_RF(1,N(i),ui,df,STAT,R,n);
+    [Pk(i), Ps(i)] = spm_P_RF(1,N(i),ui,df,STAT,R,n);
 end
 [Ps, J]  = sort(Ps, 'ascend');
 
@@ -67,4 +69,16 @@ if isempty(I)
     u    = Inf;
 else
     u    = N(J(I)) / V2R;
+end
+
+% As we're there, also determine the FWE critical extent threshold
+%--------------------------------------------------------------------------
+if nargout == 3
+    [Pk, J]  = sort(Pk, 'ascend');
+    I        = find(Pk <= q, 1, 'last');
+    if isempty(I)
+        ue   = Inf;
+    else
+        ue   = N(J(I)) / V2R;
+    end
 end

@@ -23,15 +23,15 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %
 % J.R. Chumbley and K.J. Friston, "False discovery rate revisited: FDR and 
 % topological inference using Gaussian random fields". NeuroImage,
-% 44(1):62-70.
+% 44(1):62-70, 2009.
 %
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
-% FDR for NeuroImaging". In Preparation.
+% FDR for NeuroImaging". Under revision.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_uc_peakFDR.m 2764 2009-02-19 15:30:03Z guillaume $
 
 % Extract list of local maxima whose height is above ui
 %--------------------------------------------------------------------------

@@ -22,7 +22,9 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels} - column vector
 % .Vspm  - Mapped statistic image(s)
-% .Ps    - P vlues in searched voxels (for FDR)
+% .Ps    - uncorrected P values in searched volume (for voxel FDR)
+% .Pp    - uncorrected P values of peaks (for peak FDR)
+% .Pc    - uncorrected P values of cluster extents (for cluster FDR)
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
@@ -52,7 +54,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 1683 2008-05-19 16:07:00Z guillaume $
+% $Id: spm_VOI.m 2764 2009-02-19 15:30:03Z guillaume $
 
 
 %-Parse arguments
@@ -128,8 +130,18 @@ xSPM.R     = spm_resels(FWHM,D,SPACE);
 xSPM.Z     = xSPM.Z(j);
 xSPM.XYZ   = xSPM.XYZ(:,j);
 xSPM.XYZmm = xSPM.XYZmm(:,j);
-xSPM.Ps    = xSPM.Ps(k);
 
+try, xSPM.Ps      = xSPM.Ps(k); end
+try
+    [up, xSPM.Pp] = spm_uc_peakFDR(0.05,xSPM.df,xSPM.STAT,xSPM.R,xSPM.n, ...
+        xSPM.Z,xSPM.XYZ,xSPM.u);
+end
+try
+    V2R           = 1/prod(xSPM.FWHM(xSPM.DIM>1));
+    [uc, xSPM.Pc] = spm_uc_clusterFDR(0.05,xSPM.df,xSPM.STAT,xSPM.R,xSPM.n, ...
+        xSPM.Z,xSPM.XYZ,V2R,xSPM.u);
+end
+    
 %-Tabulate p values
 %-----------------------------------------------------------------------
 str       = sprintf('search volume: %s',str);

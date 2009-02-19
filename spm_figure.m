@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_figure.m 2764 2009-02-19 15:30:03Z guillaume $
 
 
 %=======================================================================
@@ -155,7 +155,10 @@ function varargout=spm_figure(varargin)
 %         Defaults to 'Graphics' 'Tag'ged window
 %
 % FORMAT n = spm_figure('#page')
-% Returns the current page number.
+% Returns the current number of pages.
+%
+% FORMAT n = spm_figure('CurrentPage');
+% Return the current page number.
 %
 % FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 % Adds watermark to figure windows.
@@ -566,6 +569,17 @@ else
 end
 varargout = {n};
 
+case 'currentpage'
+%=======================================================================
+% n = spm_figure('CurrentPage', F)
+if nargin<2, F='Graphics'; else F=varargin{2}; end
+F = spm_figure('FindWin',F);
+if isempty(F), error('No Graphics window'), end
+
+hPageNo   = findobj(F,'Tag','PageNo');
+Cpage     = get(hPageNo,  'UserData');
+
+varargout = {Cpage};
 
 case 'watermark'
 %=======================================================================

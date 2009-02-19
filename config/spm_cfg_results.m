@@ -4,9 +4,9 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_results.m 2764 2009-02-19 15:30:03Z guillaume $
 
-rev = '$Rev: 2086 $';
+rev = '$Rev: 2764 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -14,7 +14,7 @@ spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
 spmmat.help    = {'Select the SPM.mat file that contains the design specification.'};
-spmmat.filter = 'mat';
+spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -47,17 +47,9 @@ threshdesc         = cfg_menu;
 threshdesc.tag     = 'threshdesc';
 threshdesc.name    = 'Threshold type';
 threshdesc.help    = {''};
-threshdesc.labels = {
-                     'FWE'
-                     'FDR'
-                     'none'
-}';
-threshdesc.values = {
-                     'FWE'
-                     'FDR'
-                     'none'
-}';
-threshdesc.def    = @(val)spm_get_defaults('stats.results.threshtype', val{:});
+threshdesc.labels  = {'FWE' 'none'};
+threshdesc.values  = {'FWE' 'none'};
+threshdesc.def     = @(val)spm_get_defaults('stats.results.threshtype', val{:});
 % ---------------------------------------------------------------------
 % thresh Threshold
 % ---------------------------------------------------------------------
@@ -104,18 +96,15 @@ mtype         = cfg_menu;
 mtype.tag     = 'mtype';
 mtype.name    = 'Nature of mask';
 mtype.help    = {''};
-mtype.labels = {
-                'Inclusive'
-                'Exclusive'
-}';
-mtype.values    = {0 1};
+mtype.labels  = {'Inclusive' 'Exclusive'};
+mtype.values  = {0 1};
 % ---------------------------------------------------------------------
 % mask Mask definition
 % ---------------------------------------------------------------------
 mask         = cfg_branch;
 mask.tag     = 'mask';
 mask.name    = 'Mask definition';
-mask.val     = {contrasts1 thresh1 mtype };
+mask.val     = {contrasts1 thresh1 mtype};
 mask.help    = {''};
 % ---------------------------------------------------------------------
 % generic Masking
@@ -124,7 +113,7 @@ generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Masking';
 generic1.help    = {''};
-generic1.values  = {mask };
+generic1.values  = {mask};
 generic1.num     = [0 1];
 % ---------------------------------------------------------------------
 % conspec Contrast query
@@ -132,7 +121,7 @@ generic1.num     = [0 1];
 conspec         = cfg_branch;
 conspec.tag     = 'conspec';
 conspec.name    = 'Contrast query';
-conspec.val     = {titlestr contrasts threshdesc thresh extent generic1 };
+conspec.val     = {titlestr contrasts threshdesc thresh extent generic1};
 conspec.help    = {''};
 % ---------------------------------------------------------------------
 % generic Contrasts
@@ -141,7 +130,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Contrasts';
 generic.help    = {''};
-generic.values  = {conspec };
+generic.values  = {conspec};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % print Print results
@@ -150,22 +139,16 @@ print         = cfg_menu;
 print.tag     = 'print';
 print.name    = 'Print results';
 print.help    = {''};
-print.labels = {
-                'Yes'
-                'No'
-}';
-print.values = {true false};
-print.def    = @(val)spm_get_defaults('stats.results.print', val{:});
+print.labels  = {'Yes' 'No'};
+print.values  = {true false};
+print.def     = @(val)spm_get_defaults('stats.results.print', val{:});
 % ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------
-results         = cfg_exbranch;
-results.tag     = 'results';
-results.name    = 'Results Report';
-results.val     = {spmmat generic print };
-results.help    = {''};
-results.prog = @spm_run_results;
-results.modality = {
-                    'FMRI'
-                    'PET'
-}';
+results          = cfg_exbranch;
+results.tag      = 'results';
+results.name     = 'Results Report';
+results.val      = {spmmat generic print};
+results.help     = {''};
+results.prog     = @spm_run_results;
+results.modality = {'FMRI' 'PET' 'EEG'};
