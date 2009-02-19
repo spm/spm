@@ -13,6 +13,7 @@ function varargout = spm_select(varargin)
 %           'image' - Image files (".img" and ".nii")
 %                     Note that it gives the option to select
 %                     individual volumes of the images.
+%           'mesh'  - Surface mesh files (".gii" or ".mat")
 %           'xml'   - XML files
 %           'mat'   - Matlab .mat files or .txt files (assumed to contain
 %                     ASCII representation of a 2D-numeric array)
@@ -69,7 +70,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 1896 2008-07-09 08:21:36Z volkmar $
+% $Id: spm_select.m 2765 2009-02-19 15:30:54Z guillaume $
 
 if ~exist('cfg_getfile','file') && ~isdeployed
     addpath(fullfile(spm('dir'),'matlabbatch'));

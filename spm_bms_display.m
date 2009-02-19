@@ -10,7 +10,7 @@ function [] = spm_bms_display(BMS,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 2751 2009-02-16 15:50:26Z maria $
+% $Id: spm_bms_display.m 2765 2009-02-19 15:30:54Z guillaume $
 
 % Main options (action)
 % =========================================================================
@@ -340,7 +340,7 @@ uicontrol(Finter,'Style','Text',...
             'Position',[285 095 100 020].*WS)
     user_data = get(hFxyz,'UserData');
     set(Finter,'UserData',user_data,...
-			'HandleVisibility','callback')
+            'HandleVisibility','callback')
 
     % Do plot - action: 'do_plot'
     % =====================================================================
@@ -365,7 +365,7 @@ uicontrol(Finter,'Style','Text',...
         set(h,'Value',1)
         CBs       = get(h,'UserData');
         fig       = gcf;
-	    user_data = get(fig,'UserData');
+        user_data = get(fig,'UserData');
         hReg      = user_data.hReg;
         xSPM      = user_data.xSPM;
         eval(CBs{v-1})

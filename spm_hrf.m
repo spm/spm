@@ -20,23 +20,23 @@ function [hrf,p] = spm_hrf(RT,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 2636 2009-01-21 09:57:20Z guillaume $
+% $Id: spm_hrf.m 2765 2009-02-19 15:30:54Z guillaume $
 
 
 % global parameter
 %-----------------------------------------------------------------------
 global defaults
 try
-	fMRI_T = defaults.stats.fmri.t;
+    fMRI_T = defaults.stats.fmri.t;
 catch
-	fMRI_T = 16;
+    fMRI_T = 16;
 end
 
 % default parameters
 %-----------------------------------------------------------------------
 p   = [6 16 1 1 6 0 32];
 if nargin > 1
-	p(1:length(P)) = P;
+    p(1:length(P)) = P;
 end
 
 % modelled hemodynamic response function - {mixture of Gammas}
