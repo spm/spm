@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm.m 2770 2009-02-20 18:10:05Z guillaume $
 
 
 %=======================================================================
@@ -595,10 +595,12 @@ elseif Win(1)=='0'
     if size(Rect,1) > 1 % Multiple Monitors
         %-Use Monitor containing the Pointer
         pl = get(0,'PointerLocation');
-        w  = find(pl(1)>=Rect(:,1) & pl(1)<Rect(:,1)+Rect(:,3)-1 &...
-                pl(2)>=Rect(:,2) & pl(2)<Rect(:,2)+Rect(:,4));
+        w  = find(pl(1)>=Rect(:,1) & pl(1)<=Rect(:,3) &...
+                  pl(2)>=Rect(:,2) & pl(2)<=Rect(:,4));
         if numel(w)~=1, w = 1; end
         Rect = Rect(w,:);
+        %-Make sure that the format is [x y width height]
+        Rect(1,[3 4]) = Rect(1,[3 4]) - Rect(1,[1 2]) + 1;
     end
 else
     error('Unknown Win type');
