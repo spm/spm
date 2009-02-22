@@ -20,7 +20,7 @@ function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dirichlet_conj_exceed.m 2627 2009-01-20 16:30:33Z maria $
+% $Id: spm_dirichlet_conj_exceed.m 2771 2009-02-22 13:00:56Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -62,7 +62,6 @@ for k1 = 1:Nk,
     eval_str = [eval_str,logic_str,'))/Nsamp'];
     xp(k1)   = eval(eval_str);
 end
-xp = xp';
 
 
 return

@@ -24,7 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2626 2009-01-20 16:30:08Z maria $
+% $Id: spm_BMS.m 2771 2009-02-22 13:00:56Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -46,7 +46,7 @@ cc      = 10e-4;
 
 % prior observations
 %============================================
-alpha0  = ones(Nk,1);
+alpha0  = ones(1,Nk);
 alpha   = alpha0;
 
 
