@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_dcm_ssr_data.m 2773 2009-02-23 13:08:55Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -204,7 +204,7 @@ for i = 1:Ne;
     for j = 1:Nt
         
         fprintf('\nevaluating condition %i (trial %i)',i,j)
-        Y   = D(Ic,It,c(j))'*DCM.M.U;
+        Y   = full(double(D(Ic,It,c(j))'*DCM.M.U));
         mar = spm_mar(Y,8);
         mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
         P   = P + abs(mar.P);

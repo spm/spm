@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_dcm_erp_data.m 2773 2009-02-23 13:08:55Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -66,15 +66,6 @@ catch
             return
         end
     end
-end
- 
-% Check whether data type is evoked
-%--------------------------------------------------------------------------
-switch lower(D.type)
-    case {'evoked','grandmean','single'}
-        % these are the 'evoked' types of data
-    otherwise
-        warndlg('DCM is meant for evoked data!');
 end
  
 % indices of EEG channel (excluding bad channels) and peristimulus times

@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2755 2009-02-17 11:03:42Z vladimir $
+% $Id: checkmeeg.m 2773 2009-02-23 13:08:55Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -326,16 +326,23 @@ if strcmp(option, 'basic')
     return;
 end
 
+chantypes = getset(meegstruct, 'channels', 'type');
+eegind = strmatch('EEG', chantypes, 'exact');
+megind = strmatch('MEG', chantypes);
+lfpind = strmatch('LFP', chantypes, 'exact');  
 
-if strcmp(option, 'sensfid') || strcmp(option, 'dcm') || strcmp(option, '3d')
+% Allow DCM on a pure LFP dataset
+if strcmp(option, 'dcm') && isempty([eegind megind]) && ~isempty(lfpind)
+    result = 1;
+    return;
+end
+
+if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
+     (strcmp(option, 'dcm') && ~isempty([eegind megind]))
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
-    end
-
-    chantypes = getset(meegstruct, 'channels', 'type');
-    eegind = strmatch('EEG', chantypes, 'exact');
-    megind = strmatch('MEG', chantypes);
+    end    
 
     if ~isempty(eegind)
         if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)

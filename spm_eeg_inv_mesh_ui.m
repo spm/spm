@@ -12,7 +12,7 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 2773 2009-02-23 13:08:55Z vladimir $
 
 
 % initialise
@@ -25,7 +25,7 @@ if val == 0
     val = 1;
 end
 
-if ~isfield(D, 'inv')
+if ~isfield(D, 'inv') || ~isfield(D.inv{val}, 'comment')
     D.inv = {struct('mesh', [])};
     clck = fix(clock);
     if clck(5) < 10
