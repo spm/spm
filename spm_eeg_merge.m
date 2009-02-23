@@ -23,7 +23,7 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_merge.m 2772 2009-02-23 10:40:30Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -130,6 +130,7 @@ if Nfiles > 100, Ibar = floor(linspace(1, Nfiles,100));
 else Ibar = [1:Nfiles]; end
 
 k = 0;
+
 for i = 1:Nfiles
 
     ind = union(Dout.badchannels, D{i}.badchannels);
@@ -141,6 +142,7 @@ for i = 1:Nfiles
     for j = 1:D{i}.ntrials
         k = k + 1;
         Dout(1:Dout.nchannels, 1:Dout.nsamples, k) =  D{i}(:,:,j);
+        Dout = reject(Dout, k, reject(D{i}, j));
     end
 
     if ismember(i, Ibar)
@@ -149,6 +151,7 @@ for i = 1:Nfiles
 
 
 end
+
 
 Dout = Dout.history('spm_eeg_merge', S, 'reset');
 
