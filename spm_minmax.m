@@ -13,7 +13,7 @@ function [mnv,mxv] = spm_minmax(g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_minmax.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_minmax.m 2774 2009-02-23 14:40:17Z john $
 
 
 d   = [size(g) 1];
@@ -32,7 +32,8 @@ spm_progress_bar('Clear');
 % Occasional problems with partially masked data because the first Gaussian
 % just fits the big peak at zero.  This will fix that one, but cause problems
 % for skull-stripped data.
-h(1) = 0;
+h(1)   = 0;
+h(end) = 0;
 
 % Very crude heuristic to find a suitable lower limit.  The large amount
 % of background really messes up mutual information registration.
