@@ -25,7 +25,7 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Matthew Brett
-% $Id: spm_resels.m 2780 2009-02-24 17:46:49Z guillaume $
+% $Id: spm_resels.m 2783 2009-02-24 19:10:08Z guillaume $
 
 
 % Dimensionality
@@ -35,16 +35,16 @@ switch SPACE
 case 'S'                                                           % Sphere
     %----------------------------------------------------------------------
     s     = L(:)./FWHM(:);
-	s     = s(s > 0);
-	if length(s) == 2,  SPACE = 'D';  end
-	if length(s) == 1,  SPACE = 'L';  end
+    s     = s(s > 0);
+    if length(s) == 2,  SPACE = 'D';  end
+    if length(s) == 1,  SPACE = 'L';  end
 
 case 'B'                                                              % Box
     %----------------------------------------------------------------------
     s     = L(:)./FWHM(:);
-	s     = s(s > 0);
-	if length(s) == 2,  SPACE = 'R';  end
-	if length(s) == 1,  SPACE = 'L';  end
+    s     = s(s > 0);
+    if length(s) == 2,  SPACE = 'R';  end
+    if length(s) == 1,  SPACE = 'L';  end
 end
 
 

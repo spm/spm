@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_invert_fuse.m 2783 2009-02-24 19:10:08Z guillaume $
 [D, val] = spm_eeg_inv_check(varargin{:}); 
 
 [mod, list] = modality(D, 1, 1);
@@ -248,7 +248,7 @@ for i = 1:Nl
     
     if Nr(i) > size(T,2)
        warning(sprintf(['Specified Nr (%d) greater than Num Freq components' ...
-		    ' between %d and %d Hz; so using %d'],Nr,lpf,hpf,size(T,2)));
+            ' between %d and %d Hz; so using %d'],Nr,lpf,hpf,size(T,2)));
        Nr(i) = size(T,2);
     end
     
@@ -469,7 +469,7 @@ switch(type)
                 end
             end
         end
-	h1=h;
+        h1=h;
  
         % Accumulate empirical priors
         %------------------------------------------------------------------
