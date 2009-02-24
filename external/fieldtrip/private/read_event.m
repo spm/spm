@@ -59,6 +59,11 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.92  2009/02/24 14:25:01  jansch
+% included the option fix4dglasgow; this removes any 'synchornization' triggers
+% with value 8192 from the trigger-data prior to the flank detection,
+% thus avoiding overlap between real triggers and the phoney ones
+%
 % Revision 1.91  2009/02/12 16:12:06  josdie
 % Correct event timing in offset field rather than assuming same as hdr.nSamplesPre time.
 %
@@ -468,7 +473,11 @@ switch eventformat
     end
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
-    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift);
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && strcmp(hdr.orig.config_data.site_name, 'Glasgow'),
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',1);
+    else
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',0);
+    end
     event   = appendevent(event, trigger);
 
     respindx = match_str(hdr.label, 'RESPONSE');
