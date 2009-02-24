@@ -18,6 +18,10 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.6  2009/02/24 14:25:52  jansch
+% added option fix4dglasgow to take the synchronization trigger with value 8192
+% out of the trigger-data, prior to flank detection
+%
 % Revision 1.5  2009/02/09 13:32:36  roboos
 % only whitespace
 %
@@ -71,6 +75,7 @@ trigshift   = keyval('trigshift',   varargin); if isempty(trigshift),   trigshif
 trigpadding = keyval('trigpadding', varargin); if isempty(trigpadding), trigpadding = 1;  end
 fixctf      = keyval('fixctf',      varargin); if isempty(fixctf),      fixctf = 0;       end
 fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0;  end
+fix4dglasgow= keyval('fix4dglasgow', varargin); if isempty(fix4dglasgow), fix4dglasgow = 0; end
 
 if isempty(begsample)
   begsample = 1;
@@ -103,6 +108,14 @@ if fixneuromag
   % according to Joachim Gross, real events always have triggers > 5
   % this is probably to avoid the noisefloor
   dat(dat<5) = 0;
+end
+
+if fix4dglasgow
+  % synchronization pulses have a value of 8192 and are set to 0
+  dat = dat - bitand(dat, 8192);
+  %% triggers containing the first bit assume a value of 4096 when sent by presentation
+  %% this does not seem to hold for matlab; check this
+  %dat = dat - bitand(dat, 4096)*4095/4096;
 end
 
 for i=1:length(chanindx)
