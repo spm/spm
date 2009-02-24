@@ -13,7 +13,7 @@ function [lng] = spm_lg_gamma(p,b)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_lg_gamma.m 2783 2009-02-24 19:10:08Z guillaume $
+% $Id: spm_lg_gamma.m 2784 2009-02-24 19:11:20Z guillaume $
 
 if b <= (p-1)/2
    warning('Parameter out of range');
