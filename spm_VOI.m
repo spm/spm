@@ -31,7 +31,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % TabDat - Structure containing table data
 %        - see spm_list for definition
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_VOI is  called by the SPM results section and takes variables in
 % SPM to compute p-values corrected for a specified volume of interest.
@@ -50,15 +50,15 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % FDR computations are similarly resticted by the small search volume
 %
 % See also: spm_list
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 2764 2009-02-19 15:30:03Z guillaume $
+% $Id: spm_VOI.m 2780 2009-02-24 17:46:49Z guillaume $
 
 
 %-Parse arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin < 2,   error('insufficient arguments'), end
 if nargin < 3,   hReg = []; end
 
@@ -66,21 +66,21 @@ Num      = 16;          % maxima per cluster
 Dis      = 04;          % distance among maxima (mm)
 
 %-Title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm('FigName',['SPM{',xSPM.STAT,'}: Small Volume Correction']);
 
 %-Get current location {mm}
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xyzmm    = spm_results_ui('GetCoords');
 
 %-Specify search volume
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 str      = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
 SPACE    = spm_input('Search volume...',-1,'m',...
         {['Sphere',str],['Box',str],'Image'},['S','B','I']);
 
 % voxels in entire search volume {mm}
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 XYZmm    = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; ones(1, SPM.xVol.S)];
 Q        = ones(1,size(xSPM.XYZmm,2));
 O        = ones(1,size(     XYZmm,2));
@@ -90,7 +90,7 @@ FWHM     = xSPM.FWHM;
 switch SPACE
 
     case 'S' %-Sphere
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     D          = spm_input('radius of VOI {mm}',-2);
     str        = sprintf('%0.1fmm sphere',D);
     j          = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
@@ -99,7 +99,7 @@ switch SPACE
 
 
     case 'B' %-Box
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     D          = spm_input('box dimensions [k l m] {mm}',-2);
     if length(D)~=3, D = ones(1,3)*D(1); end
     str        = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
@@ -109,7 +109,7 @@ switch SPACE
 
 
     case 'I' %-Mask Image
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     Msk   = spm_select(1,'image','Image defining search volume');
     D     = spm_vol(Msk);
     str   = strrep(spm_str_manip(Msk,'a30'),'\','\\');
@@ -131,19 +131,29 @@ xSPM.Z     = xSPM.Z(j);
 xSPM.XYZ   = xSPM.XYZ(:,j);
 xSPM.XYZmm = xSPM.XYZmm(:,j);
 
+%-Restrict FDR to the search volume
+%--------------------------------------------------------------------------
+df         = xSPM.df;
+STAT       = xSPM.STAT;
+R          = xSPM.R;
+n          = xSPM.n;
+Z          = xSPM.Z;
+XYZ        = xSPM.XYZ;
+u          = xSPM.u;
+S          = xSPM.S;
 try, xSPM.Ps      = xSPM.Ps(k); end
 try
-    [up, xSPM.Pp] = spm_uc_peakFDR(0.05,xSPM.df,xSPM.STAT,xSPM.R,xSPM.n, ...
-        xSPM.Z,xSPM.XYZ,xSPM.u);
+    [up, xSPM.Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,XYZ,u);
 end
 try
     V2R           = 1/prod(xSPM.FWHM(xSPM.DIM>1));
-    [uc, xSPM.Pc] = spm_uc_clusterFDR(0.05,xSPM.df,xSPM.STAT,xSPM.R,xSPM.n, ...
-        xSPM.Z,xSPM.XYZ,V2R,xSPM.u);
+    [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Z,XYZ,V2R,u);
 end
-    
+uu         = spm_uc(0.05,df,STAT,R,n,S);
+xSPM.uc    = [uu up ue uc];
+
 %-Tabulate p values
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 str       = sprintf('search volume: %s',str);
 if any(strcmp(SPACE,{'S','B'}))
     str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
@@ -152,5 +162,5 @@ end
 TabDat    = spm_list('List',xSPM,hReg,Num,Dis,str);
 
 %-Reset title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm('FigName',['SPM{',xSPM.STAT,'}: Results']);
