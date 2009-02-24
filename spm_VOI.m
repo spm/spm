@@ -54,7 +54,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 2780 2009-02-24 17:46:49Z guillaume $
+% $Id: spm_VOI.m 2782 2009-02-24 18:53:13Z guillaume $
 
 
 %-Parse arguments
@@ -135,22 +135,25 @@ xSPM.XYZmm = xSPM.XYZmm(:,j);
 %--------------------------------------------------------------------------
 df         = xSPM.df;
 STAT       = xSPM.STAT;
+DIM        = xSPM.DIM;
 R          = xSPM.R;
 n          = xSPM.n;
 Z          = xSPM.Z;
-XYZ        = xSPM.XYZ;
 u          = xSPM.u;
 S          = xSPM.S;
-try, xSPM.Ps      = xSPM.Ps(k); end
-try
-    [up, xSPM.Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,XYZ,u);
+
+try, xSPM.Ps  = xSPM.Ps(k); end
+[up, xSPM.Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,SPM.xVol.XYZ(:,k),u);
+try % if STAT == 'T'
+    V2R               = 1/prod(xSPM.FWHM(DIM>1));
+    [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Z,SPM.xVol.XYZ(:,k),V2R,u);
+catch
+    uc                = NaN;
+    ue                = NaN;
+    xSPM.Pc           = [];
 end
-try
-    V2R           = 1/prod(xSPM.FWHM(xSPM.DIM>1));
-    [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Z,XYZ,V2R,u);
-end
-uu         = spm_uc(0.05,df,STAT,R,n,S);
-xSPM.uc    = [uu up ue uc];
+uu            = spm_uc(0.05,df,STAT,R,n,S);
+xSPM.uc       = [uu up ue uc];
 
 %-Tabulate p values
 %--------------------------------------------------------------------------
