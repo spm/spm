@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 1340 2008-04-09 17:11:23Z john $
+% $Id: subsref.m 2781 2009-02-24 17:56:05Z guillaume $
 
 
 if isempty(subs)
@@ -49,9 +49,9 @@ args = {};
 for i=1:length(subs.subs),
     if ischar(subs.subs{i}),
         if ~strcmp(subs.subs{i},':'), error('This shouldn''t happen....'); end;
-        args{i} = int32(1:dim(i));
+        args{i} = 1:dim(i);
     else
-        args{i} = int32(subs.subs{i});
+        args{i} = subs.subs{i};
     end;
     do(i) = length(args{i});
 end;
@@ -66,7 +66,7 @@ else
         for i=1:length(args),
             msk      = find(args{i}>=ps(i) & args{i}<(ps(i)+dm(i)));
             args2{i} = msk;
-            args3{i} = int32(double(args{i}(msk))-ps(i)+1);
+            args3{i} = double(args{i}(msk))-ps(i)+1;
         end;
 
         t  = subsasgn(t,struct('type','()','subs',{args2}),subfun(sobj(j),args3{:}));
@@ -77,7 +77,15 @@ return;
 
 function t = subfun(sobj,varargin)
 %sobj.dim = [sobj.dim ones(1,16)];
-t = file2mat(sobj,varargin{:});
+try
+    args = cell(size(varargin));
+    for i=1:length(varargin)
+        args{i} = int32(varargin{i});
+    end
+    t = file2mat(sobj,args{:});
+catch
+    t = multifile2mat(sobj,varargin{:});
+end
 if ~isempty(sobj.scl_slope) || ~isempty(sobj.scl_inter)
     slope = 1;
     inter = 0;
@@ -114,7 +122,7 @@ for i=1:numel(sobj),
     case 'scl_slope', t = scl_slope(obj);
     case 'scl_inter', t = scl_inter(obj);
     case 'permission',t = permission(obj);
-    otherwise, error(['Reference to non-existent field "' subs(1).type '".']);
+    otherwise, error(['Reference to non-existent field "' subs(1).subs '".']);
     end;
     if numel(subs)>1,
         t = subsref(t,subs(2:end));
@@ -123,3 +131,28 @@ for i=1:numel(sobj),
 end;
 return;
 
+function val = multifile2mat(sobj,varargin)
+% Convert subscripts into linear index
+[indx2{1:length(varargin)}] = ndgrid(varargin{:});
+ind = sub2ind(sobj.dim,indx2{:});
+
+% Work out the partition
+dt  = datatypes;
+sz  = dt([dt.code]==sobj.dtype).size;
+mem = 400*1024*1024; % in bytes, has to be a multiple of 16 (max([dt.size]))
+s   = ceil(prod(sobj.dim) * sz / mem);
+
+% Assign indices to partitions
+[x,y] = ind2sub([mem/sz s],ind(:));
+c     = histc(y,1:s);
+cc    = [0 reshape(cumsum(c),1,[])];
+
+% Read data in relevant partitions
+obj = sobj;
+val = zeros(1,length(x));
+for i=reshape(find(c),1,[])
+    obj.offset = sobj.offset + mem*(i-1);
+    obj.dim = [1 min(mem/sz, prod(sobj.dim)-(i-1)*mem/sz)];
+    val(cc(i)+1:cc(i+1)) = file2mat(obj,int32(1),int32(x(y==i)));
+end
+val = reshape(val,cellfun('length',varargin));
