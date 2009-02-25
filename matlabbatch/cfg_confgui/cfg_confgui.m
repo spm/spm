@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 2305 2008-10-06 13:38:49Z volkmar $
+% $Id: cfg_confgui.m 2787 2009-02-25 08:02:53Z volkmar $
 
-rev = '$Rev: 2305 $'; %#ok
+rev = '$Rev: 2787 $'; %#ok
 
 %% Declaration of fields
 
@@ -526,7 +526,7 @@ genobj_gen.vout    = @vout_cfg_genobj;
 % Data entry nodes
 %-----------------------------------------------------------------------
 
-menu_entry        = cfg_repeat;
+menu_entry        = cfg_choice;
 menu_entry.name   = 'Data entry items';
 menu_entry.tag    = 'menu_entry';
 menu_entry.values = {conf_entry, conf_files, conf_menu, conf_const};
@@ -535,7 +535,7 @@ menu_entry.help   = {'These items are used to enter data that will be passed to 
 % Tree structuring nodes
 %-----------------------------------------------------------------------
 
-menu_struct        = cfg_repeat;
+menu_struct        = cfg_choice;
 menu_struct.name   = 'Tree structuring items';
 menu_struct.tag    = 'menu_struct';
 menu_struct.values = {conf_branch, conf_exbranch, conf_choice, conf_repeat};
@@ -544,7 +544,7 @@ menu_struct.help   = {'These items collect data entry items and build a menu str
 % Root node
 %-----------------------------------------------------------------------
 
-menu_cfg        = cfg_repeat;
+menu_cfg        = cfg_choice;
 menu_cfg.name   = 'ConfGUI';
 menu_cfg.tag    = 'menu_cfg';
 menu_cfg.values = {menu_entry, menu_struct, gencode_gen, genobj_gen};

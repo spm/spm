@@ -5,7 +5,7 @@ function cfg_basicio_def = cfg_cfg_basicio_def
 % menu items and provides a full documentation of all fields that may
 % be present in a job variable for this application.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-10-06 15:14:45.
+% Created at 2009-02-02 16:24:09.
 cfg_basicio_def.file_move.files = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.moveto = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.copyto = '<UNDEFINED>';
@@ -36,6 +36,9 @@ cfg_basicio_def.cfg_file_split.files = '<UNDEFINED>';
 cfg_basicio_def.cfg_file_split.index = {'<UNDEFINED>'};
 cfg_basicio_def.cfg_named_input.name = '<UNDEFINED>';
 cfg_basicio_def.cfg_named_input.input = '<UNDEFINED>';
+cfg_basicio_def.load_vars.matname = '<UNDEFINED>';
+cfg_basicio_def.load_vars.loadvars.allvars = true;
+cfg_basicio_def.load_vars.loadvars.varname = {'<UNDEFINED>'};
 cfg_basicio_def.cfg_save_vars.name = '<UNDEFINED>';
 cfg_basicio_def.cfg_save_vars.outdir = '<UNDEFINED>';
 cfg_basicio_def.cfg_save_vars.vars.vname = '<UNDEFINED>';

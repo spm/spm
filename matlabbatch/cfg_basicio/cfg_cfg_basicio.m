@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-10-06 15:14:45.
+% Created at 2009-02-02 15:56:28.
 % ---------------------------------------------------------------------
 % files Files to move/copy/delete
 % ---------------------------------------------------------------------
@@ -181,6 +181,7 @@ copyren.help    = {'The input files will be copied to the specified target folde
 delete         = cfg_const;
 delete.tag     = 'delete';
 delete.name    = 'Delete';
+delete.val = {false};
 delete.help    = {'The selected files will be deleted.'};
 % ---------------------------------------------------------------------
 % action Action
@@ -484,6 +485,61 @@ cfg_named_input.help    = {'Named Input allows to enter any kind of MATLAB varia
 cfg_named_input.prog = @cfg_run_named_input;
 cfg_named_input.vout = @cfg_vout_named_input;
 % ---------------------------------------------------------------------
+% matname .mat Filename
+% ---------------------------------------------------------------------
+matname         = cfg_files;
+matname.tag     = 'matname';
+matname.name    = '.mat Filename';
+matname.help    = {'The name of the .mat file to load.'};
+matname.filter = 'mat';
+matname.ufilter = '.*';
+matname.num     = [1 1];
+% ---------------------------------------------------------------------
+% allvars All Variables
+% ---------------------------------------------------------------------
+allvars         = cfg_const;
+allvars.tag     = 'allvars';
+allvars.name    = 'All Variables';
+allvars.val = {true};
+allvars.help    = {'Load all variables found in the .mat file.'};
+% ---------------------------------------------------------------------
+% varname Variable Name
+% ---------------------------------------------------------------------
+varname         = cfg_entry;
+varname.tag     = 'varname';
+varname.name    = 'Variable Name';
+varname.check   = @(job)cfg_load_vars('check','isvarname',job);
+varname.help    = {'Enter the name of the variable to be loaded from the .mat file.'};
+varname.strtype = 's';
+varname.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% varnames Specified Variables
+% ---------------------------------------------------------------------
+varnames         = cfg_repeat;
+varnames.tag     = 'varnames';
+varnames.name    = 'Specified Variables';
+varnames.help    = {'Enter a list of variable names to be loaded from the .mat file.'};
+varnames.values  = {varname };
+varnames.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% loadvars Variables to load
+% ---------------------------------------------------------------------
+loadvars         = cfg_choice;
+loadvars.tag     = 'loadvars';
+loadvars.name    = 'Variables to load';
+loadvars.help    = {'Choose whether all variables or a list of variables with specified names should be loaded.'};
+loadvars.values  = {allvars varnames };
+% ---------------------------------------------------------------------
+% load_vars Load Variables from .mat File
+% ---------------------------------------------------------------------
+load_vars         = cfg_exbranch;
+load_vars.tag     = 'load_vars';
+load_vars.name    = 'Load Variables from .mat File';
+load_vars.val     = {matname loadvars };
+load_vars.help    = {'This function loads variables from a .mat file and passes them on as a dependency. It can load either all variables from a .mat file or a list of specified variables. In the first case, it will return a single struct variable. The variable names in the .mat file will become field names in this struct. If a list of variable names is given, each of them will be loaded into a separate variable.'};
+load_vars.prog = @(job)cfg_load_vars('run',job);
+load_vars.vout = @(job)cfg_load_vars('vout',job);
+% ---------------------------------------------------------------------
 % name Output Filename
 % ---------------------------------------------------------------------
 name         = cfg_entry;
@@ -713,6 +769,7 @@ savejobs.help    = {'Specify filename stub and output directory to save the gene
 dontsave         = cfg_const;
 dontsave.tag     = 'dontsave';
 dontsave.name    = 'Don''t Save';
+dontsave.val = {false};
 dontsave.help    = {'Do not save the generated jobs.'};
 % ---------------------------------------------------------------------
 % save Save Generated Batch Jobs
@@ -754,8 +811,4 @@ cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
-cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin runjobs };
-% ---------------------------------------------------------------------
-% add path to this mfile
-% ---------------------------------------------------------------------
-addpath(fileparts(mfilename('fullpath')));
+cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input load_vars cfg_save_vars cfg_assignin runjobs };

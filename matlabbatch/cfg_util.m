@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: cfg_util.m 2787 2009-02-25 08:02:53Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 2787 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1419,8 +1419,8 @@ function [id, str, sts, dep, sout] = local_showjob(cj, cjid2subs)
 % Return name, all_set status and id of internal job representation
 id  = cell(size(cjid2subs));
 str = cell(size(cjid2subs));
-sts = logical(size(cjid2subs));
-dep = logical(size(cjid2subs));
+sts = false(size(cjid2subs));
+dep = false(size(cjid2subs));
 sout = cell(size(cjid2subs));
 cmod = 1; % current module count
 for k = 1:numel(cjid2subs)
