@@ -8,7 +8,7 @@ function spm_bms_display_vox(BMS,xyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 2751 2009-02-16 15:50:26Z maria $
+% $Id: spm_bms_display_vox.m 2788 2009-02-25 16:42:23Z maria $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -45,14 +45,15 @@ switch method
         
                 hvox   = axes('Position',[0.25 0.15 0.5 0.25],'Parent',...
                 Fgraph,'Visible','off');
-            
+
+
                 bar(1:nmodels,ppm_vox)
                 set(gca,'XTick',1:nmodels)
                 set(gca,'XTickLabel',1:nmodels)
                 set(gca,'YLim',[0 1])
                 ylabel('Posterior Model Probability','Fontsize',12)
                 xlabel('Models','Fontsize',12)
-                title({'Fixed-effects Bayesian Model Selection';''},...
+                title({'Fixed-effects BMS';''},...
                 'Fontsize',12);
                 axis square
                 grid on
@@ -102,7 +103,7 @@ switch method
             set(gca,'YLim',[0 1])
             ylabel('Expected Posterior Probability','Fontsize',12)
             xlabel('Models','Fontsize',12)
-            title({'Random-effects Bayesian Model Selection';''},'Fontsize',12)
+            title({'Random-effects BMS';''},'Fontsize',12)
             axis square
             grid on
         
@@ -115,7 +116,7 @@ switch method
             set(gca,'YLim',[0 1])
             ylabel('Exceedance Probability','Fontsize',12)
             xlabel('Models','Fontsize',12)
-            title({'Random-effects Bayesian Model Selection';''},'Fontsize',12)
+            title({'Random-effects BMS';''},'Fontsize',12)
             axis square
             grid on
 
