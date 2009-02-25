@@ -31,6 +31,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.81  2009/02/25 12:59:30  marvger
+% removed calls to filetype and replaced with strcmp(dataformat,x) for
+% efficiency
+%
 % Revision 1.80  2009/02/13 08:02:21  roboos
 % ensure that the requested sample and trial numbers are integers
 %
@@ -299,11 +303,6 @@ if isempty(db_blob)
   db_blob = 0;
 end
 
-% test whether the file or directory exists
-if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql') && ~strcmp(filetype(filename), 'fcdc_buffer')
-  error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
-end
-
 % get the optional input arguments
 hdr           = keyval('header',        varargin);
 begsample     = keyval('begsample',     varargin);
@@ -316,6 +315,17 @@ dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
 fallback      = keyval('fallback',      varargin);
 cache         = keyval('cache',         varargin); if isempty(cache), cache = 0; end
+
+% determine the filetype
+if isempty(dataformat)
+  dataformat = filetype(filename);
+end
+
+% test whether the file or directory exists
+if ~exist(filename, 'file') && ~strcmp(dataformat, 'ctf_shm') && ~strcmp(dataformat, 'fcdc_mysql') && ...
+    ~strcmp(dataformat, 'fcdc_buffer')
+  error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
+end
 
 % ensure that these are double precision and not integers, otherwise the subsequent computations will be messed up
 begsample = double(begsample);
@@ -339,11 +349,6 @@ end
 if ~isempty(endtrial) && mod(endtrial, 1)
   warning('rounding "endtrial" to the nearest integer');
   endtrial = round(endtrial);
-end
-
-% determine the filetype
-if isempty(dataformat)
-  dataformat = filetype(filename);
 end
 
 switch dataformat
@@ -429,7 +434,7 @@ switch dataformat
     headerfile = filename;
 end
 
-if ~strcmp(filename, datafile) && ~filetype(filename, 'ctf_ds')
+if ~strcmp(filename, datafile) && ~strcmp(dataformat, 'ctf_ds')
   filename   = datafile;                % this function will read the data
   dataformat = filetype(filename);      % update the filetype
 end
@@ -754,6 +759,7 @@ switch dataformat
 
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
+    
     [host, port] = filetype_check_uri(filename);
     dat = buffer('get_dat', [begsample-1 endsample-1], host, port);  % indices should be zero-offset
     dat = dat.buf(chanindx,:);                                        % select the desired channels
