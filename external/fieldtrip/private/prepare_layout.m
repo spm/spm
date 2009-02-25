@@ -29,10 +29,12 @@ function [lay] = prepare_layout(cfg, data);
 %   data.elec     structure with electrode positions
 %   data.grad     structure with gradiometer definition
 %
-% Alternatively, you can specify
-%   cfg.layout = 'ordered'
-% which will give you a 2-D ordered layout. Note that this is only suited
-% for multiplotting and not for topoplotting.
+% Alternatively you can specify the following layouts which will be
+% generated for all channels present in the data. Note that these layouts
+% are suitable for multiplotting, but not for topoplotting.
+%   cfg.layout = 'ordered'  will give you a NxN ordered layout
+%   cfg.layout = 'vertical' will give you a Nx1 ordered layout
+%   cfg.layout = 'butterfly'  will give you a layout with all channels on top of each other
 %
 % See also layoutplot, topoplotER, topoplotTFR, multiplotER, multiplotTFR
 
@@ -41,9 +43,12 @@ function [lay] = prepare_layout(cfg, data);
 % undocumented and non-recommended option (for SPM only)
 %   cfg.style       string, '2d' or '3d' (default = '2d')
 
-% Copyright (C) 2007-2008, Robert Oostenveld
+% Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.29  2009/02/25 17:44:27  roboos
+% added vertical and butterfly layouts
+%
 % Revision 1.28  2009/02/04 16:58:31  roboos
 % fixed backward compatibility bug in related to isfield, thanks to Irina
 %
@@ -186,7 +191,7 @@ end
 % a lay structure)
 if isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && isfield(cfg.layout, 'width') && isfield(cfg.layout, 'height')
   lay = cfg.layout;
-
+  
 elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && (~isfield(cfg.layout, 'width') || ~isfield(cfg.layout, 'height'))
   lay = cfg.layout;
   % add width and height for multiplotting
@@ -198,7 +203,36 @@ elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout,
   mindist = min(d(:));
   lay.width  = ones(nchans,1) * mindist * 0.8;
   lay.height = ones(nchans,1) * mindist * 0.6;
-
+  
+elseif isequal(cfg.layout, 'butterfly')
+  nchan       = length(data.label);
+  lay.label   = data.label;
+  lay.pos     = zeros(nchan,2);  % centered at (0,0)
+  lay.width   = ones(nchan,1) * 1.0;
+  lay.height  = ones(nchan,1) * 1.0;
+  lay.mask    = {};
+  lay.outline = {};
+  skipscale = true; % a scale is not desired
+  skipcomnt = true; % a comment is initially not desired, or at least requires more thought
+  
+elseif isequal(cfg.layout, 'vertical')
+  nchan     = length(data.label);
+  lay.label = data.label;
+  for i=1:(nchan+2)
+    x = 0.5;
+    y = 1-i/(nchan+1+2);
+    lay.pos   (i,:) = [x y];
+    lay.width (i,1) = 0.9;
+    lay.height(i,1) = 0.9 * 1/(nchan+1+2);
+    if i==(nchan+1)
+      lay.label{i}   = 'SCALE';
+    elseif i==(nchan+2)
+      lay.label{i}   = 'COMNT';
+    end
+  end
+  lay.mask    = {};
+  lay.outline = {};
+  
 elseif isequal(cfg.layout, 'ordered')
   nchan = length(data.label);
   ncol = ceil(sqrt(nchan))+1;
@@ -217,78 +251,78 @@ elseif isequal(cfg.layout, 'ordered')
     end
   end
   lay.label = data.label;
-
+  
   lay.label{end+1}  = 'SCALE';
   lay.width(end+1)  = 0.8 * 1/ncol;
   lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-2)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
-
+  
   lay.label{end+1}  = 'COMNT';
   lay.width(end+1)  = 0.8 * 1/ncol;
   lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-1)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
-
+  
   % elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'ori', 'tra', 'label'}))
   %     lay = grad2lay(cfg.layout, cfg.rotate, cfg.projection);
-
+  
   % elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'tra', 'label'}))
   %     lay = elec2lay(cfg.layout, cfg.rotate, cfg.projection);
-
-
+  
+  
   % try to generate layout from other configuration options
 elseif ischar(cfg.layout) && filetype(cfg.layout, 'matlab')
   fprintf('reading layout from file %s\n', cfg.layout);
   load(cfg.layout, 'lay');
-
+  
 elseif ischar(cfg.layout) && filetype(cfg.layout, 'layout')
   fprintf('reading layout from file %s\n', cfg.layout);
   lay = readlay(cfg.layout);
-
+  
 elseif ischar(cfg.layout) && ~filetype(cfg.layout, 'layout')
   % assume that cfg.layout is an electrode file
   fprintf('creating layout from electrode file %s\n', cfg.layout);
   lay = elec2lay(read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
   lay = elec2lay(read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif ~isempty(cfg.elec) && isstruct(cfg.elec)
   fprintf('creating layout from cfg.elec\n');
   lay = elec2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif isfield(data, 'elec') && isstruct(data.elec)
   fprintf('creating layout from data.elec\n');
   lay = elec2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif ischar(cfg.gradfile)
   fprintf('creating layout from gradiometer file %s\n', cfg.gradfile);
   lay = grad2lay(read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
   fprintf('creating layout from cfg.grad\n');
   lay = grad2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
   lay = grad2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
-
+  
 elseif ~isempty(cfg.image) && isempty(cfg.layout)
   fprintf('reading background image from %s\n', cfg.image);
   img = imread(cfg.image);
   img = flipdim(img, 1); % in combination with "axis xy"
-
+  
   figure
   image(img);
   hold on
   axis equal
   axis off
   axis xy
-
+  
   % get the electrode positions
   pos = zeros(0,2);
   electrodehelp = [ ...
@@ -328,7 +362,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
         warning('invalid button (%d)', k);
     end
   end
-
+  
   % get the mask outline
   polygon = {};
   thispolygon = 1;
@@ -348,10 +382,10 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
     for i=1:length(polygon)
       fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
     end
-
+    
     [x, y, k] = ginput(1);
     switch k
-
+      
       case 1
         polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
         % add the last line segment to the figure
@@ -360,7 +394,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           y = polygon{i}([end-1 end],2);
         end
         plot(x, y, 'g.-');
-
+        
       case 8 % backspace
         if size(polygon{thispolygon},1)>0
           % remove the last point
@@ -385,7 +419,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
             plot(x, y, 'g.-');
           end
         end
-
+        
       case 'c'
         if size(polygon{thispolygon},1)>0
           % close the polygon
@@ -398,7 +432,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-
+        
       case 'q'
         if size(polygon{thispolygon},1)>0
           % close the polygon
@@ -409,15 +443,15 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           plot(x, y, 'g.-');
         end
         again = 0;
-
+        
       otherwise
         warning('invalid button (%d)', k);
     end
   end
   % remember this set of polygons as the mask
   mask = polygon;
-
-
+  
+  
   % get the outline, e.g. head shape and sulci
   polygon = {};
   thispolygon = 1;
@@ -438,10 +472,10 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
     for i=1:length(polygon)
       fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
     end
-
+    
     [x, y, k] = ginput(1);
     switch k
-
+      
       case 1
         polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
         % add the last line segment to the figure
@@ -450,7 +484,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           y = polygon{i}([end-1 end],2);
         end
         plot(x, y, 'm.-');
-
+        
       case 8 % backspace
         if size(polygon{thispolygon},1)>0
           % remove the last point
@@ -475,7 +509,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
             plot(x, y, 'm.-');
           end
         end
-
+        
       case 'c'
         if size(polygon{thispolygon},1)>0
           x = polygon{thispolygon}(1,1);
@@ -490,24 +524,24 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-
+        
       case 'n'
         if size(polygon{thispolygon},1)>0
           % switch to the next polygon
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-
+        
       case 'q'
         again = 0;
-
+        
       otherwise
         warning('invalid button (%d)', k);
     end
   end
   % remember this set of polygons as the outline
   outline = polygon;
-
+  
   % convert electrode positions into a layout structure
   lay.pos = pos;
   nchans = size(pos,1);
@@ -525,7 +559,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   % add mask and outline polygons
   lay.mask    = mask;
   lay.outline = outline;
-
+  
 else
   fprintf('reverting to 151 channel CTF default\n');
   lay = readlay('CTF151.lay');
@@ -578,7 +612,7 @@ end
 if ~strcmp(cfg.montage, 'no')
   Norg = length(cfg.montage.labelorg);
   Nnew = length(cfg.montage.labelnew);
-
+  
   for i=1:Nnew
     cfg.montage.tra(i,:) = abs(cfg.montage.tra(i,:));
     cfg.montage.tra(i,:) = cfg.montage.tra(i,:) ./ sum(cfg.montage.tra(i,:));
@@ -601,7 +635,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % add axes positions for comments and scale information if required
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~any(strcmp('COMNT', lay.label)) && strcmpi(cfg.style, '2d')
+if ~any(strcmp('COMNT', lay.label)) && strcmpi(cfg.style, '2d') && ~skipcomnt
   % add a placeholder for the comment in the upper left corner
   lay.label{end+1}  = 'COMNT';
   lay.width(end+1)  = mean(lay.width);
@@ -612,7 +646,7 @@ if ~any(strcmp('COMNT', lay.label)) && strcmpi(cfg.style, '2d')
   lay.pos(end+1,:)  = [X Y];
 end
 
-if ~any(strcmp('SCALE', lay.label)) && strcmpi(cfg.style, '2d')
+if ~any(strcmp('SCALE', lay.label)) && strcmpi(cfg.style, '2d') && ~skipscale
   % add a placeholder for the scale in the upper right corner
   lay.label{end+1}  = 'SCALE';
   lay.width(end+1)  = mean(lay.width);
@@ -727,12 +761,12 @@ if senstype(grad, 'ctf')
     fprintf('undoing the %s balancing\n', grad.balance.current);
     grad = apply_montage(grad, getfield(grad.balance, grad.balance.current), 'inverse', 'yes');
   end
-
+  
   % remove the non-MEG channels altogether
   sel = chantype(grad, 'meg');
   grad.label = grad.label(sel);
   grad.tra   = grad.tra(sel,:);
-
+  
   % subsequently remove the unused coils
   used = any(abs(grad.tra)<10*eps, 1);  % allow a little bit of rounding-off error
   grad.pnt = grad.pnt(used,:);
@@ -760,7 +794,7 @@ else
       Y = prj(:,2);
       Width  = ones(size(X)) * mindist * 0.8;
       Height = ones(size(X)) * mindist * 0.6;
-
+      
     case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
       % create a list with planar channel names
       chan = {};
@@ -801,7 +835,7 @@ else
       Lbl = [lab(:,1); lab(:,2)];
       Width  = ones(size(X))*mindist/2;
       Height = ones(size(X))*mindist/3.0;
-
+      
     case 'neuromag122'
       % find the matching channel-duplets
       ind = [];
@@ -841,7 +875,7 @@ else
       Lbl = [lab(:,1); lab(:,2)];
       Width  = ones(size(X))*mindist/2;
       Height = ones(size(X))*mindist/3.0;
-
+      
     case 'neuromag306'
       % find the matching channel-triplets
       ind = [];
@@ -885,7 +919,7 @@ else
       Lbl = [lab(:,1); lab(:,2); lab(:,3)];
       Width  = ones(size(X))*mindist/3;
       Height = ones(size(X))*mindist/3;
-
+      
     case 'meg'
       % assume that all coils should be used for plotting
       pnt = grad.pnt;
@@ -898,7 +932,7 @@ else
       Width  = ones(size(X)) * mindist * 0.8;
       Height = ones(size(X)) * mindist * 0.6;
       Lbl = grad.label;
-
+      
     otherwise
       error('unsupported MEG sensor type');
   end % switch senstype
@@ -922,7 +956,7 @@ switch senstype(sens)
   case {'electrode'}
     pnt = sens.pnt;
     lab = sens.label;
-
+    
   case {'ctf151', 'ctf275' 'bti148', 'bti248'}
     % select only the MEG channels, not the reference channels
     Lbl = channelselection('MEG', sens.label);
@@ -931,7 +965,7 @@ switch senstype(sens)
     % which is always the case for BTi-magnetometers, and which is ensured for CTF-gradiometers in ctf2sens
     pnt = sens.pnt(ind,:);
     lab = sens.label(ind);
-
+    
   case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
     % create a list with planar channel names
     chan = {};
@@ -959,7 +993,7 @@ switch senstype(sens)
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-
+    
   case 'neuromag122'
     % find the matching channel-duplets
     ind = [];
@@ -986,7 +1020,7 @@ switch senstype(sens)
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-
+    
   case 'neuromag306'
     % find the matching channel-triplets
     ind = [];
@@ -1016,7 +1050,7 @@ switch senstype(sens)
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-
+    
   otherwise
     error('unsupported sensor type');
 end % switch senstype

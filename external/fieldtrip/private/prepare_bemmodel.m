@@ -27,6 +27,9 @@ function [vol] = prepare_bemmodel(cfg, mri)
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.14  2009/02/25 09:27:08  roboos
+% ensure that the vertices and triangles are double precision, otherwise the bemcp mex files will crash (thanks to Alexandre Gramfort)
+%
 % Revision 1.13  2009/02/11 11:03:42  roboos
 % changed naming of the functions of Chris in accordance with SPM8
 %
@@ -90,12 +93,18 @@ else
   fprintf('using the pre-specified triangulated boundaries\n');
 end
 
-vol.source = find_innermost_boundary(vol.bnd);
-vol.skin  = find_outermost_boundary(vol.bnd);
-fprintf('determining skin compartment (%d)\n', vol.skin);
-fprintf('determining source compartment (%d)\n', vol.source);
+% ensure that the vertices and triangles are double precision, otherwise the bemcp mex files will crash
+for i=1:length(vol.bnd)
+  vol.bnd(i).pnt = double(vol.bnd(i).pnt);
+  vol.bnd(i).tri = double(vol.bnd(i).tri);
+end
 
-if isempty(cfg.isolatedsource) && Ncompartment>1
+vol.source = find_innermost_boundary(vol.bnd);
+vol.skin   = find_outermost_boundary(vol.bnd);
+fprintf('determining source compartment (%d)\n', vol.source);
+fprintf('determining skin compartment (%d)\n',   vol.skin);
+
+if isempty(cfg.isolatedsource) && Ncompartment>1 && strcmp(cfg.method, 'dipoli')
   % the isolated source compartment is by default the most inner one
   cfg.isolatedsource = true;
 elseif isempty(cfg.isolatedsource) && Ncompartment==1
@@ -153,7 +162,7 @@ elseif strcmp(cfg.method, 'bemcp')
 
   % 2. BEM model estimation, only for the scalp surface
 
-  defl =[ 0 0 1/size(vol.bnd(vol.skin).pnt,1)] ;
+  defl =[ 0 0 1/size(vol.bnd(vol.skin).pnt,1)];
   % ensure deflation for skin surface, i.e. average reference over skin
 
   % NOTE:
@@ -176,57 +185,48 @@ elseif strcmp(cfg.method, 'bemcp')
   % matrix, i.e. C11st = C11-eye(N)
 
   weight = (vol.cond(1)-vol.cond(2))/((vol.cond(1)+vol.cond(2))*2*pi);
-  C11st = bem_Cii_lin(vol.bnd(1).tri,vol.bnd(1).pnt, ...
-    weight,defl(1),vol.bnd(1).pnt4);
-  weight = (vol.cond(1)-vol.cond(2))/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  C21 = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
-    weight,defl(1)) ;
-  tmp1 = C21/C11st ;
+  C11st  = bem_Cii_lin(vol.bnd(1).tri,vol.bnd(1).pnt, weight,defl(1),vol.bnd(1).pnt4);
+  weight = (vol.cond(1)-vol.cond(2))/((vol.cond(2)+vol.cond(3))*2*pi);
+  C21    = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, weight,defl(1));
+  tmp1   = C21/C11st;
 
   weight = (vol.cond(2)-vol.cond(3))/((vol.cond(1)+vol.cond(2))*2*pi);
-  C12 = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
-    weight,defl(2)) ;
-  weight = (vol.cond(2)-vol.cond(3))/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  C22st = bem_Cii_lin(vol.bnd(2).tri,vol.bnd(2).pnt, ...
-    weight,defl(2),vol.bnd(2).pnt4) ;
-  tmp2 = C12/C22st ;
+  C12    = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, weight,defl(2));
+  weight = (vol.cond(2)-vol.cond(3))/((vol.cond(2)+vol.cond(3))*2*pi);
+  C22st  = bem_Cii_lin(vol.bnd(2).tri,vol.bnd(2).pnt, weight,defl(2),vol.bnd(2).pnt4);
+  tmp2   = C12/C22st;
 
   % Combine with the effect of surface 3 (scalp) on the first 2
   %------------------------------------------------------------
-  weight = (vol.cond(1)-vol.cond(2))/(vol.cond(3)*2*pi) ;
-  C31 = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, ...
-    weight,defl(1)) ;
-  tmp4 = C31/(- tmp2 * C21 + C11st ) ;
+  weight = (vol.cond(1)-vol.cond(2))/(vol.cond(3)*2*pi);
+  C31    = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, weight,defl(1));
+  tmp4   = C31/(- tmp2 * C21 + C11st );
   clear C31 C21 C11st
 
-  weight = (vol.cond(2)-vol.cond(3))/(vol.cond(3)*2*pi) ;
-  C32 = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, ...
-    weight,defl(2)) ;
-  tmp3 = C32/(- tmp1 * C12 + C22st ) ;
+  weight = (vol.cond(2)-vol.cond(3))/(vol.cond(3)*2*pi);
+  C32    = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, weight,defl(2));
+  tmp3   = C32/(- tmp1 * C12 + C22st );
   clear  C12 C22st C32
 
-  tmp5 = tmp3*tmp1-tmp4 ;
-  tmp6 = tmp4*tmp2-tmp3 ;
+  tmp5 = tmp3*tmp1-tmp4;
+  tmp6 = tmp4*tmp2-tmp3;
   clear tmp1 tmp2 tmp3 tmp4
 
   % Finally include effect of surface 3 on the others
   %--------------------------------------------------
   % As the gama1 intermediate matrix is built as the sum of 3 matrices, I can
   % spare some memory by building them one at a time, and summing directly
-  weight = vol.cond(3)/((vol.cond(1)+vol.cond(2))*2*pi) ;
-  Ci3 = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
-    weight,defl(3)) ;
-  gama1 = - tmp5*Ci3 ; % gama1 = - tmp5*C13;
+  weight = vol.cond(3)/((vol.cond(1)+vol.cond(2))*2*pi);
+  Ci3    = bem_Cij_lin(vol.bnd(1).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, weight,defl(3));
+  gama1  = - tmp5*Ci3; % gama1 = - tmp5*C13;
 
-  weight = vol.cond(3)/((vol.cond(2)+vol.cond(3))*2*pi) ;
-  Ci3 = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, ...
-    weight,defl(3)) ;
-  gama1 = gama1 - tmp6*Ci3; % gama1 = - tmp5*C13 - tmp6*C23;
+  weight = vol.cond(3)/((vol.cond(2)+vol.cond(3))*2*pi);
+  Ci3    = bem_Cij_lin(vol.bnd(2).pnt,vol.bnd(3).pnt,vol.bnd(3).tri, weight,defl(3));
+  gama1  = gama1 - tmp6*Ci3; % gama1 = - tmp5*C13 - tmp6*C23;
 
-  weight = 1/(2*pi) ;
-  Ci3 = bem_Cii_lin(vol.bnd(3).tri,vol.bnd(3).pnt, ...
-    weight,defl(3),vol.bnd(3).pnt4) ;
-  gama1 = gama1 - Ci3; % gama1 = - tmp5*C13 - tmp6*C23 - C33st ;
+  weight = 1/(2*pi);
+  Ci3    = bem_Cii_lin(vol.bnd(3).tri,vol.bnd(3).pnt, weight,defl(3),vol.bnd(3).pnt4);
+  gama1  = gama1 - Ci3; % gama1 = - tmp5*C13 - tmp6*C23 - C33st;
   clear Ci3 tmp1 tmp2 tmp3 tmp4
 
   % Build system matrix
