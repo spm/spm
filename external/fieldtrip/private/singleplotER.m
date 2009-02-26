@@ -54,6 +54,9 @@ function [cfg] = singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.36  2009/02/26 10:52:12  ingnie
+% made 'maxmin' scaling of zparam according to xlim
+%
 % Revision 1.35  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -359,8 +362,10 @@ for k=2:nargin
   
   % Update ymin and ymax for the current data set:
   if strcmp(cfg.ylim, 'maxmin')
-    ymin = min([ymin P]);
-    ymax = max([ymax P]);
+    ind_xmin = nearest(varargin{k-1}.(cfg.xparam), xmin);
+    ind_xmax = nearest(varargin{k-1}.(cfg.xparam), xmax);
+    ymin = min([ymin P(ind_xmin:ind_xmax)]);
+    ymax = max([ymax P(ind_xmin:ind_xmax)]);
   else
     ymin = cfg.ylim(1);
     ymax = cfg.ylim(2);

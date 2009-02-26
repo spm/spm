@@ -46,6 +46,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.30  2009/02/26 10:37:10  roboos
+% fixed bug, thanks to Yoni
+%
 % Revision 1.29  2009/02/25 17:44:27  roboos
 % added vertical and butterfly layouts
 %
@@ -180,6 +183,10 @@ if ~isfield(cfg, 'image'),      cfg.image = [];                 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+skipscale = false; % in general a scale is desired
+skipcomnt = false; % in general a comment desired
 
 if isa(cfg.layout, 'config')
   % convert the nested config-object back into a normal structure
