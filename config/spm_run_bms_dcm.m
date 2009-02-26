@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 2756 2009-02-17 17:23:45Z cc $
+% $Id: spm_run_bms_dcm.m 2793 2009-02-26 18:29:41Z cc $
 
 job     = varargin{1};
 fname  ='BMS.mat';                  % Output filename
@@ -126,16 +126,16 @@ else
             msgbox(str)
             BMS.DCM.rfx.F      = F;
             BMS.DCM.rfx.SF     = sum(F,1);
-            BMS.DCM.rfx.alpha = alpha';
-            BMS.DCM.rfx.exp_r = exp_r';
-            BMS.DCM.rfx.xp    = xp';
+            BMS.DCM.rfx.alpha = alpha;
+            BMS.DCM.rfx.exp_r = exp_r;
+            BMS.DCM.rfx.xp    = xp;
             BMS.DCM.rfx.data  = data;
         else
             BMS.DCM.rfx.F      = F;
             BMS.DCM.rfx.SF     = sum(F,1);
-            BMS.DCM.rfx.alpha  = alpha';
-            BMS.DCM.rfx.exp_r  = exp_r';
-            BMS.DCM.rfx.xp     = xp';
+            BMS.DCM.rfx.alpha  = alpha;
+            BMS.DCM.rfx.exp_r  = exp_r;
+            BMS.DCM.rfx.xp     = xp;
             BMS.DCM.rfx.data   = data;
         end
         save(fname,'BMS')
@@ -143,9 +143,9 @@ else
     else
         BMS.DCM.rfx.F      = F;
         BMS.DCM.rfx.SF     = sum(F,1);
-        BMS.DCM.rfx.alpha = alpha';
-        BMS.DCM.rfx.exp_r = exp_r';
-        BMS.DCM.rfx.xp    = xp';
+        BMS.DCM.rfx.alpha = alpha;
+        BMS.DCM.rfx.exp_r = exp_r;
+        BMS.DCM.rfx.xp    = xp;
         BMS.DCM.rfx.data  = data;
         save(fname,'BMS')
         out.files{1}= fname;
