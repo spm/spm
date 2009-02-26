@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Guillaume Flandin
-% $Id: spm_dartel_norm_fun.m 2794 2009-02-26 20:07:38Z john $
+% $Id: spm_dartel_norm_fun.m 2795 2009-02-26 20:42:52Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -94,7 +94,7 @@ for i=1:numel(job.subj),
     % Spatially normalise data from this subject
     [pth,nam,ext] = fileparts(job.subj(i).flowfield{1});
     fprintf('** "%s" **\n', nam);
-    out{i} = deal_with_subject(job.subj(1).flowfield,job.subj(1).images,K, mat,dim,M,job.preserve,job.fwhm);
+    out{i} = deal_with_subject(job.subj(i).flowfield,job.subj(i).images,K, mat,dim,M,job.preserve,job.fwhm);
 end
 %__________________________________________________________________________
 
