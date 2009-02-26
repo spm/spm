@@ -23,7 +23,7 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 2345 2008-10-16 11:31:35Z guillaume $
+% $Id: spm_smooth.m 2794 2009-02-26 20:07:38Z john $
 
 
 %-----------------------------------------------------------------------
@@ -90,18 +90,11 @@ end
 % compute parameters for spm_conv_vol
 %-----------------------------------------------------------------------
 s  = s./VOX;                        % voxel anisotropy
-s  = max(s,ones(size(s)));          % lower bound on FWHM
-s  = s/sqrt(8*log(2));              % FWHM -> Gaussian parameter
+s1 = s/sqrt(8*log(2));              % FWHM -> Gaussian parameter
 
-x  = round(6*s(1)); x = -x:x;
-y  = round(6*s(2)); y = -y:y;
-z  = round(6*s(3)); z = -z:z;
-x  = exp(-(x).^2/(2*(s(1)).^2));
-y  = exp(-(y).^2/(2*(s(2)).^2));
-z  = exp(-(z).^2/(2*(s(3)).^2));
-x  = x/sum(x);
-y  = y/sum(y);
-z  = z/sum(z);
+x  = round(6*s1(1)); x = -x:x; x = spm_smoothkern(s(1),x,1); x  = x/sum(x);
+y  = round(6*s1(2)); y = -y:y; y = spm_smoothkern(s(2),y,1); y  = y/sum(y);
+z  = round(6*s1(3)); z = -z:z; z = spm_smoothkern(s(3),z,1); z  = z/sum(z);
 
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
