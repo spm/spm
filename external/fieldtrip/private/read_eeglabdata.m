@@ -36,13 +36,11 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabdata.m,v $
-% Revision 1.1  2009/01/14 09:12:15  roboos
-% The directory layout of fileio in cvs sofar did not include a
-% private directory, but for the release of fileio all the low-level
-% functions were moved to the private directory to make the distinction
-% between the public API and the private low level functions. To fix
-% this, I have created a private directory and moved all appropriate
-% files from fileio to fileio/private.
+% Revision 1.2  2009/02/27 12:03:09  vlalit
+% Arno's fix for a bug reported by Antanas Spokas
+%
+% Revision 1.1  2009/01/30 04:01:19  arno
+% *** empty log message ***
 %
 % Revision 1.2  2008/04/21 18:45:23  roboos
 % fixed bug due to sample/trial selection mixup
@@ -70,9 +68,6 @@ if isempty(header)
   header = read_eeglabheader(filename);
 end;
 
-if isempty(begtrial), begtrial = 1; end;
-if isempty(endtrial), endtrial = header.nTrials; end;
-
 if ischar(header.orig.data)
   if strcmpi(header.orig.data(end-2:end), 'set'),
     header.ori = load('-mat', filename);
@@ -80,23 +75,27 @@ if ischar(header.orig.data)
     fid = fopen(header.orig.data);
     if fid == -1, error('Cannot not find data file'); end;
 
-    nTrials = endtrial-begtrial+1;
-    offset = (begtrial-1)*header.nChans*header.nSamples*4; % number of bytes to skip
-    fseek(fid, offset, 'cof');
-
     % only read the desired trials
-    dat = fread(fid,prod([header.nChans header.nSamples*nTrials]),'float');
-    dat = reshape(dat, header.nChans, header.nSamples, nTrials);
+    if strcmpi(header.orig.data(end-2:end), 'dat')
+        dat = fread(fid,[header.nSamples*header.nTrials header.nChans],'float32')';
+    else
+        dat = fread(fid,[header.nChans header.nSamples*header.nTrials],'float32')';
+    end;
+    dat = reshape(dat, header.nChans, header.nSamples, header.nTrials);
     fclose(fid);
   end;
 else
   dat = header.orig.data;
   dat = reshape(dat, header.nChans, header.nSamples, header.nTrials);
-  dat = dat(:,:,begtrial:endtrial);
 end;
+
+if isempty(begtrial), begtrial = 1; end;
+if isempty(endtrial), endtrial = header.nTrials; end;
+if isempty(begsample), begsample = 1; end;
+if isempty(endsample), endsample = header.nSamples; end;
+dat = dat(:,begsample:endsample,begtrial:endtrial);
 
 if ~isempty(chanindx)
   % select the desired channels
   dat = dat(chanindx,:,:);
 end
-
