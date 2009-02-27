@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Guillaume Flandin
-% $Id: spm_dartel_norm_fun.m 2795 2009-02-26 20:42:52Z john $
+% $Id: spm_dartel_norm_fun.m 2799 2009-02-27 16:39:47Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -115,6 +115,8 @@ y(:,:,:,3) = M(3,1)*y0(:,:,:,1) + M(3,2)*y0(:,:,:,2) + M(3,3)*y0(:,:,:,3) + M(3,
 y0 = y;
 clear y
 
+odm = zeros(1,3);
+oM  = zeros(4,4);
 out = cell(1,numel(PI));
 for m=1:numel(PI),
 
@@ -134,8 +136,8 @@ for m=1:numel(PI),
     NO.dat.dim = [dim NI.dat.dim(4:end)];
     NO.mat  = mat;
     NO.mat0 = mat;
-    NO.mat_intent  = 'Aligned';
-    NO.mat0_intent = 'Aligned';
+    NO.mat_intent  = 'MNI152';
+    NO.mat0_intent = 'MNI152';
     NO.descrip = sprintf('Smoothed (%gx%gx%g) DARTEL normed',fwhm);
     out{m} = NO.dat.fname;
     create(NO);
@@ -153,29 +155,36 @@ for m=1:numel(PI),
         if sum(sum((NI.mat  - NU.mat ).^2)) < 0.0001 && ...
            sum(sum((NI.mat0 - NU.mat0).^2)) < 0.0001,
             % No affine transform necessary
-            y = y0;
+            M  = eye(4);
+            dm = size(NI.dat);
+            y  = y0;
         else
             % Need to resample the mapping by an affine transform
             % so that it maps from voxels in the native space image
             % to voxels in the spatially normalised image.
             %--------------------------------------------------------------
-            mat = NI.mat;
+            M0 = NI.mat;
             if isfield(NI,'extras') && isfield(NI.extras,'mat'),
-                mat1 = NI.extras.mat;
-                if size(mat1,3) >= j && sum(sum(mat1(:,:,j).^2)) ~=0,
-                    mat = mat1;
+                M1 = NI.extras.mat;
+                if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0,
+                    M0 = M1;
                 end
             end
-            M   = NU.mat0\mat;
+            M   = NU.mat0\M0;
             dm  = size(NI.dat);
-            y   = zeros(dm(1:3),'single');
-            for d=1:3,
-                yd = y0(:,:,:,d);
-                for x3=1:size(y,3),
-                    y(:,:,x3,d) = single(spm_slice_vol(yd,M*spm_matrix([0 0 x3]),dm(1:2),[1 NaN]));
+            if ~all(dm==odm) || ~all(M(:)==oM(:)),
+                % Generate new deformation (if needed)
+                y   = zeros(dm(1:3),'single');
+                for d=1:3,
+                    yd = y0(:,:,:,d);
+                    for x3=1:size(y,3),
+                        y(:,:,x3,d) = single(spm_slice_vol(yd,M*spm_matrix([0 0 x3]),dm(1:2),[1 NaN]));
+                    end
                 end
             end
         end
+        odm = dm;
+        oM  = M;
 
         % Write the warped data for this time point.
         %------------------------------------------------------------------

@@ -4,9 +4,9 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_st.m 2799 2009-02-27 16:39:47Z john $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2799 $';
 % ---------------------------------------------------------------------
 % scans Session
 % ---------------------------------------------------------------------
@@ -104,6 +104,7 @@ st.tag     = 'st';
 st.name    = 'Slice Timing';
 st.val     = {generic nslices tr ta so refslice prefix };
 st.help    = {
+              'Note that this option is likely to be removed in future.  The authors of SPM do not generally suggest that this correction is not used, but the option is still retained for the few people who like to use it.'
               'Correct differences in image acquisition time between slices. Slice-time corrected files are prepended with an ''a''.'
               ''
               'Note: The sliceorder arg that specifies slice acquisition order is a vector of N numbers, where N is the number of slices per volume. Each number refers to the position of a slice within the image file. The order of numbers within the vector is the temporal order in which those slices were acquired. To check the order of slices within an image file, use the SPM Display option and move the cross-hairs to a voxel co-ordinate of z=1.  This corresponds to a point in the first slice of the volume.'
