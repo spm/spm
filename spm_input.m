@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 2582 2008-12-20 11:59:12Z karl $
+% $Id: spm_input.m 2800 2009-02-27 17:07:39Z guillaume $
 
 
 %=======================================================================
@@ -812,7 +812,7 @@ else                                             %-Use GUI to get answer
         'BackgroundColor','w',...
         'Position',RRec);
     set(hDef,'UserData',[hPrmpt,h])
-    uicontrol(h);
+    uifocus(h);
     if TTips, set(h,'ToolTipString',TTstr), end
 
     %-Figure ContextMenu for shortcuts
@@ -1097,9 +1097,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
                     'Callback',cb,...
                     'Position',[RRec(1)+(i-1)*dX+1 ...
                             RRec(2) dX-2 RRec(4)]);
-                if i == DefItem,
-                    uicontrol(h);
-                end
+                if i == DefItem, uifocus(h); end
                 H = [H,h];
             end
         
@@ -1325,7 +1323,7 @@ else
         'Position',...
             [RRec(1)+RRec(3)*(2/3)+2 RRec(2) RRec(3)/3-2 RRec(4)]);
     set(hDef,'UserData',[hPrmpt,h])
-    uicontrol(h);
+    uifocus(h);
     H = [H,h];
 
     %-Figure ContextMenu for shortcuts
@@ -2361,4 +2359,12 @@ else
         msg = ['[',msg(2:end),']-matrix required'];
     end
 
+end
+
+%==========================================================================
+function uifocus(h)
+if strcmpi(get(h, 'Style'), 'PushButton') == 1
+    uicontrol(gcbo);
+else 
+    uicontrol(h); 
 end
