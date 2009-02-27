@@ -28,6 +28,9 @@ function [dat] = read_nexstim_nxe(filename, begsample, endsample, chanindx)
 % Copyright (C) 2007, Vladimir Litvak
 %
 % $Log: read_nexstim_nxe.m,v $
+% Revision 1.2  2009/02/27 12:42:03  vlalit
+% Fix for a bug spotted by Miriam Klein
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -143,7 +146,7 @@ else
     numChannels = 64;
 
     fid = fopen(filename,'r','l');
-    fseek(fid, 2*numChannels*begsample,'bof');
+    fseek(fid, 2*numChannels*(begsample-1),'bof');
     data = fread(fid,[numChannels endsample-begsample+1],'short');
     fclose(fid);
 
