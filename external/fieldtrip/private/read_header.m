@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.93  2009/03/02 10:44:38  roboos
+% switched default for fif files to use the MNE reading routines in case of neuromag_fif
+% the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
+%
 % Revision 1.92  2009/02/12 11:47:23  vlalit
 % Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
 %  used with permission from the company's representative Mr. Klaus Schellhorn.
@@ -1036,7 +1040,7 @@ switch headerformat
   case 'nexstim_nxe'
     hdr = read_nexstim_nxe(filename);
 
-  case 'neuromag_mne'
+  case {'neuromag_fif' 'neuromag_mne'}
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
 
@@ -1124,7 +1128,7 @@ switch headerformat
     hdr.orig.iscontinuous = iscontinuous;
     hdr.orig.isepoched    = isepoched;
 
-  case 'neuromag_fif'
+  case 'neuromag_mex'
     % check that the required low-level toolbox is available
     hastoolbox('meg-pd', 1);
     rawdata('any',filename);

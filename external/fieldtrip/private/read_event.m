@@ -59,6 +59,10 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.93  2009/03/02 10:44:38  roboos
+% switched default for fif files to use the MNE reading routines in case of neuromag_fif
+% the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
+%
 % Revision 1.92  2009/02/24 14:25:01  jansch
 % included the option fix4dglasgow; this removes any 'synchornization' triggers
 % with value 8192 from the trigger-data prior to the flank detection,
@@ -982,7 +986,6 @@ switch eventformat
 
 
   case 'fcdc_fifo'
-
     fifo = filetype_check_uri(filename);
     fid = fopen(fifo, 'r');
     msg = fread(fid, inf, 'uint8');
@@ -994,24 +997,18 @@ switch eventformat
     end
 
   case 'fcdc_tcp'
-
     % requires tcp/udp/ip-toolbox
+    hastoolbox('TCP_UDP_IP', 1);
     [host, port] = filetype_check_uri(filename);
-
     if isempty(sock)
       sock=pnet('tcpsocket',port);
     end
-
     con = pnet(sock, 'tcplisten');
-
     if con~=-1
       try
-
         pnet(con,'setreadtimeout',1);
-
         % read packet
         msg=pnet(con,'readline'); %,1000,'uint8','network');
-
         if ~isempty(msg)
           event = mxDeserialize(uint8(str2num(msg)));
         end
@@ -1019,30 +1016,21 @@ switch eventformat
         warning(lasterr);
       end
     end
-
     pnet(con,'close');
     con = [];
 
-
   case 'fcdc_udp'
-
     % requires tcp/udp/ip-toolbox
-
-    % UDP network socket
+    hastoolbox('TCP_UDP_IP', 1);
     [host, port] = filetype_check_uri(filename);
-
     try
       % read from localhost
-
       udp=pnet('udpsocket',port);
-
       % Wait/Read udp packet to read buffer
       len=pnet(udp,'readpacket');
       if len>0,
-
         % if packet larger then 1 byte then read maximum of 1000 doubles in network byte order
         msg=pnet(udp,'read',1000,'uint8');
-
         if ~isempty(msg)
           event = mxDeserialize(uint8(msg));
         end
@@ -1050,7 +1038,6 @@ switch eventformat
     catch
       warning(lasterr);
     end
-
     % On break or error close connection
     pnet(udp,'close');
 
@@ -1140,8 +1127,12 @@ switch eventformat
     end
 
 
-  case {'neuromag_fif' 'neuromag_mne'}
+  case {'neuromag_fif' 'neuromag_mne' 'neuromag_mex'}
     if strcmp(eventformat, 'neuromag_fif')
+      % the default is to use the MNE reader for fif files
+      eventformat = 'neuromag_mne';
+    end
+    if strcmp(eventformat, 'neuromag_mex')
       % check that the required low-level toolbox is available
       hastoolbox('meg-pd', 1);
       if isempty(headerformat), headerformat = eventformat; end
@@ -1163,7 +1154,7 @@ switch eventformat
     % exist for neuromag_fif, hence we run the code anyway if the fields do
     % not exist (this is what happened previously anyway).
 
-    if strcmp(eventformat, 'neuromag_fif')
+    if strcmp(eventformat, 'neuromag_mex')
       iscontinuous    = 1;
       isaverage       = 0;
       isepoched       = 0;
