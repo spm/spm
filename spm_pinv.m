@@ -1,5 +1,5 @@
 function X = spm_pinv(A)
-% psudoinverse for sparse matrices
+% pseudoinverse for sparse matrices
 % FORMAT X = spm_pinv(A)
 %
 % X   - matrix
@@ -7,7 +7,7 @@ function X = spm_pinv(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_pinv.m 2812 2009-03-02 18:46:59Z guillaume $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -17,9 +17,9 @@ if isempty(A), X = sparse(n,m); return, end
 
 % try generalised inverse
 %--------------------------------------------------------------------------
-warning off
+sw = warning('off','MATLAB:nearlySingularMatrix');
 X     = inv(A'*A);
-warning on
+warning(sw);
 
 if ~any(isnan(diag(X)))
     X = X*A';
