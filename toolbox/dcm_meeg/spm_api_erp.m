@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_api_erp.m 2810 2009-03-02 13:13:07Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -676,7 +676,7 @@ switch DCM.options.model
             return
         end
     otherwise
-        nk = length(DCM.A);              % number of connection types
+        nk = 3;                          % number of connection types
         nj = ones(nk,1)*n;               % number of sources
 end
 
