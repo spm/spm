@@ -1,18 +1,9 @@
-function [K0,K1,K2,H1] = spm_kernels(varargin)
-% returns global Volterra kernels for a MIMO Bilinear system
-% FORMAT [K0,K1,K2] = spm_kernels(M,P,N,dt)            - output kernels
-% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,N,dt)          - state  kernels
-% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,L1,N,dt)       - output kernels (1st)
-% FORMAT [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt)    - output kernels (2nd)
+function [K1,K0,K2] = spm_kernel(M0,P,N,dt)
+% returns the first Volterra kernel for a MIMO Bilinear system
+% FORMAT [K1,K0,K2] = spm_kernel(M,P,N,dt)
 %
-% M,P   - model structure and parameters; 
-%         or its bilinear reduction:
-%
-% M0    - (n x n)     df(q(0),0)/dq                    - n states
-% M1    - {m}(n x n)  d2f(q(0),0)/dqdu                 - m inputs
-% L1    - (l x n)     dldq                             - l outputs
-% L2    - {m}(n x n)  dl2dqq
-%
+% M     - model structure
+% P     - model parameters
 % N     - kernel depth       {intervals}
 % dt    - interval           {seconds}
 %
@@ -30,44 +21,21 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 %
 % where q = [1 x(t)] are the states augmented with a constant term
 %
+% see also spm_kernels
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_kernels.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_kernel.m 2804 2009-03-02 12:03:00Z karl $
 
-
-% assign inputs
-%--------------------------------------------------------------------------
-if nargin == 4
-
-    M0 = varargin{1};
-    M1 = varargin{2};
-    N  = varargin{3};
-    dt = varargin{4};
-
-elseif nargin == 5
-
-    M0 = varargin{1};
-    M1 = varargin{2};
-    L1 = varargin{3};
-    N  = varargin{4};
-    dt = varargin{5};
-
-elseif nargin == 6
-
-    M0 = varargin{1};
-    M1 = varargin{2};
-    L1 = varargin{3};
-    L2 = varargin{4};
-    N  = varargin{5};
-    dt = varargin{6};
-end
 
 % bilinear reduction if necessary
 %--------------------------------------------------------------------------
-if isstruct(M0)
-    [M0,M1,L1,L2] = spm_bireduce(M0,M1);
+if nargout > 2
+    [M0,M1,L1,L2] = spm_bireduce(M0,P);
+else
+    [M0,M1,L1]    = spm_bireduce(M0,P);
 end
 
 
@@ -76,12 +44,6 @@ end
 
 % make states the outputs (i.e. remove constant) if L1 is not specified
 %--------------------------------------------------------------------------
-try
-    L1;
-catch
-    L1 = speye(size(M0));
-    L1 = L1(2:end,:);
-end
 try
     L2;
 catch
@@ -124,17 +86,16 @@ end
 
 % 1st order kernel
 %--------------------------------------------------------------------------
-if nargout > 1
-    for p = 1:m
-        for i = 1:N
+for p = 1:m
+    for i = 1:N
 
-            % 1st order kernel
-            %--------------------------------------------------------------
-            H1(i,:,p) = M{i,p}*H0;
-            K1(i,:,p) = H1(i,:,p)*L1';
-        end
+        % 1st order kernel
+        %------------------------------------------------------------------
+        H1(i,:,p) = M{i,p}*H0;
+        K1(i,:,p) = H1(i,:,p)*L1';
     end
 end
+
 
 % 2nd order kernels
 %--------------------------------------------------------------------------
@@ -153,7 +114,7 @@ if nargout > 2
         end
     end
 
-    if isempty(L2) return, end
+    if isempty(L2), return, end
 
     % add output nonlinearity
     %----------------------------------------------------------------------

@@ -80,7 +80,7 @@ function [CVA] = spm_cva(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_cva.m 2662 2009-01-28 20:23:11Z karl $
+% $Id: spm_cva.m 2804 2009-03-02 12:03:00Z karl $
  
 
 % review old analysis or proceed with a new one
@@ -236,6 +236,9 @@ for i = 1:h
   p(i)   = 1 - spm_Xcdf(chi(i),df(i));
 end
  
+% prevent overflow
+%--------------------------------------------------------------------------
+p     = max(p,exp(-16));
 
 % save results
 %==========================================================================

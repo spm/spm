@@ -15,7 +15,7 @@ function [y] = spm_gx_dcm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_dcm.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_gx_dcm.m 2804 2009-03-02 12:03:00Z karl $
 
 
 % Biophysical constants for 1.5T
@@ -58,8 +58,8 @@ epsilon   = exp(H(:,6));
 
 % coefficients in BOLD signal model
 %--------------------------------------------------------------------------
-k1       = 4.3.*nu0.*E0.*M.TE;
-k2       = epsilon.*r0.*E0.*M.TE;
+k1       = 4.3.*nu0.*E0.*TE;
+k2       = epsilon.*r0.*E0.*TE;
 k3       = 1 - epsilon;
 
 

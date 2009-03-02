@@ -73,7 +73,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2707 2009-02-06 19:51:34Z karl $
+% $Id: spm_nlsi_N.m 2804 2009-03-02 12:03:00Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -272,21 +272,8 @@ for ip = 1:64
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
-    try
-        
-        [x dxdp] = feval(IS,Ep,M,U);
-        
-        % project derivatives onto Vp
-        %------------------------------------------------------------------
-        for i = 1:length(dxdp), dxdp{i} = dxdp{i}*Vp; end
-        
-    catch
-        
-        % or evalate nunmerically
-        %------------------------------------------------------------------
-        [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
-        
-    end
+    [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
+
     
     % check for dissipative dynamics
     %----------------------------------------------------------------------

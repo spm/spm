@@ -10,7 +10,8 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 %   M.m   - m inputs
 %   M.n   - n states
 %   M.l   - l outputs
-%   M.x   - (n x 1) = x(0) = expansion point
+%   M.x   - (n x 1) = x(0) = expansion point: defaults to x = 0;
+%   M.u   - (m x 1) = u    = expansion point: defaults to u = 0;
 %
 % P   - model parameters
 % D   - delay matrix (default D = 1)
@@ -35,7 +36,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 2392 2008-10-23 14:57:31Z karl $
+% $Id: spm_bireduce.m 2804 2009-03-02 12:03:00Z karl $
 
 
 % set up

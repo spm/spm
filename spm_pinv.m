@@ -7,12 +7,24 @@ function X = spm_pinv(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_pinv.m 2804 2009-03-02 12:03:00Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
 [m,n] = size(A);
 if isempty(A), X = sparse(n,m); return, end
+
+
+% try generalised inverse
+%--------------------------------------------------------------------------
+warning off
+X     = inv(A'*A);
+warning on
+
+if ~any(isnan(diag(X)))
+    X = X*A';
+    return
+end
 
 % pseudoinverse
 %--------------------------------------------------------------------------
