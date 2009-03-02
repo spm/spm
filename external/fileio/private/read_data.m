@@ -31,6 +31,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.82  2009/03/02 10:44:38  roboos
+% switched default for fif files to use the MNE reading routines in case of neuromag_fif
+% the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
+%
 % Revision 1.81  2009/02/25 12:59:30  marvger
 % removed calls to filetype and replaced with strcmp(dataformat,x) for
 % efficiency
@@ -926,7 +930,7 @@ switch dataformat
     dat       = dat(:,chanindx,:);      % select channels
     dimord    = 'trials_chans_samples'; % selection using begsample and endsample will be done later
 
-  case 'neuromag_mne'
+  case {'neuromag_fif' 'neuromag_mne'}
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
     if (hdr.orig.iscontinuous)
@@ -949,7 +953,7 @@ switch dataformat
       error('Support for epoched *.fif data is not yet implemented.')
     end
 
-  case 'neuromag_fif'
+  case 'neuromag_mex'
     % check that the required low-level toolbox is available
     hastoolbox('meg-pd', 1);
     begtime = (begsample-1)/hdr.Fs;
