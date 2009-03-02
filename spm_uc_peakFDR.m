@@ -15,7 +15,7 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % XYZ   - locations [x y x]' {in voxels}
 % ui    - feature-inducing threshold
 %
-% u     - critical height
+% u     - critical height threshold
 % Ps    - Sorted p-values
 %__________________________________________________________________________
 %
@@ -31,7 +31,7 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 2764 2009-02-19 15:30:03Z guillaume $
+% $Id: spm_uc_peakFDR.m 2813 2009-03-02 18:56:35Z guillaume $
 
 % Extract list of local maxima whose height is above ui
 %--------------------------------------------------------------------------

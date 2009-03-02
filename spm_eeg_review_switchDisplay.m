@@ -1,9 +1,10 @@
 function [D] = spm_eeg_review_switchDisplay(D)
+% Switch between displays in the M/EEG Review facility
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 2813 2009-03-02 18:56:35Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -434,7 +435,7 @@ switch D.PSD.VIZU.uitable
                 delete(D.PSD.handles.BUTTONS.prep)
                 delete(D.PSD.handles.BUTTONS.pop1)
             end
-            % delete info table (id any)
+            % delete info table (if any)
             try;delete(D.PSD.handles.infoUItable);end
             % delete info message (if any)
             try;delete(D.PSD.handles.message);end
@@ -474,6 +475,7 @@ switch D.PSD.VIZU.uitable
                 set(hc,'position',[0.1 0.05 0.55 0.7],...
                     'tag','plotEEG');
                 D.PSD.handles.infoUItable = ht;
+                D.PSD.handles.infoUItable2 = hc;
                 D = spm_eeg_review_uis(D,object); % this adds the buttons
 
             case 2 % trials info
@@ -647,6 +649,7 @@ switch D.PSD.VIZU.uitable
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
                     D.PSD.handles.infoUItable = ht;
+                    D.PSD.handles.infoUItable2 = hc;
                     D = spm_eeg_review_uis(D,object); % this adds the buttons
                 else
                     POS = get(D.PSD.handles.infoTabs.hp,'position');
@@ -669,6 +672,7 @@ switch D.PSD.VIZU.uitable
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
                     D.PSD.handles.infoUItable = ht;
+                    D.PSD.handles.infoUItable2 = hc;
                 else
                     POS = get(D.PSD.handles.infoTabs.hp,'position');
                     D.PSD.handles.message = uicontrol('style','text','units','normalized',...

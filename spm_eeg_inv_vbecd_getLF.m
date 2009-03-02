@@ -1,24 +1,22 @@
 function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) 
-% FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, channels, step, Bad)
-%
-% Estimation of the leadfield matrix and is spatial derivative if required 
+% Estimation of the leadfield matrix and its spatial derivative if required 
 % for a set of dipoles used in the VB-ECD solution
 %
-% inputs:
-%   s    - location vector
-%   sens - sensor locations (MNI [mm])
-%   vol  - volume structure needed by fieldtrip
-%   step - stepsize to compute numerical derivatives
+% FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
+% 
+% s      - location vector
+% sens   - sensor locations (MNI [mm])
+% vol    - volume structure needed by fieldtrip
+% step   - stepsize to compute numerical derivatives
 %
-% outputs:
-%   gmn  - leadfields (three vectors for each dipole)
-%   gm   - vectorized leadfields
-%   dgm  - vectorized partials wrt locations (if 3rd output argument specified)
+% gmn    - leadfields (three vectors for each dipole)
+% gm     - vectorized leadfields
+% dgm    - vectorized partials wrt locations
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_vbecd_getLF.m 2813 2009-03-02 18:56:35Z guillaume $
  
 gm = [];
 for i = 1:length(s)/3
@@ -27,7 +25,6 @@ for i = 1:length(s)/3
     if forwinv_senstype(sens, 'eeg')
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
     end
-%     tmp(Bad, :) = [];
     gm = [gm tmp];
 end
 

@@ -1,5 +1,5 @@
 function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
-% Cluster False Discovery critical height threshold
+% Cluster False Discovery critical extent threshold
 % FORMAT [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %
 % q     - Prespecified upper bound on False Discovery Rate
@@ -33,7 +33,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 2764 2009-02-19 15:30:03Z guillaume $
+% $Id: spm_uc_clusterFDR.m 2813 2009-03-02 18:56:35Z guillaume $
 
 % Threshold the statistical field 
 %--------------------------------------------------------------------------

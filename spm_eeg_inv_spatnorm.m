@@ -1,39 +1,31 @@
 function mesh = spm_eeg_inv_spatnorm(mesh)
-
-%==========================================================================
-% Spatial Normalization (using a unified model - SPM5)
-% transforms individual sMRI into MNI T1 space and
-% saves the [inverse] deformations (...vbm_inv_sn.mat)
-% that will be needed for computing the individual mesh
+% Spatial Normalisation (using Unified Segmentation)
+% Transforms individual sMRI into MNI space and save the [inverse] 
+% deformations that will be needed for computing the individual mesh
 %
 % FORMAT mesh = spm_eeg_inv_spatnorm(mesh)
-% Input:
+% 
 % mesh        - input data struct 
-% Output:
+% 
 % mesh        - same data struct including the inverse deformation .mat file
 %               and filename of noramlised (bias correctd) sMRI
-%==========================================================================
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_spatnorm.m 2813 2009-03-02 18:56:35Z guillaume $
 
-% initialise
+spm('Pointer','Watch');
+
+%-Initialise
 %--------------------------------------------------------------------------
 sMRI = mesh.sMRI;
 
-
-disp({'Normalising sMRI and computing mapping from canonical';
-      'space to subject''s MRI space'})
-spm('Pointer','Watch');
+%-Spatial Transformation into MNI space
 %--------------------------------------------------------------------------
-[pth,nam,ext] = spm_fileparts(sMRI);
-
-% Spatial Transformation into MNI space
-%--------------------------------------------------------------------------
-def  = fullfile(pth,['y_' nam '.nii']);
-mat  = fullfile(pth,[nam '_seg8.mat']);
+[pth,nam] = spm_fileparts(sMRI);
+def       = fullfile(pth,['y_' nam '.nii']);
+mat       = fullfile(pth,[nam '_seg8.mat']);
 
 if ~(exist(def, 'file') && exist(mat, 'file'))
     % Assume it is an image, so derive deformation field.
@@ -51,11 +43,9 @@ if ~(exist(def, 'file') && exist(mat, 'file'))
     spm_preproc_run(p);
 end
 
-mesh.def = def;
+mesh.def    = def;
 mesh.Affine = getfield(load(mat, 'Affine'), 'Affine');
 
-    % finished
+%-Clean up
 %--------------------------------------------------------------------------
 spm('Pointer','Arrow');
-
-
