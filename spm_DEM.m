@@ -32,6 +32,7 @@ function [DEM] = spm_DEM(DEM)
 %--------------------------------------------------------------------------
 %   qU.x    = Conditional expectation of hidden states
 %   qU.v    = Conditional expectation of causal states
+%   qU.w    = Conditional prediction error (states)
 %   qU.z    = Conditional prediction error (causes)
 %   qU.C    = Conditional covariance: cov(v)
 %   qU.S    = Conditional covariance: cov(x)
@@ -77,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: spm_DEM.m 2805 2009-03-02 12:07:04Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -91,6 +92,10 @@ Fdem = spm_figure('GetWin','DEM');
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
 TOL  = 1e-3;
+
+% enable mean field effects
+%--------------------------------------------------------------------------
+mf   = 1;
  
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
@@ -224,7 +229,8 @@ pp.ic = spm_pinv(pp.c);
 qp.e  = spm_vec(qp.p);
 qp.c  = sparse(nf,nf);
 qp.b  = sparse(ny,nb);
- 
+
+
 % initialise dedb
 %--------------------------------------------------------------------------
 for i = 1:nl
@@ -417,7 +423,7 @@ for iN = 1:nN
                 
                 % uncertainty about parameters dWdv, ... ; W = ln(|qp.c|)
                 %==========================================================
-                if np
+                if np && mf
                     for i = 1:nu
                         CJp(:,i)   = spm_vec(qp.c(ip,ip)*dE.dpu{i}'*iS);
                         dEdpu(:,i) = spm_vec(dE.dpu{i}');
@@ -488,7 +494,7 @@ for iN = 1:nN
             
             % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
             %==============================================================
-            if np
+            if np && mf
                 for i = ip
                     CJu(:,i)   = spm_vec(qu.c*dE.dup{i}'*iS);
                     dEdup(:,i) = spm_vec(dE.dup{i}');
@@ -507,7 +513,9 @@ for iN = 1:nN
             % and quantities for M-Step
             %--------------------------------------------------------------
             EE    = E*E'+ EE;
-            ECE   = ECE + ECEu + ECEp;
+            if mf
+                ECE = ECE + ECEu + ECEp;
+            end
             
         end % sequence (nY)
  
@@ -559,7 +567,7 @@ for iN = 1:nN
  
         % convergence (E-Step)
         %------------------------------------------------------------------
-        if (dFdp'*dp < 1e-2) | (norm(dp,1) < TOL), break, end
+        if (dFdp'*dp < 1e-2) || (norm(dp,1) < TOL), break, end
         
     end % E-Step
     

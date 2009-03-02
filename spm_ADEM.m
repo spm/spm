@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM.m 2521 2008-12-02 19:49:39Z karl $
+% $Id: spm_ADEM.m 2805 2009-03-02 12:07:04Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -238,6 +238,12 @@ for i = 1:(nl - 1)
     M(i).p    = size(qp.u{i},2);                     % number of qp.p
     qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
+    
+    try
+        qp.e{i} = qp.p{i} + qp.u{i}'*(spm_vec(M(i).P) - spm_vec(M(i).pE));
+    catch
+        qp.e{i} = qp.p{i};                           % initial qp.e
+    end
  
 end
 Up    = spm_cat(diag(qp.u));
@@ -250,7 +256,7 @@ pp.ic = inv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
-qp.e  = spm_vec(qp.p);
+qp.e  = spm_vec(qp.e);
 qp.c  = sparse(np,np);
  
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
