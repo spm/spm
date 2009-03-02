@@ -32,7 +32,7 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 2740 2009-02-12 16:28:45Z vladimir $
+% $Id: spm_eeg_convert2images.m 2803 2009-03-02 10:47:41Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -129,10 +129,10 @@ if strcmp(D.transformtype, 'TF');
                     end
 
                     dat = file_array(fname, [D.nfrequencies D.nsamples], 'FLOAT64');
-                    dat(:, :) = squeeze(mean(D(images.electrodes_of_interest, :, :, l), 1));                                        
+                    dat(:, :) = spm_cond_units(squeeze(mean(D(images.electrodes_of_interest, :, :, l), 1)));                                        
                     
                     N = nifti;
-                    N.dat = spm_cond_units(dat);
+                    N.dat = dat;
                     N.mat = [1 0 0  min(D.frequencies);
                         0 1000/D.fsample 0           time(D, 1, 'ms');
                         0 0 1           0;
