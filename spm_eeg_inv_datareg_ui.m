@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2811 2009-03-02 13:35:20Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -52,7 +52,8 @@ if numel(meeglbl)<3
     error('At least 3 M/EEG fiducials are required for coregistration');
 end
 
-if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
+if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) &&...
+      D.inv{val}.mesh.template  && isempty(D.sensors('MEG'))
     M1 = eye(4);
 
     S =[];
