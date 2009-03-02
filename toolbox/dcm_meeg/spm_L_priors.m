@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_L_priors.m 2661 2009-01-28 20:21:42Z karl $
+% $Id: spm_L_priors.m 2806 2009-03-02 12:08:22Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ if location, V = 2^2; else, V = 0; end
 %==========================================================================
 switch type
  
-    case{'ECD'}
+    case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
         pE.Lpos = dipfit.Lpos;   Lpos = V*eye(3*n);     % positions
         pE.L    = sparse(3,n);   L    =   eye(3*n);     % orientations
@@ -104,6 +104,11 @@ switch model
         %------------------------------------------------------------------
         pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,36);         % 9 states
         J    = sparse([1,2],[1,2],[1/128 1/128],36,36);    % 27 covariances
+        
+    case{'DEM'}
+        %------------------------------------------------------------------
+        pE.J = [];                                         % null
+        J    = [];
         
     otherwise
         warndlg('Unknown neural model')

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2752 2009-02-16 17:26:54Z cc $
+% $Id: spm_api_erp.m 2806 2009-03-02 12:08:22Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -94,6 +94,7 @@ handles = ERP_Callback(hObject, eventdata, handles);
 % 'LFP'    - (linear second order NMM self-inhibition)
 % 'NMM'    - (nonlinear second order NMM first-order moments)
 % 'MFM'    - (nonlinear second order NMM second-order moments)
+% 'DEM'    - (functional architecture based on a DEM scheme)
 try
     model = DCM.options.model;
 catch
@@ -107,6 +108,7 @@ switch model
     case{'LFP'}, set(handles.model,'Value',3);
     case{'NMM'}, set(handles.model,'Value',4);
     case{'MFM'}, set(handles.model,'Value',5);
+    case{'DEM'}, set(handles.model,'Value',6);
     otherwise
 end
  
@@ -162,10 +164,8 @@ try, set(handles.Slocation,   'String',num2str(DCM.Lpos','%4.0f'));  end
 %--------------------------------------------------------------------------
 switch DCM.options.spatial
     case{'IMG'}
-        set(handles.render, 'Enable','on' )
         set(handles.Imaging,'Enable','on' )
     otherwise
-        set(handles.render, 'Enable','off' )
         set(handles.Imaging,'Enable','off' )
 end
  
@@ -200,10 +200,8 @@ try
     set(handles.results,    'Enable','on');
     switch handles.DCM.options.spatial
         case{'IMG'}
-            set(handles.render, 'Enable','on');
             set(handles.Imaging,'Enable','on');
         otherwise
-            set(handles.render, 'Enable','off');
             set(handles.Imaging,'Enable','off');
     end
 catch
@@ -425,6 +423,9 @@ catch
 end
 try
     X = str2num(get(handles.design,'String'))';
+    if isempty(X)
+        X = sparse(m,0);
+    end
     handles.DCM.xU.X = X(1:m,:);
     set(handles.design, 'String',num2str(handles.DCM.xU.X','%7.2f'));
 catch
@@ -580,7 +581,8 @@ set(handles.connectivity_back,'Enable', 'on');
 set(handles.Hz1,              'Enable', 'on');
 set(handles.Hz2,              'Enable', 'on');
 set(handles.Rft,              'Enable', 'on');
- 
+
+
  
 % [re]-set connections
 %--------------------------------------------------------------------------
@@ -653,16 +655,32 @@ spm_eeg_inv_ecd_DrawDip('Init', sdip)
 function handles = connections_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 DCM     = handles.DCM;
-n       = length(DCM.Sname);           % number of sources
-m       = size(DCM.xU.X,2);            % number of experimental inputs
+
+% numbers of buttons
+%--------------------------------------------------------------------------
+n       = length(DCM.Sname);              % number of sources
+m       = size(DCM.xU.X,2);               % number of experimental inputs
 switch DCM.options.analysis
-    case{'SSR'}
-        l = n;                         % number of endogenous inputs
+    case{'SSR'}                           % for Steady-state responses
+        l = n;                            % number of endogenous inputs
     otherwise
-        l = length(DCM.options.onset); % number of peristimulus inputs
+        l = length(DCM.options.onset);    % number of peristimulus inputs
+end
+switch DCM.options.model
+    case{'DEM'}
+        try
+            nk = 1;                       % number of levels
+            nj = 16;                      % number of states per level
+            l  = 0;
+        catch
+            return
+        end
+    otherwise
+        nk = length(DCM.A);              % number of connection types
+        nj = ones(nk,1)*n;               % number of sources
 end
 
- 
+
 % remove previous objects
 %--------------------------------------------------------------------------
 h     = get(handles.SPM,'Children');
@@ -676,6 +694,7 @@ end
 % no changes in coupling
 %--------------------------------------------------------------------------
 if ~m, B = {}; DCM.B = {}; end
+if ~l, C = {}; DCM.C = {}; end
  
 % check DCM.A, DCM.B, ...
 %--------------------------------------------------------------------------
@@ -684,8 +703,10 @@ try, if length(DCM.B{1}) ~= n, DCM = rmfield(DCM,'B'); end, end
 try, if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end, end
 try, if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end, end
 try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
+
+
  
-% connection buttons
+% connection buttons (A)
 %--------------------------------------------------------------------------
 set(handles.con_reset,'Units','Normalized')
 p  = get(handles.con_reset,'Position');
@@ -694,9 +715,9 @@ y0 = 0.425;
 sx = 1/36;
 sy = 1/72;
 for i = 1:n
-    for j = 1:n
-        for k = 1:3
-            x          = x0 + (j - 1)*sx + (k - 1)*(n + 1)*sx;
+    for k = 1:nk
+        for j = 1:nj(k)
+            x          = x0 + (j - 1)*sx + (sum(nj(1:(k - 1))) + k - 1)*sx;
             y          = y0 - (i + 4)*sy;
             str        = sprintf('data.DCM.A{%i}(%i,%i)',k,i,j);
             str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
@@ -706,16 +727,19 @@ for i = 1:n
                 'Style','radiobutton',...
                 'Tag','tmp',...
                 'Callback',str);
-            
+
             % within region, between frequency coupling for 'Induced'
             %--------------------------------------------------------------
             if i == j
                 set(A{k}(i,j),'Enable','off')
             end
-            
+
             % allow nonlinear self-connections (induced responses)
             %--------------------------------------------------------------
-            if get(handles.ERP,'value') == 3 && k == 2
+            if strcmpi(DCM.options.model,'IND') && k == 2
+                set(A{k}(i,j),'Enable','on')
+            end
+            if strcmpi(DCM.options.model,'DEM')
                 set(A{k}(i,j),'Enable','on')
             end
             try
@@ -724,18 +748,25 @@ for i = 1:n
                 DCM.A{k}(i,j) = get(A{k}(i,j),'Value');
             end
         end
-        for k = 1:m
-            x          = x0 + (j - 1)*sx + (k - 1)*(n + 1)*sx;
+    end
+end
+
+% connection buttons (B)
+%--------------------------------------------------------------------------
+for i = 1:n
+    for k = 1:m
+        for j = 1:n
+            x          = x0 + (j - 1)*sx + ((k - 1)*n + k - 1)*sx;
             y          = y0 - (i + 4)*sy - (n + 1)*sy;
-            str        = sprintf('data.DCM.B{%i}(%i,%i)',k,i,j); 
+            str        = sprintf('data.DCM.B{%i}(%i,%i)',k,i,j);
             str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
             B{k}(i,j)  = uicontrol(handles.SPM,...
-                         'Units','Normalized',...
-                         'Position',[x y sx sy],...
-                         'Style','radiobutton',...
-                         'Tag','tmp',...
-                         'Callback',str);
-            
+                'Units','Normalized',...
+                'Position',[x y sx sy],...
+                'Style','radiobutton',...
+                'Tag','tmp',...
+                'Callback',str);
+
             % intrinsic modulation of H_e
             %--------------------------------------------------------------
             if i == j
@@ -749,6 +780,9 @@ for i = 1:n
         end
     end
 end
+
+% connection buttons (C)
+%--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:l
         x          = x0 + (4 - 1)*(n + 1)*sx +(j - 1)*sx;
@@ -768,14 +802,16 @@ for i = 1:n
         end
     end
 end
- 
+
 % string labels
 %--------------------------------------------------------------------------
 switch DCM.options.model
     case{'NMM','MFM'}
-        constr = {'Excit.' 'Inhib.' 'Mixed' 'input'};
+        constr = {'Excit.' 'Inhib.'    'Mixed'     'input'};
+    case{'DEM'}
+        constr = {'States' ' '         ' '         ' '};
     otherwise
-        constr = {'forward' 'back' 'lateral' 'input'};
+        constr = {'forward' 'back'     'lateral'    'input'};
 end
 switch DCM.options.analysis
     case{'IND'}
@@ -929,22 +965,32 @@ end
 % invert and save
 %--------------------------------------------------------------------------
 switch handles.DCM.options.analysis
- 
+
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
     case{'ERP'}
-        handles.DCM = spm_dcm_erp(handles.DCM);
- 
+
+        switch handles.DCM.options.model
+            
+            % DEM
+            %----------------------------------------------------------------------
+            case{'DEM'}
+                handles.DCM = spm_dcm_dem(handles.DCM);
+
+            otherwise
+                handles.DCM = spm_dcm_erp(handles.DCM);
+        end
+
     % cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
     case{'SSR'}
         handles.DCM = spm_dcm_ssr(handles.DCM);
- 
+
     % induced responses
     %----------------------------------------------------------------------
     case{'IND'}
         handles.DCM = spm_dcm_ind(handles.DCM);
- 
+
     otherwise
         warndlg('unknown analysis type')
         return
@@ -956,7 +1002,6 @@ set(handles.results,    'Enable','on' )
 set(handles.save,       'Enable','on')
 set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])
 if get(handles.Spatial, 'Value') == 1
-    set(handles.render, 'Enable','on' )
     set(handles.Imaging,'Enable','on' )
 end
  
@@ -1001,12 +1046,7 @@ DCM             = load(fullfile(p,f), '-mat');
 handles.DCM.M.P = DCM.DCM.Ep;
 guidata(hObject, handles);
  
-% --- Executes on button press in render.
-% -------------------------------------------------------------------------
-function render_Callback(hObject, eventdata, handles)
- 
-spm_eeg_inv_visu3D_api(handles.DCM.xY.Dfile)
- 
+
 % --- Executes on button press in Imaging.
 % -------------------------------------------------------------------------
 function Imaging_Callback(hObject, eventdata, handles)
@@ -1120,7 +1160,6 @@ switch handles.DCM.options.analysis
         set(handles.Spatial,    'Value', 1);
         set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
-        set(handles.render,     'Enable','off' )
         set(handles.Imaging,    'Enable','off' )
         set(handles.onset,      'Enable','on');
         
@@ -1177,5 +1216,7 @@ guidata(hObject,handles);
 function priors_Callback(hObject, eventdata, handles);
 handles = reset_Callback(hObject, eventdata, handles);
 spm_api_nmm(handles.DCM)
+
+
 
 

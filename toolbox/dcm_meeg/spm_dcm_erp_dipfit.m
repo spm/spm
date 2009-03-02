@@ -35,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2752 2009-02-16 17:26:54Z cc $
+% $Id: spm_dcm_erp_dipfit.m 2806 2009-03-02 12:08:22Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -163,7 +163,7 @@ switch DCM.options.spatial
         % defaults: Nm = 8; number of modes per region
         %------------------------------------------------------------------
         try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
-        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
+        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 4;     end
  
         % Compute spatial basis (eigenmodes of lead field)
         %==================================================================

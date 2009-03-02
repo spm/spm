@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_erp_results.m 2806 2009-03-02 12:08:22Z karl $
 
 
 % get figure handle
@@ -43,7 +43,7 @@ clf
 xY  = DCM.xY;                   % data
 nt  = length(xY.xy);            % Nr trial types
 ne  = size(xY.xy{1},2);         % Nr electrodes
-nb  = size(xY.xy{1},1);         % Nr time bing
+nb  = size(xY.xy{1},1);         % Nr time bins
 t   = xY.pst;                   % PST
 
 % plot data 
@@ -151,37 +151,57 @@ case{lower('ERPs (mode)')}
         set(gca,'YLim',A)
     end
 
-    case{lower('ERPs (sources)')}
+case{lower('ERPs (sources)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
     %----------------------------------------------------------------------
     col   = {'b','r','g','m','y','c'}; A = [0 0];
     for i = 1:ns
         str   = {};
-        for j = 1:np
-            subplot(ceil(ns/2),2,i), hold on
-            for k = 1:nt
-                if j == np
-                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
-                        'Color',col{k}, ...
-                        'LineWidth',2);
-                else
-                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
-                        'Color',col{k}, ...
-                        'LineWidth',2);
+        subplot(ceil(ns/2),2,i), hold on
+
+        % if J maps from states to sources, use J (a matrix)
+        %------------------------------------------------------------------
+        if strcmpi(DCM.options.model,'DEM')
+            
+            for j = find(DCM.Eg.J(i,:))
+                for k = 1:nt
+                    plot(t, DCM.K{k}(:,j) , ...
+                            'Color',col{k}, ...
+                            'LineWidth',1);
+                    str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
                 end
-                str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
+            end
+            
+        else
+            
+            % otherwise assume normal form for states (source x states)
+            %--------------------------------------------------------------
+            for j = 1:np
+                for k = 1:nt
+                    if j == np
+                        plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
+                            'Color',col{k}, ...
+                            'LineWidth',2);
+                    else
+                        plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
+                            'Color',col{k}, ...
+                            'LineWidth',2);
+                    end
+                    str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
+                end
             end
         end
+
         hold off
-        title(DCM.Sname{i})
+        title(DCM.Sname{i},'FontSize',16)
         grid on
         axis square
         a    = axis;
         A(1) = min(A(1),a(3));
         A(2) = max(A(2),a(4));
     end
-    xlabel('time (ms)')
+    xlabel('time (ms)','FontSize',14)
     legend(str)
     
     % set axis
@@ -195,8 +215,10 @@ case{lower('Coupling (A)')}
     
     % spm_dcm_erp_results(DCM,'coupling (A)');
     %----------------------------------------------------------------------
-    str = {'Forward','Backward','Lateral'};
-    for  i =1:3
+    if ~isfield(DCM.Ep,'A'), return, end
+    str   = {'Forward','Backward','Lateral'};
+    
+    for i = 1:length(DCM.Ep.A)
         
         % images
         %------------------------------------------------------------------
@@ -237,6 +259,7 @@ case{lower('Coupling (C)')}
     
     % spm_dcm_erp_results(DCM,'coupling (C)');
     %----------------------------------------------------------------------
+    if ~isfield(DCM.Ep,'C'), return, end
     
     % images
     %----------------------------------------------------------------------
@@ -274,7 +297,9 @@ case{lower('Coupling (B)')}
     
     % spm_dcm_erp_results(DCM,'coupling (B)');
     %----------------------------------------------------------------------
-    for i = 1:nu
+    if ~isfield(DCM.Ep,'B'), return, end
+    
+    for i = 1:length(DCM.Ep.B)
         
         % images
         %------------------------------------------------------------------
@@ -316,6 +341,8 @@ case{lower('trial-specific effects')}
     
     % spm_dcm_erp_results(DCM,'trial-specific effects');
     %----------------------------------------------------------------------
+    if ~isfield(DCM.Ep,'B'), return, end
+    
     for i = 1:ns
         for j = 1:ns
 
