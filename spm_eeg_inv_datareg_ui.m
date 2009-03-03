@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2811 2009-03-02 13:35:20Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2819 2009-03-03 13:15:42Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -52,14 +52,25 @@ if numel(meeglbl)<3
     error('At least 3 M/EEG fiducials are required for coregistration');
 end
 
-if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) &&...
-      D.inv{val}.mesh.template  && isempty(D.sensors('MEG'))
-    M1 = eye(4);
+if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
+   
 
     S =[];
     S.sourcefid = meegfid;
     S.targetfid = mrifid;
-    S.targetfid.fid = S.sourcefid.fid;
+    
+    if D.inv{val}.mesh.template  
+        M1 = eye(4);
+        S.targetfid.fid = S.sourcefid.fid;
+    else  
+        M1 = [];
+        S.sourcefid.fid.label{strmatch('spmnas', S.sourcefid.fid.label, 'exact')} = 'nas';
+        S.sourcefid.fid.label{strmatch('spmlpa', S.sourcefid.fid.label, 'exact')} = 'lpa';
+        S.sourcefid.fid.label{strmatch('spmrpa', S.sourcefid.fid.label, 'exact')} = 'rpa';
+        S.targetfid.fid.pnt = S.targetfid.fid.pnt(1:3, :);
+        S.targetfid.fod.label = S.targetfid.fid.label(1:3, :);
+        S.useheadshape = 1;
+    end        
 else
     M1 = [];
     for i = 1:length(meeglbl)
