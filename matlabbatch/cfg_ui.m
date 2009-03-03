@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2674 2009-01-30 14:15:48Z volkmar $
+% $Id: cfg_ui.m 2816 2009-03-03 08:49:21Z volkmar $
 
-rev = '$Rev: 2674 $'; %#ok
+rev = '$Rev: 2816 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1170,19 +1170,19 @@ end;
 if strcmpi(cmd,'continue')
     [file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
     if sts
+        udmodlist = get(handles.modlist, 'userdata');
+        if ~isempty(udmodlist.cmod)
+            cfg_util('deljob',udmodlist(1).cjob);
+        end;
         [p fun e v] = fileparts(file{1});
         addpath(p);
         cfg_util('addapp', fun);
         local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
+        udmodlist = local_init_udmodlist;
+        udmodlist.cjob = cfg_util('initjob');
+        set(handles.modlist, 'userdata', udmodlist);
+        local_showjob(hObject);
     end;
-    udmodlist = get(handles.modlist, 'userdata');
-    if ~isempty(udmodlist.cmod)
-        cfg_util('deljob',udmodlist(1).cjob);
-    end;
-    udmodlist = local_init_udmodlist;
-    udmodlist.cjob = cfg_util('initjob');
-    set(handles.modlist, 'userdata', udmodlist);
-    local_showjob(hObject);
 end;
 
 % --------------------------------------------------------------------
@@ -1468,6 +1468,7 @@ switch lower(cmd)
         end;
         set(hObject,'Visible','off');
         udmodlist = local_init_udmodlist;
+        udmodlist.cjob = cfg_util('initjob');
         set(handles.modlist,'userdata',udmodlist);
     case 'hide'
         set(hObject,'Visible','off');
