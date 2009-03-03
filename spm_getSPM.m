@@ -162,7 +162,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 2764 2009-02-19 15:30:03Z guillaume $
+% $Id: spm_getSPM.m 2821 2009-03-03 19:54:19Z guillaume $
 
 
 %-GUI setup
@@ -578,6 +578,15 @@ spm('Pointer','Arrow')
 u   = -Inf;        % height threshold
 k   = 0;           % extent threshold {voxels}
 
+%-Get FDR mode
+%--------------------------------------------------------------------------
+defaults = spm('GetGlobal','defaults');
+try
+    topoFDR = defaults.stats.topoFDR;
+catch
+    topoFDR = true;
+end
+    
 %-Height threshold - classical inference
 %--------------------------------------------------------------------------
 if STAT ~= 'P'
@@ -588,7 +597,11 @@ if STAT ~= 'P'
     try
        thresDesc = xSPM.thresDesc;
     catch
-        str = 'FWE|none';
+        if topoFDR
+            str = 'FWE|none';
+        else
+            str = 'FWE|FDR|none';
+        end
         thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
     end
     
@@ -605,15 +618,16 @@ if STAT ~= 'P'
         u = spm_uc(u,df,STAT,R,n,S);
 
 
-%         case 'FDR' % Topological False discovery rate
-%         %------------------------------------------------------------------
-%         try
-%             u = xSPM.u;
-%         catch
-%             u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
-%         end
-%         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-%         u = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
+        case 'FDR' % False discovery rate
+        %------------------------------------------------------------------
+        if topoFDR, error('Change defaults.stats.topoFDR to use voxel FDR.'); end
+        try
+            u = xSPM.u;
+        catch
+            u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
+        end
+        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+        u = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
         
         case 'none'  % No adjustment
         % p for conjunctions is p of the conjunction SPM
@@ -639,23 +653,25 @@ if STAT ~= 'P'
     
     %-Compute p-values for topological and voxel-wise FDR (all search voxels)
     %----------------------------------------------------------------------
-    %-Voxel-wise FDR
-    switch STAT
-        case 'Z'
-            Ps   = (1-spm_Ncdf(Zum)).^n;
-        case 'T'
-            Ps   = (1 - spm_Tcdf(Zum,df(2))).^n;
-        case 'X'
-            Ps   = (1-spm_Xcdf(Zum,df(2))).^n;
-        case 'F'
-            Ps   = (1 - spm_Fcdf(Zum,df)).^n;
+    if ~topoFDR
+        %-Voxel-wise FDR
+        switch STAT
+            case 'Z'
+                Ps   = (1-spm_Ncdf(Zum)).^n;
+            case 'T'
+                Ps   = (1 - spm_Tcdf(Zum,df(2))).^n;
+            case 'X'
+                Ps   = (1-spm_Xcdf(Zum,df(2))).^n;
+            case 'F'
+                Ps   = (1 - spm_Fcdf(Zum,df)).^n;
+        end
+        Ps = sort(Ps);
+        %uv = spm_uc_FDR(0.05,df,STAT,n,VspmSv,0);
     end
-    Ps = sort(Ps);
-    %uv = spm_uc_FDR(0.05,df,STAT,n,VspmSv,0);
     
     %-Peak FDR
     [up, Pp]     = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
-    
+
     %-Cluster FDR
     if STAT == 'T'
         V2R      = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM>1));
@@ -665,7 +681,7 @@ if STAT ~= 'P'
         ue       = NaN;
         Pc       = [];
     end
-    
+
     %-Peak FWE
     uu           = spm_uc(0.05,df,STAT,R,n,S);
     

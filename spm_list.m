@@ -115,27 +115,20 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 2764 2009-02-19 15:30:03Z guillaume $
+% $Id: spm_list.m 2821 2009-03-03 19:54:19Z guillaume $
 
 
 % satellite figure global variable
 %--------------------------------------------------------------------------
 global SatWindow
 
-% Switch between voxel-wise and topological FDR
+% Choose between voxel-wise and topological FDR
 %--------------------------------------------------------------------------
-persistent topoFDR
-if isempty(topoFDR), topoFDR = true; end
-function switchTopoFDR(varargin)
-    topoFDR = ~topoFDR;
-    if SatWindow
-        F = SatWindow;
-    else
-        F = spm_figure('GetWin','Graphics');
-    end
-    n = spm_figure('CurrentPage',F);
-    evalin('base','spm_list(''List'',xSPM,hReg);');
-    spm_figure('TurnPage',n,F);
+defaults = spm('GetGlobal','defaults');
+try
+    topoFDR = defaults.stats.topoFDR;
+catch
+    topoFDR = true;
 end
 
 %==========================================================================
@@ -878,4 +871,3 @@ switch lower(varargin{1}), case 'list'                            %-List
         error('Unknown action string')
 end
 %==========================================================================
-end

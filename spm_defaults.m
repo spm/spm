@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 2432 2008-11-03 12:58:04Z will $
+% $Id: spm_defaults.m 2821 2009-03-03 19:54:19Z guillaume $
 
 
 global defaults
@@ -39,6 +39,7 @@ defaults.stats.maxres   = 64;
 defaults.stats.fmri.ufp = 0.001;
 defaults.stats.pet.ufp  = 0.05;
 defaults.stats.eeg.ufp  = 1;
+defaults.stats.topoFDR  = 0;
 
 % fMRI design defaults
 %=======================================================================
