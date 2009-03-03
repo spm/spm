@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 2800 2009-02-27 17:07:39Z guillaume $
+% $Id: spm_input.m 2817 2009-03-03 11:03:30Z guillaume $
 
 
 %=======================================================================
@@ -2363,8 +2363,10 @@ end
 
 %==========================================================================
 function uifocus(h)
-if strcmpi(get(h, 'Style'), 'PushButton') == 1
-    uicontrol(gcbo);
-else 
-    uicontrol(h); 
+try
+    if strcmpi(get(h, 'Style'), 'PushButton') == 1
+        uicontrol(gcbo);
+    else 
+        uicontrol(h); 
+    end
 end
