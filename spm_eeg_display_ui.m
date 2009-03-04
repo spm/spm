@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_eeg_display_ui.m 2826 2009-03-04 17:24:49Z james $
 
 if nargin == 1
     S = varargin{1};
@@ -37,7 +37,7 @@ if ~exist('D','var')
 end
 
 if ~isempty(D)
-    spm_eeg_review(D)
+    spm_eeg_review(D,5)
 end
 
 

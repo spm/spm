@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 2826 2009-03-04 17:24:49Z james $
 
 try
     D = get(gcf,'userdata');
@@ -44,7 +44,7 @@ switch varargin{1}
                     %                         decim = 1;
                     %                     end
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
-                    sd                      = std(data(:));
+                    sd                      = mean(abs(data(:)-mean(data(:))));%std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*sd/2;
                     v_data                  = 0.25.*data +repmat(offset,[1 size(data,2) size(data,3)]);
                     ma                      = max(v_data(:))+sd;
@@ -441,7 +441,7 @@ switch varargin{1}
 
                             else % time-frequency data
 
-                                datai = squeeze(D.data.y(indAxes,:,:,trN(1)));
+                                datai = squeeze(D.data.y(VIZU.visuSensors(indAxes),:,:,trN(1)));
                                 hp2 = image(datai,'CDataMapping','scaled');
                                 set(hp2,'parent',ha2);
                                 colormap('jet')
@@ -1101,7 +1101,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     else
                         color = 0.75*[1 1 1];
                     end
-                    datai = squeeze(D.data.y(i,:,:,trN(1)));
+                    datai = squeeze(D.data.y(VIZU.visuSensors(i),:,:,trN(1)));
                     miY = min([min(datai(:)),miY]);
                     maY = max([max(datai(:)),maY]);
                     D.PSD.handles.PLOT.im(i) = image(datai,'CDataMapping','scaled');

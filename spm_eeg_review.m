@@ -10,7 +10,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_review.m 2826 2009-03-04 17:24:49Z james $
 
 D = struct(D);
 
@@ -49,13 +49,13 @@ try
     [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],flag);
 catch
     clear flag
-    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],4);
+    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],5);
 end
 D.PSD.handles.tabs = h;
 
 % %-- Initilize display on 'info'
 D.PSD.VIZU.modality = 'info';
-D.PSD.VIZU.info = 4;
+D.PSD.VIZU.info = 5;
 D.PSD.VIZU.fromTab = [];
 [D] = spm_eeg_review_switchDisplay(D);
 
@@ -75,6 +75,8 @@ if exist('flag','var')
         case 4
             spm_eeg_review_callbacks('visu','main','other')
         case 5
+            spm_eeg_review_callbacks('visu','main','info')
+        case 6
             spm_eeg_review_callbacks('visu','main','source')
     end
 end
