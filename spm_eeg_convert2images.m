@@ -32,7 +32,7 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 2803 2009-03-02 10:47:41Z vladimir $
+% $Id: spm_eeg_convert2images.m 2823 2009-03-04 10:55:56Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -153,7 +153,7 @@ if strcmp(D.transformtype, 'TF');
                         Ypos = '+1';
                     end
                     
-                    inds = find(D.frequencies >= Frequency_window(1) & D.frequencies <= Frequency_window(2));
+                    inds = find(D.frequencies >= images.Frequency_window(1) & D.frequencies <= images.Frequency_window(2));
                     if ~isempty(inds) break, end
                     str = 'No data in range';
                 end
