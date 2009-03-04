@@ -1,17 +1,15 @@
 function varargout = spm_eeg_inv_imag_api(varargin)
-% SPM_EEG_INV_IMAG_API M-file for spm_eeg_inv_imag_api.fig
+% API for EEG/MEG source reconstruction interface
+% FORMAT:
 %    FIG = SPM_EEG_INV_IMAG_API launch spm_eeg_inv_imag_api GUI.
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
-
-% Last Modified by GUIDE v2.5 09-Jan-2008 16:12:40
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 2825 2009-03-04 15:08:59Z guillaume $
 
-
-spm('defaults','EEG');
-spm('Clear')
+spm('Clear');
 
 % Launch API
 %==========================================================================
@@ -20,6 +18,7 @@ if nargin < 2
     % open figure
     %----------------------------------------------------------------------
     fig     = openfig(mfilename,'reuse');
+    set(fig,'name',[spm('ver') ': ' get(fig,'name')]);
     Rect    = spm('WinSize','Menu');
     S0      = spm('WinSize','0',1);
     set(fig,'units','pixels');
@@ -446,7 +445,6 @@ Reset(hObject, eventdata, handles);
 function Vis3D_Callback(hObject, eventdata, handles)
 Exit_Callback(hObject, eventdata, handles)
 spm_eeg_review(handles.D,5,handles.D.val)
-% spm_eeg_inv_visu3D_api(handles.D);
 Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in CheckImage.
