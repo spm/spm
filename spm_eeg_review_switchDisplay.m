@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2813 2009-03-02 18:56:35Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 2822 2009-03-04 10:39:53Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -261,7 +261,7 @@ if ~~D.PSD.source.VIZU.current
     end
 
     % Create mesh and related objects
-    Dmesh = spm_eeg_inv_transform_mesh(eye(4), D.other.inv{invN}.mesh);
+    Dmesh = D.other.inv{invN}.mesh;
     mesh.vertices = Dmesh.tess_mni.vert;
     mesh.faces = Dmesh.tess_mni.face;
     options.texture = J(:,indTime);

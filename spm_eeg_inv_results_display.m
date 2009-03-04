@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_results_display.m 2822 2009-03-04 10:39:53Z vladimir $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -21,7 +21,6 @@ if con == 0
 end
 
 model = D.inv{D.val};
-model.mesh = spm_eeg_inv_transform_mesh(eye(4), model.mesh);
 
 con   = min(con,length(model.inverse.J));
 try
@@ -54,12 +53,7 @@ figure(Fgraph)
 
 % get vertices (even if not normalised)
 %--------------------------------------------------------------------------
-try
-    vert   = model.mesh.tess_mni.vert;
-catch
-    warndlg('Displaying on subject mesh - may not be in MNI space');
-    vert   = model.mesh.tess_ctx.vert;
-end
+vert   = model.mesh.tess_mni.vert;
 
 % display
 %--------------------------------------------------------------------------
