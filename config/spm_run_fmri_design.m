@@ -10,7 +10,7 @@ function out = spm_run_fmri_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_design.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_run_fmri_design.m 2824 2009-03-04 11:58:51Z guillaume $
 
 
 spm('defaults','FMRI');
@@ -193,7 +193,7 @@ for i = 1:numel(job.sess),
         if cond.tmod>0,
             % time effects
             P(1).name = 'time';
-            P(1).P    = U(j).ons*job.timing.RT;
+            P(1).P    = U(j).ons*job.timing.RT/60;
             P(1).h    = cond.tmod;
             q1        = 1;
         end;
