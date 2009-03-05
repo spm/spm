@@ -13,9 +13,9 @@ function spm_eeg_firstlevel(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 2829 2009-03-05 12:05:07Z guillaume $
+% $Id: spm_eeg_firstlevel.m 2831 2009-03-05 18:12:09Z guillaume $
 
-SVNrev = '$Rev: 2829 $';
+SVNrev = '$Rev: 2831 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -105,6 +105,8 @@ for j = 1:length(fnames) % over files
         %-Write contrast image header
         %------------------------------------------------------------------
         Vcon               = Vbeta;
+        Vcon.mat(3,3:4)    = [1.0 0.0];
+        Vcon.mat0          = Vcon.mat;
         Vcon.dat.fname     = sprintf('%s_con_%04d.img', spm_str_manip(fnames{j}, 'rt'), i);
         Vcon.dat.scl_slope = 1.0;
         Vcon.dat.scl_inter = 0.0;
