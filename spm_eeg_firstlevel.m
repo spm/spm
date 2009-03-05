@@ -13,9 +13,9 @@ function spm_eeg_firstlevel(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 2789 2009-02-25 17:20:28Z guillaume $
+% $Id: spm_eeg_firstlevel.m 2829 2009-03-05 12:05:07Z guillaume $
 
-SVNrev = '$Rev: 2789 $';
+SVNrev = '$Rev: 2829 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -38,26 +38,24 @@ D = spm_eeg_load(D);
 try
     contrast1st.window = S.contrast1st.window;
 catch
-    contrast1st.window = spm_input('start(s) and end(s) of window(s) [ms]', '+1', 'r', '', [inf 2]);
+    contrast1st.window = spm_input('start(s) and end(s) of window(s) [ms]', '+1', 'r', '', [Inf 2]);
 end
-
 
 try
     contrast1st.fnames = S.contrast1st.fnames;
 catch
-    contrast1st.fnames = spm_select(inf, 'image', 'Select M/EEG images (in voxel-space)');
+    contrast1st.fnames = spm_select(Inf, 'image', 'Select M/EEG images (in voxel-space)');
 end
 
 try
     contrast1st.Pout = S.contrast1st.Pout;
 catch
-    contrast1st.Pout = uigetdir('.', 'Select output directory');
+    contrast1st.Pout = uigetdir(pwd, 'Select output directory');
 end
 
 %-Check input
 %--------------------------------------------------------------------------
-w = contrast1st.window;
-Nc = size(w, 1);
+w  = contrast1st.window;
 
 if any(w(:, 1) < time(D, 1, 'ms'))
     error('Start of time window must be later than %d ms.', time(D, 1));
@@ -73,9 +71,15 @@ end
 
 spm('Pointer', 'Watch');
 
+%-Change to target directory
+%--------------------------------------------------------------------------
+swd = pwd;
+cd(contrast1st.Pout);
+
 %-Compute contrasts
 %--------------------------------------------------------------------------
-C = zeros(D.nsamples, Nc);
+Nc = size(w, 1);
+C  = zeros(D.nsamples, Nc);
 
 for i = 1:Nc
     tsample(1) = indsample(D, w(i, 1)/1000);
@@ -85,57 +89,58 @@ end
 
 fnames = cellstr(contrast1st.fnames);
 
+spm_progress_bar('Init', length(fnames), 'First level contrasts');
+if length(fnames) > 100, Ibar = floor(linspace(1, length(fnames), 100));
+else Ibar = 1:length(fnames); end
+
 for j = 1:length(fnames) % over files
 
-    % map file
-    Vbeta = nifti(deblank(fnames{j}));
-
-    % change to target directory
-    cd(contrast1st.Pout);
+    Vbeta = nifti(fnames{j});
 
     for i = 1:Nc % over contrasts
 
-        % code taken from spm_contrasts
-        fprintf('\t%-32s: %-10s%20s', sprintf('file %s, contrast %d', fnames{j}, i),...
-            '(spm_add)','...initialising')                              %-#
+        fprintf('%-40s: %30s', sprintf('file %s, contrast %d', ...
+            spm_str_manip(fnames{j}, 'rt'), i), '...initialising');     %-#
 
-        %-Prepare handle for contrast image
+        %-Write contrast image header
         %------------------------------------------------------------------
-        descrip = sprintf('SPM contrast - average from %d to %d ms',...
-                w(i, 1), w(i, 2));
+        Vcon               = Vbeta;
+        Vcon.dat.fname     = sprintf('%s_con_%04d.img', spm_str_manip(fnames{j}, 'rt'), i);
+        Vcon.dat.scl_slope = 1.0;
+        Vcon.dat.scl_inter = 0.0;
+        Vcon.dat.dtype     = 'float32-le';
+        Vcon.dat.offset    = 0;
+        Vcon.dat.dim       = Vbeta.dat.dim(1:2);
+        Vcon.descrip       = sprintf('SPM contrast - average from %d to %d ms',...
+                                w(i, 1), w(i, 2));
+        create(Vcon);
 
-        % prepare nifti image (the usual spm_add doesn't seem to work for
-        % many input files under windows)
-        Vcon = nifti;
-        Vcon.descrip = descrip;
-
-        Dcon = file_array;
-        Dcon.fname = sprintf('%s_con_%04d.img', spm_str_manip(fnames{j}, 'rt'), i);
-        Dcon.dtype = spm_type('float32');
-        Dcon.offset  = ceil(348/8)*8;
-        Dcon.dim = Vbeta.dat.dim(1:2);
-
-        %-Write image
+        %-Compute contrast
         %------------------------------------------------------------------
-        fprintf('%s%20s', repmat(sprintf('\b'),1,20),'...computing');   %-#
+        fprintf('%s%30s', repmat(sprintf('\b'),1,30),'...computing');   %-#
 
         d = zeros(Vbeta.dat.dim(1:2));
         for k = 1:Vbeta.dat.dim(3)
-            d = d + Vbeta.dat(:, : ,k)*C(k,i);
+            d = d + Vbeta.dat(:, : ,k) * C(k,i);
         end
 
-        Dcon(:,:) = d;
+        %-Write contrast image
+        %------------------------------------------------------------------
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing');      %-#
+        
+        Vcon.dat(:,:) = d;
 
-        Vcon.dat = Dcon;
-        create(Vcon);
-
-        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-            '...written %s',spm_str_manip(Vcon.dat.fname,'t')));        %-#
-
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...written');    %-#
 
     end
+    
+    if ismember(j, Ibar), spm_progress_bar('Set', j); end
+    
 end
 
-spm_progress_bar('Clear');
+cd(swd);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm_progress_bar('Clear');
+spm('FigName','M/EEG 1st level contrast: done'); spm('Pointer','Arrow');

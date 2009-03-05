@@ -279,14 +279,14 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2582 2008-12-20 11:59:12Z karl $
+% $Id: spm_spm.m 2829 2009-03-05 12:05:07Z guillaume $
 
-SCCSid   = '$Rev: 2582 $';
+SVNid   = '$Rev: 2829 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid    = spm('FnBanner',mfilename,SCCSid);
-Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch')
+SPMid    = spm('FnBanner',mfilename,SVNid);
+Finter   = spm('FigName','Stats: estimation...'); spm('Pointer','Watch');
 
 %-Get SPM.mat[s] if necessary
 %--------------------------------------------------------------------------
@@ -330,9 +330,7 @@ if exist(fullfile('.','mask.img'),'file') == 2
         spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
         return
     else
-        str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd);
-        warning(str)
-        drawnow
+        warning('Overwriting old results\n\t (pwd = %s) ',pwd)
     end
 end
 
@@ -354,7 +352,7 @@ end
 
 %-Initialise
 %==========================================================================
-fprintf('%-40s: %30s','Initialising parameters','...computing')    %-#
+fprintf('%-40s: %30s','Initialising parameters','...computing');        %-#
 xX            = SPM.xX;
 [nScan nBeta] = size(xX.X);
 
@@ -364,7 +362,7 @@ xX            = SPM.xX;
 try
     xM = SPM.xM;
 catch
-    xM = -ones(nScan,1)/0;
+    xM = -Inf(nScan,1);
 end
 if ~isstruct(xM)
     xM = struct('T',    [],...
@@ -471,16 +469,16 @@ xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
 
 %-Adjust volumetrics if this is non-Talairach data
-%=======================================================================
+%==========================================================================
 % Dimensions: X: -68:68, Y: -100:72, Z: -42:82 DIM: [136; 172; 124]
 
-% 3-D case, with arbitrary diimensions
-%-----------------------------------------------------------------------
+% 3-D case, with arbitrary dimensions
+%--------------------------------------------------------------------------
 q   = M - speye(4,4);
 if ~any(q(:))
     
     % map x and y into anatomical space and make z a %
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     D   = DIM./[136; 172; 100];    % new voxel size
     C   = D.*[68;  100; 0];        % new origin
     iM  = [D(1) 0    0    C(1);
@@ -490,23 +488,23 @@ if ~any(q(:))
     M   = inv(iM);
     
     % reset image volume data in VY
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     [VY.mat]  = deal(M);
     SPM.xY.VY = VY;
     
     % re-set units
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     units = {'mm' 'mm' '%'};
     
 else
     
-    % else assume mm in standard sapce
-    %-------------------------------------------------------------------
+    % else assume mm in standard space
+    %----------------------------------------------------------------------
     units = {'mm' 'mm' 'mm'};
 end
 
 % 2-D case
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if DIM(3) == 1
     units = {'mm' 'mm' ''};
 end
@@ -520,17 +518,17 @@ MAXRES   = defaults.stats.maxres;
 %--------------------------------------------------------------------------
 MAXMEM   = defaults.stats.maxmem;
 nSres    = min(nScan,MAXRES);
-blksz    = min(xdim*ydim,ceil(MAXMEM/8/nScan));                %-block size
-nbch     = ceil(xdim*ydim/blksz);               %-# blocks
+blksz    = min(xdim*ydim,ceil(MAXMEM/8/nScan));      %-block size
+nbch     = ceil(xdim*ydim/blksz);                    %-# blocks
 
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
 
 
 %-Initialise output images (unless this is a 1st pass for ReML)
 %==========================================================================
 if isfield(xX,'W')
-    fprintf('%-40s: %30s','Output images','...initialising')     %-#
+    fprintf('%-40s: %30s','Output images','...initialising');           %-#
 
     %-Intialise new mask name: current mask & conditions on voxels
     %----------------------------------------------------------------------
@@ -587,7 +585,7 @@ if isfield(xX,'W')
         spm_unlink(VResI(i).fname);
     end
     VResI = spm_create_vol(VResI);
-    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');    %-#
 end % (xX,'W')
 
 %==========================================================================
@@ -624,12 +622,12 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
     CrResSS = [];           %-residual sum of squares
     Q       = [];           %-in mask indices for this plane
 
-    for bch = 1:nbch            %-loop over blocks
+    for bch = 1:nbch        %-loop over blocks
 
         %-# Print progress information in command window
         %------------------------------------------------------------------
         str   = sprintf('Plane %3d/%-3d, block %3d/%-3d',z,zdim,bch,nbch);
-        fprintf('\r%-40s: %30s',str,' ')
+        fprintf('\r%-40s: %30s',str,' ');                               %-#
 
         %-construct list of voxels in this block
         %------------------------------------------------------------------
@@ -688,7 +686,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
             %-Whiten/Weight data and remove filter confounds
             %--------------------------------------------------------------
-            fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering')
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering');   %-#
 
             KWY   = spm_filter(xX.K,W*Y);
             if isfield(xX,'W') && any(~isfinite(KWY(:))),
@@ -703,7 +701,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
             %-General linear model: Weighted least squares estimation
             %--------------------------------------------------------------
-            fprintf('%s%30s',repmat(sprintf('\b'),1,30),' estimation')
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),' estimation'); %-#
 
             beta  = xX.pKX*KWY;                  %-Parameter estimates
             res   = spm_sp('r',xX.xKXs,KWY);     %-Residuals
@@ -719,7 +717,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
                 %----------------------------------------------------------
                 j   = sum((Hsqr*beta).^2,1)/trMV > UF*ResSS/trRV;
                 j   = find(j);
-                if length(j)
+                if ~isempty(j)
                     q  = size(j,2);
                     s  = s + q;
                     q  = spdiags(sqrt(trRV./ResSS(j)'),0,q,q);
@@ -746,12 +744,12 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
                 CrResSS    = [CrResSS, ResSS];
 
             end % (xX,'W')
-            clear Y             %-Clear to save memory
+            clear Y                         %-Clear to save memory
 
         end % (CrS)
 
         %-Append new inmask voxel locations and volumes
-        %-----------------------------------------------------------------
+        %------------------------------------------------------------------
         XYZ(:,S + (1:CrS)) = xyz(:,Cm);     %-InMask XYZ voxel coords
         Q                  = [Q I(Cm)];     %-InMask XYZ voxel indices
         S                  = S + CrS;       %-Volume analysed (voxels)
@@ -763,12 +761,12 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
     %======================================================================
     if isfield(xX,'W')
 
-        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...saving plane')  %-#
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...saving plane'); %-#
 
         %-Write Mask image
         %------------------------------------------------------------------
         jj    = sparse(xdim,ydim);
-        if length(Q), jj(Q) = 1; end
+        if ~isempty(Q), jj(Q) = 1; end
         VM    = spm_write_plane(VM, jj, z);
 
         %-Write beta images
@@ -779,32 +777,32 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
         % returning out of the function
         jj   = NaN*ones(xdim,ydim);
         for i = 1:nBeta
-            if length(Q), jj(Q) = CrBl(i,:); end
+            if ~isempty(Q), jj(Q) = CrBl(i,:); end
             Vbeta(i) = spm_write_plane(Vbeta(i), jj, z);
         end
 
         %-Write residual images
         %------------------------------------------------------------------
         for i = 1:nSres
-            if length(Q), jj(Q) = CrResI(i,:); end
+            if ~isempty(Q), jj(Q) = CrResI(i,:); end
             VResI(i) = spm_write_plane(VResI(i), jj, z);
         end
 
         %-Write ResSS into ResMS (variance) image scaled by tr(RV) above
         %------------------------------------------------------------------
-        if length(Q), jj(Q) = CrResSS;    end
+        if ~isempty(Q), jj(Q) = CrResSS; end
         VResMS  = spm_write_plane(VResMS,jj,z);
 
     end % (xX,'W')
 
     %-Report progress
     %----------------------------------------------------------------------
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...done')
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...done');             %-#
     spm_progress_bar('Set',100*(bch + nbch*(z - 1))/(nbch*zdim));
 
 
 end % (for z = 1:zdim)
-fprintf('\n')
+fprintf('\n');                                                          %-#
 spm_progress_bar('Clear')
 
 %==========================================================================
@@ -825,25 +823,25 @@ if ~isfield(xVi,'V')
     %-check there are signficant voxels
     %----------------------------------------------------------------------
     if ~s
-        spm('FigName','Stats: no sign voxels',Finter); spm('Pointer','Arrow')
+        spm('FigName','Stats: no significant voxels',Finter); 
+        spm('Pointer','Arrow');
         figure(Finter);
-    if isfield(SPM.xGX,'rg')&&~isempty(SPM.xGX.rg)
-        plot(SPM.xGX.rg)
-        errordlg({'Please check your data'; ...
-             'There are no significant voxels';...
-             'The globals are plotted for diagnosis'});
-    else
-        errordlg({'Please check your data'; ...
-             'There are no significant voxels'});       
-    end;
-    error('Please check your data: There are no significant voxels.');
-    return
+        if isfield(SPM.xGX,'rg')&&~isempty(SPM.xGX.rg)
+            plot(SPM.xGX.rg)
+            errordlg({'Please check your data'; ...
+                'There are no significant voxels';...
+                'The globals are plotted for diagnosis'});
+        else
+            errordlg({'Please check your data'; ...
+                'There are no significant voxels'});
+        end
+        error('Please check your data: There are no significant voxels.');
     end
 
     %-REML estimate of residual correlations through hyperparameters (h)
     %----------------------------------------------------------------------
     str    = 'Temporal non-sphericity (over voxels)';
-    fprintf('%-40s: %30s\n',str,'...REML estimation') %-#
+    fprintf('%-40s: %30s\n',str,'...REML estimation');                  %-#
     Cy     = Cy/s;
 
     % ReML for separable designs and covariance components
@@ -951,7 +949,7 @@ xX.nKX        = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 %-Save remaining results files and analysis parameters
 %==========================================================================
-fprintf('%-40s: %30s','Saving results','...writing')
+fprintf('%-40s: %30s','Saving results','...writing');                   %-#
 
 %-place fields in SPM
 %--------------------------------------------------------------------------
@@ -987,14 +985,12 @@ if spm_matlab_version_chk('7') >=0
     save('SPM','SPM','-V6');
 else
     save('SPM','SPM');
-end;
+end
 
 %==========================================================================
 %- E N D: Cleanup GUI
 %==========================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-fprintf('%-40s: %30s\n','Completed',spm('time'))
-fprintf('...use the results section for assessment\n\n')
-
-
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+fprintf('...use the results section for assessment\n\n')                %-#

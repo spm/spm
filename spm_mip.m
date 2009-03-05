@@ -15,7 +15,7 @@ function spm_mip(Z,XYZ,M,units)
 % list of voxel values (Z) and their location (XYZ) in three orthogonal
 % views of the brain.  It is assumed voxel locations conform to the space
 % defined in the atlas of Talairach and Tournoux (1988); unless the third
-% dimnesion is time.
+% dimension is time.
 %
 % This routine loads a mip putline from MIP.mat. This is an image with
 % contours and grids defining the space of Talairach & Tournoux (1988).
@@ -34,7 +34,7 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 2582 2008-12-20 11:59:12Z karl $
+% $Id: spm_mip.m 2829 2009-03-05 12:05:07Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------

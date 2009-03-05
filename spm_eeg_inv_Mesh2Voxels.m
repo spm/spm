@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 2822 2009-03-04 10:39:53Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 2829 2009-03-05 12:05:07Z guillaume $
  
 % checks
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ for c = 1:length(GW)
     %----------------------------------------------------------------------
     spm_smooth(Vout,Outputsmoothed,smoothparam);
     str = 'Summary-statistic image written:\n %s\n %s (smoothed)\n';
-    fprintf(str,Outputfilename,Outputsmoothed)
+    fprintf(str,Outputfilename,Outputsmoothed);                         %-#
     D.inv{val}.contrast.Vout{c}  = Vout;
     D.inv{val}.contrast.fname{c} = Outputsmoothed;   
  

@@ -32,9 +32,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 2823 2009-03-04 10:55:56Z vladimir $
+% $Id: spm_eeg_convert2images.m 2829 2009-03-05 12:05:07Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG conversion setup',0);
 try
     D = S.D;
 catch
