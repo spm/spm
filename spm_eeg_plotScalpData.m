@@ -20,12 +20,13 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 2828 2009-03-05 11:38:20Z christophe $
 
 
 if ~exist('in','var') || isempty(in) == 1
     in = [];
-    clim = [min(Z(:))-1,max(Z(:))];
+%     clim = [min(Z(:))-1,max(Z(:))];
+    clim = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
     figName = ['Image Scalp data'];
     deleteFcn = [];
 else
@@ -58,7 +59,7 @@ Z = Z(goodChannels,:);
 ChanLabel = ChanLabel(goodChannels);
 
 
-if strcmp(in.type, 'MEGPLANAR')
+if ~isempty(in) && strcmp(in.type, 'MEGPLANAR')
     [cZ, cpos, cChanLabel] = combineplanar(Z, pos, ChanLabel);
 else
     cZ = Z;

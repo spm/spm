@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 2828 2009-03-05 11:38:20Z christophe $
 
 %%
 % Load data, if necessary
@@ -78,25 +78,26 @@ end
 
 D.inv{val}.method = 'vbecd';
 
-% Struct that collects the inputs for vbecd code
+%% Struct that collects the inputs for vbecd code
 P = [];
 
 P.modality = 'EEG';
 
 % Uncomment the line below to try other modalities
-%P.modality = spm_eeg_modality_ui(D, 1, 1);
+% P.modality = spm_eeg_modality_ui(D, 1, 1);
 
 if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
     for m = 1:numel(D.inv{val}.forward)
         if strncmp(P.modality, D.inv{val}.forward(m).modality, 3)
             P.forward.vol  = D.inv{val}.forward(m).vol;
-
             if ischar(P.forward.vol)
                 P.forward.vol = fileio_read_vol(P.forward.vol);
             end
-
             P.forward.sens = D.inv{val}.datareg(m).sensors;
-
+            % Spatial tranformations
+            P.forward.fromMNI = D.inv{val}.datareg.fromMNI;
+            P.forward.toMNI = D.inv{val}.datareg.toMNI;
+            % Channels to use
             P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
         end
     end

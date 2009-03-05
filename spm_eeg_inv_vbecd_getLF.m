@@ -16,8 +16,11 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 2813 2009-03-02 18:56:35Z guillaume $
- 
+% $Id: spm_eeg_inv_vbecd_getLF.m 2828 2009-03-05 11:38:20Z christophe $
+
+
+if nargin<4, step = 0; end
+
 gm = [];
 for i = 1:length(s)/3
     [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
@@ -35,7 +38,7 @@ if nargout >= 2
     gm = gmn(:); % vectorized leadfield
 end
 
-if step > 0
+if all(step > 0) && nargout == 3
     dgm = [];
     for j = 1:length(s)
         ds = s;
@@ -45,7 +48,6 @@ if step > 0
             if ceil(j/3) == i 
                 [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
                 tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
-%                 tmp(Bad, :) = [];
                 dtmp = [dtmp tmp];
             else
                 dtmp = [dtmp gmn(:, 1+(i-1)*3:i*3)];

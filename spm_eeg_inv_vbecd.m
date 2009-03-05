@@ -31,19 +31,25 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_vbecd.m 2828 2009-03-05 11:38:20Z christophe $
 
 % unpack model, priors, data
 %---------------------------
 vol = P.forward.vol;
 sens = P.forward.sens;
+fromMNI = P.forward.fromMNI;
+toMNI = P.forward.toMNI;
 
 a10 = P.priors.a10; b10 = P.priors.b10;
 a20 = P.priors.a20; b20 = P.priors.b20;
 a30 = P.priors.a30; b30 = P.priors.b30;
 
-mu_w0 = P.priors.mu_w0;
-mu_s0 = P.priors.mu_s0;
+Nd = length(P.priors.mu_w0)/3;
+mu_w0 = fromMNI(1:3,1:3)*reshape(P.priors.mu_w0,3,Nd)/det(fromMNI);
+mu_w0 = mu_w0(:);
+mu_s0 = spm_eeg_inv_transform_points(fromMNI, ...
+                                     reshape(P.priors.mu_s0,3,Nd)')';
+mu_s0 = mu_s0(:);
 iS_w0 = P.priors.iS_w0;
 iS_s0 = P.priors.iS_s0;
 
@@ -70,22 +76,21 @@ dv = 10^-2; % used to compute step-size for gradients
 %---------------
 % use some random initialization for parameters, 
 % but ensure the starting points are inside the volume !!!
-Nd = length(mu_s0)/3;
 inside = zeros(Nd,1);
 
-if isfield(vol, 'o')
-    orig = mean(vol.o, 1);
-elseif isfield(vol, 'bnd')
-    orig = mean(vol.bnd(1).pnt, 1);
-else
-    orig = zeros(1,3);
-end
-
-orig = repmat(orig(:), 1, Nd);
+% if isfield(vol, 'o')
+%     orig = mean(vol.o, 1);
+% elseif isfield(vol, 'bnd')
+%     orig = mean(vol.bnd(1).pnt, 1);
+% else
+%     orig = zeros(1,3);
+% end
+% orig = repmat(orig(:), 1, Nd);
 
 mu_sn = zeros(3,Nd);
 while ~all(inside)
-    mu_sn(:,~inside) = 20*randn(3,length(find(~inside)))+orig;
+    mu_sn(:,~inside) = 20*randn(3,length(find(~inside))); %+orig;
+    mu_sn = spm_eeg_inv_transform_points( fromMNI , mu_sn')';
     [inside] = forwinv_inside_vol(mu_sn',vol);
 end
 mu_s = mu_sn(:);
@@ -93,14 +98,21 @@ mu_s = mu_sn(:);
 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol,...
                                     dv.*ones(1, length(mu_w0))); 
 [Nc, Np] = size(gmn);
+
+
 % ensure data have apropriate scale
-sc_y = norm(y)*10/Nc;
-y = y/sc_y;
+if strcmp(P.modality,'MEG')
+    % sc_y = norm(y)/10;
+    sc_y = 1e-8;
+    y = y/sc_y;
+else
+    sc_y = 1;
+end
 
 % Initialize mu_w with best estimate given random locations rather than at
 % random
-% mu_w = randn(size(mu_w0,1), 1);
-mu_w = pinv(gmn)*y; 
+mu_w = randn(size(mu_w0,1), 1);
+% mu_w = pinv(gmn)*y; 
 
 P.init.mu_s = mu_s;
 P.init.mu_w = mu_w;
@@ -165,7 +177,7 @@ for i = 1:P.Niter
 
     % update leadfield and its partials
     [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                dv.*sqrt(diag(S_s)));% , P.Bad);
+                dv.*sqrt(diag(S_s)));
     
     mu_sn = reshape(mu_s, 3, Np/3);
     old_mu_sn = reshape(old_mu_s, 3, Np/3);
@@ -182,8 +194,9 @@ for i = 1:P.Niter
             q_out = ~all(~outside);
         end
         % update leadfield and its partials
+        mu_s = mu_sn(:);
         [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s))); %, P.Bad);
+                                            dv.*sqrt(diag(S_s)));
 
         F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
             -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
@@ -215,6 +228,7 @@ for i = 1:P.Niter
 %                 mu_w = pinv(gmn)*y; % Re-update as best as I can the source
             else
                 if F(i) < F(i-1)
+                    % Free energy annoyingly didn't increase...
                     mu_sn = (old_mu_sn + mu_sn)/2;
                     mu_s = mu_sn(:);
                     % update leadfield and its partials
@@ -277,8 +291,10 @@ mu_w = mu_w*sc_y;
 S_w = S_w*sc_y^2;
 
 % save results 
-post.mu_w = mu_w;
-post.mu_s = mu_s;
+post.mu_w = toMNI(1:3,1:3)*mu_w/det(toMNI);
+mu_sn = reshape(mu_s, 3, Np/3);
+mu_sn = spm_eeg_inv_transform_points( toMNI , mu_sn')';
+post.mu_s = mu_sn(:);
 post.S_w = S_w;
 post.S_s = S_s;
 post.a1 = a1; post.b1 = b1;
