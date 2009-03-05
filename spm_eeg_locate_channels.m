@@ -2,52 +2,55 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Locate channels and generate mask for converting M/EEG data into images
 % FORMAT [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 %
-% Locates channels and generates mask for converting M/EEG data to nifti
-% format ('analysis at sensor level'). If flag interpolate_bad is set to 1,
-% the returned x,y-coordinates will include bad sensor position. If
-% interpolate_bad is 0, these locations are masked out if the sensor are located 
-% at the edge of the setup (where the data can't be well interpolated).
-
-% input arguments:
-%
 % D               - M/EEG object
-% n               - nr of voxels in each direction
+% n               - number of voxels in each direction
 % interpolate_bad - flag (1/0), whether bad channels should be interpolated
 %                   or masked out
 %
-% output arguments:
 % Cel             - coordinates of good channels in new coordinate system
 % Cind            - the indices of these channels in the total channel
 %                   vector
 % x, y            - x and y coordinates which support data
-%_______________________________________________________________________
+%
+%__________________________________________________________________________
+%
+% Locates channels and generates mask for converting M/EEG data to NIfTI
+% format ('analysis at sensor level'). If flag interpolate_bad is set to 1,
+% the returned x,y-coordinates will include bad sensor position. If
+% interpolate_bad is 0, these locations are masked out if the sensor are 
+% located at the edge of the setup (where the data cannot be well 
+% interpolated).
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_locate_channels.m 2830 2009-03-05 17:27:34Z guillaume $
 
-% put into nXn grid
+% put into n x n grid
+%--------------------------------------------------------------------------
 [x, y] = meshgrid(1:n, 1:n);
 
 if interpolate_bad
     % keep bad electrode positions in
+    %----------------------------------------------------------------------
     Cel = scale_coor(D.coor2D(D.meegchannels), n);
-    ch = convhull(Cel(:, 1), Cel(:, 2));
-    Ic = find(inpolygon(x, y, Cel(ch, 1), Cel(ch, 2)));
-    
 else
-    % or don't
+    % bad electrodes are masked out if located at the edge of the setup
+    %----------------------------------------------------------------------
     Cel = scale_coor(D.coor2D(setdiff(D.meegchannels, D.badchannels)), n);
-    ch = convhull(Cel(:, 1), Cel(:, 2));
-    Ic = find(inpolygon(x, y, Cel(ch, 1), Cel(ch, 2)));
-    
 end
+
+ch = convhull(Cel(:, 1), Cel(:, 2));
+Ic = find(inpolygon(x, y, Cel(ch, 1), Cel(ch, 2)));
 
 Cel = scale_coor(D.coor2D(setdiff(D.meegchannels, D.badchannels)), n);
 Cind = setdiff(D.meegchannels, D.badchannels);
 
 x = x(Ic); y = y(Ic);
 
+%==========================================================================
+% scale_coor
+%==========================================================================
 function Cel = scale_coor(Cel, n)
 
 % check limits and stretch, if possible

@@ -68,7 +68,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mip_ui.m 2830 2009-03-05 17:27:34Z guillaume $
 
 
 %==========================================================================
@@ -616,29 +616,30 @@ switch lower(varargin{1}), case 'display'
     %======================================================================
     case 'channels'
     %======================================================================
-        % this is EEG/MEG specific to display channels on 1-slice MIP
+        % spm_mip_ui('Channels',h) 
+        % M/EEG specific to display channels on 1-slice MIP
 
-        if nargin<2, h=spm_mip_ui('FindMIPax'); else, h=varargin{2}; end
+        if nargin<2, h=spm_mip_ui('FindMIPax'); else h=varargin{2}; end
         MD  = get(h,'UserData');
 
         if ~isfield(MD, 'hChanPlot')
             % first time call
-            D = spm_eeg_ldata;
+            D = spm_eeg_load;
+            if isempty(D), return; end
 
             DIM = get(findobj('Tag','hFxyz'), 'UserData');
-            DIM = DIM.DIM;
 
-            [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM(1), 1);
-            ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
-
+            [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), 1);
+            Cel = DIM.M * [Cel'; ones(2,size(Cel,1))];
+            Cel = Cel(1:2,:)';
+            Cel(:,1) = Cel(:,1) + Po(1);
+            Cel(:,2) = Cel(:,2) + Po(2);
             hold on, hChanPlot = plot(Cel(:, 1), Cel(:, 2), 'g*');
 
             hChanText = cell(1,size(Cel,1));
+            name = D.chanlabels(Cind);
             for i = 1:size(Cel, 1)
-                % only display first name if multiple names
-                tmp = ctf.Cnames{D.channels.order(Cind(i))};
-                if iscell(tmp), tmp = tmp{1}; end
-                hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), tmp, 'Color', 'g');
+                hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), name{i}, 'Color', 'g');
             end
 
             MD.hChanPlot = hChanPlot;
@@ -659,9 +660,7 @@ switch lower(varargin{1}), case 'display'
                 end
             end
 
-
         end
-
 
     %======================================================================
     otherwise
