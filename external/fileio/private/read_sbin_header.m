@@ -22,6 +22,9 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %
 
 % $Log: read_sbin_header.m,v $
+% Revision 1.2  2009/03/05 01:03:13  josdie
+% Improved process of deducing what the stimulus onset latency is in files with multiple events.
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -101,26 +104,48 @@ header_array 	= double([version year month day hour minute second millisecond Sa
 
 preBaseline=0;
 if NEvent > 0
-
-    %read the first segment to determine baseline length (assuming all segments have the same baseline).
-    j=1;
-    [temp1]	= fread(fid, 1,'int16',endian);    %cell
-    [temp2]	= fread(fid, 1,'int32',endian);    %time stamp
-    switch precision
-        case 2
-            [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'int16',endian);
-        case 4
-            [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'single',endian);
-        case 6
-            [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'double',endian);
+    
+    for j = 1:NSegments
+        [segHdr(j,1), count]	= fread(fid, 1,'int16',endian);    %cell
+        [segHdr(j,2), count]	= fread(fid, 1,'int32',endian);    %time stamp
+        switch precision
+            case 2
+                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'int16',endian);
+            case 4
+                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'single',endian);
+            case 6
+                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'double',endian);
+        end
+        if (NEvent ~= 0)
+            eventData(:,((j-1)*NSamples+1):j*NSamples)	= temp( (NChan+1):(NChan+NEvent), 1:NSamples);
+        end
     end
-    eventData = temp( (NChan+1):(NChan+NEvent), 1:NSamples);
-    theEvent=find(eventData(1,:)>0); %assume the first event code is the segmentation event
-    theEvent=theEvent(1);
+
+    if NEvent == 1
+        %assume this is the segmentation event
+        theEvent=find(eventData(1,:)>0);
+        theEvent=mod(theEvent(1),NSamples);
+    else
+        %assume the sample that always has an event is the baseline
+        %if more than one, choose the earliest one
+        baselineCandidates = unique(mod(find(eventData(:,:)'),NSamples));
+        counters=zeros(1,length(baselineCandidates));
+        totalEventSamples=mod(find(eventData(:,:)'),NSamples);
+        
+        for i = 1:length(totalEventSamples)
+           theMatch=find(ismember(baselineCandidates,totalEventSamples(i)));
+           counters(theMatch)=counters(theMatch)+1;
+        end;
+        theEvent=min(baselineCandidates(find(ismember(counters,NSegments))));
+    end;
+    
     preBaseline=theEvent-1;
     if preBaseline == -1
         preBaseline =0;
-    end; 
+    end;
 end
 
 fclose(fid);
+
+
+
