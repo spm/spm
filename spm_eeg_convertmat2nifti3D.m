@@ -28,9 +28,9 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2835 2009-03-06 18:25:14Z guillaume $
+% $Id: spm_eeg_convertmat2nifti3D.m 2836 2009-03-06 19:19:02Z guillaume $
 
-SVNrev = '$Rev: 2835 $';
+SVNrev = '$Rev: 2836 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -132,8 +132,8 @@ for k = 1:numel(Fname)
             DIM   = [n n D{k}.nsamples];
             dat   = file_array(fname,[DIM 1],'FLOAT32-LE');
             N.dat = dat;
-            V     = [136 172 100] ./ DIM;   % new vozel size
-            C     = [68  100   0] ./ V;     % new origin
+            V     = [136 172 100] ./ DIM;   % new voxel size
+            C     = [68  100   0];          % new origin
             N.mat = [...
                 V(1)  0     0                  -C(1);...
                 0     V(2)  0                  -C(2);...
