@@ -4,9 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1958 2008-07-25 13:56:06Z volkmar $
+% $Id: spm_cfg_preproc.m 2834 2009-03-06 17:57:50Z john $
 
-rev = '$Rev: 1958 $';
+rev = '$Rev: 2834 $';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -116,11 +116,11 @@ output.tag     = 'output';
 output.name    = 'Output Files';
 output.val     = {GM WM CSF biascor cleanup };
 output.help    = {
-                  'This routine produces spatial normalisation parameters (*_seg_sn.mat files) by default. These can be used for writing spatially normalised versions of your data, via the "Normalise: Write" option. This mechanism may produce superior results than the "Normalise: Estimate" option, although this may need some empirical evaluations.'
+                  'This routine produces spatial normalisation parameters (*_seg_sn.mat files) by default. These can be used for writing spatially normalised versions of your data, via the "Normalise: Write" option. This mechanism may produce superior results than the "Normalise: Estimate" option (but probably not as good as those produced using DARTEL).'
                   ''
                   'In addition, it also produces files that can be used for doing inverse normalisation. If you have an image of regions defined in the standard space, then the inverse deformations can be used to warp these regions so that it approximately overlay your image. To use this facility, the bounding-box and voxel sizes should be set to non-finite values (e.g. [NaN NaN NaN] for the voxel sizes, and ones(2,3)*NaN for the bounding box. This would be done by the spatial normalisation module, which allows you to select a set of parameters that describe the nonlinear warps, and the images that they should be applied to.'
                   ''
-                  'There are a number of options about what data you would like the routine to produce. The routine can be used for producing images of tissue classes, as well as bias corrected images. The native space option will produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/.  You can also produce spatially normalised versions - both with (mwc*) and without (wc*) modulation/* (see Figure \ref{seg2})*/. The bounding box and voxel sizes of the spatially normalised versions are the same as that of the tissue probability maps with which they are registered. These can be used for doing voxel-based morphometry with (both un-modulated and modulated). All you need to do is smooth them and do the stats (which means no more questions on the mailing list about how to do "optimized VBM").'
+                  'There are a number of options about what data you would like the routine to produce. The routine can be used for producing images of tissue classes, as well as bias corrected images. The native space option will produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/.  You can also produce spatially normalised versions - both with (mwc*) and without (wc*) modulation/* (see Figure \ref{seg2})*/. The bounding box and voxel sizes of the spatially normalised versions are the same as that of the tissue probability maps with which they are registered. These can be used for doing voxel-based morphometry with (also see the ``Using DARTEL'' chapter of the manual). All you need to do is smooth them and do the stats (which means no more questions on the mailing list about how to do "optimized VBM").'
                   ''
                   'Modulation is to compensate for the effect of spatial normalisation.  When warping a series of images to match a template, it is inevitable that volumetric differences will be introduced into the warped images.  For example, if one subject''s temporal lobe has half the volume of that of the template, then its volume will be doubled during spatial normalisation. This will also result in a doubling of the voxels labelled grey matter.  In order to remove this confound, the spatially normalised grey matter (or other tissue class) is adjusted by multiplying by its relative volume before and after warping.  If warping results in a region doubling its volume, then the correction will halve the intensity of the tissue label. This whole procedure has the effect of preserving the total amount of grey matter signal in the normalised partitions.'
                   '/*\begin{figure} \begin{center} \includegraphics[width=140mm]{images/seg1} \end{center} \caption{Segmentation results. These are the results that can be obtained in the original space of the image (i.e. the results that are not spatially normalised). Top left: original image (X.img). Top right: bias corrected image (mX.img). Middle and bottom rows: segmented grey matter (c1X.img), white matter (c2X.img) and CSF (c3X.img). \label{seg1}} \end{figure} */'
