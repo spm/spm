@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.136  2009/03/06 13:02:59  sashae
+% changed default cfg.projectnoise='yes' to 'no'
+%
 % Revision 1.135  2009/02/06 10:53:10  jansch
 % added experimental possibility to apply prewhitening. fixed incorrect
 % conjugate transposition and replaced by explicit transpose()
@@ -563,7 +566,7 @@ if ~isfield(cfg, 'keepfilter')        cfg.keepfilter = 'no';      end
 if ~isfield(cfg, 'keepleadfield')     cfg.keepleadfield = 'no';   end
 if ~isfield(cfg, 'keepcsd')           cfg.keepcsd     = 'no';     end
 if ~isfield(cfg, 'keepmom')           cfg.keepmom     = 'yes';    end
-if ~isfield(cfg, 'projectnoise')      cfg.projectnoise = 'yes';   end
+if ~isfield(cfg, 'projectnoise')      cfg.projectnoise = 'no';    end
 if ~isfield(cfg, 'trialweight')       cfg.trialweight = 'equal';  end
 if ~isfield(cfg, 'jackknife'),        cfg.jackknife    = 'no';    end
 if ~isfield(cfg, 'pseudovalue'),      cfg.pseudovalue = 'no';     end
@@ -1277,7 +1280,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.135 2009/02/06 10:53:10 jansch Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.136 2009/03/06 13:02:59 sashae Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end
