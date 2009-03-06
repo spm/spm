@@ -28,9 +28,9 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2792 2009-02-26 17:07:41Z guillaume $
+% $Id: spm_eeg_convertmat2nifti3D.m 2835 2009-03-06 18:25:14Z guillaume $
 
-SVNrev = '$Rev: 2792 $';
+SVNrev = '$Rev: 2835 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -127,15 +127,18 @@ for k = 1:numel(Fname)
         Itrials = pickconditions(D{k}, cl(i), 1);
         for l = Itrials(:)'
             fname = fullfile(Pi, sprintf('trial%04d.img', l));
-                               
-            dat   = file_array(fname,[n n D{k}.nsamples 1],'FLOAT32-LE');
+            
             N     = nifti;
+            DIM   = [n n D{k}.nsamples];
+            dat   = file_array(fname,[DIM 1],'FLOAT32-LE');
             N.dat = dat;
+            V     = [136 172 100] ./ DIM;   % new vozel size
+            C     = [68  100   0] ./ V;     % new origin
             N.mat = [...
-                pixsize 0       0                  -n*pixsize/2;...
-                0       pixsize 0                  -n*pixsize/2;...
-                0       0       1000/D{k}.fsample  time(D{k}, 1, 'ms');...
-                0       0       0                  1];
+                V(1)  0     0                  -C(1);...
+                0     V(2)  0                  -C(2);...
+                0     0     1000/D{k}.fsample  time(D{k}, 1, 'ms');...
+                0     0     0                  1];
             N.mat_intent = 'Aligned';
             create(N);
                         

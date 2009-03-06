@@ -20,63 +20,58 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2828 2009-03-05 11:38:20Z christophe $
+% $Id: spm_eeg_plotScalpData.m 2835 2009-03-06 18:25:14Z guillaume $
 
-
-if ~exist('in','var') || isempty(in) == 1
-    in = [];
-%     clim = [min(Z(:))-1,max(Z(:))];
-    clim = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
-    figName = ['Image Scalp data'];
-    deleteFcn = [];
+if nargin < 4 || isempty(in)
+    in      = [];
+    clim    = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
+    figName = 'Image Scalp data';
 else
-    clim = [in.min,in.max];
-    dc = abs(diff(clim))./63;
+    clim    = [in.min, in.max];
+    dc      = abs(diff(clim))./63;
     clim(1) = clim(1) - dc;
-    if ~isfield(in,'trN')
-        figName = ['Image Scalp data: ',in.type,' sensors'];
-    else
-        figName = ['Image Scalp data: ',in.type,' sensors, trial #',num2str(in.trN),'.'];
+    figName = ['Image Scalp data: ',in.type,' sensors'];
+    if isfield(in,'trN')
+        figName = [figName ', trial #',num2str(in.trN),'.'];
     end
-    deleteFcn = ['try;delete(get(gcf,''userdata''));end'];
 end
 
-if ~isequal(size(pos,2),length(ChanLabel))
+if size(pos,2) ~= length(ChanLabel)
     pos = pos';
 end
 nD = size(pos,1);
 if nD ~= 2
     % get 2D positions from 3D positions
-   xyz = pos;
+   xyz   = pos;
    [pos] = get2Dfrom3D(xyz);
-   pos = pos';
+   pos   = pos';
 end
 
 % exclude channels ?
 goodChannels = find(~isnan(pos(1,:)));
-pos = pos(:,goodChannels);
-Z = Z(goodChannels,:);
-ChanLabel = ChanLabel(goodChannels);
+pos          = pos(:,goodChannels);
+Z            = Z(goodChannels,:);
+ChanLabel    = ChanLabel(goodChannels);
 
 
 if ~isempty(in) && strcmp(in.type, 'MEGPLANAR')
     [cZ, cpos, cChanLabel] = combineplanar(Z, pos, ChanLabel);
 else
-    cZ = Z;
-    cpos = pos;
+    cZ         = Z;
+    cpos       = pos;
     cChanLabel = ChanLabel;
 end
 
-xmin = min(cpos(1,:));
-xmax = max(cpos(1,:));
-dx = (xmax-xmin)./100;
-ymin = min(cpos(2,:));
-ymax = max(cpos(2,:));
-dy = (ymax-ymin)./100;
-x = xmin:dx:xmax;
-y = ymin:dy:ymax;
+xmin    = min(cpos(1,:));
+xmax    = max(cpos(1,:));
+dx      = (xmax-xmin)./100;
+ymin    = min(cpos(2,:));
+ymax    = max(cpos(2,:));
+dy      = (ymax-ymin)./100;
+x       = xmin:dx:xmax;
+y       = ymin:dy:ymax;
 [XI,YI] = meshgrid(x,y);
-ZI = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
+ZI      = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
 
 
 f=figure;
@@ -155,33 +150,40 @@ set(d.hsp,'userdata',d);
 set(d.hsn,'userdata',d);
 set(f,'userdata',d);
 
-
+%==========================================================================
+% dFcn
+%==========================================================================
 function dFcn(btn,evd)
 d = get(gcf,'userdata');
-try;delete(d.in.hl);end
+try, delete(d.in.hl); end
 
+%==========================================================================
+% dosp
+%==========================================================================
 function dosp(btn,evd)
 d = get(btn,'userdata');
-v = get(d.hp,'visible');
-switch v
+switch get(d.hp,'visible');
     case 'on'
         set(d.hp,'visible','off');
     case 'off'
         set(d.hp,'visible','on');
 end
 
-
+%==========================================================================
+% dosn
+%==========================================================================
 function dosn(btn,evd)
 d = get(btn,'userdata');
-v = get(d.ht(1),'visible');
-switch v
+switch get(d.ht(1),'visible')
     case 'on'
         set(d.ht,'visible','off');
     case 'off'
         set(d.ht,'visible','on');
 end
 
-
+%==========================================================================
+% 
+%==========================================================================
 function doChangeTime(btn,evd)
 d = get(btn,'userdata');
 v = get(btn,'value');
@@ -206,8 +208,7 @@ ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),full(double(Z)),d.interp.XI,d.
 set(d.hi,'Cdata',flipud(ZI));
 % update time index display
 v = round(v);
-set(d.hti,'string',[num2str(d.in.gridTime(v)),' (',...
-        d.in.unit,')']);
+set(d.hti,'string',[num2str(d.in.gridTime(v)), ' (', d.in.unit, ')']);
 % update display marker position
 try;set(d.in.hl,'xdata',[v;v]);end
 hf=findobj(gca,'type','hggroup');
@@ -221,7 +222,9 @@ hold off
 drawnow
 axis image
 
-
+%==========================================================================
+% get2Dfrom3D
+%==========================================================================
 function [xy] = get2Dfrom3D(xyz)
 % function [xy] = get2Dfrom3D(xyz)
 % This function is used to flatten 3D sensor positions onto the 2D plane
@@ -248,7 +251,9 @@ TH = TH - mean(TH);
 [X,Y,Z] = sph2cart(TH,zeros(size(TH)),RAD.*(cos(PHI+pi./2)+1));
 xy = [X(:),Y(:)];
 
-
+%==========================================================================
+% combineplanar
+%==========================================================================
 function [Z, pos, ChanLabel] = combineplanar(Z, pos, ChanLabel)
 
 chanind = zeros(1, numel(ChanLabel));

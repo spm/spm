@@ -68,7 +68,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 2830 2009-03-05 17:27:34Z guillaume $
+% $Id: spm_mip_ui.m 2835 2009-03-06 18:25:14Z guillaume $
 
 
 %==========================================================================
@@ -632,14 +632,14 @@ switch lower(varargin{1}), case 'display'
             [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), 1);
             Cel = DIM.M * [Cel'; ones(2,size(Cel,1))];
             Cel = Cel(1:2,:)';
-            Cel(:,1) = Cel(:,1) + Po(1);
-            Cel(:,2) = Cel(:,2) + Po(2);
-            hold on, hChanPlot = plot(Cel(:, 1), Cel(:, 2), 'g*');
+            Cel(:,1) = Cel(:,1) + Po(2);
+            Cel(:,2) = Cel(:,2) + Po(1);
+            hold on, hChanPlot = plot(Cel(:, 2), Cel(:, 1), 'b*');
 
             hChanText = cell(1,size(Cel,1));
             name = D.chanlabels(Cind);
             for i = 1:size(Cel, 1)
-                hChanText{i} = text(Cel(i, 1)+0.5, Cel(i, 2), name{i}, 'Color', 'g');
+                hChanText{i} = text(Cel(i, 2)+0.5, Cel(i, 1), name{i}, 'Color', 'b');
             end
 
             MD.hChanPlot = hChanPlot;

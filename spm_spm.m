@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2829 2009-03-05 12:05:07Z guillaume $
+% $Id: spm_spm.m 2835 2009-03-06 18:25:14Z guillaume $
 
-SVNid   = '$Rev: 2829 $';
+SVNid   = '$Rev: 2835 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -457,7 +457,7 @@ if ~isfield(xVi,'V')
     catch
         UFp = 0.001;
     end
-    UF     = spm_invFcdf(1 - UFp,[trMV,trRV]);
+    UF      = spm_invFcdf(1 - UFp,[trMV,trRV]);
 end
 
 %-Image dimensions and data
@@ -468,45 +468,30 @@ DIM      = VY(1).dim(1:3)';
 xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
 
-%-Adjust volumetrics if this is non-Talairach data
+%-Set data units for non-Talairach data
 %==========================================================================
-% Dimensions: X: -68:68, Y: -100:72, Z: -42:82 DIM: [136; 172; 124]
 
-% 3-D case, with arbitrary dimensions
+% assume mm in stardard space
 %--------------------------------------------------------------------------
-q   = M - speye(4,4);
-if ~any(q(:))
-    
-    % map x and y into anatomical space and make z a %
+units = {'mm' 'mm' 'mm'};
+
+try
+    % 3-D case, with arbitrary dimensions
+    % (dimension check to disambiguate 3D source reconstruction from 2D+t 
+    % images, see spm_eeg_inv_Mesh2Voxels.m - to be improved...)
     %----------------------------------------------------------------------
-    D   = DIM./[136; 172; 100];    % new voxel size
-    C   = D.*[68;  100; 0];        % new origin
-    iM  = [D(1) 0    0    C(1);
-           0    D(2) 0    C(2);
-           0    0    D(3) C(3);
-           0    0    0      1];
-    M   = inv(iM);
-    
-    % reset image volume data in VY
-    %----------------------------------------------------------------------
-    [VY.mat]  = deal(M);
-    SPM.xY.VY = VY;
-    
-    % re-set units
-    %----------------------------------------------------------------------
-    units = {'mm' 'mm' '%'};
-    
-else
-    
-    % else assume mm in standard space
-    %----------------------------------------------------------------------
-    units = {'mm' 'mm' 'mm'};
+    if strcpmi(defaults.modality,'EEG') && ~all(DIM == [91 109 91]')
+        
+        % z dimension is percent
+        %------------------------------------------------------------------
+        units = {'mm' 'mm' '%'};
+    end
 end
 
 % 2-D case
 %--------------------------------------------------------------------------
 if DIM(3) == 1
-    units = {'mm' 'mm' ''};
+    units{3} = '';
 end
 
 
