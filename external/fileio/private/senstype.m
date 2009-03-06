@@ -31,6 +31,7 @@ function [type] = senstype(sens, desired)
 %   'neuromag306'
 %   'yokogawa160'
 %   'yokogawa160_planar'
+%   'plexon'
 %
 % The optional input argument for the desired type can be any of the above,
 % or any of the following
@@ -57,6 +58,9 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.12  2009/03/06 08:50:23  roboos
+% added handling of plexon header
+%
 % Revision 1.11  2009/02/02 16:27:41  roboos
 % changed order of detecting sens.grad/elec on Vladimirs request, don't know why
 %
@@ -172,6 +176,12 @@ else
 
 end % if isfield(sens, 'type')
 
+% use an alternative approach if it is still unknown
+if strcmp(type, 'unknown') && issubfield(sens, 'orig.FileHeader') &&  issubfield(sens, 'orig.VarHeader')
+  % this is a complete header that was read from a Plexon *.nex file using read_plexon_nex
+  type = 'plexon';
+end
+  
 if nargin>1
   % return a boolean flag
   switch desired
