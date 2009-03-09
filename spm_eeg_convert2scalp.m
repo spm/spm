@@ -5,19 +5,19 @@ function S = spm_eeg_convert2scalp(S)
 %
 % S         - input structure (optional)
 % (optional) fields of S:
-%   S.Fname            - character array of M/EEG mat-filenames
+%   S.Fname            - cell/character array of M/EEG mat-filenames
 %   S.n                - size of square output image (size: n x n x ?)
-%   S.interpolate_bad  - flag (0/1) whether channels should be used for 
+%   S.interpolate_bad  - flag (0/1) whether channels should be used for
 %                        interpolation if they lie at the border of the
 %                        setup [0: mask out]
-% output: 
-% S         - can be used to construct script (as in the history-function)
+%
+% S         - output structure containing parameters used
 %__________________________________________________________________________
 %
 % spm_eeg_convert2scalp converts M/EEG data from the SPM format to the
-% scalp format. The data will be in 3D format, i.e., peri-stimulus time is 
-% the third dimension. The channel data is interpolated to voxel-space 
-% using a linear interpolation. Each channel's data will be found in a 
+% scalp format. The data will be in 3D format, i.e., peri-stimulus time is
+% the third dimension. The channel data is interpolated to voxel-space
+% using a linear interpolation. Each channel's data will be found in a
 % single voxel given that n is large enough. The data is written to 3D NIfTI
 % images, i.e. the data of each single trial or evoked response is contained
 % in one image file. The 'mask out' option interpolate_bad=0 will only have
@@ -27,13 +27,13 @@ function S = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 2843 2009-03-09 16:01:44Z guillaume $
+% $Id: spm_eeg_convert2scalp.m 2844 2009-03-09 17:24:46Z guillaume $
 
-SVNrev = '$Rev: 2843 $';
+SVNrev = '$Rev: 2844 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename, SVNrev);
 spm('FnUIsetup', 'M/EEG conversion setup', 0);
 
 %-Get parameters
@@ -63,91 +63,108 @@ catch
     S.interpolate_bad = interpolate_bad;
 end
 
+%-Recursive call if multiple MEEG files
+%--------------------------------------------------------------------------
+if numel(Fname) > 1
+    for i=1:numel(Fname)
+        S.Fname = Fname{i};
+        S = spm_eeg_convert2scalp(S);
+    end
+    S.Fname = Fname;
+    return;
+else
+    Fname = Fname{1};
+end
+
 %-Load M/EEG data
 %--------------------------------------------------------------------------
 spm('Pointer', 'Watch');
 
-D = cell(1,numel(Fname));
-for i = 1:numel(Fname)
-    D{i} = spm_eeg_load(Fname{i});    
-end
+D = spm_eeg_load(Fname);
 
 %-For multimodal datasets, set the types of non-chosen modality to 'Other'
 % This is not saved in the dataset
 %--------------------------------------------------------------------------
-modality = spm_eeg_modality_ui(D{1}, 1, 1);
+modality = spm_eeg_modality_ui(D, 1, 1);
 if strcmp(modality, 'MEGPLANAR')
     error('MEG planar gradiometers are not supported yet.')
 else
-    for i = 1:numel(Fname)
-        otherind = setdiff(1:nchannels(D{i}), strmatch(modality, chantype(D{i})));
-        if ~isempty(otherind)
-            D{i} = chantype(D{i}, otherind, 'Other');
-        end
+    otherind = setdiff(1:nchannels(D), strmatch(modality, chantype(D)));
+    if ~isempty(otherind)
+        D = chantype(D, otherind, 'Other');
     end
 end
 
 %-Project M/EEG data on the scalp surface
 %--------------------------------------------------------------------------
-for k = 1:numel(Fname)
+[Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad);
 
-    [Cel, Cind, x, y] = spm_eeg_locate_channels(D{k}, n, interpolate_bad);
-    
-    %-Make output directory for each dataset
+%-Make output directory for each dataset
+%--------------------------------------------------------------------------
+[P, F] = fileparts(Fname);
+if isempty(P), P = pwd; end
+[sts, msg] = mkdir(P, F);
+if ~sts, error(msg); end
+P  = fullfile(P, F);
+
+%-Loop over conditions
+%--------------------------------------------------------------------------
+d  = spm_cond_units(D(Cind, :,:));
+cl = D.condlist;
+for i = 1 : D.nconditions
+
+    %-Make output directory for each condition
     %----------------------------------------------------------------------
-    [P, F] = fileparts(Fname{k});
-    if isempty(P), P = pwd; end
-    [sts, msg] = mkdir(P, F);
+    dname = sprintf('type_%s', cl{i});
+    [sts, msg] = mkdir(P, dname);
     if ~sts, error(msg); end
-    P  = fullfile(P, F);
-    
-    %-Loop over conditions
-    %----------------------------------------------------------------------
-    d  = spm_cond_units(D{k}(Cind, :,:));
-    cl = D{k}.condlist;
-    for i = 1 : D{k}.nconditions
-       
-        %-Make output directory for each condition
-        %------------------------------------------------------------------
-        dname = sprintf('type_%s', cl{i});
-        [sts, msg] = mkdir(P, dname);
-        if ~sts, error(msg); end
-        Pi = fullfile(P, dname);
-        
-        %-Loop over trials
-        %------------------------------------------------------------------
-        Itrials = pickconditions(D{k}, cl(i), 1);
-        for l = Itrials(:)'
-            fname = fullfile(Pi, sprintf('trial%04d.img', l));
-            
-            N     = nifti;
-            DIM   = [n n D{k}.nsamples];
-            dat   = file_array(fname,[DIM 1],'FLOAT32-LE');
-            N.dat = dat;
-            V     = [136 172 100] ./ DIM;   % new voxel size
-            C     = [68  100   0];          % new origin
-            N.mat = [...
-                V(1)  0     0                  -C(1);...
-                0     V(2)  0                  -C(2);...
-                0     0     1000/D{k}.fsample  time(D{k}, 1, 'ms');...
-                0     0     0                  1];
-            N.mat_intent = 'Aligned';
-            create(N);
-                        
-            for j = 1 : D{k}.nsamples % time bins
-                di = NaN(n,n);                
-                di(sub2ind([n n], x, y)) = griddata(Cel(:,1),Cel(:,2),double(d(:, j, l)),x,y,'linear');
-                N.dat(:,:,j,1) = di;
-            end        
-            
-            fprintf('Dataset %s, type %s, trial %d\n', F, cl{i}, l);    %-#
-            
-        end % for l = Itrials(:)'
-        
-    end % for i = 1 : D{k}.nconditions
+    Pi = fullfile(P, dname);
 
-end % for k = 1:numel(Fname)
+    %-Loop over trials
+    %----------------------------------------------------------------------
+    Itrials = pickconditions(D, cl(i), 1);
+    k = 20; %numel(Itrials);
+    
+    spm_progress_bar('Init',k,sprintf('Converting condition %s',cl{i}),'Trial');
+    if k > 100, Ibar = floor(linspace(1, k, 100)); else Ibar = 1:k; end
+
+    for j = 1 : k
+
+        %-Create output image header (matching MNI space)
+        %------------------------------------------------------------------
+        fname = fullfile(Pi, sprintf('trial%04d.img', Itrials(j)));
+        N     = nifti;
+        DIM   = [n n D.nsamples];
+        dat   = file_array(fname,[DIM 1],'FLOAT32-LE');
+        N.dat = dat;
+        V     = [136 172 100] ./ DIM;   % new voxel size
+        C     = [68  100   0];          % new origin
+        N.mat = [...
+            V(1)  0     0               -C(1);...
+            0     V(2)  0               -C(2);...
+            0     0     V(3)            -C(3);...
+            %0     0     1000/D.fsample  time(D, 1, 'ms');...
+            0     0     0               1];
+        N.mat_intent = 'Aligned';
+        create(N);
+
+        %-Create output image data
+        %------------------------------------------------------------------
+        for l = 1 : D.nsamples          % time bins
+            di = NaN(n,n);
+            di(sub2ind([n n], x, y)) = griddata(Cel(:,1),Cel(:,2),...
+                double(d(:, l, Itrials(j))),x,y,'linear');
+            N.dat(:,:,l,1) = di;
+        end
+
+        if ismember(j, Ibar), spm_progress_bar('Set', j); end
+
+    end % for j = 1 : k
+
+end % for i = 1 : D.nconditions
+
 
 %-Cleanup
 %--------------------------------------------------------------------------
+spm_progress_bar('Clear');
 spm('FigName','M/EEG conversion: done'); spm('Pointer','Arrow');

@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2835 2009-03-06 18:25:14Z guillaume $
+% $Id: spm_spm.m 2844 2009-03-09 17:24:46Z guillaume $
 
-SVNid   = '$Rev: 2835 $';
+SVNid   = '$Rev: 2844 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -480,7 +480,7 @@ try
     % (dimension check to disambiguate 3D source reconstruction from 2D+t 
     % images, see spm_eeg_inv_Mesh2Voxels.m - to be improved...)
     %----------------------------------------------------------------------
-    if strcpmi(defaults.modality,'EEG') && ~all(DIM == [91 109 91]')
+    if strcmpi(defaults.modality,'EEG') && ~all(DIM == [91 109 91]')
         
         % z dimension is percent
         %------------------------------------------------------------------
