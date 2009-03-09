@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 2766 2009-02-19 19:30:19Z guillaume $
+ * $Id: file2mat.c 2840 2009-03-09 11:59:43Z guillaume $
  * John Ashburner
  */
 
@@ -561,7 +561,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mexErrMsgTxt("Indices must be int32.");
         }
         odim[i] = mxGetM(prhs[i+1])*mxGetN(prhs[i+1]);
-        iptr[i] = (int *)mxGetPr(prhs[i+1]);
+        iptr[i] = (int *)mxGetData(prhs[i+1]);
         for(j=0; j<odim[i]; j++)
             if (iptr[i][j]<1 || iptr[i][j]>((i<ndim)?idim[i]:1))
             {

@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 1745 2008-05-28 14:18:33Z guillaume $
+ * $Id: mat2file.c 2840 2009-03-09 11:59:43Z guillaume $
  * John Ashburner
  */
 
@@ -331,7 +331,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mexErrMsgTxt("Subscripted assignment dimension mismatch (2).");
         }
 
-        ptr[i] = (int *)mxGetPr(curr);
+        ptr[i] = (int *)mxGetData(curr);
         for(j=0; j<idim[i]; j++)
             if (ptr[i][j]<1 || ptr[i][j]> ((i<ndim)?odim[i]:1))
             {
