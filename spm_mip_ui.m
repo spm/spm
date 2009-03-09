@@ -68,7 +68,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 2835 2009-03-06 18:25:14Z guillaume $
+% $Id: spm_mip_ui.m 2842 2009-03-09 15:40:51Z guillaume $
 
 
 %==========================================================================
@@ -268,7 +268,7 @@ switch lower(varargin{1}), case 'display'
     %-----------------------------------------------------------------------
     h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
     uimenu(h,'Label','MIP')
-    if isempty(XYZ), str='off'; else, str='on'; end
+    if isempty(XYZ), str='off'; else str='on'; end
     uimenu(h,'Separator','on','Label','goto nearest suprathreshold voxel',...
         'CallBack',['spm_mip_ui(''Jump'',',...
         'get(get(gcbo,''Parent''),''UserData''),''nrvox'');'],...
@@ -282,12 +282,16 @@ switch lower(varargin{1}), case 'display'
         'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
         'Interruptible','off','BusyAction','Cancel','Enable',str);
 
-    % overlay channel positions for EEG/MEG
+    % overlay sensor positions for M/EEG
     %----------------------------------------------------------------------
     if strcmp(spm('CheckModality'), 'EEG')
-        uimenu(h,'Separator','on','Label','Channels',...
+        uimenu(h,'Separator','on','Label','display/hide channels',...
             'CallBack',['spm_mip_ui(''Channels'', ',...
             'get(get(gcbo,''Parent''),''UserData''));'],...
+            'Interruptible','off','BusyAction','Cancel','Enable',str);
+        uimenu(h,'Separator','off','Label','goto nearest suprathreshold channel',...
+            'CallBack',['spm_mip_ui(''Jump'',',...
+        'get(get(gcbo,''Parent''),''UserData''),''nrchan'');'],...
             'Interruptible','off','BusyAction','Cancel','Enable',str);
     end
 
@@ -325,9 +329,9 @@ switch lower(varargin{1}), case 'display'
     case 'setcoords'
     %======================================================================
         % [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
-        if nargin<4, hC=0; else, hC=varargin{4}; end
-        if nargin<3, h=spm_mip_ui('FindMIPax'); else, h=varargin{3}; end
-        if nargin<2, error('Set co-ords to what!'), else, xyz=varargin{2}; end
+        if nargin<4, hC=0; else hC=varargin{4}; end
+        if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
+        if nargin<2, error('Set co-ords to what!'), else xyz=varargin{2}; end
 
         MD  = get(h,'UserData');
 
@@ -335,9 +339,10 @@ switch lower(varargin{1}), case 'display'
         %------------------------------------------------------------------
         if hC<=0
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,MD.M,MD.DIM);
-            if d>0 & nargout<2, warning(sprintf(...
+            if d>0 && nargout<2, warning(sprintf(...
                     '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
-                    mfilename,d)), end
+                    mfilename,d));
+            end
         else
             d = [];
         end
@@ -350,7 +355,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Tell the registry, if we've not been called by the registry...
         %------------------------------------------------------------------
-        if ~isempty(MD.hReg) & MD.hReg~=hC, spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
+        if ~isempty(MD.hReg) && MD.hReg~=hC, spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
 
         %-Return arguments
         %------------------------------------------------------------------
@@ -362,10 +367,10 @@ switch lower(varargin{1}), case 'display'
     case 'posnmarkerpoints'
     %======================================================================
         % spm_mip_ui('PosnMarkerPoints',xyz,h,r)
-        if nargin<4, r='r'; else, r=varargin{4}; end
+        if nargin<4, r='r'; else r=varargin{4}; end
         if ~any(strcmp(r,{'r','g'})), error('Invalid pointer colour spec'), end
-        if nargin<3, h=spm_mip_ui('FindMIPax'); else, h=varargin{3}; end
-        if nargin<2, xyz = spm_mip_ui('GetCoords',h); else, xyz = varargin{2}; end
+        if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
+        if nargin<2, xyz = spm_mip_ui('GetCoords',h); else xyz = varargin{2}; end
 
         %-Get handles of marker points of appropriate colour from UserData of hMIPax
         %------------------------------------------------------------------
@@ -391,8 +396,8 @@ switch lower(varargin{1}), case 'display'
     case 'jump'
     %======================================================================
         % [xyz,d] = spm_mip_ui('Jump',h,loc)
-        if nargin<3, loc='nrvox'; else, loc=varargin{3}; end
-        if nargin<2, h=spm_mip_ui('FindMIPax'); else, h=varargin{2}; end
+        if nargin<3, loc='nrvox'; else loc=varargin{3}; end
+        if nargin<2, h=spm_mip_ui('FindMIPax'); else h=varargin{2}; end
 
         %-Get current location & MipData
         %------------------------------------------------------------------
@@ -414,7 +419,7 @@ switch lower(varargin{1}), case 'display'
                 str       = 'nearest local maxima';
                 iM        = inv(MD.M);
                 XYZvox    = iM(1:3,:)*[MD.XYZ; ones(1,size(MD.XYZ,2))];
-                [null,null,XYZvox,null] = spm_max(MD.Z,XYZvox);
+                [null,null,XYZvox] = spm_max(MD.Z,XYZvox);
                 XYZ       = MD.M(1:3,:)*[XYZvox; ones(1,size(XYZvox,2))];
                 [xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,XYZ);
             case 'glmax'
@@ -422,6 +427,13 @@ switch lower(varargin{1}), case 'display'
                 [null, i] = max(MD.Z); i = i(1);
                 xyz       = MD.XYZ(:,i);
                 d         = sqrt(sum((oxyz-xyz).^2));
+            case 'nrchan'
+                str       = 'nearest suprathreshold channel';
+                if ~isfield(MD, 'hChanPlot'), spm_mip_ui('Channels',h); end
+                MD        = get(h,'UserData');
+                [xyz,i,d] = spm_XYZreg('NearestXYZ',[oxyz(1); oxyz(2); 0],MD.Channels.pos);
+                xyz(3)    = oxyz(3);
+                str       = [str sprintf(' (%s)',MD.Channels.name{i})];
             otherwise
                 warning('Unknown jumpmode')
                 varargout = {xyz,0};
@@ -444,7 +456,7 @@ switch lower(varargin{1}), case 'display'
         % hMIPax = spm_mip_ui('FindMIPax',h)
         % Checks / finds hMIPax handles
         %-**** h is handle of hMIPax, or figure containing MIP (default gcf)
-        if nargin<2, h=get(0,'CurrentFigure'); else, h=varargin{2}; end
+        if nargin<2, h=get(0,'CurrentFigure'); else h=varargin{2}; end
         if ischar(h), h=spm_figure('FindWin',h); end
         if ~ishandle(h), error('invalid handle'), end
         if ~strcmp(get(h,'Tag'),'hMIPax'), h=findobj(h,'Tag','hMIPax'); end
@@ -476,7 +488,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Initiate dragging
         %------------------------------------------------------------------
-        if strcmp(get(cF,'SelectionType'),'normal') | isempty(MD.XYZ)
+        if strcmp(get(cF,'SelectionType'),'normal') || isempty(MD.XYZ)
             %-Set Figure callbacks for drop but no drag (DragType 0)
             %--------------------------------------------------------------
             set(MD.hMIPxyz,'Visible','on','String',...
@@ -514,7 +526,7 @@ switch lower(varargin{1}), case 'display'
     case 'move'
     %======================================================================
         % spm_mip_ui('Move',DragType)
-        if nargin<2, DragType = 2; else, DragType = varargin{2}; end
+        if nargin<2, DragType = 2; else DragType = varargin{2}; end
         cF = gcbf;
         cO = gco(cF);
 
@@ -632,6 +644,7 @@ switch lower(varargin{1}), case 'display'
             [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), 1);
             Cel = DIM.M * [Cel'; ones(2,size(Cel,1))];
             Cel = Cel(1:2,:)';
+            pos = [Cel'; zeros(1,size(Cel,1))];
             Cel(:,1) = Cel(:,1) + Po(2);
             Cel(:,2) = Cel(:,2) + Po(1);
             hold on, hChanPlot = plot(Cel(:, 2), Cel(:, 1), 'b*');
@@ -642,8 +655,10 @@ switch lower(varargin{1}), case 'display'
                 hChanText{i} = text(Cel(i, 2)+0.5, Cel(i, 1), name{i}, 'Color', 'b');
             end
 
-            MD.hChanPlot = hChanPlot;
-            MD.hChanText = hChanText;
+            MD.hChanPlot     = hChanPlot;
+            MD.hChanText     = hChanText;
+            MD.Channels.pos  = pos;
+            MD.Channels.name = D.chanlabels(Cind);
             set(h, 'UserData', MD);
         else
             if strcmp(get(MD.hChanPlot, 'Visible'), 'on');

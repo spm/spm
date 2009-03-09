@@ -1,10 +1,11 @@
-function S = spm_cfg_eeg_convertmat2nifti
-% configuration file for writing voxel-based images from SPM M/EEG format
+function S = spm_cfg_eeg_convert2images
+% configuration file for writing voxel-based images from SPM M/EEG format,
+% as a time-series of 2Dimages
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convertmat2nifti.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_cfg_eeg_convert2images.m 2842 2009-03-09 15:40:51Z guillaume $
 
 Fname = cfg_files;
 Fname.tag = 'Fname';
@@ -39,15 +40,15 @@ Interpolate.val = {yes};
 Interpolate.help = {'Interpolate bad channels'};
 
 S = cfg_exbranch;
-S.tag = 'eeg_convertmat2nifti';
-S.name = 'M/EEG Convert2nifti';
+S.tag = 'eeg_convert2images';
+S.name = 'M/EEG Convert2Images';
 S.val = {Fname n Interpolate};
-S.help = {'Convert SPM M/EEG data to voxel-based images'};
-S.prog = @eeg_convertmat2nifti;
+S.help = {'Convert SPM M/EEG data to voxel-based images, as a time-series of 2D images'};
+S.prog = @eeg_convert2images;
 S.modality = {'EEG'};
 
 
-function out = eeg_convertmat2nifti(job)
+function out = eeg_convert2images(job)
 % construct the S struct
 S = job;
 S.Fname = strvcat(job.Fname);
@@ -57,5 +58,5 @@ else
     S.interpolate_bad = 0;
 end
 
-spm_eeg_convertmat2nifti(S);
+spm_eeg_convertmat2nifti3D(S);
 

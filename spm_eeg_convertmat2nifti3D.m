@@ -7,7 +7,6 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % (optional) fields of S:
 %   S.Fname            - character array of M/EEG mat-filenames
 %   S.n                - size of square output image (size: n x n x ?)
-%   S.pixsize          - Voxel size of output image [mm]
 %   S.interpolate_bad  - flag (0/1) whether channels should be used for 
 %                        interpolation if they lie at the border of the
 %                        setup [0: mask out]
@@ -19,7 +18,7 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % scalp format. The data will be in 3D format, i.e., peri-stimulus time is 
 % the third dimension. The channel data is interpolated to voxel-space 
 % using a linear interpolation. Each channel's data will be found in a 
-% single voxel given that n is big enough. The data is written to 3D NIfTI
+% single voxel given that n is large enough. The data is written to 3D NIfTI
 % images, i.e. the data of each single trial or evoked response is contained
 % in one image file. The 'mask out' option interpolate_bad=0 will only have
 % an effect if the bad channels are located at the edge of the setup, where
@@ -28,9 +27,9 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2836 2009-03-06 19:19:02Z guillaume $
+% $Id: spm_eeg_convertmat2nifti3D.m 2842 2009-03-09 15:40:51Z guillaume $
 
-SVNrev = '$Rev: 2836 $';
+SVNrev = '$Rev: 2842 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -55,13 +54,6 @@ catch
     S.n          = n;
 end
 if length(n) > 1, error('n must be scalar'); end
-
-try
-    pixsize      = S.pixsize;
-catch
-    pixsize      = spm_input('Pixel dimensions (approx)', '+1', 'n', '3', 1);
-    S.pixsize    = pixsize;
-end
 
 try
     interpolate_bad = S.interpolate_bad;
