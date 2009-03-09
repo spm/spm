@@ -5,7 +5,7 @@ function S = spm_cfg_eeg_convert2images
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 2842 2009-03-09 15:40:51Z guillaume $
+% $Id: spm_cfg_eeg_convert2images.m 2843 2009-03-09 16:01:44Z guillaume $
 
 Fname = cfg_files;
 Fname.tag = 'Fname';
@@ -58,5 +58,5 @@ else
     S.interpolate_bad = 0;
 end
 
-spm_eeg_convertmat2nifti3D(S);
+spm_eeg_convert2scalp(S);
 

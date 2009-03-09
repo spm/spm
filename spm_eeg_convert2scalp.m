@@ -1,7 +1,7 @@
-function S = spm_eeg_convertmat2nifti3D(S)
+function S = spm_eeg_convert2scalp(S)
 % Convert epoched M/EEG data from SPM to NIfTI format by projecting
 % onto the scalp surface
-% FORMAT S = spm_eeg_convertmat2nifti3D(S)
+% FORMAT S = spm_eeg_convert2scalp(S)
 %
 % S         - input structure (optional)
 % (optional) fields of S:
@@ -14,7 +14,7 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % S         - can be used to construct script (as in the history-function)
 %__________________________________________________________________________
 %
-% spm_eeg_convertmat2nifti3D converts M/EEG data from the SPM format to the
+% spm_eeg_convert2scalp converts M/EEG data from the SPM format to the
 % scalp format. The data will be in 3D format, i.e., peri-stimulus time is 
 % the third dimension. The channel data is interpolated to voxel-space 
 % using a linear interpolation. Each channel's data will be found in a 
@@ -27,9 +27,9 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2842 2009-03-09 15:40:51Z guillaume $
+% $Id: spm_eeg_convert2scalp.m 2843 2009-03-09 16:01:44Z guillaume $
 
-SVNrev = '$Rev: 2842 $';
+SVNrev = '$Rev: 2843 $';
 
 %-Startup
 %--------------------------------------------------------------------------

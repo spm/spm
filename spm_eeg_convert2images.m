@@ -33,9 +33,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 2842 2009-03-09 15:40:51Z guillaume $
+% $Id: spm_eeg_convert2images.m 2843 2009-03-09 16:01:44Z guillaume $
 
-SVNrev = '$Rev: 2842 $';
+SVNrev = '$Rev: 2843 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -182,7 +182,7 @@ if strcmp(D.transformtype, 'TF');
             %-Convert that dataset into images
             %--------------------------------------------------------------
             S.Fname = fullfile(Dnew.path, Dnew.fname);
-            S = spm_eeg_convertmat2nifti3D(S);
+            S = spm_eeg_convert2scalp(S);
 
         %-Otherwise...
         %------------------------------------------------------------------
@@ -194,7 +194,7 @@ else
     %-Time Epoched data
     %======================================================================
     S.Fname = fullfile(D.path, D.fname);
-    S = spm_eeg_convertmat2nifti3D(S);
+    S = spm_eeg_convert2scalp(S);
 end
 
 %-Cleanup
