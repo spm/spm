@@ -27,9 +27,9 @@ function S = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 2844 2009-03-09 17:24:46Z guillaume $
+% $Id: spm_eeg_convert2scalp.m 2845 2009-03-09 17:29:51Z guillaume $
 
-SVNrev = '$Rev: 2844 $';
+SVNrev = '$Rev: 2845 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -123,7 +123,7 @@ for i = 1 : D.nconditions
     %-Loop over trials
     %----------------------------------------------------------------------
     Itrials = pickconditions(D, cl(i), 1);
-    k = 20; %numel(Itrials);
+    k = numel(Itrials);
     
     spm_progress_bar('Init',k,sprintf('Converting condition %s',cl{i}),'Trial');
     if k > 100, Ibar = floor(linspace(1, k, 100)); else Ibar = 1:k; end
