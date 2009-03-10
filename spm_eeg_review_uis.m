@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_review_uis.m 2847 2009-03-10 17:43:19Z guillaume $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -433,8 +433,12 @@ switch objects.type
                             'tag','plotEEG');
                         set(D.PSD.handles.axes(i),'units','normalized');
                         if ~strcmp(D.transform.ID,'time')
-                            set(D.PSD.handles.axes(i),'ylim',...
-                                [1 length(D.transform.frequencies)]);
+                            if length(D.transform.frequencies) == 1
+                                
+                            else
+                                set(D.PSD.handles.axes(i),'ylim',...
+                                    [1 length(D.transform.frequencies)]);
+                            end
                         end
 
                     end

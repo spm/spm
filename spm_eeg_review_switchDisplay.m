@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2822 2009-03-04 10:39:53Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 2847 2009-03-10 17:43:19Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -177,16 +177,21 @@ else
         switch D.PSD.VIZU.modality
             case 'eeg'
                 I = D.PSD.EEG.I;
+                ylim = D.PSD.EEG.VIZU.ylim;
             case 'meg'
                 I = D.PSD.MEG.I;
+                ylim = D.PSD.MEG.VIZU.ylim;
             case 'megplanar'
-                I = D.PSD.MEGPLANAR.I;    
+                I = D.PSD.MEGPLANAR.I;
+                ylim = D.PSD.MEGPLANAR.VIZU.ylim;
             case 'other'
                 I = D.PSD.other.I;
+                ylim = D.PSD.other.VIZU.ylim;
         end
         object.type = 'axes';
         object.what = 'scalp';
         object.options.channelPlot = I;
+        object.options.ylim = ylim;
         D = spm_eeg_review_uis(D,object);
 
     end

@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2826 2009-03-04 17:24:49Z james $
+% $Id: spm_eeg_review_callbacks.m 2847 2009-03-10 17:43:19Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -32,8 +32,10 @@ switch varargin{1}
 
         switch varargin{2}
             case 'VIZU'
+                visuSensors             = varargin{3};
+                VIZU.visuSensors        = visuSensors;
+                VIZU.montage.clab       = {D.channels(visuSensors).label};
                 if strcmp(D.transform.ID,'time')
-                    visuSensors             = varargin{3};
                     M                       = sparse(length(visuSensors),length(D.channels));
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
                     nts                     = min([2e2,D.Nsamples]);
@@ -52,20 +54,19 @@ switch varargin{1}
                     ylim                    = [mi ma];
                     VIZU.visu_scale         = 0.25;
                     VIZU.FontSize           = 10;
-                    VIZU.visuSensors        = visuSensors;
                     VIZU.visu_offset        = sd;
                     VIZU.offset             = offset;
                     VIZU.ylim               = ylim;
                     VIZU.ylim0              = ylim;
                     VIZU.figname            = 'main visualization window';
                     VIZU.montage.M          = M;
-                    VIZU.montage.clab       = {D.channels(visuSensors).label};
                     VIZU.y2                 = permute(sum(data.^2,1),[2 3 1]);
                     VIZU.sci                = size(VIZU.y2,1)./D.Nsamples;
                 else
-                    visuSensors             = varargin{3};
-                    VIZU.visuSensors        = visuSensors;
-                    VIZU.montage.clab       = {D.channels(visuSensors).label};
+                    nts                     = min([2e2,D.Nsamples*length(D.transform.frequencies)]);
+                    decim                   = max([floor(D.Nsamples*length(D.transform.frequencies)./nts),1]);
+                    data                    = D.data.y(visuSensors,:,1:decim:D.Nsamples,:);
+                    VIZU.ylim               = [min(data(:)) max(data(:))];
                 end
                 varargout{1} = VIZU;
                 return
@@ -441,21 +442,34 @@ switch varargin{1}
 
                             else % time-frequency data
 
-                                datai = squeeze(D.data.y(VIZU.visuSensors(indAxes),:,:,trN(1)));
-                                hp2 = image(datai,'CDataMapping','scaled');
-                                set(hp2,'parent',ha2);
-                                colormap('jet')
-                                colorbar
+                                datai = squeeze(D.data.y(VIZU.visuSensors(indAxes),:,:,trN(1)));    
                                 pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
                                 pst = pst*1e3;  % in msec
-                                set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
-                                    'xlim',[1 length(pst)],...
-                                    'ytick',1:length(D.transform.frequencies),...
-                                    'yticklabel',D.transform.frequencies);
-                                xlabel(ha2,'time (in ms after time onset)')
-                                ylabel(ha2,'frequency (in Hz)')
-                                title(ha2,['channel ',chanLabel,...
-                                    ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
+                                if any(size(datai)==1)
+                                    hp2 = plot(datai,...
+                                        'parent',ha2);
+                                    set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
+                                        'xlim',[1 length(pst)]);
+                                    xlabel(ha2,'time (in ms after time onset)')
+                                    title(ha2,['channel ',chanLabel,...
+                                        ' (',D.channels(VIZU.visuSensors(indAxes)).type,')',...
+                                        ' -- frequency: ',num2str(D.transform.frequencies),' Hz'])
+                                else
+                                    hp2 = image(datai,...
+                                        'CDataMapping','scaled',...
+                                        'parent',ha2);
+                                    colormap('jet')
+                                    colorbar
+                                    
+                                    set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
+                                        'xlim',[1 length(pst)],...
+                                        'ytick',1:length(D.transform.frequencies),...
+                                        'yticklabel',D.transform.frequencies);
+                                    xlabel(ha2,'time (in ms after time onset)')
+                                    ylabel(ha2,'frequency (in Hz)')
+                                    title(ha2,['channel ',chanLabel,...
+                                        ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
+                                end
 
                             end
 
@@ -1085,8 +1099,6 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
             else %---- Time-frequency data !! ----%
 
-                miY = 0;
-                maY = 0;
                 for i=1:length(VIZU.visuSensors)
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
@@ -1102,14 +1114,24 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                         color = 0.75*[1 1 1];
                     end
                     datai = squeeze(D.data.y(VIZU.visuSensors(i),:,:,trN(1)));
-                    miY = min([min(datai(:)),miY]);
-                    maY = max([max(datai(:)),maY]);
-                    D.PSD.handles.PLOT.im(i) = image(datai,'CDataMapping','scaled');
-                    set(D.PSD.handles.PLOT.im(i),...
-                        'tag','plotEEG',...
-                        'parent',handles.axes(i),...
-                        'userdata',i,...
-                        'hittest','off');
+                    miY = min(datai(:));
+                    maY = max(datai(:));
+                    if any(size(datai)==1)
+                        D.PSD.handles.PLOT.im(i) = plot(datai,...
+                            'parent',handles.axes(i),...
+                            'tag','plotEEG',...
+                            'userdata',i,...
+                            'hittest','off');
+                        set(handles.axes(i),...
+                            'ylim',[miY maY]);
+                    else
+                        D.PSD.handles.PLOT.im(i) = image(datai,...
+                            'parent',handles.axes(i),...
+                            'CDataMapping','scaled',...
+                            'tag','plotEEG',...
+                            'userdata',i,...
+                            'hittest','off');
+                    end
                     set(handles.fra(i),'uicontextmenu',cmenu);
                 end
                 colormap(jet)
