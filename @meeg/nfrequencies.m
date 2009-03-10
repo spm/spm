@@ -5,9 +5,9 @@ function res = nfrequencies(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: nfrequencies.m 1270 2008-03-28 14:35:16Z stefan $
+% $Id: nfrequencies.m 2846 2009-03-10 17:38:32Z guillaume $
 
-if ~strcmp(transformtype(this), 'TF')
+if ~strncmp(transformtype(this), 'TF',2)
     res = [];
 else
     res = length(this.transform.frequencies);
