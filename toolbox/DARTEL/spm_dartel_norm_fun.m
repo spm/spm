@@ -35,14 +35,20 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Guillaume Flandin
-% $Id: spm_dartel_norm_fun.m 2799 2009-02-27 16:39:47Z john $
+% $Id: spm_dartel_norm_fun.m 2848 2009-03-10 19:47:25Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
 tpm  = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii');
 
 % DARTEL template
-Nt   = nifti(job.template{1});
+if ~isempty(job.template{1})
+    Nt     = nifti(job.template{1});
+    do_aff = true;
+else
+    Nt     = nifti(tpm);
+    do_aff = false;
+end
 
 % Deal with desired bounding box and voxel sizes.
 %--------------------------------------------------------------------------
@@ -80,21 +86,55 @@ else
     mat = Mt;
 end
 
-% Affine registration of DARTEL Template with MNI space.
-%--------------------------------------------------------------------------
-[pth,nam,ext] = fileparts(Nt.dat.fname);
-fprintf('** Affine registering "%s" with MNI space **\n', nam);
-M = mat\Mt*inv(spm_klaff(Nt,tpm));
+if do_aff
+    % Affine registration of DARTEL Template with MNI space.
+    %--------------------------------------------------------------------------
+    [pth,nam,ext] = fileparts(Nt.dat.fname);
+    fprintf('** Affine registering "%s" with MNI space **\n', nam);
+    M = mat\Mt*inv(spm_klaff(Nt,tpm));
+else
+    M = eye(4);
+end
 
-% Loop over subjects
-%--------------------------------------------------------------------------
 fprintf('\n');
-out = cell(1,numel(job.subj));
-for i=1:numel(job.subj),
-    % Spatially normalise data from this subject
-    [pth,nam,ext] = fileparts(job.subj(i).flowfield{1});
-    fprintf('** "%s" **\n', nam);
-    out{i} = deal_with_subject(job.subj(i).flowfield,job.subj(i).images,K, mat,dim,M,job.preserve,job.fwhm);
+
+if isfield(job.data,'subj') || isfield(job.data,'subjs'),
+    if isfield(job.data,'subjs')
+        % Re-order data
+        %--------------------------------------------------------------------------
+        subjs = job.data.subjs;
+        subj  = struct('flowfield',cell(numel(subjs.flowfields),1),....
+                       'images',   cell(numel(subjs.flowfields),1));
+        for i=1:numel(subj)
+            subj(i).flowfield = {subjs.flowfields{i}};
+            subj(i).images    = cell(numel(subjs.images),1);
+            for j=1:numel(subjs.images),
+                subj(i).images{j} = subjs.images{j}{i};
+            end
+        end
+    else
+        subj = job.data.subj;
+    end
+
+    % Loop over subjects
+    %--------------------------------------------------------------------------
+    out = cell(1,numel(subj));
+    for i=1:numel(subj),
+        % Spatially normalise data from this subject
+        [pth,nam,ext] = fileparts(subj(i).flowfield{1});
+        fprintf('** "%s" **\n', nam);
+        out{i} = deal_with_subject(subj(i).flowfield,subj(i).images,K, mat,dim,M,job.preserve,job.fwhm);
+    end
+
+    if isfield(job.data,'subjs'),
+        out1 = out;
+        out  = cell(numel(subj),numel(subjs.images));
+        for i=1:numel(subj),
+            for j=1:numel(subjs.images),
+                out{i,j} = out1{i}{j};
+            end
+        end
+    end
 end
 %__________________________________________________________________________
 
@@ -114,6 +154,12 @@ y(:,:,:,2) = M(2,1)*y0(:,:,:,1) + M(2,2)*y0(:,:,:,2) + M(2,3)*y0(:,:,:,3) + M(2,
 y(:,:,:,3) = M(3,1)*y0(:,:,:,1) + M(3,2)*y0(:,:,:,2) + M(3,3)*y0(:,:,:,3) + M(3,4);
 y0 = y;
 clear y
+
+if all(all(M == eye(4))),
+    mat_intent = 'Aligned';
+else
+    mat_intent = 'MNI152';
+end
 
 odm = zeros(1,3);
 oM  = zeros(4,4);
@@ -136,8 +182,8 @@ for m=1:numel(PI),
     NO.dat.dim = [dim NI.dat.dim(4:end)];
     NO.mat  = mat;
     NO.mat0 = mat;
-    NO.mat_intent  = 'MNI152';
-    NO.mat0_intent = 'MNI152';
+    NO.mat_intent  = mat_intent;
+    NO.mat0_intent = mat_intent;
     NO.descrip = sprintf('Smoothed (%gx%gx%g) DARTEL normed',fwhm);
     out{m} = NO.dat.fname;
     create(NO);
