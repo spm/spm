@@ -42,6 +42,9 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.26  2009/03/10 14:25:59  roboos
+% fixed bug in copying of cfg.continuous to tmpcfg, also keek data and headerformat
+%
 % Revision 1.25  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -160,7 +163,9 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
   tmpcfg                  = [];
   tmpcfg.trl              = cfg.trl;
   tmpcfg.artfctdef.zvalue = cfg.artfctdef.jump;
-  tmpcfg.continuous       = cfg.continuous;
+  if isfield(cfg, 'continuous'),   tmpcfg.continuous       = cfg.continuous;    end
+  if isfield(cfg, 'dataformat'),   tmpcfg.dataformat       = cfg.dataformat;    end
+  if isfield(cfg, 'headerformat'), tmpcfg.headerformat     = cfg.headerformat;  end
   % call the zvalue artifact detection function
   if nargin ==1
     cfg = checkconfig(cfg, 'dataset2files', {'yes'});

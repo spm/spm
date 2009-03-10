@@ -21,6 +21,10 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: headsurface.m,v $
+% Revision 1.8  2009/03/10 14:25:03  roboos
+% use voltype function
+% fixed bug for multisphere model when shifting lower rim down
+%
 % Revision 1.7  2009/02/11 13:48:07  roboos
 % prevent double vertices in the triangulations
 % added a fixme comment for a particilar configuration that has problems
@@ -140,7 +144,7 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)<5
   pnt(:,3) = pnt(:,3) + origin(3);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)>=5
+elseif voltype(vol, 'multisphere')
   % local spheres MEG model, this also requires a gradiometer structure
   grad = sens;
   if ~isfield(grad, 'tra') || ~isfield(grad, 'pnt')
@@ -166,7 +170,8 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)>=5
   edgeind     = unique(line(:));
   % shift the lower rim of the helmet shape down with approximately 1/4th of its radius
   if downwardshift
-    dist = mean(sqrt(sum((pnt - repmat(mean(pnt,1), Ncoils, 1)).^2, 2)));
+    % determine the extent of the volume conduction model
+    dist = mean(sqrt(sum((pnt - repmat(mean(pnt,1), size(pnt,1), 1)).^2, 2)));
     dist = dist/4;
     pnt(edgeind,3) = pnt(edgeind,3) - dist;
   end
@@ -174,8 +179,8 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)>=5
   tri = projecttri(pnt);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif ~isempty(vol) && isfield(vol, 'bnd')
-  % boundary element model
+elseif voltype(vol, 'bem') ||  voltype(vol, 'nolte')
+  % volume conduction model with triangulated boundaries
   switch surface
     case 'skin'
       if ~isfield(vol, 'skin')
