@@ -10,7 +10,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2826 2009-03-04 17:24:49Z james $
+% $Id: spm_eeg_review.m 2851 2009-03-10 22:43:54Z guillaume $
 
 D = struct(D);
 
@@ -51,6 +51,7 @@ catch
     clear flag
     [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],5);
 end
+set(h.hp,'deletefcn','colormap(''gray'');');
 D.PSD.handles.tabs = h;
 
 % %-- Initilize display on 'info'

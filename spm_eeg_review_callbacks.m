@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2851 2009-03-10 22:43:54Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -423,7 +423,7 @@ switch varargin{1}
                             if strcmp(D.transform.ID,'time')
 
                                 leg = cell(Ntrials,1);
-                                col = colormap('lines');
+                                col = lines;
                                 col = repmat(col(1:7,:),floor(Ntrials./7)+1,1);
                                 hp = get(handles.axes(indAxes),'children');
                                 pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
@@ -943,7 +943,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 else
                     action = 'modify';
                 end
-                col = colormap(lines);
+                col = lines;
                 col = col(1:7,:);
                 x1 = {D.trials.events(:).type}';
                 x2 = {D.trials.events(:).value}';
