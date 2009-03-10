@@ -2,17 +2,17 @@ function spm_eeg_prep_ui(callback)
 % User interface for spm_eeg_prep function performing several tasks
 % for preparation of converted MEEG data for further analysis
 % FORMAT spm_eeg_prep_ui()
-% _______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2755 2009-02-17 11:03:42Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2850 2009-03-10 21:54:38Z guillaume $
 
 spm('pointer','watch')
 
 if nargin == 0
 
-    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEEG preparation',0);
+    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG preparation',0);
 
     delete(findobj(get(Finter,'Children'),'Tag','EEGprepUI'))
 
@@ -36,6 +36,13 @@ if nargin == 0
         'HandleVisibility', 'on',...
         'Callback', 'spm_eeg_prep_ui(''FileSaveCB'')');
 
+    FileExitMenu = uimenu(FileMenu, ...
+        'Label','Exit',...
+        'Separator','on',...
+        'Tag','EEGprepUI',...
+        'HandleVisibility', 'on',...
+        'Callback', 'spm_eeg_prep_ui(''FileExitCB'')');
+    
     % ====== Channel types ===============================
 
     ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
@@ -235,6 +242,13 @@ if ~isempty(D)
 end
 
 update_menu;
+
+%-----------------------------------------------------------------------
+
+function FileExitCB()
+Finter = spm_figure('FindWin','Interactive');
+spm_figure('Clear',Finter);
+spm('FigName','M/EEG preparation: done');
 
 %-----------------------------------------------------------------------
 

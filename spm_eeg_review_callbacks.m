@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2847 2009-03-10 17:43:19Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2850 2009-03-10 21:54:38Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -906,18 +906,18 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if isfield(options,'events')
                     D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
                     if length(options.events) >= 1
-                        hw = waitbar(0,'Adding events: please wait...');
+                        spm_progress_bar('Init',length(options.events) ,'Adding events');
                     end
                     axes(D.PSD.handles.axes)
                     for i=1:length(options.events)
-                        waitbar(i/length(options.events),hw)
+                        spm_progress_bar('Set', i);
                         sc.currentEvent = i;
                         sc.eventType    = D.trials(trN(1)).events(i).type;
                         sc.eventValue   = D.trials(trN(1)).events(i).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                     end
-                    try, close(hw); end
+                    spm_progress_bar('Clear');
                 end
                 for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;

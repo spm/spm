@@ -16,9 +16,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2715 2009-02-09 17:10:41Z vladimir $
+% $Id: spm_eeg_average.m 2850 2009-03-10 21:54:38Z guillaume $
 
-SVNrev = '$Rev: 2715 $';
+SVNrev = '$Rev: 2850 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -39,11 +39,9 @@ D = spm_eeg_load(D);
 
 %-Redirect to Time-Frequency averaging if necessary
 %--------------------------------------------------------------------------
-try
-    if D.nfrequencies > 1
-        D = spm_eeg_average_TF(S);
-        return
-    end
+if ~isempty(strmatch('TF',D.transformtype)) % TF and TFphase
+    D = spm_eeg_average_TF(S);
+    return
 end
 
 %-Generate new MEEG object with new files
@@ -179,7 +177,7 @@ disp(sprintf(s));                                                       %-#
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
 D = Dnew;
-D = D.history('spm_eeg_average', S);
+D = D.history(mfilename, S);
 save(D);
 
 %-Eventually display it

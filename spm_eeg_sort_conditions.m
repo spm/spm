@@ -10,33 +10,33 @@ function D = spm_eeg_sort_conditions(S)
 %            0 - do not save
 % OUTPUT:
 %   D - modified dataset
-% _______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_sort_conditions.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_sort_conditions.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Condition sorting',0);
+SVNrev = '$Rev: 2850 $';
 
-if nargin == 0
-    S = [];
-end
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG Condition sorting'); spm('Pointer','Watch');
 
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-if ischar(D)
-    try
-        D = spm_eeg_load(D);
-    catch
-        error(sprintf('Trouble reading file %s', D));
-    end
-end
+D = spm_eeg_load(D);
 
+%-Do the sorting
+%--------------------------------------------------------------------------
 if ~isfield(S, 'condlist')
     oldcondlist = D.condlist;
     S.condlist = cell(size(oldcondlist));
@@ -57,3 +57,7 @@ D = history(D, 'spm_eeg_sort_conditions', S);
 if ~isfield(S, 'save') || S.save
     save(D);
 end
+
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG Condition sorting: done'); spm('Pointer','Arrow');

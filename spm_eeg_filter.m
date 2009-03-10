@@ -1,146 +1,132 @@
 function D = spm_eeg_filter(S)
-% filter M/EEG data
+% Filter M/EEG data
 % FORMAT D = spm_eeg_filter(S)
 %
-% S       - struct (optional)
+% S           - input structure (optional)
 % (optional) fields of S:
-% D       - filename of EEG-data file or EEG data struct
-% filter  - struct with the following fields:
-%    type       - type of filter, currently only 'butterworth'
-%    PHz        - cutoff [Hz]
-%    parameter  - filter coefficients
+%   S.D       - MEEG object or filename of M/EEG mat-file
+%   S.filter  - struct with the following fields:
+%      type       - type of filter, currently only 'butterworth'
+%      band       - filterband [low|high|bandpass|stop]
+%      PHz        - cutoff frequency [Hz]
+%      parameter  - filter coefficients
 %
-% D         - EEG data struct (also written to files)
-%_______________________________________________________________________
+% D           - MEEG object (also written to disk)
+%__________________________________________________________________________
 %
-% spm_eeg_filter filters M/EEG data.
-%_______________________________________________________________________
+% This function filters M/EEG data and requires the signal processing 
+% toolbox from The MathWorks:
+%               http://www.mathworks.com/products/signal/
+% (functions butter.m and filtfilt.m)
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2772 2009-02-23 10:40:30Z vladimir $
+% $Id: spm_eeg_filter.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
+SVNrev = '$Rev';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FnUIsetup','M/EEG filter',0);
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, return; end
     S.D = D;
 end
 
-if ischar(D)
-    P = spm_str_manip(D, 'H');
-    try
-        D = spm_eeg_load(D);
-    catch
-        error(sprintf('Trouble reading file %s', D));
-    end
-else
-    P = D.path;
-end
+D = spm_eeg_load(D);
 
-
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     filter.type = S.filter.type;
 catch
-    filter.type =...
-        spm_input('filter type', '+1', 'b', 'butterworth');
+    filter.type = spm_input('filter type', '+1', 'b', 'butterworth');
     S.filter.type = filter.type;
 end
 
-if strcmpi(filter.type,'butterworth')
-    try
-        filter.order = S.filter.order;
-    catch
-        filter.order = 5;
-        S.filter.order = filter.order;
-    end
-    try
-        filter.para = S.filter.para;
-    catch
-        filter.para = [];
-        S.filter.para = filter.para;
-    end
+switch filter.type
+    case 'butterworth'
+        try
+            filter.order   = S.filter.order;
+        catch
+            filter.order   = 5;
+            S.filter.order = filter.order;
+        end
+        try
+            filter.para    = S.filter.para;
+        catch
+            filter.para    = [];
+            S.filter.para  = filter.para;
+        end
+    otherwise
+        error('Unknown filter type.');
 end
 
 try
-    filter.band  = S.filter.band;
+    filter.band   = S.filter.band;
 catch
-    filter.band = cell2mat(...
+    filter.band   = cell2mat(...
         spm_input('filterband', '+1', 'm',...
         'lowpass|highpass|bandpass|stopband',...
         {'low','high','bandpass','stop'}));
     S.filter.band = filter.band;
 end
 
-
 try
     filter.PHz = S.filter.PHz;
 catch
-    if strcmp(filter.band, 'low')
-        str = 'Cutoff [Hz]';
-        YPos = -1;
-        while 1
-            if YPos == -1
-                YPos = '+1';
+    switch lower(filter.band)
+        case {'low','high'}
+            str = 'Cutoff [Hz]';
+            YPos = -1;
+            while 1
+                if YPos == -1
+                    YPos = '+1';
+                end
+                [PHz, YPos] = spm_input(str, YPos, 'r');
+                if PHz > 0 && PHz < D.fsample/2, break, end
+                str = 'Cutoff must be > 0 & < half sample rate';
             end
-            [PHz, YPos] = spm_input(str, YPos, 'r');
-            if PHz > 0 & PHz < D.fsample/2, break, end
-            str = 'Cutoff must be > 0 & < half sample rate';
-        end
-    elseif strcmp(filter.band, 'high')
-        str = 'Cutoff [Hz]';
-        YPos = -1;
-        while 1
-            if YPos == -1
-                YPos = '+1';
+        case {'bandpass','stop'}
+            str = 'band [Hz]';
+            YPos = -1;
+            while 1
+                if YPos == -1
+                    YPos = '+1';
+                end
+                [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
+                if PHz(1) > 0 && PHz(1) < D.fsample/2 && PHz(1) < PHz(2), break, end
+                str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
             end
-            [PHz, YPos] = spm_input(str, YPos, 'r', [], 1);
-            if PHz > 0 & PHz < D.fsample/2, break, end
-            str = 'Cutoff must be > 0 & < half sample rate';
-        end
-    elseif strcmp(filter.band, 'bandpass')
-        str = 'band [Hz]';
-        YPos = -1;
-        while 1
-            if YPos == -1
-                YPos = '+1';
-            end
-            [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 & PHz(1) < D.fsample/2 & PHz(1) < PHz(2), break, end
-            str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
-        end
-    elseif strcmp(filter.band, 'stop')
-        str = 'band [Hz]';
-        YPos = -1;
-        while 1
-            if YPos == -1
-                YPos = '+1';
-            end
-            [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 & PHz(1) < D.fsample/2 & PHz(1) < PHz(2), break, end
-            str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
-        end
+        otherwise
+            error('unknown filter band.')
     end
     filter.PHz = PHz;
     S.filter.PHz = filter.PHz;
 end
 
-if strcmpi(filter.type, 'butterworth')
-    % butterworth coefficients
-    if(isempty(filter.para))
-        [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
-        filter.para{1} = B;
-        filter.para{2} = A;
-    elseif(length(filter.para)~=2)
-        errordlg('Need two parameters for Butterworth filter');
-    end
-else
-    errordlg('Currently unknown filter type: %s', filter.type);
+switch filter.type
+    case 'butterworth'
+        if isempty(filter.para)
+            [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
+            filter.para{1} = B;
+            filter.para{2} = A;
+        end
+    otherwise
+        error('Unknown filter type.');
 end
 
-spm('Pointer', 'Watch');drawnow;
+%-
+%--------------------------------------------------------------------------
+spm('Pointer', 'Watch');
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);
@@ -159,13 +145,14 @@ if strcmp(D.type, 'continuous')
     % determine blocksize
     % determine block size, dependent on memory
     try
-        evalc('memsz=2/3*feature(''memstats'');'); % 2/3 of largest block of contiguous memory, for Windows platforms
+        % 2/3 of largest block of contiguous memory, for Windows platforms
+        evalc('memsz=2/3*feature(''memstats'');');
     catch
-        memsz = 20*1024*1024; % 20 MB
-    end;
-    datasz=nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
-    blknum=ceil(datasz/memsz);
-    blksz=ceil(nchannels(D)/blknum);
+        memsz = 200*1024*1024; % 200 MB
+    end
+    datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
+    blknum = ceil(datasz/memsz);
+    blksz  = ceil(nchannels(D)/blknum);
 
     % now filter blocks of channels
     chncnt=1;
@@ -177,13 +164,11 @@ if strcmp(D.type, 'continuous')
         %loop through channels
         for j = 1:numel(blkchan)
 
-            if strcmpi(filter.type, 'butterworth') && ismember(blkchan(j), Fchannels)
+            if ismember(blkchan(j), Fchannels)
                 Dtemp(j, :) = filtfilt(filter.para{1}, filter.para{2}, Dtemp(j,:));
             end
 
-            if ismember(j, Ibar)
-                spm_progress_bar('Set', blkchan(j)); drawnow;
-            end
+            if ismember(j, Ibar), spm_progress_bar('Set', blkchan(j)); end
 
         end
 
@@ -205,7 +190,7 @@ else
         d = squeeze(D(:, :, i));
 
         for j = 1:nchannels(D)
-            if strcmpi(filter.type, 'butterworth') && ismember(j, Fchannels)
+            if ismember(j, Fchannels)
                 d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
             end
         end
@@ -215,20 +200,19 @@ else
 
         Dnew(:, 1:Dnew.nsamples, i) = d;
 
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
     end
 end
 
 spm_progress_bar('Clear');
 
+%-Save new evoked M/EEG dataset
+%--------------------------------------------------------------------------
 D = Dnew;
-
-% history
-D = D.history('spm_eeg_filter', S);
+D = D.history(mfilename, S);
 save(D);
 
-spm('Pointer', 'Arrow');
-
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG filter: done'); spm('Pointer', 'Arrow');

@@ -1,26 +1,31 @@
 function spm_eeg_convert_ui(S)
-% User interface for M/EEG conversion function
+% User interface for M/EEG data conversion facility
 % FORMAT spm_eeg_convert_ui(S)
-% S - existing configuration struct (optional)
-% _______________________________________________________________________
+% S       - existing configuration struct (optional)
+%__________________________________________________________________________
+% 
+% See spm_eeg_convert for a description of input structure S.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 2667 2009-01-29 11:42:49Z vladimir $
-if nargin == 0
-    S=[];
-end
+% $Id: spm_eeg_convert_ui.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEEG data conversion ',0);
+SVNrev = '$Rev: 2850 $';
 
-if ~isfield(S, 'dataset')
-    S.dataset = spm_select(1, '.*', 'Select M/EEG data file');
-end
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FnUIsetup','M/EEG data conversion',0);
 
-if isempty(S.dataset)
-    error('No dataset specified');
+%-Get parameters
+%--------------------------------------------------------------------------
+try
+    S.dataset;
+catch
+    [S.dataset, sts] = spm_select(1, '.*', 'Select M/EEG data file');
+    if ~sts, return; end
 end
-    
 
 if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
 
@@ -73,13 +78,19 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         else
             prefix = 'espm8_';
         end
-        S.outfile = spm_input('SPM EEG file name', '+1', 's', [prefix spm_str_manip(S.dataset,'tr')]);
+        S.outfile = spm_input('SPM M/EEG file name', '+1', 's', [prefix spm_str_manip(S.dataset,'tr')]);
     end
     
 end
 
+%-Call the conversion routine
+%--------------------------------------------------------------------------
+spm('Pointer','Watch');
 D = spm_eeg_convert(S);
+spm('Pointer','Arrow');
 
+%-Display the imported M/EEG data file
+%--------------------------------------------------------------------------
 if ~isfield(S, 'review') || S.review
     spm_eeg_review(D);
 end

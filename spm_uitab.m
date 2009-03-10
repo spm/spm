@@ -26,7 +26,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,...
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_uitab.m 2850 2009-03-10 21:54:38Z guillaume $
 
 Ntabs = length(labels);
 
@@ -157,8 +157,9 @@ if Ntabs > 9
     set(handles.hs(2),'userdata',UD);
 end
 
-
-
+%==========================================================================
+% doChoose
+%==========================================================================
 function doChoose(o1,o2)
 ud = get(o1,'userdata');
 % Do nothing if called tab is current (active) tab
@@ -183,16 +184,19 @@ if ~strcmp(get(ud.handles.htab(ud.ind),'FontWeight'),'bold')
     end
     drawnow
     if ~isempty(ud.callback)
-        try
-            eval(ud.callback);
-        catch
+        if isa(ud.callback, 'function_handle')
             feval(ud.callback);
+        else
+            eval(ud.callback);
         end
     end
     drawnow
     spm('pointer','arrow');
 end
 
+%==========================================================================
+% doScroll
+%==========================================================================
 function doScroll(o1,o2)
 ud = get(o1,'userdata');
 % active = ud.in(ud.active);
@@ -236,6 +240,3 @@ ud.who = -1;
 set(ud.h.hs(1),'userdata',ud)
 ud.who = 1;
 set(ud.h.hs(2),'userdata',ud)
-
-
-

@@ -13,34 +13,40 @@ function Do = spm_eeg_grandmean(S)
 % Output:
 % Do        - EEG data struct, result files are saved in the same
 %                 directory as first input file.
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_eeg_grandmean averages data over multiple files. The data must have
-% the same trialtype numbering and sampling rate. This function can be used for
-% grand mean averaging, i.e. computing the average over multiple subjects.
+% the same trialtype numbering and sampling rate. This function can be used
+% for grand mean averaging, i.e. computing the average over multiple subjects.
 % Missing event types and bad channels are taken into account properly.
 % The output is written to a user-specified new file. The default name is
 % the same name as the first selected input file, but prefixed with a 'g'.
 % The output file is written to the current working directory.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2737 2009-02-12 12:49:45Z vladimir $
+% $Id: spm_eeg_grandmean.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
+SVNrev = '$Rev: 2850 $';
 
-if nargin == 0
-    S = [];
-end
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG Grand Mean'); spm('Pointer','Watch');
 
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     P = S.P;
 catch
-    P = spm_select(inf, '\.mat$', 'Select EEG mat files');
+    [P, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
+    if ~sts, Do = []; return; end
     S.P = P;
 end
 
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     S.Pout;
 catch
@@ -52,6 +58,8 @@ if ~isfield(S, 'weighted')
     S.weighted = spm_input('Weighted average?','+1','yes|no',[1 0], 1);
 end
 
+%-Load MEEG data
+%--------------------------------------------------------------------------
 D = cell(1, size(P, 1));
 for i = 1:size(P, 1)
     try
@@ -60,11 +68,10 @@ for i = 1:size(P, 1)
         error('Trouble reading files %s', deblank(P(i, :)));
     end
 end
-
 Nfiles = length(D);
 
-
-%% Check dimension of the data files
+%-Check dimension of the data files
+%--------------------------------------------------------------------------
 estr = [];
 
 for i = 1:Nfiles
@@ -73,7 +80,7 @@ for i = 1:Nfiles
         flist = [flist ' ' D{i}.fname];
     end
     if ~isempty(flist)
-       estr = ['The files' flist ' are do not contain averaged (evoked) data.'];
+       estr = ['The files' flist ' do not contain averaged (evoked) data.'];
     end
 end
 
@@ -83,7 +90,7 @@ nc = zeros(Nfiles,1);
 ns = zeros(Nfiles,1);
 fs = zeros(Nfiles,1);
 ne = zeros(Nfiles,1);
-if strcmp(D{1}.transformtype, 'TF')
+if strncmp(D{1}.transformtype, 'TF',2)
     nf = zeros(Nfiles,1);
 end
 
@@ -92,7 +99,7 @@ for i = 1:Nfiles
     ns(i) = D{i}.nsamples;
     fs(i) = D{i}.fsample;
     ne(i) = D{i}.nconditions;
-    if strcmp(D{1}.transformtype, 'TF')
+    if strncmp(D{1}.transformtype, 'TF',2)
         nf(i) = D{i}.nfrequencies;
     end
 end
@@ -161,7 +168,7 @@ if length(une)~=1
     estr = [estr,'Data don''t have the same number of conditions.\n'];
 end
 
-if strcmp(D{1}.transformtype, 'TF')
+if strncmp(D{1}.transformtype, 'TF',2)
     unf = unique(nf);
     if length(unf)~=1
         ind = zeros(Nfiles,1);
@@ -189,8 +196,8 @@ end
 
 
 
-%% Initialization
-% output
+%-Initialise output
+%--------------------------------------------------------------------------
 Do = D{1};
 
 try
@@ -200,8 +207,6 @@ try
 catch
     fnamedat = ['g' D{1}.fnamedat];
 end
-
-spm('Pointer', 'Watch'); drawnow;
 
 % how many different trial types and bad channels
 types = {};
@@ -227,7 +232,7 @@ if ~S.weighted
 end
 
 % generate new meeg object with new filenames
-if strcmp(D{1}.transformtype, 'TF')
+if strncmp(D{1}.transformtype, 'TF',2)
     Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
 else
     Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
@@ -237,8 +242,9 @@ end
 w = zeros(Do.nchannels, Ntypes);
 
 
-%% Do the averaging
-spm_progress_bar('Init', Ntypes, 'responses averaged'); drawnow;
+%-Do the averaging
+%--------------------------------------------------------------------------
+spm_progress_bar('Init', Ntypes, 'responses averaged');
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
 
@@ -266,9 +272,7 @@ if strcmp(D{1}.transformtype, 'TF')
 
         Do(1:Do.nchannels, 1:Do.nfrequencies, 1:Do.nsamples, i) = d;
 
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
     end
 
@@ -296,15 +300,15 @@ else
 
         Do(1:Do.nchannels, 1:Do.nsamples, i) = d;
 
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
     end
 end
 
 spm_progress_bar('Clear');
 
+%-Save Grand Mean to disk
+%--------------------------------------------------------------------------
 Do = type(Do, 'grandmean');
 
 bads = find(~any(w'));
@@ -324,8 +328,12 @@ Do = Do.history('spm_eeg_grandmean', S);
 
 save(Do);
 
+%-Display Grand Mean
+%--------------------------------------------------------------------------
 if ~isfield(S, 'review') || S.review
     spm_eeg_review(Do);
 end
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG Grand Mean: done'); spm('Pointer','Arrow');

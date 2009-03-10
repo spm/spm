@@ -23,19 +23,28 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2772 2009-02-23 10:40:30Z vladimir $
+% $Id: spm_eeg_merge.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
+SVNrev = '$Rev: 2850 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG Merge'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select([2 inf], '\.mat$', 'Select M/EEG mat files');
+    [D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
+    if ~sts, Dout = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D(1,:), 'H');
-
+%-Load MEEG data
+%--------------------------------------------------------------------------
+F = cell(1,size(D,1));
 try
     for i = 1:size(D, 1)
         F{i} = spm_eeg_load(deblank(D(i, :)));
@@ -51,11 +60,8 @@ if Nfiles < 2
     error('Need at least two files for merging');
 end
 
-spm('Pointer', 'Watch');
-
-Dout = D{1};
-
-% Check input and determine number of new number of trial types
+%-Check input and determine number of new number of trial types
+%--------------------------------------------------------------------------
 Ntrials = 0;
 for i = 1:Nfiles
     if ~strcmp(D{i}.transformtype, 'time')
@@ -78,7 +84,9 @@ for i = 1:Nfiles
     Ntrials = [Ntrials D{i}.ntrials];
 end
 
-% generate new meeg object with new filenames
+%-Generate new meeg object with new filenames
+%--------------------------------------------------------------------------
+Dout = D{1};
 [p, f, x] = fileparts(fnamedat(Dout));
 Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
 sDout = struct(Dout);
@@ -122,10 +130,9 @@ end
 
 Dout = meeg(sDout);
 
-% write files
-
-% progress bar
-spm_progress_bar('Init', Nfiles, 'Files merged'); drawnow;
+%-Write files
+%--------------------------------------------------------------------------
+spm_progress_bar('Init', Nfiles, 'Files merged');
 if Nfiles > 100, Ibar = floor(linspace(1, Nfiles,100));
 else Ibar = [1:Nfiles]; end
 
@@ -145,19 +152,16 @@ for i = 1:Nfiles
         Dout = reject(Dout, k, reject(D{i}, j));
     end
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
-    end
-
+    if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
 end
 
-
+%-Save new M/EEG data
+%--------------------------------------------------------------------------
 Dout = Dout.history('spm_eeg_merge', S, 'reset');
-
 save(Dout);
+
+%-Cleanup
+%--------------------------------------------------------------------------
 spm_progress_bar('Clear');
-spm('Pointer', 'Arrow');
-
-
-
+spm('FigName','M/EEG merge: done'); spm('Pointer','Arrow');

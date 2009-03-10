@@ -1,38 +1,46 @@
 function D = spm_eeg_downsample(S)
-% function used for down-sampling EEG/MEG data
+% Downsample M/EEG data
 % FORMAT D = spm_eeg_downsample(S)
 %
-% S         - optional input struct
+% S            - optional input struct
 % (optional) fields of S:
-% D         - filename of EEG mat-file
+%   S.D        - MEEG object or filename of M/EEG mat-file
 % fsample_new  - new sampling rate
-%_______________________________________________________________________
+%
+% D            - MEEG object (also written on disk)
+%__________________________________________________________________________
+% 
+% Thisfunction requires function resample.m from the Signal Processing
+% toolbox from The MathWorks.
+% Specify a new sampling rate, which must be lower than the original 
+% sampling rate. 
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%_______________________________________________________________________
-% This downsampling function uses 'resample' from the signal processing
-% toolbox. Specify a new sampling rate, which must be lower than the
-% original sampling rate. 
-%_______________________________________________________________________
+
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2695 2009-02-05 11:11:11Z vladimir $
+% $Id: spm_eeg_downsample.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
+SVNrev = '$Rev: 2850 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, 'mat', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
-
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     fsample_new = S.fsample_new;
 catch
@@ -53,30 +61,28 @@ end
 P = round(10*fsample_new);
 Q = round(10*D.fsample);
 
-spm('Pointer', 'Watch');drawnow;
-
-% two passes
-
-% 1st: Determine new D.nsamples
+%-First pass: Determine new D.nsamples
+%--------------------------------------------------------------------------
 d = double(squeeze(D(1, :, 1)));
 d2 = resample(d', P, Q)';
 nsamples_new = size(d2, 2);
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
-now = clock;
+t0 = clock;
 
-% 2nd: resample all
+%-Second pass: resample all
+%--------------------------------------------------------------------------
 if strcmp(D.type, 'continuous')
-    spm_progress_bar('Init', D.nchannels, 'Channels downsampled'); drawnow;
+    spm_progress_bar('Init', D.nchannels, 'Channels downsampled');
     
     % work on blocks of channels
     % determine block size, dependent on memory
     try 
         evalc('memsz=2/3*feature(''memstats'');'); % 2/3 of largest block of contiguous memory, for Windows platforms
     catch
-        memsz = 20*1024*1024; % 20 MB otherwise
-    end;
+        memsz = 200*1024*1024; % 200 MB otherwise
+    end
     datasz=nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
     blknum=ceil(datasz/memsz);
     blksz=ceil(nchannels(D)/blknum);
@@ -93,14 +99,14 @@ if strcmp(D.type, 'continuous')
             d = Dtemp(j,:);
             Dtemp(j,:)=0; % overwrite Dtemp to save memory
             Dtemp(j,1:nsamples_new) = resample(d', P, Q)';
-            spm_progress_bar('Set', blkchan(j)); drawnow;
-        end;
+            spm_progress_bar('Set', blkchan(j));
+        end
 
         % write Dtempnew to Dnew
         Dnew(blkchan,:,1)=Dtemp(:,1:nsamples_new,1);
         clear Dtemp
 
-    end;
+    end
     
 else
     spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
@@ -115,24 +121,24 @@ else
             Dnew(j, 1:nsamples_new, i) = d2;
 
         end
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
     end
 end
 
-
-
-elapsedTime = etime(clock,now);
-fprintf(['Downsampling took ',num2str(elapsedTime),' sec\n'])
-
 spm_progress_bar('Clear');
 
+%-Display statistics
+%--------------------------------------------------------------------------
+fprintf('Elapsed time is %f seconds.\n',etime(clock,t0));               %-#
+
+%-Save new downsampled M/EEG dataset
+%--------------------------------------------------------------------------
 Dnew = putfsample(Dnew, fsample_new);
 Dnew = putnsamples(Dnew, nsamples_new);
-
-D = Dnew;
-D = D.history('spm_eeg_downsample', S);
+D    = Dnew;
+D    = D.history('spm_eeg_downsample', S);
 save(D);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG downsampling: done'); spm('Pointer','Arrow');

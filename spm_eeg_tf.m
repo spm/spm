@@ -2,8 +2,8 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Compute instantaneous power and phase in peri-stimulus time and frequency
 % FORMAT D = spm_eeg_tf(S)
 %
-% D     - filename of EEG-data file or EEG data struct
-% stored in struct D.tf:
+% S     - filename of EEG-data file or EEG data struct
+% stored in struct S.tf:
 % frequencies   - vector of frequencies (Hz)
 % rm_baseline   - baseline removal (1/0) yes/no
 % Sbaseline     - 2-element vector: start and stop of baseline
@@ -14,40 +14,47 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % collchans     - collapse channels (1/0) yes/no. Will average power over
 %                 channels after power estimation. THIS OPTION HAS BEEN
 %                 TEMPORARILY SWITCHED OFF.
-% D             - EEG data struct with time-frequency data (also written to files)
-%_______________________________________________________________________
+% 
+% Dtf           - MEEG object with power data (also written to disk)
+% Dtf2          - MEEG object with phase data (also written to disk) if
+%                 requested
+%__________________________________________________________________________
 %
 % spm_eeg_tf estimates instantaneous power and phase of data using the
 % continuous Morlet wavelet transform.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_tf.m 2850 2009-03-10 21:54:38Z guillaume $
 
+SVNrev = '$Rev: 2850 $';
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG Time-Frequency'); spm('Pointer','Watch');
 
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, 'mat', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
-
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     tf.frequencies = S.tf.frequencies;
 catch
     tf.frequencies = ...
         spm_input('Frequencies (Hz)', '+1', 'r', '', [1, inf]);
+    S.tf.frequencies = tf.frequencies;
 end
 
 try
@@ -109,8 +116,7 @@ end
 % else
 %     tf.collchans = 0;
 % end
-% 
-% ?
+
 try S.tf.circularise_phase
     tf.circularise = S.tf.circularise_phase;
 catch
@@ -118,8 +124,8 @@ catch
     S.tf.circularise_phase = tf.circularise;
 end
 
-spm('Pointer', 'Watch'); drawnow;
-
+%-Generate Morlet wavelets
+%--------------------------------------------------------------------------
 M = spm_eeg_morlet(tf.Mfactor, 1000/D.fsample, tf.frequencies);
 
 % if tf.collchans
@@ -178,7 +184,7 @@ else
 end
 
 
-spm_progress_bar('Init', D.ntrials, 'trials done'); drawnow;
+spm_progress_bar('Init', D.ntrials, 'trials done');
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
 else Ibar = [1:D.ntrials]; end
 
@@ -231,21 +237,20 @@ for k = 1:D.ntrials
         Dtf2(:, :, :, k) = d2;
     end
 
-    if ismember(k, Ibar)
-        spm_progress_bar('Set', k);
-        drawnow;
-    end
+    if ismember(k, Ibar), spm_progress_bar('Set', k); end
 
 end
 
 spm_progress_bar('Clear');
 
-% Remove baseline over frequencies and trials
+%-Remove baseline over frequencies and trials
+%--------------------------------------------------------------------------
 if tf.rm_baseline == 1
     Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
-    save(Dtf);
 end
 
+%-Save new M/EEG dataset
+%--------------------------------------------------------------------------
 Dtf = Dtf.history('spm_eeg_tf', S);
 save(Dtf);
 if tf.phase
@@ -253,7 +258,6 @@ if tf.phase
     save(Dtf2);
 end
 
-
-
-
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG Time Frequency: done'); spm('Pointer','Arrow');

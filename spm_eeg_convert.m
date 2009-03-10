@@ -33,19 +33,15 @@ function D = spm_eeg_convert(S)
 %                   0 - ignore breaks (not recommended).
 % S.saveorigheader - 1 - save original data header with the dataset
 %                    0 - do not keep the original header (default)
-% _______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2720 2009-02-09 19:50:46Z vladimir $
-
-[Finter] = spm('FnUIsetup','MEEG data conversion ',0);
-
-spm('Pointer', 'Watch');drawnow;
+% $Id: spm_eeg_convert.m 2850 2009-03-10 21:54:38Z guillaume $
 
 if ischar(S)
-    temp = S;
-    S=[];
+    temp      = S;
+    S         = [];
     S.dataset = temp;
 end
 
@@ -72,7 +68,14 @@ end
 %--------- Read and check header
 
 hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
-
+%-A temporary fix for 16/32bit confusion with NeuroScan data
+[p,f,e]=fileparts(S.dataset);
+if strcmp(e,'.cnt')
+    if spm_input('NeuroScan data file format?','+1','16bit|32bit',[0 1], 0)
+        hdr = fileio_read_header(S.dataset, 'fallback', 'biosig','headerformat','ns_cnt32');
+        hdr.nsdf = 32;
+    end
+end
 if isfield(hdr, 'label')
     [unique_label junk ind]=unique(hdr.label);
     if length(unique_label)~=length(hdr.label)
@@ -120,7 +123,7 @@ try
 
 
     % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ÿBIOSEMI')
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ï¿½BIOSEMI')
         ind = strcmp('STATUS', {event(:).type});
         val = [event(ind).value];
         if any(val>255)
@@ -381,7 +384,7 @@ for i = 1:ntrial
     end
 
     if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+        spm_progress_bar('Set', i);
     end
 
 end
@@ -489,8 +492,9 @@ end
 
 save(D);
 
-spm('Pointer', 'Arrow');drawnow;
-
+%==========================================================================
+% select_events
+%==========================================================================
 function event = select_events(event, timeseg)
 % Utility function to select events according to time segment
 % FORMAT event = select_events(event, timeseg)

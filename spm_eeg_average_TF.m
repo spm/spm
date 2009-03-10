@@ -1,106 +1,112 @@
 function D = spm_eeg_average_TF(S)
-% averages each channel over trials or trial types, for time-frequency data.
+% Average each channel over trials or trial types, for time-frequency data
 % FORMAT D = spm_eeg_average_TF(S)
 %
 % S         - optional input struct
 % (optional) fields of S:
-% D                 - filename of EEG mat-file with epoched data
-% circularise       - flat that indicates whether average is straight (0) or
-%                     vector (1) of phase angles.
+% S.D           - MEEG object or filename of M/EEG mat-file with epoched TF data
+% S.circularise - flag that indicates whether average is straight (0) or
+%                 vector (1) of phase angles.
 % Output:
-% D         - EEG data struct (also written to files)
-%_______________________________________________________________________
+% D         - MEEG object (also written to disk)
+%__________________________________________________________________________
 %
-% spm_eeg_average_TF averages single trial time-frequency data within trial type.
-%_______________________________________________________________________
+% This function averages single trial time-frequency data within trial type.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 2715 2009-02-09 17:10:41Z vladimir $
+% $Id: spm_eeg_average_TF.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
+SVNrev = '$Rev: 2850 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG TF averaging'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
+%-Check data type
+%--------------------------------------------------------------------------
+if ~strcmp(D.type, 'single')
+    error('This function can only be applied to single trial data');
+elseif ~strncmp(D.transformtype, 'TF', 2) % TF and TFphase
+    error('This function can only be applied to time-frequency data.');
 end
 
+%-Get other parameters
+%--------------------------------------------------------------------------
 try
     circularise = S.circularise;
 catch
     circularise = 0;
-    try
-        
-        if strcmp(D.transformtype, 'TFphase')
-            circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
-        end
+    if strcmp(D.transformtype, 'TFphase')
+        circularise = spm_input('Average of phase angles?','+1', ...
+            'straight|vector(PLV)',[0 1], 1);
     end
     S.circularise = circularise;
 end
 
-spm('Pointer', 'Watch'); drawnow;
+%-Generate new MEEG object with new files
+%--------------------------------------------------------------------------
+Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
+cl   = D.condlist;
 
-if ~strcmp(D.type, 'single')
-    error('This function can only be applied to single trial data');
-else
-    if strncmp(D.transformtype, 'TF', 2) % TF and TFphase
+spm_progress_bar('Init', D.nconditions, 'Averages done');
 
-        % generate new meeg object with new filenames
-        Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
-        cl = D.condlist;
+ni = zeros(1,D.nconditions);
 
-        spm_progress_bar('Init', D.nconditions, 'Averages done'); drawnow;
-        if D.nconditions > 100, Ibar = floor(linspace(1, D.nconditions, 100));
-        else Ibar = [1:D.nconditions]; end
+for i = 1:D.nconditions
 
-        for i = 1:D.nconditions
+    w = pickconditions(D, deblank(cl{i}), 1)';
 
-            w = pickconditions(D, deblank(cl{i}), 1)';
+    ni(i) = length(w);
 
-            ni(i) = length(w);
-
-            if ni(i) == 0
-                warning('%s: No trials for trial type %d', D.fname, conditionlabels(D, i));
-            else
-                if ~circularise % straight average
-
-                    for j = 1:D.nchannels
-                        Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = mean(D(j, :, :, w), 4);
-                    end
-                else% vector average (eg PLV for phase)
-
-                    for j = 1:D.nchannels
-                        tmp = D(j,:,:,w);
-                        tmp = cos(tmp) + sqrt(-1)*sin(tmp);
-                        Dnew(j, 1:Dnew.nsamples, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
-                    end
-                end
-
-                if ismember(i, Ibar)
-                    spm_progress_bar('Set', i);
-                    drawnow;
-                end
-            end
-        end
+    if ni(i) == 0
+        warning('%s: No trials for trial type %d', D.fname, conditionlabels(D, i));
     else
-        error('This function can only be applied to time-frequency data.');
+        
+        %-Straight average
+        %------------------------------------------------------------------
+        if ~circularise
+
+            for j = 1:D.nchannels
+                Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = mean(D(j, :, :, w), 4);
+            end
+            
+        %-Vector average (eg PLV for phase)
+        %------------------------------------------------------------------
+        else
+
+            for j = 1:D.nchannels
+                tmp = D(j, :, :, w);
+                tmp = cos(tmp) + sqrt(-1)*sin(tmp);
+                Dnew(j, 1:Dnew.nsamples, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
+            end
+            
+        end
+
+        spm_progress_bar('Set', i);
     end
 end
+
 spm_progress_bar('Clear');
 
 Dnew = type(Dnew, 'evoked');
 
-% jump outside methods to reorganise trial structure
+%-Reorganise trial structure
+%--------------------------------------------------------------------------
 sD = struct(Dnew);
 
 [sD.trials.label] = deal([]);
@@ -114,9 +120,10 @@ for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
 
 Dnew = meeg(sD);
 
+%-Display averaging statistics
+%--------------------------------------------------------------------------
 cl = D.condlist;
-
-disp(sprintf('%s: Number of replications per contrast:', Dnew.fname))
+disp(sprintf('%s: Number of replications per contrast:', Dnew.fname));  %-#
 s = [];
 for i = 1:D.nconditions
     s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
@@ -126,11 +133,14 @@ for i = 1:D.nconditions
         s = [s '\n'];
     end
 end
-disp(sprintf(s))
+disp(sprintf(s));                                                       %-#
 
+%-Save new evoked M/EEG dataset
+%--------------------------------------------------------------------------
 D = Dnew;
-D = D.history('spm_eeg_average_TF', S);
-
+D = D.history(mfilename, S);
 save(D);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG TF averaging: done'); spm('Pointer', 'Arrow');

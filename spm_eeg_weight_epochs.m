@@ -1,4 +1,4 @@
-function D = spm_eeg_weight_epochs(S);
+function D = spm_eeg_weight_epochs(S)
 % Compute contrasts over trials or trial types
 % FORMAT D = spm_eeg_weight_epochs(S)
 %
@@ -11,7 +11,7 @@ function D = spm_eeg_weight_epochs(S);
 % WeightAve - flag whether average should be weighted by number of
 %             replications (yes (1), no (0))
 % Output:
-% D         - EEG data struct (also written to files)
+% D         - EEG data struct (also written to disk)
 %__________________________________________________________________________
 %
 % spm_eeg_weight_epochs computes contrasts of data, over epochs of data. The
@@ -28,25 +28,29 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2750 2009-02-16 13:06:27Z vladimir $
+% $Id: spm_eeg_weight_epochs.m 2850 2009-03-10 21:54:38Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
+SVNrev = '$Rev: 2850 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG Contrasts'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_load(D);
-catch
-    error('Trouble reading file %s', D);
-end
-
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     c = S.c;
 catch
@@ -56,13 +60,12 @@ end
 
 Ncontrasts = size(c, 1);
 if ~isfield(S, 'label') || numel(S.label)~=size(c, 1)
-    label = {};
+    label = cell(1,Ncontrasts);
     for i = 1:Ncontrasts
         label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
     end
     S.label = label;
 end
-
 
 if ~isempty(D.repl)
     try
@@ -77,8 +80,8 @@ end
 
 % here should be a sanity check of c
 
-spm('Pointer', 'Watch'); drawnow;
-
+%-Redirect if Time Frequency data
+%--------------------------------------------------------------------------
 if strncmp(D.transformtype, 'TF', 2)
     % branch off to TF-function
     D = spm_eeg_weight_epochs_TF(S);
@@ -89,7 +92,7 @@ end
 % Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
 Dnew = clone(D, ['m' fnamedat(D)],[D.nchannels D.nsamples Ncontrasts]);
 
-spm_progress_bar('Init', Ncontrasts, 'Contrasts computed'); drawnow;
+spm_progress_bar('Init', Ncontrasts, 'Contrasts computed');
 if Ncontrasts > 100, Ibar = floor(linspace(1, Ncontrasts, 100));
 else Ibar = [1:Ncontrasts]; end
 
@@ -121,17 +124,14 @@ for i = 1:Ncontrasts
 
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i);
-        drawnow;
-    end
-
+    if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
 end
 
 spm_progress_bar('Clear');
 
-
+%-
+%--------------------------------------------------------------------------
 Dnew = conditions(Dnew, [], S.label);
 Dnew = trialonset(Dnew, [], []);
 Dnew = reject(Dnew, [], 0);
@@ -142,9 +142,12 @@ if isfield(Dnew,'inv')
     Dnew = rmfield(Dnew,'inv');
 end
 
+%-Save new M/EEG data
+%--------------------------------------------------------------------------
 D = Dnew;
 D = D.history('spm_eeg_weight_epochs', S);
-
 save(D);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG Contrasts: done'); spm('Pointer','Arrow');

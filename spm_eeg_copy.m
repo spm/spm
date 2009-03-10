@@ -11,14 +11,15 @@ function D = spm_eeg_copy(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_copy.m 2850 2009-03-10 21:54:38Z guillaume $
 
 % get MEEG object
 %--------------------------------------------------------------------------
 try
     D   = S.D;
 catch
-    D = spm_select(1, 'mat', 'Select M/EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
