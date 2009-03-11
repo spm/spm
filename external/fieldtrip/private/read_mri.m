@@ -16,6 +16,9 @@ function [mri] = read_mri(filename)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: read_mri.m,v $
+% Revision 1.6  2009/03/11 15:02:18  vlalit
+% Use either SPM5 or SPM8 to read *.nii files.
+%
 % Revision 1.5  2009/02/17 11:33:18  roboos
 % renamed read_fcdc_mri to read_mri and moved to fileio
 %
@@ -88,7 +91,8 @@ fieldtripdefs
 hasmri  = hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
 hasspm2 = hastoolbox('spm2');    % see http://www.fil.ion.ucl.ac.uk/spm/
 hasspm5 = hastoolbox('spm5');    % see http://www.fil.ion.ucl.ac.uk/spm/
-hasspm = (hasspm2 || hasspm5);
+hasspm8 = hastoolbox('spm8');    % see http://www.fil.ion.ucl.ac.uk/spm/
+hasspm = (hasspm2 || hasspm5 || hasspm8);
 hasafni = hastoolbox('afni');    % see http://afni.nimh.nih.gov/
 
 % test whether the file exists
@@ -123,8 +127,8 @@ elseif filetype(filename, 'minc')
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif filetype(filename, 'nifti')
-  if ~hasspm5
-    error('the SPM5 toolbox is required to read *.nii files');
+  if ~(hasspm5 || hasspm8)
+    error('the SPM5 or SPM8 toolbox is required to read *.nii files');
   end
   % use the functions from SPM
   hdr = spm_vol_nifti(filename);

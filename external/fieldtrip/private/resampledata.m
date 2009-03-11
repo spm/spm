@@ -13,6 +13,13 @@ function [data] = resampledata(cfg, data);
 %   cfg.feedback   = 'no', 'text', 'textbar', 'gui' (default = 'text')
 %   cfg.trials     = 'all' or a selection given as a 1xN vector (default = 'all')
 %
+% Instead of specifying cfg.resamplefs, you can also specify a time axis on
+% which you want the data to be resampled. This is usefull for merging data
+% from two acquisition devides, after resampledata you can call APPENDDATA
+% to concatenate the channles from the different acquisition devices.
+%   cfg.time        = cell-array with one time axis per trial (i.e. from another dataset)
+%   cfg.method      = interpolation method, see INTERP1 (default = 'pchip')
+%
 % Previously this function used to detrend the data by default. The
 % motivation for this is that the data is filtered prior to resampling
 % to avoid aliassing and detrending prevents occasional edge artifacts
@@ -34,9 +41,12 @@ function [data] = resampledata(cfg, data);
 % See also PREPROCESSING
 
 % Copyright (C) 2003-2006, FC Donders Centre, Markus Siegel
-% Copyright (C) 2004-2008, FC Donders Centre, Robert Oostenveld
+% Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.17  2009/03/11 13:29:33  roboos
+% added option for resampling the data onto the time axis of another dataset. This supports both down- and upsampling.
+%
 % Revision 1.16  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -94,6 +104,8 @@ function [data] = resampledata(cfg, data);
 
 fieldtripdefs
 
+cfg = checkconfig(cfg, 'trackconfig', 'on');
+
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
@@ -103,6 +115,8 @@ if ~isfield(cfg, 'detrend'),    cfg.detrend = [];      end  % no default to enfo
 if ~isfield(cfg, 'blc'),        cfg.blc = 'no';        end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text'; end
 if ~isfield(cfg, 'trials'),     cfg.trials = 'all';    end
+if ~isfield(cfg, 'time'),       cfg.time = {};         end
+if ~isfield(cfg, 'method'),     cfg.method = 'pchip';  end  % interpolation method
 
 if isempty(cfg.detrend)
   error('The previous default to apply detrending has been changed. Recommended is to apply a baseline correction instead of detrending. See the help of this function for more details.');
@@ -129,37 +143,80 @@ if ~strcmp(cfg.trials, 'all')
   end
 end
 
+usefsample = isfield(cfg, 'fsample') && ~isempty(cfg.fsample);
+usetime   = isfield(cfg, 'time') && ~isempty(cfg.time);
+
+if usefsample && usetime
+  error('you should either specify cfg.resamplefs or cfg.time')
+end
+
 % remember the original sampling frequency in the configuration
 cfg.origfs = data.fsample;
 
-% specify the new sampling frequency in the output
-data.fsample = cfg.resamplefs;
+if usefsample
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % resample based on new sampling frequency
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ntr = length(data.trial);
 
-fprintf('original sampling rate: %d Hz\nnew sampling rate: %d Hz\n',cfg.origfs,cfg.resamplefs);
+  progress('init', cfg.feedback, 'resampling data');
+  for itr = 1:ntr
+    progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
+    if strcmp(cfg.blc,'yes')
+      data.trial{itr} = preproc_baselinecorrect(data.trial{itr});
+    end
+    if strcmp(cfg.detrend,'yes')
+      data.trial{itr} = preproc_detrend(data.trial{itr});
+    end
+    % perform the resampling
+    if isa(data.trial{itr}, 'single')
+      % temporary convert this trial to double precision
+      data.trial{itr} = single(resample(double(data.trial{itr})',double(cfg.resamplefs),double(cfg.origfs)))';
+    else
+      data.trial{itr} = resample(data.trial{itr}',cfg.resamplefs,cfg.origfs)';
+    end
+    % update the time axis
+    nsmp = size(data.trial{itr},2);
+    data.time{itr} = data.time{itr}(1) + (0:(nsmp-1))/cfg.resamplefs;
+  end % for itr
+  progress('close');
 
-progress('init', cfg.feedback, 'resampling data');
-nch = length(data.label);
-ntr = length(data.trial);
-for itr = 1:ntr
-  progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
-  if strcmp(cfg.blc,'yes')
-    data.trial{itr} = preproc_baselinecorrect(data.trial{itr});
-  end
-  if strcmp(cfg.detrend,'yes')
-    data.trial{itr} = preproc_detrend(data.trial{itr});
-  end
-  if isa(data.trial{itr}, 'single')
-    % temporary convert this trial to double precision
-    data.trial{itr} = single(resample(double(data.trial{itr})',double(cfg.resamplefs),double(cfg.origfs)))';
-  else
-    data.trial{itr} = resample(data.trial{itr}',cfg.resamplefs,cfg.origfs)';
-  end
-  % recompute and remember the time axis
-  nsmp = size(data.trial{itr},2);
-  data.time{itr} = data.time{itr}(1) + (0:(nsmp-1))/cfg.resamplefs;
-end
-progress('close');
+  % specify the new sampling frequency in the output
+  data.fsample = cfg.resamplefs;
 
+elseif usetime
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % resample based on new time axes for each trial
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ntr = length(data.trial);
+
+  progress('init', cfg.feedback, 'resampling data');
+  for itr = 1:ntr
+    progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
+    if strcmp(cfg.blc,'yes')
+      data.trial{itr} = preproc_baselinecorrect(data.trial{itr});
+    end
+    if strcmp(cfg.detrend,'yes')
+      data.trial{itr} = preproc_detrend(data.trial{itr});
+    end
+    % perform the resampling
+    data.trial{itr} = interp1(data.time{itr}', data.trial{itr}', cfg.time{itr}', cfg.method)';
+    % update the time axis
+    data.time{itr} = cfg.time{itr};
+  end % for itr
+  progress('close');
+
+  % specify the new sampling frequency in the output
+  t1 = cfg.time{1}(1);
+  t2 = cfg.time{1}(2);
+  data.fsample = 1/(t2-t1);
+
+end % if usefsample or usetime
+
+fprintf('original sampling rate = %d Hz\nnew sampling rate = %d Hz\n', cfg.origfs, data.fsample);
+
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -170,7 +227,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.16 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.17 2009/03/11 13:29:33 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
