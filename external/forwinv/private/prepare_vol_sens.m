@@ -1,17 +1,9 @@
 function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 
 % PREPARE_VOL_SENS does some bookkeeping to ensure that the volume
-% conductor model and the sensor array are appropriate. Furthermore it
-% takes care of pre-computations that can be done efficiently prior to the
-% leadfield calculations.
-%
-% The prepare_vol_sens has different roles for EEG and for MEG and % for
-% the different volume conductor models. it for example projects the 3D
-% electrode positions onto the skin compartment of the volume conductor to
-% ensure that they do not float above the surface with a few mm due to
-% mis-alignment. Or for example for MEG gradiometer sensors with a
-% multisphere volume conductor it ensured that each coil of the gradiometer
-% array is associated with a sphere.
+% conductor model and the sensor array are ready for subsequent forward
+% leadfield computations. It takes care of some pre-computations that can
+% be done efficiently prior to the leadfield calculations.
 %
 % Use as
 %   [vol, sens] = prepare_vol_sens(vol, sens, ...)
@@ -27,11 +19,30 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 %   'channel'    cell-array with strings (default = 'all')
 %   'order'      number, for single shell "Nolte" model (default = 10)
 %
+% The detailled behaviour of this function depends on whether the input
+% consists of EEG or MEG and furthermoree depends on the type of volume 
+% conductor model:
+% - in case of EEG single and concentric sphere models, the electrodes are
+%   projected onto the skin surface.
+% - in case of EEG boundary element models, the electrodes are projected on
+%   the surface and a blilinear interpoaltion matrix from vertices to
+%   electrodes is computed.
+% - in case of MEG and a multispheres model, a local sphere is determined
+%   for each coil in the gradiometer definition.
+%  - in case of MEG with a singleshell Nolte model, the volume conduction
+%    model is initialized
+% In any case channel selection and reordering will be done. The channel
+% order returned by this function corresponds to the order in the 'channel'
+% option, or if not specified, to the order in the input sensor array.
+%
 % See also READ_VOL, READ_SENS, TRANSFORM_VOL, TRANSFORM_SENS, COMPUTE_LEADFIELD
 
-% Copyright (C) 2004-2008, Robert Oostenveld
+% Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.12  2009/03/11 11:29:26  roboos
+% ensure that the channel order in the sens and in the vol is consistent with  the user-specified channel-keyval argument
+%
 % Revision 1.11  2009/02/02 13:06:40  roboos
 % added bemcp
 % changed handling of vertex->electrode interpolation, now also possible if bem system matrix only describes the skin surface
@@ -78,7 +89,7 @@ order   = keyval('order',    varargin);  % order of expansion for Nolte method; 
 if isempty(channel),  channel = sens.label;   end
 if isempty(order),    order = 10;             end
 
-% determine whether the input contains EEG or MEG seosors
+% determine whether the input contains EEG or MEG sensors
 iseeg = senstype(sens, 'eeg');
 ismeg = senstype(sens, 'meg');
 
@@ -99,14 +110,15 @@ elseif ismeg
     sens.tra = sparse(eye(length(sens.label)));
   end
 
-  % select the desired magnetometer/gradiometer channels
-  % first only modify the linear combination of coils into channels
-  sel = match_str(sens.label, channel);
-  sens.label = sens.label(sel);
-  sens.tra   = sens.tra(sel,:);
+  % select the desired channels from the gradiometer array
+  % order them according to the users specification
+  [selchan, selsens] = match_str(channel, sens.label);
 
-  % remove the coils from the grad.pnt and ori field that do not contribute to any channel's output
-  selcoil = find(sum(sens.tra,1)~=0);
+  % first only modify the linear combination of coils into channels
+  sens.label = sens.label(selsens);
+  sens.tra   = sens.tra(selsens,:);
+  % subsequently remove the coils that do not contribute to any sensor output
+  selcoil  = find(sum(sens.tra,1)~=0);
   sens.pnt = sens.pnt(selcoil,:);
   sens.ori = sens.ori(selcoil,:);
   sens.tra = sens.tra(:,selcoil);
@@ -127,7 +139,8 @@ elseif ismeg
       % we have to add a selection of the channels so that the channels
       % in the forward model correspond with those in the data.
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      vol.chansel = match_str(sens.label, channel);
+      [selchan, selsens] = match_str(channel, sens.label);
+      vol.chansel = selsens;
 
     case 'multisphere'
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,16 +149,20 @@ elseif ismeg
       % conduction model.
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      % get the local spheres for the MEG channels, this will be ordered
-      % according to the ordering of the gradiometer channels
-      [selsens, selvol] = match_str(sens.label, vol.label);
+      % select the desired channels from the multisphere volume conductor
+      % order them according to the users specification
+      [selchan, selvol] = match_str(channel, vol.label);
+      vol.label = vol.label(selvol);
+      vol.r     = vol.r(selvol);
+      vol.o     = vol.o(selvol,:);
 
-      % the CTF way of storing the headmodel is one-sphere-per-channel
-      % whereas the FieldTrip way is one-sphere-per-coil
-      Nchans = size(sens.tra,1);
-      Ncoils = size(sens.tra,2);
+      % the CTF way of representing the headmodel is one-sphere-per-channel
+      % whereas the FieldTrip way of doing the forward computation is one-sphere-per-coil
+      Nchans   = size(sens.tra,1);
+      Ncoils   = size(sens.tra,2);
+      Nspheres = size(vol.label);
+
       multisphere = [];
-
       % for each coil in the MEG helmet, determine the corresponding local sphere
       for i=1:Ncoils
         coilindex = find(sens.tra(:,i)~=0); % to which channel does the coil belong
@@ -174,7 +191,7 @@ elseif ismeg
         vol.bnd.nrm = normals(vol.bnd.pnt, vol.bnd.tri);
       end
       % estimate center and radius
-      [center,radius]=sphfit([vol.bnd.pnt vol.bnd.nrm]);
+      [center,radius] = sphfit([vol.bnd.pnt vol.bnd.nrm]);
       % initialize the forward calculation (only if gradiometer coils are available)
       if size(sens.pnt,1)>0
         vol.forwpar = meg_ini([vol.bnd.pnt vol.bnd.nrm], center', order, [sens.pnt sens.ori]);
@@ -185,10 +202,12 @@ elseif ismeg
   end
 
 elseif iseeg
-  % select the desired electrodes
-  sel = match_str(sens.label, channel);
-  sens.label = sens.label(sel);
-  sens.pnt   = sens.pnt(sel,:);
+  % select the desired channels from the electrode array
+  % order them according to the users specification
+  [selchan, selsens] = match_str(channel, sens.label);
+  sens.label = sens.label(selsens);
+  sens.pnt   = sens.pnt(selsens,:);
+
   % create a 2D projection and triangulation
   sens.prj   = elproj(sens.pnt);
   sens.tri   = delaunay(sens.prj(:,1), sens.prj(:,2));
@@ -225,16 +244,15 @@ elseif iseeg
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      % project the electrodes on the skin and determine bilinear
-      % interpolation matrix "tra"
+      % project the electrodes on the skin and determine the bilinear interpolation matrix
       if ~isfield(vol, 'tra')
         % determine boundary corresponding with skin and brain
         if ~isfield(vol, 'skin')
-          vol.skin   = find_outermost_boundary(vol.bnd);
+          vol.skin = find_outermost_boundary(vol.bnd);
           fprintf('determining skin compartment (%d)\n', vol.skin);
         end
         if ~isfield(vol, 'source')
-          vol.source  = find_innermost_boundary(vol.bnd);
+          vol.source = find_innermost_boundary(vol.bnd);
           fprintf('determining source compartment (%d)\n', vol.source);
         end
         if size(vol.mat,1)~=size(vol.mat,2) && size(vol.mat,1)==length(sens.pnt)
