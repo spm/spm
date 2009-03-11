@@ -33,9 +33,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 2857 2009-03-11 13:21:04Z guillaume $
+% $Id: spm_eeg_convert2images.m 2860 2009-03-11 17:22:50Z guillaume $
 
-SVNrev = '$Rev: 2857 $';
+SVNrev = '$Rev: 2860 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -47,7 +47,7 @@ spm('FigName','M/EEG conversion setup'); spm('Pointer','Watch');
 try
     D = S.D;
 catch
-    [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
     if ~sts, D = []; return; end
     S.D = D;
 end
