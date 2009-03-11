@@ -1,6 +1,5 @@
 function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Bayesian model selection for group studies
-% 
 % FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling)
 % 
 % INPUT:
@@ -24,16 +23,16 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2771 2009-02-22 13:00:56Z klaas $
+% $Id: spm_BMS.m 2862 2009-03-11 19:57:10Z guillaume $
 
 
-if nargin < 2 | isempty(Nsamp)
+if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
 end
-if nargin < 3 | isempty(do_plot)
+if nargin < 3 || isempty(do_plot)
     do_plot = 0;
 end
-if nargin < 4 | isempty(sampling)
+if nargin < 4 || isempty(sampling)
     sampling = 0;
 end
 
@@ -45,13 +44,13 @@ cc      = 10e-4;
 
 
 % prior observations
-%============================================
+%--------------------------------------------------------------------------
 alpha0  = ones(1,Nk);
 alpha   = alpha0;
 
 
 % iterative VB estimation
-%============================================
+%--------------------------------------------------------------------------
 while c > cc,
 
     % compute posterior belief g(i,k)=q(m_i=k|y_i) that model k generated
@@ -95,21 +94,16 @@ end
 
 
 % Compute expectation of the posterior p(r|y)
-%============================================
+%--------------------------------------------------------------------------
 exp_r = alpha./sum(alpha);
 
 
 % Compute exceedance probabilities p(r_i>r_j)
-%============================================
+%--------------------------------------------------------------------------
 if Nk == 2
-    % comparison of 2 models: use betacdf from statistics toolbox
-    try
-        xp(1) = betacdf(0.5,alpha(2),alpha(1));
-        xp(2) = betacdf(0.5,alpha(1),alpha(2));
-    catch
-        % if statistics toolbox not available, use sampling approach
-        xp = spm_dirichlet_conj_exceed(alpha,Nsamp);
-    end
+    % comparison of 2 models
+    xp(1) = spm_Bcdf(0.5,alpha(2),alpha(1));
+    xp(2) = spm_Bcdf(0.5,alpha(1),alpha(2));
 else
     % comparison of >2 models: use sampling approach
     xp = spm_dirichlet_conj_exceed(alpha,Nsamp);
@@ -117,10 +111,10 @@ end
 
 
 % Graphics output (currently for 2 models only)
-%==============================================
-if do_plot & Nk == 2
+%--------------------------------------------------------------------------
+if do_plot && Nk == 2
     % plot Dirichlet pdf
-    %-------------------
+    %----------------------------------------------------------------------
     if alpha(1)<=alpha(2)
        alpha_now =sort(alpha,1,'descend');
        winner_inx=2;
@@ -152,11 +146,11 @@ end
 
 % Sampling approach ((currently implemented for 2 models only):
 % plot F as a function of alpha_1
-%==============================================================
+%--------------------------------------------------------------------------
 if sampling
     if Nk == 2
         % Compute lower bound on F by sampling
-        %-------------------------------------
+        %------------------------------------------------------------------
         alpha_max = size(lme,1) + Nk*alpha0(1);
         dx        = 0.1;
         a         = [1:dx:alpha_max];
@@ -166,7 +160,7 @@ if sampling
             [F_samp(i),F_bound(i)] = spm_BMS_F(alpha_s,lme,alpha0);
         end
         % graphical display
-        %-------------------------------------
+        %------------------------------------------------------------------
         fig2 = figure;
         axes2 = axes('Parent',fig2,'FontSize',14);
         plot(a,F_samp,'Parent',axes2,'LineStyle','-','DisplayName','Sampling Approach',...
@@ -184,5 +178,3 @@ if sampling
         fprintf('%s\n','This approach is currently only implemented for comparison of 2 models.');
     end
 end
-
-return
