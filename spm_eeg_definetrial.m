@@ -23,7 +23,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_definetrial.m 2856 2009-03-11 13:19:04Z vladimir $
 
 if nargin == 0
     S = [];
@@ -73,7 +73,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
 
 
     % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ÿBIOSEMI')
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, [char(255) 'BIOSEMI'])
         ind = strcmp('STATUS', {event(:).type});
         val = [event(ind).value];
         if any(val>255)
