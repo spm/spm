@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_grandmean.m 2857 2009-03-11 13:21:04Z guillaume $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 2857 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -248,7 +248,7 @@ spm_progress_bar('Init', Ntypes, 'responses averaged');
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
 
-if strcmp(D{1}.transformtype, 'TF')
+if strncmp(D{1}.transformtype, 'TF',2)
     for i = 1:Ntypes
         d = zeros(D{1}.nchannels, D{1}.nfrequencies, D{1}.nsamples);
 

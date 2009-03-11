@@ -1,14 +1,14 @@
 function res = frequencies(this, varargin)
 % Method for getting/setting frequencies of TF data
 % FORMAT res = frequencies(this, varargin)
-% _______________________________________________________________________
+% _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: frequencies.m 1270 2008-03-28 14:35:16Z stefan $
+% $Id: frequencies.m 2857 2009-03-11 13:21:04Z guillaume $
 
 if isempty(varargin)
-    if strcmp(transformtype(this), 'TF')
+    if strncmpi(transformtype(this), 'TF',2)
         res = getset(this, 'transform', 'frequencies');
     else
         res = [];
@@ -23,7 +23,7 @@ else
     % can't use getset because both information must be set at the same
     % time
     sD = struct(this);
-    sD.transform.ID = 'TF';
+    sD.transform.ID = 'TF'; % could it be TFphase?
     sD.transform.frequencies = f;
     
     res = meeg(sD);

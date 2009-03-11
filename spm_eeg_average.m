@@ -16,9 +16,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_average.m 2857 2009-03-11 13:21:04Z guillaume $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 2857 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ D = spm_eeg_load(D);
 
 %-Redirect to Time-Frequency averaging if necessary
 %--------------------------------------------------------------------------
-if ~isempty(strmatch('TF',D.transformtype)) % TF and TFphase
+if strncmpi(D.transformtype,'TF',2) % TF and TFphase
     D = spm_eeg_average_TF(S);
     return
 end

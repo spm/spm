@@ -33,9 +33,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 2843 2009-03-09 16:01:44Z guillaume $
+% $Id: spm_eeg_convert2images.m 2857 2009-03-11 13:21:04Z guillaume $
 
-SVNrev = '$Rev: 2843 $';
+SVNrev = '$Rev: 2857 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ end
 
 %-Time-Frequency data
 %==========================================================================
-if strcmp(D.transformtype, 'TF');
+if strncmpi(D.transformtype, 'TF',2);
 
     %-Average over channels or frequencies?
     %----------------------------------------------------------------------
