@@ -23,6 +23,9 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.7  2009/03/11 11:28:24  roboos
+% detect as mm for very wide anatomical MRIs (happens at the fcdc with the ctf MRIs)
+%
 % Revision 1.6  2009/02/05 10:20:35  roboos
 % added bemcp as volume type
 %
@@ -129,8 +132,13 @@ else
     pos = warp_apply(obj.transform, pos);
     size = norm(range(pos));
     % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    unit = {'m', 'dm', 'cm', 'mm'};
+    indx =  round(log10(size)+2-0.2);
+    if indx>4
+      warning('assuming mm units');
+      indx = 4;
+    end
+    unit = unit{indx};
     
   elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
     size = norm(range(obj.fid.pnt));
