@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.94  2009/03/11 16:13:46  josdie
+% For simple binary files, changed category names to cell variables to better support names with differing lengths.
+%
 % Revision 1.93  2009/03/02 10:44:38  roboos
 % switched default for fif files to use the MNE reading routines in case of neuromag_fif
 % the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
@@ -911,7 +914,7 @@ switch eventformat
       event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
       event(eventCount).offset   = -hdr.nSamplesPre;
       event(eventCount).duration =  hdr.nSamples;
-      event(eventCount).value    =  char([CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))]);
+      event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
     end
 
   case 'fcdc_buffer'

@@ -22,6 +22,9 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %
 
 % $Log: read_sbin_header.m,v $
+% Revision 1.3  2009/03/11 16:12:09  josdie
+% Changed category names to cell variables to better support names with differing lengths.
+%
 % Revision 1.2  2009/03/05 01:03:13  josdie
 % Improved process of deducing what the stimulus onset latency is in files with multiple events.
 %
@@ -89,7 +92,7 @@ NumCategors	= fread(fid,1,'int16',endian);
 for j = 1:NumCategors
     CatLengths(j)	= fread(fid,1,'int8',endian);
     for i = 1:CatLengths(j)
-        CateNames(j,i)	= char(fread(fid,1,'char',endian));
+        CateNames{j}(i)	= char(fread(fid,1,'char',endian));
     end
 end
 NSegments	= fread(fid,1,'int16',endian);
