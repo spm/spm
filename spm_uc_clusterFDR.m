@@ -33,7 +33,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 2813 2009-03-02 18:56:35Z guillaume $
+% $Id: spm_uc_clusterFDR.m 2858 2009-03-11 16:12:12Z guillaume $
 
 % Threshold the statistical field 
 %--------------------------------------------------------------------------
@@ -42,7 +42,9 @@ XYZ      = XYZ(:,Z >= ui);
 % Extract size of excursion sets 
 %--------------------------------------------------------------------------
 N        = spm_clusters(XYZ);
-N        = histc(N,(0:max(N))+0.5); 
+if ~isempty(N)
+    N    = histc(N,(0:max(N))+0.5);
+end
 N        = N(1:end-1);
 N        = N .* V2R;
 

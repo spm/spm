@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_filter.m 2858 2009-03-11 16:12:12Z guillaume $
 
-SVNrev = '$Rev';
+SVNrev = '$Rev: 2858 $';
 
 %-Startup
 %--------------------------------------------------------------------------

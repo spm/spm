@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 2827 2009-03-04 17:38:58Z guillaume $
+% $Id: spm.m 2858 2009-03-11 16:12:12Z guillaume $
 
 
 %=======================================================================
@@ -993,7 +993,14 @@ case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 time = spm('time');
 str  = spm('ver');
 if nargin>=2, str = [str,': ',varargin{2}]; end
-if nargin>=3, str = [str,' (v',varargin{3},')']; end
+if nargin>=3 
+    v = regexp(varargin{3},'\$Rev: (\d*) \$','tokens','once');
+    if ~isempty(v)
+        str = [str,' (v',v{1},')'];
+    else
+        str = [str,' (v',varargin{3},')'];
+    end
+end
 
 switch lower(Action)
 case 'fnbanner'
