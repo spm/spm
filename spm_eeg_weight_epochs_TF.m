@@ -26,29 +26,33 @@ function D = spm_eeg_weight_epochs_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs_TF.m 2750 2009-02-16 13:06:27Z vladimir $
+% $Id: spm_eeg_weight_epochs_TF.m 2861 2009-03-11 18:41:03Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
+SVNrev = '$Rev: 2861 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG weigth epochs TF'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
-
-try
-    D = spm_eeg_load(D);
-catch
-    error('Trouble reading file %s', D);
-end
+D = spm_eeg_load(D);
 
 if ~strncmp(D.transformtype, 'TF', 2)
     error('Use this function for time-frequency data only');
 end
 
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     c = S.c;
 catch
@@ -58,13 +62,12 @@ end
 
 Ncontrasts = size(c, 1);
 if ~isfield(S, 'label') || numel(S.label)~=size(c, 1)
-    label = {};
+    label = cell(1,Ncontrasts);
     for i = 1:Ncontrasts
         label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
     end
     S.label = label;
 end
-
 
 if ~isempty(D.repl)
     try
@@ -79,15 +82,12 @@ end
 
 % here should be a sanity check of c
 
-
-spm('Pointer', 'Watch'); drawnow;
-
 Ncontrasts = size(c, 1);
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples Ncontrasts]);
 
-spm_progress_bar('Init', Ncontrasts, 'Contrasts computed'); drawnow;
+spm_progress_bar('Init', Ncontrasts, 'Contrasts computed');
 if Ncontrasts > 100, Ibar = floor(linspace(1, Ncontrasts, 100));
 else Ibar = [1:Ncontrasts]; end
 
@@ -121,11 +121,7 @@ for i = 1:Ncontrasts
     
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i);
-        drawnow;
-    end
-
+    if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
 end
 
@@ -143,7 +139,8 @@ end
 
 D = Dnew;
 D = D.history('spm_eeg_weight_epochs_TF', S);
-
 save(D);
 
-spm('Pointer', 'Arrow');
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG weight epochs TF: done'); spm('Pointer','Arrow');

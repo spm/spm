@@ -29,9 +29,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_montage.m 2861 2009-03-11 18:41:03Z guillaume $
 
-SVNrev = '$Rev: 2720 $';
+SVNrev = '$Rev: 2861 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -70,7 +70,8 @@ if ~isfield(S, 'montage')
             montage.labelnew = montage.labelorg;
             S.montage        = spm_eeg_montage_ui(montage);
         case 'file'
-            S.montage = spm_select(1, 'mat$', 'Select a montage file');
+            [S.montage, sts] = spm_select(1, 'mat', 'Select a montage file');
+            if ~sts, montage = []; return; end
     end
 end
 

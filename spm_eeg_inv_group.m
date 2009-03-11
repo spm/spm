@@ -1,4 +1,4 @@
-function spm_eeg_inv_group(S);
+function spm_eeg_inv_group(S)
 % Source reconstruction for a group ERP or ERF study
 % FORMAT spm_eeg_inv_group
 %
@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_group.m 2861 2009-03-11 18:41:03Z guillaume $
 
 
 % check if to proceed
@@ -37,7 +37,8 @@ if ~strcmp(str,'Yes'), return, end
 % Gile file names
 %--------------------------------------------------------------------------
 if ~nargin
-    S = spm_select(Inf, '.mat','Select EEG/MEG mat files');
+    [S, sts] = spm_select(Inf, 'mat','Select M/MEG mat files');
+    if ~sts, return; end
 end
 Ns    = size(S,1);
 PWD   = pwd;

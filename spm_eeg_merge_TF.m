@@ -11,28 +11,36 @@ function Dout = spm_eeg_merge_TF(S)
 % D         - EEG data struct (also written to files)
 %
 % concatenates epoched single trial files containing time-frequency data
-%_______________________________________________________________________
-% This function can be used to merge M/EEG files containing time-frequency data to one file. This is
-% useful whenever the data are distributed over multiple files, but one
-% wants to use all information in one file. For example, when displaying
-% data (SPM displays data from only one file at a time), or merging 
-% information that has been measured in multiple sessions.
-%_______________________________________________________________________
+%__________________________________________________________________________
+%
+% This function can be used to merge M/EEG files containing time-frequency 
+% data to one file. This is useful whenever the data are distributed over 
+% multiple files, but one wants to use all information in one file. For 
+% example, when displaying data (SPM displays data from only one file at a 
+% time), or merging information that has been measured in multiple sessions.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel
-% $Id: spm_eeg_merge_TF.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_merge_TF.m 2861 2009-03-11 18:41:03Z guillaume $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge TF',0);
+SVNrev = '$Rev: 2861 $';
 
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG TF Merge'); spm('Pointer','Watch');
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select([2 inf], '\.mat$', 'Select M/EEG mat files');
+    [D, sts] = spm_select([2 inf], 'mat', 'Select M/EEG mat files');
+    if ~sts, Dout = []; return; end
     S.D = D;
 end
 
-P = spm_str_manip(D(1,:), 'H');
 
 try
     for i = 1:size(D, 1)
@@ -48,8 +56,6 @@ Nfiles = length(D);
 if Nfiles < 2
     error('Need at least two files for merging');
 end
-
-spm('Pointer', 'Watch');
 
 Dout = D{1};
 
@@ -127,7 +133,7 @@ Dout = meeg(sDout);
 % write files
 
 % progress bar
-spm_progress_bar('Init', Nfiles, 'Files merged'); drawnow;
+spm_progress_bar('Init', Nfiles, 'Files merged');
 if Nfiles > 100, Ibar = floor(linspace(1, Nfiles,100));
 else Ibar = [1:Nfiles]; end
 
@@ -145,18 +151,15 @@ for i = 1:Nfiles
         Dout(1:Dout.nchannels, 1:Dout.nfrequencies, 1:Dout.nsamples, k) =  D{i}(:,:,:,j);
     end
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
-    end
+    if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
 
 end
 
 Dout = Dout.history('spm_eeg_merge_TF', S);
-
 save(Dout);
+
+%-Cleanup
+%--------------------------------------------------------------------------
 spm_progress_bar('Clear');
-spm('Pointer', 'Arrow');
-
-
-
+spm('FigName','M/EEG TF merge: done'); spm('Pointer','Arrow');

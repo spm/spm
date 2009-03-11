@@ -1,40 +1,52 @@
 function D = spm_eeg_robust_average_TF(S)
-% robust averaging TF data based on weights calculated on ERP of same data.
-%_______________________________________________________________________
+% Robust averaging TF data based on weights calculated on ERP of same data.
+% FORMAT D = spm_eeg_robust_average_TF(S)
+%
+% S        - optional input struct
+% (optional) fields of S:
+%   S.D    - 
+%   S.D2   - 
+%   S.c    - 
+%
+% D        - MEEG object (also written to disk)
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_average_TF.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_robust_average_TF.m 2861 2009-03-11 18:41:03Z guillaume $
 
+SVNrev = '$Rev: 2861 $';
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG robust average TF'); spm('Pointer','Watch');
 
+%-Get MEEG objects
+%--------------------------------------------------------------------------
 try
     D = S.D;
 catch
-    D = spm_select(1, '.*\.mat$', 'Select TF mat file');
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
+    S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
+D = spm_eeg_load(D);
 
-try
-    D = spm_eeg_ldata(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
 try
     D2 = S.D2;
 catch
-    D2 = spm_select(1, '.*\.mat$', 'Select robust averaged erp file file');
+    [D2, sts] = spm_select(1, 'mat', 'Select robust averaged erp file file');
+    if ~sts, return; end
+    S.D2 = D2;
 end
 
-P = spm_str_manip(D2, 'H');
+D2 = spm_eeg_load(D2);
+P  = spm_str_manip(D2, 'H');
 
-try
-    D2 = spm_eeg_ldata(D2);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
+%-Get parameters
+%--------------------------------------------------------------------------
 try
     c = S.c;
 catch
@@ -43,12 +55,8 @@ catch
     c = eye(D.events.Ntypes);
 end
 
-
-spm('Clear',Finter, Fgraph);
-
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
-
-
+%-
+%--------------------------------------------------------------------------
 d=zeros(size(D.data,1),size(D.data,2),size(D.data,3),D.events.Ntypes);
 fh=fopen(fullfile(D.path,D.fnamedat),'r');
   spm_progress_bar('Init', D.Nevents, 'averaging'); drawnow;
@@ -119,3 +127,8 @@ if spm_matlab_version_chk('7') >= 0
 else
     save(fullfile(P, D.fname), 'D');
 end
+
+%-Cleanup
+%--------------------------------------------------------------------------
+spm_progress_bar('Clear');
+spm('FigName','M/EEG robust average TF: done'); spm('Pointer','Arrow');

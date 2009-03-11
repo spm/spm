@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2825 2009-03-04 15:08:59Z guillaume $
+% $Id: spm_eeg_inv_imag_api.m 2861 2009-03-11 18:41:03Z guillaume $
 
 spm('Clear');
 
@@ -120,7 +120,8 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in Load.
 %--------------------------------------------------------------------------
 function Load_Callback(hObject, eventdata, handles)
-S = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+[S, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+if ~sts, return; end
 D = spm_eeg_load(S);
 
 [ok, D] = check(D, 'sensfid');

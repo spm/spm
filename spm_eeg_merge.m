@@ -23,9 +23,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_merge.m 2861 2009-03-11 18:41:03Z guillaume $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 2861 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -65,7 +65,12 @@ end
 Ntrials = 0;
 for i = 1:Nfiles
     if ~strcmp(D{i}.transformtype, 'time')
-        error('can only be used for time-series data');
+        if strncmpi(D.transformtype,'TF',2) % TF and TFphase
+            Dout = spm_eeg_merge_TF(S);
+            return;
+        else
+            error('can only be used for time-series data');
+        end
     end
     
     % ascertain same number of channels, Nsamples and fsample

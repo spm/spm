@@ -6,33 +6,42 @@ function S = spm_eeg_channelselection(S)
 % S.channels - can be 'MEG', 'EEG', 'file', 'gui' or cell array of labels
 % S.chanfile - filename (used in case S.channels = 'file')
 % S.dataset - MEEG dataset name
-% S.inputformat - data type (optional) to force the use of specific data reader
-
+% S.inputformat - data type (optional) to force the use of specific data
+% reader
 %
 % OUTPUT:
 %   S.channels - cell array of labels
-% _______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_channelselection.m 2861 2009-03-11 18:41:03Z guillaume $
 
-if nargin == 0
-    S = [];
+SVNrev = '$Rev: 2861 $';
+
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG channels selection');
+
+%-Get parameters
+%--------------------------------------------------------------------------
+try
+    S.channels;
+catch
+    S.channels = 'gui';
 end
 
-% ------------- Check inputs
-
-Fig = spm_figure('GetWin','Interactive');
-clf(Fig);
-
-if ~isfield(S, 'channels') S.channels = 'gui'; end
-
-if ~isfield(S, 'dataset')
-    S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
+try
+    s.dataset;
+catch
+    [S.dataset, sts] = spm_select(1, '.*', 'Select M/EEG data file');
+    if ~sts, return; end
 end
 
-if ~isfield(S, 'inputformat')
+try
+    S.inputformat;
+catch
     S.inputformat = [];
 end
 
@@ -40,7 +49,8 @@ hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inpu
 
 if strcmp(S.channels, 'file')
     if ~isfield(S, 'chanfile')
-        S.chanfile = spm_select(1, '\.mat', 'Select channel selection file');
+        [S.chanfile, sts] = spm_select(1, 'mat', 'Select channel selection file');
+        if ~sts, return; end
     end
     label = load(S.chanfile, 'label');
     if ~isfield(label, 'label')
@@ -59,12 +69,13 @@ else
     end
 
     % Make sure the order is like in the file
-    channels = ft_channelselection(S.channels, hdr.label);
+    channels     = ft_channelselection(S.channels, hdr.label);
     [sel1, sel2] = spm_match_str(hdr.label, channels);
-    S.channels = channels(sel2);
+    S.channels   = channels(sel2);
 end
 
-% ------------- Create trial definition file
+%-Create trial definition file
+%--------------------------------------------------------------------------
 if ~isfield(S, 'save')
     S.save = spm_input('Save channel selection?','+1','yes|no',[1 0], 0);
 end
@@ -77,4 +88,3 @@ if S.save
 
     save(fullfile(chanpathname, chanfilename), 'label');
 end
-

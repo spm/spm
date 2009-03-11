@@ -10,10 +10,18 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2851 2009-03-10 22:43:54Z guillaume $
+% $Id: spm_eeg_review.m 2861 2009-03-11 18:41:03Z guillaume $
 
+if nargin == 0
+    [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
+    if ~sts, return; end
+    D = spm_eeg_load(D);
+end
 D = struct(D);
 
+if nargin < 2
+    flag = 5;
+end
 
 %-- Initialize SPM figure
 D.PSD.handles.hfig = findobj('Tag', 'Graphics');
@@ -252,7 +260,3 @@ else
     D.PSD.source.VIZU.callbacks = [];
     D.PSD.source.VIZU.timeCourses = [];
 end
-
-
-
-

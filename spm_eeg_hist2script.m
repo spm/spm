@@ -6,7 +6,7 @@ function spm_eeg_hist2script(S)
 % (optional) fields of S:
 % history         - history of M/EEG object (D.history)
 % fname           - filename of to be generated script
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % In SPM for M/EEG, each preprocessing step enters its call and input
 % arguments into an internal history. The sequence of function calls that
@@ -16,27 +16,19 @@ function spm_eeg_hist2script(S)
 % exact sequence on the preprocessing steps stored in the history. Of
 % course, the generated script can also be used as a template for a
 % slightly different analysis or for different subjects.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_hist2script.m 2203 2008-09-26 11:40:23Z stefan $
-
-if nargin == 0
-    S =[];
-end
+% $Id: spm_eeg_hist2script.m 2861 2009-03-11 18:41:03Z guillaume $
 
 try
     h = S.history;
 catch
-    D = spm_select(1, 'mat', 'Select M/EEG mat file');
-    try
-        D = spm_eeg_load(D);
-        h = D.history;
-    catch
-        error(sprintf('Trouble reading file %s', D));
-    end
-
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, return; end
+    D = spm_eeg_load(D);
+    h = D.history;
 end
 
 try
