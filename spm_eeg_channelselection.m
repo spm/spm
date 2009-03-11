@@ -15,9 +15,9 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_channelselection.m 2866 2009-03-11 21:56:29Z guillaume $
 
-SVNrev = '$Rev: 2861 $';
+SVNrev = '$Rev: 2866 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -33,7 +33,7 @@ catch
 end
 
 try
-    s.dataset;
+    S.dataset;
 catch
     [S.dataset, sts] = spm_select(1, '.*', 'Select M/EEG data file');
     if ~sts, return; end
