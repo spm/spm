@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: FieldMap.m 2859 2009-03-11 16:52:19Z guillaume $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -1857,9 +1857,9 @@ switch lower(Action)
       % image in areas where we have information about distortions.
       %
       msk = reshape(double(xyz2(:,1)>=1 & xyz2(:,1)<=IP.vdmP.dim(1) &...
-		           xyz2(:,2)>=1 & xyz2(:,2)<=IP.vdmP.dim(2) &...
-		           xyz2(:,3)>=1 & xyz2(:,3)<=IP.vdmP.dim(3)),IP.epiP.dim(1:3));
-	          
+                           xyz2(:,2)>=1 & xyz2(:,2)<=IP.vdmP.dim(2) &...
+                           xyz2(:,3)>=1 & xyz2(:,3)<=IP.vdmP.dim(3)),IP.epiP.dim(1:3));
+              
       % Read in voxel displacement map in correct space
       tvdm = reshape(spm_sample_vol(spm_vol(IP.vdmP.fname),xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
@@ -1998,7 +1998,7 @@ switch lower(Action)
       if isempty(IP.pP) & ~isempty(IP.P{1})
 
          IP.fmagP=struct('dim',  IP.P{1}.dim,...
-	              'dt',IP.P{1}.dt,...
+                      'dt',IP.P{1}.dt,...
                       'pinfo',   IP.P{1}.pinfo,...
                       'mat',     IP.P{1}.mat);
          IP.fmagP.fname=fullfile(spm_str_manip(IP.P{1}.fname, 'h'),['mag_' deblank(spm_str_manip(IP.P{1}.fname,'t'))]);

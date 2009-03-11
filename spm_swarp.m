@@ -15,7 +15,7 @@ function that = spm_swarp(this,def,M)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_swarp.m 2717 2009-02-09 17:15:01Z vladimir $
+% $Id: spm_swarp.m 2859 2009-03-11 16:52:19Z guillaume $
 
 if ~isa(this,'gifti'), this = gifti(this); end
 

@@ -18,7 +18,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_klaff.m 2859 2009-03-11 16:52:19Z guillaume $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end

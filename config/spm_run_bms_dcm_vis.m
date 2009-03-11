@@ -7,7 +7,7 @@ function out = spm_run_bms_dcm_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen and Maria Joao Rosa
-% $Id$
+% $Id: spm_run_bms_dcm_vis.m 2859 2009-03-11 16:52:19Z guillaume $
 
 job     = varargin{1};
 

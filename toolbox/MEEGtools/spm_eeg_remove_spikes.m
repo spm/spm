@@ -32,38 +32,33 @@ function Dnew = spm_eeg_remove_spikes(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Will Penny
-% $Id: spm_eeg_remove_spikes.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_remove_spikes.m 2859 2009-03-11 16:52:19Z guillaume $
 
 if nargin == 0
     S = [];
 end
 
 % clean a block if log bayes factor in favour of spike model is bigger than this
-if ~isfield(S, 'logbf'),              S.logbf = 3;                           end
+if ~isfield(S, 'logbf'),             S.logbf = 3;                            end
 % Have signals up to this freq in design matrix
 if ~isfield(S, 'hpf'),               S.hpf = 40;                             end
 % Use 1s blocks
 if ~isfield(S, 'fast'),              S.fast='yes';                           end
 if ~isfield(S, 'fasthresh'),         S.fasthresh=4;                          end
-if ~isfield(S, 'trialbased'),        S.trialbased='no';                     end
+if ~isfield(S, 'trialbased'),        S.trialbased='no';                      end
 if ~isfield(S, 'channels'),          S.channels='gui';                       end
 
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    [D,sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
-if ischar(D)
-    try
-        D = spm_eeg_load(D);
-    catch
-        error(sprintf('Trouble reading file %s', D));
-    end
-end
+D = spm_eeg_load(D);
 
-if ~isfield(S, 'blocksize'),         S.blocksize = D.fsample;             end
+if ~isfield(S, 'blocksize'),         S.blocksize = D.fsample;                end
 
 spm('Pointer', 'Watch');drawnow;
 
@@ -77,7 +72,7 @@ else
     chansel     = spm_match_str(D.chanlabels, S.channels);
 end
 
-nchan = length(chansel);	% number of channels
+nchan = length(chansel);    % number of channels
 
 if strcmpi(S.trialbased, 'no') || (D.ntrials == 1)
     Nblocks=floor(D.nsamples./S.blocksize);
