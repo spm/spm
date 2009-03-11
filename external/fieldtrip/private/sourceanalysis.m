@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.137  2009/03/11 11:27:34  roboos
+% added a comment and removed a now obsolete channelselection call
+%
 % Revision 1.136  2009/03/06 13:02:59  sashae
 % changed default cfg.projectnoise='yes' to 'no'
 %
@@ -639,10 +642,11 @@ end
 % collect and preprocess the electrodes/gradiometer and head model
 [vol, sens, cfg] = prepare_headmodel(cfg, data);
 
-% select only those channels that have a sensor, this also ensures that
-% channel ordering matches the ordering of the sensors
-cfg.channel = channelselection(cfg.channel, sens.label); 
-Nchans      = length(cfg.channel);
+% It might be that the number of channels in the data, the number of
+% channels in the electrode/gradiometer definition and the number of
+% channels in the multisphere volume conduction model are different. 
+% Hence a subset of the data channels will be used.
+Nchans = length(cfg.channel);
 
 % set the default for reducing the rank of the leadfields
 if ~isfield(cfg, 'reducerank')
@@ -1280,7 +1284,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.136 2009/03/06 13:02:59 sashae Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.137 2009/03/11 11:27:34 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

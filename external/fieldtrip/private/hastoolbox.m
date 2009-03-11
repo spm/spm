@@ -10,6 +10,12 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.29  2009/03/11 10:35:19  roboos
+% spm detection was confused with function and directory, explicitely check for "spm.m" which is the function
+%
+% Revision 1.28  2009/03/11 08:49:04  roboos
+% improved the detection of the various spm versions
+%
 % Revision 1.27  2009/02/11 11:03:08  roboos
 % changed naming of the functions of Chris in accordance with SPM8
 %
@@ -183,10 +189,14 @@ switch toolbox
     status = exist('runica', 'file');
   case 'NWAY'
     status = exist('parafac', 'file');
+  case 'SPM99'
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM99');
   case 'SPM2'
-    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise');
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM2');
   case 'SPM5'
-    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise') && exist('spm_vol_nifti');
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM5');
+  case 'SPM8'
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM8');
   case 'MEG-PD'
     status = (exist('rawdata') && exist('channames'));
   case 'MEG-CALC'

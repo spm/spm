@@ -33,6 +33,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.52  2009/03/11 11:30:45  roboos
+% use autodetection of source and MRI units
+%
 % Revision 1.51  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -179,21 +182,48 @@ cfg = checkconfig(cfg, 'unused',  {'keepinside'});
 if ~isfield(cfg, 'parameter'),    cfg.parameter    = 'all';     end
 if ~isfield(cfg, 'interpmethod'); cfg.interpmethod = 'linear';  end
 if ~isfield(cfg, 'downsample');   cfg.downsample   = 1;         end
-if ~isfield(cfg, 'sourceunits');  cfg.sourceunits  = 'cm';      end
-if ~isfield(cfg, 'mriunits');     cfg.mriunits     = 'mm';      end
 if ~isfield(cfg, 'voxelcoord'),   cfg.voxelcoord   = 'yes';     end
 if ~isfield(cfg, 'feedback'),     cfg.feedback     = 'text';    end
+
+% if ~isfield(cfg, 'sourceunits');  cfg.sourceunits  = [];        end % this is deprecated, since now autodetermined
+% if ~isfield(cfg, 'mriunits');     cfg.mriunits     = [];        end % this is deprecated, since now autodetermined
+cfg = checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
 
 if ischar(anatomical)
   % read the anatomical MRI data from file
   fprintf('reading MRI from file\n');
-  filename   = anatomical;
-  anatomical = read_fcdc_mri(filename);
+  anatomical = read_fcdc_mri(anatomical);
 end
 
 % check if the input data is valid for this function and ensure that the structures correctly describes a volume
 functional = checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes');
 anatomical = checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes');
+
+% this ensures that the geometrical units of both functional and anatomical data are specified
+% FIMXE this probably should be moved into checkdata
+functional = convert_units(functional);
+anatomical = convert_units(anatomical);
+
+if isfield(cfg, 'sourceunits') && ~isempty(cfg.sourceunits)
+  % this uses a deprecated option
+  if ~strcmp(functional.unit, cfg.sourceunits)
+    warning('the automatically determined sourceunits (%s) do not match your specification (%s)', functional.unit, cfg.sourceunits);
+    functional.unit = cfg.sourceunits; % override the automatically determined units
+  end
+end
+
+if isfield(cfg, 'mriunits') && ~isempty(cfg.mriunits)
+  % this uses a deprecated option
+  if ~strcmp(anatomical.unit, cfg.mriunits)
+    warning('the automatically determined mriunits (%s) do not match your specification (%s)', anatomical.unit, cfg.sourceunits);
+    anatomical.unit = cfg.mriunits; % override the automatically determined units
+  end
+end
+
+if ~strcmp(functional.unit, anatomical.unit)
+  fprintf('converting functional data from %s into %s\n', functional.unit, anatomical.unit);
+  functional = convert_units(functional, anatomical.unit);
+end
 
 % select the parameters that should be interpolated
 cfg.parameter = parameterselection(cfg.parameter, functional);
@@ -215,38 +245,6 @@ for i=1:length(cfg.parameter)
   else
     fprintf('not interpolating %s, since it is not a scalar field\n', cfg.parameter{i});
   end
-end
-
-% convert the source/functional data into the same units as the anatomical MRI
-s = 1;
-switch cfg.sourceunits
-  case 'mm'
-    s = s / 1000;
-  case 'cm'
-    s = s / 100;
-  case 'dm'
-    s = s / 10;
-  case 'm'
-    s = s / 1;
-  otherwise
-    error('unknown physical dimension in cfg.sourceunits');
-end
-switch cfg.mriunits
-  case 'mm'
-    s = s * 1000;
-  case 'cm'
-    s = s * 100;
-  case 'dm'
-    s = s * 10;
-  case 'm'
-    s = s * 1;
-  otherwise
-    error('unknown physical dimension in cfg.mriunits');
-end
-
-if s~=1
-  fprintf('converting functional data from %s into %s\n', cfg.sourceunits, cfg.mriunits);
-  functional.transform = scale([s s s]) * functional.transform;
 end
 
 % compute the position of each voxel in both volumes, expressed in headcoordinates
@@ -320,7 +318,7 @@ if ~any(strcmp(cfg.parameter, 'anatomy'))
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -331,7 +329,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.51 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.52 2009/03/11 11:30:45 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end
@@ -380,7 +378,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function [av] = my_interpn(fx, fy, fz, fv, ax, ay, az, interpmethod, feedback);
 function [av] = my_interpn(fv, ax, ay, az, interpmethod, feedback);
-num = prod(size(ax));       % total number of voxels
+num = numel(ax);            % total number of voxels
 blocksize = floor(num/20);  % number of voxels to interpolate at once, split it into 20 chuncks
 lastblock = 0;              % boolean flag for while loop
 sel = 1:blocksize;          % selection of voxels that are interpolated, this is the first chunck

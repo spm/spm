@@ -57,6 +57,9 @@ function [freq] = freqanalysis_mtmconvol(cfg, data);
 % Copyright (c) 2003,2004-2006 F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmconvol.m,v $
+% Revision 1.44  2009/03/11 10:39:37  roboos
+% more strict checking of cfg.pad
+%
 % Revision 1.43  2008/11/11 18:59:26  sashae
 % added call to checkconfig at end of function (trackconfig and checksize)
 %
@@ -317,17 +320,20 @@ end
 rectan = all(numdatbnsarr==numdatbnsarr(1));
 
 % if cfg.pad is 'maxperlen', this is realized here:
-if ischar(cfg.pad)
-  if strcmp(cfg.pad,'maxperlen')
-    % first establish where the first possible sample is
-    min_smp = min(data.offset);
-    % then establish where the last possible sample is
-    max_smp = max(numdatbnsarr(:)+data.offset(:));
-    % pad the data from the first possible to last possible sample
-    cfg.pad = (max_smp-min_smp) ./ data.fsample;
+% first establish where the first possible sample is
+min_smp = min(data.offset);
+% then establish where the last possible sample is
+max_smp = max(numdatbnsarr(:)+data.offset(:));
+if isequal(cfg.pad, 'maxperlen')
+  % pad the data from the first possible to last possible sample
+  cfg.pad = (max_smp-min_smp) ./ data.fsample;
+else
+  % check that the specified padding is not too short
+  if cfg.pad<((max_smp-min_smp)/data.fsample)
+    error('the padding that you specified is shorter than the longest trial in the data');
   end
-  clear min_smp max_smp
 end
+  clear min_smp max_smp
 numsmp = round(cfg.pad .* data.fsample);
 
 % keeping trials and/or tapers?
@@ -595,7 +601,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmconvol.m,v 1.43 2008/11/11 18:59:26 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmconvol.m,v 1.44 2009/03/11 10:39:37 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

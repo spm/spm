@@ -89,13 +89,16 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
 %   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
-% See also READ_FCDC_DATA, READ_FCDC_HEADER
+% See also READ_DATA, READ_HEADER
 
 % TODO implement decimation and/or resampling
 
-% Copyright (C) 2004-2007, Robert Oostenveld
+% Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.34  2009/03/11 11:26:43  roboos
+% updated documentation and copyrights
+%
 % Revision 1.33  2008/10/10 09:54:53  jansch
 % added (undocumented) option dftinvert which results in the dftfilter being
 % a very sharp bandpass instead of a notch filter. added (undocumented) option

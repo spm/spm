@@ -50,6 +50,9 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % Copyright (c) 2003-2006, Pascal Fries, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmfft.m,v $
+% Revision 1.45  2009/03/11 10:39:37  roboos
+% more strict checking of cfg.pad
+%
 % Revision 1.44  2008/12/11 15:52:45  roboos
 % fixed bug in normalisation of non-dpss tapers in case of non-rectangular data (i.e. data in which the length of the data is different over trials)
 %
@@ -332,9 +335,12 @@ end
 rectan = all(numdatbnsarr==numdatbnsarr(1));
 
 % if cfg.pad is 'maxperlen', this is realized here:
-if ischar(cfg.pad)
-  if strcmp(cfg.pad,'maxperlen')
-    cfg.pad = max(numdatbnsarr,[],1) ./ data.fsample;
+if isequal(cfg.pad, 'maxperlen')
+  cfg.pad = max(numdatbnsarr,[],1) ./ data.fsample;
+else
+  % check that the specified padding is not too short
+  if cfg.pad<(max(numdatbnsarr,[],1)/data.fsample)
+    error('the padding that you specified is shorter than the longest trial in the data');
   end
 end
 numsmp = ceil(cfg.pad .* data.fsample); % this used to be "cfg.pad .* data.fsample"
@@ -577,7 +583,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.44 2008/12/11 15:52:45 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.45 2009/03/11 10:39:37 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

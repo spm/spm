@@ -1,10 +1,10 @@
-function [vol, sens, cfg] = prepare_headmodel(cfg, data);
+function [vol, sens, cfg] = prepare_headmodel(cfg, data)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that helps to prepare the electrodes/gradiometers and the volume
 % this is used in sourceanalysis and dipolefitting
 %
-% This function will get the gradiometer/electrode definition from 
+% This function will get the gradiometer/electrode definition from
 %   cfg.channel
 %   cfg.gradfile
 %   cfg.elecfile
@@ -12,7 +12,7 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data);
 %   cfg.grad
 %   data.grad
 %   data.elec
-% and the volume conductor definition from 
+% and the volume conductor definition from
 %   cfg.hdmfile
 %   cfg.vol
 %   data.vol
@@ -20,16 +20,19 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data);
 % present in the data. Finally it with attach the gradiometers to a
 % multi-sphere head model (if supplied) or attach the electrodes to
 % a BEM head model.
-% 
+%
 % This function will return the electrodes/gradiometers in an order that is
-% consistent with the original order in the input electrode/gradiometer file
-% or definition. This is also reflected in sens.label.
-% 
+% consistent with the order in cfg.channel, or in case that is empty in the
+% order of the input electrode/gradiometer definition.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Copyright (C) 2004-2008, Robert Oostenveld
+% Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_headmodel.m,v $
+% Revision 1.6  2009/03/11 11:26:21  roboos
+% switched to using forwinv/prepare_vol_sens
+%
 % Revision 1.5  2009/01/21 12:47:46  sashae
 % ensure vol is always a struct
 %
@@ -159,7 +162,46 @@ if ~isfield(cfg, 'order'),   cfg.order = 10;        end % order of expansion for
 
 if nargin<2
   data = [];
-elseif isfield(data, 'topolabel')
+end
+
+% get the volume conduction model
+if isfield(cfg, 'hdmfile')
+  fprintf('reading headmodel from file ''%s''\n', cfg.hdmfile);
+  vol = read_vol(cfg.hdmfile);
+elseif isfield(cfg, 'vol')
+  fprintf('using headmodel specified in the configuration\n');
+  vol = cfg.vol;
+elseif isfield(data, 'vol')
+  fprintf('using headmodel specified in the data\n');
+  vol = data.vol;
+else
+  error('no headmodel specified');
+end
+
+% get the gradiometer or electrode definition
+if isfield(cfg, 'gradfile')
+  fprintf('reading gradiometers from file ''%s''\n', cfg.gradfile);
+  sens = read_sens(cfg.gradfile);
+elseif isfield(cfg, 'grad')
+  fprintf('using gradiometers specified in the configuration\n');
+  sens = cfg.grad;
+elseif isfield(data, 'grad')
+  fprintf('using gradiometers specified in the data\n');
+  sens = data.grad;
+elseif isfield(cfg, 'elecfile')
+  fprintf('reading electrodes from file ''%s''\n', cfg.elecfile);
+  sens = read_sens(cfg.elecfile);
+elseif isfield(cfg, 'elec')
+  fprintf('using electrodes specified in the configuration\n');
+  sens = cfg.elec;
+elseif isfield(data, 'elec')
+  fprintf('using electrodes specified in the data\n');
+  sens = data.elec;
+else
+  error('no electrodes or gradiometers specified');
+end
+
+if isfield(data, 'topolabel')
   % the data reflects a componentanalysis, where the topographic and the
   % timecourse labels are different
   cfg.channel = channelselection(cfg.channel, data.topolabel);
@@ -168,255 +210,17 @@ elseif isfield(data, 'label')
   % in the configuration will be selected. To ensure that these channels
   % are also present in the data, update the configuration to match the data.
   cfg.channel = channelselection(cfg.channel, data.label);
-end
-
-% get the volume conduction model
-if isfield(cfg, 'hdmfile')
-  fprintf('reading headmodel from file %s\n', cfg.hdmfile);
-  switch(filetype(cfg.hdmfile))
-    case 'matlab'
-      matfile = cfg.hdmfile;   % this solves a problem with the matlab compiler v3
-      vol = getfield(load(matfile), 'vol');
-    
-    case 'ctf_hdm'
-      vol = read_ctf_hdm(cfg.hdmfile);
-    
-    case 'asa_vol'
-      vol = read_asa_vol(cfg.hdmfile);
-    
-    case 'mbfys_ama'
-      ama = loadama(cfg.hdmfile);
-      vol = ama2vol(ama);
-  
-    case 'neuromag_fif'
-      % do not read the volume into Matlab, but use external Neuromag toolbox
-      vol.type     = 'neuromag';
-      vol.filename = cfg.hdmfile;
-      vol.chansel  = [];  % this is defined later based on the channels present in the data
-      % initialize the Neuromag toolbox, this requires a gradfile and hdmfile
-      fprintf('using Neuromag volume conductor from %s\n', cfg.hdmfile);
-      fprintf('using Neuromag gradiometer definition from %s\n', cfg.gradfile);
-      megmodel('head', cfg.gradfile, cfg.hdmfile);
-      % read the triangulated boundary from the neuromag BEM model
-      [vol.bnd.pnt, vol.bnd.tri, vol.bnd.nrm] = loadtri(vol.filename);
-      vol.bnd.pnt = vol.bnd.pnt*100;  % convert to cm
-    otherwise
-      error('unknown fileformat for volume conductor model');
-  end
-elseif isfield(cfg, 'vol')
-  fprintf('using headmodel specified in the configuration\n');
-  vol = cfg.vol;
-elseif isfield(data, 'vol') 
-  fprintf('using headmodel specified in the data\n');
-  vol = data.vol;
 else
-  error('no headmodel specified');
+  % update the selected channels based on the electrode/gradiometer definition
+  cfg.channel = channelselection(cfg.channel, sens.label);
 end
 
-% determine the skin compartment
-if ~isfield(vol, 'skin')
-  if isfield(vol, 'bnd')
-    vol.skin   = find_outermost_boundary(vol.bnd);
-  elseif isfield(vol, 'r') && length(vol.r)<=4
-    [dum, vol.skin] = max(vol.r);
-  end
-end
+% ensure that these are a struct, which may be required in case configuration tracking is used
+vol  = struct(vol);
+sens = struct(sens);
 
-% determine the brain compartment
-if ~isfield(vol, 'brain')
-  if isfield(vol, 'bnd')
-    vol.brain  = find_innermost_boundary(vol.bnd);
-  elseif isfield(vol, 'r') && length(vol.r)<=4
-    [dum, vol.brain] = min(vol.r);
-  end
-end
+% the prepare_vol_sens function from the forwinv module does most of the actual work
+[vol, sens] = prepare_vol_sens(vol, sens, 'channel', cfg.channel, 'order', cfg.order);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% get the gradiometer positions and orientations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if isfield(cfg, 'gradfile')
-  fprintf('reading gradiometers from file %s\n', cfg.gradfile);
-  grad = read_sens(cfg.gradfile);
-elseif isfield(cfg, 'grad') 
-  fprintf('using gradiometers specified in the configuration\n');
-  grad = cfg.grad;
-elseif isfield(data, 'grad') 
-  fprintf('using gradiometers specified in the data\n');
-  grad = data.grad;
-end
-
-% do postprocessing of the volume and gradiometers in case of MEG
-if exist('grad', 'var')
-  % update the channelselection with those present in the gradiometer array
-  cfg.channel = channelselection(cfg.channel, grad.label);
-  % test whether it is a magnetometer or a first-order CTF gradiometer 
-  if length(grad.label)==size(grad.pnt,1)
-    sel = match_str(grad.label, cfg.channel);
-    fprintf('selecting %d magnetometers\n', length(sel));
-    grad.label = grad.label(sel);
-    grad.pnt   = grad.pnt(sel,:);
-    grad.ori   = grad.ori(sel,:);
-    if isfield(grad, 'tra')
-      grad.tra = sparse(grad.tra(sel, sel));
-    end
-  elseif length(grad.label)==size(grad.pnt,1)/2
-    sel = match_str(grad.label, cfg.channel);
-    fprintf('selecting %d first-order gradiometers\n', length(sel));
-    % extend the selection to both bottom and top coil
-    grad.label = grad.label(sel);
-    sel2 = [sel; sel+size(grad.pnt,1)/2];
-    grad.pnt   = grad.pnt(sel2,:);
-    grad.ori   = grad.ori(sel2,:);
-    if isfield(grad, 'tra')
-      grad.tra = sparse(grad.tra(sel, sel2));
-    end
-  else
-    sel = match_str(grad.label, cfg.channel);
-    grad.label = grad.label(sel);
-    % In this case it is not possible to reduce the number of coils, i.e.
-    % to make a selection out of pnt and ori. Therefore keep them all and
-    % only make a selection out of the linear transformation matrix tra.
-    if isfield(grad, 'tra')
-      grad.tra = sparse(grad.tra(sel, :));
-    else
-      error('no transfer matrix present in the gradiometer definition, cannot make channel selection');
-    end
-    % remove the coils from the grad.pnt and ori field that do not contribute to any channel's output
-    selcoil = find(sum(grad.tra,1)~=0);
-    grad.pnt = grad.pnt(selcoil,:);
-    grad.ori = grad.ori(selcoil,:);
-    grad.tra = grad.tra(:,selcoil);
-  end
-  % If the volume conduction model consists of multiple spheres then we
-  % have to match the channels in the gradiometer array and the volume
-  % conduction model.
-  if isfield(vol, 'label') && length(vol.label)>1
-    % get the local spheres for the MEG channels, this will be ordered
-    % according to the ordering of the gradiometer channels
-    [selgrad, selvol] = match_str(grad.label, vol.label);
-    % the CTF way of storing the headmodel is one-sphere-per-channel
-    % whereas the FieldTrip way is one-sphere-per-coil  
-    Nchans = size(grad.tra,1);
-    Ncoils = size(grad.tra,2);
-    % for each coil in the MEG helmet, determine the corresponding local sphere
-    for i=1:Ncoils
-      coilindex = find(grad.tra(:,i)~=0); % to which channel does the coil belong
-      if length(coilindex)>1
-        % this indicates that there are multiple channels to which this coil contributes
-        % which means that grad.tra describes a synthetic higher-order gradient
-        error('synthetic gradients not supported during volume conductor setup');
-      end
-      coillabel = grad.label{coilindex};  % what is the label of the channel
-      chanindex = strmatch(coillabel, vol.label, 'exact');
-      multisphere.r(i,:) = vol.r(chanindex);
-      multisphere.o(i,:) = vol.o(chanindex,:);
-    end
-    vol = multisphere;
-  end
-  % if the forward model is computed using the external Neuromag toolbox,
-  % we have to add a selection of the channels so that the channels
-  % in the forward model correspond with those in the data.
-  if isfield(vol, 'type') && strcmp(vol.type, 'neuromag')
-    vol.chansel = match_str(grad.label, cfg.channel);
-  end
-  % if the forward model is computed using the code from Guido Nolte, we
-  % have to initialize the volume model using the gradiometer coil
-  % locations
-  if isfield(vol, 'type') && strcmp(vol.type, 'nolte')
-    % compute the surface normals for each vertex point
-    if ~isfield(vol.bnd, 'nrm')
-      fprintf('computing surface normals\n');
-      vol.bnd.nrm = normals(vol.bnd.pnt, vol.bnd.tri);
-    end
-    % estimate center and radius
-    [center,radius]=sphfit([vol.bnd.pnt vol.bnd.nrm]);
-    % initialize the forward calculation (only if gradiometer coils are available)
-    if size(grad.pnt,1)>0 
-      vol.forwpar = meg_ini([vol.bnd.pnt vol.bnd.nrm], center', cfg.order, [grad.pnt grad.ori]);
-    end
-  end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% get the electrode positions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if isfield(cfg, 'elecfile') 
-  fprintf('reading electrodes from file %s\n', cfg.elecfile);
-  elec = read_sens(cfg.elecfile);
-elseif isfield(cfg, 'elec') 
-  fprintf('using electrodes specified in the configuration\n');
-  elec = cfg.elec;
-elseif isfield(data, 'elec') 
-  fprintf('using electrodes specified in the data\n');
-  elec = data.elec;
-end
-
-% do postprocessing of electrodes
-if exist('elec', 'var')
-  % update the channelselection with those present in the gradiometer array
-  cfg.channel = channelselection(cfg.channel, elec.label);
-  % select only electrodes present in the data
-  sel        = match_str(elec.label, cfg.channel);
-  fprintf('selected %d electrodes\n', length(sel)); 
-  elec.pnt   = elec.pnt(sel,:);
-  elec.label = elec.label(sel);
-  % create a 2D projection and triangulation
-  elec.prj   = elproj(elec.pnt);
-  elec.tri   = delaunay(elec.prj(:,1), elec.prj(:,2));
-end
-
-% do postprocessing of volume and electrodes in case of BEM model
-if exist('elec', 'var') && isfield(vol, 'bnd') && ~isfield(vol, 'tra')
-  % determine boundary corresponding with skin and brain
-  if ~isfield(vol, 'skin')
-    vol.skin   = find_outermost_boundary(vol.bnd);
-  end
-  if ~isfield(vol, 'source')
-    vol.source  = find_innermost_boundary(vol.bnd);
-  end
-  if size(vol.mat,1)~=size(vol.mat,2) && size(vol.mat,1)==length(elec.pnt)
-    fprintf('electrode transfer and system matrix were already combined\n');
-  else
-    fprintf('projecting electrodes on skin surface\n');
-    % compute linear interpolation from triangle vertices towards electrodes
-    el   = project_elec(elec.pnt, vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri);
-    tra  = transfer_elec(vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri, el);
-    % construct the transfer from all vertices (also brain/skull) towards electrodes
-    vol.tra = [];
-    for i=1:length(vol.bnd)
-      if i==vol.skin
-        vol.tra = [vol.tra, tra];
-      else
-        vol.tra = [vol.tra, zeros(size(el,1), size(vol.bnd(i).pnt,1))];
-      end
-    end
-    vol.tra    = sparse(vol.tra); % convert to sparse matrix to speed up multiplications
-    % incorporate the transfer and the system matrix into one matrix
-    % this speeds up the subsequent repeated leadfield computations
-    fprintf('combining electrode transfer and system matrix\n');
-    vol.mat = vol.tra * vol.mat;
-    vol = rmfield(vol, 'tra');
-  end
-  % ensure that the model potential will be average referenced
-  vol.mat = avgref(vol.mat);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% restructure the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if exist('elec', 'var')
-  sens = elec;
-  sens.type = senstype(sens);
-elseif exist('grad', 'var')
-  sens = grad;
-  sens.type = senstype(sens);
-else
-  error('cannot find electrodes or gradiometers'); 
-end
-
-vol = struct(vol); % make sure vol is a struct
-
-% update the configuration, so that the calling function exactly knows wat was selected
-% the channel ordering in the sensor array remains consistent
+% update the selected channels in the configuration
 cfg.channel = sens.label;
-
