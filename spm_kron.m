@@ -1,4 +1,4 @@
-function K = kron(A,B)
+function K = spm_kron(A,B)
 % as for kron, but forces sparse outputs
 %KRON   Kronecker tensor product.
 %   KRON(X,Y) is the Kronecker tensor product of X and Y.
@@ -15,12 +15,12 @@ function K = kron(A,B)
 %   Previous versions by Paul Fackler, North Carolina State,
 %   and Jordan Rosenthal, Georgia Tech.
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1961 $ $Date: 2004/06/25 18:52:18 $
+%   $Revision: 2863 $ $Date: 2004/06/25 18:52:18 $
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kron.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_kron.m 2863 2009-03-11 20:25:33Z guillaume $
 
 [ma,na] = size(A);
 [mb,nb] = size(B);

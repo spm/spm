@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 2829 2009-03-05 12:05:07Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 2863 2009-03-11 20:25:33Z guillaume $
  
 % checks
 %--------------------------------------------------------------------------
@@ -99,7 +99,8 @@ clear P1 P2 P3
  
 % Transform the sampling point coordinates from mm to voxels
 %--------------------------------------------------------------------------
-VoxelCoord  = round( spm_eeg_inv_mm2vx(DenseCortex,Vin.mat) )';
+VoxelCoord = Vin.mat\[DenseCortex';ones(1,size(DenseCortex,1))];
+VoxelCoord = round(VoxelCoord(1:3,:)');
 clear DenseCortex
  
 % Get Graph Laplacian for smoothing on the cortical surface

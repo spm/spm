@@ -8,7 +8,7 @@ function mesh = spm_eeg_inv_transform_mesh(M, mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_transform_mesh.m 2813 2009-03-02 18:56:35Z guillaume $
+% $Id: spm_eeg_inv_transform_mesh.m 2863 2009-03-11 20:25:33Z guillaume $
 
 fn = fieldnames(mesh);
 
@@ -17,10 +17,6 @@ tess_ind = setdiff(tess_ind, strmatch('tess_mni', fn, 'exact'));
 
 for i = 1:length(tess_ind)
     cmesh =  export(gifti(getfield(mesh, fn{tess_ind(i)})), 'spm');
-    old = cmesh.vert;
-    old(:,4) = 1;
-    new = old * M';
-    new = new(:,1:3);
-    cmesh.vert = new;
+    cmesh.vert = spm_eeg_inv_transform_points(M,cmesh.vert);
     mesh = setfield(mesh, fn{tess_ind(i)}, cmesh);
 end

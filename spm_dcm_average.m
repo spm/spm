@@ -1,39 +1,38 @@
-function [] = spm_dcm_average (mtype,P,name)
+function spm_dcm_average (mtype,P,name)
 % Produce an aggregate DCM model using Bayesian averaging
-% FORMAT [] = spm_dcm_average (mtype,P,name)
+% FORMAT spm_dcm_average (mtype,P,name)
 %
-% mtype             ERP: mtype =0;  fMRI: mtype > 0
-% P                 Array of DCM filenames eg. P(1,:)='DCM1', P(2,:)='DCM2'
-% name              Name of DCM output file. This is prefixed by 'DCM_avg_'.
+% mtype        -  ERP: mtype =0;  fMRI: mtype > 0
+% P            -  Array of DCM filenames eg. P(1,:)='DCM1', P(2,:)='DCM2'
+% name         -  Name of DCM output file. This is prefixed by 'DCM_avg_'.
 %
-% This routine creates a new DCM model in which the parameters are averaged over a 
-% number of fitted DCM models. These can be over sessions or over subjects.
-% This average model can then be interrogated using the standard 
+% This routine creates a new DCM model in which the parameters are averaged
+% over a number of fitted DCM models. These can be over sessions or over 
+% subjects. This average model can then be interrogated using the standard 
 % DCM 'review' options to look at contrasts of parameters. The resulting 
 % inferences correspond to a Bayesian Fixed Effects analysis.
 %
 % Note that the Bayesian averaging is only applied to the A, B and C matrices.
 % All other quantities in the average model are initially simply copied from 
-% the first DCM in the list. Subsequently, they are deleted before saving the average DCM 
-% in order to avoid any false impression that averaged models could be used 
-% for model comparison or contained averaged timeseries. Neither operation
-% is valid and will be prevented by the DCM interface.
+% the first DCM in the list. Subsequently, they are deleted before saving 
+% the average DCM in order to avoid any false impression that averaged 
+% models could be used for model comparison or contained averaged timeseries.
+% Neither operation is valid and will be prevented by the DCM interface.
 % Finally, note that only models with exactly the same A,B,C structure 
 % and the same brain regions can be averaged.
 %
 % A Bayesian random effects analysis can be implemented for a 
 % particular contrast using the spm_dcm_sessions.m function
-%
-% -------------------------------------------------------
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 1487 2008-04-27 12:27:51Z klaas $
+% $Id: spm_dcm_average.m 2863 2009-03-11 20:25:33Z guillaume $
 
 
 if nargin <= 1
     % Function called without parameters (e.g. via GUI)
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Finter = spm_figure('GetWin','Interactive');
     set(Finter,'name','Dynamic Causal Modeling')
     header = get(Finter,'Name');
@@ -50,7 +49,7 @@ end
 
 
 % Loop through all selected models and get posterior means and variances
-% ----------------------------------------------------------------------
+% -------------------------------------------------------------------------
 for model = 1:num_models,
     load(P(model,:),'-mat');
     
@@ -178,6 +177,7 @@ DCM.averaged = 1;
     
     
 % Save new DCM
+%--------------------------------------------------------------------------
 DCM.name = [name ' (Bayesian FFX average)'];
 if spm_matlab_version_chk('7') >= 0
     save(['DCM_avg_' name], 'DCM', '-V6');
@@ -186,6 +186,7 @@ else
 end;
 
 % If called through GUI, prompt user that averaging is finished
+%--------------------------------------------------------------------------
 if nargin <= 1
     spm_clf
     spm('FigName',header);
@@ -194,12 +195,10 @@ if nargin <= 1
 end
 
 % Warn the user how this average DCM should NOT be used
+%--------------------------------------------------------------------------
 str = {['Results of averaging DCMs were saved in DCM_avg_' name '.'], ...
         ' ', ...
         'Please note that this file only contains average parameter estimates and their post. probabilities, but NOT averaged time series.', ...
         ' ', ...
         'Also, note that this file can NOT be used for model comparisons.'};
 spm_input(str,1,'bd','OK',[1],1);
-
-
-return
