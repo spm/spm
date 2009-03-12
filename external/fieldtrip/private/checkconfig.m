@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.12  2009/03/12 17:10:38  roboos
+% fixed bug in cfg.dataformat/headerformat (dataset2files) which applied to vhdr as input filename with a *.seg containing the data
+%
 % Revision 1.11  2009/02/04 09:09:59  roboos
 % fixed filename to headerfile/datafile cvonversion in case of ctf_old
 %
@@ -577,12 +580,12 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
 
     % fill dataformat if unspecified
     if ~isfield(cfg,'dataformat') || isempty(cfg.dataformat)
-      cfg.dataformat = filetype(filename);
+      cfg.dataformat = filetype(datafile);
     end
 
     % fill dataformat if unspecified
     if ~isfield(cfg,'headerformat') || isempty(cfg.headerformat)
-      cfg.headerformat = filetype(filename);
+      cfg.headerformat = filetype(headerfile);
     end
     
   elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);

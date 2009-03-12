@@ -11,6 +11,9 @@ function [hdr] = read_brainvision_vhdr(filename);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_vhdr.m,v $
+% Revision 1.2  2009/03/12 17:09:31  roboos
+% improved the warning in case number of samples cannot be determined (applies to ascii *.seg data)
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -69,7 +72,7 @@ end
 % compute the sampling rate in Hz
 hdr.Fs = 1e6/(hdr.SamplingInterval);
 
-% the number of samples is unkown
+% the number of samples is unkown to start with
 hdr.nSamples = Inf;
 
 % determine the number of samples by looking at the binary file
@@ -89,9 +92,11 @@ if strcmp(hdr.DataFormat, 'BINARY')
       hdr.nSamples = info.bytes./(hdr.NumberOfChannels*4);
     case 'ieee_float_32';
       hdr.nSamples = info.bytes./(hdr.NumberOfChannels*4);
-    otherwise
-      warning('cannot determine number of samples for this sub-fileformat');
   end
+end
+
+if isinf(hdr.nSamples)
+  warning('cannot determine number of samples for this sub-fileformat');
 end
 
 % the number of trials is unkown, assume continuous data

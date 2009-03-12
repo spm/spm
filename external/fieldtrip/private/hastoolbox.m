@@ -10,6 +10,15 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.32  2009/03/12 10:40:21  roboos
+% added the splines toolbox (mainly for testing) and changed the warning message related to the license
+%
+% Revision 1.31  2009/03/12 10:33:35  roboos
+% not only check that a function is available, also check whether a license for that function is available
+%
+% Revision 1.30  2009/03/11 21:26:27  roboos
+% detect spm8b just as spm8
+%
 % Revision 1.29  2009/03/11 10:35:19  roboos
 % spm detection was confused with function and directory, explicitely check for "spm.m" which is the function
 %
@@ -136,8 +145,10 @@ url = {
   'DSS'        'see http://www.cis.hut.fi/projects/dss'
   'EEGLAB'     'see http://www.sccn.ucsd.edu/eeglab'
   'NWAY'       'see http://www.models.kvl.dk/source/nwaytoolbox'
+  'SPM99'      'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM2'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM5'       'see http://www.fil.ion.ucl.ac.uk/spm'
+  'SPM8'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'MEG-PD'     'see http://www.kolumbus.fi/kuutela/programs/meg-pd'
   'MEG-CALC'   'this is a commercial toolbox from Neuromag, see http://www.neuromag.com'
   'BIOSIG'     'see http://biosig.sourceforge.net'
@@ -155,6 +166,7 @@ url = {
   'SIGNAL'     'see http://www.mathworks.com/products/signal'
   'OPTIM'      'see http://www.mathworks.com/products/optim'
   'IMAGE'      'see http://www.mathworks.com/products/image'
+  'SPLINES'    'see http://www.mathworks.com/products/splines'
   'FASTICA'    'see http://www.cis.hut.fi/projects/ica/fastica'
   'BRAINSTORM' 'see http://neuroimage.ucs.edu/brainstorm'
   'FILEIO'     'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:fileio'
@@ -196,7 +208,7 @@ switch toolbox
   case 'SPM5'
     status = exist('spm.m') && strcmp(spm('ver'),'SPM5');
   case 'SPM8'
-    status = exist('spm.m') && strcmp(spm('ver'),'SPM8');
+    status = exist('spm.m') && strncmp(spm('ver'),'SPM8', 3);
   case 'MEG-PD'
     status = (exist('rawdata') && exist('channames'));
   case 'MEG-CALC'
@@ -226,11 +238,13 @@ switch toolbox
   case '4D-VERSION'
     status  = (exist('read4d') && exist('read4dhdr'));
   case 'SIGNAL'
-    status = exist('medfilt1');
+    status = hasfunction('medfilt1', toolbox); % also check the availability of a toolbox license
   case 'OPTIM'
-    status  = (exist('fmincon') && exist('fminunc'));
+    status  = hasfunction('fmincon', toolbox) && hasfunction('fminunc', toolbox); % also check the availability of a toolbox license
+  case 'SPLINES'
+    status  = hasfunction('bspline', toolbox) && hasfunction('csape', toolbox); % also check the availability of a toolbox license
   case 'IMAGE'
-    status = exist('bwlabeln');
+    status = hasfunction('bwlabeln', toolbox); % also check the availability of a toolbox license
   case 'FASTICA'
     status  = exist('fastica', 'file');
   case 'BRAINSTORM'
@@ -334,4 +348,34 @@ out = lower(toolbox);
 out(out=='-') = '_'; % fix dashes
 out(out==' ') = '_'; % fix spaces
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% helper function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function status = hasfunction(funname, toolbox)
+try
+  % call the function without any input arguments, which probably is inapropriate
+  feval(funname);
+  % it might be that the function without any input already works fine
+  status = true;
+catch
+  % either the function returned an error, or the function is not available
+  % availability is influenced by the function being present and by having a
+  % license for the function, i.e. in a concurrent licensing setting it might
+  % be that all toolbox licenses are in use
+  m = lasterror;
+  if strcmp(m.identifier, 'MATLAB:license:checkouterror')
+    if nargin>1
+      warning('the %s toolbox is available, but you don''t have a license for it', toolbox);
+    else
+      warning('the function ''%s'' is available, but you don''t have a license for it', funname);
+    end
+    status = false;
+  elseif strcmp(m.identifier, 'MATLAB:UndefinedFunction')
+    status = false;
+  else
+    % the function seems to be available and it gave an unknown error,
+    % which is to be expected with inappropriate input arguments
+    status = true;
+  end
+end
 

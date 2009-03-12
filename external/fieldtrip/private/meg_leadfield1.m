@@ -1,4 +1,4 @@
-function [lf] = meg_leadfield1(R, Rm, Um);
+function [varargout] = funname(varargin)
 
 % MEG_LEADFIELD1 magnetic leadfield for a dipole in a homogenous sphere
 %
@@ -9,7 +9,7 @@ function [lf] = meg_leadfield1(R, Rm, Um);
 %   pos		position magnetometers
 %   ori		orientation magnetometers
 %
-% The center of the homogenous sphere is in the origin, the field 
+% The center of the homogenous sphere is in the origin, the field
 % of the dipole is not dependent on the sphere radius.
 %
 % This function is also implemented as MEX file.
@@ -21,6 +21,9 @@ function [lf] = meg_leadfield1(R, Rm, Um);
 % Copyright (C) 2002-2008, Robert Oostenveld
 %
 % $Log: meg_leadfield1.m,v $
+% Revision 1.2  2009/03/12 11:05:04  roboos
+% implemented auto-compilation of the mex file in case it is missing
+%
 % Revision 1.1  2009/01/21 10:32:38  roboos
 % moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
 %
@@ -43,46 +46,83 @@ function [lf] = meg_leadfield1(R, Rm, Um);
 % updated help and copyrights
 %
 
-Nchans = size(Rm, 1);
+% compile the missing mex file on the fly
+% remember the original working directory
+pwdir = pwd;
 
-lf = zeros(Nchans,3);
+% determine the name and full path of this function
+funname = mfilename('fullpath');
+mexsrc  = [funname '.c'];
+[mexdir, mexname] = fileparts(funname);
 
-tmp2 = norm(R);
+try
+  % try to compile the mex file on the fly
+  warning('trying to compile MEX file from %s', mexsrc);
+  cd(mexdir);
+  mex(mexsrc);
+  cd(pwdir);
+  success = true;
 
-for i=1:Nchans
-  r = Rm(i,:);
-  u = Um(i,:);
-
-  tmp1 = norm(r);
-  % tmp2 = norm(R);
-  tmp3 = norm(r-R);
-  tmp4 = dot(r,R);
-  tmp5 = dot(r,r-R);
-  tmp6 = dot(R,r-R);
-  tmp7 = (tmp1*tmp2)^2 - tmp4^2;	% cross(r,R)^2
-
-  alpha = 1 / (-tmp3 * (tmp1*tmp3+tmp5));
-  A = 1/tmp3 - 2*alpha*tmp2^2 - 1/tmp1;
-  B = 2*alpha*tmp4;
-  C = -tmp6/(tmp3^3);
-
-  if tmp7<eps
-    beta = 0;
-  else
-    beta = dot(A*r + B*R + C*(r-R), u)/tmp7;
-  end
-
-  lf(i,:) = cross(alpha*u  + beta*r, R);
+catch
+  % compilation failed
+  disp(lasterr);
+  error('could not locate MEX file for %s', mexname);
+  cd(pwdir);
+  success = false;
 end
-lf = 1e-7*lf;	% multiply with u0/4pi
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fast cross product
-function [c] = cross(a,b);
-c = [a(2)*b(3)-a(3)*b(2) a(3)*b(1)-a(1)*b(3) a(1)*b(2)-a(2)*b(1)];
+if success
+  % execute the mex file that was juist created
+  funname   = mfilename;
+  funhandle = str2func(funname);
+  [varargout{1:nargout}] = funhandle(varargin{:});
+end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fast dot product
-function [c] = dot(a,b);
-c = sum(a.*b);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THE FOLLOWING CODE CORRESPONDS WITH THE ORIGINAL IMPLEMENTATION
+% function [lf] = meg_leadfield1(R, Rm, Um);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Nchans = size(Rm, 1);
+%
+% lf = zeros(Nchans,3);
+%
+% tmp2 = norm(R);
+%
+% for i=1:Nchans
+%   r = Rm(i,:);
+%   u = Um(i,:);
+%
+%   tmp1 = norm(r);
+%   % tmp2 = norm(R);
+%   tmp3 = norm(r-R);
+%   tmp4 = dot(r,R);
+%   tmp5 = dot(r,r-R);
+%   tmp6 = dot(R,r-R);
+%   tmp7 = (tmp1*tmp2)^2 - tmp4^2;	% cross(r,R)^2
+%
+%   alpha = 1 / (-tmp3 * (tmp1*tmp3+tmp5));
+%   A = 1/tmp3 - 2*alpha*tmp2^2 - 1/tmp1;
+%   B = 2*alpha*tmp4;
+%   C = -tmp6/(tmp3^3);
+%
+%   if tmp7<eps
+%     beta = 0;
+%   else
+%     beta = dot(A*r + B*R + C*(r-R), u)/tmp7;
+%   end
+%
+%   lf(i,:) = cross(alpha*u  + beta*r, R);
+% end
+% lf = 1e-7*lf;	% multiply with u0/4pi
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % fast cross product
+% function [c] = cross(a,b);
+% c = [a(2)*b(3)-a(3)*b(2) a(3)*b(1)-a(1)*b(3) a(1)*b(2)-a(2)*b(1)];
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % fast dot product
+% function [c] = dot(a,b);
+% c = sum(a.*b);
+%
