@@ -16,9 +16,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_average_TF.m 2868 2009-03-12 12:01:03Z vladimir $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 2868 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ for i = 1:D.nconditions
     ni(i) = length(w);
 
     if ni(i) == 0
-        warning('%s: No trials for trial type %d', D.fname, conditionlabels(D, i));
+        warning('%s: No trials for trial type %d', D.fname, cl{i});
     else
         
         %-Straight average
