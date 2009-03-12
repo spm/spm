@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_cfg_eeg_epochs.m 2867 2009-03-12 10:54:56Z guillaume $
 
-rev = '$Rev: 2225 $';
+rev = '$Rev: 2867 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -105,7 +105,7 @@ else
 end
 
 % set review and save options both to 0 to not pop up something
-S.review = 0;
+S.reviewtrials = 0;
 S.save = 0;
 
 out.D = spm_eeg_epochs(S);
