@@ -37,7 +37,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2855 2009-03-11 13:16:17Z vladimir $
+% $Id: spm_eeg_convert.m 2869 2009-03-12 13:29:13Z guillaume $
 
 if ischar(S)
     temp      = S;
@@ -116,7 +116,7 @@ try
 
 
     % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, [char(255) 'BIOSEMI'])
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
         ind = strcmp('STATUS', {event(:).type});
         val = [event(ind).value];
         if any(val>255)

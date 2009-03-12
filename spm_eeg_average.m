@@ -16,9 +16,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2857 2009-03-11 13:21:04Z guillaume $
+% $Id: spm_eeg_average.m 2869 2009-03-12 13:29:13Z guillaume $
 
-SVNrev = '$Rev: 2857 $';
+SVNrev = '$Rev: 2869 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -124,7 +124,7 @@ else
 
         ni(i) = length(w);
         if ni(i) == 0
-            warning('%s: No trials for trial type %d', D.fname, cl{i});
+            warning('%s: No trials for trial type %s', D.fname, cl{i});
         else
             c = c ./ sum(c); % vector of trial-wise weights
             for j = 1:D.nchannels

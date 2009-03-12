@@ -19,24 +19,31 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %   trl - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
 %   S - modified configuration structure (for history)
-% _______________________________________________________________________
+% _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2856 2009-03-11 13:19:04Z vladimir $
+% $Id: spm_eeg_definetrial.m 2869 2009-03-12 13:29:13Z guillaume $
 
-if nargin == 0
-    S = [];
-end
 
-if ~isfield(S, 'inputformat')
+SVNrev = '$Rev: 2869 $';
+
+%-Startup
+%--------------------------------------------------------------------------
+spm('sFnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG trial definition');
+
+
+Fig = spm_figure('FindWin','Interactive');
+spm_clf(Fig);
+
+%-Get input parameters
+%--------------------------------------------------------------------------
+try
+    S.inputformat;
+catch
     S.inputformat = [];
 end
-
-% ------------- Check inputs
-
-Fig = spm_figure('GetWin','Interactive');
-clf(Fig);
 
 if ~isfield(S, 'event') || ~isfield(S, 'fsample')
     if ~isfield(S, 'dataset')
@@ -73,7 +80,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
 
 
     % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, [char(255) 'BIOSEMI'])
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
         ind = strcmp('STATUS', {event(:).type});
         val = [event(ind).value];
         if any(val>255)
