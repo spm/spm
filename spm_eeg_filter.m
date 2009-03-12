@@ -22,14 +22,14 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2858 2009-03-11 16:12:12Z guillaume $
+% $Id: spm_eeg_filter.m 2870 2009-03-12 13:43:35Z guillaume $
 
-SVNrev = '$Rev: 2858 $';
+SVNrev = '$Rev: 2870 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FnUIsetup','M/EEG filter',0);
+spm('FigName','M/EEG filter',0); spm('Pointer', 'Watch');
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -126,7 +126,6 @@ end
 
 %-
 %--------------------------------------------------------------------------
-spm('Pointer', 'Watch');
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);

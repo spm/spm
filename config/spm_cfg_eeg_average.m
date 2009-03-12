@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_average
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 2126 2008-09-19 15:55:34Z stefan $
+% $Id: spm_cfg_eeg_average.m 2870 2009-03-12 13:43:35Z guillaume $
 
-rev = '$Rev: 2126 $';
+rev = '$Rev: 2870 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -27,6 +27,7 @@ S.modality = {'EEG'};
 function out = eeg_average(job)
 % construct the S struct
 S.D = job.D{1};
+S.review = false;
 
 out.D = spm_eeg_average(S);
 out.Dfname = {out.D.fname};
