@@ -40,9 +40,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_artefact.m 2875 2009-03-13 12:26:00Z vladimir $
 
-SVNrev = '$Rev: 2696 $';
+SVNrev = '$Rev: 2875 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -159,7 +159,7 @@ if MustDoWork
             artefact.channels_threshold   = S.artefact.channels_threshold;
         catch
             artefact.channels_threshold   = ...
-                spm_input('Select channels', '+1', 'i', num2str(1:D.nchannels));
+                spm_input('Select channels', '+1', 'i', sort(num2str([D.meegchannels D.eogchannels])));
             S.artefact.channels_threshold = artefact.channels_threshold;
         end
 
