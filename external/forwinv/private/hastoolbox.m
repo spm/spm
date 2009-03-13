@@ -3,13 +3,43 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % HASTOOLBOX tests whether an external toolbox is installed. Optionally
 % it will try to determine the path to the toolbox and install it
 % automatically.
-% 
+%
 % Use as
 %   [status] = hastoolbox(toolbox, autoadd, silent)
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.32  2009/03/12 10:40:21  roboos
+% added the splines toolbox (mainly for testing) and changed the warning message related to the license
+%
+% Revision 1.31  2009/03/12 10:33:35  roboos
+% not only check that a function is available, also check whether a license for that function is available
+%
+% Revision 1.30  2009/03/11 21:26:27  roboos
+% detect spm8b just as spm8
+%
+% Revision 1.29  2009/03/11 10:35:19  roboos
+% spm detection was confused with function and directory, explicitely check for "spm.m" which is the function
+%
+% Revision 1.28  2009/03/11 08:49:04  roboos
+% improved the detection of the various spm versions
+%
+% Revision 1.27  2009/02/11 11:03:08  roboos
+% changed naming of the functions of Chris in accordance with SPM8
+%
+% Revision 1.26  2009/02/02 12:57:21  roboos
+% added bemcp, image, tcp_udp_ip
+%
+% Revision 1.25  2009/01/19 15:02:21  roboos
+% added mne for fiff access
+%
+% Revision 1.24  2009/01/08 17:00:02  roboos
+% improved caching in case the toolbox is not present
+%
+% Revision 1.23  2008/12/24 09:10:46  roboos
+% added dipoli
+%
 % Revision 1.22  2008/10/29 15:45:12  roboos
 % fix dashes and spaces in directory names for caching
 %
@@ -104,7 +134,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 persistent previous
 if isempty(previous)
   previous = struct;
-elseif isfield(previous, fixname(toolbox)) 
+elseif isfield(previous, fixname(toolbox))
   status = previous.(fixname(toolbox));
   return
 end
@@ -115,8 +145,10 @@ url = {
   'DSS'        'see http://www.cis.hut.fi/projects/dss'
   'EEGLAB'     'see http://www.sccn.ucsd.edu/eeglab'
   'NWAY'       'see http://www.models.kvl.dk/source/nwaytoolbox'
+  'SPM99'      'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM2'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM5'       'see http://www.fil.ion.ucl.ac.uk/spm'
+  'SPM8'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'MEG-PD'     'see http://www.kolumbus.fi/kuutela/programs/meg-pd'
   'MEG-CALC'   'this is a commercial toolbox from Neuromag, see http://www.neuromag.com'
   'BIOSIG'     'see http://biosig.sourceforge.net'
@@ -129,10 +161,12 @@ url = {
   'YOKOGAWA'   'see http://www.yokogawa.co.jp, or contact Nobuhiko Takahashi'
   'BEOWULF'    'see http://oostenveld.net, or contact Robert Oostenveld'
   'MENTAT'     'see http://oostenveld.net, or contact Robert Oostenveld'
-  'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth' 
+  'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth'
   '4D-VERSION' 'contact Christian Wienbruch'
   'SIGNAL'     'see http://www.mathworks.com/products/signal'
   'OPTIM'      'see http://www.mathworks.com/products/optim'
+  'IMAGE'      'see http://www.mathworks.com/products/image'
+  'SPLINES'    'see http://www.mathworks.com/products/splines'
   'FASTICA'    'see http://www.cis.hut.fi/projects/ica/fastica'
   'BRAINSTORM' 'see http://neuroimage.ucs.edu/brainstorm'
   'FILEIO'     'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:fileio'
@@ -140,7 +174,11 @@ url = {
   'DENOISE'    'see http://lumiere.ens.fr/Audition/adc/meg, or contact Alain de Cheveigne'
   'BCI2000'    'see http://bci2000.org'
   'NLXNETCOM'  'see http://www.neuralynx.com'
-};
+  'DIPOLI'     'see ftp://ftp.fcdonders.nl/pub/fieldtrip/external'
+  'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
+  'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
+  'BEMCP'      'contact Christophe Phillips'
+  };
 
 if nargin<2
   % default is not to add the path automatically
@@ -163,10 +201,14 @@ switch toolbox
     status = exist('runica', 'file');
   case 'NWAY'
     status = exist('parafac', 'file');
+  case 'SPM99'
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM99');
   case 'SPM2'
-    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise');
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM2');
   case 'SPM5'
-    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise') && exist('spm_vol_nifti');
+    status = exist('spm.m') && strcmp(spm('ver'),'SPM5');
+  case 'SPM8'
+    status = exist('spm.m') && strncmp(spm('ver'),'SPM8', 3);
   case 'MEG-PD'
     status = (exist('rawdata') && exist('channames'));
   case 'MEG-CALC'
@@ -196,9 +238,13 @@ switch toolbox
   case '4D-VERSION'
     status  = (exist('read4d') && exist('read4dhdr'));
   case 'SIGNAL'
-    status = exist('medfilt1');
+    status = hasfunction('medfilt1', toolbox); % also check the availability of a toolbox license
   case 'OPTIM'
-    status  = (exist('fmincon') && exist('fminunc'));
+    status  = hasfunction('fmincon', toolbox) && hasfunction('fminunc', toolbox); % also check the availability of a toolbox license
+  case 'SPLINES'
+    status  = hasfunction('bspline', toolbox) && hasfunction('csape', toolbox); % also check the availability of a toolbox license
+  case 'IMAGE'
+    status = hasfunction('bwlabeln', toolbox); % also check the availability of a toolbox license
   case 'FASTICA'
     status  = exist('fastica', 'file');
   case 'BRAINSTORM'
@@ -215,6 +261,14 @@ switch toolbox
     status  = exist('load_bcidat');
   case 'NLXNETCOM'
     status  = (exist('MatlabNetComClient') && exist('NlxConnectToServer') && exist('NlxGetNewCSCData'));
+  case 'DIPOLI'
+    status  = exist('dipoli.m', 'file');
+  case 'MNE'
+    status  = (exist('fiff_read_meas_info', 'file') && exist('fiff_setup_read_raw', 'file'));
+  case 'TCP_UDP_IP'
+    status  = (exist('pnet', 'file') && exist('pnet_getvar', 'file') && exist('pnet_putvar', 'file'));
+  case 'BEMCP'
+    status  = (exist('bem_Cij_cog', 'file') && exist('bem_Cij_lin', 'file') && exist('bem_Cij_cst', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
@@ -252,11 +306,11 @@ if autoadd && ~status
 
   % use the matlab subdirectory in your homedirectory, this works on unix and mac
   prefix = [getenv('HOME') '/matlab'];
-  if ~status 
+  if ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
- if ~status
+  if ~status
     % the toolbox is not on the path and cannot be added
     sel = find(strcmp(url(:,1), toolbox));
     if ~isempty(sel)
@@ -270,7 +324,9 @@ end
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
-previous.(fixname(toolbox)) = status;
+if status
+  previous.(fixname(toolbox)) = status;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function
@@ -292,4 +348,34 @@ out = lower(toolbox);
 out(out=='-') = '_'; % fix dashes
 out(out==' ') = '_'; % fix spaces
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% helper function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function status = hasfunction(funname, toolbox)
+try
+  % call the function without any input arguments, which probably is inapropriate
+  feval(funname);
+  % it might be that the function without any input already works fine
+  status = true;
+catch
+  % either the function returned an error, or the function is not available
+  % availability is influenced by the function being present and by having a
+  % license for the function, i.e. in a concurrent licensing setting it might
+  % be that all toolbox licenses are in use
+  m = lasterror;
+  if strcmp(m.identifier, 'MATLAB:license:checkouterror')
+    if nargin>1
+      warning('the %s toolbox is available, but you don''t have a license for it', toolbox);
+    else
+      warning('the function ''%s'' is available, but you don''t have a license for it', funname);
+    end
+    status = false;
+  elseif strcmp(m.identifier, 'MATLAB:UndefinedFunction')
+    status = false;
+  else
+    % the function seems to be available and it gave an unknown error,
+    % which is to be expected with inappropriate input arguments
+    status = true;
+  end
+end
 
