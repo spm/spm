@@ -28,6 +28,9 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.14  2009/03/13 07:24:52  roboos
+% changed handling of optimization function (fminunc/fminsearch), now uses hastoolbox which is also able to check the availablity of a license for the optimimization toolbox
+%
 % Revision 1.13  2009/02/17 10:57:57  roboos
 % use senstype to determine eeg/meg
 % fixed bug in input pos/mom checking (thanks to Vladimir)
@@ -126,28 +129,28 @@ else
 end
 
 constr         = keyval('constr',         varargin); % default is not to have constraints
-metric         = keyval('metric',         varargin); if isempty(metric),      metric = 'rv';     end
-checkinside    = keyval('checkinside',    varargin); if isempty(checkinside), checkinside = 0;   end
-display        = keyval('display',        varargin); if isempty(display),     display = 'iter';  end
-optimfun       = keyval('optimfun',       varargin);
+metric         = keyval('metric',         varargin); if isempty(metric),        metric = 'rv';                end
+checkinside    = keyval('checkinside',    varargin); if isempty(checkinside),   checkinside = 0;              end
+display        = keyval('display',        varargin); if isempty(display),       display = 'iter';             end
+optimfun       = keyval('optimfun',       varargin); if isa(optimfun, 'char'),  optimfun = str2fun(optimfun); end
 maxiter        = keyval('maxiter',        varargin);
 reducerank     = keyval('reducerank',     varargin); % for leadfield computation
 normalize      = keyval('normalize' ,     varargin); % for leadfield computation
 normalizeparam = keyval('normalizeparam', varargin); % for leadfield computation
-weight            = keyval('weight',            varargin); % for maximum likelihood estimation
+weight         = keyval('weight',         varargin); % for maximum likelihood estimation
 
-% determine whether the Matlab Optimization toolbox can be used
 if isempty(optimfun)
-  if exist('fminunc')
-    optimfun = 'fminunc';
+  % determine whether the Matlab Optimization toolbox is available and can be used
+  if hastoolbox('optim')
+    optimfun = @fminunc;
   else
-    optimfun = 'fminsearch';
+    optimfun = @fminsearch;
   end
 end
 
-% set a default for the maximum number of iterations, depends on the optimization function
 if isempty(maxiter)
-  if strcmp(optimfun, 'fminunc')
+  % set a default for the maximum number of iterations, depends on the optimization function
+  if isequal(optimfun, @fminunc)
     maxiter = 100;
   else
     maxiter = 500;
@@ -213,26 +216,30 @@ if isfield(constr, 'mirror')
   param = param(constr.reduce);
 end
 
-if strcmp(optimfun, 'fminunc')
-  % do non-linear optimization of the dipole parameters using Optimization toolbox fminunc()
-  options = optimset('TolFun',1e-9,...
+% set the parameters for the optimization function
+if isequal(optimfun, @fminunc)
+  options = optimset(...
+    'TolFun',1e-9,...
     'TypicalX',ones(size(param)),...
     'LargeScale','off',...
     'HessUpdate','bfgs',...
     'MaxIter',maxiter,...
     'MaxFunEvals',2*maxiter*length(param),...
     'Display',display);
-  [param, fval, exitflag, output] = fminunc(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
-else
-  % do non-linear optimization of the dipole parameters using standard Matlab fminsearch()
-  options = optimset('MaxIter',maxiter,...
+elseif isequal(optimfun, @fminsearch)
+  options = optimset(...
+    'MaxIter',maxiter,...
     'MaxFunEvals',2*maxiter*length(param),...
     'Display',display);
-  [param, fval, exitflag, output] = fminsearch(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
+else
+  warning('unknown optimization function "%s", using default parameters', func2str(optimfun));
 end
 
+% perform the optimization with either the fminsearch or fminunc function
+[param, fval, exitflag, output] = optimfun(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
+
 if exitflag==0
-  error('Maximum number of iterations exceeded before reaching the minimum, I suggest that you try with another initial guess.')
+  error('Maximum number of iterations exceeded before reaching the minimum, please try with another initial guess.')
 end
 
 % do linear optimization of dipole moment parameters

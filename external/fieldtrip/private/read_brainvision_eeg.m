@@ -4,7 +4,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 % and returns it as a Nchans x Nsamples matrix
 %
 % Use as
-%   dat = read_brainvision_eeg(filename, hdr, begsample, endsample) 
+%   dat = read_brainvision_eeg(filename, hdr, begsample, endsample)
 % where the header should be first read using read_brainvision_vhdr
 %
 % See also READ_BRAINVISION_VHDR, READ_BRAINVISION_VMRK
@@ -12,6 +12,10 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_eeg.m,v $
+% Revision 1.2  2009/03/13 07:13:28  roboos
+% added feedback to vectorized ascii subformat
+% fixed problem in vectorized ascii subformat when lines would start with the channel label
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -98,8 +102,22 @@ elseif strcmpi(hdr.DataFormat, 'ascii') && strcmpi(hdr.DataOrientation, 'vectori
   fid = fopen(filename, 'rt');
   dat = zeros(hdr.NumberOfChannels, endsample-begsample+1);
   for chan=1:hdr.NumberOfChannels
-    str = fgets(fid);			% read all samples of a single channel
+    % this is very slow, so better give some feedback to indicate that something is happening
+    fprintf('reading channel %d from ascii file to get data from sample %d to %d\n', chan, begsample, endsample);
+
+    str = fgets(fid);             % read all samples of a single channel
     str(find(str==',')) = '.';		% replace comma with point
+
+    if ~isempty(regexp(str(1:10), '[a-zA-Z]', 'once'))
+      % the line starts with letters, not numbers: probably it is a channel label
+      % find the first number and remove the preceding part
+      sel   = regexp(str(1:10), ' [-0-9]');   % find the first number, or actually the last space before the first number
+      label = str(1:(sel));                   % this includes the space
+      str   = str((sel+1):end);               % keep only the numbers
+    end
+    
+    % convert the string into numbers and copy the desired samples over
+    % into the data matrix
     tmp = str2num(str);
     dat(chan,:) = tmp(begsample:endsample);
   end

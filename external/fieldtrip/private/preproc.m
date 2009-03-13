@@ -96,6 +96,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.35  2009/03/13 13:24:00  jansch
+% added support for preproc_denoise
+%
 % Revision 1.34  2009/03/11 11:26:43  roboos
 % updated documentation and copyrights
 %
@@ -286,6 +289,8 @@ if ~isfield(cfg, 'precision'),    cfg.precision = [];           end
 if ~isfield(cfg, 'conv'),         cfg.conv = 'no';              end
 if ~isfield(cfg, 'montage'),      cfg.montage = 'no';           end
 if ~isfield(cfg, 'dftinvert'),    cfg.dftinvert = 'no';         end
+if ~isfield(cfg, 'standardize'),  cfg.standardize = 'no';       end
+if ~isfield(cfg, 'denoise'),      cfg.denoise = '';             end
 
 % test whether the Matlab signal processing toolbox is available
 if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
@@ -448,6 +453,16 @@ end
 if strcmp(cfg.absdiff, 'yes'),
   % this implements abs(diff(data), which is required for jump detection
   dat = abs([diff(dat, 1, 2) zeros(size(dat,1),1)]);
+end
+if strcmp(cfg.standardize, 'yes'),
+  dat = preproc_standardize(dat, 1, size(dat,2));
+end
+if ~isempty(cfg.denoise),
+  hflag    = isfield(cfg.denoise, 'hilbert') && strcmp(cfg.denoise.hilbert, 'yes');
+  datlabel = match_str(label, cfg.denoise.channel);
+  reflabel = match_str(label, cfg.denoise.refchannel);
+  tmpdat   = preproc_denoise(dat(datlabel,:), dat(reflabel,:), hflag);
+  dat(datlabel,:) = tmpdat;
 end
 if ~isempty(cfg.precision)
   % convert the data to another numeric precision, i.e. double, single or int32
