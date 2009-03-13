@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.83  2009/03/13 07:12:09  roboos
+% also use read_brainvision_eeg low-level function for *.seg files, obsoleted the read_brainvision_seg function
+%
 % Revision 1.82  2009/03/02 10:44:38  roboos
 % switched default for fif files to use the MNE reading routines in case of neuromag_fif
 % the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
@@ -676,12 +679,8 @@ switch dataformat
     hastoolbox('BIOSIG', 1);
     dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
 
-  case {'brainvision_eeg', 'brainvision_dat'}
+  case {'brainvision_eeg', 'brainvision_dat', 'brainvision_seg'}
     dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample);
-    dat = dat(chanindx,:);	% select the desired channels
-
-  case 'brainvision_seg'
-    dat = read_brainvision_seg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
 
   case 'ced_son'
