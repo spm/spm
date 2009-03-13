@@ -1,41 +1,37 @@
 function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
-% Function for definition of trials based on events
-% FORMAT S = spm_eeg_definetrial(S)
-% S - existing configuration struct (optional)
-% Fields of S:
-%   S.event - event struct  (optional)
-%   S.fsample - sampling rate
-%   S.dataset - raw dataset (events and fsample can be read from there if absent)
-%   S.inputformat - data type (optional) to force the use of specific data reader
-%   S.timeonset - time of the first sample in the data (default - 0)
-%   S.pretrig - pre-trigger time in ms
-%   S.posttrig - post-trigger time in ms.
-%   S.trialdef - structure array for trial definition with fields (optional)
+% Definition of trials based on events
+% FORMAT[trl, conditionlabels, S]  = spm_eeg_definetrial(S)
+% S                - input structure (optional)
+% (optional) fields of S:
+%   S.event        - event struct  (optional)
+%   S.fsample      - sampling rate
+%   S.dataset      - raw dataset (events and fsample can be read from there if absent)
+%   S.inputformat  - data type (optional) to force the use of specific data reader
+%   S.timeonset    - time of the first sample in the data [default: 0]
+%   S.pretrig      - pre-trigger time in ms
+%   S.posttrig     - post-trigger time in ms
+%   S.trialdef     - structure array for trial definition with fields (optional)
 %       S.trialdef.conditionlabel - string label for the condition
-%       S.trialdef.eventtype  - string
-%       S.trialdef.eventvalue  - string, numeric or empty
-%   S.reviewtrials - 1 - review individual trials after selection (0 - not)
+%       S.trialdef.eventtype      - string
+%       S.trialdef.eventvalue     - string, numeric or empty
+%   S.reviewtrials - review individual trials after selection (yes/no: 1/0)
 % OUTPUT:
-%   trl - Nx3 matrix [start end offset]
+%   trl            - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
-%   S - modified configuration structure (for history)
-% _________________________________________________________________________
+%   S              - modified configuration structure (for history)
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2869 2009-03-12 13:29:13Z guillaume $
+% $Id: spm_eeg_definetrial.m 2876 2009-03-13 14:54:15Z guillaume $
 
 
-SVNrev = '$Rev: 2869 $';
+SVNrev = '$Rev: 2876 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG trial definition');
-
-
-Fig = spm_figure('FindWin','Interactive');
-spm_clf(Fig);
 
 %-Get input parameters
 %--------------------------------------------------------------------------
@@ -135,7 +131,7 @@ if ~isfield(S, 'posttrig')
     S.posttrig = spm_input('End of trial in PST [ms]', '+1', 'r', '', 1);
 end
 
-if ~(isfield(S, 'trialdef'))
+if ~isfield(S, 'trialdef')
     S.trialdef = [];
     ncond = spm_input('How many conditions?', '+1', 'n', '1');
     for i = 1:ncond
@@ -159,8 +155,8 @@ if ~(isfield(S, 'trialdef'))
     end
 end
 
-% ------------- Build trl based on selected events
-
+%-Build trl based on selected events
+%--------------------------------------------------------------------------
 trl = [];
 conditionlabels = {};
 for i=1:numel(S.trialdef)
@@ -199,13 +195,14 @@ for i=1:numel(S.trialdef)
     end
 end
 
-% sorts the trl in right temporal order
-[junk sortind]=sort(trl(:,1));
-trl=trl(sortind, :);
+%-Sort the trl in right temporal order
+%--------------------------------------------------------------------------
+[junk, sortind] = sort(trl(:,1));
+trl             = trl(sortind, :);
 conditionlabels = conditionlabels(sortind);
 
-% ------------- Review selected trials
-
+%-Review selected trials
+%--------------------------------------------------------------------------
 if ~isfield(S, 'reviewtrials')
     S.reviewtrials = spm_input('Review individual trials?','+1','yes|no',[1 0], 0);
 end
@@ -227,8 +224,8 @@ if S.reviewtrials
     end
 end
 
-% ------------- Create trial definition file
-
+%-Create trial definition file
+%--------------------------------------------------------------------------
 if ~isfield(S, 'save')
     S.save = spm_input('Save trial definition?','+1','yes|no',[1 0], 0);
 end
@@ -240,10 +237,15 @@ if S.save
     save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION that allows the user to select an event using gui
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function selected=select_event_ui(event)
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG trial definition: done');
+
+%==========================================================================
+% select_event_ui
+%==========================================================================
+function selected = select_event_ui(event)
+% Allow the user to select an event using GUI
 
 selected={};
 

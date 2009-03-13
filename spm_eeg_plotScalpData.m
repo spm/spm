@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2835 2009-03-06 18:25:14Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 2876 2009-03-13 14:54:15Z guillaume $
 
 if nargin < 4 || isempty(in)
     in      = [];
@@ -288,3 +288,76 @@ ChanLabel = {};
 for i = 1:size(pairs,1)
     ChanLabel{i} = ['MEG' num2str(min(pairs(i,:))) '+' num2str(max(pairs(i,:)))];
 end
+
+%==========================================================================
+% fitSphere
+%==========================================================================
+function [C,R,out] = fitSphere(x,y,z)
+% fitSphere  Fit sphere.
+%       A = fitSphere(x,y,z) returns the parameters of the best-fit
+%       [C,R,out] = fitSphere(x,y,z) returns the center and radius
+%       sphere to data points in vectors (x,y,z) using Taubin's method.
+% IN:
+%   - x/y/z: 3D carthesian ccordinates
+% OUT:
+%   - C: the center of sphere coordinates
+%   - R: the radius of the sphere
+%   - out: an output structure devoted to graphical display of the best fit
+%   sphere
+
+% Make sugary one and zero vectors
+l = ones(length(x),1);
+O = zeros(length(x),1);
+
+% Make design mx
+D = [(x.*x + y.*y + z.*z) x y z l];
+
+Dx = [2*x l O O O];
+Dy = [2*y O l O O];
+Dz = [2*z O O l O];
+
+% Create scatter matrices
+M = D'*D;
+N = Dx'*Dx + Dy'*Dy + Dz'*Dz;
+
+% Extract eigensystem
+[v, evalues] = eig(M);
+evalues = diag(evalues);
+Mrank = sum(evalues > eps*5*norm(M));
+
+if (Mrank == 5)
+    % Full rank -- min ev corresponds to solution
+    Minverse = v'*diag(1./evalues)*v;
+    [v,evalues] = eig(inv(M)*N);
+    [dmin,dminindex] = max(diag(evalues));
+    pvec = v(:,dminindex(1))';
+else
+    % Rank deficient -- just extract nullspace of M
+    pvec = null(M)';
+    [m,n] = size(pvec);
+    if m > 1
+        pvec = pvec(1,:)
+    end
+end
+
+% Convert to (R,C)
+if nargout == 1,
+    if pvec(1) < 0
+        pvec = -pvec;
+    end
+    C = pvec;
+else
+    C = -0.5*pvec(2:4) / pvec(1);
+    R = sqrt(sum(C*C') - pvec(5)/pvec(1));
+end
+
+[X,Y,Z] = sphere;
+[TH,PHI,R0] = cart2sph(X,Y,Z);
+[X,Y,Z] = sph2cart(TH,PHI,R);
+X = X + C(1);
+Y = Y + C(2);
+Z = Z + C(3);
+
+out.X = X;
+out.Y = Y;
+out.Z = Z;

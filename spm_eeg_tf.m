@@ -1,23 +1,26 @@
 function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Compute instantaneous power and phase in peri-stimulus time and frequency
-% FORMAT D = spm_eeg_tf(S)
+% FORMAT [Dtf, Dtf2] = spm_eeg_tf(S)
 %
-% S     - filename of EEG-data file or EEG data struct
-% stored in struct S.tf:
-% frequencies   - vector of frequencies (Hz)
-% rm_baseline   - baseline removal (1/0) yes/no
-% Sbaseline     - 2-element vector: start and stop of baseline
-%                 (if rm_baseline yes)
-% Mfactor       - Morlet wavelet factor
-% channels      - vector of channel indices for which to compute TF
-% phase         - compute phase (1/0) yes/no
-% collchans     - collapse channels (1/0) yes/no. Will average power over
-%                 channels after power estimation. THIS OPTION HAS BEEN
-%                 TEMPORARILY SWITCHED OFF.
+% S                    - input structure (optional)
+% (optional) fields of S:
+%   S.D                - MEEG object or filename of M/EEG mat-file
+%   S.tf               - structure with (optional) fields:
+%     S.tf.frequencies - vector of frequencies (Hz)
+%     S.tf.rm_baseline - baseline removal (yes/no: 1/0)
+%     S.tf.Sbaseline   - 2-element vector: start and stop of baseline
+%                        (if rm_baseline yes)
+%     S.tf.Mfactor     - Morlet wavelet factor
+%     S.tf.channels    - vector of channel indices for which to compute TF
+%     S.tf.phase       - compute phase (yes/no: 1/0)
+%     S.tf.pow         - compute power/magnitude: 1/0 [default: power]
+%     S.tf.collchans   - collapse channels (yes/no: 1/0). Will average
+%                        power over channels after power estimation.
+%                        THIS OPTION HAS BEEN TEMPORARILY SWITCHED OFF.
 % 
-% Dtf           - MEEG object with power data (also written to disk)
-% Dtf2          - MEEG object with phase data (also written to disk) if
-%                 requested
+% Dtf                  - MEEG object with power data (also written to disk)
+% Dtf2                 - MEEG object with phase data (also written to disk)
+%                        if S.tf.phase == 1, empty array if not
 %__________________________________________________________________________
 %
 % spm_eeg_tf estimates instantaneous power and phase of data using the
@@ -26,9 +29,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2874 2009-03-13 11:52:24Z guillaume $
+% $Id: spm_eeg_tf.m 2876 2009-03-13 14:54:15Z guillaume $
 
-SVNrev = '$Rev: 2874 $';
+SVNrev = '$Rev: 2876 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -92,7 +95,7 @@ catch
 end
 
 try
-    tf.phase = S.tf.phase; % 1: compute phase, 0: don't
+    tf.phase = S.tf.phase;
 catch
     tf.phase = ...
         spm_input('Compute phase?', '+1', 'y/n', [1,0], 2);
@@ -100,7 +103,7 @@ catch
 end
 
 try
-    tf.pow = S.tf.pow;    % 1 = power, 0 = magnitude
+    tf.pow = S.tf.pow;
 catch
     tf.pow = 1;
     S.tf.pow = tf.pow;
@@ -116,13 +119,6 @@ end
 % else
 %     tf.collchans = 0;
 % end
-
-try S.tf.circularise_phase
-    tf.circularise = S.tf.circularise_phase;
-catch
-    tf.circularise = 0;
-    S.tf.circularise_phase = tf.circularise;
-end
 
 %-Generate Morlet wavelets
 %--------------------------------------------------------------------------
