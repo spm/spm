@@ -26,9 +26,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_tf.m 2874 2009-03-13 11:52:24Z guillaume $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 2874 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ try
     D = S.D;
 catch
     [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
+    if ~sts, Dtf = []; Dtf2 = []; return; end
     S.D = D;
 end
 
@@ -246,7 +246,9 @@ spm_progress_bar('Clear');
 %-Remove baseline over frequencies and trials
 %--------------------------------------------------------------------------
 if tf.rm_baseline == 1
-    Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
+    Dtf = spm_eeg_bc(struct('D',    Dtf, ...
+                            'time', tf.Sbaseline,...
+                            'save', false));
 end
 
 %-Save new M/EEG dataset

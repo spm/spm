@@ -38,9 +38,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2741 2009-02-12 17:29:54Z vladimir $
+% $Id: spm_eeg_epochs.m 2874 2009-03-13 11:52:24Z guillaume $
 
-SVNrev = '$Rev: 2741 $';
+SVNrev = '$Rev: 2874 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -196,7 +196,9 @@ Dnew = type(Dnew, 'single');
 
 %-Perform baseline correction
 %--------------------------------------------------------------------------
-Dnew = spm_eeg_bc(Dnew, [time(Dnew, 1, 'ms') 0]);
+Dnew = spm_eeg_bc(struct('D',    Dnew, ...
+                         'time', [time(Dnew, 1, 'ms') 0],...
+                         'save', false));
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------

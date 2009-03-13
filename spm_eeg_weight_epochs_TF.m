@@ -1,34 +1,34 @@
 function D = spm_eeg_weight_epochs_TF(S)
 % Compute contrasts over trials or trial types, for time-frequency data
-% FORMAT D = spm_eeg_weight_epochs(S)
+% FORMAT D = spm_eeg_weight_epochs_TF(S)
 %
-% S         - optional input struct
+% S             - optional input struct
 % (optional) fields of S:
-% D         - filename of EEG mat-file with epoched data
-% c         - contrast matrix, each row computes a contrast of the data
-% WeightAve - flag whether average should be weighted by number of
-%             replications (yes (1), no (0))
-% Output:
-% D         - EEG data struct (also written to files)
+%   S.D         - MEEG object or filename of M/EEG mat-file with TF data
+%   S.c         - contrast matrix, each row computes a contrast of the data
+%   S.WeightAve - flag whether average should be weighted by number of
+%                 replications (yes (1), no (0))
+%   S.label     - a cell array of contrast labels (default: prompt)
+%
+% D             - MEEG object (also written to disk)
 %__________________________________________________________________________
 %
-% spm_eeg_weight_epochs computes contrasts of data, over epochs of data, 
+% spm_eeg_weight_epochs_TF computes contrasts of data, over epochs of data, 
 % for time-frequency data. The input is a single MEEG file.
-% The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts is
-% the number of contrasts and Nepochs the number of epochs, i.e. each row of c
-% contains one contrast vector. The output
-% is a M/EEG file with Ncontrasts epochs. The typical use is to compute,
-% for display purposes, contrasts like the difference or interaction
-% between trial types in channel space. Another possible use is remove
-% trials from the data file, by using a contrast that contains zeros for
-% the to be removed file.
+% The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts
+% is the number of contrasts and Nepochs the number of epochs, i.e. each 
+% row of c contains one contrast vector. The output is a MEEG file with 
+% Ncontrasts epochs. The typical use is to compute, for display purposes, 
+% contrasts like the difference or interaction between trial types in 
+% channel space. Another possible use is remove trials from the data file, 
+% by using a contrast that contains zeros for the to be removed file.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs_TF.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_weight_epochs_TF.m 2874 2009-03-13 11:52:24Z guillaume $
 
-SVNrev = '$Rev: 2861 $';
+SVNrev = '$Rev: 2874 $';
 
 %-Startup
 %--------------------------------------------------------------------------
