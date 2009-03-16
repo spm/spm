@@ -1,29 +1,35 @@
 function ind = meegchannels(this, modality)
-% Method for getting index vector of m/eeg channels for display
+% Return indiced of M/EEG channels
 % FORMAT ind = meegchannels(this, modality)
-% modality - (optional) - one of EEG, MEG (excluding planar), MEGPLANAR
-% _______________________________________________________________________
+%
+%  this      - MEEG object
+%  modality  - one of EEG, LFP, MEG (excluding planar), MEGPLANAR [optional]
+%
+%  ind       - row vector of M/EEG channels
+%
+% See also eogchannels, ecgchannels, emgchannels
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 2749 2009-02-16 11:30:15Z vladimir $
+% $Id: meegchannels.m 2884 2009-03-16 18:27:25Z guillaume $
 
 type = chantype(this);
 
 if nargin == 1
-    ind = unique([strmatch('EEG', type, 'exact'); strmatch('MEG', type); strmatch('REF', type); strmatch('LFP', type)]);
+    ind = find(ismember(upper(type), {'EEG', 'MEG', 'REF', 'LFP'}));
 else
     switch modality
         case 'EEG'
-            ind = strmatch('EEG', type, 'exact');
+            ind = find(ismember(upper(type), {'EEG'}));
         case 'LFP'
-            ind = strmatch('LFP', type, 'exact');
+            ind = find(ismember(upper(type), {'LFP'}));
         case 'MEG'
-            ind = sort([strmatch('MEGMAG', type, 'exact'); strmatch('MEGGRAD', type, 'exact'); strmatch('MEG', type, 'exact')]);
+            ind = find(ismember(upper(type), {'MEG', 'MEGMAG', 'MEGGRAD'}));
         case 'MEGPLANAR'
-            ind = strmatch('MEGPLANAR', type, 'exact');
+            ind = find(ismember(upper(type), {'MEGPLANAR'}));
         otherwise
-            error('Unsupported modality');
+            error('Unsupported modality.');
     end
 end
 
