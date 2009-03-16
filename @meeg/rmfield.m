@@ -1,10 +1,10 @@
-function this = rmfield(this, stuff)
+function this = rmfield(this, fields)
 % Method for removing an object field
-% FORMAT this = rmfield(this, stuff)
+% FORMAT this = rmfield(this, fields)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: rmfield.m 1373 2008-04-11 14:24:03Z spm $
+% Vladimir Litvak
+% $Id: rmfield.m 2883 2009-03-16 11:58:48Z vladimir $
 
-eval(['obj = rmfield(obj.' stuff ');'])
+ this.other = rmfield(this.other, fields);
