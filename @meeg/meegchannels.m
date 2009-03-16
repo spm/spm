@@ -1,5 +1,5 @@
 function ind = meegchannels(this, modality)
-% Return indiced of M/EEG channels
+% Return indices of M/EEG channels
 % FORMAT ind = meegchannels(this, modality)
 %
 %  this      - MEEG object
@@ -12,12 +12,13 @@ function ind = meegchannels(this, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 2884 2009-03-16 18:27:25Z guillaume $
+% $Id: meegchannels.m 2886 2009-03-16 20:54:17Z guillaume $
 
 type = chantype(this);
 
 if nargin == 1
-    ind = find(ismember(upper(type), {'EEG', 'MEG', 'REF', 'LFP'}));
+    ind = find(ismember(upper(type), ...
+        {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'REF', 'REFMAG', 'REFGRAD', 'LFP'}));
 else
     switch modality
         case 'EEG'
