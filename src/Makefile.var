@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 2457 2008-11-12 09:24:30Z guillaume $
+# $Id: Makefile.var 2885 2009-03-16 20:45:23Z guillaume $
 #
 ###############################################################################
 #
@@ -19,7 +19,7 @@
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
 #  * Windows:
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Windows
-#      http://en.wikibooks.org/wiki/SPM-Installation_on_64bit_Windows
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
 #      MinGW: http://www.mingw.org/
 #      Gnumex: http://gnumex.sourceforge.net/
 #  * MacOS:

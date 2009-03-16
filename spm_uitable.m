@@ -65,11 +65,11 @@ function [varargout] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 2423 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 2885 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
 
-% $Id: spm_uitable.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_uitable.m 2885 2009-03-16 20:45:23Z guillaume $
 
 % Setup and P-V parsing
 
@@ -99,8 +99,16 @@ if ischar(varargin{1})
         case 'get'
             htable = varargin{2};
             columnNames = get(htable,'columnNames');
+            nc = get(htable,'NumColumns');
+            nr = get(htable,'NumRows');
             data = get(htable,'data');
-            varargout{1} = data;
+            data2 = cell(nr,nc);
+            for i=1:nc
+                for j=1:nr
+                    data2{j,i} = data(j,i);
+                end
+            end
+            varargout{1} = data2;
             varargout{2} = columnNames;
     end
 else

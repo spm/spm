@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2851 2009-03-10 22:43:54Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2885 2009-03-16 20:45:23Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -594,7 +594,7 @@ switch varargin{1}
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
-                %                 delete(D.PSD.handles.PLOT.e(currentEvent));
+%                 delete(D.PSD.handles.PLOT.e(currentEvent));
                 %                 set(D.PSD.handles.hfig,'userdata',D);
                 updateDisp(D,2)
 
@@ -684,7 +684,12 @@ switch varargin{1}
                 D.trials.events(Nevents+1).time = x./D.Fsample;
                 D.trials.events(Nevents+1).duration = 0;
                 D.trials.events(Nevents+1).type = 'Manual';
-                D.trials.events(Nevents+1).value = 0;
+                D.PSD.handles.PLOT.e(Nevents+1) = 0;
+                if Nevents > 0
+                    D.trials.events(Nevents+1).value = D.trials.events(Nevents).value;
+                else
+                    D.trials.events(Nevents+1).value = 0;
+                end
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
@@ -906,18 +911,18 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if isfield(options,'events')
                     D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
                     if length(options.events) >= 1
-                        spm_progress_bar('Init',length(options.events) ,'Adding events');
+%                         spm_progress_bar('Init',length(options.events) ,'Adding events');
                     end
                     axes(D.PSD.handles.axes)
                     for i=1:length(options.events)
-                        spm_progress_bar('Set', i);
+%                         spm_progress_bar('Set', i);
                         sc.currentEvent = i;
                         sc.eventType    = D.trials(trN(1)).events(i).type;
                         sc.eventValue   = D.trials(trN(1)).events(i).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                     end
-                    spm_progress_bar('Clear');
+%                     spm_progress_bar('Clear');
                 end
                 for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;
@@ -940,6 +945,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if Nevents < length(D.PSD.handles.PLOT.e)
                     action = 'delete';
                     try,delete(D.PSD.handles.PLOT.e),end
+                    try,D.PSD.handles.PLOT.e = [];end
                 else
                     action = 'modify';
                 end
@@ -962,15 +968,17 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 events = rmfield(D.trials.events,{'duration','value'});
                 switch action
                     case 'delete'
-                        hw = waitbar(0,'Replacing events: please wait...');
+                        %spm_progress_bar('Init',Nevents,'Replacing events');
                         axes(D.PSD.handles.axes)
                         for i=1:Nevents
                             events(i).time = D.trials.events(i).time.*D.Fsample;% +1;
                             events(i).type = ja(i);
                             events(i).col = mod(events(i).type+7,7)+1;
-                            D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
-                                VIZU.ylim,'color',col(events(i).col,:));
-                            set(D.PSD.handles.PLOT.e(i),'userdata',i,...
+                            D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,...
+                                events(i).time.*[1 1],...
+                                VIZU.ylim,...
+                                'color',col(events(i).col,:),...
+                            	'userdata',i,...
                                 'ButtonDownFcn','set(gco,''selected'',''on'')',...
                                 'Clipping','on');
                             % Add events uicontextmenu
@@ -979,9 +987,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                             sc.eventValue   = D.trials(trN(1)).events(i).value;
                             sc.N_select     = Nevents;
                             psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
-                            waitbar(i/Nevents,hw)
+                            %spm_progress_bar('Set',i)
                         end
-                        try, close(hw); end
+                        %spm_progress_bar('Clear')
                     case 'modify'
                         events(in).time = D.trials.events(in).time.*D.Fsample;% +1;
                         events(in).type = ja(in);
@@ -1323,8 +1331,7 @@ function [] = psd_defineMenuEvent(re,sc)
 % This funcion defines the uicontextmenu associated to the selected events.
 % All the actions which are accessible using the right mouse click on the
 % selected events are a priori defined here.
-spm('pointer','watch');
-drawnow
+
 % Highlighting the selection
 set(re,'buttondownfcn','spm_eeg_review_callbacks(''menuEvent'',''click'',0)');
 cmenu = uicontextmenu;
@@ -1350,7 +1357,6 @@ uimenu(hc,'label','backward','callback','spm_eeg_review_callbacks(''menuEvent'',
 uimenu(cmenu,'label','Delete event','callback','spm_eeg_review_callbacks(''menuEvent'',''deleteEvent'',0)',...
     'BusyAction','cancel',...
     'Interruptible','off');
-spm('pointer','arrow');
 
 %% Get info about source reconstruction
 function str = getInfo4Inv(D,invN)
@@ -1455,7 +1461,11 @@ nb = length(find([D.channels.bad]));
 str{5} = ['Number of channels: ',num2str(length(D.channels)),' (',num2str(nb),' bad channels)'];
 nb = length(find([D.trials.bad]));
 if strcmp(D.type,'continuous')
-    str{6} = ['Number of events: ',num2str(length(D.trials(1).events))];
+    if isfield(D.trials(1),'events')
+        str{6} = ['Number of events: ',num2str(length(D.trials(1).events))];
+    else
+        str{6} = ['Number of events: ',num2str(0)];
+    end
 else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
