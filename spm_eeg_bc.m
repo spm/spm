@@ -16,9 +16,9 @@ function D = spm_eeg_bc(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 2889 2009-03-17 12:02:04Z vladimir $
+% $Id: spm_eeg_bc.m 2890 2009-03-17 12:04:18Z vladimir $
 
-SVNrev = '$Rev: 2889 $';
+SVNrev = '$Rev: 2890 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,6 +60,10 @@ time = time/1000;
 %--------------------------------------------------------------------------
 t(1) = D.indsample(time(1));
 t(2) = D.indsample(time(2));
+
+if any(isnan(t))
+    error('The baseline was not defined correctly.');
+end
 
 indchannels = [D.meegchannels D.eogchannels];
 
