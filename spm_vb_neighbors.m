@@ -1,9 +1,8 @@
-function vxyz = spm_vb_neighbors(xyz,DIM,vol)
+function vxyz = spm_vb_neighbors(xyz,vol)
 % Create list of neighbors of voxels to be analysed
 % FORMAT [vxyz] = spm_vb_neighbors (xyz,DIM,vol)
 %
 % xyz      [Nvoxels x 3] list of voxel positions which are to be analysed
-% DIM      dimensions of data
 % vol      vol=1 for volumetric neighbors, vol=0 for within-slice neighbors 
 %          (default vol=0)
 %
@@ -18,14 +17,15 @@ function vxyz = spm_vb_neighbors(xyz,DIM,vol)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_neighbors.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_vb_neighbors.m 2887 2009-03-17 08:09:39Z lee $
 
-if nargin<3
+if nargin<2
     vol=0;
 end
 
 nearestneighbor = 1;
 N               = size(xyz,1);
+DIM             = max(xyz);
 if vol,
     I               = sub2ind([DIM(1),DIM(2),DIM(3)],xyz(:,1),xyz(:,2),xyz(:,3));
     is              = zeros(DIM(1),DIM(2),DIM(3));

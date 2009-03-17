@@ -37,9 +37,9 @@ if N > CUTOFF
     switch grnd_type
         case 'max'
             id      = find(d==max(d));
-            ground  = id(unidrnd(length(id),1,1));
+            ground  = id(ceil(rand(1)*length(id)));
         case 'random'
-            ground  = unidrnd(N);
+            ground  = ceil(rand(1)*N);
     end
     while reject == 1,
         if N < 1e5, method = 'direct'; else, method = 'cg'; end

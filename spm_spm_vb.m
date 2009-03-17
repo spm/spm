@@ -156,7 +156,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 2511 2008-12-01 13:14:58Z volkmar $
+% $Id: spm_spm_vb.m 2887 2009-03-17 08:09:39Z lee $
 
 
 %-Get SPM.mat if necessary
@@ -635,7 +635,7 @@ for z = 1:zdim
             %-Remove isolated nodes (mask is then the same for slice 
             % and graph-partitioned analyses)
             %-----------------------------------------------------------
-            vxyz = spm_vb_neighbors(xyz(:,Cm)',DIM,0);
+            vxyz = spm_vb_neighbors(xyz(:,Cm)',0);
             if any(sum(vxyz,2)==0)
                 Cm(Cm) = (sum(vxyz,2)>0);
             end
@@ -684,7 +684,7 @@ if strcmp(SPM.PPM.block_type,'subvolumes') % using graph partitioning
             N       = ncl(num);
             [x,y,z] = ind2sub([DIM(1),DIM(2),DIM(3)],I);
             xyz     = [x,y,z];
-            vxyz    = spm_vb_neighbors(xyz,DIM,1);
+            vxyz    = spm_vb_neighbors(xyz,1);
             [edges,weights] = spm_vb_edgeweights(vxyz);
             W       = spm_vb_adjacency(edges,weights,N);
             lbs     = zeros(N,1);
@@ -754,7 +754,7 @@ for z = 1:nLb
 
     end
 
-    vxyz = spm_vb_neighbors(xyz',DIM,vol);
+    vxyz = spm_vb_neighbors(xyz',vol);
 
     %-Conditional estimates (per partition, per voxel)
     %-------------------------------------------------------------------
