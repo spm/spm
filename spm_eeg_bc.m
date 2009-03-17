@@ -16,9 +16,9 @@ function D = spm_eeg_bc(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 2874 2009-03-13 11:52:24Z guillaume $
+% $Id: spm_eeg_bc.m 2889 2009-03-17 12:02:04Z vladimir $
 
-SVNrev = '$Rev: 2874 $';
+SVNrev = '$Rev: 2889 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,6 +51,10 @@ try
 catch
     S.save = false;
 end
+
+%-Converting to sec
+%--------------------------------------------------------------------------
+time = time/1000;
 
 %-Baseline Correction
 %--------------------------------------------------------------------------

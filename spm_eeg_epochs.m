@@ -7,18 +7,18 @@ function D = spm_eeg_epochs(S)
 %   S.D                 - MEEG object or filename of M/EEG mat-file with
 %                         continuous data
 %
-% Either (to use a ready-made trial definition): 
-%   S.epochinfo.trl             - Nx2 or Nx3 matrix (N - number of trials) 
+% Either (to use a ready-made trial definition):
+%   S.epochinfo.trl             - Nx2 or Nx3 matrix (N - number of trials)
 %                                 [start end offset]
-%   S.epochinfo.conditionlabels - one label or cell array of N labels 
-%   S.epochinfo.padding         - the additional time period around each 
+%   S.epochinfo.conditionlabels - one label or cell array of N labels
+%   S.epochinfo.padding         - the additional time period around each
 %                                 trial for which the events are saved with
-%                                 the trial (to let the user keep and use 
+%                                 the trial (to let the user keep and use
 %                                 for analysis events which are outside) [in ms]
-% 
+%
 % Or (to define trials using (spm_eeg_definetrial)):
 %   S.pretrig           - pre-trigger time [in ms]
-%   S.posttrig          - post-trigger time [in ms] 
+%   S.posttrig          - post-trigger time [in ms]
 %   S.trialdef          - structure array for trial definition with fields
 %     S.trialdef.conditionlabel - string label for the condition
 %     S.trialdef.eventtype      - string
@@ -38,9 +38,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2874 2009-03-13 11:52:24Z guillaume $
+% $Id: spm_eeg_epochs.m 2889 2009-03-17 12:02:04Z vladimir $
 
-SVNrev = '$Rev: 2874 $';
+SVNrev = '$Rev: 2889 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -69,37 +69,37 @@ end
 %-First case: deftrials (default for GUI call)
 %--------------------------------------------------------------------------
 if isfield(S, 'trialdef') || nargin == 0
-    
+
     if isfield(S, 'pretrig')
         S_definetrial.pretrig = S.pretrig;
     end
-      
+
     if isfield(S, 'posttrig')
         S_definetrial.posttrig = S.posttrig;
     end
-    
+
     if isfield(S, 'trialdef')
         S_definetrial.trialdef = S.trialdef;
     end
-    
+
     if isfield(S, 'reviewtrials')
         S_definetrial.reviewtrials = S.reviewtrials;
     end
-    
+
     if isfield(S, 'save')
         S_definetrial.save = S.save;
     end
-    
+
     S_definetrial.event = D.events;
-    
+
     S_definetrial.fsample = D.fsample;
-    
+
     S_definetrial.timeonset = D.timeonset;
-    
+
     [epochinfo.trl, epochinfo.conditionlabels, S] = spm_eeg_definetrial(S_definetrial);
 
-%-Second case: epochinfo (trlfile and trl)
-%--------------------------------------------------------------------------
+    %-Second case: epochinfo (trlfile and trl)
+    %--------------------------------------------------------------------------
 else
     try
         epochinfo.trl = S.epochinfo.trl;
@@ -117,7 +117,7 @@ else
             error('Trouble reading trl file.');
         end
     end
-   
+
 end
 
 trl = epochinfo.trl;
@@ -194,11 +194,15 @@ Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
 
-%-Perform baseline correction
+%-Perform baseline correction if there are negative time points
 %--------------------------------------------------------------------------
-Dnew = spm_eeg_bc(struct('D',    Dnew, ...
-                         'time', [time(Dnew, 1, 'ms') 0],...
-                         'save', false));
+if time(Dnew, 1) < 0
+    Dnew = spm_eeg_bc(struct('D',    Dnew, ...
+        'time', [time(Dnew, 1, 'ms') 0],...
+        'save', false));
+else
+    warning('There was no baseline specified. The data is not baseline-corrected');
+end
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------

@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_load.m 2889 2009-03-17 12:02:04Z vladimir $
 
 % bypass if the input is already an MEEG object
 %--------------------------------------------------------------------------
@@ -47,6 +47,16 @@ end
 %--------------------------------------------------------------------------
 if ~exist('D','var')
     error('%s doesn''t contain SPM M/EEG data', P);
+end
+
+% This is for the case when people save the object in a file
+%--------------------------------------------------------------------------
+if ~isa(D, 'struct')
+    try
+        D = struct(D);
+    catch
+        error('The file should contain an SPM M/EEG struct named D');
+    end
 end
 
 % save path in structure and make sure 'type' is set
