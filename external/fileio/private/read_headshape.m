@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.9  2009/03/17 10:58:13  vlalit
+% Switched to MNE reader as default for Neuromag in read_headshape
+%
 % Revision 1.8  2009/01/28 18:29:07  vlalit
 % Added '4d' type to BTi case
 %
@@ -107,7 +110,7 @@ switch fileformat
         shape.fid.pnt = fid([NZ L R], :);
         shape.fid.label = {'NZ', 'L', 'R'};
 
-    case 'neuromag_fif'
+    case 'neuromag_mex'
         [co,ki,nu] = hpipoints(filename);
         fid = co(:,find(ki==1))';
 
@@ -118,7 +121,7 @@ switch fileformat
         shape.fid.pnt = fid([NZ L R], :);
         shape.fid.label = {'NZ', 'L', 'R'};
         
-    case 'neuromag_mne'
+    case {'neuromag_mne', 'neuromag_fif'}
         hdr = read_header(filename,'headerformat','neuromag_mne');
         nFid = size(hdr.orig.dig,2); %work out number of fiducials
         switch coordinates
