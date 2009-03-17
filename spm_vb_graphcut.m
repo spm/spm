@@ -52,7 +52,7 @@ if N > CUTOFF
             [tmp,NUM]               = spm_bwlabel(bw,6);
             if NUM > 1
                 reject  = 1;
-                ground  = unidrnd(N); % re-select ground node
+                ground  = ceil(rand(1)*N); % re-select ground node
                 fprintf('depth %1.0f, partition %1.0f of 2, reject ',depth,k); fprintf('\n')
                 break
             else
