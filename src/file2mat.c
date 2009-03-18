@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 2840 2009-03-09 11:59:43Z guillaume $
+ * $Id: file2mat.c 2894 2009-03-18 12:43:34Z guillaume $
  * John Ashburner
  */
 
@@ -300,7 +300,11 @@ typedef struct mtype {
     int     swap;
     caddr_t addr;
     size_t  len;
-    int     off;
+#ifdef SPM_WIN32
+    ULONGLONG off;
+#else
+    off_t   off;
+#endif
     void   *data;
 } MTYPE;
 
@@ -397,7 +401,11 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 {
     int n;
     int i, dtype;
+#ifdef SPM_WIN32
+    ULONGLONG offset = 0;
+#else
     off_t offset = 0;
+#endif
     const double *pr;
     mxArray *arr;
     unsigned int siz;
@@ -435,7 +443,11 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
     map->swap = (int)pr[0]!=0;
 #endif
     pr       = getpr(ptr, "offset",1, &n);
-    map->off = (int)pr[0];
+#ifdef SPM_WIN32
+    map->off = (ULONGLONG)pr[0];
+#else
+    map->off = (off_t)pr[0];
+#endif
     if (map->off < 0) map->off = 0;
 
     arr = mxGetField(ptr,0,"fname");
@@ -472,6 +484,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
         }
         offset = map->off % page_size();
         map->len = siz + offset;
+        map->off = map->off - offset;
 #ifdef SPM_WIN32
         (void)close(fd);
 
@@ -504,16 +517,15 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/mapviewoffile.asp */
-        map->addr    = (caddr_t)MapViewOfFileEx(
+        map->addr    = (caddr_t)MapViewOfFile(
             hMapping,
             FILE_MAP_READ,
-            0,
-            (map->off - offset),
-            map->len,
-            0);
+            (DWORD)(map->off >> 32),
+            (DWORD)(map->off),
+            map->len);
         (void)CloseHandle(hMapping);
         if (map->addr == NULL)
-            werror("Memory Map (MapViewOfFileEx)",GetLastError());
+            werror("Memory Map (MapViewOfFile)",GetLastError());
 #else
         map->addr = mmap(
             (caddr_t)0,
@@ -521,14 +533,14 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             PROT_READ,
             MAP_SHARED,
             fd,
-            (off_t)(map->off - offset));
+            map->off);
         (void)close(fd);
         mxFree(buf);
         if (map->addr == (void *)-1)
             werror("Memory Map (mmap)",errno);
 #endif
     }
-    map->data = (void *)((char *)map->addr + offset);
+    map->data = (void *)((caddr_t)map->addr + offset);
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
