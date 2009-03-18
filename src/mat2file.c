@@ -1,7 +1,11 @@
 /*
- * $Id: mat2file.c 2840 2009-03-09 11:59:43Z guillaume $
+ * $Id: mat2file.c 2896 2009-03-18 20:43:48Z guillaume $
  * John Ashburner
  */
+
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
 
 #include <math.h>
 #include <fcntl.h>
@@ -9,6 +13,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mex.h"
+#ifdef SPM_WIN32
+#include <windows.h>
+#include <memory.h>
+#include <io.h>
+#if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
+#if defined _MSC_VER
+#define off_t __int64
+#define fseeko _fseeki64
+#else
+#define off_t off64_t
+#define fseeko fseeko64
+#endif
+#endif
+#endif
 
 #define MXDIMS 256
 
@@ -83,22 +101,23 @@ typedef struct ftype {
     Dtype  *dtype;
     int     swap;
     FILE   *fp;
-    unsigned int off;
+    off_t   off;
 } FTYPE;
 
-long icumprod[MXDIMS], ocumprod[MXDIMS];
-long poff, len;
+off_t icumprod[MXDIMS], ocumprod[MXDIMS];
+off_t poff;
+long len;
 #define BLEN 131072
 unsigned char wbuf[BLEN], *dptr;
 
-void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], int indo, int indi, void (*swap)())
+void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], off_t indo, off_t indi, void (*swap)())
 {
     int i;
-    int nb = ocumprod[ndim];
+    off_t nb = ocumprod[ndim];
 
     if (ndim == 0)
     {
-        int off;
+        off_t off;
         for(i=0; i<idim[ndim]; i++)
         {
             off = indo+(ptr[ndim][i]-1)*nb;
@@ -111,7 +130,12 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
                     (void)fclose(fp);
                     (void)mexErrMsgTxt("Problem writing data (1).");
                 }
-                fseek(fp, off, SEEK_SET);
+                if (fseeko(fp, off, SEEK_SET) == -1)
+                {
+                    /* Problem */
+                    (void)fclose(fp);
+                    (void)mexErrMsgTxt("Problem writing data (2).");
+                }
                 dptr   = idat+indi+i*nb;
                 len    = 0;
             }
@@ -158,7 +182,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     {
         /* Problem */
        (void)fclose(map.fp);
-       (void)mexErrMsgTxt("Problem writing data (2).");
+       (void)mexErrMsgTxt("Problem writing data (3).");
     }
 }
 
@@ -240,7 +264,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
     map->swap = (int)pr[0]!=0;
 #endif
     pr       = getpr(ptr, "offset",1, &n);
-    map->off = (int)pr[0];
+    map->off = (off_t)pr[0];
  /* if (map->off < 0) map->off = 0; Unsigned, so not necessary */
 
     arr = mxGetField(ptr,0,"fname");
