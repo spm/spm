@@ -7,26 +7,31 @@ function [data] = selectdata(varargin)
 % Moreover, it can be used as a generalization to ...average with 'keepindividual'
 %
 % Finally, this function serves to subselect regions-of-interest from the input data,
-% either or not averaging across the specified dimensions
-% supported input: -freq
-%                 -timelock (not yet)
-%                 -source   (not yet)
-%                 -volume   (not yet)
+% either or not averaging across the specified dimensions.
 %
-% supported options: -foilim
-%                   -latency
-%                   -roi
-%                   -channel (FIXME this is also done by preprocessing?)
+% Supported input data:
+%   freq
+%   timelock
+%   source   (not yet)
+%   volume   (not yet)
 %
-%                   -avgoverchan
-%                   -avgoverfreq
-%                   -avgovertime
-%                   -avgoverroi
-%                   -avgoverrpt
+% supported options:
+%   foilim
+%   toilim
+%   roi
+%   channel (FIXME this is also done by preprocessing?)
+%   avgoverchan
+%   avgoverfreq
+%   avgovertime
+%   avgoverroi
+%   avgoverrpt
 
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.5  2009/03/18 19:49:54  roboos
+% use the smart xxxdim functions
+%
 % Revision 1.4  2009/01/26 20:53:11  roboos
 % ensure that some options are true|false
 % changes some whitespace
@@ -39,15 +44,23 @@ function [data] = selectdata(varargin)
 isdata  = find(cellfun(@isstruct,varargin));
 keyvals = setdiff(1:length(varargin),isdata);
 
-data = varargin(isdata);
-kvp  = varargin(keyvals);
+data   = varargin(isdata);
+kvp    = varargin(keyvals);
+dtype  = cell(1,length(data));
+dimord = cell(1,length(data));
+
 for k = 1:length(data)
   data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume'});
   [dtype{k}, dimord{k}]  = datatype(data{k});
 end
 
-if ~all(strcmp(dtype{1},dtype)),
-  error('different types of input-data is not supported');
+if any(~strmatch(dtype{1},dtype))
+  error('different types of input data is not supported');
+end
+
+% check consistency of input data
+if any(~strmatch(dimord{1},dimord))
+  error('a different dimord in the input data is not supported');
 end
 
 isfreq   = datatype(data{1},'freq');
@@ -57,19 +70,18 @@ isvolume = datatype(data{1},'volume');
 
 selchan  = keyval('channel', kvp); selectchan = ~isempty(selchan);
 selfoi   = keyval('foilim',  kvp); selectfoi  = ~isempty(selfoi);
-seltime  = keyval('latency', kvp); selecttime = ~isempty(seltime);
+seltoi   = keyval('toilim',  kvp); selecttoi  = ~isempty(seltoi);
 selroi   = keyval('roi',     kvp); selectroi  = ~isempty(selroi);
 selrpt   = keyval('rpt',     kvp); selectrpt  = ~isempty(selrpt);
 param    = keyval('param',   kvp); if isempty(param), param = 'all'; end
 
 avgoverchan  = keyval('avgoverchan',  kvp); if isempty(avgoverchan), avgoverchan = false; end
-avgoverfreq  = keyval('avgoverfreq',  kvp); if isempty(avgoverfreq), avgoverchan = false; end
-avgovertime  = keyval('avgovertime',  kvp); if isempty(avgovertime), avgoverchan = false; end
+avgoverfreq  = keyval('avgoverfreq',  kvp); if isempty(avgoverfreq), avgoverfreq = false; end
+avgovertime  = keyval('avgovertime',  kvp); if isempty(avgovertime), avgovertime = false; end
 avgoverroi   = keyval('avgoverroi',   kvp); if isempty(avgoverroi),  avgoverroi  = false; end
 avgoverrpt   = keyval('avgoverrpt',   kvp); if isempty(avgoverrpt),  avgoverrpt  = false; end
 
-% create anonymous function and apply it to the boolean input arguments
-istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || x==1);
+% ensure that these are boolean arguments, optionally convert from "yes"/"no" to true/false
 avgoverchan = istrue(avgoverchan);
 avgoverfreq = istrue(avgoverfreq);
 avgovertime = istrue(avgovertime);
@@ -77,12 +89,7 @@ avgoverroi  = istrue(avgoverroi);
 avgoverrpt  = istrue(avgoverrpt);
 
 if length(data)>1 && selectrpt,
-  error('multiple data-structure and subselection of trials is not supported');
-end
-
-% check consistency of input data
-if any(~strmatch(dimord{1},dimord))
-  error('inconsistent dimord');
+  error('multiple data structures as input is not supported in combination with subselection of trials');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -198,24 +205,21 @@ if length(data)>1,
 
   % keep the first structure only
   data = data{1};
+  dimord = dimord{1};
 
 else
   % nothing to do
   data = data{1};
+  dimord = dimord{1};
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% from here on a subset is selected from the data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% determine the subselection in the data
 if selectrpt,
-  if ~isfreq,
-    % do nothing
+  dimtok = tokenize(data.dimord, '_');
+  if strcmp(dimtok{1}, 'rpttap'),
+    error('here you have to ensure the correct handling of tapers');
   else
-    dimtok = tokenize(data.dimord, '_');
-    if strcmp(dimtok{1}, 'rpttap'),
-      error('here you have to ensure the correct handling of tapers');
-    end
+    % do nothing
   end
 end
 
@@ -228,114 +232,38 @@ if selectfoi,
   selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
 end
 
-if selecttime,
-  if length(seltime)==1, seltime(2) = seltime; end;
-  seltime = nearest(data.time, seltime(1)):nearest(data.time, seltime(2));
+if selecttoi,
+  if length(seltoi)==1, seltoi(2) = seltoi; end;
+  seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
+end
+
+if selectroi,
+  error('not yet implemented');
 end
 
 if isfreq,
-
-  dimtok  = tokenize(data.dimord, '_');
-  chandim = strmatch('chan', dimtok);
-
-  % hard-coded assumption is that the order in dimord is always chan first (could be 1 or 2), then freq, then time
-  if isfield(data, 'fourierspctrm')
-    if chandim==1, % FIXME this is actually impossible
-      if selectchan, data.fourierspctrm = data.fourierspctrm(selchan,:,:); end
-      if selectfoi,  data.fourierspctrm = data.fourierspctrm(:,selfoi,:);  end
-      if selecttime, data.fourierspctrm = data.fourierspctrm(:,:,seltime); end
-    elseif chandim==2,
-      if selectrpt,  data.fourierspctrm = data.fourierspctrm(selrpt,:,:,:);  end
-      if selectchan, data.fourierspctrm = data.fourierspctrm(:,selchan,:,:); end
-      if selectfoi,  data.fourierspctrm = data.fourierspctrm(:,:,selfoi,:);  end
-      if selecttime, data.fourierspctrm = data.fourierspctrm(:,:,:,seltime); end
-    end
-  end
-  if isfield(data, 'powspctrm')
-    if chandim==1,
-      if selectchan, data.powspctrm = data.powspctrm(selchan,:,:); end
-      if selectfoi,  data.powspctrm = data.powspctrm(:,selfoi,:);  end
-      if selecttime, data.powspctrm = data.powspctrm(:,:,seltime); end
-    elseif chandim==2,
-      if selectrpt,  data.powspctrm = data.powspctrm(selrpt,:,:,:);  end
-      if selectchan, data.powspctrm = data.powspctrm(:,selchan,:,:); end
-      if selectfoi,  data.powspctrm = data.powspctrm(:,:,selfoi,:);  end
-      if selecttime, data.powspctrm = data.powspctrm(:,:,:,seltime); end
-    end
-  end
-  if isfield(data, 'crsspctrm')
-    if chandim==1,
-      if selectchan, data.crsspctrm = data.crsspctrm(selchan,:,:); end
-      if selectfoi,  data.crsspctrm = data.crsspctrm(:,selfoi,:);  end
-      if selecttime, data.crsspctrm = data.crsspctrm(:,:,seltime); end
-    elseif chandim==2,
-      if selectrpt,  data.crsspctrm = data.crsspctrm(selrpt,:,:,:);  end
-      if selectchan, data.crsspctrm = data.crsspctrm(:,selchan,:,:); end
-      if selectfoi,  data.crsspctrm = data.crsspctrm(:,:,selfoi,:);  end
-      if selecttime, data.crsspctrm = data.crsspctrm(:,:,:,seltime); end
-    end
-  end
-
-  if selectrpt,  data.cumtapcnt = data.cumtapcnt(selrpt); end % FIXME mtconvol
-  if selectchan, data.label     = data.label(selchan);    end
-  if selectfoi,  data.freq      = data.freq(selfoi);      end
-  if selecttime, data.time      = data.time(seltime);     end
-
-  if avgoverrpt,  error('not yet implemented'); end
-  if avgoverchan, error('not yet implemented'); end
-  if avgoverfreq, error('not yet implemented'); end
-  if avgovertime, error('not yet implemented'); end
+  % make the subselection
+  if selectrpt,  data = seloverdim(data, 'rpt',  selrpt);  end
+  if selectchan, data = seloverdim(data, 'chan', selchan); end
+  if selectfoi,  data = seloverdim(data, 'freq', selfoi);  end
+  if selecttoi,  data = seloverdim(data, 'time', seltoi);  end
+  % average over dimensions
+  if avgoverrpt,  data = avgoverdim(data, 'rpt');   end
+  if avgoverchan, data = avgoverdim(data, 'chan');  end
+  if avgoverfreq, data = avgoverdim(data, 'freq');  end
+  if avgovertime, data = avgoverdim(data, 'time');  end
 
 elseif istlck,
-  if selecttime && isfield(data, 'cov'),
-    error('it is not possible to extract a latency window here, please re-run timelockanalysis');
-  end
-  if isfield(data, 'trial'),
-    hastrl = 1;
-    if selectrpt,  data.trial = data.trial(selrpt,:,:);  end;
-    if selectchan, data.trial = data.trial(:,selchan,:); end;
-    if selecttime, data.trial = data.trial(:,:,seltime); end;
-  else
-    hastrl = 0;
-  end
-  if isfield(data, 'avg'),
-    if selectrpt,  data     = rmfield(data, 'avg'); end;
-    if selectchan, data.avg = data.avg(selchan,:);  end;
-    if selecttime, data.avg = data.avg(:,seltime);  end;
-  end
-  if isfield(data, 'var'),
-    if selectrpt,  data     = rmfield(data, 'var'); end;
-    if selectchan, data.var = data.var(selchan,:);  end;
-    if selecttime, data.var = data.var(:,seltime);  end;
-  end
-  if isfield(data, 'cov'),
-    if hastrl,
-      if selectrpt,  data.cov = data.cov(selrpt,:,:);        end;
-      if selectchan, data.cov = data.cov(:,selchan,selchan); end;
-    else
-      if selectchan, data.cov = data.cov(selchan,selchan);   end;
-    end
-  end
-  if isfield(data, 'blcov'),
-    if hastrl,
-      if selectrpt,  data.blcov = data.blcov(selrpt,:,:);        end;
-      if selectchan, data.blcov = data.blcov(:,selchan,selchan); end;
-    else
-      if selectchan, data.blcov = data.blcov(selchan,selchan);   end;
-    end
-  end
-  if selectrpt,
-    data.numsamples = data.numsamples(selrpt);
-    data.dof(:)     = length(selrpt); % FIXME this only works for equal length trials
-    try, data.numcovsamples = data.numcovsamples(selrpt); end;
-  end
-  if selectchan, data.label = data.label(selchan); end
-  if selecttime,
-    data.time = data.time(seltime);
-    data.dof  = data.dof(:,seltime);
-    data.numsamples(:) = length(seltime);
-
-  end
+  % make the subselection
+  if selectrpt,  data = seloverdim(data, 'rpt',  selrpt);  end
+  if selectchan, data = seloverdim(data, 'chan', selchan); end
+  if selectfoi,  data = seloverdim(data, 'freq', selfoi);  end
+  if selecttoi,  data = seloverdim(data, 'time', seltoi);  end
+  % average over dimensions
+  if avgoverrpt,  data = avgoverdim(data, 'rpt');   end
+  if avgoverchan, data = avgoverdim(data, 'chan');  end
+  if avgoverfreq, data = avgoverdim(data, 'freq');  end
+  if avgovertime, data = avgoverdim(data, 'time');  end
 
 elseif issource,
   error('this is not yet implemented');
@@ -343,3 +271,15 @@ elseif issource,
 elseif isvolume,
   error('this is not yet implemented');
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function y = istrue(x)
+if ischar(x)
+  y = strcmpi(x, 'yes') || strcmpi(x, 'true');
+else
+  y = logical(x);
+end
+
+

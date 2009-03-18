@@ -67,6 +67,11 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.19  2009/03/18 10:09:00  jansch
+% built in possibility to do thresholding based on the max across channels,
+% rather than on the accumulated value across channels. this is the default
+% for jump artifact detection, and more sensitive
+%
 % Revision 1.18  2008/12/02 16:34:20  estmee
 % Set default cfg.continuous (hdr needed)
 %
@@ -150,6 +155,9 @@ if ~isfield(cfg.artfctdef.zvalue,'trlpadding'), cfg.artfctdef.zvalue.trlpadding 
 if ~isfield(cfg.artfctdef.zvalue,'artpadding'), cfg.artfctdef.zvalue.artpadding  = 0;        end
 if ~isfield(cfg.artfctdef.zvalue,'fltpadding'), cfg.artfctdef.zvalue.fltpadding  = 0;        end
 if ~isfield(cfg.artfctdef.zvalue,'feedback'),   cfg.artfctdef.zvalue.feedback    = 'no';     end
+if ~isfield(cfg.artfctdef.zvalue,'cumulative'), cfg.artfctdef.zvalue.cumulative  = 'yes';    end
+
+thresholdsum = strcmp(cfg.artfctdef.zvalue.cumulative, 'yes');
 
 if nargin > 1
   % data given as input
@@ -226,7 +234,6 @@ for sgnlop=1:numsgn
     % find the maximum z-value and remember the channel with the largest z-value
     zmax{trlop} = max(zmax{trlop}, zdata{trlop});
     zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);
-
     % This alternative code does the same, but it is much slower
     %   for i=1:size(zmax{trlop},2)
     %       if zdata{trlop}(i)>zmax{trlop}(i)
@@ -251,7 +258,11 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
     hold on
     for trlop=1:numtrl
       xval = trl(trlop,1):trl(trlop,2);
-      yval = zsum{trlop};
+      if thresholdsum, 
+        yval = zsum{trlop};
+      else
+        yval = zmax{trlop};
+      end
       plot(xval, yval, 'b-');
       dum = yval<=cfg.artfctdef.zvalue.cutoff;
       yval(dum) = nan;
@@ -263,8 +274,13 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
     [response, interactiveloop] = smartinput('\nwould you like to page through the data [y/N]? ', 'n');
     artval = {};
     for trlop=1:numtrl
-      % threshold the accumulated z-values
-      artval{trlop} = zsum{trlop}>cfg.artfctdef.zvalue.cutoff;
+      if thresholdsum,
+        % threshold the accumulated z-values
+        artval{trlop} = zsum{trlop}>cfg.artfctdef.zvalue.cutoff;
+      else
+        % threshold the max z-values
+	artval{trlop} = zmax{trlop}>cfg.artfctdef.zvalue.cutoff;
+      end
       % pad the artifacts
       artbeg = find(diff([0 artval{trlop}])== 1);
       artend = find(diff([artval{trlop} 0])==-1);
@@ -278,8 +294,15 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
     end
     % show the z-values, the artifacts and a selection of the original data
     if interactiveloop
-      artifact_viewer(cfg, cfg.artfctdef.zvalue, zsum, artval, zindx);
-      cfg.artfctdef.zvalue.cutoff = smartinput(sprintf('\ngive new cutoff value, or press enter to accept current value [%g]: ', cfg.artfctdef.zvalue.cutoff), cfg.artfctdef.zvalue.cutoff);
+      if nargin==1,
+        if ~thresholdsum, zsum = zmax; end;
+        artifact_viewer(cfg, cfg.artfctdef.zvalue, zsum, artval, zindx);
+        cfg.artfctdef.zvalue.cutoff = smartinput(sprintf('\ngive new cutoff value, or press enter to accept current value [%g]: ', cfg.artfctdef.zvalue.cutoff), cfg.artfctdef.zvalue.cutoff);
+      else
+        if ~thresholdsum, zsum = zmax; end;
+	artifact_viewer(cfg, cfg.artfctdef.zvalue, zsum, artval, zindx, data);
+        cfg.artfctdef.zvalue.cutoff = smartinput(sprintf('\ngive new cutoff value, or press enter to accept current value [%g]: ', cfg.artfctdef.zvalue.cutoff), cfg.artfctdef.zvalue.cutoff);
+      end
     end
     if ishandle(h), close(h), end;
   end % interactiveloop
@@ -287,8 +310,13 @@ else
   % this code snippet is the same as above, but without the plotting
   artval = {};
   for trlop=1:numtrl
-    % threshold the accumulated z-values
-    artval{trlop} = zsum{trlop}>cfg.artfctdef.zvalue.cutoff;
+    if thresholdsum,
+      % threshold the accumulated z-values
+      artval{trlop} = zsum{trlop}>cfg.artfctdef.zvalue.cutoff;
+    else
+      % threshold the max z-values
+      artval{trlop} = zmax{trlop}>cfg.artfctdef.zvalue.cutoff;
+    end
     % pad the artifacts
     artbeg = find(diff([0 artval{trlop}])== 1);
     artend = find(diff([artval{trlop} 0])==-1);
@@ -328,6 +356,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.18 2008/12/02 16:34:20 estmee Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.19 2009/03/18 10:09:00 jansch Exp $';
 
 
