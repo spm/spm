@@ -1,31 +1,39 @@
 function D = spm_eeg_prep(S)
 % Prepare converted M/EEG data for further analysis
-%
 % FORMAT D = spm_eeg_prep(S)
-% S        - configuration structure
+% S                 - configuration structure (optional)
+% (optional) fields of S:
+%   S.D             - MEEG object or filename of M/EEG mat-file
+%   S.task          - action string. One of 'settype', 'defaulttype',
+%                     'loadtemplate','setcoor2d', 'project3d', 'loadeegsens', 
+%                     'defaulteegsens', 'sens2chan', 'headshape', 'coregister'.
+%   S.updatehistory - update history information [default: true]
+%   S.save          - save MEEG object [default: false]
 %
-% D        - MEEG object
-% _______________________________________________________________________
+% D                 - MEEG object
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2875 2009-03-13 12:26:00Z vladimir $
+% $Id: spm_eeg_prep.m 2899 2009-03-19 14:17:43Z guillaume $
 
-if nargin==0;
+if ~nargin
     spm_eeg_prep_ui;
-    return
+    return;
 end
 
-D = S.D;
+D = spm_eeg_load(S.D);
 
-if isa(D, 'char')
-    D = spm_eeg_load(D);
-end
-
-switch S.task
+switch lower(S.task)
+    
+    %----------------------------------------------------------------------
     case 'settype'
+    %----------------------------------------------------------------------
         D = chantype(D, S.ind, S.type);
+        
+    %----------------------------------------------------------------------
     case 'defaulttype'
+    %----------------------------------------------------------------------
         if isfield(S, 'ind')
             ind = S.ind;
         else
@@ -70,16 +78,19 @@ switch S.task
         end        
 
         D = chantype(D, ind, spmtype);
-    case {'loadtemplate', 'setcoor2d', 'project3D'}
-        switch S.task
+        
+    %----------------------------------------------------------------------
+    case {'loadtemplate', 'setcoor2d', 'project3d'}
+    %----------------------------------------------------------------------
+        switch lower(S.task)
             case 'loadtemplate'
-                template = load(S.P); % must contain Cpos, Cnames
-                xy = template.Cpos;
-                label = template.Cnames;
+                template    = load(S.P); % must contain Cpos, Cnames
+                xy          = template.Cpos;
+                label       = template.Cnames;
             case 'setcoor2d'
-                xy = S.xy;
-                label = S.label;
-            case 'project3D'
+                xy          = S.xy;
+                label       = S.label;
+            case 'project3d'
                 [xy, label] = spm_eeg_project3D(D.sensors(S.modality), S.modality);
         end
 
@@ -105,7 +116,10 @@ switch S.task
                 D = coor2D(D, sel1, num2cell(xy(:, sel2)));
             end
         end
+        
+    %----------------------------------------------------------------------
     case 'loadeegsens'
+    %----------------------------------------------------------------------
         switch S.source
             case 'mat'
                 senspos = load(S.sensfile);
@@ -188,7 +202,9 @@ switch S.task
 
         D = sensors(D, 'EEG', elec);
 
+    %----------------------------------------------------------------------
     case 'defaulteegsens'
+    %----------------------------------------------------------------------
 
         template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
         template_sfp = {template_sfp.name};
@@ -243,7 +259,9 @@ switch S.task
 
         end
 
+    %----------------------------------------------------------------------
     case 'sens2chan'
+    %----------------------------------------------------------------------
         montage = S.montage;
 
         eeglabel = D.chanlabels(strmatch('EEG',D.chantype));
@@ -267,7 +285,9 @@ switch S.task
             error('The montage cannot be applied to the sensors');
         end
 
+    %----------------------------------------------------------------------
     case 'headshape'
+    %----------------------------------------------------------------------
         switch S.source
             case 'mat'
                 headshape = load(S.headshapefile);
@@ -313,8 +333,10 @@ switch S.task
             shape = forwinv_transform_headshape(M1, shape);
         end
         
-        D = fiducials(D, shape);           
+        D = fiducials(D, shape);
+    %----------------------------------------------------------------------
     case 'coregister'
+    %----------------------------------------------------------------------
         [ok, D] = check(D, 'sensfid');
 
         if ~ok
@@ -337,8 +359,10 @@ switch S.task
             D = fiducials(D, D.inv{1}.datareg.fid_eeg);
         end
 
+    %----------------------------------------------------------------------
     otherwise
-        fprintf('Nothing done ''cos I did not understand the instructions');
+    %----------------------------------------------------------------------
+        fprintf('Unknown task ''%s'' to perform: Nothing done.\n',S.task);
 end
 
 % When prep is called from other functions with history, history should be
@@ -354,8 +378,10 @@ if isfield(S, 'save') && S.save
     save(D);
 end
 
-end
 
+%==========================================================================
+% function coreg
+%==========================================================================
 function M1 = coreg(fid, shape, regfid)
 [junk, sel1] = spm_match_str(regfid(:, 1), fid.fid.label);
 [junk, sel2] = spm_match_str(regfid(:, 2), shape.fid.label);
@@ -374,4 +400,3 @@ S.template = 1;
 S.useheadshape = 0;
 
 M1 = spm_eeg_inv_datareg(S);
-end

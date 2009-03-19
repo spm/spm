@@ -22,14 +22,14 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2870 2009-03-12 13:43:35Z guillaume $
+% $Id: spm_eeg_filter.m 2899 2009-03-19 14:17:43Z guillaume $
 
-SVNrev = '$Rev: 2870 $';
+SVNrev = '$Rev: 2899 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FigName','M/EEG filter',0); spm('Pointer', 'Watch');
+spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
 
 %-Get MEEG object
 %--------------------------------------------------------------------------

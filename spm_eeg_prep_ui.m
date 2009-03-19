@@ -1,241 +1,256 @@
 function spm_eeg_prep_ui(callback)
 % User interface for spm_eeg_prep function performing several tasks
 % for preparation of converted MEEG data for further analysis
-% FORMAT spm_eeg_prep_ui()
+% FORMAT spm_eeg_prep_ui(callback)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_prep_ui.m 2899 2009-03-19 14:17:43Z guillaume $
 
-spm('pointer','watch')
 
-if nargin == 0
+spm('Pointer','Watch');
 
-    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG preparation',0);
+if ~nargin, callback = 'CreateMenu'; end
 
-    delete(findobj(get(Finter,'Children'),'Tag','EEGprepUI'))
+eval(callback);
 
-    %-Draw top level menu
-    % ====== File ===================================
-    FileMenu = uimenu(Finter,'Label','File',...
-        'Tag','EEGprepUI',...
-        'HandleVisibility','on');
+spm('Pointer','Arrow');
 
-    FileOpenMenu = uimenu(FileMenu, ...
-        'Label','Open',...
-        'Separator','off',...
-        'Tag','EEGprepUI',...
-        'HandleVisibility', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''FileOpenCB'')');
 
-    FileSaveMenu = uimenu(FileMenu, ...
-        'Label','Save',...
-        'Separator','off',...
-        'Tag','EEGprepUI',...
-        'HandleVisibility', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''FileSaveCB'')');
-
-    FileExitMenu = uimenu(FileMenu, ...
-        'Label','Exit',...
-        'Separator','on',...
-        'Tag','EEGprepUI',...
-        'HandleVisibility', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''FileExitCB'')');
+%==========================================================================
+% function CreateMenu
+%==========================================================================
+function CreateMenu
     
-    % ====== Channel types ===============================
+SVNrev = '$Rev: 2899 $';
+spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
+Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
-    ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on');
+%-Draw top level menu
+% ====== File ===================================
+FileMenu = uimenu(Finter,'Label','File',...
+    'Tag','EEGprepUI',...
+    'HandleVisibility','on');
 
-    chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other'};
+FileOpenMenu = uimenu(FileMenu, ...
+    'Label','Open',...
+    'Separator','off',...
+    'Tag','EEGprepUI',...
+    'HandleVisibility', 'on',...
+    'Accelerator','O',...
+    'Callback', 'spm_eeg_prep_ui(''FileOpenCB'')');
 
-    for i = 1:length(chanTypes)
-        CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
-            'Tag','EEGprepUI',...
-            'Enable', 'on', ...
-            'HandleVisibility','on',...
-            'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
-    end
+FileSaveMenu = uimenu(FileMenu, ...
+    'Label','Save',...
+    'Separator','off',...
+    'Tag','EEGprepUI',...
+    'Enable','off',...
+    'HandleVisibility', 'on',...
+    'Accelerator','S',...
+    'Callback', 'spm_eeg_prep_ui(''FileSaveCB'')');
 
-    CTypesRef2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'MEGREF=>MEG',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on',...
-        'Separator', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
+FileExitMenu = uimenu(FileMenu, ...
+    'Label','Quit',...
+    'Separator','on',...
+    'Tag','EEGprepUI',...
+    'HandleVisibility', 'on',...
+    'Accelerator','Q',...
+    'Callback', 'spm_eeg_prep_ui(''FileExitCB'')');
 
-    CTypesDefaultMenu = uimenu(ChanTypeMenu, 'Label', 'Default',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on',...
-        'Callback', 'spm_eeg_prep_ui(''ChanTypeDefaultCB'')');
+% ====== Channel types ===============================
 
-    CTypesReviewMenu = uimenu(ChanTypeMenu, 'Label', 'Review',...
+ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on');
+
+chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other'};
+
+for i = 1:length(chanTypes)
+    CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
-    % ====== Sensors ===================================
-
-    Coor3DMenu = uimenu(Finter,'Label','Sensors',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on');
-
-    LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load EEG sensors',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on');
-
-    LoadEEGSensTemplateMenu = uimenu(LoadEEGSensMenu, 'Label', 'Assign default',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensTemplateCB'')');
-
-    LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat file',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
-
-    LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
-
-    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG Fiducials/Headshape',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
-
-    CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
-
-    % ====== 2D projection ===================================
-
-    Coor2DMenu = uimenu(Finter, 'Label','2D projection',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on');
-
-    EditMEGMenu = uimenu(Coor2DMenu, 'Label', 'Edit existing MEG',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''EditExistingCoor2DCB'')');
-
-    EditEEGMenu = uimenu(Coor2DMenu, 'Label', 'Edit existing EEG',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''EditExistingCoor2DCB'')');
-
-    LoadTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Load template',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''LoadTemplateCB'')');
-
-    SaveTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Save template',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''SaveTemplateCB'')');
-
-    Project3DEEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (EEG)',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
-
-    Project3DMEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (MEG)',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
-
-    AddCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Add sensor',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''AddCoor2DCB'')');
-
-    DeleteCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Delete sensor',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''DeleteCoor2DCB'')');
-
-    UndoMoveCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Undo move',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''UndoMoveCoor2DCB'')');
-
-    ApplyCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Apply',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''ApplyCoor2DCB'')');
-
-    Clear2DMenu = uimenu(Coor2DMenu, 'Label', 'Clear',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
-
-    % ====== History ===================================
-
-    HistoryMenu = uimenu(Finter, 'Label','History',...
-        'Tag','EEGprepUI',...
-        'Enable', 'off', ...
-        'HandleVisibility','on');
-
-    HistoryReviewMenu = uimenu(HistoryMenu, 'Label','Review history',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
-
-    History2ScriptMenu = uimenu(HistoryMenu, 'Label','Save as script',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
-else
-    eval(callback);
 end
 
+CTypesRef2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'MEGREF=>MEG',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Separator', 'on',...
+    'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
 
-spm('pointer','arrow')
+CTypesDefaultMenu = uimenu(ChanTypeMenu, 'Label', 'Default',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on',...
+    'Callback', 'spm_eeg_prep_ui(''ChanTypeDefaultCB'')');
 
-%-----------------------------------------------------------------------
+CTypesReviewMenu = uimenu(ChanTypeMenu, 'Label', 'Review',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
 
-function FileOpenCB()
+% ====== Sensors ===================================
+
+Coor3DMenu = uimenu(Finter,'Label','Sensors',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on');
+
+LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load EEG sensors',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on');
+
+LoadEEGSensTemplateMenu = uimenu(LoadEEGSensMenu, 'Label', 'Assign default',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''LoadEEGSensTemplateCB'')');
+
+LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat file',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
+
+LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
+
+HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG Fiducials/Headshape',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
+
+CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on', ...
+    'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
+
+% ====== 2D projection ===================================
+
+Coor2DMenu = uimenu(Finter, 'Label','2D projection',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on');
+
+EditMEGMenu = uimenu(Coor2DMenu, 'Label', 'Edit existing MEG',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''EditExistingCoor2DCB'')');
+
+EditEEGMenu = uimenu(Coor2DMenu, 'Label', 'Edit existing EEG',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''EditExistingCoor2DCB'')');
+
+LoadTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Load template',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on', ...
+    'Callback', 'spm_eeg_prep_ui(''LoadTemplateCB'')');
+
+SaveTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Save template',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''SaveTemplateCB'')');
+
+Project3DEEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (EEG)',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on', ...
+    'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
+
+Project3DMEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (MEG)',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
+
+AddCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Add sensor',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on', ...
+    'Callback', 'spm_eeg_prep_ui(''AddCoor2DCB'')');
+
+DeleteCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Delete sensor',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''DeleteCoor2DCB'')');
+
+UndoMoveCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Undo move',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''UndoMoveCoor2DCB'')');
+
+ApplyCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Apply',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Separator', 'on', ...
+    'Callback', 'spm_eeg_prep_ui(''ApplyCoor2DCB'')');
+
+Clear2DMenu = uimenu(Coor2DMenu, 'Label', 'Clear',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
+
+% ====== History ===================================
+
+HistoryMenu = uimenu(Finter, 'Label','History',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on');
+
+HistoryReviewMenu = uimenu(HistoryMenu, 'Label','Review history',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
+
+History2ScriptMenu = uimenu(HistoryMenu, 'Label','Save as script',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
+
+
+%==========================================================================
+% function FileOpenCB
+%==========================================================================
+function FileOpenCB
 
 D = spm_eeg_load;
 setD(D);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
-function FileSaveCB()
+%==========================================================================
+% function FileSaveCB
+%==========================================================================
+function FileSaveCB
+
 D = getD;
 if ~isempty(D)
     D.save;
@@ -243,15 +258,19 @@ end
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
-function FileExitCB()
-Finter = spm_figure('FindWin','Interactive');
-spm_figure('Clear',Finter);
-spm('FigName','M/EEG preparation: done');
+%==========================================================================
+% function FileExitCB
+%==========================================================================
+function FileExitCB
 
-%-----------------------------------------------------------------------
+spm_figure('Clear','Interactive');
+spm('FigName','M/EEG prepare: done');
 
+
+%==========================================================================
+% function ChanTypeCB
+%==========================================================================
 function ChanTypeCB
 
 type = get(gcbo, 'Label');
@@ -293,8 +312,10 @@ end
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function MEGChanTypeCB
+%==========================================================================
 function MEGChanTypeCB
 
 S = [];
@@ -330,24 +351,26 @@ end
 setD(D);
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function ChanTypeDefaultCB
+%==========================================================================
 function ChanTypeDefaultCB
 
-S = [];
-S.D = getD;
+S.D    = getD;
 S.task = 'defaulttype';
-D = spm_eeg_prep(S);
+D      = spm_eeg_prep(S);
 
 setD(D);
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function LoadEEGSensTemplateCB
+%==========================================================================
 function LoadEEGSensTemplateCB
 
-S = [];
-S.D = getD;
+S.D    = getD;
 S.task = 'defaulteegsens';
 
 if strcmp(S.D.modality(1, 0), 'Multimodal')
@@ -367,19 +390,19 @@ D = spm_eeg_prep(S);
 setD(D);
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function LoadEEGSensCB
+%==========================================================================
 function LoadEEGSensCB
 
-S = [];
 D = getD;
-S.task = 'loadeegsens';
 
 switch get(gcbo, 'Label')
     case 'From *.mat file'
-        S.sensfile = spm_select(1,'.mat$','Select EEG sensors file');
+        S.sensfile = spm_select(1,'mat','Select EEG sensors file');
         S.source = 'mat';
-        S.headshapefile = spm_select(1,'.mat$','Select EEG fiducials file');
+        S.headshapefile = spm_select(1,'mat','Select EEG fiducials file');
         S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'nas lpa rpa');
     case 'Convert locations file'
         S.sensfile = spm_select(1, '\.*', 'Select locations file');
@@ -415,9 +438,9 @@ if strcmp(D.modality(1, 0), 'Multimodal')
     end
 end
 
-S.D = D;
-
-D = spm_eeg_prep(S);
+S.D    = D;
+S.task = 'loadeegsens';
+D      = spm_eeg_prep(S);
 
 % ====== This is for the future ==================================
 % sens = D.sensors('EEG');
@@ -444,8 +467,10 @@ setD(D);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function HeadshapeCB
+%==========================================================================
 function HeadshapeCB
 
 S = [];
@@ -469,8 +494,10 @@ setD(D);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function CoregisterCB
+%==========================================================================
 function CoregisterCB
 
 S = [];
@@ -486,8 +513,10 @@ setD(D);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function EditExistingCoor2DCB
+%==========================================================================
 function EditExistingCoor2DCB
 
 D = getD;
@@ -505,13 +534,13 @@ plot_sensors2D(xy, label);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function LoadTemplateCB
+%==========================================================================
 function LoadTemplateCB
 
-template = [];
-
-template = load(spm_select(1, '\.mat$', 'Select sensor template file', ...
+template = load(spm_select(1, 'mat', 'Select sensor template file', ...
     [], fullfile(spm('dir'), 'EEGtemplates')));
 
 
@@ -521,8 +550,10 @@ end
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function SaveTemplateCB
+%==========================================================================
 function SaveTemplateCB
 
 handles=getHandles;
@@ -536,8 +567,10 @@ Nchannels = length(Cnames);
 
 save(fullfile(pathname, filename), 'Cnames', 'Cpos', 'Rxy', 'Nchannels');
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function Project3DCB
+%==========================================================================
 function Project3DCB
 
 D = getD;
@@ -555,8 +588,10 @@ plot_sensors2D(xy, label);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function AddCoor2DCB
+%==========================================================================
 function AddCoor2DCB
 
 newlabel = spm_input('Label?', '+1', 's');
@@ -586,8 +621,10 @@ plot_sensors2D([handles.xy coord(:)], ...
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function ApplyCoor2DCB
+%==========================================================================
 function ApplyCoor2DCB
 
 handles = getHandles;
@@ -605,8 +642,10 @@ setD(D);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function update_menu
+%==========================================================================
 function update_menu
 
 Finter = spm_figure('GetWin','Interactive');
@@ -695,6 +734,8 @@ if ~isempty(handles)
     end
 end
 
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Save'), 'Enable', 'on');
+
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
@@ -744,41 +785,50 @@ end
 figure(Finter);
 
 
-%-----------------------------------------------------------------------
+%==========================================================================
+% function getD
+%==========================================================================
+function D = getD
 
-function D = getD()
 Finter = spm_figure('GetWin','Interactive');
 D = get(Finter, 'UserData');
 if ~isa(D, 'meeg')
     D = [];
 end
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function setD
+%==========================================================================
 function setD(D)
 Finter = spm_figure('GetWin','Interactive');
 set(Finter, 'UserData', D);
 
-%-----------------------------------------------------------------------
 
-function handles = getHandles()
+%==========================================================================
+% function getHandles
+%==========================================================================
+function handles = getHandles
 Fgraph = spm_figure('GetWin','Graphics');
 handles = get(Fgraph, 'UserData');
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function setHandles
+%==========================================================================
 function setHandles(handles)
 Fgraph = spm_figure('GetWin','Graphics');
 set(Fgraph, 'UserData', handles);
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function plot_sensors2D
+%==========================================================================
 function plot_sensors2D(xy, label)
 
 Fgraph = spm_figure('GetWin','Graphics');
 
-figure(Fgraph);
-clf
+spm_clf(Fgraph);
 
 handles = [];
 
@@ -808,12 +858,12 @@ if ~isempty(xy)
 
     set(handles.h_el,'MarkerFaceColor','r','MarkerSize', 2,'MarkerEdgeColor','k');
 
-end
-
-handles.TemplateFrame = ...
+    handles.TemplateFrame = ...
     plot([0.05 0.05 0.95 0.95 0.05], [0.05 0.95 0.95 0.05 0.05], 'k-');
+    
+    axis off;
 
-axis off;
+end
 
 handles.xy = xy;
 handles.label = label(:)';
@@ -822,8 +872,10 @@ setHandles(handles);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function DeleteCoor2DCB
+%==========================================================================
 function DeleteCoor2DCB
 
 handles = getHandles;
@@ -843,8 +895,10 @@ if isfield(handles, 'labelSelected') && ~isempty(handles.labelSelected)
     plot_sensors2D(handles.xy, handles.label)
 end
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function UndoMoveCoor2DCB
+%==========================================================================
 function UndoMoveCoor2DCB
 
 handles = getHandles;
@@ -868,8 +922,10 @@ if isfield(handles, 'lastMoved')
     update_menu;
 end
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function LabelClickCB
+%==========================================================================
 function LabelClickCB
 
 handles=getHandles;
@@ -901,8 +957,10 @@ setHandles(handles);
 
 update_menu;
 
-%-----------------------------------------------------------------------
 
+%==========================================================================
+% function LabelMoveCB
+%==========================================================================
 function LabelMoveCB
 
 handles = getHandles;
@@ -941,8 +999,11 @@ handles.xy(:, labelind) = coords(1:2)';
 setHandles(handles);
 
 update_menu;
-%------------------------------------------------------------------------
 
+
+%==========================================================================
+% function CancelMoveCB
+%==========================================================================
 function CancelMoveCB
 
 Fgraph = spm_figure('GetWin','Graphics');
@@ -955,16 +1016,20 @@ set(Fgraph, 'WindowButtonMotionFcn', '');
 setHandles(handles);
 
 update_menu;
-%------------------------------------------------------------------------
 
+
+%==========================================================================
+% function Clear2DCB
+%==========================================================================
 function Clear2DCB
 
 plot_sensors2D([], {});
 
 update_menu;
 
-% ====== History ===============================
-
+%==========================================================================
+% function HistoryCB
+%==========================================================================
 function HistoryCB
 
 D = getD;
@@ -1043,6 +1108,9 @@ switch get(gcbo, 'Label')
 end
 
 
+%==========================================================================
+% function match_fiducials
+%==========================================================================
 function regfid = match_fiducials(lblshape, lblfid)
 
 if numel(intersect(upper(lblshape), upper(lblfid))) < 3
@@ -1074,4 +1142,3 @@ else
     lblshape = lblshape(sel2);
     regfid = [lblfid(:) lblshape(:)];
 end
-
