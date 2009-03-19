@@ -19,7 +19,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_vbecd_disp.m 2901 2009-03-19 18:32:09Z vladimir $
 
 global st
 % global defaults
@@ -79,7 +79,7 @@ end
 try
     Pimg = spm_vol(D.inv{ind}.mesh.sMRI);
 catch
-    Pimg = spm_vol(fullfile(spm('dir'),'EEGtemplates','smri.nii'));
+    Pimg = spm_vol(fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii'));
 end
 
 spm_orthviews('Reset');
