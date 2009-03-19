@@ -15,6 +15,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
 %   S.reviewtrials - review individual trials after selection (yes/no: 1/0)
+%   S.save         - save trial definition (yes/no: 1/0)
 % OUTPUT:
 %   trl            - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
@@ -23,10 +24,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2876 2009-03-13 14:54:15Z guillaume $
+% $Id: spm_eeg_definetrial.m 2902 2009-03-19 20:44:35Z guillaume $
 
 
-SVNrev = '$Rev: 2876 $';
+SVNrev = '$Rev: 2902 $';
 
 %-Startup
 %--------------------------------------------------------------------------

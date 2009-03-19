@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_history.m 2902 2009-03-19 20:44:35Z guillaume $
 
 try
     h = S.history;
@@ -41,6 +41,9 @@ else
     catch
         [filename, pathname] = uiputfile('*.m', ...
             'Select the to be generated script file');
+        if isequal(filename,0) || isequal(pathname,0)
+            return;
+        end
         S.sname = fullfile(pathname, filename);
     end
 
@@ -54,10 +57,10 @@ end
 function hist2script(h,fname)
 
 histlist = convert2humanreadable(h);
-[selection ok]= listdlg('ListString', histlist, 'SelectionMode', 'multiple',...
+[selection, ok]= listdlg('ListString', histlist, 'SelectionMode', 'multiple',...
     'InitialValue', 1:numel(histlist) ,'Name', 'Select history entries', ...
     'ListSize', [400 300]);
-if ok, h = h(selection); end
+if ok, h = h(selection); else return; end
 
 Nh = length(h);
 fp = fopen(fname, 'wt');
@@ -99,22 +102,24 @@ for i=1:nf
             H{i,3} = args.dataset;
             if i<nf
                 path = fileparts(H{i,3});
-                H{i,4} = fullfile(path,args.outfile);
+                H{i,4} = fullfile(path,[args.outfile '.mat']);
             else
                 H{i,4} = '[this file]';
             end
         case 'spm_eeg_prep'
             Df = args.D;
-            try,Df = args.D.fname;end
-            H{i,2} = [H{i,2},' (',args.task,')'];
-            try
-                path = fileparts(H{i-1,4});
-            catch
-                path = [];
+            try, Df = args.D.fname; end
+            H{i,2}  = [H{i,2},' (',args.task,')'];
+            pth     = fileparts(Df);
+            if isempty(pth)
+                try
+                    pth = fileparts(H{i-1,4});
+                    Df  = fullfile(pth, Df);
+                end
             end
-            H{i,3} = fullfile(path,Df);
+            H{i,3} = Df;
             if i<nf
-                H{i,4} = fullfile(path,Df);
+                H{i,4} = Df;
             else
                 H{i,4} = '[this file]';
             end
