@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2899 2009-03-19 14:17:43Z guillaume $
+% $Id: spm_eeg_prep.m 2900 2009-03-19 17:58:33Z guillaume $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -369,7 +369,7 @@ end
 % disabled
 if ~isfield(S, 'updatehistory') || S.updatehistory
     Stemp = S;
-    Stemp.D = D.fname;
+    Stemp.D = fullfile(D.path,D.fname);
     Stemp.save = 1;
     D = D.history('spm_eeg_prep', Stemp);
 end

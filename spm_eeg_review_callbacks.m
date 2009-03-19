@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2885 2009-03-16 20:45:23Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2900 2009-03-19 17:58:33Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -24,7 +24,10 @@ switch varargin{1}
                 drawnow
                 D = rmfield(D,'PSD');
                 D = meeg(D);
-                D.save;
+                save(D);
+                
+            case 'saveHistory'
+                spm_eeg_history(D);
         end
 
 
@@ -78,10 +81,6 @@ switch varargin{1}
             case 'dataInfo'
                 str = getInfo4Data(D);
                 varargout{1} = str;
-                return
-            case 'history'
-                table = getHistory(D);
-                varargout{1} = table;
                 return
             case 'uitable'
                 D = getUItable(D);
@@ -1470,66 +1469,6 @@ else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
 try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
-spm('pointer','arrow');
-
-%% Get history info
-function table = getHistory(D)
-spm('pointer','watch');
-drawnow
-try
-    history = D.history;
-    nf = length(history);
-    table = cell(nf,3);
-    for i=1:nf
-        table{i,1} = history(i).fun;
-        args = D.history(i).args;
-        try,args = args{1};end
-        switch history(i).fun
-            case 'spm_eeg_convert'
-                table{i,2} = args.dataset;
-                [path,fn] = fileparts(table{i,2});
-                if i<nf
-                    table{i,3} = fullfile(path,args.outfile);
-                else
-                    table{i,3} = '[this file]';
-                end
-            case 'spm_eeg_prep'
-                Df = args.D;
-                try,Df = args.D.fname;end
-                table{i,1} = [table{i,1},' (',args.task,')'];
-                try
-                    [path,fn] = fileparts(table{i-1,3});
-                catch
-                    path = [];
-                end
-                table{i,2} = fullfile(path,Df);
-                if i<nf
-                    table{i,3} = fullfile(path,Df);
-                else
-                    table{i,3} = '[this file]';
-                end
-            otherwise
-                Df = args.D;
-                try,Df = args.D.fname;end
-                table{i,2} = Df;
-                if i<nf
-                    try
-                        args2 = D.history(i+1).args;
-                        try,args2 = args2{1};end
-                        Df2 = args2.D;
-                        try,Df2 = args2.D.fname;end
-                        table{i,3} = Df2;
-                    catch
-                        table{i,3} = '?';
-                    end
-                else
-                    table{i,3} = '[this file]';
-                end
-        end
-    end
-catch
-    history = [];
-end
 spm('pointer','arrow');
 
 

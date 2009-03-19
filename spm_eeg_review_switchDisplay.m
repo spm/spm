@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2847 2009-03-10 17:43:19Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 2900 2009-03-19 17:58:33Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -447,6 +447,7 @@ switch D.PSD.VIZU.uitable
             % delete buttons if any
             try;delete(D.PSD.handles.BUTTONS.OKinfo);end
             try;delete(D.PSD.handles.BUTTONS.showSensors);end
+            try;delete(D.PSD.handles.BUTTONS.saveHistory);end
         end
 
         % add table and buttons
@@ -668,10 +669,11 @@ switch D.PSD.VIZU.uitable
 
 
             case 4 % history info
-
-                table = spm_eeg_review_callbacks('get','history');
+                object.list = [object.list;15];
+                
+                table = spm_eeg_history(D);
                 if ~isempty(table)
-                    colnames = {'function called','input file','output file'};
+                    colnames = {'Process','function called','input file','output file'};
                     [ht,hc] = spm_uitable(table,colnames);
                     set(ht,'units','normalized','editable',0);
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
@@ -686,6 +688,7 @@ switch D.PSD.VIZU.uitable
                         'BackgroundColor',0.95*[1 1 1],...
                         'tag','plotEEG');
                 end
+                D = spm_eeg_review_uis(D,object); % this adds the buttons
 
         end
 

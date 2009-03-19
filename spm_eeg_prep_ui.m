@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2899 2009-03-19 14:17:43Z guillaume $
+% $Id: spm_eeg_prep_ui.m 2900 2009-03-19 17:58:33Z guillaume $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 2899 $';
+SVNrev = '$Rev: 2900 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -214,25 +214,6 @@ Clear2DMenu = uimenu(Coor2DMenu, 'Label', 'Clear',...
     'Enable', 'on', ...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
-
-% ====== History ===================================
-
-HistoryMenu = uimenu(Finter, 'Label','History',...
-    'Tag','EEGprepUI',...
-    'Enable', 'off', ...
-    'HandleVisibility','on');
-
-HistoryReviewMenu = uimenu(HistoryMenu, 'Label','Review history',...
-    'Tag','EEGprepUI',...
-    'Enable', 'on', ...
-    'HandleVisibility','on',...
-    'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
-
-History2ScriptMenu = uimenu(HistoryMenu, 'Label','Save as script',...
-    'Tag','EEGprepUI',...
-    'Enable', 'on', ...
-    'HandleVisibility','on',...
-    'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
 
 
 %==========================================================================
@@ -761,8 +742,6 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Apply'), 'Enable', IsTemplate);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
 
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'History'), 'Enable', HasHistory);
-
 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
 
 if strcmp(Dloaded, 'on') && isfield(D,'PSD') && D.PSD == 1
@@ -1026,86 +1005,6 @@ function Clear2DCB
 plot_sensors2D([], {});
 
 update_menu;
-
-%==========================================================================
-% function HistoryCB
-%==========================================================================
-function HistoryCB
-
-D = getD;
-
-h = D.history;
-
-histlist ={};
-for i = 1:numel(h)
-    switch h(i).fun
-        case 'spm_eeg_convert'
-            histlist{i} = 'Convert';
-        case 'spm_eeg_epochs'
-            histlist{i} = 'Epoch';
-        case 'spm_eeg_filter'
-            histlist{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
-                ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
-        case 'spm_eeg_downsample'
-            histlist{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
-        case 'spm_eeg_montage'
-            histlist{i} = 'Change montage';
-        case 'spm_eeg_artefact'
-            histlist{i} = 'Detect artefacts';
-        case 'spm_eeg_average'
-            histlist{i} = 'Average';
-        case 'spm_eeg_average_TF'
-            histlist{i} = 'Average time-frequency';
-        case 'spm_eeg_average'
-            histlist{i} = 'Average';
-        case 'spm_eeg_grandmean'
-            histlist{i} = 'Grand mean';
-        case 'spm_eeg_merge'
-            histlist{i} = 'Merge';
-        case 'spm_eeg_tf'
-            histlist{i} = 'Compute time-frequency';
-        case 'spm_eeg_weight_epochs'
-            histlist{i} = 'Compute contrast';
-        case 'spm_eeg_sort_conditions'
-            histlist{i} = 'Sort conditions';
-        case 'spm_eeg_prep'
-            switch h(i).args.task
-                case 'settype'
-                    histlist{i} = 'Set channel type';
-                case {'loadtemplate', 'setcoor2d', 'project3D'}
-                    histlist{i} = 'Set 2D coordinates';
-                case 'loadeegsens'
-                    histlist{i} = 'Load EEG sensor locations';
-                case 'defaulteegsens'
-                    histlist{i} = 'Set EEG sensor locations to default';
-                case 'sens2chan'
-                    histlist{i} = 'Specify initial montage';
-                case 'headshape'
-                    histlist{i} = 'Load fiducials/headshape';
-                case 'coregister'
-                    histlist{i} = 'Coregister';
-                otherwise
-                    histlist{i} = ['Prepare: ' h(i).args.task];
-            end
-        otherwise
-            histlist{i} = h(i).fun;
-    end
-end
-
-switch get(gcbo, 'Label')
-    case 'Review history'
-        listdlg('ListString', histlist, 'SelectionMode', 'single', 'Name', 'Review history', 'ListSize', [400 300]);
-        return
-    case 'Save as script'
-        [selection ok]= listdlg('ListString', histlist, 'SelectionMode', 'multiple',...
-            'InitialValue', 1:numel(histlist) ,'Name', 'Select history entries', 'ListSize', [400 300]);
-        if ok
-            S = [];
-            S.history = h(selection);
-
-            spm_eeg_hist2script(S);
-        end
-end
 
 
 %==========================================================================

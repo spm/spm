@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2885 2009-03-16 20:45:23Z guillaume $
+% $Id: spm_eeg_review_uis.m 2900 2009-03-19 17:58:33Z guillaume $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -308,7 +308,17 @@ switch objects.type
             set(D.PSD.handles.BUTTONS.showSensors,'units','normalized')
         end
         
-        
+        if ismember(15,objects.list)  % save history as MATLAB script
+            D.PSD.handles.BUTTONS.saveHistory = uicontrol(D.PSD.handles.hfig,...
+                'units','normalized','Position',[0.1 0.76 0.2 0.02],...
+                'style','pushbutton','string','Save as script',...
+                'callback','spm_eeg_review_callbacks(''file'',''saveHistory'')',...
+                'tooltipstring','Save history as MATLAB script',...
+                'BusyAction','cancel',...
+                'Interruptible','off',...
+                'tag','plotEEG');
+            set(D.PSD.handles.BUTTONS.saveHistory,'units','normalized')
+        end
 
     case 'axes'
 
