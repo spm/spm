@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.47  2009/03/18 20:55:28  roboos
+% updated detection of infinite medium volume (for magnetic dipole)
+%
 % Revision 1.46  2008/09/17 14:57:24  roboos
 % removed call to fixvolume, it does not seem necessary any more
 %
@@ -408,7 +411,7 @@ end
 
 % determine the dipole locations inside the brain volume
 if ~isfield(grid, 'inside') && ~isfield(grid, 'outside')
-  if isempty(vol)
+  if voltype(vol, 'infinite')
     % an empty vol in combination with gradiometers indicates a magnetic dipole
     % in an infinite vacuum, i.e. all dipoles can be considered to be inside
     grid.inside = 1:size(grid.pos,1);

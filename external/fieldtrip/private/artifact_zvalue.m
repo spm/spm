@@ -67,6 +67,9 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.20  2009/03/19 10:53:51  roboos
+% some cocde cleanup and whitespace, no functional change
+%
 % Revision 1.19  2009/03/18 10:09:00  jansch
 % built in possibility to do thresholding based on the max across channels,
 % rather than on the accumulated value across channels. this is the default
@@ -171,11 +174,11 @@ end
 
 % set default cfg.continuous
 if ~isfield(cfg, 'continuous')
-    if hdr.nTrials==1
-      cfg.continuous = 'yes';
-    else
-      cfg.continuous = 'no';
-    end
+  if hdr.nTrials==1
+    cfg.continuous = 'yes';
+  else
+    cfg.continuous = 'no';
+  end
 end
 
 trl           = cfg.trl;
@@ -216,24 +219,25 @@ for sgnlop=1:numsgn
     sumval = sumval + sum(dat{trlop},2);
     sumsqr = sumsqr + sum(dat{trlop}.^2,2);
     numsmp = numsmp + size(dat{trlop},2);
-  end
+  end % for trlop
+
   % compute the average and the standard deviation
   datavg = sumval./numsmp;
   datstd = sqrt(sumsqr./numsmp - (sumval./numsmp).^2);
+
   for trlop = 1:numtrl
     if sgnlop==1
+      % initialize some matrices
       zdata{trlop} = zeros(size(dat{trlop}));
       zmax{trlop}  = -inf + zeros(size(dat{trlop}));
       zsum{trlop}  = zeros(size(dat{trlop}));
       zindx{trlop} = zeros(size(dat{trlop}));
     end
-    % convert the filtered data to z-values
-    zdata{trlop} = (dat{trlop} - datavg)./datstd;
-    % accumulate the z-values over channels
-    zsum{trlop} = zsum{trlop} + zdata{trlop};
-    % find the maximum z-value and remember the channel with the largest z-value
-    zmax{trlop} = max(zmax{trlop}, zdata{trlop});
-    zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);
+    zdata{trlop}  = (dat{trlop} - datavg)./datstd;              % convert the filtered data to z-values
+    zsum{trlop}   = zsum{trlop} + zdata{trlop};                 % accumulate the z-values over channels
+    zmax{trlop}   = max(zmax{trlop}, zdata{trlop});             % find the maximum z-value and remember it
+    zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);   % also remember the channel number that has the largest z-value
+
     % This alternative code does the same, but it is much slower
     %   for i=1:size(zmax{trlop},2)
     %       if zdata{trlop}(i)>zmax{trlop}(i)
@@ -244,7 +248,7 @@ for sgnlop=1:numsgn
     %     end
   end
   fprintf('\n');
-end
+end % for sgnlop
 
 for trlop = 1:numtrl
   zsum{trlop} = zsum{trlop} ./ sqrt(numsgn);
@@ -258,7 +262,7 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
     hold on
     for trlop=1:numtrl
       xval = trl(trlop,1):trl(trlop,2);
-      if thresholdsum, 
+      if thresholdsum,
         yval = zsum{trlop};
       else
         yval = zmax{trlop};
@@ -279,7 +283,7 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
         artval{trlop} = zsum{trlop}>cfg.artfctdef.zvalue.cutoff;
       else
         % threshold the max z-values
-	artval{trlop} = zmax{trlop}>cfg.artfctdef.zvalue.cutoff;
+        artval{trlop} = zmax{trlop}>cfg.artfctdef.zvalue.cutoff;
       end
       % pad the artifacts
       artbeg = find(diff([0 artval{trlop}])== 1);
@@ -300,7 +304,7 @@ if strcmp(cfg.artfctdef.zvalue.feedback, 'yes')
         cfg.artfctdef.zvalue.cutoff = smartinput(sprintf('\ngive new cutoff value, or press enter to accept current value [%g]: ', cfg.artfctdef.zvalue.cutoff), cfg.artfctdef.zvalue.cutoff);
       else
         if ~thresholdsum, zsum = zmax; end;
-	artifact_viewer(cfg, cfg.artfctdef.zvalue, zsum, artval, zindx, data);
+        artifact_viewer(cfg, cfg.artfctdef.zvalue, zsum, artval, zindx, data);
         cfg.artfctdef.zvalue.cutoff = smartinput(sprintf('\ngive new cutoff value, or press enter to accept current value [%g]: ', cfg.artfctdef.zvalue.cutoff), cfg.artfctdef.zvalue.cutoff);
       end
     end
@@ -356,6 +360,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.19 2009/03/18 10:09:00 jansch Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.20 2009/03/19 10:53:51 roboos Exp $';
 
 
