@@ -14,7 +14,7 @@ function [x,DEM] = DEM_demo_MMN_gen(P,G,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_gen.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: DEM_demo_MMN_gen.m 2907 2009-03-20 13:02:24Z karl $
  
  
  
@@ -24,8 +24,8 @@ function [x,DEM] = DEM_demo_MMN_gen(P,G,U)
  
 % model parameters; Jacobian and mixing parameters
 %--------------------------------------------------------------------------
-F       = [-1  4 ;
-           -2 -1]/16;
+F       = [-2  4 ;
+           -4 -1]/32;
 A.g     = [ 0  1 ;                           % amplitude
             4  0];                           % frequency
 A.f     = exp(P.f).*F;                       % dynamics
@@ -39,7 +39,7 @@ B.f     = A.f;
  
       
  
-% model specification
+% model specification (which parameters can be learned)
 %==========================================================================
 ip      = [2];        
 pC      = sparse(ip,ip,1,8,8);                % prior covariance  

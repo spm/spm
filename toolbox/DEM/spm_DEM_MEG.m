@@ -17,10 +17,11 @@ function [R] = spm_DEM_MEG(DEM,dt,n,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_MEG.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: spm_DEM_MEG.m 2907 2009-03-20 13:02:24Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
+if ~nargout; graphics = 1; end
 try
     dt;
 catch
@@ -64,12 +65,16 @@ for k = 1:length(n)
 
     % ERPs
     %----------------------------------------------------------------------
-    R{k,1}  = spm_sqrtm(V)*z{i};
-    R{k,2}  = spm_sqrtm(W)*w{i};
+    R{k,1}     = spm_sqrtm(V)*z{i};
+    try
+        R{k,2} = spm_sqrtm(W)*w{i};
+    end
 
     if graphics
         plot(pst,R{k,1},'r')
-        plot(pst,R{k,2},'r:')
+        try
+            plot(pst,R{k,2},'r:')
+        end
     end
 
 end
