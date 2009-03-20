@@ -1,6 +1,5 @@
 function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
-
-% This function plots dipole positions onto the SPM EEG canonical mesh
+% Plot dipole positions onto the SPM canonical mesh
 % FORMAT [out] = spm_eeg_displayDipoles(Pos,Orient,Var,Names,options)
 %
 % IN (admissible choices):
@@ -13,12 +12,15 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 %       .hfig: the handle of the display figure
 %       .tag: the tag to be associated with the created UI objects
 %       .add: binary variable ({0}, 1: just add dipole in the figure .hfig)
-
-
+%
 % OUT:
 %   - out: a structure containing the handles of the object in the figure
 %   (including the mesh, the dipoles, the transparency slider, etc...)
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
+% Jean Daunizeau
+% $Id: spm_eeg_displayECD.m 2914 2009-03-20 18:30:31Z guillaume $
 
 hfig = [];
 ParentAxes = [];
@@ -57,7 +59,7 @@ col = repmat(col,1,tmp);
 if ndip > 0
     
     if isempty(query)
-        m = [spm('Dir'),filesep,'canonical',filesep,'cortex_5124.surf.gii'];
+        m = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
         opt.hfig = hfig;
         opt.ParentAxes = ParentAxes;
         [out] = spm_eeg_render(m,opt);
@@ -196,7 +198,7 @@ catch
     out = [];    
 end
 
-
+%==========================================================================
 function doChange1(i1,i2)
 val = get(i1,'value');
 handles = get(i1,'userdata');
@@ -211,8 +213,9 @@ else
     try set(handles.hs(1,:),'visible','on');end
     try set(handles.ht(1,:),'visible','on');end
 end
-    
 
+
+%==========================================================================
 function doChange2(i1,i2)
 val = get(i1,'value');
 handles = get(i1,'userdata');
@@ -227,5 +230,3 @@ else
     try set(handles.hs(2,:),'visible','on');end
     try set(handles.ht(2,:),'visible','on');end
 end
-
-

@@ -1,8 +1,8 @@
 function spm_eeg_inv_group(S)
 % Source reconstruction for a group ERP or ERF study
-% FORMAT spm_eeg_inv_group
+% FORMAT spm_eeg_inv_group(S)
 %
-% S  - matrix of names of EEG/MEG mat files for inversion
+% S  - string array of names of M/EEG mat files for inversion (optional)
 %__________________________________________________________________________
 %
 % spm_eeg_inv_group inverts forward models for a group of subjects or ERPs
@@ -20,38 +20,48 @@ function spm_eeg_inv_group(S)
 % same subset of voxels.  These would normally be passed to a second-level
 % SPM for classical inference about between-trial effects, over subjects.
 %__________________________________________________________________________
+%
+% References:
+% Electromagnetic source reconstruction for group studies. V. Litvak and
+% K.J. Friston. NeuroImage, 42:1490-1498, 2008.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_inv_group.m 2914 2009-03-20 18:30:31Z guillaume $
 
+SVNrev = '$Rev: 2914 $';
 
-% check if to proceed
+%-Startup
 %--------------------------------------------------------------------------
-str = questdlg('this will overwrite previous source reconstructions OK?');
+spm('FnBanner', mfilename, SVNrev);
+
+%-Check if to proceed
+%--------------------------------------------------------------------------
+str = questdlg({'This will overwrite previous source reconstructions.', ...
+    'Do you wish to continue?'},'M/EEG Group Inversion','Yes','No','Yes');
 if ~strcmp(str,'Yes'), return, end
 
 % Load data
 %==========================================================================
 
-% Gile file names
+% Give file names
 %--------------------------------------------------------------------------
 if ~nargin
-    [S, sts] = spm_select(Inf, 'mat','Select M/MEG mat files');
+    [S, sts] = spm_select(Inf, 'mat','Select M/EEG mat files');
     if ~sts, return; end
 end
 Ns    = size(S,1);
-PWD   = pwd;
-val   = 1;
+swd   = pwd;
 
 % Load data and set method
 %==========================================================================
 for i = 1:Ns
     
-    fprintf('%s: subject %i\n','checking for previous inversions',i)
+    fprintf('checking for previous inversions: subject %i\n',i);
     D{i}                 = spm_eeg_load(deblank(S(i,:)));
     D{i}.val             = 1;
-    D{i}.inv{1}.method = 'Imaging';
+    D{i}.inv{1}.method   = 'Imaging';
     
     % clear redundant models
     %----------------------------------------------------------------------
@@ -71,8 +81,9 @@ end
 
 % Check for existing forward models and consistent Gain matrices
 %--------------------------------------------------------------------------
+Nd = zeros(1,Ns);
 for i = 1:Ns
-    fprintf('%s: subject %i\n','checking for foward models',i)
+    fprintf('checking for foward models: subject %i\n',i);
     try
         [L, D{i}] = spm_eeg_lgainmat(D{i});
         Nd(i) = size(L,2);               % number of dipoles
@@ -83,14 +94,14 @@ end
 
 % use template head model where necessary
 %==========================================================================
-if max(Nd > 1024);
+if max(Nd > 1024)
     NS = find(Nd ~= max(Nd));            % subjects requiring forward model
 else
     NS = 1:Ns;
 end
 for i = NS
 
-    cd(D{i}.path)
+    cd(D{i}.path);
 
     % specify cortical mesh size (1 tp 4; 1 = 5125, 2 = 8196 dipoles)
     %----------------------------------------------------------------------
@@ -102,7 +113,7 @@ for i = NS
 
     % save forward model parameters
     %----------------------------------------------------------------------
-    save(D{i})
+    save(D{i});
 
 end
 
@@ -124,13 +135,13 @@ end
 % and save them (assume trials = types)
 %--------------------------------------------------------------------------
 for i = 1:Ns
-    D{i}.inv{val}.inverse = inverse;
+    D{i}.inv{1}.inverse = inverse;
 end
 
 % specify time-frequency window contrast
 %==========================================================================
-str = questdlg('Would you like to specify a time-frequency contrast?');
-if strcmp(str,'Yes')
+tfwin = spm_input('Time-Frequency contrast?','+1','y/n',[1,0],1);
+if tfwin
 
     % get time window
     %----------------------------------------------------------------------
@@ -156,7 +167,7 @@ end
 %==========================================================================
 for i = NS
 
-    fprintf('Registering and computing forward model (subject: %i)\n',i)
+    fprintf('Registering and computing forward model (subject: %i)\n',i);
 
     % Forward model
     %----------------------------------------------------------------------
@@ -189,11 +200,13 @@ if ~isempty(contrast)
     % evaluate contrast and write image
     %----------------------------------------------------------------------
     for i = 1:Ns
-        [p f] = fileparts(deblank(S(i,:)));
-        D     = spm_eeg_load(fullfile(p,f));
-        D.inv{val}.contrast = contrast;
+        D     = spm_eeg_load(deblank(S(i,:)));
+        D.inv{1}.contrast = contrast;
         D     = spm_eeg_inv_results(D);
         D     = spm_eeg_inv_Mesh2Voxels(D);
     end
 end
 
+% Cleanup
+%==========================================================================
+cd(swd);

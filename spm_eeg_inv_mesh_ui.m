@@ -1,24 +1,32 @@
 function D = spm_eeg_inv_mesh_ui(varargin)
-% Cortical Mesh user-interface routine
-% Invokes spatial normalization (if required) and the computation of
-% the proper size individual size
-%
+% Cortical Mesh user interface
 % FORMAT D = spm_eeg_inv_mesh_ui(D, val, template, Msize)
-% Input:
+% 
 % D        - input data struct (optional)
-% Output:
+% val      - 
+% template - 
+% Msize    - 
+% 
 % D        - same data struct including the meshing files and variables
+%__________________________________________________________________________
+%
+% Invokes spatial normalisation (if required) and the computation of
+% the individual mesh.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 2773 2009-02-23 13:08:55Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 2914 2009-03-20 18:30:31Z guillaume $
 
+SVNrev = '$Rev: 2914 $';
 
-% initialise
+%-Startup
 %--------------------------------------------------------------------------
-[Finter] = spm('FnUIsetup','Define head model',0);
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','Define head model');
 
+%-Initialisation
+%--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
 if val == 0
@@ -27,13 +35,7 @@ end
 
 if ~isfield(D, 'inv') || ~isfield(D.inv{val}, 'comment')
     D.inv = {struct('mesh', [])};
-    clck = fix(clock);
-    if clck(5) < 10
-        clck = [num2str(clck(4)) ':0' num2str(clck(5))];
-    else
-        clck = [num2str(clck(4)) ':' num2str(clck(5))];
-    end
-    D.inv{val}.date    = strvcat(date,clck);
+    D.inv{val}.date    = strvcat(date,datestr(now,15));
     D.inv{val}.comment = {''};
 else
     inv = struct('mesh', []);
@@ -42,7 +44,7 @@ else
     D.inv{val} = inv;
 end
 
-if nargin>2
+if nargin > 2
     template = varargin{3};
 else
     template = [];
@@ -70,6 +72,10 @@ end
 
 D.inv{val}.mesh = spm_eeg_inv_mesh(sMRI, Msize);
 
-% check meshes and display
+%-Check meshes and display
 %--------------------------------------------------------------------------
 spm_eeg_inv_checkmeshes(D);
+
+%-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','Define head model: done');

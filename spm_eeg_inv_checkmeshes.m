@@ -1,4 +1,4 @@
-function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
+function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin)
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
 % FORMAT [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(S)
@@ -13,7 +13,7 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 2762 2009-02-19 11:50:33Z vladimir $
+% $Id: spm_eeg_inv_checkmeshes.m 2914 2009-03-20 18:30:31Z guillaume $
 
 
 % initialise

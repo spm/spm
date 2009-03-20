@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_inv_imag_api.m 2914 2009-03-20 18:30:31Z guillaume $
 
 spm('Clear');
 
@@ -54,7 +54,7 @@ elseif ischar(varargin{1})
     end
 
 else
-    error(sprintf('Wrong input format\n'));
+    error('Wrong input format.');
 end
 
 % MAIN FUNCTIONS FOR MODEL SEPCIFICATION AND INVERSION
@@ -460,7 +460,7 @@ function con_Callback(hObject, eventdata, handles)
 try
     handles.D.con = handles.D.con + 1;
     if handles.D.con > length(handles.D.inverse.J);
-        handles.D.con = 1
+        handles.D.con = 1;
     end
 end
 Reset(hObject, eventdata, handles);
@@ -474,4 +474,4 @@ edit spm_eeg_inv_help
 % --- Executes on button press in group.
 %--------------------------------------------------------------------------
 function group_Callback(hObject, eventdata, handles)
-spm_eeg_inv_group
+spm_eeg_inv_group;
