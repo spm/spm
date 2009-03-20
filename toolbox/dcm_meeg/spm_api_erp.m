@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2906 2009-03-20 13:01:01Z karl $
+% $Id: spm_api_erp.m 2908 2009-03-20 14:54:03Z will $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -70,7 +70,8 @@ end
 % 'ERP'    - Event related responses
 % 'SSR'    - Steady-state responses
 % 'IND'    - Induced responses
- 
+% 'PHA'    - (for phase coupling)
+
 try
     model = DCM.options.analysis;
 catch
@@ -82,6 +83,7 @@ switch model
     case{'ERP'}, set(handles.ERP,'Value',1);
     case{'SSR'}, set(handles.ERP,'Value',2);
     case{'IND'}, set(handles.ERP,'Value',3);
+    case{'PHA'}, set(handles.ERP,'Value',4);
     otherwise
 end
 handles = ERP_Callback(hObject, eventdata, handles);
@@ -814,6 +816,8 @@ end
 switch DCM.options.analysis
     case{'IND'}
         constr = {'linear' 'nonlinear' '(not used)' 'input'};
+    case{'PHA'}
+        constr = {'endog' '(not used)' '(not used)' '(not used)' };
     otherwise
 end
 nsx            = (n + 1)*sx;
@@ -989,6 +993,11 @@ switch handles.DCM.options.analysis
     case{'IND'}
         handles.DCM = spm_dcm_ind(handles.DCM);
 
+    % phase coupling
+    %----------------------------------------------------------------------
+    case{'PHA'}
+        handles.DCM = spm_dcm_phase(handles.DCM);
+
     otherwise
         warndlg('unknown analysis type')
         return
@@ -1028,6 +1037,11 @@ switch handles.DCM.options.analysis
     %----------------------------------------------------------------------
     case{'IND'}
         spm_dcm_ind_results(handles.DCM, Action);
+
+    % phase coupling
+    %----------------------------------------------------------------------
+    case{'PHA'}
+        spm_dcm_phase_results(handles.DCM, Action); 
  
     otherwise
         warndlg('unknown analysis type')
@@ -1161,6 +1175,24 @@ switch handles.DCM.options.analysis
         set(handles.Imaging,    'Enable','off' )
         set(handles.onset,      'Enable','on');
         
+    case{'PHA'}
+          Action = {
+            'Sin(Data) - Region 1'
+            'Sin(Data) - Region 2'
+            'Sin(Data) - Region 3'
+            'Sin(Data) - Region 4'
+            'Coupling (As)'
+            'Coupling (Bs)'};
+       
+        set(handles.Nmodes,  'Enable', 'off');
+        set(handles.model,   'Enable','off');
+        set(handles.Spatial, 'Value', 1);
+        set(handles.Spatial, 'String',{'ECD','ECD','LFP'});
+        set(handles.Wavelet, 'Enable','on','String','Hilbert transform');
+        set(handles.Imaging, 'Enable','off' )
+        set(handles.onset,   'Enable','off');
+    
+        
     otherwise
         warndlg('unknown analysis type')
         return
@@ -1206,6 +1238,9 @@ switch handles.DCM.options.analysis
         % and display
         %------------------------------------------------------------------
         spm_dcm_ind_results(handles.DCM,'Wavelet');
+        
+     case{'PHA'}
+        handles.DCM = spm_dcm_phase_data(handles.DCM);
  
 end
 guidata(hObject,handles);

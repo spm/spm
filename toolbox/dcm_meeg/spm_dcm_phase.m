@@ -1,6 +1,6 @@
-function DCM = spm_dcm_ind(DCM)   
-% Estimate parameters of a DCM model of spectral responses)
-% FORMAT DCM = spm_dcm_ind(DCM)   
+function DCM = spm_dcm_phase(DCM)   
+% Estimate parameters of a DCM model of phase-coupled responses
+% FORMAT DCM = spm_dcm_phase(DCM)   
 %
 % DCM     
 %    name: name string
@@ -10,20 +10,25 @@ function DCM = spm_dcm_ind(DCM)
 %       xU: design [1x1 struct]
 %
 %   Sname: cell of source name strings
-%       A: {[nr x nr double]  [nr x nr double]  [nr x nr double]}
-%       B: {[nr x nr double], ...}   Connection constraints
-%       C: [nr x 1 double]
 %
-%   options.Nmodes       - number of frequency modes
-%   options.Tdcm         - [start end] time window in ms
-%   options.D            - time bin decimation       (usually 1 or 2)
-%   options.h            - number of DCT drift terms (usually 1 or 2)
-%   options.type         - 'ECD' (1) or 'Imaging' (2) (see spm_erp_L)
+%   Connection constraints:
+%
+%       A: {[nr x nr double] }
+%       B: {[nr x nr double]}   for GUI specification
+%                               (Nfourier=1 & only sine terms)
+%   or
+%
+%       As: [nr x nr x Nfourier]
+%       Ac: [nr x nr x Nfourier]
+%       Bs: [nr x nr x Nfourier]   
+%       Bc: [nr x nr x Nfourier]   for script specification
+%
+%   options.type         - 'ECD' 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
-% Karl Friston
-% $Id: spm_dcm_ind.m 2725 2009-02-10 10:15:18Z vladimir $
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+%
+% Will Penny
+% $Id: spm_dcm_phase.m 2908 2009-03-20 14:54:03Z will $
 
 
 % check options 
@@ -32,37 +37,40 @@ clear spm_erp_L
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
+try, DCM.name;                  catch, DCM.name           = 'DCM_PHASE'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
 try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
 
-% Data and spatial model
-%==========================================================================
-DCM    = spm_dcm_erp_dipfit(DCM, 1);
 
-if ~isfield(DCM.xY, 'source')   
-    DCM    = spm_dcm_ind_data(DCM);
-end
+disp('Estimating Model ...');
 
 xY     = DCM.xY;
 xU     = DCM.xU;
 xU.dt  = xY.dt;
 
+if isfield(DCM,'A')
+    % If using UI, copy model structures into As and Bs matrices
+    DCM.As=DCM.A{1};
+    DCM.Bs{1}=DCM.B{1};
+end
+
 % dimensions
 %--------------------------------------------------------------------------
 Nt     = length(xY.y);                  % number of trials
-Nr     = size(DCM.C,1);                 % number of sources
-nu     = size(DCM.C,2);                 % number of neuronal inputs
-Nf     = size(xY.U,2);                  % number of frequency modes
+Nr     = size(DCM.As,1);                % number of sources
+nx     = Nr;                            % number of states
+
 Ns     = size(xY.y{1},1);               % number of samples
+xU.u   = zeros(Ns,1);
+
 Nu     = size(xU.X,2);                  % number of trial-specific effects
-nx     = Nr*Nf;                         % number of states
 
-
-% assume noise precision is the same over modes:
+% Set error covariance components - one per region
 %--------------------------------------------------------------------------
-xY.Q   = {spm_Q(1/2,Ns,1)};
+xY.Q = spm_Ce(Ns*Nt*ones(1,Nr));
+
+% Offsets
 xY.X0  = sparse(Ns,0);
 
 % Inputs
@@ -71,45 +79,66 @@ xY.X0  = sparse(Ns,0);
 % trial-specific effects
 %--------------------------------------------------------------------------
 try
-    if length(DCM.B) ~= Nu;
-        warndlg({'please ensure number of trial specific effects', ...
+    if length(DCM.Bs) ~= Nu;
+        warndlg({'Please ensure number of trial specific effects', ...
                  'encoded by DCM.xU.X & DCM.B are the same'})
     end
 catch
-    DCM.B = {};
+    DCM.Bs = {};
 end
 
 % model specification and nonlinear system identification
 %==========================================================================
 M      = DCM.M;
+
+M.freq = mean(DCM.options.Fdcm);
+M.fb = 0.5*(DCM.options.Fdcm(2)-DCM.options.Fdcm(1));
+
 try, M = rmfield(M,'g');  end
 try, M = rmfield(M,'FS'); end
 
+if ~isfield(M,'dipfit')
+    M.dipfit=[];
+end
+
 % prior moments
 %--------------------------------------------------------------------------
-[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
-
+[pE,gE,pC,gC] = spm_phase_priors(DCM,M.fb,M.dipfit);
 
 % likelihood model
 %--------------------------------------------------------------------------
-M.IS  = 'spm_gen_ind';
-M.f   = 'spm_fx_ind';
-M.G   = 'spm_lx_ind';
-M.x   = sparse(nx,1);
+M.IS  = 'spm_gen_phase';
+M.f   = 'spm_fx_phase';
+M.G   = 'spm_lx_phase';
+
 M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
 M.gC  = gC;
-M.m   = nu;
 M.n   = nx;
-M.l   = Nr*Nf;
+M.l   = Nr;
 M.ns  = Ns;
-M.ons = onset - xY.pst(1);
 
+% Don't plot progress
+M.nograph=0;
+
+% Initial state
+try
+    M.x;
+catch
+    M.x=zeros(Nr,1);
+end
+
+% Set up initial phases 
+for n=1:length(DCM.xY.y)
+    xx=DCM.xY.y{n}(1,:);
+    M.trial{n}.x=double(xx(:)');
+end
 
 % EM: inversion
 %--------------------------------------------------------------------------
-[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N (M,xU,xY);
+
 
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
@@ -121,26 +150,23 @@ warning('on','SPM:negativeVariance');
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-L   = feval(M.G, Qg,M);           % get gain matrix
+
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
 
-% trial-specific respsonses (in mode, channel and source space)
+L   = feval(M.G, Qg,M);           % get gain matrix
+
+
+% trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
-    
     s  = x{i};                   % prediction (source space)
-    y  = s*L';                   % prediction (sensor space)
-    r  = xY.y{i} - y;            % residuals  (sensor space)
+    y{i}  = s*L';                   % prediction (sensor space)
+    %r  = xY.y{i} - y;            % residuals  (sensor space)
     
-    % parse frequency modes
-    %----------------------------------------------------------------------
-    for j = 1:Nf
-        f      = [1:Nr] + (j - 1)*Nr;
-        H{i,j} = y(:,f);
-        R{i,j} = r(:,f);
-        K{i,j} = s(:,f);
-    end
 end
+
+% Change back design matrix to user specified
+xU.X=DCM.xU.oldX;
 
 % store estimates in DCM
 %--------------------------------------------------------------------------
@@ -152,12 +178,9 @@ DCM.Cp = Cp;                   % conditional covariances G(g)
 DCM.Eg = Qg;                   % conditional expectation
 DCM.Cg = Cg;                   % conditional covariances
 DCM.Pp = Pp;                   % conditional probability
-DCM.H  = H;                    % conditional responses (y), channel space
-DCM.K  = K;                    % conditional responses (x)
-DCM.R  = R;                    % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
-
+DCM.y = y;                     % Model predictions
 
 % and save
 %--------------------------------------------------------------------------
