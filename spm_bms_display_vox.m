@@ -8,7 +8,7 @@ function spm_bms_display_vox(BMS,xyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 2788 2009-02-25 16:42:23Z maria $
+% $Id: spm_bms_display_vox.m 2915 2009-03-20 19:15:44Z maria $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -46,7 +46,6 @@ switch method
                 hvox   = axes('Position',[0.25 0.15 0.5 0.25],'Parent',...
                 Fgraph,'Visible','off');
 
-
                 bar(1:nmodels,ppm_vox)
                 set(gca,'XTick',1:nmodels)
                 set(gca,'XTickLabel',1:nmodels)
@@ -75,18 +74,22 @@ switch method
     case 'RFX'
         
         if  isfield(BMS.map,'rfx')
-
-            nmodels = size(BMS.map.rfx.alpha,2);      
-            models  = [];
-            exp_r_vox = zeros(nmodels,1);
-            xp_vox    = zeros(nmodels,1);
+            
+            nmodels    = size(BMS.map.rfx.alpha,2);      
+            models     = [];
+            exp_r_vox  = zeros(nmodels,1);
+            epm_exists = isfield(BMS.map.rfx,'epm');
+            
+            if  epm_exists, xp_vox = zeros(nmodels,1); end
         
             % Get values
             for i = 1:nmodels,
                 tmp_exp_r_vox   = spm_vol(BMS.map.rfx.ppm{i});
                 exp_r_vox(i,:)  = spm_get_data(tmp_exp_r_vox,xyz);
+                if epm_exists
                 tmp_xp_vox      = spm_vol(BMS.map.rfx.epm{i});
                 xp_vox(i,:)     = spm_get_data(tmp_xp_vox,xyz);
+                end
                 models          = [models; sprintf('model %d',i)];
             end
         
@@ -94,27 +97,36 @@ switch method
             figure(Fgraph);
             spm_results_ui('Clear',Fgraph); 
         
-            hvox   = axes('Position',[0.16 0.18 0.30 0.20],'Parent',...
-                Fgraph,'Visible','off');
-
-            bar(1:nmodels,exp_r_vox)
-            set(gca,'XTick',1:nmodels)
-            set(gca,'XTickLabel',1:nmodels)
-            set(gca,'YLim',[0 1])
-            ylabel('Expected Posterior Probability','Fontsize',12)
-            xlabel('Models','Fontsize',12)
-            title({'Random-effects BMS';''},'Fontsize',12)
-            axis square
-            grid on
-        
+            if epm_exists,
+                
             hvox   = axes('Position',[0.55 0.18 0.30 0.20],'Parent',...
-                Fgraph,'Visible','off');
+                    Fgraph,'Visible','off');
         
             bar(1:nmodels,xp_vox)
             set(gca,'XTick',1:nmodels)
             set(gca,'XTickLabel',1:nmodels)
             set(gca,'YLim',[0 1])
             ylabel('Exceedance Probability','Fontsize',12)
+            xlabel('Models','Fontsize',12)
+            title({'Random-effects BMS';''},'Fontsize',12)
+            axis square
+            grid on
+            
+            hvox   = axes('Position',[0.16 0.18 0.30 0.20],'Parent',...
+                    Fgraph,'Visible','off');
+                
+            else
+                
+            hvox   = axes('Position',[0.25 0.15 0.5 0.25],'Parent',...
+                Fgraph,'Visible','off');
+            
+            end
+
+            bar(1:nmodels,exp_r_vox)
+            set(gca,'XTick',1:nmodels)
+            set(gca,'XTickLabel',1:nmodels)
+            set(gca,'YLim',[0 1])
+            ylabel('Expected Posterior Probability','Fontsize',12)
             xlabel('Models','Fontsize',12)
             title({'Random-effects BMS';''},'Fontsize',12)
             axis square

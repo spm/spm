@@ -31,7 +31,7 @@ function out = spm_run_bms_map (job)
 %     BMS.map.ffx(rfx).data
 %     BMS.map.ffx(rfx).ppm 
 %     BMS.map.ffx(rfx).xppm     - only for RFX
-%     BMS.map.ffx(rfx).epm      - only for RFX
+%     BMS.map.ffx(rfx).epm      - only for RFX (optional)
 %     BMS.map.ffx(rfx).alpha    - only for RFX
 %
 % [1] Stephan et al., (under review), Bayesian Model Selection for Group 
@@ -41,7 +41,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 2751 2009-02-16 15:50:26Z maria $
+% $Id: spm_run_bms_map.m 2915 2009-03-20 19:15:44Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -52,6 +52,8 @@ mask   = length(job.mask{1});       % Mask image
 if mask
    mask_image = spm_vol(job.mask);  % Mask image Vol
 end
+nsamps = str2num(job.nsamp);        % Number of samples (nmodels > 3)
+do_ecp = job.out_file;              % Compute Exceedance Probability
 
 % Nb. of subjects and models
 % -------------------------------------------------------------------------
@@ -181,6 +183,7 @@ switch method
         'n', [1 1], ...
         'descrip',  '');
    
+        if do_ecp
         % Create EPM .img files for each model
         model_xp(1:nmodels) = struct(...
         'fname',    '',...
@@ -190,7 +193,8 @@ switch method
         'pinfo',    [1 0 0]',...
         'n', [1 1], ...
         'descrip',  '');   
-
+        end
+        
         % Load Vols for all subjects/models
         for i = 1:nmodels,
             model_alpha(i).fname   = sprintf('%smodel%d_alpha.img',direct,i);
@@ -199,9 +203,11 @@ switch method
             model_exp_r(i).fname   = sprintf('%smodel%d_xppm.img',direct,i);
             model_exp_r(i).descrip = sprintf('Exp_r: model %d',i);
             BMS.map.rfx.ppm{i}   = model_exp_r(i).fname;
+            if do_ecp
             model_xp(i).fname      = sprintf('%smodel%d_epm.img',direct,i);
             model_xp(i).descrip    = sprintf('XP: model %d',i);
             BMS.map.rfx.epm{i}   = model_xp(i).fname;
+            end
             for s = 1:nsubjs,
                 for se = 1:nsess,
                     nsessi      = size(job.sess_map{s},2);
@@ -224,7 +230,7 @@ switch method
         % Create files
         model_alpha   = spm_create_vol(model_alpha);
         model_exp_r   = spm_create_vol(model_exp_r);
-        model_xp      = spm_create_vol(model_xp);
+        if do_ecp, model_xp = spm_create_vol(model_xp); end
         
         % Save data and BMS
         BMS.fname = fname;
@@ -330,32 +336,35 @@ for z = 1:zdim,
                     % Initialise results
                     alpha_total = zeros(Nvoxels,nmodels);
                     exp_r_total = zeros(Nvoxels,nmodels);
-                    xp_total    = zeros(Nvoxels,nmodels);
+                    if do_ecp, xp_total = zeros(Nvoxels,nmodels); end
 
                     % Do BMS in all voxels of slice z
                     for n = 1:Nvoxels,
                         lme = z_models(:,:,non_nan(n));
-                        [alpha,exp_r,xp] = spm_BMS(lme); % Group BMS
-                        alpha_total(n,:) = alpha;        % Dirichlet par.
-                        exp_r_total(n,:) = exp_r;        % Cond. Expecta.
-                        xp_total(n,:)    = xp;           % Exceedance Prob.
+                        % Group BMS
+                        [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
+                        alpha_total(n,:) = alpha;          % Dirichlet par.
+                        exp_r_total(n,:) = exp_r;          % Cond. Expecta.
+                        if do_ecp, xp_total(n,:) = xp; end % Exceeda. Prob.
                     end
-                    
+
                     % Write images
                     for i = 1:nmodels,
                         j(non_nan)     = alpha_total(:,i);
                         model_alpha(i) = spm_write_plane(model_alpha(i),j,z);
                         j(non_nan)     = exp_r_total(:,i);
                         model_exp_r(i) = spm_write_plane(model_exp_r(i),j,z);
+                        if do_ecp
                         j(non_nan)     = xp_total(:,i);
                         model_xp(i)    = spm_write_plane(model_xp(i),j,z);
+                        end
                     end
                 else
                     % Write images when Nvoxels = 0
                     for i = 1:nmodels,
                         model_alpha(i) = spm_write_plane(model_alpha(i),j,z);
                         model_exp_r(i) = spm_write_plane(model_exp_r(i),j,z);
-                        model_xp(i)    = spm_write_plane(model_xp(i),j,z);
+                        if do_ecp, model_xp(i) = spm_write_plane(model_xp(i),j,z); end
                     end
                 end
    

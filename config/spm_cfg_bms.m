@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 2649 2009-01-23 19:41:21Z maria $
+% $Id: spm_cfg_bms.m 2915 2009-03-20 19:15:44Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -119,13 +119,40 @@ method.name    = 'Inference Method';
 method.help    = {['Specify inference method: random effects '...
                    '(2nd-level) or fixed effects (1st-level) analysis.']};
 method.labels  = {
-                  'Fixed effects'
-                  'Random effects'
+                  'Fixed effects (FFX)'
+                  'Random effects (RFX)'
 }';
 method.values  = {
                   'FFX'
                   'RFX'
-}';  
+}'; 
+
+% ---------------------------------------------------------------------
+% out_file Output files
+% ---------------------------------------------------------------------
+out_file         = cfg_menu;
+out_file.tag     = 'out_file';
+out_file.name    = 'Output files (RFX)';
+out_file.help    = {['Specify which output files to save (only valid for'...
+                     'RFX analyses). ']...
+                     ''...
+                    ['Default option (and faster option): '...
+                     'Alpha + PPM = alpha.img (Dirichlet '...
+                     'parameters) + xppm.img (Posterior Probability '...
+                     'Maps) for each model.. ']...
+                     ''...
+                    ['Second option: Alpha + PPM + EPM = alpha.img + '...
+                     'xppm.img + epm.img (Exceedance Probability '...
+                     ' Maps) for each model.']};
+out_file.labels  = {
+                   'Alpha + PPM'
+                   'Alpha + PPM + EPM'
+}';
+out_file.values  = {
+                  0
+                  1
+}';
+out_file.val     = {0};
 
 % ---------------------------------------------------------------------
 % mask Mask Image
@@ -147,6 +174,20 @@ mask.filter  = 'image';
 mask.ufilter = '.*';
 mask.val     = {{''}};
 mask.num     = [0 1];
+
+% ---------------------------------------------------------------------
+% nsamp Number of samples
+% ---------------------------------------------------------------------
+nsamp         = cfg_entry;
+nsamp.tag     = 'nsamp';
+nsamp.name    = 'Number of samples';
+nsamp.help    = {['Number of samples used to compute exceedance '...
+                  'probabilities (default: 1e6). '...
+                  'To make computations faster reduce the number of '...
+                  'samples when number of models is bigger than 3.']};                 
+nsamp.strtype = 's';
+nsamp.num     = [1 Inf];
+nsamp.val     = {'1e6'};
 
 % ---------------------------------------------------------------------
 % file BMS.mat
@@ -258,7 +299,7 @@ bms_dcm_vis.prog = @spm_run_bms_dcm_vis;
 bms_map_inf      = cfg_exbranch;
 bms_map_inf.tag  = 'bms_map_inf';
 bms_map_inf.name = 'BMS: Maps';
-bms_map_inf.val  = {dir map method mask };
+bms_map_inf.val  = {dir map method out_file mask nsamp };
 bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps. '...
     ''...
     ['Input: log-evidence maps (.img) for each model, session and '...

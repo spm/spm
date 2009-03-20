@@ -1,6 +1,6 @@
-function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
+function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp)
 % Bayesian model selection for group studies
-% FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling)
+% FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp)
 % 
 % INPUT:
 % lme      - array of log model evidences 
@@ -10,6 +10,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 %            (default: 1e6)
 % do_plot  - 1 to plot p(r|y)
 % sampling - use sampling to compute exact alpha
+% ecp      - compute exceedance probability
 % 
 % OUTPUT:
 % alpha   - vector of model probabilities
@@ -23,8 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2862 2009-03-11 19:57:10Z guillaume $
-
+% $Id: spm_BMS.m 2915 2009-03-20 19:15:44Z maria $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -34,6 +34,9 @@ if nargin < 3 || isempty(do_plot)
 end
 if nargin < 4 || isempty(sampling)
     sampling = 0;
+end
+if nargin < 5 || isempty(ecp)
+    ecp = 1;
 end
 
 max_val = log(realmax('double'));
@@ -100,13 +103,17 @@ exp_r = alpha./sum(alpha);
 
 % Compute exceedance probabilities p(r_i>r_j)
 %--------------------------------------------------------------------------
-if Nk == 2
-    % comparison of 2 models
-    xp(1) = spm_Bcdf(0.5,alpha(2),alpha(1));
-    xp(2) = spm_Bcdf(0.5,alpha(1),alpha(2));
+if ecp
+    if Nk == 2
+        % comparison of 2 models
+        xp(1) = spm_Bcdf(0.5,alpha(2),alpha(1));
+        xp(2) = spm_Bcdf(0.5,alpha(1),alpha(2));
+    else
+        % comparison of >2 models: use sampling approach
+        xp = spm_dirichlet_conj_exceed(alpha,Nsamp);
+    end
 else
-    % comparison of >2 models: use sampling approach
-    xp = spm_dirichlet_conj_exceed(alpha,Nsamp);
+        xp = [];
 end
 
 
