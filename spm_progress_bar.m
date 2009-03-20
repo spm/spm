@@ -13,13 +13,13 @@ function spm_progress_bar(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_progress_bar.m 2905 2009-03-20 13:00:15Z karl $
 
 if ~nargin, action = 'Init'; end
 
 % Find the interactive window and exit if not
 %-----------------------------------------------------------------------
-Finter = spm_figure('FindWin','Interactive');
+Finter = spm_figure('GetWin','Interactive');
 if isempty(Finter), return; end
 
 switch lower(action)

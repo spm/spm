@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_diff.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_diff.m 2905 2009-03-20 13:00:15Z karl $
  
 % create inline object
 %--------------------------------------------------------------------------
@@ -136,6 +136,8 @@ if iscell(f)
     for i = 1:length(f(:))
         dfdx{i} = spm_dfdx(f{i},f0{i},dx);
     end
+elseif isstruct(f)
+    dfdx  = (spm_vec(f) - spm_vec(f0))/dx;
 else
     dfdx  = (f - f0)/dx;
 end
