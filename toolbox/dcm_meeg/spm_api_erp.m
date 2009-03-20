@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2810 2009-03-02 13:13:07Z karl $
+% $Id: spm_api_erp.m 2906 2009-03-20 13:01:01Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -382,8 +382,6 @@ catch
 end
 
  
- 
- 
 % --- Executes on button press in Uname.
 %--------------------------------------------------------------------------
 function  Uname_Callback(hObject, eventdata, handles)
@@ -698,9 +696,9 @@ if ~l, C = {}; DCM.C = {}; end
  
 % check DCM.A, DCM.B, ...
 %--------------------------------------------------------------------------
-try, if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end, end
-try, if length(DCM.B{1}) ~= n, DCM = rmfield(DCM,'B'); end, end
-try, if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end, end
+try, if size(DCM.A{1},1) ~= n, DCM = rmfield(DCM,'A'); end, end
+try, if size(DCM.B{1},1) ~= n, DCM = rmfield(DCM,'B'); end, end
+try, if size(DCM.B,1)    ~= m, DCM = rmfield(DCM,'B'); end, end
 try, if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end, end
 try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
 

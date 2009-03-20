@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_dcm_dem.m 2906 2009-03-20 13:01:01Z karl $
 
 % check options
 %==========================================================================
@@ -89,7 +89,7 @@ xU.dt  = xY.dt;
 
 % prior moments on parameters
 %--------------------------------------------------------------------------
-pE.R   = [0 2];
+pE.R   = [0 3];
 pE.f   = sparse(2,2);
 pE.g   = 0;
 pC     = speye(length(spm_vec(pE)))/32;
@@ -104,7 +104,7 @@ M.dipfit.model = model;
 j = find(any(DCM.A{1}));
 J = DCM.A{1}(:,1:max(j));
 
-% allow the contribution of second (or futher) states to be optimised
+% allow the contribution of second (or further) states to be optimised
 %--------------------------------------------------------------------------
 cJ    = J;
 eJ    = J*0;

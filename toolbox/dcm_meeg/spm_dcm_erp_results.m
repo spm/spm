@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_dcm_erp_results.m 2906 2009-03-20 13:01:01Z karl $
 
 
 % get figure handle
@@ -105,7 +105,7 @@ end
 %--------------------------------------------------------------------------
 nu  = length(DCM.B);          % Nr inputs
 nc  = size(DCM.H{1},2);       % Nr modes
-ns  = size(DCM.A{1},2);       % Nr of sources
+ns  = size(DCM.A{1},1);       % Nr of sources
 np  = size(DCM.K{1},2)/ns;    % Nr of population per source
 
 % switch
