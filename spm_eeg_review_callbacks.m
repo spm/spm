@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2913 2009-03-20 17:24:00Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -220,19 +220,41 @@ switch varargin{1}
 
             case 'sensorPos'
 
+                % get canonical mesh
+                mco = [spm('Dir'),filesep,'canonical',filesep,'cortex_5124.surf.gii'];
+                msc = [spm('Dir'),filesep,'canonical',filesep,'scalp_2562.surf.gii'];               
+                
                 % get 3D positions
                 try     % EEG
                     pos3d = [D.sensors.eeg.pnt];
-                    figure;
+                    % display canonical mesh
+                    opt.figname = 'Sensor positions';
+                    o = spm_eeg_render(mco,opt);
+                    opt.hfig = o.handles.fi;
+                    o = spm_eeg_render(msc,opt);
+                    set(o.handles.p,'FaceAlpha',0.75)
+                    set(o.handles.transp,'value',0.75)
+                    % display sensor position
+                    figure(o.handles.fi);
+                    hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
                     hold on
-                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
                     axis equal tight off
                 end
+                
                 try     % MEG
                     pos3d = [D.sensors.meg.pnt];
-                    figure;
+                    % display canonical mesh
+                    opt.figname = 'Sensor positions';
+                    o = spm_eeg_render(mco,opt);
+                    opt.hfig = o.handles.fi;
+                    o = spm_eeg_render(msc,opt);
+                    set(o.handles.p,'FaceAlpha',0.75)
+                    set(o.handles.transp,'value',0.75)
+                    % display sensor position
+                    figure(o.handles.fi);
+                    hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
                     axis equal tight off
                 end
@@ -832,7 +854,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     delete(D.PSD.handles.gpa)
                     delete(D.PSD.handles.BUTTONS.slider_step)
                 end
-                % gather infor for core display function
+                % gather info for core display function
                 options.hp = handles.hfig;
                 options.Fsample = D.Fsample;
                 options.timeOnset = D.timeOnset;
@@ -909,19 +931,14 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 % Create uicontextmenu for events (if any)
                 if isfield(options,'events')
                     D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
-                    if length(options.events) >= 1
-%                         spm_progress_bar('Init',length(options.events) ,'Adding events');
-                    end
                     axes(D.PSD.handles.axes)
                     for i=1:length(options.events)
-%                         spm_progress_bar('Set', i);
                         sc.currentEvent = i;
                         sc.eventType    = D.trials(trN(1)).events(i).type;
                         sc.eventValue   = D.trials(trN(1)).events(i).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                     end
-%                     spm_progress_bar('Clear');
                 end
                 for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;
@@ -1470,6 +1487,7 @@ else
 end
 try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
 spm('pointer','arrow');
+
 
 
 %% extracting data from spm_uitable java object

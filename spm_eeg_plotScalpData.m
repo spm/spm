@@ -20,19 +20,35 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2876 2009-03-13 14:54:15Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 2913 2009-03-20 17:24:00Z jean $
 
+ParentAxes = [];
+f = [];
+clim    = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
+figName = 'Image Scalp data';
+noButtons = 0;
 if nargin < 4 || isempty(in)
     in      = [];
-    clim    = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
-    figName = 'Image Scalp data';
 else
-    clim    = [in.min, in.max];
-    dc      = abs(diff(clim))./63;
-    clim(1) = clim(1) - dc;
-    figName = ['Image Scalp data: ',in.type,' sensors'];
-    if isfield(in,'trN')
-        figName = [figName ', trial #',num2str(in.trN),'.'];
+    if isfield(in,'min') && ...
+            isfield(in,'max') && ...
+            isfield(in,'type')
+        clim    = [in.min, in.max];
+        dc      = abs(diff(clim))./63;
+        clim(1) = clim(1) - dc;
+        figName = ['Image Scalp data: ',in.type,' sensors'];
+        if isfield(in,'trN')
+            figName = [figName ', trial #',num2str(in.trN),'.'];
+        end
+    end
+    if isfield(in,'ParentAxes')
+        ParentAxes = in.ParentAxes;
+    end
+    if isfield(in,'f')
+        f = in.f;
+    end
+    if isfield(in,'noButtons')
+        noButtons = ~~in.noButtons;
     end
 end
 
@@ -54,7 +70,7 @@ Z            = Z(goodChannels,:);
 ChanLabel    = ChanLabel(goodChannels);
 
 
-if ~isempty(in) && strcmp(in.type, 'MEGPLANAR')
+if ~isempty(in) && isfield(in,'type') && strcmp(in.type, 'MEGPLANAR')
     [cZ, cpos, cChanLabel] = combineplanar(Z, pos, ChanLabel);
 else
     cZ         = Z;
@@ -73,24 +89,32 @@ y       = ymin:dy:ymax;
 [XI,YI] = meshgrid(x,y);
 ZI      = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
 
-
-f=figure;
-set(f,'name',figName,'deleteFcn',@dFcn);
-hi = image(flipud(ZI),'CDataMapping','scaled');
-hold on
 try
-    [C,hc] = contour(flipud(ZI));
-    set(hc,'linecolor',0.5.*ones(3,1))
+    figure(f)
+catch
+    f=figure;
+    set(f,'name',figName,'deleteFcn',@dFcn);
+    ParentAxes = gca;
 end
-hold off
-caxis(clim);
-col = colormap;
-col(1,:) = .8*ones(3,1);
+d.hi = image(flipud(ZI),...
+    'CDataMapping','scaled',...
+    'Parent',ParentAxes);
+set(ParentAxes,'nextPlot','add',...
+    'tag','spm_eeg_plotScalpData')
+try
+    if length(unique(ZI)) ~= 1
+        [C,d.hc] = contour(ParentAxes,flipud(ZI),...
+            'linecolor',0.5.*ones(3,1));
+    end
+end
+caxis(ParentAxes,clim);
+col = colormap(jet);
+col(1,:) = get(f,'color');
 colormap(col)
-colorbar
-axis off
-axis equal
-axis tight
+d.cbar = colorbar('peer',ParentAxes);
+axis(ParentAxes,'off')
+axis(ParentAxes,'equal')
+axis(ParentAxes,'tight')
 
 fpos = cpos;
 fpos(1,:) = fpos(1,:) - xmin;
@@ -100,11 +124,11 @@ fpos(2,:) = fpos(2,:)./(dy);
 fpos(2,:) = 100-fpos(2,:);  % for display purposes (flipud imagesc)
 
 figure(f);
-hold on;
-hp = plot(fpos(1,:),fpos(2,:),'ko');
-ht = text(fpos(1,:),fpos(2,:),cChanLabel);
-set(ht,'visible','off')
-axis image
+d.hp = plot(ParentAxes,fpos(1,:),fpos(2,:),'ko');
+d.ht = text(fpos(1,:),fpos(2,:),cChanLabel,...
+    'Parent',ParentAxes,...
+    'visible','off');
+axis(ParentAxes,'image')
 
 d.interp.XI = XI;
 d.interp.YI = YI;
@@ -115,30 +139,31 @@ d.goodChannels = goodChannels;
 d.ChanLabel = cChanLabel;
 d.origChanLabel = ChanLabel;
 d.origpos = pos;
-d.hp = hp;
-d.ht = ht;
-d.hi = hi;
+d.ParentAxes = ParentAxes;
 d.in = in;
 
-d.hsp = uicontrol('style','pushbutton','callback',{@dosp},...
-    'BusyAction','cancel',...
-    'Interruptible','off',...
-    'position',[10    120    80    20],...
-    'string','channel pos');
-d.hsn = uicontrol('style','pushbutton','callback',{@dosn},...
-    'BusyAction','cancel',...
-    'Interruptible','off',...
-    'position',[10    80    80    20],...
-    'string','channel names');
-if ~isempty(in)
+
+if ~noButtons
+    d.hsp = uicontrol('style','pushbutton','callback',{@dosp},...
+        'BusyAction','cancel',...
+        'Interruptible','off',...
+        'position',[10    120    80    20],...
+        'string','channel pos');
+    d.hsn = uicontrol('style','pushbutton','callback',{@dosn},...
+        'BusyAction','cancel',...
+        'Interruptible','off',...
+        'position',[10    80    80    20],...
+        'string','channel names');
+end
+if ~isempty(in) && isfield(in,'handles')
     ud = get(in.handles.hfig,'userdata');
     nT = ud.Nsamples;
     d.hti = uicontrol('style','text',...
-        'string',[num2str(in.gridTime(in.x)),' (',...
-        in.unit,')'],...
+        'string',[num2str(in.gridTime(in.x)),' (',in.unit,')'],...
         'position',[10    10    120    20]);
     d.hts = uicontrol('style','slider',...
-        'Position',[130 10 250 20],'min',1,'max',nT,...
+        'Position',[130 10 250 20],...
+        'min',1,'max',nT,...
         'value',in.x,'sliderstep',[1./(nT-1) 1./(nT-1)],...
         'callback',{@doChangeTime},...
         'BusyAction','cancel',...
@@ -146,9 +171,11 @@ if ~isempty(in)
     set(d.hti,'userdata',d);
     set(d.hts,'userdata',d);
 end
-set(d.hsp,'userdata',d);
-set(d.hsn,'userdata',d);
-set(f,'userdata',d);
+if ~noButtons
+    set(d.hsp,'userdata',d);
+    set(d.hsn,'userdata',d);
+end
+set(d.ParentAxes,'userdata',d);
 
 %==========================================================================
 % dFcn
@@ -213,14 +240,13 @@ set(d.hti,'string',[num2str(d.in.gridTime(v)), ' (', d.in.unit, ')']);
 try;set(d.in.hl,'xdata',[v;v]);end
 hf=findobj(gca,'type','hggroup');
 delete(hf)
-hold on
+set(d.ParentAxes,'nextPlot','add')
 try
-    [C,hc] = contour(flipud(ZI));
+    [C,hc] = contour(d.ParentAxes,flipud(ZI));
     set(hc,'linecolor',[0.5.*ones(3,1)])
 end
-hold off
+axis(d.ParentAxes,'image')
 drawnow
-axis image
 
 %==========================================================================
 % get2Dfrom3D

@@ -33,12 +33,25 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_render.m 2913 2009-03-20 17:24:00Z jean $
 
 
 %----------------------------------------------------------------------%
 %------------- Common features for any visualization ------------------%
 %----------------------------------------------------------------------%
+
+% Check mesh format
+try
+    try,m = gifti(m);end
+    m0.faces = m.faces;
+    m0.vertices = m.vertices;
+    m = m0;
+    clear m0;
+catch
+    disp('spm_eeg_render: unknown mesh format!')
+    return
+end
+
 
 % Default options
 handles.fi = figure('visible','off',...
@@ -66,6 +79,8 @@ if ~isempty(options)
     
     if isfield(options,'ParentAxes') && ~isempty(options.ParentAxes)
         ParentAxes = options.ParentAxes;
+    else
+        ParentAxes = [];
     end
     
     if isfield(options,'tag')
@@ -98,8 +113,10 @@ if ~isempty(options)
     if isfield(options,'hfig')
         try
             figure(options.hfig)
-            ParentAxes = gca;
-            hold on
+            if isempty(ParentAxes)
+                ParentAxes = gca;
+            end
+            set(ParentAxes,'nextplot','add')
             close(handles.fi);
             handles.fi = options.hfig;
             addMesh = 1;
@@ -123,6 +140,7 @@ else
     
 end
 
+handles.ParentAxes = ParentAxes;
 oldRenderer = get(handles.fi,'renderer');
 set(handles.fi,'renderer','OpenGL');
 
@@ -130,8 +148,9 @@ set(handles.fi,'renderer','OpenGL');
 % Plot mesh and texture/clusters
 if isequal(texture,'none') == 1
     figure(handles.fi)
-    handles.p = patch(m);
-    set(handles.p, 'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
+    handles.p = patch(m,...
+        'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
+        'FaceLighting','gouraud',...
         'parent',ParentAxes,...
         'userdata',oldRenderer,...
         'visible',visible,'tag',tag);
@@ -141,9 +160,11 @@ else
     if isequal(length(texture),length(m.vertices))
         handles.p = patch(m,'facevertexcdata',texture,...
             'facecolor','interp','EdgeColor', 'none',...
+            'FaceLighting','gouraud',...
             'parent',ParentAxes,...
             'userdata',oldRenderer,...
-            'visible',visible,'tag',tag);
+            'visible',visible,'tag',tag,...
+            'deleteFcn',@doDelMesh);
         colormap(jet(256));
         udd.tex = texture;
         udd.cax = caxis;
@@ -153,21 +174,18 @@ else
         handles.p = patch(m,'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
             'parent',ParentAxes,...
             'userdata',oldRenderer,...
-            'visible',visible,'tag',tag);
+            'visible',visible,'tag',tag,...
+            'deleteFcn',@doDelMesh);
     end
 end
 
-set(handles.p,'deleteFcn',@doDelMesh)
 
-
-figure(handles.fi)  % avoid user confusion with the open windows
-daspect([1 1 1]);
-view(142.5,30);
-axis tight;
-axis off
-lighting gouraud;
-camva('auto');
-view(25,45);
+axes(ParentAxes)  % avoid user confusion with the open windows
+daspect(ParentAxes,[1 1 1]);
+axis(ParentAxes,'tight');
+axis(ParentAxes,'off')
+camva(ParentAxes,'auto');
+set(ParentAxes,'view',[25,45]);
 
 
 % plot second subplot if provided

@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_review_uis.m 2913 2009-03-20 17:24:00Z jean $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -357,9 +357,6 @@ switch objects.type
                             p(2,i) = y;
                         end
                     end
-                    % add scale axes
-%                     p(1,end+1) = min(p(1,:));
-%                     p(2,end+1) = max(p(2,:)) + std(p(2,:));
                     labels = {D.channels(I).label};
                     if strcmp(D.transform.ID,'time')
                         y = D.data.y(I,:,trN);

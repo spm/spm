@@ -12,7 +12,7 @@ function P = spm_eeg_inv_vbecd(P)
 %  Nc           -
 %  Niter        - maximum number of iterations
 %  threshold_dF - threshold on free energy improvement to stop iterating
-%  priors       - priors on parameters, hard and soft, as filled in (and 
+%  priors       - priors on parameters, hard and soft, as filled in (and
 %                 described) in spm_eeg_inv_vbecd_gui.m.
 %
 % Output:
@@ -23,7 +23,7 @@ function P = spm_eeg_inv_vbecd(P)
 %  post         - posterior value of estimated parameters and ther variance
 %  Fi           - successive values of F
 %  F            - Free energy final value.
-% 
+%
 % Reference:
 % Kiebel et al., Variational Bayesian inversion of the equivalent current
 % dipole model in EEG/MEG., NeuroImage, 39:728-741, 2008
@@ -31,12 +31,15 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2828 2009-03-05 11:38:20Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2913 2009-03-20 17:24:00Z jean $
+
+
+
 
 % unpack model, priors, data
 %---------------------------
-vol = P.forward.vol;
-sens = P.forward.sens;
+% vol = P.forward.vol;
+% sens = P.forward.sens;
 fromMNI = P.forward.fromMNI;
 toMNI = P.forward.toMNI;
 
@@ -48,7 +51,7 @@ Nd = length(P.priors.mu_w0)/3;
 mu_w0 = fromMNI(1:3,1:3)*reshape(P.priors.mu_w0,3,Nd)/det(fromMNI);
 mu_w0 = mu_w0(:);
 mu_s0 = spm_eeg_inv_transform_points(fromMNI, ...
-                                     reshape(P.priors.mu_s0,3,Nd)')';
+    reshape(P.priors.mu_s0,3,Nd)')';
 mu_s0 = mu_s0(:);
 iS_w0 = P.priors.iS_w0;
 iS_s0 = P.priors.iS_s0;
@@ -70,35 +73,12 @@ Vs = full(spm_svd(Ts));
 
 y = P.y;
 
-dv = 10^-2; % used to compute step-size for gradients
+P.dv = 10^-2; % used to compute step-size for gradients
+
+
 %---------------
 % initialization
 %---------------
-% use some random initialization for parameters, 
-% but ensure the starting points are inside the volume !!!
-inside = zeros(Nd,1);
-
-% if isfield(vol, 'o')
-%     orig = mean(vol.o, 1);
-% elseif isfield(vol, 'bnd')
-%     orig = mean(vol.bnd(1).pnt, 1);
-% else
-%     orig = zeros(1,3);
-% end
-% orig = repmat(orig(:), 1, Nd);
-
-mu_sn = zeros(3,Nd);
-while ~all(inside)
-    mu_sn(:,~inside) = 20*randn(3,length(find(~inside))); %+orig;
-    mu_sn = spm_eeg_inv_transform_points( fromMNI , mu_sn')';
-    [inside] = forwinv_inside_vol(mu_sn',vol);
-end
-mu_s = mu_sn(:);
-
-[gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol,...
-                                    dv.*ones(1, length(mu_w0))); 
-[Nc, Np] = size(gmn);
-
 
 % ensure data have apropriate scale
 if strcmp(P.modality,'MEG')
@@ -109,38 +89,46 @@ else
     sc_y = 1;
 end
 
-% Initialize mu_w with best estimate given random locations rather than at
-% random
-mu_w = randn(size(mu_w0,1), 1);
-% mu_w = pinv(gmn)*y; 
+% Initialize posterior with prior
+b10 = b10*sc_y.^2;
+a1 = a10;
+b1 = b10;
+a2 = a20;
+b2 = b20;
+a3 = a30;
+b3 = b30;
+[u,s,v] = svd((a2/b2)*iS_w0);
+mu_w = mu_w0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_w0));
+S_w = u*diag(diag((s+eps).^-1))*v';
+[u,s,v] = svd((a3/b3)*iS_s0);
+mu_s = mu_s0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_s0));
+S_s = u*diag(diag((s+eps).^-1))*v';
 
+% get lead fields
+[gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
+    P.dv.*ones(1, length(mu_w0)));
+
+[Nc, Np] = size(gmn);
+DE = kron(S_w+mu_w*mu_w', eye(Nc));
 P.init.mu_s = mu_s;
 P.init.mu_w = mu_w;
 
-res = y - gmn*mu_w;
-a1 = Nc/2;
-b1 = var(res).*a1;
 
-a2 = Np/2;
-b2 = (mu_w-mu_w0)'*(mu_w-mu_w0)./2;
+% Calulate free energy with priors
+F(1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
+    -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
+    -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
+    -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
+    -spm_kl_gamma(1/b1,a1,1/b10,a10)...
+    -spm_kl_gamma(1/b2,a2,1/b20,a20)...
+    -spm_kl_gamma(1/b3,a3,1/b30,a30);
 
-a3 = Np/2;
-b3 = (mu_s-mu_s0)'*(mu_s-mu_s0)./2;
+P.gmn = gmn;
+[P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,1,[],F);
 
-S_w = b2/a2*pinv(iS_w0);
-S_s = b3/a3*pinv(iS_s0);
-
-%---------------
-% iterate update rules
-%---------------
-% these don't change
-a1 = Nc/2 + a10;
-a2 = size(Vw,2)/2 + a20;
-a3 = size(Vs,2)/2 + a30;
-
-% fprintf('Iterations:\n')
 P.ok = 1;
 for i = 1:P.Niter
+    
     % orientation parameters w
     SD = zeros(Np, Np);
     Dm = dgm*S_s*dgm';
@@ -149,12 +137,15 @@ for i = 1:P.Niter
         d = Dm(ind, ind);
         SD = SD + d;
     end
-
-    S_w = Tw*inv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn + SD))*Tw';
+    S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn + SD))*Tw';
     mu_w = Tw*S_w*(a1/b1*gmn'*y + a2/b2*iS_w0*mu_w0);
 
+    % location parameters s
+    [mu_s,S_s,DE,gmn,gm,dgm,P] = ...
+        modifiedGN4s(mu_s,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+
     % precision on y
-    DE = kron(S_w+mu_w*mu_w', eye(Nc));
+    a1 = Nc/2 + a10;
     b1 = 0.5*(y'*y...
         - 2*mu_w'*gmn'*y...
         + gm'*DE*gm...
@@ -162,136 +153,65 @@ for i = 1:P.Niter
         + b10;
 
     % precision on w
+    a2 = size(Vw,2)/2 + a20;
     b2 = 0.5*((Vw'*(mu_w-mu_w0))'*Vw'*iS_w0*Vw*(Vw'*(mu_w-mu_w0)) + ...
-                trace(Vw'*iS_w0*S_w*Vw)) + b20;
+        trace(Vw'*iS_w0*S_w*Vw)) + b20;
 
     % precision on s
+    a3 = size(Vs,2)/2 + a30;
     b3 = 0.5*((Vs'*(mu_s-mu_s0))'*Vs'*iS_s0*Vs*(Vs'*(mu_s-mu_s0)) + ...
-                trace(Vs'*iS_s0*Vs*Vs'*S_s*Vs)) + b30;
+        trace(Vs'*iS_s0*Vs*Vs'*S_s*Vs)) + b30;
 
-    % location parameters s
-    old_mu_s = mu_s;
-    S_s = Ts*inv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))*Ts';
-    mu_s = Ts*S_s*(a1/b1*(dgm'*(kron(mu_w, y)+ DE*(dgm*mu_s - gm))) + ...
-                a3/b3*iS_s0*mu_s0);
+    % compute neg free energy
+    F(i+1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
+        -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
+        -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
+        -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
+        -spm_kl_gamma(1/b1,a1,1/b10,a10)...
+        -spm_kl_gamma(1/b2,a2,1/b20,a20)...
+        -spm_kl_gamma(1/b3,a3,1/b30,a30);
 
-    % update leadfield and its partials
-    [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                dv.*sqrt(diag(S_s)));
-    
-    mu_sn = reshape(mu_s, 3, Np/3);
-    old_mu_sn = reshape(old_mu_s, 3, Np/3);
-    % list of sources outside the brain volume
-    outside = ~forwinv_inside_vol(mu_sn',vol);
-   
-    if i == 1
-        % make sure that first update of mu_s doesn't jump outside sphere
-        q_out = ~all(~outside);
-        while q_out
-            mu_sn(:, outside) = (mu_sn(:, outside)+old_mu_sn(:,outside))/2;
-            old_mu_sn = mu_sn;
-            outside = ~forwinv_inside_vol(mu_sn',vol);
-            q_out = ~all(~outside);
-        end
-        % update leadfield and its partials
-        mu_s = mu_sn(:);
-        [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s)));
+    % update display
+    P.gmn = gmn;
+    [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,i+1,[],F(end));
+    pause(0.1)
 
-        F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
-            -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
-            -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
-            -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
-            -spm_kl_gamma(1/b1,a1,1/b10,a10)...
-            -spm_kl_gamma(1/b2,a2,1/b20,a20)...
-            -spm_kl_gamma(1/b3,a3,1/b30,a30);
-    else
-        for j = 1:16
-        % Deals with cases where sources have jumped outside the brain
-        % volume, or if the neg free energy is decreasing...
-            % compute neg free energy
-            F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
-                -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
-                -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
-                -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
-                -spm_kl_gamma(1/b1,a1,1/b10,a10)...
-                -spm_kl_gamma(1/b2,a2,1/b20,a20)...
-                -spm_kl_gamma(1/b3,a3,1/b30,a30);
-            % check dF
-            if ~all(~outside)
-                % decrease change in violating dipoles only
-                mu_sn(:,outside)=(old_mu_sn(:,outside)+mu_sn(:,outside))/2;
-                mu_s = mu_sn(:);
-                % update leadfield and its partials
-                [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s))); %, P.Bad);
-%                 mu_w = pinv(gmn)*y; % Re-update as best as I can the source
-            else
-                if F(i) < F(i-1)
-                    % Free energy annoyingly didn't increase...
-                    mu_sn = (old_mu_sn + mu_sn)/2;
-                    mu_s = mu_sn(:);
-                    % update leadfield and its partials
-                    [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                                dv.*sqrt(diag(S_s))); %, P.Bad);
-%                 mu_w = pinv(gmn)*y; % Re-update as best as I can the source
-                else
-                    break;
-                end
-            end
-            outside = ~forwinv_inside_vol(mu_sn',vol);
-            if j == 16
-                % this seeems to be a bad case, let's start over
-                fprintf('bang\n')
-                post.mu_w = mu_w;
-                post.mu_s = mu_s;
-                post.S_w = S_w;
-                post.S_s = S_s;
-                post.a1 = a1; post.b1 = b1;
-                post.a2 = a2; post.b2 = b2;
-                post.a3 = a3; post.b3 = b3;
+    % check termination condition
+    dF = (F(i+1)-F(i))/abs(F(i));
+    if -dF > P.threshold_dF
+        a=Ftest';
+        a = a(:);
+        ad=diff(a);
+        f=reshape([0;ad]', size(Ftest'))';
+        disp('Evidence Violation');
 
-                P.post = post;
-
-                P.Fi = F;
-                P.F = F(end);
-                P.ok = 0;
-                return;
-            end
-        end
-    end
-
-    if i == 1
-        dF = 0;
-    else
-        dF = (F(i)-F(i-1))/abs(F(i));
-        if (F(i-1)-F(i))/abs(F(i)) > P.threshold_dF
-            a=Ftest';
-            a = a(:);
-            ad=diff(a);
-            f=reshape([0;ad]', size(Ftest'))';
-            disp('Evidence Violation');
-            
-            P.ok = 0;
-            break;
-        elseif abs((F(i)-F(i-1))/F(i)) < P.threshold_dF
-            P.dF(i) = dF;
-            str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i), dF);
-            fprintf('%s\n', str)
-            break;
-        end
+        P.ok = 0;
+        break;
+    elseif abs(dF) < P.threshold_dF
+        P.dF(i) = dF;
+        str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i+1), dF);
+        fprintf('%s\n', str)
+        break;
     end
     P.dF(i) = dF;
-    str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i), dF);
+    str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i+1), dF);
     fprintf('%s\n', str)
+
 end
+
+% set(P.handles.hfig,'colormap',colormap(gray))
+% delete(get(P.handles.hfig,'children'))
+close(P.handles.hfig)
+P = rmfield(P,'handles');
 
 % rescale back to original units
 mu_w = mu_w*sc_y;
 S_w = S_w*sc_y^2;
 
-% save results 
+% save results
+mu_w = reshape(mu_w,3,[]);
 post.mu_w = toMNI(1:3,1:3)*mu_w/det(toMNI);
+post.mu_w = post.mu_w(:);
 mu_sn = reshape(mu_s, 3, Np/3);
 mu_sn = spm_eeg_inv_transform_points( toMNI , mu_sn')';
 post.mu_s = mu_sn(:);
@@ -305,3 +225,291 @@ post.gmn = gmn; % lead field
 P.post = post;
 P.Fi = F;
 P.F = F(end);
+
+
+function [mu,Sigma,DE,gmn,gm,dgm,P] = ...
+    modifiedGN4s(mu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts)
+
+
+% Compute variational energy and GN step from previous mode
+PreviousMu = mu;
+[PreviousI,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
+    logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+
+maxIter = 128;
+rdI = 1e-8;
+stop = 0;
+it = 0;
+while stop == 0
+    it = it+1;
+    % make a move
+    mu = PreviousMu + deltaMu;
+    % get variational energy (as well as next move)
+    [I,nextSigma,NextdeltaMu,nextDE,nextgmn,nextgm,nextdgm] = ...
+        logVarQ(mu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+    % calculate relative variational energy improvement
+    deltaI = I-PreviousI;
+    % check whether to stop, to accept move or to halve step
+    if it <= maxIter && abs(deltaI./PreviousI)>rdI
+        if deltaI<0     % halve step size
+            deltaMu = 0.5*deltaMu;
+            P.pc = 100*it./maxIter;
+            displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'mGN');
+        else            % accept move
+            % propose a new GN move from there on
+            deltaMu = NextdeltaMu;
+            DE = nextDE;
+            gmn = nextgmn;
+            gm = nextgm;
+            dgm = nextdgm;
+            Sigma = nextSigma;
+            PreviousMu = mu;
+            PreviousI = I;
+            P.pc = 100*it./maxIter;
+            displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'ecd');
+        end
+    else                % stop Gauss-Newton search
+        stop = 1;
+    end
+end
+mu = PreviousMu;    % ensures mode is not updated if no improvement
+
+function [I,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
+    logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts)
+            
+Nc = size(y,1);
+In = speye(Nc);
+
+vol = P.forward.vol;
+sens = P.forward.sens;
+dv = P.dv;
+
+% first check if inside head
+outside = ~forwinv_inside_vol(reshape(PreviousMu,3,[])',vol);
+if ~all(~outside)
+    I = -Inf;
+    deltaMu = mu_s0-PreviousMu+eps;  % to correct for unluky initialization
+    Sigma = [];
+    DE = [];
+    gmn = [];
+    gm = [];
+    dgm = [];
+else
+    % Compute lead fields (and gradients) at the mode
+    [gmn, gm, dgm] =...
+        spm_eeg_inv_vbecd_getLF(PreviousMu, sens, vol,dv.*sqrt(diag(S_s)));
+    % Compute variational energy at the mode
+    Gw = gmn*mu_w;
+    dmu0 = mu_s0-PreviousMu;
+    iSdmu0 = iS_s0*dmu0;
+    dy = y-Gw;
+    I = -0.5*(a3/b3)*dmu0'*iSdmu0 ...
+        -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) );
+    % Get local curvature of variational enery (-> cov matrix)
+    DE = kron(S_w+mu_w*mu_w', eye(Nc));
+    Sigma = Ts*pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))*Ts';
+    % standard Gauss-Newton move from mode and curvature
+    deltaMu = Sigma*( (a3/b3)*iSdmu0 ...
+        + (a1/b1)*dgm'*(kron(mu_w,dy) ));%+ kron(S_w,In)*gm) );
+end
+
+
+
+
+function [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,it,flag,F)
+
+if ~exist('flag','var')
+    flag = [];
+end
+
+if isempty(flag) || isequal(flag,'ecd')
+    % plot dipoles
+    try
+        P.handles.axesECD;
+        opt.hfig = P.handles.hfig;
+        opt.ParentAxes = P.handles.axesECD;
+        opt.handles.hp = P.handles.hp;
+        opt.handles.hq = P.handles.hq;
+        opt.handles.hs = P.handles.hs;
+        opt.handles.ht = P.handles.ht;
+        opt.query = 'replace';
+    catch
+        opt = [];
+    end
+    [out] = spm_eeg_displayECD(...
+        reshape(mu_s,3,[]),...
+        reshape(mu_w,3,[]),...
+        reshape(diag(S_s),3,[]),...
+        [],opt);
+    try
+        P.handles.hfig = out.handles.hfig;
+        P.handles.axesECD = out.handles.ParentAxes;
+        P.handles.hp = out.handles.hp;
+        P.handles.hq = out.handles.hq;
+        P.handles.hs = out.handles.hs;
+        P.handles.ht = out.handles.ht;
+    end
+end
+
+% plot data and predicted data
+pos = P.forward.sens.prj;
+ChanLabel = P.channels;
+in.f = P.handles.hfig;
+in.noButtons = 1;
+try
+    P.handles.axesY;
+catch
+    figure(P.handles.hfig)
+    P.handles.axesY = axes(...
+        'Position',[0.02 0.3 0.3 0.2],...
+        'hittest','off');
+    in.ParentAxes = P.handles.axesY;
+    [ZI,f] = spm_eeg_plotScalpData(y,pos,ChanLabel,in);
+    title(P.handles.axesY,'measured data')
+end
+if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
+    yHat = P.gmn*mu_w;
+    try
+        P.handles.axesYhat;
+        d = get(P.handles.axesYhat,'userdata');
+        yHat = yHat(d.goodChannels);
+        clim = [min(yHat(:))-( max(yHat(:))-min(yHat(:)) )/63,max(yHat(:))];
+        ZI = griddata(...
+            d.interp.pos(1,:),d.interp.pos(2,:),full(double(yHat)),...
+            d.interp.XI,d.interp.YI);
+        set(d.hi,'Cdata',flipud(ZI));
+        caxis(P.handles.axesYhat,clim);
+        delete(d.hc)
+        [C,d.hc] = contour(P.handles.axesYhat,flipud(ZI),...
+            'linecolor',0.5.*ones(3,1));
+        set(P.handles.axesYhat,...
+            'userdata',d);
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesYhat = axes(...
+            'Position',[0.37 0.3 0.3 0.2],...
+            'hittest','off');
+        in.ParentAxes = P.handles.axesYhat;
+        [ZI,f] = spm_eeg_plotScalpData(yHat,pos,ChanLabel,in);
+        title(P.handles.axesYhat,'predicted data')
+    end
+    try
+        P.handles.axesYhatY;
+        set(P.handles.axesYhatY,'NextPlot','replace',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesYhatY,'square')
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesYhatY = axes(...
+            'Position',[0.72 0.3 0.25 0.2],...
+            'NextPlot','replace',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesYhatY,'square')
+    end
+    plot(P.handles.axesYhatY,y,yHat,'.')
+    title(P.handles.axesYhatY,'predicted vs measured data')
+
+end
+
+if isempty(flag) || isequal(flag,'var')
+    % plot precision hyperparameters
+    try
+        P.handles.axesVar1;
+        set(P.handles.axesVar1,'NextPlot','add',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar1,'square')
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar1 = axes(...
+            'Position',[0.05 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar1,'square')
+    end
+    plot(P.handles.axesVar1,it,log(a1./b1),'.')
+    title(P.handles.axesVar1,'measurement noise precision (log)')
+
+    try
+        P.handles.axesVar2;
+        set(P.handles.axesVar2,'NextPlot','add',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar2,'square')
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar2 = axes(...
+            'Position',[0.37 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar2,'square')
+    end
+    plot(P.handles.axesVar2,it,log(a2./b2),'.')
+    title(P.handles.axesVar2,'ECD orientations precision (log)')
+
+    try
+        P.handles.axesVar3;
+        set(P.handles.axesVar3,'NextPlot','add',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar3,'square')
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar3 = axes(...
+            'Position',[0.72 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'hittest','off',...
+            'box','on','xgrid','on','ygrid','on');
+        axis(P.handles.axesVar3,'square')
+    end
+    plot(P.handles.axesVar3,it,log(a3./b3),'.')
+    title(P.handles.axesVar3,'ECD location precision (log)')
+
+end
+
+if ~isempty(flag) && (isequal(flag,'ecd') || isequal(flag,'mGN') )
+    try
+        P.handles.hte(2);
+    catch
+        figure(P.handles.hfig)
+        P.handles.hte(2) = uicontrol('style','text',...
+            'units','normalized',...
+            'position',[0.2,0.91,0.6,0.02],...
+            'backgroundcolor',[1,1,1]);
+    end
+    set(P.handles.hte(2),'string',...
+        ['ECD locations: Modified Gauss-Newton scheme... ',num2str(floor(P.pc)),'%'])
+else
+    try
+        set(P.handles.hte(2),'string',' ')
+    end       
+end
+
+try
+    P.handles.hte(1);
+catch
+    figure(P.handles.hfig)
+    P.handles.hte(1) = uicontrol('style','text',...
+        'units','normalized',...
+        'position',[0.3,0.95,0.4,0.02],...
+        'backgroundcolor',[1,1,1]);
+end
+try
+    set(P.handles.hte(1),'string',...
+        ['Model evidence: p(y|m) >= ',num2str(F(end),'%10.3e\n')])
+end
+
+
+drawnow
+
+
+
+
+
+
+
+

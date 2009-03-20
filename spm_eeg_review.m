@@ -10,7 +10,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_review.m 2913 2009-03-20 17:24:00Z jean $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -64,7 +64,7 @@ D.PSD.handles.tabs = h;
 
 % %-- Initilize display on 'info'
 D.PSD.VIZU.modality = 'info';
-D.PSD.VIZU.info = 5;
+D.PSD.VIZU.info = 4;
 D.PSD.VIZU.fromTab = [];
 [D] = spm_eeg_review_switchDisplay(D);
 

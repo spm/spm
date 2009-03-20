@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 2913 2009-03-20 17:24:00Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -94,11 +94,6 @@ else
 
         D.PSD.VIZU.type = 1;
 
-        %         % add axes
-        %         object.type = 'axes';
-        %         object.what = 'standard';
-        %         D = spm_eeg_review_uis(D,object);
-
         % add buttons
         object.type = 'buttons';
         object.options.multSelect = 0;
@@ -125,7 +120,7 @@ end
 %% 'SPM-like' EEG/MEG data plot
 function [D] = scalpData(D)
 
-POS = get(D.PSD.handles.hfig,'position');
+% POS = get(D.PSD.handles.hfig,'position');
 
 switch D.PSD.VIZU.modality
     case 'eeg'
@@ -597,7 +592,7 @@ switch D.PSD.VIZU.uitable
                     for i=1:Ninv
                         table{i,1} = [D.other.inv{isInv(i)}.comment{1}];
                         table{i,2} = [D.other.inv{isInv(i)}.date(1,:)];
-                        table{i,3} = [D.other.inv{isInv(i)}.modality];
+                        table{i,3} = [D.other.inv{isInv(i)}.inverse.modality];
                         table{i,4} = [D.other.inv{isInv(i)}.method];
                         try
                             table{i,5} = [num2str(length(D.other.inv{isInv(i)}.inverse.Is))];

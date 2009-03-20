@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2828 2009-03-05 11:38:20Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2913 2009-03-20 17:24:00Z jean $
 
 %%
 % Load data, if necessary
@@ -289,7 +289,6 @@ priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
                 'iS_w0',[],'iS_s0',[], ...
                 'Tw',blkdiag(dip_pr(:).Tw), ...
                 'Ts',blkdiag(dip_pr(:).Ts),...
-                'a10',1e-3,'b10',1e-12, ...
                 'a20',[],'b20',[], ...
                 'a30',[],'b30',[]);
 % PROBLEM:
@@ -357,6 +356,10 @@ inverse = struct( ...
 
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
+    
+    % Adapt priors for measurement noise precision...
+    P.priors.a10 = numel(P.y);
+    P.priors.b10 = numel(P.y)*1e-18;
     
     fprintf('\nLocalising source nr %d.\n',ii)
     P = spm_eeg_inv_vbecd(P);
