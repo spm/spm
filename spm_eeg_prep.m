@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_prep.m 2904 2009-03-20 10:28:29Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -187,6 +187,7 @@ switch lower(S.task)
         end
 
         elec = forwinv_convert_units(elec, 'mm');
+        shape= forwinv_convert_units(shape, 'mm');
 
         if isequal(D.modality(1, 0), 'Multimodal')
             if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
