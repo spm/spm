@@ -1,4 +1,4 @@
-function [E, dE] = spm_DEM_eval(M,qu,qp)
+function [E,dE] = spm_DEM_eval(M,qu,qp)
 % evaluates state equations and derivatives for DEM schemes
 % FORMAT [E dE] = spm_DEM_eval(M,qu,qp)
 %
@@ -28,7 +28,7 @@ function [E, dE] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval.m 1880 2008-07-02 12:41:41Z karl $
+% $Id: spm_DEM_eval.m 2924 2009-03-23 19:37:24Z karl $
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================
@@ -218,6 +218,9 @@ dedc  = -spm_speye(ne,nc,nc - ne);
 
 % prediction error (E) - causes
 %--------------------------------------------------------------------------
+for i = 1:n
+    y{i} = spm_vec(y{i});
+end
 ge{1} = [y{1}; v{1}] - [spm_vec(g); u{1}];
 for i = 2:n
     ge{i} = dedy*y{i} + dedc*u{i} ...  % generalised response
@@ -237,7 +240,6 @@ end
 % error
 %--------------------------------------------------------------------------
 E      =  spm_vec({ge, fe});
-
 
 % Kronecker forms
 %==========================================================================
