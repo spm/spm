@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_ADEM.m 2922 2009-03-23 18:03:39Z guillaume $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -128,6 +128,7 @@ G(1).E.d = M(1).E.n;
  
 % find or create a DEM figure
 %--------------------------------------------------------------------------
+clear spm_DEM_eval 
 sw = warning('off');
 Fdem = spm_figure('GetWin','DEM');
  
