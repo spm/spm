@@ -25,7 +25,7 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id%
+% $Id: spm_vb_graphcut.m 2923 2009-03-23 18:34:51Z guillaume $
 
 try, grnd_type; catch, grnd_type = 'random'; end
 

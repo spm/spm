@@ -3,7 +3,7 @@ function sendmail = spm_cfg_sendmail
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_sendmail.m 2345 2008-10-16 11:31:35Z guillaume $
+% $Id: spm_cfg_sendmail.m 2923 2009-03-23 18:34:51Z guillaume $
 
 % ---------------------------------------------------------------------
 % Recipient
@@ -54,7 +54,7 @@ smtp.name    = 'SMTP Server';
 smtp.help    = {'Your SMTP server. If not specified, look for sendmail help.'};
 smtp.strtype = 's';
 try
-	smtp.val = {getpref('Internet','SMTP_Server')};
+    smtp.val = {getpref('Internet','SMTP_Server')};
 end
 smtp.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -66,7 +66,7 @@ email.name    = 'E-mail';
 email.help    = {'Your e-mail address. Look in sendmail help how to store it.'};
 email.strtype = 's';
 try
-	email.val = {getpref('Internet','E_mail')};
+    email.val = {getpref('Internet','E_mail')};
 end
 email.num     = [1 Inf];
 % ---------------------------------------------------------------------

@@ -79,7 +79,7 @@ function [y] = spm_int_J_nlDCM_fMRI (P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_int_J_nlDCM.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_int_J_nlDCM_fMRI.m 2923 2009-03-23 18:34:51Z guillaume $
 
 
 % convert U to U.u if necessary and M(1) to M
