@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2900 2009-03-19 17:58:33Z guillaume $
+% $Id: spm_eeg_prep_ui.m 2921 2009-03-23 17:59:50Z guillaume $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 2900 $';
+SVNrev = '$Rev: 2921 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -381,12 +381,15 @@ D = getD;
 
 switch get(gcbo, 'Label')
     case 'From *.mat file'
-        S.sensfile = spm_select(1,'mat','Select EEG sensors file');
+        [S.sensfile, sts] = spm_select(1,'mat','Select EEG sensors file');
+        if ~sts, return, end
         S.source = 'mat';
-        S.headshapefile = spm_select(1,'mat','Select EEG fiducials file');
+        [S.headshapefile, sts] = spm_select(1,'mat','Select EEG fiducials file');
+        if ~sts, return, end
         S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'nas lpa rpa');
     case 'Convert locations file'
-        S.sensfile = spm_select(1, '\.*', 'Select locations file');
+        [S.sensfile, sts] = spm_select(1, '.*', 'Select locations file');
+        if ~sts, return, end
         S.source = 'locfile';
 end
 
@@ -458,7 +461,8 @@ S = [];
 S.D = getD;
 S.task = 'headshape';
 
-S.headshapefile = spm_select(1, '\.*', 'Select fiducials/headshape file');
+[S.headshapefile, sts] = spm_select(1, '.*', 'Select fiducials/headshape file');
+if ~sts, return, end
 S.source = 'convert';
 
 shape = fileio_read_headshape(S.headshapefile);
@@ -521,9 +525,11 @@ update_menu;
 %==========================================================================
 function LoadTemplateCB
 
-template = load(spm_select(1, 'mat', 'Select sensor template file', ...
-    [], fullfile(spm('dir'), 'EEGtemplates')));
+[sensorfile, sts] = spm_select(1, 'mat', 'Select sensor template file', ...
+    [], fullfile(spm('dir'), 'EEGtemplates'));
+if ~sts, return, end
 
+template = load(sensorfile);
 
 if isfield(template, 'Cnames') && isfield(template, 'Cpos')
     plot_sensors2D(template.Cpos, template.Cnames);

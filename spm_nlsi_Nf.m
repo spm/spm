@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_Nf(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_Nf.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_nlsi_Nf.m 2921 2009-03-23 17:59:50Z guillaume $
 
 
 if isfield(M,'fastEM') && M.fastEM
@@ -252,7 +252,7 @@ uE    = sparse(nu,1);
 
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
-warning off
+sw    = warning('off','all');
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
 uC    = speye(nu,nu)*exp(32);
@@ -267,7 +267,7 @@ ibC   = spm_cat(diag({ipC,igC,iuC})); % b - all parameters
 Ep    = M.P;
 Eg    = M.gE;
 Eu    = spm_pinv(dgdu)*spm_vec(y);
-warning on
+warning(sw);
 
 % EM
 %==========================================================================
@@ -590,9 +590,9 @@ end
 Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
-fprintf(1,'\n')
+fprintf('\n')
 toc
-warning on
+warning(sw);
 return
 
 

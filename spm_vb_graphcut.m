@@ -1,10 +1,5 @@
 function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
-% Recursive bi-partition of a graph using the isoperimetric algorithm by 
-% Grady et al. This routine is adapted from "The Graph Analysis Toolbox: 
-% Image Processing on Arbitrary Graphs", available through Matlab Central
-% File Exchange. See also Grady, L. Schwartz, E. L. (2006) "Isoperimetric 
-% graph partitioning for image segmentation",
-% IEEE Trans Pattern Anal Mach Intell, 28(3),pp469-75
+% Recursive bi-partition of a graph using the isoperimetric algorithm
 % 
 % FORMAT labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 %
@@ -18,10 +13,19 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 %            node with maximal degree
 % CUTOFF     minimal number of voxels in a segment of the partition
 % DIM        dimensions of data
-%_______________________________________________________________________
+%__________________________________________________________________________
+% 
+% Recursive bi-partition of a graph using the isoperimetric algorithm by 
+% Grady et al. This routine is adapted from "The Graph Analysis Toolbox: 
+% Image Processing on Arbitrary Graphs", available through Matlab Central
+% File Exchange. See also Grady, L. Schwartz, E. L. (2006) "Isoperimetric 
+% graph partitioning for image segmentation",
+% IEEE Trans Pattern Anal Mach Intell, 28(3),pp469-75
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
+% $Id%
 
 try, grnd_type; catch, grnd_type = 'random'; end
 
@@ -89,6 +93,9 @@ else
     end
 end
 
+%==========================================================================
+% function parts = bipartition(W,CUTOFF,ground,method) 
+%==========================================================================
 function parts = bipartition(W,CUTOFF,ground,method) 
 % Computes bi-partition of a graph using isoperimetric algorithm.
 
@@ -104,7 +111,7 @@ function parts = bipartition(W,CUTOFF,ground,method)
 
 try, method; catch, method = 'direct'; end
 
-%-Lapalcian matrix
+%-Laplacian matrix
 d   =   sum(W,2);
 L   =   diag(d) - W;
 N   =   length(d);
@@ -160,11 +167,11 @@ if min(numerators) < 0
 end
 
 %-Calculate ratios for Isoperimetric criteria
-warning off %Avoids divide by zero warnings
+sw = warning('off','MATLAB:divideByZero');
 [constant,minCut]   =   min(numerators(CUTOFF:(N-CUTOFF))./ ...
         denominators(CUTOFF:(N-CUTOFF)));
 minCut  =   minCut + CUTOFF - 1;
-warning on
+warning(sw);
 
 %-Output partitions
 parts{1}   =   sortX(2,1:(minCut))';

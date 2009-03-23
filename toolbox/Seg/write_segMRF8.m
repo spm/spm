@@ -4,7 +4,7 @@ function write_segMRF8(p,opts)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: write_segMRF8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: write_segMRF8.m 2921 2009-03-23 17:59:50Z guillaume $
 
 
 if nargin==1,
@@ -113,16 +113,16 @@ for it=1:3,
         end
 
         sq = sum(q,3);
-        warning off
+        sw = warning('off','all');
         for k1=1:Kb,
             tmp            = q(:,:,k1);
             tmp(msk)       = 0;
             tmp            = tmp./sq;
             dat{k1}(:,:,z) = uint8(round(255 * tmp));
-        end;
-        warning on
+        end
+        warning(sw)
         spm_progress_bar('set',z);
-    end;
+    end
     spm_progress_bar('clear');
 end
 

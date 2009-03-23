@@ -107,11 +107,11 @@ function [DEM] = spm_ADEM(DEM)
 % represents an alternative to Kalman filtering or alternative Bayesian
 % update procedures.
 %
-%==========================================================================
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
- 
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
-% $Id: spm_ADEM.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: spm_ADEM.m 2921 2009-03-23 17:59:50Z guillaume $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -128,8 +128,7 @@ G(1).E.d = M(1).E.n;
  
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-clear spm_DEM_eval
-warning off;
+sw = warning('off');
 Fdem = spm_figure('GetWin','DEM');
  
  
@@ -762,4 +761,4 @@ DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
  
-warning on
+warning(sw);

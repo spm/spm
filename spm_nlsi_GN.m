@@ -78,11 +78,11 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2707 2009-02-06 19:51:34Z karl $
+% $Id: spm_nlsi_GN.m 2921 2009-03-23 17:59:50Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
-warning('off','all');
+sw = warning('off','all');
 try
     M.nograph;
 catch 
@@ -429,7 +429,7 @@ end
  
 % outputs
 %--------------------------------------------------------------------------
-warning('on','all');
+warning(sw);
  
 Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 Cp     = V*Cp(ip,ip)*V';

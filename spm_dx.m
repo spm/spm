@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 2250 2008-09-30 13:04:12Z karl $
+% $Id: spm_dx.m 2921 2009-03-23 17:59:50Z guillaume $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -58,11 +58,11 @@ if nargin < 3, t = Inf; end
 
 % t is a regulariser
 %--------------------------------------------------------------------------
-warning('off','MATLAB:log:logOfZero');
+sw = warning('off','MATLAB:log:logOfZero');
 if iscell(t)
     t  = exp(t{:} - log(diag(-dfdx)));
 end
-warning('on', 'MATLAB:log:logOfZero');
+warning(sw);
 
 % use a [pseudo]inverse if all t > TOL
 %==========================================================================

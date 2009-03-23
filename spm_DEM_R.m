@@ -20,7 +20,7 @@ function [R,V,D] = spm_DEM_R(n,s,dt,form)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_R.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM_R.m 2921 2009-03-23 17:59:50Z guillaume $
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------
@@ -63,9 +63,9 @@ end
 
 % and precision - R
 %--------------------------------------------------------------------------
-warning('off','MATLAB:nearlySingularMatrix');
+sw = warning('off','MATLAB:nearlySingularMatrix');
 R     = inv(V);
-warning('on', 'MATLAB:nearlySingularMatrix');
+warning(sw);
 
 
 if nargout, return, end

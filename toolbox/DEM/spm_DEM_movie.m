@@ -15,7 +15,7 @@ function [M] = spm_DEM_movie(qU,S,FPS);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_movie.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_movie.m 2921 2009-03-23 17:59:50Z guillaume $
  
 % load image modes
 %--------------------------------------------------------------------------
@@ -49,14 +49,14 @@ Nf    = size(U,2);                  % number of frames
  
 % reconstitute movie
 %--------------------------------------------------------------------------
-warning off
+sw = warning('off','all');
 for i = 1:Nf
     Y    = spm_unvec(S.V(:,1:Nm)*U(1:Nm,i),S.F);
     Y    = Y - min(Y(:));
     Y    = 255*Y/max(Y(:));
     M(i) = im2frame(uint8(Y));
 end
-warning on
+warning(sw);
  
 % Graphics
 %==========================================================================

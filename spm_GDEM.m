@@ -103,12 +103,11 @@ function [DEM] = spm_GDEM(DEM)
 % in generalised co-ordinates.  This means DEM can deconvolve online and can
 % represents an alternative to Kalman filtering or alternative Bayesian
 % update procedures.
-%
-%==========================================================================
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
- 
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
-% $Id: spm_GDEM.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: spm_GDEM.m 2921 2009-03-23 17:59:50Z guillaume $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -126,8 +125,7 @@ G(1).E.d = g;
  
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-clear spm_DEM_eval
-warning off;
+sw = warning('off');
 Fdem = spm_figure('GetWin','DEM');
  
  
@@ -695,4 +693,4 @@ DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
  
-warning on
+warning(sw);

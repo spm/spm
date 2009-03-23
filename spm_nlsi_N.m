@@ -73,7 +73,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_nlsi_N.m 2921 2009-03-23 17:59:50Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -232,7 +232,7 @@ uE    = sparse(nu,1);
  
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
-warning off
+sw    = warning('off','all');
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
 uC    = speye(nu,nu)*exp(32);
@@ -247,7 +247,7 @@ ibC   = spm_cat(diag({ipC,igC,iuC})); % b - all parameters
 Ep    = M.P;
 Eg    = M.gE;
 Eu    = spm_pinv(dgdu)*spm_vec(y);
-warning on
+warning(sw);
 
 % EM
 %==========================================================================
@@ -545,7 +545,7 @@ end
 Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
-warning on
+warning(sw);
 return
 
 

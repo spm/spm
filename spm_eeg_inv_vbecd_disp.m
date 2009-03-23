@@ -1,25 +1,22 @@
 function spm_eeg_inv_vbecd_disp(action,varargin)
-% Display the dipoles as obtained from the VB-ECD routine.
+% Display the dipoles as obtained from VB-ECD
 %
-% Use 
-%   spm_eeg_inv_vbecd_disp('Init',D)
-% to display the latest vb-ecd solution saved in the .inv{} field of the
+% FORMAT spm_eeg_inv_vbecd_disp('Init',D)
+% Display the latest VB-ECD solution saved in the .inv{} field of the
 % data structure D.
-% If no data are passed, you're simply asked to load one and the routine
-% will work as previously explained
-% If and index is passed :
-%   spm_eeg_inv_vbecd_disp('Init',D, ind)
-% then the routine will try to display the ind^th .inv{} cell element, if
-% it is actually a vb-ecd solution.
 %
+% FORMAT spm_eeg_inv_vbecd_disp('Init',D, ind)
+% Display the ind^th .inv{} cell element, if it is actually a VB-ECD 
+% solution.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Christophe Phillips
+% $Id: spm_eeg_inv_vbecd_disp.m 2921 2009-03-23 17:59:50Z guillaume $
+
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
 % the dipole location stays in place...
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2901 2009-03-19 18:32:09Z vladimir $
 
 global st
 % global defaults
@@ -34,13 +31,13 @@ Nmarker = length(marker);
 if nargin == 0, action = 'Init'; end;
 
 switch lower(action),
-%%    
-%________________________________________________________________________
+    
+%==========================================================================
 case 'init'
-%------------------------------------------------------------------------
+%==========================================================================
 % FORMAT spm_eeg_inv_vbecd_disp('init',D,ind)
 % Initialise the variables with GUI
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
 if nargin<2
     D = spm_eeg_load;
@@ -94,9 +91,9 @@ end
 WS = spm('WinScale');
 
 % Build GUI
-%=============================
+%==========================================================================
 % Location:
-%-----------
+%--------------------------------------------------------------------------
 uicontrol(Fig,'Style','Frame','Position',[60 25 200 325].*WS, ...
     'DeleteFcn','spm_image(''reset'');');
 uicontrol(Fig,'Style','Frame','Position',[70 250 180 90].*WS);
@@ -115,7 +112,7 @@ uicontrol(Fig,'Style','togglebutton','Position',[95 220 125 20].*WS,...
     'String','Hide Crosshairs','Callback',c,'ToolTipString','show/hide crosshairs');
 
 % Dipoles/seeds selection:
-%--------------------------
+%--------------------------------------------------------------------------
 uicontrol(Fig,'Style','Frame','Position',[300 25 180 325].*WS);
 sdip.hdl.hcl = uicontrol(Fig,'Style','pushbutton','Position',[310 320 100 20].*WS, ...
         'String','Clear all','CallBack','spm_eeg_inv_vbecd_disp(''ClearAll'')');
@@ -143,7 +140,7 @@ sdip.hdl.hdip = uicontrol(Fig,'Style','popup','String',txt_box, ...
         'Callback','spm_eeg_inv_vbecd_disp(''ChgDip'')');
 
 % Dipoles orientation and strength:
-%-----------------------------------
+%--------------------------------------------------------------------------
 uicontrol(Fig,'Style','Frame','Position',[70 120 180 90].*WS);
 uicontrol(Fig,'Style','Text', 'Position',[75 190 170 016].*WS, ...
                 'String','Dipole orientation & strength');
@@ -171,14 +168,15 @@ else
     spm_eeg_inv_vbecd_disp('DrawDip',l_conv,1)
     set(sdip.hdl.hseed(l_conv),'Value',1); % toggle all buttons
 end
-    
-%%
-%________________________________________________________________________
+
+
+%==========================================================================
 case 'drawdip'
-%------------------------------------------------------------------------
+%==========================================================================
 % FORMAT spm_eeg_inv_vbecd_disp('DrawDip',i_seed,i_dip,sdip)
 % e.g. spm_eeg_inv_vbecd_disp('DrawDip',1,1,sdip)
 % e.g. spm_eeg_inv_vbecd_disp('DrawDip',[1:5],1,sdip)
+%--------------------------------------------------------------------------
 
 if nargin < 2
     i_seed = 1;
@@ -220,7 +218,7 @@ end
 if size(i_seed,2)==1, i_seed=i_seed'; end
 
 % Display business
-%-----------------
+%--------------------------------------------------------------------------
 loc_mm = sdip.loc{i_seed(1)}(:,i_dip);
 if length(i_seed)>1
 %     unit = ones(1,sdip.n_dip);
@@ -316,7 +314,7 @@ Angle = round([th phi]*1800/pi)/10;
 
 set(sdip.hdl.hor1,'String',[num2str(Njs_m(1)),' ',num2str(Njs_m(2)), ...
         ' ',num2str(Njs_m(3))]);
-set(sdip.hdl.hor2,'String',[num2str(Angle(1)),'° ',num2str(Angle(2)),'°']);
+set(sdip.hdl.hor2,'String',[num2str(Angle(1)),'ï¿½ ',num2str(Angle(2)),'ï¿½']);
 set(sdip.hdl.int,'String',Ijs_m);
 
 % Change the colour of toggle button of dipoles actually displayed
@@ -324,11 +322,12 @@ for ii=tabl_seed_dip(:,1)
     set(sdip.hdl.hseed(ii),'BackgroundColor',[.7 1 .7]);
 end
 
-%%
-%________________________________________________________________________
+
+%==========================================================================
 case 'clearall'
-%------------------------------------------------------------------------
+%==========================================================================
 % Clears all dipoles, and reset the toggle buttons
+%--------------------------------------------------------------------------
 
 if isfield(st.vols{1},'sdip')
     sdip = st.vols{1}.sdip;
@@ -345,11 +344,13 @@ for ii=1:st.vols{1}.sdip.n_seeds
 end
 set(st.vols{1}.sdip.hdl.hdip,'Value',1);
 
-%%
-%________________________________________________________________________
+
+%==========================================================================
 case 'chgseed'
-%------------------------------------------------------------------------
+%==========================================================================
 % Changes the seeds displayed
+%--------------------------------------------------------------------------
+
 % disp('Change seed')
 
 sdip = st.vols{1}.sdip;
@@ -405,11 +406,12 @@ if ~isempty(i_seed)
     spm_eeg_inv_vbecd_disp('DrawDip',i_seed,i_dip);
 end
 
-%%
-%________________________________________________________________________
+
+%==========================================================================
 case 'chgdip'
-%------------------------------------------------------------------------
+%==========================================================================
 % Changes the dipole index for the first seed displayed
+%--------------------------------------------------------------------------
 
 disp('Change dipole')
 sdip = st.vols{1}.sdip;
@@ -426,15 +428,16 @@ if ~isempty(i_seed)
     spm_eeg_inv_vbecd_disp('DrawDip',i_seed,i_dip);
 end
 
-%%
-%________________________________________________________________________
+
+%==========================================================================
 case 'cleardip'
-%------------------------------------------------------------------------
+%==========================================================================
 % FORMAT spm_eeg_inv_vbecd_disp('ClearDip',seed_i)
 % e.g. spm_eeg_inv_vbecd_disp('ClearDip')
 %       clears all displayed dipoles
 % e.g. spm_eeg_inv_vbecd_disp('ClearDip',1)
 %       clears the first dipole displayed
+%--------------------------------------------------------------------------
 
 if nargin>2
     seed_i = varargin{1};
@@ -478,12 +481,13 @@ else
 end
 st.vols{1}.sdip = sdip;
 
-%%
-%________________________________________________________________________
+
+%==========================================================================
 case 'redrawdip'
-%------------------------------------------------------------------------
+%==========================================================================
 % spm_eeg_inv_vbecd_disp('RedrawDip')
 % redraw everything, useful when zooming into image
+%--------------------------------------------------------------------------
 
 % spm_eeg_inv_vbecd_disp('ClearDip')
 % spm_eeg_inv_vbecd_disp('ChgDip')
@@ -502,25 +506,20 @@ if ~isempty(i_seed)
     spm_eeg_inv_vbecd_disp('ClearDip')
     spm_eeg_inv_vbecd_disp('DrawDip',i_seed,i_dip);
 end
-% 
-%%
-%________________________________________________________________________
-otherwise,
-    warning('Unknown action string') %#ok<WNTAG>
-end;
+
+
+%==========================================================================
+otherwise
+%==========================================================================
+    warning('Unknown action string');
+end
 % warning(sw);
 return
 
 
-%%
-%________________________________________________________________________
-%________________________________________________________________________
-%________________________________________________________________________
-%________________________________________________________________________
-%
-% SUBFUNCTIONS
-%________________________________________________________________________
-%________________________________________________________________________
+%==========================================================================
+% dh = add1dip(loc,js,vloc,mark,col,ax,Fig,bb)
+%==========================================================================
 function dh = add1dip(loc,js,vloc,mark,col,ax,Fig,bb)
 % Plots the dipoles on the 3 views, with an error ellipse for location
 % Then returns the handle to the plots
@@ -598,7 +597,9 @@ set(ax{3}.ax,'NextPlot','replace')
 
 return
 
-%________________________________________________________________________
+%==========================================================================
+% pr_seed = p_seed(tabl_seed_dip)
+%==========================================================================
 function pr_seed = p_seed(tabl_seed_dip)
 % Gets the list of seeds used in the previous display
 
@@ -609,7 +610,7 @@ else
     pr_seed = ls([find(diff(ls)) ; length(ls)]);
 end
 
-%%
+%
 
 
 % OLD STUFF
@@ -687,4 +688,3 @@ end
 % h4 = uicontrol(Fig,'Style','radiobutton','Position',[700 150 20 20].*WS)
 % delete(h2),delete(h3),delete(h4),
 % delete(hdip)
-
