@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.10  2009/03/23 12:09:07  vlalit
+% Minor changes to make the ctf_old option fully functional.
+%
 % Revision 1.9  2009/03/17 10:58:13  vlalit
 % Switched to MNE reader as default for Neuromag in read_headshape
 %
@@ -61,8 +64,13 @@ shape.fid.pnt   = [];
 shape.fid.label = {};
 
 switch fileformat
-    case {'ctf_ds', 'ctf_hc', 'ctf_meg4', 'ctf_res4'}
+    case {'ctf_ds', 'ctf_hc', 'ctf_meg4', 'ctf_res4', 'ctf_old'}
         [p, f, x] = fileparts(filename);
+        
+        if strcmp(fileformat, 'ctf_old')
+            fileformat = filetype(filename);
+        end
+        
         if strcmp(fileformat, 'ctf_ds')
             filename = fullfile(p, [f x], [f '.hc']);
         elseif strcmp(fileformat, 'ctf_meg4')

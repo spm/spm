@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.84  2009/03/23 12:09:07  vlalit
+% Minor changes to make the ctf_old option fully functional.
+%
 % Revision 1.83  2009/03/13 07:12:09  roboos
 % also use read_brainvision_eeg low-level function for *.seg files, obsoleted the read_brainvision_seg function
 %
@@ -441,7 +444,7 @@ switch dataformat
     headerfile = filename;
 end
 
-if ~strcmp(filename, datafile) && ~strcmp(dataformat, 'ctf_ds')
+if ~strcmp(filename, datafile) && ~ismember(dataformat, {'ctf_ds', 'ctf_old'})
   filename   = datafile;                % this function will read the data
   dataformat = filetype(filename);      % update the filetype
 end

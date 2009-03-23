@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.95  2009/03/23 12:09:07  vlalit
+% Minor changes to make the ctf_old option fully functional.
+%
 % Revision 1.94  2009/03/11 16:13:46  josdie
 % For simple binary files, changed category names to cell variables to better support names with differing lengths.
 %
@@ -692,7 +695,7 @@ switch eventformat
       'offset',   {orig.events.offset},...
       'duration', {orig.events.duration});
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4'}
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'ctf_old'}
     % obtain the dataset name
     if filetype(filename, 'ctf_meg4') ||  filetype(filename, 'ctf_res4')
       filename = fileparts(filename);
@@ -705,7 +708,7 @@ switch eventformat
 
     % read the header, required to determine the stimulus channels and trial specification
     if isempty(hdr)
-      hdr = read_header(headerfile);
+      hdr = read_header(headerfile, 'headerformat', eventformat);
     end
 
     try
@@ -737,7 +740,7 @@ switch eventformat
     trigchanindx = find(origSensType==11);
     if ~isempty(trigchanindx)
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'dataformat', eventformat, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
       event   = appendevent(event, trigger);
     end
 
