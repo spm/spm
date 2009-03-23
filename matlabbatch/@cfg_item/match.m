@@ -22,9 +22,9 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: match.m 2919 2009-03-23 13:45:41Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2919 $'; %#ok
 
 % match an empty spec
 sts = true;
@@ -35,12 +35,9 @@ for k = 1:numel(spec)
     for l = 1:numel(spec{k})
         if strcmp(spec{k}(l).name, 'class')
             sts = strcmp(spec{k}(l).value, class(item));
-        else
-            try
-                % This may fail if there is no field with this name in item
-                sts = isequal(spec{k}(l).value, ...
-                    subsref(item, substruct('.', spec{k}(l).name)));
-            end;
+        elseif any(strcmp(spec{k}(l).name, mysubs_fields))
+            sts = isequal(spec{k}(l).value, ...
+                          subsref(item, substruct('.', spec{k}(l).name)));
         end;
         if sts
             % OR: success on first match
