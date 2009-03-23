@@ -20,6 +20,18 @@ function [spike] = read_spike(filename, varargin);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_spike.m,v $
+% Revision 1.16  2009/03/04 07:49:43  roboos
+% moved from private to main fileio
+%
+% Revision 1.1  2009/01/14 09:33:10  roboos
+% moved even more files from fileio to fileio/private, see previous log entry
+%
+% Revision 1.14  2009/01/14 08:51:34  roboos
+% fixed *.nts extension (was *.nte), applies to filetype, name of low-level function and name of data structure
+%
+% Revision 1.13  2008/11/12 17:02:03  roboos
+% explicitely specify ieee-le in fopen()
+%
 % Revision 1.12  2008/07/09 12:16:38  roboos
 % added mclust_t
 %
@@ -78,7 +90,7 @@ switch spikeformat
     load(filename, 'spike');
 
   case 'mclust_t'
-    fp = fopen(filename, 'rb');
+    fp = fopen(filename, 'rb', 'ieee-le');
     H = ReadHeader(fp);
     fclose(fp);
     % read only from one file
@@ -129,18 +141,18 @@ switch spikeformat
     spike.unit      = {ntt.CellNumber};
     spike.hdr       = ntt.hdr;
 
-  case 'neuralynx_nte'
+  case 'neuralynx_nts'
     % single channel file, read all records
-    nte = read_neuralynx_nte(filename);
+    nts = read_neuralynx_nts(filename);
     if isfield(nte.hdr, 'NLX_Base_Class_Name')
-      spike.label   = {nte.hdr.NLX_Base_Class_Name};
+      spike.label   = {nts.hdr.NLX_Base_Class_Name};
     else
-      spike.label   = {nte.hdr.AcqEntName};
+      spike.label   = {nts.hdr.AcqEntName};
     end
-    spike.timestamp = {nte.TimeStamp(:)'};
-    spike.waveform  = {zeros(0,length(nte.TimeStamp))};  % does not contain waveforms
-    spike.unit      = {zeros(0,length(nte.TimeStamp))};  % does not contain units
-    spike.hdr       = nte.hdr;
+    spike.timestamp = {nts.TimeStamp(:)'};
+    spike.waveform  = {zeros(0,length(nts.TimeStamp))};  % does not contain waveforms
+    spike.unit      = {zeros(0,length(nts.TimeStamp))};  % does not contain units
+    spike.hdr       = nts.hdr;
 
   case 'plexon_nex'
     % a single file can contain multiple channels of different types

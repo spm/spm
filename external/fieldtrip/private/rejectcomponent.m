@@ -1,38 +1,26 @@
 function [data] = rejectcomponent(cfg, comp, data)
 
-% REJECTCOMPONENT reconstructs an ICA decomposition after removing 
-% the independent components that contain the artifacts.  This function 
-% does not automatically detect the artifact components, you will 
-% have to do that yourself.
+% REJECTCOMPONENT backprojects an ICA decomposition to the channel
+% level after removing the independent components that contain the
+% artifacts. This function does not automatically detect the artifact
+% components, you will have to do that yourself.
 %
 % Use as
 %    [data] = rejectcomponent(cfg, comp)
-% or
-%    [data] = rejectcomponent(cfg, comp, data)
-% where comp is the result of COMPONENTANALYSIS and data is the output
-% of PREFPROCESSING.
+% where the input comp is the result of COMPONENTANALYSIS. The output
+% data will have the same format as the output of PREFPROCESSING.
 % 
 % The configuration should contain
 %   cfg.component = list of components to remove, e.g. [1 4 7]
 % 
-% If you have performed a decomposition in which all components were
-% computed, the data can be reconstructed from the components, leaving
-% the artefact components out. In that case you do not have to specify the data itself. 
-%
-% If you have performed a decomposition of the data resuling in only a few
-% components, the data cannot be fully reconstructed. By also giving the
-% data as input, the artefact components can be filtered out of the data.
-%
 % See also COMPONENTANALYSIS, PREFPROCESSING
 
-% Undocumented local options:
-% cfg.channel
-% cfg.previous
-% cfg.version
-
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2009, Robert Oostenveld
 % 
 % $Log: rejectcomponent.m,v $
+% Revision 1.9  2009/03/23 20:03:50  roboos
+% removed obsolete and non-functional code
+%
 % Revision 1.8  2008/11/04 20:20:34  roboos
 % added optional baseline correction
 %
@@ -66,8 +54,7 @@ function [data] = rejectcomponent(cfg, comp, data)
 
 fieldtripdefs
 
-if ~isfield(cfg, 'component'), cfg.component = []; end
-if ~isfield(cfg, 'blc'),           cfg.blc     = 'yes';        end
+if ~isfield(cfg, 'component'), cfg.component = [];      end
 
 ntrials = length(comp.trial);
 ncomps  = length(comp.label);
@@ -80,45 +67,20 @@ if max(cfg.component)>ncomps
   error('you cannot remove components that are not present in the data');
 end
 
-if nargin>2
-  % optionally perform baseline correction on each trial
-  if strcmp(cfg.blc, 'yes')
-    fprintf('baseline correcting data \n');
-    for trial=1:Ntrials
-      data.trial{trial} = preproc_baselinecorrect(data.trial{trial});
-    end
-  end
+% set the rejected compponent amplitudes to zero 
+fprintf('removing %d components\n', length(cfg.component)); 
+fprintf('keeping %d components\n',  ncomps-length(cfg.component));
+comp.topo(:,cfg.component) = 0;
+
+% recontruct the data from the independent components 
+data = [];
+for i=1:ntrials
+  data.trial{i} = comp.topo * comp.trial{i}; 
 end
-
-% determine the number of channels and the number of components
-Nchan = length(comp.topolabel);
-Ncomp = length(comp.label);
-
-if Nchan==Ncomp
-  if nargin>2
-    warning('not using input data for reconstruction');
-  end
-  % set the rejected compponent amplitudes to zero 
-  comp.topo(:,cfg.component) = 0;
-  fprintf('removing %d components\n', length(cfg.component)); 
-  fprintf('keeping %d components\n',  ncomps-length(cfg.component));
-  % recontruct the data from the independent components 
-  for i=1:ntrials
-    data.trial{i} = comp.topo * comp.trial{i}; 
-  end
-  data.fsample = comp.fsample;
-  data.time    = comp.time;  
-  data.label   = comp.cfg.channel; 
-  try, data.grad    = comp.grad;    end
-else
-  if nargin<3
-    error('incomplete component decomposition, this also requires input data');
-  end
-  [seldat, selcomp] = match_str(data.label, comp.topolabel);
-  comp = comp.topo(selcomp,cfg.component);
-  % FIXME, continue implementation here...
-  error('FIXME: this section of code is still under construction');
-end 
+data.fsample   = comp.fsample;
+data.time      = comp.time;  
+data.label     = comp.topolabel;
+try, data.grad = comp.grad; end
 
 % add the version details of this function call to the configuration 
 try
@@ -129,7 +91,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectcomponent.m,v 1.8 2008/11/04 20:20:34 roboos Exp $';
+cfg.version.id = '$Id: rejectcomponent.m,v 1.9 2009/03/23 20:03:50 roboos Exp $';
 % remember the configuration details of the input data 
 try, cfg.previous = comp.cfg; end
 % keep the configuration in the output
