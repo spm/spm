@@ -71,6 +71,9 @@ function [vol, sens] = headmodelplot(cfg, data)
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.25  2009/03/23 13:40:53  roboos
+% some small changes suggested by Vladimir, use senstype instead of sensortype
+%
 % Revision 1.24  2009/01/07 14:19:26  roboos
 % incorporated some suggestions from vladimir
 %
@@ -207,8 +210,8 @@ else
 end
 
 % determine the type of input data
-ismeg          = isfield(sens, 'ori');
-iseeg          = (~ismeg);
+ismeg          = senstype(sens, 'meg');
+iseeg          = senstype(sens, 'eeg');
 isbem          = isfield(vol, 'bnd');
 issphere       = isfield(vol, 'r');
 ismultisphere  = isfield(vol, 'r') && length(vol.r)>4;
@@ -222,17 +225,17 @@ if ismeg
   if ~isfield(cfg, 'plotlines'),        cfg.plotlines = 'yes';         end
   if ~isfield(cfg, 'plotcoil'),         cfg.plotcoil = 'no';           end
   if ~isfield(cfg, 'headshape'),        cfg.headshape = [];            end
-else
+elseif iseeg
   % sensors describe EEG data, set the corresponding defaults
   if ~isfield(cfg, 'plotspheres'),      cfg.plotspheres = 'no';        end
   if ~isfield(cfg, 'plotspherecenter'), cfg.plotspherecenter = 'no';   end
   if ~isfield(cfg, 'plotlines'),        cfg.plotlines = 'yes';         end
 end
 
-if     ismeg && strcmp(sensortype(sens), 'ctf151')
+if  ismeg && senstype(sens, 'ctf') || senstype(sens, 'bti')
   Nsensors = length(channelselection('MEG', sens.label));
-elseif ismeg && strcmp(sensortype(sens), 'ctf275')
-  Nsensors = length(channelselection('MEG', sens.label));
+elseif ismeg && senstype(sens, 'neuromag')
+  Nsensors = size(sens.pnt, 1);
 else
   % assume that the number of sensors to be plotted is the same as the number of channels
   % this implies that channel 1:Nsensors corresponds with the bottom coils
