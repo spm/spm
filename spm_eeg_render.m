@@ -3,7 +3,8 @@ function  [out] = spm_eeg_render(m,options)
 % FORMAT [out] = spm_eeg_render(m,options)
 %
 % INPUT:
-% - m = MATLAB mesh (containing the fields .faces et .vertices)
+% - m = MATLAB mesh (containing the fields .faces et .vertices) or GIFTI
+% format file.
 % - options = structure variable:
 %       .texture = texture to be projected onto the mesh
 %       .clusters = cortical parcelling (cell variable containing the
@@ -15,9 +16,6 @@ function  [out] = spm_eeg_render(m,options)
 %       .hfig = handle of existing figure. If this option is provided, then
 %       visu_maillage_surf adds the (textured) mesh to the figure hfig, and
 %       a control for its transparancy.
-%       .subplot.bin = flag for figure dividing
-%       .subplot.y = 2D matrix to be plotted in a subfigure (only if the
-%       associated options.subplot.bin = 1)
 %
 % OUTPUT:
 %   - out: a structure containing the fields:
@@ -33,7 +31,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_render.m 2925 2009-03-23 20:49:24Z jean $
 
 
 %----------------------------------------------------------------------%
@@ -42,7 +40,9 @@ function  [out] = spm_eeg_render(m,options)
 
 % Check mesh format
 try
-    try,m = gifti(m);end
+    if ischar(m) && exist(m,'file')==2
+        try m = gifti(m);end
+    end
     m0.faces = m.faces;
     m0.vertices = m.vertices;
     m = m0;
@@ -54,46 +54,32 @@ end
 
 
 % Default options
-handles.fi = figure('visible','off',...
-    'NumberTitle','Off','Name','Mesh visualization',...
+handles.fi = figure(...
+    'visible','off',...
+    'NumberTitle','Off',...
+    'Name','Mesh visualization',...
     'tag','visu_maillage_surf');
 ns = 0;
 texture = 'none';
 clusters = 'none';
-figname = 'none';
 subplotBIN = 0;
 addMesh = 0;
 tag = '';
 visible = 'on';
-ParentAxes = gca;
-
-try,options;catch,options = [];end
-
+ParentAxes = axes('parent',handles.fi);
+try options; catch options = [];end
 % Now get options
 if ~isempty(options)
-    
     % get texture if provided
-    if isfield(options,'texture')
-        texture = options.texture;
-    end
-    
-    if isfield(options,'ParentAxes') && ~isempty(options.ParentAxes)
-        ParentAxes = options.ParentAxes;
-    else
-        ParentAxes = [];
-    end
-    
-    if isfield(options,'tag')
-        tag = options.tag;
-    end
-
-    if isfield(options,'visible')
-        visible = options.visible;
-    end
-    
+    try texture = options.texture;end
+    % get ParentAxes
+    try ParentAxes = options.ParentAxes;end
+    % get tag
+    try tag = options.tag;end
+    % get flag for visibility: useful for displaying all objects at once
+    try visible = options.visible;end
     % get custers if provided
-    if isfield(options,'clusters')
-        figname = 'Parcelling vizualization';
+    try
         clusters = options.clusters;
         IND = zeros(1,length(m.vertices));
         K = length(clusters);
@@ -102,25 +88,20 @@ if ~isempty(options)
         end
         texture = IND';
     end
-
     % get figname if provided
-    if isfield(options,'figname')
-        figname = options.figname;
-        set(handles.fi,'NumberTitle','Off','Name',figname);
+    try
+        set(handles.fi,'NumberTitle','Off','Name',options.figname);
     end
-    
-    % get figure handle for possible multiplot
-    if isfield(options,'hfig')
-        try
-            figure(options.hfig)
-            if isempty(ParentAxes)
-                ParentAxes = gca;
-            end
-            set(ParentAxes,'nextplot','add')
-            close(handles.fi);
-            handles.fi = options.hfig;
-            addMesh = 1;
+    % get figure handle (should be parent of ParentAxes)
+    try
+        figure(options.hfig)
+        if isempty(ParentAxes)
+            ParentAxes = axes('parent',options.hfig,...
+                'nextplot','add');
         end
+        close(handles.fi);
+        handles.fi = options.hfig;
+        addMesh = 1;
         try % get number of transparency sliders in current figure...
             hh=get(handles.fi,'children');
             ns=length(findobj(hh,'userdata','tag_UIC_transparency'));
@@ -128,15 +109,6 @@ if ~isempty(options)
             ns=1;
         end
     end
-    
-    % Subdivide figure?
-    if isfield(options,'subplot') && options.subplot.bin
-        subplotBIN = 1;
-        subplot(2,1,1)
-    end
-    
-else
-   
     
 end
 
@@ -146,7 +118,7 @@ set(handles.fi,'renderer','OpenGL');
 
 
 % Plot mesh and texture/clusters
-if isequal(texture,'none') == 1
+if isequal(texture,'none')
     figure(handles.fi)
     handles.p = patch(m,...
         'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
@@ -165,9 +137,9 @@ else
             'userdata',oldRenderer,...
             'visible',visible,'tag',tag,...
             'deleteFcn',@doDelMesh);
-        colormap(jet(256));
+        col = colormap(ParentAxes,jet(256));
         udd.tex = texture;
-        udd.cax = caxis;
+        udd.cax = caxis(ParentAxes);
     else
         texture = 'none';
         disp('Warning: size of texture does not match number of vertices!')
@@ -180,37 +152,14 @@ else
 end
 
 
-axes(ParentAxes)  % avoid user confusion with the open windows
 daspect(ParentAxes,[1 1 1]);
 axis(ParentAxes,'tight');
 axis(ParentAxes,'off')
 camva(ParentAxes,'auto');
 set(ParentAxes,'view',[25,45]);
 
-
-% plot second subplot if provided
-if subplotBIN
-    figure(handles.fi)
-    subplot(2,1,1),zoom(2);
-    subplot(2,1,2),plot(options.subplot.y')
-    set(gca,'ygrid','on')
-    set(gca,'ylim',[-0.2,1.2])
-    set(gca,'box','off')
-end
-
-
 % build internal userdata structure
 udd.p = handles.p;
-
-% xlabel('x')
-% ylabel('y')
-% zlabel('z')
-
-
-
-
-
-
 
 
 %----------------------------------------------------------------------%
@@ -221,7 +170,7 @@ udd.p = handles.p;
 % Transparancy sliders
 pos = [20 100 20 245];
 pos(1) = pos(1) + ns.*25;
-handles.transp = uicontrol(...
+handles.transp = uicontrol(handles.fi,...
     'style','slider',...
     'position',pos,...
     'min',0,...
@@ -235,43 +184,14 @@ handles.transp = uicontrol(...
     'Interruptible','off',...
     'visible',visible,...
     'tag',tag);
-handles.tag = uicontrol(...
+set(handles.transp,'units','normalized')
+handles.tag = uicontrol(handles.fi,...
     'style','text',...
     'visible','off',...
     'tag',tag,...
     'userdata','tag_UIC_transparency');
-set(handles.transp,'units','normalized')
+
 udd.transp = handles.transp;
-% 
-% % Cortex inflation togglebutton
-% posh = [200 20 100 40];
-% hu=uicontrol('style','togglebutton','position',posh);
-% set(hu,'string','inflate cortex');
-% ud2.m = m;
-% ud2.p = p;
-% ud2.texture = texture;
-% set(hu,'callback','vms_inflate')
-% set(hu,'userdata',ud2);
-% set(hu,'enable','off')  % still to be debugged
-% set(hu,'units','normalized')
-
-
-% 
-% % SpitBrain checkboxes
-% pos = [20 360 80 20];
-% sb1 = uicontrol('style','checkbox','position',pos,'callback','vms_splitBrain');
-% set(sb1,'string','left hemi','value',1)
-% set(sb1,'units','normalized')
-% pos = [20 390 80 20];
-% sb2 = uicontrol('style','checkbox','position',pos,'callback','vms_splitBrain');
-% set(sb2,'string','right hemi','value',1)
-% set(sb2,'units','normalized')
-% udd.sb1 = sb1;
-% udd.sb2 = sb2;
-% udd.m = m;
-% udd.split = 0;
-% udd.fi = fi;
-
 
 
 % Clustering buttons and popup menu
@@ -279,14 +199,15 @@ if ~isequal(clusters,'none')
     if subplotBIN
         subplot(2,1,1)
     end
-    %             set(p,'FaceColor','flat');
-    col=colormap(lines);
+%     set(p,'FaceColor','flat');
+    col=lines;
     nc = floor(256./K);
-    col = [repmat([0.8157    0.6666    0.5762],nc/2,1);kron(col(1:K,:),ones(nc,1))];
+    col = [repmat([0.8157 0.6666 0.5762],nc/2,1);...
+        kron(col(1:K,:),ones(nc,1))];
     if K > 1
         col(end-nc/2:end,:) = [];
     end
-    colormap(col);
+    colormap(ParentAxes,col);
     tex = zeros(length(m.vertices),length(clusters)+1);
     tex(:,1) = texture;
     string = cell(length(clusters)+1,1);
@@ -304,7 +225,8 @@ if ~isequal(clusters,'none')
     udd.p = handles.p;
     udd.col = col;
     udd.nc = length(clusters);
-    handles.pop = uicontrol('style','popupmenu',...
+    handles.pop = uicontrol(handles.fi,...
+        'style','popupmenu',...
         'position',[20 20 100 40],...
         'string',string,...
         'callback',{@doSelectCluster},...
@@ -312,7 +234,8 @@ if ~isequal(clusters,'none')
         'Interruptible','off',...
         'visible',visible,'tag',tag);
     set(handles.pop,'units','normalized')
-    handles.sli = uicontrol('style','slider',...
+    handles.sli = uicontrol(handles.fi,...
+        'style','slider',...
         'position',[50 10 30 20],'max',udd.nc,...
         'sliderstep',[1./(udd.nc+0) 1./(udd.nc+0)],...
         'callback',{@doSwitch2nextCluster},...
@@ -332,13 +255,14 @@ if  ~isequal(texture,'none') && isequal(clusters,'none')
         subplot(2,1,1)
     end
     udd.tex0 = texture;
-    tmp = colormap;
-    udd.col = tmp;
-    handles.hc = colorbar;
-    set(handles.hc,'visible',visible);
+    udd.col = col;
+    handles.hc = colorbar(...
+        'peer',ParentAxes,...
+        'visible',visible);
     increment = 0.01;
     % right slider
-    handles.s1 = uicontrol('style','slider',...
+    handles.s1 = uicontrol(handles.fi,...
+        'style','slider',...
         'position',[440 28    20   380],...
         'min',0,'max',length(udd.col),'value',0,...
         'sliderstep',[increment increment],...
@@ -350,7 +274,8 @@ if  ~isequal(texture,'none') && isequal(clusters,'none')
     set(handles.s1,'units','normalized')
     udd.s1 = handles.s1;
     % left slider
-    handles.s2 = uicontrol('style','slider',...
+    handles.s2 = uicontrol(handles.fi,...
+        'style','slider',...
         'position',[420 28    20   380],...
         'min',1,'max',length(udd.col),...
         'value',length(udd.col),...
@@ -366,9 +291,6 @@ if  ~isequal(texture,'none') && isequal(clusters,'none')
     set(handles.s2,'userdata',udd);
 end
 
-% 
-% set(handles.sb1,'userdata',udd);
-% set(handles.sb2,'userdata',udd);
 
 
 set(handles.fi,'visible','on');
@@ -378,9 +300,6 @@ drawnow
 % end
 
 cameratoolbar(handles.fi,'setmode','orbit')
-
-
-gco;
 
 out.hfra = getframe(gcf);
 out.handles = handles;
@@ -410,8 +329,6 @@ else
 end
 colormap(udd00.col);
 udd00.cax = caxis;
-% set(udd00.sb1,'userdata',udd00);
-% set(udd00.sb2,'userdata',udd00);
 
 
 function doSelectCluster(btn,evd)
@@ -427,8 +344,6 @@ else
     colormap(col00);
 end
 udd00.cax = caxis;
-% set(udd00.sb1,'userdata',udd00);
-% set(udd00.sb2,'userdata',udd00);
 
 
 function doSwitch2nextCluster(btn,evd)
@@ -441,10 +356,8 @@ if ind00 == 1
     colormap(udd00.col);
 else
     col00 = colormap(jet);
-    col00(1:end/2,:)=0.5;%*ones(size(col00(1:end/2,:)));
+    col00(1:end/2,:)=0.5;
     colormap(col00);
 end
 udd00.cax = caxis;
-% set(udd00.sb1,'userdata',udd00);
-% set(udd00.sb2,'userdata',udd00);
 

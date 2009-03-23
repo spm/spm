@@ -20,7 +20,7 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_eeg_displayECD.m 2925 2009-03-23 20:49:24Z jean $
 
 hfig = [];
 ParentAxes = [];
@@ -38,7 +38,7 @@ try
 catch
     hfig  = spm_figure('GetWin','Graphics');
     spm_figure('Clear',hfig);
-    ParentAxes = gca;
+    ParentAxes = axes('parent',hfig);
 end
 
 try Pos{1}; catch Pos={Pos};end
@@ -62,23 +62,25 @@ if ndip > 0
         m = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
         opt.hfig = hfig;
         opt.ParentAxes = ParentAxes;
-        [out] = spm_eeg_render(m,opt);
-        handles = out.handles;
-        set(handles.p,'facealpha',0.1)
-        set(handles.transp,'value',0.1)
+        opt.visible = 'off';
         try
-            handles.mesh = out.handles.p;
-            handles.BUTTONS.transp = out.handles.transp;
-            handles.hfig = out.handles.fi;
-            handles.axes  = ParentAxes;
+            pa = get(ParentAxes,'position');
+            pos2 = [pa(1),pa(2)+0.25*pa(4),0.03,0.5*pa(4)];
+        catch
+            pos2 = [0.1,0.55,0.03,0.4];
         end
-        % change axes position
-        set(ParentAxes,'units','normalized')
-        pa = get(ParentAxes,'position');
-        pos2 = [pa(1),0.55,pa(3),0.4];
-        set(ParentAxes,'position',pos2)
-        pos2 = [0.1,0.55,0.03,0.4];
-        set(handles.BUTTONS.transp,'position',pos2)
+        [out] = spm_eeg_render(m,opt);
+        handles.mesh = out.handles.p;
+        handles.BUTTONS.transp = out.handles.transp;
+        handles.hfig = out.handles.fi;
+        handles.ParentAxes  = out.handles.ParentAxes;
+        set(handles.mesh,...
+            'facealpha',0.1,...
+            'visible','on')
+        set(handles.BUTTONS.transp,...
+            'value',0.1,...
+           'position',pos2,...
+            'visible','on')
     end
     
     set(ParentAxes,'nextplot','add')
@@ -90,7 +92,7 @@ if ndip > 0
                     'ydata',Pos{j}(2,i),...
                     'zdata',Pos{j}(3,i));
             catch
-                handles.hp(j,i) = plot3(ParentAxes,...
+                handles.hp(j,i) = plot3(handles.ParentAxes,...
                     Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
                     [col(i),'.'],...
                     'markerSize',20,...
@@ -111,7 +113,7 @@ if ndip > 0
                     'vdata',Oi(2),...
                     'wdata',Oi(3))
             catch
-                handles.hq(j,i) = quiver3(ParentAxes,...
+                handles.hq(j,i) = quiver3(handles.ParentAxes,...
                     Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
                     Oi(1),Oi(2),Oi(3),col(i),...
                     'lineWidth',2,'visible','off');
@@ -129,7 +131,7 @@ if ndip > 0
                     'ydata',y,...
                     'zdata',z);
             catch
-                handles.hs(j,i) = surf(ParentAxes,...
+                handles.hs(j,i) = surf(handles.ParentAxes,...
                     x,y,z,...
                     'edgecolor','none',...
                     'facecolor',col(i),...
@@ -143,7 +145,7 @@ if ndip > 0
                 handles.ht(j,i) = text(...
                     Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
                     Names{i},...
-                    'Parent',ParentAxes,...
+                    'Parent',handles.ParentAxes,...
                     'visible','off');
             end
         end

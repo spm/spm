@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_inv_vbecd.m 2925 2009-03-23 20:49:24Z jean $
 
 
 
@@ -177,7 +177,7 @@ for i = 1:P.Niter
     pause(0.1)
 
     % check termination condition
-    dF = (F(i+1)-F(i))/abs(F(i));
+    dF = (F(i+1)-F(i));%/abs(F(i));
     if -dF > P.threshold_dF
         a=Ftest';
         a = a(:);
@@ -199,8 +199,6 @@ for i = 1:P.Niter
 
 end
 
-% set(P.handles.hfig,'colormap',colormap(gray))
-% delete(get(P.handles.hfig,'children'))
 close(P.handles.hfig)
 P = rmfield(P,'handles');
 
@@ -236,7 +234,7 @@ PreviousMu = mu;
 [PreviousI,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
     logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
 
-maxIter = 128;
+maxIter = 64;
 rdI = 1e-8;
 stop = 0;
 it = 0;
@@ -322,33 +320,42 @@ if ~exist('flag','var')
     flag = [];
 end
 
+try
+    figure(P.handles.hfig);
+catch
+    P.handles.hfig  = spm_figure('GetWin','Graphics');
+    spm_figure('Clear',P.handles.hfig);
+end
+
+
 if isempty(flag) || isequal(flag,'ecd')
     % plot dipoles
     try
-        P.handles.axesECD;
-        opt.hfig = P.handles.hfig;
         opt.ParentAxes = P.handles.axesECD;
+        opt.hfig = P.handles.hfig;
         opt.handles.hp = P.handles.hp;
         opt.handles.hq = P.handles.hq;
         opt.handles.hs = P.handles.hs;
         opt.handles.ht = P.handles.ht;
         opt.query = 'replace';
     catch
-        opt = [];
+        P.handles.axesECD = axes(...
+            'parent',P.handles.hfig,...
+            'Position',[0.13 0.55 0.775 0.4],...
+            'hittest','off',...
+            'visible','off');
+        opt.ParentAxes = P.handles.axesECD;
+        opt.hfig = P.handles.hfig;
     end
     [out] = spm_eeg_displayECD(...
         reshape(mu_s,3,[]),...
         reshape(mu_w,3,[]),...
         reshape(diag(S_s),3,[]),...
         [],opt);
-    try
-        P.handles.hfig = out.handles.hfig;
-        P.handles.axesECD = out.handles.ParentAxes;
         P.handles.hp = out.handles.hp;
         P.handles.hq = out.handles.hq;
         P.handles.hs = out.handles.hs;
         P.handles.ht = out.handles.ht;
-    end
 end
 
 % plot data and predicted data
@@ -364,7 +371,7 @@ catch
         'Position',[0.02 0.3 0.3 0.2],...
         'hittest','off');
     in.ParentAxes = P.handles.axesY;
-    [ZI,f] = spm_eeg_plotScalpData(y,pos,ChanLabel,in);
+    spm_eeg_plotScalpData(y,pos,ChanLabel,in);
     title(P.handles.axesY,'measured data')
 end
 if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
@@ -373,7 +380,8 @@ if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
         P.handles.axesYhat;
         d = get(P.handles.axesYhat,'userdata');
         yHat = yHat(d.goodChannels);
-        clim = [min(yHat(:))-( max(yHat(:))-min(yHat(:)) )/63,max(yHat(:))];
+        clim = [min(yHat(:))-( max(yHat(:))-min(yHat(:)) )/63,...
+            max(yHat(:))];
         ZI = griddata(...
             d.interp.pos(1,:),d.interp.pos(2,:),full(double(yHat)),...
             d.interp.XI,d.interp.YI);
@@ -390,7 +398,7 @@ if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
             'Position',[0.37 0.3 0.3 0.2],...
             'hittest','off');
         in.ParentAxes = P.handles.axesYhat;
-        [ZI,f] = spm_eeg_plotScalpData(yHat,pos,ChanLabel,in);
+        spm_eeg_plotScalpData(yHat,pos,ChanLabel,in);
         title(P.handles.axesYhat,'predicted data')
     end
     try
@@ -495,13 +503,25 @@ catch
     figure(P.handles.hfig)
     P.handles.hte(1) = uicontrol('style','text',...
         'units','normalized',...
-        'position',[0.3,0.95,0.4,0.02],...
+        'position',[0.2,0.95,0.6,0.02],...
         'backgroundcolor',[1,1,1]);
 end
 try
     set(P.handles.hte(1),'string',...
         ['Model evidence: p(y|m) >= ',num2str(F(end),'%10.3e\n')])
 end
+
+try
+    P.handles.hti;
+catch
+    figure(P.handles.hfig)
+    P.handles.hti = uicontrol('style','text',...
+        'units','normalized',...
+        'position',[0.3,0.98,0.4,0.02],...
+        'backgroundcolor',[1,1,1],...
+        'string',['VB ECD inversion: trial #',num2str(P.ltr(P.ii))]);
+end
+
 
 
 drawnow

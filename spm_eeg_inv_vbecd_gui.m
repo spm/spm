@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 2925 2009-03-23 20:49:24Z jean $
 
 %%
 % Load data, if necessary
@@ -158,9 +158,10 @@ dat_y = squeeze(mean(D(P.Ic,ltb,ltr),2));
 % Other bits of the P structure, apart for priors and #dipoles
 %==============================
 
+P.ltr          = ltr;
 P.Nc           = length(P.Ic);
-P.Niter        = 200;  % \_ Using SK default values here...
-P.threshold_dF = 1e-4; % /
+P.Niter        = 200;           % \_ Using SK default values here...
+P.threshold_dF = 1e-2;  %1e-4   % /
 
 %%  
 % Deal with dipoles number and priors
@@ -356,7 +357,7 @@ inverse = struct( ...
 
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
-    
+    P.ii = ii;
     % Adapt priors for measurement noise precision...
     P.priors.a10 = numel(P.y);
     P.priors.b10 = numel(P.y)*1e-18;

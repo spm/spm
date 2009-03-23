@@ -5,12 +5,13 @@ function spm_eeg_review(D,flag,inv)
 % INPUT:
 % D      - meeg object
 % flag   - switch to any of the displays (optional)
-% inv    - 
+% inv    - which source reconstruction to display (when called from
+% spm_eeg_inv_imag_api.m)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_review.m 2925 2009-03-23 20:49:24Z jean $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -30,7 +31,9 @@ if isempty(D.PSD.handles.hfig)
 else
     clf(D.PSD.handles.hfig)
 end
-set(D.PSD.handles.hfig,'renderer','OpenGL');
+set(D.PSD.handles.hfig,...
+    'renderer','OpenGL',...
+    'units','normalized');
 
 %-- Create default userdata structure
 if exist('inv','var')
@@ -62,15 +65,11 @@ end
 set(h.hp,'deletefcn','colormap(''gray'');');
 D.PSD.handles.tabs = h;
 
-% %-- Initilize display on 'info'
-D.PSD.VIZU.modality = 'info';
-D.PSD.VIZU.info = 4;
-D.PSD.VIZU.fromTab = [];
-[D] = spm_eeg_review_switchDisplay(D);
-
-    
+ 
 %-- Attach userdata to SPM graphics window
-set(D.PSD.handles.hfig,'color',[1 1 1],'userdata',D);
+set(D.PSD.handles.hfig,...
+    'color',[1 1 1],...
+    'userdata',D);
 
 
 if exist('flag','var')
@@ -88,13 +87,15 @@ if exist('flag','var')
         case 6
             spm_eeg_review_callbacks('visu','main','source')
     end
+else
+    % Initilize display on 'info'
+    spm_eeg_review_callbacks('visu','main','info')
 end
 
 
 
 %% initialization of the userdata structure
 function [D] = PSD_initUD(D)
-% function D = PSD_initUD(D)
 % This function initializes the userdata structure.
 
 %-- Check spm_uitable capability (JAVA compatibility) --%
@@ -102,12 +103,15 @@ D.PSD.VIZU.uitable = spm_uitable;
 
 %-- Initialize time window basic info --%
 D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
-D.PSD.VIZU.info = 1;
+D.PSD.VIZU.info = 4; % show history
+D.PSD.VIZU.fromTab = [];
 
 
 %-- Initialize trials info --%
 switch D.type
-    % before epoching
+    
+    %------ before epoching -----%
+    
     case 'continuous'
         D.PSD.type = 'continuous';
         if ~isempty(D.trials) && ~isempty(D.trials(1).events)
@@ -132,7 +136,9 @@ switch D.type
         end
         D.PSD.VIZU.type = 1;
         
-    case 'single' % after epoching
+    %------ after epoching -----%
+    
+    case 'single'
         D.PSD.type = 'epoched';
         nTrials = length(D.trials);
         D.PSD.trials.TrLabels = cell(nTrials,1);
@@ -142,7 +148,8 @@ switch D.type
             else
                 str = ' (not bad)';
             end
-            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
+            D.PSD.trials.TrLabels{i} = [...
+                'Trial ',num2str(i),': ',D.trials(i).label,str];
         end
         D.PSD.trials.current = 1;
         D.PSD.VIZU.type = 1;
@@ -151,8 +158,10 @@ switch D.type
         nTrials = length(D.trials);
         D.PSD.trials.TrLabels = cell(nTrials,1);
         for i = 1:nTrials
-            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
-                num2str(D.trials(i).repl),' events): ',D.trials(i).label];
+            D.PSD.trials.TrLabels{i} = [...
+                'Trial ',num2str(i),' (average of ',...
+                num2str(D.trials(i).repl),' events): ',...
+                D.trials(i).label];
             D.trials(i).events = [];
         end
         D.PSD.trials.current = 1;
@@ -166,33 +175,34 @@ D.PSD.MEG.I  = sort([find(strcmp('MEGMAG',{D.channels.type})),...
     find(strcmp('MEGGRAD',{D.channels.type})) find(strcmp('MEG',{D.channels.type}))]);
 D.PSD.MEGPLANAR.I  = find(strcmp('MEGPLANAR',{D.channels.type}));
 D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
+%-- Get basic display variables (data range, offset,...)
 if ~isempty(D.PSD.EEG.I)
-    figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
+    figure(D.PSD.handles.hfig)
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
     D.PSD.EEG.VIZU = out;
 else
     D.PSD.EEG.VIZU = [];
 end
 if ~isempty(D.PSD.MEG.I)
-    figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
+    figure(D.PSD.handles.hfig)
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEG.I);
     D.PSD.MEG.VIZU = out;
 else
     D.PSD.MEG.VIZU = [];
 end
 if ~isempty(D.PSD.MEGPLANAR.I)
-    figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
+    figure(D.PSD.handles.hfig)
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEGPLANAR.I);
     D.PSD.MEGPLANAR.VIZU = out;
 else
     D.PSD.MEGPLANAR.VIZU = [];
 end
 if ~isempty(D.PSD.other.I)
-    figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
+    figure(D.PSD.handles.hfig)
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
     D.PSD.other.VIZU = out;
 else
@@ -200,16 +210,14 @@ else
 end
 
 
-%%-- Initialize inverse field info
-if isfield(D.other,'inv') && ~isempty(D.other.inv) % && isfield(D.other.inv{1},'inverse')
+%-- Initialize inverse field info --%
+if isfield(D.other,'inv') && ~isempty(D.other.inv)
     isInv = zeros(length(D.other.inv),1);
     for i=1:length(D.other.inv)
-        if isfield(D.other.inv{i},'inverse') 
-            if isfield(D.other.inv{i}, 'method')
-                if strcmp(D.other.inv{i}.method,'Imaging')
-                    isInv(i) = 1;
-                end
-            end
+        if isfield(D.other.inv{i},'inverse') && ...
+                isfield(D.other.inv{i}, 'method') && ...
+                strcmp(D.other.inv{i}.method,'Imaging')
+            isInv(i) = 1;
         end
     end
     isInv = find(isInv);

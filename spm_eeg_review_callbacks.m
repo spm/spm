@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2923 2009-03-23 18:34:51Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 2925 2009-03-23 20:49:24Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -30,7 +30,7 @@ switch varargin{1}
                 spm_eeg_history(D);
         end
 
-
+    %% Get information from MEEG object
     case 'get'
 
         switch varargin{2}
@@ -42,12 +42,7 @@ switch varargin{1}
                     M                       = sparse(length(visuSensors),length(D.channels));
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
                     nts                     = min([2e2,D.Nsamples]);
-                    %                     if isequal(D.type,'continuous')
-                    %                         decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./nts),1]);
                     decim                   = max([floor(D.Nsamples./nts),1]);
-                    %                     else
-                    %                         decim = 1;
-                    %                     end
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
                     sd                      = mean(abs(data(:)-mean(data(:))));%std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*sd/2;
@@ -96,12 +91,12 @@ switch varargin{1}
         end
 
 
-        %% Visualization callbacks
-
+    %% Visualization callbacks
     case 'visu'
 
         switch varargin{2}
 
+            %% Switch main uitabs: EEG/MEG/OTHER/INFO/SOURCE
             case 'main'
 
                 try
@@ -138,12 +133,9 @@ switch varargin{1}
                 catch
                     set(D.PSD.handles.hfig,'userdata',D);
                     spm('pointer','arrow');
-                    %                     try
-                    %                         disp(lasterr)
-                    %                     end
                 end
 
-
+            %% Switch from 'standard' to 'scalp' display type
             case 'switch'
 
                 spm('pointer','watch');
@@ -158,12 +150,13 @@ switch varargin{1}
                 end
                 spm('pointer','arrow');
 
+            %% Update display
             case 'update'
 
                 try,D = varargin{3};end
                 updateDisp(D)
 
-                % Scalp interpolation
+            %% Scalp interpolation
             case 'scalp_interp'
 
                 if ~isempty([D.channels(:).X_plot2D])
@@ -217,20 +210,21 @@ switch varargin{1}
                     msgbox('Get 2d positions for EEG/MEG channels!')
                 end
 
-
+            %% Display sensor positions (and canonical cortical mesh)
             case 'sensorPos'
 
                 % get canonical mesh
                 mco = [spm('Dir'),filesep,'canonical',filesep,'cortex_5124.surf.gii'];
                 msc = [spm('Dir'),filesep,'canonical',filesep,'scalp_2562.surf.gii'];               
                 
-                % get 3D positions
+                % get and plot 3D sensor positions
                 try     % EEG
                     pos3d = [D.sensors.eeg.pnt];
                     % display canonical mesh
                     opt.figname = 'Sensor positions';
                     o = spm_eeg_render(mco,opt);
                     opt.hfig = o.handles.fi;
+                    opt.ParentAxes = o.handles.ParentAxes;
                     o = spm_eeg_render(msc,opt);
                     set(o.handles.p,'FaceAlpha',0.75)
                     set(o.handles.transp,'value',0.75)
@@ -242,7 +236,6 @@ switch varargin{1}
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
                     axis equal tight off
                 end
-                
                 try     % MEG
                     pos3d = [D.sensors.meg.pnt];
                     % display canonical mesh
@@ -258,13 +251,16 @@ switch varargin{1}
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
                     axis equal tight off
                 end
-
+            
+            %% Update display for 'SOURCE' main tab
             case 'inv'
 
                 cla(D.PSD.handles.axes2,'reset')
                 D.PSD.source.VIZU.current = varargin{3};
                 updateDisp(D);
 
+            %% Check xlim when resizing display window using 'standard'
+            %% display type
             case 'checkXlim'
 
                 xlim = varargin{3};
@@ -338,7 +334,7 @@ switch varargin{1}
 
 
 
-                % Contrast/intensity rescaling
+            %% Contrast/intensity rescaling
             case 'iten_sc'
 
                 switch D.PSD.VIZU.modality
@@ -354,7 +350,7 @@ switch varargin{1}
                 updateDisp(D,3);
 
 
-                % Resize plotted data window
+            %% Resize plotted data window ('standard' display type)
             case 'time_w'
 
                 % Get current plotted data window range and limits
@@ -370,14 +366,14 @@ switch varargin{1}
                 updateDisp(D,4)
 
 
-                %% Data navigation using the slider
+            %% Scroll through data ('standard' display type)
             case 'slider_t'
 
                 offset = get(gco,'value');
                 updateDisp(D)
 
 
-                %% Scroll page by page (button)
+            %% Scroll through data page by page  ('standard' display type)
             case 'goOne'
 
                 % Get current plotted data window range and limits
@@ -389,12 +385,12 @@ switch varargin{1}
                 updateDisp(D,4)
 
 
-                % Zoom (box in)
+            %% Zoom
             case 'zoom'
 
                 switch D.PSD.VIZU.type
 
-                    case 1
+                    case 1 % 'standard' display type
 
                         if ~isempty(D.PSD.handles.zoomh)
                             switch get(D.PSD.handles.zoomh,'enable')
@@ -412,7 +408,7 @@ switch varargin{1}
                             %set(D.PSD.handles.BUTTONS.vb5,'value',~val);
                         end
 
-                    case 2
+                    case 2 % 'scalp' display type
 
                         set(D.PSD.handles.BUTTONS.vb5,'value',1)
                         switch D.PSD.VIZU.modality
@@ -425,7 +421,7 @@ switch varargin{1}
                             case 'other'
                                 VIZU = D.PSD.other.VIZU;
                         end
-                        try,axes(D.PSD.handles.scale);end
+                        try axes(D.PSD.handles.scale);end
                         [x] = ginput(1);
                         indAxes = get(gco,'userdata');
                         if ~~indAxes
@@ -499,14 +495,13 @@ switch varargin{1}
                         set(D.PSD.handles.BUTTONS.vb5,'value',0)
                 end
 
-
-                %% other ?
             otherwise;disp('unknown command !')
 
 
         end
 
-
+    %% Events callbacks accessible from uicontextmenu
+    %% ('standard' display type when playing with 'continuous' data)
     case 'menuEvent'
 
         Nevents = length(D.trials.events);
@@ -570,7 +565,7 @@ switch varargin{1}
                 end
 
 
-                % Execute actions accessible from the event contextmenu : go to next/previous event
+            % Execute actions accessible from the event contextmenu : go to next/previous event
             case 'goto'
 
 
@@ -611,27 +606,20 @@ switch varargin{1}
 
 
 
-                % Execute actions accessible from the event contextmenu : delete event
+            % Execute actions accessible from the event contextmenu : delete event
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
-%                 delete(D.PSD.handles.PLOT.e(currentEvent));
-                %                 set(D.PSD.handles.hfig,'userdata',D);
                 updateDisp(D,2)
 
         end
 
-
-
-
-
-        %% Selection callbacks
+    %% Events callbacks
     case 'select'
 
         switch varargin{2}
 
-
-            %% Switch to another trial
+            %% Switch to another trial (when playing with 'epoched' data)
             case 'switch'
                 trN = get(gco,'value');
                 if ~strcmp(D.PSD.VIZU.modality,'source') && D.PSD.VIZU.type == 2
@@ -665,6 +653,7 @@ switch varargin{1}
                 end
                 updateDisp(D,1)
 
+            %% Turn event to 'bad' (when playing with 'epoched' data)
             case 'bad'
                 trN = D.PSD.trials.current;
                 ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
@@ -696,7 +685,8 @@ switch varargin{1}
                 end
 
 
-                %% Add an event to current selection
+            %% Add an event to current selection
+            %% (when playing with 'continuous' data)
             case 'add'
                 [x,tmp] = ginput(1);
                 x = round(x);
@@ -718,7 +708,8 @@ switch varargin{1}
                 updateDisp(D,2,Nevents+1)
 
 
-                %% scroll through data upto next event
+            %% scroll through data upto next event
+            %% (when playing with 'continuous' data)
             case 'goto'
                 here                    = get(handles.BUTTONS.slider_step,'value');
                 x                       = [D.trials.events.time]';
@@ -757,7 +748,7 @@ switch varargin{1}
 
         end
 
-        %% Edit callbacks (from spm_eeg_prep_ui)
+   %% Edit callbacks (from spm_eeg_prep_ui)
     case 'edit'
 
         switch varargin{2}

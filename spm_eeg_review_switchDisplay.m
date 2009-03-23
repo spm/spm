@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2913 2009-03-20 17:24:00Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2925 2009-03-23 20:49:24Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -12,37 +12,40 @@ try % only if already displayed stuffs
 end
 
 
-if strcmp(D.PSD.VIZU.modality,'source')
-    delete(findobj('tag','plotEEG'));
-    [D] = visuRecon(D);
+switch D.PSD.VIZU.modality
 
-elseif strcmp(D.PSD.VIZU.modality,'info')
+    case 'source'
+        delete(findobj('tag','plotEEG'));
+        [D] = visuRecon(D);
 
-    [D] = DataInfo(D);
-    set(D.PSD.handles.hfig,'userdata',D)
+    case 'info'
 
-else % EEG/MEG/OTHER
+        [D] = DataInfo(D);
+        set(D.PSD.handles.hfig,'userdata',D)
 
-    try
-        y = D.data.y(:,D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
-    catch
-        D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
-    end
-    switch  D.PSD.VIZU.type
+    otherwise % plot data (EEG/MEG/OTHER)
 
-        case 1
-            delete(findobj('tag','plotEEG'))
-            [D] = standardData(D);
-            cameratoolbar('resetcamera')
-            try, cameratoolbar('close'); end
+        try
+            y = D.data.y(:,D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
+            % ! accelerates memory mapping reading
+        catch
+            D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
+        end
+        switch  D.PSD.VIZU.type
 
-        case 2
-            delete(findobj('tag','plotEEG'))
-            [D] = scalpData(D);
-            cameratoolbar('resetcamera')
-            try, cameratoolbar('close'); end
+            case 1
+                delete(findobj('tag','plotEEG'))
+                [D] = standardData(D);
+                cameratoolbar('resetcamera')
+                try cameratoolbar('close'); end
 
-    end
+            case 2
+                delete(findobj('tag','plotEEG'))
+                [D] = scalpData(D);
+                cameratoolbar('resetcamera')
+                try cameratoolbar('close'); end
+
+        end
 
 end
 
@@ -59,13 +62,13 @@ function [D] = standardData(D)
 switch D.PSD.VIZU.modality
     case 'eeg'
         I = D.PSD.EEG.I;
-        scb  =6;
+        scb = 6;
     case 'meg'
         I = D.PSD.MEG.I;
-        scb  =6;
+        scb = 6;
     case 'megplanar'
         I = D.PSD.MEGPLANAR.I;
-        scb  =6;    
+        scb = 6;    
     case 'other'
         I = D.PSD.other.I;
         scb = [];  % no scalp interpolation button
@@ -585,14 +588,27 @@ switch D.PSD.VIZU.uitable
             case 3 % inv info
 
                 object.list = [object.list;12];
-                if D.PSD.source.VIZU.current ~= 0
-                    isInv = D.PSD.source.VIZU.isInv;
+                isInv = D.PSD.source.VIZU.isInv;
+%                 isInv = 1:length(D.other.inv);
+                if numel(isInv) >= 1 %D.PSD.source.VIZU.current ~= 0
                     Ninv = length(isInv);
                     table = cell(Ninv,12);
                     for i=1:Ninv
-                        table{i,1} = [D.other.inv{isInv(i)}.comment{1}];
+                        try
+                            table{i,1} = [D.other.inv{isInv(i)}.comment{1},' '];
+                        catch
+                            table{i,1} = ' ';
+                        end
                         table{i,2} = [D.other.inv{isInv(i)}.date(1,:)];
-                        table{i,3} = [D.other.inv{isInv(i)}.inverse.modality];
+                        try
+                            table{i,3} = [D.other.inv{isInv(i)}.inverse.modality];
+                        catch
+                            try
+                                table{i,3} = [D.other.inv{isInv(i)}.modality];
+                            catch
+                                table{i,3} = '?';
+                            end
+                        end
                         table{i,4} = [D.other.inv{isInv(i)}.method];
                         try
                             table{i,5} = [num2str(length(D.other.inv{isInv(i)}.inverse.Is))];
@@ -600,13 +616,13 @@ switch D.PSD.VIZU.uitable
                             try
                                 table{i,5} = [num2str(D.other.inv{isInv(i)}.inverse.n_dip)];
                             catch
-                                table{i,5} = '';
+                                table{i,5} = '?';
                             end
                         end
                         try
                             table{i,6} = [D.other.inv{isInv(i)}.inverse.type];
                         catch
-                            table{i,6} = '';
+                            table{i,6} = '?';
                         end
                         try
                             table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.woi(1))),...
@@ -625,27 +641,27 @@ switch D.PSD.VIZU.uitable
                         catch
                             table{i,8} = ['?'];
                         end
-                        if isfield(D.other.inv{isInv(i)}.inverse,'lpf')
+                        try
                             table{i,9} = [num2str(D.other.inv{isInv(i)}.inverse.lpf),...
                                 ' to ',num2str(D.other.inv{isInv(i)}.inverse.hpf), 'Hz'];
-                        else
-                            table{i,9} = ['default'];
+                        catch
+                            table{i,9} = ['?'];
                         end
                         try
                             table{i,10} = [num2str(size(D.other.inv{isInv(i)}.inverse.T,2))];
                         catch
-                            table{i,10} = '';
+                            table{i,10} = '?';
                         end
                         try
                             table{i,11} = [num2str(D.other.inv{isInv(i)}.inverse.R2)];
                         catch
-                            table{i,11} = '';
+                            table{i,11} = '?';
                         end
-                        table{i,12} = [num2str(max(D.other.inv{isInv(i)}.inverse.F))];
+                        table{i,12} = [num2str(sum(D.other.inv{isInv(i)}.inverse.F))];
                     end
                     colnames = {'label','date','modality','model','#dipoles','method',...
                         'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
-                    [ht,hc] = spm_uitable(table,colnames);
+                    [ht,hc] = spm_uitable('set',table,colnames);
                     set(ht,'units','normalized');
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
@@ -656,7 +672,7 @@ switch D.PSD.VIZU.uitable
                     POS = get(D.PSD.handles.infoTabs.hp,'position');
                     D.PSD.handles.message = uicontrol('style','text','units','normalized',...
                         'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
-                        'string','There is no inverse source reconstruction in this data file !',...
+                        'string','There is no source reconstruction in this data file !',...
                         'BackgroundColor',0.95*[1 1 1],...
                         'tag','plotEEG');
 
