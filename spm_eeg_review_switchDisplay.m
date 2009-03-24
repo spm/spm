@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2939 2009-03-24 16:33:55Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2943 2009-03-24 19:09:45Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -19,7 +19,7 @@ switch D.PSD.VIZU.modality
         [D] = visuRecon(D);
 
     case 'info'
-
+        
         [D] = DataInfo(D);
         set(D.PSD.handles.hfig,'userdata',D)
 
@@ -100,7 +100,7 @@ else
         % add buttons
         object.type = 'buttons';
         object.options.multSelect = 0;
-        object.list = [1;2;3;4;5;scb];
+        object.list = [2;3;4;5;scb];
         switch D.PSD.type
             case 'continuous'
                 object.list = [object.list;9];
@@ -159,7 +159,7 @@ else
         D.PSD.VIZU.type = 2;
         % add buttons
         object.type = 'buttons';
-        object.list = [1;5;7];
+        object.list = [5;7];
         if strcmp(D.transform.ID,'time') % only for time data!
             object.options.multSelect = 1;
             object.list = [object.list;4;6;11];
@@ -345,7 +345,7 @@ if ~~D.PSD.source.VIZU.current
 
     % create buttons
     object.type = 'buttons';
-    object.list = [1;7;8;10];
+    object.list = [7;8;10];
     object.options.multSelect = 0;
     object.options.pst = pst;
     object.options.gridTime = gridTime;
@@ -411,7 +411,7 @@ switch D.PSD.VIZU.uitable
         
         % add buttons
         object.type = 'buttons';
-        object.list = [1,14];
+        object.list = [14];
         D = spm_eeg_review_uis(D,object);
         set(D.PSD.handles.BUTTONS.showSensors,'position',...
             [0.7 0.9 0.25 0.02]);
@@ -443,11 +443,6 @@ switch D.PSD.VIZU.uitable
             D.PSD.handles.infoTabs = h;
 
         else
-            % delete prepare/save buttons
-            try
-                delete(D.PSD.handles.BUTTONS.prep)
-                delete(D.PSD.handles.BUTTONS.pop1)
-            end
             % delete info table (if any)
             try delete(D.PSD.handles.infoUItable);end
             % delete info message (if any)
@@ -460,7 +455,7 @@ switch D.PSD.VIZU.uitable
 
         % add table and buttons
         object.type = 'buttons';
-        object.list = 1;
+        object.list = [];
 
         switch D.PSD.VIZU.info
 

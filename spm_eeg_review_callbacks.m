@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2939 2009-03-24 16:33:55Z jean $
+% $Id: spm_eeg_review_callbacks.m 2943 2009-03-24 19:09:45Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -79,15 +79,25 @@ switch varargin{1}
                 return
             case 'uitable'
                 D = getUItable(D);
-                spm_eeg_review_switchDisplay(D);
             case 'prep'
                 Finter = spm_figure('GetWin','Interactive');
                 D = struct(get(Finter, 'UserData'));
-                other = rmfield(D.other,'PSD');
-                D.other = other;
+                D0 = D.other(1).D0;
+                D.other = rmfield(D.other,{'PSD','D0'});
+                d1 = rmfield(D,'history');
+                d0 = rmfield(D0,'history');
+                if isequal(d1,d0)
+                    % The objects only differ by their history
+                    % => remove last operation from modified object
+                    D.history(end) = [];
+                end
                 spm_eeg_review(D);
+                hf = spm_figure('FindWin','Graphics');
+                D = get(hf,'userdata');
+                D.PSD.D0 = D0;
+                set(hf,'userdata',D);
+                spm_eeg_review_callbacks('visu','update')
                 spm_clf(Finter)
-
         end
 
 
@@ -743,14 +753,16 @@ switch varargin{1}
 
             case 'prep'
 
-                try,rotate3d off;end
+                try rotate3d off;end
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
+                D0 = D.PSD.D0;
                 D = rmfield(D,'PSD');
                 if isempty(D.other)
                     D.other = struct([]);
                 end
                 D.other(1).PSD = 1;
+                D.other(1).D0 = D0;
                 D = meeg(D);
                 set(Finter, 'UserData', D);
                 hc = get(Finter,'children');
@@ -771,6 +783,23 @@ switch varargin{1}
         end
 
 
+end
+
+
+% Check changes in the meeg object
+if isstruct(D)&& isfield(D,'PSD') && ...
+        isfield(D.PSD,'D0')
+    d1 = rmfield(D,{'history','PSD'});
+    d0 = rmfield(D.PSD.D0,'history');
+    if isequal(d1,d0)
+        % The objects only differ by their history
+        % => remove last operation from modified object
+        set(D.PSD.handles.BUTTONS.pop1,...
+            'BackgroundColor',[0.8314 0.8157 0.7843])
+    else
+        set(D.PSD.handles.BUTTONS.pop1,...
+            'BackgroundColor',[1 0.5 0.5])
+    end
 end
 spm('pointer','arrow');
 
@@ -1509,6 +1538,8 @@ if length(cn) == 5  % channel info
                         D.channels(i).type = 'REFGRAD';     
                     case 'lfp'
                         D.channels(i).type = 'LFP';
+                    case 'eog'
+                        D.channels(i).type = 'EOG';
                     case 'veog'
                         D.channels(i).type = 'VEOG';
                     case 'heog'
@@ -1701,12 +1732,12 @@ elseif length(cn) == 12     % source reconstructions
             D.PSD.source.VIZU.pst = unique(pst);
             D.PSD.source.VIZU.timeCourses = 1;
         else
-            try,D.other = rmfield(D.other,'val');end
+            try D.other = rmfield(D.other,'val');end
             D.PSD.source.VIZU.current = 0;
         end
     else
-        try,D.other = rmfield(D.other,'val');end
-        try,D.other = rmfield(D.other,'inv');end
+        try D.other = rmfield(D.other,'val');end
+        try D.other = rmfield(D.other,'inv');end
         D.PSD.source.VIZU.current = 0;
         delete(ht)
         drawnow

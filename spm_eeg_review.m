@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_review.m 2943 2009-03-24 19:09:45Z jean $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -25,12 +25,14 @@ if nargin < 2
 end
 
 %-- Initialize SPM figure
-D.PSD.handles.hfig = findobj('Tag', 'Graphics');
-if isempty(D.PSD.handles.hfig)
-    D.PSD.handles.hfig = spm_figure('create','Graphics','Graphics','on');
-else
-    clf(D.PSD.handles.hfig)
-end
+D.PSD.handles.hfig = spm_figure('GetWin','Graphics');
+spm_clf(D.PSD.handles.hfig)
+% D.PSD.handles.hfig = findobj('Tag', 'Graphics');
+% if isempty(D.PSD.handles.hfig)
+%     D.PSD.handles.hfig = spm_figure('create','Graphics','Graphics','on');
+% else
+%     clf(D.PSD.handles.hfig)
+% end
 set(D.PSD.handles.hfig,...
     'renderer','OpenGL',...
     'units','normalized');
@@ -65,11 +67,18 @@ end
 set(h.hp,'deletefcn','colormap(''gray'');');
 D.PSD.handles.tabs = h;
 
- 
+% Add prepare and SAVE buttons
+object.type = 'buttons';
+object.list = [1];
+D = spm_eeg_review_uis(D,object);
+
+
 %-- Attach userdata to SPM graphics window
+D.PSD.D0 = rmfield(D,'PSD');
 set(D.PSD.handles.hfig,...
     'color',[1 1 1],...
     'userdata',D);
+
 
 
 if exist('flag','var')

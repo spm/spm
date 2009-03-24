@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_eeg_prep_ui.m 2943 2009-03-24 19:09:45Z jean $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 2921 $';
+SVNrev = '$Rev: 2943 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -760,7 +760,7 @@ if strcmp(Dloaded, 'on') && isfield(D,'PSD') && D.PSD == 1
     uicontrol(Finter,...
         'style','pushbutton','string','OK',...
         'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
-        'tooltipstring','Update data informations in ''SPM Graphics'' window',...
+        'tooltipstring','Send changes to ''SPM Graphics'' window',...
         'BusyAction','cancel',...
         'Interruptible','off',...
         'Tag','EEGprepUI');
