@@ -31,7 +31,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2939 2009-03-24 16:33:55Z jean $
+% $Id: spm_eeg_render.m 2944 2009-03-24 19:33:43Z jean $
 
 
 %----------------------------------------------------------------------%
@@ -67,7 +67,7 @@ addMesh = 0;
 tag = '';
 visible = 'on';
 ParentAxes = axes('parent',handles.fi);
-try options; catch options = [];end
+try, options; catch options = [];end
 % Now get options
 if ~isempty(options)
     % get texture if provided

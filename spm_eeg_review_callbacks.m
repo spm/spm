@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2943 2009-03-24 19:09:45Z jean $
+% $Id: spm_eeg_review_callbacks.m 2944 2009-03-24 19:33:43Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -12,7 +12,7 @@ try
 end
 
 spm('pointer','watch');
-% drawnow
+drawnow
 
 switch varargin{1}
 
@@ -21,10 +21,14 @@ switch varargin{1}
     case 'file'
         switch varargin{2}
             case 'save'
-                drawnow
-                D = rmfield(D,'PSD');
-                D = meeg(D);
+                D0 = D;
+                D = meeg(rmfield(D,'PSD'));
                 save(D);
+                D = D0;
+                D.PSD.D0 = rmfield(D,'PSD');
+                set(D.PSD.handles.hfig,'userdata',D)
+                set(D.PSD.handles.BUTTONS.pop1,...
+                    'BackgroundColor',[0.8314 0.8157 0.7843])
                 
             case 'saveHistory'
                 spm_eeg_history(D);
@@ -142,15 +146,12 @@ switch varargin{1}
                     updateDisp(D,1);
                 catch
                     set(D.PSD.handles.hfig,'userdata',D);
-                    spm('pointer','arrow');
                 end
 
             %% Switch from 'standard' to 'scalp' display type
             case 'switch'
                 
                 mod = get(gcbo,'userdata');
-                spm('pointer','watch');
-                drawnow
                 if ~isequal(mod,D.PSD.VIZU.type)
                     if mod == 1
                         spm_eeg_review_callbacks('visu','main','standard')
@@ -158,7 +159,6 @@ switch varargin{1}
                         spm_eeg_review_callbacks('visu','main','scalp')
                     end
                 end
-                spm('pointer','arrow');
 
             %% Update display
             case 'update'
@@ -802,14 +802,11 @@ if isstruct(D)&& isfield(D,'PSD') && ...
     end
 end
 spm('pointer','arrow');
-
+drawnow
 
 %% Main update display
 function [] = updateDisp(D,flags,in)
 % This function updates the display of the data and events.
-
-spm('pointer','watch');
-drawnow
 
 if ~exist('flag','var')
     flag = 0;
@@ -1291,14 +1288,10 @@ else  % source space
 
 end
 
-spm('pointer','arrow');
-
 
 
 %% Switch 'bad channel' status
 function [] = switchBC(varargin)
-spm('pointer','watch');
-drawnow
 ind = get(gcbo,'userdata');
 D = get(gcf,'userdata');
 switch D.PSD.VIZU.modality
@@ -1347,7 +1340,6 @@ switch D.PSD.VIZU.type
         set(D.PSD.handles.PLOT.p(:,ind),'uicontextmenu',cmenu);
         axes(D.PSD.handles.scale)
 end
-spm('pointer','arrow');
 
 
 %% Define menu event
@@ -1384,8 +1376,6 @@ uimenu(cmenu,'label','Delete event','callback','spm_eeg_review_callbacks(''menuE
 
 %% Get info about source reconstruction
 function str = getInfo4Inv(D,invN)
-spm('pointer','watch');
-drawnow
 str{1} = ['Label: ',D.other.inv{invN}.comment{1}];
 try
     str{2} = ['Date: ',D.other.inv{invN}.date(1,:),', ',D.other.inv{invN}.date(2,:)];
@@ -1467,12 +1457,10 @@ try
 catch
     str{12} = 'Log model evidence (free energy): undefined';
 end
-spm('pointer','arrow');
+
 
 %% Get data info
 function str = getInfo4Data(D)
-spm('pointer','watch');
-drawnow
 str{1} = ['File name: ',D.path,filesep,D.fname];
 str{2} = ['Type: ',D.type];
 if ~strcmp(D.transform.ID,'time')
@@ -1494,14 +1482,12 @@ else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
 try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
-spm('pointer','arrow');
+
 
 
 
 %% extracting data from spm_uitable java object
 function [D] = getUItable(D)
-spm('pointer','watch');
-drawnow
 ht = D.PSD.handles.infoUItable;
 cn = get(ht,'columnNames');
 table = get(ht,'data');
@@ -1740,10 +1726,7 @@ elseif length(cn) == 12     % source reconstructions
         try D.other = rmfield(D.other,'inv');end
         D.PSD.source.VIZU.current = 0;
         delete(ht)
-        drawnow
     end
 end
 set(D.PSD.handles.hfig,'userdata',D)
 spm_eeg_review_callbacks('visu','main','info',D.PSD.VIZU.info)
-drawnow
-spm('pointer','arrow');
