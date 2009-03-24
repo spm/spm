@@ -1,4 +1,4 @@
-function [m] = spm_gx_erp(x,u,P,M)
+function [m] = spm_gx_mfm(x,u,P,M)
 % observer for a mean-field model (spiking)
 % FORMAT [m] = spm_gx_erp(x,u,P,M)
 % x      - state vector
@@ -11,7 +11,7 @@ function [m] = spm_gx_erp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_mfm.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_gx_mfm.m 2940 2009-03-24 17:32:32Z maria $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
