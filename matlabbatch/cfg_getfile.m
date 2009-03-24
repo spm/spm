@@ -78,7 +78,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2719 2009-02-09 19:27:55Z guillaume $
+% $Id: cfg_getfile.m 2929 2009-03-24 08:59:40Z volkmar $
 
 t = {};
 sts = false;
@@ -1191,6 +1191,18 @@ ob  = get(ob,'Parent');
 ob  = sib(ob,'EditWindow');
 str = get(ob,'String');
 if isempty(str) || isempty(str{1}), str = {}; end;
+dstr = deblank(str);
+if ~isequal(str, dstr)
+    c = questdlg(['Some of the filenames contain trailing blanks. This may ' ...
+                  'be due to copy/paste of strings between MATLAB and the ' ...
+                  'edit window. Do you want to remove any trailing blanks?'], ...
+                 'Trailing Blanks in Filenames', ...
+                 'Remove', 'Keep', 'Remove');
+    switch lower(c)
+        case 'remove'
+            str = dstr;
+    end
+end
 
 lim = get(sib(ob,'files'),'UserData');
 if numel(str)>lim(2),
