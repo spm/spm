@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_plotScalpData.m 2939 2009-03-24 16:33:55Z jean $
 
 ParentAxes = [];
 f = [];
@@ -92,8 +92,9 @@ ZI      = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
 try
     figure(f)
 catch
-    f=figure;
-    set(f,'name',figName,'deleteFcn',@dFcn);
+    f=figure(...
+        'name',figName,...
+        'deleteFcn',@dFcn);
     ParentAxes = axes('parent',f);
 end
 d.hi = image(flipud(ZI),...
@@ -124,7 +125,9 @@ fpos(2,:) = fpos(2,:)./(dy);
 fpos(2,:) = 100-fpos(2,:);  % for display purposes (flipud imagesc)
 
 figure(f);
-d.hp = plot(ParentAxes,fpos(1,:),fpos(2,:),'ko');
+d.hp = plot(ParentAxes,...
+    fpos(1,:),fpos(2,:),...
+    'ko');
 d.ht = text(fpos(1,:),fpos(2,:),cChanLabel,...
     'Parent',ParentAxes,...
     'visible','off');
@@ -187,8 +190,9 @@ set(d.ParentAxes,'userdata',d);
 % dFcn
 %==========================================================================
 function dFcn(btn,evd)
-d = get(gcf,'userdata');
-try, delete(d.in.hl); end
+hf = findobj('tag','Graphics');
+D = get(hf,'userdata');
+try delete(D.PSD.handles.hli); end
 
 %==========================================================================
 % dosp

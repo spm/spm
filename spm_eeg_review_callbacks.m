@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_review_callbacks.m 2939 2009-03-24 16:33:55Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -137,10 +137,10 @@ switch varargin{1}
 
             %% Switch from 'standard' to 'scalp' display type
             case 'switch'
-
+                
+                mod = get(gcbo,'userdata');
                 spm('pointer','watch');
                 drawnow
-                mod = get(gcbo,'userdata');
                 if ~isequal(mod,D.PSD.VIZU.type)
                     if mod == 1
                         spm_eeg_review_callbacks('visu','main','standard')
@@ -153,7 +153,7 @@ switch varargin{1}
             %% Update display
             case 'update'
 
-                try,D = varargin{3};end
+                try D = varargin{3};end
                 updateDisp(D)
 
             %% Scalp interpolation
@@ -163,9 +163,9 @@ switch varargin{1}
                     x = round(mean(get(handles.axes(1),'xlim')));
                     ylim = get(handles.axes(1),'ylim');
                     if D.PSD.VIZU.type==1
-                        hl = line('parent',handles.axes,'xdata',[x;x],...
+                        in.hl = line('parent',handles.axes,...
+                            'xdata',[x;x],...
                             'ydata',[ylim(1);ylim(2)]);
-                        in.hl = hl;
                     end
                     switch D.PSD.type
                         case 'continuous'
@@ -203,6 +203,8 @@ switch varargin{1}
                         in.ind = I;
                         y = y(:,x);
                         spm_eeg_plotScalpData(y,pos,labels,in);
+                        D.PSD.handles.hli = in.hl;
+                        set(D.PSD.handles.hfig,'userdata',D);
                     catch
                         msgbox('Get 2d positions for these channels!')
                     end
@@ -626,40 +628,30 @@ switch varargin{1}
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                 else
-                    try,cla(D.PSD.handles.axes2,'reset');end
+                    try cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
-                status = ~any(~[D.trials(trN).bad]);
+                status = any([D.trials(trN).bad]);
                 try
                     if status
-                        str = ['declare as not bad'];
+                        str = 'declare as not bad';
                     else
-                        str = ['declare as bad'];
+                        str = 'declare as bad';
                     end
                     ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
                     set(D.PSD.handles.BUTTONS.badEvent,...
                         'tooltipstring',str,...
                         'cdata',ud.img{2-status},'userdata',ud)
-                    switch D.PSD.VIZU.modality
-                        case 'eeg'
-                            VIZU = D.PSD.EEG.VIZU;
-                        case 'meg'
-                            VIZU = D.PSD.MEG.VIZU;
-                        case 'megplanar'
-                            VIZU = D.PSD.MEGPLANAR.VIZU;    
-                        case 'other'
-                            VIZU = D.PSD.other.VIZU;
-                    end
                 end
                 updateDisp(D,1)
 
-            %% Turn event to 'bad' (when playing with 'epoched' data)
+            %% Switch event to 'bad' (when playing with 'epoched' data)
             case 'bad'
                 trN = D.PSD.trials.current;
-                ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
+                status = any([D.trials(trN).bad]);
                 str1 = 'not bad';
                 str2 = 'bad';
-                if ud.val
+                if status
                     bad = 0;
                     lab = [' (',str1,')'];
                     str = ['declare as ',str2];
@@ -668,22 +660,18 @@ switch varargin{1}
                     lab = [' (',str2,')'];
                     str = ['declare as ',str1];
                 end
-                ud.val = bad;
                 nt = length(trN);
                 for i=1:nt
                     D.trials(trN(i)).bad = bad;
                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
                         ': ',D.trials(trN(i)).label,lab];
                 end
-                set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
+                set(D.PSD.handles.BUTTONS.list1,'string',D.PSD.trials.TrLabels);
+                ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
                 set(D.PSD.handles.BUTTONS.badEvent,...
                     'tooltipstring',str,...
                     'cdata',ud.img{2-bad},'userdata',ud)
                 set(D.PSD.handles.hfig,'userdata',D)
-                try
-                    uicontrol(D.PSD.handles.BUTTONS.pop1)
-                end
-
 
             %% Add an event to current selection
             %% (when playing with 'continuous' data)

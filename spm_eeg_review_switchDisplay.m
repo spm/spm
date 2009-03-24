@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2939 2009-03-24 16:33:55Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -246,20 +246,20 @@ if ~~D.PSD.source.VIZU.current
 
     % plot BMC free energies in appropriate axes
     if Ninv>1
-        D.PSD.handles.hbar = bar(D.PSD.handles.BMCplot,1:Ninv,F-min(F),...
+        D.PSD.handles.hbar = bar(D.PSD.handles.BMCplot,...
+            1:Ninv,F-min(F),...
             'barwidth',0.5,...
             'FaceColor',0.5*[1 1 1],...
+            'visible','off',...
             'tag','plotEEG');
-        set(D.PSD.handles.BMCplot,'nextplot','add');
         D.PSD.handles.BMCcurrent = plot(D.PSD.handles.BMCplot,...
-            find(isInv==invN),0,'ro');
-        set(D.PSD.handles.BMCplot,'xtick',1:Ninv,'xticklabel',...
-            D.PSD.source.VIZU.labels,'tag','plotEEG','nextplot','replace',...
-            'ygrid','on','xlim',[0,Ninv+1]);
-        set(get(D.PSD.handles.BMCplot,'xlabel'),'string','Inversion models');
-        set(get(D.PSD.handles.BMCplot,'ylabel'),'string','Relative (to min) model free energies')
-        set(get(D.PSD.handles.BMCplot,'title'),'string','Bayesian model comparison',...
-            'FontWeight','bold')
+            find(isInv==invN),0,'ro',...
+            'visible','off',...
+            'tag','plotEEG');
+        set(D.PSD.handles.BMCplot,...
+            'xtick',1:Ninv,...
+            'xticklabel',D.PSD.source.VIZU.labels,...
+            'xlim',[0,Ninv+1]);
         drawnow
     end
 
@@ -294,12 +294,14 @@ if ~~D.PSD.source.VIZU.current
         for i=1:Np
             fvc = surf2patch(x.*radius+xyz(1,i),...
                 y.*radius+xyz(2,i),z.*radius+xyz(3,i));
-            D.PSD.handles.dipSpheres(i) = patch(fvc);
-            set(D.PSD.handles.dipSpheres(i),'facecolor',[1 1 1],...
-                'edgecolor','none','facealpha',0.5,...
+            D.PSD.handles.dipSpheres(i) = patch(fvc,...
+                'parent',D.PSD.handles.axes,...
+                'facecolor',[1 1 1],...
+                'edgecolor','none',...
+                'facealpha',0.5,...
                 'tag','dipSpheres');
         end
-        axis tight
+        axis(D.PSD.handles.axes,'tight');
     end
 
     % plot time courses
@@ -308,7 +310,9 @@ if ~~D.PSD.source.VIZU.current
             Jp(1,:) = min(J,[],1);
             Jp(2,:) = max(J,[],1);
             D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
-                model.pst,Jp','color',0.5*[1 1 1]);
+                model.pst,Jp',...
+                'color',0.5*[1 1 1],...
+                'visible','off');
             % Add virtual electrode
             try
                 ve = D.PSD.source.VIZU.ve;
@@ -317,7 +321,6 @@ if ~~D.PSD.source.VIZU.current
                 D.PSD.source.VIZU.ve =ve;
             end
             Jve = J(D.PSD.source.VIZU.ve,:);
-            set(D.PSD.handles.axes2,'nextplot','add')
             try
                 qC  = model.qC(ve).*diag(model.qV)';
                 ci  = 1.64*sqrt(qC);
@@ -325,28 +328,20 @@ if ~~D.PSD.source.VIZU.current
                     model.pst,Jve +ci,'b:',model.pst,Jve -ci,'b:');
             end
             D.PSD.source.VIZU.pve = plot(D.PSD.handles.axes2,...
-                model.pst,Jve,'color','b');
-            set(D.PSD.handles.axes2,'nextplot','replace')
+                model.pst,Jve,...
+                'color','b',...
+                'visible','off');
         otherwise
             % this is meant to be extended for displaying something
             % else than just J (e.g. J^2, etc...)
 
     end
-    set(D.PSD.handles.axes2,'nextplot','add');
     D.PSD.source.VIZU.lineTime = line('parent',D.PSD.handles.axes2,...
-        'xdata',[gridTime;gridTime],'ydata',[miJ;maJ]);
-    set(D.PSD.handles.axes2,'nextplot','replace',...
-        'ylim',[miJ;maJ],'tag','plotEEG');
-    grid(D.PSD.handles.axes2,'on')
-    box(D.PSD.handles.axes2,'on')
-    xlabel(D.PSD.handles.axes2,'peri-stimulus time (ms)')
-    ylabel(D.PSD.handles.axes2,'source activity (bounds)')
-
-    set(D.PSD.handles.mesh,'visible','on')
-    set(D.PSD.handles.colorbar,'visible','on')
-    set(D.PSD.handles.axes2,'visible','on')
-    try,set(D.PSD.handles.BMCplot,'visible','on');end
-    
+        'xdata',[gridTime;gridTime],...
+        'ydata',[miJ;maJ],...
+        'visible','off');
+    set(D.PSD.handles.axes2,....
+        'ylim',[miJ;maJ]);  
 
     % create buttons
     object.type = 'buttons';
@@ -360,6 +355,21 @@ if ~~D.PSD.source.VIZU.current
     object.type = 'text';
     object.what = 'source';
     D = spm_eeg_review_uis(D,object);
+    
+    % set graphical object visible
+    set(D.PSD.handles.mesh,'visible','on')
+    set(D.PSD.handles.colorbar,'visible','on')
+    set(D.PSD.handles.axes2,'visible','on')
+    set(D.PSD.source.VIZU.lineTime,'visible','on')
+    set(D.PSD.source.VIZU.plotTC,'visible','on')
+    set(D.PSD.source.VIZU.pve,'visible','on')
+    try
+        set(D.PSD.handles.BMCplot,'visible','on');
+        set(D.PSD.handles.hbar,'visible','on');
+        set(D.PSD.handles.BMCcurrent,'visible','on');
+        set(D.PSD.handles.BMCpanel,'visible','on');
+    end
+    
 
     set(D.PSD.handles.hfig,'userdata',D)
 
@@ -439,13 +449,13 @@ switch D.PSD.VIZU.uitable
                 delete(D.PSD.handles.BUTTONS.pop1)
             end
             % delete info table (if any)
-            try;delete(D.PSD.handles.infoUItable);end
+            try delete(D.PSD.handles.infoUItable);end
             % delete info message (if any)
-            try;delete(D.PSD.handles.message);end
+            try delete(D.PSD.handles.message);end
             % delete buttons if any
-            try;delete(D.PSD.handles.BUTTONS.OKinfo);end
-            try;delete(D.PSD.handles.BUTTONS.showSensors);end
-            try;delete(D.PSD.handles.BUTTONS.saveHistory);end
+            try delete(D.PSD.handles.BUTTONS.OKinfo);end
+            try delete(D.PSD.handles.BUTTONS.showSensors);end
+            try delete(D.PSD.handles.BUTTONS.saveHistory);end
         end
 
         % add table and buttons
