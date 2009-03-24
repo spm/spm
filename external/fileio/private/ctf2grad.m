@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.3  2009/03/23 21:16:03  roboos
+% don't give error if balancing fails, but only warning and remove the balancing information
+%
 % Revision 1.2  2009/02/04 13:29:03  roboos
 % deal with missing BalanceCoefs in the file using try-catch and isfield (e.g. ArtifactMEG.ds)
 %
@@ -194,10 +197,12 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   elseif all([hdr.res4.senres(selMEG).grad_order_no]==3)
     grad.balance.current = 'G3BR';
   else
-    error('cannot determine balancing of CTF gradiometers');
+    warning('cannot determine balancing of CTF gradiometers');
+    grad = rmfield(grad, 'balance');
   end
+  
   % sofar the gradiometer definition was the ideal, non-balenced one
-  if ~strcmp(grad.balance.current, 'none')
+  if isfield(grad, 'balance') && ~strcmp(grad.balance.current, 'none')
     % apply the current balancing parameters to the gradiometer definition
     grad = apply_montage(grad, getfield(grad.balance, grad.balance.current));
   end
