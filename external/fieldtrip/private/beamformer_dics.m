@@ -47,6 +47,9 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.13  2009/03/24 13:13:33  roboos
+% fixed bug for coh_refchan in case trace was used for power estimate
+%
 % Revision 1.12  2009/01/06 10:25:32  roboos
 % fixed a bug for leadfield computation in case a pre-specified dipole
 % orientation is present. The bug would have caused a crash in case
@@ -345,7 +348,7 @@ switch submethod
         filt = pinv(lf' * invCf * lf) * lf' * invCf;                   % use PINV/SVD to cover rank deficient leadfield
       end
       if powlambda1
-        pow = lambda1(filt * Cf * ctranspose(filt));                   % compute the power at the dipole location, Gross eqn. 4, 5 and 8
+        [pow, ori] = lambda1(filt * Cf * ctranspose(filt));            % compute the power and orientation at the dipole location, Gross eqn. 4, 5 and 8
       elseif powtrace
         pow = real(trace(filt * Cf * ctranspose(filt)));               % compute the power at the dipole location
       end
@@ -353,7 +356,7 @@ switch submethod
       if powlambda1
         coh = lambda1(csd)^2 / (pow * Pr);                             % Gross eqn. 9
       elseif powtrace
-        coh = real(trace(csd))^2 / (pow * Pr);
+        coh = norm(csd)^2 / (pow * Pr);
       end
       dipout.pow(i) = pow;
       dipout.coh(i) = coh;
@@ -486,17 +489,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to obtain the largest singular value
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = lambda1(x);
+function [s, ori] = lambda1(x)
 % determine the largest singular value, which corresponds to the power along the dominant direction
-s = svd(x);
-s = s(1);
+[u, s, v] = svd(x);
+s   = s(1);
+ori = u(:,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute the pseudo inverse. This is the same as the
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.12 $  $Date: 2009/01/06 10:25:32 $
+%   $Revision: 1.13 $  $Date: 2009/03/24 13:13:33 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -52,6 +52,9 @@ function [cfg] = rejectartifact(cfg,data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.47  2009/03/23 21:20:10  roboos
+% removed extra ;
+%
 % Revision 1.46  2009/01/27 17:11:42  roboos
 % updated the help
 %
@@ -340,7 +343,7 @@ if strcmp(cfg.artfctdef.feedback, 'yes')
       x = time{i};
       y = rejectall(cfg.trl(i,1):cfg.trl(i,2));
       y(y~=j) = nan;
-      y(y==j) = i + j*0.03;;
+      y(y==j) = i + j*0.03;
       plot(x, y, COLOR(j));
     end
     timebeg(i) = time{i}(1);
@@ -438,7 +441,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectartifact.m,v 1.46 2009/01/27 17:11:42 roboos Exp $';
+cfg.version.id = '$Id: rejectartifact.m,v 1.47 2009/03/23 21:20:10 roboos Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

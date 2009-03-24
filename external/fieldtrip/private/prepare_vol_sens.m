@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.13  2009/03/23 21:15:18  roboos
+% fixed bug for empty vol (inf medium magnetic dipole)
+%
 % Revision 1.12  2009/03/11 11:29:26  roboos
 % ensure that the channel order in the sens and in the vol is consistent with  the user-specified channel-keyval argument
 %
@@ -318,6 +321,11 @@ if ~isfield(vol, 'brain')
   elseif isfield(vol, 'r') && length(vol.r)<=4
     [dum, vol.brain] = min(vol.r);
   end
+end
+
+% otherwise the voltype assignment to an empty struct below won't work
+if isempty(vol)
+  vol = [];
 end
 
 % this makes them easier to recognise

@@ -45,6 +45,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.14  2009/03/23 21:14:42  roboos
+% some whitespace changes, nothing functional
+%
 % Revision 1.13  2009/02/11 10:25:43  jansch
 % added some comments
 %
@@ -248,6 +251,7 @@ for i=1:size(dip.pos,1)
     % compute the leadfield
     lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
   end
+  
   if isfield(dip, 'subspace')
     % do subspace projection of the forward model
     lf = dip.subspace{i} * lf;
@@ -267,19 +271,20 @@ for i=1:size(dip.pos,1)
     % however, even though it seems that the shape of the filter is identical to
     % the shape it is obtained with the following code, the w*lf=I does not hold.
   end
+  
   if fixedori
     % compute the leadfield for the optimal dipole orientation
     % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
-    %filt = pinv(lf' * invCy * lf) * lf' * invCy;
-    %[u, s, v] = svd(real(filt * Cy * ctranspose(filt)));
-    % in this step the filter computation is not necessary, use the quick way to compute the
-    % voxel level covariance (cf. van Veen 1997)
+    % filt = pinv(lf' * invCy * lf) * lf' * invCy;
+    % [u, s, v] = svd(real(filt * Cy * ctranspose(filt)));
+    % in this step the filter computation is not necessary, use the quick way to compute the voxel level covariance (cf. van Veen 1997)
     [u, s, v] = svd(real(pinv(lf' * invCy *lf)));
     eta = u(:,1);
     lf  = lf * eta;
     if ~isempty(subspace), lforig = lforig * eta; end
     dipout.ori{i} = eta;
   end
+  
   if isfield(dip, 'filter')
     % use the provided filter
     filt = dip.filter{i};
@@ -303,7 +308,7 @@ for i=1:size(dip.pos,1)
     % compute the source covariance matrix
     dipout.cov{i} = filt * Cy * ctranspose(filt);
   end
-  if keepmom & ~isempty(dat)
+  if keepmom && ~isempty(dat)
     % estimate the instantaneous dipole moment at the current position
     dipout.mom{i} = filt * dat;
   end
@@ -378,7 +383,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to obtain the largest singular value
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = lambda1(x);
+function s = lambda1(x)
 % determine the largest singular value, which corresponds to the power along the dominant direction
 s = svd(x);
 s = s(1);
@@ -388,7 +393,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.13 $  $Date: 2009/02/11 10:25:43 $
+%   $Revision: 1.14 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

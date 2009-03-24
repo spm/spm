@@ -107,6 +107,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.27  2009/03/23 21:17:31  roboos
+% at end of function print a report with removed channels and trial-numbers
+%
 % Revision 1.26  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -339,7 +342,7 @@ if isempty(trl)
   warning('could not locate the trial definition ''trl'' in the data structure');
 end
 trlold=trl;
- 
+
 % construct an artifact matrix from the trl matrix
 if ~isempty(trl)
   % remember the sample numbers (begin and end) of each trial and each artifact
@@ -357,6 +360,15 @@ else
   cfg.trlold   = [];
 end
 
+% show the user which trials are removed
+removed = find(~trlsel);
+fprintf('the following trials were removed: ');
+for i=1:(length(removed)-1)
+  fprintf('%d, ', removed(i));
+end
+fprintf('%d\n', removed(end));
+
+
 % remove the selected trials from the data
 data.time  = data.time(trlsel);
 data.trial = data.trial(trlsel);
@@ -370,12 +382,28 @@ end
 if ~all(chansel)
   switch cfg.keepchannel
     case 'no'
+      % show the user which channels are removed
+      removed = find(~chansel);
+      fprintf('the following channels were removed: ');
+      for i=1:(length(removed)-1)
+        fprintf('%s, ', data.label{removed(i)});
+      end
+      fprintf('%s\n', data.label{removed(i)});
+
       % remove channels that are not selected
       for i=1:length(data.trial)
         data.trial{i} = data.trial{i}(chansel,:);
       end
       data.label = data.label(chansel);
     case 'nan'
+      % show the user which channels are removed
+      removed = find(~chansel);
+      fprintf('the following channels were filled with NANs: ');
+      for i=1:(length(removed)-1)
+        fprintf('%s, ', data.label{removed(i)});
+      end
+      fprintf('%s\n', data.label{removed(i)});
+      
       % fill the data from the bad channels with nans
       for i=1:length(data.trial)
         data.trial{i}(~chansel,:) = nan;
@@ -386,7 +414,7 @@ if ~all(chansel)
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -397,7 +425,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.26 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.27 2009/03/23 21:17:31 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

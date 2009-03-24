@@ -48,6 +48,9 @@ function [str, details] = analysisprotocol(cfg, datacfg)
 % Copyright (C) 2006-2009, Robert Oostenveld
 %
 % $Log: analysisprotocol.m,v $
+% Revision 1.3  2009/03/23 21:17:53  roboos
+% made font slightly larger
+%
 % Revision 1.2  2009/03/05 09:40:32  roboos
 % small change in text feedback
 %
@@ -279,7 +282,7 @@ l = text(element.this(1), element.this(2), element.name);
 set(l, 'HorizontalAlignment', 'center')
 set(l, 'interpreter', 'none')
 set(l, 'fontUnits', 'normalized')
-set(l, 'fontSize', 0.02)
+set(l, 'fontSize', 0.03)
 % set(l, 'fontName', 'courier')
 
 % draw an arrow to connect this box to its parent

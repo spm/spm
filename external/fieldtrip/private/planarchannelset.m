@@ -12,6 +12,9 @@ function [planar] = planarchannelset(data);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: planarchannelset.m,v $
+% Revision 1.8  2009/03/23 21:12:20  jansch
+% added support for bti148_planar
+%
 % Revision 1.7  2008/07/16 10:20:14  jansch
 % added support for bti248 system.
 %
@@ -631,6 +634,13 @@ planar = {
     'MEG 2633'    'MEG 2632'    'MEG 2633+2632'    % 'MEG 2631'
     'MEG 2642'    'MEG 2643'    'MEG 2642+2643'    % 'MEG 2641'
 };
+case 'bti148_planar'
+  planar = cell(148,3);
+  for k = 1:148
+    planar{k,1} = ['A',num2str(k),'_dH'];
+    planar{k,2} = ['A',num2str(k),'_dV'];
+    planar{k,3} = ['A',num2str(k)];
+  end
 case 'bti248_planar'
   planar = cell(248,3);
   for k = 1:248

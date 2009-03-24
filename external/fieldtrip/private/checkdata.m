@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.10  2009/03/23 21:07:20  jansch
+% fixed bug in source2volume in the case of higher dimensional source data
+%
 % Revision 1.9  2009/02/19 09:19:43  jansch
 % built-in pos2dim3d in source2volume, which tries to create a 1x3 dim vector
 % from a list of positions (only if the positions describe a full volume in
@@ -282,7 +285,7 @@ end
 
 if issource && isvolume
   % it should be either one or the other
-  % the choise here is to represent it as volume description since that is simpler to handle
+  % the choice here is to represent it as volume description since that is simpler to handle
   % remove the unwanted fields
   if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
   if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
@@ -945,7 +948,7 @@ if isfield(data, 'dimord')
   %an ordered way which allows for the extraction of a transformation matrix
   %i.e. slice by slice
   try, 
-    data.dim = pos2dim3d(data.pos);
+    data.dim = pos2dim3d(data.pos, data.dim);
   catch
   end
 end

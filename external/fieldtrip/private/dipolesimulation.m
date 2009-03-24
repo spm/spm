@@ -59,6 +59,9 @@ function [simulated] = dipolesimulation(cfg)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: dipolesimulation.m,v $
+% Revision 1.23  2009/03/23 21:19:51  roboos
+% allow different amplitudes for different dipoles
+%
 % Revision 1.22  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -146,13 +149,18 @@ if ~isfield(cfg.dip, 'signal')
   if ~isfield(cfg.dip, 'phase')
     cfg.dip.phase = zeros(Ndipoles,1);
   end
+  if ~isfield(cfg.dip, 'amplitude')
+    cfg.dip.amplitude = ones(Ndipoles,1);
+  end
   if ~isfield(cfg, 'triallength')
     cfg.triallength = 1;
   end
-  % compute a cosine-wave signal wit the desired phase and frequency
+  % compute a cosine-wave signal wit the desired frequency, phase and amplitude for each dipole
   nsamples = round(cfg.triallength*cfg.fsample);
-  time = (0:(nsamples-1))/cfg.fsample;
-  cfg.dip.signal = cos(cfg.dip.frequency*time*2*pi + repmat(cfg.dip.phase,1,nsamples));
+  time     = (0:(nsamples-1))/cfg.fsample;
+  for i=1:Ndipoles
+    cfg.dip.signal(i,:) = cos(cfg.dip.frequency(i)*time*2*pi + cfg.dip.phase(i)) * cfg.dip.amplitude(i);
+  end
 end
 
 % construct the timecourse of the dipole activity for each individual trial
@@ -244,7 +252,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: dipolesimulation.m,v 1.22 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id   = '$Id: dipolesimulation.m,v 1.23 2009/03/23 21:19:51 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

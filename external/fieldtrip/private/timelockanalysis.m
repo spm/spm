@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.60  2009/03/23 21:21:16  roboos
+% removed defaults for covariancewindow and blcovariancewindow, since the defaults were not optimal for most cases. Now the user is forced to specify the window.
+%
 % Revision 1.59  2009/02/04 16:44:06  roboos
 % remove numsamples, numcovsamples and numblcovsamples from the output, since these are not used anywhere
 %
@@ -286,9 +289,7 @@ if ~isfield(cfg, 'trials'),             cfg.trials = 'all';                     
 if ~isfield(cfg, 'keeptrials'),         cfg.keeptrials = 'no';                   end
 if ~isfield(cfg, 'latency'),            cfg.latency = 'maxperlength';            end
 if ~isfield(cfg, 'covariance'),         cfg.covariance = 'no';                   end
-if ~isfield(cfg, 'covariancewindow'),   cfg.covariancewindow = 'poststim';       end
 if ~isfield(cfg, 'blcovariance'),       cfg.blcovariance = 'no';                 end
-if ~isfield(cfg, 'blcovariancewindow'), cfg.blcovariancewindow = 'prestim';      end
 if ~isfield(cfg, 'removemean'),         cfg.removemean = 'yes';                  end
 if ~isfield(cfg, 'vartrllength'),       cfg.vartrllength = 0;                    end
 if ~isfield(cfg, 'feedback'),           cfg.feedback = 'text';                   end
@@ -400,6 +401,10 @@ if cfg.latency(1)>cfg.latency(2)
 end
 
 if strcmp(cfg.covariance, 'yes')
+  if ~isfield(cfg, 'covariancewindow')
+    % this used to be by default 'poststim', but that is not ideal as default
+    error('the option cfg.covariancewindow is required');
+  end
   % covariance window is given in seconds
   if (strcmp(cfg.covariancewindow, 'minperlength'))
     cfg.covariancewindow = [];
@@ -439,6 +444,10 @@ if strcmp(cfg.covariance, 'yes')
 end
 
 if strcmp(cfg.blcovariance, 'yes')
+  if ~isfield(cfg, 'blcovariancewindow')
+    % this used to be by default 'prestim', but that is not ideal as default
+    error('the option cfg.blcovariancewindow is required');
+  end
   % covariance window is given in seconds
   if (strcmp(cfg.blcovariancewindow, 'minperlength'))
     cfg.blcovariancewindow = [];
@@ -677,7 +686,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.59 2009/02/04 16:44:06 roboos Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.60 2009/03/23 21:21:16 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

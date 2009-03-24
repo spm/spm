@@ -27,6 +27,9 @@ function [vol] = prepare_bemmodel(cfg, mri)
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.15  2009/03/24 12:47:11  roboos
+% Christophe-> try to spare some memory
+%
 % Revision 1.14  2009/02/25 09:27:08  roboos
 % ensure that the vertices and triangles are double precision, otherwise the bemcp mex files will crash (thanks to Alexandre Gramfort)
 %
@@ -196,17 +199,27 @@ elseif strcmp(cfg.method, 'bemcp')
   C22st  = bem_Cii_lin(vol.bnd(2).tri,vol.bnd(2).pnt, weight,defl(2),vol.bnd(2).pnt4);
   tmp2   = C12/C22st;
 
+  % Try to spare some memory:
+  tmp10 = - tmp2 * C21 + C11st;
+  clear C21 C11st
+  tmp11 = - tmp1 * C12 + C22st;
+  clear C12 C22st
+    
   % Combine with the effect of surface 3 (scalp) on the first 2
   %------------------------------------------------------------
   weight = (vol.cond(1)-vol.cond(2))/(vol.cond(3)*2*pi);
   C31    = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(1).pnt,vol.bnd(1).tri, weight,defl(1));
-  tmp4   = C31/(- tmp2 * C21 + C11st );
-  clear C31 C21 C11st
+%   tmp4   = C31/(- tmp2 * C21 + C11st );
+%   clear C31 C21 C11st
+  tmp4 = C31/tmp10;
+  clear C31 tmp10
 
   weight = (vol.cond(2)-vol.cond(3))/(vol.cond(3)*2*pi);
   C32    = bem_Cij_lin(vol.bnd(3).pnt,vol.bnd(2).pnt,vol.bnd(2).tri, weight,defl(2));
-  tmp3   = C32/(- tmp1 * C12 + C22st );
-  clear  C12 C22st C32
+%   tmp3   = C32/(- tmp1 * C12 + C22st );
+%   clear  C12 C22st C32
+  tmp3 = C32/tmp11;
+  clear C32 tmp11
 
   tmp5 = tmp3*tmp1-tmp4;
   tmp6 = tmp4*tmp2-tmp3;
@@ -227,7 +240,7 @@ elseif strcmp(cfg.method, 'bemcp')
   weight = 1/(2*pi);
   Ci3    = bem_Cii_lin(vol.bnd(3).tri,vol.bnd(3).pnt, weight,defl(3),vol.bnd(3).pnt4);
   gama1  = gama1 - Ci3; % gama1 = - tmp5*C13 - tmp6*C23 - C33st;
-  clear Ci3 tmp1 tmp2 tmp3 tmp4
+  clear Ci3
 
   % Build system matrix
   %--------------------
