@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 2945 2009-03-24 21:47:29Z jean $
 
 %%
 % Load data, if necessary
@@ -366,6 +366,7 @@ for ii=1:length(ltr)
     P = spm_eeg_inv_vbecd(P);
 
     % Get the results out.
+    inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
     inverse.loc{ii} = reshape(P.post.mu_s,3,dip_c); % loc of dip (3 x n_dip)
     inverse.j{ii} = P.post.mu_w; % dipole(s) orient/ampl, in 1 column

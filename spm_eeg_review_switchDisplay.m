@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2943 2009-03-24 19:09:45Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2945 2009-03-24 21:47:29Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -593,8 +593,8 @@ switch D.PSD.VIZU.uitable
             case 3 % inv info
 
                 object.list = [object.list;12];
-                isInv = D.PSD.source.VIZU.isInv;
-%                 isInv = 1:length(D.other.inv);
+%                 isInv = D.PSD.source.VIZU.isInv;
+                isInv = 1:length(D.other.inv);
                 if numel(isInv) >= 1 %D.PSD.source.VIZU.current ~= 0
                     Ninv = length(isInv);
                     table = cell(Ninv,12);

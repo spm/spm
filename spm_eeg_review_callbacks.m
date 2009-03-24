@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2944 2009-03-24 19:33:43Z jean $
+% $Id: spm_eeg_review_callbacks.m 2945 2009-03-24 21:47:29Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -487,11 +487,11 @@ switch varargin{1}
                                     hp2 = image(datai,...
                                         'CDataMapping','scaled',...
                                         'parent',ha2);
-                                    colormap('jet')
-                                    colorbar
-                                    
+                                    colormap(ha2,jet)
+                                    colorbar('peer',ha2)
                                     set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
                                         'xlim',[1 length(pst)],...
+                                        'ylim',[1 size(datai,1)],...
                                         'ytick',1:length(D.transform.frequencies),...
                                         'yticklabel',D.transform.frequencies);
                                     xlabel(ha2,'time (in ms after time onset)')
@@ -1464,11 +1464,20 @@ function str = getInfo4Data(D)
 str{1} = ['File name: ',D.path,filesep,D.fname];
 str{2} = ['Type: ',D.type];
 if ~strcmp(D.transform.ID,'time')
-    str{2} = [str{2},' (time-frequency data)'];
+    str{2} = [str{2},' (time-frequency data, from ',...
+        num2str(D.transform.frequencies(1)),'Hz to ',...
+        num2str(D.transform.frequencies(end)),'Hz'];
+    if strcmp(D.transform.ID,'TF')
+        str{2} = [str{2},')'];
+    else
+        str{2} = [str{2},': phase)'];
+    end
 end
 delta_t = D.Nsamples./D.Fsample;
-str{3} = ['Number of samples: ',num2str(D.Nsamples),' (',num2str(delta_t),' sec)'];
-str{4} = ['Sampling frequency: ',num2str(D.Fsample),' Hz'];
+gridTime = (1:D.Nsamples)./D.Fsample + D.timeOnset;
+str{3} = ['Number of time samples: ',num2str(D.Nsamples),' (',num2str(delta_t),' sec, from ',...
+    num2str(gridTime(1)),'s to ',num2str(gridTime(end)),'s)'];
+str{4} = ['Time sampling frequency: ',num2str(D.Fsample),' Hz'];
 nb = length(find([D.channels.bad]));
 str{5} = ['Number of channels: ',num2str(length(D.channels)),' (',num2str(nb),' bad channels)'];
 nb = length(find([D.trials.bad]));
@@ -1481,7 +1490,7 @@ if strcmp(D.type,'continuous')
 else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
-try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
+% try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
 
 
 
