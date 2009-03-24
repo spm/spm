@@ -78,17 +78,15 @@ Display eg. the first functional image using the
 
 \subsection{Realignment}
 
-Under the spatial pre-processing section of the SPM base window select `Realign' from the `Realign' pulldown menu. This will call up a realignment job specification 
-in the graphics window.
+Under the spatial pre-processing section of the SPM base window select `Realign (Est & Res)' from the `Realign' pulldown menu. This will call up a realignment job specification 
+in the batch editor window.
 Then
 \bi
-\item{Select `New Realign:Estimate and Reslice'}
-\item{Open the newly created `Realign:Estimate and Reslice' option.}
 \item{Highlight data, select `New Session', then highlight the newly created `Session' option.} 
 \item{Select `Specify Files' and use the SPM file selector
 to choose all of your functional images eg. \verb!sM03953_0005_*.img!.}
 \item{Save the job file as eg. {\sf DIR/jobs/realign.mat}}.
-\item{Press the RUN button in the graphics window.}
+\item{Press the RUN button in the batch editor window (green triangle).}
 \ei
 This 
 will run the realign job which will write realigned images into the directory where the functional images
@@ -110,9 +108,8 @@ step of spatial processing - coregistration.
 
 \subsection{Slice timing correction}
 
-Press the `Slice timing' button. This will call up the specification of a slice timing job in the graphics window. Note that these data consist of N=24 axial slices acquired continuously with a TR=2s (ie TA = TR - TR/N, where TA is the time between the onset of the first and last slice of one volume, and the TR is the time between the onset of the first slice of one volume and the first slice of next volume) and in a descending order (ie, most superior slice was sampled first). The data however are ordered within the file such that the first slice (slice number 1) is the most inferior slice, making the slice acquisition order [24 23 22 ... 1].
+Press the `Slice timing' button. This will call up the specification of a slice timing job in the batch editor window. Note that these data consist of N=24 axial slices acquired continuously with a TR=2s (ie TA = TR - TR/N, where TA is the time between the onset of the first and last slice of one volume, and the TR is the time between the onset of the first slice of one volume and the first slice of next volume) and in a descending order (ie, most superior slice was sampled first). The data however are ordered within the file such that the first slice (slice number 1) is the most inferior slice, making the slice acquisition order [24 23 22 ... 1].
 \bi
-\item{Open the `Slice Timing' option}
 \item{Highlight `Data' and select `New Sessions'}
 \item{Highlight the newly create `Sessions' option, `Specify Files' and select the
 351 realigned functional images using the 
@@ -129,12 +126,10 @@ the prefix `a' in the functional data directory.
 
 \subsection{Coregistration}
 
-Press the `Coreg' button. This will call up the specification of a coregistration job in the graphics 
+Select `Coregister (Estimate)' from the `Coregister' pulldown menu. This will call up the specification of a coregistration job in the batch editor 
 window. 
 
 \bi
-\item{Select New "Coreg:Estimate"}
-\item{Double-click on the newly created Coreg:Estimate}
 \item{Highlight `Reference Image' and then select the
  mean functional image
 \verb!meansM03953_0005_0006.img!}
@@ -158,7 +153,7 @@ structural image \verb!sM03953_0007.img!.
 
 \subsection{Segmentation}
 
-Press the `Segment' button. This will call up the specification of a segmentation job in the graphics 
+Press the `Segment' button. This will call up the specification of a segmentation job in the batch editor 
 window. Highlight the Data field and then select 
 the subjects coregistered anatomical image 
 eg. \verb!sM03953_0007.img!. Save the job file
@@ -184,15 +179,12 @@ original structural directory. This will be used
 in the next section to normalise the functional data. 
 
 
-\subsection{Normalize}
+\subsection{Normalise}
 
-Press the `Normalize' button. This will call up the specification of a normalise job in the graphics 
+Select `Normalise (Write)' from the `Normalise' pulldown menu. This will call up the specification of a normalise job in the batch editor 
 window. 
 
 \bi
-\item{Select a New "Normalise:Write" field. This 
-allows previously estimated warps to be applied to 
-a series of images.}
 \item{Highlight `Data', select New "Subject"}
 \item{Open `Subject', highlight `Parameter File' and 
 select the \verb!sM03953_0007_seg_sn.mat! file that you 
@@ -213,10 +205,8 @@ If you wish to superimpose a subject's functional activations on their own anato
 apply the spatial normalisation parameters to their 
 (bias-corrected) anatomical image. To do this
 \bi
-\item{Press `Normalise', select New "Normalise:Write"}
-\item{Open `Normalise: Write', highlight `Data', select 
+\item{Select `Normalise (Write)', highlight `Data', select 
 New "Subject"}
-\item{Open `Subject'}
 \item{Highlight `Parameter File', select the  \verb!sM03953_0007_seg_sn.mat! file that you 
 created in the previous section, press `Done'.}
 \item{Highlight `Images to Write', select the 
@@ -228,11 +218,11 @@ change the default [2 2 2] to [1 1 1] which better matches the original resoluti
 
 \subsection{Smoothing}
 
-Press the `Smooth' button\footnote{The smoothing step is unnecessary if you are only interested in Bayesian analysis of your functional data.}. This will call up the specification of a smooth job in the graphics 
+Press the `Smooth' button\footnote{The smoothing step is unnecessary if you are only interested in Bayesian analysis of your functional data.}. This will call up the specification of a smooth job in the batch editor 
 window.
 
 \bi
-\item{Open `Smooth', select `Images to Smooth' and then 
+\item{Select `Images to Smooth' and then 
 select the spatially normalised files created in the 
 last section eg. {\sf war*.img}. }
 \item{Save the job as {\sf smooth.mat} and press `Run'.}
@@ -259,25 +249,24 @@ stimulus onset times in TRs for event type 1, which is N1. Event-types 2,3 and 4
 \item{Then type `load movepars.txt'}
 \ei
 
-Now press the `Specify 1st-level' button. This will call up the specification of a fMRI specification job in the graphics window. Then
+Now press the `Specify 1st-level' button. This will call up the specification of a fMRI specification job in the batch editor window. Then
 \bi
-\item{Open the fMRI model specification option}
-\item{Open the `Timing paramaters' option}
+\item{In the `Timing paramaters' option}
 \item{Highlight `Units for design' and select `Scans'}
 \item{Highlight `Interscan interval' and enter 2}
 \item{Highlight `Microtime resolution' and enter 24}
 \item{Highlight `Microtime onset' and enter 12. These last two options make the creating of regressors commensurate with the slice-time correction we have applied to the data, given that there are 24 slices and that the reference slice to which the data were slice-time corrected was the 12th (middle slice in time).}
-\item{Highlight `Data and Design' and select `New Subject/Session'. Then open the newly created `Subject/Session' option.}
+\item{Highlight `Data and Design' and select `New Subject/Session'.}
 \item{Highlight `Scans' and use SPM's file selector to 
 choose the 351 smoothed, normalised, slice-time corrected, realigned functional images ie  \verb!swarsM.img!. These can be selected 
 easily using the \verb!^swar.*! filter, and select all. Then press `Done'.}
 \item{Highlight `Conditions' and select `New condition'\footnote{It is also possible to enter information about all of the conditions in one go. This requires much less button pressing and can be implemented by highlighting the `Multiple conditions' option and then selecting the {\sf all-conditions.mat} file, which is also provided on the webpage.}}
 \item{Open the newly created `Condition' option. Highlight `Name' and enter `N1'. Highlight `Onsets' and enter `sot\{1\}'. Highlight `Durations' and enter 0.}
-\item{Highlight `Condition' and select `Replicate condition'}
+\item{Highlight `Conditions' and select `Replicate condition'}
 \item{Open the newly created `Condition' option (the lowest one). Highlight `Name' and change to `N2'. Highlight `Onsets' and enter `sot\{2\}'.}
-\item{Highlight `Condition' and select `Replicate condition'}
+\item{Highlight `Conditions' and select `Replicate condition'}
 \item{Open the newly created `Condition' option (the lowest one). Highlight `Name' and change to `F1'. Highlight `Onsets' and enter `sot\{3\}'.}
-\item{Highlight `Condition' and select `Replicate condition'}
+\item{Highlight `Conditions' and select `Replicate condition'}
 \item{Open the newly created `Condition' option (the lowest one). Highlight `Name' and change to `F2'. Highlight `Onsets' and enter `sot\{4\}'.}
 \item{Highlight `Multiple Regressors' and select the {\sf movepars.txt} file.\footnote{It is also possible to enter regressors one by one by highlighting `Regressors' and selecting `New Regressor' for each one. Here, we benefit from the fact that the realignment stage produced a text file with the correct number of rows (351) and columns (6) for SPM to add 6 regressors to model (linear) rigid-body movement effects.}}
 \item{Highlight `Factorial Design', select `New Factor', open the newly created `Factor' option, highlight `Name' and enter 'Fam', highlight `Levels' and enter 2.}
@@ -318,9 +307,8 @@ Filter (HPF) (these are shown in gray - in this model we accepted the default HP
 
 \subsection{Estimate}
 
-Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the batch editor window. Then
 \bi
-\item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
 file saved in the \verb!DIR/categorical! directory}
 \item{Save the job as \verb!categorical_est.job! and press Run}
@@ -362,7 +350,7 @@ SPM will then produce the MIP shown in Figure~\ref{cat5_volume}.
 
 \subsection{Statistical tables}
 
-To get a summary of local maxima, press the `Volume' button in the 
+To get a summary of local maxima, press the `whole brain' button in the 
 p-values section of the interactive window. This will list all clusters above the chosen level of significance as well as separate ($>$8mm apart) maxima within a cluster, with details of significance thresholds and search volume underneath, as shown in Figure~\ref{cat5_volume}
 \begin{figure}
 \begin{center}
@@ -373,12 +361,12 @@ p-values section of the interactive window. This will list all clusters above th
 The columns in volume table show, from right to left:
 \bi
 \item{x, y, z (mm): coordinates in MNI space for each maximum}
-\item{voxel-level: the chance (p) of finding (under the null hypothesis) a voxel with this or a greater height (T- or Z-statistic), corrected (FWE or FDR)/ uncorrected for search volume.}
+\item{peak-level: the chance (p) of finding (under the null hypothesis) a voxel with this or a greater height (T- or Z-statistic), corrected (FWE or FDR)/ uncorrected for search volume.}
 \item{cluster-level: the chance (p) of finding a cluster with this many(ke) or a greater number of voxels, corrected / uncorrected for search volume}
 \item{set-level: the chance (p) of finding this (c) or a greater number of clusters in the search volume}
 \ei
 
-Right-click on the MIP and select `goto global maximum'. The cursor will move to (39 -72 -12). You can view this activation on the subject's normalised, attenuation-corrected structural ('\verb!wmsM03953_0007.img!), which gives best anatomical precision, or on the normalised mean functional (\verb!wmeansM03953_0005_0006.img!), which is closer to the true data and spatial resolution (including distortions in the functional EPI data). 
+Right-click on the MIP and select `goto global maximum'. The cursor will move to (39 -70 -14). You can view this activation on the subject's normalised, attenuation-corrected structural ('\verb!wmsM03953_0007.img!), which gives best anatomical precision, or on the normalised mean functional (\verb!wmeansM03953_0005_0006.img!), which is closer to the true data and spatial resolution (including distortions in the functional EPI data). 
 
 If you select 'plot' and choose 'Contrast of estimates and 90\% C.I' (confidence interval), and select the `Average effect of condition' contrast, you will see three bars corresponding to the parameter estimates for each basis function (summed across the 4 conditions). The BOLD impulse response in this voxel loads mainly on the canonical HRF, but also significantly (given that the error bars do not overlap zero) on the temporal and dispersion derivatives (see next Chapter).
 
@@ -422,7 +410,7 @@ A MIP should then appear, the top half of which should look like Figure~\ref{cat
 \end{center}
 \end{figure}
 
-Note that this contrast will identify regions showing any effect of repetition (e.g, decreased or increased amplitudes) {\em within} those regions showing activations (on the canonical HRF) to faces versus baseline (at p$<$.05 uncorrected). Only two small blobs will appear - one in right ventral temporal cortex (45 -60 -9).
+Note that this contrast will identify regions showing any effect of repetition (e.g, decreased or increased amplitudes) {\em within} those regions showing activations (on the canonical HRF) to faces versus baseline (at p$<$.05 uncorrected). Select `goto global max', which is in right ventral temporal cortex (42 -61 -8).
 
 If you press plot and select 'Event-related responses', then 'F1', then 'fitted response and PSTH', you will see the best fitting linear combination of the canonical HRF and its two derivatives (thin red line), plus the ``selectively-averaged'' data (peri-stimulus histogram, PSTH), based on an FIR refit (see next Chapter). 
 If you then select the `hold' button on the Input window, and then 'plot' and repeat the above process for the 'F2' rather than 'F1' condition, you will see two estimated event-related responses, in which repetition decreases the peak response (ie F2$<$F1), as shown in Figure~\ref{cat3_psth}.
@@ -442,7 +430,7 @@ Submit and select the contrast, specify `mask with other contrasts?' (no), `titl
  menu, and select the normalised structural image (\verb!wmsM03953_0007.img!)}
  \ei
 
-You will see there is a lot of residual movement-related artifact in the data (despite spatial realignment), which tends to be concentrated near the boundaries of tissue types (eg the edge of the brain; see Figure~\ref{movements}). (Note how the MIP can be misleading in this respect, since though it appears that the whole brain is affected, this reflects the nature of the (X-ray like) projections onto each orthogonal view; displaying the same datae as sections in 3D shows that not every voxel is suprathreshold.)  Even though we are not interested in such artifact, by including the realignment parameters in our design matrix, we ``covary out'' (linear components) of subject movement, reducing the residual error, and hence inmprove our statistics for the effects of interest.
+You will see there is a lot of residual movement-related artifact in the data (despite spatial realignment), which tends to be concentrated near the boundaries of tissue types (eg the edge of the brain; see Figure~\ref{movements}). (Note how the MIP can be misleading in this respect, since though it appears that the whole brain is affected, this reflects the nature of the (X-ray like) projections onto each orthogonal view; displaying the same datae as sections in 3D shows that not every voxel is suprathreshold.)  Even though we are not interested in such artifact, by including the realignment parameters in our design matrix, we ``covary out'' (linear components) of subject movement, reducing the residual error, and hence improve our statistics for the effects of interest.
 
 \begin{figure}
 \begin{center}
@@ -463,15 +451,14 @@ load into Matlab the Stimulus Onsets Times (SOTs), as before, and also the ``Lag
 \item{At the matlab command prompt type \verb!load sots!. This loads the stimulus onset times and the lags (the latter in a cell array called \verb!itemlag!).}
 \ei
 
-Now press the `Specify 1st-level' button. This will call up the specification of a fMRI specification job in the graphics window. Then
+Now press the `Specify 1st-level' button. This will call up the specification of a fMRI specification job in the batch editor window. Then
 \bi
-\item{Open the fMRI model specification option}
 \item{Press `Load' and select the \verb!categorical_spec.mat! job file you created earlier}
 \item{Open `Conditions' and then open the second `Condition'}
-\item{Highlight `Parametric Modulations', select `New Parameter' and open the newly created `Parameter' option.}
+\item{Highlight `Parametric Modulations', select `New Parameter'.}
 \item{Highlight `Name' and enter 'Lag', highlight values and enter \verb!itemlag{2}!, highlight polynomial expansion and `2nd order'.}
 \item{Now open the fourth `Condition' under `Conditions'}
-\item{Highlight `Parametric Modulations', select `New Parameter' and open the newly created `Parameter' option.}
+\item{Highlight `Parametric Modulations', select `New Parameter'.}
 \item{Highlight `Name' and enter 'Lag', highlight values and enter \verb!itemlag{4}!, highlight polynomial expansion and `2nd order'.}
 \item{Open `Canonical HRF' under `Basis Functions', highlight `Model derivatives' and select 
 `No derivatives' (to make the design matrix a bit simpler for present purposes!).}
@@ -488,9 +475,8 @@ This should produce the design matrix shown in Figure~\ref{par_design}.
 
 \subsection{Estimate}
 
-Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the batch editor window. Then
 \bi
-\item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
 file saved in the \verb!DIR/parametric! directory}
 \item{Save the job as \verb!parametric_est.job! and press Run}
@@ -550,10 +536,9 @@ This shows a quadratic effect of lag, in which the response appears negative for
 
 \subsection{Specification}
 
-Press the `Specify 1st-level' button. This will call up an fMRI specification job in the graphics window. Then
+Press the `Specify 1st-level' button. This will call up an fMRI specification job in the batch editor window. Then
 
 \bi
-\item{Open the fMRI model specification option}
 \item{Load the \verb!categorical_spec.mat! job file created for the 
 classical analysis}
 \item{Open `Subject/Session', highlight `Scans'} \item{Deselect the smoothed functional images using the `unselect all' option available from a right mouse click in the SPM file selector (bottom window)}
@@ -569,9 +554,8 @@ The Bayesian analysis uses a spatial prior where the spatial regularity in the s
 
 \subsection{Estimation}
 
-Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the batch editor window. Then
 \bi
-\item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat
 file saved in the \verb!DIR\bayesian! subdirectory}
 \item{Highlight `Method' and select the `Choose Bayesian 1st-level' option.}
@@ -633,6 +617,6 @@ normalised structural image created earlier and move the cursor to the activatio
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces/face_bayes}
-\caption{\em Bayesian analysis: MIP and overlay of effect sizes at voxels where PPM is 95\% sure that the effect size is greater than 1\% of the global mean. The cursor is at the location $x=42,y=-60,z=-18$mm\label{face_bayes} }
+\caption{\em Bayesian analysis: MIP and overlay of effect sizes at voxels where PPM is 95\% sure that the effect size is greater than 1\% of the global mean. The cursor is at the location $x=30,y=-82,z=-17$mm\label{face_bayes} }
 \end{center}
 \end{figure}

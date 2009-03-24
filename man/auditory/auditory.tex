@@ -20,14 +20,12 @@ Start up matlab, enter your jobs directory and type {\em spm fmri} at the matlab
 
 \subsection{Realignment}
 
-Under the spatial pre-processing section of the SPM base window select `Realign' from the `Realign' pulldown menu. This will call up a realignment job specification in the graphics window. Then
+Under the spatial pre-processing section of the SPM base window select `Realign (Est & Res)' from the `Realign' pulldown menu. This will call up a realignment job specification in the batch editor. Then
 \bi
-\item{Select `New Realign:Estimate and Reslice'}
-\item{Open the newly created `Realign:Estimate and Reslice' option.}
 \item{Highlight data, select `New Session', then highlight the newly created `Session' option.} 
-\item{Select `Specify Files' and use the SPM file selector to choose all of your functional images eg. `fM000*.img'.}
+\item{Select 'Specify Files' and use the SPM file selector to choose all of your functional images eg. `fM000*.img'.}
 \item{Save the job file as eg. {\sf DIR/jobs/realign.mat}}.
-\item{Press the RUN button in the graphics window.}
+\item{Press the RUN button in the batch editor (green arrow).}
 \ei
 
 This will run the realign job which will write realigned images into the directory where the functional images are. These new images will be prefixed with the letter `r'. SPM will then plot the estimated time series of translations and rotations shown in Figure~\ref{aud_realign}. These data are also saved to a file eg. \verb!rp_fM00223_004.txt!, so that these variables can be used as regressors when fitting GLMs. This allows movements effects to be discounted when looking for brain activations.
@@ -43,11 +41,9 @@ SPM will also create a mean image eg. \verb!meanfM00223_004.img! which will be u
 
 \subsection{Coregistration}
 
-Press the `Coreg' button. This will call up the specification of a coregistration job in the graphics window. 
+Select `Coregister (Estimate)' from the `Coregister' pulldown. This will call up the specification of a coregistration job in the batch editor. 
 
 \bi
-\item{Select New "Coreg:Estimate"}
-\item{Double-click on the newly created Coreg:Estimate}
 \item{Highlight `Reference Image' and then select the mean fMRI scan from realignment eg. \verb!meanfM00223_004.img!}
 \item{Highlight `Source Image' and then select the structural image eg. \verb!sM00223_002.img!.}
 \item{Press the Save button and save the job as {\sf coreg.job}}
@@ -73,11 +69,11 @@ The `Check Reg' facility is useful here, to check the results of coregistration.
 
 \subsection{Segmentation}
 
-Press the `Segment' button. This will call up the specification of a segmentation job in the graphics window. Highlight the Data field and then select the subjects registered anatomical image eg. \verb!sM00223_002.img!. Save the job file as {\sf segment.mat} and then press RUN. SPM will segment the structural image using the default tissue probability maps as priors. 
+Press the `Segment' button. This will call up the specification of a segmentation job in the batch editor. Highlight the Data field and then select the subjects registered anatomical image eg. \verb!sM00223_002.img!. Save the job file as {\sf segment.mat} and then press RUN. SPM will segment the structural image using the default tissue probability maps as priors. 
 
 Faster, though perhaps less optimal results can be obtained by eg. reducing the number of Gaussians per class from [2 2 2 4] to eg. [1 1 1 4], increasing the sampling distance from eg. 3 to 4mm. These options can be edited under the `Custom' sub-menu and saved before the job is run. The results obtained in figure \ref{aud_gray} were obtained using the default values.
 
-SPM will create, by default, gray and white matter images and bias-field corrected structural image. These can be viewed using the CheckReg facility as described in the previous section (press segment and select . Figure \ref{aud_gray} shows the gray matter image, \verb!c1sM0023_002.img! along with the original structural.
+SPM will create, by default, gray and white matter images and bias-field corrected structural image. These can be viewed using the CheckReg facility as described in the previous section. Figure \ref{aud_gray} shows the gray matter image, \verb!c1sM0023_002.img! along with the original structural. Figure \ref{aud_bias} shows the structural and bias-corrected image, \verb!msM0023_002.img!.
 
 \begin{figure}
 \begin{center}
@@ -95,14 +91,13 @@ SPM will create, by default, gray and white matter images and bias-field correct
 
 SPM will also write a spatial normalisation eg. \verb!sM00223_0020_seg_sn.mat! and inverse spatial normalisation parameters \verb!sM00223_0020_seg_inv_sn.mat! to files in the original structural directory. These can be used to normalise the functional data. 
 
-\subsection{Normalize}
+\subsection{Normalise}
 
-Press the `Normalize' button. This will call up the specification of a normalise job in the graphics window. 
+Select `Normalise (Write)' from the `Normalise' pulldown menu. This will call up the specification of a normalise job in the batch editor. 
 
 \bi
-\item{Select a New "Normalise:Write" field. This allows previously estimated warps to be applied to a series of images.}
 \item{Highlight `Data', select New "Subject"}
-\item{Open `Subject', highlight `Parameter File' and select the \verb!sM00223_0020_seg_sn.mat! file that you created in the previous section}
+\item{Highlight `Parameter File' and select the \verb!sM00223_0020_seg_sn.mat! file that you created in the previous section}
 \item{Highlight images to write and select all of the realigned functional images `rfM000*.img'. Note: This can be done efficiently by changing the filter in the SPM file selector to \verb!^r.*!. SPM will then only list those files beginning with the letter $r$ ie. those that have been realigned. You can then right click over the listed files, choose `Select all' and press `Done'.}
 \item{Open `Writing Options', and change `Voxel sizes' from [2,2,2] to [3,3,3].\footnote{This step is not strictly necessary. It will write images out at a resolution closer to that at which they were acquired. This will speed up subsequent analysis and is necessary, for example, to make Bayesian fMRI analysis computationally efficient.}}
 \item{Press `Save', save the job as normalise.mat and then press `Run'.}
@@ -113,9 +108,7 @@ SPM will then write spatially normalised files to the functional data directory.
 If you wish to superimpose a subject's functional activations on their own anatomy\footnote{Beginners may wish to skip this step, and instead just superimpose functional activations on an `average structural image'.} you will also need to apply the spatial normalisation parameters to their (bias-corrected) anatomical image. To do this
 
 \bi
-\item{Press `Normalise', select New "Normalise:Write"}
-\item{Open `Normalise: Write', highlight `Data', select New "Subject"}
-\item{Open `Subject'}
+\item{Select `Normalise (Write)', highlight `Data', select New "Subject"}
 \item{Highlight `Parameter File', select the  \verb!sM00223_0020_seg_sn.mat! file that you created in the previous section, press `Done'.}
 \item{Highlight `Images to Write', select the bias-corrected structural eg. \verb!msM00223_002.img!, press `Done'.}
 \item{Open `Writing Options', select voxel sizes and change the default [2 2 2] to [1 1 3] which corresponds to the original resolution of the images.}
@@ -124,10 +117,10 @@ If you wish to superimpose a subject's functional activations on their own anato
 
 \subsection{Smoothing}
 
-Press the `Smooth' button\footnote{The smoothing step is unnecessary if you are only interested in Bayesian analysis of your functional data.}. This will call up the specification of a smooth job in the graphics window.
+Press the `Smooth' button\footnote{The smoothing step is unnecessary if you are only interested in Bayesian analysis of your functional data.}. This will call up the specification of a smooth job in the batch editor.
 
 \bi
-\item{Open `Smooth', select `Images to Smooth' and then select the spatially normalised files created in the last section eg. {\sf wrfM000*.img}. }
+\item{Select `Images to Smooth' and then select the spatially normalised files created in the last section eg. {\sf wrfM000*.img}. }
 \item{Highlight, `FWHM' and change [8 8 8] to [6 6 6]. This will smooth the data by 6mm in each direction.}
 \item{Save the job as {\sf smooth.mat} and press `Run'.}
 \ei
@@ -143,10 +136,9 @@ Press the `Smooth' button\footnote{The smoothing step is unnecessary if you are 
 
 To avoid T1 effects in the initial scans of an fMRI time series we recommend discarding the first few scans. To make this example simple, we'll discard the first complete cycle (12 scans, 04-15), leaving 84 scans, image files 16-99. This is best done by moving these files to a different directory.
 
-Press the `Specify 1st-level' button. This will call up the specification of an fMRI specification job in the graphics window. Then
+Press the `Specify 1st-level' button. This will call up the specification of an fMRI specification job in the batch editor. Then
 
 \bi
-\item{Open the fMRI model specification option}
 \item{Open the `Timing parameters' option}
 \item{Highlight `Units for design' and select `Scans'}
 \item{Highlight `Interscan interval' and enter 7}
@@ -187,10 +179,9 @@ If you select the second item on the `Design' tab, `Design Orthogonality', SPM w
 
 \subsection{Estimate}
 
-Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the batch editor. Then
 
 \bi
-\item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat file saved in the classical subdirectory}
 \item{Save the job as \verb!estimate.job! and press Run}
 \ei
@@ -253,8 +244,6 @@ You will then be prompted with
 \bi
 \item{\em Title for comparison ?}
 \item{ Enter eg. 'active  $>$ rest'}
-\item{\em Corrected height threshold ? [Yes/No]}
-\item{Enter Yes.}
 \item{\em p value adjustment to control: [FWE/FDR/none]}
 \item{Select FWE}
 \item{\em p value(family-wise error)}
@@ -276,9 +265,6 @@ You will then be prompted with
 
 Entering a value $v$ here will produce SPMs with clusters containing at least $v$ voxels. SPM will then produce the SPM shown in Figure~\ref{aud_spm1}.
 
-\bi
-\item{Select `Define new contrast'}
-\ei
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{auditory/spm1}
@@ -298,7 +284,7 @@ SPM displays a Maximum Intensity Projection (MIP) of the statistical map in the 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{auditory/interactive}
-\caption{\em SPM's interactive window during results assessment. The `p-values' section is used to produce tables of statistical information. The visualisation section is used to plot responses at a voxel or to visual activations overlaid on anatomical images. The `Regional' section, ie. the VOI button, is used to extract data for subsequent analyses such as assessment of PsychoPhysiological Interactions (PPIs) or Dynamic  Causal Models (DCMs).}
+\caption{\em SPM's interactive window during results assessment. The `p-values' section is used to produce tables of statistical information. The visualisation section is used to plot responses at a voxel or to visual activations overlaid on anatomical images. The `Multivariate' section, ie. the `eigenvariate' button, is used to extract data for subsequent analyses such as assessment of PsychoPhysiological Interactions (PPIs) or Dynamic  Causal Models (DCMs).}
 \end{center}
 \end{figure}
 
@@ -310,12 +296,12 @@ In the SPM Interactive window (lower left panel) a button box appears with vario
 
 \subsection{Statistical tables}
 
-To get a summary of local maxima, press the `volume' button in the p-values section of the interactive window. This will list all clusters above the chosen level of significance as well as separate ($>$8mm apart) maxima within a cluster, with details of significance thresholds and search volume underneath, as shown in Figure~\ref{aud_volume}
+To get a summary of local maxima, press the `whole brain' button in the p-values section of the interactive window. This will list all clusters above the chosen level of significance as well as separate ($>$8mm apart) maxima within a cluster, with details of significance thresholds and search volume underneath, as shown in Figure~\ref{aud_volume}
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{auditory/volume}
-\caption{\em Volume table for `active $>$ rest' effect. This table of values was created by pressing the `Results-Fig' tab at the top of the graphics window and then pressing the `Volume' button. This displays the table of results in a separate window. \label{aud_volume} }
+\caption{\em Volume table for `active $>$ rest' effect. This table of values was created by pressing the `Results-Fig' tab at the top of the graphics window and then pressing the `whole brain' button. This displays the table of results in a separate window. \label{aud_volume} }
 \end{center}
 \end{figure}
 
@@ -336,7 +322,7 @@ It is also worth noting that
 \item{Alternatively, click the cluster coordinates in the volume table, or type the coordinates in the co-ordinates section of the interactive window.}
 \ei
 
-It is also possible to produce tables of statistical information for a single cluster of interest rather than for the whole volume. Firstly, elect the relevant cluster in the MIP and then press the `cluster' button in the p-values section of the interactive window. This will show coordinates and voxel-level statistics for local maxima ($>$4mm apart) in the selected cluster. This table is also surfable.
+It is also possible to produce tables of statistical information for a single cluster of interest rather than for the whole volume. Firstly, select the relevant cluster in the MIP and then press the `current cluster' button in the p-values section of the interactive window. This will show coordinates and voxel-level statistics for local maxima ($>$4mm apart) in the selected cluster. This table is also surfable.
 
 \subsection{Plotting responses at a voxel}
 
@@ -436,7 +422,7 @@ Other options (in the results controls panel):
 
 \subsection{Specification}
 
-Press the `Specify 1st-level' button. This will call up an fMRI specification job in the graphics window. Then
+Press the `Specify 1st-level' button. This will call up an fMRI specification job in the batch editor. Then
 
 \bi
 \item{Open the fMRI model specification option}
@@ -450,10 +436,9 @@ Press the `Specify 1st-level' button. This will call up an fMRI specification jo
 
 \subsection{Estimation}
 
-Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the graphics window. Then
+Press the `Estimate' button. This will call up the specification of an fMRI estimation job in the batch editor. Then
 
 \bi
-\item{Open the `fMRI model estimation' option}
 \item{Highlight the `Select SPM.mat' option and then choose the SPM.mat file saved in the \verb!DIR/bayesian! directory}
 \item{Highlight `Method' and select the `Choose Bayesian 1st-level' option.}
 \item{Open the newly created `Bayesian 1st-level' option, highlight `AR model order' and select 0. This data set has a TR=7s, so is unlikely to have temporally autocorrelated errors.}

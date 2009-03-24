@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2490 2008-11-25 08:09:33Z lee $
+% $Id: spm_cfg_fmri_est.m 2928 2009-03-24 08:54:32Z lee $
 
-rev = '$Rev: 2490 $';
+rev = '$Rev: 2928 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -35,14 +35,6 @@ Classical.help    = {
 % ---------------------------------------------------------------------
 % Volume Volume
 % ---------------------------------------------------------------------
-% Volume         = cfg_menu;
-% Volume.tag     = 'volume';
-% Volume.name    = 'Volume';
-% Volume.val     = {'Slices'};
-% Volume.help    = {'A volume of data is analysed in "blocks", which can be a slice or 3D subvolume, where the extent of each subvolume is determined using a graph partitioning algorithm. Enter the block type, i.e. "Slices" or "Subvolumes".'}';
-% Volume.labels = {'Slices', 'Subvolumes'}';
-% Volume.values = {'Slices', 'Subvolumes'}';
-
 volBlocktype         = cfg_menu;
 volBlocktype.tag     = 'block_type';
 volBlocktype.name    = 'Block type';
@@ -175,13 +167,13 @@ ARP.strtype = 'e';
 ARP.num     = [Inf 1];
 ARP.def     = @(val)spm_get_defaults('stats.est.ARP', val{:});
 % ---------------------------------------------------------------------
-% GMRF GMRF
+% UGL UGL
 % ---------------------------------------------------------------------
 UGL         = cfg_const;
 UGL.tag     = 'UGL';
 UGL.name    = 'UGL';
 UGL.val     = {1};
-UGL.help    = {'[UGL] Unweighted graph-Laplacian. This (will be) the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
+UGL.help    = {'[UGL] Unweighted graph-Laplacian. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
 % ---------------------------------------------------------------------
 % GMRF GMRF
 % ---------------------------------------------------------------------
@@ -228,8 +220,8 @@ noise.tag     = 'noise';
 noise.name    = 'Noise priors';
 noise.val     = {UGL };
 noise.help    = {
-                 'There are four noise prior options here (1) GMRF, (2) LORETA '
-                 '(3) Tissue-type and (4) Robust'
+                 'There are five noise prior options here (1) UGL, (2) GMRF, (3) LORETA '
+                 '(4) Tissue-type and (5) Robust'
 }';
 noise.values  = {UGL GMRF LORETA tissue_type Robust };
 % ---------------------------------------------------------------------

@@ -31,7 +31,7 @@ function [block] = spm_vb_set_priors (block,priors,vxyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Lee Harrison
-% $Id: spm_vb_set_priors.m 2490 2008-11-25 08:09:33Z lee $
+% $Id: spm_vb_set_priors.m 2928 2009-03-24 08:54:32Z lee $
 
 if ~isfield(block,'verbose')
     block.verbose=0;
@@ -88,39 +88,39 @@ if block.p > 0
 end
 
 switch priors.A,
-    
+
     case 'Spatial - UGL',
-        block.Da=spm_vb_spatial_precision ('Spatial - UGL',vxyz); 
-    
+        block.Da=spm_vb_spatial_precision ('Spatial - UGL',vxyz);
+
     case 'Spatial - GMRF',
         block.Da=spm_vb_spatial_precision ('Spatial - GMRF',vxyz);
-        
+
     case 'Spatial - LORETA',
         block.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
-        
+
     case 'Voxel - Shrinkage',
         block.Da=speye(N);
         block.update_beta=1;
-        
+
     case 'Voxel - Uninformative',
         block.Da=speye(N);
         block.mean_beta=0.000001*ones(p,1);
         block.update_beta=0;
-        
+
     case 'Voxel - Limiting',
-        % Very low (fixed) spatial precision ensures spatial prior is 
+        % Very low (fixed) spatial precision ensures spatial prior is
         % effectively ignored
         block.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         block.update_beta=0;
         block.mean_beta=1e-4*ones(p,1);
-        
+
     case 'block - Limiting',
         % Very high (fixed) spatial precision ensures AR coefficients are
         % (nearly) identical over the block
         block.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         block.update_beta=0;
         block.mean_beta=1e4*ones(p,1);
-    
+
     case 'Discrete',
         disp('Different AR coeff priors for masked regions');
         if ~(isfield(priors,'gamma'))
@@ -130,11 +130,11 @@ switch priors.A,
         priors.S=size(priors.gamma,2);
         priors.N=sum(priors.gamma(:,:));
         for s=1:priors.S
-            priors.voxel(s).i=find(priors.gamma(:,s)==1);  
+            priors.voxel(s).i=find(priors.gamma(:,s)==1);
         end
         %block.mean_beta=1000*ones(p,1);
         %block.mean_beta=100*ones(p,1);
-        
+
     otherwise
         % Estimate spatial precision from data
 end

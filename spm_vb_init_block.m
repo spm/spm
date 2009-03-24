@@ -9,7 +9,7 @@ function [block] = spm_vb_init_block (Y,block)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_init_block.m 2499 2008-11-28 12:19:48Z guillaume $
+% $Id: spm_vb_init_block.m 2928 2009-03-24 08:54:32Z lee $
 
 k=block.k;
 p=block.p;
@@ -49,7 +49,7 @@ if strcmp(block.priors.A,'Discrete')
     block.c_beta_prior=block.c_beta_prior*ones(1,S);
     block.b_beta_prior=block.b_beta_prior*ones(1,S);
     block.as=rand(block.p,S);
-    
+
     block.b_beta=block.b_beta_prior;
     if block.update_beta
         block.c_beta=0.5*ones(block.p,1)*block.priors.N+block.c_beta_prior;

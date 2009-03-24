@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2511 2008-12-01 13:14:58Z volkmar $
+% $Id: spm_run_fmri_est.m 2928 2009-03-24 08:54:32Z lee $
 
 
 global defaults
@@ -148,15 +148,15 @@ end
 switch char(fieldnames(job.method.Bayesian.space))
   case 'volume'
       SPM.PPM.space_type = 'volume';
-      SPM.PPM.block_type = job.method.Bayesian.space.volume.block_type;
+      SPM.PPM.block_type = lower(job.method.Bayesian.space.volume.block_type);
   case 'slices'
       SPM.PPM.space_type = 'slices';
       SPM.PPM.AN_slices  = job.method.Bayesian.space.slices.numbers;
-      SPM.PPM.block_type = job.method.Bayesian.space.slices.block_type;
+      SPM.PPM.block_type = lower(job.method.Bayesian.space.slices.block_type);
   case 'clusters'
       SPM.PPM.space_type = 'clusters';
       SPM.PPM.clustermask  = job.method.Bayesian.space.clusters.mask;
-      SPM.PPM.block_type = job.method.Bayesian.space.clusters.block_type;
+      SPM.PPM.block_type = lower(job.method.Bayesian.space.clusters.block_type);
   otherwise
       SPM.PPM.space_type = 'volume';
       SPM.PPM.block_type = 'slices';
