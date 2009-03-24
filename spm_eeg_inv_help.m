@@ -36,8 +36,8 @@ D =  spm_eeg_inv_mesh_ui(D, 1, Msize, 1);
 % Determine the modality of the data (EEG or MEG)
 %--------------------------------------------------------------------------
 modality = D.modality;
-if ~ismember(modality, {'EEG', 'MEG'})
-    error('Only unimodal (EEG or MEG) datasets are supported')
+if ~ismember(modality, {'EEG', 'MEG', 'Multimodal'})
+    error('Unsupported modality')
 end
 
 % Compute a head model
@@ -74,10 +74,15 @@ D.inv{val}.inverse.xyz     = [-48 0 0;
                                48 0 0]; % x,y,z and radius (mm)
 D.inv{val}.inverse.rad     = [ 32 32]; 
      
+
 % and finally, invert
 %--------------------------------------------------------------------------
-D = spm_eeg_invert(D);
-
+if strcmp(modality, 'Multimodal')
+    D.inv{val}.inverse.modality = 'Fusion';
+    D = spm_eeg_invert_fuse(D);
+else
+    D = spm_eeg_invert(D);
+end
 
 % Compute conditional expectation of mean square (MS) response
 %==========================================================================
