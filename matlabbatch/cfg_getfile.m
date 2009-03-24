@@ -78,7 +78,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2929 2009-03-24 08:59:40Z volkmar $
+% $Id: cfg_getfile.m 2934 2009-03-24 12:15:28Z volkmar $
 
 t = {};
 sts = false;
@@ -1203,6 +1203,11 @@ if ~isequal(str, dstr)
             str = dstr;
     end
 end
+[p n e v] = cellfun(@fileparts, str, 'uniformoutput',false);
+fstr = strcat(n, e, v);
+filt = getfilt(ob);
+[fstr1 fsel] = do_filter(fstr, filt.ext);
+str = str(fsel);
 
 lim = get(sib(ob,'files'),'UserData');
 if numel(str)>lim(2),
