@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 2769 2009-02-20 15:25:54Z klaas $
+% $Id: spm_dcm_generate.m 2942 2009-03-24 18:18:07Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -42,22 +42,26 @@ if max(eigval) >= 0
 end
 
 
-% Create model specification
+% Create model specification (if it does not yet exist)
 %--------------------------------------------------------------------------
-M.f  = 'spm_fx_dcm';
-M.g  = 'spm_gx_dcm';
-M.x  = sparse(n*5,1);
-M.m  = size(U.u,2);
-M.n  = size(M.x,1);
-M.l  = n;
-M.ns = v;
 try
-    M.TE = DCM.TE;
+    M = DCM.M;
 catch
-    M.TE = 0.04;
+    M.f  = 'spm_fx_dcm';
+    M.g  = 'spm_gx_dcm';
+    M.x  = sparse(n*5,1);
+    M.m  = size(U.u,2);
+    M.n  = size(M.x,1);
+    M.l  = n;
+    M.ns = v;
+    try
+        M.TE = DCM.TE;
+    catch
+        M.TE = 0.04;
+    end
 end
 
-if ~isfield(DCM.M,'nlDCM') 
+if ~isfield(M,'nlDCM') 
     if isfield(DCM,'d') && any(any(DCM.d(:)))
         % nonlinear DCM
         M.nlDCM = 1;
@@ -69,7 +73,7 @@ else
     M.nlDCM = DCM.M.nlDCM;
 end
 
-if ~isfield(DCM.M,'IS')
+if ~isfield(M,'IS')
     if M.nlDCM
         % nonlinear DCM
         M.IS    = 'spm_int_B_nlDCM_fMRI';
@@ -78,7 +82,7 @@ if ~isfield(DCM.M,'IS')
         M.IS    = 'spm_int';
     end
 else
-    M.IS    = DCM.M.IS;
+    M.IS    = M.IS;
 end
 
 
