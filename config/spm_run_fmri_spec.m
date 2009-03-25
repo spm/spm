@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 2824 2009-03-04 11:58:51Z guillaume $
+% $Id: spm_run_fmri_spec.m 2948 2009-03-25 11:27:40Z volkmar $
 
 
 spm('defaults','FMRI');
@@ -51,15 +51,23 @@ SPM.xY.RT = job.timing.RT;
 SPM.xY.P = [];
 
 % Slice timing
+%-------------------------------------------------------------
+% The following lines have the side effect of modifying the global
+% defaults variable. This is necessary to pass job.timing.fmri_t to
+% spm_hrf.m. The original values are saved here and restored at the end
+% of this function, after the design has been specified. The original
+% values may not be restored if this function crashes.
+olddefs.stats.fmri.fmri_t=spm_get_defaults('stats.fmri.fmri_t');
+olddefs.stats.fmri.fmri_t0=spm_get_defaults('stats.fmri.fmri_t0');
 defaults.stats.fmri.t=job.timing.fmri_t;
 defaults.stats.fmri.t0=job.timing.fmri_t0;
 
 % Basis function variables
 %-------------------------------------------------------------
 SPM.xBF.UNITS = job.timing.units;
-SPM.xBF.dt    = job.timing.RT/defaults.stats.fmri.t;
-SPM.xBF.T     = defaults.stats.fmri.t;
-SPM.xBF.T0    = defaults.stats.fmri.t0;
+SPM.xBF.dt    = job.timing.RT/job.timing.fmri_t;
+SPM.xBF.T     = job.timing.fmri_t;
+SPM.xBF.T0    = job.timing.fmri_t0;
 
 % Basis functions
 %-------------------------------------------------------------
@@ -314,6 +322,8 @@ fprintf('%30s\n','...SPM.mat saved')                     %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 my_cd(original_dir); % Change back dir
+spm_get_defaults('stats.fmri.fmri_t',olddefs.stats.fmri.fmri_t); % Restore old timing
+spm_get_defaults('stats.fmri.fmri_t0',olddefs.stats.fmri.fmri_t0); % parameters
 fprintf('Done\n')
 return
 %-------------------------------------------------------------------------
