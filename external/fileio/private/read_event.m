@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.96  2009/03/25 08:44:49  roboos
+% fixed bug introduced by last change, related to filetype detection in case not ctf_old
+%
 % Revision 1.95  2009/03/23 12:09:07  vlalit
 % Minor changes to make the ctf_old option fully functional.
 %
@@ -706,9 +709,15 @@ switch eventformat
     classfile  = fullfile(path, [name ext], 'ClassFile.cls');
     markerfile = fullfile(path, [name ext], 'MarkerFile.mrk');
 
+    % in case ctf_old was specified as eventformat, the other reading functions should also know about that
+    if strcmp(eventformat, 'ctf_old')
+      dataformat   = 'ctf_old';
+      headerformat = 'ctf_old';
+    end
+
     % read the header, required to determine the stimulus channels and trial specification
     if isempty(hdr)
-      hdr = read_header(headerfile, 'headerformat', eventformat);
+      hdr = read_header(headerfile, 'headerformat', headerformat);
     end
 
     try
@@ -740,7 +749,7 @@ switch eventformat
     trigchanindx = find(origSensType==11);
     if ~isempty(trigchanindx)
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'dataformat', eventformat, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'dataformat', dataformat, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
       event   = appendevent(event, trigger);
     end
 
