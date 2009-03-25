@@ -1,5 +1,5 @@
 function DCM = spm_dcm_phase_data(DCM)
-% Get data for DCM for phase coupling 
+% Get data for DCM for phase coupling
 % FORMAT [DCM] = spm_dcm_phase_data(DCM)
 %
 % DCM    -  DCM structure
@@ -20,13 +20,13 @@ function DCM = spm_dcm_phase_data(DCM)
 %    DCM.xY.Ic      - Indices of good channels
 %
 %    DCM.xY.y{i}(k,l) - Phase data for i-th trial,l-th source,k-th time-bin
-%                          
+%
 %
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
- 
+
 % Will Penny
-% $Id: spm_dcm_phase_data.m 2952 2009-03-25 13:41:31Z will $
+% $Id: spm_dcm_phase_data.m 2953 2009-03-25 15:29:42Z vladimir $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -51,7 +51,7 @@ for jj=1:length(chosen_conds)
     cname=cond_name{chosen_conds(jj)};
     new_trials=pickconditions(D,cname);
     trials=[trials;new_trials];
-    
+
     X=[X;ones(length(new_trials),1)*DCM.xU.X(jj)];
 end
 
@@ -87,64 +87,68 @@ ind=find(DCM.xY.pst>=tmin & DCM.xY.pst<=tmax);
 
 % Read in trials
 Ntr=length(trials);
-S=struct(D);
 clist=conditions(D);
 for i=1:Ntr,
     k=trials(i);
-    DCM.xY.y{i}=squeeze(S.data.y(:,ind,k))';
+    DCM.xY.y{i}=squeeze(D(Ic,ind,k))';
     DCM.xY.code{i}=clist{k};
 end
 DCM.xY.dt=1/fsample(D);
 DCM.xY.pst=DCM.xY.pst(ind);
 
-disp(sprintf('Projecting %s data onto source locations ...',DCM.xY.modality));
-%------------------------------------------------------------------
-try
-    pos = DCM.Lpos;
-catch
-    pos = DCM.M.dipfit.Lpos;
-end
 Nr=length(DCM.Sname);
-Ng     = 3;
-G.L    = kron(ones(1,Nr),speye(Ng,Ng));
-G.Lpos = kron(pos,ones(1,Ng));
-L      = spm_erp_L(G,DCM.M);
-MAP    = pinv(L);
-
 Ntrials=length(DCM.xY.y);
-[Ntime,Nchannels]=size(DCM.xY.y{1});
-for n=1:Ntrials,
-    % Get source time series for all orthogonal directions
-    DCM.xY.y{n}=DCM.xY.y{n}*MAP';
-end
 
-% Get max variance orientation for each source
-for s=1:Nr,
-    ind=[1:3]+(s-1)*3;
-    y=[];
-    for n=1:Ntrials,
-        y=[y;DCM.xY.y{n}(:,ind)];
+if ~isequal(modality, 'LFP')
+    disp(sprintf('Projecting %s data onto source locations ...',DCM.xY.modality));
+    %------------------------------------------------------------------
+    try
+        pos = DCM.Lpos;
+    catch
+        pos = DCM.M.dipfit.Lpos;
     end
-    [uu,ss,vv]=svd(y,0);
+    Ng     = 3;
+    G.L    = kron(ones(1,Nr),speye(Ng,Ng));
+    G.Lpos = kron(pos,ones(1,Ng));
+    L      = spm_erp_L(G,DCM.M);
+    MAP    = pinv(L);
+    [Ntime,Nchannels]=size(DCM.xY.y{1});
     for n=1:Ntrials,
-        region{n}(:,s)=DCM.xY.y{n}(:,ind)*vv(:,1);
+        % Get source time series for all orthogonal directions
+        DCM.xY.y{n}=DCM.xY.y{n}*MAP';
     end
+
+    % Get max variance orientation for each source
+    for s=1:Nr,
+        ind=[1:3]+(s-1)*3;
+        y=[];
+        for n=1:Ntrials,
+            y=[y;DCM.xY.y{n}(:,ind)];
+        end
+        [uu,ss,vv]=svd(y,0);
+        for n=1:Ntrials,
+            region{n}(:,s)=DCM.xY.y{n}(:,ind)*vv(:,1);
+        end
+    end
+else
+    disp('Using data from LFP channels');
+    region=DCM.xY.y;
 end
 
 DCM.xY.y=[];
-% Get instantaneous phase 
+% Get instantaneous phase
 disp('Filter and compute instantaneous phase ...');
 for n=1:Ntrials,
     for c=1:Nr,
         xr=region{n}(:,c);
-        
+
         % Filtering
         [B, A] = butter(5, 2*DCM.options.Fdcm/fsample(D));
         xr = filtfilt(B, A, xr);
-        
+
         hx=spm_hilbert(xr);
         DCM.xY.y{n}(:,c)=double(angle(hx));
-    end   
+    end
 end
 disp('Source extraction complete ...');
 
