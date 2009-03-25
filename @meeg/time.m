@@ -5,7 +5,7 @@ function res = time(this, ind, format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: time.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: time.m 2949 2009-03-25 11:57:16Z vladimir $
 
 if this.Nsamples>0
     res = (0:(this.Nsamples-1))./this.Fsample + this.timeOnset;
@@ -13,7 +13,7 @@ else
     res = [];
 end
 
-if exist('ind') == 1
+if exist('ind') == 1 && ~isempty(ind)
     res = res(ind);
 end
 

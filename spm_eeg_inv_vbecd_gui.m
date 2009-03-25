@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2945 2009-03-24 21:47:29Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 2949 2009-03-25 11:57:16Z vladimir $
 
 %%
 % Load data, if necessary
@@ -122,13 +122,13 @@ msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1000)), ...
             ' ',num2str(round(max(D.time)*1000)),'] ms'];
 ask_tb = 1;
 while ask_tb
-    tb = spm_input(msg_tb,1,'r')/1000;
+    tb = spm_input(msg_tb,1,'r');
     if length(tb)==1
-        if tb>=min(D.time) && tb<=max(D.time)
+        if tb>=min(D.time([], 'ms')) && tb<=max(D.time([], 'ms'))
             ask_tb = 0;
         end
     elseif length(tb)==2
-        if all(tb>=min(D.time)) && all(tb<=max(D.time)) && tb(1)<=tb(2)
+        if all(tb>=floor(min(D.time([], 'ms')))) && all(tb<=ceil(max(D.time([], 'ms')))) && tb(1)<=tb(2)
             ask_tb = 0;
         end
     end
