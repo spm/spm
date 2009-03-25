@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2536 2008-12-08 14:14:20Z volkmar $
+% $Id: spm_orthviews.m 2947 2009-03-25 11:23:38Z volkmar $
 
 
 
@@ -1111,8 +1111,9 @@ for i = valid_handles(arg1),
                 imgs = reshape(actc(tmps(:),:)*actp+ ...
                            gryc(imgs(:),:)*(1-actp), ...
                            [size(imgs) 3]);
-                
-                                redraw_colourbar(i,1,[cmn cmx],(1:64)'+64); 
+                csz   = size(st.vols{i}.blobs{1}.colour.cmap);
+                cdata = reshape(st.vols{i}.blobs{1}.colour.cmap, [csz(1) 1 csz(2)]);
+                redraw_colourbar(i,1,[cmn cmx],cdata);
                 
             else
                 % Add full colour blobs - several sets at once
@@ -1720,13 +1721,16 @@ case 'mapping_gl',
         
 case 'swap_img',
     current_handle = get_current_handle;
-    new_info = spm_vol(spm_select(1,'image','select new image'));
+    newimg = spm_select(1,'image','select new image');
+    if ~isempty(newimg)
+        new_info = spm_vol(newimg);
         fn = fieldnames(new_info);
         for k=1:numel(fn)
                 st.vols{current_handle}.(fn{k}) = new_info.(fn{k});
         end;
-    spm_orthviews('context_menu','image_info',get(gcbo, 'parent'));
-    redraw_all;
+        spm_orthviews('context_menu','image_info',get(gcbo, 'parent'));
+        redraw_all;
+    end
 
 case 'add_blobs',
     % Add blobs to the image - in split colortable
