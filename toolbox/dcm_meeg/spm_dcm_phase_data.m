@@ -26,7 +26,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_dcm_phase_data.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_dcm_phase_data.m 2952 2009-03-25 13:41:31Z will $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -133,13 +133,19 @@ end
 
 DCM.xY.y=[];
 % Get instantaneous phase 
-disp('Computing instantaneous phase ...');
+disp('Filter and compute instantaneous phase ...');
 for n=1:Ntrials,
     for c=1:Nr,
         xr=region{n}(:,c);
+        
+        % Filtering
+        [B, A] = butter(5, 2*DCM.options.Fdcm/fsample(D));
+        xr = filtfilt(B, A, xr);
+        
         hx=spm_hilbert(xr);
         DCM.xY.y{n}(:,c)=double(angle(hx));
     end   
 end
-disp('Hilbert transform complete ...');
+disp('Source extraction complete ...');
+
 
