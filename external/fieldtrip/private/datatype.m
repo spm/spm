@@ -13,6 +13,9 @@ function [type, dimord] = datatype(data, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: datatype.m,v $
+% Revision 1.6  2009/03/25 20:52:07  jansch
+% changed the conditional order to ensure correct behaviour for a comp-struct
+%
 % Revision 1.5  2009/01/28 15:00:45  roboos
 % fixed detection of timelock for covariance
 %
@@ -40,14 +43,16 @@ isvolume   = isfield(data, 'transform') && isfield(data, 'dim');
 issource   = isfield(data, 'pos');
 isdip      = isfield(data, 'dip');
 
-if israw
+if iscomp
+  type = 'comp';  
+  %comp should conditionally go before raw, otherwise the returned datatype
+  %will be raw
+elseif israw
   type = 'raw';
 elseif isfreq
   type = 'freq';
 elseif istimelock
   type = 'timelock';
-elseif iscomp
-  type = 'comp';
 elseif isspike
   type = 'spike';
 elseif isvolume
