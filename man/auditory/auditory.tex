@@ -2,11 +2,11 @@
  
 This data set comprises whole brain BOLD/EPI images acquired on a modified 2T Siemens MAGNETOM Vision system. Each acquisition consisted of 64 contiguous slices (64$\times$64$\times$64 3$\times$3mm$\times$3 mm$^3$ voxels). Acquisition took 6.05s, with the scan to scan repeat time (TR) set arbitrarily to 7s.
 
-96 acquisitions were made (TR=7s) from a single subject, in blocks of 6, giving 16 42s blocks. The condition for successive blocks alternated between rest and auditory stimulation, starting with rest. Auditory stimulation was bi-syllabic words presented binaurally at a rate of 60 per minute. The functional data starts at acquisition 4, image \texttt{fM00223\_004}. Due to T1 effects it is advisable to discard the first few scans (there were no ``dummy'' lead-in scans). A structural image was also acquired: \texttt{sM00223\_002}. These images are stored in Analyze format and are available from the SPM site \footnote{Auditory fMRI data: \url{http://www.fil.ion.ucl.ac.uk/spm/data/}}. This data set was the first ever collected and analysed in the Functional Imaging Laboratory (FIL) and is known locally as the mother of all experiments (MoAE).
+96 acquisitions were made (TR=7s) from a single subject, in blocks of 6, giving 16 42s blocks. The condition for successive blocks alternated between rest and auditory stimulation, starting with rest. Auditory stimulation was bi-syllabic words presented binaurally at a rate of 60 per minute. The functional data starts at acquisition 4, image \texttt{fM00223\_004}. Due to T1 effects it is advisable to discard the first few scans (there were no ``dummy'' lead-in scans). A structural image was also acquired: \texttt{sM00223\_002}. These images are stored in Analyze format and are available from the SPM site \footnote{Auditory fMRI dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/auditory/}}. This data set was the first ever collected and analysed in the Functional Imaging Laboratory (FIL) and is known locally as the mother of all experiments (MoAE).
 
 To analyse the data, first create a new directory \texttt{DIR},  eg. \texttt{c:$\backslash$data$\backslash$auditory}, in which to place the results of your analysis. Then create 3 subdirectories (i) \texttt{jobs}, (ii) \texttt{classical} and (iii) \texttt{bayesian}. As the analysis proceeds these directories will be filled with job-specification files, design matrices and models estimated using classical or Bayesian methods.
 
-Start up \matlab\, enter your jobs directory and type \texttt{spm fmri} at the \matlab\ prompt. SPM will then open in fMRI mode with three windows (1) the top-left or ``Menu'' window, (2) the bottom-left or ``Interactive'' window and (3) the right-hand or ``Graphic'' window. Analysis then takes place in three major stages (i) spatial pre-processing, (ii) model specification, review and estimation and (iii) inference. These stages organise the buttons in SPM's base window.
+Start up \matlab\, enter your jobs directory and type \texttt{spm fmri} at the \matlab\ prompt. SPM will then open in fMRI mode with three windows (1) the top-left or ``Menu'' window, (2) the bottom-left or ``Interactive'' window and (3) the right-hand or ``Graphics'' window. Analysis then takes place in three major stages (i) spatial pre-processing, (ii) model specification, review and estimation and (iii) inference. These stages organise the buttons in SPM's Menu window.
 
 \begin{figure}
 \begin{center}
@@ -97,7 +97,7 @@ Select \textsc{Normalise (Write)} from the \textsc{Normalise} pulldown menu. Thi
 \begin{itemize}
 \item Highlight ``Data'', select New ``Subject'',
 \item Highlight ``Parameter File'' and select the \texttt{sM00223\_0020\_seg\_sn.mat} file that you created in the previous section,
-\item Highlight images to write and select all of the realigned functional images \texttt{rfM000*.img}. Note: This can be done efficiently by changing the filter in the SPM file selector to \texttt{\^r.*}. SPM will then only list those files beginning with the letter \texttt{r} ie. those that have been realigned. You can then right click over the listed files, choose ``Select all'' and press ``Done''.
+\item Highlight images to write and select all of the realigned functional images \texttt{rfM000*.img}. Note: This can be done efficiently by changing the filter in the SPM file selector to \texttt{\textasciicircum r.*}. SPM will then only list those files beginning with the letter \texttt{r} ie. those that have been realigned. You can then right click over the listed files, choose ``Select all'' and press ``Done''.
 \item Open ``Writing Options'', and change ``Voxel sizes'' from [2 2 2] to [3 3 3].\footnote{This step is not strictly necessary. It will write images out at a resolution closer to that at which they were acquired. This will speed up subsequent analysis and is necessary, for example, to make Bayesian fMRI analysis computationally efficient.}
 \item Press ``Save'', save the job as \texttt{normalise.mat} and then press the \texttt{RUN} button.
 \end{itemize}
@@ -119,7 +119,7 @@ If you wish to superimpose a subject's functional activations on their own anato
 Press the \textsc{Smooth} button\footnote{The smoothing step is unnecessary if you are only interested in Bayesian analysis of your functional data.}. This will call up the specification of a smooth job in the batch editor.
 
 \begin{itemize}
-\item Select ``Images to Smooth'' and then select the spatially normalised files created in the last section eg. \texttt{\^wrf.*}.
+\item Select ``Images to Smooth'' and then select the spatially normalised files created in the last section eg. \texttt{\textasciicircum wrf.*}.
 \item Highlight ``FWHM'' and change [8 8 8] to [6 6 6]. This will smooth the data by 6mm in each direction.
 \item Save the job as \texttt{smooth.mat} and press the \texttt{Run} button.
 \end{itemize}
@@ -144,7 +144,7 @@ Press the ``Specify 1st-level'' button. This will call up the specification of a
 \item Highlight ``Units for design'' and select ``Scans''.
 \item Highlight ``Interscan interval'' and enter 7.
 \item Highlight ``Data and Design'' and select ``New Subject/Session''. Then open the newly created ``Subject/Session'' option.
-\item Highlight ``Scans'' and use SPM's file selector to choose the 84 smoothed, normalised functional images ie  \texttt{swrfM00223\_016.img} to \texttt{swrfM00223\_099.img}. These can be selected easily using the \texttt{\^s.*'} filter, and select all (provided you have moved the scans 4 to 15 into a different directory). Then press ``Done''.
+\item Highlight ``Scans'' and use SPM's file selector to choose the 84 smoothed, normalised functional images ie  \texttt{swrfM00223\_016.img} to \texttt{swrfM00223\_099.img}. These can be selected easily using the \texttt{\textasciicircum s.*'} filter, and select all (provided you have moved the scans 4 to 15 into a different directory). Then press ``Done''.
 \item Highlight ``Condition'' and select ``New condition''.
 \item Open the newly created ``Condition'' option. Highlight ``Name'' and enter ``active''. Highlight ``Onsets'' and enter ``6:12:84''. Highlight ``Durations'' and enter ``6''.
 \item Highlight ``Directory'' and select the \texttt{DIR/classical} directory you created earlier.
@@ -245,7 +245,7 @@ You will then be prompted with
 \begin{itemize}
 \item \emph{Title for comparison ?}
 \item Enter eg. ``active  $>$ rest''.
-\item \emph{p value adjustment to control: [FWE/FDR/none]}.
+\item \emph{p value adjustment to control: [FWE/none]}.
 \item Select ``FWE''.
 \item \emph{p value(family-wise error)}.
 \item Accept the default value, 0.05.
@@ -431,7 +431,7 @@ Press the ``Specify 1st-level'' button. This will call up an fMRI specification 
 \item Load the ``specify.mat'' job file created for the classical analysis.
 \item Open ``Subject/Session'', highlight ``Scans''.
 \item Deselect the smoothed functional images using the ``unselect all'' option available from a right mouse click in the SPM file selector (bottom window).
-\item Select the unsmoothed functional images using the \texttt{\^w.*} filter and `select all' option available from a right mouse click in the SPM file selector (top right window)\footnote{Remember not to select the first 12 scans, scans 4 to 15, as these may contain T1 effects. This can be done during selection or by first moving the files to a different directory.}. The Bayesian analysis uses a spatial prior where the spatial regularity in the signal is estimated from the data. It is therefore not necessary to create smoothed images if you are only going to do a Bayesian analysis.
+\item Select the unsmoothed functional images using the \texttt{\textasciicircum w.*} filter and `select all' option available from a right mouse click in the SPM file selector (top right window)\footnote{Remember not to select the first 12 scans, scans 4 to 15, as these may contain T1 effects. This can be done during selection or by first moving the files to a different directory.}. The Bayesian analysis uses a spatial prior where the spatial regularity in the signal is estimated from the data. It is therefore not necessary to create smoothed images if you are only going to do a Bayesian analysis.
 \item Press ``Done''.
 \item Highlight ``Directory'' and select the \texttt{DIR/bayesian} directory you created earlier (you will first need to deselect the \texttt{DIR/classical} directory).
 \item Save the job as \texttt{specify\_bayesian.mat} and press the ``Run'' button.
