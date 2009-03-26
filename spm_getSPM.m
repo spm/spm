@@ -162,7 +162,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 2821 2009-03-03 19:54:19Z guillaume $
+% $Id: spm_getSPM.m 2965 2009-03-26 16:42:37Z guillaume $
 
 
 %-GUI setup
@@ -673,7 +673,7 @@ if STAT ~= 'P'
     [up, Pp]     = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
 
     %-Cluster FDR
-    if STAT == 'T'
+    if STAT == 'T' && n == 1
         V2R      = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM>1));
         [uc, Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
     else
