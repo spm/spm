@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2904 2009-03-20 10:28:29Z vladimir $
+% $Id: spm_eeg_prep.m 2970 2009-03-26 19:19:07Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -210,7 +210,7 @@ switch lower(S.task)
         template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
         template_sfp = {template_sfp.name};
 
-        ind = strmatch([forwinv_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
+        ind = strmatch([forwinv_senstype(D.chanlabels(D.meegchannels('EEG'))) '.sfp'], template_sfp, 'exact');
 
         if ~isempty(ind)
             elec = fileio_read_sens(fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind}));

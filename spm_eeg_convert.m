@@ -37,7 +37,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2869 2009-03-12 13:29:13Z guillaume $
+% $Id: spm_eeg_convert.m 2970 2009-03-26 19:19:07Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -460,7 +460,7 @@ if ~isempty(strmatch('EEG', D.chantype, 'exact'))
     end
 end
 
-% Create 2D positions for MEG (when there are no EEG sensors)
+% Create 2D positions for MEG 
 % by projecting the 3D positions to 2D
 if ~isempty(strmatch('MEG', D.chantype)) && ~isempty(D.sensors('MEG')) 
     S1 = [];
