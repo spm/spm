@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2844 2009-03-09 17:24:46Z guillaume $
+% $Id: spm_spm.m 2957 2009-03-26 11:18:48Z guillaume $
 
-SVNid   = '$Rev: 2844 $';
+SVNid   = '$Rev: 2957 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -436,6 +436,7 @@ end
 xX.xKXs   = spm_sp('Set',spm_filter(xX.K,W*xX.X));              % KWX
 xX.xKXs.X = full(xX.xKXs.X);
 xX.pKX    = spm_sp('x-',xX.xKXs);                               % projector
+erdf      = spm_SpUtil('trRV',xX.xKXs);                %   Working error df
 
 global defaults
 
@@ -554,7 +555,7 @@ if isfield(xX,'W')
     VResMS = spm_create_vol(VResMS);
 
 
-    %-Initialise residual images
+    %-Initialise standardised residual images
     %----------------------------------------------------------------------
     VResI(1:nSres) = deal(struct(...
         'fname',    [],...
@@ -562,7 +563,7 @@ if isfield(xX,'W')
         'dt',       [spm_type('float64') spm_platform('bigend')],...
         'mat',      M,...
         'pinfo',    [1 0 0]',...
-        'descrip',  'spm_spm:Residual image'));
+        'descrip',  'spm_spm:StandardisedResiduals'));
 
     for i = 1:nSres
         VResI(i).fname   = sprintf('ResI_%04d.img', i);
@@ -769,7 +770,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
         %-Write residual images
         %------------------------------------------------------------------
         for i = 1:nSres
-            if ~isempty(Q), jj(Q) = CrResI(i,:); end
+            if ~isempty(Q), jj(Q) = CrResI(i,:)./sqrt(CrResSS/erdf); end
             VResI(i) = spm_write_plane(VResI(i), jj, z);
         end
 
@@ -914,7 +915,7 @@ try
     VRpv = SPM.xVol.VRpv;
     R    = SPM.xVol.R;
 catch
-    [FWHM,VRpv] = spm_est_smoothness(VResI,VM);
+    [FWHM,VRpv] = spm_est_smoothness(VResI,VM,[nScan erdf]);
     R           = spm_resels_vol(VM,FWHM)';
 end
 
