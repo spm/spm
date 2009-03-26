@@ -156,7 +156,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 2887 2009-03-17 08:09:39Z lee $
+% $Id: spm_spm_vb.m 2958 2009-03-26 11:19:20Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -443,6 +443,10 @@ try
     SPM.PPM.priors.A;
 catch
     SPM.PPM.priors.A = 'Spatial - UGL';
+end
+
+if  ~isdeployed && strcmp(SPM.PPM.priors.A,'Robust')
+    addpath(fullfile(spm('Dir'),'toolbox','mixture'));
 end
 
 %-Get structural info if necessary

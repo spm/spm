@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2945 2009-03-24 21:47:29Z jean $
+% $Id: spm_eeg_review_callbacks.m 2958 2009-03-26 11:19:20Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -226,8 +226,8 @@ switch varargin{1}
             case 'sensorPos'
 
                 % get canonical mesh
-                mco = [spm('Dir'),filesep,'canonical',filesep,'cortex_5124.surf.gii'];
-                msc = [spm('Dir'),filesep,'canonical',filesep,'scalp_2562.surf.gii'];               
+                mco = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
+                msc = fullfile(spm('Dir'),'canonical','scalp_2562.surf.gii');               
                 
                 % get and plot 3D sensor positions
                 try     % EEG
@@ -1461,7 +1461,7 @@ end
 
 %% Get data info
 function str = getInfo4Data(D)
-str{1} = ['File name: ',D.path,filesep,D.fname];
+str{1} = ['File name: ',fullfile(D.path,D.fname)];
 str{2} = ['Type: ',D.type];
 if ~strcmp(D.transform.ID,'time')
     str{2} = [str{2},' (time-frequency data, from ',...
