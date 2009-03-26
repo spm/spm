@@ -9,7 +9,7 @@ function out = spm_run_factorial_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_factorial_design.m 1661 2008-05-15 14:53:01Z volkmar $
+% $Id: spm_run_factorial_design.m 2964 2009-03-26 16:18:28Z guillaume $
 
 
 global defaults
@@ -271,9 +271,9 @@ switch strvcat(fieldnames(job.des)),
                     disp(sprintf('Error for subject %d: conditions not specified for each scan',s));
                     return
                 elseif ~(ccr==ccc) && (ccc==ns)
-                    warning('spm:transposingConditions',['Condition matrix ',...
-                        'appears to be transposed. Transposing back to fix.\n',...
-                        'Alert developers if it is not actually transposed.'])
+                    %warning('spm:transposingConditions',['Condition matrix ',...
+                    %    'appears to be transposed. Transposing back to fix.\n',...
+                    %    'Alert developers if it is not actually transposed.'])
                     cc=cc';
                 end
                 subj=[subj;s*ones(ns,1)];

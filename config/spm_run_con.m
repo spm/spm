@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_con.m 2964 2009-03-26 16:18:28Z guillaume $
 
 
 wd  = pwd;
@@ -41,23 +41,27 @@ end;
 
 if job.delete && isfield(SPM,'xCon')
     for k=1:numel(SPM.xCon)
-        [p n e v] = spm_fileparts(SPM.xCon(k).Vcon.fname);
-        switch e,
-            case '.img'
-                spm_unlink([n '.img'],[n '.hdr']);
-            case '.nii'
-                spm_unlink(SPM.xCon(k).Vcon.fname);
-        end;
-        [p n e v] = spm_fileparts(SPM.xCon(k).Vspm.fname);
-        switch e,
-            case '.img'
-                spm_unlink([n '.img'],[n '.hdr']);
-            case '.nii'
-                spm_unlink(SPM.xCon(k).Vspm.fname);
-        end;
-    end;
+        if ~isempty(SPM.xCon(k).Vcon)
+            [p n e v] = spm_fileparts(SPM.xCon(k).Vcon.fname);
+            switch e,
+                case '.img'
+                    spm_unlink([n '.img'],[n '.hdr']);
+                case '.nii'
+                    spm_unlink(SPM.xCon(k).Vcon.fname);
+            end
+        end
+        if ~isempty(SPM.xCon(k).Vspm)
+            [p n e v] = spm_fileparts(SPM.xCon(k).Vspm.fname);
+            switch e,
+                case '.img'
+                    spm_unlink([n '.img'],[n '.hdr']);
+                case '.nii'
+                    spm_unlink(SPM.xCon(k).Vspm.fname);
+            end
+        end
+    end
     SPM.xCon = [];
-end;
+end
 
 bayes_con=isfield(SPM,'PPM');
 if bayes_con
