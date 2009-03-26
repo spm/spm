@@ -12,7 +12,7 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mnc2nifti.m 2960 2009-03-26 11:32:34Z john $
 
 
 if nargin==1,
@@ -25,10 +25,10 @@ if isempty(cdf), warning(['"' fname '" does not appear to be MINC.']); return; e
 idat = file_array;
 
 d_types     = [2   2   512   768     16   64 ; 256  256  4      8      16   64];
-dsizes      = [1   1   2     4       4    8 ];
+%dsizes     = [1   1   2     4       4    8 ];
 mxs         = [255 255 65535 2^32-1  Inf  Inf; 127  127  32767  2^31-1 Inf  Inf];
 mns         = [0   0   0     0      -Inf -Inf;-128 -128 -32768 -2^31  -Inf -Inf];
-space_names = {'xspace','yspace','zspace'};
+%space_names= {'xspace','yspace','zspace'};
 img         = findvar(cdf.var_array,'image');
 nd          = length(img.dimid);
 idat.fname  = fname;
@@ -49,8 +49,8 @@ if img.nc_type <=4,
     end;
 
     fp   = fopen(fname,'r','ieee-be');
-    imax = get_imax(fp, cdf, 'image-max', fname, 1, idat.dim);
-    imin = get_imax(fp, cdf, 'image-min', fname, 0, idat.dim);
+    imax = get_imax(fp, cdf, 'image-max', 1, idat.dim);
+    imin = get_imax(fp, cdf, 'image-min', 0, idat.dim);
     fclose(fp);
 
     scale = (imax-imin)/(range(2)-range(1));
@@ -74,7 +74,13 @@ for j=1:3,
     tmp    = findvar(space.vatt_array,'start');
     if ~isempty(tmp), start(j) = tmp.val; else  start(j) = -dim(j)/2*step(j); end;
     tmp    = findvar(space.vatt_array,'direction_cosines');
-    if ~isempty(tmp), dircos(:,j) = tmp.val; end;
+    if ~isempty(tmp),
+        if tmp.nc_type == 6,
+            dircos(:,j) = tmp.val(:);
+        elseif tmp.nc_type == 2,
+            dircos(:,j) = sscanf(tmp.val,'%g');
+        end
+    end;
 end;
 shiftm = [1 0 0 -1; 0 1 0 -1; 0 0 1 -1; 0 0 0 1];
 mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
@@ -195,7 +201,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function imax = get_imax(fp, cdf, strng, fname, def, dim)
+function imax = get_imax(fp, cdf, strng, def, dim)
 dim  = fliplr(dim);
 str  = findvar(cdf.var_array,strng);
 
