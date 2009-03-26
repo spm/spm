@@ -1,13 +1,15 @@
-function V = spm_filename_check(V)
+function V = spm_check_filename(V)
 % Checks paths are valid and tries to restore path names
-% FORMAT V = spm_filename_check(V)
+% FORMAT V = spm_check_filename(V)
 %
-% V - cell array for file handles
+% V - struct array of file handles
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_filename_check.m 2708 2009-02-06 19:52:48Z karl $
+% $Id: spm_check_filename.m 2976 2009-03-26 22:07:06Z guillaume $
+
+if isdeployed, return; end
 
 % check filenames
 %--------------------------------------------------------------------------
@@ -50,6 +52,7 @@ for i = 1:length(V)
 end
 
 
+%==========================================================================
 function V = spm_which_filename(V)
 
 
@@ -62,7 +65,7 @@ addpath(gwd);
 
 % cycle through handles
 %--------------------------------------------------------------------------
-for i = length(V)
+for i = 1:length(V)
 
     try
         % get relative path (directory and filename) and find in children
@@ -79,4 +82,3 @@ end
 %--------------------------------------------------------------------------
 rmpath(gwd);
 cd(cwd);
-
