@@ -23,6 +23,13 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.13  2009/03/26 11:07:40  roboos
+% start with an explicit check on the channel number
+%
+% Revision 1.12  2009/03/26 11:02:01  jansch
+% changed order of unused channels (was initially sorted alphabetically) into
+% how the appear in the input data
+%
 % Revision 1.11  2008/12/15 12:58:56  roboos
 % convert from sparse to full when data is single precision
 %
@@ -63,6 +70,13 @@ function [sens] = apply_montage(sens, montage, varargin)
 keepunused    = keyval('keepunused',    varargin{:}); if isempty(keepunused),    keepunused    = 'no';  end
 inverse       = keyval('inverse',       varargin{:}); if isempty(inverse),       inverse       = 'no';  end
 
+% check the consistency of the montage
+if size(montage.tra,1)~=length(montage.labelnew)
+  error('the number of channels in the montage is inconsistent');
+elseif size(montage.tra,2)~=length(montage.labelorg)
+  error('the number of channels in the montage is inconsistent');
+end
+
 if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
   tmp.labelnew = montage.labelorg;
@@ -98,9 +112,9 @@ montage.labelorg = montage.labelorg(~selcol);
 montage.labelnew = montage.labelnew(~selrow);
 montage.tra = montage.tra(~selrow, ~selcol);
 clear remove selcol selrow i
-
-% add columns for the channels that are present in the data but not involved in the montage
-add = setdiff(sens.label, montage.labelorg);
+% add columns for the channels that are present in the data but not involved in the montage, and stick to the original order in the data
+[add, ix] = setdiff(sens.label, montage.labelorg);
+add = sens.label(sort(ix));
 m = size(montage.tra,1);
 n = size(montage.tra,2);
 k = length(add);
