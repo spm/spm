@@ -7,6 +7,9 @@ function [vol] = read_ctf_hdm(filename);
 % Copyright (C) 2003, Robert Oostenveld
 % 
 % $Log: read_ctf_hdm.m,v $
+% Revision 1.2  2009/03/26 15:00:38  roboos
+% remember all original details, required for 3rd gradient multisphere models
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -25,7 +28,11 @@ function [vol] = read_ctf_hdm(filename);
 % new implementation
 %
 
+vol   = [];
 ascii = read_ctf_ascii(filename);
+
+% remember all original details
+vol.orig = ascii;
 
 if isfield(ascii, 'MultiSphere_Data')
   chans = fieldnames(ascii.MultiSphere_Data);

@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.11  2009/03/26 19:17:21  vlalit
+% Some improvements for non-MEG channels in BTi
+%
 % Revision 1.10  2009/03/06 08:49:54  roboos
 % added handling of plexon header
 %
@@ -237,10 +240,12 @@ elseif senstype(input, 'ctf') && islabel
 elseif senstype(input, 'bti')
   % all 4D-BTi MEG channels start with "A"
   % all 4D-BTi reference channels start with M or G
+  % all 4D-BTi EEG channels start with E
   type(strncmp('A', label, 1)) = {'meg'};
   type(strncmp('M', label, 1)) = {'refmag'};
   type(strncmp('G', label, 1)) = {'refgrad'};
-
+ 
+  
   if isfield(grad, 'tra')
     selchan = find(strcmp('mag', type));
     for k = 1:length(selchan)
@@ -252,6 +257,19 @@ elseif senstype(input, 'bti')
       end
     end
   end
+  
+  % This is to allow setting additional channel types based on the names
+  if isheader && issubfield(hdr, 'orig.channel_data.chan_label')
+      tmplabel = {hdr.orig.channel_data.chan_label};
+      tmplabel = tmplabel(:);
+  else
+      tmplabel = label; % might work
+  end
+  sel      = strmatch('unknown', type, 'exact');
+  type(sel)= chantype(tmplabel(sel));
+
+  sel      = strmatch('unknown', type, 'exact');  
+  type(sel(strncmp('E', label(sel), 1))) = {'eeg'}; 
 
 elseif senstype(input, 'eeg') && islabel
   % use an external helper function to define the list with EEG channel names

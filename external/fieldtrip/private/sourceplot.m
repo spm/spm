@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.65  2009/03/26 13:17:33  roboos
+% deal with key=[] in case apple key is pressed
+%
 % Revision 1.64  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -688,7 +691,10 @@ if isequal(cfg.method,'ortho')
 
     if interactive_flag
       try, [d1, d2, key] = ginput(1); catch, key='q'; end
-      if key=='q'
+      if isempty(key)
+        % this happens if you press the apple key
+        % do nothing
+      elseif key=='q'
         break;
       elseif key=='l'
         lpa = [xi yi zi];

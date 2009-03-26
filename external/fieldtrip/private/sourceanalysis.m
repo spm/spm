@@ -15,15 +15,15 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % The different source reconstruction algorithms that are implemented
 % are
 %   cfg.method     = 'lcmv'    linear constrained minimum variance beamformer
+%                    'sam'     synthetic aperture magnetometry
+%                    'dics'    dynamic imaging of coherent sources
+%                    'pcc'     partial cannonical correlation/coherence
 %                    'mne'     minimum norm estimation
 %                    'loreta'  minimum norm estimation with smoothness constraint
 %                    'rv'      scan residual variance with single dipole
 %                    'music'   multiple signal classification
-%                    'pcc'     partial cannonical correlation/coherence
-%                    'dics'    dynamic imaging of coherent sources
-%                    'pcc'     partial cannonical correlation/coherence
-% the methods 'dics' and 'pcc' are algorithms for the frequency domain,
-% the other methods are for timelocked data.
+% The DICS and PCC methods are for frequency domain data, all other methods 
+% are for time domain data.
 %
 % The positions of the sources can be specified as a regular 3-D
 % grid that is aligned with the axes of the head coordinate system
@@ -166,6 +166,10 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.138  2009/03/26 13:32:12  roboos
+% added SAM as beamformer method
+% fixed bug in the default assignment of reducerank, which for some MEG systems caused the reducerank default to be 3 instead of 2 (which is preferred)
+%
 % Revision 1.137  2009/03/11 11:27:34  roboos
 % added a comment and removed a now obsolete channelselection call
 %
@@ -648,12 +652,14 @@ end
 % Hence a subset of the data channels will be used.
 Nchans = length(cfg.channel);
 
-% set the default for reducing the rank of the leadfields
-if ~isfield(cfg, 'reducerank')
-  if strcmp(sensortype(sens), 'electrode')
-    cfg.reducerank = 3;
+% set the default for reducing the rank of the leadfields, this is an
+% option to the specific method and will be passed on to the low-level
+% function
+if ~isfield(cfg.(cfg.method), 'reducerank')
+  if senstype(sens, 'meg')
+    cfg.(cfg.method).reducerank = 2;
   else
-    cfg.reducerank = 2;
+    cfg.(cfg.method).reducerank = 3;
   end
 end
 
@@ -679,7 +685,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do frequency domain source reconstruction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
+if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
 
   if strcmp(cfg.method, 'pcc')
     % HACK: requires some extra defaults
@@ -906,7 +912,7 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % do time domain source reconstruction
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'loreta') || strcmp(cfg.method, 'rv') || strcmp(cfg.method, 'music') || strcmp(cfg.method, 'pcc'))
+elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv', 'music', 'pcc'}))
 
   % determine the size of the data
   Nsamples = size(data.avg,2);
@@ -1104,7 +1110,6 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
     avg = reshape(avg, [1 Nchans Nsamples]);
   end
 
-
   % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = cfg2keyval(getfield(cfg, cfg.method));
 
@@ -1112,6 +1117,11 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
     for i=1:Nrepetitions
       fprintf('scanning repetition %d\n', i);
       dip(i) = beamformer_lcmv(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:});
+    end
+  elseif strcmp(cfg.method, 'sam')
+    for i=1:Nrepetitions
+      fprintf('scanning repetition %d\n', i);
+      dip(i) = beamformer_sam(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:});
     end
   elseif strcmp(cfg.method, 'pcc')
     for i=1:Nrepetitions
@@ -1284,7 +1294,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.137 2009/03/11 11:27:34 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.138 2009/03/26 13:32:12 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

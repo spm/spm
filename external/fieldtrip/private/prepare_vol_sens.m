@@ -20,7 +20,7 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 %   'order'      number, for single shell "Nolte" model (default = 10)
 %
 % The detailled behaviour of this function depends on whether the input
-% consists of EEG or MEG and furthermoree depends on the type of volume 
+% consists of EEG or MEG and furthermoree depends on the type of volume
 % conductor model:
 % - in case of EEG single and concentric sphere models, the electrodes are
 %   projected onto the skin surface.
@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.14  2009/03/26 16:44:03  roboos
+% allow 3rd order gradients iduring the construction of the localspheres model, requires that the hdm file contains a global sphere
+%
 % Revision 1.13  2009/03/23 21:15:18  roboos
 % fixed bug for empty vol (inf medium magnetic dipole)
 %
@@ -165,19 +168,46 @@ elseif ismeg
       Ncoils   = size(sens.tra,2);
       Nspheres = size(vol.label);
 
+      if isfield(vol, 'orig')
+        % these are present in a CTF *.hdm file
+        singlesphere.o(1,1) = vol.orig.MEG_Sphere.ORIGIN_X;
+        singlesphere.o(1,2) = vol.orig.MEG_Sphere.ORIGIN_Y;
+        singlesphere.o(1,3) = vol.orig.MEG_Sphere.ORIGIN_Z;
+        singlesphere.r      = vol.orig.MEG_Sphere.RADIUS;
+        % ensure consistent units
+        singlesphere = convert_units(singlesphere, vol.unit);
+      else
+        singlesphere = [];
+      end
+
+      % this flag is used to give a particular warning only once
+      issued = false;
+
       multisphere = [];
       % for each coil in the MEG helmet, determine the corresponding local sphere
       for i=1:Ncoils
         coilindex = find(sens.tra(:,i)~=0); % to which channel does the coil belong
         if length(coilindex)>1
-          % this indicates that there are multiple channels to which this coil contributes
-          % which means that sens.tra describes a synthetic higher-order gradient
-          error('synthetic gradients not supported during volume conductor setup');
+          if ~issued
+            % give the warning only once
+            warning('using the global sphere for the reference channels in the synthetic gradiometer array');
+            issued = true;
+          end
+          % this indicates that there are multiple channels to which this coil contributes,
+          % which means that the sensor array represents a synthetic higher-order gradient
+          if ~isempty(singlesphere)
+            % use the single sphere for the reference channels
+            multisphere.r(i,:) = singlesphere.r;
+            multisphere.o(i,:) = singlesphere.o;
+          else
+            error('synthetic gradients are only supported during volume conductor setup in case a global sphere is defined');
+          end
+        else
+          coillabel = sens.label{coilindex};  % what is the label of the channel
+          chanindex = strmatch(coillabel, vol.label, 'exact');
+          multisphere.r(i,:) = vol.r(chanindex);
+          multisphere.o(i,:) = vol.o(chanindex,:);
         end
-        coillabel = sens.label{coilindex};  % what is the label of the channel
-        chanindex = strmatch(coillabel, vol.label, 'exact');
-        multisphere.r(i,:) = vol.r(chanindex);
-        multisphere.o(i,:) = vol.o(chanindex,:);
       end
       vol = multisphere;
 
@@ -331,4 +361,3 @@ end
 % this makes them easier to recognise
 sens.type = senstype(sens);
 vol.type  = voltype(vol);
-

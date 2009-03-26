@@ -36,6 +36,12 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.46  2009/03/26 16:29:47  jansch
+% cleaned up the code generating the output, no functional changes
+%
+% Revision 1.45  2009/03/26 12:48:40  jansch
+% ensure correct number of labels if number of components < number of sensors
+%
 % Revision 1.44  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -499,32 +505,29 @@ for trial=1:Ntrials
   end
 end
 
-if strcmp(cfg.method, 'predetermined mixing matrix')
-  for i=1:cfg.numcomponent
-    comp.label{i} = sprintf('component%03d', i);
-  end
-else
-  % the output only contains unmixed components
-  for chan=1:cfg.numcomponent
-    % create a new label for each component
-    comp.label{chan} = sprintf('%s%03d', cfg.method, chan);
-  end
-  comp.label     = comp.label(:);          % convert labels into column vector
-end
-comp.topolabel   = data.label(:);          % these labels describe the topographic components
-
+%get the mixing matrix
 if strcmp(cfg.method, 'parafac')
-  comp.topo = f{2};                        % topography of each component
-  comp.f1 = f{1};                          % FIXME, this is not properly supported yet
-  comp.f2 = f{2};                          % FIXME, this is not properly supported yet
-  comp.f3 = f{3};                          % FIXME, this is not properly supported yet
+  comp.topo = f{2};
+  comp.f1   = f{1}; %FIXME, this is not properly supported yet
+  comp.f2   = f{2};
+  comp.f3   = f{3};
+elseif size(weights,1)==size(weights,2)
+  comp.topo = inv(weights*sphere);
 else
-  if (size(weights,1)==size(weights,2))
-    comp.topo = inv(weights * sphere);      % topography of each component
-  else
-    comp.topo = pinv(weights * sphere);     % fix to allow fewer sources than sensors
-  end
+  comp.topo = pinv(weights*sphere); %allow fewer sources than sensors
 end
+
+%get the labels
+if strcmp(cfg.method, 'predetermined mixing matrix'),
+  prefix = 'component';
+else
+  prefix = cfg.method;
+end
+
+for k = 1:size(comp.topo,2)
+  comp.label{k,1} = sprintf('%s%03d', prefix, k);
+end
+comp.topolabel = data.label(:);
 
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
@@ -538,7 +541,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.44 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.46 2009/03/26 16:29:47 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

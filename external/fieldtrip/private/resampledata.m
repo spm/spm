@@ -44,6 +44,12 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.19  2009/03/26 14:28:04  jansch
+% fixed incorrect check of defaults
+%
+% Revision 1.18  2009/03/26 14:26:57  jansch
+% *** empty log message ***
+%
 % Revision 1.17  2009/03/11 13:29:33  roboos
 % added option for resampling the data onto the time axis of another dataset. This supports both down- and upsampling.
 %
@@ -110,16 +116,21 @@ cfg = checkconfig(cfg, 'trackconfig', 'on');
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % set the defaults
-if ~isfield(cfg, 'resamplefs'), cfg.resamplefs = 256;  end
+if ~isfield(cfg, 'resamplefs'), cfg.resamplefs = [];   end
+if ~isfield(cfg, 'time'),       cfg.time = {};         end
 if ~isfield(cfg, 'detrend'),    cfg.detrend = [];      end  % no default to enforce people to consider backward compatibility problem, see below
 if ~isfield(cfg, 'blc'),        cfg.blc = 'no';        end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text'; end
 if ~isfield(cfg, 'trials'),     cfg.trials = 'all';    end
-if ~isfield(cfg, 'time'),       cfg.time = {};         end
 if ~isfield(cfg, 'method'),     cfg.method = 'pchip';  end  % interpolation method
 
 if isempty(cfg.detrend)
   error('The previous default to apply detrending has been changed. Recommended is to apply a baseline correction instead of detrending. See the help of this function for more details.');
+end
+
+%set default resampling frequency
+if isempty(cfg.resamplefs) && isempty(cfg.time),
+  cfg.resamplefs = 256;
 end
 
 % select trials of interest
@@ -143,8 +154,8 @@ if ~strcmp(cfg.trials, 'all')
   end
 end
 
-usefsample = isfield(cfg, 'fsample') && ~isempty(cfg.fsample);
-usetime   = isfield(cfg, 'time') && ~isempty(cfg.time);
+usefsample = ~isempty(cfg.resamplefs);
+usetime    = ~isempty(cfg.time);
 
 if usefsample && usetime
   error('you should either specify cfg.resamplefs or cfg.time')
@@ -227,7 +238,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.17 2009/03/11 13:29:33 roboos Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.19 2009/03/26 14:28:04 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

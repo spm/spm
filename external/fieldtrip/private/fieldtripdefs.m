@@ -7,6 +7,9 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.13  2009/03/26 09:28:17  roboos
+% removed fixpath from the matlab path
+%
 % Revision 1.12  2008/11/12 11:41:54  sashae
 % changed trackconfig options
 %
@@ -50,12 +53,6 @@ global ft_default
 if ~isfield(ft_default, 'trackconfig'), ft_default.trackconfig = 'off';   end % cleanup, report, off
 if ~isfield(ft_default, 'checkconfig'), ft_default.checkconfig = 'loose'; end % pedantic, loose, silent
 if ~isfield(ft_default, 'checksize'),   ft_default.checksize   = 1e5;     end % number in bytes, can be inf
-
-try
-  % this is to help in converting the directory layout while at the same time maintainiong backward compatibility
-  % NOTE THAT THIS ONE SHOULD BE ADDED THE FIRST TO ENSURE THAT IT IS THE LOWEST ON THE PATH
-  hastoolbox('fixpath', 1, 1);
-end
 
 try
   % this contains general usefull functions, that do not have to be private

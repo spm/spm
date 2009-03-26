@@ -23,6 +23,9 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.8  2009/03/26 14:57:04  roboos
+% moved the unit estimation to a seperate function
+%
 % Revision 1.7  2009/03/11 11:28:24  roboos
 % detect as mm for very wide anatomical MRIs (happens at the fcdc with the ctf MRIs)
 %
@@ -86,33 +89,24 @@ else
         error('cannot determine geometrical units of volume conduction model');
     end % switch
     
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    % determine the units by looking at the size
+    unit = estimate_units(size);
 
   elseif senstype(obj, 'meg')
     size = norm(range(obj.pnt));
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    unit = estimate_units(size);
 
   elseif senstype(obj, 'eeg')
     size = norm(range(obj.pnt));
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    unit = estimate_units(size);
 
   elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
     size = norm(range(obj.pnt));
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    unit = estimate_units(size);
     
   elseif isfield(obj, 'pos') && ~isempty(obj.pos)
     size = norm(range(obj.pos));
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
+    unit = estimate_units(size);
 
   elseif isfield(obj, 'transform') && ~isempty(obj.transform)
     % construct the corner points of the voxel grid in head coordinates
@@ -131,21 +125,12 @@ else
       ];
     pos = warp_apply(obj.transform, pos);
     size = norm(range(pos));
-    % do some magic based on the size
-    unit = {'m', 'dm', 'cm', 'mm'};
-    indx =  round(log10(size)+2-0.2);
-    if indx>4
-      warning('assuming mm units');
-      indx = 4;
-    end
-    unit = unit{indx};
+    unit = estimate_units(size);
     
   elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
     size = norm(range(obj.fid.pnt));
-    % do some magic based on the size
-    unit  = {'m', 'dm', 'cm', 'mm'};
-    unit  = unit{round(log10(size)+2-0.2)};
-
+    unit = estimate_units(size);
+    
   else
     error('cannot determine geometrical units');
     
