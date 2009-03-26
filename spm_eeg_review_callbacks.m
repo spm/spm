@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2963 2009-03-26 16:12:45Z jean $
+% $Id: spm_eeg_review_callbacks.m 2966 2009-03-26 16:44:05Z jean $
 
 spm('pointer','watch');
 drawnow
@@ -215,8 +215,10 @@ switch varargin{1}
                         in.ind = I;
                         y = y(:,x);
                         spm_eeg_plotScalpData(y,pos,labels,in);
-%                         D.PSD.handles.hli = in.hl;
-%                         set(D.PSD.handles.hfig,'userdata',D);
+                        try
+                            D.PSD.handles.hli = in.hl;
+                            set(D.PSD.handles.hfig,'userdata',D);
+                        end
                     catch
                         msgbox('Get 2d positions for these channels!')
                     end
@@ -235,17 +237,11 @@ switch varargin{1}
                 
                 try     % EEG
                     try
-                        if numel(D.other.inv{end}.datareg) == 1
-                            pos3d = spm_eeg_inv_transform_points(...
-                                D.other.inv{end}.datareg.toMNI,...
-                                D.other.inv{end}.datareg.sensors.pnt);
-                        else % multimodal EEG/MEG
-                            for i=1:numel(D.other.inv{end}.datareg)
-                                if isequal(D.other.inv{end}.datareg(i).modality,'EEG')
-                                    pos3d = spm_eeg_inv_transform_points(...
-                                        D.other.inv{end}.datareg(i).toMNI,...
-                                        D.other.inv{end}.datareg(i).sensors.pnt);
-                                end
+                        for i=1:numel(D.other.inv{end}.datareg)
+                            if isequal(D.other.inv{end}.datareg(i).modality,'EEG')
+                                pos3d = spm_eeg_inv_transform_points(...
+                                    D.other.inv{end}.datareg(i).toMNI,...
+                                    D.other.inv{end}.datareg(i).sensors.pnt);
                             end
                         end
                         opt.figname = 'Coregistred EEG sensor positions';
@@ -278,19 +274,13 @@ switch varargin{1}
                     axis(opt.ParentAxes,'off')
                 end
                 try     % MEG
-                    clear opt
+                    clear opt pos3d o labels
                     try % multimodal EEG/MEG
-                        if numel(D.other.inv{end}.datareg) == 1
-                            pos3d = spm_eeg_inv_transform_points(...
-                                D.other.inv{end}.datareg.toMNI,...
-                                D.other.inv{end}.datareg.sensors.pnt);
-                        else
-                            for i=1:numel(D.other.inv{end}.datareg)
-                                if isequal(D.other.inv{end}.datareg(i).modality,'MEG')
-                                    pos3d = spm_eeg_inv_transform_points(...
-                                        D.other.inv{end}.datareg(i).toMNI,...
-                                        D.other.inv{end}.datareg(i).sensors.pnt);
-                                end
+                        for i=1:numel(D.other.inv{end}.datareg)
+                            if isequal(D.other.inv{end}.datareg(i).modality,'MEG')
+                                pos3d = spm_eeg_inv_transform_points(...
+                                    D.other.inv{end}.datareg(i).toMNI,...
+                                    D.other.inv{end}.datareg(i).sensors.pnt);
                             end
                         end
                         opt.figname = 'Coregistred MEG sensor positions';
@@ -528,6 +518,15 @@ switch varargin{1}
                                 set(ha2,'xlim',[min(pst),max(pst)],...
                                     'ylim',get(D.PSD.handles.axes(indAxes),'ylim'))
                                 xlabel(ha2,'time (in ms after time onset)')
+                                unit = 'unknown';
+                                try
+                                    unit = D.channels(VIZU.visuSensors(indAxes)).units;
+                                end
+                                if isequal(unit,'unknown')
+                                    ylabel(ha2,'field intensity ')
+                                else
+                                    ylabel(ha2,['field intensity (in ',unit,')'])
+                                end
                                 title(ha2,['channel ',chanLabel,...
                                     ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
 
@@ -542,6 +541,7 @@ switch varargin{1}
                                     set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
                                         'xlim',[1 length(pst)]);
                                     xlabel(ha2,'time (in ms after time onset)')
+                                    ylabel(ha2,'power in frequency space')
                                     title(ha2,['channel ',chanLabel,...
                                         ' (',D.channels(VIZU.visuSensors(indAxes)).type,')',...
                                         ' -- frequency: ',num2str(D.transform.frequencies),' Hz'])

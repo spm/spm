@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2963 2009-03-26 16:12:45Z jean $
+% $Id: spm_eeg_inv_vbecd.m 2966 2009-03-26 16:44:05Z jean $
 
 
 
@@ -192,7 +192,11 @@ for i = 1:P.Niter
 
 end
 
-set(P.handles.hte(2),'string','VB for ECDs: done.')
+try
+    set(P.handles.hte(2),'string','VB for ECDs: done.')
+catch
+    P.ok = 0;
+end
 P = rmfield(P,'handles');
 
 % rescale back to original units
@@ -222,9 +226,6 @@ function [mu,Sigma,DE,gmn,gm,dgm,P] = ...
 PreviousMu = mu;
 [PreviousI,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
     logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
-
-deltaMu
-pause
 
 maxIter = 16;
 rdI = 1e-4;
