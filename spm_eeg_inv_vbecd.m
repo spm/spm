@@ -31,26 +31,21 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2945 2009-03-24 21:47:29Z jean $
+% $Id: spm_eeg_inv_vbecd.m 2963 2009-03-26 16:12:45Z jean $
 
 
 
 
 % unpack model, priors, data
 %---------------------------
-fromMNI = P.forward.fromMNI;
-toMNI = P.forward.toMNI;
 
 a10 = P.priors.a10; b10 = P.priors.b10;
 a20 = P.priors.a20; b20 = P.priors.b20;
 a30 = P.priors.a30; b30 = P.priors.b30;
 
 Nd = length(P.priors.mu_w0)/3;
-mu_w0 = fromMNI(1:3,1:3)*reshape(P.priors.mu_w0,3,Nd)/det(fromMNI);
-mu_w0 = mu_w0(:);
-mu_s0 = spm_eeg_inv_transform_points(fromMNI, ...
-    reshape(P.priors.mu_s0,3,Nd)')';
-mu_s0 = mu_s0(:);
+mu_w0 = P.priors.mu_w0;
+mu_s0 = P.priors.mu_s0;
 iS_w0 = P.priors.iS_w0;
 iS_s0 = P.priors.iS_s0;
 
@@ -80,14 +75,14 @@ P.dv = 10^-2; % used to compute step-size for gradients
 %---------------
 
 % ensure data have apropriate scale
-if strcmp(P.modality,'MEG')
-    % sc_y = norm(y)/10;
-    sc_y = 1e-8;
-    y = y/sc_y;
-else
-    sc_y = 1;
-end
-
+% if strcmp(P.modality,'MEG')
+%     % sc_y = norm(y)/10;
+%     sc_y = 1e-8;
+%     y = y/sc_y;
+% else
+%     sc_y = 1;
+% end
+sc_y = 1;
 % Initialize posterior with prior
 b10 = b10*sc_y.^2;
 a1 = a10;
@@ -123,6 +118,14 @@ F(1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
     -spm_kl_gamma(1/b3,a3,1/b30,a30);
 
 P.gmn = gmn;
+
+
+P.handles.hfig  = spm_figure('GetWin','Graphics');
+spm_clf(P.handles.hfig)
+P.handles.SPMdefaults.col = get(P.handles.hfig,'colormap');
+P.handles.SPMdefaults.renderer = get(P.handles.hfig,'renderer');
+set(P.handles.hfig,'userdata',P)
+
 [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,1,[],F);
 
 P.ok = 1;
@@ -177,16 +180,7 @@ for i = 1:P.Niter
 
     % check termination condition
     dF = (F(i+1)-F(i));%/abs(F(i));
-    if -dF > P.threshold_dF
-        a=Ftest';
-        a = a(:);
-        ad=diff(a);
-        f=reshape([0;ad]', size(Ftest'))';
-        disp('Evidence Violation');
-
-        P.ok = 0;
-        break;
-    elseif abs(dF) < P.threshold_dF
+    if abs(dF) < P.threshold_dF
         P.dF(i) = dF;
         str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i+1), dF);
         fprintf('%s\n', str)
@@ -198,7 +192,7 @@ for i = 1:P.Niter
 
 end
 
-close(P.handles.hfig)
+set(P.handles.hte(2),'string','VB for ECDs: done.')
 P = rmfield(P,'handles');
 
 % rescale back to original units
@@ -206,12 +200,8 @@ mu_w = mu_w*sc_y;
 S_w = S_w*sc_y^2;
 
 % save results
-mu_w = reshape(mu_w,3,[]);
-post.mu_w = toMNI(1:3,1:3)*mu_w/det(toMNI);
-post.mu_w = post.mu_w(:);
-mu_sn = reshape(mu_s, 3, Np/3);
-mu_sn = spm_eeg_inv_transform_points( toMNI , mu_sn')';
-post.mu_s = mu_sn(:);
+post.mu_w = mu_w;
+post.mu_s = mu_s;
 post.S_w = S_w;
 post.S_s = S_s;
 post.a1 = a1; post.b1 = b1;
@@ -233,14 +223,17 @@ PreviousMu = mu;
 [PreviousI,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
     logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
 
-maxIter = 64;
-rdI = 1e-8;
+deltaMu
+pause
+
+maxIter = 16;
+rdI = 1e-4;
 stop = 0;
 it = 0;
 while stop == 0
     it = it+1;
     % make a move
-    mu = PreviousMu + deltaMu;
+    mu = Ts*(PreviousMu + deltaMu);
     % get variational energy (as well as next move)
     [I,nextSigma,NextdeltaMu,nextDE,nextgmn,nextgm,nextdgm] = ...
         logVarQ(mu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
@@ -251,7 +244,7 @@ while stop == 0
         if deltaI<0     % halve step size
             deltaMu = 0.5*deltaMu;
             P.pc = 100*it./maxIter;
-            displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'mGN');
+            P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'mGN');
         else            % accept move
             % propose a new GN move from there on
             deltaMu = NextdeltaMu;
@@ -259,11 +252,12 @@ while stop == 0
             gmn = nextgmn;
             gm = nextgm;
             dgm = nextdgm;
-            Sigma = nextSigma;
+            Sigma = Ts*nextSigma*Ts';
             PreviousMu = mu;
             PreviousI = I;
             P.pc = 100*it./maxIter;
-            displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'ecd');
+            P.gmn = gmn;
+            P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'ecd');
         end
     else                % stop Gauss-Newton search
         stop = 1;
@@ -302,12 +296,12 @@ else
     dy = y-Gw;
     I = -0.5*(a3/b3)*dmu0'*iSdmu0 ...
         -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) );
-    % Get local curvature of variational enery (-> cov matrix)
+    % Get local curvature of variational energy (-> cov matrix)
     DE = kron(S_w+mu_w*mu_w', eye(Nc));
-    Sigma = Ts*pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))*Ts';
+    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm));
     % standard Gauss-Newton move from mode and curvature
     deltaMu = Sigma*( (a3/b3)*iSdmu0 ...
-        + (a1/b1)*dgm'*(kron(mu_w,dy) ));%+ kron(S_w,In)*gm) );
+        + (a1/b1)*dgm'*(kron(mu_w,dy)) );%+ kron(S_w,In)*gm) );
 end
 
 
@@ -317,13 +311,6 @@ function [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,it,flag,F
 
 if ~exist('flag','var')
     flag = [];
-end
-
-try
-    figure(P.handles.hfig);
-catch
-    P.handles.hfig  = spm_figure('GetWin','Graphics');
-    spm_figure('Clear',P.handles.hfig);
 end
 
 
@@ -342,15 +329,15 @@ if isempty(flag) || isequal(flag,'ecd')
             'parent',P.handles.hfig,...
             'Position',[0.13 0.55 0.775 0.4],...
             'hittest','off',...
-            'visible','off');
+            'visible','off',...
+            'deleteFcn',@back2defaults);
         opt.ParentAxes = P.handles.axesECD;
         opt.hfig = P.handles.hfig;
     end
+    w = reshape(mu_w,3,[]);
+    s = reshape(mu_s, 3, []);
     [out] = spm_eeg_displayECD(...
-        reshape(mu_s,3,[]),...
-        reshape(mu_w,3,[]),...
-        reshape(diag(S_s),3,[]),...
-        [],opt);
+        s,w,reshape(diag(S_s),3,[]),[],opt);
         P.handles.hp = out.handles.hp;
         P.handles.hq = out.handles.hq;
         P.handles.hs = out.handles.hs;
@@ -375,6 +362,8 @@ catch
 end
 if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
     yHat = P.gmn*mu_w;
+    miY = min([yHat;y]);
+    maY = max([yHat;y]);
     try
         P.handles.axesYhat;
         d = get(P.handles.axesYhat,'userdata');
@@ -402,21 +391,22 @@ if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
     end
     try
         P.handles.axesYhatY;
-        set(P.handles.axesYhatY,'NextPlot','replace',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesYhatY,'square')
     catch
         figure(P.handles.hfig)
         P.handles.axesYhatY = axes(...
             'Position',[0.72 0.3 0.25 0.2],...
             'NextPlot','replace',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesYhatY,'square')
+            'box','on');
     end
     plot(P.handles.axesYhatY,y,yHat,'.')
+    set(P.handles.axesYhatY,...
+        'nextplot','add')
+    plot(P.handles.axesYhatY,[miY;maY],[miY;maY],'r')
+    set(P.handles.axesYhatY,...
+        'nextplot','replace')
     title(P.handles.axesYhatY,'predicted vs measured data')
+    axis(P.handles.axesYhatY,'square','tight')
+    grid(P.handles.axesYhatY,'on')
 
 end
 
@@ -424,57 +414,45 @@ if isempty(flag) || isequal(flag,'var')
     % plot precision hyperparameters
     try
         P.handles.axesVar1;
-        set(P.handles.axesVar1,'NextPlot','add',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar1,'square')
     catch
         figure(P.handles.hfig)
         P.handles.axesVar1 = axes(...
             'Position',[0.05 0.05 0.25 0.2],...
-            'NextPlot','replace',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar1,'square')
+            'NextPlot','add',...
+            'box','on');
     end
     plot(P.handles.axesVar1,it,log(a1./b1),'.')
     title(P.handles.axesVar1,'measurement noise precision (log)')
+    axis(P.handles.axesVar1,'square','tight')
+    grid(P.handles.axesVar1,'on')
 
     try
         P.handles.axesVar2;
-        set(P.handles.axesVar2,'NextPlot','add',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar2,'square')
     catch
         figure(P.handles.hfig)
         P.handles.axesVar2 = axes(...
             'Position',[0.37 0.05 0.25 0.2],...
-            'NextPlot','replace',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar2,'square')
+            'NextPlot','add',...
+            'box','on');
     end
     plot(P.handles.axesVar2,it,log(a2./b2),'.')
     title(P.handles.axesVar2,'ECD orientations precision (log)')
+    axis(P.handles.axesVar2,'square','tight')
+    grid(P.handles.axesVar2,'on')
 
     try
         P.handles.axesVar3;
-        set(P.handles.axesVar3,'NextPlot','add',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar3,'square')
     catch
         figure(P.handles.hfig)
         P.handles.axesVar3 = axes(...
             'Position',[0.72 0.05 0.25 0.2],...
-            'NextPlot','replace',...
-            'hittest','off',...
-            'box','on','xgrid','on','ygrid','on');
-        axis(P.handles.axesVar3,'square')
+            'NextPlot','add',...
+            'box','on');
     end
     plot(P.handles.axesVar3,it,log(a3./b3),'.')
     title(P.handles.axesVar3,'ECD location precision (log)')
+    axis(P.handles.axesVar3,'square','tight')
+    grid(P.handles.axesVar3,'on')
 
 end
 
@@ -492,7 +470,7 @@ if ~isempty(flag) && (isequal(flag,'ecd') || isequal(flag,'mGN') )
         ['ECD locations: Modified Gauss-Newton scheme... ',num2str(floor(P.pc)),'%'])
 else
     try
-        set(P.handles.hte(2),'string',' ')
+        set(P.handles.hte(2),'string','VB updates on hyperparameters')
     end       
 end
 
@@ -502,7 +480,7 @@ catch
     figure(P.handles.hfig)
     P.handles.hte(1) = uicontrol('style','text',...
         'units','normalized',...
-        'position',[0.2,0.95,0.6,0.02],...
+        'position',[0.2,0.94,0.6,0.02],...
         'backgroundcolor',[1,1,1]);
 end
 try
@@ -516,17 +494,19 @@ catch
     figure(P.handles.hfig)
     P.handles.hti = uicontrol('style','text',...
         'units','normalized',...
-        'position',[0.3,0.98,0.4,0.02],...
+        'position',[0.3,0.97,0.4,0.02],...
         'backgroundcolor',[1,1,1],...
         'string',['VB ECD inversion: trial #',num2str(P.ltr(P.ii))]);
 end
-
-
-
 drawnow
 
-
-
+function back2defaults(e1,e2)
+hf = spm_figure('FindWin','Graphics');
+P = get(hf,'userdata');
+try
+    set(hf,'colormap',P.handles.SPMdefaults.col);
+    set(hf,'renderer',P.handles.SPMdefaults.renderer);
+end
 
 
 

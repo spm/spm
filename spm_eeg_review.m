@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2943 2009-03-24 19:09:45Z jean $
+% $Id: spm_eeg_review.m 2963 2009-03-26 16:12:45Z jean $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -20,29 +20,16 @@ if nargin == 0
 end
 D = struct(D);
 
-if nargin < 2
-    flag = 5;
-end
 
 %-- Initialize SPM figure
 D.PSD.handles.hfig = spm_figure('GetWin','Graphics');
 spm_clf(D.PSD.handles.hfig)
-% D.PSD.handles.hfig = findobj('Tag', 'Graphics');
-% if isempty(D.PSD.handles.hfig)
-%     D.PSD.handles.hfig = spm_figure('create','Graphics','Graphics','on');
-% else
-%     clf(D.PSD.handles.hfig)
-% end
-set(D.PSD.handles.hfig,...
-    'renderer','OpenGL',...
-    'units','normalized');
+% Get default SPM graphics options --> revert back to defaults 
+D.PSD.SPMdefaults.col = get(D.PSD.handles.hfig,'colormap');
+D.PSD.SPMdefaults.renderer = get(D.PSD.handles.hfig,'renderer');
 
 %-- Create default userdata structure
-if exist('inv','var')
-    try
-        D.PSD.source.VIZU.current = inv;
-    end
-end
+try D.PSD.source.VIZU.current = inv; end
 [D] = PSD_initUD(D);
 if ~strcmp(D.transform.ID,'time')
     D.PSD.type = 'epoched';
@@ -61,27 +48,26 @@ callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''eeg'')',...
 try
     [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],flag);
 catch
-    clear flag
     [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],5);
 end
-set(h.hp,'deletefcn','colormap(''gray'');');
 D.PSD.handles.tabs = h;
 
 % Add prepare and SAVE buttons
 object.type = 'buttons';
-object.list = [1];
+object.list = 1;
 D = spm_eeg_review_uis(D,object);
-
+set(D.PSD.handles.BUTTONS.pop1,...
+    'deletefcn',@back2defaults)
 
 %-- Attach userdata to SPM graphics window
 D.PSD.D0 = rmfield(D,'PSD');
 set(D.PSD.handles.hfig,...
+    'renderer','OpenGL',...
+    'units','normalized',...
     'color',[1 1 1],...
     'userdata',D);
 
-
-
-if exist('flag','var')
+try
     switch flag
         case 1
             spm_eeg_review_callbacks('visu','main','eeg')
@@ -96,11 +82,20 @@ if exist('flag','var')
         case 6
             spm_eeg_review_callbacks('visu','main','source')
     end
-else
+catch
     % Initilize display on 'info'
     spm_eeg_review_callbacks('visu','main','info')
 end
 
+
+%% Revert graphical properties of SPM figure back to normal
+function back2defaults(e1,e2)
+hf = spm_figure('FindWin','Graphics');
+D = get(hf,'userdata');
+try
+    set(D.PSD.handles.hfig,'colormap',D.PSD.SPMdefaults.col);
+    set(D.PSD.handles.hfig,'renderer',D.PSD.SPMdefaults.renderer);
+end
 
 
 %% initialization of the userdata structure
@@ -241,9 +236,13 @@ if isfield(D.other,'inv') && ~isempty(D.other.inv)
                 D.other.inv{isInv(i)}.comment{1} = num2str(i);
             end
             if ~isfield(D.other.inv{isInv(i)},'date')
-                D.other.inv{isInv(i)}.date(1,:) = 'unknown';
-                D.other.inv{isInv(i)}.date(2,:) = '       ';
+                D.other.inv{isInv(i)}.date(1,:) = '?';
+                D.other.inv{isInv(i)}.date(2,:) = ' ';
             end
+            if isfield(D.other.inv{isInv(i)}.inverse,'R2') ...
+                   && isnan(D.other.inv{isInv(i)}.inverse.R2)
+                D.other.inv{isInv(i)}.inverse.R2 = [];
+            end 
             labels{i} = [D.other.inv{isInv(i)}.comment{1}];
             callbacks{i} = ['spm_eeg_review_callbacks(''visu'',''inv'',',num2str(i),')'];
             F(i) = D.other.inv{isInv(i)}.inverse.F;

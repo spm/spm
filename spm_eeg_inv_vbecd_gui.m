@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2949 2009-03-25 11:57:16Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 2963 2009-03-26 16:12:45Z jean $
 
 %%
 % Load data, if necessary
@@ -84,7 +84,7 @@ P = [];
 P.modality = 'EEG';
 
 % Uncomment the line below to try other modalities
-% P.modality = spm_eeg_modality_ui(D, 1, 1);
+P.modality = spm_eeg_modality_ui(D, 1, 1);
 
 if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
     for m = 1:numel(D.inv{val}.forward)
@@ -94,11 +94,19 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
                 P.forward.vol = fileio_read_vol(P.forward.vol);
             end
             P.forward.sens = D.inv{val}.datareg(m).sensors;
-            % Spatial tranformations
-            P.forward.fromMNI = D.inv{val}.datareg.fromMNI;
-            P.forward.toMNI = D.inv{val}.datareg.toMNI;
             % Channels to use
             P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
+            
+            
+            M1 = D.inv{val}.datareg.toMNI;
+            if ~isequal(P.modality,'EEG')
+                [U, L, V] = svd(M1(1:3, 1:3));
+                M1(1:3,1:3) =U*V';
+            end
+            
+            P.forward.sens = forwinv_transform_sens(M1, P.forward.sens);
+            P.forward.vol = forwinv_transform_vol(M1, P.forward.vol);
+            
         end
     end
 end
@@ -112,6 +120,11 @@ end
  
 [P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
+
+if ~isfield(P.forward.sens,'prj')
+    P.forward.sens.prj = D.coor2D(P.Ic);
+end
+
 
 %% 
 % Deal with data
@@ -203,8 +216,14 @@ while adding_dips
                     'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
-            dip_pr(dip_q).mu_s0 = ...
-                spm_input('Location prior',1+tr_q+dip_q+2,'e',[0 0 0])';
+            str = 'Location prior';
+            while 1
+                s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                outside = ~forwinv_inside_vol(s0',P.forward.vol);
+                if all(~outside), break, end
+                str = 'Prior location must be inside head';
+            end
+            dip_pr(dip_q).mu_s0 = s0;
             dip_pr(dip_q).ab30 = def_ab_info;
         else
             % no location  prior
@@ -236,8 +255,13 @@ while adding_dips
                     'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
-            tmp = spm_input('Location prior (right only)',...
-                                    1+tr_q+dip_q+2,'e',[10 0 0])';
+            str = 'Location prior (right only)';
+            while 1
+                tmp = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                outside = ~forwinv_inside_vol(tmp',P.forward.vol);
+                if all(~outside), break, end
+                str = 'Prior location must be inside head';
+            end
             tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
             dip_pr(dip_q).mu_s0 = tmp ;
             dip_pr(dip_q).ab30 = def_ab_info;
@@ -362,6 +386,12 @@ for ii=1:length(ltr)
     P.priors.a10 = numel(P.y);
     P.priors.b10 = numel(P.y)*1e-18;
     
+    P.priors.a20 = 1;
+    P.priors.b20 = 1e8;
+    
+    P.priors.a30 = 1;
+    P.priors.b30 = 1e8;
+    
     fprintf('\nLocalising source nr %d.\n',ii)
     P = spm_eeg_inv_vbecd(P);
 
@@ -381,6 +411,8 @@ D.inv{val}.inverse = inverse;
 % Save results and display
 %-------------------------
 save(D)
+P.handles.hfig  = spm_figure('GetWin','Graphics');
+spm_clf(P.handles.hfig)
 spm_eeg_inv_vbecd_disp('init',D)
 
 return

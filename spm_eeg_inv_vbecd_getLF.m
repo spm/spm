@@ -16,7 +16,7 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 2828 2009-03-05 11:38:20Z christophe $
+% $Id: spm_eeg_inv_vbecd_getLF.m 2963 2009-03-26 16:12:45Z jean $
 
 
 if nargin<4, step = 0; end
@@ -36,6 +36,10 @@ gmn = gm; % leadfield
 [Nc, Np] = size(gmn);
 if nargout >= 2
     gm = gmn(:); % vectorized leadfield
+end
+
+if ~forwinv_senstype(sens, 'eeg')
+    step = 10 +0.*step;
 end
 
 if all(step > 0) && nargout == 3
@@ -64,3 +68,4 @@ if all(step > 0) && nargout == 3
     dgm = dgm(:, ind(:));
     dgm = reshape(dgm, Np*Nc, Np);    
 end
+

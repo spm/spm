@@ -4,15 +4,17 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2958 2009-03-26 11:19:20Z guillaume $
-
-try
-    D = get(gcf,'userdata');
-    handles = D.PSD.handles;
-end
+% $Id: spm_eeg_review_callbacks.m 2963 2009-03-26 16:12:45Z jean $
 
 spm('pointer','watch');
 drawnow
+
+try
+    D = get(spm_figure('FindWin','Graphics'),'userdata');
+    handles = D.PSD.handles;
+end
+
+
 
 switch varargin{1}
 
@@ -213,8 +215,8 @@ switch varargin{1}
                         in.ind = I;
                         y = y(:,x);
                         spm_eeg_plotScalpData(y,pos,labels,in);
-                        D.PSD.handles.hli = in.hl;
-                        set(D.PSD.handles.hfig,'userdata',D);
+%                         D.PSD.handles.hli = in.hl;
+%                         set(D.PSD.handles.hfig,'userdata',D);
                     catch
                         msgbox('Get 2d positions for these channels!')
                     end
@@ -230,10 +232,30 @@ switch varargin{1}
                 msc = fullfile(spm('Dir'),'canonical','scalp_2562.surf.gii');               
                 
                 % get and plot 3D sensor positions
+                
                 try     % EEG
-                    pos3d = [D.sensors.eeg.pnt];
+                    try
+                        if numel(D.other.inv{end}.datareg) == 1
+                            pos3d = spm_eeg_inv_transform_points(...
+                                D.other.inv{end}.datareg.toMNI,...
+                                D.other.inv{end}.datareg.sensors.pnt);
+                        else % multimodal EEG/MEG
+                            for i=1:numel(D.other.inv{end}.datareg)
+                                if isequal(D.other.inv{end}.datareg(i).modality,'EEG')
+                                    pos3d = spm_eeg_inv_transform_points(...
+                                        D.other.inv{end}.datareg(i).toMNI,...
+                                        D.other.inv{end}.datareg(i).sensors.pnt);
+                                end
+                            end
+                        end
+                        opt.figname = 'Coregistred EEG sensor positions';
+                    catch
+                        pos3d = [D.sensors.eeg.pnt];
+                        pos3d = pos3d(D.PSD.EEG.I,:);
+                        opt.figname = 'Uncoregistred EEG sensor positions';
+                    end
+                    pos3d(1,:);
                     % display canonical mesh
-                    opt.figname = 'Sensor positions';
                     o = spm_eeg_render(mco,opt);
                     opt.hfig = o.handles.fi;
                     opt.ParentAxes = o.handles.ParentAxes;
@@ -242,26 +264,66 @@ switch varargin{1}
                     set(o.handles.transp,'value',0.75)
                     % display sensor position
                     figure(o.handles.fi);
-                    hold on
-                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    hold on
-                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
-                    axis equal tight off
+                    set(opt.ParentAxes,'nextplot','add')
+                    plot3(opt.ParentAxes,...
+                        pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    try
+                        labels = D.PSD.EEG.VIZU.montage.clab;
+                        text(pos3d(:,1),pos3d(:,2),pos3d(:,3),...
+                            labels,...
+                            'parent',opt.ParentAxes);
+                    end
+                    axis(opt.ParentAxes,'equal')
+                    axis(opt.ParentAxes,'tight')
+                    axis(opt.ParentAxes,'off')
                 end
                 try     % MEG
-                    pos3d = [D.sensors.meg.pnt];
+                    clear opt
+                    try % multimodal EEG/MEG
+                        if numel(D.other.inv{end}.datareg) == 1
+                            pos3d = spm_eeg_inv_transform_points(...
+                                D.other.inv{end}.datareg.toMNI,...
+                                D.other.inv{end}.datareg.sensors.pnt);
+                        else
+                            for i=1:numel(D.other.inv{end}.datareg)
+                                if isequal(D.other.inv{end}.datareg(i).modality,'MEG')
+                                    pos3d = spm_eeg_inv_transform_points(...
+                                        D.other.inv{end}.datareg(i).toMNI,...
+                                        D.other.inv{end}.datareg(i).sensors.pnt);
+                                end
+                            end
+                        end
+                        opt.figname = 'Coregistred MEG sensor positions';
+                    catch
+                        pos3d = [D.sensors.meg.pnt];
+                        indMeg = unique([D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
+                        pos3d = pos3d(indMeg,:);
+                        opt.figname = 'Uncoregistred MEG sensor positions';
+                    end
+                    pos3d(1,:);
                     % display canonical mesh
-                    opt.figname = 'Sensor positions';
                     o = spm_eeg_render(mco,opt);
                     opt.hfig = o.handles.fi;
+                    opt.ParentAxes = o.handles.ParentAxes;
                     o = spm_eeg_render(msc,opt);
                     set(o.handles.p,'FaceAlpha',0.75)
                     set(o.handles.transp,'value',0.75)
                     % display sensor position
                     figure(o.handles.fi);
-                    hold on
-                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    axis equal tight off
+                    set(opt.ParentAxes,'nextplot','add')
+                    plot3(opt.ParentAxes,...
+                        pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    try
+                        labels = cat(2,...
+                            D.PSD.MEG.VIZU.montage.clab,...
+                            D.PSD.MEGPLANAR.VIZU.montage.clab);
+                        text(pos3d(:,1),pos3d(:,2),pos3d(:,3),...
+                            labels,...
+                            'parent',opt.ParentAxes);
+                    end
+                    axis(opt.ParentAxes,'equal')
+                    axis(opt.ParentAxes,'tight')
+                    axis(opt.ParentAxes,'off')
                 end
             
             %% Update display for 'SOURCE' main tab
@@ -792,8 +854,6 @@ if isstruct(D)&& isfield(D,'PSD') && ...
     d1 = rmfield(D,{'history','PSD'});
     d0 = rmfield(D.PSD.D0,'history');
     if isequal(d1,d0)
-        % The objects only differ by their history
-        % => remove last operation from modified object
         set(D.PSD.handles.BUTTONS.pop1,...
             'BackgroundColor',[0.8314 0.8157 0.7843])
     else
