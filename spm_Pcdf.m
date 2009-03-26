@@ -5,13 +5,13 @@ function F = spm_Pcdf(x,l)
 % x - ordinates
 % l - Poisson mean parameter (lambda l>0) [Defaults to 1]
 % F - Poisson CDF
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Pcdf implements the Cumulative Distribution Function of the
 % Poisson distribution.
 % 
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Poisson Po(l) distribution is the distribution of the number of
 % events in unit time for a stationary Poisson process with mean
 % parameter lambda=1, or equivalently rate 1/l. If random variable X is
@@ -26,7 +26,7 @@ function F = spm_Pcdf(x,l)
 %           {    - i=0
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % F(x), the CDF of the Poisson distribution, for X~Po(l), is related
 % to the incomplete gamma function, by:
 %
@@ -35,14 +35,14 @@ function F = spm_Pcdf(x,l)
 % See Press et al., Sec6.2 for further details.
 %
 % Normal approximation:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % For large lambda the normal approximation Y~:~N(l,l) may be used.
 % With continuity correction this gives
 % F(x) ~=~ Phi((x+.5-l)/sqrt(l))
 % where Phi is the standard normal CDF, and ~=~ means "appox. =".
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -55,15 +55,15 @@ function F = spm_Pcdf(x,l)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Pcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Pcdf.m 2975 2009-03-26 21:43:31Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, l=1; end
 if nargin<1, error('Insufficient arguments'), end
 
@@ -78,14 +78,15 @@ if all(xa) & any(diff(as(xa,:)))
 
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for l>0. Return NaN if undefined.
 md = ( ones(size(x))  &  l>0 );
 if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+    warning('SPM:outOfRangePoisson',...
+        'Returning NaN for out of range arguments'), end
 
 %-Non-zero only where defined and x>=0
 Q  = find( md  &  x>=0 );

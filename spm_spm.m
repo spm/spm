@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2957 2009-03-26 11:18:48Z guillaume $
+% $Id: spm_spm.m 2975 2009-03-26 21:43:31Z guillaume $
 
-SVNid   = '$Rev: 2957 $';
+SVNid   = '$Rev: 2975 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -330,7 +330,8 @@ if exist(fullfile('.','mask.img'),'file') == 2
         spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
         return
     else
-        warning('Overwriting old results\n\t (pwd = %s) ',pwd)
+        warning('Overwriting old results\n\t (pwd = %s) ',pwd);
+        try, SPM = rmfield(SPM,'xVol'); end
     end
 end
 
@@ -485,6 +486,10 @@ try
         
         % z dimension is percent
         %------------------------------------------------------------------
+        M(3,3) = 100 / DIM(3);
+        M(3,4) = 0;
+        [VY.mat]  = deal(M);
+        SPM.xY.VY = VY;
         units = {'mm' 'mm' '%'};
     end
 end

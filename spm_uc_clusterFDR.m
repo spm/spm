@@ -33,7 +33,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 2858 2009-03-11 16:12:12Z guillaume $
+% $Id: spm_uc_clusterFDR.m 2975 2009-03-26 21:43:31Z guillaume $
 
 % Threshold the statistical field 
 %--------------------------------------------------------------------------
@@ -52,9 +52,11 @@ N        = N .* V2R;
 %--------------------------------------------------------------------------
 Ps       = zeros(1,numel(N));
 Pk       = zeros(1,numel(N));
+ws       = warning('off','SPM:outOfRangePoisson');
 for i = 1:length(N)
     [Pk(i), Ps(i)] = spm_P_RF(1,N(i),ui,df,STAT,R,n);
 end
+warning(ws);
 [Ps, J]  = sort(Ps, 'ascend');
 
 S        = length(Ps);

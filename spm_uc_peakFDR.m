@@ -31,7 +31,9 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 2813 2009-03-02 18:56:35Z guillaume $
+% $Id: spm_uc_peakFDR.m 2975 2009-03-26 21:43:31Z guillaume $
+
+ws       = warning('off','SPM:outOfRangePoisson');
 
 % Extract list of local maxima whose height is above ui
 %--------------------------------------------------------------------------
@@ -70,3 +72,5 @@ if isempty(I)
 else
     u    = Z(J(I));
 end
+
+warning(ws);
