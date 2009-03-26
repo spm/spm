@@ -2,9 +2,9 @@
 
 Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM parameters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).
 
-The design matrix defines the experimental design and the nature of hypothesis testing to be implemented.  The design matrix has one row for each scan and one column for each effect or explanatory variable. (eg. regressor or stimulus function). You can build design matrices with separable session-specific partitions.  Each partition may be the same (in which case it is only necessary to specify it once) or different. 
+The design matrix defines the experimental design and the nature of hypothesis testing to be implemented.  The design matrix has one row for each scan and one column for each effect or explanatory variable. (eg. regressor or stimulus function). You can build design matrices with separable session-specific partitions.  Each partition may be the same (in which case it is only necessary to specify it once) or different.
 
-Responses can be either event- or epoch related, the only distinction is the duration of the underlying input or stimulus function. Mathematically they are both modeled by convolving a series of delta (stick) or box functions (u), indicating the onset of an event or epoch with a set of basis functions.  These basis functions model the hemodynamic convolution, applied by the brain, to the inputs.  This convolution can be first-order or a generalized convolution modeled to second order (if you specify the Volterra option). The same inputs are used by the Hemodynamic model or Dynamic Causal Models which model the convolution explicitly in terms of hidden state variables. 
+Responses can be either event- or epoch related, the only distinction is the duration of the underlying input or stimulus function. Mathematically they are both modeled by convolving a series of delta (stick) or box functions (u), indicating the onset of an event or epoch with a set of basis functions.  These basis functions model the hemodynamic convolution, applied by the brain, to the inputs.  This convolution can be first-order or a generalized convolution modeled to second order (if you specify the Volterra option). The same inputs are used by the Hemodynamic model or Dynamic Causal Models which model the convolution explicitly in terms of hidden state variables.
 
 Event-related designs may be stochastic or deterministic.  Stochastic designs involve one of a number of trial-types occurring with a specified probability at successive intervals in time.  These probabilities can be fixed (stationary designs) or time-dependent (modulated or non-stationary designs).  The most efficient designs obtain when the probabilities of every trial type are equal. A critical issue in stochastic designs is whether to include null events. If you wish to estimate the evoked response to a specific event type (as opposed to differential responses) then a null event must be included (even if it is not modeled explicitly).
 
@@ -12,18 +12,18 @@ Event-related designs may be stochastic or deterministic.  Stochastic designs in
 \begin{center}
 \includegraphics[width=100mm]{fmri_spec/fmri_model}
 \end{center}
-\caption{\em After starting SPM in fMRI mode, pressing the `Specify 1st-level' button, and then double-clicking on the `+fMRI model specification' text, the SPM graphics window should appear as above. The options under `-fMRI model specification' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). A double-click on options prefixed by a '+' will allow you to specify options at a greater level of detail. Options highlighted with a `$<$-X' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{spec}}
+\caption{\em After starting SPM in fMRI mode and pressing the ``Specify 1st-level'' button, the SPM batch editor window should appear as above. The options for ``fMRI model specification'' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). Options highlighted with a ``$<$-X'' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{spec}}
 \end{figure}
 
-In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two `levels'. The `first level' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the `Specify first level' and `Estimate' options. The results of these analyses can then be presented as `case studies'. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a `Random-Effects (RFX) analysis' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the `summary-statistic' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a `second level' model. 
+In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two ``levels''. The `first level' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the ``Specify first level'' and ``Estimate'' options. The results of these analyses can then be presented as ``case studies''. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a ``Random-Effects (RFX) analysis'' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the ``summary-statistic'' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a ``second level'' model.
 
-Figure~\ref{spec} shows how the SPM graphics window appears during fMRI model specification. 
+Figure~\ref{spec} shows how the SPM graphics window appears during fMRI model specification.
 
 \section{Timing parameters}
 
 Specify various timing parameters needed to construct the design matrix. This includes the units of the design specification and the interscan interval.
 
-Also, with long TRs you may want to shift the regressors so that they are aligned to a particular slice.  This is effected by changing the microtime resolution and onset. 
+Also, with long TRs you may want to shift the regressors so that they are aligned to a particular slice.  This is effected by changing the microtime resolution and onset.
 
 \subsection{Units for design}
 
@@ -39,13 +39,13 @@ In Echo-Planar Imaging (EPI), data is acquired a plane at a time. To acquire a w
 
 It is possible, however, that experimental events may occur between scan (volume) acquisition times. This can be specified when building your design matrix either by (i) specifying your design in scans and using non-integer values  or (ii) specifying your design in seconds at a resolution greater than the TR.
 
-SPM takes these timing specifications and builds its regressors using a `microtime' time-scale. The microtime resolution, t, is the number of time-bins per scan. 
+SPM takes these timing specifications and builds its regressors using a `microtime' time-scale. The microtime resolution, t, is the number of time-bins per scan.
 
-Do not change this parameter unless you have a long TR and wish to shift regressors so that they are aligned to a particular slice. 
+Do not change this parameter unless you have a long TR and wish to shift regressors so that they are aligned to a particular slice.
 
 \subsection{Microtime onset}
 
-The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions).                                           
+The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions).
 
 Do not change the default setting unless you have a long TR. 
 
@@ -86,7 +86,7 @@ Condition Name
 
 \subparagraph{Onsets}
 
-Specify a vector of onset times for this condition type. This can be entered using the keyboard eg. typing in `100 300' and then hitting return or `100;300' or `[100,300]' or `[100,300]''.
+Specify a vector of onset times for this condition type. This can be entered using the keyboard eg. typing in ``100 300'' and then hitting return or ``100;300'' or ``[100,300]'' or ``[100,300]''.
 
 More usually, however, this specification takes place using variables that have been created before and loaded into matlab. For example, an \verb!my_onsets! cell array\footnote{Cell arrays are usually used in preference to matrices as different event types can then have different numbers of events.} might exist in a file you created earlier called \verb!my_design.mat!. You would then type \verb!load my_design! at the matlab command prompt before pressing the `Specify 1st-level' button. 
 
@@ -133,29 +133,29 @@ Enter the values that the regressor takes. This could also be, for example, the 
 
 If you have mutliple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. 
 
-You will first need to create a *.mat file containing a matrix R. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.
+You will first need to create a \verb!*.mat! file containing a matrix R. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.
 
 You then need to use SPM's file selector to select this \verb!*.mat! file.
 
 \subsubsection{High-pass filter}
 
-The default high-pass filter cutoff is 128 seconds. Slow signal drifts with a period longer than this will be removed. Use `Explore design' to ensure this cut-off is not removing too much experimental variance. This is described later in section~\ref{explore}. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.
+The default high-pass filter cutoff is 128 seconds. Slow signal drifts with a period longer than this will be removed. Use ``Explore design'' to ensure this cut-off is not removing too much experimental variance. This is described later in section~\ref{explore}. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.
 
 \section{Factorial design}
 
-If you have a factorial design then SPM can automatically generate the contrasts necessary to test for the main effects and interactions. 
+If you have a factorial design then SPM can automatically generate the contrasts necessary to test for the main effects and interactions.
 
 This includes the F-contrasts necessary to test for these effects at the within-subject level (first level) and the simple contrasts necessary to generate the contrast images for a between-subject (second-level) analysis.
 
-To use this option, create as many factors as you need and provide a name and number of levels for each.  SPM assumes that the condition numbers of the first factor change slowest, the second factor next slowest etc. It is best to write down the contingency table for your design to ensure this condition is met. This table relates the levels of each factor to the conditions. 
+To use this option, create as many factors as you need and provide a name and number of levels for each.  SPM assumes that the condition numbers of the first factor change slowest, the second factor next slowest etc. It is best to write down the contingency table for your design to ensure this condition is met. This table relates the levels of each factor to the conditions.
 
-For example, if you have 2-by-3 design  your contingency table has two rows and three columns where the the first factor spans the rows, and the second factor the columns. The numbers of the conditions are 1,2,3 for the first row and 4,5,6 for the second. 
+For example, if you have 2-by-3 design  your contingency table has two rows and three columns where the the first factor spans the rows, and the second factor the columns. The numbers of the conditions are 1,2,3 for the first row and 4,5,6 for the second.
 
 See \cite{rnah_anova} for more information on SPM and factorial designs.
 
 \subsection{Factor}
 
-Add a new factor to your experimental design
+Add a new factor to your experimental design.
 
 \subsubsection{Name}
 
@@ -214,12 +214,12 @@ Select a directory where the SPM.mat file containing the specified design matrix
 
 \section{Global normalisation}
 
-SPM can normalise fMRI data in one of two ways. These are selected using the options `None' (the default) and `Scaling'. 
+SPM can normalise fMRI data in one of two ways. These are selected using the options `None' (the default) and `Scaling'.
 
 Both methods are based on first estimating the average within-brain fMRI signal, $g_{ns}$, where $n$ denotes scan and $s$ denotes session. If you select `Scaling', SPM will multiply each fMRI value in scan $n$ and session $s$ by $100/g_{ns}$.
 
-If you select `None' then SPM computes the grand mean value, $g_s=\frac{\sum_{n=1}^N g_{ns}}{N}$ where N is the number of scans in that session. This is the fMRI signal averaged over all voxels within the brain and all time points within session $s$. SPM then implements `Session-specific grand mean scaling' by multiplying each fMRI data point in session $s$ by $100/g_s$. 
- 
+If you select ``None'' then SPM computes the grand mean value, $g_s=\frac{\sum_{n=1}^N g_{ns}}{N}$ where N is the number of scans in that session. This is the fMRI signal averaged over all voxels within the brain and all time points within session $s$. SPM then implements ``Session-specific grand mean scaling'' by multiplying each fMRI data point in session $s$ by $100/g_s$.
+
 See \cite{ja_global} for further discussion of this issue.
 
 \section{Explicit mask}
@@ -230,17 +230,17 @@ Specify an image for explicitly masking the analysis. A sensible option here is 
 
 Serial correlations in fMRI time series due to aliased biorhythms and unmodelled neuronal activity can be accounted for using an autoregressive AR(1) model during Classical (ReML) parameter estimation.  
 
-This estimate assumes the same correlation structure for each voxel, within each session.  ReML estimates are then used to correct for non-sphericity during inference by adjusting the statistics and degrees of freedom appropriately.  The discrepancy between estimated and actual correlations are greatest at low frequencies.  Therefore specification of the high-pass filter is particularly important.                                                                                             
+This estimate assumes the same correlation structure for each voxel, within each session.  ReML estimates are then used to correct for non-sphericity during inference by adjusting the statistics and degrees of freedom appropriately. The discrepancy between estimated and actual correlations are greatest at low frequencies.  Therefore specification of the high-pass filter is particularly important.
 
-Serial correlation can be ignored if you choose the `none' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noise model (AR model order) is made under the estimation options. See \cite{peb1,vb_fmri_ar} for further discussion of these issues.
+Serial correlation can be ignored if you choose the ``none'' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noise model (AR model order) is made under the estimation options. See \cite{peb1,vb_fmri_ar} for further discussion of these issues.
 
 \section{Reviewing your design \label{explore}}
 
-After you have completed the SPM `job' file for specifying your fMRI design, and have run it, you will then be able to review your design by pressing the `Review' button in SPM's button window (the top-left window). This is particularly useful, for example, for checking that your experimental variance has not been removed by high-pass filtering, as shown in Figure~\ref{rev4}.
+After you have completed the SPM ``job'' file for specifying your fMRI design, and have run it, you will then be able to review your design by pressing the ``Review'' button in SPM's button window (the top-left window). This is particularly useful, for example, for checking that your experimental variance has not been removed by high-pass filtering, as shown in Figure~\ref{rev4}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{fmri_spec/reg4}
 \end{center}
-\caption{\em After pressing `Review', selecting the pull-down `Design' menu, Explore-$>$Session, and selecting the regressor you wish to look at, you should get a plot similar to the one above. The top row shows time and frequency domain plots of the time-series corresponding to this regressor. In this particular case we have four events. Each event or `stick function' has been convolved with the hemodynamic response function shown in the bottom panel. The frequency domain graph is useful for checking that experimental variance is not removed by high-pass filtering. The grayed out section of the frequency plot shows those frequencies which are removed. For this regressor we have plenty of remaining experimental variance (see the peak at about 0.04Hz). \label{rev4}}
+\caption{\em After pressing ``Review'', selecting the pull-down `Design' menu, Explore-$>$Session, and selecting the regressor you wish to look at, you should get a plot similar to the one above. The top row shows time and frequency domain plots of the time-series corresponding to this regressor. In this particular case we have four events. Each event or ``stick function'' has been convolved with the hemodynamic response function shown in the bottom panel. The frequency domain graph is useful for checking that experimental variance is not removed by high-pass filtering. The grayed out section of the frequency plot shows those frequencies which are removed. For this regressor we have plenty of remaining experimental variance (see the peak at about 0.04Hz). \label{rev4}}
 \end{figure}
