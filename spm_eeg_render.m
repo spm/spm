@@ -31,7 +31,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2944 2009-03-24 19:33:43Z jean $
+% $Id: spm_eeg_render.m 2979 2009-03-27 18:36:03Z guillaume $
 
 
 %----------------------------------------------------------------------%
@@ -114,8 +114,15 @@ end
 
 handles.ParentAxes = ParentAxes;
 oldRenderer = get(handles.fi,'renderer');
-set(handles.fi,'renderer','OpenGL');
-
+try
+    if ismac
+        set(handles.fi,'renderer','zbuffer');
+    else
+        set(handles.fi,'renderer','OpenGL');
+    end
+catch
+    set(handles.fi,'renderer','OpenGL');
+end
 
 % Plot mesh and texture/clusters
 if isequal(texture,'none')

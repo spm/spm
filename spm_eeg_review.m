@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2963 2009-03-26 16:12:45Z jean $
+% $Id: spm_eeg_review.m 2979 2009-03-27 18:36:03Z guillaume $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -62,10 +62,19 @@ set(D.PSD.handles.BUTTONS.pop1,...
 %-- Attach userdata to SPM graphics window
 D.PSD.D0 = rmfield(D,'PSD');
 set(D.PSD.handles.hfig,...
-    'renderer','OpenGL',...
     'units','normalized',...
     'color',[1 1 1],...
     'userdata',D);
+
+try
+    if ismac
+        set(D.PSD.handles.hfig,'renderer','zbuffer');
+    else
+        set(D.PSD.handles.hfig,'renderer','OpenGL');
+    end
+catch
+    set(D.PSD.handles.hfig,'renderer','OpenGL');
+end
 
 try
     switch flag
