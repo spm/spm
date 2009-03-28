@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 2457 2008-11-12 09:24:30Z guillaume $
+# $Id: Makefile 2990 2009-03-28 17:33:52Z guillaume $
 #
 ###############################################################################
 #
@@ -85,6 +85,9 @@ toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarb
 	$(MAKE) -C ../$$p --no-print-directory $(subst -,,$(subst toolbox,,$@));\
 	done
 
+external external-all external-clean external-distclean external-install external-tarball: verb.external
+	@ $(MAKE) -C ../external --no-print-directory $(subst -,,$(subst external,,$@))
+
 tarball: all toolbox-all toolbox-tarball verb.archive
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 	@@for p in $(SUBDIRS); do \
@@ -98,7 +101,11 @@ tarball: all toolbox-all toolbox-tarball verb.archive
 
 spm_vol_utils.$(SUF).a: $(OBS)
 	$(DEL) $@
+ifeq (win64,$(PLATFORM))
+	$(AR)$@ $(OBS)
+else
 	$(AR) $@ $(OBS)
+endif
 
 UTILS = spm_vol_utils.c spm_make_lookup.h spm_getdata.h
 
@@ -374,5 +381,12 @@ verb.mexs64:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (Solaris 64 bit)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.external:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        In external"
 	@ echo "_____________________________________________________________"
 	@ echo ""

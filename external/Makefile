@@ -1,13 +1,13 @@
 #!/usr/bin/env make -f
-# Makefile called by {SPM}/src/Makefile to compile SPM external
+# Makefile called by {SPM}/src/Makefile to compile SPM external's
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 2981 2009-03-28 11:49:25Z guillaume $
+# $Id: Makefile 2990 2009-03-28 17:33:52Z guillaume $
 
 include ../src/Makefile.var
 
-FTMEX =\
+FIELDTRIPMEX =\
 	fieldtrip/@config/private/deepcopy.$(SUF) fieldtrip/@config/private/increment.$(SUF) \
 	fieldtrip/@config/private/reset.$(SUF) \
 	fieldtrip/@uint64/max.$(SUF) fieldtrip/@uint64/min.$(SUF) \
@@ -35,17 +35,23 @@ FORWINVMEX =\
 	forwinv/private/plinproj.$(SUF) forwinv/private/ptriproj.$(SUF) \
 	forwinv/private/routlm.$(SUF) forwinv/private/solid_angle.$(SUF)
 
-all: $(FTMEX) $(FILEIOMEX) $(FORWINVMEX)
+BEMCP = bemcp
 
-clean:
+all: $(FIELDTRIPMEX) $(FILEIOMEX) $(FORWINVMEX) bemcp-all
 
-distclean: clean
-	$(DEL) $(FTMEX) $(FILEIOMEX) $(FORWINVMEX)
+clean: bemcp-clean
 
-install:
+distclean: clean bemcp-distclean
+	$(DEL) $(FIELDTRIPMEX) $(FILEIOMEX) $(FORWINVMEX)
 
-tarball: all
-	$(TAR) cf spm_mex.tar $(FTMEX) $(FILEIOMEX) $(FORWINVMEX)
+install: bemcp-install
+
+tarball: all bemcp-tarball
+	$(TAR) cf spm_mex.tar $(FIELDTRIPMEX) $(FILEIOMEX) $(FORWINVMEX)
+	$(TAR) Af spm_mex.tar $(BEMCP)/spm_mex.tar
+
+bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
+	@ $(MAKE) -C $(BEMCP) --no-print-directory $(subst -,,$(subst bemcp,,$@));
 
 %.$(SUF) : %.c
 	$(MEX) $< -outdir $(shell dirname $<) $(MEXEND)
