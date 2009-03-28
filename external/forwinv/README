@@ -1,0 +1,25 @@
+This is a special release of the FieldTrip FORWINV module for
+inclusion in SPM8. It contains functions for forward and inverse
+modelling of EEG and MEG data (i.e. source estimation), based on a
+choise of volume conduction models, including spherical and realistic
+models.
+
+This particular release has wrapper functions that adhere to the
+spm_xxx function naming style. The public functions are available
+as ft_xxx, whereas all dependencies are hidden in the private
+directory. If you are interested in using this toolbox independent
+of SPM8, I suggest that you visit http://www.ru.nl/fcdonders/fieldtrip
+and download a normal and more complete version.
+
+For more information please visit http://www.ru.nl/fcdonders/fieldtrip
+and www.fil.ion.ucl.ac.uk/spm.
+
+The FieldTrip software is free but copyrighted software, distributed
+under the terms of the GNU General Public Licence as published by
+the Free Software Foundation (either version 2, or at your option
+any later version). See the file COPYING for more details.
+
+Copyright (C) 1999-2003, Department of Medical Physics, Radboud University Nijmegen, The Netherlands
+Copyright (C) 2003-2005, Center for Sensory-Motor Interaction, Aalborg University, Denmark
+Copyright (C) 2003-2008, F.C. Donders Centre for Cognitive Neuroimaging, Nijmegen, The Netherlands
+
