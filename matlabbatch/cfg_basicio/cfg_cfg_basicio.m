@@ -390,7 +390,7 @@ filter.num     = [1  Inf];
 frames         = cfg_entry;
 frames.tag     = 'frames';
 frames.name    = 'Frames';
-frames.help    = {'Number of frames to address in 4D NIfTI images. Ignored if empty.'};
+frames.help    = {'This option is currently completely ignored!'};
 frames.strtype = 's';
 frames.num     = [0  Inf];
 % ---------------------------------------------------------------------

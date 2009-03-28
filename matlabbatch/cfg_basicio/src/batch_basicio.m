@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 2787 $)
+% Job configuration created by cfg_util (rev $Rev: 2989 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/copy/delete';
@@ -442,7 +442,7 @@ matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.strtype = 's';
 matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = [];
 matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.num = [0 Inf];
 matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.check = [];
-matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'Number of frames to address in 4D NIfTI images. Ignored if empty.'};
+matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'This option is currently completely ignored!'};
 matlabbatch{33}.menu_cfg{1}.menu_entry{1}.conf_entry.def = [];
 matlabbatch{34}.menu_cfg{1}.menu_struct{1}.conf_exbranch.type = 'cfg_exbranch';
 matlabbatch{34}.menu_cfg{1}.menu_struct{1}.conf_exbranch.name = 'File Filter';
