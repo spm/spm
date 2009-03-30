@@ -19,6 +19,9 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.3  2009/03/30 07:23:03  roboos
+ * changed ifdef syntax
+ *
  * Revision 1.2  2009/03/28 05:32:46  roboos
  * changed ifdef handling to accomodate matlab71, which did not like the WIN32 || WIN64 combination
  *
@@ -59,16 +62,7 @@
 #include "mex.h"
 #include "matrix.h"
 
-#ifdef _WIN64
-#include <sys/types.h>
-#define int32_t INT32_T
-#define int64_t INT64_T
-#define fseeko fseek
-#else
-#include <stdint.h>
-#endif
-
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <sys/types.h>
 #define int32_t INT32_T
 #define int64_t INT64_T
