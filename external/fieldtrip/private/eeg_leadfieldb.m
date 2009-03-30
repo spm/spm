@@ -22,6 +22,9 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: eeg_leadfieldb.m,v $
+% Revision 1.4  2009/03/30 15:06:14  roboos
+% added the patch from Alexandre to support openmeeg
+%
 % Revision 1.3  2009/02/02 13:12:53  roboos
 % small fix, cpbem->bemcp
 %
@@ -75,6 +78,8 @@ elseif size(vol.mat,1)==nskin
   % the output leadfield corresponds to the number skin vertices
 elseif size(vol.mat,1)==nall
   % the output leadfield corresponds to the total number of vertices
+elseif strcmp(voltype(vol),'openmeeg')
+  % this is handled differently, although at the moment I don't know why
 else
   error('unexpected size of vol.mat')
 end
@@ -124,10 +129,17 @@ switch voltype(vol)
     % concatenate the leadfields
     lf = cat(1, lf{:});
 
+   case 'openmeeg'
+     % the system matrix is computed using OpenMEEG (Symmetric BEM)
+     lf = openmeeg_lf_eeg(pos, elc, vol);
+
   otherwise
     error('unsupported type of volume conductor (%s)\n', voltype(vol));
 end % switch voltype
 
-% compute the bounded medium potential on all vertices
-% this may include the bilinear interpolation from vertices towards electrodes
-lf = vol.mat * lf;
+if isfield(vol, 'mat')
+  % compute the bounded medium potential on all vertices
+  % this may include the bilinear interpolation from vertices towards electrodes
+  lf = vol.mat * lf;
+end
+

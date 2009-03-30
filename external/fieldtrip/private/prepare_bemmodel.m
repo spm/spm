@@ -27,6 +27,9 @@ function [vol] = prepare_bemmodel(cfg, mri)
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.16  2009/03/30 15:06:14  roboos
+% added the patch from Alexandre to support openmeeg
+%
 % Revision 1.15  2009/03/24 12:47:11  roboos
 % Christophe-> try to spare some memory
 %
@@ -247,9 +250,18 @@ elseif strcmp(cfg.method, 'bemcp')
   i_gama1 = inv(gama1);
   vol.mat = [i_gama1*tmp5 i_gama1*tmp6 i_gama1];
 
+elseif strcmp(cfg.method, 'openmeeg')
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % this uses an implementation that was contributed by INRIA Odyssee Team
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  % determine whether the OpenMEEG command-line executables is available
+  hastoolbox('openmeeg', 1);
+  % use the openmeeg wrapper function
+  vol = openmeeg(vol);
+  vol.type = 'openmeeg';
+
 else
   error('unsupported method');
-
 end % which method
-
 
