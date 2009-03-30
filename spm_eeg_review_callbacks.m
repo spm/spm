@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2966 2009-03-26 16:44:05Z jean $
+% $Id: spm_eeg_review_callbacks.m 3009 2009-03-30 18:45:54Z jean $
 
 spm('pointer','watch');
 drawnow
@@ -1794,6 +1794,12 @@ elseif length(cn) == 12     % source reconstructions
         try D.other = rmfield(D.other,'val');end
         try D.other = rmfield(D.other,'inv');end
         D.PSD.source.VIZU.current = 0;
+        D.PSD.source.VIZU.isInv = [];
+        D.PSD.source.VIZU.pst = [];
+        D.PSD.source.VIZU.F = [];
+        D.PSD.source.VIZU.labels = [];
+        D.PSD.source.VIZU.callbacks = [];
+        D.PSD.source.VIZU.timeCourses = [];
         delete(ht)
     end
 end
