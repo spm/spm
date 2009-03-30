@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2970 2009-03-26 19:19:07Z vladimir $
+% $Id: spm_eeg_prep.m 3005 2009-03-30 17:51:05Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -98,8 +98,8 @@ switch lower(S.task)
 
         if ~isempty(sel1)
 
-            megind = strmatch('MEG', chantype(D), 'exact');
-            eegind = strmatch('EEG', chantype(D), 'exact');
+            megind = D.meegchannels('MEG');
+            eegind = D.meegchannels('EEG');
 
             if ~isempty(intersect(megind, sel1)) && ~isempty(setdiff(megind, sel1))
                 error('2D locations not found for all MEG channels');
@@ -221,6 +221,8 @@ switch lower(S.task)
             sens.pnt = sens.pnt(sel2, :);
             % This takes care of possible case mismatch
             sens.label = D.chanlabels(sel1);
+            
+            sens.label = sens.label(:);
 
             D = sensors(D, 'EEG', sens);
 
