@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2945 2009-03-24 21:47:29Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2992 2009-03-30 10:57:29Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -282,11 +282,11 @@ if ~~D.PSD.source.VIZU.current
     if isfield(model,'dipfit')...
             || ~isequal(model.xyz,zeros(1,3))
         try
-            spheres.xyz = model.dipfit.Lpos;
-            spheres.radius = model.dipfit.radius;
+            xyz = model.dipfit.Lpos;
+            radius = model.dipfit.radius;
         catch
-            spheres.xyz = model.xyz';
-            spheres.radius = model.rad(1);
+            xyz = model.xyz';
+            radius = model.rad(1);
         end
         Np  = size(xyz,2);
         [x,y,z] = sphere(20);
