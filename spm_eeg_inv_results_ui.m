@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_results_ui.m 3000 2009-03-30 16:15:00Z will $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -33,9 +33,9 @@ D.inv{val}.contrast.fboi = round([min(fboi) max(fboi)]);
 
 % induced or evoked? (not for fusion)
 %--------------------------------------------------------------------------
-if isnumeric(D.inv{val}.inverse.Ic)
+if strcmp(D.type, 'single')
     str  = {'evoked','induced'};
-    type = spm_input('Power of the energy or mean energy','+1','b',str,[],1);
+    type = spm_input('Power','+1','b',str,[],1);
 else
     type = 'evoked';
 end
