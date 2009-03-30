@@ -1,8 +1,8 @@
 spm('defaults','eeg');
 
 S = [];
-S.dataset = 'D:\spm8data\example.bdf';
-S.outfile = 'spm8_example';
+S.dataset = 'D:\spm8data\subject1.bdf';
+S.outfile = 'spm8_subject1';
 S.channels = 'all';
 S.timewindow = [0.001953125 921];
 S.blocksize = 3276800;
@@ -431,13 +431,13 @@ S.montage.tra = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
 %%
 S.keepothers = 0;
-S.D = 'spm8_example.mat';
+S.D = 'spm8_subject1.mat';
 S.blocksize = 655360;
 D = spm_eeg_montage(S);
 
 
 S = [];
-S.D = 'Mspm8_example.mat';
+S.D = 'Mspm8_subject1.mat';
 S.task = 'defaulteegsens';
 S.save = 1;
 D = spm_eeg_prep(S);
@@ -456,19 +456,19 @@ S.trialdef(2).eventtype = 'STATUS';
 S.trialdef(2).eventvalue = 3;
 S.review = 0;
 S.save = 0;
-S.D = 'D:\spm8data\Mspm8_example.mat';
+S.D = 'D:\spm8data\Mspm8_subject1.mat';
 S.epochinfo.padding = 0;
 D = spm_eeg_epochs(S);
 
 
 S = [];
-S.D = 'D:\spm8data\eMspm8_example.mat';
+S.D = 'D:\spm8data\eMspm8_subject1.mat';
 S.fsample_new = 200;
 D = spm_eeg_downsample(S);
 
 
 S = [];
-S.D = 'D:\spm8data\deMspm8_example.mat';
+S.D = 'D:\spm8data\deMspm8_subject1.mat';
 S.filter.type = 'butterworth';
 S.filter.order = 5;
 S.filter.para = [];
@@ -482,7 +482,7 @@ D = spm_eeg_filter(S);
 D = badchannels(D, 85, 1); save(D);
 
 S = [];
-S.D = 'D:\spm8data\fdeMspm8_example.mat';
+S.D = 'D:\spm8data\fdeMspm8_subject1.mat';
 S.artefact.External_list = 0;
 S.artefact.Weighted = 0;
 S.artefact.Check_Threshold = 1;
@@ -492,7 +492,7 @@ D = spm_eeg_artefact(S);
 
 
 S = [];
-S.D = 'D:\spm8data\afdeMspm8_example.mat';
+S.D = 'D:\spm8data\afdeMspm8_subject1.mat';
 D = spm_eeg_average(S);
 
 
