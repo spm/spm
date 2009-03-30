@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.12  2009/03/30 17:53:38  vlalit
+% Fixed a bug in BTi handling code from the last update
+%
 % Revision 1.11  2009/03/26 19:17:21  vlalit
 % Some improvements for non-MEG channels in BTi
 %
@@ -266,10 +269,15 @@ elseif senstype(input, 'bti')
       tmplabel = label; % might work
   end
   sel      = strmatch('unknown', type, 'exact');
-  type(sel)= chantype(tmplabel(sel));
-
-  sel      = strmatch('unknown', type, 'exact');  
-  type(sel(strncmp('E', label(sel), 1))) = {'eeg'}; 
+  if ~isempty(sel)
+      type(sel)= chantype(tmplabel(sel));
+      sel      = strmatch('unknown', type, 'exact');
+      if ~isempty(sel)
+          type(sel(strncmp('E', label(sel), 1))) = {'eeg'};
+      end
+  end
+    
+  
 
 elseif senstype(input, 'eeg') && islabel
   % use an external helper function to define the list with EEG channel names
