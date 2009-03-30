@@ -71,6 +71,10 @@ function [vol, sens] = headmodelplot(cfg, data)
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.26  2009/03/30 17:55:17  vlalit
+% Changed prepare_layout and headmodelplot to use channelposition. Changed the color
+%  of sensor markers in headmodelplot to green for consistency with SPM plots.
+%
 % Revision 1.25  2009/03/23 13:40:53  roboos
 % some small changes suggested by Vladimir, use senstype instead of sensortype
 %
@@ -232,17 +236,9 @@ elseif iseeg
   if ~isfield(cfg, 'plotlines'),        cfg.plotlines = 'yes';         end
 end
 
-if  ismeg && senstype(sens, 'ctf') || senstype(sens, 'bti')
-  Nsensors = length(channelselection('MEG', sens.label));
-elseif ismeg && senstype(sens, 'neuromag')
-  Nsensors = size(sens.pnt, 1);
-else
-  % assume that the number of sensors to be plotted is the same as the number of channels
-  % this implies that channel 1:Nsensors corresponds with the bottom coils
-  % of a gradiometer MEG system (which is the case for a CTF system by
-  % virtue of ctf2grad).
-  Nsensors = length(sens.label);
-end
+chan = [];
+[chan.pnt, chan.label] = channelposition(sens);
+
 
 if issphere
   % determine the number of spheres in the volume model
@@ -279,7 +275,7 @@ if iseeg
   end % plotgrid
 
   if strcmp(cfg.plotsensors, 'yes')
-    plot3(sens.pnt(1:Nsensors,1), sens.pnt(1:Nsensors,2), sens.pnt(1:Nsensors,3), 'b*');
+    plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), 'g*');
   end % plotsensors
 
   if strcmp(cfg.plotheadsurface, 'yes')  && ~isempty(vol)
@@ -390,7 +386,7 @@ elseif ismeg
 
   if strcmp(cfg.plotsensors, 'yes')
     % plot only the bottom coil
-    plot3(sens.pnt(1:Nsensors,1), sens.pnt(1:Nsensors,2), sens.pnt(1:Nsensors,3), 'b*');
+    plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), 'g*');
   end % plotsensors
 
   if strcmp(cfg.plotcoil, 'yes')
@@ -489,14 +485,14 @@ elseif ismeg
 
   if strcmp(cfg.plotlines, 'yes') && ismultisphere
     % first determine the indices of the relevant gradiometers.
-    % [sel_g, sel_v] = match_str(sens.label, vol.label);
+    [sel_g, sel_v] = match_str(chan.label, vol.label);
     sel_g = 1:Nsensors;
     sel_v = 1:Nsensors;
     % create head-surface points from multisphere head-model.
-    dir     = sens.pnt(sel_g,:) - vol.o(sel_v,:);
+    dir     = chan.pnt(sel_g,:) - vol.o(sel_v,:);
     dist    = sqrt(sum(dir.*dir,2));
     pnt0    = repmat((vol.r(sel_v)./dist),1,3).*dir + vol.o(sel_v,:);
-    pnt1    = sens.pnt(sel_g,:);
+    pnt1    = chan.pnt(sel_g,:);
     f = gcf;
     figure
     hist(sqrt(sum((pnt0-pnt1).^2, 2)));

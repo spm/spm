@@ -8,6 +8,10 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.3  2009/03/30 17:55:17  vlalit
+% Changed prepare_layout and headmodelplot to use channelposition. Changed the color
+%  of sensor markers in headmodelplot to green for consistency with SPM plots.
+%
 % Revision 1.2  2009/03/26 16:27:17  roboos
 % incorporated the sugegstions by Vladimir
 %
@@ -161,8 +165,10 @@ switch senstype(sens)
 
 end % switch senstype
 
-% this is to fix the planar layouts, which cannot be plotted anyway
 n   = size(lab,2);
-lab = lab(:);
-pnt = repmat(pnt, n, 1);
+% this is to fix the planar layouts, which cannot be plotted anyway
+if n>1 && size(lab, 1)>1 %this is to prevent confusion when lab happens to be a row array
+    pnt = repmat(pnt, n, 1);
+end
 
+lab = lab(:);
