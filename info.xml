@@ -1,31 +1,23 @@
-<!-- $Id: info.xml 1137 2008-02-06 15:58:21Z spm $ -->
+<!-- $Id: info.xml 2994 2009-03-30 12:41:57Z guillaume $ -->
 <productinfo
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">
-<?xml-stylesheet type="text/xsl" href="http://www.mathworks.com/namespace/info/v1/info.xsl"?>
+  xsi:noNamespaceSchemaLocation="optional">
+<?xml-stylesheet type="text/xsl"href="optional"?>
 
   <matlabrelease>14</matlabrelease>
   <name>SPM</name>
   <type>toolbox</type>
   <icon>$toolbox/matlab/icons/matlabicon.gif</icon>
   
-  <help_location>./man/</help_location>
   <!-- http://www.mathworks.com/support/solutions/data/1-1C77F.html?solution=1-1C77F -->
-  <!-- http://www.mathworks.com/support/solutions/data/1-18U6Q.html?solution=1-18U6Q -->
-  <!-- http://www.mathworks.com/access/helpdesk/help/techdoc/matlab_env/guiref16.html -->
-  <!-- http://www.mathworks.com/access/helpdesk/help/techdoc/matlab_env/guiref15.html -->
+  <!-- <help_location>./man/</help_location> -->
+  
   <list>
 
     <listitem>
       <label>SPM</label>
       <callback>spm</callback>
       <icon>$toolbox/matlab/icons/figureicon.gif</icon>
-    </listitem>
-
-    <listitem>
-      <label>Help</label>
-      <callback>spm help</callback>
-      <icon>$toolbox/matlab/icons/book_mat.gif</icon>
     </listitem>
 
     <listitem>
