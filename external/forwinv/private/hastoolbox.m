@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.33  2009/03/30 15:06:14  roboos
+% added the patch from Alexandre to support openmeeg
+%
 % Revision 1.32  2009/03/12 10:40:21  roboos
 % added the splines toolbox (mainly for testing) and changed the warning message related to the license
 %
@@ -178,6 +181,7 @@ url = {
   'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
   'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
   'BEMCP'      'contact Christophe Phillips'
+  'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg'
   };
 
 if nargin<2
@@ -269,6 +273,8 @@ switch toolbox
     status  = (exist('pnet', 'file') && exist('pnet_getvar', 'file') && exist('pnet_putvar', 'file'));
   case 'BEMCP'
     status  = (exist('bem_Cij_cog', 'file') && exist('bem_Cij_lin', 'file') && exist('bem_Cij_cst', 'file'));
+  case 'OPENMEEG'
+    status = exist('openmeeg.m', 'file');
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

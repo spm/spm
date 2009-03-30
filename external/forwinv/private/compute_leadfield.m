@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.29  2009/03/30 15:06:14  roboos
+% added the patch from Alexandre to support openmeeg
+%
 % Revision 1.28  2009/02/02 13:05:44  roboos
 % addec bemcp
 % give warning once in case of eeg infinite medium
@@ -466,7 +469,7 @@ elseif iseeg
         error('more than 4 concentric spheres are not supported');
       end
 
-    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
+    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'openmeeg'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % EEG boundary element method volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
