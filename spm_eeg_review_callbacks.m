@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3009 2009-03-30 18:45:54Z jean $
+% $Id: spm_eeg_review_callbacks.m 3010 2009-03-30 19:07:17Z jean $
 
 spm('pointer','watch');
 drawnow
@@ -1400,6 +1400,18 @@ switch D.PSD.VIZU.type
         set(D.PSD.handles.PLOT.p(:,ind),'uicontextmenu',cmenu);
         axes(D.PSD.handles.scale)
 end
+
+d1 = rmfield(D,{'history','PSD'});
+d0 = rmfield(D.PSD.D0,'history');
+if isequal(d1,d0)
+    set(D.PSD.handles.BUTTONS.pop1,...
+        'BackgroundColor',[0.8314 0.8157 0.7843])
+else
+    set(D.PSD.handles.BUTTONS.pop1,...
+        'BackgroundColor',[1 0.5 0.5])
+end
+
+
 
 
 %% Define menu event
