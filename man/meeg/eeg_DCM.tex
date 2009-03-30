@@ -377,3 +377,27 @@ This will display the observed time-frequency power data for all pre-specified s
 
 \subsubsection{Coupling (A-Hz)}
 This will display the coupling matrices representing the coupling strength from source to target frequencies.
+
+\section{Phase-coupled responses}
+
+DCM for phase-coupled responses is based on a weakly coupled oscillator model of neuronal interactions. 
+
+\subsection{Data}
+The data to be modeled must be multiple trial, epoched data. Multiple trials are required so that the full state-space of phase differences can be explored. This is achieved with multiple trials as each trial is likely to contain different initial relative phase offsets. Information about different trial types is entered as it is with DCM for ERP ie. using a design matrix. DCM for phase coupling is intended to model dynamic transitions toward synchronization states. As these transitions are short it is advisable to use short time windows of data to model and the higher the frequency of the oscillations you are interested in, the shorter this time window should be. DCM for phase coupling will probably run into memory problems if using long time windows or large numbers of trials.
+
+\subsection{Electromagnetic model}
+Currently, DCM for phase-coupled responses will work with either ECD or LFP data.  Note that a difference to DCM for evoked responses is that the parameters of the spatial model are not optimized. This means that DCM for phase-coupled responses will project the data into source space using the spatial locations you provide.
+
+\subsection{Neuronal model}
+This is where you specify the connection architecture for the weakly coupled oscillator model. If using the GUI, the Phase Interaction Functions are given by $a_{ij} sin (\phi_i-\phi_j)$ where $a_{ij}$ are the connection weights that appear in the $A$-matrix and $\phi_i$ and $\phi_j$ are the phases in regions $i$ and $j$. DCM for phase coupling can also be run from a MATLAB script. This provides greater flexibility in that the Phase Interaction Functions can be approximated using arbitrary order Fourier series. Have a look in the \texttt{example\_scripts} to see how.
+
+\subsection{Hilbert transform}
+Pressing this button does two things. First, source data are bandpass filtered into the specified range. Second, a Hilbert transform is applied from which time series of phase variables are obtained. 
+
+\subsection{Results}
+
+\subsubsection{Sin(Data) - Region i}
+This plots the sin of the data (ie. sin of phase variable) and the corresponding model fit for the $i$th region.
+
+\subsubsection{Coupling (A),(B)}
+This will display the intrinsic and modulatory coupling matrices. The $i,j$th entry in $A$ specifies how quickly region $i$ changes its phase to align with region $j$. The corresponding entry in $B$ shows how these values are changed by experimental manipulation. 
