@@ -1,0 +1,295 @@
+
+\chapter{Mismatch negativity data \label{Chap:data:mmn}}
+
+This chapter describes analysis of a 128-channel single subject EEG data set acquired from a study of mismatch negativity in the auditory system \cite{marta_dcm_mmn}. We thank Marta Garrido for providing us with these data. The experiment comprised an auditory oddball paradigm in which subjects heard standard (500Hz) and deviant (550Hz) tones, occuring 80\% (480 trials) and 20\% (120 trials) of the time, respectively, in a pseudo-random sequence subject to the constraint that two deviant tones did not occur together.
+
+EEG data were recorded with a Biosemi \footnote{BioSemi: \url{http://www.biosemi.com/}} system at 128 scalp electrodes and a sampling rate of 512Hz. Vertical and horizontal eye movements were monitored using EOG electrodes. See \cite{marta_dcm_mmn} for full details of experimental stimuli and recording. To proceed with the data analysis, first download the  data set from the SPM website\footnote{EEG MMN dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/eeg\_mmn/}}. The data comprises a file called \texttt{subject1.bdf} whose size is roughly 200MB. We will refer to the directory in which you have placed it as \texttt{DATA\_DIR}. This chapter takes you through different stages of analysis:
+\bi
+\item{Preprocessing}
+\item{Sensor space analysis}
+\item{Source reconstruction}
+\item{Dynamic Causal Modelling}
+\ei
+
+\section{Preprocessing}
+
+There is also an example matlab script under \texttt{man$\backslash$example\_scripts$\backslash$histsubject1.m} in the SPM distribution which repeats the preprocessing route we take here.
+
+\subsection{Convert}
+
+At the matlab prompt type 'spm eeg', press the 'Convert' button and select the `subject1.bdf' file. At the prompt `Define settings ?' select 'just read'.
+
+SPM will now read the original Biosemi format file and create an SPM combatible data file, called \verb!spm8_subject1!. Files with this name, and the `.mat' and `.dat' extensions will be written to the directory containing the original data file (\texttt{DATA\_DIR}).
+
+\subsection{Montage}
+
+In this step, we will identify the VEOG and HEOG channels, and also remove several channels that don't carry EEG data and are of no importance to the following. We generally recommend to remove all data channels that are no longer needed because it will reduce the total file size. To do so, we use the \textsc{montage} tool in SPM, which is a general approach for pre-multiplying the data matrix (channels $\times$ time) by another matrix that linearly weights all channel data. This provides a very general method for data transformation in M/EEG analysis.
+
+The appropriate montage-matrix can is derived as follows.
+In our case, we would like to only keep channels 1 to 128. In addition, there were three EOG channels (129, 130, 131), where the HEOG is computed as the difference between channels 131 and 130, and the VEOG by the difference between channels 130 and 129. This matrix can be specified in SPM by either using a graphical interface, or by supplying the matrix saved in a file. We will do the latter. The script to generate this file can be found in the \texttt{example\_scripts} folder: \texttt{montage\_subject1.m}. Copy this script into \texttt{DATA\_DIR} and run it. This will generate a file named \texttt{MONT\_EXP.mat}.
+\\
+\\
+You now call the montage function by choosing \textsc{Montage} in the ``Other'' drop-down menu and:
+\bi
+\item{Select the M/EEG-file \texttt{spm8\_subject1.mat}}
+\item{`How to specify the montage ?' Answer ``file''.}
+\item{Then select the generated \texttt{MONT\_EXP.mat} file}
+\item{``Keep the other channels?'' : ``No''}
+\ei
+This will remove the uninteresting channels from the data. The progress bar appears and SPM will generate two new files \texttt{Mspm8\_subject1.mat} and \texttt{Mspm8\_subject1.dat}.
+
+\subsection{Prepare}
+The next step is to specify the location of the sensors. Unfortunately, this information is not contained in the original Biosemi \texttt{*.bdf} file. It is usually the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience this is a critical step. In SPM, we have chosen to provide tools for linking data and location information, leaving it the responsibility of the user to verify the success of this process.
+\\
+\\
+Choose the \textsc{Prepare} tool from the ``Other'' drop-down menu. This will make several menus available in the lower left SPM window. Choose ``Open'' from the ``File'' menu. Select the \texttt{Mspm8\_subject1.mat} file. Select \texttt{Sensors} $\rightarrow$ \texttt{Load EEG sensors} $\rightarrow$ \texttt{Assign default} from the menu. This will tell SPM to assume default locations for the BioSemi channels. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the other options to use digitized sensor location data. Then select the ``Save'' option from the ``File'' menu. Note that if you leave out the ``Save'' step, no information will be written to the \texttt{mat}-file and you won't be able to display the data properly later on.
+
+\subsection{Epoch}
+To epoch the data click on \textsc{Epoching}. Select the \texttt{Mspm8\_subject1.mat} file. Choose the peri-stimulus time window, first the start -100, then the end 400 ms. Choose 2 conditions. You can call the first condition ``standard''. A GUI pops up which gives you a complete list of all events in the EEG file. The standard condition had 480 trials, so select the type with value 1 and press OK. The second condition can be called ``rare''. The rare stimulus was given 120 times and has value 3 in the list. Select this trial type and press OK. Answer two times ``no'' to the questions  ``review individual trials'', and ``save trial definitions''. The progress bar will appear and the epoched data will be saved to files \texttt{eMspm8\_subject1.mat} and \texttt{eMspm8\_subject1.dat}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/topo1}
+\caption{\em Scalp topography of single trial MMN EEG data. Channel 14, second-row from bottom, left hemisphere contains (slightly) higher variability data than the others. This channel is to be marked as artefactual (ie. 'bad').
+\label{topo1}}
+\end{center}
+\end{figure}
+\subsection{Downsample}
+Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 512 Hz. This is an unnecessarily high sampling rate for a simple evoked response analysis, and we will now decrease the sampling rate to 200 Hz, thereby reducing the file size by more than half. Select \textsc{Downsample} from the ``Other'' drop-down menu and select the \texttt{eMspm8\_subject1.mat} file. Choose a new sampling rate of 200 (Hz). The progress bar will appear and the resulting data will be saved to files \texttt{deMspm8\_subject1.mat} and \texttt{deMspm8\_subject1.dat}. This step is computationally demanding.
+
+\subsection{Filter}
+Filtering the data in time removes unwanted frequency bands from the data. Usually, for evoked response analysis, the low frequencies are kept, while the high frequencies are assumed to carry noise. Here, we will use a bandpass filter to remove ultra-low frequencies close to DC, and also remove high frequencies at the same time
+\bi
+\item{Click on \textsc{Filter} and select the \texttt{deMspm8\_subject1.mat} file.}
+\item{Select a ``bandpass'' filter with band 0.5 30 (Hz).}
+\ei
+The progress bar will appear and the resulting filtered data will be saved in files \texttt{fdeMspm8\_subject1.mat} and \texttt{fdeMspm8\_subject1.dat}.
+
+\subsection{Artefacts}
+ A number of different methods of artefact removal are implemented in SPM8. Here, we will demonstrate a simple thresholding method. However, before doing so, we will look at the data in the display:
+\bi
+\item{Choose ``M/EEG'' from the ``Display'' dropdown menu.}
+\item{Select the \texttt{fdeMspm8\_subject1.mat} file.}
+\item{Click on the ``EEG'' tab.}
+\item{Press the ``scalp'' radio button.}
+\ei
+The time-series for the first trial will then appear in the topographical layout shown in Figure~\ref{topo1}.
+
+ You will see that Channel 14, second-row from bottom, left hemisphere, contains (slightly) higher variability data than the others .
+Right-click on the channel; this tells you that this channel is ``A14''. You will also see as an entry in this menu ``bad: 0''. Select this entry, and click the left button. This will make the menu disappear, but the channel now has a grey background. You have marked this channel as bad. Click on ``save''in the top-right corner. This channel will then be ignored in subsequent processing. In fact this channel probably does'nt need removing, but we do so for teaching purposes only.
+\\
+\\
+Now, click on \textsc{Artefacts} and:
+\bi
+\item{Select the \texttt{fdeMspm8\_subject1.mat} file.}
+\item{Answer ``no'' to ``Read own artefact list ?''.}
+\item{Answer ``no'' to ``Robust average ?''.}
+\item{Answer ``yes'' to ``Threshold channels ?''}
+\item{Press return to choose the default for which channels you want to threshold, i.e., all 130 channels (128 EEG, 2 EOG). }
+\item{Choose as threshold 80 ($\mu V$).}
+\ei
+The progress bar will appear and the resulting data will be saved to files \texttt{afdeMspm8\_subject1.mat} and \texttt{afdeMspm8\_subject1.dat}. Sixty five trials will have been rejected. There are also interactive artefact removal routines available from \texttt{Toolbox} $\rightarrow$ \texttt{MEEG tools} $\rightarrow$  \texttt{Fieldtrip visual artifact rejection}.
+
+\subsection{Averaging}
+To produce an ERP click on \textsc{Averaging} and select the \texttt{afdeMspm8\_subject1.mat} file. The progress bar will appear and the resulting data will be saved to files \texttt{mafdeMspm8\_subject1.mat} and \texttt{mafdeMspm8\_subject1.dat}. The Graphics window will pop up and allow you to look at the averaged data. To look at the ERP, click on the EEG tab, and press the ``scalp'' radio button. Now hold  the Shift button down on the keyboard whilst selecting trial 2 with the left mouse button in the upper right corner of the graphics window. This will overlay responses to standard and rare trials on the same figure axes.
+
+Now press the 'plus' icon at the top of this graphics window and select channel C23 (seventh central channel down from the top) with a left mouse click. This will plot the ERPs shown in Figure~\ref{c23}. This completes the preprocessing step.
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/erp_c23}
+\caption{\em ERPs at channel C23 (CZ) for standard and rare tones. The ERP curve for rare tones lies underneath that for standard tones between 100 and 180ms. This corresponds to the mismatch negativity signal in this subject. \label{c23}}
+\end{center}
+\end{figure}
+
+\subsection{History}
+The evoked response file (and every other SPM MEEG data file) contains a history-entry which stores all pf the above preprocessing steps. You can take this history and produce a script that will re-run the same analysis which you entered using the GUI. Chapter \ref{Chap:eeg:preprocessing} provides more details on this.
+
+\section{Sensor space analysis}
+
+
+
+ A useful feature of SPM is the ability to use Random Field Theory to correct for multiple statistical comparisons across N-dimensional spaces. For example, a 2D space representing the scalp data can be constructed by flattening the sensor locations and interpolating between them to create an image of MxM pixels (when M is user-specified, eg M=32). This would allow one to identify locations where, for example, the ERP amplitude in two conditions at a given timepoint differed reliably across subjects, having corrected for the multiple t-tests performed across pixels. That correction uses Random Field Theory, which takes into account the spatial correlation across pixels (i.e, that the tests are not independent). 
+Here, we will consider a 3D example, where the third dimension is time, and test across trials within this single subject. We first create a 3D image for each trial of the two types, with dimensions MxMxS, where S=101 is the number of samples (time points). We then take these images into an unpaired t-test across trials (in a 2nd-level model) to compare faces versus scrambled faces. We can then use classical SPM to identify locations in space and time in which a reliable difference occurs, correcting across the multiple comparisons entailed. This would be appropriate if, for example, we had no a priori knowledge where or when the difference between standard and rare trials would emerge. The appropriate images are created as follows
+\bi
+\item{Select the `Convert to image' option from the `Other' pulldown menu.}
+\item{Select the \texttt{afdeMspm8\_subject1.mat} file.}
+\item{For `output image dimensions' accept the default of 32 (leading to a 32x32 pixel space)}
+\item{For 'interpolate' or 'mask out' bad channels, select interpolate}
+\ei
+SPM will take some time as it writes out an image for each trial (except rejected trials), in a new directory called \texttt{afdeMspm8\_subject1}, which will itself contain two subdirectories, one for each trialtype, called \texttt{type\_rare} and \texttt{type\_standard}. In each trialtype subdirectory there will be image and header files for each non-rejected trial of that type, e.g, trial0001.img/hdr. You can press "Display: images" to view one of these images - it will have dimensions 32x32x101.
+
+To perform statistics on these images:
+\bi
+\item{Create a new directory, eg. mkdir XYTstats.}
+\item{Press the `specify 2nd level' button}
+\item{Select "two-sample t-test" (unpaired t-test)}
+\item{Define the images for "Group 1" as all those in the subdirectory \texttt{type\_standard} (using right mouse, and "select all") and the images for "Group 2" as all those in the subdirectory \texttt{type\_rare}.}
+\item{Finally, specify the new XYTstats directory as the output directory}
+    \item{Press the save icon, top left, and save this design specification as \texttt{mmn\_design.mat} and press save}
+\item{Press the green `play' button to run the job\footnote{Note that we can use the default "nonsphericity" selections, i.e, that the two trial-types may have different variances, but are uncorrelated.} This will produce the design matrix for a two-sample t-test.} 
+\item{Now press `Estimate' in SPMs main window, and select the SPM.mat file from the XYTstats directory'}
+\ei
+ Now press "Results" and define a new F-contrast as [1 -1] (for help with these basic SPM functions, see eg. chapter 26). Keep the default contrast options, but threshold at $p<.05$ FWE corrected for the whole "image". Then press "volume", and the Graphics window should now look like that in Figure~\ref{3DSPM}. This reveals a large fronto-central region within the 2D sensor space and within the time epoch in which standard and rare trials differ reliably, having corrected for multiple F-tests across pixels/time.
+ An F-test is used because the sign of the difference reflects the polarity of the ERP difference, which is not of primary interest.
+ 
+ In the SPM results window, the time epoch (-100ms to 400ms) is referred in percentage units. The cursor in Figure~\ref{3DSPM} has been positioned by selecting the second cluster in the results table. This occurs at a time point 51\% through the time epoch, which corresponds to 155ms post stimulus.
+ 
+ \begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/3DSPM}
+\caption{\em In this SPM the time axis is reflected in the two MIP windows in the top row, with time proceeding from the bottom to the top of the page. The cursor has been positioned by selecting the second cluster in the results table. This occurs at a time point 51\% through the time epoch, which corresponds to 155ms post stimulus. The design matrix on the right hand side comprises two columns, the first for standard trials and the second for rare ones. \label{3DSPM}}
+\end{center}
+\end{figure}
+ Now:
+ \bi
+ \item{Press the right mouse button in the MIP}
+  \item{Select `display/hide' channels}
+\item{Select the \texttt{afdeMspm8\_subject1} file.}
+ \ei
+ This links the SPM.mat file with the M/EEG file from which the EEG images were created.
+ It is now possible to superimpose the channel labels onto the spatial SPM, and also to `goto the nearest channel' (using options provided after a right mouse click, when navigating the MIP).
+ 
+ We have demonstrated sensor space analysis for single-subject data. More usually, one would compute ERP images for each subject, smooth them, and then perform paired t-tests over subjects to look for condition differences. See \cite{marta_mmndcm} for a group analysis of MMN data.
+ 
+ Finally, if one had more constrained a priori knowledge about where and when the differences would appear, one could perform a Small Volume Correction (SVC) based on, for example, a box around fronto-central channels and between 100 and 200ms poststimulus. We also refer the reader to chapter \ref{Chap:eeg:sensoranalysis} for further details on sensor space analysis.
+
+\section{Source reconstruction}
+
+Source reconstruction comprises forward modeling and inverse modeling steps and is implemented by pressing the
+3D source reconstruction button in SPM's top-left window.
+This brings up the source localisation GUI shown in Figure~\ref{source_gui}. The following subsections detail each of the steps in a source reconstruction analysis. We also advise the reader to consult the reference material in chapter \ref{Chap:eeg:imaging}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/source-gui}
+\caption{\em Graphical user interface for 3D source localisation. A complete localisation comprises the following steps (i) creation of a cortical mesh, (ii) co-registration of the mesh with M/EEG data, (iii) creation of a forward model, and (iv) results interrogation. As each of these steps is completed the relevant part of the GUI becomes highlighted (text appears more solid).
+\label{source_gui}}
+\end{center}
+\end{figure}
+
+\subsection{Mesh}
+The first step is to load the data and create a cortical mesh upon which M/EEG data will be projected.:
+\bi
+\item{Press the `Load' button in the souce localisation GUI and select the file \texttt{mafdeMspm8\_subject1.}}
+\item{Enter 'Standard' under `Comment/Label for this analysis' and press OK.}
+\item{Now press the `template' button.}
+\item{For `Cortical mesh', select `normal'}
+\ei
+SPM will then form the `standard' or `canonical' cortical mesh shown in the graphics window which, after rotation, should look like Figure~\ref{mesh}
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/mesh}
+\caption{\em The figure shows the canonical cortical mesh (blue), inner skull surface (red) and scalp surface (light brown). The hardwired fiducials are shown in light blue. Transverse slices of canonical MRI are also shown in black, with gray scale inlays showing anatomical detail.
+}
+\end{center}
+\end{figure}
+
+\subsection{Coregister}
+
+Now press the `Co-register' button. This will create further output in the graphics window, the upper panel of which should like like Figure~\ref{coreg}
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/coreg}
+\caption{\em
+\label{mesh}The figure shows the MRI fiducials (pink), the sensor fiducials (blue) and the locations of sensors (green) in addition the the canonical cortical mesh (blue), inner skull surface (red) and scalp surface (light brown).
+\label{coreg}}
+\end{center}
+\end{figure}
+
+ In this coregister step we were not required to enter any further parameters. However, if you are not using the template (or 'canonical' mesh) or if at the `prepare' stage above you loaded your own (non-standard) sensor positions then you will be asked for the locations in MNI coordinates of the fiducial positions.
+
+\subsection{Forward model}
+
+Now press the `Forward model' button. Then select `EEG-BEM' in response to the `Which EEG head model ? question. SPM will then use a Boundary Element Method (BEM) which will take approximately 10 minutes to run. Upon completion SPM will write the \texttt{single\_subj\_T1\_EEG\_BEM} into the canonical subdirectory of your SPM distribution. The graphics window should now appear as in Figure~\ref{forward}
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/forward}
+\caption{\em
+\label{mesh}The figure shows the cortical mesh (blue), brain, skull and scalp surfaces. Electrode positions are marked with asterisks.
+\label{forward}}
+\end{center}
+\end{figure}
+The next time you wish to use an EEG-BEM solution based on the template mesh, SPM will simply use the date from the \texttt{single\_subj\_T1\_EEG\_BEM} file (so this step will be much quicker the next time you do it). The same principle applies to EEG-BEM solutions computed from meshes based on subjects individual MRIs.
+
+\subsection{Invert}
+
+Now press the Invert button and
+\bi
+\item{Select an `Imaging' reconstruction.}
+\item{Select `Yes' for `All conditions or trials'}
+\item{Select 'Standard' for Model}
+\ei
+SPM will now compute a leadfield matrix and save it in the file
+\texttt{SPMgainmatrix} placed in \texttt{DATA\_DIR}. This file can be replaced with one computed using other methods for computing the lead field (eg methods external to SPM). The forward model will then be inverted using the Multiple Sparse Priors (MSP) algorithm (the progress of which is outputted to the MATLAB command window). SPM will produce, in the graphics window, (i) a Maximum Intensity Projection (MIP) of activity in source space (lower panel) and (ii) a time series of activity for (upper panel) each condition.
+
+ The `ms or mm' window has three functionalities (i) if you enter a single number this will be interpreted as ms, (ii) if you enter two numbers this will be interpreted as a time window for plotting movies (see below), (iii) if you enter 3 numbers this will be interpreted as MNI coordinates for a time series plot.
+
+ Now enter `150' for `ms or mm' and press the MIP button, to see a
+ MIP of activity in source space at 150ms post-stimulus, and the time series of activities (top panel) at the position with largest magnitude signal. The corresponding graphic is shown in Figure~\ref{invert}. By toggling the `Condition' button, and pressing MIP each time, you can view the spatial distribution of activity for the different conditions (at the selected time point).
+\begin{figure}
+\begin{center}
+\includegraphics[width=80mm]{mmn/invert}
+\caption{\em Source reconstructed activity at 150ms post-stimulus.
+The upper trace shows responses to Condition 1 (Standards) with the red curve, and to Condition 2 (Rare) in gray.
+\label{invert}}
+\end{center}
+\end{figure}
+
+\section{Dynamic Causal Modeling}
+
+ Many of the functionalities of DCM for M/EEG are described in more detail in the reference chapter \ref{Chap:eeg:DCM}. In this chapter we demonstrate only the `DCM for ERP' model. 
+ Users are strongly encouraged to read the accompanying theoretical papers \cite{od_dcm_erp,sjk_dcm_erp}. Briefly, DCM for ERP fits a  neural network model to M/EEG data, in which activity in source regions are described using differential equations based on neural mass models. Activity in each region comprises three populations of cells; pyramidal, local excitatory and local inhibitory. Fitting the model will then allow you to plot estimated activity in each cell population in each region. It will also provide estimates of the long range connections between regions, and show how these values are changed by experimental manipulation (eg. rare versus standard trial types).
+  
+  In the  \texttt{example\_scripts} folder of the SPM distribution, we also provide an example script that will run a DCM-for-ERP analysis of this data. This can be edited to implement your own analysis.
+
+Pressing the `DCM' button will open up the DCM GUI shown in Figure~\ref{dcm_gui}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=80mm]{mmn/dcm_gui}
+\caption{\em The Dynamic Causal Modeling GUI splits model specification into three reversible phases (i) data and design, (ii) electromagnetic model and (iii) neuronal model. One can move forwards and backwards in the model specification using the left and right arrow buttons (these become highlighted when sufficient information has been entered to proceed to the next step).
+\label{dcm_gui}}
+\end{center}
+\end{figure}
+\begin{figure}
+\begin{center}
+%\includegraphics[width=80mm]{mmn/}
+(a)\includegraphics[width=80mm]{data-and-design}
+(b)\includegraphics[width=80mm]{electro-model}
+(c)\includegraphics[width=80mm]{neuronal-model}
+\caption{\em Specification of DCM for ERP model (a) Data and design, (b) electromagnetic model and (c) neuronal model.
+\label{specify} }
+\end{center}
+\end{figure}
+We will now complete the three model specification entries shown in Figure~\ref{specify}:
+\bi
+\item{Press the `new data' button and select the \texttt{mafdeMspm8\_subject1} file}
+\item{Enter the `between-trial effects' and design matrix information shown in Figure~\ref{specify}(a)}
+\item{Press the Display button}
+\ei
+This completes the data specification stage. Now:
+\bi
+\item{Press the right hand arrow to move on to the specification of the electromagnetic model}
+\item{Instead of `IMG' select 'ECD' for the spatial characteristics of the sources.}
+\item{Now enter the names and (prior mean) locations of the sources shown in Figure~\ref{specify}(b)}
+\item{Pressing the `dipoles' button will create an interactive display in the graphics window showing the prior source positions.}
+\ei
+This completes the specification of the electromagnetic model. Now:
+\bi
+\item{Press the right hand arrow (next to the dipoles button) to move on to specification of the neuronal model.}
+\item{Highlight the connectivity matrix radio buttons so that they  correspond to those shown in Figure~\ref{specify}(c)}
+    \item{Press the (top left) 'save' button and accept the default file name.}
+\item{Press 'Invert DCM'}
+\ei
+SPM will plot the progess of the model estimation in the MATLAB command window. Plots of data and the progressing model fit will be shown in SPM's graphics window. The algorithm should converge after
+five to ten minutes (in 51 iterations). Now select the `ERPs (sources)' option from the pull down menu to the right of the `Estimated' button. This will produce the plot shown in Figure~\ref{source_erps}. The values of the connections between areas can be outputted by selecting eg 'Coupling(A)' from the pull-down menu in the DCM GUI. This will allow you to interrogate the posterior distribution of model parameters. It is also possible to fit multiple models, eg. with different numbers of regions and different structures, and to compare them using Bayesian Model Comparison. This is implemented by pressing the BMS button (bottom right hand corner of the DCM window).
+
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=120mm]{mmn/source_erps}
+\caption{\em Activity plots for three neuronal populations (solid lines for pyramidal cells, dotted lines for others), in four areas (fifth not shown in this figure), for standard (blue) and rare (red) trial types.
+\label{source_erps} }
+\end{center}
+\end{figure}
+
+
