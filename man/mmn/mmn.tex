@@ -37,11 +37,7 @@ You now call the montage function by choosing \textsc{Montage} in the ``Other'' 
 \end{itemize}
 This will remove the uninteresting channels from the data. The progress bar appears and SPM will generate two new files \texttt{Mspm8\_subject1.mat} and \texttt{Mspm8\_subject1.dat}.
 
-\subsection{Prepare}
-The next step is to specify the location of the sensors. Unfortunately, this information is not contained in the original Biosemi \texttt{*.bdf} file. It is usually the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience this is a critical step. In SPM, we have chosen to provide tools for linking data and location information, leaving it the responsibility of the user to verify the success of this process.
-\\
-\\
-Choose the \textsc{Prepare} tool from the ``Other'' drop-down menu and select the \texttt{Mspm8\_subject1.mat} file. This will make several menus available in the lower left SPM window. Select \texttt{Sensors} $\rightarrow$ \texttt{Load EEG sensors} $\rightarrow$ \texttt{Assign default} from the menu. This will tell SPM to assume default locations for the BioSemi channels. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the other options to use digitized sensor location data. Then select the ``Save'' option from the ``File'' menu. Note that if you leave out the ``Save'' step, no information will be written to the \texttt{mat}-file and you won't be able to display the data properly later on.
+This step will also assign default locations to the sensors, as this information is unfortunately not contained in the original Biosemi \texttt{*.bdf} file. It is usually the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience this is a critical step. SPM provide tools (\textsc{Prepare}) for linking data and location information, leaving it the responsibility of the user to verify the success of this process. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the \textsc{Prepare} tool from the ``Other'' drop-down menu to use digitized sensor location data.
 
 \subsection{Epoch}
 To epoch the data click on \textsc{Epoching}. Select the \texttt{Mspm8\_subject1.mat} file. Choose the peri-stimulus time window, first the start \texttt{-100}, then the end \texttt{400} ms. Choose 2 conditions. You can call the first condition ``standard''. A GUI pops up which gives you a complete list of all events in the EEG file. The standard condition had 480 trials, so select the type with value 1 and press OK. The second condition can be called ``rare''. The rare stimulus was given 120 times and has value 3 in the list. Select this trial type and press OK. Answer two times ``no'' to the questions  ``review individual trials'', and ``save trial definitions''. The progress bar will appear and the epoched data will be saved to files \texttt{eMspm8\_subject1.mat} and \texttt{eMspm8\_subject1.dat}.
@@ -52,6 +48,7 @@ To epoch the data click on \textsc{Epoching}. Select the \texttt{Mspm8\_subject1
 \label{topo1}}
 \end{center}
 \end{figure}
+
 \subsection{Downsample}
 Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 512 Hz. This is an unnecessarily high sampling rate for a simple evoked response analysis, and we will now decrease the sampling rate to 200 Hz, thereby reducing the file size by more than half. Select \textsc{Downsample} from the ``Other'' drop-down menu and select the \texttt{eMspm8\_subject1.mat} file. Choose a new sampling rate of 200 (Hz). The progress bar will appear and the resulting data will be saved to files \texttt{deMspm8\_subject1.mat} and \texttt{deMspm8\_subject1.dat}. This step is computationally demanding.
 
