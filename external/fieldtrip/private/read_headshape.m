@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.11  2009/03/31 12:18:48  jansch
+% added additional fiducials to shape.fid for 4D hs_files
+%
 % Revision 1.10  2009/03/23 12:09:07  vlalit
 % Minor changes to make the ctf_old option fully functional.
 %
@@ -109,15 +112,19 @@ switch fileformat
         % I'm making some assumptions here
         % which I'm not sure will work on all 4D systems
         
-        fid = fid(1:3, :);
+        %fid = fid(1:3, :);
         
-        [junk, NZ] = max(fid(:,1));
-        [junk, L] = max(fid(:,2));
-        [junk, R] = min(fid(:,2));
+        [junk, NZ] = max(fid(1:3,1));
+        [junk, L]  = max(fid(1:3,2));
+        [junk, R]  = min(fid(1:3,2));
+        rest       = setdiff(1:size(fid,1),[NZ L R]);
 
-        shape.fid.pnt = fid([NZ L R], :);
+        shape.fid.pnt = fid([NZ L R rest], :);
         shape.fid.label = {'NZ', 'L', 'R'};
-
+        if ~isempty(rest),
+	  shape.fid.label(4:size(fid,1)) = {'fiducial'}; 
+	  %in a 5 coil configuration this corresponds with Cz and Inion
+        end
     case 'neuromag_mex'
         [co,ki,nu] = hpipoints(filename);
         fid = co(:,find(ki==1))';

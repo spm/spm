@@ -44,6 +44,10 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.20  2009/03/31 15:31:00  jansch
+% added the possibility to upsample a single value per trial; interp1 crashes
+% in that case. instead now use repmat
+%
 % Revision 1.19  2009/03/26 14:28:04  jansch
 % fixed incorrect check of defaults
 %
@@ -211,7 +215,11 @@ elseif usetime
       data.trial{itr} = preproc_detrend(data.trial{itr});
     end
     % perform the resampling
-    data.trial{itr} = interp1(data.time{itr}', data.trial{itr}', cfg.time{itr}', cfg.method)';
+    if length(data.time{itr})>1,
+      data.trial{itr} = interp1(data.time{itr}', data.trial{itr}', cfg.time{itr}', cfg.method)';
+    else
+      data.trial{itr} = repmat(data.trial{itr}, [1 length(cfg.time{itr}')]);
+    end
     % update the time axis
     data.time{itr} = cfg.time{itr};
   end % for itr
@@ -238,7 +246,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.19 2009/03/26 14:28:04 jansch Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.20 2009/03/31 15:31:00 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

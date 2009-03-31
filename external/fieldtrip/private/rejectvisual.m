@@ -107,6 +107,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.28  2009/03/31 18:39:43  roboos
+% don't print removed if empty (thanks to Irina)
+%
 % Revision 1.27  2009/03/23 21:17:31  roboos
 % at end of function print a report with removed channels and trial-numbers
 %
@@ -362,12 +365,15 @@ end
 
 % show the user which trials are removed
 removed = find(~trlsel);
-fprintf('the following trials were removed: ');
-for i=1:(length(removed)-1)
-  fprintf('%d, ', removed(i));
+if ~isempty(removed)
+  fprintf('the following trials were removed: ');
+  for i=1:(length(removed)-1)
+    fprintf('%d, ', removed(i));
+  end
+  fprintf('%d\n', removed(end));
+else
+  fprintf('no trials were removed\n');
 end
-fprintf('%d\n', removed(end));
-
 
 % remove the selected trials from the data
 data.time  = data.time(trlsel);
@@ -425,7 +431,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.27 2009/03/23 21:17:31 roboos Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.28 2009/03/31 18:39:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
