@@ -3,15 +3,16 @@ function spm_bms_partition(BMS)
 % FORMAT spm_bms_partition(BMS)
 %
 % Input:
-% BMS structure
+% BMS structure (BMS.mat)
 %
 % Output:
-% alpha and xppm images (example: xppm_subset1.img)
+% PPM (images) for each of the subsets defined
+% xppm_subsetn.img (RFX) and ppm_subsetn.img (FFX)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 2958 2009-03-26 11:19:20Z guillaume $
+% $Id: spm_bms_partition.m 3020 2009-03-31 18:45:00Z maria $
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -22,129 +23,87 @@ contrast = spm_input('Contrast vector',2,'e',[]);
 % -------------------------------------------------------------------------
 method = spm_input('Inference method',3,'b','FFX|RFX',['FFX';'RFX']);
 
-nb_subsets = max(contrast);
+nb_subsets = length(unique(contrast));
+max_cont   = max(contrast);
 nb_models  = length(contrast);
-
 switch method
     
-    % Fixed effects
-    %======================================================================
-    case 'FFX'
-
-        % Check if ffx exists
-        %------------------------------------------------------------------
-        if ~isfield(BMS.map,'ffx')
-            error('No FFX analysis in current BMS.mat.');
-        end
-
-        % Check number of subsets and nb of models
-        %------------------------------------------------------------------
-        nmodels = size(BMS.map.ffx.ppm,2);
+   case 'FFX'
+       
+       str_method = 'ffx';
+       str_output = 'ppm';     
+       
+   case 'RFX'
+       
+       str_method = 'rfx';
+       str_output = 'xppm';
+       
+   otherwise
         
-        if nb_models ~= nmodels || nb_subsets == 1
-            error('Invalid contrast vector.')
-        end
-
-        % Get data for each subset
-        %------------------------------------------------------------------
-        data = cell(1,nb_subsets);
-        
-        for i = 1:nmodels,
-            num = contrast(i);
-            data{num} = [data{num};BMS.map.ffx.ppm{i}];
-        end
-
-        % Create new images by summing old the ppms
-        %------------------------------------------------------------------
-        pth      = fileparts(BMS.fname);
-
-        data_vol = cell(nb_subsets,1);
-        ftmp     = cell(nb_subsets,1);
-
-        for j = 1:nb_subsets,
-            data_vol{j}  = spm_vol(char(data{j}));
-            n_models_sub = size(data{j},1);
-
-            ftmp{j}     = 'i1';
-            for jj = 1:n_models_sub-1
-                ftmp{j} = [ftmp{j},sprintf(' + i%d',jj+1)];
-            end
-            fname       = fullfile(pth,sprintf('subset%d_ppm.img',j));
-            save_fn{j}  = fname;
-            Vo = calc_im(j,data_vol,fname,ftmp);
-
-        end
-
-        % Save new BMS structure
-        %------------------------------------------------------------------
-        BMS.map.ffx.subsets = save_fn;
-        file_name           = BMS.fname;
-        BMS.xSPM            = [];
-        save(file_name,'BMS')
-     
-    % Random effects
-    %======================================================================
-    case 'RFX'
-        
-         % Check if ffx exists
-         %-----------------------------------------------------------------
-         if ~isfield(BMS.map,'rfx')
-             error('No RFX analysis in current BMS.mat.');
-         end
-                     
-           nmodels = size(BMS.map.rfx.ppm,2);
-           
-           % Check number of subsets and nb of models
-           %---------------------------------------------------------------
-           if nb_models ~= nmodels || nb_subsets == 1
-              error('Invalid contrast vector.');
-           end             
-        
-           data = cell(1,nb_subsets);
-           
-           % Get data for each subset
-           %---------------------------------------------------------------
-           for i = 1:nmodels,
-               num = contrast(i);
-               data{num} = [data{num};BMS.map.rfx.ppm{i}];
-           end
-          
-           % Create new images by summing old the ppms
-           %---------------------------------------------------------------
-           pth = fileparts(BMS.fname);
-           
-           data_vol = cell(nb_subsets,1);
-           ftmp     = cell(nb_subsets,1);
-           
-           for j = 1:nb_subsets,
-               data_vol{j}  = spm_vol(char(data{j}));
-               n_models_sub = size(data{j},1);
-
-               ftmp{j}    = 'i1';
-               for jj  = 1:n_models_sub-1
-                  ftmp{j} = [ftmp{j},sprintf(' + i%d',jj+1)];
-               end
-               fname      = fullfile(pth,sprintf('subset%d_xppm.img',j));
-               save_fn{j} = fname;
-
-               Vo = calc_im(j,data_vol,fname,ftmp);
-
-           end
-           
-           % Save new BMS structure
-           %---------------------------------------------------------------
-           BMS.map.rfx.subsets = save_fn;
-           file_name           = BMS.fname;
-           BMS.xSPM            = [];
-           save(file_name,'BMS');
-    
-    % Otherwise
-    %======================================================================
-    otherwise
-        
-        error('Unknown inference method.');
-        
+       error('Unknown inference method.');
+       
 end
+
+% Check if ffx exists
+% -------------------------------------------------------------------------
+if ~isfield(BMS.map,str_method)
+    msgbox(sprintf('No %s analysis in current BMS.mat.',method));
+    return
+end
+
+% Check number of subsets and nb of models
+% -------------------------------------------------------------------------
+bms_fields = eval(sprintf('BMS.map.%s.ppm',str_method));
+nmodels    = size(bms_fields,2);
+        
+if nb_models ~= nmodels || nb_subsets == 1 || max_cont ~= nb_subsets
+   msgbox('Invalid contrast vector!')
+   return
+end
+
+% Get data for each subset
+% -------------------------------------------------------------------------
+data = cell(1,nb_subsets);
+        
+for i = 1:nmodels,
+    num = contrast(i);
+    data{num} = [data{num};bms_fields{i}];
+end
+
+% Create new images by summing old the ppms
+% -------------------------------------------------------------------------
+pth      = fileparts(BMS.fname);
+
+data_vol = cell(nb_subsets,1);
+ftmp     = cell(nb_subsets,1);
+
+for j = 1:nb_subsets,
+    data_vol{j}  = spm_vol(char(data{j}));
+    n_models_sub = size(data{j},1);
+
+    ftmp{j}     = 'i1';
+    for jj = 1:n_models_sub-1
+        ftmp{j} = [ftmp{j},sprintf(' + i%d',jj+1)];
+    end
+    fname       = fullfile(pth,sprintf('subset%d_%s.img',j,str_output));
+    save_fn{j}  = fname;
+    Vo = calc_im(j,data_vol,fname,ftmp);
+end
+
+
+% Save new BMS structure
+% -------------------------------------------------------------------------
+bms_struct          = eval(sprintf('BMS.map.%s',str_method));
+bms_struct.subsets  = save_fn;
+switch method
+    case 'FFX'
+        BMS.map.ffx = bms_struct;
+    case 'RFX'
+        BMS.map.rfx = bms_struct;
+end
+file_name           = BMS.fname;
+BMS.xSPM            = [];
+save(file_name,'BMS')
 
 % Return to results
 %==========================================================================
