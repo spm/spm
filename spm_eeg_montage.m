@@ -29,9 +29,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_montage.m 3013 2009-03-31 13:52:57Z vladimir $
 
-SVNrev = '$Rev: 2861 $';
+SVNrev = '$Rev: 3013 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -219,7 +219,7 @@ end
 
 %-Assign default EEG sensor positions if possible
 %--------------------------------------------------------------------------
-if ~isempty(strmatch('EEG', Dnew.chantype, 'exact')) && isempty(Dnew.sensors('EEG'))
+if ~isempty(Dnew.meegchannels('EEG')) && isempty(Dnew.sensors('EEG'))
     S1 = [];
     S1.task = 'defaulteegsens';
     S1.updatehistory = 0;
@@ -228,11 +228,21 @@ if ~isempty(strmatch('EEG', Dnew.chantype, 'exact')) && isempty(Dnew.sensors('EE
     Dnew = spm_eeg_prep(S1);
 end
 
-%-Create 2D positions for MEG (when there are no EEG sensors)
-% by projecting the 3D positions to 2D
+%-Create 2D positions for EEG by projecting the 3D positions to 2D
 %--------------------------------------------------------------------------
-if ~isempty(strmatch('MEG', Dnew.chantype, 'exact')) &&...
-    ~isempty(Dnew.sensors('MEG')) && isempty(Dnew.sensors('EEG'))
+if ~isempty(Dnew.meegchannels('EEG')) && ~isempty(Dnew.sensors('EEG')) 
+    S1 = [];
+    S1.task = 'project3D';
+    S1.modality = 'EEG';
+    S1.updatehistory = 0;
+    S1.D = Dnew;
+    
+    Dnew = spm_eeg_prep(S1);
+end
+
+%-Create 2D positions for MEG  by projecting the 3D positions to 2D
+%--------------------------------------------------------------------------
+if ~isempty(Dnew.meegchannels('MEG')) && ~isempty(Dnew.sensors('MEG')) 
     S1 = [];
     S1.task = 'project3D';
     S1.modality = 'MEG';

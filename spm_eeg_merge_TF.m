@@ -22,9 +22,9 @@ function Dout = spm_eeg_merge_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel
-% $Id: spm_eeg_merge_TF.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_merge_TF.m 3013 2009-03-31 13:52:57Z vladimir $
 
-SVNrev = '$Rev: 2861 $';
+SVNrev = '$Rev: 3013 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -149,6 +149,7 @@ for i = 1:Nfiles
     for j = 1:D{i}.ntrials
         k = k + 1;
         Dout(1:Dout.nchannels, 1:Dout.nfrequencies, 1:Dout.nsamples, k) =  D{i}(:,:,:,j);
+        Dout = reject(Dout, k, reject(D{i}, j));
     end
 
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
