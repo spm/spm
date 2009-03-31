@@ -8,18 +8,22 @@ S = [];
 S.dataset = fullfile(pth,'subject1.bdf');
 S.outfile = 'spm8_subject1';
 S.channels = 'all';
-S.timewindow = [0.001953125 921];
+S.timewindow = [0.001953125 915];
 S.blocksize = 3276800;
 S.checkboundary = 1;
 S.usetrials = 1;
 S.datatype = 'float32-le';
 S.eventpadding = 0;
+S.saveorigheader = 0;
 S.conditionlabel = {'Undefined'};
+S.inputformat = [];
 S.continuous = true;
 D = spm_eeg_convert(S);
 
 
 S = [];
+S.D = fullfile(pth,'spm8_subject1.mat');
+S.blocksize = 655360;
 %%
 S.montage.labelorg = {
                       'A1'
@@ -434,33 +438,24 @@ S.montage.tra = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 0 0 0
                  0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
 %%
-S.keepothers = 0;
-S.D = fullfile(pth,'spm8_subject1.mat');
-S.blocksize = 655360;
+S.keepothers = 'no';
 D = spm_eeg_montage(S);
-
 
 S = [];
 S.D = fullfile(pth,'Mspm8_subject1.mat');
-S.task = 'defaulteegsens';
-S.save = 1;
-D = spm_eeg_prep(S);
-
-
-S = [];
 S.fsample = 512;
 S.timeonset = 0;
+S.inputformat = [];
 S.pretrig = -100;
 S.posttrig = 400;
 S.trialdef(1).conditionlabel = 'standard';
 S.trialdef(1).eventtype = 'STATUS';
 S.trialdef(1).eventvalue = 1;
-S.trialdef(2).conditionlabel = 'oddball';
+S.trialdef(2).conditionlabel = 'rare';
 S.trialdef(2).eventtype = 'STATUS';
 S.trialdef(2).eventvalue = 3;
-S.review = 0;
+S.reviewtrials = 0;
 S.save = 0;
-S.D = fullfile(pth,'Mspm8_subject1.mat');
 S.epochinfo.padding = 0;
 D = spm_eeg_epochs(S);
 
