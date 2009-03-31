@@ -54,7 +54,7 @@ y = h(u,\theta) + X \beta + e
 \end{equation}
 This formulation is the basis for estimating the neural and hemodynamic parameters from the measured BOLD data, using a fully Bayesian approach with empirical priors for the hemodynamic parameters and conservative shrinkage priors for the neural coupling parameters.
 
-Details of the parameter estimation scheme, which rests on a Fisher scoring gradient ascent scheme with Levenburg-Marquardt regularisation, embedded in an expectation maximization (EM) algorithm, can be found in the original DCM publication (Friston et al. 2003).  In brief, under Gaussian assumptions about the posterior distributions, this scheme returns the posterior expectations $\eta_{\theta | y}$ and posterior covariance  $C_{\theta | y}$ for the parameters as well as hyperparameters for the covariance of the observation noise, $C_e$.  
+Details of the parameter estimation scheme, which rests on a Fisher scoring gradient ascent scheme with Levenburg-Marquardt regularisation, embedded in an expectation maximization (EM) algorithm, can be found in the original DCM publication (Friston et al. 2003).  In brief, under Gaussian assumptions about the posterior distributions, this scheme returns the posterior expectations $\eta_{\theta | y}$ and posterior covariance  $C_{\theta | y}$ for the parameters as well as hyperparameters for the covariance of the observation noise, $C_e$.
 
 After fitting the model to measured BOLD data, the posterior distributions of the parameters can be used to test hypotheses about the size and nature of effects at the neural level.  Although inferences could be made about any of the parameters in the model, hypothesis testing usually concerns context-dependent changes in coupling (i.e. specific parameters from the $B$ matrices; see Fig.~\ref{fig6}).  As will be demonstrated below, at the single-subject level, these inferences concern the question of how certain one can be that a particular parameter or, more generally, a contrast of parameters, $c^T \eta_{\theta | y}$, exceeds a particular threshold  $\gamma$ (e.g. zero).
 
@@ -63,7 +63,7 @@ Under the assumptions of the Laplace approximation, this is easy to test ($\Phi_
 p(c^T \eta_{\theta | y} > \gamma) = \Phi_N \left(\frac{c^T \eta_{\theta | y} - \gamma}{c^T C_{\theta | y} c} \right)
 \end{equation}
 For example, for the special case $c^T \eta_{\theta | y} = \gamma$ the probability is $p(c^T \eta_{\theta | y} > \gamma)=0.5$, i.e. it is equally likely that the parameter is smaller or larger than the chosen threshold $\gamma$.
-We conclude this section on the theoretical foundations of DCM by noting that the parameters can be understood as rate constants (units: $1/s = Hz$) of neural population responses that have an exponential nature.  This is easily understood if one considers that the solution to a linear ordinary differential equation of the form $\dot{z}=Az$ is an exponential function (see Fig. ~\ref{fig3}). 
+We conclude this section on the theoretical foundations of DCM by noting that the parameters can be understood as rate constants (units: $1/s = Hz$) of neural population responses that have an exponential nature.  This is easily understood if one considers that the solution to a linear ordinary differential equation of the form $\dot{z}=Az$ is an exponential function (see Fig. ~\ref{fig3}).
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=120mm]{dcm/Fig3}
@@ -73,7 +73,7 @@ We conclude this section on the theoretical foundations of DCM by noting that th
 
 \section{Bayesian model selection \label{mc}}
 
-A generic problem encountered by any kind of modeling approach is the question of model selection:  given some observed data, which of several alternative models is the optimal one?  This problem is not trivial because the decision cannot be made solely by comparing the relative fit of the competing models.  One also needs to take into account the relative complexity of the models as expressed, for example, by the number of free parameters in each model.  
+A generic problem encountered by any kind of modeling approach is the question of model selection:  given some observed data, which of several alternative models is the optimal one?  This problem is not trivial because the decision cannot be made solely by comparing the relative fit of the competing models.  One also needs to take into account the relative complexity of the models as expressed, for example, by the number of free parameters in each model.
 
 Model complexity is important to consider because there is a trade-off between model fit and generalizability (i.e. how well the model explains different data sets that were all generated from the same underlying process).  As the number of free parameters is increased, model fit increases monotonically whereas beyond a certain point model generalizability decreases.  The reason for this is ``overfitting'':  an increasingly complex model will, at some point, start to fit noise that is specific to one data set and thus become less generalizable across multiple realizations of the same underlying generative process.
 
@@ -85,28 +85,23 @@ the model evidence can be considered as a normalization constant for the product
 \begin{equation}
 p(y|m) = \int p(\theta|y,m) p(\theta|m) d\theta
 \end{equation}
-Here, the number of free parameters (as well as the functional form) are considered by the integration.  Unfortunately, this integral cannot usually be solved analytically, therefore an approximation to the model evidence is needed.
+Here, the number of free parameters (as well as the functional form) are considered by the integration.  Unfortunately, this integral cannot usually be solved analytically, therefore an approximation to the model evidence is needed. One such approximation used by DCM, and many other models in SPM, is to make use of the Laplace approximation~\footnote{This should perhaps more correctly be referred to as a fixed-form variational approximation, where the fixed form is chosen to be a Gaussian. The model evidence is approximated by the negative free energy, $F$.}.
 
-In the context of DCM, one potential solution could be to make use of the Laplace approximation.  As shown in \cite{cdcm}, this yields the following expression for the natural logarithm ($ln$) of the model evidence ( $\eta_{\theta | y}$ denotes the posterior mean, $C_{\theta | y}$ is the posterior covariance of the parameters, $C_e$  is the error covariance, $\theta_p$ is the prior mean of the parameters, and $C_p$ is the prior covariance):
+As shown in \cite{cdcm}, this yields the following expression for the natural logarithm ($ln$) of the model evidence ( $\eta_{\theta | y}$ denotes the posterior mean, $C_{\theta | y}$ is the posterior covariance of the parameters, $C_e$  is the error covariance, $\theta_p$ is the prior mean of the parameters, and $C_p$ is the prior covariance):
 \begin{eqnarray}
 ln p(y|m) & = & accuracy(m) - complexity (m) \\ \nonumber
 & = & \left[ -\frac{1}{2} ln |C_e| - \frac{1}{2} (y-h(u,\eta_{\theta | y}))^T C_e^{-1} (y-h(u,\eta_{\theta | y}))\right] \\ \nonumber
 & - & \left[ \frac{1}{2} ln |C_p| -\frac{1}{2}ln |C_{\theta | y}| + \frac{1}{2} (\eta_{\theta | y}-\theta_p)^T C_p^{-1} (\eta_{\theta | y}-\theta_p) \right]
-\end{eqnarray} 
-
-This expression properly reflects the requirement, as discussed above, that the optimal model should represent the best compromise between model fit (accuracy) and model complexity.  The complexity term depends on the prior density, for example, the prior covariance of the intrinsic connections.  This is problematic in the context of DCM for fMRI because this prior covariance is defined in a model-specific fashion to ensure that the probability of obtaining an unstable system is very small.  Specifically, this is achieved by choosing the prior covariance of the intrinsic coupling matrix A such that the probability of obtaining a positive Lyapunov exponent of A is $p \leq 0.001$; see \cite{dcm} for details. Consequently, one cannot easily compare models with different numbers of connections. Therefore, alternative approximations to the model evidence are useful for DCMs of this sort.
-Suitable approximations are afforded by the Bayesian Information Criterion (BIC) and Akaike Information Criterion (AIC), which have different complexity terms. As shown in \cite{cdcm}, these approximations are given by
-\begin{eqnarray}
-BIC & = & accuracy(m) - d_{\theta} ln N \\ \nonumber
-AIC & = & accuracy(m) - d_{\theta}
 \end{eqnarray}
 
-where $d_{\theta}$ is the number of parameters and $N$ is the number of data points (scans).  If one compares the complexity terms of BIC and AIC, it becomes obvious that BIC pays a heavier penalty than AIC as soon as one deals with 8 or more scans (which is virtually always the case for fMRI data).
+This expression properly reflects the requirement, as discussed above, that the optimal model should represent the best compromise between model fit (accuracy) and model complexity.  The complexity term depends on the prior density, for example, the prior covariance of the intrinsic connections.  
 
-Therefore, BIC will be biased towards simpler models whereas AIC will be biased towards more complex models. This can lead to disagreement between the two approximations about which model should be favored. In DCM for fMRI, we have therefore adopted the convention that, for any pairs of models $m_i$ and $m_j$ to be compared, a decision is only made if AIC and BIC concur; the decision is then based on that approximation which gives the smaller Bayes factor:
+Two models can then be compared using the Bayes factor:
 \begin{equation}
 BF_{ij} = \frac{p(y|m_i)}{p(y|m_j)}
 \end{equation}
+Given uniform priors over models, the posterior probability for model $i$ is greater 0.95 if $BF_{ij}$ is greater than twenty.
+
 This results in a robust procedure for deciding between competing hypotheses represented by different DCMs. These hypotheses can concern any part of the structure of the modeled system, e.g. the pattern of intrinsic connections or which inputs affect the system and where they enter. Note, however, that this comparison is only valid if the data $y$ are identical in all models.  This means that in DCM for fMRI, where the data vector results from a concatenation of the time series of all areas in the model, only models can be compared that contain the same areas. Therefore, model selection cannot be used to address whether or not to include a particular area in the model.  In contrast, in DCM for ERPs, the data measured at the sensor level are independent of how many neuronal sources are assumed in a given model.  Here, model selection could also be used to decide which sources should be included.
 
 \section{Practical example}
@@ -116,7 +111,7 @@ The following example refers to the ``attention to visual motion'' data set avai
 Making a DCM requires two ingredients: (i) a design matrix and (ii) the time series, stored in VOI files.  The regressors of the design matrix define the inputs for the DCM.  Note that this means that the design matrix that is optimal for a given DCM is often somewhat different than the one for the corresponding GLM. DCM does not require the design matrix to be part of an estimated model, however. It just needs to be defined.
 
 \subsection{Defining the GLM}
-The present experiment consisted of 4 conditions: (i) fixation (F), (ii) static (S, non-moving dots), (iii) no attention (N, moving dots but no attention required), (iv) attention (A). The GLM analyses by Christian showed that activity in area V5 was not only enhanced by moving stimuli, but also by attention to motion.  In the following, we will try to model this effect in V5, and explain it as a context-dependent modulation or ``enabling'' of V5 afferents, using a DCM. First, we need to set up the GLM analysis and extract our time series from the results. In this example, we want to use the same design matrix for GLM and DCM, therefore we recombine the above regressors to get the following three conditions: 
+The present experiment consisted of 4 conditions: (i) fixation (F), (ii) static (S, non-moving dots), (iii) no attention (N, moving dots but no attention required), (iv) attention (A). The GLM analyses by Christian showed that activity in area V5 was not only enhanced by moving stimuli, but also by attention to motion.  In the following, we will try to model this effect in V5, and explain it as a context-dependent modulation or ``enabling'' of V5 afferents, using a DCM. First, we need to set up the GLM analysis and extract our time series from the results. In this example, we want to use the same design matrix for GLM and DCM, therefore we recombine the above regressors to get the following three conditions:
 \begin{enumerate}
 \item{{\bf photic}: this comprises all conditions with visual input, i.e. S, N, and A.}
 \item{{\bf motion}: this includes all conditions with moving dots, i.e. N and A.}
@@ -176,7 +171,7 @@ as follows:
 \item{Specify slice timings for each area. This is a new option described in \cite{sjk_dcm_slicetiming}. The default values are set to the last slice of the data, which was the default in the original DCM version. For sequential (as opposed to interleaved) data, this modelling option allows to use DCM in combination with any TR (slice timing differences). Here, we proceed with the default values.}
 \item{Enter \texttt{} for ``Echo Time, TE[s]''.}
 \end{enumerate}
-A polite ``Thank you'' completes the model specification process. 
+A polite ``Thank you'' completes the model specification process.
 
 \begin{figure}[ht]
 \begin{center}
@@ -232,27 +227,7 @@ Once you have estimated this new model, you can perform a Bayesian model compari
 \item{Select the two models, e.g. in the order \verb!DCM_mod_bwd! and \verb!DCM_mod_fwd!.}
 \end{enumerate}
 
-The Graphics window will now show two plots of the model evidences, one based on the AIC approximation (upper panel) and another is based on the BIC approximation (lower panel).  Fig.~\ref{fig8} shows this plot for AIC.  Generally, a decision is only made if the two approximations concur, see section~\ref{mc} for details. In this example, AIC and BIC give identical results since the two models do not differ in complexity (we have only changed the position of one input). You can see that our second model is better than the first one. How much better precisely, is stated in the MATLAB command window where you find an exact breakdown of the different components (model fit and penalty terms for complexity) of the model comparison.  In the example here the Bayes factor is 3.2532 in favour of the second model:
-
-\begin{verbatim}
-Model 1: C:\data\Att2Mot\DCM\models\DCM_mod_bwd.mat
-          versus 
-Model 2: C:\data\Att2Mot\DCM\models\DCM_mod_fwd.mat
- 
-All costs are in units of binary bits
- 
-Region V1R: relative cost   = -2.4170, BF= 5.3405
-Region V5R: relative cost   = 0.4477, BF= 0.7332
-Region SPCR: relative cost  = 3.6712, BF= 0.0785
-AIC Penalty = 0.0000, BF = 1.0000
-BIC Penalty = 0.0000, BF = 1.0000
-AIC Overall = 1.7019, BF = 0.3074
-BIC Overall = 1.7019, BF = 0.3074
- 
-Consistent evidence in favour of model 2
-Bayes factor >= 3.2532
-
-\end{verbatim}
+The Graphics window, Fig.~\ref{fig8}, now shows a bar plot of the model evidence. You can see that our second model is better than the first one. 
 
 \begin{figure}[ht]
 \begin{center}
