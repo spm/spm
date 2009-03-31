@@ -9,7 +9,7 @@ function cdf = spm_read_netcdf(fname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_read_netcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_read_netcdf.m 3014 2009-03-31 14:22:42Z john $
 
 
 dsiz     = [1 1 2 4 4 8];
@@ -25,6 +25,7 @@ mgc = fread(fp,4,'uchar')';
 if ~all(['CDF' 1] == mgc),
     cdf = [];
     fclose(fp);
+    if all(mgc==[137,72,68,70]), fprintf('"%s" appears to be based around HDF.\nThis is a newer version of MINC that SPM can not yet read.\n', fname); end
     return;
 end
 
