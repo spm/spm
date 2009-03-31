@@ -476,9 +476,9 @@ S.filter.PHz = [0.5
                 30];
 D = spm_eeg_filter(S);
 
-% added manually to mark channel C21 as bad before running artefact
+% added manually to mark channel A14 as bad before running artefact
 % detection
-D = badchannels(D, 85, 1); save(D);
+D = badchannels(D, 14, 1); save(D);
 
 S = [];
 S.D = fullfile(pth,'fdeMspm8_subject1.mat');
