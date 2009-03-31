@@ -2,30 +2,12 @@
 
 \section{Introduction}
 
-This chapter describes how to use the FieldMap toolbox\footnote{
-FieldMap Version 2.0 can now be downloaded as part SPM5:
+This chapter describes how to use the FieldMap toolbox version 2.1\footnote{
+FieldMap Version 2.0 can be downloaded as part SPM5:
 \url{http://www.fil.ion.ucl.ac.uk/spm/software}
 FieldMap Version 1.1 for SPM2 can be downloaded from
 \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap}}
- for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{jezzard95,jenkinson03,chloe_distortion,chloe_distortion2,ja_geometric}. The toolbox is designed to be interactive so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. However, once a set of parameters has been established for a specific scanning protocol, the routines used by the toolbox can also be scripted. FieldMap Version 2.0 for SPM5 also supports the new SPM5 User-Interface allowing jobs to be created and scripted. The toolbox creates a voxel-displacement map that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction.
-
-\subsection{Latest News}
-Version 2.0 of FieldMap is now available for SPM5. To ensure full compatibility between the FieldMap toolbox and Realign \& Unwarp in SPM5, please also update spm\_get\_image\_def.m and spm\_config\_realign\_and\_unwarp.m in the main SPM5 distribution. The main changes are listed below:
-\begin{enumerate}
-\item{The convention used to describe the direction of the k-space traversal is now based on the coordinate system used by SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is defined as positive from the posterior to the anterior of the head. The x-direction is defined as positive from left to right and the z-direction is defined as positive from foot to head. The polarity of the phase-encode blips describes in which direction k-space is traversed along the y-axis with respect to the coordinate system described here. The change in convention means that if previously the polarity of phase-encode blips in the FieldMap gui was usually set to be negative, it should now be positive and vice versa. This also applies to the default value for spm\_def.K\_SPACE\_TRAVERSAL\_BLIP\_DIR in the spm\_defaults.m file which should be set to -1 if it was +1 previously and vice versa. 
-}
-\item{In the previous version of FieldMap, there was a bug in the application of the Jacobian modulation when using an EPI-based field map. This has now been fixed.
-The toolbox now allows the user to select a specified defaults file. This means it is possible to have more than one default file containing different sets of parameters relating to different field map and /or EPI sequences. This is particularly useful for sites where more than one sequence is 
-routinely used.
-}
-\item{The toolbox can be run using the new SPM5 User Interface. This will allow FieldMap jobs to be saved serving as a log about how the data was processed. It will also facilitate scripting and batching jobs.
-}
-\item{The toolbox now reads and writes files in NIfTI format (as does SPM5).
-The toolbox now save a vdm5\_\* file which will also be expected by Realign \& unwarp. If doing Unwarp with multiple sessions, but a single vdm5\_\* file, it will be necessary to select this file for each session. 
-}
-\item{All versions of FieldMap and Unwarp are only designed to work with images collected with the phase-encode direction in y.
-}
-\end{enumerate}
+ for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{jezzard95,jenkinson03,chloe_distortion,chloe_distortion2,ja_geometric}. The toolbox can be used in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. However, once a set of parameters has been established for a specific scanning protocol, the toolbox routines can be scripted or batched using the SPM8 user-interface. The toolbox creates a voxel-displacement map that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction. FieldMap and Unwarp are designed only to work with images collected with the phase-encode direction aligned with the anterior-posterior direction.
 
 \begin{figure}
 \begin{center}
@@ -40,17 +22,17 @@ The FieldMap Toolbox GUI is shown on the left Figure \ref{FM1}. It is divided in
 
 \subsection{Create field map in Hz}
 
-\subsubsection{Load defaults file (FieldMap Version 2.0 for SPM5 only) \label{loaddefs}}
+\subsubsection{Load defaults file \label{loaddefs}}
 Select the defaults file from which to load default parameters. If necessary, the parameters used to create the field map can be temporarily modified using the GUI. To change the default parameters, edit spm\_defaults.m or create a new file called spm\_defaults\_NAME.m (as described in Section \ref{SPMDEF}).
 
 \subsubsection{Data Input Format}
-{\bf PM} The acquired field map images are in phase and magnitude format. There may be a single pair of phase and magnitude images (i.e. 2 images) in which case the phase image has been created by the vendor sequence from two echo times acquisitions. Alternatively there may be two pairs of phase and magnitude images, one for each echo time(ie 4 images). The units for the phase images MUST BE RADIANS BETWEEN +pi and -pi. FieldMap version 1.1 and 2.0 will ask user if this is required when the images are selected.
+{\bf PM} The acquired field map images are in phase and magnitude format. There may be a single pair of phase and magnitude images (i.e. 2 images) in which case the phase image has been created by the vendor sequence from two echo times acquisitions. Alternatively there may be two pairs of phase and magnitude images, one for each echo time(ie 4 images). The units for the phase images MUST BE RADIANS BETWEEN +pi and -pi. The user will be asked if this is required when the images are selected.
 
 {\bf RI} The acquired field map images are in real and imaginary format. Two pairs of real and imaginary image volumes, one for a shorter and one for a longer echo time (ie 4 images)\footnote{
 NB If using SPM2, the data input format can only be changed by editing the spm\_defaults.m file. This is described in Section \ref{SPMDEF}.}.
 
 \subsubsection{File Selection}
-Select Analyze format images for SPM2 and Nifti format images for SPM5. Generally, the acquired scanner files will be in dicom format which can be correctly converted using the dicom converter in the corresponding version of SPM. DICOM and other image formats can also be converted to using MRIcro\footnote{MRIcro is freely available from \url{http://www.cla.sc.edu/psyc/faculty/rorden/mricro.html}.}.
+Select Nifti format images. Generally, the acquired scanner files will be in dicom format which can be correctly converted using the dicom converter in the corresponding version of SPM. DICOM and other image formats can also be converted to using MRIcro\footnote{MRIcro is freely available from \url{http://www.cla.sc.edu/psyc/faculty/rorden/mricro.html}.}.
 
 If the data input format is PM, load Phase and Magnitude images:
 \begin{enumerate}
@@ -83,17 +65,16 @@ Calculate an unwrapped field map in Hz which is stored in memory. This represent
 \item{Smoothing and dilation of the processed fieldmap}
 \end{enumerate}
 
-The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img (or vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img for version 2.0) in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM2 or SPM5 (see Section \ref{VDMuse}).
+The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM8 (see Section \ref{VDMuse}).
 
 \subsubsection{Write}
-Write out the processed field map (in Hz) as an Analyze format image in SPM2 or a Nifti format image in SPM5. The image will be saved with the filename fpm\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images.
+Write out the processed field map (in Hz) as a Nifti format image. The image will be saved with the filename fpm\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images.
 
 \subsubsection{Load Pre-calculated}
-Load a precalculated unwrapped field map (fpm\_\*.img). This should be a single image volume with units of Hz and in Analyze format for SPM2 or Nifti format for SPM5. The precalculated field map may have been created previously using the FieldMap toolbox or by other means. Once loaded, the field map is displayed in the graphics window (top row, right, Figure \ref{FM1}) and the field at different points can be explored.
+Load a precalculated unwrapped field map (fpm\_\*.img). This should be a single image volume with units of Hz in Nifti format. The precalculated field map may have been created previously using the FieldMap toolbox or by other means. Once loaded, the field map is displayed in the graphics window (top row, right, Figure \ref{FM1}) and the field at different points can be explored.
 
 \subsubsection{Field map value (Hz)}
 Interrogate the value of the field map in Hz at the location specified by the mouse pointer in the graphics window.
-
 
 \subsection{Create voxel displacement map (VDM) and unwarp EPI}
 
@@ -105,6 +86,8 @@ Select Yes if the field map is based on EPI data or No otherwise. Most scanner v
 \subsubsection{Polarity of phase-encode blips - +ve/-ve}
 Select +ve or -ve blip direction.When images are acquired K-space can be traversed using positive or negative phase-encode blips. This direction will influence the geometric distortions in terms of whether the affected regions of the image are stretched or compressed. 
 
+The convention used to describe the direction of the k-space traversal is based on the coordinate system used by SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is defined as positive from the posterior to the anterior of the head. The x-direction is defined as positive from left to right and the z-direction is defined as positive from foot to head. The polarity of the phase-encode blips describes in which direction k-space is traversed along the y-axis with respect to the coordinate system described here. 
+
 \subsubsection{Apply Jacobian modulation - Yes/No}
 Select Yes to do Jacobian Modulation to adjust the intensities of voxels that have been stretched or compressed. In general this is not recommended for unwarping EPI data at this stage.
 
@@ -114,13 +97,13 @@ Enter the total time in ms for the readout of the EPI echo train which is typica
 This time does not include i) the duration of the excitation, ii) the delay between the excitation and the start of the acquisition or iii) time for fat saturation.
 
 \subsubsection{Load EPI image}
-Select a sample EPI image (in Analyze format for SPM2 and Nifti format for SPM5). This image is automatically unwarped using the VDM calculated with the current parameters. The warped and the unwarped image are displayed in the graphics window underneath the field map (middle rows, right, Figure \ref{FM1}).
+Select a sample EPI image in Nifti format. This image is automatically unwarped using the VDM calculated with the current parameters. The warped and the unwarped image are displayed in the graphics window underneath the field map (middle rows, right, Figure \ref{FM1}).
 
 \subsubsection{Match VDM to EPI \label{VDMmatch}}
 Select this option to match the field map magnitude data to the EPI image before it is used to unwarp the EPI. In general, the field map data should be acquired so that it is as closely registered with the EPI data as possible but matching can be selected if required. If a precalculated field map was loaded then the user is prompted to select a magnitude image in the same space as the field map. If real and imaginary images were selected, the toolbox automatically creates a magnitude image from these images and saves it with the name mag\_NAME-OF-FIRST-INPUT-IMAGE.img. 
 
 \subsubsection{Write unwarped}
-Write unwarped EPI Analyze image with the filename uNAME\_OF\_EPI.img.
+Write unwarped EPI image with the filename uNAME\_OF\_EPI.img.
 
 \subsubsection{Load structural}
 Load a structural image for comparison with unwarped EPI. This is displayed in the graphics window below the other images (bottom row, right fig 1).
@@ -134,21 +117,24 @@ Call spm\_help to display FieldMap.man.
 \subsubsection{Quit}
 Quit the toolbox and closes all windows associated with it.
 
-\section{Using the spm\_defaults file \label{SPMDEF}}
-Input parameters and the mode in which the toolbox works can be customised in the defaults file called spm\_defaults.m. FieldMap version 2.0 for SPM5, allows different defaults files to be selected. This means that it is possible to have more than one set of default parameters, e.g. to accommodate different scanners or sequences. To be recognised by the FieldMap toolbox, these files must be named spm\_defaults\_NAME.m and have the same format as the existing spm\_defaults.m. These defaults files can be loaded using the FieldMap GUI (as described in section \ref{loaddefs}) or selected when filling in the job fields using the new SPM5 User-Interface (as described in section 6).
+\section{Using the pm\_defaults file \label{PMDEF}}
+Input parameters and the mode in which the toolbox works can be customised in the defaults file called pm\_defaults.m. Different defaults files can be selected. This means that it is possible to have more than one set of default parameters, e.g. to accommodate different scanners or sequences. To be recognised by the FieldMap toolbox, these files must be named pm\_defaults\_NAME.m and have the same format as the existing pm\_defaults.m. These defaults files can be loaded using the FieldMap GUI (as described in section \ref{loaddefs}) or selected when filling in the job fields using the SPM User-Interface (as described in section 6).
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=70mm]{FieldMap/fieldmap_taskmgr}
 \end{center}
-\caption{FieldMap using the SPM5 User Interface.\label{FM2}}
+\caption{FieldMap using the SPM8 User Interface.\label{FM2}}
 \end{figure}
 
-\section{Using the SPM5 User Interface \label{SPM5UI}}
-FieldMap version 2.0 for SPM5 can be run using the new SPM5 UI (Figure \ref{FM2}). To do this, from the top menu on the SPM5 Graphics window, select TASKS, then Tools then FieldMap. Select the type of FieldMap job to run from 1) Presubtracted Phase and Magntiude Data (this means a single phase and magnitude pair), 2) Real and Imaginary Data, 3) Phase and Magnitude Data (this means a double phase and magnitude pair) and 4) Precalculated FieldMap. Double click on the job type in the left panel, highlight Data in the left panel then select New “Subject” in the right panel, then double click on Subject in the left panel to fill in the different job fields. All fields marked with an X must be filled in. The other fields can be optionally filled or contain default values which can be changed if required. To fill in a field, highlight it in the left panel and then click on the Specify… in the top right hand corner to select a file, a menu option or enter a value etc. Once all of the fields have been specified the job can be saved and run. It can also be loaded at a later date and edited for another set of data etc.
+\section{Using the SPM8 User Interface \label{SPM8UI}}
+FieldMap version 2.1 for SPM8 can be run using the SPM8 UI (Figure \ref{FM2}). To do this, from the top menu on the SPM8 Graphics window, select TASKS-> SPM(interactive)-> Tools -> FieldMap. Select the type of FieldMap job to run from 1) Presubtracted Phase and Magntiude Data (this means a single phase and magnitude pair), 2) Real and Imaginary Data, 3) Phase and Magnitude Data (this means a double phase and magnitude pair) and 4) Precalculated FieldMap. In the Batch Editor, select New “Subject” in the lower panel, then select each item in the upper panel to fill in the different job fields. All fields marked with an X must be filled in. The other fields can be optionally filled or contain default values which can be changed if required. 
+
+\section{Using FieldMap with multiple sessions or runs \label{SPM8UI}}
+If multiple EPI sessions or runs have been acquired, but with only a single set of fieldmap data, it is possible to automatically create a vdm file for each session. To do this, for each new each session under the input field EPI sessions, select the first EPI in each session. A copy of the VDM file will be matched to the first EPI in each session and saved with a separate name.
 
 \section{Using the FieldMap in Batch scripts}
-FieldMap\_preprocess.m which calls FieldMap\_create.m give an example of how to run the FieldMap toolbox without using the GUI. To run the script, make sure your matlab path includes the directory where the FieldMap toolbox is installed. This can be done using the Set Path option under File in the matlab windows manager or using the command: 
+FieldMap\_preprocess.m which calls FieldMap\_create.m gives an example of how to run the FieldMap toolbox without using the GUI. To run the script, make sure your matlab path includes the directory where the FieldMap toolbox is installed. This can be done using the Set Path option under File in the matlab windows manager or using the command: 
 \begin{verbatim}
 addpath '/whatever/spm/toolbox/FieldMap'
 \end{verbatim}
@@ -183,7 +169,7 @@ NB: FieldMap will match the field map to the first epi image in the time series 
 The script will create an fpm* file, a vdm5\_* file and an unwarped version of the EPI saved with the prescript ``u''.
 
 \section{Using the VDM file with Unwarp \label{VDMuse}}
-In SPM, select the Realign + Unwarp option. When requested, select the vdm5\_\* or vdm5\_\* file for the subject and/or session. If you acquired more than one session and a field map for each session, select the vdm5\_* file for each corresponding session. If you acquired more than one session but only one fieldmap, select the vdm5\_* file for the first session and then when asked to select the vdm5\_* file for the other sessions, select the first one again. For more information about Unwarp see \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/unwarp}.
+In SPM, select the Realign + Unwarp option. For the input data called Phase map (vdm* file), select the vdm5\_\* or vdm5\_\* file for the subject and/or session. If you acquired more than one session (or run) of EPI images, you need to select a different vdm5\_* file for each one. For more information about Unwarp see \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/unwarp}.
 
 \section{Appendices\label{FMAppendix}}
 
