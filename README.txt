@@ -43,12 +43,12 @@ SPM8 is written for MATLAB version 7.1 onwards under Windows and UNIX.
 Binaries of the external C-mex routines are provided for Windows, Linux 
 and Mac. Users of other UNIX platforms need an ANSI C compiler to 
 compile the supplied C source (Makefile provided). 
-See http://www.fil.ion.ucl.ac.uk/spm/software/spm8b/ for details.
+See http://www.fil.ion.ucl.ac.uk/spm/software/spm8/ for details.
 
 Later versions of MATLAB (released after SPM8), will probably
 need additional patches in order to run.  Once developed, these will 
 be made available from:
-     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm8b_updates/ 
+     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm8_updates/ 
 
 With the compiled c-mex files in place, simply prepend the SPM
 directory to your MATLAB path to complete the installation. (Type `help
@@ -109,4 +109,4 @@ ________________________________________________________________________
 SPM is developed by members and collaborators of the
                                   Wellcome Trust Centre for Neuroimaging
 
-$Id: README.txt 2280 2008-10-01 12:39:21Z guillaume $
+$Id: README.txt 3028 2009-04-01 12:02:59Z guillaume $

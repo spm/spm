@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version beta (SPM8b) 01-Oct-2008
+% Version 8.0 (SPM8) 02-Apr-2009
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -40,9 +40,9 @@
 % You should  have received a copy of the  GNU General Public License along
 % with SPM, in spm_LICENCE.man. If not, see <http://www.gnu.org/licenses/>.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2003,2005-2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2003,2005-2009 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 2280 2008-10-01 12:39:21Z guillaume $
+% $Id: Contents.m 3028 2009-04-01 12:02:59Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
