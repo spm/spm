@@ -1,0 +1,52 @@
+%
+% SPM canonical meshes
+%___________________________________________________________________________
+%
+% The cortical mesh surfaces here were created using Freesurfer version
+% 4.0.1 (Dale et al. 1999, Fischl et al. 2001, Fischl et al. 1999) from 
+% an average of 27 T1 scans of the same subject (see spm_templates.man and 
+% Tzourio-Mazoyer et al. 2002  for more details).
+% The surfaces were inflated to a sphere and down-sampled using an 
+% octahedron (8,196 vertices) or an icosahedron (5,124 and 20,464 vertices) 
+% equally subdivided to achieve the highly tessellated surfaces provided.
+%
+% The boundary element model surfaces were created using the watershed
+% algorithm (Segonne et al. 2004).  These surfaces were created
+% utilizing an icosahedron equally subdivided to create a highly
+% tessellated surface.  Some manual editing was applied to the T1 images
+% in order to optimize the performance of the watershed algorithm.
+% 
+% The meshes were subsequenlty warped using the deformation field created
+% by the new segmentaton algorithm, so that the reference space was defined
+% by spm8/toolbox/Seg/TPM.nii, to improve the accuracy of the alignment.
+%
+% They are saved in the GIfTI file format, with GZipBase64Binary encoding.
+%___________________________________________________________________________
+%
+% References:
+%
+% Dale, A.M., Fischl, B., Sereno, M.I., 1999. Cortical surface-based
+% analysis. I. Segmentation and surface reconstruction. Neuroimage 9,
+% 179-194.
+% 
+% Fischl, B., Liu, A., Dale, A.M., 2001. Automated manifold surgery:
+% constructing geometrically accurate and topologically correct models
+% of the human cerebral cortex. IEEE Trans Med Imaging 20, 70-80.
+% 
+% Fischl, B., Sereno, M.I., Dale, A.M., 1999. Cortical surface-based
+% analysis. II: Inflation, flattening, and a surface-based coordinate
+% system. Neuroimage 9, 195-207.
+% 
+% Segonne, F., Dale, A.M., Busa, E., Glessner, M., Salat, D., Hahn,
+% H.K., Fischl, B., 2004. A hybrid approach to the skull stripping
+% problem in MRI. Neuroimage 22, 1060-1075.
+%
+% Tzourio-Mazoyer, N., Landeau, B., Papathanassiou, D., Crivello, F., 
+% Etard, O., Delcroix, N., et al, 2002. Automated anatomical labelling of 
+% activations in spm using a macroscopic anatomical parcellation of the MNI 
+% MRI single subject brain. Neuroimage 15, 273-289.
+%___________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+
+% Rik Henson, Daniel Wakeman and John Ashburner
+% $Id: spm_mesh.man 3025 2009-04-01 09:56:30Z guillaume $
