@@ -7,8 +7,6 @@
 
 #define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
 
-extern double floor();
-
 void bracket(int dm[], double *A, double *B, double *C)
 {
     double *Ax, *Ay;
