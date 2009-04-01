@@ -34,8 +34,8 @@ function out = spm_dartel_norm_fun(job)
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
-% John Ashburner & Guillaume Flandin
-% $Id: spm_dartel_norm_fun.m 2950 2009-03-25 12:11:40Z john $
+% John Ashburner
+% $Id: spm_dartel_norm_fun.m 3032 2009-04-01 14:14:18Z guillaume $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;

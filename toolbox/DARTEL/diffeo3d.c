@@ -1,4 +1,4 @@
-/* %Id$ */
+/* $Id: diffeo3d.c 3032 2009-04-01 14:14:18Z guillaume $ */
 /* (c) John Ashburner (2007) */
 
 #include <mex.h>
