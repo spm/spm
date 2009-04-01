@@ -33,6 +33,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.17  2009/04/01 12:29:26  roboos
+% added checkconfig
+%
 % Revision 1.16  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -85,6 +88,8 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels
@@ -214,3 +219,5 @@ vol.bnd.pnt = pnt;
 vol.bnd.tri = tri;
 vol.type    = 'nolte';
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

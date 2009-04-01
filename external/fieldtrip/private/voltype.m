@@ -13,6 +13,10 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.4  2009/04/01 06:51:43  roboos
+% implemented caching for the type detection in case the same input is given multiple times
+% this uses a persistent variable
+%
 % Revision 1.3  2009/02/02 13:05:22  roboos
 % small fix in cpbem->bemcp
 %
@@ -43,6 +47,21 @@ function [type] = voltype(vol, desired)
 % Revision 1.1  2007/07/25 08:31:12  roboos
 % implemented new helper function
 %
+
+% these are for remembering the type on subsequent calls with the same input arguments
+persistent previous_argin previous_argout
+
+if nargin<2
+  % ensure that all input arguments are defined
+  desired = [];
+end
+
+current_argin = {vol, desired};
+if isequal(current_argin, previous_argin)
+  % don't do the type detection again, but return the previous values from cache
+  type = previous_argout{1};
+  return
+end
 
 if isfield(vol, 'type')
   % preferably the structure specifies its own type
@@ -75,7 +94,7 @@ else
 
 end % if isfield(vol, 'type')
 
-if nargin>1
+if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'bem'
@@ -85,3 +104,12 @@ if nargin>1
   end
 end
 
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout = {type};
+if isempty(previous_argin)
+  previous_argin  = current_argin;
+  previous_argout = current_argout;
+end
+
+return % voltype main()

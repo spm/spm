@@ -37,6 +37,9 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
 % $Log: prepare_concentricspheres.m,v $
+% Revision 1.3  2009/04/01 12:28:58  roboos
+% use Taubin's method instead of nonlinear search (thanks to Jean and Guillaume)
+%
 % Revision 1.2  2009/02/05 10:22:55  roboos
 % don't open new figure, clear the existing one
 %
@@ -46,10 +49,13 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 
 fieldtripdefs
 
+cfg = checkconfig(cfg, 'trackconfig', 'on');
+
 if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';                            end
-if ~isfield(cfg, 'nonlinear'),     cfg.nonlinear = 'yes';                         end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';                          end
 if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [0.3300 1 0.0042 0.3300];   end
+
+cfg = checkconfig(cfg, 'forbidden', 'nonlinear');
 
 % use the headshape points that are specified in the configuration
 if ischar(cfg.headshape)
@@ -87,8 +93,7 @@ if strcmp(cfg.feedback, 'yes')
 end
 
 % fit a single sphere to all headshape points
-ini = mean(pnt,1);
-[single_o, single_r] = fit_sphere(pnt, ini, strcmp(cfg.nonlinear, 'yes'));
+[single_o, single_r] = fitsphere(pnt);
 fprintf('initial sphere: number of surface points = %d\n', Npnt);
 fprintf('initial sphere: center = [%.1f %.1f %.1f]\n', single_o(1), single_o(2), single_o(3));
 fprintf('initial sphere: radius = %.1f\n', single_r);
@@ -123,34 +128,5 @@ end
 
 vol.type = 'concentric';
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function that fits a sphere to a cloud of points
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [center, radius] = fit_sphere(pnt, initial, nonlinear)
-
-if nonlinear
-  % start the nonlinear search for the optimal sphere with default options
-  options = optimset('TolFun',1e-10,...
-    'TypicalX',norm(range(pnt))/100,...
-    'Display','none');
-  warning off
-  center = fminunc(@fit_sphere_error, initial, options, pnt);
-  warning on
-  [err, radius] = fit_sphere_error(center, pnt);
-else
-  % use a linear approach for fitting the sphere
-  center = mean(pnt,1);
-  dist   = sqrt(sum(((pnt - repmat(center, size(pnt,1), 1)).^2), 2));
-  radius = mean(dist);
-  err    = std(dist,1);
-end
-fprintf('error after fitting sphere = %f\n', err);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function that computes the goal function to be minimized
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [err, radius] = fit_sphere_error(center, pnt)
-dist   = sqrt(sum(((pnt - repmat(center, size(pnt,1), 1)).^2), 2));
-radius = mean(dist);
-err    = std(dist,1);
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

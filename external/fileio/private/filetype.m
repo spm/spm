@@ -1,4 +1,4 @@
-function [ftype, detail] = filetype(filename, desired, varargin);
+function [type] = filetype(filename, desired, varargin)
 
 % FILETYPE determines the filetype of many EEG/MEG/MRI data files by
 % looking at the name, extension and optionally (part of) its contents.
@@ -54,6 +54,12 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.96  2009/04/01 06:53:23  roboos
+% implemented caching for the type detection in case the same input is given multiple times
+% this uses a persistent variable
+% renamed the internal variable "ftype" into "type"
+% removed the second output argument with the details, because sofar they have never been used in fieldtrip and therefore don't seem needed
+%
 % Revision 1.95  2009/02/12 11:47:23  vlalit
 % Added support for neuro prax (eldith) EEG format based on functions from the manufacturer
 %  used with permission from the company's representative Mr. Klaus Schellhorn.
@@ -230,8 +236,19 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % fixed bug for besa_avr, renamed an incorrect tag into plexon_plx
 %
 
+% these are for remembering the type on subsequent calls with teh same input arguments
+persistent previous_argin previous_argout
+
 if nargin<2
+  % ensure that all input arguments are defined
   desired = [];
+end
+
+current_argin = {filename, desired, varargin{:}};
+if isequal(current_argin, previous_argin)
+  % don't do the filetype detection again, but return the previous values from cache
+  type = previous_argout{1};
+  return
 end
 
 % % get the optional arguments
@@ -245,20 +262,20 @@ end
 
 if iscell(filename)
   % perform the test for each filename, return a boolean vector
-  ftype = false(size(filename));
+  type = false(size(filename));
   for i=1:length(filename)
     if strcmp(filename{i}(end), '.')
       % do not recurse into this directory or the parent directory
       continue
     else
-      ftype(i) = filetype(filename{i}, desired);
+      type(i) = filetype(filename{i}, desired);
     end
   end
   return
 end
 
 % start with unknown values
-ftype        = 'unknown';
+type        = 'unknown';
 manufacturer = 'unknown';
 content      = 'unknown';
 
@@ -282,369 +299,369 @@ end
 
 % these are some streams for asynchronous BCI
 if filetype_check_uri(filename, 'fifo')
-  ftype        = 'fcdc_fifo';
+  type        = 'fcdc_fifo';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'buffer')
-  ftype        = 'fcdc_buffer';
+  type        = 'fcdc_buffer';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'mysql')
-  ftype        = 'fcdc_mysql';
+  type        = 'fcdc_mysql';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'tcp')
-  ftype        = 'fcdc_tcp';
+  type        = 'fcdc_tcp';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'udp')
-  ftype        = 'fcdc_udp';
+  type        = 'fcdc_udp';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'rfb')
-  ftype        = 'fcdc_rfb';
+  type        = 'fcdc_rfb';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'serial')
-  ftype        = 'fcdc_serial';
+  type        = 'fcdc_serial';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'global')
-  ftype        = 'fcdc_global';
+  type        = 'fcdc_global';
   manufacturer = 'F.C. Donders Centre';
   content      = 'global variable';
 elseif filetype_check_uri(filename, 'shm')
-  ftype        = 'ctf_shm';
+  type        = 'ctf_shm';
   manufacturer = 'CTF';
   content      = 'real-time shared memory buffer';
 
   % known CTF file types
 elseif isdir(filename) && filetype_check_extension(filename, '.ds') && exist(fullfile(filename, [f '.res4']))
-  ftype = 'ctf_ds';
+  type = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';
 elseif isdir(filename) && ~isempty(dir(fullfile(filename, '*.res4'))) && ~isempty(dir(fullfile(filename, '*.meg4')))
-  ftype = 'ctf_ds';
+  type = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';
 elseif filetype_check_extension(filename, '.res4') && (filetype_check_header(filename, 'MEG41RS') || filetype_check_header(filename, 'MEG42RS') || filetype_check_header(filename, 'MEG4RES'))
-  ftype = 'ctf_res4';
+  type = 'ctf_res4';
   manufacturer = 'CTF';
   content = 'MEG/EEG header information';
 elseif filetype_check_extension(filename, '.meg4') && filetype_check_header(filename, 'MEG41CP')
-  ftype = 'ctf_meg4';
+  type = 'ctf_meg4';
   manufacturer = 'CTF';
   content = 'MEG/EEG';
 elseif filetype_check_extension(filename, '.mrk') && filetype_check_header(filename, 'PATH OF DATASET:')
-  ftype = 'ctf_mrk';
+  type = 'ctf_mrk';
   manufacturer = 'CTF';
   content = 'marker file';
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, 'CTF_MRI_FORMAT VER 2.2')
-  ftype = 'ctf_mri';
+  type = 'ctf_mri';
   manufacturer = 'CTF';
   content = 'MRI';
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, 'CTF_MRI_FORMAT VER 4', 31)
-  ftype = 'ctf_mri4';
+  type = 'ctf_mri4';
   manufacturer = 'CTF';
   content = 'MRI';
 elseif filetype_check_extension(filename, '.hdm')
-  ftype = 'ctf_hdm';
+  type = 'ctf_hdm';
   manufacturer = 'CTF';
   content = 'volume conduction model';
 elseif filetype_check_extension(filename, '.hc')
-  ftype = 'ctf_hc';
+  type = 'ctf_hc';
   manufacturer = 'CTF';
   content = 'headcoil locations';
 elseif filetype_check_extension(filename, '.shape')
-  ftype = 'ctf_shape';
+  type = 'ctf_shape';
   manufacturer = 'CTF';
   content = 'headshape points';
 elseif filetype_check_extension(filename, '.shape_info')
-  ftype = 'ctf_shapeinfo';
+  type = 'ctf_shapeinfo';
   manufacturer = 'CTF';
   content = 'headshape information';
 elseif filetype_check_extension(filename, '.wts')
-  ftype = 'ctf_wts';
+  type = 'ctf_wts';
   manufacturer = 'CTF';
   content = 'SAM coefficients, i.e. spatial filter weights';
 elseif filetype_check_extension(filename, '.svl')
-  ftype = 'ctf_svl';
+  type = 'ctf_svl';
   manufacturer = 'CTF';
   content = 'SAM (pseudo-)statistic volumes';
 
   % known Micromed file types
 elseif filetype_check_extension(filename, '.trc') && filetype_check_header(filename, '* MICROMED')
-  ftype = 'micromed_trc';
+  type = 'micromed_trc';
   manufacturer = 'Micromed';
   content = 'Electrophysiological data';
 
   % known Neuromag file types
 elseif filetype_check_extension(filename, '.fif')
-  ftype = 'neuromag_fif';
+  type = 'neuromag_fif';
   manufacturer = 'Neuromag';
   content = 'MEG header and data';
 elseif filetype_check_extension(filename, '.bdip')
-  ftype = 'neuromag_bdip';
+  type = 'neuromag_bdip';
   manufacturer = 'Neuromag';
   content = 'dipole model';
 
   % known Yokogawa file types
 elseif filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.sqd')
-  ftype = 'yokogawa_ave';
+  type = 'yokogawa_ave';
   manufacturer = 'Yokogawa';
   content = 'averaged MEG data';
 elseif filetype_check_extension(filename, '.con')
-  ftype = 'yokogawa_con';
+  type = 'yokogawa_con';
   manufacturer = 'Yokogawa';
   content = 'continuous MEG data';
 elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filename, [char(0) char(0) char(0) char(0)])
-  ftype = 'yokogawa_raw';
+  type = 'yokogawa_raw';
   manufacturer = 'Yokogawa';
   content = 'evoked/trialbased MEG data';
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, '####')  % FIXME, not correct
-  ftype = 'yokogawa_mri';
+  type = 'yokogawa_mri';
   manufacturer = 'Yokogawa';
   content = 'anatomical MRI';
 
 elseif filetype_check_extension(filename, '.pdf') && filetype_check_header(filename, 'E|lk') % I am not sure whether this header always applies
-  ftype = '4d_pdf';
+  type = '4d_pdf';
   manufacturer = '4D/BTI';
   content = 'raw MEG data (processed data file)';
 elseif exist([filename '.m4d'], 'file') && exist([filename '.xyz'], 'file') % these two ascii header files accompany the raw data
-  ftype = '4d_pdf';
+  type = '4d_pdf';
   manufacturer = '4D/BTI';
   content = 'raw MEG data (processed data file)';
 elseif filetype_check_extension(filename, '.m4d') && exist([filename(1:(end-3)) 'xyz'], 'file') % these come in pairs
-  ftype = '4d_m4d';
+  type = '4d_m4d';
   manufacturer = '4D/BTI';
   content = 'MEG header information';
 elseif filetype_check_extension(filename, '.xyz') && exist([filename(1:(end-3)) 'm4d'], 'file') % these come in pairs
-  ftype = '4d_xyz';
+  type = '4d_xyz';
   manufacturer = '4D/BTI';
   content = 'MEG sensor positions';
 elseif isequal(f, 'hs_file') % the filename is "hs_file"
-  ftype = '4d_hs';
+  type = '4d_hs';
   manufacturer = '4D/BTI';
   content = 'head shape';
 elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
-    ftype = '4d';
-    manufacturer = '4D/BTi';
-    content = '';
+  type = '4d';
+  manufacturer = '4D/BTi';
+  content = '';
 
   % known EEProbe file types
 elseif filetype_check_extension(filename, '.cnt') && filetype_check_header(filename, 'RIFF')
-  ftype = 'eep_cnt';
+  type = 'eep_cnt';
   manufacturer = 'EEProbe';
   content = 'EEG';
 elseif filetype_check_extension(filename, '.avr') && filetype_check_header(filename, char([38 0 16 0]))
-  ftype = 'eep_avr';
+  type = 'eep_avr';
   manufacturer = 'EEProbe';
   content = 'ERP';
 elseif filetype_check_extension(filename, '.trg')
-  ftype = 'eep_trg';
+  type = 'eep_trg';
   manufacturer = 'EEProbe';
   content = 'trigger information';
 elseif filetype_check_extension(filename, '.rej')
-  ftype = 'eep_rej';
+  type = 'eep_rej';
   manufacturer = 'EEProbe';
   content = 'rejection marks';
 
   % known ASA file types
 elseif filetype_check_extension(filename, '.elc')
-  ftype = 'asa_elc';
+  type = 'asa_elc';
   manufacturer = 'ASA';
   content = 'electrode positions';
 elseif filetype_check_extension(filename, '.vol')
-  ftype = 'asa_vol';
+  type = 'asa_vol';
   manufacturer = 'ASA';
   content = 'volume conduction model';
 elseif filetype_check_extension(filename, '.bnd')
-  ftype = 'asa_bnd';
+  type = 'asa_bnd';
   manufacturer = 'ASA';
   content = 'boundary element model details';
 elseif filetype_check_extension(filename, '.msm')
-  ftype = 'asa_msm';
+  type = 'asa_msm';
   manufacturer = 'ASA';
   content = 'ERP';
 elseif filetype_check_extension(filename, '.msr')
-  ftype = 'asa_msr';
+  type = 'asa_msr';
   manufacturer = 'ASA';
   content = 'ERP';
 elseif filetype_check_extension(filename, '.dip')
   % FIXME, can also be CTF dipole file
-  ftype = 'asa_dip';
+  type = 'asa_dip';
   manufacturer = 'ASA';
 elseif filetype_check_extension(filename, '.mri')
   % FIXME, can also be CTF mri file
-  ftype = 'asa_mri';
+  type = 'asa_mri';
   manufacturer = 'ASA';
   content = 'MRI image header';
 elseif filetype_check_extension(filename, '.iso')
-  ftype = 'asa_iso';
+  type = 'asa_iso';
   manufacturer = 'ASA';
   content = 'MRI image data';
 
   % known BCI2000 file types
 elseif filetype_check_extension(filename, '.dat') && (filetype_check_header(filename, 'BCI2000') || filetype_check_header(filename, 'HeaderLen='))
-  ftype = 'bci2000_dat';
+  type = 'bci2000_dat';
   manufacturer = 'BCI2000';
   content = 'continuous EEG';
 
   % known Neuroscan file types
 elseif filetype_check_extension(filename, '.avg') && filetype_check_header(filename, 'Version 3.0')
-  ftype = 'ns_avg';
+  type = 'ns_avg';
   manufacturer = 'Neuroscan';
   content = 'averaged EEG';
 elseif filetype_check_extension(filename, '.cnt') && filetype_check_header(filename, 'Version 3.0')
-  ftype = 'ns_cnt';
+  type = 'ns_cnt';
   manufacturer = 'Neuroscan';
   content = 'continuous EEG';
 elseif filetype_check_extension(filename, '.eeg') && filetype_check_header(filename, 'Version 3.0')
-  ftype = 'ns_eeg';
+  type = 'ns_eeg';
   manufacturer = 'Neuroscan';
   content = 'epoched EEG';
-  
+
 elseif filetype_check_extension(filename, '.eeg') && filetype_check_header(filename, 'V3.0')
-  ftype = 'neuroprax_eeg';
+  type = 'neuroprax_eeg';
   manufacturer = 'eldith GmbH';
-  content = 'continuous EEG';  
+  content = 'continuous EEG';
 elseif filetype_check_extension(filename, '.ee_')
-  ftype = 'neuroprax_mrk';
+  type = 'neuroprax_mrk';
   manufacturer = 'eldith GmbH';
-  content = 'EEG markers';  
+  content = 'EEG markers';
 
   % known Analyze & SPM file types
 elseif filetype_check_extension(filename, '.hdr')
-  ftype = 'analyze_hdr';
+  type = 'analyze_hdr';
   manufacturer = 'Mayo Analyze';
   content = 'PET/MRI image header';
 elseif filetype_check_extension(filename, '.img')
-  ftype = 'analyze_img';
+  type = 'analyze_img';
   manufacturer = 'Mayo Analyze';
   content = 'PET/MRI image data';
 elseif filetype_check_extension(filename, '.mnc')
-  ftype = 'minc';
+  type = 'minc';
   content = 'MRI image data';
 elseif filetype_check_extension(filename, '.nii')
-  ftype = 'nifti';
+  type = 'nifti';
   content = 'MRI image data';
 
   % known LORETA file types
 elseif filetype_check_extension(filename, '.lorb')
-  ftype = 'loreta_lorb';
+  type = 'loreta_lorb';
   manufacturer = 'old LORETA';
   content = 'source reconstruction';
 elseif filetype_check_extension(filename, '.slor')
-  ftype = 'loreta_slor';
+  type = 'loreta_slor';
   manufacturer = 'sLORETA';
   content = 'source reconstruction';
 
   % known AFNI file types
 elseif filetype_check_extension(filename, '.brik') || filetype_check_extension(filename, '.BRIK')
-  ftype = 'afni_brik';
+  type = 'afni_brik';
   content = 'MRI image data';
 elseif filetype_check_extension(filename, '.head') || filetype_check_extension(filename, '.HEAD')
-  ftype = 'afni_head';
+  type = 'afni_head';
   content = 'MRI header data';
 
   % known BrainVison file types
 elseif filetype_check_extension(filename, '.vhdr')
-  ftype = 'brainvision_vhdr';
+  type = 'brainvision_vhdr';
   manufacturer = 'BrainProducts';
   content = 'EEG header';
 elseif filetype_check_extension(filename, '.vmrk')
-  ftype = 'brainvision_vmrk';
+  type = 'brainvision_vmrk';
   manufacturer = 'BrainProducts';
   content = 'EEG markers';
 elseif filetype_check_extension(filename, '.vabs')
-  ftype = 'brainvision_vabs';
+  type = 'brainvision_vabs';
   manufacturer = 'BrainProducts';
   content = 'Brain Vison Analyzer macro';
 elseif filetype_check_extension(filename, '.eeg')
   % FIXME, can also be Neuroscan epoched EEG data
-  ftype = 'brainvision_eeg';
+  type = 'brainvision_eeg';
   manufacturer = 'BrainProducts';
   content = 'continuous EEG data';
 elseif filetype_check_extension(filename, '.seg')
-  ftype = 'brainvision_seg';
+  type = 'brainvision_seg';
   manufacturer = 'BrainProducts';
   content = 'segmented EEG data';
 elseif filetype_check_extension(filename, '.dat') && ~filetype_check_header(filename, 'HeaderLen=') && ~filetype_check_header(filename, 'BESA_SA_IMAGE') && ~(exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
   % WARNING this is a very general name, it could be exported BrainVision
   % data but also a BESA beamformer source reconstruction or BCI2000
-  ftype = 'brainvision_dat';
+  type = 'brainvision_dat';
   manufacturer = 'BrainProducts';
   content = 'exported EEG data';
 elseif filetype_check_extension(filename, '.marker')
-  ftype = 'brainvision_marker';
+  type = 'brainvision_marker';
   manufacturer = 'BrainProducts';
   content = 'rejection markers';
 
   % known Polhemus file types
 elseif filetype_check_extension(filename, '.pos')
-  ftype = 'polhemus_pos';
+  type = 'polhemus_pos';
   manufacturer = 'BrainProducts/CTF/Polhemus?'; % actually I don't know whose software it is
   content = 'electrode positions';
 
   % known Neuralynx file types
 elseif filetype_check_extension(filename, '.nev') || filetype_check_extension(filename, '.Nev')
-  ftype = 'neuralynx_nev';
+  type = 'neuralynx_nev';
   manufacturer = 'Neuralynx';
   content = 'event information';
 elseif filetype_check_extension(filename, '.ncs') && filetype_check_header(filename, '####')
-  ftype = 'neuralynx_ncs';
+  type = 'neuralynx_ncs';
   manufacturer = 'Neuralynx';
   content = 'continuous single channel recordings';
 elseif filetype_check_extension(filename, '.nse') && filetype_check_header(filename, '####')
-  ftype = 'neuralynx_nse';
+  type = 'neuralynx_nse';
   manufacturer = 'Neuralynx';
   content = 'spike waveforms';
 elseif filetype_check_extension(filename, '.nts')  && filetype_check_header(filename, '####')
-  ftype = 'neuralynx_nts';
+  type = 'neuralynx_nts';
   manufacturer = 'Neuralynx';
   content = 'timestamps only';
 elseif filetype_check_extension(filename, '.nvt')
-  ftype = 'neuralynx_nvt';
+  type = 'neuralynx_nvt';
   manufacturer = 'Neuralynx';
   content = 'video tracker';
 elseif filetype_check_extension(filename, '.nst')
-  ftype = 'neuralynx_nst';
+  type = 'neuralynx_nst';
   manufacturer = 'Neuralynx';
   content = 'continuous stereotrode recordings';
 elseif filetype_check_extension(filename, '.ntt')
-  ftype = 'neuralynx_ntt';
+  type = 'neuralynx_ntt';
   manufacturer = 'Neuralynx';
   content = 'continuous tetrode recordings';
 elseif strcmpi(f, 'logfile') && strcmpi(x, '.txt')  % case insensitive
-  ftype = 'neuralynx_log';
+  type = 'neuralynx_log';
   manufacturer = 'Neuralynx';
   content = 'log information in ASCII format';
 elseif ~isempty(strfind(lower(f), 'dma')) && strcmpi(x, '.log')  % this is not a very strong detection
-  ftype = 'neuralynx_dma';
+  type = 'neuralynx_dma';
   manufacturer = 'Neuralynx';
   content = 'raw aplifier data directly from DMA';
 elseif filetype_check_extension(filename, '.nrd') % see also above, since Cheetah 5.x the file extension has changed
-  ftype = 'neuralynx_dma';
+  type = 'neuralynx_dma';
   manufacturer = 'Neuralynx';
   content = 'raw aplifier data directly from DMA';
 elseif isdir(filename) && (any(filetype_check_extension({ls.name}, '.nev')) || any(filetype_check_extension({ls.name}, '.Nev')))
   % a regular Neuralynx dataset directory that contains an event file
-  ftype = 'neuralynx_ds';
+  type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'dataset';
 elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.ncs'))
   % a directory containing continuously sampled channels in Neuralynx format
-  ftype = 'neuralynx_ds';
+  type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'continuously sampled channels';
 elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nse'))
   % a directory containing spike waveforms in Neuralynx format
-  ftype = 'neuralynx_ds';
+  type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'spike waveforms';
 elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   % a directory containing spike timestamps in Neuralynx format
-  ftype = 'neuralynx_ds';
+  type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'spike timestamps';
 
@@ -652,221 +669,221 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
 elseif isdir(filename) && any(filetype({ls.name}, 'neuralynx_ds'))
   % a downsampled Neuralynx DMA file can be split into three seperate lfp/mua/spike directories
   % treat them as one combined dataset
-  ftype = 'neuralynx_cds';
+  type = 'neuralynx_cds';
   manufacturer = 'F.C. Donders Centre';
   content = 'dataset containing seperate lfp/mua/spike directories';
 elseif filetype_check_extension(filename, '.tsl') && filetype_check_header(filename, 'tsl')
-  ftype = 'neuralynx_tsl';
+  type = 'neuralynx_tsl';
   manufacturer = 'F.C. Donders Centre';
   content = 'timestamps from DMA log file';
 elseif filetype_check_extension(filename, '.tsh') && filetype_check_header(filename, 'tsh')
-  ftype = 'neuralynx_tsh';
+  type = 'neuralynx_tsh';
   manufacturer = 'F.C. Donders Centre';
   content = 'timestamps from DMA log file';
 elseif filetype_check_extension(filename, '.ttl') && filetype_check_header(filename, 'ttl')
-  ftype = 'neuralynx_ttl';
+  type = 'neuralynx_ttl';
   manufacturer = 'F.C. Donders Centre';
   content = 'Parallel_in from DMA log file';
 elseif filetype_check_extension(filename, '.bin') && filetype_check_header(filename, {'uint8', 'uint16', 'uint32', 'int8', 'int16', 'int32', 'int64', 'float32', 'float64'})
-  ftype = 'neuralynx_bin';
+  type = 'neuralynx_bin';
   manufacturer = 'F.C. Donders Centre';
   content = 'single channel continuous data';
 elseif isdir(filename) && any(filetype_check_extension({ls.name}, '.ttl')) && any(filetype_check_extension({ls.name}, '.tsl')) && any(filetype_check_extension({ls.name}, '.tsh'))
   % a directory containing the split channels from a DMA logfile
-  ftype = 'neuralynx_sdma';
+  type = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
   content = 'split DMA log file';
 elseif isdir(filename) && filetype_check_extension(filename, '.sdma')
   % a directory containing the split channels from a DMA logfile
-  ftype = 'neuralynx_sdma';
+  type = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
   content = 'split DMA log file';
 
   % known Plexon file types
 elseif filetype_check_extension(filename, '.nex')  && filetype_check_header(filename, 'NEX1')
-  ftype = 'plexon_nex';
+  type = 'plexon_nex';
   manufacturer = 'Plexon';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.plx')  && filetype_check_header(filename, 'PLEX')
-  ftype = 'plexon_plx';
+  type = 'plexon_plx';
   manufacturer = 'Plexon';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.ddt')
-  ftype = 'plexon_ddt';
+  type = 'plexon_ddt';
   manufacturer = 'Plexon';
 elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nex')) && most(filetype_check_header({ls.name}, 'NEX1'))
   % a directory containing multiple plexon NEX files
-  ftype = 'plexon_ds';
+  type = 'plexon_ds';
   manufacturer = 'Plexon';
   content = 'electrophysiological data';
 
   % known Cambridge Electronic Design file types
 elseif filetype_check_extension(filename, '.smr')
-  ftype = 'ced_son';
+  type = 'ced_son';
   manufacturer = 'Cambridge Electronic Design';
   content = 'Spike2 SON filing system';
 
   % known BESA file types
-elseif filetype_check_extension(filename, '.avr') && strcmp(ftype, 'unknown')
-  ftype = 'besa_avr';  % FIXME, can also be EEProbe average EEG
+elseif filetype_check_extension(filename, '.avr') && strcmp(type, 'unknown')
+  type = 'besa_avr';  % FIXME, can also be EEProbe average EEG
   manufacturer = 'BESA';
   content = 'average EEG';
 elseif filetype_check_extension(filename, '.elp')
-  ftype = 'besa_elp';
+  type = 'besa_elp';
   manufacturer = 'BESA';
   content = 'electrode positions';
 elseif filetype_check_extension(filename, '.eps')
-  ftype = 'besa_eps';
+  type = 'besa_eps';
   manufacturer = 'BESA';
   content = 'digitizer information';
 elseif filetype_check_extension(filename, '.sfp')
-  ftype = 'besa_sfp';
+  type = 'besa_sfp';
   manufacturer = 'BESA';
   content = 'sensor positions';
 elseif filetype_check_extension(filename, '.ela')
-  ftype = 'besa_ela';
+  type = 'besa_ela';
   manufacturer = 'BESA';
   content = 'sensor information';
 elseif filetype_check_extension(filename, '.pdg')
-  ftype = 'besa_pdg';
+  type = 'besa_pdg';
   manufacturer = 'BESA';
   content = 'paradigm file';
 elseif filetype_check_extension(filename, '.tfc')
-  ftype = 'besa_tfc';
+  type = 'besa_tfc';
   manufacturer = 'BESA';
   content = 'time frequency coherence';
 elseif filetype_check_extension(filename, '.mul')
-  ftype = 'besa_mul';
+  type = 'besa_mul';
   manufacturer = 'BESA';
   content = 'multiplexed ascii format';
 elseif filetype_check_extension(filename, '.dat') && filetype_check_header(filename, 'BESA_SA')  % header can start with BESA_SA_IMAGE or BESA_SA_MN_IMAGE
-  ftype = 'besa_src';
+  type = 'besa_src';
   manufacturer = 'BESA';
   content = 'beamformer source reconstruction';
 elseif filetype_check_extension(filename, '.swf') && filetype_check_header(filename, 'Npts=')
-  ftype = 'besa_swf';
+  type = 'besa_swf';
   manufacturer = 'BESA';
   content = 'beamformer source waveform';
 elseif filetype_check_extension(filename, '.bsa')
-  ftype = 'besa_bsa';
+  type = 'besa_bsa';
   manufacturer = 'BESA';
   content = 'beamformer source locations and orientations';
 elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
-  ftype = 'besa_sb';
+  type = 'besa_sb';
   manufacturer = 'BESA';
   content = 'simple binary channel data with a seperate generic ascii header';
 
   % old files from Pascal Fries' PhD research at the MPI
 elseif filetype_check_extension(filename, '.dap') && filetype_check_header(filename, char(1))
-  ftype = 'mpi_dap';
+  type = 'mpi_dap';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 elseif isdir(filename) && ~isempty(cell2mat(regexp({ls.name}, '.dap$')))
-  ftype = 'mpi_ds';
+  type = 'mpi_ds';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 
   % Frankfurt SPASS format, which uses the Labview Datalog (DTLG) format
 elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.ana')
-  ftype = 'spass_ana';
+  type = 'spass_ana';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.swa')
-  ftype = 'spass_swa';
+  type = 'spass_swa';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.spi')
-  ftype = 'spass_spi';
+  type = 'spass_spi';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.stm')
-  ftype = 'spass_stm';
+  type = 'spass_stm';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.bhv')
-  ftype = 'spass_bhv';
+  type = 'spass_bhv';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 
   % known Nexstim file types
 elseif filetype_check_extension(filename, '.nxe')
-  ftype = 'nexstim_nxe';
+  type = 'nexstim_nxe';
   manufacturer = 'Nexstim';
   content = 'electrophysiological data';
 
   % known Curry V4 file types
 elseif filetype_check_extension(filename, '.dap')
-  ftype = 'curry_dap';   % FIXME, can also be MPI Frankfurt electrophysiological data
+  type = 'curry_dap';   % FIXME, can also be MPI Frankfurt electrophysiological data
   manufacturer = 'Curry';
   content = 'data parameter file';
 elseif filetype_check_extension(filename, '.dat')
-  ftype = 'curry_dat';
+  type = 'curry_dat';
   manufacturer = 'Curry';
   content = 'raw data file';
 elseif filetype_check_extension(filename, '.rs4')
-  ftype = 'curry_rs4';
+  type = 'curry_rs4';
   manufacturer = 'Curry';
   content = 'sensor geometry file';
 elseif filetype_check_extension(filename, '.par')
-  ftype = 'curry_par';
+  type = 'curry_par';
   manufacturer = 'Curry';
   content = 'data or image parameter file';
 elseif filetype_check_extension(filename, '.bd0') || filetype_check_extension(filename, '.bd1') || filetype_check_extension(filename, '.bd2') || filetype_check_extension(filename, '.bd3') || filetype_check_extension(filename, '.bd4') || filetype_check_extension(filename, '.bd5') || filetype_check_extension(filename, '.bd6') || filetype_check_extension(filename, '.bd7') || filetype_check_extension(filename, '.bd8') || filetype_check_extension(filename, '.bd9')
-  ftype = 'curry_bd';
+  type = 'curry_bd';
   manufacturer = 'Curry';
   content = 'BEM description file';
 elseif filetype_check_extension(filename, '.bt0') || filetype_check_extension(filename, '.bt1') || filetype_check_extension(filename, '.bt2') || filetype_check_extension(filename, '.bt3') || filetype_check_extension(filename, '.bt4') || filetype_check_extension(filename, '.bt5') || filetype_check_extension(filename, '.bt6') || filetype_check_extension(filename, '.bt7') || filetype_check_extension(filename, '.bt8') || filetype_check_extension(filename, '.bt9')
-  ftype = 'curry_bt';
+  type = 'curry_bt';
   manufacturer = 'Curry';
   content = 'BEM transfer matrix file';
 elseif filetype_check_extension(filename, '.bm0') || filetype_check_extension(filename, '.bm1') || filetype_check_extension(filename, '.bm2') || filetype_check_extension(filename, '.bm3') || filetype_check_extension(filename, '.bm4') || filetype_check_extension(filename, '.bm5') || filetype_check_extension(filename, '.bm6') || filetype_check_extension(filename, '.bm7') || filetype_check_extension(filename, '.bm8') || filetype_check_extension(filename, '.bm9')
-  ftype = 'curry_bm';
+  type = 'curry_bm';
   manufacturer = 'Curry';
   content = 'BEM full matrix file';
 elseif filetype_check_extension(filename, '.dig')
-  ftype = 'curry_dig';
+  type = 'curry_dig';
   manufacturer = 'Curry';
   content = 'digitizer file';
 
   % known Curry V2 file types
 elseif filetype_check_extension(filename, '.sp0') || filetype_check_extension(filename, '.sp1') || filetype_check_extension(filename, '.sp2') || filetype_check_extension(filename, '.sp3') || filetype_check_extension(filename, '.sp4') || filetype_check_extension(filename, '.sp5') || filetype_check_extension(filename, '.sp6') || filetype_check_extension(filename, '.sp7') || filetype_check_extension(filename, '.sp8') || filetype_check_extension(filename, '.sp9')
-  ftype = 'curry_sp';
+  type = 'curry_sp';
   manufacturer = 'Curry';
   content = 'point list';
 elseif filetype_check_extension(filename, '.s10') || filetype_check_extension(filename, '.s11') || filetype_check_extension(filename, '.s12') || filetype_check_extension(filename, '.s13') || filetype_check_extension(filename, '.s14') || filetype_check_extension(filename, '.s15') || filetype_check_extension(filename, '.s16') || filetype_check_extension(filename, '.s17') || filetype_check_extension(filename, '.s18') || filetype_check_extension(filename, '.s19') || filetype_check_extension(filename, '.s20') || filetype_check_extension(filename, '.s21') || filetype_check_extension(filename, '.s22') || filetype_check_extension(filename, '.s23') || filetype_check_extension(filename, '.s24') || filetype_check_extension(filename, '.s25') || filetype_check_extension(filename, '.s26') || filetype_check_extension(filename, '.s27') || filetype_check_extension(filename, '.s28') || filetype_check_extension(filename, '.s29') || filetype_check_extension(filename, '.s30') || filetype_check_extension(filename, '.s31') || filetype_check_extension(filename, '.s32') || filetype_check_extension(filename, '.s33') || filetype_check_extension(filename, '.s34') || filetype_check_extension(filename, '.s35') || filetype_check_extension(filename, '.s36') || filetype_check_extension(filename, '.s37') || filetype_check_extension(filename, '.s38') || filetype_check_extension(filename, '.s39')
-  ftype = 'curry_s';
+  type = 'curry_s';
   manufacturer = 'Curry';
   content = 'triangle or tetraedra list';
 elseif filetype_check_extension(filename, '.pom')
-  ftype = 'curry_pom';
+  type = 'curry_pom';
   manufacturer = 'Curry';
   content = 'anatomical localization file';
 elseif filetype_check_extension(filename, '.res')
-  ftype = 'curry_res';
+  type = 'curry_res';
   manufacturer = 'Curry';
   content = 'functional localization file';
 
   % known MBFYS file types
 elseif filetype_check_extension(filename, '.tri')
-  ftype = 'mbfys_tri';
+  type = 'mbfys_tri';
   manufacturer = 'MBFYS';
   content = 'triangulated surface';
 elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filename, [10 0 0 0])
-  ftype = 'mbfys_ama';
+  type = 'mbfys_ama';
   manufacturer = 'MBFYS';
   content = 'BEM volume conduction model';
 
   % Electrical Geodesics Incorporated format
 elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.gave') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(255) char(255)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(255) char(255)]))
-  ftype = 'egi_egia';
+  type = 'egi_egia';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'averaged EEG data';
 elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ses') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(0) char(3)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(0) char(3)]))
-  ftype = 'egi_egis';
+  type = 'egi_egis';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'raw EEG data';
 elseif (filetype_check_extension(filename, '.sbin') || filetype_check_extension(filename, '.raw'))
-  ftype = 'egi_sbin';
+  type = 'egi_sbin';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'averaged EEG data';
 
@@ -875,64 +892,64 @@ elseif (filetype_check_extension(filename, '.sbin') || filetype_check_extension(
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
   % there is a matlab V6 file with the header and a binary file with the data (multiplexed, ieee-le, double)
-  ftype = 'fcdc_matbin';
+  type = 'fcdc_matbin';
   manufacturer = 'F.C. Donders Centre';
   content = 'multiplexed electrophysiology data';
 elseif filetype_check_extension(filename, '.lay')
-  ftype = 'layout';
+  type = 'layout';
   manufacturer = 'Ole Jensen';
   content = 'layout of channels for plotting';
 elseif filetype_check_extension(filename, '.dcm') || filetype_check_extension(filename, '.ima')
-  ftype = 'dicom';
+  type = 'dicom';
   manufacturer = 'Dicom';
   content = 'image data';
 elseif filetype_check_extension(filename, '.trl')
-  ftype = 'fcdc_trl';
+  type = 'fcdc_trl';
   manufacturer = 'F.C.Donders';
   content = 'trial definitions';
 elseif filetype_check_header(filename, [255 'BIOSEMI']) % filetype_check_extension(filename, '.bdf')
-  ftype = 'biosemi_bdf';
-  %   ftype = 'bham_bdf';
+  type = 'biosemi_bdf';
+  %   type = 'bham_bdf';
   manufacturer = 'Biosemi Data Format';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.edf')
-  ftype = 'edf';
+  type = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && exist([filename(1:(end-4)) '.dat'], 'file') && numel(whos('-file', filename))==1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
-    ftype = 'spmeeg_mat';
-    manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
-    content = 'electrophysiological data';
+  type = 'spmeeg_mat';
+  manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
+  content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && filetype_check_ced_spike6mat(filename)
-    ftype = 'ced_spike6mat';
-    manufacturer = 'Cambridge Electronic Design Limited';
-    content = 'electrophysiological data';     
+  type = 'ced_spike6mat';
+  manufacturer = 'Cambridge Electronic Design Limited';
+  content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
-  ftype = 'matlab';
+  type = 'matlab';
   manufacturer = 'Matlab';
   content = 'Matlab binary data';
 elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filename, 'WAVE', 8)
-  ftype = 'riff_wave';
+  type = 'riff_wave';
   manufacturer = 'Microsoft';
   content = 'audio';
 elseif filetype_check_extension(filename, '.txt')
-  ftype = 'ascii_txt';
+  type = 'ascii_txt';
   manufacturer = '';
   content = '';
 elseif filetype_check_extension(filename, '.pol')
-  ftype = 'polhemus_fil';
+  type = 'polhemus_fil';
   manufacturer = 'Functional Imaging Lab, London, UK';
   content = 'headshape points';
 elseif filetype_check_extension(filename, '.set')
-  ftype = 'eeglab_set';
+  type = 'eeglab_set';
   manufacturer = 'Swartz Center for Computational Neuroscience, San Diego, USA';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.t') && filetype_check_header(filename, '%%BEGINHEADER')
-  ftype = 'mclust_t';
+  type = 'mclust_t';
   manufacturer = 'MClust';
   content = 'sorted spikes';
 elseif filetype_check_header(filename, 26)
-  ftype = 'nimh_cortex';
+  type = 'nimh_cortex';
   manufacturer = 'NIMH Laboratory of Neuropsychology, http://www.cortex.salk.edu';
   content = 'events and eye channels';
 end
@@ -941,29 +958,38 @@ end
 % finished determining the filetype
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if strcmp(ftype, 'unknown')
-  warning(sprintf('could not determine filetype of %s', filename));
+if strcmp(type, 'unknown')
+  warning('could not determine filetype of %s', filename);
 end
-
-% remember the details
-detail.filetype     = ftype;
-detail.manufacturer = manufacturer;
-detail.content      = content;
 
 if ~isempty(desired)
   % return a boolean value instead of a descriptive string
-  ftype = strcmp(ftype, desired);
+  type = strcmp(type, desired);
 end
 
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout = {type};
+if isempty(previous_argin)
+  previous_argin  = current_argin;
+  previous_argout = current_argout;
+end
+
+return % filetype main()
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that helps in deciding whether a directory with files should
 % be treated as a "dataset". This function returns a logical 1 (TRUE) if more
-% than half of the element of a vector are nonzero number or are logical 1 (TRUE).
-function y = most(x);
+% than half of the element of a vector are nonzero number or are logical 1
+% (TRUE).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function y = most(x)
 x = x(find(~isnan(x(:))));
 y = sum(x==0)<ceil(length(x)/2);
 
 % SUBFUNCTION that always returns a true value
-function y = filetype_true(varargin);
+function y = filetype_true(varargin)
 y = 1;
 
 % SUBFUNCTION that checks for CED spike6 mat file
@@ -973,24 +999,24 @@ var = whos('-file', filename);
 
 % Check whether all the variables in the file are structs (representing channels)
 if ~all(strcmp('struct', unique({var(:).class})) == 1)
-    res = 0;
-    return;
+  res = 0;
+  return;
 end
 
-var = load(filename, var(1).name); 
+var = load(filename, var(1).name);
 var = struct2cell(var);
 
 % Check whether the fields of the first struct have some particular names
 fnames = {
-    'title'
-    'comment'
-    'interval'
-    'scale'
-    'offset'
-    'units'
-    'start'
-    'length'
-    'values'
-    'times'};
+  'title'
+  'comment'
+  'interval'
+  'scale'
+  'offset'
+  'units'
+  'start'
+  'length'
+  'values'
+  'times'};
 
 res = (numel(intersect(fieldnames(var{1}), fnames)) == 10);

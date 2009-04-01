@@ -38,6 +38,12 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.23  2009/04/01 12:29:26  roboos
+% added checkconfig
+%
+% Revision 1.22  2009/04/01 12:17:24  roboos
+% use Taubin's method instead of optimization toolbox for fitting the sphere (thanks to Jean and Guillaume)
+%
 % Revision 1.21  2009/01/07 14:28:51  roboos
 % do not open new figure but start with "clf"
 % removed typicalx from optimization
@@ -108,6 +114,8 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'radius'),        cfg.radius = 8.5;        end
@@ -237,8 +245,7 @@ if strcmp(cfg.feedback, 'yes')
 end
 
 % fit a single sphere to all headshape points
-ini = mean(shape,1);
-[single_o, single_r] = fit_sphere(shape, ini);
+[single_o, single_r] = fitsphere(shape);
 fprintf('single sphere,   %5d surface points, center = [%4.1f %4.1f %4.1f], radius = %4.1f\n', Nshape, single_o(1), single_o(2), single_o(3), single_r);
 
 if strcmp(cfg.singlesphere, 'yes')
@@ -297,8 +304,7 @@ for chan=1:Nchan
 
   % fit a sphere to these headshape points
   if length(shapesel)>10
-    ini = mean(shape(shapesel,:),1) - cfg.radius * thisori;
-    [o, r] = fit_sphere(shape(shapesel,:), ini);
+    [o, r] = fitsphere(shape(shapesel,:));
     fprintf('channel = %s, %5d surface points, center = [%4.1f %4.1f %4.1f], radius = %4.1f\n', grad.label{chan}, length(shapesel), o(1), o(2), o(3), r);
   else
     fprintf('channel = %s, not enough surface points, using all points\n', grad.label{chan});
@@ -318,23 +324,8 @@ for chan=1:Nchan
   vol.label{chan} = grad.label{chan};
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function that fits a sphere to a cloud of points
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [center, radius] = fit_sphere(pnt, initial);
-% start the dipole fitting with default options
-options = optimset('TolFun',1e-10, ...
-  'Display','none');
-warning off
-center = fminunc(@fit_sphere_error, initial, options, pnt);
-warning on
-[err, radius] = fit_sphere_error(center, pnt);
+vol.type = 'multisphere';
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function that computes the goal function to be minimized
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [err, radius] = fit_sphere_error(center, pnt);
-dist   = sqrt(sum(((pnt - repmat(center, size(pnt,1), 1)).^2), 2));
-radius = mean(dist);
-err    = std(dist,1);
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 

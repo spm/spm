@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.15  2009/04/01 12:36:52  roboos
+% use Taubin's method for fitting the sphere instead of Guido's iterative sphfit function
+%
 % Revision 1.14  2009/03/26 16:44:03  roboos
 % allow 3rd order gradients iduring the construction of the localspheres model, requires that the hdm file contains a global sphere
 %
@@ -224,7 +227,7 @@ elseif ismeg
         vol.bnd.nrm = normals(vol.bnd.pnt, vol.bnd.tri);
       end
       % estimate center and radius
-      [center,radius] = sphfit([vol.bnd.pnt vol.bnd.nrm]);
+      [center,radius] = fitsphere(vol.bnd.pnt);
       % initialize the forward calculation (only if gradiometer coils are available)
       if size(sens.pnt,1)>0
         vol.forwpar = meg_ini([vol.bnd.pnt vol.bnd.nrm], center', order, [sens.pnt sens.ori]);
