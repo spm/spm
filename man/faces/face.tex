@@ -56,7 +56,7 @@ Then
 \item Highlight data, select ``New Session'', then highlight the newly created ``Session'' option.
 \item Select ``Specify Files'' and use the SPM file selector to choose all of your functional images eg. \texttt{sM03953\_0005\_*.img}.
 \item Save the job file as eg. \texttt{DIR/jobs/realign.mat}.
-\item Press the \texttt{Rrn} button in the batch editor window (green triangle).
+\item Press the \texttt{Run} button in the batch editor window (green triangle).
 \end{itemize}
 This will run the realign job which will write realigned images into the directory where the functional images are. These new images will be prefixed with the letter ``\texttt{r}''. SPM will then plot the estimated time series of translations and rotations shown in Figure~\ref{face_realign}. These data, the realignment parameters, are also saved to a file eg. \texttt{rp\_sM03953\_0005\_0006.txt}, so that these variables can be used as regressors when fitting GLMs. To prepare for this, copy the file into the \texttt{DIR/jobs} directory and rename it \texttt{movepars.txt}. This allows movements effects to be discounted when looking for brain activations.
 
@@ -70,7 +70,7 @@ SPM will also create a mean image eg. \texttt{meansM03953\_0005\_0006.img} which
 
 \subsection{Slice timing correction}
 
-Press the textsc{Slice timing} button. This will call up the specification of a slice timing job in the batch editor window. Note that these data consist of N=24 axial slices acquired continuously with a TR=2s (ie TA = TR - TR/N, where TA is the time between the onset of the first and last slice of one volume, and the TR is the time between the onset of the first slice of one volume and the first slice of next volume) and in a descending order (ie, most superior slice was sampled first). The data however are ordered within the file such that the first slice (slice number 1) is the most inferior slice, making the slice acquisition order [24 23 22 ... 1].
+Press the \textsc{Slice timing} button. This will call up the specification of a slice timing job in the batch editor window. Note that these data consist of N=24 axial slices acquired continuously with a TR=2s (ie TA = TR - TR/N, where TA is the time between the onset of the first and last slice of one volume, and the TR is the time between the onset of the first slice of one volume and the first slice of next volume) and in a descending order (ie, most superior slice was sampled first). The data however are ordered within the file such that the first slice (slice number 1) is the most inferior slice, making the slice acquisition order [24 23 22 ... 1].
 
 \begin{itemize}
 \item Highlight ``Data'' and select ``New Sessions''
