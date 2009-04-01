@@ -23,9 +23,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2861 2009-03-11 18:41:03Z guillaume $
+% $Id: spm_eeg_merge.m 3026 2009-04-01 11:37:49Z guillaume $
 
-SVNrev = '$Rev: 2861 $';
+SVNrev = '$Rev: 3026 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ end
 Ntrials = 0;
 for i = 1:Nfiles
     if ~strcmp(D{i}.transformtype, 'time')
-        if strncmpi(D.transformtype,'TF',2) % TF and TFphase
+        if strncmpi(D{i}.transformtype,'TF',2) % TF and TFphase
             Dout = spm_eeg_merge_TF(S);
             return;
         else
