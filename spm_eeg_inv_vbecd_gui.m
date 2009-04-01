@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2963 2009-03-26 16:12:45Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 3034 2009-04-01 15:12:55Z jean $
 
 %%
 % Load data, if necessary
@@ -131,11 +131,11 @@ end
 %===============
 
 % time bin or time window
-msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1000)), ...
-            ' ',num2str(round(max(D.time)*1000)),'] ms'];
+msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1e3)), ...
+            ' ',num2str(round(max(D.time)*1e3)),'] ms'];
 ask_tb = 1;
 while ask_tb
-    tb = spm_input(msg_tb,1,'r');
+    tb = spm_input(msg_tb,1,'r');   % ! in msec
     if length(tb)==1
         if tb>=min(D.time([], 'ms')) && tb<=max(D.time([], 'ms'))
             ask_tb = 0;
@@ -147,10 +147,10 @@ while ask_tb
     end
 end
 if length(tb)==1
-    [kk,ltb] = min(abs(D.time-tb)); % round to nearest time bin
+    [kk,ltb] = min(abs(D.time([], 'ms')-tb)); % round to nearest time bin
 else
-    [kk,ltb(1)] = min(abs(D.time-tb(1)));  % round to nearest time bin
-    [kk,ltb(2)] = min(abs(D.time-tb(2)));
+    [kk,ltb(1)] = min(abs(D.time([], 'ms')-tb(1)));  % round to nearest time bin
+    [kk,ltb(2)] = min(abs(D.time([], 'ms')-tb(2)));
     ltb = ltb(1):ltb(2); % list of time bins 'tb' to use
 end
 
@@ -382,15 +382,17 @@ inverse = struct( ...
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
     P.ii = ii;
-    % Adapt priors for measurement noise precision...
+    
+    %----------------------------------------------------------------%
+    %- Temporary changes in the priors for precisionhyperparameters -%
     P.priors.a10 = numel(P.y);
     P.priors.b10 = numel(P.y)*1e-18;
-    
     P.priors.a20 = 1;
     P.priors.b20 = 1e8;
-    
-    P.priors.a30 = 1;
+    P.priors.a30 = 1e1;
     P.priors.b30 = 1e8;
+    %- These have to be modified to account for informative priors! -%
+    %----------------------------------------------------------------%
     
     fprintf('\nLocalising source nr %d.\n',ii)
     P = spm_eeg_inv_vbecd(P);
@@ -412,7 +414,7 @@ D.inv{val}.inverse = inverse;
 %-------------------------
 save(D)
 P.handles.hfig  = spm_figure('GetWin','Graphics');
-spm_clf(P.handles.hfig)
+close(P.handles.hfig)
 spm_eeg_inv_vbecd_disp('init',D)
 
 return

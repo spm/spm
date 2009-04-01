@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2966 2009-03-26 16:44:05Z jean $
+% $Id: spm_eeg_inv_vbecd.m 3034 2009-04-01 15:12:55Z jean $
 
 
 
@@ -197,7 +197,9 @@ try
 catch
     P.ok = 0;
 end
+set(P.handles.hfig,'userdata',[])
 P = rmfield(P,'handles');
+
 
 % rescale back to original units
 mu_w = mu_w*sc_y;
