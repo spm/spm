@@ -12,6 +12,10 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.12  2009/04/01 16:59:43  vlalit
+% Slight fix for JMs fix to assign unique names to the other BTi fiducials. Also make
+%  sure that fid.label is a column cell array.
+%
 % Revision 1.11  2009/03/31 12:18:48  jansch
 % added additional fiducials to shape.fid for 4D hs_files
 %
@@ -122,8 +126,10 @@ switch fileformat
         shape.fid.pnt = fid([NZ L R rest], :);
         shape.fid.label = {'NZ', 'L', 'R'};
         if ~isempty(rest),
-	  shape.fid.label(4:size(fid,1)) = {'fiducial'}; 
-	  %in a 5 coil configuration this corresponds with Cz and Inion
+            for i = 4:size(fid,1)
+                shape.fid.label{i} = ['fiducial' num2str(i)];
+                %in a 5 coil configuration this corresponds with Cz and Inion
+            end
         end
     case 'neuromag_mex'
         [co,ki,nu] = hpipoints(filename);
@@ -251,6 +257,8 @@ switch fileformat
             error('unknown fileformat for head shape information');
         end
 end
+
+shape.fid.label = shape.fid.label(:);
 
 % this will add the units to the head shape
 shape = convert_units(shape);
