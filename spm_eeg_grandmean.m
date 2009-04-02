@@ -4,9 +4,9 @@ function Do = spm_eeg_grandmean(S)
 %
 % S         - struct (optional)
 % (optional) fields of S:
-% P         - filenames (char matrix) of EEG mat-file containing epoched
+% D         - filenames (char matrix) of EEG mat-file containing epoched
 %             data
-% Pout      - filename (with or without path) of output file
+% Dout      - filename (with or without path) of output file
 % weighted  - average weighted by number of replications in inputs (1)
 %             or not (0).
 %
@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2857 2009-03-11 13:21:04Z guillaume $
+% $Id: spm_eeg_grandmean.m 3046 2009-04-02 14:28:31Z vladimir $
 
-SVNrev = '$Rev: 2857 $';
+SVNrev = '$Rev: 3046 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -38,20 +38,19 @@ spm('FigName','M/EEG Grand Mean'); spm('Pointer','Watch');
 %-Get MEEG object
 %--------------------------------------------------------------------------
 try
-    P = S.P;
+    S.D;
 catch
-    [P, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
+    [S.D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
     if ~sts, Do = []; return; end
-    S.P = P;
 end
 
 %-Get parameters
 %--------------------------------------------------------------------------
 try
-    S.Pout;
+    S.Dout;
 catch
     [filename, pathname] = uiputfile('*.mat', 'Select output file');
-    S.Pout = fullfile(pathname, filename);
+    S.Dout = fullfile(pathname, filename);
 end
 
 if ~isfield(S, 'weighted')
@@ -60,12 +59,12 @@ end
 
 %-Load MEEG data
 %--------------------------------------------------------------------------
-D = cell(1, size(P, 1));
-for i = 1:size(P, 1)
+D = cell(1, size(S.D, 1));
+for i = 1:size(S.D, 1)
     try
-        D{i} = spm_eeg_load(deblank(P(i, :)));
+        D{i} = spm_eeg_load(deblank(S.D(i, :)));
     catch
-        error('Trouble reading files %s', deblank(P(i, :)));
+        error('Trouble reading files %s', deblank(S.D(i, :)));
     end
 end
 Nfiles = length(D);
@@ -165,7 +164,7 @@ if length(une)~=1
         fprintf(['\nThose files have ',num2str(une(i)),' conditions:\n',...
             fna{i}])
     end
-    estr = [estr,'Data don''t have the same number of conditions.\n'];
+    %estr = [estr,'Data don''t have the same number of conditions.\n'];
 end
 
 if strncmp(D{1}.transformtype, 'TF',2)
@@ -201,7 +200,7 @@ end
 Do = D{1};
 
 try
-    [f1, f2, f3] = fileparts(S.Pout);
+    [f1, f2, f3] = fileparts(S.Dout);
     Do.path = f1;
     fnamedat = [f2 '.dat'];
 catch
@@ -233,9 +232,9 @@ end
 
 % generate new meeg object with new filenames
 if strncmp(D{1}.transformtype, 'TF',2)
-    Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
+    Do = clone(Do, [spm_str_manip(S.Dout, 'r') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
 else
-    Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
+    Do = clone(Do, [spm_str_manip(S.Dout, 'r') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
 end
 
 % for determining bad channels of the grandmean
@@ -324,7 +323,7 @@ Do = conditions(Do, [], types);
 Do = repl(Do, [], nrepl);
 Do = reject(Do, [], 0);
 Do = trialonset(Do, [], []);
-Do = Do.history('spm_eeg_grandmean', S);
+Do = Do.history('spm_eeg_grandmean', S, 'reset');
 
 save(Do);
 
