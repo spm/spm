@@ -11,7 +11,7 @@
 %
 % SPM8 is written for MATLAB 7.1 (R14SP3) onwards under Windows and Unix.
 % ( Compiled binaries of external C-MEX functions are provided for:       )
-% (                      Windows, Linux and Mac                           )
+% (    Windows (32 and 64 bit), Linux (32 and 64 bit) and Mac (32 bit)    )
 %
 % See spm.man for details of this release.
 % See README.txt for information on installation and getting started.
@@ -42,7 +42,7 @@
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2003,2005-2009 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 3028 2009-04-01 12:02:59Z guillaume $
+% $Id: Contents.m 3041 2009-04-02 10:14:17Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
