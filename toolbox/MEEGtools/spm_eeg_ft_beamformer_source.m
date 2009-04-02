@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2841 2009-03-09 13:26:05Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3043 2009-04-02 11:28:01Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -179,6 +179,7 @@ data.time = data.time(trialind);
 cfg = [];
 cfg.channel = modality;
 cfg.covariance = 'yes';
+cfg.covariancewindow = 'maxperlength';
 cfg.keeptrials = 'no';
 timelock1 = ft_timelockanalysis(cfg, data);
 cfg.keeptrials = 'yes';
