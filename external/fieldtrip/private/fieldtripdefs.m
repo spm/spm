@@ -7,6 +7,9 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.14  2009/04/02 19:46:24  roboos
+% added plotting module
+%
 % Revision 1.13  2009/03/26 09:28:17  roboos
 % removed fixpath from the matlab path
 %
@@ -87,6 +90,11 @@ end
 try
   % numerous functions depend on this module
   hastoolbox('preproc', 1, 1);
+end
+
+try
+  % numerous functions depend on this module
+  hastoolbox('plotting', 1, 1);
 end
 
 try

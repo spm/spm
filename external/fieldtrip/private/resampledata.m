@@ -44,6 +44,10 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.21  2009/04/03 08:06:35  jansch
+% included possibility to resample data structures with an original non-integer
+% sampling rate
+%
 % Revision 1.20  2009/03/31 15:31:00  jansch
 % added the possibility to upsample a single value per trial; interp1 crashes
 % in that case. instead now use repmat
@@ -175,6 +179,8 @@ if usefsample
   ntr = length(data.trial);
 
   progress('init', cfg.feedback, 'resampling data');
+  [fsorig, fsres] = rat(cfg.origfs./cfg.resamplefs);%account for non-integer fs 
+  cfg.resamplefs  = cfg.origfs.*(fsres./fsorig);%get new fs exact
   for itr = 1:ntr
     progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
     if strcmp(cfg.blc,'yes')
@@ -186,9 +192,9 @@ if usefsample
     % perform the resampling
     if isa(data.trial{itr}, 'single')
       % temporary convert this trial to double precision
-      data.trial{itr} = single(resample(double(data.trial{itr})',double(cfg.resamplefs),double(cfg.origfs)))';
+      data.trial{itr} = single(resample(double(data.trial{itr})',fsres,fsorig))';
     else
-      data.trial{itr} = resample(data.trial{itr}',cfg.resamplefs,cfg.origfs)';
+      data.trial{itr} = resample(transpose(data.trial{itr}),fsres,fsorig)';
     end
     % update the time axis
     nsmp = size(data.trial{itr},2);
@@ -246,7 +252,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.20 2009/03/31 15:31:00 jansch Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.21 2009/04/03 08:06:35 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

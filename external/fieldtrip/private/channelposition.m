@@ -8,6 +8,10 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.4  2009/04/03 08:14:27  vlalit
+% getting rid of the dependence on statistics toolbox I accidentally introduced by using
+%  nanmin.
+%
 % Revision 1.3  2009/03/30 17:55:17  vlalit
 % Changed prepare_layout and headmodelplot to use channelposition. Changed the color
 %  of sensor markers in headmodelplot to green for consistency with SPM plots.
@@ -48,10 +52,10 @@ switch senstype(sens)
     dist = (abs(sens.tra)>10*eps).*repmat(dist', size(sens.tra, 1), 1);
 
     % put nans instead of the zero entries
-    dist(~dist) = nan;
+    dist(~dist) = inf;
 
     % use the matrix to find coils with minimal distance
-    [junk, ind] = nanmin(dist, [], 2);
+    [junk, ind] = min(dist, [], 2);
 
     lab = sens.label;
     pnt = sens.pnt(ind, :);

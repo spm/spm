@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.13  2009/04/03 08:09:31  jansch
+% added denoise for preproc and subspace
+%
 % Revision 1.12  2009/03/12 17:10:38  roboos
 % fixed bug in cfg.dataformat/headerformat (dataset2files) which applied to vhdr as input filename with a *.seg containing the data
 %
@@ -343,6 +346,7 @@ if ~isempty(createsubcfg)
           'bsfiltord'
           'bsfilttype'
           'bsfreq'
+	  'denoise'
           'dftfilter'
           'dftfreq'
           'hpfiltdir'
@@ -407,6 +411,7 @@ if ~isempty(createsubcfg)
           'projectmom'
           'reducerank'
           'keepcov'
+	  'subspace'
           };
 
       case 'pcc'
