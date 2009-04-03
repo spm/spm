@@ -10,6 +10,7 @@ function S = spm_eeg_convert2scalp(S)
 %   S.interpolate_bad  - flag (0/1) whether channels should be used for
 %                        interpolation if they lie at the border of the
 %                        setup [0: mask out]
+%   S.modality         - modality to be used 
 %
 % S         - output structure containing parameters used
 %__________________________________________________________________________
@@ -27,9 +28,9 @@ function S = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 2860 2009-03-11 17:22:50Z guillaume $
+% $Id: spm_eeg_convert2scalp.m 3047 2009-04-03 08:28:59Z vladimir $
 
-SVNrev = '$Rev: 2860 $';
+SVNrev = '$Rev: 3047 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -85,19 +86,44 @@ D = spm_eeg_load(Fname);
 %-For multimodal datasets, set the types of non-chosen modality to 'Other'
 % This is not saved in the dataset
 %--------------------------------------------------------------------------
-modality = spm_eeg_modality_ui(D, 1, 1);
-if strcmp(modality, 'MEGPLANAR')
-    error('MEG planar gradiometers are not supported yet.')
-else
-    otherind = setdiff(1:nchannels(D), strmatch(modality, chantype(D)));
-    if ~isempty(otherind)
-        D = chantype(D, otherind, 'Other');
-    end
+
+try
+    modality   = S.modality;
+catch
+    modality   = spm_eeg_modality_ui(D, 1, 1);
+    S.modality = modality;
 end
+
+otherind = setdiff(1:nchannels(D), strmatch(modality, chantype(D)));
+if ~isempty(otherind)
+    D = chantype(D, otherind, 'Other');
+end
+
 
 %-Project M/EEG data on the scalp surface
 %--------------------------------------------------------------------------
 [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad);
+
+%Find pairs of planar gradiometers that go together, work out average location:
+%--------------------------------------------------------------------------
+if strcmp(modality,'MEGPLANAR')
+    pairs = spm_eeg_grad_pairs(D);
+
+    Cel_magpl = [];
+    Cind_magpl = [];
+    for i=1:size(pairs,1) %loop over pairs
+        if any(Cind==pairs(i,1))&any(Cind==pairs(i,2)) %both channels are good, include them
+            ind1=find(Cind==pairs(i,1));
+            ind2=find(Cind==pairs(i,2));
+            Cel_magpl = [Cel_magpl; round(mean([Cel(ind1,:); Cel(ind2,:)]))];
+            Cind_magpl = [Cind_magpl; [Cind(ind1) Cind(ind2)]];
+        end
+    end
+    Cel = Cel_magpl; clear Cel_magpl; %this is nGoodPairs x 2, average location
+    Cind = Cind_magpl; clear Cind_magpl; %now also nGoodPairs x 2, pairs of gradiometer indices
+
+end
+
 
 %-Make output directory for each dataset
 %--------------------------------------------------------------------------
@@ -109,7 +135,15 @@ P  = fullfile(P, F);
 
 %-Loop over conditions
 %--------------------------------------------------------------------------
-d  = spm_cond_units(D(Cind, :,:));
+if strcmp(modality,'MEGPLANAR')
+    d1 = D(Cind(:,1),:,:); %get data from first in pair
+    d2 = D(Cind(:,2),:,:); %get data from second in pair
+    d  = sqrt(d1.^2 + d2.^2); %take RMS
+    d = spm_cond_units(d);
+else
+    d  = spm_cond_units(D(Cind, :,:));
+end
+
 cl = D.condlist;
 for i = 1 : D.nconditions
 
