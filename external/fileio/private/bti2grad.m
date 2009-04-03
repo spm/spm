@@ -18,6 +18,10 @@ function [grad] = bti2grad(hdr)
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.4  2009/04/02 10:13:15  jansch
+% disabled balancing for 148-sensor system (weight table version 1) since
+% channel order is not known
+%
 % Revision 1.3  2009/03/26 10:20:33  jansch
 % added balancing based on the weight table used during acquisition. note that
 % post acquisition computed weights using 4d software are not incorporated in
@@ -172,6 +176,13 @@ elseif isfield(hdr, 'config'),
   
   balanceflag = 1;
   if balanceflag,
+    if ~isa(hdr.user_block_data, 'cell')
+      for k = 1:length(hdr.user_block_data)
+        tmp{k}=hdr.user_block_data(k);
+      end
+      hdr.user_block_data = tmp;
+    end
+
     %check whether weights have been applied and stored in header
     for k = 1:length(hdr.user_block_data)
       ubtype{k,1} = hdr.user_block_data{k}.hdr.type;
@@ -181,18 +192,31 @@ elseif isfield(hdr, 'config'),
     if ~isempty(ubsel),
       %balance gradiometers
       weights  = hdr.user_block_data{ubsel};
-      meglabel = weights.channames;
-      reflabel = weights.drefnames;
-    
+      if hdr.user_block_data{ubsel}.version==1,
+        %the user_block does not contain labels to the channels and references
+	warning('the weight table does not contain contain labels to the channels and references: assuming the order as they occur in the header');
+        label    = {hdr.config.channel_data(:).name}';
+	meglabel = channelselection('MEG',    label);
+	imeg     = match_str(label, meglabel);
+	reflabel = channelselection('MEGREF', label);
+	weights.dweights = weights.dweights(imeg,:);
+      else
+        meglabel = weights.channames;
+        reflabel = weights.drefnames;
+      end
       nmeg              = length(meglabel);
       nref              = length(reflabel);
       montage.labelorg  = cat(1, meglabel, reflabel);
       montage.labelnew  = cat(1, meglabel, reflabel);
       montage.tra       = [eye(nmeg, nmeg), -weights.dweights; zeros(nref, nmeg), eye(nref, nref)];
       balance           = struct(weights.position, montage);
-      grad.balance      = balance;
-      grad.balance.current = weights.position;
-      grad              = apply_montage(grad, getfield(grad.balance, grad.balance.current));
+      if hdr.user_block_data{ubsel}.version==1,
+        warning('not applying balancing because order of reference list is unknown');
+      else  
+        grad.balance      = balance;
+        grad.balance.current = weights.position;
+	grad              = apply_montage(grad, getfield(grad.balance, grad.balance.current));
+      end
     end
   end
   

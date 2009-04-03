@@ -9,6 +9,10 @@ function [header] = read_4d_hdr(datafile, configfile)
 % Copyright (C) 2008-2009, Centre for Cognitive Neuroimaging, Glasgow, Gavin Paterson & J.M.Schoffelen
 %
 % $Log: read_4d_hdr.m,v $
+% Revision 1.3  2009/04/03 07:56:46  jansch
+% changed reading of user_block B_weights_used. there's a version 1 and 2,
+% probably related to whether data were acquired with a 2500 or 3600 system
+%
 % Revision 1.2  2009/03/30 13:53:17  jansch
 % Change with respect to handling of user blocks. User block data will be stored
 % in a cell-array of structures, rather than the initial structure-array. Added
@@ -255,31 +259,54 @@ for ub = 1:header.config_data.total_user_blocks
     tmpfp = ftell(fid);
     %read user_block_data weights
     %there is information in the 4th and 8th byte, these might be related to the settings?
-    unknown1 = fread(fid, 1, 'uint32');
-    unknown2 = fread(fid, 1, 'uint32');
-    Nchan    = fread(fid, 1, 'uint32');
-    Position = fread(fid, 32, 'uchar');
-    header.user_block_data{ub}.position = char(Position(Position>0))';
-    fseek(fid, tmpfp+124, 'bof');
-    Nanalog  = fread(fid, 1, 'uint32');
-    Ndigital = fread(fid, 1, 'uint32');
-    fseek(fid, tmpfp+204, 'bof');
-    for k = 1:248
-      Name     = fread(fid, 16, 'uchar');
-      header.user_block_data{ub}.channames{k,1} = char(Name(Name>0))';
-    end
-    for k = 1:Nanalog
-      Name     = fread(fid, 16, 'uchar');
-      header.user_block_data{ub}.arefnames{k,1} = char(Name(Name>0))';
-    end
-    for k = 1:Ndigital
-      Name     = fread(fid, 16, 'uchar');
-      header.user_block_data{ub}.drefnames{k,1} = char(Name(Name>0))';
-    end
+    version  = fread(fid, 1, 'uint32');
+    header.user_block_data{ub}.version = version;
+    if version==1,
+      Nbytes   = fread(fid,1,'uint32');
+      Nchan    = fread(fid,1,'uint32');
+      Position = fread(fid, 32, 'uchar');
+      header.user_block_data{ub}.position = char(Position(Position>0))';
+      fseek(fid,tmpfp+user_space_size - Nbytes*Nchan, 'bof');
+      Ndigital = floor((Nbytes - 4*2) / 4);
+      Nanalog  = 3; %lucky guess?
+      % how to know number of analog weights vs digital weights???
+      for ch = 1:Nchan
+        % for Konstanz -- comment for others?
+        header.user_block_data{ub}.aweights(ch,:) = fread(fid, [1 Nanalog],  'int16')'; 
+        fseek(fid,2,'cof'); % alignment
+        header.user_block_data{ub}.dweights(ch,:) = fread(fid, [1 Ndigital], 'single=>double')';
+      end
+      fseek(fid, tmpfp, 'bof');
+      %there is no information with respect to the channels here.
+      %the best guess would be to assume the order identical to the order in header.config.channel_data
+      %for the digital weights it would be the order of the references in that list
+      %for the analog weights I would not know
+    elseif version==2,
+      unknown2 = fread(fid, 1, 'uint32');
+      Nchan    = fread(fid, 1, 'uint32');
+      Position = fread(fid, 32, 'uchar');
+      header.user_block_data{ub}.position = char(Position(Position>0))';
+      fseek(fid, tmpfp+124, 'bof');
+      Nanalog  = fread(fid, 1, 'uint32');
+      Ndigital = fread(fid, 1, 'uint32');
+      fseek(fid, tmpfp+204, 'bof');
+      for k = 1:Nchan
+        Name     = fread(fid, 16, 'uchar');
+        header.user_block_data{ub}.channames{k,1} = char(Name(Name>0))';
+      end
+      for k = 1:Nanalog
+        Name     = fread(fid, 16, 'uchar');
+        header.user_block_data{ub}.arefnames{k,1} = char(Name(Name>0))';
+      end
+      for k = 1:Ndigital
+        Name     = fread(fid, 16, 'uchar');
+        header.user_block_data{ub}.drefnames{k,1} = char(Name(Name>0))';
+      end
 
-    header.user_block_data{ub}.dweights = fread(fid, [Ndigital Nchan], 'single=>double')';
-    header.user_block_data{ub}.aweights = fread(fid, [Nanalog  Nchan],  'int16')'; 
-    fseek(fid, tmpfp, 'bof');
+      header.user_block_data{ub}.dweights = fread(fid, [Ndigital Nchan], 'single=>double')';
+      header.user_block_data{ub}.aweights = fread(fid, [Nanalog  Nchan],  'int16')'; 
+      fseek(fid, tmpfp, 'bof');
+    end
   elseif strcmp(type(type>0), 'B_E_table_used'),
     %warning('reading in weight table: no warranty that this is correct');
     %tmpfp = ftell(fid);
