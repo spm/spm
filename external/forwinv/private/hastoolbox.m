@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.34  2009/04/02 19:47:33  roboos
+% added plotting module
+%
 % Revision 1.33  2009/03/30 15:06:14  roboos
 % added the patch from Alexandre to support openmeeg
 %
@@ -172,8 +175,9 @@ url = {
   'SPLINES'    'see http://www.mathworks.com/products/splines'
   'FASTICA'    'see http://www.cis.hut.fi/projects/ica/fastica'
   'BRAINSTORM' 'see http://neuroimage.ucs.edu/brainstorm'
-  'FILEIO'     'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:fileio'
-  'FORWINV'    'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:forwinv'
+  'FILEIO'     'see http://www.ru.nl/neuroimaging/fieldtrip'
+  'FORWINV'    'see http://www.ru.nl/neuroimaging/fieldtrip'
+  'PLOTTING'   'see http://www.ru.nl/neuroimaging/fieldtrip'
   'DENOISE'    'see http://lumiere.ens.fr/Audition/adc/meg, or contact Alain de Cheveigne'
   'BCI2000'    'see http://bci2000.org'
   'NLXNETCOM'  'see http://www.neuralynx.com'
@@ -275,6 +279,8 @@ switch toolbox
     status  = (exist('bem_Cij_cog', 'file') && exist('bem_Cij_lin', 'file') && exist('bem_Cij_cst', 'file'));
   case 'OPENMEEG'
     status = exist('openmeeg.m', 'file');
+  case 'PLOTTING'
+    status  = (exist('plot_topo', 'file') && exist('plot_mesh', 'file') && exist('plot_matrix', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
