@@ -22,6 +22,7 @@ function  [out] = spm_eeg_render(m,options)
 %       .hfra: frame structure for movie building
 %       .handles: a structure containing the handles of the created
 %       uicontrols and mesh objects.
+%       .m: the structure used to create the mesh
 %__________________________________________________________________________
 %
 % This function is a visualization routine, mainly for texture and
@@ -31,7 +32,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2979 2009-03-27 18:36:03Z guillaume $
+% $Id: spm_eeg_render.m 3051 2009-04-06 14:47:09Z jean $
 
 
 %----------------------------------------------------------------------%
@@ -56,6 +57,7 @@ end
 % Default options
 handles.fi = figure(...
     'visible','off',...
+    'color',ones(1,3),...
     'NumberTitle','Off',...
     'Name','Mesh visualization',...
     'tag','visu_maillage_surf');
@@ -314,7 +316,7 @@ cameratoolbar(handles.fi,'setmode','orbit')
 
 out.hfra = getframe(gcf);
 out.handles = handles;
-
+out.m = m;
 
 %--------- subfunctions : BUTTONS CALLBACKS ------------%
 

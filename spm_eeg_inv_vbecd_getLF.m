@@ -16,7 +16,7 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 3034 2009-04-01 15:12:55Z jean $
+% $Id: spm_eeg_inv_vbecd_getLF.m 3051 2009-04-06 14:47:09Z jean $
 
 
 if nargin<4
@@ -50,7 +50,10 @@ if all(step > 0) && nargout == 3
         for i = 1:length(s)/3
             if ceil(j/3) == i 
                 [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
-                tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+                % mean correction of LF, only for EEG data.
+                if forwinv_senstype(sens, 'eeg')
+                    tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+                end
                 dtmp = [dtmp tmp];
             else
                 dtmp = [dtmp gmn(:, 1+(i-1)*3:i*3)];

@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3034 2009-04-01 15:12:55Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 3051 2009-04-06 14:47:09Z jean $
 
 %%
 % Load data, if necessary
@@ -388,9 +388,9 @@ for ii=1:length(ltr)
     P.priors.a10 = numel(P.y);
     P.priors.b10 = numel(P.y)*1e-18;
     P.priors.a20 = 1;
-    P.priors.b20 = 1e8;
+    P.priors.b20 = 1e8; % 1e8
     P.priors.a30 = 1e1;
-    P.priors.b30 = 1e8;
+    P.priors.b30 = 1e4;
     %- These have to be modified to account for informative priors! -%
     %----------------------------------------------------------------%
     

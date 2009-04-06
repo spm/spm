@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 3034 2009-04-01 15:12:55Z jean $
+% $Id: spm_eeg_inv_vbecd.m 3051 2009-04-06 14:47:09Z jean $
 
 
 
@@ -65,7 +65,6 @@ Vw = full(spm_svd(Tw));
 Vs = full(spm_svd(Ts));
 
 y = P.y;
-y = y-mean(y); % Re-reference data to mean
 
 P.dv = 10^-2; % used to compute step-size for gradients
 
@@ -74,25 +73,28 @@ P.dv = 10^-2; % used to compute step-size for gradients
 % initialization
 %---------------
 
-% ensure data have apropriate scale
-% if strcmp(P.modality,'MEG')
-%     % sc_y = norm(y)/10;
-%     sc_y = 1e-8;
-%     y = y/sc_y;
-% else
-%     sc_y = 1;
-% end
-sc_y = 1;
+% ensure data have apropriate scale: ADDED BACK BY GRB
+ if strcmp(P.modality,'MEG')
+     % sc_y = norm(y)/10;
+     sc_y = 1e-8;
+     y = y/sc_y;
+ else
+     y = y-mean(y); % Re-reference data to mean
+     sc_y = 1;
+ end
+% sc_y = 1;
 % Initialize posterior with prior
 b10 = b10*sc_y.^2;
 a1 = a10;
 b1 = b10;
 a2 = a20;
-b2 = b20;
+b2 = b20; %*sc_y.^2;
 a3 = a30;
 b3 = b30;
+
 [u,s,v] = svd((a2/b2)*iS_w0);
 mu_w = mu_w0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_w0));
+mu_w = mu_w./sqrt(sum(mu_w.^2));
 S_w = u*diag(diag((s+eps).^-1))*v';
 [u,s,v] = svd((a3/b3)*iS_s0);
 mu_s = mu_s0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_s0));
@@ -139,12 +141,15 @@ for i = 1:P.Niter
         d = Dm(ind, ind);
         SD = SD + d;
     end
+%     S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn))*Tw';
     S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn + SD))*Tw';
     mu_w = Tw*S_w*(a1/b1*gmn'*y + a2/b2*iS_w0*mu_w0);
 
     % location parameters s
     [mu_s,S_s,DE,gmn,gm,dgm,P] = ...
         modifiedGN4s(mu_s,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+    
+    [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,i+1,'data',F(end));
 
     % precision on y
     a1 = Nc/2 + a10;
@@ -194,6 +199,7 @@ end
 
 try
     set(P.handles.hte(2),'string','VB for ECDs: done.')
+    drawnow
 catch
     P.ok = 0;
 end
@@ -225,9 +231,10 @@ function [mu,Sigma,DE,gmn,gm,dgm,P] = ...
 
 
 % Compute variational energy and GN step from previous mode
+Sigma = S_s;
 PreviousMu = mu;
 [PreviousI,Sigma,deltaMu,DE,gmn,gm,dgm] = ...
-    logVarQ(PreviousMu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+    logVarQ(PreviousMu,Sigma,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
 
 maxIter = 16;
 rdI = 1e-4;
@@ -239,7 +246,7 @@ while stop == 0
     mu = Ts*(PreviousMu + deltaMu);
     % get variational energy (as well as next move)
     [I,nextSigma,NextdeltaMu,nextDE,nextgmn,nextgm,nextdgm] = ...
-        logVarQ(mu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
+        logVarQ(mu,Sigma,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
     % calculate relative variational energy improvement
     deltaI = I-PreviousI;
     % check whether to stop, to accept move or to halve step
@@ -301,7 +308,10 @@ else
         -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) );
     % Get local curvature of variational energy (-> cov matrix)
     DE = kron(S_w+mu_w*mu_w', eye(Nc));
-    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm));
+    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))
+    if any(diag(Sigma)<0)
+        dfdf
+    end
     % standard Gauss-Newton move from mode and curvature
     deltaMu = Sigma*( (a3/b3)*iSdmu0 ...
         + (a1/b1)*dgm'*(kron(mu_w,dy)) );%+ kron(S_w,In)*gm) );
