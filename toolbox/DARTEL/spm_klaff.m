@@ -18,7 +18,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_klaff.m 3012 2009-03-30 21:32:43Z guillaume $
+% $Id: spm_klaff.m 3053 2009-04-07 17:41:31Z john $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end
@@ -83,7 +83,7 @@ for k=1:nd,
     f{k} =  spm_bsplinc(double(f{k}),deg);
 end
 
-M = Ng.mat\Nf.mat;
+M = Nf.mat\Ng.mat;
 
 spm_chi2_plot('Init','KL Divergence Affine Registration',...
               'RMS Change', 'Iteration');
