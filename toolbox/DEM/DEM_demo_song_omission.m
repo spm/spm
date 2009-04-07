@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 1881 2008-07-02 13:11:05Z karl $
+% $Id: DEM_demo_song_omission.m 3054 2009-04-07 19:22:49Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -116,7 +116,7 @@ spm_DEM_play_song(DEM.qU,N*dt);
 title('percept','Fontsize',18)
  
 subplot(3,2,5)
-spm_DEM_EEG(DEM,dt);
+spm_DEM_EEG(DEM,dt,[1 2],1);
 title('ERP (error)','Fontsize',18)
 axis([1 N*dt*1000 -100 100])
  
@@ -131,6 +131,6 @@ spm_DEM_play_song(DEMa.qU,N*dt);
 title('percept','Fontsize',18)
  
 subplot(3,2,6)
-spm_DEM_EEG(DEMa,dt);
+spm_DEM_EEG(DEMa,dt,[1 2],1);
 title('with omission','Fontsize',18)
 axis([1 N*dt*1000 -100 100])

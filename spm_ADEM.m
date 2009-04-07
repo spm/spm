@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 2922 2009-03-23 18:03:39Z guillaume $
+% $Id: spm_ADEM.m 3054 2009-04-07 19:22:49Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -154,7 +154,7 @@ nu   = nv*d + nx*n;                    % number of generalised states q(u)
 %--------------------------------------------------------------------------
 gl   = size(M,2);                      % number of levels
 gr   = sum(spm_vec(G.l));              % number of v (outputs)
-gv   = sum(spm_vec(G.m));              % number of v (casual states)
+gv   = sum(spm_vec(G.m));              % number of v (causal states)
 ga   = sum(spm_vec(G.k));              % number of a (active states)
 gx   = sum(spm_vec(G.n));              % number of x (hidden states)
 gy   = G(1).l;                         % number of y (inputs)
@@ -654,7 +654,7 @@ for iE = 1:nE
                 end
                 QU.z{i}(:,t)     = spm_vec(z{i});
             end
-            QU.v{1}(:,t)         = spm_vec(qU(t).y{1} - z{1});
+            QU.v{1}(:,t)         = spm_vec(qU(t).y{1}) - spm_vec(z{1});
             QU.z{nl}(:,t)        = spm_vec(z{nl});
  
             % and conditional covariances

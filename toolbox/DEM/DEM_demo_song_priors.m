@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 1881 2008-07-02 13:11:05Z karl $
+% $Id: DEM_demo_song_priors.m 3054 2009-04-07 19:22:49Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
@@ -94,9 +94,6 @@ DEMc   = spm_DEM(DEMc);
 spm_DEM_qU(DEMc.qU,DEMc.pU)
 
 
-
-
- 
 % show songs and prediction error (ERP)
 %==========================================================================
 spm_figure('Getwin','MFM');
@@ -136,14 +133,14 @@ title('no dynamical priors','Fontsize',18)
 % LFPs
 %--------------------------------------------------------------------------
 subplot(3,2,2)
-spm_DEM_EEG(DEMc,dt);
+spm_DEM_EEG(DEMc,dt,[1 2],1);
 title('LFP','Fontsize',18)
  
 subplot(3,2,4)
-spm_DEM_EEG(DEMa,dt);
+spm_DEM_EEG(DEMa,dt,[1 2],1);
 title('LFP','Fontsize',18)
  
 subplot(3,2,6)
-spm_DEM_EEG(DEMb,dt);
+spm_DEM_EEG(DEMb,dt,[1 2],1);
 title('LFP','Fontsize',18)
 drawnow

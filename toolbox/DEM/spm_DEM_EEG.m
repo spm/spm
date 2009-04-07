@@ -17,7 +17,7 @@ function [R] = spm_DEM_EEG(DEM,dt,n,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_EEG.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: spm_DEM_EEG.m 3054 2009-04-07 19:22:49Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ for k = 1:length(n)
 
     % ERPs
     %----------------------------------------------------------------------
-    R{k}  = sqrtm(P)*z{i};
+    R{k}  = spm_sqrtm(P)*z{i};
     
     if graphics
         if i == 1

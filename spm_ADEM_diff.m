@@ -17,7 +17,7 @@ function [u dg df] = spm_ADEM_diff(M,u);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_diff.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: spm_ADEM_diff.m 3054 2009-04-07 19:22:49Z karl $
  
 % number of states and parameters
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ for  i = (nl - 1):-1:1
     %----------------------------------------------------------------------
     gi{i}    = g;
     fi{i}    = f;
-    vi{i}    = gi{i} + zi{i};
+    vi{i}    = spm_vec(gi{i}) + spm_vec(zi{i});
     
     % and partial derivatives
     %----------------------------------------------------------------------

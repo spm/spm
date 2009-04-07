@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: DEM_demo_MMN_Volterra.m 3054 2009-04-07 19:22:49Z karl $
  
 % figure
 %--------------------------------------------------------------------------
@@ -24,27 +24,21 @@ colormap('pink')
 % level 1
 %--------------------------------------------------------------------------
 M(1).m  = 1;                                 % 1 input or cause
-M(1).n  = 2;                                 % 2 hidden states
-M(1).l  = 2;                                 % 3 outputs (coefficients for face)
+M(1).n  = 4;                                 % 4 hidden states
+M(1).l  = 2;                                 % 2 outputs (coefficients for face)
  
 % first stimulus parameters
 %--------------------------------------------------------------------------
-A.g     = [ 0  1 ;                           % amplitude
-            4  0];                           % frequency
-A.f     = [-1  4;
-           -2 -1]/16;                        % The Jacobian
-ip      = [2];
-pC      = sparse(ip,ip,1,8,8);               % covariance
+A.g     = [0 1 0 0];                         % amplitude
+ip      = [2:3];
+pC      = sparse(ip,ip,1,4,4);               % covariance
  
 % second stimulus parameters
 %--------------------------------------------------------------------------
-B.g     = [ 0  1;
-            1  0];                           % The mixing parameters
-B.f     = A.f;
- 
+B.g     = [0 0 1 0];                       % The mixing parameters
         
-M(1).f  = inline('P.f*x + [v; 0]','x','v','P');
-M(1).g  = inline('P.g*x + [0; 16]','x','v','P');
+M(1).f  = inline('spm_lotka_volterra(x,v,1)','x','v','P');
+M(1).g  = inline('[P.g*x; 24]','x','v','P');
 M(1).pE = A;                                 % The prior expectation
 M(1).pC = pC;                                % The prior covariance
 M(1).Q  = {eye(2)};                          % error precision (data)
@@ -116,7 +110,7 @@ for i = 1:(n + 1)
     subplot(n + 1,3,(i - 1)*3 + 3)
     
     dP{i} = spm_vec(DEM{i}.M(1).pE) - spm_vec(DEM{end}.M(1).pE);
-    qR{i} = spm_DEM_MEG(DEM{i},dt,1,1);       % prediction error (LFP)
+    qR{i} = spm_DEM_MEG(DEM{i},dt,1,1);   % prediction error (LFP)
     qR{i} = spm_DEM_EEG(DEM{i},dt,[1 2],1);   % prediction error (LFP)
     qH(i) = DEM{i}.M(1).hE;                   % and precision
     drawnow

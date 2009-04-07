@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 2494 2008-11-26 20:08:15Z karl $
+% $Id: spm_DEM_qU.m 3054 2009-04-07 19:22:49Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -178,7 +178,7 @@ end
 
 % plot action if specified
 %--------------------------------------------------------------------------
-try
+if isfield(qU,'a')
     subplot(g,2,2*g)
     plot(t,qU.a{2});
     try
@@ -190,8 +190,6 @@ try
     grid on
     axis square
     set(gca,'XLim',[t(1) t(end)])
-catch
-    delete(gca)
 end
 
 drawnow

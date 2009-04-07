@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: ADEM_lorenz_entropy.m 3054 2009-04-07 19:22:49Z karl $
  
 % generative process (environment)
 %==========================================================================
@@ -146,8 +146,6 @@ end
  
 % graphics
 %==========================================================================
- 
- 
 spm_figure('GetWin','Graphics');
 t   = 1:length(DEM);
  
@@ -174,8 +172,6 @@ end
 hold off
 title('states before','FontSize',16)
 a = axis;
-% imagesc(-64:64,-64:64,H/4)
-% axis([0 48 -48 48])
 
 subplot(3,2,4)
 j = length(t) - n;
@@ -189,8 +185,7 @@ end
 hold off
 title('and after','FontSize',16)
 axis(a)
-% imagesc(-64:64,-64:64,H/4)
-% axis([0 48 -48 48])
+
  
 % and underlying conditional expectations
 %--------------------------------------------------------------------------
