@@ -9,7 +9,7 @@ function out = spm_dartel_norm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm.m 2611 2009-01-16 19:11:27Z john $
+% $Id: spm_dartel_norm.m 3052 2009-04-07 10:37:36Z john $
 
 
 PU = job.flowfields;
@@ -38,7 +38,7 @@ for i=1:numel(PU),
 
     for m=1:numel(PI),
         [pth1,nam,ext,num] = spm_fileparts(PI{m}{i});
-        NI = nifti(fullfile(pth,[nam ext]));
+        NI = nifti(fullfile(pth1,[nam ext]));
         NO = NI;
         if jactransf,
             NO.dat.fname=fullfile(pth,['mw' nam ext]);
