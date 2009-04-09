@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 2975 2009-03-26 21:43:31Z guillaume $
+% $Id: spm_spm.m 3055 2009-04-09 06:17:29Z volkmar $
 
-SVNid   = '$Rev: 2975 $';
+SVNid   = '$Rev: 3055 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -521,7 +521,7 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
 if isfield(xX,'W')
     fprintf('%-40s: %30s','Output images','...initialising');           %-#
 
-    %-Intialise new mask name: current mask & conditions on voxels
+    %-Initialise new mask name: current mask & conditions on voxels
     %----------------------------------------------------------------------
     VM    = struct('fname',  'mask.img',...
                    'dim',    DIM',...

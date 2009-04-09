@@ -156,7 +156,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 2958 2009-03-26 11:19:20Z guillaume $
+% $Id: spm_spm_vb.m 3055 2009-04-09 06:17:29Z volkmar $
 
 
 %-Get SPM.mat if necessary
@@ -319,7 +319,7 @@ for s = 1:nsess
     SPM.PPM.Sess(s).VHp = spm_create_vol(SPM.PPM.Sess(s).VHp);
 end
 
-%-Intialise hyperparameter (AR 1..p and noise variance) image files
+%-Initialise hyperparameter (AR 1..p and noise variance) image files
 %-----------------------------------------------------------------------
 
 %-Set number of AR coefficients
@@ -415,7 +415,7 @@ if ~isstruct(xM)
         'xs',  struct('Masking','analysis threshold'));
 end
 
-%-Intialise the name of the new mask : current mask & conditions on voxels
+%-Initialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
 VM = struct(...
     'fname',    'mask.img',...
@@ -490,7 +490,7 @@ switch lower(SPM.PPM.space_type)
         error('Unknown analysis space.');
 end
 
-%-Intialise image containing labels of each block (slice or subvolume) 
+%-Initialise image containing labels of each block (slice or subvolume) 
 %-----------------------------------------------------------------------
 VLabel = struct(...
     'fname',    'labels.img',...

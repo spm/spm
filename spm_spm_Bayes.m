@@ -13,13 +13,13 @@ function [SPM] = spm_spm_Bayes(SPM)
 % spm_spm_Bayes returns to voxels identified by spm_spm (ML parameter
 % estimation) to get conditional parameter estimates and ReML hyper-
 % parameter estimates.  These estimates use prior covariances, on the
-% parameters, from emprical Bayes.  These PEB prior variances come from
+% parameters, from empirical Bayes.  These PEB prior variances come from
 % the hierarchical model that obtains by considering voxels as providing
 % a second level.  Put simply, the variance in parameters, over voxels,
 % is used as a prior variance from the point of view of any one voxel.
 % The error covariance hyperparameters are re-estimated in the light of
 % these priors.  The approach adopted is essentially a fully Bayesian
-% analysis at each voxel, using emprical Bayesian prior variance
+% analysis at each voxel, using empirical Bayesian prior variance
 % estimators over voxels.
 %
 % Each separable partition (i.e. session) is assigned its own
@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_spm_Bayes.m 3055 2009-04-09 06:17:29Z volkmar $
 
 
 %-Say hello
@@ -106,7 +106,7 @@ end
 %=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising')             %-#
 
-%-Intialise oonditional estimate image files
+%-Initialise oonditional estimate image files
 %-----------------------------------------------------------------------
 xX             = SPM.xX;
 [nScan nBeta]  = size(xX.X);
@@ -124,7 +124,7 @@ for i = 1:nBeta
 end
 Vbeta = spm_create_vol(Vbeta);
 
-%-Intialise ReML hyperparameter image files
+%-Initialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
 try
     nHp       = length(SPM.nscan);
