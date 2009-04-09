@@ -1,6 +1,12 @@
 function [SPM,xSPM] = spm_getSPM(varargin)
 % Compute a specified and thresholded SPM/PPM following parameter estimation
 % FORMAT [SPM,xSPM] = spm_getSPM;
+% Query SPM in interactive mode.
+%
+% FORMAT [SPM,xSPM] = spm_getSPM(xSPM);
+% Query SPM in batch mode. See below for a description of fields that may
+% be present in xSPM input. Values for missing fields will be queried
+% interactively.
 %
 % xSPM      - structure containing SPM, distribution & filtering details
 % .swd      - SPM working directory - directory containing current SPM.mat
@@ -59,7 +65,20 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
 % .Vspm  - Name of SPM image
 %
-% In addition, the xCon.mat file is updated. For newly evaluated
+% Evaluated fields in xSPM (input)
+%
+% xSPM      - structure containing SPM, distribution & filtering details
+% .swd      - SPM working directory - directory containing current SPM.mat
+% .title    - title for comparison (string)
+% .Ic       - indices of contrasts (in SPM.xCon)
+% .Im       - indices of masking contrasts (in xCon)
+% .pm       - p-value for masking (uncorrected)
+% .Ex       - flag for exclusive or inclusive masking
+% .u        - height threshold
+% .k        - extent threshold {voxels}
+% .thresDesc - description of height threshold (string)
+%
+% In addition, the xCon structure is updated. For newly evaluated
 % contrasts, SPM images (spmT_????.{img,hdr}) are written, along with
 % contrast (con_????.{img,hdr}) images for SPM{T}'s, or Extra
 % Sum-of-Squares images (ess_????.{img,hdr}) for SPM{F}'s.
@@ -162,7 +181,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 2976 2009-03-26 22:07:06Z guillaume $
+% $Id: spm_getSPM.m 3056 2009-04-09 06:24:31Z volkmar $
 
 
 %-GUI setup

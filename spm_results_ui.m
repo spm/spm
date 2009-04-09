@@ -135,9 +135,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 2583 2008-12-20 12:00:03Z karl $
+% $Id: spm_results_ui.m 3056 2009-04-09 06:24:31Z volkmar $
  
-SCCSid = '$Rev: 2583 $';
+SCCSid = '$Rev: 3056 $';
  
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -154,9 +154,10 @@ SCCSid = '$Rev: 2583 $';
 % FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup')
 % Query SPM and setup GUI. 
 %
-% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup',job)
-% Query SPM and setup GUI using a batch job structure. This allows to run
-% results setup without user interaction.
+% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup',xSPM)
+% Query SPM and setup GUI using a xSPM input structure. This allows to run
+% results setup without user interaction. See spm_getSPM for details of
+% allowed fields.
 %
 % FORMAT hReg = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter)
 % Setup results GUI in Interactive window
