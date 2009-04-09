@@ -9,7 +9,7 @@ function spm_DEM_qH(qH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qH.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_qH.m 3058 2009-04-09 18:17:53Z karl $
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
@@ -23,9 +23,10 @@ end
 
 % [Re]ML estimates
 %--------------------------------------------------------------------------
+h = spm_vec(qH.h);
 j = length(qH.h);
 subplot(2,1,1)
-bar(full(qH.h),'c')
+bar(full(h),'c')
 title('hyperparameters');
 grid on
 axis square
@@ -35,7 +36,7 @@ set(gca,'XLim',[0 j + 1])
 %--------------------------------------------------------------------------
 try
     for i = 1:j
-        line([i i],[-1 1]*c(i) + qH.h(i),...
+        line([i i],[-1 1]*c(i) + h(i),...
             'LineWidth',4,...
             'Color','r');
     end

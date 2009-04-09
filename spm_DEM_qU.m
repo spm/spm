@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_DEM_qU.m 3058 2009-04-09 18:17:53Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -83,7 +83,7 @@ for i = 1:g
 
         % title and grid
         %------------------------------------------------------------------
-        title(sprintf('causes (level %i)',i),'FontSize',16);
+        title(sprintf('causal states',i),'FontSize',16);
         grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
@@ -123,7 +123,7 @@ for i = 1:g
         if i == 1
             title('prediction and error','FontSize',16);
         else
-            title(sprintf('causes - level %i',i),'FontSize',16);
+            title(sprintf('causal states',i),'FontSize',16);
             try, hold on
                 plot(t,pV{i},':k','linewidth',1)
             end, hold off
@@ -132,7 +132,6 @@ for i = 1:g
             end, hold off
         end
         xlabel('time','FontSize',14)
-        grid on
         axis square
         axis(a)
 
@@ -166,7 +165,6 @@ for i = 1:g
             %--------------------------------------------------------------
             title('hidden states','FontSize',16)
             xlabel('time','FontSize',14)
-            grid on
             axis square
             axis(a);
             
@@ -187,7 +185,6 @@ if isfield(qU,'a')
     end
     xlabel('time','Fontsize',14)
     title('perturbation and action','Fontsize',16)
-    grid on
     axis square
     set(gca,'XLim',[t(1) t(end)])
 end

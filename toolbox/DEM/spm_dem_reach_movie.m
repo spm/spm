@@ -7,7 +7,7 @@ function spm_dem_reach_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_reach_movie.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_dem_reach_movie.m 3058 2009-04-09 18:17:53Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ for i = 1:N
     plot([0 J{1}(1,i)],[0 J{1}(2,i)],'color',[1 .8 .7]*.8)
     plot([J{1}(1,i) J{2}(1,i)],[J{1}(2,i) J{2}(2,i)],'color',[1 .8 .7]*.8)
     plot(T(1),T(2),'.r','MarkerSize',32)
-    axis([-0.5 1 0 1.5])
+    axis([-0.5 1.5 0 2])
     hold off
     drawnow
 

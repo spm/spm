@@ -9,12 +9,12 @@ function [f]= spm_fx_dem_reach(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_reach.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_fx_dem_reach.m 3058 2009-04-09 18:17:53Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------
 m  = [2  1]*2;                                % mass
-k  = [2  1]*4;                                % viscosity
+k  = [2  1]*4;                                % friction
 O  = [0 -1 ;                                  % orthogonal projector
       1  0];
 
