@@ -52,7 +52,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 2957 2009-03-26 11:18:48Z guillaume $
+% $Id: spm_est_smoothness.m 3057 2009-04-09 06:26:50Z volkmar $
 
 
 %-Assign input arguments
@@ -89,7 +89,7 @@ end
 n_full    = ndf(1);
 edf       = ndf(2);
 
-%-Intialise RESELS per voxel image
+%-Initialise RESELS per voxel image
 %-----------------------------------------------------------------------
 VRpv  = struct('fname','RPV.img',...
             'dim',      VM.dim(1:3),...
