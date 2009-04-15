@@ -9,9 +9,9 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_convert_ui.m 3059 2009-04-15 18:09:13Z guillaume $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 3059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
             case 3
                 S.usetrials = 0;
                 if  ~isfield(S, 'trlfile')
-                    S.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+                    S.trlfile = spm_select(1, 'mat', 'Select a trial definition file');
                 end
         end
     end

@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2899 2009-03-19 14:17:43Z guillaume $
+% $Id: spm_eeg_filter.m 3059 2009-04-15 18:09:13Z guillaume $
 
-SVNrev = '$Rev: 2899 $';
+SVNrev = '$Rev: 3059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -116,7 +116,11 @@ end
 switch filter.type
     case 'butterworth'
         if isempty(filter.para)
-            [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
+            try
+                [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
+            catch
+                error('M/EEG filtering requires the Signal Processing Toolbox.');
+            end
             filter.para{1} = B;
             filter.para{2} = A;
         end

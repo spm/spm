@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 3059 2009-04-15 18:09:13Z guillaume $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -207,8 +207,8 @@ else
         
         S.usetrials = 0;
         [S.trl, S.conditionlabel] = spm_eeg_definetrial(S);
-
     end
+    S.continuous = 0;
 end
 
 if isfield(S.channels, 'chanmeg')

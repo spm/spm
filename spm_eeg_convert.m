@@ -1,43 +1,45 @@
 function D = spm_eeg_convert(S)
 % Main function for converting different M/EEG formats to SPM8 format.
-% FORMAT spm_eeg_convert(S)
-% S - can be string (file name) or struct.
+% FORMAT D = spm_eeg_convert(S)
+% S                - can be string (file name) or struct (see below)
 %
-% If S is a struct it can have the following fields:
-% S.dataset - file name
-% S.continuous - 1 - convert data as continuous
-%                0 - convert data as epoched (requires data that is already
-%                    epoched or a trial definition file).
-% S.timewindow - [start end] in sec. Boundaries for a sub-segment of
-%                continuous data (default - all).
-% S.outfile - name base for the output files (default - the same as input)
-% S.channels - 'all' - convert all channels
-%               cell array of labels
-% S.usetrials - 1 - take the trials as defined in the data (default)
-%               0 - use trial definition file even though the data is
-%                   already epoched.
-% S.trlfile - name of the trial definition file
-% S.datatype - data type for the data file one of
-%              'float32-le' (default), 'float64-le'
-% S.inputformat - data type (optional) to force the use of specific data reader
-% S.eventpadding - in sec - the additional time period around each trial
-%               for which the events are saved with the trial (to let the
-%               user keep and use for analysis events which are outside
-%               trial borders). Default - 0.
-% S.conditionlabel - labels for the trials in the data Default -
-% 'Undefined'
-% S.blocksize - size of blocks used internally to split large files
-%               default ~100Mb.
-% S.checkboundary - 1 - check if there are breaks in the file and do not read
-%                       across those breaks (default).
-%                   0 - ignore breaks (not recommended).
+% If S is a struct it can have the optional following fields:
+% S.dataset        - file name
+% S.continuous     - 1 - convert data as continuous
+%                    0 - convert data as epoched (requires data that is
+%                        already epoched or a trial definition file).
+% S.timewindow     - [start end] in sec. Boundaries for a sub-segment of
+%                     continuous data [default: all]
+% S.outfile        - name base for the output files [default - same as input]
+% S.channels       - 'all' - convert all channels
+%                    or cell array of labels
+% S.usetrials      - 1 - take the trials as defined in the data [default]
+%                    0 - use trial definition file even though the data is
+%                        already epoched
+% S.trlfile        - name of the trial definition file
+% S.datatype       - data type for the data file one of
+%                    'float32-le' [default], 'float64-le'
+% S.inputformat    - data type (optional) to force the use of specific data 
+%                    reader
+% S.eventpadding   - the additional time period around each trial for which
+%                    the events are saved with the trial (to let the user 
+%                    keep and use for analysis events which are outside
+%                    trial borders), in seconds. [default: 0]
+% S.conditionlabel - labels for the trials in the data [default: 'Undefined']
+% S.blocksize      - size of blocks used internally to split large files
+%                    [default: ~100Mb]
+% S.checkboundary  - 1 - check if there are breaks in the file and do not
+%                        read across those breaks [default]
+%                    0 - ignore breaks (not recommended).
 % S.saveorigheader - 1 - save original data header with the dataset
-%                    0 - do not keep the original header (default)
+%                    0 - do not keep the original header [default]
+%
+% % D              - MEEG object (also written on disk)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2970 2009-03-26 19:19:07Z vladimir $
+% $Id: spm_eeg_convert.m 3059 2009-04-15 18:09:13Z guillaume $
 
 if ischar(S)
     temp      = S;
@@ -49,17 +51,17 @@ if ~isfield(S, 'dataset')
     error('Dataset must be specified.');
 end
 
-if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_str_manip(S.dataset,'tr')];     end
-if ~isfield(S, 'channels'),        S.channels = 'all';                                      end
-if ~isfield(S, 'timewindow'),      S.timewindow = [];                                       end
-if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                   end  %100 Mb
-if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                     end
-if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                         end
-if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                                  end
-if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
-if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                    end
-if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                         end
-if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                     end
+if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_str_manip(S.dataset,'tr')];  end
+if ~isfield(S, 'channels'),        S.channels = 'all';                                   end
+if ~isfield(S, 'timewindow'),      S.timewindow = [];                                    end
+if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                end %100 Mb
+if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                  end
+if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                      end
+if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                            end
+if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                   end
+if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                 end
+if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                      end
+if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                  end
 
 if ~iscell(S.conditionlabel)
     S.conditionlabel = {S.conditionlabel};
