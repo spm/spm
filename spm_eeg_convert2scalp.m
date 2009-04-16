@@ -28,9 +28,9 @@ function S = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 3047 2009-04-03 08:28:59Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 3060 2009-04-16 10:42:09Z guillaume $
 
-SVNrev = '$Rev: 3047 $';
+SVNrev = '$Rev: 3060 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -149,7 +149,7 @@ for i = 1 : D.nconditions
 
     %-Make output directory for each condition
     %----------------------------------------------------------------------
-    dname = sprintf('type_%s', cl{i});
+    dname = sprintf('type_%s', strrep(deblank(cl{i}),' ','_'));
     [sts, msg] = mkdir(P, dname);
     if ~sts, error(msg); end
     Pi = fullfile(P, dname);
