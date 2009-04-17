@@ -29,9 +29,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2876 2009-03-13 14:54:15Z guillaume $
+% $Id: spm_eeg_tf.m 3061 2009-04-17 12:17:00Z guillaume $
 
-SVNrev = '$Rev: 2876 $';
+SVNrev = '$Rev: 3061 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -192,9 +192,10 @@ for k = 1:D.ntrials
         d2 = zeros(length(tf.channels), Nfrequencies, D.nsamples);
     end
 
+    indat = squeeze(D(:, :, k));
     for j = 1:length(tf.channels)
         for i = 1 : Nfrequencies
-            tmp = conv(squeeze(D(tf.channels(j), :, k)), M{i});
+            tmp = conv(indat(tf.channels(j), :), M{i});
 
             % time shift to remove delay
             tmp = tmp([1:D.nsamples] + (length(M{i})-1)/2);
