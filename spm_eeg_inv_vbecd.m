@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 3051 2009-04-06 14:47:09Z jean $
+% $Id: spm_eeg_inv_vbecd.m 3062 2009-04-17 14:07:40Z jean $
 
 
 
@@ -200,6 +200,7 @@ end
 try
     set(P.handles.hte(2),'string','VB for ECDs: done.')
     drawnow
+    pause
 catch
     P.ok = 0;
 end
@@ -308,9 +309,9 @@ else
         -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) );
     % Get local curvature of variational energy (-> cov matrix)
     DE = kron(S_w+mu_w*mu_w', eye(Nc));
-    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))
+    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm));
     if any(diag(Sigma)<0)
-        dfdf
+        error('More regularization is required to invert the model!')
     end
     % standard Gauss-Newton move from mode and curvature
     deltaMu = Sigma*( (a3/b3)*iSdmu0 ...

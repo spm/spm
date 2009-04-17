@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3010 2009-03-30 19:07:17Z jean $
+% $Id: spm_eeg_review_callbacks.m 3062 2009-04-17 14:07:40Z jean $
 
 spm('pointer','watch');
 drawnow
@@ -51,7 +51,7 @@ switch varargin{1}
                     decim                   = max([floor(D.Nsamples./nts),1]);
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
                     sd                      = mean(abs(data(:)-mean(data(:))));%std(data(:));
-                    offset                  = (0:1:length(visuSensors)-1)'*sd/2;
+                    offset                  = (0:1:length(visuSensors)-1)'*(sd+eps)/2;
                     v_data                  = 0.25.*data +repmat(offset,[1 size(data,2) size(data,3)]);
                     ma                      = max(v_data(:))+sd;
                     mi                      = min(v_data(:))-sd;
@@ -489,7 +489,7 @@ switch varargin{1}
                         [x] = ginput(1);
                         indAxes = get(gco,'userdata');
                         if ~~indAxes
-                            hf = figure;
+                            hf = figure('color',[1 1 1]);
                             chanLabel = D.channels(VIZU.visuSensors(indAxes)).label;
                             if D.channels(VIZU.visuSensors(indAxes)).bad
                                 chanLabel = [chanLabel,' (BAD)'];
@@ -546,20 +546,27 @@ switch varargin{1}
                                         ' (',D.channels(VIZU.visuSensors(indAxes)).type,')',...
                                         ' -- frequency: ',num2str(D.transform.frequencies),' Hz'])
                                 else
+                                    nx = max([1,length(pst)./10]);
+                                    xtick = floor(1:nx:length(pst));
+                                    ny = max([1,length(D.transform.frequencies)./10]);
+                                    ytick = floor(1:ny:length(D.transform.frequencies));
                                     hp2 = image(datai,...
                                         'CDataMapping','scaled',...
                                         'parent',ha2);
                                     colormap(ha2,jet)
                                     colorbar('peer',ha2)
-                                    set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
-                                        'xlim',[1 length(pst)],...
-                                        'ylim',[1 size(datai,1)],...
-                                        'ytick',1:length(D.transform.frequencies),...
-                                        'yticklabel',D.transform.frequencies);
+                                    set(ha2,...
+                                        'xtick',xtick,...
+                                        'xticklabel',pst(xtick),...
+                                        'xlim',[0.5 length(pst)+0.5],...
+                                        'ylim',[0.5 size(datai,1)+0.5],...
+                                        'ytick',ytick,...
+                                        'yticklabel',D.transform.frequencies(ytick));
                                     xlabel(ha2,'time (in ms after time onset)')
                                     ylabel(ha2,'frequency (in Hz)')
                                     title(ha2,['channel ',chanLabel,...
                                         ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
+                                    caxis(ha2,VIZU.ylim)
                                 end
 
                             end
@@ -968,8 +975,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     end
                     options.minSizeWindow = 20;
                 end
-                options.minY = min(VIZU.ylim);
-                options.maxY = max(VIZU.ylim);
+                options.minY = min(VIZU.ylim)-eps;
+                options.maxY = max(VIZU.ylim)+eps;
                 options.ds = 5e2;
                 options.pos1 = [0.08 0.11 0.86 0.79];
                 options.pos2 = [0.08 0.07 0.86 0.025];
@@ -1224,11 +1231,10 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     set(handles.fra(i),'uicontextmenu',cmenu);
                 end
                 colormap(jet)
-                % This for normalized colorbars:
-                %                 for i=1:length(VIZU.visuSensors)
-                %                     caxis(handles.axes(i),[miY maY]);
-                %                     colormap('jet')
-                %                 end
+                % This normalizes colorbars across channels and trials:
+                for i=1:length(VIZU.visuSensors)
+                    caxis(handles.axes(i),VIZU.ylim);
+                end
                 set(handles.hfig,'userdata',D);
 
             end

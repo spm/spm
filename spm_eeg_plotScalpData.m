@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2939 2009-03-24 16:33:55Z jean $
+% $Id: spm_eeg_plotScalpData.m 3062 2009-04-17 14:07:40Z jean $
 
 ParentAxes = [];
 f = [];
@@ -94,9 +94,11 @@ try
 catch
     f=figure(...
         'name',figName,...
+        'color',[1 1 1],...
         'deleteFcn',@dFcn);
     ParentAxes = axes('parent',f);
 end
+COLOR = get(f,'color');
 d.hi = image(flipud(ZI),...
     'CDataMapping','scaled',...
     'Parent',ParentAxes);
@@ -110,7 +112,7 @@ try
 end
 caxis(ParentAxes,clim);
 col = jet;
-col(1,:) = get(f,'color');
+col(1,:) = COLOR;
 colormap(ParentAxes,col)
 d.cbar = colorbar('peer',ParentAxes);
 axis(ParentAxes,'off')
@@ -152,7 +154,7 @@ if ~noButtons
         'callback',{@dosp},...
         'BusyAction','cancel',...
         'Interruptible','off',...
-        'position',[10    120    80    20],...
+        'position',[10    50    80    20],...
         'string','channel pos');
     d.hsn = uicontrol(f,...
         'style','pushbutton',...
@@ -167,6 +169,7 @@ if ~isempty(in) && isfield(in,'handles')
     nT = ud.Nsamples;
     d.hti = uicontrol(f,...
         'style','text',...
+        'BackgroundColor',COLOR,...
         'string',[num2str(in.gridTime(in.x)),' (',in.unit,')'],...
         'position',[10    10    120    20]);
     d.hts = uicontrol(f,...
@@ -219,45 +222,53 @@ switch get(d.ht(1),'visible')
 end
 
 %==========================================================================
-% 
+%
 %==========================================================================
 function doChangeTime(btn,evd)
 d = get(btn,'userdata');
 v = get(btn,'value');
 % get data
-D = get(d.in.handles.hfig,'userdata');
-if ~isfield(d.in,'trN')
-    trN = 1;
+if ishandle(d.in.handles.hfig)
+    D = get(d.in.handles.hfig,'userdata');
+    if ~isfield(d.in,'trN')
+        trN = 1;
+    else
+        trN = d.in.trN;
+    end
+    if isfield(D,'data')
+        Z = D.data.y(d.in.ind,v,trN);
+        Z = Z(d.goodChannels);
+
+        if strcmp(d.in.type, 'MEGPLANAR')
+            Z = combineplanar(Z, d.origpos, d.origChanLabel);
+        end
+
+        clear ud;
+        % interpolate data
+        ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),full(double(Z)),d.interp.XI,d.interp.YI);
+        % update data display
+        set(d.hi,'Cdata',flipud(ZI));
+        % update time index display
+        v = round(v);
+        set(d.hti,'string',[num2str(d.in.gridTime(v)), ' (', d.in.unit, ')']);
+        % update display marker position
+        try;set(d.in.hl,'xdata',[v;v]);end
+        set(d.ParentAxes,'nextPlot','add')
+        try
+            % delete current contour plot
+            delete(findobj(d.ParentAxes,'type','hggroup'));
+            % create new one
+            [C,hc] = contour(d.ParentAxes,flipud(ZI),...
+                'linecolor',[0.5.*ones(3,1)]);
+        end
+        axis(d.ParentAxes,'image')
+        drawnow
+    else
+        error('Did not find the data!')
+    end
 else
-    trN = d.in.trN;
+    error('SPM Graphics Figure has been deleted!')
 end
-Z = D.data.y(d.in.ind,v,trN);
-Z = Z(d.goodChannels);
-
-if strcmp(d.in.type, 'MEGPLANAR')
-    Z = combineplanar(Z, d.origpos, d.origChanLabel);
-end
-
-clear ud;
-% interpolate data
-ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),full(double(Z)),d.interp.XI,d.interp.YI);
-% update data display
-set(d.hi,'Cdata',flipud(ZI));
-% update time index display
-v = round(v);
-set(d.hti,'string',[num2str(d.in.gridTime(v)), ' (', d.in.unit, ')']);
-% update display marker position
-try;set(d.in.hl,'xdata',[v;v]);end
-set(d.ParentAxes,'nextPlot','add')
-try
-    % delete current contour plot
-    delete(findobj(d.ParentAxes,'type','hggroup'));
-    % create new one
-    [C,hc] = contour(d.ParentAxes,flipud(ZI),...
-        'linecolor',[0.5.*ones(3,1)]);
-end
-axis(d.ParentAxes,'image')
-drawnow
 
 %==========================================================================
 % get2Dfrom3D
