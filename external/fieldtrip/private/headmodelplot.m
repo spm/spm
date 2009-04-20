@@ -71,6 +71,9 @@ function [vol, sens] = headmodelplot(cfg, data)
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.27  2009/04/08 06:34:44  roboos
+% use the new plot_sens function
+%
 % Revision 1.26  2009/03/30 17:55:17  vlalit
 % Changed prepare_layout and headmodelplot to use channelposition. Changed the color
 %  of sensor markers in headmodelplot to green for consistency with SPM plots.
@@ -239,7 +242,6 @@ end
 chan = [];
 [chan.pnt, chan.label] = channelposition(sens);
 
-
 if issphere
   % determine the number of spheres in the volume model
   Nspheres = length(vol.r);
@@ -275,7 +277,7 @@ if iseeg
   end % plotgrid
 
   if strcmp(cfg.plotsensors, 'yes')
-    plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), 'g*');
+    plot_sens(sens, 'style', 'g*');
   end % plotsensors
 
   if strcmp(cfg.plotheadsurface, 'yes')  && ~isempty(vol)
@@ -385,8 +387,7 @@ elseif ismeg
   end % plotgrid
 
   if strcmp(cfg.plotsensors, 'yes')
-    % plot only the bottom coil
-    plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), 'g*');
+    plot_sens(sens, 'style', 'g*');
   end % plotsensors
 
   if strcmp(cfg.plotcoil, 'yes')

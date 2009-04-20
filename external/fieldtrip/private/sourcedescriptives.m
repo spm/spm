@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.44  2009/04/08 08:35:50  roboos
+% ensure that the nai is based on the vectorised power and noise (otherwise the element-wise division fails)
+%
 % Revision 1.43  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -558,7 +561,7 @@ end % dealing with pcc or lcmv input
 
 if isfield(source, 'avg') && isfield(source.avg, 'pow') && isfield(source.avg, 'noise')
   % compute the neural activity index for the average
-  source.avg.nai = source.avg.pow ./ source.avg.noise;
+  source.avg.nai = source.avg.pow(:) ./ source.avg.noise(:);
 end
 
 if isfield(source, 'trial') && isfield(source.trial, 'pow') && isfield(source.trial, 'noise')
@@ -833,7 +836,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.43 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.44 2009/04/08 08:35:50 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

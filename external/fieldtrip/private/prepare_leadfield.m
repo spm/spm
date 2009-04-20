@@ -13,6 +13,10 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % from PREPROCESSING, FREQANALYSIS or TIMELOCKANALYSIS. If the data is empty,
 % all channels will be included in the forward model.
 %
+% The configuration should contain
+%   cfg.channel            = Nx1 cell-array with selection of channels (default = 'all'),
+%                            see CHANNELSELECTION for details
+%
 % The positions of the sources can be specified as a regular 3-D
 % grid that is aligned with the axes of the head coordinate system
 %   cfg.grid.xgrid      = vector (e.g. -20:1:20) or 'auto' (default = 'auto')
@@ -33,11 +37,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % 
 % If the sensor information is not contained in the data itself you should 
 % also specify the sensor information using
-%   cfg.channel         = cell-array (optional, see CHANNELSELECTION)
 %   cfg.gradfile        = string, file containing the gradiometer definition
 %   cfg.elecfile        = string, file containing the electrode definition
 % or alternatively
-%   cfg.channel         = cell-array (optional, see CHANNELSELECTION)
 %   cfg.grad            = structure with gradiometer definition
 %   cfg.elec            = structure with electrode definition
 %
@@ -83,6 +85,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_leadfield.m,v $
+% Revision 1.30  2009/04/09 16:28:40  crimic
+% updated documentation according to guidelines
+%
 % Revision 1.29  2009/03/23 13:41:56  roboos
 % use senstype instead of sensortype
 %
@@ -298,7 +303,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: prepare_leadfield.m,v 1.29 2009/03/23 13:41:56 roboos Exp $';
+cfg.version.id = '$Id: prepare_leadfield.m,v 1.30 2009/04/09 16:28:40 crimic Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

@@ -1,6 +1,6 @@
 function [stat] = timelockstatistics(cfg, varargin)
 
-% TIMELOCKSTATISTICS  computes significance probabilities and/or critical values of a parametric statistical test 
+% TIMELOCKSTATISTICS  computes significance probabilities and/or critical values of a parametric statistical test
 % or a non-parametric permutation test.
 %
 % Use as
@@ -35,6 +35,9 @@ function [stat] = timelockstatistics(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: timelockstatistics.m,v $
+% Revision 1.25  2009/04/08 15:57:08  roboos
+% moved the handling of the output cfg (with all history details) from wrapper to main function
+%
 % Revision 1.24  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -80,7 +83,7 @@ end
 % the low-level data selection function does not know how to deal with other parameters, so work around it
 if isfield(cfg, 'parameter')
   if strcmp(cfg.parameter, 'trial') || strcmp(cfg.parameter, 'individual')
-     % this is dealt with correctly in the low-level code, even if an average is present
+    % this is dealt with correctly in the low-level code, even if an average is present
   elseif strcmp(cfg.parameter, 'avg')
     % this is only dealt with in the low-level code if no single-trial/individual data is present
     for i=1:length(varargin)
@@ -109,5 +112,28 @@ if isfield(cfg, 'parameter')
 end
 
 % call the general function
-[stat] = statistics_wrapper(cfg, varargin{:});
+[stat, cfg] = statistics_wrapper(cfg, varargin{:});
 
+% add version information to the configuration
+try
+  % get the full name of the function
+  cfg.version.name = mfilename('fullpath');
+catch
+  % required for compatibility with Matlab versions prior to release 13 (6.5)
+  [st, i] = dbstack;
+  cfg.version.name = st(i);
+end
+cfg.version.id = '$Id: timelockstatistics.m,v 1.25 2009/04/08 15:57:08 roboos Exp $';
+
+% remember the configuration of the input data
+cfg.previous = [];
+for i=1:length(varargin)
+  if isfield(varargin{i}, 'cfg')
+    cfg.previous{i} = varargin{i}.cfg;
+  else
+    cfg.previous{i} = [];
+  end
+end
+
+% remember the exact configuration details
+stat.cfg = cfg;

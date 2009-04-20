@@ -39,6 +39,9 @@ function [stat] = freqstatistics(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: freqstatistics.m,v $
+% Revision 1.22  2009/04/08 15:57:08  roboos
+% moved the handling of the output cfg (with all history details) from wrapper to main function
+%
 % Revision 1.21  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -134,5 +137,28 @@ elseif isfield(cfg, 'parameter')
 end
 
 % call the general function
-[stat] = statistics_wrapper(cfg, varargin{:});
+[stat, cfg] = statistics_wrapper(cfg, varargin{:});
 
+% add version information to the configuration
+try
+  % get the full name of the function
+  cfg.version.name = mfilename('fullpath');
+catch
+  % required for compatibility with Matlab versions prior to release 13 (6.5)
+  [st, i] = dbstack;
+  cfg.version.name = st(i);
+end
+cfg.version.id = '$Id: freqstatistics.m,v 1.22 2009/04/08 15:57:08 roboos Exp $';
+
+% remember the configuration of the input data
+cfg.previous = [];
+for i=1:length(varargin)
+  if isfield(varargin{i}, 'cfg')
+    cfg.previous{i} = varargin{i}.cfg;
+  else
+    cfg.previous{i} = [];
+  end
+end
+
+% remember the exact configuration details
+stat.cfg = cfg;

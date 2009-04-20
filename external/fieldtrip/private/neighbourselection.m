@@ -2,7 +2,8 @@ function neighbours = neighbourselection(cfg,data)
 
 % NEIGHBOURSELECTION finds the neighbours of the channels on the basis of a
 % minimum neighbourhood distance (in cfg.neighbourdist). The positions of
-% the channel are specified in a gradiometer or electrode configuration.
+% the channel are specified in a gradiometer or electrode configuration or 
+% from a layout.
 % This configuration can be passed in three ways: 
 %  (1) in a configuration field, 
 %  (2) in a file whose name is passed in a configuration field, and that can be imported using READ_SENS, or 
@@ -18,7 +19,7 @@ function neighbours = neighbourselection(cfg,data)
 %   cfg.elecfile      = filename containing EEG electrode positions
 %   cfg.gradfile      = filename containing MEG gradiometer positions
 %   cfg.layout        = filename of the layout, see PREPARE_LAYOUT
-%   cfg.feedback      = ?yes? or ?no? (default = ?no?)
+%   cfg.feedback      = 'yes' or 'no' (default = 'no')
 %
 % The following data fields may also be used by NEIGHBOURSELECTION:
 %   data.elec     = structure with EEG electrode positions
@@ -39,6 +40,9 @@ function neighbours = neighbourselection(cfg,data)
 % Copyright (C) 2006-2008, Eric Maris, Robert Oostenveld
 %
 % $Log: neighbourselection.m,v $
+% Revision 1.13  2009/04/07 15:49:40  ingnie
+% Only changed help -> fixed typo and mentioned layout possibility in description.
+%
 % Revision 1.12  2008/11/12 19:22:38  roboos
 % documented cfg.layout, added cfg.feedback
 %

@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.58  2009/04/08 06:05:23  roboos
+% give warning in case plv and input only one trial (solves the problem of Wendy)
+%
 % Revision 1.57  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -411,6 +414,9 @@ end
 
 %normalise cross-spectra
 if plvflg,
+  if size(freq.crsspctrm,1)==1
+    warning('It seems that the data only contains a single trial or an average, which makes it impossible to compute the phase-locking value. Use cfg.keeptrials=''yes'' in freqanalysis.')
+  end
   freq.crsspctrm = freq.crsspctrm./abs(freq.crsspctrm);
 end
 
@@ -674,7 +680,7 @@ try, output.grad       = freq.grad; end
 %  end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -685,7 +691,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.57 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.58 2009/04/08 06:05:23 roboos Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

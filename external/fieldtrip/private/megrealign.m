@@ -77,6 +77,15 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.60  2009/04/14 20:06:27  jansch
+% added functionality to do a per trial realignment, based on estimated
+% head position per trial. this is experimental code and depends on functionality
+% which is not in the release as of yet. jan-mathijs is working on this. if you
+% are interested in co-developing, get in touch with jm
+%
+% Revision 1.59  2009/04/08 09:05:28  roboos
+% fixed problem when interpolating data from one to the other meg system (i.e. ctf275->ctf151)
+%
 % Revision 1.58  2009/02/11 21:17:22  jansch
 % changed key-sensors from which to compute the transformation matrix between
 % template gradiometer array and original for 4d-248 system. fixed some minor
@@ -132,6 +141,9 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';           end
 if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 
+%do realignment per trial
+pertrial = all(ismember({'X';'Y';'Z';'phiX';'phiY';'phiZ'}, data.label));
+
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 
@@ -182,7 +194,7 @@ end
 Ntemplate = length(cfg.template);
 for i=1:Ntemplate
   if isstr(cfg.template{i}),
-    fprintf('reading template helmet position from %s\n', cfg.template{i});
+    fprintf('reading template sensor position from %s\n', cfg.template{i});
     template(i) = read_sens(cfg.template{i});
   elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'pnt') && isfield(cfg.template{i}, 'ori') && isfield(cfg.template{i}, 'tra'),
     template(i) = cfg.template{i};
@@ -201,12 +213,12 @@ case {'ctf151_planar' 'ctf275_planar'}
   labF = 'MZF03_dH';
   labL = 'MLC21_dH';
   labR = 'MRC21_dH';
-case {'bti148' 'bti148_planar'}
+case {'bti148'}
   labC = 'A14';
   labF = 'A2';
   labL = 'A15';
   labR = 'A29';
-case {'bti248' 'bti248_planar'}
+case {'bti248'}
   labC = 'A19';
   labF = 'A2';
   labL = 'A44';
@@ -250,11 +262,11 @@ templ.dirZ = cross(templ.dirX, templ.dirY);
 templ.tra = fixedbody(templ.meanC, templ.dirX, templ.dirY, templ.dirZ);
 
 % determine the 4 ref sensors for the helmet that belongs to this dataset
-indxC = strmatch(labC, data.grad.label, 'exact'); 
-indxF = strmatch(labF, data.grad.label, 'exact'); 
-indxL = strmatch(labL, data.grad.label, 'exact'); 
-indxR = strmatch(labR, data.grad.label, 'exact'); 
-if isempty(indxC) | isempty(indxF) | isempty(indxL) | isempty(indxR)
+indxC = strmatch(labC, template(1).label, 'exact'); 
+indxF = strmatch(labF, template(1).label, 'exact'); 
+indxL = strmatch(labL, template(1).label, 'exact'); 
+indxR = strmatch(labR, template(1).label, 'exact'); 
+if isempty(indxC) || isempty(indxF) || isempty(indxL) || isempty(indxR)
   error('not all 4 sensors were found that are needed to rotate/translate');
 end
 
@@ -300,23 +312,23 @@ template.grad.unit  = tmp_unit;
 % definition that only contains the gradiometers that are present in the data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-tmpcfg = [];
+volcfg = [];
 if isfield(cfg, 'hdmfile')
-  tmpcfg.hdmfile = cfg.hdmfile;
+  volcfg.hdmfile = cfg.hdmfile;
 elseif isfield(cfg, 'vol') 
-  tmpcfg.vol = cfg.vol;
+  volcfg.vol = cfg.vol;
 end
-tmpcfg.grad    = data.grad;
-tmpcfg.channel = data.label; % this might be a subset of the MEG channels
-[volold, data.grad] = prepare_headmodel(tmpcfg);
+volcfg.grad    = data.grad;
+volcfg.channel = data.label; % this might be a subset of the MEG channels
+[volold, data.grad] = prepare_headmodel(volcfg);
 
 % note that it is neccessary to keep the two volume conduction models
 % seperate, since the single-shell Nolte model contains gradiometer specific
 % precomputed parameters. Note that this is not guaranteed to result in a
 % good projection for local sphere models. 
-tmpcfg.grad    = template.grad;
-tmpcfg.channel = 'MEG'; % include all MEG channels
-[volnew, template.grad] = prepare_headmodel(tmpcfg);
+volcfg.grad    = template.grad;
+volcfg.channel = 'MEG'; % include all MEG channels
+[volnew, template.grad] = prepare_headmodel(volcfg);
 
 if strcmp(senstype(data.grad), senstype(template.grad))
   [id, it] = match_str(data.grad.label, template.grad.label);  
@@ -336,26 +348,44 @@ pos = grid.pos;
 sel = find(any(isnan(pos(:,1)),2));
 pos(sel,:) = [];
 
-% compute the forward model for the old and new gradiometer positions
+% compute the forward model for the new gradiometer positions
 fprintf('computing forward model for %d dipoles\n', size(pos,1));
-lfold = compute_leadfield(pos, data.grad,     volold);
 lfnew = compute_leadfield(pos, template.grad, volnew);
-
-% compute this inverse only once, although it is used twice
-tmp = prunedinv(lfold, cfg.pruneratio);
-% compute the three interpolation matrices
-fprintf('computing interpolation matrix #1\n');
-realign = lfnew * tmp;
-if strcmp(cfg.verify, 'yes')
-  fprintf('computing interpolation matrix #2\n');
-  noalign = lfold * tmp;
-  fprintf('computing interpolation matrix #3\n');
-  bkalign = lfold * prunedinv(lfnew, cfg.pruneratio) * realign;
+if ~pertrial,
+  %this needs to be done only once
+  lfold = compute_leadfield(pos, data.grad, volold);
+  [realign, noalign, bkalign] = computeprojection(lfold, lfnew, cfg.pruneratio, cfg.verify);
+else
+  %the forward model and realignment matrices have to be computed for each trial
+  %this also goes for the singleshell volume conductor model
+  x = which('rigidbodyJM'); %this function is needed
+  if isempty(x),
+    error('you are trying out experimental code for which you need some extra functionality which is currently not in the release version of fieldtrip. if you are interested in trying it out, contact jan-mathijs'); 
+  end
 end
 
 % interpolate the data towards the template gradiometers
 for i=1:Ntrials
   fprintf('realigning trial %d\n', i);
+  if pertrial,
+    %warp the gradiometer array according to the motiontracking data
+    sel   = match_str(rest.label, {'X';'Y';'Z';'phiX';'phiY';'phiZ'});
+    hmdat = rest.trial{i}(sel,:);
+    if ~all(hmdat==repmat(hmdat(:,1),[1 size(hmdat,2)]))
+      error('only one position per trial is at present allowed');
+    else
+      M    = rigidbodyJM(hmdat(:,1))
+      grad = transform_sens(M, data.grad); 
+    end
+
+    volcfg.grad = grad;
+    %compute volume conductor
+    [volold, grad] = prepare_headmodel(volcfg);
+    %compute forward model
+    lfold = compute_leadfield(pos, grad, volold);
+    %compute projection matrix
+    [realign, noalign, bkalign] = computeprojection(lfold, lfnew, cfg.pruneratio, cfg.verify);
+  end
   data.realign{i} = realign * data.trial{i};
   if strcmp(cfg.verify, 'yes')
     % also compute the residual variance when interpolating
@@ -464,11 +494,31 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.58 2009/02/11 21:17:22 jansch Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.60 2009/04/14 20:06:27 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
 interp.cfg = cfg;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% subfunction that computes the projection matrix(ces)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [realign, noalign, bkalign] = computeprojection(lfold, lfnew, pruneratio, verify)
+
+% compute this inverse only once, although it is used twice
+tmp = prunedinv(lfold, pruneratio);
+% compute the three interpolation matrices
+fprintf('computing interpolation matrix #1\n');
+realign = lfnew * tmp;
+if strcmp(verify, 'yes')
+  fprintf('computing interpolation matrix #2\n');
+  noalign = lfold * tmp;
+  fprintf('computing interpolation matrix #3\n');
+  bkalign = lfold * prunedinv(lfnew, pruneratio) * realign;
+else
+  noalign = [];
+  bkalign = [];
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction that computes the inverse using a pruned SVD

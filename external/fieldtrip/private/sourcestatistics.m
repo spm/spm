@@ -47,6 +47,9 @@ function [stat] = sourcestatistics(cfg, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: sourcestatistics.m,v $
+% Revision 1.43  2009/04/08 15:57:08  roboos
+% moved the handling of the output cfg (with all history details) from wrapper to main function
+%
 % Revision 1.42  2008/12/05 14:47:05  ingnie
 % updated help on cfg.roi
 %
@@ -152,6 +155,29 @@ elseif strcmp(cfg.method, 'randcluster')
 else
   % use the data-indepentend statistical wrapper function
   % this will collect the data and subsequently call STATISTICS_XXX
-  stat = statistics_wrapper(cfg, varargin{:});
+  [stat, cfg] = statistics_wrapper(cfg, varargin{:});
 end
 
+% add version information to the configuration
+try
+  % get the full name of the function
+  cfg.version.name = mfilename('fullpath');
+catch
+  % required for compatibility with Matlab versions prior to release 13 (6.5)
+  [st, i] = dbstack;
+  cfg.version.name = st(i);
+end
+cfg.version.id = '$Id: sourcestatistics.m,v 1.43 2009/04/08 15:57:08 roboos Exp $';
+
+% remember the configuration of the input data
+cfg.previous = [];
+for i=1:length(varargin)
+  if isfield(varargin{i}, 'cfg')
+    cfg.previous{i} = varargin{i}.cfg;
+  else
+    cfg.previous{i} = [];
+  end
+end
+
+% remember the exact configuration details
+stat.cfg = cfg;
