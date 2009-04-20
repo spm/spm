@@ -10,6 +10,9 @@ function [grad,elec] = mne2grad(hdr)
 % Laurence Hunt 03/12/2008 (with thanks to Joachim Gross's original script based on fiff_access). lhunt@fmrib.ox.ac.uk
 % 
 % $Log: mne2grad.m,v $
+% Revision 1.7  2009/04/20 17:19:01  vlalit
+% Changed the MNE reader not to set hdr.elec when there are no EEG channels.
+%
 % Revision 1.6  2009/02/05 18:30:44  vlalit
 % Updates by Laurence to recognize additional Neuromag sensor types
 %
@@ -119,25 +122,27 @@ end
 
 %%define EEG channels
 elec = [];
-elec.pnt = zeros(nEEG,3);
-elec.unit = 'cm';
-elec.label = cell(nEEG,1);
 
-k=1;
-for n=1:orig.nchan
-  if (orig.chs(n).kind==2) %it's an EEG channel
-    elec.pnt(k,1:3)=100*orig.chs(n).eeg_loc(1:3);  % multiply by 100 to get cm
-    elec.label{k}=deblank(orig.ch_names{n});
-    k=k+1;
-  else
-    %do nothing
-  end
+if nEEG>0
+    elec.pnt = zeros(nEEG,3);
+    elec.unit = 'cm';
+    elec.label = cell(nEEG,1);
+
+    k=1;
+    for n=1:orig.nchan
+        if (orig.chs(n).kind==2) %it's an EEG channel
+            elec.pnt(k,1:3)=100*orig.chs(n).eeg_loc(1:3);  % multiply by 100 to get cm
+            elec.label{k}=deblank(orig.ch_names{n});
+            k=k+1;
+        else
+            %do nothing
+        end
+    end
+
+    %check we've got all the EEG channels:
+    k=k-1;
+    if k ~= (nEEG)
+        error('Number of EEG channels identified does not match number of channels in elec structure!!!!!');
+    end
 end
-
-%check we've got all the EEG channels:
-k=k-1;
-if k ~= (nEEG)
-  error('Number of EEG channels identified does not match number of channels in elec structure!!!!!');
-end
-
 
