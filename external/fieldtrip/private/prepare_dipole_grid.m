@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.48  2009/04/16 07:54:52  roboos
+% in case of basedonpos keep the dim if present
+%
 % Revision 1.47  2009/03/18 20:55:28  roboos
 % updated detection of infinite medium volume (for magnetic dipole)
 %
@@ -222,6 +225,9 @@ if basedonpos
   end
   if isfield(cfg.grid, 'mom')
     grid.mom = cfg.grid.mom;
+  end
+  if isfield(cfg.grid, 'dim')
+    grid.dim = cfg.grid.dim;
   end
   if isfield(cfg.grid, 'xgrid')
     % FIXME is it desirable to have this in the grid?
@@ -409,6 +415,7 @@ if basedonvol
   grid.outside = [];
 end
 
+% FIXME use inside_vol instead of this replication of code
 % determine the dipole locations inside the brain volume
 if ~isfield(grid, 'inside') && ~isfield(grid, 'outside')
   if voltype(vol, 'infinite')

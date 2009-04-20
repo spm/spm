@@ -1,4 +1,4 @@
-function [stat] = statistics_wrapper(cfg, varargin)
+function [stat, cfg] = statistics_wrapper(cfg, varargin)
 
 % STATISTICS_WRAPPER performs the selection of the biological data for
 % timelock, frequency or source data and sets up the design vector or
@@ -36,6 +36,9 @@ function [stat] = statistics_wrapper(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.54  2009/04/08 15:57:07  roboos
+% moved the handling of the output cfg (with all history details) from wrapper to main function
+%
 % Revision 1.53  2008/12/05 14:48:26  ingnie
 % replaced atlas_mask with volumelookup, atlas_init not necessary anymore
 %
@@ -227,7 +230,7 @@ if issource
     for i=1:length(cfg.roi)
       tmpcfg.roi = cfg.roi{i};
       tmpcfg.inputcoord = cfg.inputcoord;
-      tmpcfg.atlas = cfg.atlas; 
+      tmpcfg.atlas = cfg.atlas;
       tmp = volumelookup(tmpcfg, varargin{1});
       if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
         % no reason to deal with seperated left/right hemispheres
@@ -452,7 +455,7 @@ else
     stat.freq   = data.freq;
     freqdim = dim(3);
   end
-  
+
   if hastime
     stat.dimord = [stat.dimord 'time_'];
     stat.time   = data.time;
@@ -463,7 +466,7 @@ else
     % remove the last '_'
     stat.dimord = stat.dimord(1:(end-1));
   end
-  
+
   for i=1:length(statfield)
     try
       % reshape the fields that have the same dimension as the input data
@@ -492,30 +495,7 @@ else
   end
 end
 
-% add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.53 2008/12/05 14:48:26 ingnie Exp $';
-
-% remember the configuration of the input data
-cfg.previous = [];
-for i=1:length(varargin)
-  if isfield(varargin{i}, 'cfg')
-    cfg.previous{i} = varargin{i}.cfg;
-  else
-    cfg.previous{i} = [];
-  end
-end
-
-% remember the exact configuration details
-stat.cfg = cfg;
-
+return % statistics_wrapper main()
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION for extracting the data of interest
@@ -667,4 +647,3 @@ function [cfg] = get_source_design_trial(cfg, varargin);
 
 function [cfg] = get_source_design_avg(cfg, varargin);
 % should be implemented
-

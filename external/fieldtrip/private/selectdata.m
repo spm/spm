@@ -29,6 +29,9 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.6  2009/04/14 18:29:32  roboos
+% deleted the subfunction istrue, since it now is a seperate function
+%
 % Revision 1.5  2009/03/18 19:49:54  roboos
 % use the smart xxxdim functions
 %
@@ -271,15 +274,4 @@ elseif issource,
 elseif isvolume,
   error('this is not yet implemented');
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function y = istrue(x)
-if ischar(x)
-  y = strcmpi(x, 'yes') || strcmpi(x, 'true');
-else
-  y = logical(x);
-end
-
 

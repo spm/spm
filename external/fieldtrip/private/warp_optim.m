@@ -1,4 +1,4 @@
-function [result, M] = warp_pnt(input, target, method);
+function [result, M] = warp_pnt(input, target, method)
 
 % WARP_PNT determine intermediate positions using warping (deformation)
 % the input cloud of points is warped to match the target.
@@ -34,6 +34,9 @@ function [result, M] = warp_pnt(input, target, method);
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: warp_optim.m,v $
+% Revision 1.8  2009/04/16 12:55:15  roboos
+% small change in handling of the optimizer function
+%
 % Revision 1.7  2006/11/23 11:34:51  roboos
 % use optimization toolbox if possible, othewise use the standard fminsearch function
 %
@@ -80,22 +83,28 @@ pos2 = target;
 % feval that is executed by the optimalization toolbox.
 warp_error = str2func('warp_error');
 
-% set the options for the minimalisation routine
-if exist('fminunc')
-  % use the optimization toolbox
+
+% determine whether the Matlab Optimization toolbox is available and can be used
+if hastoolbox('optim')
   optimfun = @fminunc;
+else
+  optimfun = @fminsearch;
+end
+
+% set the options for the minimalisation routine
+if isequal(optimfun,  @fminunc)
   options  = optimset('fminunc');
   options  = optimset(options, 'Display', 'off');
   options  = optimset(options, 'MaxIter', 1500);
   % options  = optimset(options, 'MaxFunEvals', '1000*numberOfVariables');
   options  = optimset(options, 'TolFun', 1e-4);
   options  = optimset(options, 'LargeScale', 'off');
-else
-  % use a standard matlab function, this function converges slower
-  optimfun = @fminsearch;
+elseif isequal(optimfun, @fminsearch)
   options  = optimset('fminsearch');
   options  = optimset(options, 'Display', 'off');
   options  = optimset(options, 'MaxIter', 4500);
+else
+  warning('unknown optimization function "%s", using default parameters', func2str(optimfun));
 end
 
 if fb; fprintf('distance = %f\n', warp_error([0 0 0 0 0 0], pos1, pos2, 'rigidbody')); end

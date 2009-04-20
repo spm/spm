@@ -27,12 +27,18 @@ function [data] = checkdata(data, varargin)
 %   cmbrepresentation  = sparse, full (applies to covariance and cross-spectral density)
 %
 % For some options you can specify multiple values, e.g.
-%   [data] = checkdata(data, 'megtype', {'ctf151', 'ctf275'}), e.g. in megrealign
+%   [data] = checkdata(data, 'senstype', {'ctf151', 'ctf275'}), e.g. in megrealign
 %   [data] = checkdata(data, 'datatype', {'timelock', 'freq'}), e.g. in sourceanalysis
 
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.12  2009/04/17 09:12:12  jansch
+% fixed bug in freq2raw and another typo in source2volume
+%
+% Revision 1.11  2009/04/07 13:45:01  tinsni
+% Fixed typo in help (megtype should be senstype).
+%
 % Revision 1.10  2009/03/23 21:07:20  jansch
 % fixed bug in source2volume in the case of higher dimensional source data
 %
@@ -953,7 +959,7 @@ if isfield(data, 'dimord')
   end
 end
 
-if isfield(data, 'dim') && length(data.dim>=3),
+if isfield(data, 'dim') && length(data.dim)>=3,
   % it is an old-fashioned source description, or the source describes a regular 3D volume in pos
   xgrid = 1:data.dim(1);
   ygrid = 1:data.dim(2);
@@ -1014,7 +1020,9 @@ for i=1:nrpt
     data.time{i}  = data.time{i}(begsmp:endsmp);
   end
 end
-data.fsample = 1/(data.time{1}(2)-data.time{1}(1));
+nsmp = cellfun('size',data.time,2);
+seln = find(nsmp>1,1,'first');
+data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
