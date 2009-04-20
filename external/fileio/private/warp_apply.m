@@ -3,15 +3,15 @@ function [warped] = warp_apply(M, input, method);
 % WARP_APPLY performs a 3D linear or nonlinear transformation on the input
 % coordinates, similar to those in AIR 3.08. You can find technical
 % documentation on warping in general at http://bishopw.loni.ucla.edu/AIR3
-% 
+%
 % Use as
-%   [warped] = warp_apply(M, input, method) 
+%   [warped] = warp_apply(M, input, method)
 % where
-%   M        mvector or matrix with warping parameters 
+%   M        vector or matrix with warping parameters
 %   input    Nx3 matrix with coordinates
 %   warped   Nx3 matrix with coordinates
 %   method   string describing the warping method
-% 
+%
 % The methods 'nonlin0', 'nonlin2' ... 'nonlin5' specify a
 % polynomial transformation. The size of the transformation matrix
 % depends on the order of the warp
@@ -53,6 +53,10 @@ function [warped] = warp_apply(M, input, method);
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: warp_apply.m,v $
+% Revision 1.3  2009/04/16 12:58:37  roboos
+% allow for 2D input points, the output will also be 2D but the computations are done in 3D
+% allow for 2D homogenous transformation matrix
+%
 % Revision 1.2  2006/09/13 09:47:41  roboos
 % auto-detect homogeneous transformation if method not given
 %
@@ -80,6 +84,14 @@ if nargin<3 && all(size(M)==4)
 elseif nargin<3
   % the default method is 'nonlinear'
   method = 'nonlinear';
+end
+
+if size(input,2)==2
+  % convert the input points from 2D to 3D representation
+  input(:,3) = 0;
+  input3d = false;
+else
+  input3d = true;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,27 +147,41 @@ if any(strcmp(method, {'nonlinear', 'nonlin0', 'nonlin1', 'nonlin2', 'nonlin3', 
   else
     error('invalid size of nonlinear transformation matrix');
   end
-  
+
   warped = [xx yy zz];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% linear warping using homogenous coordinate transformation matrix
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(method, 'homogenous') | strcmp(method, 'homogeneous')
-  warped = [input'; ones(1, size(input, 1))];
-  warped = M * warped;
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % linear warping using homogenous coordinate transformation matrix
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(method, 'homogenous') || strcmp(method, 'homogeneous')
+  if all(size(M)==3)
+    % convert the 3x3 homogenous transformation matrix (corresponding with 2D)
+    % into a 4x4 homogenous transformation matrix (corresponding with 3D)
+    M = [
+      M(1,1) M(1,2)  0  M(1,3)
+      M(2,1) M(2,2)  0  M(2,3)
+      0      0       0  0
+      M(3,1) M(3,2)  0  M(3,3)
+      ];
+  end
+    
+  warped = M * [input'; ones(1, size(input, 1))];
   warped = warped(1:3,:)';
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% using external function that returns a homogenous transformation matrix
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif exist(method)
-  input = [input'; ones(1, size(input, 1))];
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % using external function that returns a homogenous transformation matrix
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif exist(method, 'file')
+  % get the homogenous transformation matrix
   H = feval(method, M);
-  warped = H * input;
-  warped = warped(1:3,:)';
+  warped = warp_apply(H, input, 'homogenous');
 
 else
   error('unrecognized transformation method');
+end
+
+if ~input3d
+  % convert from 3D back to 2D representation
+  warped = warped(:,1:2);
 end
 
