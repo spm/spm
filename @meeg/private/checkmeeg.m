@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2978 2009-03-27 14:43:08Z guillaume $
+% $Id: checkmeeg.m 3068 2009-04-20 17:21:57Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -255,6 +255,17 @@ end
 
 if ~isfield(meegstruct, 'sensors')
     meegstruct.sensors = struct([]);
+else
+    if isfield(meegstruct.sensors, 'eeg')
+        if isempty(meegstruct.sensors.eeg) || isempty(meegstruct.sensors.eeg.pnt)
+            meegstruct.sensors = rmfield(meegstruct.sensors, 'eeg');
+        end
+    end
+    if isfield(meegstruct.sensors, 'meg')
+        if isempty(meegstruct.sensors.meg) || isempty(meegstruct.sensors.meg.pnt)
+            meegstruct.sensors = rmfield(meegstruct.sensors, 'meg');
+        end
+    end
 end
 
 if ~isfield(meegstruct, 'fiducials')
