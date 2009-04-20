@@ -9,8 +9,177 @@ function out = spm_run_factorial_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_factorial_design.m 2964 2009-03-26 16:18:28Z guillaume $
+% Will Penny
+% $Id: spm_run_factorial_design.m 3067 2009-04-20 13:58:07Z guillaume $
 
+% This function configures the design matrix (describing the general
+% linear model), data specification, and other parameters necessary for
+% the statistical analysis. These parameters are saved in a
+% configuration file (SPM.mat) in the current directory, and are
+% passed on to spm_spm.m (via the Estimate button) which estimates the design.
+% Inference on these estimated parameters is then handled by the SPM
+% results section.
+%
+% This function comprises two parts. The first defines
+% the user interface and the second sets up the necessary SPM structures.
+% The second part has been largely cannibalised from spm_spm_ui.m which
+% we have retained for developmental continuity.
+%
+% It has in common with spm_spm_ui.m its use of the I factor matrix,
+% the H,C,B,G design matrix partitions, the sF,sCFI,CFIforms,sCC,CCforms,
+% sGXcalc,sGloNorm,sGMsca option definition variables and use of the
+% functions spm_DesMtx.m, spm_meanby.m and spm_non_sphericity.m.
+%
+% It departs from spm_spm_ui.m in that it does not use the design
+% definition data structure D. Also, it uses the new SPM.factor field,
+% which for the case of full factorial designs, is used to automatically
+% generate contrasts testing for main effects and interactions.
+%
+% This function departs from spm_spm_ui.m in that it does not provide
+% the same menu of design options (these were hardcoded in D). Instead it
+% provides a number of options for simple designs (1) One-sample t-test,
+% (2) Two-sample t-test, (3) Paired t-test and (4) Multiple regression.
+% Two facilities are provided for specifying more complicated designs
+% (5) Full-factorial and (6) Flexible-factorial. These should be able to
+% specify all design options (and more) that were available in SPM2.
+% For each of these design types one can additionally specify regressors using the
+% `covariates' option.
+%
+% Options (5) and (6) differ in the
+% efficiency (eg. number of key strokes/button presses) with which a given
+% design can be specified. For example, one-way ANOVAs can be specified
+% using either option, but (5) is usually more efficient.
+%
+% Full-factorial designs
+% ______________________
+%
+% This option is best used when you wish to test for all
+% main effects and interactions in one-way, two-way or three-way ANOVAs.
+%
+% Design specification proceeds in 2 stages. Firstly, by creating new
+% factors and specifying the
+% number of levels and name for each. Nonsphericity, ANOVA-by-factor (for PET data)
+% and
+% scaling options (for PET data) can also be specified at this stage. Secondly,
+% scans are assigned separately to each cell. This accomodates unbalanced designs.
+%
+% For example, if you wish to test for a main effect in the population
+% from which your subjects are drawn
+% and have modelled that effect at the first level using K basis functions
+% (eg. K=3 informed basis functions) you can use a one-way ANOVA with K-levels.
+% Create a single factor with K levels and then assign the data to each
+% cell eg. canonical, temporal derivative and dispersion derivative cells,
+% where each cell is assigned scans from multiple subjects.
+%
+% SPM will automatically generate the contrasts necessary to test for all
+% main effects and interactions
+%
+% Flexible-factorial designs
+% __________________________
+%
+% In this option the design matrix is created a block at a time. You can
+% decide whether you wish each block to be a main effect or a (two-way)
+% interaction.
+%
+% This option is best used for one-way, two-way or
+% three-way ANOVAs but where you do not wish to test for all possible
+% main effects and interactions. This is perhaps most useful for PET
+% where there is usually not enough data to test for all possible
+% effects. Or for 3-way ANOVAs where you do not wish to test for all
+% of the two-way interactions. A typical example here would be a
+% group-by-drug-by-task analysis where, perhaps, only (i) group-by-drug or
+% (ii) group-by-task interactions are of interest. In this case it is only
+% necessary to have two-blocks in the design matrix - one for each
+% interaction. The three-way interaction can then be tested for using a
+% contrast that computes the difference between (i) and (ii).
+%
+% Design specification then proceeds in 3 stages. Firstly, factors
+% are created and names specified for each. Nonsphericity, ANOVA-by-factor and
+% scaling options can also be specified at this stage.
+%
+% Secondly, a list of
+% scans is produced along with a factor matrix, I. This is an nscan x 4 matrix
+% of factor level indicators (see xX.I below). The first factor must be
+% 'replication' but the other factors can be anything. Specification of I and
+% the scan list can be achieved in
+% one of two ways (a) the 'Specify All' option allows I
+% to be typed in at the user interface or (more likely) loaded in from the matlab
+% workspace. All of the scans are then selected in one go. (b) the
+% 'Subjects' option allows you to enter scans a subject at a time. The
+% corresponding experimental conditions (ie. levels of factors) are entered
+% at the same time. SPM will then create the factor matrix I. This style of
+% interface is similar to that available in SPM2.
+%
+% Thirdly, the design matrix is built up a block at a time. Each block
+% can be a main effect or a (two-way) interaction.
+%
+%
+% ----------------------------------------------------------------------
+%
+% Variables saved in the SPM stucture
+%
+% xY.VY         - nScan x 1 struct array of memory mapped images
+%                 (see spm_vol for definition of the map structure)
+% xX            - structure describing design matrix
+% xX.I          - nScan x 4 matrix of factor level indicators
+%                 I(n,i) is the level of factor i corresponding to image n
+% xX.sF         - 1x4 cellstr containing the names of the four factors
+%                 xX.sF{i} is the name of factor i
+% xX.X          - design matrix
+% xX.xVi        - correlation constraints for non-spericity correction
+% xX.iH         - vector of H partition (condition effects) indices,
+%                 identifying columns of X correspoding to H
+% xX.iC         - vector of C partition (covariates of interest) indices
+% xX.iB         - vector of B partition (block effects) indices
+% xX.iG         - vector of G partition (nuisance variables) indices
+% xX.name     - p x 1 cellstr of effect names corresponding to columns
+%                 of the design matrix
+%
+% xC            - structure array of covariate details
+% xC(i).rc      - raw (as entered) i-th covariate
+% xC(i).rcname  - name of this covariate (string)
+% xC(i).c       - covariate as appears in design matrix (after any scaling,
+%                 centering of interactions)
+% xC(i).cname   - cellstr containing names for effects corresponding to
+%                 columns of xC(i).c
+% xC(i).iCC     - covariate centering option
+% xC(i).iCFI    - covariate by factor interaction option
+% xC(i).type    - covariate type: 1=interest, 2=nuisance, 3=global
+% xC(i).cols    - columns of design matrix corresponding to xC(i).c
+% xC(i).descrip - cellstr containing a description of the covariate
+%
+% xGX           - structure describing global options and values
+% xGX.iGXcalc   - global calculation option used
+% xGX.sGXcalc   - string describing global calculation used
+% xGX.rg        - raw globals (before scaling and such like)
+% xGX.iGMsca    - grand mean scaling option
+% xGX.sGMsca    - string describing grand mean scaling
+% xGX.GM        - value for grand mean (/proportional) scaling
+% xGX.gSF       - global scaling factor (applied to xGX.rg)
+% xGX.iGC       - global covariate centering option
+% xGX.sGC       - string describing global covariate centering option
+% xGX.gc        - center for global covariate
+% xGX.iGloNorm  - Global normalisation option
+% xGX.sGloNorm  - string describing global normalisation option
+%
+% xM            - structure describing masking options
+% xM.T          - Threshold masking value (-Inf=>None,
+%                 real=>absolute, complex=>proportional (i.e. times global) )
+% xM.TH         - nScan x 1 vector of analysis thresholds, one per image
+% xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
+% xM.VM         - struct array of explicit mask images
+%                 (empty if no explicit masks)
+% xM.xs         - structure describing masking options
+%                 (format is same as for xsDes described below)
+%
+% xsDes         - structure of strings describing the design:
+%                 Fieldnames are essentially topic strings (use "_"'s for
+%                 spaces), and the field values should be strings or cellstr's
+%                 of information regarding that topic. spm_DesRep.m
+%                 uses this structure to produce a printed description
+%                 of the design, displaying the fieldnames (with "_"'s
+%                 converted to spaces) in bold as topics, with
+%                 the corresponding text to the right
 
 global defaults
 if isempty(defaults)
@@ -53,65 +222,65 @@ end
 sF = {'sF1','sF2','sF3','sF4'};
 
 %-Covariate by factor interaction options
-sCFI = {'<none>';...                            %-1
+sCFI = {'<none>';...                                        %-1
     'with sF1';'with sF2';'with sF3';'with sF4';...         %-2:5
     'with sF2 (within sF4)';'with sF3 (within sF4)'};       %-6,7
 
 %-DesMtx argument components for covariate by factor interaction options
 % (Used for CFI's Covariate Centering (CC), GMscale & Global normalisation)
-CFIforms = {    '[]',       'C',    '{}';...            %-1
+CFIforms = {    '[]',       'C',    '{}';...        %-1
     'I(:,1)',       'FxC',  '{sF{1}}';...           %-2
     'I(:,2)',       'FxC',  '{sF{2}}';...           %-3
     'I(:,3)',       'FxC',  '{sF{3}}';...           %-4
     'I(:,4)',       'FxC',  '{sF{4}}';...           %-5
-    'I(:,[4,2])',   'FxC',  '{sF{4},sF{2}}';... %-6
-    'I(:,[4,3])',   'FxC',  '{sF{4},sF{3}}' };  %-7
+    'I(:,[4,2])',   'FxC',  '{sF{4},sF{2}}';...     %-6
+    'I(:,[4,3])',   'FxC',  '{sF{4},sF{3}}' };      %-7
 
 %-Centre (mean correction) options for covariates & globals            (CC)
 % (options 9-12 are for centering of global when using AnCova GloNorm) (GC)
-sCC = {     'around overall mean';...               %-1
-    'around sF1 means';...                  %-2
-    'around sF2 means';...                  %-3
-    'around sF3 means';...                  %-4
-    'around sF4 means';...                  %-5
+sCC = {     'around overall mean';...           %-1
+    'around sF1 means';...                      %-2
+    'around sF2 means';...                      %-3
+    'around sF3 means';...                      %-4
+    'around sF4 means';...                      %-5
     'around sF2 (within sF4) means';...         %-6
     'around sF3 (within sF4) means';...         %-7
-    '<no centering>';...                    %-8
+    '<no centering>';...                        %-8
     'around user specified value';...           %-9
     '(as implied by AnCova)';...                %-10
-    'GM';...                        %-11
+    'GM';...                                    %-11
     '(redundant: not doing AnCova)'}';          %-12
 %-DesMtx I forms for covariate centering options
 CCforms = {'ones(nScan,1)',CFIforms{2:end,1},''}';
 
 %-Global calculation options                                       (GXcalc)
-sGXcalc  = {    'omit';...                      %-1
-    'user specified';...                    %-2
+sGXcalc  = {    'omit';...                                  %-1
+    'user specified';...                                    %-2
     'mean voxel value (within per image fullmean/8 mask)'}; %-3
 
 
-%-Global normalization options  (GloNorm)
-sGloNorm = {    'AnCova';...                        %-1
-    'AnCova by sF1';...                 %-2
-    'AnCova by sF2';...                 %-3
-    'AnCova by sF3';...                 %-4
-    'AnCova by sF4';...                 %-5
-    'AnCova by sF2 (within sF4)';...            %-6
-    'AnCova by sF3 (within sF4)';...            %-7
-    'proportional scaling';...              %-8
-    '<no global normalisation>'};               %-9
+%-Global normalization options                                    (GloNorm)
+sGloNorm = {    'AnCova';...                            %-1
+    'AnCova by sF1';...                                 %-2
+    'AnCova by sF2';...                                 %-3
+    'AnCova by sF3';...                                 %-4
+    'AnCova by sF4';...                                 %-5
+    'AnCova by sF2 (within sF4)';...                    %-6
+    'AnCova by sF3 (within sF4)';...                    %-7
+    'proportional scaling';...                          %-8
+    '<no global normalisation>'};                       %-9
 
 
 %-Grand mean scaling options                                        (GMsca)
 sGMsca = {  'scaling of overall grand mean';...         %-1
-    'scaling of sF1 grand means';...            %-2
-    'scaling of sF2 grand means';...            %-3
-    'scaling of sF3 grand means';...            %-4
-    'scaling of sF4 grand means';...            %-5
+    'scaling of sF1 grand means';...                    %-2
+    'scaling of sF2 grand means';...                    %-3
+    'scaling of sF3 grand means';...                    %-4
+    'scaling of sF4 grand means';...                    %-5
     'scaling of sF2 (within sF4) grand means';...       %-6
     'scaling of sF3 (within sF4) grand means';...       %-7
     '(implicit in PropSca global normalisation)';...    %-8
-    '<no grand Mean scaling>'   };          %-9
+    '<no grand Mean scaling>'   };                      %-9
 %-NB: Grand mean scaling by subject is redundent for proportional scaling
 
 % Conditions of no interest defaults
@@ -196,8 +365,8 @@ switch strvcat(fieldnames(job.des)),
         % Nonsphericity options
         SPM.factor(1).variance=0;
         SPM.factor(1).dept=0;
-        SPM.factor(2).variance=job.des.pt.variance;
-        SPM.factor(2).dept=job.des.pt.dept;
+        SPM.factor(2).variance=0;
+        SPM.factor(2).dept=0;
 
     case 'mreg',
         % Multiple regression
@@ -898,15 +1067,14 @@ else
     save('SPM', 'SPM');
 end;
 fprintf('%30s\n','...SPM.mat saved')                             %-#
-varargout = {SPM};
 
 %-Display Design report
 %===================================================================
 fprintf('%-40s: ','Design reporting')                            %-#
 fname     = cat(1,{SPM.xY.VY.fname}');
 spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
-fprintf('%30s\n','...done')
+fprintf('%30s\n','...done')                                      %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 cd(original_dir); % Change back dir
-fprintf('Done\n')
+fprintf('Done\n')                                                %-#
