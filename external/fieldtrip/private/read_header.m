@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.94  2009/04/20 17:19:01  vlalit
+% Changed the MNE reader not to set hdr.elec when there are no EEG channels.
+%
 % Revision 1.93  2009/03/02 10:44:38  roboos
 % switched default for fif files to use the MNE reading routines in case of neuromag_fif
 % the user can make his own choise by specifying the format as neuromag_mne (for the MNE routines) or neuromag_mex (for the meg-pd mex files)
@@ -1051,7 +1054,10 @@ switch headerformat
     hdr.Fs          = orig.sfreq;
     % add a gradiometer structure for forward and inverse modelling
     try
-      [hdr.grad, hdr.elec] = mne2grad(orig);
+      [hdr.grad, elec] = mne2grad(orig);
+      if ~isempty(elec)
+          hdr.elec     = elec;
+      end
     catch
       disp(lasterr);
     end
