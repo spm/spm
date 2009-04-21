@@ -35,7 +35,7 @@ function spm_transverse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_transverse.m 3073 2009-04-21 16:33:44Z guillaume $
 
 
 switch lower(varargin{1})
@@ -184,6 +184,7 @@ if transv.blob.dim(3) > 1
     transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',[40+dim(1)*zm+xo 20+yo dim(1)*zm dim(2)*zm]);
     transv.h(6) = image(rot90(spm_grid(T2)),'Parent',transv.h(5));
     axis image; axis off;
+    tmp = SPM.iM\[xyz(1:2)' xyz(3) 1]';
     
     ax=transv.h(5);tpoint=get(ax,'title');
     str=sprintf('z = %0.0fmm',tmp(3));
