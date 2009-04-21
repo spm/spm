@@ -18,6 +18,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Fields:
 %
 % lambda           Post mixers, q(pi|D) = D(lambda)
+% gamma            [m x N] matrix of belonging probabilities
 % state(s).a       Post precisions, q(Gamma|D)=W(a,B)
 % state(s).B   
 % state(s).C       Post covariance
@@ -35,7 +36,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 1276 2008-03-28 18:29:19Z guillaume $
+% $Id: spm_mix.m 3072 2009-04-21 15:17:09Z will $
 
 % This code implements the algorithm in:
 %
@@ -253,6 +254,7 @@ mix.fm=fm;
 mix.fkl=fkl;
 mix.state=state;
 mix.lambda=lambda;
+mix.gamma=gamma;
 
 % Put info into data structure
 for j=1:m,
