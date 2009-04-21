@@ -18,14 +18,22 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_downsample.m 3071 2009-04-21 11:22:19Z vladimir $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 3071 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
+
+%-Test for the presence of essential Matlab toolbox
+%--------------------------------------------------------------------------
+try
+    butter(10,0.5);
+catch
+    error('M/EEG dowsampling requires the Signal Processing Toolbox.');
+end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------

@@ -22,14 +22,22 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3059 2009-04-15 18:09:13Z guillaume $
+% $Id: spm_eeg_filter.m 3071 2009-04-21 11:22:19Z vladimir $
 
-SVNrev = '$Rev: 3059 $';
+SVNrev = '$Rev: 3071 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
+
+%-Test for the presence of essential Matlab toolbox
+%--------------------------------------------------------------------------
+try
+    butter(10,0.5);
+catch
+    error('M/EEG filtering requires the Signal Processing Toolbox.');
+end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -115,12 +123,8 @@ end
 
 switch filter.type
     case 'butterworth'
-        if isempty(filter.para)
-            try
-                [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
-            catch
-                error('M/EEG filtering requires the Signal Processing Toolbox.');
-            end
+        if isempty(filter.para)     
+            [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
             filter.para{1} = B;
             filter.para{2} = A;
         end

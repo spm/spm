@@ -40,9 +40,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2878 2009-03-13 18:14:15Z guillaume $
+% $Id: spm_eeg_artefact.m 3071 2009-04-21 11:22:19Z vladimir $
 
-SVNrev = '$Rev: 2878 $';
+SVNrev = '$Rev: 3071 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -198,7 +198,7 @@ end % MustDoWork
 if MustDoWork
 
     % matrix used for detecting bad channels
-    Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
+    Mbad = zeros(D.nchannels, D.ntrials);
     % flag channels that were already marked as bad
     Mbad(D.badchannels, :) = 1;
 
@@ -218,8 +218,8 @@ if MustDoWork
         d = squeeze(D(artefact.channels_threshold, :, i));
 
         % indices of channels that are above threshold and not marked as bad
-        Id = find(max(abs(d')) > Tchannel & ~Mbad(:, i)');
-        Mbad(intersect(Id, D.meegchannels), i) = 1;
+        Id = find(max(abs(d')) > Tchannel & ~Mbad(artefact.channels_threshold, i)');
+        Mbad(intersect(artefact.channels_threshold(Id), D.meegchannels), i) = 1;
 
         if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
@@ -231,7 +231,7 @@ if MustDoWork
     %----------------------------------------------------------------------
     ind  = find(mean(Mbad, 2) > 0.2);
 
-    Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
+    Mbad = zeros(D.nchannels, D.ntrials);
     Mbad(ind, :) = 1;
 
     %-Report on command line and set badchannels
@@ -306,8 +306,8 @@ if MustDoWork
             d = squeeze(D(artefact.channels_threshold, :, i));
 
             % indices of channels that are above threshold
-            Id = find(max(abs(d')) > Tchannel & ~Mbad(:, i)');
-            Mbad(Id, i) = 1;
+            Id = find(max(abs(d')) > Tchannel & ~Mbad(artefact.channels_threshold, i)');
+            Mbad(artefact.channels_threshold(Id), i) = 1;
 
             if any(Id), index = [index i]; end % reject
 
