@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_eeg_inv_imag_api.m 3075 2009-04-22 10:56:29Z vladimir $
 
 spm('Clear');
 
@@ -346,7 +346,7 @@ if isfield(Q, 'mesh')
         end
     end
 end
-if isfield(Q,'inverse')
+if isfield(Q,'inverse') && isfield(Q, 'method')
     set(handles.CheckInverse,'enable','on')
     if isfield(Q.inverse,'J')
         set(handles.contrast,    'enable','on')
