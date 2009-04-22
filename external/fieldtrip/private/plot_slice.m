@@ -1,6 +1,6 @@
 function plot_slice(data,varargin)
 %
-% PLOT_SLICE visualizes the slices of a 3D volume
+% PLOT_SLICE visualizes the slices of a MRI 3D volume
 %
 % Use as
 %   hs = plot_slice(data, varargin)
@@ -21,6 +21,9 @@ function plot_slice(data,varargin)
 % Copyright (C) 2009, Cristiano Micheli 
 %
 % $Log: plot_slice.m,v $
+% Revision 1.5  2009/04/21 13:29:26  crimic
+% modified help
+%
 % Revision 1.4  2009/04/20 11:22:07  crimic
 % integrated help
 %

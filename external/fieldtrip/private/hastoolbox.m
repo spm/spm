@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.35  2009/04/21 09:54:15  roboos
+% added prtools
+%
 % Revision 1.34  2009/04/02 19:47:33  roboos
 % added plotting module
 %
@@ -186,6 +189,7 @@ url = {
   'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
   'BEMCP'      'contact Christophe Phillips'
   'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg'
+  'PRTOOLS'    'see http://www.prtools.org'
   };
 
 if nargin<2
@@ -281,6 +285,8 @@ switch toolbox
     status = exist('openmeeg.m', 'file');
   case 'PLOTTING'
     status  = (exist('plot_topo', 'file') && exist('plot_mesh', 'file') && exist('plot_matrix', 'file'));
+  case 'PRTOOLS'
+    status  = (exist('prversion', 'file') && exist('dataset', 'file') && exist('svc', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

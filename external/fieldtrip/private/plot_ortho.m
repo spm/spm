@@ -1,6 +1,6 @@
 function fiducial=plot_ortho(data)
 %
-% PLOT_ORTHO visualizes a 3D volume in 3 orthogonal projections
+% PLOT_ORTHO visualizes an MRI 3D volume in 3 orthogonal projections
 %
 % Use as
 %   hs = plot_ortho(data, varargin)
@@ -37,6 +37,9 @@ function fiducial=plot_ortho(data)
 % Copyright (C) 2009, Cristiano Micheli 
 %
 % $Log: plot_ortho.m,v $
+% Revision 1.3  2009/04/21 13:24:13  crimic
+% modified help
+%
 % Revision 1.2  2009/04/20 11:22:51  crimic
 % first implementation
 %

@@ -13,6 +13,8 @@ function hs = plot_headshape(headshape,varargin)
 %     'fidcolor'      ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
 %     'fidmarker'     ['.', '*', '+',  ...]
 %     'fidlabel'      ['yes', 'no', 1, 0, 'true', 'false']
+%     'transform'     transformation matrix for the fiducials, converts MRI
+%                       voxels into head shape coordinates
 %
 % Example
 %  [shape] = read_headshape(filename);
@@ -21,6 +23,12 @@ function hs = plot_headshape(headshape,varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_headshape.m,v $
+% Revision 1.7  2009/04/21 14:14:22  crimic
+% fixed label plotting
+%
+% Revision 1.6  2009/04/21 14:09:16  crimic
+%  fixed fiducials plotting, added check on voxel to head coordinates
+%
 % Revision 1.5  2009/04/14 19:49:18  roboos
 % fixed the input argument parsing (incorrect keys were used)
 %
@@ -36,9 +44,10 @@ function hs = plot_headshape(headshape,varargin)
 
 % get the optional input arguments
 vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor), vertexcolor='r'; end
-fidcolor    = keyval('fidcolor',    varargin); if isempty(vertexcolor), fidcolor='g'; end
-fidmarker   = keyval('fidmarker',   varargin); if isempty(marker), fidmarker='.'; end
-fidlabel    = keyval('fidlabel',    varargin);
+fidcolor    = keyval('fidcolor',    varargin); if isempty(fidcolor), fidcolor='g'; end
+fidmarker   = keyval('fidmarker',   varargin); if isempty(fidmarker), fidmarker='.'; end
+fidlabel    = keyval('fidlabel',    varargin); if isempty(fidlabel), fidlabel='no'; end
+transform   = keyval('transform',    varargin); if isempty(transform), transform=[]; end
 
 % start with empty return values
 hs      = [];
@@ -55,17 +64,28 @@ hs  = plot_mesh(bnd, 'vertices', 'yes', 'vertexcolor',vertexcolor,'vertexsize',1
 
 if isfield(headshape, 'fid')
   fid = headshape.fid;
-  % plot the fiducials
-  hs = plot3(fid.pnt(:,1), fid.pnt(:,2), fid.pnt(:,3), 'Marker',fidmarker,'MarkerEdgeColor',fidcolor);
-  
-  % show the fiducial labels
-  if isfield(fid,'label') && istrue(fidlabel)
-    for node_indx=1:size(fid,1)
-      str = sprintf('%s', fid.label{node_indx});
-      h   = text(pnt(node_indx, 1), pnt(node_indx, 2), pnt(node_indx, 3), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
-      hs  = [hs; h];
+  if ~isempty(transform)
+    % plot the fiducials
+    fidc = fid.pnt;
+    try
+      fidc = warp_apply(transform, fidc);
     end
+    hs = plot3(fidc(:,1), fidc(:,2), fidc(:,3), 'Marker',fidmarker,'MarkerEdgeColor',fidcolor);
+    % show the fiducial labels
+    if isfield(fid,'label') && istrue(fidlabel)
+      for node_indx=1:size(fidc,1)
+        str = sprintf('%s', fid.label{node_indx});
+        h   = text(fidc(node_indx, 1), fidc(node_indx, 2), fidc(node_indx, 3), str, ...
+                  'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle','Interpreter','none');
+        hs  = [hs; h];
+      end
+    end    
   end
-  
+   
 end
-
+if nargout==0
+  clear hs
+end
+if ~holdflag
+  hold off
+end

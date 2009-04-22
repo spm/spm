@@ -22,11 +22,17 @@ function plot_vol(vol, varargin)
 % Example
 %   vol.r = [1 5 10];
 %   vol.o = [0 0 4];
-%   figure, plot_vol(vol)
+%   figure, plot_vol(vol,'colormap','cool')
 %
 % Copyright (C) 2009, Cristiano Micheli 
 %
 % $Log: plot_vol.m,v $
+% Revision 1.7  2009/04/22 11:45:02  crimic
+% updated help
+%
+% Revision 1.6  2009/04/22 11:43:57  crimic
+% fixed colormap feature
+%
 % Revision 1.5  2009/04/19 11:35:16  crimic
 % added colormap for all vol options
 %
@@ -62,8 +68,8 @@ if ~isempty(map)
     error('Colormap does not exist')
   end
   % set the color of the sphere:
-  color = [(linspace(cmap(1,1),cmap(64,1),length(vol.r)))' (linspace(cmap(1,2),cmap(64,2),length(vol.r)))' ...
-              (linspace(cmap(1,3),cmap(64,3),length(vol.r)))'];
+  color = [(linspace(cmap(1,1),cmap(64,1),length(vol.bnd)))' (linspace(cmap(1,2),cmap(64,2),length(vol.bnd)))' ...
+              (linspace(cmap(1,3),cmap(64,3),length(vol.bnd)))'];
 end
 
 switch voltype(vol)   
