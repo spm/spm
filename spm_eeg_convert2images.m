@@ -12,6 +12,10 @@ function [D, S] = spm_eeg_convert2images(S)
 %     elecs           - electrodes of interest (as vector of indices)
 %     region_no       - region number
 %     freqs           - frequency window of interest (2-vector) [Hz]
+%     t_win           - [t1 t2] For 'frequency' option with TF data, specify
+%                        this field to only extract power in restricted
+%                        time window. This allows you to avoid eg. edge
+%                        effects.
 %   S.n               - dimension of output images in voxels (scalar because
 %                       output will be square image)
 %   S.interpolate_bad - flag (0/1) that indicates whether values for
@@ -33,9 +37,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 2860 2009-03-11 17:22:50Z guillaume $
+% $Id: spm_eeg_convert2images.m 3080 2009-04-22 17:05:00Z will $
 
-SVNrev = '$Rev: 2860 $';
+SVNrev = '$Rev: 3080 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -172,10 +176,29 @@ if strncmpi(D.transformtype, 'TF',2);
             %--------------------------------------------------------------
             fnamedat = ['F' num2str(images.Frequency_window(1)) '_' ...
                 num2str(images.Frequency_window(2)) '_' D.fnamedat];
-            Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
-
-            Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+            
+            if isfield(S.images,'t_win')
+                % Only extract time points in specified window
+                tims=time(D);
+                if S.images.t_win(1) < tims(1) | S.images.t_win(2) > tims(end)
+                    disp('Error: Impossible specification of time extraction window');
+                    disp(S.images.t_win);
+                    return;
+                end
+                tind=find(tims > S.images.t_win(1) & tims < S.images.t_win(2));
+                Nind=length(tind);
+                Dnew = clone(D, fnamedat, [D.nchannels Nind D.ntrials]);
+                Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                squeeze(mean(D(:, inds, tind(1):tind(end), :), 2));
+            else
+                Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
+                Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
                 squeeze(mean(D(:, inds, :, :), 2));
+            end
+            
+            
+
+            
             Dnew = transformtype(Dnew, 'time');
             save(Dnew);
 
