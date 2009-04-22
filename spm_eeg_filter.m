@@ -22,20 +22,18 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3071 2009-04-21 11:22:19Z vladimir $
+% $Id: spm_eeg_filter.m 3082 2009-04-22 20:16:13Z guillaume $
 
-SVNrev = '$Rev: 3071 $';
+SVNrev = '$Rev: 3082 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
 
-%-Test for the presence of essential Matlab toolbox
+%-Test for the presence of required Matlab toolbox
 %--------------------------------------------------------------------------
-try
-    butter(10,0.5);
-catch
+if ~license('test','signal_toolbox')
     error('M/EEG filtering requires the Signal Processing Toolbox.');
 end
 
@@ -45,7 +43,7 @@ try
     D = S.D;
 catch
     [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, return; end
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
