@@ -10,6 +10,10 @@ function [grad,elec] = mne2grad(hdr)
 % Laurence Hunt 03/12/2008 (with thanks to Joachim Gross's original script based on fiff_access). lhunt@fmrib.ox.ac.uk
 % 
 % $Log: mne2grad.m,v $
+% Revision 1.8  2009/04/22 14:55:41  vlalit
+% Major bug fix by Laurence who originally mixed up magnetometers and planar gradiometers
+%  while building the grad.
+%
 % Revision 1.7  2009/04/20 17:19:01  vlalit
 % Changed the MNE reader not to set hdr.elec when there are no EEG channels.
 %
@@ -88,7 +92,7 @@ k=1; % cf. Joachim's original script - I've implemented it this way
 % .fif file; this shouldn't ever be the case but acts as a
 % safety net...
 for n=1:orig.nchan
-  if (orig.chs(n).coil_type==3012) %planar gradiometer
+  if (orig.chs(n).coil_type==3022|orig.chs(n).coil_type==3023|orig.chs(n).coil_type==3024) %magnetometer
     t=orig.chs(n).coil_trans;
     grad.pnt(kCoil,:)=100*(t(1:3,4)); % multiply by 100 to get cm
     grad.ori(kCoil,:)=t(1:3,3);
@@ -96,7 +100,7 @@ for n=1:orig.nchan
     kCoil=kCoil+1;
     grad.label{k}=deblank(orig.ch_names{n});
     k=k+1;
-  elseif (orig.chs(k).coil_type==3022) %magnetometer
+  elseif (orig.chs(k).coil_type==3012|orig.chs(k).coil_type==3013|orig.chs(k).coil_type==3014) %planar gradiometer
     t=orig.chs(n).coil_trans;
     grad.pnt(kCoil,:)=100*(t(1:3,4)-0.008*t(1:3,1)); % multiply with 100 to get cm
     grad.ori(kCoil,:)=t(1:3,3);
