@@ -8,7 +8,7 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 2587 2009-01-05 12:11:39Z vladimir $
+% $Id: export.m 3081 2009-04-22 20:15:38Z guillaume $
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 
@@ -17,6 +17,18 @@ if nargin <= 1, target = 'Matlab'; end
 switch lower(target)
     case 'matlab'
         s = struct(this);
+        
+    case 'patch'
+        if isfield(this,'vertices')
+            s.vertices = subsref(this, substruct('.', 'vertices'));
+        end
+        if isfield(this,'faces')
+            s.faces = subsref(this, substruct('.', 'faces'));
+        end
+        if isfield(this,'cdata')  
+            s.facevertexcdata = subsref(this, substruct('.', 'cdata'));
+        end
+        try, s; catch, s = struct([]); end
         
     case {'fieldtrip', 'ft'}
         s = struct('tri',[], 'pnt',[]);
@@ -32,7 +44,7 @@ switch lower(target)
         if isfield(this,'vertices')
             s.vert = double(subsref(this, substruct('.', 'vertices')));
         end
-        if   isfield(this,'faces')  
+        if isfield(this,'faces')
             s.face = uint16(subsref(this, substruct('.', 'faces')));
         end
         

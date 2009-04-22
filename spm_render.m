@@ -14,14 +14,14 @@ function spm_render(dat,brt,rendfile)
 %            metal for the blobs, and grey for the brain.
 %            Otherwise, it is used as a ``gamma correction'' to
 %            optionally brighten the blobs up a little.
-% rendfile - the file containing the images to render on to. See also
-%            spm_xbrain.m.
+% rendfile - the file containing the images to render on to (see also
+%            spm_surf.m) or a surface mesh file.
 %
 % Without arguments, spm_render acts as its own UI.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % 
-% spm_render prompts for details of up to three SPM{Z}s or SPM{t}s that
-% are then displayed superimposed on the surface of a standard brain.
+% spm_render prompts for details of up to three SPM{.}s that are then
+% displayed superimposed on the surface of a standard brain.
 %
 % The first is shown in red, then green then blue.
 %
@@ -29,11 +29,13 @@ function spm_render(dat,brt,rendfile)
 % values, exponentially decayed according to their depth. Voxels that
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_render.m 3081 2009-04-22 20:15:38Z guillaume $
+
+SVNrev = '$Rev: 3081 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -43,10 +45,10 @@ if ~isstruct(prevrend)
 end
 
 %-Parse arguments, get data if not passed as parameters
-%=======================================================================
+%==========================================================================
 if nargin < 1
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1790 $');
-    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
+    spm('FnBanner',mfilename,SVNrev);
+    spm('FigName','Results: render');
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 
@@ -58,82 +60,79 @@ if nargin < 1
                     'dim',  VOL.DIM);
     end;
     showbar = 1;
-else,
+else
     num     = length(dat);
     showbar = 0;
-end;
+end
 
-% get surface
-%-----------------------------------------------------------------------
-if nargin < 3 || isempty(prevrend.rendfile),
-    rendfile = spm_select(1,'^render.*\.mat$','Render file');
-end;
+%-Get surface
+%--------------------------------------------------------------------------
+if nargin < 3 || isempty(prevrend.rendfile)
+    [rendfile, sts] = spm_select(1,'mesh','Render file'); % .mat or .gii file
+    if ~sts, return; end
+end
 prevrend.rendfile = rendfile;
 
-% get brightness
-%-----------------------------------------------------------------------
-if nargin < 2  || isempty(prevrend.brt),
+%-Get brightness & colours
+%--------------------------------------------------------------------------
+if nargin < 2  || isempty(prevrend.brt)
     brt = 1;
-    if num==1,
+    if num==1
         brt = spm_input('Style',1,'new|old',[1 NaN], 1);
-    end;
+    end
 
-    if isfinite(brt),
+    if isfinite(brt)
         brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
         col = eye(3);
-        % ask for custom colors & get rgb values
-        %-----------------------------------------------------------------------
-        if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1],1)
+        % ask for custom colours & get rgb values
+        %------------------------------------------------------------------
+        if spm_input('Which colours?','!+1','b',{'RGB','Custom'},[0 1],1)
             for k = 1:num,
                 col(k,:) = uisetcolor(col(k,:),sprintf('Color of blob set %d',k));
-            end;
-        end;
+            end
+        end
     else
         col = [];
-    end;
+    end
 elseif isfinite(brt) && isempty(prevrend.col)
     col = eye(3);
 elseif isfinite(brt)  % don't need to check prevrend.col again
     col = prevrend.col;
 else
     col = [];
-end;
+end
 prevrend.brt = brt;
 prevrend.col = col;
 
-% Perform the rendering
-%=======================================================================
-spm('Pointer','Watch')
-
-try,
+%-Perform the rendering
+%==========================================================================
+try
     load(rendfile);
-catch,
-    fprintf('\nCan not read the file "%s".\n', rendfile);
-    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
-        fprintf('This may  be because of the way that the .tar.gz files\n');
-        fprintf('were unpacked  when  the SPM software  was  installed.\n');
-        fprintf('If installing on a Windows platform, then the software\n');
-        fprintf('used  for  unpacking may  try to  be clever and insert\n');
-        fprintf('additional  unwanted control  characters.   If you use\n');
-        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
-        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
-        fprintf('Configuration Options).\n\n');
-    end;
-    error(lasterr);
-end;
+catch
+    try
+        rend = export(gifti(rendfile),'patch');
+    catch
+        error('\nCannot read  render file "%s".\n', rendfile);
+    end
+    rnd = spm_input('Rendering',1,'voxel|texture',{'voxel' 'texture'}, 1);
+    surf_rend(dat,rend,col,rnd{1});
+    return;
+end
 
-if (exist('rend') ~= 1), % Assume old format...
+spm('Pointer','Watch');
+
+if ~exist('rend','var') % Assume old format...
     rend = cell(size(Matrixes,1),1);
     for i=1:size(Matrixes,1),
         rend{i}=struct('M',eval(Matrixes(i,:)),...
             'ren',eval(Rens(i,:)),...
             'dep',eval(Depths(i,:)));
         rend{i}.ren = rend{i}.ren/max(max(rend{i}.ren));
-    end;
-end;
+    end
+end
 
 if showbar, spm_progress_bar('Init', size(dat,1)*length(rend),...
-            'Formatting Renderings', 'Number completed'); end;
+            'Formatting Renderings', 'Number completed'); end
 for i=1:length(rend),
     rend{i}.max=0;
     rend{i}.data = cell(size(dat,1),1);
@@ -147,15 +146,15 @@ for i=1:length(rend),
         % the depths did not compress so well with
         % a straight DCT - therefore it was modified slightly
         rend{i}.dep = exp(B1*rend{i}.dep*B2')-1;
-    end;
-    msk = find(rend{i}.ren>1);rend{i}.ren(msk)=1;
-    msk = find(rend{i}.ren<0);rend{i}.ren(msk)=0;
-    if showbar, spm_progress_bar('Set', i); end;
-end;
-if showbar, spm_progress_bar('Clear'); end;
+    end
+    rend{i}.ren(rend{i}.ren>=1) = 1;
+    rend{i}.ren(rend{i}.ren<=0) = 0;
+    if showbar, spm_progress_bar('Set', i); end
+end
+if showbar, spm_progress_bar('Clear'); end
 
 if showbar, spm_progress_bar('Init', length(dat)*length(rend),...
-            'Making pictures', 'Number completed'); end;
+            'Making pictures', 'Number completed'); end
 
 mx = zeros(length(rend),1)+eps;
 mn = zeros(length(rend),1);
@@ -168,9 +167,9 @@ for j=1:length(dat),
 
     for i=1:length(rend),
 
-        % transform from Taliarach space to space of the rendered image
-        %-------------------------------------------------------
-        M1  = rend{i}.M*dat(j).mat;
+        % transform from Talairach space to space of the rendered image
+        %------------------------------------------------------------------
+        M1  = rend{i}.M*mat;
         zm  = sum(M1(1:2,1:3).^2,2).^(-1/2);
         M2  = diag([zm' 1 1]);
         M  = M2*M1;
@@ -183,54 +182,55 @@ for j=1:length(dat),
         xyz = (M(1:3,1:3)*XYZ + M(1:3,4)*ones(1,size(XYZ,2)));
         d2  = ceil(max(xyz(1:2,:)'));
 
-        % calculate 'depth' of values
-        %-------------------------------------------------------
+        % Calculate 'depth' of values
+        %------------------------------------------------------------------
         dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
         z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
         if ~isfinite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
-        else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end;
+        else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end
 
         if ~isempty(msk),
 
-            % generate an image of the integral of the blob values.
-            %-----------------------------------------------
+            % Generate an image of the integral of the blob values.
+            %--------------------------------------------------------------
             xyz = xyz(:,msk);
             if ~isfinite(brt), t0  = t(msk);
             else,   dst = xyz(3,:) - z1(msk);
                 dst = max(dst,0);
                 t0  = t(msk).*exp((log(0.5)/10)*dst)';
-            end;
+            end
             X0  = full(sparse(round(xyz(1,:)), round(xyz(2,:)), t0, d2(1), d2(2)));
-            hld = 1; if ~isfinite(brt), hld = 0; end;
+            hld = 1; if ~isfinite(brt), hld = 0; end
             X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
             msk = find(X<0);
             X(msk) = 0;
-        else,
+        else
             X = zeros(size(rend{i}.dep));
-        end;
+        end
 
         % Brighten the blobs
-        if isfinite(brt), X = X.^brt; end;
+        %------------------------------------------------------------------
+        if isfinite(brt), X = X.^brt; end
 
         mx(j) = max([mx(j) max(max(X))]);
         mn(j) = min([mn(j) min(min(X))]);
 
         rend{i}.data{j} = X;
 
-        if showbar, spm_progress_bar('Set', i+(j-1)*length(rend)); end;
-    end;
-end;
+        if showbar, spm_progress_bar('Set', i+(j-1)*length(rend)); end
+    end
+end
 
 mxmx = max(mx);
 mnmn = min(mn);
 
-if showbar, spm_progress_bar('Clear'); end;
+if showbar, spm_progress_bar('Clear'); end
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 
 nrow = ceil(length(rend)/2);
-if showbar, hght = 0.95; else, hght = 0.5; end;
+if showbar, hght = 0.95; else, hght = 0.5; end
 % subplot('Position',[0, 0, 1, hght]);
 ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
 image(0,'Parent',ax);
@@ -238,7 +238,7 @@ set(ax,'YTick',[],'XTick',[]);
 
 if ~isfinite(brt),
     % Old style split colourmap display.
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     load Split;
     colormap(split);
     for i=1:length(rend),
@@ -253,11 +253,11 @@ if ~isfinite(brt),
         set(ax,'DataAspectRatio',[1 1 1], ...
             'PlotBoxAspectRatioMode','auto',...
             'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
-    end;
-else,
+    end
+else
     % Combine the brain surface renderings with the blobs, and display using
     % 24 bit colour.
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     for i=1:length(rend),
         ren = rend{i}.ren;
         X = cell(3,1);
@@ -277,15 +277,105 @@ else,
         
         ax=axes('Parent',Fgraph,'units','normalized',...
             'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+            'nextplot','add', ...
             'Visible','off');
         image(rgb,'Parent',ax);
         set(ax,'DataAspectRatio',[1 1 1], ...
             'PlotBoxAspectRatioMode','auto',...
             'YTick',[],'XTick',[],...
             'XDir','normal','YDir','normal');
-    end;
-end;
+    end
+end
 
-spm('Pointer')
-return;
+spm('Pointer','Arrow');
 
+%==========================================================================
+function surf_rend(dat,rend,col,action)
+
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph);
+
+ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, 0.5],'Visible','off');
+
+switch lower(action)
+    
+    case 'voxel'
+    %----------------------------------------------------------------------
+        hp = patch(rend, 'Parent',ax,...
+            'FaceColor', [0.8 0.7 0.7], 'FaceVertexCData', [],...
+            'EdgeColor', 'none',...
+            'FaceLighting', 'phong',...
+            'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
+            'DiffuseStrength', 0.7, 'SpecularExponent', 10);
+    
+        gv = gifti;
+        gv.vertices = [...
+            -1 -1 -1 -1  1  1  1  1
+            -1 -1  1  1 -1 -1  1  1
+            -1  1 -1  1 -1  1 -1  1]'/2;
+        gv.faces = [...
+            1  3  4  3  4  3  7  7  2  8  1  1
+            5  5  3  7  2  2  8  6  8  6  2  6
+            3  7  8  8  3  1  6  5  4  2  6  5]';
+        for i=1:length(dat.t)
+            t = dat.mat * [dat.XYZ(:,i)' 1]'; % coord in mm
+            nv =  3*gv.vertices' + repmat(t(1:3,1),1,size(gv.vertices,1));
+            hh = patch(struct(...
+                'vertices',  nv',...
+                'faces',     gv.faces),...
+                'FaceColor', dat.t(i)/max(dat.t) * col(1,:),...
+                'EdgeColor', 'none');
+        end
+
+    case 'texture'
+    %----------------------------------------------------------------------
+        Vo = spm_write_filtered(dat.t,dat.XYZ,dat.dim,dat.mat,'',tempname);
+        v = spm_get_data(Vo,...
+            double(inv(Vo.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]));
+        spm_unlink(Vo.fname); spm_unlink([spm_str_manip(Vo.fname,'s') '.hdr']);
+        col = hot(256);
+        col(1,:) = 0.5;
+        if ~any(v)
+            cdat = 0.5*ones(length(v),3);
+        else
+            cdat = squeeze(ind2rgb(floor(v(:)*255/max(v(:))),col));
+        end
+        hp = patch(rend, 'Parent',ax,...
+            'FaceVertexCData',cdat, ...
+            'FaceColor', 'interp', ...
+            'EdgeColor', 'none',...
+            'FaceLighting', 'phong',...
+            'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
+            'DiffuseStrength', 0.7, 'SpecularExponent', 10);
+        
+    otherwise
+        error('Unknown rendering type.');
+end
+
+set(Fgraph,'CurrentAxes',ax);
+view(ax,[-90 0]);
+l = camlight; set(l,'Parent',ax);
+setappdata(ax,'camlight',l)
+axis(ax,'image');
+r = rotate3d(Fgraph);
+set(r,'enable','on');
+set(r,'ActionPostCallback',@mypostcallback);
+set(hp,'DeleteFcn',@mydeletefcn);
+material(Fgraph,'dull');
+
+hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
+xyz = spm_XYZreg('GetCoords',hReg);
+hold(ax,'on');
+[X,Y,Z] = sphere;
+vx = sqrt(sum(dat.mat(1:3,1:3).^2));
+X = X*vx(1) + xyz(1);
+Y = Y*vx(2) + xyz(2);
+Z = Z*vx(3) + xyz(3);
+surf(X,Y,Z,'parent',ax,'EdgeColor','none','FaceColor',[1 0 0],'FaceLighting', 'phong');
+
+%==========================================================================
+function mypostcallback(obj,evd)
+try, camlight(getappdata(evd.Axes,'camlight')); end
+
+function mydeletefcn(obj,evd)
+try, rotate3d(get(obj,'parent'),'off'); end

@@ -1,11 +1,11 @@
-function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
+function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Writes the filtered SPM as an image
 % FORMAT spm_write_filtered(Z,XYZ,DIM,M,descrip)
 %
 % Z       - {1 x ?} vector point list of SPM values for MIP
 % XYZ     - {3 x ?} matrix of coordinates of points (voxel coordinates)
 % DIM     - image dimensions {voxels}
-% M       - voxels - > mm matrix (used for header & written in *.mat file)
+% M       - voxels - > mm matrix (used for header file)
 %           [default spm_matrix(-(DIM+1)/2) ]
 % descrip - description string [default 'SPM-filtered']
 %
@@ -21,7 +21,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_write_filtered.m 3081 2009-04-22 20:15:38Z guillaume $
 
 
 %-Parse arguments
@@ -29,10 +29,11 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 if nargin<3, error('Insufficient arguments'), end
 if nargin<4, M = spm_matrix(-(DIM+1)/2); end
 if nargin<5, descrip='SPM-filtered'; end
+if nargin<6, F = spm_input('Output filename',1,'s'); end
 
 %-Get filename
 %-----------------------------------------------------------------------
-Q       = [spm_str_manip(spm_input('Output filename',1,'s'),'sdv'), '.img'];
+Q = [spm_str_manip(F,'sdv'), '.img'];
 spm('Pointer','Watch')
 
 %-Set up header information
@@ -53,7 +54,7 @@ Y(OFF) = Z.*(Z > 0);
 %-Write the reconstructed volume
 %-----------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-spm('alert"',{'Written:',['    ',spm_select('CPath',Q)]},mfilename,sqrt(-1));
+spm('alert"',{'Written:',['    ',spm_select('CPath',Q)]},mfilename,1);
 
 %-End
 %-----------------------------------------------------------------------

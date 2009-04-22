@@ -3,15 +3,15 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 2273 2008-09-30 21:40:21Z guillaume $
+% $Id: spm_cfg_spm_surf.m 3081 2009-04-22 20:15:38Z guillaume $
 
-rev = '$Rev: 2273 $';
+rev = '$Rev: 3081 $';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
 data         = cfg_files;
 data.tag     = 'data';
-data.name    = 'Grey+white matter image';
+data.name    = 'Grey and white matter images';
 data.help    = {'Images to create rendering/surface from (grey and white matter segments).'};
 data.filter  = 'image';
 data.ufilter = '.*';
@@ -25,9 +25,8 @@ mode.name    = 'Output';
 mode.help    = {''};
 mode.labels  = {'Save Rendering'
                 'Save Extracted Surface'
-                'Save Rendering and Surface'
-                'Save Surface as OBJ format'}';
-mode.values  = {1 2 3 4};
+                'Save Rendering and Surface'}';
+mode.values  = {1 2 3};
 mode.val     = {3};
 % ---------------------------------------------------------------------
 % thresh Surface isovalue(s)
@@ -62,29 +61,21 @@ try
         dep(cdep).src_output = substruct('.','rendfile');
         dep(cdep).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
         cdep = cdep+1;
-    end;
+    end
 
-    if any(job.mode==[2 3 4]),
+    if any(job.mode==[2 3]),
         for k=1:numel(job.thresh)
             if any(job.mode==[2 3]),
                 dep(cdep)            = cfg_dep;
-                dep(cdep).sname      = sprintf('Surf .mat File (thr=%.02f)', ...
+                dep(cdep).sname      = sprintf('Surface .gii File (thr=%.02f)', ...
                                                job.thresh(k));
                 dep(cdep).src_output = substruct('.','surffile', '()',{k});
-                dep(cdep).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+                dep(cdep).tgt_spec   = cfg_findspec({{'filter','mesh','strtype','e'}});
                 cdep = cdep+1;
-            end;
-            if any(job.mode==4),
-                dep(cdep)            = cfg_dep;
-                dep(cdep).sname      = sprintf('Surf .obj File (thr=%.02f)', ...
-                                               job.thresh(k));
-                dep(cdep).src_output = substruct('.','objfile', '()',{k});
-                dep(cdep).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
-                cdep = cdep+1;
-            end;
-        end;
-    end;
+            end
+        end
+    end
 catch
     % something failed, no dependencies
     dep = [];
-end;
+end

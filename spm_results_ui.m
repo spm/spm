@@ -135,9 +135,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3056 2009-04-09 06:24:31Z volkmar $
+% $Id: spm_results_ui.m 3081 2009-04-22 20:15:38Z guillaume $
  
-SCCSid = '$Rev: 3056 $';
+SCCSid = '$Rev: 3081 $';
  
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -602,9 +602,9 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Position',[285 145 100 020].*WS,...
             'Tag','plotButton')
  
-        str  = { 'overlays...','slices','sections','render','previous sections'};
+        str  = { 'overlays...','slices','sections','render','previous sections','previous render'};
         tstr = { 'overlay filtered SPM on another image: ',...
-            '3 slices / ','ortho sections / ','render /','previous ortho sections'};
+            '3 slices / ','ortho sections / ','render /','previous ortho sections /','previous surface rendering'};
  
         tmp  = { 'spm_transverse(''set'',xSPM,hReg)',...
             'spm_sections(xSPM,hReg)',...
