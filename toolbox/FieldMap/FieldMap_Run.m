@@ -1,4 +1,4 @@
-function Fieldmap_Run(job)
+function vdm = Fieldmap_Run(job)
 % Auxillary file for running FieldMap jobs
 %
 % FORMAT vdm = Fieldmap_Run(job)
@@ -34,7 +34,7 @@ function Fieldmap_Run(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 1810 2008-06-10 14:30:33Z chloe $
+% $Id: FieldMap_Run.m 3085 2009-04-24 20:09:58Z chloe $
 %_________________________________________________________________
 
 %
@@ -184,5 +184,6 @@ for sessnum=1:max([1 nsessions]);
       end   
    end
    spm_print
+   vdm.vdmfile{sessnum}={VDM{sessnum}.fname};
 end     
 %______________________________________________________________________
