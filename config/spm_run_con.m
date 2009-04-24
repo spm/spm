@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 2964 2009-03-26 16:18:28Z guillaume $
+% $Id: spm_run_con.m 3083 2009-04-24 16:43:05Z volkmar $
 
 
 wd  = pwd;
@@ -162,26 +162,30 @@ for i = 1:length(job.consess)
         switch sessrep
             case 'repl',
                 % within-session zero padding, replication over sessions
-                cons{1}= zeros(size(con,1),size(SPM.xX.X,2));
+                cons = {zeros(size(con,1),size(SPM.xX.X,2))};
                 for sess=1:nsessions
                     sfirst=SPM.Sess(sess).col(1);
                     cons{1}(:,sfirst:sfirst+size(con,2)-1)=con;
                 end
-                names{1} = sprintf('%s - All Sessions', name);
+                names = {sprintf('%s - All Sessions', name)};
             case 'replna',
                 % within-session zero padding, new rows per session
-                cons{1}= zeros(nsessions*size(con,1),size(SPM.xX.X,2));
+                cons= {zeros(nsessions*size(con,1),size(SPM.xX.X,2))};
                 for sess=1:nsessions
                     sfirst=SPM.Sess(sess).col(1);
                     cons{1}((sess-1)*size(con,1)+(1:size(con,1)),sfirst-1+(1:size(con,2)))=con;
                 end
-                names{1} = sprintf('%s - All Sessions', name);
+                names = {sprintf('%s - All Sessions', name)};
             case 'sess',
+                cons = cell(1,numel(SPM.Sess));
+                names = cell(1,numel(SPM.Sess));
                 for k=1:numel(SPM.Sess)
                     cons{k} = [zeros(size(con,1),SPM.Sess(k).col(1)-1) con];
                     names{k} = sprintf('%s - Session %d', name, k);
                 end;
             case 'both'
+                cons = cell(1,numel(SPM.Sess));
+                names = cell(1,numel(SPM.Sess));
                 for k=1:numel(SPM.Sess)
                     cons{k} = [zeros(size(con,1),SPM.Sess(k).col(1)-1) con];
                     names{k} = sprintf('%s - Session %d', name, k);
@@ -197,8 +201,8 @@ for i = 1:length(job.consess)
                 end;
         end;
     else
-        cons{1} = con;
-        names{1} = name;
+        cons = {con};
+        names = {name};
     end;
 
     % Loop over created contrasts
