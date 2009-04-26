@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3082 2009-04-22 20:16:13Z guillaume $
+% $Id: spm_eeg_filter.m 3086 2009-04-26 21:14:59Z christophe $
 
-SVNrev = '$Rev: 3082 $';
+SVNrev = '$Rev: 3086 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -164,6 +164,7 @@ if strcmp(D.type, 'continuous')
     for blk=1:blknum
         % load old meeg object blockwise into workspace
         blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
+        if isempty(blkchan), break, end
         Dtemp=D(blkchan,:,1);
         chncnt=chncnt+blksz;
         %loop through channels
