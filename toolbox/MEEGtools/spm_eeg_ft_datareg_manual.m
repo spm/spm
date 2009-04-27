@@ -10,7 +10,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_ft_datareg_manual.m 3087 2009-04-27 09:47:22Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -38,13 +38,19 @@ end
 usepolhemus = spm_input('Use polhemus?', 1, 'yes|no', [1, 0]);
 
 if usepolhemus
-    meegfid = fileio_read_headshape(spm_select(1, '\.*', 'Select headshape file'));
+    meegfid = fileio_read_headshape(spm_select(1, '\.*', 'Select polhemus file'));
     meegfid = forwinv_convert_units(meegfid, 'mm');
 else
     meegfid = D.fiducials;
 end
 
 mrifid = D.inv{val}.mesh.fid;
+
+if spm_input('Use individual head surface?', 1, 'yes|no', [1, 0])
+    isurf = export(gifti(spm_select(1, 'mesh', 'Select head surface file')), 'ft');
+    mrifid.pnt = isurf.pnt;
+    mrifid.tri = isurf.tri;
+end
 
 meeglbl = meegfid.fid.label;
 mrilbl = mrifid.fid.label;
@@ -106,15 +112,22 @@ if numel(meeglbl)>=3
     if size(newmrifid.fid.label) < 3
         error('At least 3 M/EEG fiducials are required for coregistration');
     end
-        
-    if spm_input('Choose initial coregistration', 1, 'rigid|align', [1, 0]);
-        M1 = spm_eeg_inv_headcoordinates(meegfid.fid.pnt(1, :), meegfid.fid.pnt(2, :), meegfid.fid.pnt(3, :));
-        M =  spm_eeg_inv_headcoordinates(newmrifid.fid.pnt(1, :), newmrifid.fid.pnt(2, :), newmrifid.fid.pnt(3, :));
-        M1 = inv(M) * M1;
-    else
-        M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');
-    end
-    
+
+    switch spm_input('Choose initial coregistration', 1, 'rigid|align|spm');
+        case 'align'
+            M1 = spm_eeg_inv_headcoordinates(meegfid.fid.pnt(1, :), meegfid.fid.pnt(2, :), meegfid.fid.pnt(3, :));
+            M =  spm_eeg_inv_headcoordinates(newmrifid.fid.pnt(1, :), newmrifid.fid.pnt(2, :), newmrifid.fid.pnt(3, :));
+            M1 = inv(M) * M1;
+        case 'rigid'
+            M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');
+        case 'spm'
+            S =[];
+            S.sourcefid = meegfid;
+            S.targetfid = newmrifid;
+            S.template  = 0;
+            S.useheadshape = ~isempty(S.sourcefid.pnt);
+            M1 = spm_eeg_inv_datareg(S);
+    end    
     meegfid = forwinv_transform_headshape(M1, meegfid);
 end
 %%
@@ -133,13 +146,13 @@ if usepolhemus
     sel2 = spm_match_str(meegfid.fid.label, {'nas', 'lpa', 'rpa'});
     M2 = spm_eeg_inv_headcoordinates(meegfid.fid.pnt(sel2(1), :), meegfid.fid.pnt(sel2(2), :), meegfid.fid.pnt(sel2(3), :));
     M3 = spm_eeg_inv_headcoordinates(origfid.fid.pnt(sel1(1), :), origfid.fid.pnt(sel1(2), :), origfid.fid.pnt(sel1(3), :));
-    M1 = inv(M2) * M3; 
+    M1 = inv(M2) * M3;
 end
-    
+
 ind = 1;
 D.inv{val}.datareg = struct([]);
 
-if ~isempty(D.sensors('EEG'))    
+if ~isempty(D.sensors('EEG'))
     D.inv{val}.datareg(ind).sensors = forwinv_transform_sens(M1, D.sensors('EEG'));
     D.inv{val}.datareg(ind).fid_eeg = D.inv{val}.datareg(ind).sensors;
     D.inv{val}.datareg(ind).fid_mri = newmrifid;
