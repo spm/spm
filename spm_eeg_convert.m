@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3059 2009-04-15 18:09:13Z guillaume $
+% $Id: spm_eeg_convert.m 3088 2009-04-29 14:46:28Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -315,7 +315,7 @@ else % Read by trials
             error('All trials should have identical lengths');
         end
 
-        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples*hdr.nTrials)';
+        inbounds = (trl(:,1)>=1 & trl(:, 2)<=hdr.nSamples*hdr.nTrials)';
 
         rejected = find(~inbounds);
 
