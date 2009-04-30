@@ -22,6 +22,9 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %
 
 % $Log: read_sbin_header.m,v $
+% Revision 1.4  2009/04/29 10:55:16  jansch
+% incorporated handling of unsegmented files
+%
 % Revision 1.3  2009/03/11 16:12:09  josdie
 % Changed category names to cell variables to better support names with differing lengths.
 %
@@ -50,24 +53,27 @@ version		= fread(fid,1,'int32');
 %check byteorder
 [str,maxsize,cEndian]=computer;
 if version < 7
-  if cEndian == 'B'
-    endian = 'ieee-be';
-  elseif cEndian == 'L'
-    endian = 'ieee-le';
-  end;
+    if cEndian == 'B'
+        endian = 'ieee-be';
+    elseif cEndian == 'L'
+        endian = 'ieee-le';
+    end;
 elseif (version > 6) && ~bitand(version,6)
-  if cEndian == 'B'
-    endian = 'ieee-le';
-  elseif cEndian == 'L'
-    endian = 'ieee-be';
-  end;
-  version = swapbytes(uint32(version));
+    if cEndian == 'B'
+        endian = 'ieee-le';
+    elseif cEndian == 'L'
+        endian = 'ieee-be';
+    end;
+    version = swapbytes(uint32(version));
 else
     error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.\n');
 end;
 
 if bitand(version,1) == 0
-    error('ERROR:  This is an unsegmented file, which is not supported.\n');
+    %error('ERROR:  This is an unsegmented file, which is not supported.\n');
+    unsegmented = 1;
+else
+    unsegmented = 0;
 end;
 
 precision = bitand(version,6);
@@ -88,67 +94,82 @@ NChan		= fread(fid,1,'int16',endian);
 Gain 		= fread(fid,1,'int16',endian);
 Bits 		= fread(fid,1,'int16',endian);
 Range 		= fread(fid,1,'int16',endian);
-NumCategors	= fread(fid,1,'int16',endian);
-for j = 1:NumCategors
-    CatLengths(j)	= fread(fid,1,'int8',endian);
-    for i = 1:CatLengths(j)
-        CateNames{j}(i)	= char(fread(fid,1,'char',endian));
+
+if unsegmented,
+    NumCategors = 0;
+    NSegments   = 1;
+    NSamples    = fread(fid,1,'int32',endian);
+    NEvent      = fread(fid,1,'int16',endian);
+    for j = 1:NEvent
+        EventCodes(j,1:4) = char(fread(fid,[1,4],'char',endian));
     end
-end
-NSegments	= fread(fid,1,'int16',endian);
-NSamples	= fread(fid,1,'int32',endian);			% samples per segment
-NEvent		= fread(fid,1,'int16',endian);			% num events per segment
-EventCodes = [];
-for j = 1:NEvent
-    EventCodes(j,1:4)	= char(fread(fid,[1,4],'char',endian));
-end
-
-header_array 	= double([version year month day hour minute second millisecond Samp_Rate NChan Gain Bits Range NumCategors, NSegments, NSamples, NEvent]);
-
-preBaseline=0;
-if NEvent > 0
-    
-    for j = 1:NSegments
-        [segHdr(j,1), count]	= fread(fid, 1,'int16',endian);    %cell
-        [segHdr(j,2), count]	= fread(fid, 1,'int32',endian);    %time stamp
-        switch precision
-            case 2
-                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'int16',endian);
-            case 4
-                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'single',endian);
-            case 6
-                [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'double',endian);
-        end
-        if (NEvent ~= 0)
-            eventData(:,((j-1)*NSamples+1):j*NSamples)	= temp( (NChan+1):(NChan+NEvent), 1:NSamples);
+    CateNames   = [];
+    CatLengths  = [];
+    preBaseline = [];
+else
+    NumCategors	= fread(fid,1,'int16',endian);
+    for j = 1:NumCategors
+        CatLengths(j)	= fread(fid,1,'int8',endian);
+        for i = 1:CatLengths(j)
+            CateNames{j}(i)	= char(fread(fid,1,'char',endian));
         end
     end
+    NSegments	= fread(fid,1,'int16',endian);
+    NSamples	= fread(fid,1,'int32',endian);			% samples per segment
+    NEvent		= fread(fid,1,'int16',endian);			% num events per segment
+    EventCodes = [];
+    for j = 1:NEvent
+        EventCodes(j,1:4)	= char(fread(fid,[1,4],'char',endian));
+    end
 
-    if NEvent == 1
-        %assume this is the segmentation event
-        theEvent=find(eventData(1,:)>0);
-        theEvent=mod(theEvent(1),NSamples);
-    else
-        %assume the sample that always has an event is the baseline
-        %if more than one, choose the earliest one
-        baselineCandidates = unique(mod(find(eventData(:,:)'),NSamples));
-        counters=zeros(1,length(baselineCandidates));
-        totalEventSamples=mod(find(eventData(:,:)'),NSamples);
-        
-        for i = 1:length(totalEventSamples)
-           theMatch=find(ismember(baselineCandidates,totalEventSamples(i)));
-           counters(theMatch)=counters(theMatch)+1;
+
+
+    preBaseline=0;
+    if NEvent > 0
+
+        for j = 1:NSegments
+            [segHdr(j,1), count]	= fread(fid, 1,'int16',endian);    %cell
+            [segHdr(j,2), count]	= fread(fid, 1,'int32',endian);    %time stamp
+            switch precision
+                case 2
+                    [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'int16',endian);
+                case 4
+                    [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'single',endian);
+                case 6
+                    [temp,count]	= fread(fid,[NChan+NEvent, NSamples],'double',endian);
+            end
+            if (NEvent ~= 0)
+                eventData(:,((j-1)*NSamples+1):j*NSamples)	= temp( (NChan+1):(NChan+NEvent), 1:NSamples);
+            end
+        end
+
+        if NEvent == 1
+            %assume this is the segmentation event
+            theEvent=find(eventData(1,:)>0);
+            theEvent=mod(theEvent(1),NSamples);
+        else
+            %assume the sample that always has an event is the baseline
+            %if more than one, choose the earliest one
+            baselineCandidates = unique(mod(find(eventData(:,:)'),NSamples));
+            counters=zeros(1,length(baselineCandidates));
+            totalEventSamples=mod(find(eventData(:,:)'),NSamples);
+
+            for i = 1:length(totalEventSamples)
+                theMatch=find(ismember(baselineCandidates,totalEventSamples(i)));
+                counters(theMatch)=counters(theMatch)+1;
+            end;
+            theEvent=min(baselineCandidates(find(ismember(counters,NSegments))));
         end;
-        theEvent=min(baselineCandidates(find(ismember(counters,NSegments))));
-    end;
-    
-    preBaseline=theEvent-1;
-    if preBaseline == -1
-        preBaseline =0;
-    end;
+
+        preBaseline=theEvent-1;
+        if preBaseline == -1
+            preBaseline =0;
+        end;
+    end
 end
 
 fclose(fid);
 
+header_array 	= double([version year month day hour minute second millisecond Samp_Rate NChan Gain Bits Range NumCategors, NSegments, NSamples, NEvent]);
 
 

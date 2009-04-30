@@ -19,6 +19,9 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 %
 
 % $Log: read_sbin_data.m,v $
+% Revision 1.2  2009/04/29 10:55:16  jansch
+% incorporated handling of unsegmented files
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -57,6 +60,13 @@ else
     error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.\n');
 end;
 
+if bitand(version,1) == 0
+    %error('ERROR:  This is an unsegmented file, which is not supported.\n');
+    unsegmented = 1;
+else
+    unsegmented = 0;
+end;
+
 precision = bitand(version,6);
 Nevents=hdr.orig.header_array(17);
 
@@ -72,16 +82,22 @@ switch precision
         dataType='double';
 end
 
-fseek(fh, 40+length(hdr.orig.CatLengths)+sum(hdr.orig.CatLengths)+Nevents*4, 'bof'); %skip over header
-fseek(fh, (begtrial-1)*trialLength, 'cof'); %skip over initial segments
+if unsegmented
+    %interpret begtrial and endtrial as sample indices
+    fseek(fh, 36+Nevents*4, 'bof'); %skip over header
+    nSamples  = endtrial-begtrial+1;
+    trialData = fread(fh, [hdr.nChans+Nevents, nSamples],dataType,endian);
+else
+    fseek(fh, 40+length(hdr.orig.CatLengths)+sum(hdr.orig.CatLengths)+Nevents*4, 'bof'); %skip over header
+    fseek(fh, (begtrial-1)*trialLength, 'cof'); %skip over initial segments
 
-trialData=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
+    trialData=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
 
-for segment=1:(endtrial-begtrial+1)
-    fseek(fh, 6, 'cof'); %skip over segment info
-    temp = fread(fh, [(hdr.nChans+Nevents), hdr.nSamples],dataType,endian);
-    trialData(:,:,segment) = temp(1:hdr.nChans,:);
+    for segment=1:(endtrial-begtrial+1)
+        fseek(fh, 6, 'cof'); %skip over segment info
+        temp = fread(fh, [(hdr.nChans+Nevents), hdr.nSamples],dataType,endian);
+        trialData(:,:,segment) = temp(1:hdr.nChans,:);
+    end
 end
 trialData=trialData(chanindx, :,:);
-
 fclose(fh);
