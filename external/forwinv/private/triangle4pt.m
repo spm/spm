@@ -35,6 +35,9 @@ function vol = triangle4pt(vol)
 % Cyclotron Research Centre, University of li?ge, belgium
 
 % $Log: triangle4pt.m,v $
+% Revision 1.4  2009/04/30 16:59:49  vlalit
+% Bug fix for the problem of too flat mesh surfaces as suggested by Christophe
+%
 % Revision 1.3  2009/04/01 13:26:05  roboos
 % use Taubin's method of sphere fitting (fitsphere) instead of the iterative implementation by Guido Nolte
 %
@@ -63,11 +66,16 @@ for ii=1:Ns % treat each mesh one at a time
     % best fitting sphere radius & centre, for the 6 points chosen
     pnt_c = sum(pnt(tri(jj,:),:))/3;
     % centroid of the triangle treated
-    tmp = pnt_c-center;
-    vd = tmp/norm(tmp);
-    % unit vector from sphere center in direction of middle triangle
-    pnt4(jj,:) = center+vd*radius ;
-    % projection of the centroid, at 'radius' from the center
+    if isfinite(radius)
+        tmp = pnt_c-center;
+        vd = tmp/norm(tmp);
+        % unit vector from sphere center in direction of middle triangle
+        pnt4(jj,:) = center+vd*radius ;
+        % projection of the centroid, at 'radius' from the center
+    else
+        % radius at infinite, i.e. flat surface
+        pnt4(jj,:) = pnt_c;
+    end
   end
   vol.bnd(ii).pnt4 = pnt4;
 end
