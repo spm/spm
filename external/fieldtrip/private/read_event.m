@@ -59,6 +59,12 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.98  2009/04/29 10:52:17  jansch
+% incorporated handling of unsegmented egi simple binaries
+%
+% Revision 1.97  2009/04/28 08:33:05  marvger
+% small changes
+%
 % Revision 1.96  2009/03/25 08:44:49  roboos
 % fixed bug introduced by last change, related to filetype detection in case not ctf_old
 %
@@ -900,33 +906,56 @@ switch eventformat
       [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
     end
     if isempty(hdr)
-      hdr = read_header(filename);
+      hdr = read_header(filename,'headerformat','egi_sbin');
     end
-
+    version     = header_array(1);
+    unsegmented = ~mod(version, 2);
+    
     eventCount=0;
-    for theEvent=1:size(eventData,1)
-      for segment=1:hdr.nTrials
-          if any(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))
-              eventCount=eventCount+1;
-              event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-              event(eventCount).offset   = -min(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples)))+1;
-              event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
-              if event(eventCount).duration == 0
-                event(eventCount).type     = 'trigger';
-              else
-                event(eventCount).type     = 'trial';
-              end;
-              event(eventCount).value    =  char(EventCodes(theEvent,:));
-         end
-       end
+    if unsegmented
+        tmp = zeros(1,size(eventData,2));
+        for k = 1:size(eventData,1)
+            sel = find(eventData(k,:)==1 & [0 eventData(k,1:end-1)==0]);
+            tmp(sel) = k;
+        end
+        sel = find(tmp);
+        for k = 1:length(sel)
+            event(k).sample   = sel(k);
+            event(k).offset   = [];
+            event(k).duration = 0;
+            event(k).type     = 'trigger';
+            event(k).value    = char(EventCodes(tmp(sel(k)),:));
+        end
+    else
+        for theEvent=1:size(eventData,1)
+            for segment=1:hdr.nTrials
+                if any(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))
+                    eventCount=eventCount+1;
+                    event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+                    event(eventCount).offset   = -min(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples)))+1;
+                    event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
+                    if event(eventCount).duration == 0
+                        event(eventCount).type     = 'trigger';
+                    else
+                        event(eventCount).type     = 'trial';
+                    end;
+                    event(eventCount).value    =  char(EventCodes(theEvent,:));
+                end
+            end
+        end
     end
+    
     for segment=1:hdr.nTrials  % cell information
       eventCount=eventCount+1;
       event(eventCount).type     = 'trial';
       event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
       event(eventCount).offset   = -hdr.nSamplesPre;
       event(eventCount).duration =  hdr.nSamples;
-      event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+      if unsegmented,
+          event(eventCount).value    = [];
+      else
+          event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+      end
     end
 
   case 'fcdc_buffer'
@@ -1001,15 +1030,24 @@ switch eventformat
 
 
   case 'fcdc_fifo'
+
+    
     fifo = filetype_check_uri(filename);
+    
+    if ~exist(fifo,'file')
+      warning('the FIFO %s does not exist; attempting to create it', fifo);
+      system(sprintf('mkfifo -m 0666 %s',fifo));
+    end
+    
     fid = fopen(fifo, 'r');
     msg = fread(fid, inf, 'uint8');
     fclose(fid);
+    
     try
       event = mxDeserialize(uint8(msg));
     catch
       warning(lasterr);
-    end
+    end    
 
   case 'fcdc_tcp'
     % requires tcp/udp/ip-toolbox

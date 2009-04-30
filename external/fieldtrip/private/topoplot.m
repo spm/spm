@@ -119,6 +119,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.44  2009/04/27 16:26:33  ingnie
+% fixed bug in plotting electrodes when cfg.highlight is cell.
+%
 % Revision 1.43  2009/02/02 09:56:34  roboos
 % there was still some confusion in the code w.r.t. x/y swapping to
 % position the nose at the top of the figure. That is now completely
@@ -578,7 +581,7 @@ if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
     plot(x(normal),        y(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth);
   elseif iscell(cfg.highlight)
-    plot(y,y,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
+    plot(x,y,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
     for iCell = 1:length(cfg.highlight)
       plot(x(cfg.highlight{iCell}), y(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
     end

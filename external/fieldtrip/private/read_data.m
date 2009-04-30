@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.85  2009/04/29 10:52:17  jansch
+% incorporated handling of unsegmented egi simple binaries
+%
 % Revision 1.84  2009/03/23 12:09:07  vlalit
 % Minor changes to make the ctf_old option fully functional.
 %
@@ -822,7 +825,14 @@ switch dataformat
     dimord = 'chans_samples_trials';
 
   case {'egi_sbin'}
-    dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
+    if mod(hdr.orig.header_array(1),2)==0,
+        %unsegmented data contains only 1 trial, don't read the whole file
+        dat = read_sbin_data(filename, hdr, begsample, endsample, chanindx);
+        requestsamples = 0;
+    else
+        %segmented data
+        dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
+    end
     dimord = 'chans_samples_trials';
     
   case 'micromed_trc'

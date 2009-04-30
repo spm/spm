@@ -30,6 +30,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 %   cfg.wvar             = number or list with indices, within-cell variable(s)
 %   cfg.cvar             = number or list with indices, control variable(s)
 %   cfg.feedback         = 'gui', 'text', 'textbar' or 'no' (default = 'text')
+%   cfg.randomseed       = 'yes', 'no' or a number (default = 'yes')
 %
 % If you use a cluster-based statistic, you can specify the following
 % options that determine how the single-sample or single-voxel
@@ -80,6 +81,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.30  2009/04/23 07:48:23  roboos
+% added cfg.randomseed option, default is yes
+%
 % Revision 1.29  2008/11/25 13:52:10  estmee
 % Documentation update
 %
@@ -210,6 +214,7 @@ if ~isfield(cfg, 'uvar'),                cfg.uvar     = [];              end
 if ~isfield(cfg, 'cvar'),                cfg.cvar     = [];              end
 if ~isfield(cfg, 'wvar'),                cfg.wvar     = [];              end
 if ~isfield(cfg, 'correctp'),            cfg.correctp = 'no';            end % for the number of tails in a two-sided test
+if ~isfield(cfg, 'randomseed'),          cfg.randomseed = 'yes';         end
 if ~isfield(cfg, 'precondition'),        cfg.precondition = [];          end
 
 if strcmp(cfg.correctm, 'cluster')
@@ -242,6 +247,16 @@ else
   error(sprintf('could not find the statistics function "%s"\n', ['statfun_' cfg.statistic]));
 end
 fprintf('using "%s" for the single-sample statistics\n', func2str(statfun));
+
+% initialize the random number generator.
+if strcmp(cfg.randomseed, 'no')
+   % do nothing
+elseif strcmp(cfg.randomseed, 'yes')
+   rand('state',sum(100*clock));
+else
+   % seed with the user-given value
+   rand('state',cfg.randomseed);
+end;
 
 % construct the resampled design matrix or data-shuffling matrix
 fprintf('constructing randomized design\n');

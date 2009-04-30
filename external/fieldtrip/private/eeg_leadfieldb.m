@@ -22,6 +22,9 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: eeg_leadfieldb.m,v $
+% Revision 1.5  2009/04/23 15:06:14  roboos
+% added patch from Cristiano
+%
 % Revision 1.4  2009/03/30 15:06:14  roboos
 % added the patch from Alexandre to support openmeeg
 %
@@ -137,7 +140,7 @@ switch voltype(vol)
     error('unsupported type of volume conductor (%s)\n', voltype(vol));
 end % switch voltype
 
-if isfield(vol, 'mat')
+if isfield(vol, 'mat') && ~voltype(vol, 'openmeeg')
   % compute the bounded medium potential on all vertices
   % this may include the bilinear interpolation from vertices towards electrodes
   lf = vol.mat * lf;

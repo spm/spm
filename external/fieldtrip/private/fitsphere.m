@@ -14,6 +14,9 @@ function [C,R] = fitsphere(pnt)
 % Copyright (C) 2009, Jean Daunizeau (for SPM)
 %
 % $Log: fitsphere.m,v $
+% Revision 1.3  2009/04/30 16:59:36  vlalit
+% Bug fix for the problem of too flat mesh surfaces as suggested by Christophe
+%
 % Revision 1.2  2009/04/01 12:37:12  roboos
 % updated documentation
 %
@@ -60,9 +63,14 @@ else
   end
 end
 
-% Convert to (R,C)
-C = -0.5*pvec(2:4) / pvec(1);
-R = sqrt(sum(C*C') - pvec(5)/pvec(1));
+if isempty(pvec)
+    C = [NaN NaN NaN];
+    R = Inf;
+else
+    % Convert to (R,C)
+    C = -0.5*pvec(2:4) / pvec(1);
+    R = sqrt(sum(C*C') - pvec(5)/pvec(1));
+end
 
 % if nargout == 1,
 %   if pvec(1) < 0

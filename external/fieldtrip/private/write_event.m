@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.34  2009/04/28 08:33:05  marvger
+% small changes
+%
 % Revision 1.33  2009/01/22 15:31:59  marvger
 % updated catch handling
 %
@@ -409,7 +412,8 @@ switch eventformat
       fifo = filetype_check_uri(filename);
       
       if ~exist(fifo,'file')
-          error('the FIFO %s does not exist', fifo);
+          warning('the FIFO %s does not exist; attempting to create it', fifo);          
+          system(sprintf('mkfifo -m 0666 %s',fifo));          
       end
 
       fid = fopen(fifo, 'w');
