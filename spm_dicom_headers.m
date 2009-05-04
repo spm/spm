@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 2736 2009-02-12 12:23:21Z john $
+% $Id: spm_dicom_headers.m 3096 2009-05-04 11:30:25Z volkmar $
 
 if nargin<2, essentials = false; end
 
@@ -96,7 +96,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                 ret.StartOfCSAData = ftell(fp);
                 ret.SizeOfCSAData = tag.length;
                 fseek(fp,tag.length,'cof');
-            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1210','Private_0029_1220'},
+            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1110','Private_0029_1210','Private_0029_1220'},
                 dat  = decode_csa(fp,tag.length);
                 ret.(tag.name) = dat;
             case {'TransferSyntaxUID'},
@@ -115,6 +115,9 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                     case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
                         %warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
                         flg = 'eb'; % Unused
+                    case {'1.2.840.10008.1.2.4.70'}  % JPEG Lossless Explicit VR
+                        flg = 'el';
+                        %warning(['Cant read JPEG Encoded file "' fopen(fp) '".']);
                     otherwise,
                         warning(['Unknown Transfer Syntax UID for "' fopen(fp) '".']);
                         return;

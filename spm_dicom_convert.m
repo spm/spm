@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 2644 2009-01-23 13:01:50Z john $
+% $Id: spm_dicom_convert.m 3096 2009-05-04 11:30:25Z volkmar $
 
 
 if nargin<2, opts     = 'all'; end
@@ -594,10 +594,21 @@ function fname = write_spectroscopy_volume(hdr,root_dir,format)
 %-------------------------------------------------------------------
 fname = getfilelocation(hdr{1}, root_dir,'S',format);
 
+% guess private field to use
+if isfield(hdr{1}, 'Private_0029_1210')
+    privdat = hdr{1}.Private_0029_1210;
+elseif isfield(hdr{1}, 'Private_0029_1110')
+    privdat = hdr{1}.Private_0029_1110;
+else
+    disp('Don''t know how to handle these spectroscopy data');
+    fname = '';
+    return;
+end
+
 % Image dimensions
 %-------------------------------------------------------------------
-nc = get_numaris4_numval(hdr{1}.Private_0029_1210,'Columns');
-nr = get_numaris4_numval(hdr{1}.Private_0029_1210,'Rows');
+nc = get_numaris4_numval(privdat,'Columns');
+nr = get_numaris4_numval(privdat,'Rows');
 
 dim    = [nc nr numel(hdr)];
 dt     = [spm_type('int16') spm_platform('bigend')];
@@ -620,28 +631,29 @@ dt     = [spm_type('int16') spm_platform('bigend')];
 % z increases  inferior to superior
 
 analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
-orient           = reshape(get_numaris4_numval(hdr{1}.Private_0029_1210,...
+orient           = reshape(get_numaris4_numval(privdat,...
     'ImageOrientationPatient'),[3 2]);
 orient(:,3)      = null(orient');
 if det(orient)<0, orient(:,3) = -orient(:,3); end;
 if length(hdr)>1,
     z            = zeros(length(hdr),1);
     for i=1:length(hdr),
-        z(i) = get_numaris4_numval(hdr{i}.Private_0029_1210,...
+        z(i) = get_numaris4_numval(privdat,...
             'ImagePositionPatient')*orient(:,3);
     end;
     z            = mean(diff(z));
 else
     try
-        z = get_numaris4_numval(hdr{1}.Private_0029_1210,...
+        z = get_numaris4_numval(privdat,...
             'SliceThickness');
     catch
         z = 1;
     end;
 end;
 
-vox = [get_numaris4_numval(hdr{1}.Private_0029_1210,'PixelSpacing') z];
-pos = get_numaris4_numval(hdr{1}.Private_0029_1210,'ImagePositionPatient')';
+ps  = get_numaris4_numval(privdat,'PixelSpacing');
+vox = [ps(:)' z];
+pos = get_numaris4_numval(privdat,'ImagePositionPatient')';
 %dicom_to_patient = [orient*diag(vox) pos-1.5*orient*([0 vox(2) 0]') ; 0 0 0 1];
 dicom_to_patient = [orient*diag(vox) pos ; 0 0 0 1];
 patient_to_tal   = diag([-1 -1 1 1]);
@@ -705,11 +717,11 @@ for i=1:length(hdr),
     if ~checkfields(hdr{i},'Modality') || ~(strcmp(hdr{i}.Modality,'MR') ||...
             strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'CT'))
         disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
-        guff = {guff{:},hdr{i}};
+        guff = [guff(:)',hdr(i)];
     elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
         disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
-        guff = {guff{:},hdr{i}};
+        guff = [guff(:)',hdr(i)];
    %elseif isfield(hdr{i},'Private_2001_105f'),
    %    % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
    %    % http://www.medical.philips.com/main/company/connectivity/mri/index.html
@@ -718,26 +730,26 @@ for i=1:length(hdr),
    %    guff = {guff{:},hdr{i}};
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1210')),
         disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
-        guff = {guff{:},hdr{i}};
+        guff = [guff(:)',hdr(i)];
     elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
         disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
         if ~isfield(hdr{i},'SeriesNumber')
             disp('Setting SeriesNumber to 1');
             hdr{i}.SeriesNumber=1;
-            images = {images{:},hdr{i}};
+            images = [images(:)',hdr(i)];
         end;
         if ~isfield(hdr{i},'AcquisitionNumber')
             disp('Setting AcquisitionNumber to 1');
             hdr{i}.AcquisitionNumber=1;
-            images = {images{:},hdr{i}};
+            images = [images(:)',hdr(i)];
         end;
         if ~isfield(hdr{i},'InstanceNumber')
             disp('Setting InstanceNumber to 1');
             hdr{i}.InstanceNumber=1;
-            images = {images{:},hdr{i}};
+            images = [images(:)',hdr(i)];
         end;
     else
-        images = {images{:},hdr{i}};
+        images = [images(:)',hdr(i)];
     end;
 end;
 return;
@@ -768,7 +780,7 @@ return;
 function [spect,images] = select_spectroscopy_images(hdr)
 spectsel = zeros(1,numel(hdr));
 for i=1:length(hdr),
-    if isfield(hdr{i},'SOPClassUID') && isfield(hdr{i},'Private_0029_1210')
+    if isfield(hdr{i},'SOPClassUID')
         spectsel(i) = strcmp(hdr{i}.SOPClassUID,'1.3.12.2.1107.5.9.1');
     end;
 end;
@@ -818,10 +830,26 @@ if fp==-1,
     return;
 end;
 
-fseek(fp,hdr.StartOfPixelData,'bof');
-img = fread(fp,hdr.Rows*hdr.Columns,prec);
+if isfield(hdr,'TransferSyntaxUID') && strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.4.70')
+    % try to read PixelData as JPEG image - offset is just a guess
+    offset = 16;
+    fseek(fp,hdr.StartOfPixelData+offset,'bof');
+    img = fread(fp,Inf,'*uint8');
+    % save PixelData into temp file - imread and its subroutines can only
+    % read from file, not from memory
+    tfile = tempname;
+    tfp = fopen(tfile,'w+');
+    fwrite(tfp,img,'uint8');
+    fclose(tfp);
+    % read decompressed data, transpose to match DICOM row/column order
+    img = imread(tfile)';
+    delete(tfile);
+else
+    fseek(fp,hdr.StartOfPixelData,'bof');
+    img = fread(fp,hdr.Rows*hdr.Columns,prec);
+end
 fclose(fp);
-if length(img)~=hdr.Rows*hdr.Columns,
+if numel(img)~=hdr.Rows*hdr.Columns,
     error([hdr.Filename ': cant read whole image']);
 end;
 
@@ -1049,7 +1077,11 @@ function ret = read_ascconv(hdr)
 ret=struct;
 
 % get ascconv data
-X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+if strcmp(hdr.CSAImageHeaderVersion, 'syngo MR B13')
+    X = hdr.Private_0029_1120;
+else
+    X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+end
 
 ascstart = findstr(X,'### ASCCONV BEGIN ###');
 ascend = findstr(X,'### ASCCONV END ###');
