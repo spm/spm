@@ -23,7 +23,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %
 % Y and xY are also saved in VOI_*.mat in the SPM working directory
 %
-% (See spm_getSPM for details on the SPM,VOL, xX & xSDM structures.)
+% (See spm_getSPM for details on the SPM,VOL, xX & xSPM structures.)
 %
 %_______________________________________________________________________
 %
@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 2503 2008-11-29 11:38:15Z klaas $
+% $Id: spm_regions.m 3094 2009-05-04 11:20:13Z volkmar $
 
 
 
@@ -63,7 +63,7 @@ end
 
 %-Find nearest voxel [Euclidean distance] in point list in Y.mad
 %-----------------------------------------------------------------------
-if ~length(xSPM.XYZmm)
+if isempty(xSPM.XYZmm)
     spm('alert!','No suprathreshold voxels!',mfilename,0);
     Y = []; xY = [];
     return
@@ -227,7 +227,7 @@ end
 
 % Remove null space of X0
 %-----------------------------------------------------------------------
-xY.X0   = xY.X0(:,~~any(xY.X0));
+xY.X0   = xY.X0(:,any(xY.X0));
 
 
 % compute regional response in terms of first eigenvariate
