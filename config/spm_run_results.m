@@ -9,15 +9,15 @@ function spm_run_results(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 2048 2008-09-05 13:33:42Z ferath $
+% $Id: spm_run_results.m 3095 2009-05-04 11:22:18Z volkmar $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
     job.conspec=cspec(k);
     if (numel(cspec(k).contrasts) == 1) && isinf(cspec(k).contrasts)
         tmp=load(job.spmmat{1});
+        cspec1 = repmat(cspec(k),size(tmp.SPM.xCon));
         for l=1:numel(tmp.SPM.xCon)
-            cspec1(l) = cspec(k);
             cspec1(l).contrasts = l;
         end;
         job1=job;
@@ -35,7 +35,6 @@ for k = 1:numel(cspec)
             xSPM.Ex     = job.conspec.mask.mtype;
         end
         xSPM.thresDesc  = job.conspec.threshdesc;
-        xSPM.u          = job.conspec.thresh;
         xSPM.title      = job.conspec.titlestr;
         xSPM.k          = job.conspec.extent;
         [hReg xSPM SPM] = spm_results_ui('Setup',xSPM);
