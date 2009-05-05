@@ -14,6 +14,9 @@ function [C,R] = fitsphere(pnt)
 % Copyright (C) 2009, Jean Daunizeau (for SPM)
 %
 % $Log: fitsphere.m,v $
+% Revision 1.4  2009/05/01 07:32:27  roboos
+% added another solution for the flat surface fitting: now the norm is being used consistently
+%
 % Revision 1.3  2009/04/30 16:59:36  vlalit
 % Bug fix for the problem of too flat mesh surfaces as suggested by Christophe
 %
@@ -56,7 +59,8 @@ if (Mrank == 5)
   pvec = v(:,dminindex(1))';
 else
   % Rank deficient -- just extract nullspace of M
-  pvec = null(M)';
+  % pvec = null(M)';  % this does not work reliably because of inconsistent rank definition
+  pvec = v(:,evalues <= eps*5*norm(M))';
   [m,n] = size(pvec);
   if m > 1
     pvec = pvec(1,:);
@@ -64,13 +68,15 @@ else
 end
 
 if isempty(pvec)
-    C = [NaN NaN NaN];
-    R = Inf;
+  warning('was not able to fity a sphere to the surface points');
+   C = [NaN NaN NaN];
+   R = Inf;
 else
-    % Convert to (R,C)
-    C = -0.5*pvec(2:4) / pvec(1);
-    R = sqrt(sum(C*C') - pvec(5)/pvec(1));
+   % Convert to (R,C)
+   C = -0.5*pvec(2:4) / pvec(1);
+   R = sqrt(sum(C*C') - pvec(5)/pvec(1));
 end
+
 
 % if nargout == 1,
 %   if pvec(1) < 0
