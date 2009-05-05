@@ -4,10 +4,10 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3062 2009-04-17 14:07:40Z jean $
+% $Id: spm_eeg_review_callbacks.m 3099 2009-05-05 15:31:32Z jean $
 
 spm('pointer','watch');
-drawnow
+drawnow expose
 
 try
     D = get(spm_figure('FindWin','Graphics'),'userdata');
@@ -869,7 +869,7 @@ if isstruct(D)&& isfield(D,'PSD') && ...
     end
 end
 spm('pointer','arrow');
-drawnow
+drawnow expose
 
 %% Main update display
 function [] = updateDisp(D,flags,in)
