@@ -4,10 +4,10 @@ function spm_render(dat,brt,rendfile)
 %
 % dat - a vertical cell array of length 1 to 3
 %       - each element is a structure containing:
-%         - XYZ - the x, y & z coordinates of the transformed t values.
+%         - XYZ - the x, y & z coordinates of the transformed SPM{.} values
 %                 in units of voxels.
-%         - t   - the SPM{.} values
-%         - mat - affine matrix mapping from XYZ voxels to Talairach.
+%         - t   - the SPM{.} values.
+%         - mat - affine matrix mapping from XYZ voxels to MNI.
 %         - dim - dimensions of volume from which XYZ is drawn.
 % brt - brightness control:
 %            If NaN, then displays using the old style with hot
@@ -21,7 +21,7 @@ function spm_render(dat,brt,rendfile)
 %__________________________________________________________________________
 % 
 % spm_render prompts for details of up to three SPM{.}s that are then
-% displayed superimposed on the surface of a standard brain.
+% displayed superimposed on the surface of a 'standard' brain.
 %
 % The first is shown in red, then green then blue.
 %
@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm_render.m 3100 2009-05-06 19:00:39Z guillaume $
 
-SVNrev = '$Rev: 3081 $';
+SVNrev = '$Rev: 3100 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -52,13 +52,13 @@ if nargin < 1
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
 
-    for i = 1:num,
-        [SPM,VOL] = spm_getSPM;
-        dat(i)    = struct( 'XYZ',  VOL.XYZ,...
-                    't',    VOL.Z',...
-                    'mat',  VOL.M,...
-                    'dim',  VOL.DIM);
-    end;
+    for i = 1:num
+        [SPM,xSPM] = spm_getSPM;
+        dat(i)    = struct( 'XYZ',  xSPM.XYZ,...
+                    't',    xSPM.Z',...
+                    'mat',  xSPM.M,...
+                    'dim',  xSPM.DIM);
+    end
     showbar = 1;
 else
     num     = length(dat);
@@ -106,17 +106,23 @@ prevrend.col = col;
 
 %-Perform the rendering
 %==========================================================================
-try
+[p,f,e] = fileparts(rendfile);
+loadgifti = false;
+if strcmpi(e,'.mat')
     load(rendfile);
-catch
+    if ~exist('rend','var') && ~exist('Matrixes','var')
+        loadgifti = true;
+    end
+end
+if ~strcmpi(e,'.mat') || loadgifti
     try
         rend = export(gifti(rendfile),'patch');
     catch
         error('\nCannot read  render file "%s".\n', rendfile);
     end
-    rnd = spm_input('Rendering',1,'voxel|texture',{'voxel' 'texture'}, 1);
-    surf_rend(dat,rend,col,rnd{1});
-    return;
+    %rnd = spm_input('Rendering',1,'texture|voxel',{'texture' 'voxel'}, 1);
+    surf_rend(dat,rend,col,'texture');
+    return
 end
 
 spm('Pointer','Watch');
@@ -295,7 +301,11 @@ function surf_rend(dat,rend,col,action)
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 
-ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, 0.5],'Visible','off');
+ax = axes(...
+    'Parent',Fgraph,...
+    'units','normalized',...
+    'Position',[0, 0, 1, 0.5],...
+    'Visible','off');
 
 switch lower(action)
     
@@ -354,28 +364,72 @@ end
 
 set(Fgraph,'CurrentAxes',ax);
 view(ax,[-90 0]);
-l = camlight; set(l,'Parent',ax);
-setappdata(ax,'camlight',l)
 axis(ax,'image');
-r = rotate3d(Fgraph);
+
+l = camlight; set(l,'Parent',ax);
+material(Fgraph,'dull');
+setappdata(ax,'camlight',l);
+
+r = rotate3d(ax);
 set(r,'enable','on');
 set(r,'ActionPostCallback',@mypostcallback);
 set(hp,'DeleteFcn',@mydeletefcn);
-material(Fgraph,'dull');
 
 hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
-xyz = spm_XYZreg('GetCoords',hReg);
-hold(ax,'on');
-[X,Y,Z] = sphere;
-vx = sqrt(sum(dat.mat(1:3,1:3).^2));
-X = X*vx(1) + xyz(1);
-Y = Y*vx(2) + xyz(2);
-Z = Z*vx(3) + xyz(3);
-surf(X,Y,Z,'parent',ax,'EdgeColor','none','FaceColor',[1 0 0],'FaceLighting', 'phong');
+xyz  = spm_XYZreg('GetCoords',hReg);
+hs   = mydispcursor('Create',ax,dat.mat,xyz);
+spm_XYZreg('Add2Reg',hReg,hs,@mydispcursor);
 
 %==========================================================================
 function mypostcallback(obj,evd)
 try, camlight(getappdata(evd.Axes,'camlight')); end
 
+%==========================================================================
 function mydeletefcn(obj,evd)
 try, rotate3d(get(obj,'parent'),'off'); end
+
+%==========================================================================
+function varargout = mydispcursor(varargin)
+
+switch lower(varargin{1})
+    %======================================================================
+    case 'create'
+    %======================================================================
+    % hMe = mydispcursor('Create',ax,M,xyz)
+    ax  = varargin{2};
+    M   = varargin{3};
+    xyz = varargin{4};
+    
+    [X,Y,Z] = sphere;
+    vx = sqrt(sum(M(1:3,1:3).^2));
+    X = X*vx(1) + xyz(1);
+    Y = Y*vx(2) + xyz(2);
+    Z = Z*vx(3) + xyz(3);
+    hold(ax,'on');
+    hs = surf(X,Y,Z,'parent',ax,...
+        'EdgeColor','none','FaceColor',[1 0 0],'FaceLighting', 'phong');
+    set(hs,'UserData',xyz);
+    
+    varargout = {hs};
+    
+    %=======================================================================
+    case 'setcoords'    % Set co-ordinates
+    %=======================================================================
+    % [xyz,d] = mydispcursor('SetCoords',xyz,hMe,hC)
+    hMe  = varargin{3};
+    pxyz = get(hMe,'UserData');
+    xyz  = varargin{2};
+    
+    set(hMe,'XData',get(hMe,'XData') - pxyz(1) + xyz(1));
+    set(hMe,'YData',get(hMe,'YData') - pxyz(2) + xyz(2));
+    set(hMe,'ZData',get(hMe,'ZData') - pxyz(3) + xyz(3));
+    set(hMe,'UserData',xyz);
+    
+    varargout = {xyz,[]};
+    
+    %=======================================================================
+    otherwise
+    %=======================================================================
+    error('Unknown action string')
+
+end

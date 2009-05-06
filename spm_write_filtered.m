@@ -21,7 +21,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm_write_filtered.m 3100 2009-05-06 19:00:39Z guillaume $
 
 
 %-Parse arguments
@@ -33,7 +33,7 @@ if nargin<6, F = spm_input('Output filename',1,'s'); end
 
 %-Get filename
 %-----------------------------------------------------------------------
-Q = [spm_str_manip(F,'sdv'), '.img'];
+Q = [spm_str_manip(F,'sd'), '.img'];
 spm('Pointer','Watch')
 
 %-Set up header information
