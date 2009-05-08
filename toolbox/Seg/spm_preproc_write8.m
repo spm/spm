@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2531 2008-12-05 18:59:26Z john $
+% $Id: spm_preproc_write8.m 3102 2009-05-08 11:29:34Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -48,7 +48,7 @@ for n=1:N,
     [pth1,nam1,ext1] = fileparts(res.image(n).fname);
     chan(n).ind      = res.image(n).n;
 
-    if bf(n,1),
+    if bf(n,2),
         chan(n).Nc      = nifti;
         chan(n).Nc.dat  = file_array(fullfile(pth1,['m', nam1, '.nii']),...
                                      res.image(n).dim(1:3),...
@@ -60,7 +60,7 @@ for n=1:N,
         create(chan(n).Nc);
     end
 
-    if bf(n,2),
+    if bf(n,1),
         chan(n).Nf      = nifti;
         chan(n).Nf.dat  = file_array(fullfile(pth1,['BiasField_', nam1, '.nii']),...
                                      res.image(n).dim(1:3),...
@@ -104,7 +104,7 @@ Coef{3} = spm_bsplinc(res.Twarp(:,:,:,3),prm);
 do_defs = any(df);
 do_defs = do_cls | do_defs;
 if do_defs,
-    if df(2),
+    if df(1),
         [pth,nam,ext1]=fileparts(res.image(1).fname);
         Ndef      = nifti;
         Ndef.dat  = file_array(fullfile(pth,['iy_', nam1, '.nii']),...
@@ -116,7 +116,7 @@ if do_defs,
         Ndef.descrip = 'Inverse Deformation';
         create(Ndef);
     end
-    if df(1) || any(any(tc(:,[2,3,4]))) || nargout>=1,
+    if df(2) || any(any(tc(:,[2,3,4]))) || nargout>=1,
         y = zeros([res.image(1).dim(1:3),3],'single');
     end
 end
@@ -334,7 +334,7 @@ if any(tc(:,3)),
     clear C s
 end
 
-if df(1),
+if df(2),
     y         = spm_invert_def(y,M1,d1,M0,[1 0]);
     N         = nifti;
     N.dat     = file_array(fullfile(pth,['y_', nam1, '.nii']),...
