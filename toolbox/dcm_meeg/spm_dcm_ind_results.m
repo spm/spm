@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 2631 2009-01-20 17:12:47Z cc $
+% $Id: spm_dcm_ind_results.m 3105 2009-05-11 11:20:45Z vladimir $
 
 
 % get figure handle
@@ -161,6 +161,7 @@ case{lower('Time-frequency')}
     % loop over trials, sources (predicted and observed)
     %----------------------------------------------------------------------
     colormap(jet)
+    cmax = zeros(nt, nr);
     for i = 1:nt
         for j = 1:nr
             subplot(nt*2,nr,(i - 1)*2*nr + j)
@@ -170,6 +171,9 @@ case{lower('Time-frequency')}
             ylabel('frequency')
             title({sprintf('trial %i: %s ',i,DCM.Sname{j});
                   'observed (adjusted for confounds)'})
+              
+            clim = caxis;  
+            cmax(i, j) = max(clim);  
 
             subplot(nt*2,nr,(i - 1)*2*nr + nr + j)
             imagesc(pst,Hz,TF{i,j}')
@@ -178,6 +182,18 @@ case{lower('Time-frequency')}
             ylabel('frequency')
             title({sprintf('trial %i',i);
                   'predicted'})
+        end
+    end
+
+    cmax = mean(cmax);
+
+    for i = 1:nt
+        for j = 1:nr
+            subplot(nt*2,nr,(i - 1)*2*nr + j)
+            caxis(cmax(j)*[0 1]);
+
+            subplot(nt*2,nr,(i - 1)*2*nr + nr + j)
+            caxis(cmax(j)*[0 1]);
         end
     end
 
@@ -192,6 +208,7 @@ case{lower('Coupling (A - Hz)')}
             jj = [1:nf]*nr - nr + j; 
             A  = xY.U*DCM.Ep.A(ii,jj)*xY.U';
             imagesc(Hz,Hz,A)
+            caxis(max(abs(caxis))*[-1 1]);                
             axis image
             
             % source names
@@ -208,13 +225,13 @@ case{lower('Coupling (A - Hz)')}
                 V.fname =sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
                 spm_write_vol(V, A);
             end
-            
-            
-            
-
         end
     end
+    
+    axes('position', [0.4, 0.95, 0.2, 0.01]);
+    axis off;
     title('endogenous coupling (A)')
+    colormap(jet);
      
 case{lower('Coupling (B - Hz)')}
     
@@ -241,8 +258,6 @@ case{lower('Coupling (B - Hz)')}
             jj = [1:nf]*nr - nr + j; 
             B  = xY.U*DCM.Ep.B{k}(ii,jj)*xY.U';
             
-           
-                
             imagesc(Hz,Hz,B)
             axis image
             
@@ -262,7 +277,11 @@ case{lower('Coupling (B - Hz)')}
                 
         end
     end
-    title({'changes in coupling (B)';DCM.xU.name{k}})
+    
+    axes('position', [0.4, 0.95, 0.2, 0.01]);
+    axis off;
+    title({'changes in coupling (B)';DCM.xU.name{k}});
+    colormap(jet);
     
 case{lower('Coupling (A - modes)')}
     
