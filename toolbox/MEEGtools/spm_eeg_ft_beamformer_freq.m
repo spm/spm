@@ -1,0 +1,357 @@
+function spm_eeg_beamformer_freq(S)
+% Script for making power images using DICS beamformer. Requires as input
+% an MEEG file where coregistration has been performed.
+%
+% Disclaimer: this code is provided as an example and is not guaranteed to work
+% with data on which it was not tested. If it does not work for you, feel
+% free to improve it and contribute your improvements to the MEEGtools toolbox
+% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+%
+% _______________________________________________________________________
+% Copyright (C) 2008 Institute of Neurology, UCL
+
+% Vladimir Litvak
+% $Id: spm_eeg_ft_beamformer_freq.m 3114 2009-05-11 15:32:58Z vladimir $
+        
+[Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
+%%
+
+%% ============ Load SPM EEG file and verify consistency
+if nargin == 0
+    S = [];
+end
+
+try
+    D = S.D;
+catch
+    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    S.D = D;
+end
+
+if ischar(D)
+    try
+        D = spm_eeg_load(D);
+    catch
+        error(sprintf('Trouble reading file %s', D));
+    end
+end
+
+[ok, D] = check(D, 'sensfid');
+
+if ~ok
+    if check(D, 'basic')
+        errordlg(['The requested file is not ready for source reconstruction.'...
+            'Use prep to specify sensors and fiducials.']);
+    else
+        errordlg('The meeg file is corrupt or incomplete');
+    end
+    return
+end
+
+modality = spm_eeg_modality_ui(D, 1, 1);
+channel = D.chanlabels(strmatch(modality, D.chantype))';
+
+if isfield(S, 'refchan') && ~isempty(S.refchan)
+    refchan = S.refchan;
+else
+    refchan = [];
+end
+
+%% ============ Find or prepare head model
+
+if ~isfield(D, 'val')
+    D.val = 1;
+end
+
+
+try
+    vol = D.inv{D.val}.forward.vol;
+    datareg = D.inv{D.val}.datareg;
+catch
+    D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
+    D = spm_eeg_inv_datareg_ui(D, D.val);
+    datareg = D.inv{D.val}.datareg;
+end
+
+vol = D.inv{D.val}.forward.vol;
+%% ============ Select the data and convert to Fieldtrip struct
+
+clb = D.condlist;
+
+if numel(clb) > 1
+
+    [selection, ok]= listdlg('ListString', clb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
+    
+    if ~ok
+        return;
+    end        
+else
+    selection = 1;
+end
+%%
+ind = [];
+condvec = [];
+for i = 1:length(selection)
+    ind = [ind D.pickconditions(clb(selection(i)))];
+    condvec = [condvec selection(i)*ones(size(D.pickconditions(clb(selection(i)))))];
+end
+%%
+data = D.ftraw(0); 
+data.trial = data.trial(ind);
+data.time =  data.time(ind);
+%%
+if ~isfield(S, 'centerfreq')
+    S.centerfreq =  spm_input('Frequency (Hz):', '+1', 'r', '', 1);
+end
+
+if ~isfield(S, 'tapsmofrq')
+    S.tapsmofrq  =  spm_input('Frequency window (Hz):', '+1', 'r', '', 1);
+end
+
+cfg = [];
+cfg.keeptrials = 'yes';
+cfg.channel    = [channel; refchan];
+%%
+if ~isfield(S, 'timewindows')
+    for i = 1:spm_input('Number of time windows:', '+1', 'r', '1', 1)
+        S.timewindows{i} = spm_input('Time ([start end] in sec):', '+1', 'r', '', 2);
+    end
+end
+
+for i = 1:numel(S.timewindows)
+    cfg.latency = S.timewindows{i};
+    timelock{i} = ft_timelockanalysis(cfg,data);
+    
+    if ~isempty(refchan) && S.cohshuffle
+        refind = strmatch(refchan, timelock{i}.label, 'exact');                 
+        rand('twister',sum(100*clock));        
+        trlind = find(rand(1, size(timelock{i}.trial, 1))>0.5);                
+        strlind = trlind(randperm(length(trlind)));
+        timelock{i}.trial(trlind, refind, :) = ...
+            timelock{i}.trial(strlind, refind, :);
+    end
+end
+
+
+
+%%
+if numel(timelock) == 1
+    S.contrast = 1;
+elseif ~isfield(S, 'contrast')
+    if numel(timelock) == 2
+        def = '1 -1';
+    else
+        def = '';
+    end
+
+    S.contrast = spm_input('Contrast vector:', '+1', 'r', def, i);
+end
+%%
+if ~isfield(S, 'lambda')
+    S.lambda = [num2str(spm_input('Regularization (%):', '+1', 'r', '0')) '%'];
+end
+
+if ~isfield(S, 'preview')
+    S.preview = spm_input('Preview results?','+1', 'yes|no', [1, 0]);
+end
+%%
+cfg = [];
+cfg.method    = 'mtmfft';
+cfg.output    = 'powandcsd';
+cfg.tapsmofrq = S.tapsmofrq;
+cfg.foilim    = [S.centerfreq S.centerfreq];
+cfg.keeptrials = 'yes';
+
+for i = 1:numel(timelock)
+    freq{i} = ft_freqanalysis(cfg, timelock{i});
+end
+
+if isfield(S, 'usewholetrial') && S.usewholetrial
+    cfg.channel = channel;
+    cfg.channelcmb = ft_channelcombination({'all', 'all'}, channel);
+    if ~isempty(refchan)
+         cfg.channelcmb =  [cfg.channelcmb; ft_channelcombination({'all', refchan}, [channel {refchan}])];
+    end
+    filtfreq = ft_freqanalysis(cfg, data);
+end
+%%
+freqall = freq{1};
+timevec = ones(1, size(freq{1}.powspctrm, 1));
+trialvec = ind;
+if length(freq) > 1
+    for i = 2:length(freq)
+        freqall.powspctrm = cat(1,  freqall.powspctrm, freq{i}.powspctrm);
+        freqall.crsspctrm = cat(1,  freqall.crsspctrm, freq{i}.crsspctrm);
+        freqall.cumsumcnt = cat(1,  freqall.cumsumcnt, freq{i}.cumsumcnt);
+        freqall.cumtapcnt = cat(1,  freqall.cumtapcnt, freq{i}.cumtapcnt);
+        timevec = [timevec i*ones(1, size(freq{i}.powspctrm, 1))];
+        condvec = [condvec(:)' condvec(:)'];
+        trialvec = [trialvec ind];
+    end
+end
+%%
+cfg                       = [];
+if strcmp('EEG', modality)
+    cfg.elec = D.inv{D.val}.datareg.sensors;
+else
+    cfg.grad = D.sensors('MEG');
+    cfg.reducerank            = 2;
+end
+
+cfg.channel = D.chanlabels(D.meegchannels(modality));
+cfg.vol                   = vol;
+cfg.resolution            = 10;
+cfg.inwardshift           = -40;
+grid                      = ft_prepare_leadfield(cfg);          
+ 
+
+cfg = [];
+
+if strcmp('EEG', modality)
+    cfg.elec = D.inv{D.val}.datareg.sensors;
+else
+    cfg.grad = D.sensors('MEG');
+    cfg.reducerank = 2;
+end
+
+cfg.channel = D.chanlabels(D.meegchannels(modality));
+
+if ~isempty(refchan)
+    cfg.refchan = refchan;
+end
+
+cfg.keepfilter   = 'yes';
+cfg.frequency    = S.centerfreq;
+cfg.method       = 'dics';
+
+if isfield(S, 'fixedori') && S.fixedori
+    cfg.dics.fixedori = 'yes';
+end
+
+cfg.dics.powmethod  = 'trace';
+
+cfg.projectnoise = 'no';
+cfg.grid         = grid;
+cfg.vol          = vol;
+cfg.lambda       = S.lambda;
+
+if isfield(S, 'usewholetrial') && S.usewholetrial
+    filtsource   = ft_sourceanalysis(cfg, filtfreq);
+else
+    filtsource   = ft_sourceanalysis(cfg, freqall);
+end
+%
+cfg.keepfilter   = 'no';
+cfg.grid.filter  = filtsource.avg.filter; % use the filter computed in the previous step
+
+if isfield(S, 'geteta')
+    geteta = spm_eeg_inv_transform_points(datareg.fromMNI, S.geteta);
+    [junk, ind] = min(sqrt(sum((grid.pos - repmat(geteta, size(grid.pos, 1), 1)).^2, 2)));
+    cfg1 = cfg;
+    cfg1.dics.fixedori = 'yes';
+    
+    cfg1.keepcsd = 'yes';
+    
+    seta   = ft_sourceanalysis(cfg1, freq{1});
+    
+    cfg1 =[];
+    cfg1.eta = 'yes';
+    seta = ft_sourcedescriptives(cfg1, seta);
+    
+    [x, y, z] = ind2sub(grid.dim, ind);
+    
+    ori = seta.avg.ori{x, y, z};
+    
+    disp(['The optimal orientation (in head coordinates): ' num2str(ori')]);
+    return;
+end
+
+sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
+
+
+if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
+    for i = 1:numel(freq)
+        source{i}   = ft_sourceanalysis(cfg, freq{i});
+    end
+
+    %
+    pow = [];
+    for i = 1:numel(source)
+        if isempty(refchan)
+            pow = [pow source{i}.avg.pow(:)];
+        else
+            pow = [pow source{i}.avg.coh(:)];
+        end
+    end
+
+    csource = source{1};
+    csource.pow = (pow*S.contrast');    
+            
+    csource.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos);    
+    
+    cfg1 = [];
+    cfg1.sourceunits   = 'mm';  
+    cfg1.parameter = 'pow';
+    cfg.downsample = 1;
+    sourceint = ft_sourceinterpolate(cfg1, csource, sMRI);
+    %%
+    
+    if (isfield(S, 'preview') && S.preview)
+        cfg1 = [];
+        cfg1.funparameter = 'pow';
+        cfg1.funcolorlim = 0.1*[-1 1]*max(abs(csource.pow));
+        cfg1.interactive = 'yes';
+        figure
+        ft_sourceplot(cfg1,sourceint);
+    end
+    
+    if ~isempty(refchan)
+        res = mkdir(D.path, 'images');
+        outvol = spm_vol(sMRI);        
+        outvol.dt(1) = spm_type('float32');
+        outvol.fname= fullfile(D.path, 'images', ['img_' spm_str_manip(D.fname, 'r') '_coh.nii']);
+        outvol = spm_create_vol(outvol);
+        spm_write_vol(outvol, sourceint.pow);
+    end
+else       
+    cfg.rawtrial     = 'yes';
+    
+    source   = ft_sourceanalysis(cfg, freqall);    
+   
+    source.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, source.pos);  
+   
+    clear('data', 'csource', 'filtsource', 'timelock', 'freq', 'grid', 'freqall');
+   
+    cfg = [];
+    cfg.sourceunits   = 'mm';
+    cfg.parameter = 'pow';
+    cfg.downsample = 1;
+    %
+    res = mkdir(D.path, 'images');
+
+    outvol = spm_vol(sMRI);
+    %
+    outvol.dt(1) = spm_type('float32');
+
+    trialind = unique(trialvec);        
+    
+    pow = nan(size(source.pos, 1), length(S.contrast));
+    
+    for i = 1:length(trialind)
+        ind = find(trialvec == trialind(i));
+
+        for j = 1:length(ind)
+            pow(:, j) = source.trial(ind(j)).pow(:);
+        end
+
+        source.pow = (pow*S.contrast');
+
+        sourceint = ft_sourceinterpolate(cfg, source, sMRI);
+
+        outvol.fname= fullfile(D.path, 'images', ['img_' spm_str_manip(D.fname, 'r') '_trial_' num2str(trialind(i)) '.nii']);
+        outvol = spm_create_vol(outvol);
+        spm_write_vol(outvol, sourceint.pow);
+    end
+    %%
+end
+
