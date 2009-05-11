@@ -40,6 +40,9 @@ function label = senslabel(type)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: senslabel.m,v $
+% Revision 1.2  2009/05/07 13:34:09  roboos
+% added ctf64
+%
 % Revision 1.1  2009/01/21 10:32:38  roboos
 % moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
 %
@@ -173,6 +176,73 @@ if isctf
     'HLC0035'
     'HLC0036'
     'HLC0037'
+    };
+
+  ctf64 = {
+    'SL11'
+    'SL12'
+    'SL13'
+    'SL14'
+    'SL15'
+    'SL16'
+    'SL17'
+    'SL18'
+    'SL19'
+    'SL21'
+    'SL22'
+    'SL23'
+    'SL24'
+    'SL25'
+    'SL26'
+    'SL27'
+    'SL28'
+    'SL29'
+    'SL31'
+    'SL32'
+    'SL33'
+    'SL34'
+    'SL35'
+    'SL41'
+    'SL42'
+    'SL43'
+    'SL44'
+    'SL45'
+    'SL46'
+    'SL47'
+    'SL51'
+    'SL52'
+    'SR11'
+    'SR12'
+    'SR13'
+    'SR14'
+    'SR15'
+    'SR16'
+    'SR17'
+    'SR18'
+    'SR19'
+    'SR21'
+    'SR22'
+    'SR23'
+    'SR24'
+    'SR25'
+    'SR26'
+    'SR27'
+    'SR28'
+    'SR29'
+    'SR31'
+    'SR32'
+    'SR33'
+    'SR34'
+    'SR35'
+    'SR41'
+    'SR42'
+    'SR43'
+    'SR44'
+    'SR45'
+    'SR46'
+    'SR47'
+    'SR51'
+    'SR52'
     };
 
   ctf151 = {

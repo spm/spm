@@ -14,6 +14,9 @@ function [C,R] = fitsphere(pnt)
 % Copyright (C) 2009, Jean Daunizeau (for SPM)
 %
 % $Log: fitsphere.m,v $
+% Revision 1.5  2009/05/05 10:02:42  vlalit
+% Typo fix
+%
 % Revision 1.4  2009/05/01 07:32:27  roboos
 % added another solution for the flat surface fitting: now the norm is being used consistently
 %
@@ -68,7 +71,7 @@ else
 end
 
 if isempty(pvec)
-  warning('was not able to fity a sphere to the surface points');
+  warning('was not able to fit a sphere to the surface points');
    C = [NaN NaN NaN];
    R = Inf;
 else

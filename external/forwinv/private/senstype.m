@@ -58,6 +58,9 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.14  2009/05/07 13:34:09  roboos
+% added ctf64
+%
 % Revision 1.13  2009/04/01 06:51:43  roboos
 % implemented caching for the type detection in case the same input is given multiple times
 % this uses a persistent variable
@@ -146,6 +149,8 @@ else
       type = 'ctf275';
     elseif (mean(ismember(senslabel('ctf151'),        sens.label)) > 0.8)
       type = 'ctf151';
+    elseif (mean(ismember(senslabel('ctf64'),         sens.label)) > 0.8)
+      type = 'ctf64';
     elseif (mean(ismember(senslabel('ctf275_planar'), sens.label)) > 0.8)
       type = 'ctf275_planar';
     elseif (mean(ismember(senslabel('ctf151_planar'), sens.label)) > 0.8)
