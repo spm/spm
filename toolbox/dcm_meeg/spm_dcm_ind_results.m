@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 3106 2009-05-11 11:52:00Z vladimir $
+% $Id: spm_dcm_ind_results.m 3107 2009-05-11 12:13:32Z vladimir $
 
 
 % get figure handle
@@ -132,7 +132,12 @@ case{lower('Time-modes')}
         grid on
         axis square
         xlabel('time (ms)')
-        try, axis(A), catch A = axis; end
+        if i == 1
+            ylim1 = ylim;
+        end
+
+        ylim(max(abs(ylim1))*[-1 1]);
+            
     end
     legend(DCM.Sname)
 
