@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_api_erp.m 3112 2009-05-11 15:19:34Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -173,8 +173,23 @@ end
  
 handles.DCM = DCM;
 guidata(hObject, handles);
- 
- 
+
+% estimation and results
+%--------------------------------------------------------------------------
+try
+    handles.DCM.F;
+    set(handles.results,    'Enable','on');
+    switch handles.DCM.options.spatial
+        case{'IMG'}
+            set(handles.Imaging,'Enable','on');
+        otherwise
+            set(handles.Imaging,'Enable','off');
+    end
+catch
+    set(handles.results,    'Enable','off');
+end
+guidata(hObject, handles);
+
 % spatial model specification
 %--------------------------------------------------------------------------
 try
@@ -195,22 +210,7 @@ catch
     return
 end
  
-% estimation and results
-%--------------------------------------------------------------------------
-try
-    handles.DCM.F;
-    set(handles.results,    'Enable','on');
-    switch handles.DCM.options.spatial
-        case{'IMG'}
-            set(handles.Imaging,'Enable','on');
-        otherwise
-            set(handles.Imaging,'Enable','off');
-    end
-catch
-    set(handles.results,    'Enable','off');
-end
- 
-guidata(hObject, handles);
+
  
 % --- Executes on button press in save.
 % -------------------------------------------------------------------------
@@ -676,8 +676,8 @@ switch DCM.options.model
             return
         end
     otherwise
-        nk = 3;                          % number of connection types
-        nj = ones(nk,1)*n;               % number of sources
+        nk = 3;                           % number of connection types
+        nj = ones(nk,1)*n;                % number of sources
 end
 
 
@@ -736,7 +736,7 @@ for i = 1:n
 
             % allow nonlinear self-connections (induced responses)
             %--------------------------------------------------------------
-            if strcmpi(DCM.options.model,'IND') && k == 2
+            if strcmpi(DCM.options.analysis,'IND') && k == 2
                 set(A{k}(i,j),'Enable','on')
             end
             if strcmpi(DCM.options.model,'DEM')

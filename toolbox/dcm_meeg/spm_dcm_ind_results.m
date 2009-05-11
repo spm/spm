@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 3107 2009-05-11 12:13:32Z vladimir $
+% $Id: spm_dcm_ind_results.m 3112 2009-05-11 15:19:34Z karl $
 
 
 % get figure handle
@@ -208,7 +208,7 @@ case{lower('Coupling (A - Hz)')}
     %----------------------------------------------------------------------
     for i = 1:nr
         for j = 1:nr
-            subplot(nr,nr,i + nr*(j - 1))
+            subplot(nr,nr,j + nr*(i - 1))
             ii = [1:nf]*nr - nr + i;
             jj = [1:nf]*nr - nr + j; 
             A  = xY.U*DCM.Ep.A(ii,jj)*xY.U';
@@ -218,18 +218,18 @@ case{lower('Coupling (A - Hz)')}
             
             % source names
             %--------------------------------------------------------------
-            if j == 1, title({'from'; DCM.Sname{i}}), end
-            if i == 1, ylabel({'to';  DCM.Sname{j}}), end
-            
+            if i == 1, title({'from'; DCM.Sname{j}}), end
+            if j == 1, ylabel({'to';  DCM.Sname{i}}), end
             
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Amatrix')
-                V.dt=[spm_type('float64') 0];
-                V.mat = eye(4);
+                V.dt    = [spm_type('float64') 0];
+                V.mat   = eye(4);
                 V.pinfo = [1 0 0]';
-                V.dim = [length(Hz) length(Hz)  1 ];
-                V.fname =sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
-                spm_write_vol(V, A);
+                V.dim   = [length(Hz) length(Hz)  1 ];
+                V.fname = sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
+                spm_write_vol(V,A);
             end
+
         end
     end
     
@@ -269,15 +269,16 @@ case{lower('Coupling (B - Hz)')}
             
             % source names
             %--------------------------------------------------------------
-            if j == 1, title({'from'; DCM.Sname{i}}), end
-            if i == 1, ylabel({'to';  DCM.Sname{j}}), end
+            if i == 1, title({'from'; DCM.Sname{j}}), end
+            if j == 1, ylabel({'to';  DCM.Sname{i}}), end
+
             
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Bmatrix')
-               V.dt=[spm_type('float64') 0];
-               V.mat = eye(4);
+               V.dt    = [spm_type('float64') 0];
+               V.mat   = eye(4);
                V.pinfo = [1 0 0]';
-               V.dim = [length(Hz) length(Hz)  1 ];
-               V.fname =sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
+               V.dim   = [length(Hz) length(Hz)  1 ];
+               V.fname = sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
                spm_write_vol(V,B);
             end
                 
