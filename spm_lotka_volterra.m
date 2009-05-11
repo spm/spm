@@ -1,33 +1,48 @@
 function [f] = spm_lotka_volterra(x,v,P)
-% euations of motion for Lotka Volterra dynamics
-% FORMAT spm_lotka_volterra
-% x - hidden states
-% v - exogenous inputs
-% P - 
-% 
-% returns f = dx/dt = C*S(x) - x;
-%              S(x) = 1./(1 + exp(-P*x))
+% equations of motion for Lotka-Volterra dynamics
+% FORMAT [f] = spm_lotka_volterra(x,v,P)
 %
-% where C determines the order of unstable fixed points visitied in the
+% x   - hidden states
+% v   - exogenous inputs
+% P.f - lateral connectivity
+% P.k - rate [default 1]
+%
+% returns f = dx/dt = P.f*S(x) - x/8 + 1;
+%              S(x) = 1./(1 + exp(-x))
+%
+% where C determines the order of unstable fixed points visited in the
 % stable heteroclinic channel.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 2905 2009-03-20 13:00:15Z karl $
+% $Id: spm_lotka_volterra.m 3113 2009-05-11 15:25:13Z karl $
 
-% connectivity
-%--------------------------------------------------------------------------
-x      = spm_vec(x) - 4;
-v      = spm_vec(v);
-n      = length(x);
-m      = length(v);
-C      = spm_speye(n,n,0)*(1 - 8) + spm_speye(n,n,1)*(1/2 - 8) + 8;
-C(n,1) = 1/2;
 
-% flow
-%--------------------------------------------------------------------------
-f      = -C*(1./(1 + exp(-P*x))) - x/8;
-f      = 2*f;
-f(1:m) = f(1:m) + v;
+
+% intialise
+%==========================================================================
+try, P.k; catch, P.k = 1; end
+try, P.l; catch, P.l = 1; end
+
+try
+    
+    % SHC states 
+    %----------------------------------------------------------------------
+    f  = P.f*(1./(1 + exp(-x))) - x/8 + 1;
+    f  = P.k*f;
+
+catch
+
+    % SHC states and flow to point attractors in P.g
+    %----------------------------------------------------------------------
+    x.e  = exp(x.x);
+    f.x  = P.f*(1./(1 + exp(-x.x))) - x.x/8 + 1;
+    f.v  = P.g*x.e - x.v*sum(x.e);
+
+    f.x  = P.k*f.x;
+    f.v  = P.l*f.v;
+
+end
+

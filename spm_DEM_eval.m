@@ -1,6 +1,6 @@
-function [E,dE] = spm_DEM_eval(M,qu,qp)
+function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % evaluates state equations and derivatives for DEM schemes
-% FORMAT [E dE] = spm_DEM_eval(M,qu,qp)
+% FORMAT [E dE f g] = spm_DEM_eval(M,qu,qp)
 %
 % M  - model structure
 % qu - conditional mode of states
@@ -28,7 +28,7 @@ function [E,dE] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval.m 2924 2009-03-23 19:37:24Z karl $
+% $Id: spm_DEM_eval.m 3113 2009-05-11 15:25:13Z karl $
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================

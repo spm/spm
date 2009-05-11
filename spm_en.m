@@ -2,17 +2,20 @@ function [X] = spm_en(X)
 % Euclidean normalization
 % FORMAT [X] = spm_en(X);
 % X   - matrix
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
-% spm_en performs a Euclidean normalization setting column-wise sum of
-% squares to unity
-%_______________________________________________________________________
+% spm_en performs a Euclidean normalization setting the column-wise sum of
+% squares to unity (leaving columns of zeros as zeros)
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_en.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_en.m 3113 2009-05-11 15:25:13Z karl $
 
-
+% Euclidean normalization
+%--------------------------------------------------------------------------
 for i = 1:size(X,2)
-    X(:,i) = X(:,i)/sqrt(sum(X(:,i).^2));
+    if any(X(:,i))
+        X(:,i) = X(:,i)/sqrt(sum(X(:,i).^2));
+    end
 end
