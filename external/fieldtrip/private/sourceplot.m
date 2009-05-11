@@ -121,6 +121,12 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.67  2009/05/07 08:17:44  roboos
+% renderer applies to gcf and not to gca (figure instead of axes)
+%
+% Revision 1.66  2009/05/06 15:50:51  roboos
+% always set the renderer
+%
 % Revision 1.65  2009/03/26 13:17:33  roboos
 % deal with key=[] in case apple key is pressed
 %
@@ -687,6 +693,7 @@ if isequal(cfg.method,'ortho')
       end
     end
 
+    set(gcf, 'renderer', cfg.renderer); % ensure that this is done in interactive mode
     drawnow;
 
     if interactive_flag
@@ -755,6 +762,7 @@ elseif isequal(cfg.method,'glassbrain')
   tmpcfg.locationcoordinates = 'voxel';
   tmpcfg.maskparameter       = 'inside';
   tmpcfg.axis                = cfg.axis;
+  tmpcfg.renderer            = cfg.renderer;
   if hasfun, 
     fun = getsubfield(data, cfg.funparameter);
     fun(1,:,:) = max(fun, [], 1);
@@ -837,7 +845,7 @@ elseif isequal(cfg.method,'surface')
   else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end
-  set(gcf, 'renderer', cfg.renderer);
+
   h1 = patch('Vertices', surf.pnt, 'Faces', surf.tri, 'FaceVertexCData', color , 'FaceColor', 'interp');
   set(h1, 'EdgeColor', 'none');
   axis   off;
@@ -959,7 +967,6 @@ elseif isequal(cfg.method,'slice')
   if hasmsk; vols2D{3} = quilt_msk; scales{3} = [opacmin opacmax]; end;
 
   plot2D(vols2D, scales);
-
   axis off
 
   if strcmp(cfg.colorbar,  'yes'),
@@ -974,7 +981,8 @@ elseif isequal(cfg.method,'slice')
 
 end
 
-if ~isempty(cfg.title), title(cfg.title); end
+title(cfg.title);
+set(gcf, 'renderer', cfg.renderer);
 
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

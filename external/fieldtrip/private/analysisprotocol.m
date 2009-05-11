@@ -1,4 +1,4 @@
-function [str, details] = analysisprotocol(cfg, datacfg)
+function [script, details] = analysisprotocol(cfg, datacfg)
 
 % ANALYSISPROTOCOL tries to reconstruct the complete analysis protocol that
 % was used to create an arbitrary FieldTrip data structure. It will create
@@ -48,6 +48,9 @@ function [str, details] = analysisprotocol(cfg, datacfg)
 % Copyright (C) 2006-2009, Robert Oostenveld
 %
 % $Log: analysisprotocol.m,v $
+% Revision 1.4  2009/05/07 07:58:35  roboos
+% some general cleanup, don't know the precise details
+%
 % Revision 1.3  2009/03/23 21:17:53  roboos
 % made font slightly larger
 %
@@ -119,37 +122,38 @@ if isfield(datacfg, 'cfg')
   datacfg = datacfg.cfg;
 end
 
-str  = [];
-name = 'cfg';
-
 % set up the persistent variables
 if isempty(depth),  depth = 1; end
 if isempty(branch), branch = 1; end
 
+% start with an empty script
+script = '';
+
 % get the function call details before they are removed
 try
-  version_name = getsubfield(datacfg, 'version.name');
-  if isstruct(name)
-    version_name = version_name.name;
+  thisname = getsubfield(datacfg, 'version.name');
+  if isstruct(thisname)
+    % I think that this was needed for Matlab 6.5
+    thisname = thisname.name;
   end
-  [p, f] = fileparts(version_name);
-  version_name = f;
+  [p, f] = fileparts(thisname);
+  thisname = f;
 catch
-  name = 'unknown';
+  thisname = 'unknown';
 end
 
 try
-  version_id = getsubfield(datacfg, 'version.id');
+  thisid = getsubfield(datacfg, 'version.id');
 catch
-  version_id = 'unknown';
+  thisid = 'unknown';
 end
 
 if feedbacktext
   % give some feedback on screen
   fprintf('\n');
   fprintf('recursion depth = %d, branch = %d\n', depth, branch);
-  disp(version_name)
-  disp(version_id)
+  disp(thisname)
+  disp(thisid)
 end
 
 % remove the fields that are too large or not interesting
@@ -170,25 +174,27 @@ end
 
 % convert this part of the configuration to a matlab script
 if isfield(datacfg, 'previous')
-  this = rmfield(datacfg, 'previous');
+  thiscfg = rmfield(datacfg, 'previous');
 else
-  this = datacfg;
+  thiscfg = datacfg;
 end
 
-current = printstruct(name, this);
-nl      = sprintf('\n');
-empty   = sprintf('%s = [];\n', name);
-sep     = sprintf('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n');
-head1   = sprintf('%% version name = %s\n', version_name);
-head2   = sprintf('%% version id   = %s\n', version_id);
-str     = [str nl sep head1 head2 sep empty current nl];
+code        = printstruct('cfg', thiscfg);
+nl          = sprintf('\n');
+emptycfg    = sprintf('cfg = [];\n');
+sep         = sprintf('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n');
+head1       = sprintf('%% version name = %s\n', thisname);
+head2       = sprintf('%% version id   = %s\n', thisid);
+thisscript  = [nl sep head1 head2 sep emptycfg code nl];
 
-% add this part of the configration to the info for plotting
-info(branch,depth).name   = version_name;
-info(branch,depth).id     = version_id;
-info(branch,depth).str    = str;
-info(branch,depth).this   = [branch depth];
-info(branch,depth).parent = parent;
+% remember this part of the configuration info
+info(branch,depth).name     = thisname;
+info(branch,depth).id       = thisid;
+info(branch,depth).cfg      = thiscfg;
+info(branch,depth).script   = thisscript;
+info(branch,depth).this     = [branch depth];
+info(branch,depth).parent   = parent;
+info(branch,depth).children = {}; % this will be determined later
 
 if isfield(datacfg, 'previous')
   prev   = parent;
@@ -197,8 +203,7 @@ if isfield(datacfg, 'previous')
     % increment the depth counter
     depth = depth + 1;
     % use recursion to parse the previous section of the tree
-    previous = analysisprotocol(cfg, datacfg.previous);
-    str      = [previous str];
+    analysisprotocol(cfg, datacfg.previous);
   elseif iscell(datacfg.previous)
     for i=1:length(datacfg.previous(:))
       % increment the branch counter
@@ -206,8 +211,7 @@ if isfield(datacfg, 'previous')
       % increment the depth counter
       depth = depth + 1;
       % use recursion to parse each previous section of the tree
-      previous = analysisprotocol(cfg, datacfg.previous{i});
-      str      = [previous str];
+      analysisprotocol(cfg, datacfg.previous{i});
     end
   end
   % revert to the orignal parent
@@ -216,6 +220,45 @@ end
 
 if depth==1
   % the recursion has finished, we are again at the top level
+
+  % the parents were determined while climbing up the tree
+  % now it is time to descend and determine the children
+  for branch=1:size(info,1)
+    for depth=1:size(info,2)
+      if ~isempty(info(branch, depth).parent)
+        parentbranch = info(branch, depth).parent(1);
+        parentdepth  = info(branch, depth).parent(2);
+        info(parentbranch, parentdepth).children{end+1} = [branch depth];
+      end
+    end
+  end
+
+  % complement the individual scripts with the input and output variables
+  % and the actual function call
+  for branch=1:size(info,1)
+    for depth=1:size(info,2)
+      outputvar = sprintf('var_%d_%d', info(branch, depth).this);
+      inputvar = '';
+      commandline = sprintf('%s = %s(cfg%s);', outputvar, info(branch, depth).name, inputvar);
+      disp(commandline);
+
+    end
+  end
+
+  if nargout>0
+    % return the complete script as output argument
+    script = '';
+    for branch=1:size(info,1)
+      for depth=1:size(info,2)
+        script = [info(branch,depth).script script];
+      end
+    end
+  end
+
+  if nargout>1
+    % return the information details as output argument
+    details = info;
+  end
 
   if feedbackgui
     fig = figure;
@@ -239,18 +282,16 @@ if depth==1
     % write the complete script to file
     fprintf('writing result to file ''%s''\n', cfg.filename);
     fid = fopen(cfg.filename, 'wb');
-    fprintf(fid, '%s', str);
+    fprintf(fid, '%s', script);
     fclose(fid);
   end
 
-  % return the details as output argument
-  details = info;
   % clear all persistent variables
-  depth   = [];
-  branch  = [];
+  depth  = [];
+  branch = [];
   info   = [];
-  parent  = [];
-  fig     = [];
+  parent = [];
+  fig    = [];
 else
   % this level of recursion has finished, decrease the depth
   depth = depth - 1;
@@ -278,7 +319,10 @@ y = element.this(2) + y;
 p = patch(x', y', 0);
 set(p, 'Facecolor', [1 1 0.6])
 
-l = text(element.this(1), element.this(2), element.name);
+label{1} = element.name;
+% label{2} = num2str(element.this);
+
+l = text(element.this(1), element.this(2), label);
 set(l, 'HorizontalAlignment', 'center')
 set(l, 'interpreter', 'none')
 set(l, 'fontUnits', 'normalized')
@@ -317,5 +361,5 @@ end
 % determine the box that is nearest by the mouse click
 [m, indx] = min(dist(:));
 % show the information contained in that box
-uidisplaytext(info(indx).str, info(indx).name);
+uidisplaytext(info(indx).script, info(indx).name);
 

@@ -54,6 +54,9 @@ function [type] = filetype(filename, desired, varargin)
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.97  2009/05/06 15:42:06  roboos
+% also remember/check previous directory and don't do filetype caching in case type=unknown
+%
 % Revision 1.96  2009/04/01 06:53:23  roboos
 % implemented caching for the type detection in case the same input is given multiple times
 % this uses a persistent variable
@@ -236,8 +239,8 @@ function [type] = filetype(filename, desired, varargin)
 % fixed bug for besa_avr, renamed an incorrect tag into plexon_plx
 %
 
-% these are for remembering the type on subsequent calls with teh same input arguments
-persistent previous_argin previous_argout
+% these are for remembering the type on subsequent calls with the same input arguments
+persistent previous_argin previous_argout previous_pwd
 
 if nargin<2
   % ensure that all input arguments are defined
@@ -245,8 +248,9 @@ if nargin<2
 end
 
 current_argin = {filename, desired, varargin{:}};
-if isequal(current_argin, previous_argin)
-  % don't do the filetype detection again, but return the previous values from cache
+current_pwd   = pwd;
+if isequal(current_argin, previous_argin) && isequal(current_pwd, previous_pwd)
+  % don't do the detection again, but return the previous value from cache
   type = previous_argout{1};
   return
 end
@@ -275,7 +279,7 @@ if iscell(filename)
 end
 
 % start with unknown values
-type        = 'unknown';
+type         = 'unknown';
 manufacturer = 'unknown';
 content      = 'unknown';
 
@@ -970,9 +974,15 @@ end
 % remember the current input and output arguments, so that they can be
 % reused on a subsequent call in case the same input argument is given
 current_argout = {type};
-if isempty(previous_argin)
+if isempty(previous_argin) && ~strcmp(type, 'unknown')
   previous_argin  = current_argin;
   previous_argout = current_argout;
+  previous_pwd    = current_pwd;
+else
+  % don't remember in case unknown
+  previous_argin  = [];
+  previous_argout = [];
+  previous_pwd    = [];
 end
 
 return % filetype main()

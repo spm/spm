@@ -20,6 +20,9 @@ function [hdr] = read_ctf_res4(fname)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_res4.m,v $
+% Revision 1.2  2009/05/07 13:25:16  roboos
+% added support for old 64-channel CTF files
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -95,13 +98,11 @@ if fid == -1
 end
 
 % First 8 bytes contain filetype, check is fileformat is correct.
-% This function was written for MEG41RS, but also seems to work for MEG42RS.
-r_head=char(fread(fid,8,'uint8'))';
-if ~strcmp(r_head(1,1:7),'MEG41RS') & ~strcmp(r_head(1,1:7),'MEG42RS')
-  fclose(fid)
-  errMsg = sprintf('Resource file format (%s) is not supported for file %s', r_head(1,1:7), fname);
-  error(errMsg);
-end %if
+% This function was written for MEG41RS, but also seems to work for some other formats
+CTFformat=char(fread(fid,8,'uint8'))';
+if ~strcmp(CTFformat(1,1:7),'MEG41RS') && ~strcmp(CTFformat(1,1:7),'MEG42RS') && ~strcmp(CTFformat(1,1:7),'MEG3RES')
+  warning('res4 format (%s) is not supported for file %s, trying anyway...', CTFformat(1,1:7), fname);
+end
 
 % Read the initial parameters
 appName       = char(fread(fid,256,'uint8'))' ;
