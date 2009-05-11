@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 3105 2009-05-11 11:20:45Z vladimir $
+% $Id: spm_dcm_ind_results.m 3106 2009-05-11 11:52:00Z vladimir $
 
 
 % get figure handle
@@ -259,6 +259,7 @@ case{lower('Coupling (B - Hz)')}
             B  = xY.U*DCM.Ep.B{k}(ii,jj)*xY.U';
             
             imagesc(Hz,Hz,B)
+            caxis(max(abs(caxis))*[-1 1]);  
             axis image
             
             % source names
