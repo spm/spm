@@ -28,6 +28,9 @@ function [meg] = read_ctf_meg4(fname, hdr, begsample, endsample, chanindx)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_meg4.m,v $
+% Revision 1.2  2009/05/07 13:25:16  roboos
+% added support for old 64-channel CTF files
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -99,15 +102,16 @@ if isempty(chanindx),        error('no channels were specified for reading CTF d
 
 %open the .meg4 file
 fid = fopen(fname,'r','ieee-be');
-if fid == -1, 
+if fid == -1,
   error('could not open datafile');
 end
 
-%check whether it is ctf-format
-CTFformat = char(fread(fid,8,'char'))';
-if (strcmp(CTFformat(1,1:7),'MEG41CP')==0),
-  error('datafile is not in CTF MEG4 format')
-end 
+%check whether it is a known format
+CTFformat=char(fread(fid, 8, 'uint8'))';
+% This function was written for MEG41RS, but also seems to work for some other formats
+if ~strcmp(CTFformat(1,1:7),'MEG41CP') && ~strcmp(CTFformat(1,1:7),'MEG4CPT')
+  warning('meg4 format (%s) is not supported for file %s, trying anyway...', CTFformat(1,1:7), fname);
+end
 
 %determine size of .meg4 file
 fseek(fid, 0, 'eof');
@@ -145,13 +149,13 @@ for trllop = 1:length(trials)
     end
     fid = fopen(nextname,'r','ieee-be');
     fseek(fid, 0, 'eof');
-    openfile = filenr;   
+    openfile = filenr;
   end
-  
+
   %this is relative to the current datafile
-  rawtrl = mod(trlnr-1, ntrlfile) + 1; 
+  rawtrl = mod(trlnr-1, ntrlfile) + 1;
   offset = 8 + 4*(rawtrl-1)*nsmp*nchn;
-  
+
   %begin and endsamples expressed as samples with respect to the current trial
   tmpbeg = max(begsample-sumsmp(trllop), 1);
   tmpend = min(endsample-sumsmp(trllop), nsmp);
