@@ -24,7 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2915 2009-03-20 19:15:44Z maria $
+% $Id: spm_BMS.m 3118 2009-05-12 17:37:32Z guillaume $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -110,7 +110,7 @@ if ecp
         xp(2) = spm_Bcdf(0.5,alpha(1),alpha(2));
     else
         % comparison of >2 models: use sampling approach
-        xp = spm_dirichlet_conj_exceed(alpha,Nsamp);
+        xp = spm_dirichlet_exceedance(alpha,Nsamp);
     end
 else
         xp = [];
