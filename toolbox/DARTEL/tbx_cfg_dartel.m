@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 2848 2009-03-10 19:47:25Z john $
+% $Id: tbx_cfg_dartel.m 3117 2009-05-12 15:50:00Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -400,7 +400,7 @@ warp.tag     = 'warp';
 warp.name    = 'Run DARTEL (create Templates)';
 warp.val     = {images settings };
 warp.check   = @check_runjob;
-warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds. /* An example is shown in figure \ref{Fig:dartel:averages}.\begin{figure} \begin{center} \epsfig{file=dartelguide/averages,width=140mm} \end{center} \caption{ This figure shows the intensity averages of grey (left) and white (right) matter images after different numbers of iterations. The top row shows the average after initial rigid-body alignment. The middle row shows the images after three iterations, and the bottom row shows them after 18 iterations. \label{Fig:dartel:averages}} \end{figure}*/'};
+warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds. /* An example is shown in figure \ref{Fig:dartel:averages}.*/'};
 warp.prog = @spm_dartel_template;
 warp.vout = @vout_runjob;
 % ---------------------------------------------------------------------

@@ -8,43 +8,35 @@ Experience at the FIL would suggest that it offers very definite improvements fo
 
 
 \section{Using DARTEL for VBM \label{Sec:dartel_vbm}}
-The following procedures could be specified one at a time, but it is easier to use the \emph{Batch} option of the \emph{UTILS} pulldown to set up a job that will do all the processing.
-The sequence of jobs (use the \emph{TASKS} pulldown from the \emph{Graphics} window to select \emph{Batch}) would be:
+The following procedures could be specified one at a time, but it is easier to use the batching system.
+The sequence of jobs (use the \emph{TASKS} pulldown from the \emph{Graphics} window to select \emph{BATCH}) would be:
 \begin{itemize}
-\item{{\bf SPM Jobs}
+\item{{\bf Module List}
   \begin{itemize}
-  \item{{\bf Spatial}
-    \begin{itemize}
-    \item{{\bf Segment}: To obtain *\_seg\_sn.mat files for ``importing'' the data into a form that DARTEL can use for registering the subject's scans.
-    }
-    \end{itemize}
-  }
-  \item{{\bf Tools}
-    \begin{itemize}
-    \item{{\bf DARTEL Tools}
-      \begin{itemize}
-      \item{{\bf Initial Import}: Uses the *\_seg\_sn.mat files to generate roughly (via a rigid-body) aligned grey and white matter images of the subjects.
-      }
-      \item{{\bf Run DARTEL (create Template)}: Determine the nonlinear deformations for warping all the grey and white matter images so that they match each other.
-      }
-      \item{{\bf Create Warped}: Actually generate the ``modulated'' warped grey and white matter images. 
-      }
-      \end{itemize}
-    }
-    \end{itemize}
-  }
-  \item{{\bf Spatial}
-    \begin{itemize}
-    \item{{\bf Smooth}: Smooth the ``modulated'' warped grey and white matter, prior to performing the statistics.
-    }
-    \end{itemize}
-  }
+  \item{{\bf SPM$\rightarrow$Spatial$\rightarrow$Segment}: To obtain *\_seg\_sn.mat files for ``importing'' the data into a form that DARTEL can use for registering the subject's scans.}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial Import}: Uses the *\_seg\_sn.mat files to generate roughly (via a rigid-body) aligned grey and white matter images of the subjects.}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (create Template)}: Determine the nonlinear deformations for warping all the grey and white matter images so that they match each other.}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}: Actually generate the smoothed ``modulated'' warped grey and white matter images.}
   \end{itemize}
 }
 \end{itemize}
 
+Alternatively, the {\bf New Segment} procedure could be used.
+Although still at the slightly experimental stages of development, this procedure has been found to be generally more robust than the implementation of ``Unified Segmentation'' from SPM$\rightarrow$Spatial$\rightarrow$Segment (which is the version from the Segment button, which is the same as that in SPM5).
+The new segmentation procedure includes the option to generate DARTEL ``imported'' data, so the {\bf Initial Import} step is skipped.
+\begin{itemize}
+\item{{\bf Module List}
+  \begin{itemize}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$New Segment}: To generate the roughly (via a rigid-body) aligned grey and white matter images of the subjects.}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (create Template)}: Determine the nonlinear deformations for warping all the grey and white matter images so that they match each other.}
+  \item{{\bf SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}: Actually generate the smoothed ``modulated'' warped grey and white matter images.}
+  \end{itemize}
+}
+\end{itemize}
+
+\subsection{Using SPM$\rightarrow$Spatial$\rightarrow$Segment and SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial Import}
 The first step is to classify T1-weighted scans\footnote{Other types of scan may also work, but this would need some empirical exploration.} of a number of subjects into different tissue types via the Segmentation routine in SPM.
-The \emph{SPM$->$Spatial$->$Segment} pulldown can be used here:
+The \emph{SPM$\rightarrow$Spatial$\rightarrow$Segment} pulldown can be used here:
 \begin{itemize}
 \item{{\bf Segment}
   \begin{itemize}
@@ -60,7 +52,7 @@ The \emph{SPM$->$Spatial$->$Segment} pulldown can be used here:
 
 The resulting *\_seg\_sn.mat files encode various parameters that allow the data to be ``imported'' into a form that can be used by the main DARTEL algorithm.
 In particular, \emph{Procrustes} aligned maps of grey and white matter can be generated.
-Select \emph{SPM$->$Tools$->$DARTEL Tools$->$Initial Import}:
+Select \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial Import}:
 \begin{itemize}
 \item{{\bf Initial Import}
   \begin{itemize}
@@ -96,11 +88,14 @@ Bottom row: rc1B.nii and rc2B.nii.
 \label{Fig:imported}}
 \end{figure}
 
+\subsection{Using SPM$\rightarrow$Tools$\rightarrow$New Segment}
+
+\subsection{Using SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (create Template)}
 The output of the importing step are a series of rigidly aligned tissue class images (grey matter is encoded by rc1*.nii and white matter by rc2*.nii -- see Fig \ref{Fig:imported}).
 The headers of these files encode two affine transform matrices, so the DARTEL tools are still able to relate their orientations to those of the original T1-weighted images.
 The next step is to estimate the nonlinear deformations that best align them all together.
 This is achieved by alternating between building a template, and registering the tissue class images with the template, and the whole procedure is very time consuming.
-Specify \emph{SPM$->$Tools$->$Dartel Tools$->$Run DARTEL (create Template)}.
+Specify \emph{SPM$\rightarrow$Tools$\rightarrow$Dartel Tools$\rightarrow$Run DARTEL (create Template)}.
 \begin{itemize}
 \item{{\bf Run DARTEL (create Template)}
   \begin{itemize}
@@ -143,7 +138,8 @@ Note that all the output usually contains multiple volumes per file.
 For the u\_rc1*.nii files, only the first volume is visible using the Display or Check Reg tools in SPM.
 All volumes within the template images can be seen, but this requires the file selection to be changed to give the option of selecting more than just the first volume (in the file selector, the widget that says ``1'' should be changed to ``1:2'').
 
-The next step is to create the Jacobian scaled (``modulated'') warped tissue class images, by selecting \emph{SPM$->$Tools$->$DARTEL Tools$->$Create Warped}.
+\subsection{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}
+The next step is to create the Jacobian scaled (``modulated'') warped tissue class images, by selecting \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Create Warped}.
 \begin{itemize}
 \item{{\bf Create Warped}
   \begin{itemize}
@@ -167,7 +163,7 @@ The next step is to create the Jacobian scaled (``modulated'') warped tissue cla
 }
 \end{itemize}
 
-The end result should be a bunch of mwrc1*.nii files (possibly with mwrc2*.nii if white matter is also to be studied). These are then smoothed (\emph{SPM$->$Spatial$->$Smooth}).
+The end result should be a bunch of mwrc1*.nii files (possibly with mwrc2*.nii if white matter is also to be studied). These are then smoothed (\emph{SPM$\rightarrow$Spatial$\rightarrow$Smooth}).
 \begin{itemize}
 \item{{\bf Smooth}
   \begin{itemize}
@@ -240,25 +236,25 @@ effects for the GRF assumptions used for FWE corrections.
 
 Prior to spatially normalising using DARTEL, the data should be processed as following:
 \begin{itemize}
-\item{If possible, for each subject, use \emph{SPM$->$Tools$->$FieldMap} to derive a distortion field that can be used for correcting the fMRI data.
+\item{If possible, for each subject, use \emph{SPM$\rightarrow$Tools$\rightarrow$FieldMap} to derive a distortion field that can be used for correcting the fMRI data.
 More accurate within-subject alignment between functional and anatomical scans should allow more of the benefits of DARTEL for inter-subject registration to be achieved.}
-\item{Use either \emph{SPM$->$Spatial$->$Realign$->$Realign: Estimate Reslice} or \emph{SPM$->$Spatial$->$Realign Unwarp}.  If a field map is available, then use the \emph{Realign Unwarp} option.
+\item{Use either \emph{SPM$\rightarrow$Spatial$\rightarrow$Realign$\rightarrow$Realign: Estimate Reslice} or \emph{SPM$\rightarrow$Spatial$\rightarrow$Realign Unwarp}.  If a field map is available, then use the \emph{Realign Unwarp} option.
 The images need to have been realigned and resliced (or field-map distortion corrected) beforehand - otherwise things are not handled so well.  The first reason for this is that there are no options to use different methods of interpolation, so rigid-body transforms (as estimated by Realign but without having resliced the images) may not be well modelled.  Similarly, the spatial transforms do not incorporate any masking to reduce artifacts at the edge of the field of view.}
-\item{For each subject, oregister the anatomical scan with the functional data (using \emph{SPM$->$Spatial$->$Coreg$->$Coreg: Estimate}).  No reslicing of the anatomical image is needed.
-Use \emph{SPM$->$Util$->$Check Registration} to assess the accuracy of the alignment.
+\item{For each subject, oregister the anatomical scan with the functional data (using \emph{SPM$\rightarrow$Spatial$\rightarrow$Coreg$\rightarrow$Coreg: Estimate}).  No reslicing of the anatomical image is needed.
+Use \emph{SPM$\rightarrow$Util$\rightarrow$Check Registration} to assess the accuracy of the alignment.
 If this step is unsuccessful, then some pre-processing of the anatomical scan may be needed in order to skull-strip and bias correct it.
-Skull stripping can be achieved by segmenting the anatomical scan, and masking a bias corrected version (which can be generated by the segmentation option) by the estimated GM, WM and CSF.  This masking can be done using \emph{SPM$->$Util$->$Image Calculator} (\emph{ImCalc} button), by selecting the bias corrected scan (m*.img), and the tissue class images (c1*.img, c2*.img and c3*.img) and evaluating ``i1.\*((i2+i3+i4)$>$0.5)''.
+Skull stripping can be achieved by segmenting the anatomical scan, and masking a bias corrected version (which can be generated by the segmentation option) by the estimated GM, WM and CSF.  This masking can be done using \emph{SPM$\rightarrow$Util$\rightarrow$Image Calculator} (\emph{ImCalc} button), by selecting the bias corrected scan (m*.img), and the tissue class images (c1*.img, c2*.img and c3*.img) and evaluating ``i1.\*((i2+i3+i4)$>$0.5)''.
 If segmentation is done before coregistration, then the functional data should be moved so that they align with the anatomical data.}
 \item{Segment the anatomical data and generate ``imported'' grey and white matter images.
-If \emph{SPM$->$Tools$->$New Segment} is used, then make sure that ``imported'' grey and white matter images are created.
-If \emph{SPM$->$Spatial$->$Segment} (the SPM5 segmentation routine, which is the one under the \emph{Segment} button), then an additional \emph{SPM$->$Tools$->$DARTEL Tools$->$Initial Import} will be needed.}
-\item{To actually estimate the warps, use \emph{SPM$->$Tools$->$DARTEL Tools$->$Run DARTEL (create Templates)} in order to generate a series of templates and a flow field for each subject.}
+If \emph{SPM$\rightarrow$Tools$\rightarrow$New Segment} is used, then make sure that ``imported'' grey and white matter images are created.
+If \emph{SPM$\rightarrow$Spatial$\rightarrow$Segment} (the SPM5 segmentation routine, which is the one under the \emph{Segment} button), then an additional \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial Import} will be needed.}
+\item{To actually estimate the warps, use \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (create Templates)} in order to generate a series of templates and a flow field for each subject.}
 \end{itemize}
 
 In principle (for a random effects model), you could run the first level analysis using the native space data of each subject.
 All you need are the contrast images, which can be warped and smoothed.
 Alternatively, you could warp and smooth the reslices fMRI, and do the statistical analysis on the spatially normalised images.
-Either way, you would select \emph{SPM$->$Tools$->$DARTEL Tools$->$Normalise to MNI Space}:
+Either way, you would select \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}:
 \begin{itemize}
 \item{{\bf Normalise to MNI Space}
     \begin{itemize}
@@ -373,7 +369,7 @@ The above procedure would be repeated for each subject in the study.
 \section{Warping Images to Existing Templates}
 If templates have already been created using DARTEL, then it is possible to align other images with such templates.
 The images would first be imported in order to generate rc1*.nii and rc2*.nii files.
-The procedure is relatively straight-forward, and requires the \emph{SPM$->Tools$DARTEL Tools$->$Run DARTEL (existing Template)} option to be specified.
+The procedure is relatively straight-forward, and requires the \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (existing Template)} option to be specified.
 Generally, the procedure would begin by registering with a smoother template, and end with a sharper one, with various intermediate templates between.
 \begin{itemize}
 \item{{\bf Run DARTEL (existing Templates)}
@@ -385,7 +381,7 @@ Generally, the procedure would begin by registering with a smoother template, an
     \end{itemize}
   }
   \item{{\bf Settings}: Most settings would be kept at the default values, except for the specification of the templates.
-These are specified in within each of the \emph{Settings$->$Outer Iterations$->$Outer Iteration$->$Template} fields.
+These are specified in within each of the \emph{Settings$\rightarrow$Outer Iterations$\rightarrow$Outer Iteration$\rightarrow$Template} fields.
 If the templates are Template\_*.nii, then enter them in the order of Template\_1.nii, Template\_2.nii, ... Template\_6.nii.
   }
   \end{itemize}
@@ -399,7 +395,7 @@ The output is in the form of a series of flow fields (u\_rc1*.nii).
 Sometimes the aim is to deform an image of one subject to match the shape of another.
 This can be achieved by running DARTEL so that both images are matched with a common template, and composing the resulting spatial transformations.
 This can be achieved by aligning them both with a pre-existing template, but it is also possible to use the \emph{Run DARTEL (create Template)} option with the imported data of only two subjects.
-Once the flow fields (u\_rc1*.nii files) have been estimated, then the resulting deformations can be composed using \emph{SPM$->$Utils$->$Deformations}.
+Once the flow fields (u\_rc1*.nii files) have been estimated, then the resulting deformations can be composed using \emph{SPM$\rightarrow$Utils$\rightarrow$Deformations}.
 If the objective is to warp A.nii to align with B.nii, then the procedure is set up by:
 \begin{itemize}
 \item{{\bf Deformations}
