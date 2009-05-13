@@ -11,7 +11,7 @@ function spm_eeg_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3114 2009-05-11 15:32:58Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3121 2009-05-13 15:49:55Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -166,13 +166,20 @@ for i = 1:numel(timelock)
     freq{i} = ft_freqanalysis(cfg, timelock{i});
 end
 
+cfg.keeptrials = 'no';
+
+
+cfg.channel = channel;
+cfg.channelcmb = ft_channelcombination({'all', 'all'}, channel);
+if ~isempty(refchan)
+    cfg.channelcmb =  [cfg.channelcmb; ft_channelcombination({'all', refchan}, [channel {refchan}])];
+end
+
 if isfield(S, 'usewholetrial') && S.usewholetrial
-    cfg.channel = channel;
-    cfg.channelcmb = ft_channelcombination({'all', 'all'}, channel);
-    if ~isempty(refchan)
-         cfg.channelcmb =  [cfg.channelcmb; ft_channelcombination({'all', refchan}, [channel {refchan}])];
-    end
     filtfreq = ft_freqanalysis(cfg, data);
+else
+    filttimelock = ft_appenddata([], timelock{:});
+    filtfreq = ft_freqanalysis(cfg, filttimelock);
 end
 %%
 freqall = freq{1};
@@ -235,11 +242,7 @@ cfg.grid         = grid;
 cfg.vol          = vol;
 cfg.lambda       = S.lambda;
 
-if isfield(S, 'usewholetrial') && S.usewholetrial
-    filtsource   = ft_sourceanalysis(cfg, filtfreq);
-else
-    filtsource   = ft_sourceanalysis(cfg, freqall);
-end
+filtsource   = ft_sourceanalysis(cfg, filtfreq);
 %
 cfg.keepfilter   = 'no';
 cfg.grid.filter  = filtsource.avg.filter; % use the filter computed in the previous step
@@ -285,7 +288,7 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
     end
 
     csource = source{1};
-    csource.pow = (pow*S.contrast');    
+    csource.pow = (pow*S.contrast(:));    
             
     csource.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos);    
     
@@ -344,7 +347,7 @@ else
             pow(:, j) = source.trial(ind(j)).pow(:);
         end
 
-        source.pow = (pow*S.contrast');
+        source.pow = (pow*S.contrast(:));
 
         sourceint = ft_sourceinterpolate(cfg, source, sMRI);
 
