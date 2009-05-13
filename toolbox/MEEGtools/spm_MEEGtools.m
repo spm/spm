@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3114 2009-05-11 15:32:58Z vladimir $
+% $Id: spm_MEEGtools.m 3120 2009-05-13 13:01:03Z vladimir $
 
 
 funlist = {
@@ -21,6 +21,7 @@ funlist = {
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
     'Save DCM-IR results as images' , 'spm_dcm_ind_save_images'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
+    'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     };
 
 str = sprintf('%s|', funlist{:, 1});
