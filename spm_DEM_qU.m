@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 3058 2009-04-09 18:17:53Z karl $
+% $Id: spm_DEM_qU.m 3122 2009-05-13 16:05:59Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ for i = 1:g
 
         % conditional covariances
         %------------------------------------------------------------------
-        if i > 1 & size(c,1)
+        if i > 1 && size(c,1)
             hold on
             j      = [1:size(V{i},1)];
             y      = ci*c(j,:);
@@ -83,7 +83,7 @@ for i = 1:g
 
         % title and grid
         %------------------------------------------------------------------
-        title(sprintf('causal states',i),'FontSize',16);
+        title('causal states','FontSize',16);
         grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
@@ -93,7 +93,7 @@ for i = 1:g
         % causal states and error - time series
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
-        try, 
+        try
             plot(t,pV{i},':k','linewidth',1)
         end, hold on
         try
@@ -104,7 +104,7 @@ for i = 1:g
 
         % conditional covariances
         %------------------------------------------------------------------
-        if i > 1 & size(c,1)
+        if i > 1 && size(c,1)
             hold on
             j      = [1:size(V{i},1)];
             y      = ci*c(j,:);
@@ -123,7 +123,7 @@ for i = 1:g
         if i == 1
             title('prediction and error','FontSize',16);
         else
-            title(sprintf('causal states',i),'FontSize',16);
+            title('causal states','FontSize',16);
             try, hold on
                 plot(t,pV{i},':k','linewidth',1)
             end, hold off
@@ -147,7 +147,7 @@ for i = 1:g
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
             
-            if length(s)
+            if ~isempty(s)
                 hold on
                 j      = [1:size(X{i},1)];
                 y      = ci*s(j,:);
@@ -179,14 +179,13 @@ end
 if isfield(qU,'a')
     subplot(g,2,2*g)
     plot(t,qU.a{2});
-    try
-        hold on
-        plot(t,pU.v{2},':b','Linewidth',2); hold off
-    end
+    try, hold on
+        plot(t,pU.v{2},':b','Linewidth',2) 
+    end,hold off
     xlabel('time','Fontsize',14)
     title('perturbation and action','Fontsize',16)
     axis square
     set(gca,'XLim',[t(1) t(end)])
 end
-
+hold off
 drawnow

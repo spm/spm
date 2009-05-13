@@ -22,7 +22,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 2560 2008-12-12 17:10:59Z karl $
+% $Id: spm_fx_mountaincar.m 3122 2009-05-13 16:05:59Z karl $
  
  
 % determine controlled forces (a)
@@ -55,7 +55,7 @@ end
  
 % acceleration = force:
 %--------------------------------------------------------------------------
-a     = (2*spm_phi(P.d*a + P.a + P.b*x + P.c*kron(x,x)) - 1)*(1/2);
+a     = tanh((P.d*a + P.a + P.b*x + P.c*kron(x,x))/2);
  
 % f(x)
 %--------------------------------------------------------------------------

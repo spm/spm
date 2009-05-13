@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 07-Apr-2009 19:33:37
+% Last Modified by GUIDE v2.5 13-May-2009 16:50:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,13 +73,26 @@ function varargout = DEM_demo_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 function run_demo_Callback(hObject, handles, file)
-h    = help(file);
+h      = help(file);
 str{1} = [file ':'];
-str{2} = '______________________________________________________________ ';
-str{2} = ' ';
-str{3} = h;
+str{2} = '__________________________________________________________________________ ';
+str{3} = ' ';
+str{4} = h;
 set(handles.help,'String',str);
-eval(file)
+handles.file = file;
+guidata(hObject, handles);
+
+
+% --- Executes on button press in pushbutton51.
+function pushbutton51_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+set(handles.pushbutton51,'String','please wait')
+drawnow
+try, eval(handles.file), end
+set(handles.pushbutton51,'String','run demo')
 
 
 % --- Executes on button press in pushbutton1.
@@ -181,5 +194,13 @@ run_demo_Callback(hObject, handles, 'ADEM_reaching')
 % --- Executes on button press in pushbutton49.
 function pushbutton49_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'ADEM_lorenz_entropy')
+
+% --- Executes on button press in pushbutton50.
+function pushbutton50_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_mountaincar_loss')
+
+% --- Executes on button press in pushbutton80.
+function pushbutton80_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_SHC_demo')
 
 
