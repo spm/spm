@@ -1,10 +1,17 @@
-% This demo simply computes the loss-function (negative reward for a Lorenz
-% system) to show the mapping from value (expected reward) to reward is easy
-% to compute
+% This demo computes the loss-function (negative reward) for a Lorenz
+% system; to show reward can be computed easily from value (expected 
+% reward)
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
+% Karl Friston
+% $Id: ADEM_lorenz_surprise.m 3123 2009-05-13 16:49:17Z karl $
+
+
+DEMO     = 0;
  
 % generative model
-%==========================================================================                        % switch for demo
+%==========================================================================                       % switch for demo
 G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
@@ -46,31 +53,38 @@ x{3}    = linspace(  4,64,64);
  
 % Fokker-Planck operator and equilibrium density
 %==========================================================================
-[M0,q0] = spm_fp(G,x);
-U.u     = sparse(1024,G(1).m);
-t       = spm_int_J(G(1).pE,G,U);
+if DEMO
+    [M0,q0] = spm_fp(G,x);
 
- 
-% loss-function and negative surprise (value)
-%--------------------------------------------------------------------------
-L    = -spm_unvec(spm_vec(log(q0))'*M0,q0);
-V    = log(q0);
+    % loss-function and negative surprise (value)
+    %----------------------------------------------------------------------
+    L    = -spm_unvec(spm_vec(log(q0))'*M0,q0);
+    V    = log(q0);
 
-% trim
-%--------------------------------------------------------------------------
-q0   = q0(2:end - 1,2:end - 1,2:end - 1);
-L    =  L(2:end - 1,2:end - 1,2:end - 1);
-V    =  V(2:end - 1,2:end - 1,2:end - 1);
-x{1} = x{1}(2:end - 1);
-x{2} = x{2}(2:end - 1);
-x{3} = x{3}(2:end - 1);
+    % trim
+    %----------------------------------------------------------------------
+    q0   = q0(2:end - 1,2:end - 1,2:end - 1);
+    L    =  L(2:end - 1,2:end - 1,2:end - 1);
+    V    =  V(2:end - 1,2:end - 1,2:end - 1);
+    x{1} = x{1}(2:end - 1);
+    x{2} = x{2}(2:end - 1);
+    x{3} = x{3}(2:end - 1);
 
-% axes
+    save DEM_lorenz_suprise q0 L V x
+else
+    load DEM_lorenz_suprise
+end
+
+
+% axes and trajectory
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Graphics');
 i    = 3;
 j    = 1:3;
 j(i) = [];
 a    = [x{j(2)}(1) x{j(2)}(end) x{j(1)}(1) x{j(1)}(end)];
+U.u  = sparse(1024,G(1).m);
+t    = spm_int_J(G(1).pE,G,U);
  
 % surprise
 %--------------------------------------------------------------------------
