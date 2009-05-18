@@ -89,10 +89,17 @@ function varargout = cfg_util(cmd, varargin)
 % and its contents will be prepended to each of the created files. This
 % allows to automatically include e.g. copyright or revision.
 %
-%  out = cfg_util('getAllOutputs', job_id)
+%  outputs = cfg_util('getAllOutputs', job_id)
 % 
-% Returns a cell array with module outputs. If a module has not been run,
-% its output will be a cfg_inv_out object.
+% outputs - cell array with module outputs. If a module has not yet been
+%           run, a cfg_inv_out object is returned.
+%
+%  voutputs = cfg_util('getAllVOutputs', job_id)
+% 
+% voutputs - cell array with virtual output descriptions (cfg_dep objects).
+%            These describe the structure of the job outputs. To create
+%            dependencies, they can be entered into matching input objects
+%            in subsequent modules of the same job.
 %
 %  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
 %
@@ -366,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2787 2009-02-25 08:02:53Z volkmar $
+% $Id: cfg_util.m 3130 2009-05-18 14:41:31Z volkmar $
 
-rev = '$Rev: 2787 $'; %#ok
+rev = '$Rev: 3130 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -410,7 +417,7 @@ switch lower(cmd),
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)
             [jobs(cjob), n2oid] = local_compactjob(jobs(cjob));
-            varargout{1} = mat2cell(1:numel(jobs(cjob).cjid2subs), 1, ones(1,numel(jobs(cjob).cjid2subs)));
+            varargout{1} = num2cell(1:numel(jobs(cjob).cjid2subs));
             varargout{2} = n2oid;
         end
     case 'delfromjob',
@@ -457,6 +464,12 @@ switch lower(cmd),
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob) && ~isempty(jobs(cjob).cjrun)
             varargout{1} = cellfun(@(cid)subsref(jobs(cjob).cjrun, [cid substruct('.','jout')]), jobs(cjob).cjid2subsrun, 'UniformOutput',false);
+        end
+    case 'getallvoutputs',
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob)
+            vmods = ~cellfun('isempty',jobs(cjob).cjid2subs); % Ignore deleted modules
+            varargout{1} = cellfun(@(cid)subsref(jobs(cjob).cj, [cid substruct('.','sout')]), jobs(cjob).cjid2subs(vmods), 'UniformOutput',false);
         end
     case 'harvest',
         tag = '';
@@ -1241,7 +1254,7 @@ for n = 1:numel(job)
             cj1 = subsasgn(cj1, [cjid2subs1{k}, sdsubs], []);
         end
         % concatenate configs
-        cjob.cjid2subs = {cjob.cjid2subs{:} cjid2subs2{:}};
+        cjob.cjid2subs = [cjob.cjid2subs cjid2subs2];
         for k = 1:numel(cj1.val)
             cjob.cj.val{end+1} = cj1.val{k};
         end
@@ -1249,7 +1262,7 @@ for n = 1:numel(job)
 end
 % harvest, update dependencies
 [u1 u2 u3 u4 u5 cjob.cj] = harvest(cjob.cj, cjob.cj, false, false);
-mod_job_idlist = mat2cell(1:numel(cjob.cjid2subs),1,ones(1,numel(cjob.cjid2subs)));
+mod_job_idlist = num2cell(1:numel(cjob.cjid2subs));
 % add field to keep run results from job
 cjob.cjrun = [];
 cjob.cjid2subsrun = {};
@@ -1351,7 +1364,7 @@ while ~isempty(cjid2subs)
                 csdeps{k} = cm.sdeps;
                 cfg_message('matlabbatch:run:moddone', 'Done    ''%s''', cm.name);
             catch
-                cjid2subsfailed = {cjid2subsfailed{:} cjid2subsrun{k}};
+                cjid2subsfailed = [cjid2subsfailed cjid2subsrun(k)];
                 le = lasterror;
                 % try to filter out stack trace into matlabbatch
                 try
@@ -1448,7 +1461,7 @@ tags = textscan(tagstr, '%s', 'delimiter', '.');
 taglist = tags{1};
 if ~strcmp(taglist{1}, c0.tag)
     % assume tag list starting at application level
-    taglist = {c0.tag taglist{:}};
+    taglist = [c0.tag taglist(:)'];
 end
 if splitspec
     % split ids at cfg_exbranch level
@@ -1467,7 +1480,7 @@ if isempty(rtaglist)
     item_mod_id = struct('type',{}, 'subs',{});
 else
     % re-add tag of stopped node
-    taglist = {gettag(subsref(c0, mod_cfg_id)) rtaglist{:}};
+    taglist = [gettag(subsref(c0, mod_cfg_id)) rtaglist(:)'];
     tropts.stopspec = {};
     [item_mod_id stop rtaglist] = tag2cfgsubs(subsref(c0, mod_cfg_id), ...
                                               taglist, {}, tropts);

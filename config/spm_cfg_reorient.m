@@ -4,9 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_reorient.m 3130 2009-05-18 14:41:31Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 3130 $';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -71,12 +71,32 @@ transform.val     = {transM };
 transform.help    = {'Specify reorientation method.'};
 transform.values  = {transM transprm };
 % ---------------------------------------------------------------------
+% prefix Filename Prefix
+% ---------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {['Specify the string to be prepended to the filenames ' ...
+                   'of the reoriented image file(s). If this is left ' ...
+                   'empty, the original files will be overwritten.']};
+prefix.strtype = 's';
+prefix.num     = [0 Inf];
+% This should not be hardcoded here
+prefix.val     = {''};
+% Final solution: defaults setting
+% prefix.def     = @(val)spm_get_defaults('reorient.prefix', val{:});
+% The following 3 lines should go into spm_defaults.m
+% % Reorient defaults
+% %=======================================================================
+% defaults.reorient.prefix = ''; % Output filename prefix ('' == overwrite)
+
+% ---------------------------------------------------------------------
 % reorient Reorient Images
 % ---------------------------------------------------------------------
 reorient         = cfg_exbranch;
 reorient.tag     = 'reorient';
 reorient.name    = 'Reorient Images';
-reorient.val     = {srcfiles transform };
+reorient.val     = {srcfiles transform prefix};
 reorient.help    = {'This facility allows to reorient images in a batch. The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'};
 reorient.prog = @spm_run_reorient;
 reorient.vout = @vout;

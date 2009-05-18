@@ -13,19 +13,19 @@ function varargout = spm_jobman(varargin)
 % manipulate this job in cfg_util. Note that changes to the job in cfg_util
 % will not show up in cfg_ui unless 'Update View' is called.
 %
-% FORMAT spm_jobman('serial')
-%        spm_jobman('serial',job[,'',   input1,...inputN])
-%        spm_jobman('serial',job ,node[,input1,...inputN])
-%        spm_jobman('serial',''  ,node[,input1,...inputN])
+% FORMAT output_list = spm_jobman('serial')
+%        output_list = spm_jobman('serial',job[,'',   input1,...inputN])
+%        output_list = spm_jobman('serial',job ,node[,input1,...inputN])
+%        output_list = spm_jobman('serial',''  ,node[,input1,...inputN])
 % Runs the user interface in serial mode. I job is not empty, then node
 % is silently ignored. Inputs can be a list of arguments. These are
 % passed on to the open inputs of the specified job/node. Each input should
 % be suitable to be assigned to item.val{1}. For cfg_repeat/cfg_choice
 % items, input should be a cell list of indices input{1}...input{k} into
-% item.value. See cfg_serial for details.
+% item.value. See cfg_util('filljob',...) for details.
 %
-% FORMAT spm_jobman('run',job)
-%        spm_jobman('run_nogui',job)
+% FORMAT output_list = spm_jobman('run',job)
+%        output_list = spm_jobman('run_nogui',job)
 % Runs a job without X11 (as long as there is no graphics output from the
 % job itself). The matlabbatch system does not need graphics output to run
 % a job.
@@ -36,6 +36,10 @@ function varargout = spm_jobman(varargin)
 %     job  - can be the name of a jobfile (as a .m, .mat or a .xml), a
 %            cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
 %            cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
+%
+% Output_list is a cell array and contains the output arguments from each
+% module in the job. The format and contents of these outputs is defined in
+% the configuration of each module (.prog and .vout callbacks).
 %
 % FORMAT spm_jobman('initcfg')
 % Initialise cfg_util configuration and set path accordingly.
@@ -88,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_jobman.m 3130 2009-05-18 14:41:31Z volkmar $
 
 
 if nargin==0
@@ -163,7 +167,8 @@ else
                     cjob = cfg_util('initjob');
                 else
                     cjob = cfg_util('initjob');
-                    cfg_util('addtojob', cjob, mod_cfg_id);
+                    mod_job_id = cfg_util('addtojob', cjob, mod_cfg_id);
+                    cfg_util('harvest', cjob, mod_job_id);
                 end;
             else
                 cjob = cfg_util('initjob');
@@ -187,11 +192,19 @@ else
             sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{4:end});
             if sts
                 cfg_util('run', cjob);
+                if nargout > 0
+                    varargout{1} = cfg_util('getalloutputs', cjob);
+                end
             end;
             cfg_util('deljob', cjob);
 
         case {'run','run_nogui'}
-            cfg_util('runserial',mljob);
+            cjob = cfg_util('initjob', mljob);
+            cfg_util('run', cjob);
+            if nargout > 0
+                varargout{1} = cfg_util('getalloutputs', cjob);
+            end
+            cfg_util('deljob', cjob);
             
         case {'spm5tospm8'}
             varargout{1} = canonicalise_job(varargin{2});
@@ -218,7 +231,7 @@ else
             if nargin == 1
                 error('spm:spm_jobman:CantHarvest', ...
                         ['Can not harvest job without job_id. Please use ' ...
-                         'cfg_util(''harvest'', job_id).']);
+                         'spm_jobman(''harvest'', job_id).']);
             elseif cfg_util('isjob_id', varargin{2})
                 [tag job] = cfg_util('harvest', varargin{2});
             elseif isa(varargin{2}, 'cfg_item')
