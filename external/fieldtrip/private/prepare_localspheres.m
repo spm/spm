@@ -40,6 +40,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.25  2009/05/18 13:59:14  vlalit
+% typo fix
+%
 % Revision 1.24  2009/05/14 19:21:36  roboos
 % consistent handling of cfg.headshape in code and documentation
 %
@@ -138,7 +141,7 @@ if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 if nargin>1 && isempty(cfg.headshape)
   basedonmri       = 1;
   basedonheadshape = 0;
-elseif nargin==1 && ~isempty(cfg.headshae)
+elseif nargin==1 && ~isempty(cfg.headshape)
   basedonmri       = 0;
   basedonheadshape = 1;
 else
