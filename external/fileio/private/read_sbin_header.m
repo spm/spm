@@ -22,6 +22,9 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %
 
 % $Log: read_sbin_header.m,v $
+% Revision 1.5  2009/05/14 18:00:13  josdie
+% Added error message to read_sbin_header to handle case where version is an empty set.
+%
 % Revision 1.4  2009/04/29 10:55:16  jansch
 % incorporated handling of unsegmented files
 %
@@ -49,6 +52,9 @@ if fid==-1
 end
 
 version		= fread(fid,1,'int32');
+if isempty(version)
+    error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.');
+end;
 
 %check byteorder
 [str,maxsize,cEndian]=computer;
@@ -66,11 +72,11 @@ elseif (version > 6) && ~bitand(version,6)
     end;
     version = swapbytes(uint32(version));
 else
-    error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.\n');
+    error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.');
 end;
 
 if bitand(version,1) == 0
-    %error('ERROR:  This is an unsegmented file, which is not supported.\n');
+    %error('ERROR:  This is an unsegmented file, which is not supported.');
     unsegmented = 1;
 else
     unsegmented = 0;

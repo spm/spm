@@ -18,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.7  2009/05/14 18:53:22  roboos
+% bail out immediately if the data is empty
+%
 % Revision 1.6  2009/02/24 14:25:52  jansch
 % added option fix4dglasgow to take the synchronization trigger with value 8192
 % out of the trigger-data, prior to flank detection
@@ -87,6 +90,11 @@ end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
 dat = read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
+
+if isempty(dat)
+  % there are no triggers to detect
+  return
+end
 
 % Detect situations where the channel value changes almost at every time
 % step which are likely to be noise
