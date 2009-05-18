@@ -71,6 +71,9 @@ function [cfg] = topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.54  2009/05/12 18:58:49  roboos
+% added handling of cfg.cohrefchannel='gui' for manual/interactive selection
+%
 % Revision 1.53  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -299,6 +302,10 @@ end
 % Old style coherence plotting with cohtargetchannel is no longer supported:
 cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
+% Read or create the layout that will be used for plotting:
+lay = prepare_layout(cfg, data);
+cfg.layout = lay;
+
 % Create time-series of small topoplots:
 if ~ischar(cfg.xlim) && length(cfg.xlim)>2
   % Switch off interactive mode:
@@ -319,6 +326,21 @@ if (strcmp(cfg.zparam,'cohspctrm')) && isfield(data, 'labelcmb')
   if ~isfield(cfg,'cohrefchannel'),
     error('no reference channel specified');
   end
+
+  if strcmp(cfg.cohrefchannel, 'gui')
+    % Open a single figure with the channel layout, the user can click on a reference channel
+    h = clf;
+    plot_lay(lay, 'box', false);
+    title('Select the reference channel by clicking on it...');
+    info       = [];
+    info.x     = lay.pos(:,1);
+    info.y     = lay.pos(:,2);
+    info.label = lay.label;
+    guidata(h, info);
+    set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_cohrefchannel, cfg, data}});
+    return
+  end
+
   % Convert 2-dimensional channel matrix to a single dimension:
   sel1           = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
   sel2           = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
@@ -376,9 +398,6 @@ else
   dat = nanmean(dat, 2);
 end
 dat = dat(:);
-
-% Read or create the layout that will be used for plotting
-cfg.layout = prepare_layout(cfg, data);
 
 % Select the channels in the data that match with the layout:
 [seldat, sellay] = match_str(data.label, cfg.layout.label);
@@ -491,3 +510,14 @@ hold off;
 
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% this function is called by select_channel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function select_cohrefchannel(label, cfg, varargin)
+fprintf('selected "%s" as reference channel\n', label);
+cfg.cohrefchannel = label;
+figure
+topoplotER(cfg, varargin{:});
+

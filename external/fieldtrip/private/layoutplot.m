@@ -1,4 +1,4 @@
-function layoutplot(cfg, data);
+function layoutplot(cfg, data)
 
 % LAYOUTPLOT makes a figure with the 2-D layout of the channel positions
 % for topoplotting and the individual channel axes (i.e. width and height
@@ -46,6 +46,9 @@ function layoutplot(cfg, data);
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: layoutplot.m,v $
+% Revision 1.10  2009/05/12 12:35:15  roboos
+% moved plotting to seperate function (plot_lay) where it can be reused
+%
 % Revision 1.9  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -85,7 +88,7 @@ fieldtripdefs
 if (nargin<1) || (nargin>2), error('incorrect number of input arguments'); end;
 if (nargin<2), data = []; end;
 
-if ~isstruct(cfg), error('argument cfg must be a structure'); end;
+if ~isstruct(cfg) && ~isempty(cfg), error('argument cfg must be a structure'); end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % extract/generate layout information
@@ -117,11 +120,12 @@ if isfield(cfg, 'image') && ~isempty(cfg.image)
   img = flipdim(img, 1); % in combination with "axis xy"
 
   bw = 1;
-  
+
   if bw
     % convert to greyscale image
     img = mean(img, 3);
     imagesc(img);
+    colormap gray
   else
     % plot as RGB image
     image(img);
@@ -131,50 +135,5 @@ if isfield(cfg, 'image') && ~isempty(cfg.image)
   axis xy
 end
 
-X      = lay.pos(:,1);
-Y      = lay.pos(:,2);
-Width  = lay.width;
-Height = lay.height;
-Lbl    = lay.label;
+plot_lay(lay, 'point', true, 'box', true, 'label', true, 'mask', true, 'outline', true);
 
-hold on
-
-plot(X, Y, 'b.');
-plot(X, Y, 'yo');
-text(X, Y, Lbl);
-
-line([X-Width/2 X+Width/2 X+Width/2 X-Width/2 X-Width/2]',[Y-Height/2 Y-Height/2 Y+Height/2 Y+Height/2 Y-Height/2]');
-
-axis auto
-axis equal
-axis off
-
-if isfield(lay, 'outline')
-  fprintf('solid lines indicate the outline, e.g. head shape or sulci\n');
-  for i=1:length(lay.outline)
-    if ~isempty(lay.outline{i})
-      X = lay.outline{i}(:,1);
-      Y = lay.outline{i}(:,2);
-      h = line(X, Y);
-      set(h, 'color', 'k');
-      set(h, 'linewidth', 2);
-    end
-  end
-end
-
-if isfield(lay, 'mask')
-  fprintf('dashed lines indicate the mask for topograpic interpolation\n');
-  for i=1:length(lay.mask)
-    if ~isempty(lay.mask{i})
-      X = lay.mask{i}(:,1);
-      Y = lay.mask{i}(:,2);
-      % the polygon representing the mask should be closed
-      X(end+1) = X(1);
-      Y(end+1) = Y(1);
-      h = line(X, Y);
-      set(h, 'color', 'k');
-      set(h, 'linewidth', 1.5);
-      set(h, 'linestyle', ':');
-    end
-  end
-end

@@ -39,14 +39,19 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Other configuration options
 %   cfg.grid.tight   = 'yes' or 'no' (default is automatic)
 %   cfg.inwardshift  = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
-%   cfg.headshape    = filename of headshape (optional)
 %   cfg.symmetry     = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
+%   cfg.headshape    = a filename containing headshape, a structure containing a
+%                      single triangulated boundary, or a Nx3 matrix with surface
+%                      points
 %
-% See also SOURCEANALYSIS, DIPOLEFITTING, PREPARE_LEADFIELD
+% See also SOURCEANALYSIS, MEGREALIGN, DIPOLEFITTING, PREPARE_LEADFIELD
 
-% Copyright (C) 2004-2008, Robert Oostenveld
+% Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.49  2009/05/14 19:22:31  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.48  2009/04/16 07:54:52  roboos
 % in case of basedonpos keep the dim if present
 %
@@ -400,7 +405,25 @@ if basedonshape
   % use the headshape  to make a superficial dipole layer (e.g.
   % for megrealign). Assume that all points are inside the volume.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  grid.pos = headsurface([], [], 'headshape', cfg.headshape, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
+  % get the surface describing the head shape
+  if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+    % use the headshape surface specified in the configuration
+    headshape = cfg.headshape;
+  elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+    % use the headshape points specified in the configuration
+    headshape.pnt = cfg.headshape;
+  elseif ischar(cfg.headshape)
+    % read the headshape from file
+    headshape = read_headshape(cfg.headshape);
+  else
+    error('cfg.headshape is not specified correctly')
+  end
+  if ~isfield(headshape, 'tri')
+    % generate a closed triangulation from the surface points
+    headshape.pnt = unique(headshape.pnt, 'rows');
+    headshape.tri = projecttri(headshape.pnt);
+  end
+  grid.pos = headsurface([], [], 'headshape', headshape, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
   grid.inside  = 1:size(grid.pos,1);
   grid.outside = [];
 end

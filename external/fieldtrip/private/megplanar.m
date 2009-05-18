@@ -29,11 +29,15 @@ function [interp] = megplanar(cfg, data);
 %   cfg.vol.r       = radius of sphere
 %   cfg.vol.o       = [x, y, z] position of origin
 %
-% A source model must be specified with
-%   cfg.headshape   = filename for headshape, or can be 'headmodel' (default = 'headmodel')
+% A dipole layer representing the brain surface must be specified with
 %   cfg.inwardshift = depth of the source layer relative to the head model surface (default = 2.5, which is adequate for a skin-based head model)
 %   cfg.spheremesh  = number of dipoles in the source layer (default = 642)
 %   cfg.pruneratio  = for singular values, default is 1e-3
+%   cfg.headshape   = a filename containing headshape, a structure containing a
+%                     single triangulated boundary, or a Nx3 matrix with surface
+%                     points
+% If no headshape is specified, the dipole layer will be based on the inner compartment
+% of the volume conduction model.
 % 
 % See also COMBINEPLANAR
 
@@ -55,6 +59,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.38  2009/05/14 19:23:03  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.37  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -197,7 +204,7 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';              end
 if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4;           end
 if ~isfield(cfg, 'planarmethod'),  cfg.planarmethod = 'sincos';     end
 if strcmp(cfg.planarmethod, 'sourceproject')
-  if ~isfield(cfg, 'headshape'),     cfg.headshape = 'headmodel';   end
+  if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end % empty will result in the vol being used
   if ~isfield(cfg, 'inwardshift'),   cfg.inwardshift = 2.5;         end
   if ~isfield(cfg, 'pruneratio'),    cfg.pruneratio = 1e-3;         end
   if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 642;          end
@@ -205,6 +212,7 @@ end
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
+cfg = checkconfig(cfg, 'renamedvalue',  {'headshape', 'headmodel', []});
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -437,14 +445,32 @@ elseif strcmp(cfg.planarmethod, 'sourceproject')
   % definition that only contains the gradiometers that are present in the data.
   [vol, axial.grad, cfg] = prepare_headmodel(cfg, data);
 
-  % determine the dipole positions on the surface of the cortex
-  if strcmp(cfg.headshape, 'headmodel')
-    shapefile = [];
+  % determine the dipole layer that represents the surface of the brain
+  if isempty(cfg.headshape)
+    % construct from the inner layer of the volume conduction model
+    pos = headsurface(vol, axial.grad, 'surface', 'cortex', 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
   else
-    shapefile = cfg.headshape;
+    % get the surface describing the head shape
+    if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+      % use the headshape surface specified in the configuration
+      headshape = cfg.headshape;
+    elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+      % use the headshape points specified in the configuration
+      headshape.pnt = cfg.headshape;
+    elseif ischar(cfg.headshape)
+      % read the headshape from file
+      headshape = read_headshape(cfg.headshape);
+    else
+      error('cfg.headshape is not specified correctly')
+    end
+    if ~isfield(headshape, 'tri')
+      % generate a closed triangulation from the surface points
+      headshape.pnt = unique(headshape.pnt, 'rows');
+      headshape.tri = projecttri(headshape.pnt);
+    end
+    % construct from the head surface
+    pos = headsurface([], [], 'headshape', headshape, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
   end
-  % FIXME: in the future this should be moved to the prepare_dipole_grid function
-  pos = headsurface(vol, axial.grad, 'surface', 'cortex', 'headshape', shapefile, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
 
   % compute the forward model for the axial gradiometers
   fprintf('computing forward model for %d dipoles\n', size(pos,1));
@@ -570,7 +596,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.37 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.38 2009/05/14 19:23:03 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

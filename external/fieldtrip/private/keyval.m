@@ -1,4 +1,4 @@
-function [val] = keyval(key, varargin);
+function [val] = keyval(key, varargin)
 
 % KEYVAL returns the value that corresponds to the requested key in a
 % key-value pair list of variable input arguments
@@ -11,6 +11,9 @@ function [val] = keyval(key, varargin);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: keyval.m,v $
+% Revision 1.3  2009/05/14 19:24:02  roboos
+% removed ; at end of function declaration
+%
 % Revision 1.2  2009/01/06 09:05:26  roboos
 % added additional check on optional input arguments: the 1st, 3rd, etc. should be strings (keys)
 %

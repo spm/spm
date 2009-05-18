@@ -11,7 +11,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 %   [vol] = prepare_singleshell(cfg, seg)
 %
 % If you do not use a segmented MRI, the configuration should contain
-%   cfg.headshape   = filename containing headshape, or Nx3 matrix with surface points
+%   cfg.headshape   = a filename containing headshape, a structure containing a
+%                     single triangulated boundary, or a Nx3 matrix with surface
+%                     points
 %   cfg.spheremesh  = number, to retriangulate the mesh with a sphere (default = 3000)
 %                     instead of specifying a number, you can specify 'same' to keep the
 %                     vertices of the mesh identical to the original headshape points
@@ -33,6 +35,12 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.19  2009/05/18 07:34:04  marvger
+% fixed bugs introduced by the previous update
+%
+% Revision 1.18  2009/05/14 19:22:13  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.17  2009/04/01 12:29:26  roboos
 % added checkconfig
 %
@@ -98,11 +106,18 @@ if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end % approximate number of vertices in spere
 
-if nargin>1
+if nargin>1 && (~isfield(cfg,'headshape') || isempty(cfg.headshape))
+  basedonmri       = 1;
+  basedonheadshape = 0;
+elseif nargin==1 && isfield(cfg,'headshape') && ~isempty(cfg.headshape)
+  basedonmri       = 0;
+  basedonheadshape = 1;
+else
+  error('inconsistent configuration, cfg.headshape should not be used in combination with an mri input')
+end
+
+if basedonmri
   % obtain the head shape from the segmented MRI
-  if isfield(cfg, 'headshape')
-    error('cfg.headshape should not be used in combination with a segmented mri')
-  end
   seg = zeros(mri.dim);
   if isfield(mri, 'gray')
     fprintf('including gray matter in segmentation for brain compartment\n')
@@ -117,7 +132,7 @@ if nargin>1
     seg = seg | (mri.csf>(cfg.threshold*max(mri.csf(:))));
   end
   if ~strcmp(cfg.smooth, 'no'),
-    % check the availability of the required low-level toolbox
+    % check whether the required SPM2 toolbox is available
     hastoolbox('spm2', 1);
     fprintf('smoothing the segmentation with a %d-pixel FWHM kernel\n',cfg.smooth);
     seg = double(seg);
@@ -168,37 +183,49 @@ if nargin>1
   else
     shape = pnt(:,1:3);
   end
+
+  % compute triangulation
+  shape = unique(shape, 'rows');
+  pnt  = shape;
+  Npnt = size(pnt,1);
+  avg  = mean(pnt, 1);
+  pnt  = pnt - repmat(avg, Npnt, 1);  % shift center of points towards the origin
+  dist = sqrt(sum(pnt.^2,2));
+  pnt  = pnt ./ repmat(dist, 1, 3);   % normalize to a unit sphere
+  tri  = convhulln(pnt);              % construct the triangulation using a convex hull
+  pnt  = shape;  
+  
   fprintf('placed %d points on the brain surface\n', length(shape));
-elseif ischar(cfg.headshape)
-  % read the headshape from file
-  shape = read_headshape(cfg.headshape);
-  shape = shape.pnt;
-else
-  % use the headshape points that are specified in the configuration
-  shape = cfg.headshape;
-end % nargin
-
-% remove double vertices
-shape = unique(shape, 'rows');
-
-% remember the headshape in the configuration, mainly for debugging
-cfg.headshape = shape;
-
-% construct a triangulation of the surface points
-pnt  = shape;
-Npnt = size(pnt,1);
-avg  = mean(pnt, 1);
-pnt  = pnt - repmat(avg, Npnt, 1);  % shift center of points towards the origin
-dist = sqrt(sum(pnt.^2,2));
-pnt  = pnt ./ repmat(dist, 1, 3);   % normalize to a unit sphere
-tri  = convhulln(pnt);              % construct the triangulation using a convex hull
-pnt  = shape;                       % revert to the original vertex locations
+elseif basedonheadshape
+  % get the surface describing the head shape
+  if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+    % use the headshape surface specified in the configuration
+    headshape = cfg.headshape;
+  elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+    % use the headshape points specified in the configuration
+    headshape.pnt = cfg.headshape;
+  elseif ischar(cfg.headshape)
+    % read the headshape from file
+    headshape = read_headshape(cfg.headshape);
+  else
+    error('cfg.headshape is not specified correctly')
+  end
+  if ~isfield(headshape, 'tri')
+    % generate a closed triangulation from the surface points
+    headshape.pnt = unique(headshape.pnt, 'rows');
+    headshape.tri = projecttri(headshape.pnt);
+  end
+  
+  pnt  = headshape.pnt;
+  tri  = headshape.tri;
+  
+end % basedonmri or basedonheadshape
 
 if nargin<2
   % the triangulation is based on the shape,
   if isequal(cfg.spheremesh, 'same')
     % keep the same triangulation
-    tri = projecttri(pnt); % the triangulation is not closed, reconstruct it
+    tri = projecttri(pnt); % the triangulation is not guaranteed closed, reconstruct it
   else
     [tri1, pnt1] = reducepatch(tri, pnt, 3*cfg.spheremesh);
     % remove double vertices
@@ -221,3 +248,4 @@ vol.type    = 'nolte';
 
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+

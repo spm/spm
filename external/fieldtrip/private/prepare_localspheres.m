@@ -11,11 +11,13 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % The input configuration should contain
 %   cfg.grad         = structure with gradiometer definition, or
 %   cfg.gradfile     = filename containing gradiometer definition
-%   cfg.headshape    = filename containing headshape, or Nx3 matrix with surface points
 %   cfg.radius       = number, which points to select for each channel (default = 7 cm)
 %   cfg.baseline     = number, baseline of axial/planar gradiometer (default = 5 cm)
 %   cfg.feedback     = 'yes' or 'no' (default = 'yes')
 %   cfg.singlesphere = 'yes' or 'no', fit only a single sphere (default = 'no')
+%   cfg.headshape    = a filename containing headshape, a structure containing a
+%                      single triangulated boundary, or a Nx3 matrix with surface
+%                      points
 %
 % The following options are relevant if you use a segmented MRI
 %   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
@@ -38,6 +40,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.24  2009/05/14 19:21:36  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.23  2009/04/01 12:29:26  roboos
 % added checkconfig
 %
@@ -128,12 +133,20 @@ if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
+if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 
-if nargin>1
+if nargin>1 && isempty(cfg.headshape)
+  basedonmri       = 1;
+  basedonheadshape = 0;
+elseif nargin==1 && ~isempty(cfg.headshae)
+  basedonmri       = 0;
+  basedonheadshape = 1;
+else
+  error('inconsistent configuration, cfg.headshape should not be used in combination with an mri input')
+end
+
+if basedonmri
   % obtain the head shape from the segmented MRI
-  if isfield(cfg, 'headshape')
-    error('cfg.headshape should not be used in combination with a segmented mri')
-  end
   seg = zeros(mri.dim);
   if isfield(mri, 'gray')
     fprintf('including gray matter in segmentation for brain compartment\n')
@@ -200,20 +213,26 @@ if nargin>1
     shape = pnt(:,1:3);
   end
   fprintf('placed %d points on the brain surface\n', length(shape));
-elseif ischar(cfg.headshape)
-  % read the headshape from file
-  shape = read_headshape(cfg.headshape);
-  shape = shape.pnt;
-else
-  % use the headshape points that are specified in the configuration
-  shape = cfg.headshape;
-end % nargin
-
-% remove double vertices
-shape = unique(shape, 'rows');
-
-% remember the headshape in the configuration, mainly for debugging
-cfg.headshape = shape;
+elseif basedonheadshape
+  % get the surface describing the head shape
+  if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+    % use the headshape surface specified in the configuration
+    headshape = cfg.headshape;
+  elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+    % use the headshape points specified in the configuration
+    headshape.pnt = cfg.headshape;
+  elseif ischar(cfg.headshape)
+    % read the headshape from file
+    headshape = read_headshape(cfg.headshape);
+  else
+    error('cfg.headshape is not specified correctly')
+  end
+  headshape.pnt = unique(headshape.pnt, 'rows');
+  % this function does not use the triangulation
+  if isfield(headshape, 'tri')
+    headshape = rmfield(headshape, 'tri');
+  end
+end % basedonmri or basedonheadshape
 
 % read the gradiometer definition from file or copy it from the configuration
 if isfield(cfg, 'gradfile')
@@ -223,7 +242,7 @@ else
   grad = cfg.grad;
 end
 
-Nshape = size(shape,1);
+Nshape = size(headshape.pnt,1);
 Nchan  = size(grad.tra, 1);
 
 % set up an empty figure
@@ -240,12 +259,12 @@ end
 if strcmp(cfg.feedback, 'yes')
   cla
   plot3(grad.pnt(:,1), grad.pnt(:,2), grad.pnt(:,3), 'b.');	% all coils
-  plot3(shape(:,1), shape(:,2), shape(:,3), 'g.');
+  plot3(headshape.pnt(:,1), headshape.pnt(:,2), headshape.pnt(:,3), 'g.');
   drawnow
 end
 
 % fit a single sphere to all headshape points
-[single_o, single_r] = fitsphere(shape);
+[single_o, single_r] = fitsphere(headshape.pnt);
 fprintf('single sphere,   %5d surface points, center = [%4.1f %4.1f %4.1f], radius = %4.1f\n', Nshape, single_o(1), single_o(2), single_o(3), single_r);
 
 if strcmp(cfg.singlesphere, 'yes')
@@ -295,16 +314,16 @@ for chan=1:Nchan
   end
 
   % find the headshape points that are close to this channel
-  dist = sqrt(sum((shape-repmat(thispnt,Nshape,1)).^2, 2));
+  dist = sqrt(sum((headshape.pnt-repmat(thispnt,Nshape,1)).^2, 2));
   shapesel = find(dist<cfg.radius);
   if strcmp(cfg.feedback, 'yes')
-    plot3(shape(shapesel,1), shape(shapesel,2), shape(shapesel,3), 'g.');
+    plot3(headshape.pnt(shapesel,1), headshape.pnt(shapesel,2), headshape.pnt(shapesel,3), 'g.');
     drawnow
   end
 
   % fit a sphere to these headshape points
   if length(shapesel)>10
-    [o, r] = fitsphere(shape(shapesel,:));
+    [o, r] = fitsphere(headshape.pnt(shapesel,:));
     fprintf('channel = %s, %5d surface points, center = [%4.1f %4.1f %4.1f], radius = %4.1f\n', grad.label{chan}, length(shapesel), o(1), o(2), o(3), r);
   else
     fprintf('channel = %s, not enough surface points, using all points\n', grad.label{chan});

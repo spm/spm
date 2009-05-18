@@ -77,6 +77,9 @@ function [cfg] = multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.48  2009/05/12 18:13:12  roboos
+% added handling of cfg.cohrefchannel='gui' for manual/interactive selection
+%
 % Revision 1.47  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -325,6 +328,11 @@ end
 % Old style coherence plotting with cohtargetchannel is no longer supported:
 cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
+% Read or create the layout that will be used for plotting:
+lay = prepare_layout(cfg, varargin{1});
+% Remember the layout to speed up subsequent plot calls
+cfg.layout = lay;
+
 for k=1:length(varargin)
   % Check for unconverted coherence spectrum data:
   if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(varargin{k}, 'labelcmb'))
@@ -332,6 +340,21 @@ for k=1:length(varargin)
     if ~isfield(cfg,'cohrefchannel'),
       error('no reference channel specified');
     end
+
+    if strcmp(cfg.cohrefchannel, 'gui')
+      % Open a single figure with the channel layout, the user can click on a reference channel
+      h = clf;
+      plot_lay(lay, 'box', false);
+      title('Select the reference channel by clicking on it...');
+      info       = [];
+      info.x     = lay.pos(:,1);
+      info.y     = lay.pos(:,2);
+      info.label = lay.label;
+      guidata(h, info);
+      set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_cohrefchannel, cfg, varargin{:}}});
+      return
+    end
+    
     % Convert 2-dimensional channel matrix to a single dimension:
     sel1                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,2));
     sel2                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,1));
@@ -374,9 +397,6 @@ xidc = find(varargin{1}.(cfg.xparam) >= xmin & varargin{1}.(cfg.xparam) <= xmax)
 % Align physical x-axis range to the array bins:
 xmin = varargin{1}.(cfg.xparam)(xidc(1));
 xmax = varargin{1}.(cfg.xparam)(xidc(end));
-
-% Read or create the layout that will be used for plotting:
-lay = prepare_layout(cfg, varargin{1});
 
 % Get physical y-axis range (ylim / zparam):
 if strcmp(cfg.ylim,'maxmin')
@@ -634,3 +654,14 @@ for k=1:length(strlist)
     l = [l k];
   end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% this function is called by select_channel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function select_cohrefchannel(label, cfg, varargin)
+fprintf('selected "%s" as reference channel\n', label);
+cfg.cohrefchannel = label;
+figure
+multiplotER(cfg, varargin{:});
+

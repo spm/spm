@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.68  2009/05/14 12:03:59  jansch
+% some changes to experimentally plot 4D and 5D volumes, undocumented
+%
 % Revision 1.67  2009/05/07 08:17:44  roboos
 % renderer applies to gcf and not to gca (figure instead of axes)
 %
@@ -374,6 +377,7 @@ else
   hasfun = 0;
   fprintf('no functional parameter\n');
 end
+
 % handle fun
 if hasfun
   % determine scaling min and max (fcolmin fcolmax) and funcolormap
@@ -429,6 +433,35 @@ if hasfun
     fprintf('taking absolute value of complex data\n');
     fun = abs(fun);
   end
+  
+  %what if fun is 4D?
+  if ndims(fun)>3,
+    if isfield(data, 'time') && isfield(data, 'freq'),
+      %data contains timefrequency representation
+      qi      = [1 1];
+      hasfreq = 1;
+      hastime = 1;
+    elseif isfield(data, 'time')
+      %data contains evoked field
+      qi      = 1;
+      hasfreq = 0;
+      hastime = 1;
+    elseif isfield(data, 'freq')
+      %data contains frequency spectra
+      qi      = 1;
+      hasfreq = 1;
+      hastime = 0;
+    end
+  else
+    %do nothing
+    qi      = 1;
+    hasfreq = 0;
+    hastime = 0;
+  end
+else
+  qi      = 1;
+  hasfreq = 0;
+  hastime = 0;
 end % handle fun
 
 %%% maskparameter
@@ -600,7 +633,7 @@ if isequal(cfg.method,'ortho')
     yi = nearest(1:dim(2), loc(2));
     zi = nearest(1:dim(3), loc(3));
   end
-
+  
   %% do the actual plotting %%
   nas = [];
   lpa = [];
@@ -623,10 +656,19 @@ if isequal(cfg.method,'ortho')
     ijk = [xi yi zi 1]';
     xyz = data.transform * ijk;
     if hasfun && ~hasatlas
-      val = fun(xi, yi, zi);
-      fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3), val);
+      val = fun(xi, yi, zi, qi);
+      if ~hasfreq && ~hastime,
+       fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3), val);
+      elseif hastime && hasfreq,
+        val = fun(xi, yi, zi, qi(1), qi(2));
+        fprintf('voxel %d, indices [%d %d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)' data.freq(qi(1)) data.time(qi(2))], val);
+      elseif hastime,
+        fprintf('voxel %d, indices [%d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)', data.time(qi)], val);
+      elseif hasfreq,
+        fprintf('voxel %d, indices [%d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)', data.freq(qi)], val);
+      end
     elseif hasfun && hasatlas
-      val = fun(xi, yi, zi);
+      val = fun(xi, yi, zi, qi);
       fprintf('voxel %d, indices [%d %d %d], %s coordinates [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), cfg.inputcoord, xyz(1:3), val);
     elseif ~hasfun && ~hasatlas
       fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3));
@@ -661,29 +703,48 @@ if isequal(cfg.method,'ortho')
     end
 
     h1 = subplot(2,2,1);
-    [vols2D] = handle_ortho(vols, [xi yi zi], 2, dim);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 2, dim);
     plot2D(vols2D, scales);
     xlabel('i'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([xi zi]); end
     
     h2 = subplot(2,2,2);
-    [vols2D] = handle_ortho(vols, [xi yi zi], 1, dim);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 1, dim);
     plot2D(vols2D, scales);
     xlabel('j'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([yi zi]); end
 
     h3 = subplot(2,2,3);
-    [vols2D] = handle_ortho(vols, [xi yi zi], 3, dim);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 3, dim);
     plot2D(vols2D, scales);
     xlabel('i'); ylabel('j'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([xi yi]); end
 
-    if strcmp(cfg.colorbar,  'yes'),
+    if hasfreq && hastime && hasfun,
+      h=subplot(2,2,4);
+      %uimagesc(data.time, data.freq, squeeze(vols{2}(xi,yi,zi,:,:))');axis xy;
+      tmpdat = double(squeeze(vols{2}(xi,yi,zi,:,:)));
+      pcolor(double(data.time), double(data.freq), double(squeeze(vols{2}(xi,yi,zi,:,:))));
+      shading('interp');
+      xlabel('time'); ylabel('freq');
+      caxis([-1 1].*max(abs(caxis)));
+      colorbar;
+      %caxis([fcolmin fcolmax]);
+      %set(gca, 'Visible', 'off');      
+    elseif hasfreq && hasfun,
+      subplot(2,2,4);
+      plot(data.freq, squeeze(vols{2}(xi,yi,zi,:))); xlabel('freq');
+      axis([data.freq(1) data.freq(end) scales{2}]);
+    elseif hastime && hasfun,
+      subplot(2,2,4);
+      plot(data.time, squeeze(vols{2}(xi,yi,zi,:))); xlabel('time');
+      axis([data.time(1) data.time(end) scales{2}]);
+    elseif strcmp(cfg.colorbar,  'yes'),
       if hasfun
         % vectorcolorbar = linspace(fcolmin, fcolmax,length(cfg.funcolormap));
         % imagesc(vectorcolorbar,1,vectorcolorbar);colormap(cfg.funcolormap);
         subplot(2,2,4);
-        % use a normal Matlab coorbar, attach it to the invisible 4th subplot
+        % use a normal Matlab colorbar, attach it to the invisible 4th subplot
         caxis([fcolmin fcolmax]);
         hc = colorbar;
         set(hc, 'YLim', [fcolmin fcolmax]);
@@ -695,7 +756,7 @@ if isequal(cfg.method,'ortho')
 
     set(gcf, 'renderer', cfg.renderer); % ensure that this is done in interactive mode
     drawnow;
-
+    
     if interactive_flag
       try, [d1, d2, key] = ginput(1); catch, key='q'; end
       if isempty(key)
@@ -723,7 +784,7 @@ if isequal(cfg.method,'ortho')
         elseif l1=='j' && l2=='k' && key=='j', yi = yi-1;
         elseif l1=='j' && l2=='k' && key=='k', yi = yi+1;
         elseif l1=='j' && l2=='k' && key=='m', zi = zi-1;
-	end;
+        end;
       else
         % update the view to a new position
         l1 = get(get(gca, 'xlabel'), 'string');
@@ -735,6 +796,10 @@ if isequal(cfg.method,'ortho')
             yi = d1;
           case 'k'
             zi = d1;
+	  case 'freq'
+	    qi = nearest(data.freq,d1);
+	  case 'time'
+	    qi = nearest(data.time,d1);
         end
         switch l2,
           case 'i'
@@ -743,6 +808,8 @@ if isequal(cfg.method,'ortho')
             yi = d2;
           case 'k'
             zi = d2;
+	  case 'freq'
+	    qi = [nearest(data.freq,d2) qi(1)];
         end
       end
     end % if interactive_flag
@@ -886,7 +953,7 @@ elseif isequal(cfg.method,'surface')
 
 elseif isequal(cfg.method,'slice')
   % white BG => mskana
-
+  
   %% TODO: HERE THE FUNCTION THAT MAKES TO SLICE DIMENSION ALWAYS THE THIRD
   %% DIMENSION, AND ALSO KEEP TRANSFORMATION MATRIX UP TO DATE
   % zoiets
@@ -925,7 +992,7 @@ elseif isequal(cfg.method,'slice')
 
   % update the dimensions of the volume
   if hasana; dim=size(ana); else dim=size(fun); end;
-
+  
   %%%%% make "quilts", that contain all slices on 2D patched sheet
   % Number of patches along sides of Quilt (M and N)
   % Size (in voxels) of side of patches of Quilt (m and n)
@@ -965,7 +1032,7 @@ elseif isequal(cfg.method,'slice')
   if hasana; vols2D{1} = quilt_ana; scales{1} = []; end; % needed when only plotting ana
   if hasfun; vols2D{2} = quilt_fun; scales{2} = [fcolmin fcolmax]; end;
   if hasmsk; vols2D{3} = quilt_msk; scales{3} = [opacmin opacmax]; end;
-
+  
   plot2D(vols2D, scales);
   axis off
 
@@ -1006,6 +1073,12 @@ else hasmsk=0; end
 xi = indx(1);
 yi = indx(2);
 zi = indx(3);
+qi = indx(4);
+if length(indx)>4,
+  qi(2) = indx(5);
+else
+  qi(2) = 1;
+end
 
 % select the slice to plot
 if slicedir==1
@@ -1021,7 +1094,7 @@ end
 
 % cut out the slice of interest
 if hasana; ana = squeeze(ana(xi,yi,zi)); end;
-if hasfun; fun = squeeze(fun(xi,yi,zi)); end;
+if hasfun; fun = squeeze(fun(xi,yi,zi,qi(1),qi(2))); end;
 if hasmsk; msk = squeeze(msk(xi,yi,zi)); end;
 
 %put fun, ana and msk in vols2D

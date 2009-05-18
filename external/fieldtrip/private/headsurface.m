@@ -21,6 +21,9 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: headsurface.m,v $
+% Revision 1.9  2009/05/14 19:24:51  roboos
+% don't read the headshape from file, it should be externally read and passed as pnt/tri
+%
 % Revision 1.8  2009/03/10 14:25:03  roboos
 % use voltype function
 % fixed bug for multisphere model when shifting lower rim down
@@ -74,21 +77,9 @@ if isempty(downwardshift), downwardshift = 1; end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(headshape)
-  if ischar(headshape)
-    % read the head surface from file
-    hs = read_ctf_shape(headshape);
-    pnt = hs.pnt;
-    pnt = unique(pnt, 'rows');
-    tri = projecttri(pnt);
-  elseif isstruct(headshape)
-    pnt = headshape.pnt;
-    pnt = unique(pnt, 'rows');
-    if isfield(headshape, 'tri')
-      tri = headshape.tri;
-    else
-      tri = projecttri(pnt);
-    end
-  end
+  % the headshape should be specified as a surface structure with pnt and tri
+  pnt = headshape.pnt;
+  tri = headshape.tri;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)<5

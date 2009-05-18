@@ -6,6 +6,9 @@ function y = istrue(x)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: istrue.m,v $
+% Revision 1.3  2009/05/14 11:57:37  crimic
+% introduced check for 'y' and 'n'
+%
 % Revision 1.2  2009/04/14 18:30:35  roboos
 % small fix
 %
@@ -13,8 +16,8 @@ function y = istrue(x)
 % extended and moved from plotting to public
 %
 
-true_list  = {'yes' 'true' 'on'};
-false_list = {'no' 'false' 'off'};
+true_list  = {'yes' 'true' 'on' 'y'};
+false_list = {'no' 'false' 'off' 'n'};
 
 if ischar(x)
   % convert string to boolean value

@@ -5,7 +5,7 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 % called .pnt and .tri referring to vertices and triangulation of a mesh.
 %
 % Use as
-%   hs = plot_mesh(bnd, varargin)
+%   plot_mesh(bnd, varargin)
 %
 % Graphic facilities are available for vertices, edges and faces. A list of
 % the arguments is given below with the correspondent admitted choices.
@@ -24,10 +24,25 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 %   bnd.pnt = pnt;
 %   bnd.tri = tri;
 %   plot_mesh(bnd, 'faces', 'yes', 'vertices', 'yes', 'edges', 'no', 'facecolor', 'skin')
+%   camlight
+%
+% PLOT_MESH allows to plot points on top of mesh plots, as:
+%   plot_mesh(pnt)
+% where pnt is a list of 3d points cartesian coordinates.
+% The function will return a warning in this case.
 
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.13  2009/05/13 07:54:36  crimic
+% updated help
+%
+% Revision 1.12  2009/05/13 07:49:55  crimic
+% inserted option to manage plot of points in 3d
+%
+% Revision 1.11  2009/05/12 18:11:21  roboos
+% cleaned up whitespace and indentation
+%
 % Revision 1.10  2009/04/17 13:43:33  crimic
 % updated help
 %
@@ -54,19 +69,23 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 
 
 if ~isfield(bnd,'pnt') && ~isfield(bnd,'tri')
-  error('First argument must be a boundary structure (points, triangulation)')
+  warning('First argument must be a boundary structure (points, triangulation)')
+  bnd_.pnt = bnd;
+  bnd_.tri = ones(size(bnd));
+  bnd = bnd_;
+  plot_mesh(bnd_,'vertices','y')
 end
 
 % get the optional input arguments
-faces       = keyval('faces',      varargin);
-facecolor   = keyval('facecolor',  varargin);
-faceindex   = keyval('faceindex',  varargin);
-vertices    = keyval('vertices',   varargin);  if isempty(vertices),vertices=1;end
-vertexcolor = keyval('vertexcolor',  varargin);
-vertexindex = keyval('vertexindex',  varargin);
+faces       = keyval('faces',       varargin);
+facecolor   = keyval('facecolor',   varargin);
+faceindex   = keyval('faceindex',   varargin);
+vertices    = keyval('vertices',    varargin); if isempty(vertices),vertices=1;end
+vertexcolor = keyval('vertexcolor', varargin);
+vertexindex = keyval('vertexindex', varargin);
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),vertexsize=10;end
-edges       = keyval('edges',      varargin);  if isempty(edges),edges=1;end
-edgecolor   = keyval('edgecolor',      varargin);  if isempty(edgecolor),edgecolor='k';end
+edges       = keyval('edges',       varargin); if isempty(edges),edges=1;end
+edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='k';end
 
 % start with empty return values
 hs      = [];
@@ -152,7 +171,7 @@ axis off
 axis vis3d
 axis equal
 
-if nargout==0
+if ~nargout
   clear hs
 end
 if ~holdflag

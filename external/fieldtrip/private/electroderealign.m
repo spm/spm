@@ -80,6 +80,9 @@ function [norm] = electroderealign(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.10  2009/05/14 19:19:30  roboos
+% only include unique headshape points
+%
 % Revision 1.9  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -217,6 +220,7 @@ if useheadshape
   end
   if ~isfield(headshape, 'tri')
     % generate a closed triangulation from the surface points
+    headshape.pnt = unique(headshape,pnt, 'rows');
     headshape.tri = projecttri(headshape.pnt);
   end
 end
@@ -506,7 +510,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.9 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.10 2009/05/14 19:19:30 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;

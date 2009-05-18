@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.14  2009/05/14 18:54:39  roboos
+% added sam for createsubcfg
+%
 % Revision 1.13  2009/04/03 08:09:31  jansch
 % added denoise for preproc and subspace
 %
@@ -391,6 +394,7 @@ if ~isempty(createsubcfg)
           'keepmom'
           'lambda'
           'normalize'
+          'normalizeparam'
           'powmethod'
           'projectnoise'
           'reducerank'
@@ -406,6 +410,7 @@ if ~isempty(createsubcfg)
           'keepmom'
           'lambda'
           'normalize'
+          'normalizeparam'
           'powmethod'
           'projectnoise'
           'projectmom'
@@ -421,6 +426,7 @@ if ~isempty(createsubcfg)
           'keepmom'
           'lambda'
           'normalize'
+          'normalizeparam'
           %'powmethod'
           'projectnoise'
           'reducerank'
@@ -437,6 +443,17 @@ if ~isempty(createsubcfg)
         fieldname = {
           'feedback'
           'numcomponent'
+          };
+        
+      case 'sam'
+        fieldname = {
+          'meansphereorigin'
+          'spinning'
+          'feedback'
+          'lambda'
+          'normalize'
+          'normalizeparam'
+          'reducerank'
           };
 
       otherwise

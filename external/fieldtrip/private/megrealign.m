@@ -30,23 +30,25 @@ function [interp] = megrealign(cfg, data);
 %
 % A source model (i.e. a superficial layer with distributed sources) can be
 % constructed from a headshape file, or from the volume conduction model
-%   cfg.headshape   = filename for headshape, can be empty (default = [])
 %   cfg.spheremesh  = number of dipoles in the source layer (default = 642)
 %   cfg.inwardshift = depth of the source layer relative to the headshape 
 %                     surface or volume conduction model (no default 
 %                     supplied, see below)
+%   cfg.headshape   = a filename containing headshape, a structure containing a
+%                     single triangulated boundary, or a Nx3 matrix with surface
+%                     points
 %
-% If you specify a headshape file and it contains a skin surface, the
-% inward shift should be 2.5.
+% If you specify a headshape and it describes the skin surface, you should specify an 
+% inward shift of 2.5 cm.
 %
-% For a single-sphere or a local-spheres headmodel based on the skin
-% surface, an inward shift of 2.5 is reasonable. 
+% For a single-sphere or a local-spheres volume conduction model based on the skin
+% surface, an inward shift of 2.5 cm is reasonable. 
 % 
-% For a single-sphere or a local-spheres headmodel based on the brain
-% surface, you should probably use an inward shift of about 1.
+% For a single-sphere or a local-spheres volume conduction model based on the brain
+% surface, you should probably use an inward shift of about 1 cm.
 % 
-% For a realistic single-shell headmodel based on the brain surface, you
-% should probably use an inward shift of about 1. 
+% For a realistic single-shell volume conduction model based on the brain surface, you
+% should probably use an inward shift of about 1 cm. 
 % 
 % Other options are
 %   cfg.pruneratio  = for singular values, default is 1e-3
@@ -77,6 +79,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.61  2009/05/14 19:21:03  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.60  2009/04/14 20:06:27  jansch
 % added functionality to do a per trial realignment, based on estimated
 % head position per trial. this is experimental code and depends on functionality
@@ -494,7 +499,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.60 2009/04/14 20:06:27 jansch Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.61 2009/05/14 19:21:03 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

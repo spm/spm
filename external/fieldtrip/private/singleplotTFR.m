@@ -23,6 +23,7 @@ function [cfg] = singleplotTFR(cfg, data)
 % cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 % cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                     see CHANNELSELECTION for details
+% cfg.cohrefchannel = Name of reference-channel, only for visualizing coherence 
 % cfg.fontsize      = font size of title (default = 8)
 % cfg.colormap      = any sized colormap, see COLORMAP
 % cfg.colorbar      = 'yes', 'no' (default = 'yes')
@@ -43,6 +44,10 @@ function [cfg] = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.34  2009/05/12 18:47:23  roboos
+% added general suppoprt for cfg.cohrefchannel and
+% added handling of cfg.cohrefchannel='gui' for manual/interactive selection
+%
 % Revision 1.33  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -203,6 +208,39 @@ if ~isfield(cfg,'channel')
   cfg = checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
   cfg = checkconfig(cfg, 'renamed', {'channelname',   'channel'});
 end
+
+  % Check for unconverted coherence spectrum data
+  if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(data, 'labelcmb'))
+    % A reference channel is required:
+    if ~isfield(cfg,'cohrefchannel'),
+      error('no reference channel specified');
+    end
+
+    if strcmp(cfg.cohrefchannel, 'gui')
+      % Open a single figure with the channel layout, the user can click on a reference channel
+      h = clf;
+      lay = prepare_layout(cfg, data)
+      cfg.layout = lay;
+      plot_lay(lay, 'box', false);
+      title('Select the reference channel by clicking on it...');
+      info       = [];
+      info.x     = lay.pos(:,1);
+      info.y     = lay.pos(:,2);
+      info.label = lay.label;
+      guidata(h, info);
+      set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_cohrefchannel, cfg, data}});
+      return
+    end
+
+    % Convert 2-dimensional channel matrix to a single dimension:
+    sel1                  = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
+    sel2                  = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+    fprintf('selected %d channels for coherence\n', length(sel1)+length(sel2));
+    data.cohspctrm = data.cohspctrm([sel1;sel2],:,:);
+    data.label     = [data.labelcmb(sel1,1);data.labelcmb(sel2,2)];
+    data.labelcmb  = data.labelcmb([sel1;sel2],:);
+    data           = rmfield(data, 'labelcmb');
+  end
 
 cfg.channel = channelselection(cfg.channel, data.label);
 if isempty(cfg.channel)
@@ -396,3 +434,14 @@ t = char(cells{1});
 for i=2:length(cells)
   t = [t separator char(cells{i})];
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% this function is called by select_channel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function select_cohrefchannel(label, cfg, varargin)
+fprintf('selected "%s" as reference channel\n', label);
+cfg.cohrefchannel = label;
+figure
+singleplotTFR(cfg, varargin{:});
+

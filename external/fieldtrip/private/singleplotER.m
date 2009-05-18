@@ -54,6 +54,9 @@ function [cfg] = singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.37  2009/05/12 18:21:37  roboos
+% added handling of cfg.cohrefchannel='gui' for manual/interactive selection
+%
 % Revision 1.36  2009/02/26 10:52:12  ingnie
 % made 'maxmin' scaling of zparam according to xlim
 %
@@ -277,6 +280,23 @@ for k=1:length(varargin)
     if ~isfield(cfg,'cohrefchannel'),
       error('no reference channel specified');
     end
+
+    if strcmp(cfg.cohrefchannel, 'gui')
+      % Open a single figure with the channel layout, the user can click on a reference channel
+      h = clf;
+      lay = prepare_layout(cfg, varargin{1});
+      cfg.layout = lay;
+      plot_lay(cfg.layout, 'box', false);
+      title('Select the reference channel by clicking on it...');
+      info       = [];
+      info.x     = lay.pos(:,1);
+      info.y     = lay.pos(:,2);
+      info.label = lay.label;
+      guidata(h, info);
+      set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_cohrefchannel, cfg, varargin{:}}});
+      return
+    end
+
     % Convert 2-dimensional channel matrix to a single dimension:
     sel1                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,2));
     sel2                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,1));
@@ -490,3 +510,14 @@ for k=1:length(strlist)
     l = [l k];
   end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% this function is called by select_channel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function select_cohrefchannel(label, cfg, varargin)
+fprintf('selected "%s" as reference channel\n', label);
+cfg.cohrefchannel = label;
+figure
+singleplotER(cfg, varargin{:});
+

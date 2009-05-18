@@ -8,9 +8,8 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 %   [vol, cfg] = prepare_concentricspheres(cfg)
 %
 % The input configuration should contain
-%   cfg.headshape     = filename containing headshape, or Nx3 matrix with
-%                       surface points, can possibly be a structure array
-%                       with several boundaries
+%   cfg.headshape     = a filename containing headshape, a Nx3 matrix with surface 
+%                       points, or a structure with a single or multiple boundaries
 %   cfg.conductivity  = conductivity values for the model (default = [0.3300 1 0.0042 0.3300])
 %   cfg.fitind        = indices of shapes to use for fitting the center (default = 'all')
 %   cfg.nonlinear     = 'yes' or 'no' (default = 'yes')
@@ -19,24 +18,29 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 %
 % Example:
 %
-%   cfg = [];
 %   % first create 4 surfaces that represent the brain, csf, skull and skin
 %   radius = [86 88 92 100];
+%   headshape = [];
 %   for i=1:4
 %     pnt = randn(100,3);
 %     for j=1:size(pnt,1)
 %       pnt(j,:) = pnt(j,:) ./ norm(pnt(j,:));
 %     end
-%     cfg.headshape(i).pnt = radius(i) .* pnt + 0.1*randn(size(pnt));
+%     headshape(i).pnt = radius(i) .* pnt + 0.1*randn(size(pnt));
 %   end
+%
 %   % then construct a volume conduction model of the head by fitting 4 concentric spheres
+%   cfg = [];
+%   cfg.headshape    = headshape;
 %   cfg.conductivity = [0.3300 1 0.0042 0.3300]
 %   [vol, cfg] = prepare_concentricspheres(cfg)
-
 
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
 % $Log: prepare_concentricspheres.m,v $
+% Revision 1.4  2009/05/14 19:21:36  roboos
+% consistent handling of cfg.headshape in code and documentation
+%
 % Revision 1.3  2009/04/01 12:28:58  roboos
 % use Taubin's method instead of nonlinear search (thanks to Jean and Guillaume)
 %
@@ -57,15 +61,29 @@ if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [0.3300 1 0.0042 0.3300]; 
 
 cfg = checkconfig(cfg, 'forbidden', 'nonlinear');
 
-% use the headshape points that are specified in the configuration
-if ischar(cfg.headshape)
-  shape = read_headshape(cfg.headshape);
+% get the surface describing the head shape
+if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+  % use the headshape surface specified in the configuration
+  headshape = cfg.headshape;
+elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+  % use the headshape points specified in the configuration
+  headshape.pnt = cfg.headshape;
+elseif ischar(cfg.headshape)
+  % read the headshape from file
+  headshape = read_headshape(cfg.headshape);
 else
-  shape = cfg.headshape;
+  error('cfg.headshape is not specified correctly')
+end
+if ~isfield(headshape, 'tri')
+  for i=1:length(headshape)
+    % generate a closed triangulation from the surface points
+    headshape(i).pnt = unique(headshape(i).pnt, 'rows');
+    headshape(i).tri = projecttri(headshape(i).pnt);
+  end
 end
 
 if strcmp(cfg.fitind, 'all')
-  fitind = 1:numel(shape);
+  fitind = 1:numel(headshape);
 else
   fitind = cfg.fitind;
 end
@@ -73,7 +91,7 @@ end
 % concatenate the vertices of all surfaces
 pnt = [];
 for i = fitind
-  pnt = [pnt ; shape(i).pnt];
+  pnt = [pnt ; headshape(i).pnt];
 end
 % remove double vertices
 pnt = unique(pnt, 'rows');
@@ -101,18 +119,20 @@ fprintf('initial sphere: radius = %.1f\n', single_r);
 % fit the radius of each concentric sphere to the corresponding surface points
 vol = [];
 vol.o = single_o;
-for i = 1:numel(shape)
-  dist     = sqrt(sum(((shape(end-i+1).pnt - repmat(single_o, size(shape(end-i+1).pnt,1), 1)).^2), 2));
+for i = 1:numel(headshape)
+  dist     = sqrt(sum(((headshape(end-i+1).pnt - repmat(single_o, size(headshape(end-i+1).pnt,1), 1)).^2), 2));
   vol.r(i) = mean(dist);
 
   if strcmp(cfg.feedback, 'yes')
-    if ~isfield(shape(end-i+1), 'tri')
-      shape(end-i+1).tri = [];
+    if ~isfield(headshape(end-i+1), 'tri')
+      headshape(end-i+1).tri = [];
     end
 
+    % FIXME switch to plot_mesh
     % plot the original surface
-    triplot(shape(end-i+1).pnt, shape(end-i+1).tri, [], 'edges');
+    triplot(headshape(end-i+1).pnt, headshape(end-i+1).tri, [], 'edges');
 
+    % FIXME switch to plot_mesh
     % plot the sphere surface
     spnt = sphere_pnt*vol.r(i) + repmat(single_o, size(sphere_pnt, 1), 1);
     hs = triplot(spnt, sphere_tri, [], 'edges');
@@ -120,7 +140,7 @@ for i = 1:numel(shape)
   end
 end
 
-if numel(cfg.conductivity)==numel(shape)
+if numel(cfg.conductivity)==numel(headshape)
   vol.c = cfg.conductivity;
 else
   error('incorrect specification of cfg.conductivity');
@@ -130,3 +150,4 @@ vol.type = 'concentric';
 
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+

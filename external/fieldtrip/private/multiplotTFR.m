@@ -15,7 +15,7 @@ function [cfg] = multiplotTFR(cfg, data)
 %                        'time'
 % cfg.yparam           = field to be plotted on y-axis (default depends on data.dimord)
 %                        'freq'
-% cfg.zparam           = field to be plotted on y-axis (default depends on data.dimord)
+% cfg.zparam           = field to be represented as color (default depends on data.dimord)
 %                        'powspctrm' or 'cohspctrm' 
 % cfg.maskparameter    = field in the data to be used for opacity masking of data
 % cfg.xlim             = 'maxmin' or [xmin xmax] (default = 'maxmin')
@@ -73,6 +73,10 @@ function [cfg] = multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.48  2009/05/12 18:48:15  roboos
+% added handling of cfg.cohrefchannel='gui' for manual/interactive selection
+% changed default for cfg.renderer -> let matlab decide
+%
 % Revision 1.47  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -238,7 +242,7 @@ if ~isfield(cfg,'showoutline'),     cfg.showoutline = 'no';            end
 if ~isfield(cfg,'channel'),         cfg.channel = 'all';               end
 if ~isfield(cfg,'fontsize'),        cfg.fontsize = 8;                  end
 if ~isfield(cfg,'interactive'),     cfg.interactive = 'no';            end
-if ~isfield(cfg,'renderer'),        cfg.renderer = 'opengl';           end
+if ~isfield(cfg,'renderer'),        cfg.renderer = [];                 end % let matlab decide on default
 if ~isfield(cfg,'masknans'),        cfg.masknans = 'yes';              end
 if ~isfield(cfg,'maskparameter'),   cfg.maskparameter = [];            end
 if ~isfield(cfg,'box')             
@@ -283,12 +287,31 @@ end
 % Old style coherence plotting with cohtargetchannel is no longer supported:
 cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
+% Read or create the layout that will be used for plotting:
+lay = prepare_layout(cfg, data);
+cfg.layout = lay;
+
 % Check for unconverted coherence spectrum data:
 if (strcmp(cfg.zparam,'cohspctrm')),
   % A reference channel is required:
   if ~isfield(cfg,'cohrefchannel'),
     error('no reference channel specified');
   end
+
+  if strcmp(cfg.cohrefchannel, 'gui')
+    % Open a single figure with the channel layout, the user can click on a reference channel
+    h = clf;
+    plot_lay(lay, 'box', false);
+    title('Select the reference channel by clicking on it...');
+    info       = [];
+    info.x     = lay.pos(:,1);
+    info.y     = lay.pos(:,2);
+    info.label = lay.label;
+    guidata(h, info);
+    set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_cohrefchannel, cfg, data}});
+    return
+  end
+
   % Convert 2-dimensional channel matrix to a single dimension:
   sel1           = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
   sel2           = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
@@ -347,9 +370,6 @@ eveny = all(abs(diff(y)/dy-1)<1e-12);     % true if Y is linearly spaced
 if ~evenx || ~eveny
   warning('(one of the) axis is/are not evenly spaced, but plots are made as if axis are linear')
 end
-
-% Read or create the layout that will be used for plotting:
-lay = prepare_layout(cfg, data);
 
 % Select the channels in the data that match with the layout:
 [seldat, sellay] = match_str(data.label, lay.label);
@@ -505,7 +525,9 @@ if strcmp(cfg.interactive, 'yes')
   userData.chanY = chanY;
   userData.chanLabels = chanLabels;
   tag = sprintf('%.5f', 10000 * rand(1));
-  set(gcf, 'Renderer', cfg.renderer);
+  if ~isempty(cfg.renderer)
+    set(gcf, 'Renderer', cfg.renderer);
+  end
   set(gcf, 'Tag', tag);
   set(gcf, 'UserData', userData);
   set(gcf, 'WindowButtonMotionFcn', ['plotSelection(get(findobj(''Tag'', ''' tag '''), ''UserData''), 0);']);
@@ -535,3 +557,14 @@ for k=1:length(strlist)
     l = [l k];
   end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% this function is called by select_channel
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function select_cohrefchannel(label, cfg, varargin)
+fprintf('selected "%s" as reference channel\n', label);
+cfg.cohrefchannel = label;
+figure
+multiplotTFR(cfg, varargin{:});
+

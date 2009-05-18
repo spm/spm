@@ -1,4 +1,4 @@
-function plot_sens(sens, varargin)
+function hs = plot_sens(sens, varargin)
 
 % PLOT_SENS plots the position of the channels in the EEG or MEG sensor array
 %
@@ -11,6 +11,9 @@ function plot_sens(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: plot_sens.m,v $
+% Revision 1.4  2009/05/12 18:12:26  roboos
+% added handling of hold on/off
+%
 % Revision 1.3  2009/04/14 19:48:28  roboos
 % added keyvalcheck
 %
@@ -22,9 +25,25 @@ function plot_sens(sens, varargin)
 keyvalcheck(varargin, 'optional', {'style'});
 style = keyval('style', varargin); if isempty(style), style = 'k.'; end
 
+
 % determine the position of each channel, which is for example the mean of
 % two bipolar electrodes, or the bottom coil of a axial gradiometer
 [chan.pnt, chan.label] = channelposition(sens);
 
-plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), style);
+% everything is added to the current figure
+holdflag = ishold;
+hold on
+
+hs = plot3(chan.pnt(:,1), chan.pnt(:,2), chan.pnt(:,3), style);
+
+axis vis3d
+axis equal
+
+if ~nargout
+  clear hs
+end
+if ~holdflag
+  hold off
+end
+
 
