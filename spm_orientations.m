@@ -48,22 +48,17 @@ function spm_orientations(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_orientations.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_orientations.m 3131 2009-05-18 15:54:10Z guillaume $
 
 if nargin<1,
     P = spm_select(Inf,'image','Select the images...');
-end;
+end
 
-global defaults
-if isempty(defaults) || ~isfield(defaults,'analyze') ||...
-     ~isfield(defaults.analyze,'flip')
-    error('You should run spm_defaults so that SPM can determine the handedness of Analyze images.');
-end;
-if defaults.analyze.flip,
+if spm_flip_analyze_images
     fprintf('SPM is assuming left-handed storage when handedness is not indicated by the .hdr or .mat (flip=1)\n');
 else
     fprintf('SPM is assuming right-handed storage when handedness is not indicated by the .hdr or .mat (flip=0)\n');
-end;
+end
 
 for i=1:size(P,1),
     M   = spm_get_space(P(i,:));

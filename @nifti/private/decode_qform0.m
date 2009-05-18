@@ -4,7 +4,7 @@ function M = decode_qform0(hdr)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: decode_qform0.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: decode_qform0.m 3131 2009-05-18 15:54:10Z guillaume $
 
 
 dim    = double(hdr.dim);
@@ -15,9 +15,9 @@ if ~isfield(hdr,'magic') || hdr.qform_code <= 0,
     %disp('The images are in a form whereby it is not possible to');
     %disp('tell the left and right sides of the brain apart.');
     %if flp,
-    %    disp('They are assumed to be stored right-handed.');
-    %else
     %    disp('They are assumed to be stored left-handed.');
+    %else
+    %    disp('They are assumed to be stored right-handed.');
     %end;
     %disp('------------------------------------------------------');
 
