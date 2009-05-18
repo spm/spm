@@ -46,6 +46,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.32  2009/05/18 15:59:44  roboos
+% optinal plotting of RGB as greyscale image
+%
 % Revision 1.31  2009/03/30 17:55:17  vlalit
 % Changed prepare_layout and headmodelplot to use channelposition. Changed the color
 %  of sensor markers in headmodelplot to green for consistency with SPM plots.
@@ -322,7 +325,18 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   img = flipdim(img, 1); % in combination with "axis xy"
   
   figure
-  image(img);
+  bw = 1;
+
+  if bw
+    % convert to greyscale image
+    img = mean(img, 3);
+    imagesc(img);
+    colormap gray
+  else
+    % plot as RGB image
+    image(img);
+  end
+
   hold on
   axis equal
   axis off

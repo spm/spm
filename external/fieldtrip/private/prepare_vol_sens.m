@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.16  2009/05/18 15:57:23  roboos
+% added the label of each coil to the multisphere model output
+%
 % Revision 1.15  2009/04/01 12:36:52  roboos
 % use Taubin's method for fitting the sphere instead of Guido's iterative sphfit function
 %
@@ -210,6 +213,7 @@ elseif ismeg
           chanindex = strmatch(coillabel, vol.label, 'exact');
           multisphere.r(i,:) = vol.r(chanindex);
           multisphere.o(i,:) = vol.o(chanindex,:);
+          multisphere.label{i} = coillabel;
         end
       end
       vol = multisphere;
