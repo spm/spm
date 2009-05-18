@@ -47,6 +47,9 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.14  2009/05/14 19:25:12  roboos
+% added a FIXME comment
+%
 % Revision 1.13  2009/03/24 13:13:33  roboos
 % fixed bug for coh_refchan in case trace was used for power estimate
 %
@@ -123,6 +126,7 @@ keepfilter     = strcmp(keepfilter,    'yes');
 keepleadfield  = strcmp(keepleadfield, 'yes');
 projectnoise   = strcmp(projectnoise,  'yes');
 fixedori       = strcmp(fixedori,      'yes');
+% FIXME besides regular/complex lambda1, also implement a real version
 
 % default is to use the largest singular value of the csd matrix, see Gross 2001
 if isempty(powmethod)
@@ -500,7 +504,7 @@ ori = u(:,1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.13 $  $Date: 2009/03/24 13:13:33 $
+%   $Revision: 1.14 $  $Date: 2009/05/14 19:25:12 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
