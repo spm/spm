@@ -2,14 +2,14 @@ function spm_render(dat,brt,rendfile)
 % Render blobs on surface of a 'standard' brain
 % FORMAT spm_render(dat,brt,rendfile)
 %
-% dat - a vertical cell array of length 1 to 3
-%       - each element is a structure containing:
-%         - XYZ - the x, y & z coordinates of the transformed SPM{.} values
-%                 in units of voxels.
-%         - t   - the SPM{.} values.
-%         - mat - affine matrix mapping from XYZ voxels to MNI.
-%         - dim - dimensions of volume from which XYZ is drawn.
-% brt - brightness control:
+% dat      - a struct array of length 1 to 3
+%            each element is a structure containing:
+%            - XYZ - the x, y & z coordinates of the transformed SPM{.}
+%                    values in units of voxels.
+%            - t   - the SPM{.} values.
+%            - mat - affine matrix mapping from XYZ voxels to MNI.
+%            - dim - dimensions of volume from which XYZ is drawn.
+% brt      - brightness control:
 %            If NaN, then displays using the old style with hot
 %            metal for the blobs, and grey for the brain.
 %            Otherwise, it is used as a ``gamma correction'' to
@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3100 2009-05-06 19:00:39Z guillaume $
+% $Id: spm_render.m 3135 2009-05-19 14:49:42Z guillaume $
 
-SVNrev = '$Rev: 3100 $';
+SVNrev = '$Rev: 3135 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -50,7 +50,7 @@ if nargin < 1
     spm('FnBanner',mfilename,SVNrev);
     spm('FigName','Results: render');
 
-    num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
+    num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3],1);
 
     for i = 1:num
         [SPM,xSPM] = spm_getSPM;
@@ -120,8 +120,7 @@ if ~strcmpi(e,'.mat') || loadgifti
     catch
         error('\nCannot read  render file "%s".\n', rendfile);
     end
-    %rnd = spm_input('Rendering',1,'texture|voxel',{'texture' 'voxel'}, 1);
-    surf_rend(dat,rend,col,'texture');
+    surf_rend(dat,rend,col);
     return
 end
 
@@ -296,71 +295,43 @@ end
 spm('Pointer','Arrow');
 
 %==========================================================================
-function surf_rend(dat,rend,col,action)
+% function surf_rend(dat,rend,col)
+%==========================================================================
+function surf_rend(dat,rend,col)
 
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
+rdr = get(Fgraph,'Renderer');
+set(Fgraph,'Renderer','OpenGL');
 
 ax = axes(...
     'Parent',Fgraph,...
     'units','normalized',...
-    'Position',[0, 0, 1, 0.5],...
+    'Position',[0.025, 0.025, 0.95, 0.45],...
     'Visible','off');
 
-switch lower(action)
-    
-    case 'voxel'
-    %----------------------------------------------------------------------
-        hp = patch(rend, 'Parent',ax,...
-            'FaceColor', [0.8 0.7 0.7], 'FaceVertexCData', [],...
-            'EdgeColor', 'none',...
-            'FaceLighting', 'phong',...
-            'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
-            'DiffuseStrength', 0.7, 'SpecularExponent', 10);
-    
-        gv = gifti;
-        gv.vertices = [...
-            -1 -1 -1 -1  1  1  1  1
-            -1 -1  1  1 -1 -1  1  1
-            -1  1 -1  1 -1  1 -1  1]'/2;
-        gv.faces = [...
-            1  3  4  3  4  3  7  7  2  8  1  1
-            5  5  3  7  2  2  8  6  8  6  2  6
-            3  7  8  8  3  1  6  5  4  2  6  5]';
-        for i=1:length(dat.t)
-            t = dat.mat * [dat.XYZ(:,i)' 1]'; % coord in mm
-            nv =  3*gv.vertices' + repmat(t(1:3,1),1,size(gv.vertices,1));
-            hh = patch(struct(...
-                'vertices',  nv',...
-                'faces',     gv.faces),...
-                'FaceColor', dat.t(i)/max(dat.t) * col(1,:),...
-                'EdgeColor', 'none');
-        end
-
-    case 'texture'
-    %----------------------------------------------------------------------
-        Vo = spm_write_filtered(dat.t,dat.XYZ,dat.dim,dat.mat,'',tempname);
-        v = spm_get_data(Vo,...
-            double(inv(Vo.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]));
-        spm_unlink(Vo.fname); spm_unlink([spm_str_manip(Vo.fname,'s') '.hdr']);
-        col = hot(256);
-        col(1,:) = 0.5;
-        if ~any(v)
-            cdat = 0.5*ones(length(v),3);
-        else
-            cdat = squeeze(ind2rgb(floor(v(:)*255/max(v(:))),col));
-        end
-        hp = patch(rend, 'Parent',ax,...
-            'FaceVertexCData',cdat, ...
-            'FaceColor', 'interp', ...
-            'EdgeColor', 'none',...
-            'FaceLighting', 'phong',...
-            'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
-            'DiffuseStrength', 0.7, 'SpecularExponent', 10);
-        
-    otherwise
-        error('Unknown rendering type.');
+Vo = spm_write_filtered(dat.t,dat.XYZ,dat.dim,dat.mat,'',tempname);
+v = spm_get_data(Vo,...
+    double(inv(Vo.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]));
+spm_unlink(Vo.fname); spm_unlink([spm_str_manip(Vo.fname,'s') '.hdr']);
+C = spm_mesh_curvature(rend) > 0;
+C = 0.5 * repmat(C,1,3) + 0.3 * repmat(~C,1,3);
+col = hot(256);
+col(1,:) = 0.5;
+if ~any(v)
+    cdat = 0.5*ones(length(v),3);
+else
+    cdat = squeeze(ind2rgb(floor(v(:)/max(v(:))*size(col,1)),col));
 end
+cdat = repmat(v==0,3,1)' .* C + repmat(v~=0,3,1)' .* cdat;
+
+hp = patch(rend, 'Parent',ax,...
+    'FaceVertexCData',cdat, ...
+    'FaceColor', 'interp', ...
+    'EdgeColor', 'none',...
+    'FaceLighting', 'phong',...
+    'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
+    'DiffuseStrength', 0.7, 'SpecularExponent', 10);
 
 set(Fgraph,'CurrentAxes',ax);
 view(ax,[-90 0]);
@@ -370,23 +341,82 @@ l = camlight; set(l,'Parent',ax);
 material(Fgraph,'dull');
 setappdata(ax,'camlight',l);
 
+%spm_mesh_inflate(hp,Inf,1);
+%view(ax,[-90 0]);axis(ax,'image');
+
 r = rotate3d(ax);
+set(r,'enable','off');
+cmenu = uicontextmenu;
+c1 = uimenu(cmenu, 'Label', 'Inflate', 'Interruptible','off', 'Callback', @myinflate);
+setappdata(c1,'patch',hp);
+setappdata(c1,'axis',ax);
+c2 = uimenu(cmenu, 'Label', 'Rotate', 'Checked','on','Separator','on','Callback', @myswitchrotate);
+setappdata(c2,'rotate3d',r);
+c3 = uimenu(cmenu, 'Label', 'Transparency');
+setappdata(c3,'patch',hp);
+uimenu(c3,'Label','0%',  'Checked','on',  'Callback',@mytransparency);
+uimenu(c3,'Label','20%', 'Checked','off', 'Callback',@mytransparency);
+uimenu(c3,'Label','40%', 'Checked','off', 'Callback',@mytransparency);
+uimenu(c3,'Label','60%', 'Checked','off', 'Callback',@mytransparency);
+uimenu(c3,'Label','80%', 'Checked','off', 'Callback',@mytransparency);
+c4 = uimenu(cmenu, 'Label', 'Save As...','Separator','on','Callback', @mysave);
+setappdata(c4,'patch',hp);
+try, set(r,'uicontextmenu',cmenu); end
+try, set(hp,'uicontextmenu',cmenu); end
 set(r,'enable','on');
 set(r,'ActionPostCallback',@mypostcallback);
-set(hp,'DeleteFcn',@mydeletefcn);
+set(hp,'DeleteFcn',{@mydeletefcn,Fgraph,rdr});
 
-hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
-xyz  = spm_XYZreg('GetCoords',hReg);
-hs   = mydispcursor('Create',ax,dat.mat,xyz);
-spm_XYZreg('Add2Reg',hReg,hs,@mydispcursor);
+try % meaningless when called outside spm_results_ui
+    hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
+    xyz  = spm_XYZreg('GetCoords',hReg);
+    hs   = mydispcursor('Create',ax,dat.mat,xyz);
+    spm_XYZreg('Add2Reg',hReg,hs,@mydispcursor);
+end
+    
+%==========================================================================
+function myinflate(obj,evd)
+spm_mesh_inflate(getappdata(obj,'patch'),Inf,1);
+axis(getappdata(obj,'axis'),'image');
+
+%==========================================================================
+function myswitchrotate(obj,evd)
+if strcmpi(get(getappdata(obj,'rotate3d'),'enable'),'on')
+    set(getappdata(obj,'rotate3d'),'enable','off');
+    set(obj,'Checked','off');
+else
+    set(getappdata(obj,'rotate3d'),'enable','on');
+    set(obj,'Checked','on');
+end
+
+%==========================================================================
+function mytransparency(obj,evd)
+t = 1 - sscanf(get(obj,'Label'),'%d%%') / 100;
+set(getappdata(get(obj,'parent'),'patch'),'FaceAlpha',t);
+set(get(get(obj,'parent'),'children'),'Checked','off');
+set(obj,'Checked','on');
+
+%==========================================================================
+function mysave(obj,evd)
+g = gifti;
+g.vertices = get(getappdata(obj,'patch'),'Vertices');
+g.faces = get(getappdata(obj,'patch'),'Faces');
+g.cdata = get(getappdata(obj,'patch'),'FaceVertexCData');
+[filename, pathname] = uiputfile({'*.gii' 'GIfTI files (*.gii)'}, 'Save as');
+if ~isequal(filename,0) && ~isequal(pathname,0)
+    [pth,nam,ext] = fileparts(filename);
+    if ~strcmpi(ext,'.gii'), filename = [filename '.gii']; end
+	save(g,fullfile(pathname, filename));
+end
 
 %==========================================================================
 function mypostcallback(obj,evd)
 try, camlight(getappdata(evd.Axes,'camlight')); end
 
 %==========================================================================
-function mydeletefcn(obj,evd)
+function mydeletefcn(obj,evd,varargin)
 try, rotate3d(get(obj,'parent'),'off'); end
+set(varargin{1},'Renderer',varargin{2});
 
 %==========================================================================
 function varargout = mydispcursor(varargin)
