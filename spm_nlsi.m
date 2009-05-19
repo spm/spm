@@ -55,7 +55,7 @@ function varargout = spm_nlsi(M,U,Y)
 % nonlinear MIMO model under Gaussian assumptions
 %
 %              dx/dt  = f(x,u,P)
-%                y    = g(x,u,P) + e                               (1
+%                y    = g(x,u,P) + e                               (1)
 %
 % evaluated at x(0) = x0, using a Bayesian estimation scheme with priors
 % on the model parameters P, specified in terms of expectations and 
@@ -85,12 +85,11 @@ function varargout = spm_nlsi(M,U,Y)
 % spm_kernels:   Returns global Volterra kernels for a MIMO Bilinear system
 %
 % SEE NOTES AT THE END OF THIS SCRIPT FOR EXAMPLES
-%
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 2522 2008-12-02 19:51:10Z karl $
+% $Id: spm_nlsi.m 3134 2009-05-19 11:08:45Z guillaume $
 
 % check integrator
 %--------------------------------------------------------------------------
@@ -133,7 +132,7 @@ try
     N    = M.N;
 catch
     s    = real(eig(full(M0)));
-    s    = max(s(find(s < 0)));
+    s    = max(s(s < 0));
     N    = 32;
     dt   = -4/(s*N);
     M.dt = dt;
@@ -187,8 +186,8 @@ return
 %
 % Specify a model structure:
 %--------------------------------------------------------------------------
-M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P');
-M.g  = inline('x','x','u','P');
+M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P','M');
+M.g  = inline('x','x','u','P','M');
 M.pE = [-1 .3;.5 -1];           % Prior expectation of parameters
 M.pC = speye(4,4);          % Prior covariance for parameters
 M.x  = zeros(2,1)           % intial state x(0)
