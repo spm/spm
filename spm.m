@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm.m 3136 2009-05-20 07:34:23Z volkmar $
 
 
 %=======================================================================
@@ -345,8 +345,13 @@ spm_select('prevdirs',spm('Dir'));
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------
-Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
-Finter = spm('CreateIntWin','off');                        fprintf('.');
+if ~spm('CmdLine')
+    Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
+    Finter = spm('CreateIntWin','off');                        fprintf('.');
+else
+    Fmenu  = [];
+    Finter = [];
+end
 Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
    
 spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
@@ -386,26 +391,28 @@ spm('defaults',Modality);
 %-Sort out visability of appropriate controls on Menu window
 %-----------------------------------------------------------------------
 Fmenu = spm_figure('FindWin','Menu');
-if isempty(Fmenu), error('SPM Menu window not found'), end
+if ~isempty(Fmenu)
 
-if strcmpi(Modality,'PET')
-    set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
-    set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'on' );
-elseif strcmpi(Modality,'FMRI')
-    set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
-    set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'on' );
+    if strcmpi(Modality,'PET')
+        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
+        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'on' );
+    elseif strcmpi(Modality,'FMRI')
+        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
+        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'on' );
+    else
+        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
+        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'on' );
+    end
+    set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 else
-    set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
-    set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'on' );
+    warning('SPM Menu window not found');
 end
-set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
-
 
 %=======================================================================
 case 'defaults'                 %-Set SPM defaults (as global variables)
@@ -934,7 +941,7 @@ if isempty(CmdLine)
         CmdLine = 0;
     end
 end
-varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
+varargout = {CmdLine || (get(0,'ScreenDepth')==0)};
 
 
 %=======================================================================
