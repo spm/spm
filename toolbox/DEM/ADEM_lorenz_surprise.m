@@ -5,10 +5,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_surprise.m 3123 2009-05-13 16:49:17Z karl $
+% $Id: ADEM_lorenz_surprise.m 3140 2009-05-21 18:38:17Z karl $
 
-
-DEMO     = 0;
+clear
+DEMO     = 0;                          % switch for demo
+LOR      = 1;                          % Lorenz vs a linear system
  
 % generative model
 %==========================================================================                       % switch for demo
@@ -16,27 +17,32 @@ G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
  
-% dynamics
+% dynamics and parameters
 %--------------------------------------------------------------------------
-fL      = '[v; 0; 0] + [-P(1) P(1) 0; P(3) -1 -x(1); x(2) 0 P(2)]*x/64';
- 
-% parameters
-%--------------------------------------------------------------------------
-PL      = [10; -8/3; 32];
-PM      = [0;     0;  0];
- 
+if LOR
+    fL  = '[v; 0; 0] + [-P(1) P(1) 0; P(3) -1 -x(1); x(2) 0 P(2)]*x/64';
+    PL  = [10; -8/3; 32];
+    x0  = [1; 1; 24];
+    W   = exp(8);
+else
+    fL  = '[v; 0; 0] + [-P(1) 0 0; 0 -P(2) 0; 0 0 -P(3)]*x/64';
+    PL  = [1; 1; 8];
+    x0  = [-16; 16; 0];
+    W   = diag([32; 32; exp(8)]);
+end
+
 % P(1): Prandtl number
 % P(2): 8/3
 % P(3): Rayleigh number
  
 % level 1
 %--------------------------------------------------------------------------
-G(1).x  = [1; 1; 24];
+G(1).x  = x0;
 G(1).f  = inline(fL ,'x','v','a','P');
 G(1).g  = inline('x','x','v','a','P');
 G(1).pE = PL;
 G(1).V  = exp(8);                           % error precision
-G(1).W  = exp(8);                           % error precision
+G(1).W  = W;                                % error precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -47,13 +53,22 @@ G       = spm_ADEM_M_set(G);
  
 % space
 %--------------------------------------------------------------------------
-x{1}    = linspace(-32,32,64);
-x{2}    = linspace(-32,32,64);
-x{3}    = linspace(  4,64,64);
+if LOR
+    x{1}    = linspace(-32,32,64);
+    x{2}    = linspace(-32,32,64);
+    x{3}    = linspace(  4,64,64);
+else
+    x{1}    = linspace(-8,8,64);
+    x{2}    = linspace(-8,8,64);
+    x{3}    = linspace(-1,1,3);
+end
  
-% Fokker-Planck operator and equilibrium density
+% equilibrium density (q0), loss (L) and value (V) functions
 %==========================================================================
 if DEMO
+    
+    % Fokker-Planck operator and equilibrium density
+    %----------------------------------------------------------------------
     [M0,q0] = spm_fp(G,x);
 
     % loss-function and negative surprise (value)
@@ -70,7 +85,9 @@ if DEMO
     x{2} = x{2}(2:end - 1);
     x{3} = x{3}(2:end - 1);
 
-    save DEM_lorenz_suprise q0 L V x
+    if LOR
+        save DEM_lorenz_suprise q0 L V x
+    end
 else
     load DEM_lorenz_suprise
 end
@@ -79,6 +96,11 @@ end
 % axes and trajectory
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Graphics');
+if LOR
+    z = 24;
+else
+    z = 1;
+end
 i    = 3;
 j    = 1:3;
 j(i) = [];
@@ -89,7 +111,7 @@ t    = spm_int_J(G(1).pE,G,U);
 % surprise
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-imagesc(x{j(2)},x{j(1)},V(:,:,34))
+imagesc(x{j(2)},x{j(1)},V(:,:,z))
 hold on, plot(t(:,j(2)),t(:,j(1)),'r'), hold off
 axis(a)
 axis square xy
@@ -98,7 +120,7 @@ title('surprise','Fontsize',16)
 % cost function
 %--------------------------------------------------------------------------
 subplot(3,2,2)
-imagesc(x{j(2)},x{j(1)},L(:,:,34))
+imagesc(x{j(2)},x{j(1)},L(:,:,z))
 hold on, plot(t(:,j(2)),t(:,j(1)),'r'), hold off
 axis(a)
 axis square xy

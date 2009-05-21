@@ -91,7 +91,10 @@ function pushbutton51_Callback(hObject, eventdata, handles)
 
 set(handles.pushbutton51,'String','please wait')
 drawnow
+guidata(1,handles);
 try, eval(handles.file), end
+handles = set(0,'UserData');
+handles = guidata(1);
 set(handles.pushbutton51,'String','run demo')
 
 
@@ -197,7 +200,7 @@ run_demo_Callback(hObject, handles, 'ADEM_lorenz_entropy')
 
 % --- Executes on button press in pushbutton50.
 function pushbutton50_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'ADEM_mountaincar_loss')
+run_demo_Callback(hObject, handles, 'ADEM_mountaincar_loss_3')
 
 % --- Executes on button press in pushbutton80.
 function pushbutton80_Callback(hObject, eventdata, handles)

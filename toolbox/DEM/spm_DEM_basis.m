@@ -1,13 +1,18 @@
-function [f] = spm_DEM_basis(x,v,P)
+function [f,p] = spm_DEM_basis(x,v,P)
 % evaluates a parameterized set of basis functions
 % problem
-% FORMAT [f] = spm_DEM_basis(x,v,P)
+% FORMAT [f,p] = spm_DEM_basis(x,v,P)
 %
 % x   - hidden states
 % v   - causal inputs
 % P   - parameters
 %
-% returns f = sum(P(i)*B(x,i))
+% f   - f(x)
+% p   - p(i)
+%
+% returns:
+%   f = sum(P(i)*B(x,i))
+%   P = p/sum(p)
 %
 % where B(x,i) are basis functions
 %
@@ -15,7 +20,7 @@ function [f] = spm_DEM_basis(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_basis.m 3122 2009-05-13 16:05:59Z karl $
+% $Id: spm_DEM_basis.m 3140 2009-05-21 18:38:17Z karl $
  
 % basis set
 %--------------------------------------------------------------------------

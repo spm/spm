@@ -6,11 +6,13 @@
 % state-space costly (i.e. with high divergence) and others rewarding (low
 % divergence). Active inference under these priors will lead to sampling of
 % low cost states and (apparent) attractiveness of those states.
+%
+% This is the first version; where cost are explicit priors
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss.m 3122 2009-05-13 16:05:59Z karl $
+% $Id: ADEM_mountaincar_loss_1.m 3140 2009-05-21 18:38:17Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
@@ -57,7 +59,7 @@ np      = 8;
 q0      = zeros(1,np) + 1/8;               % flat cost-function
 P.p     = zeros(1,np);
 P.q     = q0;
-fx      = inline('spm_mc_fx(x,v,P)','x','v','P');
+fx      = inline('spm_mc_fx_1(x,v,P)','x','v','P');
 gx      = inline('x','x','v','P');
  
 % level 1
