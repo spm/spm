@@ -1,6 +1,7 @@
 function model = spm_mvb(X,Y,X0,U,V,nG,sG)
-% Multivariate Bayesian inversion of a linear model
+% Bayesian optimisation of a multivariate linear model with a greedy search
 % FORMAT model = spm_mvb(X,Y,X0,U,V,nG,sG)
+%
 % X      - contrast or target vector
 % Y      - date feature matrix
 % X0     - confounds
@@ -24,11 +25,26 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % model: X = Y*P + X0*Q + R
 %        P = U*E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
+%
+% See spm_mvb_ui and:
+%
+% Bayesian decoding of brain images.
+% Friston K, Chu C, Mourão-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
+% Neuroimage. 2008 Jan 1;39(1):181-205
+% 
+% Multiple sparse priors for the M/EEG inverse problem.
+% Friston K, Harrison L, Daunizeau J, Kiebel S, Phillips C, Trujillo-Barreto 
+% N, Henson R, Flandin G, Mattout J.
+% Neuroimage. 2008 Feb 1;39(3):1104-20.
+% 
+% Characterizing dynamic brain responses with fMRI: a multivariate approach.
+% Friston KJ, Frith CD, Frackowiak RS, Turner R.
+% Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 2662 2009-01-28 20:23:11Z karl $
+% $Id: spm_mvb.m 3139 2009-05-21 18:37:29Z karl $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
@@ -74,8 +90,13 @@ for  i = 1:nG
     
     % record conditional estimates (and terminate automatically if aG)
     %----------------------------------------------------------------------
-    if M.F > max(F) || i == 1
-        model    = M;
+    if i == 1
+        save_model = 1;
+    else
+        save_model = M.F > max(F);
+    end
+    if  save_model
+        model      = M;
     elseif aG
         break
     end

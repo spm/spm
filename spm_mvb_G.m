@@ -19,11 +19,26 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % model: X = L*P + X0*Q + R
 %        P = E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
+%
+% See spm_mvb and:
+%
+% Bayesian decoding of brain images.
+% Friston K, Chu C, Mourão-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
+% Neuroimage. 2008 Jan 1;39(1):181-205
+% 
+% Multiple sparse priors for the M/EEG inverse problem.
+% Friston K, Harrison L, Daunizeau J, Kiebel S, Phillips C, Trujillo-Barreto 
+% N, Henson R, Flandin G, Mattout J.
+% Neuroimage. 2008 Feb 1;39(3):1104-20.
+% 
+% Characterizing dynamic brain responses with fMRI: a multivariate approach.
+% Friston KJ, Frith CD, Frackowiak RS, Turner R.
+% Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_mvb_G.m 3139 2009-05-21 18:37:29Z karl $
  
 % defaults
 %--------------------------------------------------------------------------

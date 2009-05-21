@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 1857 2008-06-26 11:30:47Z rik $
+% $Id: spm_sp_reml.m 3139 2009-05-21 18:37:29Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -149,7 +149,7 @@ for k = 1:K
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
     iCX    = iC*X;
-    if length(X)
+    if ~isempty(X)
         Cq = inv(X'*iCX);
     else
         Cq = sparse(0);

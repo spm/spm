@@ -1,11 +1,57 @@
 function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % multivariate Bayes (Bayesian decoding of a contrast)
-% FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
+% % FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
+%
+% Sets up, evaluates and saves an MVB structure:
+%
+% MVB.contrast            % contrast structure
+% MVB.name                % name
+% MVB.c                   % contrast weight vector
+% MVB.M                   % MVB model (see below)
+% MVB.X                   % subspace of design matrix
+% MVB.Y                   % multivariate response
+% MVB.X0                  % null space of design
+% MVB.XYZ                 % location of voxels (mm)
+% MVB.V                   % serial correlation in repeosne
+% MVB.K                   % whitening matrix
+% MVB.VOX                 % voxel scaling
+% MVB.xyzmm               % centre of VOI (mm)
+% MVB.Space               % VOI definition
+% MVB.Sp_info             % parameters of VOI
+% MVB.Ni                  % number of greedy search steps
+% MVB.sg                  % size of reedy search split
+% MVB.fSPM                % SPM analysis (.mat file)
+%
+% where MVB.M contins the following field:
+%
+%                F: log-evidence [F(0), F(1),...]
+%                G: covariance partition indices
+%                h: covariance hyperparameters
+%                U: ordered patterns
+%               qE: conditional expectation of voxel weights
+%               qC: conditional variance of voxel weights
+%               Cp: prior covariance (ordered  pattern space)
+%               cp: prior covariance (original pattern space)
+%
+% See:
+%
+% Bayesian decoding of brain images.
+% Friston K, Chu C, Mourão-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
+% Neuroimage. 2008 Jan 1;39(1):181-205
+% 
+% Multiple sparse priors for the M/EEG inverse problem.
+% Friston K, Harrison L, Daunizeau J, Kiebel S, Phillips C, Trujillo-Barreto 
+% N, Henson R, Flandin G, Mattout J.
+% Neuroimage. 2008 Feb 1;39(3):1104-20.
+% 
+% Characterizing dynamic brain responses with fMRI: a multivariate approach.
+% Friston KJ, Frith CD, Frackowiak RS, Turner R.
+% Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 2958 2009-03-26 11:19:20Z guillaume $
+% $Id: spm_mvb_ui.m 3139 2009-05-21 18:37:29Z karl $
  
  
 %-Get figure handles and set title
@@ -64,12 +110,12 @@ switch SPACE
  
 end
  
-% get explanatory variables (data)
+% Get explanatory variables (data)
 %--------------------------------------------------------------------------
 XYZ    = XYZmm(:,j);
 Y      = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
  
-% check there are intracranial voxels
+% Check there are intracranial voxels
 %--------------------------------------------------------------------------
 if isempty(Y)
     warndlg({'No voxels in this VOI';'Please use a larger volume'})
@@ -85,9 +131,10 @@ priors = str{Ip};
 %-Number of iterations
 %--------------------------------------------------------------------------
 str    = 'size of successive subdivisions';
-sg   = spm_input(str,'!+1','e',.5);
+sg     = spm_input(str,'!+1','e',.5);
+
  
-% MVB defined
+% MVB is now specified
 %==========================================================================
 spm('Pointer','Watch')
  
@@ -122,23 +169,23 @@ M.priors = priors;
  
 % assemble results
 %--------------------------------------------------------------------------
-MVB.contrast = contrast;
-MVB.name     = name;
-MVB.c        = c;
-MVB.M        = M;
-MVB.X        = X;
-MVB.Y        = Y;
-MVB.X0       = X0;
-MVB.XYZ      = XYZ;
-MVB.V        = V;
-MVB.K        = full(V)^(-1/2);
-MVB.VOX      = xSPM.M;
-MVB.xyzmm    = xyzmm;
-MVB.Space    = SPACE;
-MVB.Sp_info  = D;
-MVB.Ni       = Ni;
-MVB.sg       = sg;
-MVB.fSPM     = fullfile(SPM.swd,'SPM.mat');
+MVB.contrast = contrast;                    % contrast of interest
+MVB.name     = name;                        % name
+MVB.c        = c;                           % contrast weight vector
+MVB.M        = M;                           % MVB model (see below)
+MVB.X        = X;                           % subspace of design matrix
+MVB.Y        = Y;                           % multivariate response
+MVB.X0       = X0;                          % null space of design
+MVB.XYZ      = XYZ;                         % location of voxels (mm)
+MVB.V        = V;                           % serial correlation in repeosne
+MVB.K        = full(V)^(-1/2);              % whitening matrix
+MVB.VOX      = xSPM.M;                      % voxel scaling
+MVB.xyzmm    = xyzmm;                       % centre of VOI (mm)
+MVB.Space    = SPACE;                       % VOI definition
+MVB.Sp_info  = D;                           % parameters of VOI
+MVB.Ni       = Ni;                          % number of greedy search steps
+MVB.sg       = sg;                          % size of reedy search split
+MVB.fSPM     = fullfile(SPM.swd,'SPM.mat'); % SPM analysis (.mat file)
  
 % display
 %==========================================================================
@@ -156,3 +203,5 @@ end
 %--------------------------------------------------------------------------
 spm('FigName',['SPM{',xSPM.STAT,'}: Results']);
 spm('Pointer','Arrow')
+
+

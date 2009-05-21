@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_display.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_mvb_display.m 3139 2009-05-21 18:37:29Z karl $
  
 if nargin<1
     load(spm_select(1,'^MVB.*\.mat','Select MVB to display'))
@@ -104,7 +104,7 @@ xlabel('scans')
 ylabel('adjusted response')
 axis square, grid on
 try
-    title({MVB.name ' (prior: ' M.priors ')'})
+    title({MVB.name [' (prior: ' M.priors ')']})
 catch
     title(MVB.name)
 end
