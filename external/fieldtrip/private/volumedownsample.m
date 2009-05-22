@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.25  2009/05/19 15:22:30  jansch
+% remove functional paramters prior to downsampling
+%
 % Revision 1.24  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -167,6 +170,13 @@ end
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', 'volume', 'feedback', 'no');
 
+%make local copy of source and remove all functional parameters
+param = parameterselection('all', source);
+down  = source;
+for k = 1:length(param)
+  down = rmsubfield(down, param{k});
+end
+
 % select the parameters that should be downsampled
 cfg.parameter = parameterselection(cfg.parameter, source);
 
@@ -227,7 +237,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.24 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.25 2009/05/19 15:22:30 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

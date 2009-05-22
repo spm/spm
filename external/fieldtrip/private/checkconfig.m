@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.15  2009/05/22 13:20:18  marvger
+% added case for mvlap method
+%
 % Revision 1.14  2009/05/14 18:54:39  roboos
 % added sam for createsubcfg
 %
@@ -456,6 +459,9 @@ if ~isempty(createsubcfg)
           'reducerank'
           };
 
+      case 'mvlap'
+        fieldname = {};
+        
       otherwise
         error('unexpected name of the subfunction');
         fieldname = {};

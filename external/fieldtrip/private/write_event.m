@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.35  2009/05/22 09:02:29  marvger
+% changed tcp handling
+%
 % Revision 1.34  2009/04/28 08:33:05  marvger
 % small changes
 %
@@ -455,13 +458,12 @@ switch eventformat
                     pnet(con,'printf',num2str(msg));
                     pnet(con,'printf','\n');
                 end
-            catch             
-                warning(lasterr);
-            end            
+%            catch             
+%                warning(lasterr);
+            end
+            
+            pnet(con,'close');
         end
-        
-        pnet(con,'close');
-        
 
     case 'fcdc_udp'
 

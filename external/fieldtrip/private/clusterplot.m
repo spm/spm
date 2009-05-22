@@ -34,6 +34,9 @@ function clusterplot(cfg, stat)
 % Copyright (C) 2007, Ingrid Nieuwenhuis, F.C. Donders Centre
 %
 % $Log: clusterplot.m,v $
+% Revision 1.8  2009/05/22 14:54:58  ingnie
+% added check of data, should be averged over frequencies
+%
 % Revision 1.7  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -51,6 +54,11 @@ function clusterplot(cfg, stat)
 %
 
 fieldtripdefs
+
+% check if given data is appropriate
+if isfield(stat,'freq') && length(stat.freq) > 1
+  error('stat contains multiple frequencies which is not allowed because it should be averaged over frequencies')
+end
 
 % set the defaults
 if ~isfield(cfg,'alpha'),                  cfg.alpha = 0.05;                             end;

@@ -30,6 +30,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.22  2009/05/19 18:29:48  roboos
+% give instructive error if the fieldtrip buffer mex file is not on the path
+%
 % Revision 1.21  2009/01/21 21:20:01  roboos
 % improved check to detect missing ft buffer, only start if certain about socket error and if localhost or 127.0.0.1
 %
@@ -194,7 +197,12 @@ switch dataformat
         buffer('put_hdr', packet, host, port);
 
       catch
-        if strfind(lasterr, 'failed to create socket') && (strcmp(host, 'localhost') || strcmp(host, '127.0.0.1'))
+        if ~isempty(strfind(lasterr, 'Buffer size N must be an integer-valued scalar double.'))
+          % this happens if the MATLAB75/toolbox/signal/signal/buffer
+          % function is used instead of the fieldtrip buffer
+          error('the FieldTrip buffer mex file was not found on your path, it should be in fieldtrip/fileio/private');
+
+        elseif ~isempty(strfind(lasterr, 'failed to create socket')) && (strcmp(host, 'localhost') || strcmp(host, '127.0.0.1'))
 
           % start a local instance of the TCP server
           warning('starting fieldtrip buffer on %s:%d', host, port);

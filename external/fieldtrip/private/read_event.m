@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.99  2009/05/22 09:02:29  marvger
+% changed tcp handling
+%
 % Revision 1.98  2009/04/29 10:52:17  jansch
 % incorporated handling of unsegmented egi simple binaries
 %
@@ -1059,17 +1062,17 @@ switch eventformat
     con = pnet(sock, 'tcplisten');
     if con~=-1
       try
-        pnet(con,'setreadtimeout',1);
+        pnet(con,'setreadtimeout',10);
         % read packet
         msg=pnet(con,'readline'); %,1000,'uint8','network');
         if ~isempty(msg)
           event = mxDeserialize(uint8(str2num(msg)));
         end
-      catch
-        warning(lasterr);
-      end
+%       catch
+%         warning(lasterr);
+      end      
+      pnet(con,'close');
     end
-    pnet(con,'close');
     con = [];
 
   case 'fcdc_udp'
