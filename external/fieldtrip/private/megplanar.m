@@ -59,6 +59,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.39  2009/05/25 08:05:18  roboos
+% ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
+%
 % Revision 1.38  2009/05/14 19:23:03  roboos
 % consistent handling of cfg.headshape in code and documentation
 %
@@ -208,6 +211,11 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   if ~isfield(cfg, 'inwardshift'),   cfg.inwardshift = 2.5;         end
   if ~isfield(cfg, 'pruneratio'),    cfg.pruneratio = 1e-3;         end
   if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 642;          end
+end
+
+if isa(cfg.headshape, 'config')
+  % convert the nested config-object back into a normal structure
+  cfg.headshape = struct(cfg.headshape);
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
@@ -596,7 +604,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.38 2009/05/14 19:23:03 roboos Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.39 2009/05/25 08:05:18 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

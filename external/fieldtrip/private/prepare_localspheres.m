@@ -40,6 +40,10 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.26  2009/05/25 08:04:40  roboos
+% fixed the name of the "headshape" variable
+% ensure that cfg.headshape is a structure and not a config object
+%
 % Revision 1.25  2009/05/18 13:59:14  vlalit
 % typo fix
 %
@@ -138,6 +142,11 @@ if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 
+if isa(cfg.headshape, 'config')
+  % convert the nested config-object back into a normal structure
+  cfg.headshape = struct(cfg.headshape);
+end
+
 if nargin>1 && isempty(cfg.headshape)
   basedonmri       = 1;
   basedonheadshape = 0;
@@ -211,11 +220,12 @@ if basedonmri
   end
   if scale~=1
     fprintf('converting MRI surface points from %s into %s\n', cfg.sourceunits, cfg.mriunits);
-    shape = pnt(:,1:3) * scale;
+    headshape.pnt = pnt(:,1:3) * scale;
   else
-    shape = pnt(:,1:3);
+    headshape.pnt = pnt(:,1:3);
   end
-  fprintf('placed %d points on the brain surface\n', length(shape));
+  fprintf('placed %d points on the brain surface\n', length(headshape.pnt));
+  
 elseif basedonheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -239,8 +249,7 @@ end % basedonmri or basedonheadshape
 
 % read the gradiometer definition from file or copy it from the configuration
 if isfield(cfg, 'gradfile')
-  hdr = read_header(cfg.gradfile);
-  grad = hdr.grad;
+  grad = read_sens(cfg.gradfile);
 else
   grad = cfg.grad;
 end

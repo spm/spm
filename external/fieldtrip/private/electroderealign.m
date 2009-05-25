@@ -29,7 +29,7 @@ function [norm] = electroderealign(cfg);
 % translation and scaling parameters, so that the two match.
 %
 % The configuration can contain the following options
-%   cfg.method         = different methods for aligning the electrodes
+%   cfg.method         = string representing the method for aligning or placing the electrodes
 %                        'rigidbody'       apply a rigid-body warp
 %                        'globalrescale'   apply a rigid-body warp with global rescaling
 %                        'traditional'     apply a rigid-body warp with individual axes rescaling
@@ -39,7 +39,8 @@ function [norm] = electroderealign(cfg);
 %                        'nonlin4'         apply a 4th order non-linear warp
 %                        'nonlin5'         apply a 5th order non-linear warp
 %                        'realignfiducial' realign the fiducials
-%                        'interactive'     manually using graphical user interface
+%                        'interactive'     realign manually using graphical user interface
+%                        'position'        position electrodes manually using graphical user interface
 %   cfg.channel        = Nx1 cell-array with selection of channels (default = 'all'),
 %                        see CHANNELSELECTION for details
 %   cfg.fiducial       = cell-array with the name of three fiducials used for
@@ -69,8 +70,8 @@ function [norm] = electroderealign(cfg);
 %   cfg.template.pnt(3,:) = [0 -90 0]  % right ear
 %   cfg.template.label    = {''nasion', 'lpa', 'rpa'}
 %
-% If you want to align the electrodes to the head surface as obtained from
-% an anatomical MRI, you should specify the head surface as
+% If you want to align existing electrodes to the head surface or position
+% new electrodes on the head surface, you should specify the head surface as
 %   cfg.headshape      = a filename containing headshape, a structure containing a
 %                        single triangulated boundary, or a Nx3 matrix with surface
 %                        points
@@ -80,6 +81,9 @@ function [norm] = electroderealign(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.11  2009/05/25 08:05:18  roboos
+% ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
+%
 % Revision 1.10  2009/05/14 19:19:30  roboos
 % only include unique headshape points
 %
@@ -165,15 +169,15 @@ if ~isfield(cfg, 'casesensitive'), cfg.casesensitive = 'yes'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangulated head surface, without labels
 if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
 
-% this is a common mistake which can be accepted
-if strcmp(cfg.method, 'realignfiducials')
-  cfg.method = 'realignfiducial';
+if isa(cfg.headshape, 'config')
+  % convert the nested config-object back into a normal structure
+  cfg.headshape = struct(cfg.headshape);
 end
 
-if strcmp(cfg.method, 'warp')
-  % rename the default warp to one of the method recognized by the warping toolbox
-  cfg.method = 'traditional';
-end
+% this is a common mistake which can be accepted
+cfg = checkconfig(cfg, 'renamed', {'realignfiducials', 'realignfiducial'});
+% rename the default warp to one of the method recognized by the warping toolbox
+cfg = checkconfig(cfg, 'renamed', {'warp', 'traditional'});
 
 if strcmp(cfg.feedback, 'yes')
   % use the global fb field to tell the warping toolbox to print feedback
@@ -228,8 +232,13 @@ end
 % get the electrode definition that should be warped
 if isfield(cfg, 'elec')
   elec = cfg.elec;
-else
+elseif isfield(cfg, 'elecfile')
   elec = read_sens(cfg.elecfile);
+else
+  % start with an empty set of electrodes (usefull for manual positioning)
+  elec = [];
+  elec.pnt = zeros(0,3);
+  elec.label = cell(0,1);
 end
 
 % remember the original electrode locations and labels
@@ -485,6 +494,17 @@ elseif strcmp(cfg.method, 'interactive')
   norm = tmp;
   clear tmp
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif strcmp(cfg.method, 'position')
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % open a figure
+  fig = figure;
+  rotate3d on
+  % plot_mesh
+  % select_point
+
+  keyboard
+
 else
   error('unknown method');
 end
@@ -498,7 +518,7 @@ else
 end
 
 if isfield(orig, 'label')
-    norm.label = orig.label;
+  norm.label = orig.label;
 end
 
 % add version information to the configuration
@@ -510,7 +530,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.10 2009/05/14 19:19:30 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.11 2009/05/25 08:05:18 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;

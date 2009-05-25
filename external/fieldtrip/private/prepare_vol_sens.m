@@ -40,6 +40,13 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.18  2009/05/25 11:50:40  roboos
+% consistent handling of multiple spheres in case of ctf localspheres.hdm and fieldtrip prepare_localspheres, also in case of synthetic gradients.
+%
+% Revision 1.17  2009/05/25 08:06:37  roboos
+% don't assign the channel labels to each coil for multisphere
+% handle the input situation of an already prepared vol and sens (for multisphere)
+%
 % Revision 1.16  2009/05/18 15:57:23  roboos
 % added the label of each coil to the multisphere model output
 %
@@ -161,6 +168,33 @@ elseif ismeg
       % conduction model.
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+      % the initial multisphere volume conductor has a single sphere per
+      % channel, whereas it should have a sphere for each coil
+      if size(vol.r,1)==size(sens.pnt,1)
+        % it appears that each coil already has a sphere, which suggests
+        % that the volume conductor already has been prepared to match the
+        % sensor array
+        if ~isfield(vol, 'label')
+          % this is ok, since coils should not have labels
+        else
+          % hmm, this only works if there is a one-to-one match between
+          % coils in the sensor array and coils in the volme conductor
+          if ~isequal(vol.label(:), sens.label(:))
+            % the problem here is that each channel can have multiple coils
+            % in case of a gradiometer arrangement. The consequence is that
+            % the coil label is not unique, because the bottom and top
+            % coil will have the same label. That causes problems with the
+            % channel selection.
+            error('the coils in the volume conduction model do not correspond to the sensor array');
+          else
+            % the coil-specific spheres in the volume conductor should not have a label
+            % because the label is already specified for the coils in the
+            % sensor array
+            vol = rmfield(vol, 'label');
+          end
+        end
+      end
+
       % select the desired channels from the multisphere volume conductor
       % order them according to the users specification
       [selchan, selvol] = match_str(channel, vol.label);
@@ -186,35 +220,34 @@ elseif ismeg
         singlesphere = [];
       end
 
-      % this flag is used to give a particular warning only once
-      issued = false;
+      if ~isempty(singlesphere)
+        % determine the channels that do not have a corresponding sphere
+        % and use the globally fitted single sphere for those
+        missing = setdiff(sens.label, vol.label);
+        if ~isempty(missing)
+          warning('using the global fitted single sphere for %d channels that do not have a local sphere', length(missing));
+        end
+        for i=1:length(missing)
+          vol.label(end+1) = missing{i};
+          vol.r(end+1,:)   = singlesphere.r;
+          vol.o(end+1,:)   = singlesphere.o;
+        end
+      end
 
       multisphere = [];
       % for each coil in the MEG helmet, determine the corresponding local sphere
       for i=1:Ncoils
         coilindex = find(sens.tra(:,i)~=0); % to which channel does the coil belong
         if length(coilindex)>1
-          if ~issued
-            % give the warning only once
-            warning('using the global sphere for the reference channels in the synthetic gradiometer array');
-            issued = true;
-          end
           % this indicates that there are multiple channels to which this coil contributes,
-          % which means that the sensor array represents a synthetic higher-order gradient
-          if ~isempty(singlesphere)
-            % use the single sphere for the reference channels
-            multisphere.r(i,:) = singlesphere.r;
-            multisphere.o(i,:) = singlesphere.o;
-          else
-            error('synthetic gradients are only supported during volume conductor setup in case a global sphere is defined');
-          end
-        else
-          coillabel = sens.label{coilindex};  % what is the label of the channel
-          chanindex = strmatch(coillabel, vol.label, 'exact');
-          multisphere.r(i,:) = vol.r(chanindex);
-          multisphere.o(i,:) = vol.o(chanindex,:);
-          multisphere.label{i} = coillabel;
+          % which happens if the sensor array represents a synthetic higher-order gradient.
+          [dum, coilindex] = max(abs(sens.tra(:,i)));
         end
+
+        coillabel = sens.label{coilindex};  % what is the label of the channel
+        chanindex = strmatch(coillabel, vol.label, 'exact');
+        multisphere.r(i,:) = vol.r(chanindex);
+        multisphere.o(i,:) = vol.o(chanindex,:);
       end
       vol = multisphere;
 
