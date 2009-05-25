@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 3145 2009-05-25 16:00:43Z vladimir $
 
 % SPM data structure
 %==========================================================================
@@ -42,8 +42,6 @@ if ischar(vol)
 end
 
 %--------------------------------------------------------------------------
-[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
-
 cfg = [];
 
 switch modality
@@ -55,6 +53,7 @@ switch modality
         error('Unsupported modality');
 end
 
+cfg.channel           = D.chanlabels(chanind);
 cfg.vol               = vol;
 cfg.inwardshift       = 0;
 cfg.plotgrid          = 'no';    
