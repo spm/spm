@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.30  2009/05/25 08:17:15  roboos
+% small change in consistency test for multisphere MEG volume conductor
+%
 % Revision 1.29  2009/03/30 15:06:14  roboos
 % added the patch from Alexandre to support openmeeg
 %
@@ -242,17 +245,18 @@ elseif ismeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % MEG multi-sphere volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      nspheres = length(vol.r);
-      if size(vol.o, 1)~=nspheres
-        error('different number of spheres for the radius and origin')
+      ncoils = length(sens.pnt);
+
+      if size(vol.r, 1)~=ncoils
+        error('number of spheres is not equal to the number of coils')
       end
 
-      if size(sens.pnt, 1)~=nspheres
+      if size(vol.o, 1)~=ncoils
         error('number of spheres is not equal to the number of coils');
       end
 
-      lf = zeros(nspheres, 3*Ndipoles);
-      for chan=1:nspheres
+      lf = zeros(ncoils, 3*Ndipoles);
+      for chan=1:ncoils
         for dip=1:Ndipoles
           % shift dipole and magnetometer coil to origin of sphere
           dippos = pos(dip,:)       - vol.o(chan,:);
