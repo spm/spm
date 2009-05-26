@@ -18,7 +18,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_klaff.m 3053 2009-04-07 17:41:31Z john $
+% $Id: spm_klaff.m 3147 2009-05-26 11:06:00Z john $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end
@@ -26,8 +26,8 @@ if ischar(Ng), Ng = nifti(Ng); end
 
 deg = [2 2 2 1 1 1]; % Degree of interpolation to use
 
-df = size(Nf.dat);   % Dimensions of data
-dg = size(Ng.dat);   % Dimensions of data
+df = [size(Nf.dat),1,1];   % Dimensions of data
+dg = [size(Ng.dat),1,1];   % Dimensions of data
 
 nd = min([df(4),dg(4)]); % Use the first nd-1 volumes.
 nd = min(nd,3);          % Just use GM and WM
