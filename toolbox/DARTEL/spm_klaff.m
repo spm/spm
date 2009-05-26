@@ -18,7 +18,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_klaff.m 3149 2009-05-26 17:42:11Z john $
+% $Id: spm_klaff.m 3150 2009-05-26 18:11:14Z john $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end
@@ -107,81 +107,83 @@ for it=1:64,
         msk = x1>=1 & x1<=df(1) &...
               y1>=1 & y1<=df(2) &...
               z1>=1 & z1<=df(3);
-        x1 = x1(msk);
-        y1 = y1(msk);
-        z1 = z1(msk);
+        if any(msk(:)),
+            x1 = x1(msk);
+            y1 = y1(msk);
+            z1 = z1(msk);
 
-        % Original coordinates, for use later
-        X  = {x(msk);y(msk);z*ones(size(x1));ones(size(x1))};
+            % Original coordinates, for use later
+            X  = {x(msk);y(msk);z*ones(size(x1));ones(size(x1))};
 
-        G  = cell(nd,1); % Masked g
-        D  = cell(nd,3); % Masked gradients of g
-        F  = cell(nd,1); % Masked f
-        for k=1:nd,
-            F{k}  = exp(spm_bsplins(f{k},x1,y1,z1,deg));
-            tmp   = g(k).g(:,:,z);  G{k}   = tmp(msk);
-            tmp   = g(k).dx(:,:,z); D{k,1} = tmp(msk);
-            tmp   = g(k).dy(:,:,z); D{k,2} = tmp(msk);
-            tmp   = g(k).dz(:,:,z); D{k,3} = tmp(msk);
-        end
-
-        % Re-normalise so that values sum to 1.
-        sf = zeros(size(F{1}));
-        for k=1:nd, sf   = sf + F{k}; end
-        for k=1:nd, F{k} = F{k}./sf;  end
-
-        for k=1:nd,
-            DG  = cell(3,4); % dg/dm = dg/dx * dx/dm
-            for i=1:3,
-                for j=1:4,
-                    DG{i,j} = X{j}.*D{k,i};
-                end
+            G  = cell(nd,1); % Masked g
+            D  = cell(nd,3); % Masked gradients of g
+            F  = cell(nd,1); % Masked f
+            for k=1:nd,
+                F{k}  = exp(spm_bsplins(f{k},x1,y1,z1,deg));
+                tmp   = g(k).g(:,:,z);  G{k}   = tmp(msk);
+                tmp   = g(k).dx(:,:,z); D{k,1} = tmp(msk);
+                tmp   = g(k).dy(:,:,z); D{k,2} = tmp(msk);
+                tmp   = g(k).dz(:,:,z); D{k,3} = tmp(msk);
             end
-            DG  = DG(:);
 
-            % Derivatives were derived using MATLAB symbolic toolbox.
-            % First derivatives:
-            % maple diff(f1(x1,x2)*log(f1(x1,x2)/g1) + g1*log(g1/f1(x1,x2)),x1)
-            % This gives...
-            %  diff(f1(x1,x2),x1)*log(f1(x1,x2)/g1)
-            % +diff(f1(x1,x2),x1)
-            % -g1*diff(f1(x1,x2),x1)/f1(x1,x2)
-            % Because the gradients sum to zero at each point, the first
-            % derivatives can be simplified to...
-            % -diff(f1(x1,x2),x1)*(log(g1/f1(x1,x2))+g1/f1(x1,x2))
-            %
-            % Expectation of second derivatives:
-            % maple diff(f1(x1,x2)*log(f1(x1,x2)/g1) + g1*log(g1/f1(x1,x2)),x1,x2)
-            % This gives...
-            % diff(f1(x1,x2),x1,x2)*log(f1(x1,x2)/g1)...
-            % +diff(f1(x1,x2),x1)*diff(f1(x1,x2),x2)/f1(x1,x2)...
-            % +diff(f1(x1,x2),x1,x2)...
-            % -g1*diff(f1(x1,x2),x1,x2)/f1(x1,x2)...
-            % +g1*diff(f1(x1,x2),x1)/f1(x1,x2)^2*diff(f1(x1,x2),x2)
-            % For computing expectations, g1/f1(x1,x2) was set to 1.
-            % This simplification loses terms requiring diff(f1(x1,x2),x1,x2)
-            % giving nicely positive definite second derivatives.
-            % 2*diff(f1(x1,x2),x1)*diff(f1(x1,x2),x2)/f1(x1,x2)
-            %
-            % Note that the workings in maple swapped around g and f.
-            tmp  = F{k}./G{k};
-            ltmp = log(tmp);
-            tmp  = -(ltmp + tmp);
-            kl   = kl + sum((F{k}-G{k}).*ltmp);
-            nv   = nv + numel(ltmp);
-            for i=1:12,
-                Ab(i) = Ab(i) + sum(DG{i}.*tmp);
-              % if it==1,
-                % Fisher information matrix could use the same data
-                % (irrespective of iteration number), so theoretically
-                % only needs to be computed the once.  However, the
-                % amount of overlap changes from iteration to iteration
-                % so I have chosen to recompute it each time.
-                for j=1:12,
-                    AA(i,j) = AA(i,j) + 2*sum(DG{i}.*DG{j}./G{k});
+            % Re-normalise so that values sum to 1.
+            sf = zeros(size(F{1}));
+            for k=1:nd, sf   = sf + F{k}; end
+            for k=1:nd, F{k} = F{k}./sf;  end
+
+            for k=1:nd,
+                DG  = cell(3,4); % dg/dm = dg/dx * dx/dm
+                for i=1:3,
+                    for j=1:4,
+                        DG{i,j} = X{j}.*D{k,i};
+                    end
                 end
-              % end
-                drawnow;
+                DG  = DG(:);
+
+                % Derivatives were derived using MATLAB symbolic toolbox.
+                % First derivatives:
+                % maple diff(f1(x1,x2)*log(f1(x1,x2)/g1) + g1*log(g1/f1(x1,x2)),x1)
+                % This gives...
+                %  diff(f1(x1,x2),x1)*log(f1(x1,x2)/g1)
+                % +diff(f1(x1,x2),x1)
+                % -g1*diff(f1(x1,x2),x1)/f1(x1,x2)
+                % Because the gradients sum to zero at each point, the first
+                % derivatives can be simplified to...
+                % -diff(f1(x1,x2),x1)*(log(g1/f1(x1,x2))+g1/f1(x1,x2))
+                %
+                % Expectation of second derivatives:
+                % maple diff(f1(x1,x2)*log(f1(x1,x2)/g1) + g1*log(g1/f1(x1,x2)),x1,x2)
+                % This gives...
+                % diff(f1(x1,x2),x1,x2)*log(f1(x1,x2)/g1)...
+                % +diff(f1(x1,x2),x1)*diff(f1(x1,x2),x2)/f1(x1,x2)...
+                % +diff(f1(x1,x2),x1,x2)...
+                % -g1*diff(f1(x1,x2),x1,x2)/f1(x1,x2)...
+                % +g1*diff(f1(x1,x2),x1)/f1(x1,x2)^2*diff(f1(x1,x2),x2)
+                % For computing expectations, g1/f1(x1,x2) was set to 1.
+                % This simplification loses terms requiring diff(f1(x1,x2),x1,x2)
+                % giving nicely positive definite second derivatives.
+                % 2*diff(f1(x1,x2),x1)*diff(f1(x1,x2),x2)/f1(x1,x2)
+                %
+                % Note that the workings in maple swapped around g and f.
+                tmp  = F{k}./G{k};
+                ltmp = log(tmp);
+                tmp  = -(ltmp + tmp);
+                kl   = kl + sum((F{k}-G{k}).*ltmp);
+                nv   = nv + numel(ltmp);
+                for i=1:12,
+                    Ab(i) = Ab(i) + sum(DG{i}.*tmp);
+                  % if it==1,
+                    % Fisher information matrix could use the same data
+                    % (irrespective of iteration number), so theoretically
+                    % only needs to be computed the once.  However, the
+                    % amount of overlap changes from iteration to iteration
+                    % so I have chosen to recompute it each time.
+                    for j=1:12,
+                        AA(i,j) = AA(i,j) + 2*sum(DG{i}.*DG{j}./G{k});
+                    end
+                  % end
+                    drawnow;
+                end
             end
         end
     end
