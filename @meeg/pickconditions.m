@@ -8,7 +8,7 @@ function res = pickconditions(this, label, rejectbad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: pickconditions.m 2448 2008-11-07 16:56:07Z vladimir $
+% $Id: pickconditions.m 3146 2009-05-26 09:54:23Z vladimir $
 
 if nargin<3
     rejectbad = 1;
@@ -16,8 +16,12 @@ end
 
 c = conditions(this);
 
-res = strmatch(deblank(label), deblank(c), 'exact');
-    
+if isa(label, 'char')
+    label = {label};
+end
+
+res = find(ismember(c, label));
+
 if rejectbad && ~isempty(res)
     res = res(~reject(this, res));
 end

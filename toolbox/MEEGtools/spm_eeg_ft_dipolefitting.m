@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 3146 2009-05-26 09:54:23Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -98,8 +98,10 @@ cfg.grid.resolution=20;
 
 if strcmp('EEG', modality)
     cfg.elec = sens;
+    reducerank = 3;
 else
     cfg.grad = sens;
+    reducerank = 2;
 end
 
 cfg.latency  = 1e-3*spm_input('Time ([start end] in ms):', '+1', 'r', '', 2);

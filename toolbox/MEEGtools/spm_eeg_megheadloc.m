@@ -5,7 +5,7 @@ function D = spm_eeg_megheadloc(S)
 % as several datasets together. Most of the functionality requires the
 % original CTF header (read with CTF toolbox) to be present (set
 % S.saveorigheader = 1 at conversion).
-% 
+%
 % FORMAT D = spm_eeg_megheadloc(S)
 %
 % S         - struct (optional)
@@ -17,7 +17,7 @@ function D = spm_eeg_megheadloc(S)
 %                   0.01 (1 cm)
 % S.rejectwithin -  reject trials based on excessive movement within trial
 % S.trialthresh -   distance threshold for rejection (in meters), default
-%                   0.005 (0.5 cm) 
+%                   0.005 (0.5 cm)
 % S.correctsens -   calculate corrected sensor representation and put it in
 %                   the dataset.
 % S.trialind    -   only look at a subset of trials specified. Can be used
@@ -38,8 +38,8 @@ function D = spm_eeg_megheadloc(S)
 % _______________________________________________________________________
 % Copyright (C) 2008 Institute of Neurology, UCL
 
-% Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2617 2009-01-19 18:49:16Z vladimir $
+% Vladimir Litvak, Robert Oostenveld
+% $Id: spm_eeg_megheadloc.m 3146 2009-05-26 09:54:23Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -188,6 +188,7 @@ for f=1:numel(D)
         end
 
         if S.toplot
+            subplot('position',[0.05 0.65 0.4 0.3]);
             pltdat = 0.01*D{f}.origheader.hc.dewar';
         end
 
@@ -206,7 +207,7 @@ end
 
 disp(['Accepted ' num2str(length(trlind)) '/' num2str(Ntrls) ' trials.']);
 
-if S.rejectbetween && length(trlind)>1 && length(hlc_chan_ind) == 9
+if S.rejectbetween && length(trlind)>1
 
     %%
     % Here the idea is to put a 'sphere' or 'hypercylinder' in the space of trial location whose
@@ -299,25 +300,13 @@ end
 
 %%
 % This generates the corrected grad structure
-if S.correctsens && (length(hlc_chan_ind) == 9) && length(trlind)>0
-
-    if ~isfield(D{f}, 'origheader') || length(hlc_chan_ind)<9
-        error('Original header and headloc channels are required for this functionality.');
-    end
+if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trlind)
 
     newcoils=mean(dat(:, captured), 2);
 
     nas = newcoils(1:3);
     lpa = newcoils(4:6);
     rpa = newcoils(7:9);
-
-    if S.toplot
-        figure(pntfig);
-        subplot('position',[0.05 0.05 0.9 0.5]);
-
-        pltdat = [nas lpa rpa]';
-        h = plot3(pltdat(:, 1), pltdat(:, 2), pltdat(:, 3), 'r*', 'MarkerSize', 20);
-    end
 
     %compute transformation matrix from dewar to head coordinates
     M = spm_eeg_inv_headcoordinates(nas, lpa, rpa);
@@ -331,6 +320,10 @@ if S.correctsens && (length(hlc_chan_ind) == 9) && length(trlind)>0
     newgrad = forwinv_transform_sens(M*inv(M1), grad);
 
     if S.toplot
+        figure(pntfig);
+        subplot('position',[0.05 0.05 0.9 0.5]);
+
+
         cfg = [];
         cfg.style = '3d';
         cfg.rotate = 0;

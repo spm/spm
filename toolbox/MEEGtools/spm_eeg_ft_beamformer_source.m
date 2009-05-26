@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3043 2009-04-02 11:28:01Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3146 2009-05-26 09:54:23Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -66,13 +66,25 @@ if ~ok
 end
 
 if ~isfield(S, 'sources')
-    S.sources.pos = [];
-    S.sources.label = {};
-    while isempty(S.sources.pos) || spm_input('Add another source?','+1','yes|no',[1 0], 1);
-        S.sources.label = [S.sources.label {spm_input('Source label', '+1', 's')}];
-        S.sources.pos = [S.sources.pos;  spm_input('Source MNI coordinates', '+1', 'r', '', 3)'];
+    if spm_input('Regional sources?','+1','yes|no',[1 0], 1);
+        S.sources.pos = [];
+        S.sources.label = {};
+        while isempty(S.sources.pos) || spm_input('Add another source?','+1','yes|no',[1 0], 1);
+            S.sources.label = [S.sources.label {spm_input('Source label', '+1', 's')}];
+            S.sources.pos = [S.sources.pos;  spm_input('Source MNI coordinates', '+1', 'r', '', 3)'];
+        end
+    else
+        S.sources = spm_eeg_dipoles_ui;
     end
 end
+
+if ~isfield(S.sources, 'ori')
+    if ~isfield(S, 'voi') && spm_input('Define VOI?','+1','yes|no',[1 0], 1);
+        S.voi.radius =   spm_input('VOI radius (mm)', '+1', 'r', '10', 1);
+        S.voi.resolution = spm_input('Resolution (mm)', '+1', 'r', '2', 1);
+    end
+end
+
 
 if ~isfield(S, 'lambda')
     S.lambda = spm_input('lambda (regularization)', '+1', 's',  '0.01%');
@@ -101,7 +113,7 @@ if ~isfield(S, 'conditions')
     S.conditions = clb(selection);
 end
 %%
-trialind = find(ismember(D.conditions, S.conditions) & ~reject(D));
+trialind = D.pickconditions(S.conditions);
 %%
 if isempty(trialind)
     error('No data was selected.');
@@ -120,9 +132,6 @@ if ~isfield(S, 'appendchannels')
         S.appendchannels = {};
     end
 end
-%%
-
-sens = sensors(D, modality);
 %% ============ Find or prepare head model
 
 if ~isfield(D, 'val')
@@ -147,27 +156,24 @@ for m = 1:numel(D.inv{D.val}.forward)
     end
 end
 
-sens = datareg.sensors;
-
-toMNI = datareg.toMNI;
-fromMNI = datareg.fromMNI;
-
-if isfield(S,'symmetry') && S.symmetry
-    [U, L, V] = svd(toMNI(1:3, 1:3));
-    M1(1:3,1:3) =U*V';
-
-    vol = forwinv_transform_vol(M1, vol);
-    sens = forwinv_transform_sens(M1, sens);
-
-    fromMNI = M1*fromMNI;
-    toMNI = toMNI*inv(M1);
+if isequal(modality, 'EEG')
+    sens = datareg.sensors;
+else
+    % This is to make it possible to use the same 'inv' in multiple files
+    sens = D.sensors('MEG');
 end
+
+M1 = datareg.toMNI;
+[U, L, V] = svd(M1(1:3, 1:3));
+M1(1:3,1:3) =U*V';
+
+vol = forwinv_transform_vol(M1, vol);
+sens = forwinv_transform_sens(M1, sens);
 
 channel = D.chanlabels(setdiff(meegchannels(D, modality), D.badchannels));
 
 [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', channel);
 
-pos = spm_eeg_inv_transform_points(fromMNI, S.sources.pos);
 %%
 spm('Pointer', 'Watch');drawnow;
 %%
@@ -185,40 +191,82 @@ timelock1 = ft_timelockanalysis(cfg, data);
 cfg.keeptrials = 'yes';
 timelock2 = ft_timelockanalysis(cfg, data);
 %%
-sourcedata=[];
-sourcedata.trial=zeros(size(timelock2.trial, 1), size(pos, 1), length(timelock2.time));
 
-for s = 1:size(pos, 1)
+nsources = numel(S.sources.label);
 
-    cfg = [];
+cfg = [];
+
+if ismember(modality, {'MEG', 'MEGPLANAR'})
     cfg.reducerank = 2;
-    cfg.grid.pos     = pos(s, :);
+end
 
-    cfg.grad = sens;
-    cfg.inwardshift = -10;
-    cfg.vol = vol;
-    cfg.channel = modality;
-    cfg.method = 'lcmv';
+if ~isfield(S, 'voi')
+    nvoi = 0;
+    cfg.grid.pos     = S.sources.pos;
+    if isfield(S.sources, 'ori')
+        cfg.grid.mom    = S.sources.ori(s, :);
+    else
+        cfg.lcmv.fixedori = 'yes';
+    end
+else
     cfg.lcmv.fixedori = 'yes';
-    cfg.keepfilter = 'yes';
-    cfg.lambda =  S.lambda;
-    source1 = ft_sourceanalysis(cfg, timelock1);
+    vec = -S.voi.radius:S.voi.resolution:S.voi.radius;
+    [X, Y, Z]  = ndgrid(vec, vec, vec);
+    sphere   = [X(:) Y(:) Z(:)];
+    sphere(sqrt(X(:).^2 + Y(:).^2 + Z(:).^2)>S.voi.radius, :) = [];
+    nvoi = size(sphere, 1);
+    cfg.grid.pos = [];
+    for s = 1:size(S.sources.pos, 1)
+        cfg.grid.pos = [cfg.grid.pos; sphere+repmat(S.sources.pos(s, :), nvoi, 1)];
+    end    
+end
 
-    cfg = [];
-    cfg.inwardshift = -10;
-    cfg.vol = vol;
-    cfg.grad = sens;
-    cfg.grid = ft_source2grid(source1);
-    cfg.channel = modality;
-    cfg.lambda =  S.lambda;
-    cfg.rawtrial = 'yes';
-    source2 = ft_sourceanalysis(cfg, timelock2);
+cfg.grad = sens;
+cfg.inwardshift = -10;
+cfg.vol = vol;
+cfg.channel = modality;
+cfg.method = 'lcmv';
+cfg.keepfilter = 'yes';
+cfg.lambda =  S.lambda;
+source1 = ft_sourceanalysis(cfg, timelock1);
 
+cfg = [];
+cfg.inwardshift = -10;
+cfg.vol = vol;
+cfg.grad = sens;
+cfg.grid = ft_source2grid(source1);
+cfg.channel = modality;
+cfg.lambda =  S.lambda;
+cfg.rawtrial = 'yes';
+source2 = ft_sourceanalysis(cfg, timelock2);
+%%
+sourcedata=[];
+sourcedata.trial=zeros(size(timelock2.trial, 1), nsources, length(timelock2.time));
 
-    for i=1:length(source2.trial)
-        sourcedata.trial(i, s, :)=remove_jumps(source2.trial(i).mom{1});
+for i=1:length(source2.trial)
+    disp(['Extracting source data trial ' num2str(i) '/'  num2str(length(source2.trial))]);
+    for j = 1:nsources
+        if nvoi>0
+            y = cat(1, source2.trial(i).mom{(j-1)*nvoi+[1:nvoi]});
+
+            % compute regional response in terms of first eigenvariate
+            %-----------------------------------------------------------------------
+            [m n]   = size(y);
+            if m > n
+                [v s v] = svd(y'*y);
+                Y       = v(:,1);
+            else
+                [u s u] = svd(y*y');
+                u       = u(:,1);
+                Y       = y'*u;
+            end
+        else
+            Y       = source2.trial(i).mom{j};
+        end
+        sourcedata.trial(i, j, :)= Y;
     end
 end
+
 
 sourcedata.time = timelock2.time;
 sourcedata.dimord = 'rpt_chan_time';
@@ -246,29 +294,3 @@ Dsource = history(Dsource, 'spm_eeg_ft_beamformer_source', S);
 save(Dsource);
 
 spm('Pointer', 'Arrow');drawnow;
-%%
-function dat = remove_jumps(dat)
-
-ddat = diff(dat);
-
-peaks = find(abs(ddat) > 5 * std(ddat));
-
-if ~isempty(peaks)
-
-    peaks(find(diff(peaks) < 10) + 1) = [];
-
-    for i = 1:length(peaks)
-        ind = peaks(i)+[-20:20];
-        if ind(1) < 1
-            ind = ind + 1 - ind(1);
-        end
-
-        if ind(end) > length(ddat)
-            ind = ind - (ind(end) - length(ddat));
-        end
-
-        ddat(ind) = medfilt1(ddat(ind), 15, [], 2);
-    end
-
-    dat(2:end) = cumsum(ddat) + dat(1);
-end
