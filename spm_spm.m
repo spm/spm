@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3055 2009-04-09 06:17:29Z volkmar $
+% $Id: spm_spm.m 3151 2009-05-26 18:46:38Z guillaume $
 
-SVNid   = '$Rev: 3055 $';
+SVNid   = '$Rev: 3151 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -476,6 +476,7 @@ YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
 % assume mm in stardard space
 %--------------------------------------------------------------------------
 units = {'mm' 'mm' 'mm'};
+MEEGscaling = false;
 
 try
     % 3-D case, with arbitrary dimensions
@@ -486,11 +487,13 @@ try
         
         % z dimension is percent
         %------------------------------------------------------------------
+        Minit  = M;
         M(3,3) = 100 / DIM(3);
         M(3,4) = 0;
         [VY.mat]  = deal(M);
         SPM.xY.VY = VY;
         units = {'mm' 'mm' '%'};
+        MEEGscaling = true;
     end
 end
 
@@ -640,7 +643,11 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
             %-Coordinates in mask image
             %--------------------------------------------------------------
-            j      = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
+            if ~MEEGscaling
+                j = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
+            else
+                j = xM.VM(i).mat\Minit*[xyz;ones(1,nVox)];
+            end
 
             %-Load mask image within current mask & update mask
             %--------------------------------------------------------------
