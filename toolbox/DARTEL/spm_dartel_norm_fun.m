@@ -35,11 +35,12 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3032 2009-04-01 14:14:18Z guillaume $
+% $Id: spm_dartel_norm_fun.m 3153 2009-05-27 12:14:49Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
 tpm  = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii');
+Mmni = spm_get_space(tpm);
 
 % DARTEL template
 if ~isempty(job.template{1})
@@ -70,35 +71,31 @@ if any(isfinite(bb(:))) || any(isfinite(vox)),
     bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
     bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
     bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
-
     dim = round(diff(bb)./vox+1);
-
-    vxg = sqrt(sum(Mt(1:3,1:3).^2));
-    ogn = Mt\[0 0 0 1]';
-    ogn = ogn(1:3)';
-    og  = -vxg.*ogn;
     of  = -vox.*(round(-bb(1,:)./vox)+1);
-    M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
-    M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
-    mat = Mt*inv(M1)*M2;
+    mat = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
+    if det(Mt(1:3,1:3)) < 0,
+        mat = mat*[-1 0 0 dim(1)+1; 0 1 0 0; 0 0 1 0; 0 0 0 1];
+    end
 else
     dim = dimt(1:3);
     mat = Mt;
 end
 
-if do_aff
-    % Affine registration of DARTEL Template with MNI space.
-    %--------------------------------------------------------------------------
-    [pth,nam,ext] = fileparts(Nt.dat.fname);
-    fprintf('** Affine registering "%s" with MNI space **\n', nam);
-    M = mat\Mt*inv(spm_klaff(Nt,tpm));
-else
-    M = eye(4);
-end
-
-fprintf('\n');
-
 if isfield(job.data,'subj') || isfield(job.data,'subjs'),
+    if do_aff
+        % Affine registration of DARTEL Template with MNI space.
+        %--------------------------------------------------------------------------
+        [pth,nam,ext] = fileparts(Nt.dat.fname);
+        fprintf('** Affine registering "%s" with MNI space **\n', nam);
+        M = mat\Mmni*inv(spm_klaff(Nt,tpm))*inv(Mt);
+        mat_intent = 'MNI152';
+    else
+        M = mat\eye(4);
+        mat_intent = 'Aligned';
+    end
+    fprintf('\n');
+
     if isfield(job.data,'subjs')
         % Re-order data
         %--------------------------------------------------------------------------
@@ -123,7 +120,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
         % Spatially normalise data from this subject
         [pth,nam,ext] = fileparts(subj(i).flowfield{1});
         fprintf('** "%s" **\n', nam);
-        out{i} = deal_with_subject(subj(i).flowfield,subj(i).images,K, mat,dim,M,job.preserve,job.fwhm);
+        out{i} = deal_with_subject(subj(i).flowfield,subj(i).images,K, mat,dim,M,job.preserve,job.fwhm,mat_intent);
     end
 
     if isfield(job.data,'subjs'),
@@ -139,14 +136,15 @@ end
 %__________________________________________________________________________
 
 %__________________________________________________________________________
-function out = deal_with_subject(Pu,PI,K,mat,dim,M,jactransf,fwhm)
+function out = deal_with_subject(Pu,PI,K,mat,dim,M,jactransf,fwhm,mat_intent)
 
 % Generate deformation, which is the inverse of the usual one (it is for "pushing"
 % rather than the usual "pulling"). This deformation is affine transformed to
 % allow for different voxel sizes and bounding boxes, and also to incorporate
 % the affine mapping between MNI space and the population average shape.
 %--------------------------------------------------------------------------
-NU = nifti(Pu{1});
+NU  = nifti(Pu{1});
+M   = M*NU.mat;
 y0  = spm_dartel_integrate(NU.dat,[0 1], K);
 y   = zeros(size(y0),'single');
 y(:,:,:,1) = M(1,1)*y0(:,:,:,1) + M(1,2)*y0(:,:,:,2) + M(1,3)*y0(:,:,:,3) + M(1,4);
@@ -154,12 +152,6 @@ y(:,:,:,2) = M(2,1)*y0(:,:,:,1) + M(2,2)*y0(:,:,:,2) + M(2,3)*y0(:,:,:,3) + M(2,
 y(:,:,:,3) = M(3,1)*y0(:,:,:,1) + M(3,2)*y0(:,:,:,2) + M(3,3)*y0(:,:,:,3) + M(3,4);
 y0 = y;
 clear y
-
-if all(all(M == eye(4))),
-    mat_intent = 'Aligned';
-else
-    mat_intent = 'MNI152';
-end
 
 odm = zeros(1,3);
 oM  = zeros(4,4);

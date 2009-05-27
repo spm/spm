@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 3117 2009-05-12 15:50:00Z john $
+% $Id: tbx_cfg_dartel.m 3153 2009-05-27 12:14:49Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -400,7 +400,7 @@ warp.tag     = 'warp';
 warp.name    = 'Run DARTEL (create Templates)';
 warp.val     = {images settings };
 warp.check   = @check_runjob;
-warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds. /* An example is shown in figure \ref{Fig:dartel:averages}.*/'};
+warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds.'};
 warp.prog = @spm_dartel_template;
 warp.vout = @vout_runjob;
 % ---------------------------------------------------------------------
