@@ -8,7 +8,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % Vo (output) - handle structure of output image volume after modifications
 %                 for writing
 %
-% Note that spm_create_image needs to be called external to this function -
+% Note that spm_create_vol needs to be called external to this function -
 % the header is not created!
 %_______________________________________________________________________
 %
@@ -75,7 +75,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_resss.m 3152 2009-05-27 10:54:49Z guillaume $
 
 
 

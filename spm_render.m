@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3135 2009-05-19 14:49:42Z guillaume $
+% $Id: spm_render.m 3152 2009-05-27 10:54:49Z guillaume $
 
-SVNrev = '$Rev: 3135 $';
+SVNrev = '$Rev: 3152 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -350,6 +350,10 @@ cmenu = uicontextmenu;
 c1 = uimenu(cmenu, 'Label', 'Inflate', 'Interruptible','off', 'Callback', @myinflate);
 setappdata(c1,'patch',hp);
 setappdata(c1,'axis',ax);
+c12 = uimenu(cmenu, 'Label', 'Connected Components', 'Visible', 'off', 'Interruptible','off', 'Callback', @mycclabel);
+C = spm_mesh_label(hp);
+setappdata(c12,'patch',hp);
+setappdata(c12,'cclabel',C);
 c2 = uimenu(cmenu, 'Label', 'Rotate', 'Checked','on','Separator','on','Callback', @myswitchrotate);
 setappdata(c2,'rotate3d',r);
 c3 = uimenu(cmenu, 'Label', 'Transparency');
@@ -378,6 +382,16 @@ end
 function myinflate(obj,evd)
 spm_mesh_inflate(getappdata(obj,'patch'),Inf,1);
 axis(getappdata(obj,'axis'),'image');
+
+%==========================================================================
+function mycclabel(obj,evd)
+C = getappdata(obj,'cclabel');
+F = get(getappdata(obj,'patch'),'Faces');
+V = get(getappdata(obj,'patch'),'Vertices');
+V = zeros(size(V,1),1);
+V(reshape(F(C==1,:),[],1)) = 1;
+set(getappdata(obj,'patch'),'FaceVertexAlphaData',V);
+set(getappdata(obj,'patch'),'FaceAlpha','interp');
 
 %==========================================================================
 function myswitchrotate(obj,evd)
