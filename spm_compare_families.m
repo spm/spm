@@ -1,6 +1,6 @@
-function [family] = spm_compare_families (lme,partition,names,ecp)
+function [family,model] = spm_compare_families (lme,partition,names,ecp)
 % Bayesian comparison of model families for group studies
-% FORMAT [family] = spm_compare_families (lme,partition,names,ecp)
+% FORMAT [family,model] = spm_compare_families (lme,partition,names,ecp)
 %
 % lme           - array of log model evidences 
 %                   rows: subjects
@@ -11,19 +11,26 @@ function [family] = spm_compare_families (lme,partition,names,ecp)
 % ecp           - compute exceedence probs ? (1 or 0, default=0)
 %
 % family        - family posterior  
-%   .alpha        counts 
+%   .alpha0       prior counts
+%   .alpha        posterior counts 
 %   .r            expected values
 %   .xp           exceedance probs
 %
-% This function assumes a uniform prior over model families. It then 
-% adjusts model priors accordingly (to accomodate families containing
-% unequal numbers of models), uses spm_BMS to get model posteriors,
-% and then finally computes family posteriors via aggregation
+% model          - model posterior
+%   .alpha0        prior counts
+%   .alpha         posterior counts
+%   .r             expected values
+%   .xp            exceedance probs
+%
+% This function assumes a uniform prior over model families (using a 
+% prior count of unity for each family). It then 
+% adjusts model priors accordingly, uses spm_BMS to get model posteriors,
+% and computes family posteriors via aggregation.
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3155 2009-05-28 14:21:43Z will $
+% $Id: spm_compare_families.m 3157 2009-05-28 16:26:53Z will $
 
 if nargin < 4 | isempty(ecp)
     ecp=0;
@@ -37,6 +44,7 @@ N=length(partition);
 
 % Number of families in partition
 K=length(unique(partition));
+family.alpha0=ones(1,K);
 
 % Size of families 
 for i=1:K,
@@ -44,21 +52,21 @@ for i=1:K,
     fam_size(i)=length(ind{i});
 end
 
-% Get number of models in each family
-fam_count=max(fam_size)./fam_size;
-
 % Set model priors to give uniform family prior
-alpha0=zeros(1,N);
+model.alpha0=zeros(1,N);
 for i=1:K,
-    alpha0(ind{i})=fam_count(i);
+    model.alpha0(ind{i})=1/fam_size(i);
 end
 
 % Get model posterior
-[alpha,exp_r,xp] = spm_BMS(lme, [], 0, 0, 0, alpha0);
+[alpha,exp_r,xp] = spm_BMS(lme, [], 0, 0, 0, model.alpha0);
+model.alpha=alpha;
+model.exp_r=exp_r;
+model.xp=xp;
 
 % Get stats from family posterior
 for i=1:K,
-    family.alpha(i)=sum(alpha(ind{i}));
+    family.alpha(i)=sum(model.alpha(ind{i}));
 end
 for i=1:K,
     family.exp_r(i)=family.alpha(i)/sum(family.alpha);
