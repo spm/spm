@@ -20,7 +20,6 @@ function [family,model] = spm_compare_families (lme,partition,names,ecp)
 %   .alpha0        prior counts
 %   .alpha         posterior counts
 %   .r             expected values
-%   .xp            exceedance probs
 %
 % This function assumes a uniform prior over model families (using a 
 % prior count of unity for each family). It then 
@@ -30,7 +29,7 @@ function [family,model] = spm_compare_families (lme,partition,names,ecp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3157 2009-05-28 16:26:53Z will $
+% $Id: spm_compare_families.m 3158 2009-05-28 16:28:27Z will $
 
 if nargin < 4 | isempty(ecp)
     ecp=0;
@@ -62,7 +61,6 @@ end
 [alpha,exp_r,xp] = spm_BMS(lme, [], 0, 0, 0, model.alpha0);
 model.alpha=alpha;
 model.exp_r=exp_r;
-model.xp=xp;
 
 % Get stats from family posterior
 for i=1:K,
