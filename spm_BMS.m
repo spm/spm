@@ -1,6 +1,6 @@
-function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp)
+function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % Bayesian model selection for group studies
-% FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp)
+% FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % 
 % INPUT:
 % lme      - array of log model evidences 
@@ -11,6 +11,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp)
 % do_plot  - 1 to plot p(r|y)
 % sampling - use sampling to compute exact alpha
 % ecp      - compute exceedance probability
+% alpha0   - [1 x Nk] vector of prior model counts
 % 
 % OUTPUT:
 % alpha   - vector of model probabilities
@@ -24,7 +25,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 3118 2009-05-12 17:37:32Z guillaume $
+% $Id: spm_BMS.m 3155 2009-05-28 14:21:43Z will $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -48,7 +49,9 @@ cc      = 10e-4;
 
 % prior observations
 %--------------------------------------------------------------------------
-alpha0  = ones(1,Nk);
+if nargin < 6 || isempty(alpha0)
+    alpha0  = ones(1,Nk);    
+end
 alpha   = alpha0;
 
 
