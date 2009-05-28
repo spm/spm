@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3152 2009-05-27 10:54:49Z guillaume $
+% $Id: spm_render.m 3156 2009-05-28 16:22:52Z guillaume $
 
-SVNrev = '$Rev: 3152 $';
+SVNrev = '$Rev: 3156 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -310,10 +310,12 @@ ax = axes(...
     'Position',[0.025, 0.025, 0.95, 0.45],...
     'Visible','off');
 
-Vo = spm_write_filtered(dat.t,dat.XYZ,dat.dim,dat.mat,'',tempname);
-v = spm_get_data(Vo,...
-    double(inv(Vo.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]));
-spm_unlink(Vo.fname); spm_unlink([spm_str_manip(Vo.fname,'s') '.hdr']);
+Y      = zeros(dat.dim(1:3)');
+OFF    = dat.XYZ(1,:) + dat.dim(1)*(dat.XYZ(2,:)-1 + dat.dim(2)*(dat.XYZ(3,:)-1));
+Y(OFF) = dat.t .* (dat.t > 0);
+XYZ    = double(inv(dat.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]);
+v      = spm_sample_vol(Y,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+
 C = spm_mesh_curvature(rend) > 0;
 C = 0.5 * repmat(C,1,3) + 0.3 * repmat(~C,1,3);
 col = hot(256);
