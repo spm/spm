@@ -9,7 +9,7 @@ Experience at the FIL would suggest that it offers very definite improvements fo
 
 \section{Using DARTEL for VBM \label{Sec:dartel_vbm}}
 The following procedures could be specified one at a time, but it is easier to use the batching system.
-The sequence of jobs (use the \emph{TASKS} pulldown from the \emph{Graphics} window to select \emph{BATCH}) would be:
+The sequence of jobs (use the \emph{TASKS} pull-down from the \emph{Graphics} window to select \emph{BATCH}) would be:
 \begin{itemize}
 \item{{\bf Module List}
   \begin{itemize}
@@ -22,7 +22,7 @@ The sequence of jobs (use the \emph{TASKS} pulldown from the \emph{Graphics} win
 \end{itemize}
 
 Alternatively, the {\bf New Segment} procedure could be used.
-Although still at the slightly experimental stages of development, this procedure has been found to be generally more robust than the implementation of ``Unified Segmentation'' from SPM$\rightarrow$Spatial$\rightarrow$Segment (which is the version from the Segment button, which is the same as that in SPM5).
+Although still at the slightly experimental stages of development, this procedure has been found to be generally more robust than the implementation of ``Unified Segmentation'' from SPM$\rightarrow$Spatial$\rightarrow$Segment (which is the version from the Segment button - the same as that in SPM5).
 The new segmentation procedure includes the option to generate DARTEL ``imported'' data, so the {\bf Initial Import} step is skipped.
 \begin{itemize}
 \item{{\bf Module List}
@@ -34,15 +34,17 @@ The new segmentation procedure includes the option to generate DARTEL ``imported
 }
 \end{itemize}
 
-\subsection{Using SPM$\rightarrow$Spatial$\rightarrow$Segment and SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial Import}
+The segmentation and importing steps of these two alternative processing streams are described next.
+
+\subsection{Using Spatial$\rightarrow$Segment and DARTEL Tools$\rightarrow$Initial Import}
 The first step is to classify T1-weighted scans\footnote{Other types of scan may also work, but this would need some empirical exploration.} of a number of subjects into different tissue types via the Segmentation routine in SPM.
-The \emph{SPM$\rightarrow$Spatial$\rightarrow$Segment} pulldown can be used here:
+The \emph{SPM$\rightarrow$Spatial$\rightarrow$Segment} pull-down can be used here:
 \begin{itemize}
 \item{{\bf Segment}
   \begin{itemize}
   \item{{\bf Data}: Select all the T1-weighted images, one per subject.  It is usually a good idea to have roughly aligned them to MNI space first.  The \emph{Display} button can be used to reorient the data so that the \emph{mm} coordinate of the AC is within about 3cm from $[0, 0, 0]$, and the orientation is within about $15^o$ of MNI space.  The \emph{Check Reg} button can be used to see how well aligned a number of images are.
   }
-  \item{{\bf Output Files}: No output files are needed.  The Segmentation produces a *\_seg\_sn.mat and a *\_seg\_inv\_sn.mat for each image.  It is the *\_seg\_sn.mat files that are needed for the next step.
+  \item{{\bf Output Files}: It is suggested that \emph{Native Space} grey (and possibly white) matter images are created. These are c1*.img and c2*.img.  The Segmentation produces a *\_seg\_sn.mat and a *\_seg\_inv\_sn.mat for each image.  It is the *\_seg\_sn.mat files that are needed for the next step.
   }
   \item{{\bf Custom}: Default settings can usually be used here.
   }
@@ -65,7 +67,7 @@ Select \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Initial 
   \item{{\bf Voxel size}: These specify the resolution of the imported data.  $[1.5, 1.5, 1.5]$ are reasonable values here.  If the resolution is finer than this, then you may encounter memory problems during the actual DARTEL registration.
 If you do want to try working at a higher resolution, then consider changing the bounding box (but allow for the strange behaviour at the edges).
   }
-  \item{{\bf Image option}: No imported image is needed - usually only the grey and white matter.
+  \item{{\bf Image option}: No imported version of the image is needed - usually only the grey and white matter tissue classes are used (ie choose \emph{None}).
   }
   \item{{\bf Grey Matter}: Yes, you need this.
   }
@@ -88,10 +90,15 @@ Bottom row: rc1B.nii and rc2B.nii.
 \label{Fig:imported}}
 \end{figure}
 
-\subsection{Using SPM$\rightarrow$Tools$\rightarrow$New Segment}
+\subsection{Using Tools$\rightarrow$New Segment}
+\emph{Note: This subsection will be elaborated on later.}
 
-\subsection{Using SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Run DARTEL (create Template)}
-The output of the importing step are a series of rigidly aligned tissue class images (grey matter is encoded by rc1*.nii and white matter by rc2*.nii -- see Fig \ref{Fig:imported}).
+There is a new segmentation option in SPM8, which can be found within Tools$\rightarrow$New Segment.  If this option is used, then the ``imported'' tissue class images (usually rc1.nii and rc2.nii) would be generated directly and the initial import step is skipped.
+It is also suggested that \emph{Native Space} versions of the tissues in which you are interested are also generated. For VBM, these  are usually the c1*.nii files, as it is these images that will eventually be warped to MNI space.
+Both the imported and native tissue class image sets can be specified via the Native Space options of the user interface.
+ 
+\subsection{Using DARTEL Tools$\rightarrow$Run DARTEL (create Template)}
+The output of the previous step(s) are a series of rigidly aligned tissue class images (grey matter is typically encoded by rc1*.nii and white matter by rc2*.nii -- see Fig \ref{Fig:imported}).
 The headers of these files encode two affine transform matrices, so the DARTEL tools are still able to relate their orientations to those of the original T1-weighted images.
 The next step is to estimate the nonlinear deformations that best align them all together.
 This is achieved by alternating between building a template, and registering the tissue class images with the template, and the whole procedure is very time consuming.
@@ -138,44 +145,31 @@ Note that all the output usually contains multiple volumes per file.
 For the u\_rc1*.nii files, only the first volume is visible using the Display or Check Reg tools in SPM.
 All volumes within the template images can be seen, but this requires the file selection to be changed to give the option of selecting more than just the first volume (in the file selector, the widget that says ``1'' should be changed to ``1:2'').
 
-\subsection{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}
-The next step is to create the Jacobian scaled (``modulated'') warped tissue class images, by selecting \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Create Warped}.
+\subsection{Using DARTEL Tools$\rightarrow$Normalise to MNI Space}
+The next step is to create the Jacobian scaled (``modulated'') warped tissue class images, by selecting \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tools$\rightarrow$Normalise to MNI Space}.
+The option for spatially normalising to MNI space automatically incorporates an affine transform that maps from the population average (DARTEL Template space) to MNI space, as well as incorporating a spatial smoothing step.
 \begin{itemize}
-\item{{\bf Create Warped}
+\item{{\bf Normalise to MNI Space}
   \begin{itemize}
-  \item{{\bf Flow Fields}: Specify the flow fields (u\_rc1*.nii) generated by the nonlinear registration.
-  }
-  \item{{\bf Images}
+  \item{{\bf DARTEL Template}: Specify the last of the series of templates that was created by \emph{Run DARTEL (create Template)}.  This is usually called \emph{Template\_6.nii}.  Note that the order of the \emph{N} volumes in this template should match the order of the first \emph{N} volumes of the \emph{toolbox/DARTEL/TPM.nii} file.}
+  \item{{\bf Select according to} either \emph{Few Subjects} or \emph{Many Subjects}.  For VBM, the \emph{Many Subjects} option would be selected.
     \begin{itemize}
-    \item{{\bf Images}: Select the rc1*.nii files for each subject, in the same order as the flow fields are selected.
-    }
-    \item{{\bf Images}: This is optional, but warped white matter images can also be generated by selecting the rc2*.nii files.
-    }
-    \end{itemize}
-  }
-  \item{{\bf Modulation}: Specify ``Modulation'' in order to have Jacobian transformed tissue probability maps.
-  }
-  \item{{\bf Time Steps}: Specify 64, which is the default number of time steps used to generate the deformations from the flow fields.
-  }
-  \item{{\bf Interpolation}: Usually, you would specify ``Trilinear''.
-  }
+    \item{{\bf Flow Fields}: Specify the flow fields (u\_rc1*.nii) generated by the nonlinear registration.}
+    \item{{\bf Images}: You may add several different sets of images.
+      \begin{itemize}
+      \item{{\bf Images}: Select the c1*.nii files for each subject, in the same order as the flow fields are selected.}
+      \item{{\bf Images}: This is optional, but warped white matter images can also be generated by selecting the c2*.nii files.}
+      \end{itemize}}
+    \end{itemize}}
+    \item{{\bf Voxel sizes}: Specify the desired voxel sizes for the spatially normalised images (NaN, NaN, NaN gives the same voxel sizes as the DARTEL template).}
+    \item{{\bf Bounding box}: Specify the desired bounding box for the spatially normalised images (NaN, NaN, NaN; NaN NaN NaN gives the same bounding box as the DARTEL template).}
+    \item{{\bf Preserve}: Here you have a choice of \emph{Preserve Concentrations} (ie not Jacobian scaled) or \emph{Preserve Amount} (Jacobian scaled).  The \emph{Preserve Amount} would be used for VBM, as it does something similar to Jacobian scaling (modulation).}
+    \item{{\bf Gaussian FWHM}: Enter how much to blur the spatially normalised images, where the values denote the full width at half maximum of a Gaussian convolution kernel, in units of mm. Because the inter-subject registration should be more accurate than when done using other SPM tools, the FWHM can be smaller than would be otherwise used.  A value of around 8mm (ie $[8, 8, 8]$) should be about right for VBM studies, although some empirical exploration may be needed.  If there are fewer subjects in a study, then it may be advisable to smooth more.}
   \end{itemize}
 }
 \end{itemize}
 
-The end result should be a bunch of mwrc1*.nii files (possibly with mwrc2*.nii if white matter is also to be studied). These are then smoothed (\emph{SPM$\rightarrow$Spatial$\rightarrow$Smooth}).
-\begin{itemize}
-\item{{\bf Smooth}
-  \begin{itemize}
-  \item{{\bf Images to Smooth}: Select the mwrc1*.nii (and possibly the mwrc2*.nii) files to smooth.
-  }
-  \item{{\bf FWHM}: Because the inter-subject registration should be more accurate than when done using other SPM tools, the FWHM can be smaller than would be otherwise used.  A value of around 8mm (ie $[8, 8, 8]$) should be about right for VBM studies, although some empirical exploration may be needed.  If there are fewer subjects in a study, then it may be advisable to smooth more.
-  }
-  \item{{\bf Data Type}: There is little to gain by saving the smoothed images with greater precision, because the mwrc*.nii files are already stored as floating point. The suggested option here is to set the data type to ``SAME'', which results in the smoothed data having the same data-type as the images specified for smoothing.
-  }
-  \end{itemize}
-}
-\end{itemize}
+The end result should be a bunch of smwc1*.nii files\footnote{The actual warping of the images is done slightly differently, with the aim that as much of the original signal is preserved as possible.  This essentially involves pushing each voxel from its position in the original image, into the appropriate location in the new image - keeping a count of the number of voxels pushed into each new position.  The procedure is to scan through the original image, and push each voxel in turn.  The alternative (older way) was to scan through the spatially normalised image, filling in values from the original image (pulling the values from the original).  The results of the pushing procedure are analogous to Jacobian scaled (``modulated'') data. A minor disadvantage of this approach is that it can introduce aliasing artifacts (think stripy shirt on TV screen) if the original image is at a similar - or lower - resolution to the warped version. Usually, these effects are masked by the smoothing.} (possibly with smwc2*.nii if white matter is also to be studied).
 
 \begin{figure}
 \begin{center}
@@ -184,13 +178,12 @@ The end result should be a bunch of mwrc1*.nii files (possibly with mwrc2*.nii i
 \caption{
 Pre-processing for VBM.
 Top row: Imported grey matter (rc1A.nii and rc1B.nii).
-Centre row: Warped and ``modulated'' (mwrc1A.nii and mwrc1B.nii).
-Bottom row: Smoothed by 8mm (smwrc1A.nii and smwrc1B.nii).
+Centre row: Warped with \emph{Preserve Amount} option and zero smoothing (``modulated'').
+Bottom row: Warped with \emph{Preserve Amount} option smoothing of 8mm (smwc1A.nii and smwc1B.nii).
 \label{Fig:VBM}}
 \end{figure}
 
-The final step is to perform the statistical analysis on the preprocessed data (smwrc1*.nii files).
-Note that results are not in MNI space, but rather in a coordinate system that represents the average shape and size of the subjects included in the study.
+The final step is to perform the statistical analysis on the preprocessed data (smwc1*.nii files), which should be in MNI space.
 The next section says a little about how data from a small number of subjects could be warped to MNI space.
 
 
@@ -212,15 +205,6 @@ Extra steps are needed to achieve this aim.
 The option for spatially normalising to MNI space automatically incorporates an affine transform that maps from the population average (DARTEL Template space) to MNI space.
 This transform is estimated by minimising the KL divergence between the final template image generated by DARTEL and tissue probability maps that are released as part of SPM (in the new segmentation toolbox).  MNI space is defined according to affine matched images, so an affine transform of the DARTEL template to MNI space would appear to be a reasonable strategy.
 
-The actual warping of the images is done slightly differently, with the aim that as much of the original signal is preserved as possible.  This essentially involves pushing each
-voxel from its position in the original image, into the appropriate location
-in the new image - keeping a count of the number of voxels pushed into each
-new position.  The procedure is to scan through the original image, and push
-each voxel in turn.  The alternative (older way) was to scan through the
-spatially normalised image, filling in values from the original image
-(pulling the values from the original).  The results of the pushing procedure
-are analogous to Jacobian scaled (``modulated'') data.
-
 For GLM analyses, we usually do not wish to work with Jacobian scaled data.
 For this reason, warping is now combined with smoothing, in a way that may be a bit more
 sensible than simply warping, followed by smoothing.  The end result is
@@ -240,7 +224,7 @@ Prior to spatially normalising using DARTEL, the data should be processed as fol
 More accurate within-subject alignment between functional and anatomical scans should allow more of the benefits of DARTEL for inter-subject registration to be achieved.}
 \item{Use either \emph{SPM$\rightarrow$Spatial$\rightarrow$Realign$\rightarrow$Realign: Estimate Reslice} or \emph{SPM$\rightarrow$Spatial$\rightarrow$Realign Unwarp}.  If a field map is available, then use the \emph{Realign Unwarp} option.
 The images need to have been realigned and resliced (or field-map distortion corrected) beforehand - otherwise things are not handled so well.  The first reason for this is that there are no options to use different methods of interpolation, so rigid-body transforms (as estimated by Realign but without having resliced the images) may not be well modelled.  Similarly, the spatial transforms do not incorporate any masking to reduce artifacts at the edge of the field of view.}
-\item{For each subject, oregister the anatomical scan with the functional data (using \emph{SPM$\rightarrow$Spatial$\rightarrow$Coreg$\rightarrow$Coreg: Estimate}).  No reslicing of the anatomical image is needed.
+\item{For each subject, register the anatomical scan with the functional data (using \emph{SPM $\rightarrow$ Spatial $\rightarrow$ Coreg $\rightarrow$ Coreg: Estimate}).  No reslicing of the anatomical image is needed.
 Use \emph{SPM$\rightarrow$Util$\rightarrow$Check Registration} to assess the accuracy of the alignment.
 If this step is unsuccessful, then some pre-processing of the anatomical scan may be needed in order to skull-strip and bias correct it.
 Skull stripping can be achieved by segmenting the anatomical scan, and masking a bias corrected version (which can be generated by the segmentation option) by the estimated GM, WM and CSF.  This masking can be done using \emph{SPM$\rightarrow$Util$\rightarrow$Image Calculator} (\emph{ImCalc} button), by selecting the bias corrected scan (m*.img), and the tissue class images (c1*.img, c2*.img and c3*.img) and evaluating ``i1.\*((i2+i3+i4)$>$0.5)''.
@@ -259,15 +243,15 @@ Either way, you would select \emph{SPM$\rightarrow$Tools$\rightarrow$DARTEL Tool
 \item{{\bf Normalise to MNI Space}
     \begin{itemize}
     \item{{\bf DARTEL Template}: Template\_6.nii,1 is usually the grey matter component of the final template of the series.  An affine transform is determined using this image.}
-    \item{{\bf Subjects}
+    \item{{\bf Select according to} either \emph{Few Subjects} or \emph{Many Subjects}.  For fMRI analyses, the \emph{Few Subjects} option would be selected, which gives the option of selecting a flow field and list of images for each subject.
+      \begin{itemize}
+      \item{{\bf Subject}
         \begin{itemize}
-        \item{{\bf Subject}
-            \begin{itemize}
-            \item{{\bf Flow Field}: Specify the flow field (``u\_c1*.nii'') for this subject.}
-            \item{{\bf Images}: Select the images for this subject that are to be transformed to MNI space.}
-            \end{itemize}
-        }
+        \item{{\bf Flow Field}: Specify the flow field (``u\_c1*.nii'') for this subject.}
+        \item{{\bf Images}: Select the images for this subject that are to be transformed to MNI space.}
         \end{itemize}
+      }
+      \end{itemize}
     }
     \item{{\bf Voxel sizes}: Specify the desired voxel sizes for the spatially normalised images (NaN, NaN, NaN gives the same voxel sizes as the DARTEL template).}
     \item{{\bf Bounding box}: Specify the desired bounding box for the spatially normalised images (NaN, NaN, NaN; NaN NaN NaN gives the same bounding box as the DARTEL template).}
@@ -334,7 +318,7 @@ This is because the spatially normalised images are generated by scanning throug
 
 The desired mapping is from MNI space to DARTEL template to individual scan.
 If \emph{A} is the mapping from MNI to template, and \emph{B} is the mapping from template to individual, then this mapping is $B \circ A$, where ``$\circ$'' denotes the composition operation.
-Spatially normalising via the composed deformations can be achieved through the \emph{Deformations} utility from the \emph{TASKS} pulldown (it is in \emph{Utils}). 
+Spatially normalising via the composed deformations can be achieved through the \emph{Deformations} utility from the \emph{TASKS} pull-down (it is in \emph{Utils}). 
 
 \begin{itemize}
 \item{{\bf Deformations}

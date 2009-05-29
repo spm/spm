@@ -116,7 +116,7 @@ channel         = cfg_branch;
 channel.tag     = 'channel';
 channel.name    = 'Channel';
 channel.val     = {vols biasreg biasfwhm write };
-channel.help    = {'A channel for processing. If multiple channels are used (eg T1 & T2), then the same order of subjects must be specified for each channel and they must be in register (same position, size, voxel dims etc..).'};
+channel.help    = {'Specify a channel for processing. If multiple channels are used (eg PD & T2), then the same order of subjects must be specified for each channel and they must be in register (same position, size, voxel dims etc..). The different channels can be treated differently in terms of inhomogeneity correction etc. You may wish to correct some channels and save the corrected images, whereas you may wish not to do this for other channels.'};
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -186,7 +186,7 @@ ngaus.val    = {Inf};
 native         = cfg_menu;
 native.tag     = 'native';
 native.name    = 'Native Tissue';
-native.help    = {'The native space option allows you to produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/. It can also be used for "importing" into a form that can be used with DARTEL (rc*)'};
+native.help    = {'The native space option allows you to produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/. It can also be used for ``importing'''' into a form that can be used with the DARTEL toolbox (rc*).'};
 native.labels = {
                  'None'
                  'Native Space'
@@ -209,7 +209,7 @@ warped.name    = 'Warped Tissue';
 warped.help    = {
                   'You can produce spatially normalised versions of the tissue class - both with (mwc*) and without (wc*) modulation (see below). These can be used for voxel-based morphometry. All you need to do is smooth them and do the stats.'
                   ''
-                  'Modulation is to compensate for the effect of spatial normalisation.  When warping a series of images to match a template, it is inevitable that volumetric differences will be introduced into the warped images.  For example, if one subject''s temporal lobe has half the volume of that of the template, then its volume will be doubled during spatial normalisation. This will also result in a doubling of the voxels labelled grey matter.  In order to remove this confound, the spatially normalised grey matter (or other tissue class) is adjusted by multiplying by its relative volume before and after warping.  If warping results in a region doubling its volume, then the correction will halve the intensity of the tissue label. This whole procedure has the effect of preserving the total amount of grey matter signal in the normalised partitions.  Actually, in this version of SPM the warped data are not scaled by the Jacobian determinants when generating the "modulated" data.  Instead, the original voxels are projected into their new location in the warped images.  This exactly preserves the tissue count, but has the effect of introducing aliasing artifacts - especially if the original data are at a lower resolution than the warped images.  Smoothing should reduce this artifact though.'
+                  '``Modulation'''' is to compensate for the effect of spatial normalisation.  When warping a series of images to match a template, it is inevitable that volumetric differences will be introduced into the warped images.  For example, if one subject''s temporal lobe has half the volume of that of the template, then its volume will be doubled during spatial normalisation. This will also result in a doubling of the voxels labelled grey matter.  In order to remove this confound, the spatially normalised grey matter (or other tissue class) is adjusted by multiplying by its relative volume before and after warping.  If warping results in a region doubling its volume, then the correction will halve the intensity of the tissue label. This whole procedure has the effect of preserving the total amount of grey matter signal in the normalised partitions.  Actually, in this version of SPM the warped data are not scaled by the Jacobian determinants when generating the "modulated" data.  Instead, the original voxels are projected into their new location in the warped images.  This exactly preserves the tissue count, but has the effect of introducing aliasing artifacts - especially if the original data are at a lower resolution than the warped images.  Smoothing should reduce this artifact though.'
                   'Note also that the "unmodulated" data are generated slightly differently in this version of SPM. In this version, the projected data are corrected using a kind of smoothing procedure. This is not done exactly as it should be done (to save computational time), but it does a reasonable job. It also has the effect of extrapolating the warped tissue class images beyond the range of the original data.  This extrapolation is not perfect, as it is only an estimate, but it may still be a good thing to do.'
                   }';
 warped.labels = {
@@ -232,6 +232,7 @@ tissue         = cfg_branch;
 tissue.tag     = 'tissue';
 tissue.name    = 'Tissue';
 tissue.val     = {tpm ngaus native warped };
+tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use DARTEL, then make sure you generate ``imported'''' tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
 % ---------------------------------------------------------------------
 % tissues Tissues
 % ---------------------------------------------------------------------
@@ -251,6 +252,8 @@ for k=1:numel(ngaus),
     tissue.val{3}.val    = {nval{k}};
     tissues.val{k}       = tissue;
 end
+
+tissues.help = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using toolbox/Seg/TPM.nii).'};
 
 % ---------------------------------------------------------------------
 % reg Warping Regularisation
@@ -294,7 +297,7 @@ affreg.val    = {'mni'};
 samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
-samp.help    = {'The approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower.'};
+samp.help    = {'This encodes the approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower and needs more memory. Determining the ``best'''' setting involves a compromise between speed and accuracy.'};
 samp.strtype = 'e';
 samp.num     = [1  1];
 samp.val     = {3};
@@ -304,7 +307,7 @@ samp.val     = {3};
 write         = cfg_menu;
 write.tag     = 'write';
 write.name    = 'Deformation Fields';
-write.help    = {'Deformation fields can be written.'};
+write.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. For spatially normalising images to MNI space, you will need the forward deformation, whereas for spatially normalising (eg) GIFTI surface files, you''ll need the inverse. It is also possible to transform data in MNI space on to the individual subject, which also requires the inverse transform. Deformations are saved as .nii files, which contain three volumes to encode the x, y and z coordinates.'};
 write.labels = {
                 'None'
                 'Inverse'
@@ -317,7 +320,7 @@ write.values = {
                 [0 1]
                 [1 1]
                 }';
-write.val    = {[1 0]};
+write.val    = {[0 0]};
 % ---------------------------------------------------------------------
 % warp Warping
 % ---------------------------------------------------------------------
@@ -325,6 +328,8 @@ warp         = cfg_branch;
 warp.tag     = 'warp';
 warp.name    = 'Warping';
 warp.val     = {reg affreg samp write };
+warp.help    = {
+'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'}
 % ---------------------------------------------------------------------
 % preproc8 Segment
 % ---------------------------------------------------------------------
@@ -335,9 +340,7 @@ preproc8.val     = {data tissues warp };
 preproc8.help    = {
                     'This toolbox is currently only work in progress, and is an extension of the default unified segmentation.  The algorithm is essentially the same as that described in the Unified Segmentation paper, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain. Some of the options in the toolbox do not yet work, and it has not yet been seamlessly integrated into the SPM8 software.  Also, the extended tissue probability maps need further refinement. The current versions were crudely generated (by JA) using data that was kindly provided by Cynthia Jongen of the Imaging Sciences Institute at Utrecht, NL.'
                     ''
-                    'Segment, bias correct and spatially normalise - all in the same model/* \cite{ashburner05}*/. This function can be used for bias correcting, spatially normalising or segmenting your data.'
-                    ''
-                    'Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
+                    'This function segments, bias corrects and spatially normalises - all in the same model/* \cite{ashburner05}*/.  Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
                     ''
                     'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
                     }';
