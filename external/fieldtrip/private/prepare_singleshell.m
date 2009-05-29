@@ -35,6 +35,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.21  2009/05/29 12:31:04  roboos
+% only convert cfg.headshape from config to struct in case it is present
+%
 % Revision 1.20  2009/05/25 08:05:18  roboos
 % ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
 %
@@ -109,7 +112,7 @@ if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end % approximate number of vertices in spere
 
-if isa(cfg.headshape, 'config')
+if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end

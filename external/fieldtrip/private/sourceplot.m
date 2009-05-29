@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.69  2009/05/29 14:12:32  ingnie
+% only do intelligent masking (meaning opacity=0.5 when anatomy present) if not method = surface
+%
 % Revision 1.68  2009/05/14 12:03:59  jansch
 % some changes to experimentally plot 4D and 5D volumes, undocumented
 %
@@ -539,8 +542,8 @@ if hasmsk
   clear mskmin mskmax;
 end 
 
-% prevent outside fun from being plotted
-if hasfun && isfield(data,'inside') && ~hasmsk
+% prevent outside fun from being plotted in slice and orthoplot
+if hasfun && isfield(data,'inside') && ~hasmsk && ~isequal(cfg.method,'surface')
   hasmsk = 1;
   msk = zeros(dim);
   cfg.opacitymap = 'rampup';
