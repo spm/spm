@@ -12,7 +12,7 @@ function tpm = spm_load_priors8(V)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_load_priors8.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_load_priors8.m 3168 2009-05-29 20:52:52Z john $
 
 tiny = 1e-3;
 
@@ -48,9 +48,10 @@ for i=1:tpm.V(1).dim(3)
     end;
     spm_progress_bar('Set',i);
 end;
-tpm.bg = zeros(Kb,1);
+tpm.bg1 = zeros(Kb,1);
 for k1=1:Kb,
-    tpm.bg(k1)  = mean(mean(tpm.dat{k1}(:,:,1)));
+    tpm.bg1(k1)  = mean(mean(tpm.dat{k1}(:,:,1)));
+    tpm.bg2(k1)  = mean(mean(tpm.dat{k1}(:,:,end)));
     tpm.dat{k1} = spm_bsplinc(log(tpm.dat{k1}+tiny),[deg deg deg  0 0 0]);
 end;
 tpm.tiny = tiny;

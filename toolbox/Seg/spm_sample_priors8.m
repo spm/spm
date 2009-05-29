@@ -15,7 +15,7 @@ function [s,ds1,ds2,ds3] = spm_sample_priors8(tpm,x1,x2,x3)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_sample_priors8.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_sample_priors8.m 3168 2009-05-29 20:52:52Z john $
 
 deg  = tpm.deg;
 tiny = tpm.tiny;
@@ -33,15 +33,15 @@ if nargout<=1,
     tot = zeros(dx);
     for k=1:Kb,
         a    = spm_bsplins(tpm.dat{k},x1,x2,x3,[deg deg deg  0 0 0]);
-        if k==Kb, s{k} = ones(dx); else s{k} = zeros(dx)+tiny; end
+        s{k} = ones(dx)*tpm.bg2(k);
         s{k}(msk1) = exp(a);
-        s{k}(msk2) = tpm.bg(k);
+        s{k}(msk2) = tpm.bg1(k);
         tot  = tot + s{k};
     end
     msk      = ~isfinite(tot);
     tot(msk) = 1;
     for k=1:Kb,
-        s{k}(msk) = tpm.bg(k);
+        s{k}(msk) = tpm.bg2(k);
         s{k}      = s{k}./tot;
     end
 else
@@ -51,9 +51,10 @@ else
     tot = zeros(dx);
     for k=1:Kb,
         [a,da1,da2,da3] = spm_bsplins(tpm.dat{k},x1,x2,x3,[deg deg deg  0 0 0]);
-        if k==Kb, s{k} = ones(dx); else s{k} = zeros(dx)+tiny; end 
+        if k==Kb, s{k} = ones(dx); else s{k} = zeros(dx)+tiny; end
+        s{k} = ones(dx)*tpm.bg2(k);
         s{k}(msk1) = exp(a);
-        s{k}(msk2) = tpm.bg(k);
+        s{k}(msk2) = tpm.bg1(k);
         tot    = tot + s{k};
         ds1{k} = zeros(dx); ds1{k}(msk1) = da1;
         ds2{k} = zeros(dx); ds2{k}(msk1) = da2;
@@ -65,7 +66,7 @@ else
     da2      = zeros(dx);
     da3      = zeros(dx);
     for k=1:Kb,
-         s{k}(msk) = tpm.bg(k);
+         s{k}(msk) = tpm.bg1(k);
          s{k}      = s{k}./tot;
          da1       = da1 + s{k}.*ds1{k};
          da2       = da2 + s{k}.*ds2{k};

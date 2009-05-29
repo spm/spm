@@ -5,11 +5,11 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 3102 2009-05-08 11:29:34Z john $
+% $Id: spm_preproc_write8.m 3168 2009-05-29 20:52:52Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
-if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
+if ~isstruct(tpm) || ~isfield(tpm, 'bg1'),
     tpm = spm_load_priors8(tpm);
 end
 d1        = size(tpm.dat{1});
