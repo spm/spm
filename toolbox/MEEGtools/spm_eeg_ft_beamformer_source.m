@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3146 2009-05-26 09:54:23Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3161 2009-05-29 12:20:50Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -79,9 +79,13 @@ if ~isfield(S, 'sources')
 end
 
 if ~isfield(S.sources, 'ori')
-    if ~isfield(S, 'voi') && spm_input('Define VOI?','+1','yes|no',[1 0], 1);
-        S.voi.radius =   spm_input('VOI radius (mm)', '+1', 'r', '10', 1);
-        S.voi.resolution = spm_input('Resolution (mm)', '+1', 'r', '2', 1);
+    if ~isfield(S, 'voi')
+        if spm_input('Define VOI?','+1','yes|no',[1 0], 1);
+            S.voi.radius =   spm_input('VOI radius (mm)', '+1', 'r', '10', 1);
+            S.voi.resolution = spm_input('Resolution (mm)', '+1', 'r', '2', 1);
+        else
+            S.voi = 'no';
+        end
     end
 end
 
@@ -200,7 +204,7 @@ if ismember(modality, {'MEG', 'MEGPLANAR'})
     cfg.reducerank = 2;
 end
 
-if ~isfield(S, 'voi')
+if ~isfield(S, 'voi') || isequal(S.voi, 'no')
     nvoi = 0;
     cfg.grid.pos     = S.sources.pos;
     if isfield(S.sources, 'ori')

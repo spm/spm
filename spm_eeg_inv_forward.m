@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2760 2009-02-18 18:38:20Z vladimir $
+% $Id: spm_eeg_inv_forward.m 3161 2009-05-29 12:20:50Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ for i = 1:nvol
             cfg                        = [];
             cfg.feedback               = 'yes';
             cfg.grad                   = D.inv{val}.datareg(i).sensors;
-            cfg.headshape              = mesh.tess_iskull.vert;
+            cfg.headshape              = mesh.tess_scalp.vert;
             cfg.radius                 = 85;
             cfg.maxradius              = 200;
             vol  = ft_prepare_localspheres(cfg);
