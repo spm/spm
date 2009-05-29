@@ -329,7 +329,7 @@ warp.tag     = 'warp';
 warp.name    = 'Warping';
 warp.val     = {reg affreg samp write };
 warp.help    = {
-'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'}
+'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'};
 % ---------------------------------------------------------------------
 % preproc8 Segment
 % ---------------------------------------------------------------------
