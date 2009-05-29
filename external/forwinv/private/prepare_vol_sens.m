@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.19  2009/05/29 11:50:34  vlalit
+% Fixed a bug with wrong kind of brackets
+%
 % Revision 1.18  2009/05/25 11:50:40  roboos
 % consistent handling of multiple spheres in case of ctf localspheres.hdm and fieldtrip prepare_localspheres, also in case of synthetic gradients.
 %
@@ -228,7 +231,7 @@ elseif ismeg
           warning('using the global fitted single sphere for %d channels that do not have a local sphere', length(missing));
         end
         for i=1:length(missing)
-          vol.label(end+1) = missing{i};
+          vol.label(end+1) = missing(i);
           vol.r(end+1,:)   = singlesphere.r;
           vol.o(end+1,:)   = singlesphere.o;
         end
