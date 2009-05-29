@@ -40,6 +40,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.27  2009/05/29 10:47:19  roboos
+% only convert to struct in case headshape is specified
+%
 % Revision 1.26  2009/05/25 08:04:40  roboos
 % fixed the name of the "headshape" variable
 % ensure that cfg.headshape is a structure and not a config object
@@ -142,7 +145,7 @@ if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 
-if isa(cfg.headshape, 'config')
+if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end

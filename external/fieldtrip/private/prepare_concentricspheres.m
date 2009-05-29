@@ -38,6 +38,9 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
 % $Log: prepare_concentricspheres.m,v $
+% Revision 1.6  2009/05/29 11:40:07  roboos
+% only convert cfg.headshape from config to struct in case it is present
+%
 % Revision 1.5  2009/05/25 08:05:18  roboos
 % ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
 %
@@ -63,7 +66,7 @@ if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';                          
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';                          end
 if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [0.3300 1 0.0042 0.3300];   end
 
-if isa(cfg.headshape, 'config')
+if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end
