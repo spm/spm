@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 3173 2009-06-02 14:50:19Z karl $
+% $Id: spm_eeg_invert_fuse.m 3175 2009-06-02 16:26:12Z karl $
                         
  
 % D - SPM MEEG object
@@ -425,7 +425,7 @@ switch(type)
  
         % Multivariate Bayes
         %------------------------------------------------------------------
-        MVB   = spm_mvb(AY,G,[],Q,Qe,2);
+        MVB   = spm_mvb(AY,G,[],Q,Qe,16);
         F1    = MVB.F;
  
         % Accumulate empirical priors

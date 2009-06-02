@@ -12,10 +12,10 @@ function [D] = spm_eeg_inv_results(D)
 % the power in D.inv{i}.contrast.GW corresponds to the evoked power
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 2720 2009-02-09 19:50:46Z vladimir $
- 
+% $Id: spm_eeg_inv_results.m 3175 2009-06-02 16:26:12Z karl $
+
 % SPM data structure
 %==========================================================================
 try
@@ -24,14 +24,14 @@ catch
     model = D.inv{end};
     D.val = numel(D.inv);
 end
- 
+
 % defaults
 %--------------------------------------------------------------------------
 try, woi  = model.contrast.woi;  catch, woi  = [80 120]; end
 try, foi  = model.contrast.fboi; catch, foi  = [];        end
 try, type = model.contrast.type; catch, type = 'evoked'; end
- 
- 
+
+
 % Check contrast woi is within inversion woi
 %--------------------------------------------------------------------------
 if woi(1) < D.inv{D.val}.inverse.woi(1) || woi(2) > D.inv{D.val}.inverse.woi(2)
@@ -40,9 +40,9 @@ end
 if ~any(foi)
     foi = [];
 end
- 
+
 fprintf('\ncomputing contrast - please wait\n')
- 
+
 % inversion parameters
 %--------------------------------------------------------------------------
 J    = model.inverse.J;                           % Trial average MAP estimate
@@ -56,23 +56,23 @@ pst  = model.inverse.pst;                         % peristimulus time (ms)
 Nd   = model.inverse.Nd;                          % number of mesh dipoles
 Nb   = size(T,1);                                 % number of time bins
 Nc   = size(U,1);                                 % number of channels
- 
+
 try
     scale = model.inverse.scale;                 % Trial average MAP estimate
 catch
     scale = 1;
 end
- 
+
 % time-frequency contrast
 %==========================================================================
- 
+
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
 fwhm = max(diff(woi),8);
 t    = exp(-4*log(2)*(pst(:) - mean(woi)).^2/(fwhm^2));
 t    = t/sum(t);
- 
- 
+
+
 % get frequency space and put PST subspace into contrast (W -> T*T'*W)
 %--------------------------------------------------------------------------
 if ~isempty(foi)
@@ -88,7 +88,7 @@ else
 end
 TW     = T'*W;
 TTW    = T*TW;
- 
+
 % MAP projector and conditional covariance
 %==========================================================================
 M     = model.inverse.M;
@@ -96,8 +96,8 @@ V     = model.inverse.qV;
 qC    = model.inverse.qC*trace(TTW'*V*TTW);
 qC    = max(qC,0);
 MAP   = M*U'*R;
- 
- 
+
+
 % cycle over trial types
 %==========================================================================
 try
@@ -106,60 +106,71 @@ catch
     trial = D.condlist;
 end
 for i = 1:length(J)
- 
+
     % induced or evoked
     %----------------------------------------------------------------------
     switch(type)
- 
+
         % energy of conditional mean
         %------------------------------------------------------------------
         case{'evoked'}
- 
+
             JW{i} = J{i}*TW(:,1);
             GW{i} = sum((J{i}*TW).^2,2) + qC;
- 
-        % mean energy over trials
-        %------------------------------------------------------------------
+
+            % mean energy over trials
+            %------------------------------------------------------------------
         case{'induced'}
- 
+
             JW{i} = sparse(0);
             JWWJ  = sparse(0);
-            
+
             c = D.pickconditions(trial{i});
- 
+
             % conditional expectation of contrast (J*W) and its energy
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             Nt    = length(c);
             for j = 1:Nt
                 fprintf('evaluating trial %i, condition %i\n',j,i)
-                Y     = D(Ic,It,c(j))*scale;
+                try
+                    % unimodal data
+                    %------------------------------------------------------
+                    Y     = D(Ic,It,c(j))*scale;
+                catch
+                    % multimodal data
+                    %------------------------------------------------------
+                    for k = 1:length(Ic)
+                        Yk{k,1} = D(Ic{k},It,c(j))*scale(k);
+                    end
+                    Y = spm_cat(Yk);
+                end
                 MYW   = MAP*Y*TTW;
                 JW{i} = JW{i} + MYW(:,1);
                 JWWJ  = JWWJ  + sum(MYW.^2,2);
             end
- 
+
             % conditional expectation of total energy (source space GW)
             %--------------------------------------------------------------
             JW{i} = JW{i}/Nt;
             GW{i} = JWWJ/Nt + qC;
     end
- 
+
 end
- 
- 
- 
+
+
+
 % Save results
 %==========================================================================
 model.contrast.woi  = woi;
 model.contrast.fboi = foi;
- 
+
 model.contrast.W    = W;
 model.contrast.JW   = JW;
 model.contrast.GW   = GW;
- 
+
 D.inv{D.val}        = model;
- 
- 
+
+
 % Display
 %==========================================================================
 spm_eeg_inv_results_display(D);
