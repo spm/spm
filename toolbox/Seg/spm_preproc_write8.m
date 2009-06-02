@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 3168 2009-05-29 20:52:52Z john $
+% $Id: spm_preproc_write8.m 3172 2009-06-02 11:40:42Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -245,7 +245,7 @@ if any(tc(:,2)),
     clear x y1
 
     M      = M0\inv(R)*M1*vx2/vx3;
-    mat0   =    inv(R)*M1*vx2/vx3;
+    mat0   =         R\M1*vx2/vx3;
     mat    = mm/vx3;
 
     fwhm = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);

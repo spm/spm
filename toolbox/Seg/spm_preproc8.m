@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2600 2009-01-12 13:14:02Z john $
+% $Id: spm_preproc8.m 3172 2009-06-02 11:40:42Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -403,7 +403,7 @@ for iter=1:20,
                %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 % Priors
-                nmom = struct('mom0',mom0,'mom1',mom1,'mom2',mom2);
+               %nmom = struct('mom0',mom0,'mom1',mom1,'mom2',mom2);
                 if exist('omom','var') && isfield(omom,'mom0') && numel(omom.mom0) == numel(mom0),
                     mom0 = mom0 + omom.mom0;
                     mom1 = mom1 + omom.mom1;
@@ -470,7 +470,7 @@ for iter=1:20,
                     end
                 end
 
-                nmom = struct('hist',{chan(:).hist});
+               %nmom = struct('hist',{chan(:).hist});
                 if exist('omom','var'),
                     for n=1:N,
                        if isfield(omom(n),'hist') && all(size(omom(n).hist) == size(chan(n).hist)),

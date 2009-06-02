@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 2576 2008-12-18 16:31:52Z john $
+% $Id: spm_dartel_template.m 3172 2009-06-02 11:40:42Z john $
 
 code = 2;
 st = job.settings;
@@ -116,6 +116,7 @@ if st.param(1).slam,
     t = max(t,0);
     g = spm_dartel_smooth(t,st.param(1).slam*2,8,vx);
 else
+    g = zeros([size(t,1),size(t,2),size(t,3),n1],'single');
     for j=1:n1,
         g(:,:,:,j) = t(:,:,:,j)./(t(:,:,:,end)+eps);
     end
