@@ -13,7 +13,7 @@ function [Mdist] = spm_eeg_inv_meshdist(vert,face,order)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_meshdist.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_meshdist.m 3173 2009-06-02 14:50:19Z karl $
 
 % default order is 2nd
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ end
 %--------------------------------------------------------------------------
 Mdist = edge;
 if ~order
-    Mdist = ~~Mdist;
+    Mdist = Mdist > 0;
 end
 
 % 2nd order connectivity

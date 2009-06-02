@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_invert.m 3173 2009-06-02 14:50:19Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -192,12 +192,7 @@ end
 %--------------------------------------------------------------------------
 TOL   = 16;
 Nmax  = Nm;
-L     = R{1}*spm_eeg_lgainmat(D{1},Is,D{1}.chanlabels(Ic{1}));
-U{1}  = spm_svd(L*L',exp(-TOL));
-Nm    = min(size(U{1},2),Nmax);
-U{1}  = U{1}(:,1:Nm);
-UL{1} = U{1}'*L;
-for i = 2:Nl
+for i = 1:Nl
     L     = R{i}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i}));
     U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
@@ -211,12 +206,7 @@ fprintf('Using %i spatial modes\n',Nm)
 %==========================================================================
 % Temporal parameters
 %==========================================================================
- 
-% force low-pass filtering for MEG
-%--------------------------------------------------------------------------
-%if strcmp(D{1}.inv{val}.modality,'MEG'), hpf = 48; end
- 
- 
+
 Nrmax = Nr;
 A     = {};
 AY    = {};
@@ -236,10 +226,10 @@ for i = 1:Nl
     % Peri-stimulus time
     %----------------------------------------------------------------------
     pst{i} = 1000*D{i}.time;
-    pst{i} = pst{i}(It{i});                             % peristimulus time (ms)
-    dur    = (pst{i}(end) - pst{i}(1))/1000;            % duration (s)
-    dct{i} = (It{i} - It{i}(1))/2/dur;                  % DCT frequencies (Hz)
-    Nb(i)  = length(It{i});                             % number of time bins
+    pst{i} = pst{i}(It{i});                       % peristimulus time (ms)
+    dur    = (pst{i}(end) - pst{i}(1))/1000;      % duration (s)
+    dct{i} = (It{i} - It{i}(1))/2/dur;            % DCT frequencies (Hz)
+    Nb(i)  = length(It{i});                       % number of time bins
  
     % Serial correlations
     %----------------------------------------------------------------------
@@ -268,7 +258,7 @@ for i = 1:Nl
       
     for j = 1:Nt(i)
         Y{i,j} = sparse(0);
-        c = D{i}.pickconditions(trial{j});
+        c     = D{i}.pickconditions(trial{j});
         Ne    = length(c);
         for k = 1:Ne
             Y{i,j} = Y{i,j} + R{i}*squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
@@ -346,8 +336,8 @@ switch(type)
             % right hemisphere
             %--------------------------------------------------------------
             [d j] = min(sum([vert(:,1) + vert(Ip(i),1), ...
-                vert(:,2) - vert(Ip(i),2), ...
-                vert(:,3) - vert(Ip(i),3)].^2,2));
+                             vert(:,2) - vert(Ip(i),2), ...
+                             vert(:,3) - vert(Ip(i),3)].^2,2));
             q               = QG(:,j);
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = G*q;
@@ -420,36 +410,55 @@ switch(type)
 end
  
 switch(type)
-    
-    case {'MSP','ARD','IID','MMN','LOR','COH'}
- 
-    % or ReML - ARD
-    %----------------------------------------------------------------------
-    qp          = sparse(0);
-    Q           = {Qe{:} LQpL{:}};
-    [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,sum(Nr)*sum(Nt));
- 
-    % Spatial priors (QP)
-    %----------------------------------------------------------------------
-    Ne    = length(Qe);
-    Np    = length(Qp);
-    hp    = h([1:Np] + Ne);
-    for i = 1:Np
-        if hp(i) > max(hp)/128;
-            try
+
+    case {'MSP','ARD'}
+
+        % or ReML - ARD
+        %------------------------------------------------------------------
+        qp          = sparse(0);
+        Q           = {Qe{:} LQpL{:}};
+        [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,sum(Nr)*sum(Nt));
+
+        % Spatial priors (QP)
+        %------------------------------------------------------------------
+        Ne    = length(Qe);
+        Np    = length(Qp);
+        hp    = h([1:Np] + Ne);
+        for i = 1:Np
+            if hp(i) > max(hp)/128;
                 qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
-            catch
-                qp  = qp + hp(i)*Qp{i};
             end
         end
-    end
-    
-    % Accmulate empirical priors
-    %----------------------------------------------------------------------
-    QP{end + 1} = qp;
-    
+
+        % Accmulate empirical priors
+        %------------------------------------------------------------------
+        QP{end + 1} = qp;
+
+
+    case {'IID','MMN','LOR','COH'}
+
+        % or ReML - ARD
+        %------------------------------------------------------------------
+        qp          = sparse(0);
+        Q           = {Qe{:} LQpL{:}};
+        [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,sum(Nr)*sum(Nt));
+
+        % Spatial priors (QP)
+        %------------------------------------------------------------------
+        Ne    = length(Qe);
+        Np    = length(Qp);
+        hp    = h([1:Np] + Ne);
+        for i = 1:Np
+            qp = qp + hp(i)*Qp{i};
+        end
+
+        % Accmulate empirical priors
+        %------------------------------------------------------------------
+        QP{end + 1} = qp;
+
 end
- 
+
+
  
 % re-estimate (one subject at a time)
 %==========================================================================
@@ -499,12 +508,12 @@ for i = 1:Nl
         
         % trial-type specific source reconstruction
         %------------------------------------------------------------------
-        J{j}    = M*Y{i,j};
+        J{j} = M*Y{i,j};
  
         % sum of squares
         %------------------------------------------------------------------
-        SSR   = SSR + sum(var((Y{i,j} - L*J{j}),0,2));
-        SST   = SST + sum(var(Y{i,j},0,2));
+        SSR  = SSR + sum(var((Y{i,j} - L*J{j}),0,2));
+        SST  = SST + sum(var(Y{i,j},0,2));
  
     end
  

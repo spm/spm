@@ -61,16 +61,15 @@ function [D] = spm_eeg_invert_fuse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 3139 2009-05-21 18:37:29Z karl $
-[D, val] = spm_eeg_inv_check(varargin{:}); 
-
-[mod, list] = modality(D, 1, 1);
-
-Nl         = numel(list);                          % number of forward models
+% $Id: spm_eeg_invert_fuse.m 3173 2009-06-02 14:50:19Z karl $
+                        
  
 % D - SPM MEEG object
 %==========================================================================
-inverse    = D.inv{val}.inverse;
+[D, val]    = spm_eeg_inv_check(varargin{:}); 
+[mod, list] = modality(D, 1, 1);
+Nl          = numel(list);                       % number of forward models
+inverse     = D.inv{val}.inverse;
  
 % defaults
 %--------------------------------------------------------------------------
@@ -105,10 +104,10 @@ end
 %--------------------------------------------------------------------------
 
 for i = 1:Nl
-    Ic{i} = setdiff(meegchannels(D, list{i}), D.badchannels);
+    Ic{i}     = setdiff(meegchannels(D, list{i}), D.badchannels);
     [L{i}, D] = spm_eeg_lgainmat(D, [], D.chanlabels(Ic{i}));
-    Nc(i)  = size(L{i},1);                         % number of channels
-    Nd(i)  = size(L{i},2);                         % number of dipoles
+    Nc(i)     = size(L{i},1);                      % number of channels
+    Nd(i)     = size(L{i},2);                      % number of dipoles
 end
  
 % check the source space is the same
@@ -136,8 +135,8 @@ face  = D.inv{val}.mesh.tess_mni.face;
 Is    = sparse(Nd,1);
 for i = 1:Nv
     Iv = sum([vert(:,1) - xyz(i,1), ...
-        vert(:,2) - xyz(i,2), ...
-        vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+              vert(:,2) - xyz(i,2), ...
+              vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
     Is = Is | Iv;
 end
 Is    = find(Is);
@@ -173,7 +172,7 @@ fprintf(' - done\n')
 %--------------------------------------------------------------------------
 if isempty(Nm); 
   Nm = zeros(1,Nl); 
-elseif length(Nm)==1; 
+elseif length(Nm) == 1; 
   Nm = ones(1,Nl)*Nm; 
 end
 for i = 1:Nl
@@ -184,7 +183,7 @@ for i = 1:Nl
         U{i}  = spm_svd(L{i}*L{i}',exp(NmTOL));
         Nm(i) = size(U{i},2);
     else
-        U{i}  = spm_svd(L{i}*L{i}',-Inf);
+        U{i}  = spm_svd(L{i}*L{i}',exp(-32));
         U{i}  = U{i}(:,1:Nm(i));
     end
     UL{i} = U{i}'*L{i};
@@ -194,18 +193,18 @@ end
 %==========================================================================
 % Temporal parameters
 %==========================================================================
-Nt    = length(trial);                % number of trial types
-if isempty(Nr); 
-  Nr = zeros(1,Nl);
-elseif length(Nr)~=Nl
-  Nr = ones(1,Nl)*Nr(1);
+Nt     = length(trial);                % number of trial types
+if isempty(Nr);
+    Nr = zeros(1,Nl);
+elseif length(Nr) ~= Nl
+    Nr = ones(1,Nl)*Nr(1);
 end
- 
+
 % Peristimulus time-window 
 %--------------------------------------------------------------------------
 w = [D.time(1) D.time(end)]*1000;
 
-if length(woi)
+if ~isempty(woi)
     woi(1) = max(woi(1),w(1));
     woi(2) = min(woi(2),w(2));
 else
@@ -214,12 +213,11 @@ end
  
 % get time bins to sample
 %--------------------------------------------------------------------------
-It  = D.indsample(woi/1000);
-Nb  = fix(It(end) - It(1) + 1);                 % number of time bins
+It    = D.indsample(woi/1000);
+Nb    = fix(It(end) - It(1) + 1);              % number of time bins
+It    = fix(linspace(It(1),It(2),Nb));
 
-It  = fix(linspace(It(1),It(2),Nb));
 
- 
 % Peri-stimulus time
 %--------------------------------------------------------------------------
 woi   = fix(woi);
@@ -236,7 +234,7 @@ qV    = sparse(K*K');
 %  Frequency subspace
 %--------------------------------------------------------------------------
 T     = spm_dctmtx(Nb,Nb);
-j      = find( (dct >= lpf) & (dct <= hpf) );
+j     = find( (dct >= lpf) & (dct <= hpf) );
 T     = T(:,j);
 dct   = dct(j);
 
@@ -256,7 +254,7 @@ for i = 1:Nl
     %----------------------------------------------------------------------
     for j = 1:Nt
         UY{i,j} = sparse(0);
-        c = D.pickconditions(trial{j});
+        c     = D.pickconditions(trial{j});
         Ne    = length(c);
         for k = 1:Ne
             UY{i,j} = UY{i,j} + U{i}'*squeeze(D(Ic{i},It,c(k)))*T/Ne;
@@ -266,10 +264,11 @@ end
 
 % rescale under i.i.d. priors
 %--------------------------------------------------------------------------
+UL1   = UL{1}'*inv(UL{1}*UL{1}');
 for i = 1:Nl
-    UL{i} = UL{i}/sqrt(trace(UL{i}*UL{i}')/Nm(i));
     for j = 1:Nt
-       scale(i,j) = 1/sqrt(trace(UY{i,j}'*UY{i,j})/Nm(i));
+        scale(i,j) = sign(trace(UY{i,j}'*UL{i}*UL1*UY{1,j}));
+        scale(i,j) = scale(i,j)/sqrt(trace(UY{i,j}'*UY{i,j})/Nm(i));
     end
 end
 scale = mean(scale,2);
@@ -277,28 +276,29 @@ for i = 1:Nl
     for j = 1:Nt
         UY{i,j} = UY{i,j}*scale(i);
     end
+    UL{i} = UL{i}/sqrt(trace(UL{i}*UL{i}')/Nm(i));
 end
  
 % and apply Hanning operator (if requested) 
 %--------------------------------------------------------------------------
 if Han
-    W  = T'*sparse(1:Nb,1:Nb,spm_hanning(Nb))*T;
+    W = T'*sparse(1:Nb,1:Nb,spm_hanning(Nb))*T;
 else
-    W  = 1;
+    W = 1;
 end
 for i = 1:Nl
     WY{i} = UY(i,:);
     WY{i} = spm_cat(WY{i}(:))*W;
 end
  
-% temporal projector (at most 8 modes) S = T*v
+% temporal projector (at most 8 modes) S = T*V
 %==========================================================================
 for i = 1:Nl
     if ~Nr(i)
         [v u] = spm_svd(WY{i}',NrTOL);            % temporal modes
         Nr(i) = size(v,2);
     else
-        [v u] = spm_svd(WY{i}',-Inf);
+        [v u] = spm_svd(WY{i}',exp(-16));
         v     = v(:,       1:Nr(i));
         u     = u(1:Nr(i), 1:Nr(i));
     end
@@ -313,7 +313,7 @@ VE    = mean(VE);
 fprintf('Using %i temporal modes in total...\n',Nr)
 fprintf('...accounting for %0.2f percent variance on average\n',full(100*VE))
 
-% projection and whitening
+% projection and whitening (noting that UY = U*Y*T)
 %--------------------------------------------------------------------------
 S     = T*V;                                     % temporal projector
 iV    = inv(S'*qV*S);                            % precision (mode)
@@ -425,9 +425,8 @@ switch(type)
  
         % Multivariate Bayes
         %------------------------------------------------------------------
-        MVB   = spm_mvb(AY,G,[],Q,Qe,16);
+        MVB   = spm_mvb(AY,G,[],Q,Qe,2);
         F1    = MVB.F;
-        h1    = MVB.h;
  
         % Accumulate empirical priors
         %------------------------------------------------------------------
@@ -440,14 +439,13 @@ end
  
 switch(type)
  
-    case {'MSP','ARD','IID','MMN','LOR','COH'}
+    case {'MSP','ARD'}
  
         % or ReML - ARD
         %------------------------------------------------------------------
-        Q     = {Qe{:} LQpL{:}};
-        [Cy,h,Ph,F1,F1a,F1c] = spm_sp_reml(YY,[],Q,Nr*Nt);
-        h1    = h;
- 
+        Q            = {Qe{:} LQpL{:}};
+        [Cy,h,Ph,F1] = spm_sp_reml(YY,[],Q,Nr*Nt);
+
         % Spatial priors (QP)
         %------------------------------------------------------------------
         Ne    = length(Qe);
@@ -456,12 +454,35 @@ switch(type)
         qp    = sparse(0);
         for i = 1:Np
             if hp(i) > max(hp)/128;
-                try
-                    qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
-                catch
-                    qp  = qp + hp(i)*Qp{i};
-                end
+                qp = qp + hp(i)*Qp{i}.q*Qp{i}.q';
             end
+        end
+ 
+        % Accumulate empirical priors
+        %------------------------------------------------------------------
+        QP{end + 1}   = diag(qp);
+        LQP{end + 1}  = G*qp;
+        LQPL{end + 1} = LQP{end}*G';
+ 
+end
+
+switch(type)
+ 
+    case {'IID','MMN','LOR','COH'}
+ 
+        % or ReML - ARD
+        %------------------------------------------------------------------
+        Q     = {Qe{:} LQpL{:}};
+        [Cy,h,Ph,F1] = spm_reml_sc(YY,[],Q,Nr*Nt);
+
+        % Spatial priors (QP)
+        %------------------------------------------------------------------
+        Ne    = length(Qe);
+        Np    = length(Qp);
+        hp    = h([1:Np] + Ne);
+        qp    = sparse(0);
+        for i = 1:Np
+            qp = qp + hp(i)*Qp{i};
         end
  
         % Accumulate empirical priors
@@ -507,8 +528,6 @@ Cq    = Cp - sum(LCp.*M')';
  
 % evaluate conditional expectation (of the sum over trials)
 %--------------------------------------------------------------------------
-SSR   = 0;
-SST   = 0;
 for j = 1:Nt
  
     % trial-type specific source reconstruction
@@ -517,15 +536,16 @@ for j = 1:Nt
  
     % sum of squares
     %----------------------------------------------------------------------
-    SSR   = SSR + sum(var((UY{j} - G*J{j}),0,2));
-    SST   = SST + sum(var(UY{j},0,2));
+    SSR(j)   = sum(var((UY{j} - G*J{j}),0,2));
+    SST(j)   = sum(var(UY{j},0,2));
  
 end
  
 % assess accuracy; signal to noise (over sources)
 %==========================================================================
-R2   = 100*(SST - SSR)/SST;
-fprintf('Percent variance explained %.2f (%.2f)\n',R2,full(R2*VE))
+R2   = 100*(SST - SSR)./SST
+R2   = mean(R2);
+fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE))
  
 % Save results
 %==========================================================================
@@ -549,16 +569,11 @@ inverse.Ic     = Ic;                   % Indices of good channels
 inverse.Nd     = Nd;                   % number of dipoles
 inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
-try 
-   inverse.F1a = F1a;                 
-   inverse.F1c = F1c;                 
-end
 inverse.F1     = F1;                   % log-evidence (first step; with MSP complexity)
 inverse.F      = F;                    % log-evidence (second step; MSP complexity ignored)
 inverse.R2     = R2;                   % variance accounted for (%)
 inverse.VE     = VE;                   % variance explained
 inverse.woi    = woi;                  % time-window inverted
-inverse.h1     = h1;                   % covariance hyperparameters (first step)
 inverse.h      = h;                    % covariance hyperparameters (second step)
 inverse.Nm     = Nm;                   % number of spatial modes
 inverse.Nr     = Nr;                   % number of spatial modes
@@ -578,3 +593,4 @@ end
 %==========================================================================
 spm_eeg_invert_display(D);
 drawnow
+
