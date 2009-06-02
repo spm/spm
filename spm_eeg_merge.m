@@ -5,9 +5,9 @@ function Dout = spm_eeg_merge(S)
 % S         - optional input struct
 % (optional) fields of S:
 % D         - filename of EEG mat-file with continuous data
-% recode    - a matrix of cells where each cell contains a condition label. The 
-%             ordering of these labels must be such that each row in the cell 
-%             matrix specifies the conditionlabels for one of
+% recode    - a cell array where each cell contains a condition label.
+%             The ordering of these labels must be such that each row in 
+%             the cell matrix specifies the conditionlabels for one of
 %             the selected files. 
 %             
 % Output:
@@ -23,9 +23,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 3026 2009-04-01 11:37:49Z guillaume $
+% $Id: spm_eeg_merge.m 3171 2009-06-02 10:01:35Z guillaume $
 
-SVNrev = '$Rev: 3026 $';
+SVNrev = '$Rev: 3171 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ for i = 1:Nfiles
     catch
         for j = 1:Dtmp.nconditions
             S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_str_manip(Dtmp.fname, 'r')),...
-                '+1', 's', sprintf('%s ', cl{j}));
+                '+1', 's', cl{j});
         end
     end
 
