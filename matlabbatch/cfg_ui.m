@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2816 2009-03-03 08:49:21Z volkmar $
+% $Id: cfg_ui.m 3180 2009-06-03 12:42:16Z volkmar $
 
-rev = '$Rev: 2816 $'; %#ok
+rev = '$Rev: 3180 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1107,7 +1107,8 @@ opwd = pwd;
 if ~isempty(udmodlist.wd)
     cd(udmodlist.wd);
 end;
-[file path idx] = uiputfile({'*.mat','Matlab .mat File';'*.m','Matlab Script File'}, 'Save Job');
+[file pth idx] = uiputfile({'*.mat','Matlab .mat File';...
+                    '*.m','Matlab .m Script File'}, 'Save Job');
 cd(opwd);
 if isnumeric(file) && file == 0
     return;
@@ -1116,10 +1117,24 @@ local_pointer('watch');
 [p n e v] = fileparts(file);
 if isempty(e) || ~any(strcmp(e,{'.mat','.m'}))
     e1 = {'.mat','.m'};
-    file = sprintf('%s%s%s', n, e, e1{idx});
+    e2 = e1{idx};
+    file = sprintf('%s%s', n, e);
+else
+    file = n;
+    e2 = e;
+end
+% Warn if saving as .m in a compiled version
+if isdeployed && strcmp(e2,'.m') && ...
+        strcmp(questdlg({'This batch system will not load ".m" batch jobs.' ...
+                        ['If you want to use your batch with this batch ' ...
+                        'system, you should save it as a ".mat" file.']}, ...
+                        'Format for Saved Job',...
+                        'Save as .mat','Save as .m', 'Save as .mat'), ...
+               'Save as .mat')
+    e2 = '.mat';
 end
 try
-    cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
+    cfg_util('savejob', udmodlist.cjob, fullfile(pth, [file e2]));
     udmodlist.modified = false;
     set(handles.modlist,'userdata',udmodlist);
 catch
