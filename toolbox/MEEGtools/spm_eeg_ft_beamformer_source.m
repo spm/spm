@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3161 2009-05-29 12:20:50Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3178 2009-06-03 11:59:33Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -208,7 +208,7 @@ if ~isfield(S, 'voi') || isequal(S.voi, 'no')
     nvoi = 0;
     cfg.grid.pos     = S.sources.pos;
     if isfield(S.sources, 'ori')
-        cfg.grid.mom    = S.sources.ori(s, :);
+        cfg.grid.mom    = S.sources.ori;
     else
         cfg.lcmv.fixedori = 'yes';
     end

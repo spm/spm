@@ -1,4 +1,4 @@
-function spm_eeg_beamformer_freq(S)
+function spm_eeg_ft_beamformer_freq(S)
 % Script for making power images using DICS beamformer. Requires as input
 % an MEEG file where coregistration has been performed.
 %
@@ -11,7 +11,7 @@ function spm_eeg_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3121 2009-05-13 15:49:55Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3178 2009-06-03 11:59:33Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -63,17 +63,39 @@ if ~isfield(D, 'val')
     D.val = 1;
 end
 
-
-try
-    vol = D.inv{D.val}.forward.vol;
-    datareg = D.inv{D.val}.datareg;
-catch
-    D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
+if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
+        ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
+        ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+    D = spm_eeg_inv_mesh_ui(D, D.val);
     D = spm_eeg_inv_datareg_ui(D, D.val);
-    datareg = D.inv{D.val}.datareg;
+    D = spm_eeg_inv_forward_ui(D, D.val);
 end
 
-vol = D.inv{D.val}.forward.vol;
+for m = 1:numel(D.inv{D.val}.forward)
+    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
+        vol  = D.inv{D.val}.forward(m).vol;
+        if isa(vol, 'char')
+            vol = fileio_read_vol(vol);
+        end
+        datareg  = D.inv{D.val}.datareg(m);
+    end
+end
+
+if isequal(modality, 'EEG')
+    sens = datareg.sensors;
+else
+    % This is to make it possible to use the same 'inv' in multiple files
+    sens = D.sensors('MEG');
+end
+
+M1 = datareg.toMNI;
+[U, L, V] = svd(M1(1:3, 1:3));
+M1(1:3,1:3) =U*V';
+
+vol = forwinv_transform_vol(M1, vol);
+sens = forwinv_transform_sens(M1, sens);
+
+
 %% ============ Select the data and convert to Fieldtrip struct
 
 clb = D.condlist;
@@ -121,18 +143,7 @@ end
 for i = 1:numel(S.timewindows)
     cfg.latency = S.timewindows{i};
     timelock{i} = ft_timelockanalysis(cfg,data);
-    
-    if ~isempty(refchan) && S.cohshuffle
-        refind = strmatch(refchan, timelock{i}.label, 'exact');                 
-        rand('twister',sum(100*clock));        
-        trlind = find(rand(1, size(timelock{i}.trial, 1))>0.5);                
-        strlind = trlind(randperm(length(trlind)));
-        timelock{i}.trial(trlind, refind, :) = ...
-            timelock{i}.trial(strlind, refind, :);
-    end
 end
-
-
 
 %%
 if numel(timelock) == 1
@@ -166,20 +177,13 @@ for i = 1:numel(timelock)
     freq{i} = ft_freqanalysis(cfg, timelock{i});
 end
 
-cfg.keeptrials = 'no';
-
-
-cfg.channel = channel;
-cfg.channelcmb = ft_channelcombination({'all', 'all'}, channel);
-if ~isempty(refchan)
-    cfg.channelcmb =  [cfg.channelcmb; ft_channelcombination({'all', refchan}, [channel {refchan}])];
-end
-
 if isfield(S, 'usewholetrial') && S.usewholetrial
+    cfg.channel = channel;
+    cfg.channelcmb = ft_channelcombination({'all', 'all'}, channel);
+    if ~isempty(refchan)
+         cfg.channelcmb =  [cfg.channelcmb; ft_channelcombination({'all', refchan}, [channel; {refchan}])];
+    end
     filtfreq = ft_freqanalysis(cfg, data);
-else
-    filttimelock = ft_appenddata([], timelock{:});
-    filtfreq = ft_freqanalysis(cfg, filttimelock);
 end
 %%
 freqall = freq{1};
@@ -198,18 +202,22 @@ if length(freq) > 1
 end
 %%
 cfg                       = [];
+
 if strcmp('EEG', modality)
-    cfg.elec = D.inv{D.val}.datareg.sensors;
+    cfg.elec = sens;
 else
-    cfg.grad = D.sensors('MEG');
+    cfg.grad = sens;
     cfg.reducerank            = 2;
 end
 
 cfg.channel = D.chanlabels(D.meegchannels(modality));
 cfg.vol                   = vol;
-cfg.resolution            = 10;
-cfg.inwardshift           = -40;
-grid                      = ft_prepare_leadfield(cfg);          
+
+cfg.grid.xgrid = -90:10:90;
+cfg.grid.ygrid = -120:10:100;
+cfg.grid.zgrid = -70:10:110;
+cfg.inwardshift = 0;
+grid            = ft_prepare_leadfield(cfg);          
  
 
 cfg = [];
@@ -235,42 +243,30 @@ if isfield(S, 'fixedori') && S.fixedori
     cfg.dics.fixedori = 'yes';
 end
 
+cfg.dics.realfilter = 'yes';
+
 cfg.dics.powmethod  = 'trace';
 
 cfg.projectnoise = 'no';
 cfg.grid         = grid;
 cfg.vol          = vol;
 cfg.lambda       = S.lambda;
+cfg.keepcsd = 'yes';
 
-filtsource   = ft_sourceanalysis(cfg, filtfreq);
+if isfield(S, 'usewholetrial') && S.usewholetrial
+    filtsource   = ft_sourceanalysis(cfg, filtfreq);
+else
+    filtsource   = ft_sourceanalysis(cfg, freqall);
+end
+
+if isfield(S, 'geteta') && S.geteta
+    save(fullfile(D.path, 'ori.mat'), 'filtsource');
+end
 %
 cfg.keepfilter   = 'no';
 cfg.grid.filter  = filtsource.avg.filter; % use the filter computed in the previous step
 
-if isfield(S, 'geteta')
-    geteta = spm_eeg_inv_transform_points(datareg.fromMNI, S.geteta);
-    [junk, ind] = min(sqrt(sum((grid.pos - repmat(geteta, size(grid.pos, 1), 1)).^2, 2)));
-    cfg1 = cfg;
-    cfg1.dics.fixedori = 'yes';
-    
-    cfg1.keepcsd = 'yes';
-    
-    seta   = ft_sourceanalysis(cfg1, freq{1});
-    
-    cfg1 =[];
-    cfg1.eta = 'yes';
-    seta = ft_sourcedescriptives(cfg1, seta);
-    
-    [x, y, z] = ind2sub(grid.dim, ind);
-    
-    ori = seta.avg.ori{x, y, z};
-    
-    disp(['The optimal orientation (in head coordinates): ' num2str(ori')]);
-    return;
-end
-
 sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
-
 
 if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
     for i = 1:numel(freq)
@@ -288,10 +284,8 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
     end
 
     csource = source{1};
-    csource.pow = (pow*S.contrast(:));    
-            
-    csource.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos);    
-    
+    csource.pow = (pow*S.contrast');    
+              
     cfg1 = [];
     cfg1.sourceunits   = 'mm';  
     cfg1.parameter = 'pow';
@@ -320,9 +314,7 @@ else
     cfg.rawtrial     = 'yes';
     
     source   = ft_sourceanalysis(cfg, freqall);    
-   
-    source.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, source.pos);  
-   
+     
     clear('data', 'csource', 'filtsource', 'timelock', 'freq', 'grid', 'freqall');
    
     cfg = [];
@@ -347,7 +339,7 @@ else
             pow(:, j) = source.trial(ind(j)).pow(:);
         end
 
-        source.pow = (pow*S.contrast(:));
+        source.pow = (pow*S.contrast');
 
         sourceint = ft_sourceinterpolate(cfg, source, sMRI);
 
