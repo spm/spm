@@ -20,14 +20,14 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 2925 2009-03-23 20:49:24Z jean $
+% $Id: spm_eeg_displayECD.m 3179 2009-06-03 12:41:21Z volkmar $
 
 hfig = [];
 ParentAxes = [];
 tag = '';
 query = [];
 handles = [];
-try options; catch options=[];end
+try options; catch, options=[];end
 try hfig = options.hfig;end
 try tag = options.tag;end
 try ParentAxes  = options.ParentAxes;end
@@ -41,9 +41,9 @@ catch
     ParentAxes = axes('parent',hfig);
 end
 
-try Pos{1}; catch Pos={Pos};end
-try Orient{1}; catch Orient={Orient};end
-try Var{1}; catch Var = {Var};end
+try Pos{1}; catch, Pos={Pos};end
+try Orient{1}; catch, Orient={Orient};end
+try Var{1}; catch, Var = {Var};end
 
 ndip = size(Pos{1},2);
 if ~exist('Names','var') || isempty(Names)

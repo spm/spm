@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3130 2009-05-18 14:41:31Z volkmar $
+% $Id: spm_jobman.m 3179 2009-06-03 12:41:21Z volkmar $
 
 
 if nargin==0
@@ -146,6 +146,9 @@ else
                 addpath(fullfile(spm('Dir'),'config'));
             end
             cfg_util('initcfg'); % This must be the first call to cfg_util
+            if isdeployed
+                cfg_master;
+            end
             f = cfg_ui('Visible','off'); % Create invisible batch ui
             f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
             f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...

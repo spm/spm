@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3136 2009-05-20 07:34:23Z volkmar $
+% $Id: spm.m 3179 2009-06-03 12:41:21Z volkmar $
 
 
 %=======================================================================
@@ -513,8 +513,12 @@ end
 %-Set toolbox
 %-----------------------------------------------------------------------
 xTB       = spm('tbs');
-set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
-set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
+if ~isempty(xTB)
+    set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
+    set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
+else
+    set(findobj(Fmenu,'Tag', 'Toolbox'),'Visible','off')
+end
 set(Fmenu,'Visible',Vis);
 varargout = {Fmenu};
 
@@ -798,7 +802,10 @@ SPMdir = fileparts(SPMdir);
 
 if isdeployed
     ind = findstr(SPMdir,'_mcr')-1;
-    SPMdir = fileparts(SPMdir(1:ind(1)));
+    if ~isempty(ind)
+        % MATLAB 2008a/2009a doesn't need this
+        SPMdir = fileparts(SPMdir(1:ind(1)));
+    end
 end
 varargout = {SPMdir};
 
@@ -1134,18 +1141,27 @@ v = SPM_VER;
 str = 'Can''t obtain SPM Revision information.';
 
 if isempty(SPM_VER) || (nargin > 0 && ReDo)
-    v = struct('Name','','Version','','Release','','Date','');
-    try
-        fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
-        if fid == -1, error(str); end
-        l1 = fgetl(fid); l2 = fgetl(fid);
-        fclose(fid);
-        l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
-        t = strread(l2,'%s','delimiter',' ');
-        v.Name = l1; v.Date = t{4};
-        v.Version = t{2}; v.Release = t{3}(2:end-1);
-    catch
-        error(str);
+    if isdeployed && ispc
+        % fake version for isdeployed PCWIN - .m files seem to be
+        % compressed/pcoded/encrypted on this target
+        v.Name    = 'Statistical Parametric Mapping';
+        v.Version = '8.1';
+        v.Release = 'SPM8';
+        v.Date    = '29-May-2009';
+    else        
+        v = struct('Name','','Version','','Release','','Date','');
+        try
+            fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
+            if fid == -1, error(str); end
+            l1 = fgetl(fid); l2 = fgetl(fid);
+            fclose(fid);
+            l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
+            t = strread(l2,'%s','delimiter',' ');
+            v.Name = l1; v.Date = t{4};
+            v.Version = t{2}; v.Release = t{3}(2:end-1);
+        catch
+            error(str);
+        end
     end
     SPM_VER = v;
 end

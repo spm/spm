@@ -14,16 +14,18 @@ function [cfg, def] = cfg_mlbatch_appcfg(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_appcfg.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m 3179 2009-06-03 12:41:21Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3179 $'; %#ok
 
-% get path to this file
-p = fileparts(mfilename('fullpath'));
-% in this case, the cfg_mlbatch_appcfg file is not in the application
-% folder. Therefore, the path to the application needs to be added
-% explicitly
-addpath(fullfile(p, 'cfg_basicio'));
+if ~isdeployed
+    % get path to this file
+    p = fileparts(mfilename('fullpath'));
+    % in this case, the cfg_mlbatch_appcfg file is not in the application
+    % folder. Therefore, the path to the application needs to be added
+    % explicitly
+    addpath(fullfile(p, 'cfg_basicio'));
+end
 % these two files are now on MATLABs path
 cfg = cfg_cfg_basicio;
 def = cfg_cfg_basicio_def;
