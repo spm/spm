@@ -1,23 +1,23 @@
 function out = spm_run_bms_dcm (varargin)
 
-% API to compare DCMs on the basis of their log-evidences. Three methods 
+% API to compare DCMs on the basis of their log-evidences. Three methods
 % are available to identify the best among alternative models:
 %
-%  (1) single subject BMS using Bayes factors 
+%  (1) single subject BMS using Bayes factors
 %     (see Penny et al, NeuroImage, 2004)
-%  (2) fixed effects group BMS using group Bayes factors 
+%  (2) fixed effects group BMS using group Bayes factors
 %     (see Stephan et al,NeuroImage, 2007)
 %  (3) random effects group BMS using exceedance probabilities
 %     (see Stephan et al,NeuroImage, 2009)
 %
-% Note: All functions use the negative free energy (F) as an approximation 
+% Note: All functions use the negative free energy (F) as an approximation
 % to the log model evidence.
 %
 % __________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 2793 2009-02-26 18:29:41Z cc $
+% $Id: spm_run_bms_dcm.m 3177 2009-06-03 08:47:41Z vladimir $
 
 job     = varargin{1};
 fname  ='BMS.mat';                  % Output filename
@@ -26,18 +26,18 @@ F = [];
 N = {};
 
 % prepare the data
-if  isempty(job.load_f{1})==0  
+if  isempty(job.load_f{1})==0
     data=job.load_f{1};
     load(data);
     nm   = size(F,2);                               % No of Models
-    N    = 1:nm;                                    
+    N    = 1:nm;
 
 else
 
     ns      = size(job.sess_dcm,2);                 % No of Subjects
     nsess   = size(job.sess_dcm{1},2);              % No of sessions
     nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
-    
+
     % Check if No of models > 2
     if nm < 2
         msgbox('Please select more than one file')
@@ -52,9 +52,11 @@ else
 
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
 
+            ID = zeros(nsess, nm);
+            
             for j=1:nm
 
-                F_sess      = [];
+                F_sess      = [];                
 
                 for h = 1:nsess_now
 
@@ -62,6 +64,29 @@ else
                     DCM_tmp = load(tmp{1});
                     F_sess  = [F_sess,DCM_tmp.DCM.F];
 
+                    % Data ID verification. At least for now we'll
+                    % re-compute the IDs rather than use the ones stored
+                    % with the DCM.
+                    if job.verify_id
+                        M = DCM_tmp.DCM.M;
+
+                        if isfield(DCM_tmp.DCM, 'xY')
+                            Y = DCM_tmp.DCM.xY;  %not fMRI
+                        else
+                            Y = DCM_tmp.DCM.Y;   % fMRI
+                        end
+
+                        if isfield(M,'FS')
+                            try
+                                ID(h, j)  = spm_data_id(feval(M.FS,Y.y,M));
+                            catch
+                                ID(h, j)  = spm_data_id(feval(M.FS,Y.y));
+                            end
+                        else
+                            ID(h, j) = spm_data_id(Y.y);
+                        end
+
+                    end
                 end
 
                 F_mod       = sum(F_sess);
@@ -69,8 +94,17 @@ else
                 N{j}        = sprintf('model%d',j);
 
             end
+            
+            if job.verify_id
+                failind = find(max(abs(diff(ID))) > eps);
+                if ~isempty(failind)
+                    out.files{1} = [];
+                    msgbox(['Error: the models for subject ' num2str(k) ...
+                        ' session(s) ' num2str(failind) ' were not fitted to the same data.']);
+                    return
+                end
+            end
         else
-
             out.files{1} = [];
             msgbox('Error: the number of sessions/models should be the same for all subjects!')
             return
@@ -155,5 +189,15 @@ else
 
 
 end
+
+spm_figure('GetWin','Graphics');
+axes('position', [0.01, 0.01, 0.01, 0.01]); 
+axis off
+if job.verify_id
+    text(0, 0, 'Data identity has been verified');
+else
+    text(0, 0, 'Data identity has not been verified');
+end
+
 end
 

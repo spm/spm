@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 2725 2009-02-10 10:15:18Z vladimir $
+% $Id: spm_dcm_erp.m 3177 2009-06-03 08:47:41Z vladimir $
 
 % check options
 %==========================================================================
@@ -183,6 +183,19 @@ Nm    = size(U,2);
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
 
+% Data ID
+%==========================================================================
+if isfield(M,'FS')
+    try
+        ID  = spm_data_id(feval(M.FS,xY.y,M));
+    catch
+        ID  = spm_data_id(feval(M.FS,xY.y));
+    end
+else
+    ID  = spm_data_id(xY.y);
+end
+
+
 % Bayesian inference
 %--------------------------------------------------------------------------
 sw  = warning('off','SPM:negativeVariance');
@@ -223,6 +236,8 @@ DCM.H  = y;                    % conditional responses (y), projected space
 DCM.K  = x;                    % conditional responses (x)
 DCM.R  = r;                    % conditional residuals (y)
 DCM.F  = F;                    % Laplace log evidence
+DCM.ID = ID;                   % data ID
+
 
 DCM.options.h      = h;
 DCM.options.Nmodes = Nm;

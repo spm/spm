@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3099 2009-05-05 15:31:32Z jean $
+% $Id: spm_eeg_review_callbacks.m 3177 2009-06-03 08:47:41Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -1245,7 +1245,11 @@ else  % source space
 
     % get model/trial info
     VIZU = D.PSD.source.VIZU;
+    isInv = VIZU.isInv;
+    Ninv = length(isInv);
     invN = VIZU.isInv(D.PSD.source.VIZU.current);
+    F  = VIZU.F;
+    ID = VIZU.ID;
     model = D.other.inv{invN}.inverse;
     t0 = get(D.PSD.handles.BUTTONS.slider_step,'value');
     tmp = (model.pst-t0).^2;
@@ -1264,7 +1268,37 @@ else  % source space
         % get the inverse model info
         str = getInfo4Inv(D,invN);
         set(D.PSD.handles.infoText,'string',str);
-        try, set(D.PSD.handles.BMCcurrent,'XData',invN); end;
+                  
+        if Ninv>1
+            if isnan(ID(invN))
+                xF = find(isnan(ID));
+            else
+                xF = find(abs(ID-ID(invN))<eps);
+            end
+            if length(xF)>1
+                D.PSD.handles.hbar = bar(D.PSD.handles.BMCplot,...
+                    xF ,F(xF)-min(F(xF)),...
+                    'barwidth',0.5,...
+                    'FaceColor',0.5*[1 1 1],...
+                    'visible','off',...
+                    'tag','plotEEG');
+                D.PSD.handles.BMCcurrent = plot(D.PSD.handles.BMCplot,...
+                    find(xF==invN),0,'ro',...
+                    'visible','off',...
+                    'tag','plotEEG');
+                set(D.PSD.handles.BMCplot,...
+                    'xtick',xF,...
+                    'xticklabel',D.PSD.source.VIZU.labels(xF),...
+                    'xlim',[0,length(xF)+1]);
+                drawnow
+            else
+                cla(D.PSD.handles.BMCplot);
+                set(D.PSD.handles.BMCplot,...
+                    'xtick',[],...
+                    'xticklabel',{});
+            end
+        end
+        
         % get model/trial time series
         D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
         D.PSD.source.VIZU.J(model.Is,:) = model.J{trN(1)}*model.T';

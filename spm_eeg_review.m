@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2979 2009-03-27 18:36:03Z guillaume $
+% $Id: spm_eeg_review.m 3177 2009-06-03 08:47:41Z vladimir $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -238,7 +238,8 @@ if isfield(D.other,'inv') && ~isempty(D.other.inv)
     if Ninv>=1
         labels = cell(Ninv,1);
         callbacks = cell(Ninv,1);
-        F = zeros(Ninv,1);
+        F  = zeros(Ninv,1);
+        ID = zeros(Ninv,1);
         pst = [];
         for i=1:Ninv
             if ~isfield(D.other.inv{isInv(i)},'comment')
@@ -252,6 +253,11 @@ if isfield(D.other,'inv') && ~isempty(D.other.inv)
                    && isnan(D.other.inv{isInv(i)}.inverse.R2)
                 D.other.inv{isInv(i)}.inverse.R2 = [];
             end 
+            if isfield(D.other.inv{isInv(i)}.inverse, 'ID')
+                ID(i) = D.other.inv{isInv(i)}.inverse.ID;
+            else
+                ID(i) = nan;
+            end
             labels{i} = [D.other.inv{isInv(i)}.comment{1}];
             callbacks{i} = ['spm_eeg_review_callbacks(''visu'',''inv'',',num2str(i),')'];
             F(i) = D.other.inv{isInv(i)}.inverse.F;
@@ -273,6 +279,7 @@ if Ninv >= 1
     D.PSD.source.VIZU.isInv = isInv;
     D.PSD.source.VIZU.pst = pst;
     D.PSD.source.VIZU.F = F;
+    D.PSD.source.VIZU.ID = ID;
     D.PSD.source.VIZU.labels = labels;
     D.PSD.source.VIZU.callbacks = callbacks;
     D.PSD.source.VIZU.timeCourses = 1;

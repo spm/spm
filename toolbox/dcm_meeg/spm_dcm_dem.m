@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 2906 2009-03-20 13:01:01Z karl $
+% $Id: spm_dcm_dem.m 3177 2009-06-03 08:47:41Z vladimir $
 
 % check options
 %==========================================================================
@@ -153,6 +153,18 @@ Nm    = size(U,2);
 %==========================================================================
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
+% Data ID
+%==========================================================================
+if isfield(M,'FS')
+    try
+        ID  = spm_data_id(feval(M.FS,xY.y,M));
+    catch
+        ID  = spm_data_id(feval(M.FS,xY.y));
+    end
+else
+    ID  = spm_data_id(xY.y);
+end
+
 
 % Bayesian inference
 %--------------------------------------------------------------------------
@@ -190,6 +202,7 @@ DCM.H   = y;                    % conditional responses (y), projected space
 DCM.K   = x;                    % conditional responses (x)
 DCM.R   = r;                    % conditional residuals (y)
 DCM.F   = F;                    % Laplace log evidence
+DCM.ID  = ID;                   % data ID
 DCM.DEM = DEM;                  % array of DEM structures
 
 DCM.options.h      = h;

@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 3175 2009-06-02 16:26:12Z karl $
+% $Id: spm_eeg_invert_fuse.m 3177 2009-06-03 08:47:41Z vladimir $
                         
  
 % D - SPM MEEG object
@@ -504,6 +504,10 @@ Q     = {Qe{:} LQPL{:}};
 % re-do ReML
 %--------------------------------------------------------------------------
 [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,Nr*Nt);
+
+% Data ID
+%==========================================================================
+ID  = spm_data_id(YY);
  
 % Covariance: sensor space - Ce and source space - L*Cp
 %--------------------------------------------------------------------------
@@ -571,6 +575,7 @@ inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
 inverse.F1     = F1;                   % log-evidence (first step; with MSP complexity)
 inverse.F      = F;                    % log-evidence (second step; MSP complexity ignored)
+inverse.ID     = ID;                   % data ID
 inverse.R2     = R2;                   % variance accounted for (%)
 inverse.VE     = VE;                   % variance explained
 inverse.woi    = woi;                  % time-window inverted

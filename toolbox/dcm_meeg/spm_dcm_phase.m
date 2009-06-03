@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_dcm_phase.m 3177 2009-06-03 08:47:41Z vladimir $
 
 
 % check options 
@@ -140,6 +140,19 @@ end
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N (M,xU,xY);
 
 
+% Data ID
+%==========================================================================
+if isfield(M,'FS')
+    try
+        ID  = spm_data_id(feval(M.FS,xY.y,M));
+    catch
+        ID  = spm_data_id(feval(M.FS,xY.y));
+    end
+else
+    ID  = spm_data_id(xY.y);
+end
+
+
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
 warning('off','SPM:negativeVariance');
@@ -180,6 +193,7 @@ DCM.Cg = Cg;                   % conditional covariances
 DCM.Pp = Pp;                   % conditional probability
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
+DCM.ID = ID;                   % data ID
 DCM.y = y;                     % Model predictions
 
 % and save

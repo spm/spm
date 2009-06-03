@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 2915 2009-03-20 19:15:44Z maria $
+% $Id: spm_cfg_bms.m 3177 2009-06-03 08:47:41Z vladimir $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -126,6 +126,24 @@ method.values  = {
                   'FFX'
                   'RFX'
 }'; 
+
+% ---------------------------------------------------------------------
+% verify_id Verify data ID
+% ---------------------------------------------------------------------
+verify_id         = cfg_menu;
+verify_id.tag     = 'verify_id';
+verify_id.name    = 'Verify data identity';
+verify_id.help    = {['Verify whether the model comparison is valid '...
+                   'i.e. whether the models have been fitted to the same data.']};
+verify_id.labels  = {
+                  'yes'
+                  'no'
+}';
+verify_id.values  = {
+                  1
+                  0
+}'; 
+verify_id.val     = {0};
 
 % ---------------------------------------------------------------------
 % out_file Output files
@@ -259,7 +277,7 @@ scale.val     = {[]};
 bms_dcm      = cfg_exbranch;
 bms_dcm.tag  = 'bms_dcm';
 bms_dcm.name = 'BMS: DCM';
-bms_dcm.val  = {dir dcm load_f method };
+bms_dcm.val  = {dir dcm load_f method verify_id};
 bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
     '(DCM) for fMRI or MEEG.']...
     ''...

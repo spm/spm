@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2748 2009-02-15 12:20:21Z klaas $
+% $Id: spm_dcm_estimate.m 3177 2009-06-03 08:47:41Z vladimir $
 
  
 % load DCM structure
@@ -145,6 +145,19 @@ try, M.delays = DCM.delays; end
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
 
 
+% Data ID
+%==========================================================================
+if isfield(M,'FS')
+    try
+        ID  = spm_data_id(feval(M.FS,Y.y,M));
+    catch
+        ID  = spm_data_id(feval(M.FS,Y.y));
+    end
+else
+    ID  = spm_data_id(Y.y);
+end
+
+
 % predicted responses and residuals
 %--------------------------------------------------------------------------
 y     = feval(M.IS,Ep,M,U);
@@ -225,6 +238,7 @@ end
 %--------------------------------------------------------------------------
 evidence   = spm_dcm_evidence(DCM);
 DCM.F      = F;
+DCM.ID     = ID;        % data ID
 DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;
 

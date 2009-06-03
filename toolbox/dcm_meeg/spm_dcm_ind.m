@@ -23,7 +23,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 3112 2009-05-11 15:19:34Z karl $
+% $Id: spm_dcm_ind.m 3177 2009-06-03 08:47:41Z vladimir $
 
 
 % check options 
@@ -111,6 +111,20 @@ M.ons = onset - xY.pst(1);
 %--------------------------------------------------------------------------
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
+
+% Data ID
+%==========================================================================
+if isfield(M,'FS')
+    try
+        ID  = spm_data_id(feval(M.FS,xY.y,M));
+    catch
+        ID  = spm_data_id(feval(M.FS,xY.y));
+    end
+else
+    ID  = spm_data_id(xY.y);
+end
+
+
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
 warning('off','SPM:negativeVariance');
@@ -157,6 +171,7 @@ DCM.K  = K;                    % conditional responses (x)
 DCM.R  = R;                    % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
+DCM.ID = ID;                   % data ID
 
 
 % and save

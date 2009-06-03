@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3173 2009-06-02 14:50:19Z karl $
+% $Id: spm_eeg_invert.m 3177 2009-06-03 08:47:41Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -480,6 +480,10 @@ for i = 1:Nl
     % re-do ReML
     %----------------------------------------------------------------------
     [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,Nr(i)*Nt(i));
+    
+    % Data ID
+    %==========================================================================  
+    ID  = spm_data_id(YY);
  
     % Covariances: sensor space - Ce and source space - L*Cp
     %----------------------------------------------------------------------
@@ -546,6 +550,7 @@ for i = 1:Nl
     inverse.pst    = pst{i};               % peristimulus time
     inverse.dct    = dct{i};               % frequency range
     inverse.F      = F;                    % log-evidence
+    inverse.ID     = ID;                   % data ID
     inverse.R2     = R2;                   % variance accounted for (%)
     inverse.VE     = VE(i);                % variance explained
     inverse.woi    = w{i};                 % time-window inverted
