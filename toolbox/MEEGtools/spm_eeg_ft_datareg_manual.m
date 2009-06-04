@@ -10,7 +10,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 3087 2009-04-27 09:47:22Z vladimir $
+% $Id: spm_eeg_ft_datareg_manual.m 3183 2009-06-04 15:16:41Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -113,13 +113,19 @@ if numel(meeglbl)>=3
         error('At least 3 M/EEG fiducials are required for coregistration');
     end
 
-    switch spm_input('Choose initial coregistration', 1, 'rigid|align|spm');
-        case 'align'
+    switch spm_input('Choose initial coregistration', 1, 'rigid|align1|align2|spm');
+        case 'align1'
             M1 = spm_eeg_inv_headcoordinates(meegfid.fid.pnt(1, :), meegfid.fid.pnt(2, :), meegfid.fid.pnt(3, :));
             M =  spm_eeg_inv_headcoordinates(newmrifid.fid.pnt(1, :), newmrifid.fid.pnt(2, :), newmrifid.fid.pnt(3, :));
             M1 = inv(M) * M1;
-        case 'rigid'
+        case 'align2'
             M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');
+            tempfid = forwinv_transform_headshape(M1, meegfid);
+            tempfid.fid.pnt(:, 2) = tempfid.fid.pnt(:, 2)- tempfid.fid.pnt(1, 2)+ newmrifid.fid.pnt(1, 2);
+            tempfid.fid.pnt(:, 3) = tempfid.fid.pnt(:, 3)- mean(tempfid.fid.pnt(2:3, 3))+ mean(newmrifid.fid.pnt(2:3, 3));
+            M1 = spm_eeg_inv_rigidreg(tempfid.fid.pnt', meegfid.fid.pnt');
+        case 'rigid'
+            M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');            
         case 'spm'
             S =[];
             S.sourcefid = meegfid;
