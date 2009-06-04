@@ -40,7 +40,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 3182 2009-06-04 09:08:10Z vladimir $
 
 global st
 global defaults
@@ -321,7 +321,7 @@ if isempty(pi_dip)
         loc_pl = sdip.loc{tabl_seed_dip(ii,1)}(:,tabl_seed_dip(ii,2));
 
         js = sdip.j{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,sdip.Mtb);
-        dip_h(:,ii) = add1dip(loc_pl,js/(eps+Mn_j*20),marker(im),colors(ic),st.vols{1}.ax,Fig,st.bb);
+        dip_h(:,ii) = add1dip(loc_pl,5e2*js/(eps+Mn_j*20),marker(im),colors(ic),st.vols{1}.ax,Fig,st.bb);
         js_m = js_m+js;
     end
 else
