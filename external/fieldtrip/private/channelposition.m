@@ -8,6 +8,9 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.5  2009/06/03 09:49:03  roboos
+% change in whitespace
+%
 % Revision 1.4  2009/04/03 08:14:27  vlalit
 % getting rid of the dependence on statistics toolbox I accidentally introduced by using
 %  nanmin.
@@ -172,7 +175,7 @@ end % switch senstype
 n   = size(lab,2);
 % this is to fix the planar layouts, which cannot be plotted anyway
 if n>1 && size(lab, 1)>1 %this is to prevent confusion when lab happens to be a row array
-    pnt = repmat(pnt, n, 1);
+  pnt = repmat(pnt, n, 1);
 end
 
 lab = lab(:);

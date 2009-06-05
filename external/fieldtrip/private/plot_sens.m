@@ -4,13 +4,21 @@ function hs = plot_sens(sens, varargin)
 %
 % Use as
 %   plot_sens(sens, ...)
-% where optional input arguments should come in key-value pairs and can
-% include
+% where the first argument is the sensor array as returned by READ_SENS
+% or PREPARE_VOL_SENS. Optional input arguments should come in key-value
+% pairs and can include
 %   'style'    plotting style for the points representing the channels, see plot3 (default = 'k.')
+%
+% Example
+%   sens = read_sens('Subject01.ds');
+%   plot_sens(sens, 'style', 'r*')
 
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: plot_sens.m,v $
+% Revision 1.5  2009/06/04 07:30:07  roboos
+% added example
+%
 % Revision 1.4  2009/05/12 18:12:26  roboos
 % added handling of hold on/off
 %

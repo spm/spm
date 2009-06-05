@@ -6,6 +6,9 @@ function y = istrue(x)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: istrue.m,v $
+% Revision 1.4  2009/06/05 14:26:23  crimic
+% added 'none' option
+%
 % Revision 1.3  2009/05/14 11:57:37  crimic
 % introduced check for 'y' and 'n'
 %
@@ -16,8 +19,8 @@ function y = istrue(x)
 % extended and moved from plotting to public
 %
 
-true_list  = {'yes' 'true' 'on' 'y'};
-false_list = {'no' 'false' 'off' 'n'};
+true_list  = {'yes' 'true' 'on' 'y' };
+false_list = {'no' 'false' 'off' 'n' 'none'};
 
 if ischar(x)
   % convert string to boolean value

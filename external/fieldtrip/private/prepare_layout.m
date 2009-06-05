@@ -24,6 +24,7 @@ function [lay] = prepare_layout(cfg, data);
 %   cfg.output      filename to which the layout will be written (default = [])
 %   cfg.montage     'no' or a montage structure (default = 'no')
 %   cfg.image       filename, use an image to construct a layout (e.g. usefull for ECoG grids)
+%   cfg.bw          if an image is used and bw = 1 transforms the image in black and white (default = 0, do not transform)
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -46,6 +47,15 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.35  2009/06/05 15:30:05  crimic
+% updated help
+%
+% Revision 1.34  2009/06/05 15:28:03  crimic
+% updated cfg
+%
+% Revision 1.33  2009/06/05 15:26:32  crimic
+% minor change
+%
 % Revision 1.32  2009/05/18 15:59:44  roboos
 % optinal plotting of RGB as greyscale image
 %
@@ -186,6 +196,7 @@ if ~isfield(cfg, 'output'),     cfg.output = [];                end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
 if ~isfield(cfg, 'montage'),    cfg.montage = 'no';             end
 if ~isfield(cfg, 'image'),      cfg.image = [];                 end
+if ~isfield(cfg, 'bw'),         cfg.bw = 0;                     end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
@@ -325,7 +336,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   img = flipdim(img, 1); % in combination with "axis xy"
   
   figure
-  bw = 1;
+  bw = cfg.bw;
 
   if bw
     % convert to greyscale image

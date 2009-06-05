@@ -1,10 +1,13 @@
-function plot_text(X, Y, str, varargin)
+function [varargout] = plot_text(X, Y, str, varargin)
 
 % PLOT_TEXT
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_text.m,v $
+% Revision 1.4  2009/06/02 15:40:36  giopia
+% added varargout to pass handle
+%
 % Revision 1.3  2009/04/14 19:48:28  roboos
 % added keyvalcheck
 %
@@ -74,4 +77,7 @@ set(h, 'Color', color);
 if ~isempty(fontsize), set(h, 'FontSize', fontsize); end
 if ~isempty(fontname), set(h, 'FontName', fontname); end
 
-
+% the (optional) output is the handle
+if nargout == 1;
+  varargout{1} = h;
+end

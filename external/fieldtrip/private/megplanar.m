@@ -59,6 +59,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.40  2009/06/04 10:03:46  roboos
+% fixed problem in the input og cfg.headshape when it was not required
+%
 % Revision 1.39  2009/05/25 08:05:18  roboos
 % ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
 %
@@ -213,7 +216,7 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 642;          end
 end
 
-if isa(cfg.headshape, 'config')
+if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end
@@ -604,7 +607,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.39 2009/05/25 08:05:18 roboos Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.40 2009/06/04 10:03:46 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

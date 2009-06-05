@@ -81,6 +81,9 @@ function [norm] = electroderealign(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.12  2009/06/04 10:03:46  roboos
+% fixed problem in the input og cfg.headshape when it was not required
+%
 % Revision 1.11  2009/05/25 08:05:18  roboos
 % ensure that cfg.headshape is a sturct and not a config object (in case tracking is on)
 %
@@ -169,7 +172,7 @@ if ~isfield(cfg, 'casesensitive'), cfg.casesensitive = 'yes'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangulated head surface, without labels
 if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
 
-if isa(cfg.headshape, 'config')
+if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end
@@ -530,7 +533,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.11 2009/05/25 08:05:18 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.12 2009/06/04 10:03:46 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;

@@ -1,10 +1,35 @@
-function plot_box(position, varargin);
+function [varargout] = plot_box(position, varargin);
 
-% PLOT_BOX
+% PLOT_BOX plots the outline of a box that is specified by its lower
+% left and upper right corner
+%
+% Use as
+%    plot_box(position, ...)
+% where the position of the box is specified as is [x1, x2, y1, y2].
+% Optional arguments should come in key-value pairs and can include
+%   'facealpha'   = transparency value between 0 and 1
+%   'facecolor'   = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'edgecolor'   = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'hpos'        = 
+%   'vpos'        = 
+%   'width'       = 
+%   'height'      = 
+%   'hlim'        = 
+%   'vlim'        = 
+% 
+% Example
+%   plot_box([-1 1 2 3], 'facecolor', 'b')
+%   axis([-4 4 -4 4])
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_box.m,v $
+% Revision 1.5  2009/06/04 08:48:23  roboos
+% updated documentation
+%
+% Revision 1.4  2009/06/02 15:38:50  giopia
+% added varargout to pass the handle
+%
 % Revision 1.3  2009/04/14 19:48:28  roboos
 % added keyvalcheck
 %
@@ -84,3 +109,7 @@ set(h, 'FaceAlpha', facealpha)
 set(h, 'FaceColor', facecolor)
 set(h, 'EdgeColor', edgecolor)
 
+% the (optional) output is the handle
+if nargout == 1
+  varargout{1} = h;
+end

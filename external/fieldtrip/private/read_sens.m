@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.13  2009/06/03 09:52:15  roboos
+% added zebris_sfp
+%
 % Revision 1.12  2009/02/02 16:10:15  vlalit
 % Provide the 'headertype' argument to the internal read_header call.
 %
@@ -218,6 +221,13 @@ switch fileformat
     else
       error('no electrodes or gradiometers found in Matlab file');
     end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % these are created by a Zebris tracker, at CRC in Liege at least.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  case 'zebris_sfp'
+    [sens.fid, sens.pnt, sens.fid_label, sens.label] = read_zebris(filename, 0);
 
   otherwise
     error('unknown fileformat for electrodes or gradiometers');

@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.16  2009/06/04 13:41:33  marvger
+% renamed mvlap case
+%
 % Revision 1.15  2009/05/22 13:20:18  marvger
 % added case for mvlap method
 %
@@ -459,7 +462,7 @@ if ~isempty(createsubcfg)
           'reducerank'
           };
 
-      case 'mvlap'
+      case 'mvl'
         fieldname = {};
         
       otherwise

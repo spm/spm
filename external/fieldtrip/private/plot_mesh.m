@@ -5,25 +5,26 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 % called .pnt and .tri referring to vertices and triangulation of a mesh.
 %
 % Use as
-%   plot_mesh(bnd, varargin)
+%   plot_mesh(bnd, ...)
 %
 % Graphic facilities are available for vertices, edges and faces. A list of
 % the arguments is given below with the correspondent admitted choices.
 %
-%     'faces'         ['yes', 'no', 1, 0, 'true', 'false']
-%     'facecolor'     ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
-%     'faceindex'     ['yes', 'no', 1, 0, 'true', 'false']
-%     'vertices'      ['yes', 'no', 1, 0, 'true', 'false']
-%     'vertexcolor'   ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
-%     'vertexindex'   ['yes', 'no', 1, 0, 'true', 'false']
-%     'edges'         ['yes', 'no', 1, 0, 'true', 'false']
-%     'edgecolor'     ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
+%     'faces'         true or false
+%     'vertices'      true or false
+%     'edges'         true or false
+%     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'faceindex'     true or false
+%     'vertexindex'   true or false
+%     'facealpha'     transparency, between 0 and 1
 %
 % Example
 %   [pnt, tri] = icosahedron162;
 %   bnd.pnt = pnt;
 %   bnd.tri = tri;
-%   plot_mesh(bnd, 'faces', 'yes', 'vertices', 'yes', 'edges', 'no', 'facecolor', 'skin')
+%   plot_mesh(bnd, 'facecolor', 'skin', 'edgecolor', 'none')
 %   camlight
 %
 % PLOT_MESH allows to plot points on top of mesh plots, as:
@@ -34,6 +35,13 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.15  2009/06/04 12:55:34  crimic
+% changes input parameters check
+%
+% Revision 1.14  2009/06/03 09:53:50  roboos
+% added option for facealpha (transparency)
+% updated help for consistency
+%
 % Revision 1.13  2009/05/13 07:54:36  crimic
 % updated help
 %
@@ -73,19 +81,23 @@ if ~isfield(bnd,'pnt') && ~isfield(bnd,'tri')
   bnd_.pnt = bnd;
   bnd_.tri = ones(size(bnd));
   bnd = bnd_;
-  plot_mesh(bnd_,'vertices','y')
+  plot_mesh(bnd_,'vertices','yes')
 end
 
+% keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
+
 % get the optional input arguments
-faces       = keyval('faces',       varargin);
-facecolor   = keyval('facecolor',   varargin);
-faceindex   = keyval('faceindex',   varargin);
-vertices    = keyval('vertices',    varargin); if isempty(vertices),vertices=1;end
-vertexcolor = keyval('vertexcolor', varargin);
+facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),facecolor='white';end
+faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),faceindex='none';end
+vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor),vertexcolor='none';end
 vertexindex = keyval('vertexindex', varargin);
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),vertexsize=10;end
-edges       = keyval('edges',       varargin); if isempty(edges),edges=1;end
 edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='k';end
+facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),facealpha=1;end
+
+faceindex   = istrue(faceindex);
+vertexindex = istrue(vertexindex);
+
 
 % start with empty return values
 hs      = [];
@@ -109,31 +121,24 @@ hold on
 pnt = bnd.pnt;
 tri = bnd.tri;
 
-if istrue(faces)
-  hs = patch('Vertices', pnt, 'Faces', tri);
-  set(hs, 'FaceColor', 'white');
-  set(hs, 'EdgeColor', 'none');
-  if ~isempty(facecolor)
-    try
-      set(hs, 'FaceColor', facecolor);
-    catch
-      error('Unknown color')
-    end
-  end
-  if istrue(faceindex)
-    % plot the triangle indices (numbers) at each face
-    for face_indx=1:size(tri,1)
-      str = sprintf('%d', face_indx);
-      tri_x = (pnt(tri(face_indx,1), 1) +  pnt(tri(face_indx,2), 1) +  pnt(tri(face_indx,3), 1))/3;
-      tri_y = (pnt(tri(face_indx,1), 2) +  pnt(tri(face_indx,2), 2) +  pnt(tri(face_indx,3), 2))/3;
-      tri_z = (pnt(tri(face_indx,1), 3) +  pnt(tri(face_indx,2), 3) +  pnt(tri(face_indx,3), 3))/3;
-      h   = text(tri_x, tri_y, tri_z, str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
-      hs  = [hs; h];
-    end
+hs = patch('Vertices', pnt, 'Faces', tri);
+set(hs, 'FaceColor', facecolor);
+set(hs, 'FaceAlpha', facealpha);
+set(hs, 'EdgeColor', edgecolor);
+
+if faceindex
+  % plot the triangle indices (numbers) at each face
+  for face_indx=1:size(tri,1)
+    str = sprintf('%d', face_indx);
+    tri_x = (pnt(tri(face_indx,1), 1) +  pnt(tri(face_indx,2), 1) +  pnt(tri(face_indx,3), 1))/3;
+    tri_y = (pnt(tri(face_indx,1), 2) +  pnt(tri(face_indx,2), 2) +  pnt(tri(face_indx,3), 2))/3;
+    tri_z = (pnt(tri(face_indx,1), 3) +  pnt(tri(face_indx,2), 3) +  pnt(tri(face_indx,3), 3))/3;
+    h   = text(tri_x, tri_y, tri_z, str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
+    hs  = [hs; h];
   end
 end
 
-if istrue(vertices)
+if ~isequal(vertexcolor, 'none')
   if size(pnt, 2)==2
     hs = plot(pnt(:,1), pnt(:,2), 'k.');
   else
@@ -146,7 +151,7 @@ if istrue(vertices)
       error('Unknown color')
     end
   end
-  if istrue(vertexindex)
+  if vertexindex
     % plot the vertex indices (numbers) at each node
     for node_indx=1:size(pnt,1)
       str = sprintf('%d', node_indx);
@@ -158,13 +163,6 @@ if istrue(vertices)
       hs  = [hs; h];
     end
   end
-end
-
-if istrue(edges)
-  % plot the edges of the 2D or 3D triangulation
-  hs = patch('Vertices', pnt, 'Faces', tri);
-  set(hs, 'FaceColor', 'none');
-  set(hs, 'EdgeColor', edgecolor);
 end
 
 axis off

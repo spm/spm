@@ -22,7 +22,7 @@ function [source] = sourceanalysis(cfg, data, baseline);
 %                    'loreta'  minimum norm estimation with smoothness constraint
 %                    'rv'      scan residual variance with single dipole
 %                    'music'   multiple signal classification
-%                    'mvlap'   multivariate Laplace source localization
+%                    'mvl'   multivariate Laplace source localization
 % The DICS and PCC methods are for frequency domain data, all other methods 
 % are for time domain data.
 %
@@ -167,6 +167,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.140  2009/06/04 13:37:28  marvger
+% changed mvlap name to mvl to make it consistent with literature
+%
 % Revision 1.139  2009/05/20 16:53:30  marvger
 % added support for mvlap method (tentative)
 %
@@ -916,7 +919,7 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % do time domain source reconstruction
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv', 'music', 'pcc', 'mvlap'}))
+elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv', 'music', 'pcc', 'mvl'}))
 
   % determine the size of the data
   Nsamples = size(data.avg,2);
@@ -1156,7 +1159,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
         dip(i) = music(grid, sens, vol, squeeze(avg(i,:,:)),                            optarg{:});
       end
     end
-  elseif strcmp(cfg.method, 'mvlap')
+  elseif strcmp(cfg.method, 'mvl')
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
       fns = fieldnames(cfg);
@@ -1167,7 +1170,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
         optarg{n+1} = cfg.(fns{c});
         n=n+2;
       end
-      dip(i) = mvlapestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:});
+      dip(i) = mvlestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:});
     end
   else
     error(sprintf('method ''%s'' is unsupported for source reconstruction in the time domain', cfg.method));
@@ -1311,7 +1314,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.139 2009/05/20 16:53:30 marvger Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.140 2009/06/04 13:37:28 marvger Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end
