@@ -14,9 +14,9 @@ function [cfg, def] = cfg_mlbatch_appcfg(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_appcfg.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m.example 3184 2009-06-05 15:54:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3184 $'; %#ok
 
 % toy example configuration
 cfg = cfg_example_master;
