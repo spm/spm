@@ -10,7 +10,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 %            (default: 1e6)
 % do_plot  - 1 to plot p(r|y)
 % sampling - use sampling to compute exact alpha
-% ecp      - compute exceedance probability
+% ecp      - 1 to compute exceedance probability
 % alpha0   - [1 x Nk] vector of prior model counts
 % 
 % OUTPUT:
@@ -19,13 +19,13 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % xp      - exceedance probabilities
 % 
 % REFERENCE:
-% Stephan KE, Penny WD, Daunizeau J, Moran RJ, Friston KJ
-% Bayesian Model Selection for Group Studies. NeuroImage (under review)
+% Stephan KE, Penny WD, Daunizeau J, Moran RJ, Friston KJ (2009)
+% Bayesian Model Selection for Group Studies. NeuroImage 46:1004-1017
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 3155 2009-05-28 14:21:43Z will $
+% $Id: spm_BMS.m 3187 2009-06-07 18:01:43Z klaas $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
