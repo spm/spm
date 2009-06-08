@@ -13,9 +13,9 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3189 2009-06-08 17:09:31Z vladimir $
+% $Id: spm_eeg_mask.m 3191 2009-06-08 17:22:05Z vladimir $
 
-SVNrev = '$Rev: 3189 $';
+SVNrev = '$Rev: 3191 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ if ~isfield(S, 'window')
 end
 
 if ~isfield(S, 'image')
-    S.image = spm_select(1, 'image', 'Select M/EEG images (in voxel-space)');
+    S.image = spm_select(1, 'image', 'Select an unsmoothed M/EEG image (in voxel-space)');
 end
 
 if ~isfield(S, 'outfile')
