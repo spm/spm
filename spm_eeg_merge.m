@@ -5,11 +5,37 @@ function Dout = spm_eeg_merge(S)
 % S         - optional input struct
 % (optional) fields of S:
 % D         - filename of EEG mat-file with continuous data
-% recode    - a cell array where each cell contains a condition label.
-%             The ordering of these labels must be such that each row in 
-%             the cell matrix specifies the conditionlabels for one of
-%             the selected files. 
-%             
+% recode    - this field specifies how the condition labels will be
+%             translated from the original files to the merged file.
+%             Several options are possible:
+%                  'same'  - leave the condition labels unchanged
+%                  'addfilename' - add the original file name to condition
+%                                 label
+%                   old way specification - (for backward compatibility)                     
+%                     a cell array where each cell contains a condition label.
+%                     The ordering of these labels must be such that each row in
+%                     the cell matrix specifies the conditionlabels for one of
+%                     the selected files.
+%                   specification via recoding rules - for this S.recode
+%                   should be a structure array where each element specifies a rule
+%                   using the following fields:
+%                       file - can be a cell array of strings with file
+%                              names, a vector of file indices or a atring with regular
+%                              expression matching the files to which
+%                              the rule will apply
+%                       labelorg - can be a cell array of condition labels
+%                              or a string with regular expression matching
+%                              the condition labels to which this rule will
+%                              apply
+%                       labelnew - new label for the merged file. It can
+%                       contain special tokens #file# and #labelorg# that
+%                       will be replaced by the original file name and
+%                       original condition label respectively.
+%                    the rulse will be applied one after the other so the
+%                    last rule takes precedences. Trials not matched by any
+%                    of the rules will keep their original labels.
+%                              
+%
 % Output:
 % D         - EEG data struct (also written to files)
 %__________________________________________________________________________
@@ -17,15 +43,15 @@ function Dout = spm_eeg_merge(S)
 % This function can be used to merge M/EEG files to one file. This is
 % useful whenever the data are distributed over multiple files, but one
 % wants to use all information in one file. For example, when displaying
-% data (SPM displays data from only one file at a time), or merging 
+% data (SPM displays data from only one file at a time), or merging
 % information that has been measured in multiple sessions.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-% 
-% Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 3171 2009-06-02 10:01:35Z guillaume $
+%
+% Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
+% $Id: spm_eeg_merge.m 3188 2009-06-08 08:47:46Z vladimir $
 
-SVNrev = '$Rev: 3171 $';
+SVNrev = '$Rev: 3188 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -63,16 +89,13 @@ end
 %-Check input and determine number of new number of trial types
 %--------------------------------------------------------------------------
 Ntrials = 0;
+isTF   =  strncmpi(D{1}.transformtype,'TF',2); % TF and TFphase
+
 for i = 1:Nfiles
-    if ~strcmp(D{i}.transformtype, 'time')
-        if strncmpi(D{i}.transformtype,'TF',2) % TF and TFphase
-            Dout = spm_eeg_merge_TF(S);
-            return;
-        else
-            error('can only be used for time-series data');
-        end
+    if ~isequal(D{i}.transformtype, D{1}.transformtype)
+        error('The datasets do not contain the same kind of data.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
     end
-    
+
     % ascertain same number of channels, Nsamples and fsample
     if D{1}.nchannels ~= D{i}.nchannels
         error('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
@@ -86,54 +109,157 @@ for i = 1:Nfiles
         error('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
     end
 
+    if isTF &&  D{1}.frequencies ~= D{i}.frequencies
+        error('Data don''t have the same frequencies.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
+    end
+
     Ntrials = [Ntrials D{i}.ntrials];
+end
+
+
+%-Prepare some useful lists
+%--------------------------------------------------------------------------
+F        = {};
+Find     = [];
+clb      = {};
+for i = 1:Nfiles
+    F{i} = fname(D{i});
+    clb  = [clb D{i}.conditions];
+    Find = [Find i*ones(1, D{i}.ntrials)];
+end
+uclb      = unique(clb);
+
+
+%-Specify condition labels recoding
+%--------------------------------------------------------------------------
+if ~isfield(S, 'recode')
+    S.recode = spm_input('What to do with condition labels?', 1, 'm',...
+        'Leave as they are|Add file name|Specify rules for recoding|Specify recoding the old way', strvcat('same', 'addfilename', 'rules', 'old'));
+end
+
+if isequal(S.recode, 'old')
+    S.recode = {};
+    for i = 1:Nfiles
+        for j = 1:nconditions(D{i})
+            S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_str_manip(D{i}.fname, 'r')),...
+                '+1', 's', D{i}.condlist{j});
+        end
+    end
+elseif isequal(S.recode, 'rules')
+    S.recode = [];
+    stop     = 0;
+    ind      = 1;   
+    while ~stop
+        spm_input(['Please define rule ' num2str(ind) ':'], 1, 'd');
+        switch spm_input('To which files will this rule apply?', '+1', 'm',...
+                'All the files|Specify indices|Select files|Wildcard expression (*,?)|Regular expression',...
+                strvcat('all', 'indices', 'select', 'wildcard', 'regexp'))
+            case 'all'
+                S.recode(ind).file = '.*';
+            case 'indices'
+                S.recode(ind).file =  spm_input('Input file indices', '+1', 'n', num2str(ind), [1 Inf]);
+            case 'select'
+                [selection, ok]= listdlg('ListString', F, 'SelectionMode', 'multiple' ,'Name', 'Select files' , 'ListSize', [400 300]);
+                if ok
+                    S.recode(ind).file = F(selection);
+                else
+                    continue;
+                end
+            case 'wildcard'
+                S.recode(ind).file = regexptranslate('wildcard' , spm_input('Input wildcard expresssion', '+1', 's',  '*'));
+            case 'regexp'
+                S.recode(ind).file = spm_input('Input regular expresssion', '+1', 's',  '.*');
+        end
+
+        switch spm_input('What conditions will be renamed?', '+1', 'm',...
+                'All|Select|Specify by wildcard expression (*,?)|Specify by regular expression',...
+                strvcat('all', 'select', 'wildcard', 'regexp'))
+            case 'all'
+                S.recode(ind).labelorg = '.*';
+            case 'select'
+                [selection, ok]= listdlg('ListString', uclb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
+                if ok
+                    S.recode(ind).labelorg = uclb(selection);
+                else
+                    continue;
+                end
+            case 'wildcard'
+                S.recode(ind).labelorg = regexptranslate('wildcard' , spm_input('Input wildcard expresssion', '+1', 's',  '*'));
+            case 'regexp'
+                S.recode(ind).labelorg = spm_input('Input regular expresssion', '+1', 's',  '.*');
+        end
+
+        S.recode(ind).labelnew = spm_input('Input the new name?', '+1', 's',  '');
+     
+        stop = spm_input('Define another rule?','+1','yes|stop', [0 1], 0);
+        ind  = ind+1;
+    end
 end
 
 %-Generate new meeg object with new filenames
 %--------------------------------------------------------------------------
 Dout = D{1};
 [p, f, x] = fileparts(fnamedat(Dout));
-Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
-sDout = struct(Dout);
 
-for i = 1:Nfiles
-
-    clear Dtmp;
-    Dtmp = D{i};
-    cl = condlist(Dtmp);
-
-    % go to struct
-    sDtmp = struct(Dtmp);
-
-    % recode trial types
-    try
-        S.recode{i};
-    catch
-        for j = 1:Dtmp.nconditions
-            S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_str_manip(Dtmp.fname, 'r')),...
-                '+1', 's', cl{j});
-        end
-    end
-
-    % recode labels
-    code_new = {};
-    for j = 1:Dtmp.nconditions
-        [code_new{pickconditions(Dtmp, cl{j}, 0)}] = deal(S.recode{i}{j});
-    end
-
-    [sDtmp.trials.label] = deal(code_new{:});
-
-    ind = [1:Ntrials(i+1)] + sum(Ntrials(1:i));
-
-    [sDout.trials(ind).label] = deal(sDtmp.trials.label);
-    
-    % ignore updating onset timings
-    try [sDout.trials(ind).onset] = deal(sDtmp.trials.onset); end
-    try [sDout.trials(ind).repl] = deal(sDtmp.trials.repl); end
-
+if ~isTF
+    Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
+else
+    Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nfrequencies Dout.nsamples sum(Ntrials)]);
 end
 
-Dout = meeg(sDout);
+
+%-Perform condition labels recodung
+%--------------------------------------------------------------------------
+if isequal(S.recode, 'same')
+    Dout = conditions(Dout, [], clb);
+elseif isequal(S.recode, 'addfilename')
+    for i = 1:numel(clb)
+        clb{i} = [clb{i} ' ' spm_str_manip(F{Find(i)}, 'r')];
+    end
+    Dout = conditions(Dout, [], clb);
+elseif iscell(S.recode)
+    for i = 1:Nfiles
+        ind = find(Find == i);        
+               
+        for j = 1:D{i}.nconditions
+            clb(ind(strmatch(D{i}.condlist{j}, clb(ind), 'exact'))) = S.recode{i}(j);
+        end
+    end
+    Dout = conditions(Dout, [], clb);
+elseif isstruct(S.recode)
+    Dout = conditions(Dout, [], clb);
+    
+    for i = 1:numel(S.recode)
+        if isnumeric(S.recode(i).file)
+            ind = S.recode(i).file;
+        elseif iscell(S.recode(i).file)
+            ind = spm_match_str(F, S.recode(i).file);
+        elseif ischar(S.recode(i).file)
+            ind = find(~cellfun('isempty', regexp(F, S.recode(i).file)));
+        else
+            error('Invalid file specification in recoding rule.');
+        end
+        
+        ind = find(ismember(Find, ind));
+        
+        if iscell(S.recode(i).labelorg)
+            ind = ind(ismember(clb(ind), S.recode(i).labelorg));
+        elseif ischar(S.recode(i).labelorg)
+            ind = ind(~cellfun('isempty', regexp(clb(ind), S.recode(i).labelorg)));
+        else
+            error('Invalid original condition label specification in recoding rule.');
+        end
+        
+        for j = 1:length(ind)
+            labelnew = S.recode(i).labelnew;
+            labelnew = strrep(labelnew, '#file#', spm_str_manip(F{Find(ind(j))}, 'r'));
+            labelnew = strrep(labelnew, '#labelorg#', clb(ind(j)));
+            
+            Dout     = conditions(Dout, ind(j), labelnew);
+        end
+    end
+end
+            
 
 %-Write files
 %--------------------------------------------------------------------------
@@ -153,10 +279,18 @@ for i = 1:Nfiles
     % write trial-wise to avoid memory mapping error
     for j = 1:D{i}.ntrials
         k = k + 1;
-        Dout(1:Dout.nchannels, 1:Dout.nsamples, k) =  D{i}(:,:,j);
+        if ~isTF
+            Dout(1:Dout.nchannels, 1:Dout.nsamples, k) =  D{i}(:,:,j);
+        else
+            Dout(1:Dout.nchannels, 1:Dout.nfrequencies, 1:Dout.nsamples, k) =  D{i}(:,:,:,j);
+        end
         Dout = reject(Dout, k, reject(D{i}, j));
     end
-
+    
+    % Propagate some useful information from the original files to the
+    % merged file
+    Dout = repl(Dout, find(Find == i), D{i}.repl);
+    
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
 end

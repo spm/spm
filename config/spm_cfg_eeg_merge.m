@@ -4,56 +4,69 @@ function S = spm_cfg_eeg_merge
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_cfg_eeg_merge.m 3188 2009-06-08 08:47:46Z vladimir $
 
-rev = '$Rev: 2225 $';
+rev = '$Rev: 3188 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
 D.filter = 'mat';
-D.num = [1 1];
-D.help = {'Select the M/EEG mat file.'};
+D.num = [2 Inf];
+D.help = {'Select the M/EEG mat files.'};
 
-string = cfg_entry;
-string.tag = 'str';
-string.name = 'Label';
-string.strtype = 's';
-string.num = [1 Inf];
-
-strings = cfg_repeat;
-strings.tag = 'unused';
-strings.name = 'Labels';
-strings.values = {string};
-
-file = cfg_branch;
+file = cfg_entry;
 file.tag = 'file';
-file.name = 'File info';
-file.val  = {D strings};
+file.name = 'Files to which the rule applies';
+file.strtype = 's';
+file.val = {'.*'};
+file.help = {'Regular expression to match the files to which the rule applies (default - all)'}; 
 
-files = cfg_repeat;
-files.tag = 'unused';
-files.name = 'Files';
-files.num = [2 inf];
-files.values = {file};
+labelorg = cfg_entry;
+labelorg.tag = 'labelorg';
+labelorg.name = 'Original labels to which the rule applies';
+labelorg.strtype = 's';
+labelorg.val = {'.*'};
+labelorg.help = {'Regular expression to match the original condition labels to which the rule applies (default - all)'}; 
+
+labelnew = cfg_entry;
+labelnew.tag = 'labelnew';
+labelnew.name = 'New label for the merged file';
+labelnew.strtype = 's';
+labelnew.val = {'#labelorg#'};
+labelnew.help = {['New condition label for the merged file. Special tokens can be used as part of the name. '...
+    '#file# will be replaced by the name of the original file, #labelorg# will be replaced by the original '...
+    'condition labels.']}; 
+
+rule = cfg_branch;
+rule.tag = 'rule';
+rule.name = 'Recoding rule';
+rule.val  = {file, labelorg, labelnew};
+rule.help = {'Recoding rule. The default means that all trials will keep their original label.'}; 
+
+
+rules = cfg_repeat;
+rules.tag = 'unused';
+rules.name = 'Condition label recoding rules';
+rules.values = {rule};
+rules.num = [1 Inf];
+rules.val = {rule};
+rules.help = {['Specify the rules for translating condition labels from ' ...
+    'the original files to the merged file. Multiple rules can be specified. The later ' ...
+    'rules have precedence. Trials not matched by any of the rules will keep their original labels.']};
 
 S = cfg_exbranch;
 S.tag = 'eeg_merge';
 S.name = 'M/EEG Merging';
-S.val = {files};
+S.val = {D, rules};
 S.help = {'Merge EEG/MEG data.'};
 S.prog = @eeg_merge;
 S.vout = @vout_eeg_merge;
 S.modality = {'EEG'};
 
-
 function out = eeg_merge(job)
 % construct the S struct
-S.D = strvcat(cat(1,job.file(:).D));
-for i = 1:length(job.file)
-    for j = 1:numel(job.file(i).str)
-        S.recode{i}{j} = job.file(i).str{j};
-    end
-end
+S.D = strvcat(job.D{:});
+S.recode = job.rule;
 
 out.D = spm_eeg_merge(S);
 out.Dfname = {out.D.fname};
