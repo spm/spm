@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3179 2009-06-03 12:41:21Z volkmar $
+% $Id: spm.m 3190 2009-06-08 17:13:36Z guillaume $
 
 
 %=======================================================================
@@ -993,12 +993,26 @@ varargout = {sprintf('%02d:%02d:%02d - %02d/%02d/%4d',...
 
 
 %=======================================================================
+case 'memory'
+%=======================================================================
+% m = spm('Memory')
+%-----------------------------------------------------------------------
+if ispc
+    evalc('m=feature(''memstats'');');
+else
+    m = 20*1024*1024; % 20 MB for all other platforms
+end
+varargout = {m};
+
+%=======================================================================
 case 'pointer'                 %-Set mouse pointer in all MATLAB windows
 %=======================================================================
 % spm('Pointer',Pointer)
 %-----------------------------------------------------------------------
 if nargin<2, Pointer='Arrow'; else  Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
+
+
 
 
 %=======================================================================
@@ -1145,9 +1159,9 @@ if isempty(SPM_VER) || (nargin > 0 && ReDo)
         % fake version for isdeployed PCWIN - .m files seem to be
         % compressed/pcoded/encrypted on this target
         v.Name    = 'Statistical Parametric Mapping';
-        v.Version = '8.1';
+        v.Version = '8';
         v.Release = 'SPM8';
-        v.Date    = '29-May-2009';
+        v.Date    = date;
     else        
         v = struct('Name','','Version','','Release','','Date','');
         try
