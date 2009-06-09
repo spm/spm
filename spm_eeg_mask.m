@@ -1,6 +1,5 @@
 function spm_eeg_mask(S)
-% Create a mask image for scalp-level contrasts based on an unsmoothed
-% original image.
+% Create a mask image for scalp-level contrasts.
 % FORMAT spm_eeg_mask(S)
 %
 % S         - input structure (optional)
@@ -13,9 +12,9 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3191 2009-06-08 17:22:05Z vladimir $
+% $Id: spm_eeg_mask.m 3192 2009-06-09 08:29:22Z vladimir $
 
-SVNrev = '$Rev: 3191 $';
+SVNrev = '$Rev: 3192 $';
 
 %-Startup
 %--------------------------------------------------------------------------

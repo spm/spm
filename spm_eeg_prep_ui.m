@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2943 2009-03-24 19:09:45Z jean $
+% $Id: spm_eeg_prep_ui.m 3192 2009-06-09 08:29:22Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 2943 $';
+SVNrev = '$Rev: 3192 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -569,7 +569,19 @@ switch get(gcbo, 'Label')
         modality = 'MEG';
 end
 
-[xy, label] = spm_eeg_project3D(D.sensors(modality), modality);
+if ~isfield(D, 'val')
+    D.val = 1;
+end
+
+if isfield(D, 'inv') && isfield(D.inv{D.val}, 'datareg')
+    datareg = D.inv{D.val}.datareg;
+    ind     = strmatch(modality, {datareg(:).modality}, 'exact');
+    sens    = datareg(ind).sensors;
+else
+    sens    = D.sensors(modality);
+end
+
+[xy, label] = spm_eeg_project3D(sens, modality);
 
 plot_sensors2D(xy, label);
 

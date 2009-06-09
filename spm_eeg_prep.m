@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3005 2009-03-30 17:51:05Z vladimir $
+% $Id: spm_eeg_prep.m 3192 2009-06-09 08:29:22Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -91,7 +91,17 @@ switch lower(S.task)
                 xy          = S.xy;
                 label       = S.label;
             case 'project3d'
-                [xy, label] = spm_eeg_project3D(D.sensors(S.modality), S.modality);
+                if ~isfield(D, 'val')
+                    D.val = 1;
+                end
+                if isfield(D, 'inv') && isfield(D.inv{D.val}, 'datareg')
+                    datareg = D.inv{D.val}.datareg;
+                    ind     = strmatch(S.modality, {datareg(:).modality}, 'exact');
+                    sens    = datareg(ind).sensors;
+                else
+                    sens    = D.sensors(S.modality);
+                end
+                [xy, label] = spm_eeg_project3D(sens, S.modality);
         end
 
         [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));

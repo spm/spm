@@ -6,15 +6,16 @@ function [xy,label] = spm_eeg_project3D(sens, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_project3D.m 3005 2009-03-30 17:51:05Z vladimir $
+% $Id: spm_eeg_project3D.m 3192 2009-06-09 08:29:22Z vladimir $
 
 cfg = [];
 
 switch modality
     case 'EEG'
-        cfg.elec = sens;
+        cfg.elec   = sens;
+        cfg.rotate = 0;
     case 'MEG'
-        cfg.grad = sens;
+        cfg.grad   = sens;
     otherwise
         error('Unknown data type');
 end

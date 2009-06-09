@@ -1,5 +1,5 @@
 function Dout = spm_eeg_merge(S)
-% Concatenate epoched single trial files
+% Concatenate epoched single trial files.
 % FORMAT D = spm_eeg_merge(S)
 %
 % S           - input structure (optional)
@@ -37,6 +37,12 @@ function Dout = spm_eeg_merge(S)
 %                       the last rule takes precedences. Trials not 
 %                       matched by any of the rules will keep their 
 %                       original labels.
+%                       Example:
+%                          S.recode(1).file     = '.*';
+%                          S.recode(1).labelorg = '.*';
+%                          S.recode(1).labelnew = '#labelorg# #file#';
+%                       has the same effect as the 'addfilename' option.
+%
 % 
 % Dout        - MEEG object (also written to disk, with a 'c' prefix)
 %__________________________________________________________________________
@@ -50,9 +56,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 3190 2009-06-08 17:13:36Z guillaume $
+% $Id: spm_eeg_merge.m 3192 2009-06-09 08:29:22Z vladimir $
 
-SVNrev = '$Rev: 3190 $';
+SVNrev = '$Rev: 3192 $';
 
 %-Startup
 %--------------------------------------------------------------------------
