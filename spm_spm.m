@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3151 2009-05-26 18:46:38Z guillaume $
+% $Id: spm_spm.m 3193 2009-06-09 17:51:53Z guillaume $
 
-SVNid   = '$Rev: 3151 $';
+SVNid   = '$Rev: 3193 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -476,7 +476,6 @@ YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
 % assume mm in stardard space
 %--------------------------------------------------------------------------
 units = {'mm' 'mm' 'mm'};
-MEEGscaling = false;
 
 try
     % 3-D case, with arbitrary dimensions
@@ -487,13 +486,14 @@ try
         
         % z dimension is percent
         %------------------------------------------------------------------
-        Minit  = M;
+        spm_check_orientations([VY; xM.VM]);
         M(3,3) = 100 / DIM(3);
         M(3,4) = 0;
         [VY.mat]  = deal(M);
         SPM.xY.VY = VY;
         units = {'mm' 'mm' '%'};
-        MEEGscaling = true;
+        [xM.VM.mat] = deal(M);
+        SPM.xM = xM;
     end
 end
 
@@ -643,11 +643,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
             %-Coordinates in mask image
             %--------------------------------------------------------------
-            if ~MEEGscaling
-                j = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
-            else
-                j = xM.VM(i).mat\Minit*[xyz;ones(1,nVox)];
-            end
+            j = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
 
             %-Load mask image within current mask & update mask
             %--------------------------------------------------------------
@@ -806,7 +802,7 @@ spm_progress_bar('Clear')
 %==========================================================================
 % - P O S T   E S T I M A T I O N   C L E A N U P
 %==========================================================================
-if S == 0, warndlg('No inmask voxels - empty analysis!'); return; end
+if S == 0, spm('alert!','No inmask voxels - empty analysis!'); return; end
 
 %-average sample covariance and mean of Y (over voxels)
 %--------------------------------------------------------------------------
