@@ -3,7 +3,7 @@ function [Y,W] = spm_eeg_robust_average(X, dim, ks, h)
 % FORMAT [Y,W] = spm_eeg_robust_averaget(X, dim, ks)
 % X      - data matrix to be averaged
 % dim    - the dimension along which the function will work
-% ks     - offest of the weighting function (default: 3)
+% ks     - offset of the weighting function (default: 3)
 % h      - (optional) matrix of 'leverages' indicating how
 %          important each data point is. This is for computations more
 %          complicated than averaging e.g. regression
@@ -13,7 +13,7 @@ function [Y,W] = spm_eeg_robust_average(X, dim, ks, h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_average.m 3194 2009-06-10 11:06:44Z vladimir $
+% $Id: spm_robust_average.m 3196 2009-06-11 12:54:47Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;

@@ -5,7 +5,7 @@ function res = frequencies(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: frequencies.m 2857 2009-03-11 13:21:04Z guillaume $
+% $Id: frequencies.m 3196 2009-06-11 12:54:47Z vladimir $
 
 if isempty(varargin)
     if strncmpi(transformtype(this), 'TF',2)
@@ -22,10 +22,9 @@ else
 
     % can't use getset because both information must be set at the same
     % time
-    sD = struct(this);
-    sD.transform.ID = 'TF'; % could it be TFphase?
-    sD.transform.frequencies = f;
+    this.transform.ID = 'TF'; % could it be TFphase?
+    this.transform.frequencies = f;
     
-    res = meeg(sD);
+    res = this;
     
 end

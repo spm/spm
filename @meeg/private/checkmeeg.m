@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3068 2009-04-20 17:21:57Z vladimir $
+% $Id: checkmeeg.m 3196 2009-06-11 12:54:47Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -222,12 +222,14 @@ end
 
 if ~isfield(meegstruct, 'type') ||...
         (strcmp(meegstruct.type, 'continuous') && Ntrials>1) ||...
-        strcmp(meegstruct.type, 'evoked') && (numel(unique({meegstruct.trials.label})) ~= Ntrials)
+        strcmp(meegstruct.type, 'evoked') && (numel(unique({meegstruct.trials.label})) ~= Ntrials) ||...
+        (strcmp(meegstruct.type, 'continuous') && strncmp(meegstruct.transform.ID, 'TF', 2))
     disp('checkmeeg: data type is missing or incorrect, assigning default');
     % rule of thumb - 10 sec
     if Nsamples == 0
         meegstruct.type = 'continuous';
-    elseif Ntrials==1 && (Nsamples/meegstruct.Fsample) > 10
+    elseif Ntrials==1 && (Nsamples/meegstruct.Fsample) > 10 &&...
+            ~strncmp(meegstruct.transform.ID, 'TF', 2)
         meegstruct.type = 'continuous';
     elseif numel(unique({meegstruct.trials.label})) == Ntrials
         meegstruct.type = 'evoked';

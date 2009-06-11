@@ -5,7 +5,9 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_ft2spm.m 3196 2009-06-11 12:54:47Z vladimir $
+
+isTF = 0;
 
 % If raw format
 if iscell(ftdata.time)
@@ -33,7 +35,10 @@ if iscell(ftdata.time)
     end
 
     ftdata.time  = ftdata.time{1};
-else % timelockanalysis format
+else
+    Nchannels  = numel(ftdata.label);
+    Nsamples   = length(ftdata.time);
+    
     rptind=strmatch('rpt', tokenize(ftdata.dimord, '_'));
     if isempty(rptind)
         rptind=strmatch('subj', tokenize(ftdata.dimord, '_'));
@@ -42,21 +47,31 @@ else % timelockanalysis format
     timeind=strmatch('time', tokenize(ftdata.dimord, '_'));
     chanind=strmatch('chan', tokenize(ftdata.dimord, '_'));
 
-    if ~isempty(rptind)
-        if isfield(ftdata, 'trial')
-            Ntrials = size(ftdata.trial, rptind);
-            data =permute(ftdata.trial, [chanind, timeind, rptind]);
+    if any(ismember({'trial', 'individual', 'avg'}, fieldnames(ftdata) )) % timelockanalysis
+        if ~isempty(rptind)
+            if isfield(ftdata, 'trial')
+                Ntrials = size(ftdata.trial, rptind);
+                data =permute(ftdata.trial, [chanind, timeind, rptind]);
+            else
+                Ntrials = size(ftdata.individual, rptind);
+                data =permute(ftdata.individual, [chanind, timeind, rptind]);
+            end
         else
-            Ntrials = size(ftdata.individual, rptind);
-            data =permute(ftdata.individual, [chanind, timeind, rptind]);
+            Ntrials = 1;
+            data =permute(ftdata.avg, [chanind, timeind]);
+        end        
+    elseif isfield(ftdata, 'powspctrm')
+        isTF = 1;
+        Nfrequencies = numel(ftdata.freq);
+        freqind = strmatch('freq', tokenize(ftdata.dimord, '_'));
+        if ~isempty(rptind)
+            Ntrials = size(ftdata.powspctrm, rptind);
+            data = permute(ftdata.powspctrm, [chanind, freqind, timeind, rptind]);
+        else
+            Ntrials = 1;
+            data = permute(ftdata.powspctrm, [chanind, freqind, timeind]);
         end
-    else
-        Ntrials = 1;
-        data =permute(ftdata.avg, [chanind, timeind]);
     end
-
-    Nchannels  = size(ftdata.trial, chanind);
-    Nsamples  = size(ftdata.trial, timeind);
 end
 
 %--------- Start making the header
@@ -64,7 +79,11 @@ end
 D = [];
 
 % sampling rate in Hz
-D.Fsample = ftdata.fsample;
+if isfield(ftdata, 'fsample')
+    D.Fsample = ftdata.fsample;
+else
+    D.Fsample = 1./mean(diff(ftdata.time));
+end
 
 D.timeOnset = ftdata.time(1);
 
@@ -84,24 +103,37 @@ D.fname = [fname '.mat'];
 D.data.fnamedat = [fname '.dat'];
 D.data.datatype = 'float32-le';
 
-if Ntrials == 1
-    datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples], D.data.datatype);
-    % physically initialise file
-    datafile(end,end) = 0;
-    datafile(:, :) = data;
-else
-    datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples Ntrials], D.data.datatype);
-    % physically initialise file
-    datafile(end,end) = 0;
+if ~isTF
+    if Ntrials == 1
+        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples], D.data.datatype);
+        % physically initialise file
+        datafile(end,end) = 0;
+        datafile(:, :) = data;
+    else
+        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples Ntrials], D.data.datatype);
+        % physically initialise file
+        datafile(end,end) = 0;
 
-    for i = 1:Ntrials
-        datafile(:, :, i) = data(:, :, i);
+        datafile(:, :, :) = data;
     end
+else
+    if Ntrials == 1
+        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nfrequencies Nsamples], D.data.datatype);
+        % physically initialise file
+        datafile(end,end) = 0;
+        datafile(:, :, :) = data;
+    else
+        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nfrequencies Nsamples Ntrials], D.data.datatype);
+        % physically initialise file
+        datafile(end,end) = 0;
+
+        datafile(:, :, :, :) = data;
+    end    
+    D.transform.ID = 'TF';
+    D.transform.frequencies = ftdata.freq;
 end
 
-if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad')
-    D.sensors.meg = forwinv_convert_units(ftdata.hdr.grad, 'mm');
-end
+D.data.y = datafile;
 
 D = meeg(D);
 
@@ -117,6 +149,20 @@ if Ntrials == 1
 else
     D = type(D, 'single');
 end
+
+if  isfield(ftdata, 'hdr') && isfield(ftdata.hdr, 'grad')
+    D = sensors(forwinv_convert_units(ftdata.hdr.grad, 'mm'), 'MEG');
+    
+    S = [];
+    S.task = 'project3D';
+    S.modality = 'MEG';
+    S.updatehistory = 0;
+    S.D = D;
+
+    D = spm_eeg_prep(S);
+end
+
+[ok D] = check(D);
 
 save(D);
 

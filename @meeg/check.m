@@ -11,7 +11,11 @@ function [ok, this] = check(this, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: check.m 3196 2009-06-11 12:54:47Z vladimir $
+
+if nargin == 1
+    option = 'basic';
+end
 
 [ok, this] = checkmeeg(struct(this), option);
 
