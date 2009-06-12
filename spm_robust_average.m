@@ -13,7 +13,7 @@ function [Y,W] = spm_robust_average(X, dim, ks, h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 3197 2009-06-11 13:11:16Z vladimir $
+% $Id: spm_robust_average.m 3200 2009-06-12 17:29:40Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -94,8 +94,9 @@ while max(abs(ores-nres))>sqrt(1E-8)
         error('NaNs appeared in the result');
     end
 
-    if n > 100
+    if n > 200
         warning('Robust averaging could not converge. Maximal number of iterations exceeded.');
+        break;
     end
 
     res = X-repmat(Y, size(X, 1), 1);
@@ -108,6 +109,8 @@ while max(abs(ores-nres))>sqrt(1E-8)
     nres= (sum(res(:).^2));
     W = (abs(res)<1) .* ((1 - res.^2).^2);
 end
+
+disp(['Robust averaging finished after ' num2str(n) ' iterations.']); 
 
 %-Restore the average and weights to the original data dimensions
 %--------------------------------------------------------------------------

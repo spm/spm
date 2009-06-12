@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3146 2009-05-26 09:54:23Z vladimir $
+% $Id: spm_eeg_megheadloc.m 3200 2009-06-12 17:29:40Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -158,9 +158,22 @@ for f=1:numel(D)
             end
 
             if S.rejectwithin
-                dN=max(pdist(utmpdat(1:3, :)'));
-                dL=max(pdist(utmpdat(4:6, :)'));
-                dR=max(pdist(utmpdat(7:9, :)'));
+                try
+                    pdist([0;1]);
+                    pdistworks = 1;
+                catch
+                    pdistworks = 0;
+                end
+                
+                if pdistworks
+                    dN=max(pdist(utmpdat(1:3, :)'));
+                    dL=max(pdist(utmpdat(4:6, :)'));
+                    dR=max(pdist(utmpdat(7:9, :)'));
+                else
+                    dN=max(slowpdist(utmpdat(1:3, :)'));
+                    dL=max(slowpdist(utmpdat(4:6, :)'));
+                    dR=max(slowpdist(utmpdat(7:9, :)'));
+                end
             end
 
             if ~S.rejectwithin || (max([dN dL dR])<S.trialthresh)
@@ -363,6 +376,7 @@ if numel(D) == 1
     D = D{1};
 end
 
+end
 
 function [obj, captured] = trials_captured(center, dat, threshold)
 
@@ -374,4 +388,15 @@ if nargout>1
     captured=dist<threshold;
 end
 
+end
 
+function Y = slowpdist(X)
+% Thanks to Guillaume
+N = size(X,1);
+Y = zeros(1,N*(N-1)/2);
+k = 1;
+for i=1:N-1
+    Y(k:(k+N-i-1)) = sqrt(sum((repmat(X(i,:),N-i,1) - X((i+1):N,:)).^2,2));
+    k = k + N - i;
+end
+end

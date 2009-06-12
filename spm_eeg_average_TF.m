@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3196 2009-06-11 12:54:47Z vladimir $
+% $Id: spm_eeg_average_TF.m 3200 2009-06-12 17:29:40Z vladimir $
 
-SVNrev = '$Rev: 3196 $';
+SVNrev = '$Rev: 3200 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -115,10 +115,12 @@ goodtrials  =  pickconditions(D, cl, 1);
 
 for j = 1:D.nchannels
     if robust && ~bycondition
-        [Y, W] = spm_robust_average(D(j, :, :, goodtrials), 4, ks);
+        [Y, W1] = spm_robust_average(D(j, :, :, goodtrials), 4, ks);
         if savew
-            Dw(j, 1:Dw.nfrequencies, 1:Dw.nsamples, goodtrials) = W;
+            Dw(j, :, :, goodtrials) = W1;
         end
+        W = zeros([1 D.nfrequencies D.nsamples D.ntrials]);
+        W(1, :, :, goodtrials) = W1;
     end
     for i = 1:D.nconditions
 
@@ -132,17 +134,17 @@ for j = 1:D.nchannels
         %------------------------------------------------------------------
         if ~circularise
             if ~robust
-                Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = mean(D(j, :, :, w), 4);
+                Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
             else
                 if bycondition
                     [Y, W] = spm_robust_average(D(j, :, :, w), 4, ks);
-                    Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = Y;
+                    Dnew(j, :, :, i) = Y;
                     if savew
-                        Dw(j, 1:Dw.nfrequencies, 1:Dw.nsamples, w)   = W;
+                        Dw(j, :, :, w)   = W;
                     end
                 else
-                    Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = ...
-                        sum(W(j, :, :, w).*D(j, :, :, w), 4)./sum(W(j, :, :, w), 4);
+                    Dnew(j, :, :, i) = ...
+                        sum(W(1, :, :, w).*D(j, :, :, w), 4)./sum(W(1, :, :, w), 4);
                 end
             end
 
@@ -153,20 +155,20 @@ for j = 1:D.nchannels
             tmp = cos(tmp) + sqrt(-1)*sin(tmp);
 
             if ~robust
-                Dnew(j, 1:Dnew.nsamples, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
+                Dnew(j, :, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
             else
                 if bycondition
                     [Y, W] = spm_robust_average(tmp, 4, ks);
                     aY     = sum(W(j, :, :, :).*abs(tmp), 4)./sum(W(j, :, :, :), 4);
                     if savew
-                        Dw(j, 1:Dw.nfrequencies, 1:Dw.nsamples, w) = W;
+                        Dw(j, :, :, w) = W;
                     end
                 else
-                    Y  = sum(W(j, :, :, w).*tmp)./sum(W(j, :, :, w), 4);
-                    aY = sum(W(j, :, :, w).*abs(tmp))./sum(W(j, :, :, w), 4);
+                    Y  = sum(W(1, :, :, w).*tmp)./sum(W(1, :, :, w), 4);
+                    aY = sum(W(1, :, :, w).*abs(tmp))./sum(W(1, :, :, w), 4);
                 end
 
-                Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = squeeze(Y./aY);
+                Dnew(j, :, :, i) = squeeze(Y./aY);
 
             end
         end

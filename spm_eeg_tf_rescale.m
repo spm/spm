@@ -6,7 +6,7 @@ function [D] = spm_eeg_tf_rescale(S)
 % (optional) fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
 %   S.tf               - structure with (optional) fields:
-%     S.tf.method      - 'LogR', 'Diff', 'Log', 'Sqrt'
+%     S.tf.method      - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt'
 %     S.tf.Sbaseline   - 2-element vector: start and stop of baseline 
 %                        (need to specify this for LogR and Diff)
 % 
@@ -14,15 +14,16 @@ function [D] = spm_eeg_tf_rescale(S)
 %                        written to disk with prefix r)
 %
 % For 'Log' and 'Sqrt', these functions are applied to spectrogram 
-% For 'LogR' and 'Diff' this function computes power in the baseline
-% p_b and outputs (i) p-p_b for 'Diff' or (ii) log (p/p_b) for 'LogR'
+% For 'LogR', 'Rel' and 'Diff' this function computes power in the baseline
+% p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(((p-p_b)/p_b) - 1) for 'Rel' 
+%                 (iii) log (p/p_b) for 'LogR'
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3195 2009-06-11 12:51:32Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3200 2009-06-12 17:29:40Z vladimir $
 
-SVNrev = '$Rev: 3195 $';
+SVNrev = '$Rev: 3200 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,7 +43,7 @@ end
 try
     S.tf.method;
 catch
-    str  = {'LogR','Diff','Log','Sqrt'};
+    str  = {'LogR','Diff', 'Rel', 'Log','Sqrt'};
     S.tf.method = spm_input('Rescale method','+1','b',str,[],1);
 end
 
@@ -53,7 +54,7 @@ Nf=length(frequencies(Din));
 D = clone(Din, ['r' Din.fnamedat], [Din.nchannels Nf Din.nsamples Din.ntrials]);
 
 switch lower(S.tf.method),
-    case {'logr','diff'}
+    case {'logr','diff', 'rel'}
         try
             S.tf.Sbaseline;
         catch
@@ -64,12 +65,18 @@ switch lower(S.tf.method),
             inds=find(tims>S.tf.Sbaseline(1) & tims<S.tf.Sbaseline(2));
             x=squeeze(Din(:,:,:,c));
             xbase=mean(x(:,:,inds),3);
-            if strcmp(lower(S.tf.method),'logr')
-                x=log10(x);
-                xbase=log10(xbase);
+            switch lower(S.tf.method)
+                case 'logr'
+                    x=log10(x);
+                    xbase=log10(xbase);
+                    D(:,:,:,c)= 10*(x - repmat(xbase,[1 1 D.nsamples 1]));
+                    D = units(D, [], 'dB');
+                case 'diff'
+                    D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]));
+                case 'rel'
+                    D(:,:,:,c)= 100*(((x - repmat(xbase,[1 1 D.nsamples 1]))./repmat(xbase,[1 1 D.nsamples 1])) - 1);
+                    D = units(D, [], '%');
             end
-            D(:,:,:,c)= 10*(x - repmat(xbase,[1 1 D.nsamples 1]));
-            D = units(D, [], 'dB');
         end
     case 'log',
         for c=1:D.ntrials,

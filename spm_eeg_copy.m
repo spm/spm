@@ -11,9 +11,9 @@ function D = spm_eeg_copy(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 3199 2009-06-12 16:18:28Z guillaume $
+% $Id: spm_eeg_copy.m 3200 2009-06-12 17:29:40Z vladimir $
 
-SVNrev = '$Rev: 3199 $';
+SVNrev = '$Rev: 3200 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ S.newname = [spm_str_manip(S.newname, 'rt') '.dat'];
 % copy dataset (.mat and .dat)
 %--------------------------------------------------------------------------
 Dnew = clone(D, S.newname);
-copyfile(D.fnamedat, Dnew.fnamedat, 'f');
+copyfile(fullfile(D.path, D.fnamedat), fullfile(Dnew.path, Dnew.fnamedat), 'f');
 
 D = Dnew;
 D = D.history('spm_eeg_copy', S); % maybe not?

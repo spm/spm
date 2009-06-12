@@ -10,7 +10,7 @@ function D = spm_eeg_ft_artefact_visual(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 3200 2009-06-12 17:29:40Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 
@@ -51,7 +51,7 @@ else
 end
 
 if isfield(S, 'latency')
-    cfg.methods = S.latency;
+    cfg.latency = S.latency;
 else
     cfg.latency = 1e-3*spm_input('PST ([start end] in ms):', '+1', 'r', num2str(1e3*[data.time{1}(1) data.time{1}(end)]), 2);
 end

@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3120 2009-05-13 13:01:03Z vladimir $
+% $Id: spm_MEEGtools.m 3200 2009-06-12 17:29:40Z vladimir $
 
 
 funlist = {
@@ -22,6 +22,8 @@ funlist = {
     'Save DCM-IR results as images' , 'spm_dcm_ind_save_images'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
+    'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
+    'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
     };
 
 str = sprintf('%s|', funlist{:, 1});
