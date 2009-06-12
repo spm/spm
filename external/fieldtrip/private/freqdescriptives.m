@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.59  2009/06/12 11:48:22  jansch
+% added default for cfg.keepfourier
+%
 % Revision 1.58  2009/04/08 06:05:23  roboos
 % give warning in case plv and input only one trial (solves the problem of Wendy)
 %
@@ -212,6 +215,7 @@ if ~isfield(cfg, 'partchan'),          cfg.partchan      = {};            end
 if ~isfield(cfg, 'foilim'),            cfg.foilim        = 'all';         end
 if ~isfield(cfg, 'toilim'),            cfg.toilim        = 'all';         end
 if ~isfield(cfg, 'keeptrials'),        cfg.keeptrials    = 'no';          end
+if ~isfield(cfg, 'keepfourier'),       cfg.keepfourier   = 'no';          end
 
 if ~isfield(cfg, 'channelcmb'),
   if hascsd
@@ -432,9 +436,9 @@ end
 
 % new efficient version
 sumcrsspctrm(1,1:Ncmb,1:Nfrq,1:Ntim) = nansum(freq.crsspctrm,1);
-% does the same as the old inefficient version
+%% does the same as the old inefficient version
 % sumcrsspctrm = complex(zeros(1,Ncmb,Nfrq,Ntim), ...
-%                        zeros(1,Ncmb,Nfrq,Ntim));
+%                         zeros(1,Ncmb,Nfrq,Ntim));
 % for j = 1:Ncmb
 %   sumcrsspctrm(1,j,:,:) = nansum(freq.crsspctrm(:,j,:,:),1);
 % end
@@ -691,7 +695,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.58 2009/04/08 06:05:23 roboos Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.59 2009/06/12 11:48:22 jansch Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

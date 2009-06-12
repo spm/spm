@@ -35,6 +35,9 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.16  2009/06/08 11:52:55  crimic
+% updates single points' vertexcolor property
+%
 % Revision 1.15  2009/06/04 12:55:34  crimic
 % changes input parameters check
 %
@@ -81,7 +84,7 @@ if ~isfield(bnd,'pnt') && ~isfield(bnd,'tri')
   bnd_.pnt = bnd;
   bnd_.tri = ones(size(bnd));
   bnd = bnd_;
-  plot_mesh(bnd_,'vertices','yes')
+  plot_mesh(bnd_,'vertices','yes','vertexcolor','k')
 end
 
 % keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
@@ -92,7 +95,7 @@ faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),faceindex='
 vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor),vertexcolor='none';end
 vertexindex = keyval('vertexindex', varargin);
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),vertexsize=10;end
-edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='k';end
+edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='none';end
 facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),facealpha=1;end
 
 faceindex   = istrue(faceindex);

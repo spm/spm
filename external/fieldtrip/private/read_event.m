@@ -59,6 +59,10 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.100  2009/06/09 13:54:30  marvger
+% removed warning for empty events; interferes with continuous pooling in
+% realtime applications
+%
 % Revision 1.99  2009/05/22 09:02:29  marvger
 % changed tcp handling
 %
@@ -1618,8 +1622,8 @@ if ~isempty(event)
   % this has the side effect that events without a sample number are discarded
   [dum, indx] = sort([event.sample]);
   event = event(indx);
-else
-  warning(sprintf('no events found in %s', filename));
+% else
+%   warning(sprintf('no events found in %s', filename));
 end
 
 % apply the optional filters
