@@ -19,6 +19,9 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.4  2009/06/08 16:33:08  roboos
+ * include sys/types.h for all platforms, not only WIN32/64, since also required for OSX 10.4
+ *
  * Revision 1.3  2009/03/30 07:23:03  roboos
  * changed ifdef syntax
  *
@@ -59,11 +62,11 @@
 #define _LARGEFILE_SOURCE
 
 #include <math.h>
+#include <sys/types.h>
 #include "mex.h"
 #include "matrix.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <sys/types.h>
 #define int32_t INT32_T
 #define int64_t INT64_T
 #define fseeko fseek
