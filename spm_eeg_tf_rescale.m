@@ -15,15 +15,15 @@ function [D] = spm_eeg_tf_rescale(S)
 %
 % For 'Log' and 'Sqrt', these functions are applied to spectrogram 
 % For 'LogR', 'Rel' and 'Diff' this function computes power in the baseline
-% p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(((p-p_b)/p_b) - 1) for 'Rel' 
+% p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(p-p_b)/p_b for 'Rel' 
 %                 (iii) log (p/p_b) for 'LogR'
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3203 2009-06-12 20:05:54Z vladimir $
 
-SVNrev = '$Rev: 3200 $';
+SVNrev = '$Rev: 3203 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ switch lower(S.tf.method),
                 case 'diff'
                     D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]));
                 case 'rel'
-                    D(:,:,:,c)= 100*(((x - repmat(xbase,[1 1 D.nsamples 1]))./repmat(xbase,[1 1 D.nsamples 1])) - 1);
+                    D(:,:,:,c)= 100*((x./repmat(xbase,[1 1 D.nsamples 1]) - 1));
                     D = units(D, [], '%');
             end
         end
