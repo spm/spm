@@ -12,37 +12,36 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3192 2009-06-09 08:29:22Z vladimir $
+% $Id: spm_eeg_mask.m 3199 2009-06-12 16:18:28Z guillaume $
 
-SVNrev = '$Rev: 3192 $';
+SVNrev = '$Rev: 3199 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FnUIsetup','M/EEG mask generation',0);
+spm('FnUIsetup','M/EEG mask generation'); spm('Pointer','Watch');
 
 if nargin == 0
     S = [];
 end
 
-
 %-Input parameters
 %--------------------------------------------------------------------------
+if ~isfield(S, 'image')
+    [S.image, sts] = spm_select(1, 'image', 'Select an unsmoothed M/EEG image (in voxel-space)');
+    if ~sts, return; end
+end
+
 if ~isfield(S, 'window')
     S.window = spm_input('start and end of window [ms or Hz]', '+1', 'r', '', 2);
 end
 
-if ~isfield(S, 'image')
-    S.image = spm_select(1, 'image', 'Select an unsmoothed M/EEG image (in voxel-space)');
-end
-
 if ~isfield(S, 'outfile')
     [filename, pathname] = uiputfile({'*.img;*.nii'}, 'Select the mask file');
+    [p,n,e] = fileparts(filename);
+    if isempty(e), filename = [filename '.img']; end
     S.outfile = fullfile(pathname, filename);
 end
-
-spm('Pointer', 'Watch');
-
 
 V = spm_vol(S.image);
 Y = spm_read_vols(V);

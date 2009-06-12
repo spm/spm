@@ -11,7 +11,13 @@ function D = spm_eeg_copy(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_copy.m 3199 2009-06-12 16:18:28Z guillaume $
+
+SVNrev = '$Rev: 3199 $';
+
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
 
 % get MEEG object
 %--------------------------------------------------------------------------
