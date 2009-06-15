@@ -21,9 +21,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3203 2009-06-12 20:05:54Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3204 2009-06-15 14:45:25Z guillaume $
 
-SVNrev = '$Rev: 3203 $';
+SVNrev = '$Rev: 3204 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -47,13 +47,14 @@ catch
     S.tf.method = spm_input('Rescale method','+1','b',str,[],1);
 end
 
-Din = spm_eeg_load(D);
-tims=time(Din);
+Din  = spm_eeg_load(D);
+tims = time(Din);
 
-Nf=length(frequencies(Din));
-D = clone(Din, ['r' Din.fnamedat], [Din.nchannels Nf Din.nsamples Din.ntrials]);
+Nf   = length(frequencies(Din));
+D    = clone(Din, ['r' Din.fnamedat], [Din.nchannels Nf Din.nsamples Din.ntrials]);
 
-switch lower(S.tf.method),
+switch lower(S.tf.method)
+    
     case {'logr','diff', 'rel'}
         try
             S.tf.Sbaseline;
@@ -61,7 +62,7 @@ switch lower(S.tf.method),
             tmp_base = spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
             S.tf.Sbaseline = tmp_base/1000;
         end
-        for c=1:D.ntrials,
+        for c=1:D.ntrials
             inds=find(tims>S.tf.Sbaseline(1) & tims<S.tf.Sbaseline(2));
             x=squeeze(Din(:,:,:,c));
             xbase=mean(x(:,:,inds),3);
@@ -78,19 +79,19 @@ switch lower(S.tf.method),
                     D = units(D, [], '%');
             end
         end
-    case 'log',
-        for c=1:D.ntrials,
-            fx=log(squeeze(Din(:,:,:,c)));
-            D(:,:,:,c)=fx;
+        
+    case 'log'
+        for c=1:D.ntrials
+            D(:,:,:,c) = log(squeeze(Din(:,:,:,c)));
         end
-    case 'sqrt',
-        for c=1:D.ntrials,
-            fx=sqrt(squeeze(Din(:,:,:,c)));
-            D(:,:,:,c)=fx;
+        
+    case 'sqrt'
+        for c=1:D.ntrials
+            D(:,:,:,c) = sqrt(squeeze(Din(:,:,:,c)));
         end
+        
     otherwise
-        disp('Error in spm_eeg_tf_rescale: unknown method');
-        return;
+        error('Unknown rescaling method.');
 end
 
 % Save
