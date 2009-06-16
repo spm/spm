@@ -12,7 +12,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_montage_ui.m 3208 2009-06-16 21:00:50Z vladimir $
 
 error(nargchk(1,1,nargin));
 
@@ -125,7 +125,11 @@ function doSave(obj,evd,h)
 doCheck(obj,evd,h);
 ud = get(h,'userdata');
 [M,newLabels] = getM(ud.ht);
-montage.tra = M;
+% delete row if empty:
+ind              = ~any(M,2);
+M(ind,:)         = [];
+newLabels(ind)   = [];
+montage.tra      = M;
 montage.labelorg = ud.montage.labelorg;
 montage.labelnew = newLabels;
 uisave('montage','SPMeeg_montage.mat');
