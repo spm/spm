@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3156 2009-05-28 16:22:52Z guillaume $
+% $Id: spm_render.m 3206 2009-06-16 13:06:44Z guillaume $
 
-SVNrev = '$Rev: 3156 $';
+SVNrev = '$Rev: 3206 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -299,6 +299,8 @@ spm('Pointer','Arrow');
 %==========================================================================
 function surf_rend(dat,rend,col)
 
+%-Setup figure and axis
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 rdr = get(Fgraph,'Renderer');
@@ -307,33 +309,38 @@ set(Fgraph,'Renderer','OpenGL');
 ax = axes(...
     'Parent',Fgraph,...
     'units','normalized',...
-    'Position',[0.025, 0.025, 0.95, 0.45],...
+    'Position',[0.05, 0.05, 0.9, 0.4],...
     'Visible','off');
 
-Y      = zeros(dat.dim(1:3)');
-OFF    = dat.XYZ(1,:) + dat.dim(1)*(dat.XYZ(2,:)-1 + dat.dim(2)*(dat.XYZ(3,:)-1));
-Y(OFF) = dat.t .* (dat.t > 0);
-XYZ    = double(inv(dat.mat)*[rend.vertices';ones(1,size(rend.vertices,1))]);
-v      = spm_sample_vol(Y,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+%-Project data onto surface mesh
+%--------------------------------------------------------------------------
+v = spm_mesh_project(rend, dat);
 
+%-Compute mesh curvature texture
+%--------------------------------------------------------------------------
 C = spm_mesh_curvature(rend) > 0;
 C = 0.5 * repmat(C,1,3) + 0.3 * repmat(~C,1,3);
-col = hot(256);
-col(1,:) = 0.5;
+
+%-Combine projected data and mesh curvature
+%--------------------------------------------------------------------------
+col = hot(256); col(1,:) = 0.5;
 if ~any(v)
     cdat = 0.5*ones(length(v),3);
 else
     cdat = squeeze(ind2rgb(floor(v(:)/max(v(:))*size(col,1)),col));
 end
-cdat = repmat(v==0,3,1)' .* C + repmat(v~=0,3,1)' .* cdat;
+cdat     = repmat(v==0,3,1)' .* C + repmat(v~=0,3,1)' .* cdat;
 
+%-Display the surface mesh with texture
+%--------------------------------------------------------------------------
 hp = patch(rend, 'Parent',ax,...
     'FaceVertexCData',cdat, ...
     'FaceColor', 'interp', ...
     'EdgeColor', 'none',...
     'FaceLighting', 'phong',...
     'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
-    'DiffuseStrength', 0.7, 'SpecularExponent', 10);
+    'DiffuseStrength', 0.7, 'SpecularExponent', 10,...
+    'DeleteFcn', {@mydeletefcn,Fgraph,rdr});
 
 set(Fgraph,'CurrentAxes',ax);
 view(ax,[-90 0]);
@@ -343,36 +350,50 @@ l = camlight; set(l,'Parent',ax);
 material(Fgraph,'dull');
 setappdata(ax,'camlight',l);
 
-%spm_mesh_inflate(hp,Inf,1);
-%view(ax,[-90 0]);axis(ax,'image');
-
+%-Setup context menu
+%--------------------------------------------------------------------------
 r = rotate3d(ax);
 set(r,'enable','off');
 cmenu = uicontextmenu;
 c1 = uimenu(cmenu, 'Label', 'Inflate', 'Interruptible','off', 'Callback', @myinflate);
 setappdata(c1,'patch',hp);
 setappdata(c1,'axis',ax);
-c12 = uimenu(cmenu, 'Label', 'Connected Components', 'Visible', 'off', 'Interruptible','off', 'Callback', @mycclabel);
+c2 = uimenu(cmenu, 'Label', 'Connected Components', 'Interruptible','off');
 C = spm_mesh_label(hp);
-setappdata(c12,'patch',hp);
-setappdata(c12,'cclabel',C);
-c2 = uimenu(cmenu, 'Label', 'Rotate', 'Checked','on','Separator','on','Callback', @myswitchrotate);
-setappdata(c2,'rotate3d',r);
-c3 = uimenu(cmenu, 'Label', 'Transparency');
-setappdata(c3,'patch',hp);
-uimenu(c3,'Label','0%',  'Checked','on',  'Callback',@mytransparency);
-uimenu(c3,'Label','20%', 'Checked','off', 'Callback',@mytransparency);
-uimenu(c3,'Label','40%', 'Checked','off', 'Callback',@mytransparency);
-uimenu(c3,'Label','60%', 'Checked','off', 'Callback',@mytransparency);
-uimenu(c3,'Label','80%', 'Checked','off', 'Callback',@mytransparency);
-c4 = uimenu(cmenu, 'Label', 'Save As...','Separator','on','Callback', @mysave);
-setappdata(c4,'patch',hp);
+setappdata(c2,'patch',hp);
+setappdata(c2,'cclabel',C);
+for i=1:length(unique(C))
+    uimenu(c2,'Label',sprintf('Component %d',i), 'Checked','on', 'Callback', @mycclabel);
+end
+c3 = uimenu(cmenu, 'Label', 'Rotate', 'Checked','on','Separator','on','Callback', @myswitchrotate);
+setappdata(c3,'rotate3d',r);
+c4 = uimenu(cmenu, 'Label', 'View');
+setappdata(c4,'axis',ax);
+uimenu(c4,'Label','Go to Y-Z view (right)',  'Callback', {@myview, [90 0]});
+uimenu(c4,'Label','Go to Y-Z view (left)',   'Callback', {@myview, [-90 0]});
+uimenu(c4,'Label','Go to X-Y view (top)',    'Callback', {@myview, [0 90]});
+uimenu(c4,'Label','Go to X-Y view (bottom)', 'Callback', {@myview, [-180 -90]});
+uimenu(c4,'Label','Go to X-Z view (front)',  'Callback', {@myview, [-180 0]});
+uimenu(c4,'Label','Go to X-Z view (back)',   'Callback', {@myview, [0 0]});
+c5 = uimenu(cmenu, 'Label', 'Transparency');
+setappdata(c5,'patch',hp);
+uimenu(c5,'Label','0%',  'Checked','on',  'Callback', @mytransparency);
+uimenu(c5,'Label','20%', 'Checked','off', 'Callback', @mytransparency);
+uimenu(c5,'Label','40%', 'Checked','off', 'Callback', @mytransparency);
+uimenu(c5,'Label','60%', 'Checked','off', 'Callback', @mytransparency);
+uimenu(c5,'Label','80%', 'Checked','off', 'Callback', @mytransparency);
+c6 = uimenu(cmenu, 'Label', 'Save As...','Separator','on','Callback', @mysave);
+setappdata(c6,'patch',hp);
 try, set(r,'uicontextmenu',cmenu); end
 try, set(hp,'uicontextmenu',cmenu); end
 set(r,'enable','on');
 set(r,'ActionPostCallback',@mypostcallback);
-set(hp,'DeleteFcn',{@mydeletefcn,Fgraph,rdr});
-
+try
+    setAllowAxesRotate(r, setxor(findobj(Fgraph,'Type','axes'),ax), false);
+end
+    
+%-Register with MIP
+%--------------------------------------------------------------------------
 try % meaningless when called outside spm_results_ui
     hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
     xyz  = spm_XYZreg('GetCoords',hReg);
@@ -387,14 +408,37 @@ axis(getappdata(obj,'axis'),'image');
 
 %==========================================================================
 function mycclabel(obj,evd)
-C = getappdata(obj,'cclabel');
-F = get(getappdata(obj,'patch'),'Faces');
-V = get(getappdata(obj,'patch'),'Vertices');
-V = zeros(size(V,1),1);
-V(reshape(F(C==1,:),[],1)) = 1;
-set(getappdata(obj,'patch'),'FaceVertexAlphaData',V);
-set(getappdata(obj,'patch'),'FaceAlpha','interp');
-
+C = getappdata(get(obj,'parent'),'cclabel');
+F = get(getappdata(get(obj,'parent'),'patch'),'Faces');
+ind = sscanf(get(obj,'Label'),'Component %d');
+V = get(getappdata(get(obj,'parent'),'patch'),'FaceVertexAlphaData');
+Fa = get(getappdata(get(obj,'parent'),'patch'),'FaceAlpha');
+if ~isnumeric(Fa)
+    if ~isempty(V), Fa = max(V); else Fa = 1; end
+    if Fa == 0, Fa = 1; end
+end
+if isempty(V) || numel(V) == 1
+    Ve = get(getappdata(get(obj,'parent'),'patch'),'Vertices');
+    if isempty(V) || V == 1
+        V = Fa * ones(size(Ve,1),1);
+    else
+        V = zeros(size(Ve,1),1);
+    end
+end
+if strcmpi(get(obj,'Checked'),'on')
+    V(reshape(F(C==ind,:),[],1)) = 0;
+    set(obj,'Checked','off');
+else
+    V(reshape(F(C==ind,:),[],1)) = Fa;
+    set(obj,'Checked','on');
+end
+set(getappdata(get(obj,'parent'),'patch'), 'FaceVertexAlphaData', V);
+if all(V)
+    set(getappdata(get(obj,'parent'),'patch'), 'FaceAlpha', Fa);
+else
+    set(getappdata(get(obj,'parent'),'patch'), 'FaceAlpha', 'interp');
+end
+    
 %==========================================================================
 function myswitchrotate(obj,evd)
 if strcmpi(get(getappdata(obj,'rotate3d'),'enable'),'on')
@@ -404,6 +448,12 @@ else
     set(getappdata(obj,'rotate3d'),'enable','on');
     set(obj,'Checked','on');
 end
+
+%==========================================================================
+function myview(obj,evd,varargin)
+view(getappdata(get(obj,'parent'),'axis'),varargin{1});
+axis(getappdata(get(obj,'parent'),'axis'),'image');
+camlight(getappdata(getappdata(get(obj,'parent'),'axis'),'camlight'));
 
 %==========================================================================
 function mytransparency(obj,evd)
