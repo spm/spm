@@ -450,6 +450,32 @@ or to combine separate processing steps. There is a ``high-level''
 interface using \verb|spm_jobman|, which combines ``low-level''
 callbacks to \verb|cfg_util|.
 
+\subsubsection{SPM startup in command line mode}
+\label{sec:batch_interface_spm_startup}
+
+During normal startup, SPM performs important initialisation
+steps. Without initialisation, SPM and its batch system will not
+function properly. Consequently, an initialisation sequence needs to
+be run before any batch job can be submitted.
+
+MATLAB has several command line options to start without its GUI
+(\verb|-nodesktop|) or even without any graphics output to a screen
+(\verb|-nodisplay|). See MATLAB documentation for details.
+
+To run SPM in \verb|-nodisplay| mode, the file \verb|spm_defaults.m|
+has to be modified. The line \verb|defaults.cmdline = 0;| must be
+changed to \verb|defaults.cmdline = true;|. In command line mode, SPM
+will not open any figure window except the ``Graphics'' window. 
+
+Within MATLAB, the following commands are sufficient to set up SPM
+\begin{enumerate}
+\item \verb|spm('defaults', MODALITY)| where \verb|MODALITY| has to be
+  replaced by the desired modality (e.g. \verb|'fmri'|)
+\item \verb|spm_jobman('initcfg')|
+\end{enumerate}
+After executing these commands, any SPM functions and batch jobs
+can be run in the same MATLAB session.
+
 \subsubsection{Complete and run a pre-specified job}
 \label{sec:batch_interface_cmd_cfg_serial}
 
