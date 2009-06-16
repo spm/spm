@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_eeg_average_TF.m 3205 2009-06-16 10:15:00Z vladimir $
 
-SVNrev = '$Rev: 3200 $';
+SVNrev = '$Rev: 3205 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -143,8 +143,10 @@ for j = 1:D.nchannels
                         Dw(j, :, :, w)   = W;
                     end
                 else
+                    X = D(j, :, :, w);
+                    X(isnan(X))      = 0;
                     Dnew(j, :, :, i) = ...
-                        sum(W(1, :, :, w).*D(j, :, :, w), 4)./sum(W(1, :, :, w), 4);
+                        sum(W(1, :, :, w).*X, 4)./sum(W(1, :, :, w), 4);
                 end
             end
 
@@ -164,6 +166,7 @@ for j = 1:D.nchannels
                         Dw(j, :, :, w) = W;
                     end
                 else
+                    tmp(isnan(tmp)) = 0;
                     Y  = sum(W(1, :, :, w).*tmp)./sum(W(1, :, :, w), 4);
                     aY = sum(W(1, :, :, w).*abs(tmp))./sum(W(1, :, :, w), 4);
                 end

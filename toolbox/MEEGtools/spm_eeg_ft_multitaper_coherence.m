@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 3205 2009-06-16 10:15:00Z vladimir $
 
 %%
-SVNrev = '$Rev: 3200 $';
+SVNrev = '$Rev: 3205 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -184,7 +184,7 @@ cfg.tapsmofrq(:)    = 1/timewin; % Set initial resolution to 1/timewin (i.e. 2.5
 % direction for 100 Hz. If you comment out this line, you'll have fixed
 % time resolution for all frequencies.
 cfg.tapsmofrq(cfg.foi>10*(1/timewin))    = 0.1*cfg.foi(cfg.foi>10*(1/timewin));
-
+cfg.tapsmofrq(cfg.foi>50)                = 5;
 % figure; plot(cfg.foi, cfg.tapsmofrq);xlabel('frequency (Hz)');ylabel('frequency resolution (Hz)')
 % This is the time axis. The window with the width defined above (400 msec)
 % is moved every time by 'step' (100 ms). The earliest you can start is

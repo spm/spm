@@ -13,7 +13,7 @@ function [Y,W] = spm_robust_average(X, dim, ks, h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_robust_average.m 3205 2009-06-16 10:15:00Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -78,20 +78,18 @@ end
 ores=1;
 nres=10;
 n=0;
-Y=zeros(1,size(X,1));
+
 while max(abs(ores-nres))>sqrt(1E-8)
 
     ores=nres;
     n=n+1;
 
     if n==1
-        Y = median(X);
+            Y = nanmedian(X); 
     else
-        Y = sum(W.*X)./sum(W);
-    end
-
-    if sum(isnan(Y))>0
-        error('NaNs appeared in the result');
+        XX = X;
+        XX(isnan(XX)) = 0;
+        Y = sum(W.*XX)./sum(W);
     end
 
     if n > 200
@@ -101,13 +99,15 @@ while max(abs(ores-nres))>sqrt(1E-8)
 
     res = X-repmat(Y, size(X, 1), 1);
 
-    mad = median(abs(res-repmat(median(res), size(res, 1), 1)));
+    mad = nanmedian(abs(res-repmat(nanmedian(res), size(res, 1), 1)));
     res = res./repmat(mad, size(res, 1), 1);
     res = res.*h;
     res = abs(res)-ks;
     res(res<0)=0;
-    nres= (sum(res(:).^2));
+    nres= (sum(res(~isnan(res)).^2));
     W = (abs(res)<1) .* ((1 - res.^2).^2);
+    W(isnan(X)) = 0;
+    W(X == 0)   = 0; %Assuming X is a real measurement
 end
 
 disp(['Robust averaging finished after ' num2str(n) ' iterations.']); 
@@ -125,5 +125,18 @@ if dim > 1
     Y  = shiftdim(Y, length(origsize)-dim+1);
     W  = shiftdim(W, length(origsize)-dim+1);
 end
+
+%-Helper function
+%--------------------------------------------------------------------------
+function Y = nanmedian(X)
+if ~any(any(isnan(X)))
+    Y = median(X);
+else
+    Y = zeros(1, size(X,2));
+    for i = 1:size(X, 2)
+        Y(i) = median(X(~isnan(X(:, i)), i));
+    end
+end
+
 
 

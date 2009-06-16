@@ -32,7 +32,7 @@ function Dnew = spm_eeg_remove_spikes(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Will Penny
-% $Id: spm_eeg_remove_spikes.m 2859 2009-03-11 16:52:19Z guillaume $
+% $Id: spm_eeg_remove_spikes.m 3205 2009-06-16 10:15:00Z vladimir $
 
 if nargin == 0
     S = [];
@@ -118,7 +118,12 @@ for r = 1:rptnum
             end
             m_lfp=mean(lfp);
             s_lfp=std(lfp);
+            if s_lfp==0
+                continue;
+            end
+            
             lfp=(lfp-m_lfp)/s_lfp;
+            
             if ~(strcmpi(S.fast, 'yes') && max(abs(lfp))<S.fasthresh)
                 glm=spm_rglm(lfp,X,1);
                 [rglm,lfp_clean]=spm_rglm(lfp,X,2);
