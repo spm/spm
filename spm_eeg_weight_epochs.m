@@ -28,9 +28,9 @@ function D = spm_eeg_weight_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2850 2009-03-10 21:54:38Z guillaume $
+% $Id: spm_eeg_weight_epochs.m 3209 2009-06-17 11:07:47Z vladimir $
 
-SVNrev = '$Rev: 2850 $';
+SVNrev = '$Rev: 3209 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,21 +51,23 @@ D = spm_eeg_load(D);
 
 %-Get parameters
 %--------------------------------------------------------------------------
-try
-    c = S.c;
-catch
-    c = spm_input('Enter contrasts', '1', 'x', '', inf, eye(D.ntrials));
-    S.c = c;
+if ~(isfield(S, 'c') && isfield(S, 'label') && numel(S.label)==size(S.c, 1))
+    S.c     = [];
+    S.label = {};
+    i = 1;
+    while 1
+        S.c(i, :) = spm_input(['Enter contrast ' num2str(i)],  1, 'x', '', 1, eye(D.ntrials));
+        S.label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
+        
+        if spm_input('Add another?', '+1', 'yes|no', [0 1]);
+            break;
+        end
+        i = i+1;
+    end
 end
 
+c          = S.c;
 Ncontrasts = size(c, 1);
-if ~isfield(S, 'label') || numel(S.label)~=size(c, 1)
-    label = cell(1,Ncontrasts);
-    for i = 1:Ncontrasts
-        label{i} = spm_input(['Label of contrast ' num2str(i)], '+1', 's');
-    end
-    S.label = label;
-end
 
 if ~isempty(D.repl)
     try
@@ -78,19 +80,15 @@ else
     WeightAve = 0;
 end
 
+
 % here should be a sanity check of c
 
-%-Redirect if Time Frequency data
-%--------------------------------------------------------------------------
 if strncmp(D.transformtype, 'TF', 2)
-    % branch off to TF-function
-    D = spm_eeg_weight_epochs_TF(S);
-    return
+    Dnew = clone(D, ['w' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples Ncontrasts]);
+else
+    % generate new meeg object with new filenames
+    Dnew = clone(D, ['w' fnamedat(D)],[D.nchannels D.nsamples Ncontrasts]);
 end
-
-% generate new meeg object with new filenames
-% Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
-Dnew = clone(D, ['m' fnamedat(D)],[D.nchannels D.nsamples Ncontrasts]);
 
 spm_progress_bar('Init', Ncontrasts, 'Contrasts computed');
 if Ncontrasts > 100, Ibar = floor(linspace(1, Ncontrasts, 100));
@@ -114,14 +112,28 @@ for i = 1:Ncontrasts
 
     disp(['Contrast ', mat2str(i),': ', mat2str(c(i,:),3)])
 
-    d = zeros(D.nchannels, D.nsamples);
+    if strncmp(D.transformtype, 'TF', 2)
+        d = zeros(D.nchannels, D.nfrequencies, D.nsamples);
 
-    for j = 1:D.nchannels
-        d(j, :) = c(i,:) * squeeze(D(j, :, :))';
+        for j = 1:D.nchannels
+            for f = 1:D.nfrequencies
+                d(j, f, :) = c(i,:) * squeeze(D(j, f, :, :))';
+            end
+        end
+
+        Dnew(1:Dnew.nchannels, 1:D.nfrequencies, 1:Dnew.nsamples, i) = d;
+
+    else
+
+        d = zeros(D.nchannels, D.nsamples);
+
+        for j = 1:D.nchannels
+            d(j, :) = c(i,:) * squeeze(D(j, :, :))';
+        end
+
+        Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
     end
-
-    Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
-
+    
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
