@@ -8,6 +8,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 %
 % Use as
 %   [sens] = apply_montage(sens, montage, ...)
+%   [data] = apply_montage(data, montage, ...)
+% where the input is a FieldTrip sensor definition as obtained from READ_SENS
+% or a FieldTrip raw data structure as obtained from PREPROCESSING.
 %
 % A montage is specified as a structure with the fields
 %   montage.tra      = MxN matrix
@@ -23,6 +26,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.14  2009/06/17 10:13:05  roboos
+% improved documentation
+%
 % Revision 1.13  2009/03/26 11:07:40  roboos
 % start with an explicit check on the channel number
 %

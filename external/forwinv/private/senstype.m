@@ -12,6 +12,7 @@ function [type] = senstype(sens, desired)
 % The output type can be any of the following
 %   'electrode'
 %   'magnetometer'
+%   'biosemi64'
 %   'biosemi128'
 %   'biosemi256'
 %   'bti148'
@@ -58,6 +59,9 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.15  2009/06/19 16:51:50  vlalit
+% Added biosemi64 system of  Diane Whitmer, I don't know how generic it is.
+%
 % Revision 1.14  2009/05/07 13:34:09  roboos
 % added ctf64
 %
@@ -182,7 +186,9 @@ else
     elseif (mean(ismember(senslabel('biosemi256'),    sens.label)) > 0.8)
       type = 'biosemi256';
     elseif (mean(ismember(senslabel('biosemi128'),    sens.label)) > 0.8)
-      type = 'biosemi128';
+        type = 'biosemi128';
+    elseif (mean(ismember(senslabel('biosemi64'),     sens.label)) > 0.8)
+        type = 'biosemi64';
     elseif (mean(ismember(senslabel('egi256'),        sens.label)) > 0.8)
       type = 'egi256';
     elseif (mean(ismember(senslabel('egi128'),        sens.label)) > 0.8)
@@ -210,9 +216,9 @@ if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'eeg'
-      type = any(strcmp(type, {'eeg' 'electrode' 'biosemi128' 'biosemi256' 'egi32' 'egi64' 'egi128' 'egi256' 'ext1020'}));
+      type = any(strcmp(type, {'eeg' 'electrode' 'biosemi64' 'biosemi128' 'biosemi256' 'egi32' 'egi64' 'egi128' 'egi256' 'ext1020'}));
     case 'biosemi'
-      type = any(strcmp(type, {'biosemi128' 'biosemi256'}));
+      type = any(strcmp(type, {'biosemi64' 'biosemi128' 'biosemi256'}));
     case 'egi'
       type = any(strcmp(type, {'egi64' 'egi128' 'egi256'}));
     case 'meg'
