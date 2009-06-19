@@ -1,4 +1,4 @@
-function [hs, hc, contour] = plot_mesh(bnd, varargin)
+function plot_mesh(bnd, varargin)
 
 % PLOT_MESH visualizes the information of a mesh contained in the first
 % argument bnd. The boundary argument (bnd) contains typically 2 fields
@@ -35,6 +35,12 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.18  2009/06/16 12:19:04  crimic
+% erased output graphic handles
+%
+% Revision 1.17  2009/06/15 15:48:21  roboos
+% fixed handling in case input does not have a triangulation
+%
 % Revision 1.16  2009/06/08 11:52:55  crimic
 % updates single points' vertexcolor property
 %
@@ -77,17 +83,7 @@ function [hs, hc, contour] = plot_mesh(bnd, varargin)
 %
 
 % FIXME: introduce option for color coding (see sourceplot)
-
-
-if ~isfield(bnd,'pnt') && ~isfield(bnd,'tri')
-  warning('First argument must be a boundary structure (points, triangulation)')
-  bnd_.pnt = bnd;
-  bnd_.tri = ones(size(bnd));
-  bnd = bnd_;
-  plot_mesh(bnd_,'vertices','yes','vertexcolor','k')
-end
-
-% keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
+keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 
 % get the optional input arguments
 facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),facecolor='white';end
@@ -120,6 +116,10 @@ end
 % everything is added to the current figure
 holdflag = ishold;
 hold on
+
+if ~isfield(bnd, 'tri')
+  bnd.tri = [];
+end
 
 pnt = bnd.pnt;
 tri = bnd.tri;

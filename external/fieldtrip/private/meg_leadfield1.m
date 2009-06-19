@@ -5,7 +5,7 @@ function [varargout] = funname(varargin)
 % [lf] = meg_leadfield1(R, pos, ori)
 %
 % with input arguments
-%   R		position dipole
+%   R		  position dipole
 %   pos		position magnetometers
 %   ori		orientation magnetometers
 %
@@ -21,6 +21,9 @@ function [varargout] = funname(varargin)
 % Copyright (C) 2002-2008, Robert Oostenveld
 %
 % $Log: meg_leadfield1.m,v $
+% Revision 1.3  2009/06/17 13:38:06  roboos
+% cleaned up documentation
+%
 % Revision 1.2  2009/03/12 11:05:04  roboos
 % implemented auto-compilation of the mex file in case it is missing
 %

@@ -22,7 +22,7 @@ function [cfg] = singleplotER(cfg, varargin)
 % cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                     see CHANNELSELECTION for details
-% cfg.cohrefchannel = Name of reference-channel, only for visualizing coherence 
+% cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see TIMELOCKBASELINE or FREQBASELINE
 % cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -54,6 +54,9 @@ function [cfg] = singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.38  2009/06/17 13:44:52  roboos
+% cleaned up help
+%
 % Revision 1.37  2009/05/12 18:21:37  roboos
 % added handling of cfg.cohrefchannel='gui' for manual/interactive selection
 %

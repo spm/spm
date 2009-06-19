@@ -47,6 +47,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.36  2009/06/17 14:03:41  roboos
+% consistent handling of ginput in case figure is closed
+%
 % Revision 1.35  2009/06/05 15:30:05  crimic
 % updated help
 %
@@ -216,7 +219,7 @@ end
 % a lay structure)
 if isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && isfield(cfg.layout, 'width') && isfield(cfg.layout, 'height')
   lay = cfg.layout;
-  
+
 elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout, 'label') && (~isfield(cfg.layout, 'width') || ~isfield(cfg.layout, 'height'))
   lay = cfg.layout;
   % add width and height for multiplotting
@@ -228,7 +231,7 @@ elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout,
   mindist = min(d(:));
   lay.width  = ones(nchans,1) * mindist * 0.8;
   lay.height = ones(nchans,1) * mindist * 0.6;
-  
+
 elseif isequal(cfg.layout, 'butterfly')
   nchan       = length(data.label);
   lay.label   = data.label;
@@ -239,7 +242,7 @@ elseif isequal(cfg.layout, 'butterfly')
   lay.outline = {};
   skipscale = true; % a scale is not desired
   skipcomnt = true; % a comment is initially not desired, or at least requires more thought
-  
+
 elseif isequal(cfg.layout, 'vertical')
   nchan     = length(data.label);
   lay.label = data.label;
@@ -257,7 +260,7 @@ elseif isequal(cfg.layout, 'vertical')
   end
   lay.mask    = {};
   lay.outline = {};
-  
+
 elseif isequal(cfg.layout, 'ordered')
   nchan = length(data.label);
   ncol = ceil(sqrt(nchan))+1;
@@ -276,65 +279,65 @@ elseif isequal(cfg.layout, 'ordered')
     end
   end
   lay.label = data.label;
-  
+
   lay.label{end+1}  = 'SCALE';
   lay.width(end+1)  = 0.8 * 1/ncol;
   lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-2)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
-  
+
   lay.label{end+1}  = 'COMNT';
   lay.width(end+1)  = 0.8 * 1/ncol;
   lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-1)/ncol;
   y = 0/nrow;
-  lay.pos(end+1,:) = [x y];  
-  
-  
+  lay.pos(end+1,:) = [x y];
+
+
   % try to generate layout from other configuration options
 elseif ischar(cfg.layout) && filetype(cfg.layout, 'matlab')
   fprintf('reading layout from file %s\n', cfg.layout);
   load(cfg.layout, 'lay');
-  
+
 elseif ischar(cfg.layout) && filetype(cfg.layout, 'layout')
   fprintf('reading layout from file %s\n', cfg.layout);
   lay = readlay(cfg.layout);
-  
+
 elseif ischar(cfg.layout) && ~filetype(cfg.layout, 'layout')
   % assume that cfg.layout is an electrode file
   fprintf('creating layout from electrode file %s\n', cfg.layout);
   lay = sens2lay(read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
   lay = sens2lay(read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif ~isempty(cfg.elec) && isstruct(cfg.elec)
   fprintf('creating layout from cfg.elec\n');
   lay = sens2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif isfield(data, 'elec') && isstruct(data.elec)
   fprintf('creating layout from data.elec\n');
   lay = sens2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif ischar(cfg.gradfile)
   fprintf('creating layout from gradiometer file %s\n', cfg.gradfile);
   lay = sens2lay(read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
   fprintf('creating layout from cfg.grad\n');
   lay = sens2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
   lay = sens2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
-  
+
 elseif ~isempty(cfg.image) && isempty(cfg.layout)
   fprintf('reading background image from %s\n', cfg.image);
   img = imread(cfg.image);
   img = flipdim(img, 1); % in combination with "axis xy"
-  
+
   figure
   bw = cfg.bw;
 
@@ -352,7 +355,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   axis equal
   axis off
   axis xy
-  
+
   % get the electrode positions
   pos = zeros(0,2);
   electrodehelp = [ ...
@@ -366,13 +369,20 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   while again
     fprintf(electrodehelp)
     disp(round(pos)); % values are integers/pixels
-    [x, y, k] = ginput(1)
+    try
+      [x, y, k] = ginput(1);
+    catch
+      % this happens if the figure is closed
+      return;
+    end
+    
     switch k
       case 1
         pos = cat(1, pos, [x y]);
         % add it to the figure
         plot(x, y, 'b.');
         plot(x, y, 'yo');
+      
       case 8
         if size(pos,1)>0
           % remove the last point
@@ -386,13 +396,15 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           plot(pos(:,1), pos(:,2), 'b.');
           plot(pos(:,1), pos(:,2), 'yo');
         end
+
       case 'q'
         again = 0;
+      
       otherwise
         warning('invalid button (%d)', k);
     end
   end
-  
+
   % get the mask outline
   polygon = {};
   thispolygon = 1;
@@ -412,10 +424,15 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
     for i=1:length(polygon)
       fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
     end
-    
-    [x, y, k] = ginput(1);
+
+    try
+      [x, y, k] = ginput(1);
+    catch
+      % this happens if the figure is closed
+      return;
+    end
+
     switch k
-      
       case 1
         polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
         % add the last line segment to the figure
@@ -424,7 +441,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           y = polygon{i}([end-1 end],2);
         end
         plot(x, y, 'g.-');
-        
+
       case 8 % backspace
         if size(polygon{thispolygon},1)>0
           % remove the last point
@@ -449,7 +466,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
             plot(x, y, 'g.-');
           end
         end
-        
+
       case 'c'
         if size(polygon{thispolygon},1)>0
           % close the polygon
@@ -462,7 +479,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-        
+
       case 'q'
         if size(polygon{thispolygon},1)>0
           % close the polygon
@@ -473,15 +490,15 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           plot(x, y, 'g.-');
         end
         again = 0;
-        
+
       otherwise
         warning('invalid button (%d)', k);
     end
   end
   % remember this set of polygons as the mask
   mask = polygon;
-  
-  
+
+
   % get the outline, e.g. head shape and sulci
   polygon = {};
   thispolygon = 1;
@@ -502,10 +519,15 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
     for i=1:length(polygon)
       fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
     end
-    
-    [x, y, k] = ginput(1);
+
+    try
+      [x, y, k] = ginput(1);
+    catch
+      % this happens if the figure is closed
+      return;
+    end
+
     switch k
-      
       case 1
         polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
         % add the last line segment to the figure
@@ -514,7 +536,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           y = polygon{i}([end-1 end],2);
         end
         plot(x, y, 'm.-');
-        
+
       case 8 % backspace
         if size(polygon{thispolygon},1)>0
           % remove the last point
@@ -539,7 +561,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
             plot(x, y, 'm.-');
           end
         end
-        
+
       case 'c'
         if size(polygon{thispolygon},1)>0
           x = polygon{thispolygon}(1,1);
@@ -554,24 +576,24 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-        
+
       case 'n'
         if size(polygon{thispolygon},1)>0
           % switch to the next polygon
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
         end
-        
+
       case 'q'
         again = 0;
-        
+
       otherwise
         warning('invalid button (%d)', k);
     end
   end
   % remember this set of polygons as the outline
   outline = polygon;
-  
+
   % convert electrode positions into a layout structure
   lay.pos = pos;
   nchans = size(pos,1);
@@ -589,7 +611,7 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   % add mask and outline polygons
   lay.mask    = mask;
   lay.outline = outline;
-  
+
 else
   fprintf('reverting to 151 channel CTF default\n');
   lay = readlay('CTF151.lay');
@@ -642,7 +664,7 @@ end
 if ~strcmp(cfg.montage, 'no')
   Norg = length(cfg.montage.labelorg);
   Nnew = length(cfg.montage.labelnew);
-  
+
   for i=1:Nnew
     cfg.montage.tra(i,:) = abs(cfg.montage.tra(i,:));
     cfg.montage.tra(i,:) = cfg.montage.tra(i,:) ./ sum(cfg.montage.tra(i,:));
@@ -748,7 +770,7 @@ if isempty(rz)
       rz = 90;
     case {'neuromag122', 'neuromag306'}
       rz = 0;
-    case 'electrode'  
+    case 'electrode'
       rz = 90;
     otherwise
       rz = 0;
@@ -760,19 +782,19 @@ sens.pnt = warp_apply(rotate([0 0 rz]), sens.pnt, 'homogenous');
 [pnt, label] = channelposition(sens);
 
 if strcmpi(style, '3d')
-    lay.pos   = pnt;
-    lay.label = label;
+  lay.pos   = pnt;
+  lay.label = label;
 else
-    prj = elproj(pnt, method);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X = prj(:,1);
-    Y = prj(:,2);
-    Width  = ones(size(X)) * mindist * 0.8;
-    Height = ones(size(X)) * mindist * 0.6;
-    lay.pos    = [X Y];
-    lay.width  = Width;
-    lay.height = Height;
-    lay.label  = label;
-end 
+  prj = elproj(pnt, method);
+  d = dist(prj');
+  d(find(eye(size(d)))) = inf;
+  mindist = min(d(:));
+  X = prj(:,1);
+  Y = prj(:,2);
+  Width  = ones(size(X)) * mindist * 0.8;
+  Height = ones(size(X)) * mindist * 0.6;
+  lay.pos    = [X Y];
+  lay.width  = Width;
+  lay.height = Height;
+  lay.label  = label;
+end

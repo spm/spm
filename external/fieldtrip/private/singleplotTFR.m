@@ -23,7 +23,7 @@ function [cfg] = singleplotTFR(cfg, data)
 % cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 % cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                     see CHANNELSELECTION for details
-% cfg.cohrefchannel = Name of reference-channel, only for visualizing coherence 
+% cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.fontsize      = font size of title (default = 8)
 % cfg.colormap      = any sized colormap, see COLORMAP
 % cfg.colorbar      = 'yes', 'no' (default = 'yes')
@@ -44,6 +44,9 @@ function [cfg] = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.35  2009/06/17 13:44:52  roboos
+% cleaned up help
+%
 % Revision 1.34  2009/05/12 18:47:23  roboos
 % added general suppoprt for cfg.cohrefchannel and
 % added handling of cfg.cohrefchannel='gui' for manual/interactive selection

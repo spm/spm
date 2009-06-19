@@ -47,6 +47,9 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.15  2009/06/17 13:40:37  roboos
+% small change in the order of the code for subspace projection
+%
 % Revision 1.14  2009/05/14 19:25:12  roboos
 % added a FIXME comment
 %
@@ -263,6 +266,13 @@ switch submethod
         % compute the leadfield
         lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
       end
+      if isfield(dip, 'subspace')
+        % do subspace projection of the forward model
+        lf = dip.subspace{i} * lf;
+        % the cross-spectral density becomes voxel dependent due to the projection
+        Cf    = dip.subspace{i} * Cf_pre_subspace * dip.subspace{i}';
+        invCf = pinv(dip.subspace{i} * (Cf_pre_subspace + lambda * eye(size(Cf))) * dip.subspace{i}');
+      end
       if fixedori
         % compute the leadfield for the optimal dipole orientation
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
@@ -271,13 +281,6 @@ switch submethod
         eta = u(:,1);
         lf  = lf * eta;
         dipout.ori{i} = eta;
-      end
-      if isfield(dip, 'subspace')
-        % do subspace projection of the forward model
-        lf = dip.subspace{i} * lf;
-        % the cross-spectral density becomes voxel dependent due to the projection
-        Cf    = dip.subspace{i} * Cf_pre_subspace * dip.subspace{i}';
-        invCf = pinv(dip.subspace{i} * (Cf_pre_subspace + lambda * eye(size(Cf))) * dip.subspace{i}');
       end
       if isfield(dip, 'filter')
         % use the provided filter
@@ -327,6 +330,13 @@ switch submethod
         % compute the leadfield
         lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize);
       end
+      if isfield(dip, 'subspace')
+        % do subspace projection of the forward model
+        lf = dip.subspace{i} * lf;
+        % the cross-spectral density becomes voxel dependent due to the projection
+        Cf    = dip.subspace{i} * Cf_pre_subspace * dip.subspace{i}';
+        invCf = pinv(dip.subspace{i} * (Cf_pre_subspace + lambda * eye(size(Cf))) * dip.subspace{i}');
+      end
       if fixedori
         % compute the leadfield for the optimal dipole orientation
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
@@ -335,14 +345,6 @@ switch submethod
         eta = u(:,1);
         lf  = lf * eta;
         dipout.ori{i} = eta;
-      end
-      if isfield(dip, 'subspace')
-        % do subspace projection of the forward model
-        lf = dip.subspace{i} * lf;
-        % the cross-spectral density becomes voxel dependent due to the projection
-        Cr    = dip.subspace{i} * Cr_pre_subspace;
-        Cf    = dip.subspace{i} * Cf_pre_subspace * dip.subspace{i}';
-        invCf = pinv(dip.subspace{i} * (Cf_pre_subspace + lambda * eye(size(Cf))) * dip.subspace{i}');
       end
       if isfield(dip, 'filter')
         % use the provided filter
@@ -358,6 +360,7 @@ switch submethod
       end
       csd = filt*Cr;                                                   % Gross eqn. 6
       if powlambda1
+        % FIXME this should use the dipole orientation with maximum power
         coh = lambda1(csd)^2 / (pow * Pr);                             % Gross eqn. 9
       elseif powtrace
         coh = norm(csd)^2 / (pow * Pr);
@@ -504,7 +507,7 @@ ori = u(:,1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.14 $  $Date: 2009/05/14 19:25:12 $
+%   $Revision: 1.15 $  $Date: 2009/06/17 13:40:37 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -18,7 +18,7 @@ function [cfg] = topoplotTFR(cfg, varargin)
 % cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
 % cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.zlim          = 'maxmin', 'absmax' or [zmin zmax] (default = 'maxmin')
-% cfg.cohrefchannel = Name of reference-channel, only for visualizing coherence 
+% cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FREQBASELINE
 % cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -57,6 +57,9 @@ function [cfg] = topoplotTFR(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotTFR.m,v $
+% Revision 1.21  2009/06/17 13:44:52  roboos
+% cleaned up help
+%
 % Revision 1.20  2008/12/16 15:31:42  sashae
 % plot functions can now give cfg as output
 % added checkconfig to start and end of function, configtracking possible

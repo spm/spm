@@ -86,6 +86,8 @@ function [data] = preprocessing(cfg, data);
 % Undocumented local options:
 % cfg.artfctdef
 % cfg.removemcg
+% cfg.output.dataset
+% cfg.output.dataformat
 %
 % This function depends on PREPROC which has the following options:
 % cfg.absdiff
@@ -125,6 +127,12 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.108  2009/06/17 13:44:14  roboos
+% fixed output label in case of rereferencing with a montage
+%
+% Revision 1.107  2009/06/17 10:14:26  roboos
+% added support for preprocessing data from disk and immediate writing to disk (trial by trial), which allows for preprocessing very large datasets without having them completely in memory (e.g. rereferencing sdma datasets)
+%
 % Revision 1.106  2009/01/28 10:24:04  jansch
 % changed dataformat in call to checkdata into datatype
 %
@@ -384,20 +392,20 @@ if nargin>1
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % do preprocessing of data that has already been read
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   % the input data must be raw
   data = checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes');
-
+  
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
-
+  
   if cfg.padding>0
     error('cfg.padding should be zero, since filter padding is only possible while reading the data from file');
   end
-
+  
   % set the defaults
   if ~isfield(cfg, 'trials'), cfg.trials = 'all'; end
-
+  
   % select trials of interest
   if ~strcmp(cfg.trials, 'all')
     if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
@@ -406,23 +414,40 @@ if nargin>1
     data.time   = data.time(cfg.trials);
     data.offset = data.offset(cfg.trials);
   end
-
+  
   % translate the channel groups (like 'all' and 'MEG') into real labels
   cfg.channel = channelselection(cfg.channel, data.label);
   rawindx = match_str(data.label, cfg.channel);
-
+  
   % this will contain the newly processed data
   dataout = [];
-
+  
   progress('init', cfg.feedback, 'preprocessing');
   ntrl = length(data.trial);
   for i=1:ntrl
     progress(i/ntrl, 'preprocessing trial %d from %d\n', i, ntrl);
     % do the preprocessing on the selected channels
     [dataout.trial{i}, dataout.label, dataout.time{i}, cfg] = preproc(data.trial{i}(rawindx,:), data.label(rawindx), data.fsample, cfg, data.offset(i));
+    
+    if isfield(cfg, 'output') && ~isempty(cfg.output)
+      % write the processed data to file
+      newhdr        = [];
+      newhdr.Fs     = hdr.Fs;
+      newhdr.label  = label;
+      newhdr.nChans = length(newhdr.label);
+      
+      % only append for the second and consecutive trials
+      write_data(cfg.output.dataset, dataout.trial{i}, 'dataformat', cfg.output.dataformat, 'header', newhdr, 'append', i~=1);
+      
+      if nargout==0
+        % don't keep the data in memory
+        dataout.trial{i} = [];
+      end
+    end
+    
   end % for all trials
   progress('close');
-
+  
   % update the trial definition (trl) in case of trial selection
   if ~strcmp(cfg.trials, 'all')
     % try to locate the trl in the nested configuration
@@ -442,37 +467,37 @@ if nargin>1
   
   % get the output cfg
   cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
+  
   % remember the configuration details of the input data
   if isfield(data, 'cfg'); cfg.previous = data.cfg; end
-
+  
   % take along relevant fields of input data to output data
   if isfield(data, 'hdr');      dataout.hdr     = data.hdr;         end
   if isfield(data, 'fsample');  dataout.fsample = data.fsample;     end
   if isfield(data, 'grad');     dataout.grad    = data.grad;        end
   if isfield(data, 'elec');     dataout.elec    = data.elec;        end
-
+  
   % replace the input data with the output data
   data = dataout;
-
+  
 else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % read the data from file and do the preprocessing
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   if isfield(cfg, 'trialdef') && ~isfield(cfg, 'trl')
     error('you must call DEFINETRIAL prior to PREPROCESSING');
   end
-
+  
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
   cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
-
+  
   % read the header
   hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
-
+  
   % this option relates to reading over trial boundaries in a pseudo-continuous dataset
   if ~isfield(cfg, 'continuous')
     if hdr.nTrials==1
@@ -481,32 +506,32 @@ else
       cfg.continuous = 'no';
     end
   end
-
+  
   % this should be a cell array
   if ~iscell(cfg.channel) && ischar(cfg.channel)
     cfg.channel = {cfg.channel};
   end
-
+  
   % this should be a cell array
   if ~iscell(cfg.refchannel) && ischar(cfg.refchannel)
     cfg.refchannel = {cfg.refchannel};
   end
-
+  
   % do a sanity check for the re-referencing
   if strcmp(cfg.reref, 'no') && ~isempty(cfg.refchannel)
     warning('no re-referencing is performed');
     cfg.refchannel = {};
   end
-
+  
   % translate the channel groups (like 'all' and 'MEG') into real labels
   cfg.channel = channelselection(cfg.channel, hdr.label);
-
+  
   if ~isempty(cfg.implicitref)
     % add the label of the implicit reference channel to these cell-arrays
     cfg.channel    = {cfg.channel{:} cfg.implicitref};
   end
   cfg.refchannel = channelselection(cfg.refchannel, cfg.channel);
-
+  
   % determine the length in samples to which the data should be padded before filtering is applied
   % the filter padding is done by reading a longer segment of data from the original data file
   if cfg.padding>0
@@ -527,7 +552,7 @@ else
     % no padding was requested
     padding = 0;
   end
-
+  
   if ~isfield(cfg, 'trl')
     % treat the data as continuous if possible, otherwise define all trials as indicated in the header
     if strcmp(cfg.continuous, 'yes')
@@ -545,7 +570,7 @@ else
     end
     cfg.trl = trl;
   end
-
+  
   if any(strmatch('reject',       fieldnames(cfg))) || ...
       any(strmatch('rejecteog',    fieldnames(cfg))) || ...
       any(strmatch('rejectmuscle', fieldnames(cfg))) || ...
@@ -553,12 +578,12 @@ else
     % this is only for backward compatibility
     error('you should call REJECTARTIFACT prior to PREPROCESSING, please update your scripts');
   end
-
+  
   ntrl = size(cfg.trl,1);
   if ntrl<1
     error('no trials were selected for preprocessing, see DEFINETRIAL for help');
   end
-
+  
   % compute the template for MCG and the QRS latency indices, and add it to the configuration
   if strcmp(cfg.removemcg, 'yes')
     cfg = template_mcg(cfg);
@@ -568,10 +593,10 @@ else
       fprintf('removing mcg on channel %s\n', mcgchannel{i});
     end
   end
-
+  
   % determine the channel numbers of interest for preprocessing
   [chnindx, rawindx] = match_str(cfg.channel, hdr.label);
-
+  
   progress('init', cfg.feedback, 'reading and preprocessing');
   for i=1:ntrl
     progress(i/ntrl, 'reading and preprocessing trial %d from %d\n', i, ntrl);
@@ -600,29 +625,45 @@ else
         endsample  = hdr.nSamples*hdr.nTrials;
       end
     end
-
+    
     % ONLY RELEVANT FOR NEUROSCAN CNT
     if ~isfield(cfg, 'nsdf')
       hdr.nsdf=16;
     else
       hdr.nsdf=cfg.nsdf;
     end
-
+    
     % read the raw data with padding on both sides of the trial
     dat = read_data(cfg.datafile, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', rawindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
-
+    
     % do the preprocessing on the padded trial data and remove the padding after filtering
     [cutdat{i}, label, time{i}, cfg] = preproc(dat, hdr.label(rawindx), hdr.Fs, cfg, cfg.trl(i,3), begpadding, endpadding);
-
+    
+    if isfield(cfg, 'output') && ~isempty(cfg.output)
+      % write the processed data to file
+      newhdr        = [];
+      newhdr.Fs     = hdr.Fs;
+      newhdr.label  = label;
+      newhdr.nChans = length(newhdr.label);
+      
+      % only append for the second and consecutive trials
+      write_data(cfg.output.dataset, cutdat{i}, 'dataformat', cfg.output.dataformat, 'header', newhdr, 'append', i~=1);
+      
+      if nargout==0
+        % don't keep the data in memory
+        cutdat{i} = [];
+      end
+    end
+    
     % ONLY RELEVANT FOR NEUROSCAN CNT
     hdr=rmfield(hdr,'nsdf');
-
+    
   end % for all trials
   progress('close');
-
+  
   % collect the results
   data.hdr                = hdr;                  % header details of the datafile
-  data.label              = cfg.channel;          % labels of channels that have been read
+  data.label              = label;                % labels of channels that have been read, can be different from labels in file due to montage
   data.trial              = cutdat;               % cell-array with TIMExCHAN
   data.time               = time;                 % vector with the timeaxis for each individual trial
   data.fsample            = hdr.Fs;
@@ -632,7 +673,7 @@ else
   
   % get the output cfg
   cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
+  
 end % if nargin>1
 
 % add the version details of this function call to the configuration
@@ -644,7 +685,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.106 2009/01/28 10:24:04 jansch Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.108 2009/06/17 13:44:14 roboos Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

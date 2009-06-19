@@ -21,7 +21,7 @@ function [cfg] = multiplotTFR(cfg, data)
 % cfg.xlim             = 'maxmin' or [xmin xmax] (default = 'maxmin')
 % cfg.ylim             = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.zlim             = 'maxmin','absmax' or [zmin zmax] (default = 'maxmin')
-% cfg.cohrefchannel    = Name of reference-channel, only for visualizing coherence 
+% cfg.cohrefchannel    = name of reference channel for visualising coherence, can be 'gui'
 % cfg.baseline         = 'yes','no' or [time1 time2] (default = 'no'), see FREQBASELINE
 % cfg.baselinetype     = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials           = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -73,6 +73,9 @@ function [cfg] = multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.49  2009/06/17 13:44:52  roboos
+% cleaned up help
+%
 % Revision 1.48  2009/05/12 18:48:15  roboos
 % added handling of cfg.cohrefchannel='gui' for manual/interactive selection
 % changed default for cfg.renderer -> let matlab decide

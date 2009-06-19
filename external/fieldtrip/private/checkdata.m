@@ -33,6 +33,10 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.13  2009/06/15 12:56:23  roboos
+% added a fixcoh function (for sparse->full)
+% added some explicit error handling to fixcsd function
+%
 % Revision 1.12  2009/04/17 09:12:12  jansch
 % fixed bug in freq2raw and another typo in source2volume
 %
@@ -542,7 +546,7 @@ if issource || isvolume,
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the source reconstructed parameters
   dim = [data.dim 1];
-  
+
   param = parameterselection('all', data);
   for i=1:length(param)
     if any(param{i}=='.')
@@ -611,10 +615,12 @@ end % if hasdof
 if ~isempty(cmbrepresentation)
   if istimelock
     data = fixcov(data, cmbrepresentation);
-  elseif isfreq
+  elseif isfreq &&  isfield(data, 'cohspctrm')
+    data = fixcoh(data, cmbrepresentation, channelcmb);
+  elseif isfreq && ~isfield(data, 'cohspctrm')
     data = fixcsd(data, cmbrepresentation, channelcmb);
   else
-    error('This function requires data with a covariance or cross-spectrum');
+    error('This function requires data with a covariance, coherence or cross-spectrum');
   end
 end % cmbrepresentation
 
@@ -626,9 +632,9 @@ end
 % represent the covariance matrix in a particular manner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = fixcov(data, desired)
-if isfield(data, 'cov') && ~isfield(data, 'labelcmb')
+if isfield(data, 'cov')     && ~isfield(data, 'labelcmb')
   current = 'full';
-elseif isfield(data, 'cov') && isfield(data, 'labelcmb')
+elseif isfield(data, 'cov') &&  isfield(data, 'labelcmb')
   current = 'sparse';
 else
   error('Could not determine the current representation of the covariance matrix');
@@ -637,31 +643,87 @@ if isequal(current, desired)
   % nothing to do
 elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
   % FIXME should be implemented
+  error('not yet implemented');
 elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
   % FIXME should be implemented
+  error('not yet implemented');
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% represent the covariance matrix in a particular manner
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = fixcoh(data, desired, channelcmb)
+if isfield(data, 'cohspctrm')     && ~isfield(data, 'labelcmb')
+  current = 'full';
+elseif isfield(data, 'cohspctrm') &&  isfield(data, 'labelcmb')
+  current = 'sparse';
+else
+  error('Could not determine the current representation of the coherence');
+end
+if isequal(current, desired)
+  % nothing to do
+elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
+  % FIXME should be implemented
+  error('not yet implemented');
+
+elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
+  nchan     = length(data.label);
+  cmbindx   = zeros(nchan);
+  for k = 1:size(data.labelcmb,1)
+    ch1 = find(strcmp(data.label, data.labelcmb(k,1)));
+    ch2 = find(strcmp(data.label, data.labelcmb(k,2)));
+    if ~isempty(ch1) && ~isempty(ch2), cmbindx(ch1,ch2) = k; end
+  end
+  cohspctrm = nan(nchan,nchan,nfrq,ntim);
+  for k = 1:ntim
+    for m = 1:nfrq
+      tmpdat = nan+zeros(nchan);
+      tmpdat(find(cmbindx)) = data.cohspctrm(cmbindx(find(cmbindx)),m,k);
+      tmpdat                = ctranspose(tmpdat);
+      tmpdat(find(cmbindx)) = data.cohspctrm(cmbindx(find(cmbindx)),m,k);
+      cohspctrm(:,:,m,k)    = tmpdat;
+    end
+  end
+  % remove obsolete fields
+  data           = rmfield(data, 'powspctrm');
+  data           = rmfield(data, 'labelcmb');
+  % replace updated fields
+  data.cohspctrm = cohspctrm;
+  try, data      = rmfield(data, 'dof'); end
+  if ntim>1,
+    data.dimord = 'chan_chan_freq_time';
+  else
+    data.dimord = 'chan_chan_freq';
+  end
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the cross-spectral-density matrix in a particular manner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = fixcsd(data, desired, channelcmb)
-if isfield(data, 'powspctrm')
+if isfield(data, 'crsspctrm')         && isfield(data, 'powspctrm')
   current = 'sparsewithpow';
-elseif isfield(data, 'crsspctrm') && ~isfield(data, 'labelcmb')
+elseif isfield(data, 'crsspctrm')     && ~isfield(data, 'labelcmb')
   current = 'full';
-elseif isfield(data, 'crsspctrm') && isfield(data, 'labelcmb')
+elseif isfield(data, 'crsspctrm')     &&  isfield(data, 'labelcmb')
   current = 'sparse';
 elseif isfield(data, 'fourierspctrm') && ~isfield(data, 'labelcmb')
   current = 'fourier';
 else
   error('Could not determine the current representation of the cross-spectrum matrix');
 end
+
 if isequal(current, desired)
   % nothing to do
+
 elseif (strcmp(current, 'full')    && strcmp(desired, 'sparsewithpow'))
+  error('not yet implemented');
 
 elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
-
   % this is what freqdescriptives currently does as an intermediate step
   dimtok = tokenize(data.dimord, '_');
   if ~isempty(strmatch('rpttap',   dimtok)),
@@ -735,19 +797,21 @@ elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
   end
   if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
 
-
 elseif (strcmp(current, 'sparse')  && strcmp(desired, 'sparsewithpow'))
   % convert back to crsspctrm/powspctrm representation: useful for plotting functions etc
+  error('not yet implemented');
 
-
-elseif (strcmp(current, 'full')          && strcmp(desired, 'fourier')) || ...
+elseif (strcmp(current, 'full')       && strcmp(desired, 'fourier')) || ...
     (strcmp(current, 'sparse')        && strcmp(desired, 'fourier')) || ...
     (strcmp(current, 'sparsewithpow') && strcmp(desired, 'fourier'))
   % this is not possible
+  error('converting the cross-spectrum into a Fourier representation is not possible');
 
 elseif strcmp(current, 'full')          && strcmp(desired, 'sparse')
   % why would you want this? FIXME give explicit error
-elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
+  error('not yet implemented');
+
+elseif strcmp(current, 'fourier') && strcmp(desired, 'sparse')
 
   if isempty(channelcmb), error('no channel combinations are specified'); end
   % this is what freqdescriptives currently does as an intermediate step
@@ -776,7 +840,7 @@ elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
   crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
   sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
   %for k = 1:ntim
-  %  for m = 1:nfrq
+  %for m = 1:nfrq
   %for p = 1:nrpt
   %  indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
   %  tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
@@ -789,7 +853,7 @@ elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
     tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
     crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
   end
-  %  end
+  %end
   %end
   data.crsspctrm = crsspctrm;
   data.labelcmb  = labelcmb;
@@ -949,11 +1013,11 @@ function data = source2volume(data)
 
 if isfield(data, 'dimord')
   % it is a modern source description
-  
-  %this part depends on the assumption that the list of positions is describing a full 3D volume in 
+
+  %this part depends on the assumption that the list of positions is describing a full 3D volume in
   %an ordered way which allows for the extraction of a transformation matrix
   %i.e. slice by slice
-  try, 
+  try,
     data.dim = pos2dim3d(data.pos, data.dim);
   catch
   end
@@ -967,7 +1031,7 @@ if isfield(data, 'dim') && length(data.dim)>=3,
   [x y z] = ndgrid(xgrid, ygrid, zgrid);
   ind = [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
   pos = data.pos;            % these are the positions expressed in head coordinates
-  % represent the positions in a manner that is compatible with the homogeneous matrix multiplication, 
+  % represent the positions in a manner that is compatible with the homogeneous matrix multiplication,
   % i.e. pos = H * ind
   ind = ind'; ind(4,:) = 1;
   pos = pos'; pos(4,:) = 1;

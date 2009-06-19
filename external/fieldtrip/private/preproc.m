@@ -96,6 +96,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.36  2009/06/17 10:12:26  roboos
+% cfg.montage=[] should also work (just like 'no')
+%
 % Revision 1.35  2009/03/13 13:24:00  jansch
 % added support for preproc_denoise
 %
@@ -340,7 +343,7 @@ if strcmp(cfg.reref, 'yes'),
   dat = preproc_rereference(dat, refindx);
 end
 
-if ~strcmp(cfg.montage, 'no')
+if ~strcmp(cfg.montage, 'no') && ~isempty(cfg.montage)
   % this is an alternative approach for rereferencing, with arbitrary complex linear combinations of channels
   tmp.trial = {dat};
   tmp.label = label;

@@ -14,7 +14,7 @@ function [cfg] = topoplotER(cfg, varargin)
 %                     'avg', 'powspctrm' or 'cohspctrm' (default depends on data.dimord)
 % cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
 % cfg.zlim          = 'maxmin', 'absmax' or [zmin zmax] (default = 'maxmin')
-% cfg.cohrefchannel = Name of reference-channel, only for visualizing coherence 
+% cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see TIMELOCKBASELINE or FREQBASELINE
 % cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -71,6 +71,12 @@ function [cfg] = topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.56  2009/06/17 14:05:25  roboos
+% use ischar instead of isstr
+%
+% Revision 1.55  2009/06/17 13:44:52  roboos
+% cleaned up help
+%
 % Revision 1.54  2009/05/12 18:58:49  roboos
 % added handling of cfg.cohrefchannel='gui' for manual/interactive selection
 %
@@ -460,7 +466,7 @@ elseif strcmp(cfg.comment, 'xlim')
     comment = sprintf('%0s=[%.3g %.3g]', cfg.xparam, cfg.xlim(1), cfg.xlim(2));
   end
   cfg.comment = comment;
-elseif ~isstr(cfg.comment)
+elseif ~ischar(cfg.comment)
   error('cfg.comment must be string');
 end
 

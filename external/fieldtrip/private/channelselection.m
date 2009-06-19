@@ -48,6 +48,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2009, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.37  2009/06/19 16:51:30  vlalit
+% Added biosemi64 system of  Diane Whitmer, I don't know how generic it is.
+%
 % Revision 1.36  2009/02/18 07:57:07  roboos
 % added support for selection based on wildcards (like 'C*' and '*1')
 %
@@ -219,7 +222,7 @@ switch senstype(datachannel)
     labelmeg = datachannel(strncmp('MEG', datachannel, length('MEG')));
     labeleeg = datachannel(strncmp('EEG', datachannel, length('EEG')));
 
-  case {'biosemi128', 'biosemi256', 'egi64', 'egi128', 'egi256', 'ext1020'}
+  case {'biosemi64', 'biosemi128', 'biosemi256', 'egi64', 'egi128', 'egi256', 'ext1020'}
     % use an external helper function to define the list with EEG channel names
     labeleeg = senslabel(senstype(datachannel));
 

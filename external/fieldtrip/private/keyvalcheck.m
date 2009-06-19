@@ -12,6 +12,9 @@ function keyvalcheck(arglist, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: keyvalcheck.m,v $
+% Revision 1.2  2009/06/15 14:23:26  roboos
+% only check an option if specified (i.e. non-empty)
+%
 % Revision 1.1  2009/04/14 19:37:44  roboos
 % new helper function, used in plot_xxx functions
 %
@@ -27,17 +30,26 @@ if numel(keys)~=numel(vals)
   error('optional input arguments should come in key-value pairs, i.e. there should be an even number');
 end
 
-set = intersect(keys, required);
-if numel(set)~=numel(required)
-  error('the required input argument ''%s'' was not specified', set{:});
+if ~isempty(required)
+  % only check if specified
+  set = intersect(keys, required);
+  if numel(set)~=numel(required)
+    error('the required input argument ''%s'' was not specified', set{:});
+  end
 end
 
-set = intersect(keys, forbidden);
-if numel(set)~=0
-  error('the input argument ''%s'' is forbidden', set{:});
+if ~isempty(forbidden)
+  % only check if specified
+  set = intersect(keys, forbidden);
+  if numel(set)~=0
+    error('the input argument ''%s'' is forbidden', set{:});
+  end
 end
 
-set = setdiff(keys, optional);
-if numel(set)>0
-  error('the input argument ''%s'' is forbidden', set{:});
+if ~isempty(optional)
+  % only check if specified
+  set = setdiff(keys, optional);
+  if numel(set)>0
+    error('the input argument ''%s'' is forbidden', set{:});
+  end
 end

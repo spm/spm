@@ -13,6 +13,9 @@ function plot_matrix(varargin)
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_matrix.m,v $
+% Revision 1.5  2009/06/16 07:51:51  crimic
+% small change
+%
 % Revision 1.4  2009/04/15 20:02:17  roboos
 % changed input parsing, fixed 1-pixel offset, added box option
 %
@@ -102,8 +105,8 @@ else
   autoheight = false;
 end
 
-hlim
-vlim
+% hlim
+% vlim
 
 % first shift the horizontal axis to zero
 hdat = hdat - (hlim(1)+hlim(2))/2;

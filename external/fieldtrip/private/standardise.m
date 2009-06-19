@@ -1,4 +1,4 @@
-function x = standardise(x,dim)
+function [x,mx,sx] = standardise(x,dim)
 
 % X = STANDARDISE(X, DIM) computes the zscore of a matrix along dimension dim
 % has extended functionality as compared to the stats-toolbox's zscore function
@@ -6,9 +6,15 @@ function x = standardise(x,dim)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: standardise.m,v $
+% Revision 1.2  2009/06/16 15:44:29  jansch
+% added automatic dim detection (first non singular dimension) for nargin==1.
+% added mean and std to output
+%
 % Revision 1.1  2009/05/19 15:59:11  jansch
 % first commitment into cvs
 %
+
+if nargin == 1, dim = find(size(x)>1,1,'first'); end
 
 n      = size(x,dim);
 mx     = mean(x,dim);
