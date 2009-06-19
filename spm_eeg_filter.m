@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3086 2009-04-26 21:14:59Z christophe $
+% $Id: spm_eeg_filter.m 3213 2009-06-19 16:49:42Z vladimir $
 
-SVNrev = '$Rev: 3086 $';
+SVNrev = '$Rev: 3213 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -200,9 +200,6 @@ else
                 d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
             end
         end
-
-        % base line correction
-        d(Fchannels, :) = d(Fchannels, :) - repmat(mean(d(Fchannels, 1:indsample(D,0)), 2), 1, D.nsamples);
 
         Dnew(:, 1:Dnew.nsamples, i) = d;
 
