@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.95  2009/06/17 13:43:20  roboos
+% don't include LastTimeStamp in output
+%
 % Revision 1.94  2009/04/20 17:19:01  vlalit
 % Changed the MNE reader not to set hdr.elec when there are no EEG channels.
 %
@@ -1006,7 +1009,6 @@ switch headerformat
     LastTimeStamp   = ncs.hdr.LastTimeStamp;   % this is the first timestamp of the last block, i.e. not the timestamp of the last sample
     hdr.TimeStampPerSample = double(LastTimeStamp - FirstTimeStamp) ./ ((ncs.NRecords-1)*512);
     hdr.FirstTimeStamp     = FirstTimeStamp;
-    hdr.LastTimeStamp      = LastTimeStamp + uint64((512-1)*hdr.TimeStampPerSample);
 
   case 'neuralynx_nse'
     nse = read_neuralynx_nse(filename, 1, 0);
@@ -1018,7 +1020,7 @@ switch headerformat
     hdr.nSamples    = 32;            % there are 32 samples in each waveform
     hdr.nSamplesPre = 0;
     hdr.orig        = nse.hdr;
-    % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
+    % FIXME add hdr.FirstTimeStamp and hdr.TimeStampPerSample
 
   case {'neuralynx_ttl', 'neuralynx_tsl', 'neuralynx_tsh'}
     % these are hardcoded, they contain an 8-byte header and int32 values for a single channel
@@ -1361,7 +1363,6 @@ switch headerformat
     % the timestamps indicate the beginning of each block, hence the timestamp of the last block corresponds with the end of the previous block
     hdr.TimeStampPerSample = double(ts(end)-ts(1))/sum(num(1:(end-1)));
     hdr.FirstTimeStamp     = ts(1);                                                %  the timestamp of the first continuous sample
-    hdr.LastTimeStamp      = ts(end) + uint64(hdr.TimeStampPerSample * num(end));  % the timestamp of the last sample (not the beginning of the last block)
 
     % also make the spike channels visible
     for i=1:length(orig.ChannelHeader)

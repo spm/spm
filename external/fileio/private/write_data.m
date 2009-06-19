@@ -24,12 +24,16 @@ function write_data(filename, dat, varargin)
 %   fcdc_buffer
 %   plexon_nex
 %   neuralynx_ncs
+%   neuralynx_sdma
 %
 % See also READ_HEADER, READ_DATA, READ_EVEN, WRITE_EVENT
 
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.23  2009/06/17 10:15:43  roboos
+% added support for neuralynx_sdma, only for 32 bit integer data
+%
 % Revision 1.22  2009/05/19 18:29:48  roboos
 % give instructive error if the fieldtrip buffer mex file is not on the path
 %
@@ -126,7 +130,7 @@ switch dataformat
   case 'disp'
     % display it on screen, this is only for debugging
     disp('new data arived');
-
+    
   case 'fcdc_global'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % store it in a global variable, this is only for debugging
@@ -139,21 +143,21 @@ switch dataformat
     else
       data_queue = cat(2, data_queue, dat);
     end
-
+    
   case 'fcdc_buffer'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % network transparent buffer
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    
     if ~isempty(chanindx)
       % assume that the header corresponds to the original multichannel
       % file and that the data represents a subset of channels
       hdr.label  = hdr.label(chanindx);
       hdr.nChans = length(chanindx);
     end
-
+    
     [host, port] = filetype_check_uri(filename);
-
+    
     type = {
       'char'
       'uint8'
@@ -167,7 +171,7 @@ switch dataformat
       'single'
       'double'
       };
-
+    
     wordsize = {
       1 % 'char'
       1 % 'uint8'
@@ -181,7 +185,7 @@ switch dataformat
       4 % 'single'
       8 % 'double'
       };
-
+    
     % this should only be done the first time
     if ~append && ~isempty(hdr)
       % reformat the header into a buffer-compatible format
@@ -190,25 +194,25 @@ switch dataformat
       packet.nsamples  = 0;
       packet.nevents   = 0;
       packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
-
+      
       % try to put_hdr and initialize if necessary
       try
         % try writing the packet
         buffer('put_hdr', packet, host, port);
-
+        
       catch
         if ~isempty(strfind(lasterr, 'Buffer size N must be an integer-valued scalar double.'))
           % this happens if the MATLAB75/toolbox/signal/signal/buffer
           % function is used instead of the fieldtrip buffer
           error('the FieldTrip buffer mex file was not found on your path, it should be in fieldtrip/fileio/private');
-
+          
         elseif ~isempty(strfind(lasterr, 'failed to create socket')) && (strcmp(host, 'localhost') || strcmp(host, '127.0.0.1'))
-
+          
           % start a local instance of the TCP server
           warning('starting fieldtrip buffer on %s:%d', host, port);
           buffer('tcpserver', 'init', host, port);
           pause(1);
-
+          
           % rewrite the packet until success
           success = false;
           while ~success
@@ -222,11 +226,11 @@ switch dataformat
             end
           end
         end % if strfind...
-
+        
       end % try
-
+      
     end % writing header
-
+    
     if ~isempty(dat)
       max_nsamples = 32556;
       if size(dat,2)>max_nsamples
@@ -257,7 +261,7 @@ switch dataformat
         buffer('put_dat', packet, host, port);
       end % if data larger than chuncksize
     end
-
+    
   case 'brainvision_eeg'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % combination of *.eeg and *.vhdr file
@@ -265,7 +269,7 @@ switch dataformat
     if append
       error('appending data is not yet supported for this data format');
     end
-
+    
     if nchans~=hdr.nChans && length(chanindx)==nchans
       % assume that the header corresponds to the original multichannel
       % file and that the data represents a subset of channels
@@ -277,7 +281,7 @@ switch dataformat
     %   hdr.nChans
     %   hdr.Fs
     write_brainvision_eeg(filename, hdr, dat);
-
+    
   case 'fcdc_matbin'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % multiplexed data in a *.bin file (ieee-le, 64 bit floating point values),
@@ -286,7 +290,7 @@ switch dataformat
     if append
       error('appending data is not yet supported for this data format');
     end
-
+    
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
@@ -302,7 +306,7 @@ switch dataformat
     [fid,message] = fopen(datafile,'wb','ieee-le');
     fwrite(fid, dat, 'double');
     fclose(fid);
-
+    
   case 'fcdc_mysql'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % write to a MySQL server listening somewhere else on the network
@@ -329,7 +333,7 @@ switch dataformat
         end
         db_insert('fieldtrip.header', s);
       end
-
+      
     elseif isempty(hdr) && ~isempty(dat)
       dim = size(dat);
       if numel(dim)==2
@@ -356,11 +360,11 @@ switch dataformat
           db_insert('fieldtrip.data', s);
         end
       end
-
+      
     else
       error('you should specify either the header or the data when writing to a MySQL database');
     end
-
+    
   case 'matlab'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % plain matlab file
@@ -385,7 +389,104 @@ switch dataformat
       % file does not yet exist, which is not a problem
     end
     save(filename, 'dat', 'hdr');
-
+    
+  case 'neuralynx_sdma'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % The first version of this file format contained in the first 8 bytes the
+    % channel label as string. Subsequently it contained 32 bit integer values.
+    %
+    % The second version of this file format starts with 8 bytes describing (as
+    % a space-padded string) the data type. The channel label is contained in
+    % the filename as dataset.chanlabel.bin.
+    %
+    % The third version of this file format starts with 7 bytes describing (as
+    % a zero-padded string) the data type, followed by the 8th byte which
+    % describes the downscaling for the 8 and 16 bit integer representations.
+    % The downscaling itself is represented as uint8 and should be interpreted as
+    % the number of bits to shift. The channel label is contained in the
+    % filename as dataset.chanlabel.bin.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    statuschannel = {
+      'stx'
+      'pid'
+      'siz'
+      'tsh'
+      'tsl'
+      'cpu'
+      'ttl'
+      'x01'
+      'x02'
+      'x03'
+      'x04'
+      'x05'
+      'x06'
+      'x07'
+      'x08'
+      'x09'
+      'x10'
+      'crc'
+      };
+    
+    dirname = filename;
+    clear filename
+    [path, file] = fileparts(dirname);
+    for i=1:hdr.nChans
+      downscale(i) = 0;
+      if ~isempty(strmatch(hdr.label{i}, statuschannel))
+        format{i} = 'uint32';
+      else
+        format{i} = 'int32';
+      end
+      filename{i} = fullfile(dirname, [file '.' hdr.label{i} '.bin']);
+    end
+    
+    if ~isdir(dirname)
+      mkdir(dirname);
+    end
+    
+    % open and write to the output files, one for each selected channel
+    fid = zeros(hdr.nChans,1);
+    for j=1:hdr.nChans
+      
+      if append==false
+        fid(j) = fopen(filename{j}, 'wb', 'ieee-le');   % open the file
+        magic = format{j};                              % this used to be the channel name
+        magic((end+1):8) = 0;                           % pad with zeros
+        magic(8) = downscale(j);                        % number of bits to shift
+        fwrite(fid(j), magic(1:8));                     % write the 8-byte file header
+      else
+        fid(j) = fopen(filename{j}, 'ab', 'ieee-le');   % open the file for appending
+      end % if append
+      
+      % convert the data into the correct class
+      buf = dat(j,:);
+      if ~strcmp(class(buf), format{j})
+        switch format{j}
+          case 'int16'
+            buf = int16(buf);
+          case 'int32'
+            buf = int32(buf);
+          case 'single'
+            buf = single(buf);
+          case 'double'
+            buf = double(buf);
+          case 'uint32'
+            buf = uint32(buf);
+          otherwise
+            error('unsupported format conversion');
+        end
+      end
+      
+      % apply the scaling, this corresponds to bit shifting
+      buf = buf ./ (2^downscale(j));
+      
+      % write the segment of data to the output file
+      fwrite(fid(j), buf, format{j}, 'ieee-le');
+      
+      fclose(fid(j));
+    end % for each channel
+    
   case 'riff_wave'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %     This writes data Y to a Windows WAVE file specified by the file name
@@ -396,7 +497,7 @@ switch dataformat
     if append
       error('appending data is not yet supported for this data format');
     end
-
+    
     if nchans~=hdr.nChans && length(chanindx)==nchans
       % assume that the header corresponds to the original multichannel
       % file and that the data represents a subset of channels
@@ -407,7 +508,7 @@ switch dataformat
       error('this format only supports single channel continuous data');
     end
     wavwrite(dat, hdr.Fs, nbits, filename);
-
+    
   case 'plexon_nex'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % single or mulitple channel Plexon NEX file
@@ -415,8 +516,8 @@ switch dataformat
     if append
       error('appending data is not yet supported for this data format');
     end
-
-    [path, file, ext] = fileparts(filename);
+    
+    [path, file] = fileparts(filename);
     filename = fullfile(path, [file, '.nex']);
     if nchans~=1
       error('only supported for single-channel data');
@@ -435,15 +536,15 @@ switch dataformat
     end
     nex.var.indx = 0;
     nex.var.dat  = dat;
-
+    
     write_plexon_nex(filename, nex);
-
+    
     if 0
       % the following code snippet can be used for testing
       nex2 = [];
       [nex2.var, nex2.hdr] = read_plexon_nex(filename, 'channel', 1);
     end
-
+    
   case 'neuralynx_ncs'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % single channel Neuralynx NCS file
@@ -451,14 +552,14 @@ switch dataformat
     if append
       error('appending data is not yet supported for this data format');
     end
-
+    
     if nchans>1
       error('only supported for single-channel data');
     end
-
+    
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file, '.ncs']);
-
+    
     if nchans~=hdr.nChans && length(chanindx)==nchans
       % assume that the header corresponds to the original multichannel
       % file and that the data represents a subset of channels
@@ -472,35 +573,35 @@ switch dataformat
     else
       error('cannot determine channel label');
     end
-
+    
     FSAMPLE    = hdr.Fs;
     RECORDNSMP = 512;
     RECORDSIZE = 1044;
-
+    
     % cut the downsampled LFP data into record-size pieces
     nrecords = ceil(nsamples/RECORDNSMP);
     fprintf('construct ncs with %d records\n', nrecords);
-
+    
     % construct a ncs structure with all header details and the data in it
     ncs                = [];
     ncs.NumValidSamp   = ones(1,nrecords) * RECORDNSMP;   % except for the last block
     ncs.ChanNumber     = ones(1,nrecords) * ADCHANNEL;
     ncs.SampFreq       = ones(1,nrecords) * FSAMPLE;
     ncs.TimeStamp      = zeros(1,nrecords,'uint64');
-
+    
     if rem(nsamples, RECORDNSMP)>0
       % the data length is not an integer number of records, pad the last record with zeros
       dat = cat(2, dat, zeros(nchans, nrecords*RECORDNSMP-nsamples));
       ncs.NumValidSamp(end) = rem(nsamples, RECORDNSMP);
     end
-
+    
     ncs.dat = reshape(dat, RECORDNSMP, nrecords);
-
+    
     for i=1:nrecords
       % timestamps should be 64 bit unsigned integers
       ncs.TimeStamp(i) = uint64(hdr.FirstTimeStamp) + uint64((i-1)*RECORDNSMP*hdr.TimeStampPerSample);
     end
-
+    
     % add the elements that will go into the ascii header
     ncs.hdr.CheetahRev            = '4.23.0';
     ncs.hdr.NLX_Base_Class_Type   = 'CscAcqEnt';
@@ -508,16 +609,16 @@ switch dataformat
     ncs.hdr.RecordSize            = RECORDSIZE;
     ncs.hdr.ADChannel             = ADCHANNEL;
     ncs.hdr.SamplingFrequency     = FSAMPLE;
-
+    
     % write it to a file
     fprintf('writing to %s\n', filename);
     write_neuralynx_ncs(filename, ncs);
-
+    
     if 0
       % the following code snippet can be used for testing
       ncs2 = read_neuralynx_ncs(filename, 1, inf);
     end
-
+    
   otherwise
     error('unsupported data format');
 end % switch dataformat
