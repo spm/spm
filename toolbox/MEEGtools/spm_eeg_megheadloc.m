@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3205 2009-06-16 10:15:00Z vladimir $
+% $Id: spm_eeg_megheadloc.m 3212 2009-06-19 15:20:48Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -158,7 +158,7 @@ for f=1:numel(D)
                 (squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3))) - norm(header_fid(2,:) - header_fid(3,:)))';...
                 (squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3))) - norm(header_fid(3,:) - header_fid(1,:)))'];
             
-            tracking_lost_ind = find(any(dist_dev > 0.005));
+            tracking_lost_ind = find(any(abs(dist_dev) > 0.005));
             
             if ~isempty(tracking_lost_ind)
                 warning(['Tracking loss detected in file ' D{f}.fname ' trial ' num2str(k)]);
@@ -268,7 +268,7 @@ disp(['Accepted ' num2str(length(trlind)) '/' num2str(Ntrls) ' trials.']);
 if S.rejectbetween && length(trlind)>1 && ~all(all(isnan(dat)))
     % If there was loss of tracking for just some of the trials, reject
     % them and continue with the rest. 
-    nanind = any(isnan(dat));
+    nanind = find(any(isnan(dat)));
     if ~isempty(nanind)
         for i = length(nanind)
             D{fileind(nanind)} = reject(D{fileind(nanind)}, trlind(nanind), 1);

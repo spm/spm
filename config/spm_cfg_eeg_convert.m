@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 3059 2009-04-15 18:09:13Z guillaume $
+% $Id: spm_cfg_eeg_convert.m 3212 2009-06-19 15:20:48Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -34,7 +34,7 @@ read.val = {readall};
 usetrials = cfg_const;
 usetrials.tag = 'usetrials';
 usetrials.name = 'Trials defined in data';
-usetrials.val = {0};
+usetrials.val = {1};
 
 trlfile = cfg_files;
 trlfile.tag = 'trlfile';
