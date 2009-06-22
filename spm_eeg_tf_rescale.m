@@ -21,9 +21,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3204 2009-06-15 14:45:25Z guillaume $
+% $Id: spm_eeg_tf_rescale.m 3218 2009-06-22 15:45:53Z vladimir $
 
-SVNrev = '$Rev: 3204 $';
+SVNrev = '$Rev: 3218 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ switch lower(S.tf.method)
             switch lower(S.tf.method)
                 case 'logr'
                     x=log10(x);
-                    xbase=log10(xbase);
+                    xbase=mean(x(:,:,inds),3);
                     D(:,:,:,c)= 10*(x - repmat(xbase,[1 1 D.nsamples 1]));
                     D = units(D, [], 'dB');
                 case 'diff'

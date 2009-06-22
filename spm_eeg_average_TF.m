@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3205 2009-06-16 10:15:00Z vladimir $
+% $Id: spm_eeg_average_TF.m 3218 2009-06-22 15:45:53Z vladimir $
 
-SVNrev = '$Rev: 3205 $';
+SVNrev = '$Rev: 3218 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -211,6 +211,8 @@ if robust && savew
     Dw = Dw.history(mfilename, S);
     save(Dw);
 end
+
+D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
