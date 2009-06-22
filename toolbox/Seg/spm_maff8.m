@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 2281 2008-10-01 12:52:50Z john $
+% $Id: spm_maff8.m 3217 2009-06-22 10:50:46Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -142,6 +142,7 @@ for iter=1:200
         b     = spm_sample_priors8(tpm,y1,y2,y3);
         buf(i).b    = b;
         buf(i).msk1 = msk;
+        buf(i).nm1  = sum(buf(i).msk1);
     end;
 
     ll0 = 0;
@@ -150,7 +151,7 @@ for iter=1:200
         ll1 = ll0;
         ll0 = 0;
         for i=1:length(x3),
-            if ~buf(i).nm, continue; end;
+            if ~buf(i).nm || ~buf(i).nm1, continue; end;
             gm    = double(buf(i).g(buf(i).msk1))+1;
             q     = zeros(numel(gm),size(h0,2));
             for k=1:size(h0,2),
@@ -325,8 +326,6 @@ function [mu,isig] = priors(typ)
 %isig = inv(XR'*XR/(size(X,1)-1))
 
 
-mu   = zeros(6,1);
-isig = zeros(6);
 switch deblank(lower(typ))
 
 case 'mni', % For registering with MNI templates...
