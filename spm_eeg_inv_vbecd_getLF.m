@@ -1,6 +1,8 @@
 function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) 
 % Estimation of the leadfield matrix and its spatial derivative if required 
 % for a set of dipoles used in the VB-ECD solution
+%% scales non-eeg data up by a fixed factor (1e8) for compatibility of
+%% units
 %
 % FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % 
@@ -16,8 +18,13 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 3051 2009-04-06 14:47:09Z jean $
+% $Id: spm_eeg_inv_vbecd_getLF.m 3222 2009-06-25 14:09:48Z gareth $
 
+
+%%% now does rank reduction (to 2) for non eeg data
+
+MEGRANK=2;
+MEGSCALE=1e10;  %% should be the same as in spm_eeg_inv_vbecd.m
 
 if nargin<4
      step = 0;
@@ -25,10 +32,15 @@ end
 
 gm = [];
 for i = 1:length(s)/3
-    [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
+  
+    
     % mean correction of LF, only for EEG data.
     if forwinv_senstype(sens, 'eeg')
+       [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+    else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
+       [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
+        tmp=tmp.*MEGSCALE;
     end
     gm = [gm tmp];
 end
@@ -41,7 +53,10 @@ if nargout >= 2
 end
 
 
-if all(step > 0) && nargout == 3
+if all(step > 0) && nargout == 3,
+%     if isempty(step),
+%         step=randn(size(s));
+%     end; % if isempty
     dgm = [];
     for j = 1:length(s)
         ds = s;
@@ -49,10 +64,14 @@ if all(step > 0) && nargout == 3
         dtmp = [];
         for i = 1:length(s)/3
             if ceil(j/3) == i 
-                [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
+
                 % mean correction of LF, only for EEG data.
                 if forwinv_senstype(sens, 'eeg')
+                    [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
                     tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+                else  % MEG
+                   [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
+                    tmp=tmp.*MEGSCALE;
                 end
                 dtmp = [dtmp tmp];
             else
