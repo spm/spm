@@ -18,7 +18,7 @@ function make_exec
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: make_exec.m 3179 2009-06-03 12:41:21Z volkmar $ 
+% $Id: make_exec.m 3226 2009-06-25 18:13:11Z volkmar $ 
 
 %=======================================================================
 %-Files to include explicitly
@@ -28,33 +28,22 @@ function make_exec
 % (f)eval'ed file), add it to the 'includefiles' list with its full
 % path. If you want to add a directory and all of its contents, add it to
 % the 'includedirs' list with its full path.
+% By default, all files in spm('dir') are included and all subdirectories
+% except matlabbatch, config and exec. Selected files from these
+% directories will be included if they are referenced from any compiled
+% function. Including spm('dir') instead would cause unwanted side
+% effects during batch initialisation.
 
 %-List of files
 %-----------------------------------------------------------------------
-includefiles = {
-    fullfile(spm('dir'), 'spm_Menu.fig')
-    fullfile(spm('dir'), 'spm_Interactive.fig')
-    fullfile(spm('dir'), 'spm_Welcome.fig')
-    fullfile(spm('dir'), 'man', 'manual.pdf')
-               };
+[includefiles includedirs] = cfg_getfile('FPList',spm('dir'),'.*');
 
-%-List of directories
+%-Clean up list of directories
 %-----------------------------------------------------------------------
-includedirs = {
-    fullfile(spm('dir'), 'apriori')
-    fullfile(spm('dir'), 'canonical')
-    fullfile(spm('dir'), 'spm_orthviews')
-    fullfile(spm('dir'), 'rend')
-    fullfile(spm('dir'), 'templates')
-    fullfile(spm('dir'), 'tpm')
-    fullfile(spm('dir'), 'toolbox')
-              };
-%-Scan directories
-%-----------------------------------------------------------------------
-%for k = 1:numel(includedirs)
-%    files        = cfg_getfile('FPList',includedirs{k},'.*');
-%    includefiles = [includefiles; files];
-%end
+includedirs = includedirs(~(strcmp(includedirs,fullfile(spm('dir'),'config'))| ...
+                            strcmp(includedirs,fullfile(spm('dir'),'exec'))| ...
+                            strcmp(includedirs,fullfile(spm('dir'),'matlabbatch'))));
+
 includefiles = [includefiles; includedirs];
 %-Add '-a' switch for each file to include
 %-----------------------------------------------------------------------
