@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3051 2009-04-06 14:47:09Z jean $
+% $Id: spm_eeg_inv_vbecd_gui.m 3220 2009-06-25 14:04:14Z gareth $
 
 %%
 % Load data, if necessary
@@ -81,7 +81,7 @@ D.inv{val}.method = 'vbecd';
 %% Struct that collects the inputs for vbecd code
 P = [];
 
-P.modality = 'EEG';
+%P.modality = 'EEG';
 
 % Uncomment the line below to try other modalities
 P.modality = spm_eeg_modality_ui(D, 1, 1);
@@ -103,7 +103,9 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
                 [U, L, V] = svd(M1(1:3, 1:3));
                 M1(1:3,1:3) =U*V';
             end
-            
+%             disp('Undoing transformation to Tal space !');
+%             M1=eye(4)
+%             
             P.forward.sens = forwinv_transform_sens(M1, P.forward.sens);
             P.forward.vol = forwinv_transform_vol(M1, P.forward.vol);
             
@@ -186,8 +188,25 @@ clear dip_pr
 
 % These are defaults value picked from SK's example data set ran for the
 % paper, values should proabably be tweaked a bit...
-def_ab_noninfo = [1e-3 1e-12];
-def_ab_info    = [3 1e-12];
+%def_ab_noninfo = [1e-3 1e-12];
+%def_ab_info    = [3 1e-12];
+
+%% new default priors
+%% b20/a20 should be the expect error variance in source moment (in nAM ?). 
+%% a,b determine distribution of hyper-priors (which determine paramter
+%% variances)
+%% b/a gives the expected mean of this dist'n, i.e. the variance of the
+%% prior
+orient_noninfo=[1.5 15]; %% expected variance is given by 15/1.5
+orient_info=[1.5 0.15];
+
+pos_noninfo=[1.5 500];  %% approx variability of sqrt(500) mm
+pos_info=[1.5 100];  %% approx variability of sqrt(100) mm
+
+%% b30/a30 should be the expected error variance in location parameters (in
+%% mm) 
+
+
 corr = .999;
 
 while adding_dips
@@ -224,11 +243,11 @@ while adding_dips
                 str = 'Prior location must be inside head';
             end
             dip_pr(dip_q).mu_s0 = s0;
-            dip_pr(dip_q).ab30 = def_ab_info;
+            dip_pr(dip_q).ab30 = pos_info;
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(3,1);
-            dip_pr(dip_q).ab30 = def_ab_noninfo;
+            dip_pr(dip_q).ab30 = pos_noninfo;
         end
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
@@ -237,11 +256,11 @@ while adding_dips
             % informative moment prior
             dip_pr(dip_q).mu_w0 = spm_input('Moment prior', ...
                                         1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
-            dip_pr(dip_q).ab20 = def_ab_info;
+            dip_pr(dip_q).ab20 = orient_info;
         else
             % no location  prior
             dip_pr(dip_q).mu_w0 = zeros(3,1);
-            dip_pr(dip_q).ab20 = def_ab_noninfo;
+            dip_pr(dip_q).ab20 = orient_noninfo;
         end
         dip_c = dip_c+1;
     else
@@ -264,11 +283,11 @@ while adding_dips
             end
             tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
             dip_pr(dip_q).mu_s0 = tmp ;
-            dip_pr(dip_q).ab30 = def_ab_info;
+            dip_pr(dip_q).ab30 = pos_info;
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(6,1);
-            dip_pr(dip_q).ab30 = def_ab_noninfo;
+            dip_pr(dip_q).ab30 = pos_noninfo;
         end
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
@@ -279,11 +298,11 @@ while adding_dips
                                         1+tr_q+dip_q+spr_q+3,'e',[1 1 1])';
             tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
             dip_pr(dip_q).mu_w0 = tmp;
-            dip_pr(dip_q).ab20 = def_ab_info;
+            dip_pr(dip_q).ab20 = orient_info;
         else
             % no location  prior
             dip_pr(dip_q).mu_w0 = zeros(6,1);
-            dip_pr(dip_q).ab20 = def_ab_noninfo;
+            dip_pr(dip_q).ab20 = orient_noninfo;
         end
         % Symmetry priors, soft or hard for both location and moment.
         mpr_q = spm_input('Symmetry prior ?', ...
@@ -385,18 +404,73 @@ for ii=1:length(ltr)
     
     %----------------------------------------------------------------%
     %- Temporary changes in the priors for precisionhyperparameters -%
-    P.priors.a10 = numel(P.y);
-    P.priors.b10 = numel(P.y)*1e-18;
-    P.priors.a20 = 1;
-    P.priors.b20 = 1e8; % 1e8
-    P.priors.a30 = 1e1;
-    P.priors.b30 = 1e4;
+%      P.priors.a10 = numel(P.y);
+%      P.priors.b10 = numel(P.y)*10;
+%      P.priors.a10/P.priors.b10
+%      P.priors.a10/(P.priors.b10)^2
+%     P.priors.a20 = 1;
+%     P.priors.b20 = 1e8; % 1e8
+%     P.priors.a30 = 1e1;
+%     P.priors.b30 = 1e4;
     %- These have to be modified to account for informative priors! -%
     %----------------------------------------------------------------%
-    
+ 
+
+
+
+
+%  disp('FIXING DIP TO GET SCALING');
+%  mu_s=[-30 20 20]';
+%  mu_w0=[ 1 1 0]';
+%  P.dv=10^-2;
+%  
+%  [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
+%       P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
+% 
+%signalmag=max(std(gmn));
+disp('Guessing at signal magnitude and SNR');
+signalmag=5e-4;
+powerSNR=10;
+errorvar=signalmag.^2/powerSNR; %% variance of error 
+alla10 = numel(P.y)/2; 
+allb10 = alla10*errorvar/2; % data
+P.priors.a10=alla10;
+P.priors.b10=allb10;
+
+testing=0;
+if testing,
+   
+%% b10/a10 should be the expected error variance at the sensors -ideally
+%% should come from the standard error of the average trace
+
+%% b20/a20 should be the expect error variance in source moment (in nAM ?). 
+alla20=1.5; %% half number of orientation params for now
+allb20=alla20*10; %% 
+
+%% b30/a30 should be the expected error variance in location parameters (in
+%% mm) 
+alla30=1.5; %% half num of position params
+allb30=100;
+
+P.priors.a20=alla20;
+%% prior info on b20
+P.priors.b20=allb20;
+P.priors.b30=allb30;
+P.priors.a30=alla30;
+end; % if 
+
     fprintf('\nLocalising source nr %d.\n',ii)
+
     P = spm_eeg_inv_vbecd(P);
 
+  
+    ssres=sum(P.post.residuals.^2)./length(P.y);
+    disp(sprintf('prior estimate var=%3.2e, after hyper priors %3.2e, actual resid=%3.2e',P.priors.b10/P.priors.a10,P.post.b1/P.post.a1,ssres));
+     disp(sprintf('prior estimate moment var=%3.2f , after hyper priors %3.2f',P.priors.b20/P.priors.a20,P.post.b2/P.post.a2));
+      disp(sprintf('prior estimate pos var=%3.2f (=%3.2fmm per dim), after hyper priors %3.2f',P.priors.b30/P.priors.a30,power(P.priors.b30/P.priors.a30,1/2),P.post.b3/P.post.a3));
+    P.post.mu_s'
+    P.post.mu_w'
+ 
     % Get the results out.
     inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
@@ -415,6 +489,6 @@ D.inv{val}.inverse = inverse;
 save(D)
 P.handles.hfig  = spm_figure('GetWin','Graphics');
 close(P.handles.hfig)
-spm_eeg_inv_vbecd_disp('init',D)
+spm_eeg_inv_vbecd_disp('init',D);
 
 return
