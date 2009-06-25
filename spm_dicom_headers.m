@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 3168 2009-05-29 20:52:52Z john $
+% $Id: spm_dicom_headers.m 3224 2009-06-25 17:28:21Z volkmar $
 
 if nargin<2, essentials = false; end
 
@@ -67,8 +67,14 @@ if ~strcmp(dcm,'DICM'),
         fseek(fp,0,'bof');
     end;
 end;
-ret = read_dicom(fp, 'il',dict);
-ret.Filename = fopen(fp);
+try
+    ret = read_dicom(fp, 'il',dict);
+    ret.Filename = fopen(fp);
+catch
+    fprintf('Trouble reading DICOM file %s, skipping.\n', fopen(fp));
+    l = lasterror;
+    disp(l.message);
+end
 fclose(fp);
 return;
 %_______________________________________________________________________
