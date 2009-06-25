@@ -31,8 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 3062 2009-04-17 14:07:40Z jean $
-
+% $Id: spm_eeg_inv_vbecd.m 3221 2009-06-25 14:07:25Z gareth $
 
 
 
@@ -72,11 +71,10 @@ P.dv = 10^-2; % used to compute step-size for gradients
 %---------------
 % initialization
 %---------------
-
+MEGSCALE=1e10;  %% should be same in spm_eeg_inv_vbecd_getLF
 % ensure data have apropriate scale: ADDED BACK BY GRB
- if strcmp(P.modality,'MEG')
-     % sc_y = norm(y)/10;
-     sc_y = 1e-8;
+ if strcmp(P.modality,'MEG') %% meg data typically 10-12 i.e. in Tesla
+     sc_y=1/MEGSCALE; %% GAIN INCREASED BY SAME AMOUNT IN LEAD FIELD ROUTINE spm_eeg_inv_vbecd_getLF
      y = y/sc_y;
  else
      y = y-mean(y); % Re-reference data to mean
@@ -84,51 +82,75 @@ P.dv = 10^-2; % used to compute step-size for gradients
  end
 % sc_y = 1;
 % Initialize posterior with prior
-b10 = b10*sc_y.^2;
+b10 = b10; %
 a1 = a10;
 b1 = b10;
 a2 = a20;
-b2 = b20; %*sc_y.^2;
+b2 = b20; %
 a3 = a30;
 b3 = b30;
 
-[u,s,v] = svd((a2/b2)*iS_w0);
-mu_w = mu_w0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_w0));
-mu_w = mu_w./sqrt(sum(mu_w.^2));
+
+
+[u,s,v] = svd((a2/b2)*iS_w0); %% variance is given by b2/a2 (was a2/b2)
+%% set random orientation
+mu_w = mu_w0 + u*diag(sqrt(diag(s+eps).^-1))*v'*randn(size(mu_w0)); %% source units  
+%%mu_w = mu_w./sqrt(sum(mu_w.^2));
 S_w = u*diag(diag((s+eps).^-1))*v';
-[u,s,v] = svd((a3/b3)*iS_s0);
-mu_s = mu_s0 + 1e-8*u*diag(sqrt(diag(s)))*v'*randn(size(mu_s0));
+[u,s,v] = svd((a3/b3)*iS_s0); %% i.e. the eigenvalues hold precisions
+%% a random guess for the location
+mu_s = mu_s0 + u*diag(sqrt(diag(s+eps).^-1))*v'*randn(size(mu_s0)); % inverting diag S here
+disp('starting guess');
+mu_s
 S_s = u*diag(diag((s+eps).^-1))*v';
+
+%S_w2 = b2/a2*pinv(iS_w0); %% covariance for location- from original code
+%S_s2 = b3/a3*pinv(iS_s0); %% covariance for position
+% 
+%  disp('FIXING STARTING GUESS');
+% %  % fixedpars_s=[20;20;20;50;20;20]; % far from correct for testing
+%    fixedpars_s=[-20;20;20;50;20;20]; % close to correct for testing
+%    fixedpars_w=[0;1;0;-1;1;0];
+%    Npars=length(mu_w0);
+%    mu_s(1:Npars)=fixedpars_s(1:Npars); 
+%    mu_w(1:Npars)=fixedpars_w(1:Npars);
 
 % get lead fields
 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
-    P.dv.*ones(1, length(mu_w0)));
+    P.dv.*ones(1, length(mu_w0))); %
 
 [Nc, Np] = size(gmn);
+a1=Nc/2; % %from paper, p732
+res=y - gmn*mu_w; %% residual
+b1=0.5*(res'*res);
+
+%plot(1:Nc,y,1:Nc,gmn*mu_w,'x');
+
 DE = kron(S_w+mu_w*mu_w', eye(Nc));
 P.init.mu_s = mu_s;
 P.init.mu_w = mu_w;
 
 
 % Calulate free energy with priors
-F(1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
-    -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
-    -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
-    -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
-    -spm_kl_gamma(1/b1,a1,1/b10,a10)...
-    -spm_kl_gamma(1/b2,a2,1/b20,a20)...
-    -spm_kl_gamma(1/b3,a3,1/b30,a30);
+F(1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))... 
+    -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))... 
+    -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)... 
+    -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)... 
+    -spm_kl_gamma(1/b1,a1,1/b10,a10)... 
+    -spm_kl_gamma(1/b2,a2,1/b20,a20)... 
+    -spm_kl_gamma(1/b3,a3,1/b30,a30); 
 
 P.gmn = gmn;
 
-
+GRAPHICS=1;
+if GRAPHICS,
 P.handles.hfig  = spm_figure('GetWin','Graphics');
 spm_clf(P.handles.hfig)
 P.handles.SPMdefaults.col = get(P.handles.hfig,'colormap');
 P.handles.SPMdefaults.renderer = get(P.handles.hfig,'renderer');
 set(P.handles.hfig,'userdata',P)
-
 [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,1,[],F);
+end; % if GRAPHICS
 
 P.ok = 1;
 for i = 1:P.Niter
@@ -141,18 +163,18 @@ for i = 1:P.Niter
         d = Dm(ind, ind);
         SD = SD + d;
     end
-%     S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn))*Tw';
+%   S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn))*Tw';
     S_w = Tw*pinv(a2/b2*iS_w0 + a1/b1*(gmn'*gmn + SD))*Tw';
     mu_w = Tw*S_w*(a1/b1*gmn'*y + a2/b2*iS_w0*mu_w0);
 
     % location parameters s
     [mu_s,S_s,DE,gmn,gm,dgm,P] = ...
         modifiedGN4s(mu_s,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts);
-    
+    if GRAPHICS
     [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,i+1,'data',F(end));
-
+    end; % if GRAPHICs
     % precision on y
-    a1 = Nc/2 + a10;
+    a1 = Nc/2 + a10;  %% number of channels
     b1 = 0.5*(y'*y...
         - 2*mu_w'*gmn'*y...
         + gm'*DE*gm...
@@ -160,29 +182,33 @@ for i = 1:P.Niter
         + b10;
 
     % precision on w
-    a2 = size(Vw,2)/2 + a20;
+    a2 = size(Vw,2)/2 + a20; %% number of orientation params
     b2 = 0.5*((Vw'*(mu_w-mu_w0))'*Vw'*iS_w0*Vw*(Vw'*(mu_w-mu_w0)) + ...
         trace(Vw'*iS_w0*S_w*Vw)) + b20;
 
     % precision on s
-    a3 = size(Vs,2)/2 + a30;
+    a3 = size(Vs,2)/2 + a30; %% number of location params
     b3 = 0.5*((Vs'*(mu_s-mu_s0))'*Vs'*iS_s0*Vs*(Vs'*(mu_s-mu_s0)) + ...
         trace(Vs'*iS_s0*Vs*Vs'*S_s*Vs)) + b30;
 
     % compute neg free energy
-    F(i+1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
-        -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
+    F(i+1) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))... %%
+        -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))... 
         -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
         -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
-        -spm_kl_gamma(1/b1,a1,1/b10,a10)...
-        -spm_kl_gamma(1/b2,a2,1/b20,a20)...
-        -spm_kl_gamma(1/b3,a3,1/b30,a30);
+        -spm_kl_gamma(1/b1,a1,1/b10,a10)... 
+        -spm_kl_gamma(1/b2,a2,1/b20,a20)... 
+        -spm_kl_gamma(1/b3,a3,1/b30,a30); 
+ 
+
 
     % update display
     P.gmn = gmn;
+    if GRAPHICS
     [P] = displayVBupdate(y,a1,b1,a2,b2,a3,b3,mu_w,mu_s,S_s,S_w,P,i+1,[],F(end));
-    pause(0.1)
-
+    pause(0.1);
+    end; % if GRAPHICs
+    
     % check termination condition
     dF = (F(i+1)-F(i));%/abs(F(i));
     if abs(dF) < P.threshold_dF
@@ -200,13 +226,21 @@ end
 try
     set(P.handles.hte(2),'string','VB for ECDs: done.')
     drawnow
-    pause
+    pause(0.5)
 catch
     P.ok = 0;
 end
+if GRAPHICS
 set(P.handles.hfig,'userdata',[])
 P = rmfield(P,'handles');
+end; % if GRAPHICS
 
+
+[gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
+    P.dv.*ones(1, length(mu_w0))); %
+%[lf] = compute_leadfield(pos, sens, vol, varargin)
+
+post.residuals=y - gmn*mu_w; %% residuals
 
 % rescale back to original units
 mu_w = mu_w*sc_y;
@@ -230,7 +264,7 @@ P.F = F(end);
 function [mu,Sigma,DE,gmn,gm,dgm,P] = ...
     modifiedGN4s(mu,S_s,iS_s0,mu_s0,mu_w,S_w,a1,b1,a3,b3,y,P,Ts)
 
-
+GRAPHICS=1;
 % Compute variational energy and GN step from previous mode
 Sigma = S_s;
 PreviousMu = mu;
@@ -251,11 +285,15 @@ while stop == 0
     % calculate relative variational energy improvement
     deltaI = I-PreviousI;
     % check whether to stop, to accept move or to halve step
+%    disp('NOT HALVIG STEP')
     if it <= maxIter && abs(deltaI./PreviousI)>rdI
-        if deltaI<0     % halve step size
+        if deltaI<0 %-Inf     % halve step size 
+            %%disp('halving step size');
             deltaMu = 0.5*deltaMu;
             P.pc = 100*it./maxIter;
-            P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'mGN');
+            if GRAPHICS,
+                P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'mGN');
+            end; % if GRAPHICS
         else            % accept move
             % propose a new GN move from there on
             deltaMu = NextdeltaMu;
@@ -268,7 +306,9 @@ while stop == 0
             PreviousI = I;
             P.pc = 100*it./maxIter;
             P.gmn = gmn;
-            P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'ecd');
+            if GRAPHICS,
+                P = displayVBupdate(y,a1,b1,[],[],a3,b3,mu_w,mu,Sigma,S_w,P,[],'ecd');
+            end; % if GRAPHICS
         end
     else                % stop Gauss-Newton search
         stop = 1;
@@ -288,35 +328,47 @@ dv = P.dv;
 
 % first check if inside head
 outside = ~forwinv_inside_vol(reshape(PreviousMu,3,[])',vol);
-if ~all(~outside)
-    I = -Inf;
-    deltaMu = mu_s0-PreviousMu+eps;  % to correct for unluky initialization
-    Sigma = [];
-    DE = [];
-    gmn = [];
-    gm = [];
-    dgm = [];
-else
+%disp('fixing not outside');
+%outside=0; 
+% if ~all(~outside)
+%     disp('dip gone outside');
+%     I = -Inf;
+%     deltaMu = mu_s0-PreviousMu+eps;  % to correct for unluky initialization
+% %     Sigma = [];
+% %     DE = [];
+% %     gmn = [];
+% %     gm = [];
+% %     dgm = [];
+%      
+% else
     % Compute lead fields (and gradients) at the mode
     [gmn, gm, dgm] =...
-        spm_eeg_inv_vbecd_getLF(PreviousMu, sens, vol,dv.*sqrt(diag(S_s)));
+        spm_eeg_inv_vbecd_getLF(PreviousMu, sens, vol,dv.*sqrt(diag(S_s)));  %% S_s can be very large
     % Compute variational energy at the mode
+    if  max(max(dgm))==0,
+        error('Max derivative is zero');
+        end; % if
     Gw = gmn*mu_w;
     dmu0 = mu_s0-PreviousMu;
     iSdmu0 = iS_s0*dmu0;
-    dy = y-Gw;
+%    figure(3);plot(y,Gw,'x')
+    dy = y-Gw;  % 
+    if outside, %% penalize for being outside
+        dy=dy.^3;
+        end;
     I = -0.5*(a3/b3)*dmu0'*iSdmu0 ...
-        -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) );
+        -0.5*(a1/b1)*( dy'*dy + trace(gmn'*gmn*S_w) ); % -93 for meg
+  %  I=dy'*dy;
     % Get local curvature of variational energy (-> cov matrix)
-    DE = kron(S_w+mu_w*mu_w', eye(Nc));
-    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm));
+    DE = kron(S_w+mu_w*mu_w', eye(Nc)); % 
+    Sigma = pinv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm)); % for meg, std(dgm) is 1e-13, for eeg std(dgm) 1e-6
     if any(diag(Sigma)<0)
         error('More regularization is required to invert the model!')
     end
     % standard Gauss-Newton move from mode and curvature
     deltaMu = Sigma*( (a3/b3)*iSdmu0 ...
         + (a1/b1)*dgm'*(kron(mu_w,dy)) );%+ kron(S_w,In)*gm) );
-end
+%end
 
 
 
