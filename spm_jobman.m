@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3179 2009-06-03 12:41:21Z volkmar $
+% $Id: spm_jobman.m 3225 2009-06-25 17:29:45Z volkmar $
 
 
 if nargin==0
@@ -149,15 +149,16 @@ else
             if isdeployed
                 cfg_master;
             end
-            f = cfg_ui('Visible','off'); % Create invisible batch ui
-            f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
-            f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
-                        'HandleVisibility','off', 'tag','jobs', ...
-                        'Separator','on');
-            f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', ...
-                        'Callback',@conv_jobs, ...
-                        'HandleVisibility','off', 'tag','jobs');
-            
+            if ~spm('cmdline')
+                f = cfg_ui('Visible','off'); % Create invisible batch ui
+                f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
+                f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
+                    'HandleVisibility','off', 'tag','jobs', ...
+                    'Separator','on');
+                f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', ...
+                    'Callback',@conv_jobs, ...
+                    'HandleVisibility','off', 'tag','jobs');
+            end
         case 'interactive',
             if exist('mljob', 'var')
                 cjob = cfg_util('initjob', mljob);
