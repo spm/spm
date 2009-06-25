@@ -1,11 +1,16 @@
 function res = selectdata(this, chanlabel, timeborders, condition)
 % Selects data using channel labels, time and condition labels as indices
-% FORMAT res = selectdata(this)
+% FORMAT res = selectdata(D, chanlabel, timeborders, condition)
+%
+%  D - meeg object
+%  chanlabel - channel label, cell array of labels or [] (for all channels)
+%  timeborders - [start end] in sec or [] for all times
+%  condition   - condition label, cell array of labels or [] (for all conditions)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectdata.m 2347 2008-10-16 12:58:33Z vladimir $
+% $Id: selectdata.m 3219 2009-06-25 10:15:36Z vladimir $
 
 if this.Nsamples == 0
     res = [];
