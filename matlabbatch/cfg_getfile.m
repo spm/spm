@@ -78,7 +78,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2934 2009-03-24 12:15:28Z volkmar $
+% $Id: cfg_getfile.m 3223 2009-06-25 17:27:12Z volkmar $
 
 t = {};
 sts = false;
@@ -138,16 +138,17 @@ if nargin > 0 && ischar(varargin{1})
             end
             filt    = mk_filter(typ, varargin{3}, frames);
             [t sts] = listfiles(varargin{2}, filt); % (sts is subdirs here)
-            if ~isempty(t)
-                if regexpi(varargin{1}, 'fplist') % return full pathnames
-                    direc = cfg_getfile('cpath', varargin{2});
-                    % remove trailing path separator if present
-                    direc = regexprep(direc, [filesep '$'], '');
+            sts = sts(~(strcmp(sts,'.')|strcmp(sts,'..'))); % remove '.' and '..' entries
+            if regexpi(varargin{1}, 'fplist') % return full pathnames
+                direc = cfg_getfile('cpath', varargin{2});
+                % remove trailing path separator if present
+                direc = regexprep(direc, [filesep '$'], '');
+                if ~isempty(t)
                     t = strcat(direc, filesep, t);
-                    if nargout > 1
-                        % subdirs too
-                        sts = cellfun(@(sts1)cpath(sts1, direc), sts, 'UniformOutput',false);
-                    end
+                end
+                if nargout > 1
+                    % subdirs too
+                    sts = cellfun(@(sts1)cpath(sts1, direc), sts, 'UniformOutput',false);
                 end
             end
         case 'prevdirs',
@@ -181,7 +182,7 @@ if nargin<2 || ~ischar(typ), typ     = 'any';   end;
 if nargin<3 || ~(ischar(mesg) || iscellstr(mesg))
     mesg    = 'Select files...';
 elseif iscellstr(mesg)
-    mesg = strvcat(mesg);
+    mesg = char(mesg);
 end
 
 if nargin<4 || isempty(already) || (iscell(already) && isempty(already{1}))
@@ -232,16 +233,20 @@ fg = findobj(0,'Tag',mfilename);
 if ~isempty(fg)
     delete(fg);
 end
-fg = figure('IntegerHandle','off',...
+% create temporary figure to work out position etc.
+% seems to be necessary 
+fgtmp = figure('IntegerHandle','off',...
     'Tag',mfilename,...
     'Name',mesg,...
     'NumberTitle','off',...
     'Units','Pixels',...
     'MenuBar','none',...
     'DefaultTextInterpreter','none',...
-    'DefaultUicontrolInterruptible','on');
+    'DefaultUicontrolInterruptible','on',...
+    'Visible','off');
     
-Rect = get(fg,'Position');
+Rect = get(fgtmp,'Position');
+delete(fgtmp);
 %S0 = spm('WinSize','0',1);
 S0   = get(0,'MonitorPosition');
 if size(S0,1) > 1 % Multiple Monitors
@@ -254,7 +259,16 @@ if size(S0,1) > 1 % Multiple Monitors
 end
 Rect(1) = S0(1) + (S0(3) - Rect(3))/2;
 Rect(2) = S0(2) + (S0(4) - Rect(4))/2;
-set(fg,'Position',Rect);
+% create final figure
+fg = figure('IntegerHandle','off',...
+    'Tag',mfilename,...
+    'Name',mesg,...
+    'NumberTitle','off',...
+    'Units','Pixels',...
+    'MenuBar','none',...
+    'DefaultTextInterpreter','none',...
+    'DefaultUicontrolInterruptible','on',...
+    'Position',Rect);
 
 sellines = min([max([n(2) numel(already)]), 4]);
 [pselp pcntp pfdp pdirp] = panelpositions(fg, sellines+1);
@@ -921,7 +935,7 @@ de      = dir(dr);
 if ~isempty(de),
     d     = {de([de.isdir]).name};
     if ~any(strcmp(d, '.'))
-        d = {'.', d{:}};
+        d = [{'.'}, d(:)'];
     end;
     if filt.code~=-1,
         f = {de(~[de.isdir]).name};
@@ -1322,7 +1336,7 @@ if nargin<2, filt    = '.*';    end;
 if nargin<1, typ     = 'any';   end;
 switch lower(typ),
 case {'any','*'}, code = 0; ext = {'.*'};
-case {'image'},   code = 1; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
+case {'image'},   code = 1; ext = {'.*\.nii(,\d+)?$','.*\.img(,\d+)?$','.*\.NII(,\d+)?$','.*\.IMG(,\d+)?$'};
 case {'mesh'},    code = 0; ext = {'.*\.gii$','.*\.GII$','.*\.mat$','.*\.MAT$'};
 case {'nifti'},   code = 0; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
 case {'gifti'},   code = 0; ext = {'.*\.gii$','.*\.GII$'};
@@ -1332,7 +1346,12 @@ case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
                             '.*\.IMG(,[0-9]*){0,1}$'};
 case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
 case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.txt','.*\.TXT'};
-case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
+case {'batch'},   code = 0; 
+    if isdeployed, 
+        ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
+    else 
+        ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
+    end
 case {'dir'},     code =-1; ext = {'.*'};
 case {'extdir'},     code =-1; ext = {['.*' filesep '$']};
 otherwise,        code = 0; ext = {typ};
