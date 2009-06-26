@@ -14,16 +14,29 @@ function plot_slice(data,varargin)
 %   'slicedim'      = dimension to slice 1 (x-axis) 2(y-axis) 3(z-axis) (default = 3)
 %   'title'         = string, title of the figure window
 %   'colorbar'      = 'yes' or 'no' (default = 'yes')
+%   'map'           = colormap assigned to the slices (default='gray')
+%   'transform'     = transformation matrix from voxels to mm (default = eye(4))
+%   'flat2D'        = flat multi-slice representation (default=false)
+%   'tag'
 %
 % Example
 %   mri = read_mri('Subject01.mri');
-%   figure, plot_slice(mri,'title','3D volume','colorbar','no')
+%   figure, plot_slice(mri,'title','3D volume','colorbar','yes','map','jet')
 %
 % Copyright (C) 2009, Cristiano Micheli 
 %
 % $Log: plot_slice.m,v $
-% Revision 1.7  2009/06/16 13:13:37  crimic
-% help update
+% Revision 1.11  2009/06/21 19:47:09  crimic
+% added tag argument
+%
+% Revision 1.10  2009/06/21 19:01:31  crimic
+% minor changes
+%
+% Revision 1.9  2009/06/21 19:01:02  crimic
+% update help
+%
+% Revision 1.8  2009/06/21 12:22:58  crimic
+% 	introduced head coordinate transform slice dependency
 %
 % Revision 1.6  2009/06/16 12:17:55  crimic
 % inserted subfunction to plot slices in 3D
@@ -52,6 +65,8 @@ anaparameter  = keyval('anaparameter',  varargin);  if isempty(anaparameter),ana
 maskparameter = keyval('maskparameter',  varargin);  if isempty(maskparameter),maskparameter=[]; end
 flat2D        = keyval('flat2D',  varargin); if isempty(flat2D),flat2D=false; end
 map           = keyval('map',  varargin); if isempty(map),map='gray'; end
+transform     = keyval('transform',  varargin); if isempty(transform),transform=eye(4); end
+tag           = keyval('tag',   varargin); if isempty(tag),tag=[]; end
 
 %%% funparameter
 % has fun?
@@ -142,7 +157,14 @@ end
   else
     error('do not understand slicerange');
   end
-  ind_allslice = linspace(ind_fslice,ind_lslice,nslices);
+  
+  if nslices==1
+    ind_allslice = (ind_fslice+ind_lslice)/2;
+  elseif nslices==2
+    ind_allslice = [ind_fslice+(ind_lslice-ind_fslice)/5 ind_fslice+4*(ind_lslice-ind_fslice)/5];
+  else
+    ind_allslice = linspace(ind_fslice,ind_lslice,nslices);
+  end
   ind_allslice = round(ind_allslice);
   
   
@@ -263,7 +285,6 @@ end
     if hasmsk; vols2D{3} = quilt_msk; scales{3} = [opacmin opacmax]; end;
 
     plot2D(vols2D, scales);
-
     axis off
 
     if strcmp(colorbar1,  'yes'),
@@ -275,44 +296,56 @@ end
         warning('no colorbar possible without functional data')
       end
     end
+    
   else
-    plot_slice_sub(ana,slicedim,ind_allslice,map) 
+    plot_slice_sub(ana,slicedim,ind_allslice,map,transform); 
   end
    
   if ~isempty(title_), title(title_); end
 
-
-function plot_slice_sub(data,slicedim,ind_allslice,map) 
+function plot_slice_sub(data,slicedim,ind_allslice,map,transform) 
 if ~ishold, hold on, end
 ds = size(data); 
+
+% determine location of each anatomical voxel in its own voxel coordinates
+i = 1:ds(1);
+j = 1:ds(2);
+k = 1:ds(3);
+[I, J, K] = ndgrid(i, j, k);
+ijk = [I(:) J(:) K(:) ones(prod(ds),1)]';
+
+% determine location of each anatomical voxel in head coordinates
+xyz = transform * ijk;
+xyz = permute(xyz,[2 1 3]);
+xdata = reshape(xyz(:,1), [ds(2) ds(1) ds(3)]);
+ydata = reshape(xyz(:,2), [ds(2) ds(1) ds(3)]);
+zdata = reshape(xyz(:,3), [ds(2) ds(1) ds(3)]);
+
 if slicedim == 3 
   for i=1:length(ind_allslice)
-    cdata = squeeze(data(:,:,ind_allslice(i)));
-    [xdata ydata zdata] = meshgrid(1:ds(1),1:ds(2),ind_allslice(i));  
-    xdata=squeeze(xdata);
-    ydata=squeeze(ydata);
-    zdata=squeeze(zdata);
-    news = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata, 'ydata',ydata, 'zdata',zdata);  
+    cdata  = squeeze(data(:,:,ind_allslice(i)));
+    xdata_ = squeeze(xdata(:,:,ind_allslice(i)));
+    ydata_ = squeeze(ydata(:,:,ind_allslice(i)));
+    zdata_ = squeeze(zdata(:,:,ind_allslice(i)));
+    news   = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata_, 'ydata',ydata_, 'zdata',zdata_);  
     set(news,'facec','interp','edgec','n','facea',0.5); 
   end
 elseif slicedim == 2
   for i=1:length(ind_allslice)
-    cdata = squeeze(data(:,ind_allslice(i),:));
-    [xdata ydata zdata] = meshgrid(1:ds(1),ind_allslice(i),1:ds(3));  
-    xdata=squeeze(xdata);
-    ydata=squeeze(ydata);
-    zdata=squeeze(zdata);
-    news = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata, 'ydata',ydata, 'zdata',zdata);  
+    cdata  = squeeze(data(:,ind_allslice(i),:));
+    xdata_ = squeeze(xdata(:,ind_allslice(i),:));
+    ydata_ = squeeze(ydata(:,ind_allslice(i),:));
+    zdata_ = squeeze(zdata(:,ind_allslice(i),:));
+    news   = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata_, 'ydata',ydata_, 'zdata',zdata_);  
     set(news,'facec','interp','edgec','n','facea',0.5); 
   end    
 elseif slicedim == 1
   for i=1:length(ind_allslice)
-    cdata = squeeze(data(ind_allslice(i),:,:));
-    [xdata ydata zdata] = meshgrid(ind_allslice(i),1:ds(2),1:ds(3));
-    xdata=squeeze(xdata);
-    ydata=squeeze(ydata);
-    zdata=squeeze(zdata);
-    news = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata, 'ydata',ydata, 'zdata',zdata);  
+    cdata  = squeeze(data(ind_allslice(i),:,:));
+    xdata_ = squeeze(xdata(ind_allslice(i),:,:));
+    ydata_ = squeeze(ydata(ind_allslice(i),:,:));
+    zdata_ = squeeze(zdata(ind_allslice(i),:,:));
+    news   = surface('cdata',cdata,'alphadata',cdata, 'xdata',xdata_, 'ydata',ydata_, 'zdata',zdata_);  
     set(news,'facec','interp','edgec','n','facea',0.5); 
   end    
 end
@@ -422,7 +455,7 @@ function handle_fun(fun)
     fprintf('taking absolute value of complex data\n');
     fun = abs(fun);
   end
-  
+
 function handle_msk(msk)
   mskmin = min(msk(:));
   mskmax = max(msk(:));
@@ -474,4 +507,4 @@ function handle_msk(msk)
     end
   end % handling opacitylim and opacitymap
   clear mskmin mskmax;
-  
+    

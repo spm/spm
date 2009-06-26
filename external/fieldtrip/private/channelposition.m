@@ -8,6 +8,10 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.6  2009/06/26 17:39:04  vlalit
+% Added the possiblity to handle custom montages applied to MEG sensors (for removing
+%  spatial confounds). Hopefully there won't be major side effects.
+%
 % Revision 1.5  2009/06/03 09:49:03  roboos
 % change in whitespace
 %
@@ -26,24 +30,23 @@ function [pnt, lab] = channelposition(sens, varargin)
 % new function, will be used as helper function in prepare_layout
 %
 
-switch senstype(sens)
+if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
 
+    %  undo the synthetic gradient balancing
+    fprintf('undoing the %s balancing\n', sens.balance.current);
+    sens = apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes');
+    sens.balance.current = 'none';
+end
+
+switch senstype(sens)    
   case {'ctf151', 'ctf275' 'bti148', 'bti248'}
-    if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
-
-      %  undo the synthetic gradient balancing
-      fprintf('undoing the %s balancing\n', sens.balance.current);
-      sens = apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes');
-      sens.balance.current = 'none';
-    end
-
     % remove the non-MEG channels altogether
     sel = chantype(sens, 'meg');
     sens.label = sens.label(sel);
     sens.tra   = sens.tra(sel,:);
 
     % subsequently remove the unused coils
-    used = any(abs(sens.tra)<10*eps, 1);  % allow a little bit of rounding-off error
+    used = any(abs(sens.tra)<0.5, 1);  % allow a little bit of rounding-off error
     sens.pnt = sens.pnt(used,:);
     sens.ori = sens.ori(used,:);
     sens.tra = sens.tra(:,used);
@@ -52,7 +55,7 @@ switch senstype(sens)
     dist = sqrt(sum((sens.pnt - repmat(mean(sens.pnt), size(sens.pnt, 1), 1)).^2, 2));
 
     % put the corresponding distances instead of non-zero tra entries
-    dist = (abs(sens.tra)>10*eps).*repmat(dist', size(sens.tra, 1), 1);
+    dist = (abs(sens.tra)>0.5).*repmat(dist', size(sens.tra, 1), 1);
 
     % put nans instead of the zero entries
     dist(~dist) = inf;

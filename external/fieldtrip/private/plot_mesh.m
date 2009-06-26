@@ -35,6 +35,15 @@ function plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.21  2009/06/25 16:02:03  crimic
+% fixed little error
+%
+% Revision 1.20  2009/06/21 19:45:52  crimic
+% minor changes
+%
+% Revision 1.19  2009/06/21 19:25:01  crimic
+% added tag argument and set edge default color to black
+%
 % Revision 1.18  2009/06/16 12:19:04  crimic
 % erased output graphic handles
 %
@@ -86,20 +95,21 @@ function plot_mesh(bnd, varargin)
 keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 
 % get the optional input arguments
-facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),facecolor='white';end
+
 faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),faceindex='none';end
-vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor),vertexcolor='none';end
 vertexindex = keyval('vertexindex', varargin);
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),vertexsize=10;end
-edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='none';end
+facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),facecolor='white';end
+vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor),vertexcolor='none';end
+edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='k';end
 facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),facealpha=1;end
+tag         = keyval('tag',   varargin); if isempty(tag),tag='';end
 
 faceindex   = istrue(faceindex);
 vertexindex = istrue(vertexindex);
 
 
 % start with empty return values
-hs      = [];
 skin   = [255 213 119]/255;
 skull  = [140  85  85]/255;
 brain  = [202 100 100]/255;
@@ -128,6 +138,7 @@ hs = patch('Vertices', pnt, 'Faces', tri);
 set(hs, 'FaceColor', facecolor);
 set(hs, 'FaceAlpha', facealpha);
 set(hs, 'EdgeColor', edgecolor);
+set(hs, 'tag', tag);
 
 if faceindex
   % plot the triangle indices (numbers) at each face

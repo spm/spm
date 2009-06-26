@@ -19,6 +19,9 @@ function [selected] = select_point2d(pos, varargin)
 %   select_point2d(pos)
 
 % $Log: select_point2d.m,v $
+% Revision 1.7  2009/06/22 12:33:11  crimic
+% minor change
+%
 % Revision 1.6  2009/06/16 08:17:40  crimic
 % added check on input
 %
@@ -35,7 +38,6 @@ function [selected] = select_point2d(pos, varargin)
 % first implementation
 %
 
-% FIXME get the vertex positions from the figure in case isempty(pos)
 
 % get optional input arguments
 nearest  = keyval('nearest', varargin); if isempty(nearest), nearest = true; end

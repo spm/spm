@@ -9,24 +9,23 @@ function plot_vol(vol, varargin)
 % Graphic facilities are available for vertices, edges and faces. A list of
 % the arguments is given below with the correspondent admitted choices.
 %
-%     'faces'         true or false
-%     'vertices'      true or false
-%     'edges'         true or false
 %     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'faceindex'     true or false
 %     'vertexindex'   true or false
-%     'colormap'      'gray', 'hot', 'cool', 'copper', 'spring', 'summer', ...
 %
 % Example
 %   vol.r = [86 88 92 100];
 %   vol.o = [0 0 40];
-%   figure, plot_vol(vol,'colormap','cool')
+%   figure, plot_vol(vol)
 
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_vol.m,v $
+% Revision 1.9  2009/06/25 16:03:06  crimic
+% function now compatible with toolbox guidelines
+%
 % Revision 1.8  2009/06/03 10:05:40  roboos
 % changed handling of mesh generation and teh actual plotting
 %
@@ -49,22 +48,24 @@ function plot_vol(vol, varargin)
 % created function to plot forward model geometry
 %
 
+keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 % get the optional input arguments
-faces       = keyval('faces',         varargin); if isempty(faces),       faces = true;       end
-vertices    = keyval('vertices',      varargin); if isempty(vertices),    vertices = false;   end
-edges       = keyval('edges',         varargin); if isempty(edges),       edges = true;      end
-facecolor   = keyval('facecolor',     varargin); if isempty(facecolor),   facecolor = [0.5 0.5 0.5]; end % grey
-facealpha   = keyval('facealpha',     varargin); if isempty(facealpha),   facealpha = 0.5;    end % slightly opaque
-faceindex   = keyval('faceindex',     varargin);
-vertexcolor = keyval('vertexcolor',   varargin);
-vertexindex = keyval('vertexindex',   varargin);
+
+faceindex   = keyval('faceindex',   varargin);   if isempty(faceindex),faceindex = 'none';end
+vertexindex = keyval('vertexindex',   varargin); if isempty(faceindex),vertexindex ='none';end
 vertexsize  = keyval('vertexsize',    varargin); if isempty(vertexsize),  vertexsize = 10;    end
-edgecolor   = keyval('edgecolor',     varargin);
+facecolor   = keyval('facecolor',     varargin); if isempty(facecolor),facecolor = 'white'; end 
+vertexcolor = keyval('vertexcolor',   varargin); if isempty(vertexcolor),vertexcolor ='none';end
+edgecolor   = keyval('edgecolor',     varargin); if isempty(edgecolor),edgecolor = 'k';end
+facealpha   = keyval('facealpha',     varargin); if isempty(facealpha),facealpha = 1;end 
 map         = keyval('colormap',      varargin);
+
+faceindex   = istrue(faceindex);
+vertexindex = istrue(vertexindex);
+  
 
 % we will probably need a sphere, so let's prepare one
 [pnt, tri] = icosahedron642;
-
 
 % prepare a single or multiple triangulated boundaries
 switch voltype(vol)
@@ -95,24 +96,9 @@ switch voltype(vol)
     error('unsupported voltype')
 end
 
-if ~isempty(map)
-  try
-    cmap=colormap(map);close(gcf);
-  catch
-    error('Colormap does not exist')
-  end
-  % set the color of the sphere:
-  r = (linspace(cmap(1,1),cmap(end,1),length(bnd)))';
-  g = (linspace(cmap(1,2),cmap(end,2),length(bnd)))';
-  b = (linspace(cmap(1,3),cmap(end,3),length(bnd)))';
-  color = [r g b];
-end
-
+ 
 % plot the triangulated surfaces of the volume conduction model
 for i=1:length(bnd)
-  if ~isempty(map)
-    edgecolor   = [color(i,1) color(i,2) color(i,3)];
-    vertexcolor = [color(i,1) color(i,2) color(i,3)];
-  end
-  plot_mesh(bnd(i), 'faces', faces, 'vertices', vertices, 'edges', edges, 'facecolor', facecolor, 'facealpha', facealpha, 'vertexcolor', vertexcolor, 'edgecolor', edgecolor);
+  plot_mesh(bnd(i));
 end
+

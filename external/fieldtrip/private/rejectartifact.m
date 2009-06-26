@@ -52,6 +52,9 @@ function [cfg] = rejectartifact(cfg,data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.48  2009/06/23 18:33:17  roboos
+% use the trl from the input data and not from the config in case of nargin>1
+%
 % Revision 1.47  2009/03/23 21:20:10  roboos
 % removed extra ;
 %
@@ -226,10 +229,15 @@ if isfield(cfg, 'rejectfile')
   end
 end
 
+if nargin>1
+  trl = findcfg(data.cfg, 'trl');
+elseif isfield(cfg, 'trl')
+  trl = cfg.trl;
+end
+
 % ensure that there are trials that can be scanned for artifacts and/or rejected
-if ~isfield(cfg, 'trl') || isempty(cfg.trl)
-  warning('no trials were selected, cannot perform artifact detection/rejection');
-  return;
+if isempty(trl)
+  error('no trials were selected, cannot perform artifact detection/rejection');
 end
 
 % prevent double occurences of artifact types, ensure that the order remains the same
@@ -267,13 +275,13 @@ end
 cfg.artfctdef.type = dum(find(sel));
 
 % combine all trials into a single boolean vector
-trialall = zeros(1,max(cfg.trl(:,2)));
-for j=1:size(cfg.trl,1)
-  trialall(cfg.trl(j,1):cfg.trl(j,2)) = 1;
+trialall = zeros(1,max(trl(:,2)));
+for j=1:size(trl,1)
+  trialall(trl(j,1):trl(j,2)) = 1;
 end
 
 % combine all artifacts into a single boolean vector
-rejectall = zeros(1,max(cfg.trl(:,2)));
+rejectall = zeros(1,max(trl(:,2)));
 for i=1:length(cfg.artfctdef.type)
   dum = artifact{i};
   for j=1:size(dum,1)
@@ -301,7 +309,7 @@ end
 if strcmp(cfg.artfctdef.feedback, 'yes')
   COLOR = 'grcmykgrcmykgrcmykgrcmyk';
   % use the trial definition present in the local configuration
-  trl  = cfg.trl;
+  trl  = trl;
   % compute the time axis that corresponds with each trial
   time = {};
   for i=1:size(trl,1)
@@ -341,7 +349,7 @@ if strcmp(cfg.artfctdef.feedback, 'yes')
     plot(x, y, 'b')
     for j=1:length(cfg.artfctdef.type)
       x = time{i};
-      y = rejectall(cfg.trl(i,1):cfg.trl(i,2));
+      y = rejectall(trl(i,1):trl(i,2));
       y(y~=j) = nan;
       y(y==j) = i + j*0.03;
       plot(x, y, COLOR(j));
@@ -382,7 +390,7 @@ end
 % remove the trials that (partially) coincide with a rejection mark
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(cfg.artfctdef.reject, 'partial') || strcmp(cfg.artfctdef.reject, 'complete')
-  trl = cfg.trl;
+  trl = trl;
   trialok = [];
   count_complete_reject = 0;
   count_partial_reject  = 0;
@@ -441,7 +449,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectartifact.m,v 1.47 2009/03/23 21:20:10 roboos Exp $';
+cfg.version.id = '$Id: rejectartifact.m,v 1.48 2009/06/23 18:33:17 roboos Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

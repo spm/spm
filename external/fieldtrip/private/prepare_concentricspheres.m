@@ -38,6 +38,9 @@ function [vol, cfg] = prepare_concentricspheres(cfg)
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
 % $Log: prepare_concentricspheres.m,v $
+% Revision 1.7  2009/06/23 14:59:28  crimic
+% use of plotting toolbox funtion: plot_mesh
+%
 % Revision 1.6  2009/05/29 11:40:07  roboos
 % only convert cfg.headshape from config to struct in case it is present
 %
@@ -140,15 +143,17 @@ for i = 1:numel(headshape)
       headshape(end-i+1).tri = [];
     end
 
-    % FIXME switch to plot_mesh
     % plot the original surface
-    triplot(headshape(end-i+1).pnt, headshape(end-i+1).tri, [], 'edges');
+    bndtmp = [];
+    bndtmp.pnt = headshape(end-i+1).pnt;
+    bndtmp.tri = headshape(end-i+1).tri;
+    plot_mesh(bndtmp,'facecolor','none')
 
-    % FIXME switch to plot_mesh
     % plot the sphere surface
-    spnt = sphere_pnt*vol.r(i) + repmat(single_o, size(sphere_pnt, 1), 1);
-    hs = triplot(spnt, sphere_tri, [], 'edges');
-    set(hs, 'EdgeColor', colors{mod(i, numel(colors)) + 1});
+    bndtmp = [];
+    bndtmp.pnt = sphere_pnt*vol.r(i) + repmat(single_o, size(sphere_pnt, 1), 1);
+    bndtmp.tri = sphere_tri;
+    plot_mesh(bndtmp,'edgecolor',colors{mod(i, numel(colors)) + 1},'facecolor','none');
   end
 end
 
