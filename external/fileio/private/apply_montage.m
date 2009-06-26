@@ -26,6 +26,10 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.15  2009/06/26 17:39:17  vlalit
+% Added the possiblity to handle custom montages applied to MEG sensors (for removing
+%  spatial confounds). Hopefully there won't be major side effects.
+%
 % Revision 1.14  2009/06/17 10:13:05  roboos
 % improved documentation
 %
@@ -87,7 +91,7 @@ if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
   tmp.labelnew = montage.labelorg;
   tmp.labelorg = montage.labelnew;
-  tmp.tra      = inv(montage.tra);
+  tmp.tra      = pinv(montage.tra);
   montage      = tmp;
 end
 
@@ -160,6 +164,15 @@ if isfield(sens, 'tra')
   % apply the montage to the sensor array
   sens.tra   = montage.tra * sens.tra;
   sens.label = montage.labelnew;
+  
+  balance = montage;
+  if isfield(sens, 'balance')
+      balance.tra = montage.tra*getfield(getfield(sens.balance, sens.balance.current), 'tra');
+  end
+  
+  sens.balance.custom = balance;
+  sens.balance.current = 'custom';
+  
 elseif isfield(sens, 'trial')
   % apply the montage to the data that was preprocessed using fieldtrip
   Ntrials = numel(sens.trial);
