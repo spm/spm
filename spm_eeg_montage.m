@@ -29,9 +29,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3013 2009-03-31 13:52:57Z vladimir $
+% $Id: spm_eeg_montage.m 3227 2009-06-26 10:56:37Z vladimir $
 
-SVNrev = '$Rev: 3013 $';
+SVNrev = '$Rev: 3227 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -217,9 +217,13 @@ for i = 1:length(sensortypes)
     Dnew = sensors(Dnew, sensortypes{i}, sens);
 end
 
-%-Assign default EEG sensor positions if possible
+%-Assign default EEG sensor positions if no positions are present or if
+% default locations had been assigned before but no longer cover all the
+% EEG channels.
 %--------------------------------------------------------------------------
-if ~isempty(Dnew.meegchannels('EEG')) && isempty(Dnew.sensors('EEG'))
+if ~isempty(Dnew.meegchannels('EEG')) && (isempty(Dnew.sensors('EEG')) ||...
+        (all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, Dnew.fiducials.fid.label)) && ...
+        ~isempty(setdiff(Dnew.chanlabels(Dnew.meegchannels('EEG')), getfield(Dnew.sensors('EEG'), 'label')))))
     S1 = [];
     S1.task = 'defaulteegsens';
     S1.updatehistory = 0;
