@@ -12,7 +12,7 @@ function ind = meegchannels(this, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 2886 2009-03-16 20:54:17Z guillaume $
+% $Id: meegchannels.m 3228 2009-06-26 17:43:19Z vladimir $
 
 type = chantype(this);
 
@@ -29,6 +29,8 @@ else
             ind = find(ismember(upper(type), {'MEG', 'MEGMAG', 'MEGGRAD'}));
         case 'MEGPLANAR'
             ind = find(ismember(upper(type), {'MEGPLANAR'}));
+        case 'MEEG'
+            ind = find(ismember(upper(type), {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD'}));
         otherwise
             error('Unsupported modality.');
     end

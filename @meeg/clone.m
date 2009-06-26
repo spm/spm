@@ -1,7 +1,9 @@
-function new = clone(this, fnamedat, dim)
+function new = clone(this, fnamedat, dim, reset)
 % Creates a copy of the object with a new, empty data file,
 % possibly changing dimensions
-% FORMAT new = clone(this, fnamedat, dim)
+% FORMAT new = clone(this, fnamedat, dim, reset)
+% reset - 0 (default) do not reset channel or trial info unless dimensions
+%          change, 1 - reset channels only, 2 - trials only, 3 both
 % Note that when fnamedat comes with a path, the cloned meeg object uses
 % it. Otherwise, its path is by definition that of the meeg object to be
 % cloned.
@@ -9,7 +11,11 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 2476 2008-11-18 12:58:57Z christophe $
+% $Id: clone.m 3228 2009-06-26 17:43:19Z vladimir $
+
+if nargin < 4
+    reset = 0;
+end
 
 if nargin < 3
     if ~strcmp(transformtype(this), 'TF')
@@ -52,14 +58,14 @@ new.fname = [fname,'.mat'];
 new.path = pth;
 
 % ensure consistency 
-if dim(1) ~= nchannels(this)
+if (dim(1) ~= nchannels(this)) || ismember(reset, [1 3])
     new.channels = [];
     for i = 1:dim(1)
         new.channels(i).label = ['Ch' num2str(i)];
     end
 end
 
-if ntrial ~= ntrials(this)
+if ntrial ~= ntrials(this) || ismember(reset, [2 3])
     new.trials = repmat(struct('label', 'Undefined'), 1, ntrial);
 end
     

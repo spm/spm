@@ -15,6 +15,8 @@ function [D, montage] = spm_eeg_montage(S)
 %                        involved in the montage [default: 'yes']
 %   S.blocksize        - size of blocks used internally to split large 
 %                        continuous files [default ~20Mb]
+%   S.updatehistory    - if 0 the history is not updated (useful for
+%                        functions that use montage functionality.
 %
 % Output:
 % D                    - MEEG object (also written on disk)
@@ -29,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3227 2009-06-26 10:56:37Z vladimir $
+% $Id: spm_eeg_montage.m 3228 2009-06-26 17:43:19Z vladimir $
 
-SVNrev = '$Rev: 3227 $';
+SVNrev = '$Rev: 3228 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -151,7 +153,7 @@ spm('Pointer', 'Watch');
 
 %-Generate new MEEG object with new filenames
 %--------------------------------------------------------------------------
-Dnew = clone(D, ['M' fnamedat(D)], [m D.nsamples D.ntrials]);
+Dnew = clone(D, ['M' fnamedat(D)], [m D.nsamples D.ntrials], 1);
 
 nblocksamples = floor(S.blocksize/max(D.nchannels, m));
 
@@ -212,9 +214,13 @@ for i = 1:length(sensortypes)
         selempty  = find(all(sensmontage.tra == 0, 2));
         sensmontage.tra(selempty, :) = [];
         sensmontage.labelnew(selempty) = [];
-        sens = forwinv_apply_montage(sens, montage, 'keepunused', S.keepothers);
+        sens = forwinv_apply_montage(sens, sensmontage, 'keepunused', S.keepothers);
     end
     Dnew = sensors(Dnew, sensortypes{i}, sens);
+    
+    if isfield(Dnew, 'inv')
+        Dnew = rmfield(Dnew, 'inv');
+    end
 end
 
 %-Assign default EEG sensor positions if no positions are present or if
@@ -261,7 +267,11 @@ end
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
 D = Dnew;
-D = D.history('spm_eeg_montage', S);
+
+if ~isfield(S, 'updatehistory') || S.updatehistory
+    D = D.history('spm_eeg_montage', S);
+end
+
 save(D);
 
 %-Cleanup
