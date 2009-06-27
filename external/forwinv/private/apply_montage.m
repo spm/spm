@@ -26,6 +26,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.16  2009/06/27 13:24:54  vlalit
+% Additional fixes to make custom balancing work.
+%
 % Revision 1.15  2009/06/26 17:39:17  vlalit
 % Added the possiblity to handle custom montages applied to MEG sensors (for removing
 %  spatial confounds). Hopefully there won't be major side effects.
@@ -91,7 +94,7 @@ if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
   tmp.labelnew = montage.labelorg;
   tmp.labelorg = montage.labelnew;
-  tmp.tra      = pinv(montage.tra);
+  tmp.tra      = pinv(full(montage.tra));
   montage      = tmp;
 end
 
@@ -166,7 +169,7 @@ if isfield(sens, 'tra')
   sens.label = montage.labelnew;
   
   balance = montage;
-  if isfield(sens, 'balance')
+  if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
       balance.tra = montage.tra*getfield(getfield(sens.balance, sens.balance.current), 'tra');
   end
   
