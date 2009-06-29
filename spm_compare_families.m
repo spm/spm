@@ -1,6 +1,6 @@
-function [family,model] = spm_compare_families (lme,partition,names,ecp)
-% Bayesian comparison of model families for group studies
-% FORMAT [family,model] = spm_compare_families (lme,partition,names,ecp)
+function [family,model] = spm_compare_families (lme,partition,names,Nsamp,prior)
+% Bayesian comparison of model families for group studies using Gibbs sampling
+% FORMAT [family,model] = spm_compare_families (lme,partition,names,Nsamp,prior)
 %
 % lme           - array of log model evidences 
 %                   rows: subjects
@@ -8,35 +8,34 @@ function [family,model] = spm_compare_families (lme,partition,names,ecp)
 % partition     - [1 x N] vector such that partition(m)=k signifies that
 %                 model m belongs to family k (out of K) eg. [1 1 2 2 2 3 3]
 % names         - cell array of K family names eg, {'fam1','fam2','fam3'}
-% ecp           - compute exceedence probs ? (1 or 0, default=0)
+% Nsamp         - Number of samples to get 
+% prior         - 'F-unity' alpha0=1 for each family (default)
+%               - 'M-unity' alpha0=1 for each model (not advised)
 %
 % family        - family posterior  
 %   .alpha0       prior counts
-%   .alpha        posterior counts 
-%   .r            expected values
+%   .exp_r        expected value of r
+%   .rsamp        samples from posterior
 %   .xp           exceedance probs
 %
 % model          - model posterior
 %   .alpha0        prior counts
-%   .alpha         posterior counts
-%   .r             expected values
+%   .exp_r         expected value of r
 %
-% This function assumes a uniform prior over model families (using a 
-% prior count of unity for each family). It then 
-% adjusts model priors accordingly, uses spm_BMS to get model posteriors,
-% and computes family posteriors via aggregation.
+% This function computes model/family posteriors using samples from spm_BMS_gibbs.
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3158 2009-05-28 16:28:27Z will $
+% $Id: spm_compare_families.m 3236 2009-06-29 17:08:03Z will $
 
-if nargin < 4 | isempty(ecp)
-    ecp=0;
+if nargin < 4 | isempty(Nsamp)
+    Nsamp=1e4;
 end
 
-% Number of samples for computing exceedance probs if K > 2
-Nsamp=1e6;
+if nargin < 5 | isempty(prior)
+    prior='F-unity';
+end
 
 % Number of models
 N=length(partition);
@@ -51,33 +50,32 @@ for i=1:K,
     fam_size(i)=length(ind{i});
 end
 
-% Set model priors to give uniform family prior
-model.alpha0=zeros(1,N);
-for i=1:K,
-    model.alpha0(ind{i})=1/fam_size(i);
+% Set model priors 
+switch prior,
+    case 'F-unity',
+        for i=1:K,
+            model.alpha0(ind{i})=1/fam_size(i);
+        end
+    case 'M-unity',
+        model.alpha0=ones(1,N);
+    otherwise
+        disp('Error in spm_compare_families:Unknown prior');
 end
 
 % Get model posterior
-[alpha,exp_r,xp] = spm_BMS(lme, [], 0, 0, 0, model.alpha0);
-model.alpha=alpha;
+[exp_r,tmp,r_samp]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
 model.exp_r=exp_r;
 
 % Get stats from family posterior
 for i=1:K,
-    family.alpha(i)=sum(model.alpha(ind{i}));
+    ri=r_samp(:,ind{i});
+    family.r_samp(:,i)=sum(ri,2);
+    family.exp_r(i)=mean(family.r_samp(:,i));
 end
-for i=1:K,
-    family.exp_r(i)=family.alpha(i)/sum(family.alpha);
-end
-if ecp
-    if N == 2
-        % comparison of 2 families
-        family.xp(1) = spm_Bcdf(0.5,family.alpha(2),family.alpha(1));
-        family.xp(2) = spm_Bcdf(0.5,family.alpha(1),family.alpha(2));
-    else
-        % comparison of >2 families: use sampling approach
-        family.xp = spm_dirichlet_exceedance(family.alpha,Nsamp);
-    end
-else
-    family.xp=[];
-end
+
+% Exceedence probs
+xp = zeros(1,K);
+r=family.r_samp;
+[y,j]=max(r,[],2);
+tmp=histc(j,1:K)';
+family.xp=tmp/Nsamp;
