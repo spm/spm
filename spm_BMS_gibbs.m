@@ -18,10 +18,10 @@ function [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 3170 2009-06-01 12:03:31Z will $
+% $Id: spm_BMS_gibbs.m 3235 2009-06-29 13:22:28Z will $
 
 if nargin < 3 || isempty(Nsamp)
-    Nsamp = 1e6;
+    Nsamp = 1e3;
 end
 
 max_val = log(realmax('double'));
@@ -43,20 +43,21 @@ sr= sum(r,2);
 for k = 1:Nk
     r(:,k) = r(:,k)./sr;
 end
-    
+
+% Subtract subject means
+lme=lme-mean(lme,2)*ones(1,Nk);
+
 % Gibbs sampling 
 for samp=1:2*Nsamp,
     
-    % Make this sparse later
-    mod_vec=zeros(Ni,Nk);
-    
+    mod_vec=sparse(Ni,Nk);
     % Sample m's given y, r
     for i=1:Ni,
         % Pick a model for this subject
         u=exp(lme(i,:)+log(r))+eps;
         m=u/sum(u);
-        mod=spm_multrnd(m,1);
-        mod_vec(i,mod)=1;
+        modnum=spm_multrnd(m,1);
+        mod_vec(i,modnum)=1;
     end
     
     % Sample r's given y, m
@@ -74,6 +75,11 @@ for samp=1:2*Nsamp,
     if samp > Nsamp
         r_samp(samp-Nsamp,:)=r;
     end
+    
+    if mod(samp,1e4)==0
+        disp(sprintf('%d samples out of %d',samp,2*Nsamp));
+    end
+    
 end
 
 exp_r=mean(r_samp,1);
