@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3220 2009-06-25 14:04:14Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3237 2009-06-30 15:20:04Z gareth $
 
 %%
 % Load data, if necessary
@@ -156,6 +156,30 @@ else
     ltb = ltb(1):ltb(2); % list of time bins 'tb' to use
 end
 
+%% get a baseline period- used to get precision
+msg_tb = ['Baseline time_win [',num2str(round(min(D.time)*1e3)), ...
+            ' ',num2str(round(max(D.time)*1e3)),'] ms'];
+ask_tb = 1;
+while ask_tb
+    btb = spm_input(msg_tb,1,'r');   % ! in msec
+    if length(btb)==1
+        if btb>=min(D.time([], 'ms')) && btb<=max(D.time([], 'ms'))
+            ask_tb = 0;
+        end
+    elseif length(btb)==2
+        if all(btb>=floor(min(D.time([], 'ms')))) && all(btb<=ceil(max(D.time([], 'ms')))) && btb(1)<=btb(2)
+            ask_tb = 0;
+        end
+    end
+end
+if length(btb)==1
+    [kk,bltb] = min(abs(D.time([], 'ms')-btb)); % round to nearest time bin
+else
+    [kk,bltb(1)] = min(abs(D.time([], 'ms')-btb(1)));  % round to nearest time bin
+    [kk,bltb(2)] = min(abs(D.time([], 'ms')-btb(2)));
+    bltb = bltb(1):bltb(2); % list of time bins 'tb' to use
+end
+
 % trial type
 if D.ntrials>1
     msg_tr = ['Trial type number [1 ',num2str(D.ntrials),']'];
@@ -167,7 +191,46 @@ else
 end
 
 % data, averaged over time window considered
-dat_y = squeeze(mean(D(P.Ic,ltb,ltr),2));
+
+
+%% convert to VOLTS
+if strcmp(upper(P.modality),'EEG'),
+   
+    
+    eegunits = unique(D.units(D.meegchannels('EEG')));
+    Neegchans=numel(D.units(D.meegchannels('EEG')));
+if ~strcmp(eegunits,'V'),
+    warning('units unspecified');
+    if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
+        guess_units='uV';
+        else
+        guess_units='V';
+        end;
+     fprintf('No units specified but rms of data is %3.2f units\n',mean(std(D(P.Ic,ltb,ltr))))
+     msg_str=sprintf('Units of EEG are %s ?',guess_units);
+    ans=spm_input(msg_str,1,'s','yes');   
+    if ~strcmp(ans,'yes')
+        error('stop for now');
+        end; % if strcmp
+    D = units(D, 1:Neegchans, guess_units)
+    end; %if no units
+    
+    eegunits = unique(D.units(D.meegchannels('EEG')));
+    EEGscale=-1;
+    if strcmp(eegunits,'V'),
+            EEGscale=1;
+    end; % if
+    if strcmp(eegunits,'uV'),
+            EEGscale=1e-6;
+    end % if
+    if EEGscale==-1,
+        error('unknown eeg units');
+    end; % if
+end; % if eeg data
+
+EEGscale
+dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
+base_dat_stdy = squeeze(std(D(P.Ic,bltb,ltr)*EEGscale,0,2)); %% baseline data- standard deviation
 
 %%
 % Other bits of the P structure, apart for priors and #dipoles
@@ -402,36 +465,27 @@ for ii=1:length(ltr)
     P.y = dat_y(:,ii);
     P.ii = ii;
     
-    %----------------------------------------------------------------%
-    %- Temporary changes in the priors for precisionhyperparameters -%
-%      P.priors.a10 = numel(P.y);
-%      P.priors.b10 = numel(P.y)*10;
-%      P.priors.a10/P.priors.b10
-%      P.priors.a10/(P.priors.b10)^2
-%     P.priors.a20 = 1;
-%     P.priors.b20 = 1e8; % 1e8
-%     P.priors.a30 = 1e1;
-%     P.priors.b30 = 1e4;
-    %- These have to be modified to account for informative priors! -%
-    %----------------------------------------------------------------%
- 
+   
 
 
 
 
-%  disp('FIXING DIP TO GET SCALING');
-%  mu_s=[-30 20 20]';
-%  mu_w0=[ 1 1 0]';
-%  P.dv=10^-2;
+%   disp('FIXING DIP TO GET SCALING');
+%   mu_s=[-30 20 20]';
+%   mu_w0=[ 1 1 0]';
+%   P.dv=10^-2;
+%   
+%   [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
+%        P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
 %  
-%  [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
-%       P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
-% 
-%signalmag=max(std(gmn));
-disp('Guessing at signal magnitude and SNR');
-signalmag=5e-4;
-powerSNR=10;
-errorvar=signalmag.^2/powerSNR; %% variance of error 
+%signalmag=max(std(dat_y));
+%disp('Guessing at signal magnitude and SNR');
+%signalmag=5e-4;
+
+chanSNR=(dat_y./(base_dat_stdy)).^2;
+powerSNR=mean(chanSNR);
+disp(sprintf('Estimating SNR (power) to be %3.2f',powerSNR));
+errorvar=(mean(base_dat_stdy)).^2; %% variance of error 
 alla10 = numel(P.y)/2; 
 allb10 = alla10*errorvar/2; % data
 P.priors.a10=alla10;
@@ -465,9 +519,9 @@ end; % if
 
   
     ssres=sum(P.post.residuals.^2)./length(P.y);
-    disp(sprintf('prior estimate var=%3.2e, after hyper priors %3.2e, actual resid=%3.2e',P.priors.b10/P.priors.a10,P.post.b1/P.post.a1,ssres));
-     disp(sprintf('prior estimate moment var=%3.2f , after hyper priors %3.2f',P.priors.b20/P.priors.a20,P.post.b2/P.post.a2));
-      disp(sprintf('prior estimate pos var=%3.2f (=%3.2fmm per dim), after hyper priors %3.2f',P.priors.b30/P.priors.a30,power(P.priors.b30/P.priors.a30,1/2),P.post.b3/P.post.a3));
+    disp(sprintf('prior estimate var=%3.2e, post=  %3.2e, actual resid=%3.2e',P.priors.b10/P.priors.a10,P.post.b1/P.post.a1,ssres));
+    disp(sprintf('prior estimate moment var=%3.2f , post=  %3.2f',P.priors.b20/P.priors.a20,P.post.b2/P.post.a2));
+    disp(sprintf('prior estimate pos var=%3.2f (=%3.2fmm per dim), post= %3.2f',P.priors.b30/P.priors.a30,power(P.priors.b30/P.priors.a30,1/2),P.post.b3/P.post.a3));
     P.post.mu_s'
     P.post.mu_w'
  
