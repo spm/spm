@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3228 2009-06-26 17:43:19Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 3246 2009-07-02 17:22:57Z vladimir $
 
-SVNrev = '$Rev: 3228 $';
+SVNrev = '$Rev: 3246 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -128,7 +128,9 @@ S1.keepothers = 'yes';
 
 Dnew = spm_eeg_montage(S1);
 
-Dnew = badchannels(Dnew, D.badchannels, 1);
+if ~isempty(D.badchannels)
+    Dnew = badchannels(Dnew, D.badchannels, 1);
+end
 
 D = Dnew;
 

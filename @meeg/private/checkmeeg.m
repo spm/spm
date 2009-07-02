@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3196 2009-06-11 12:54:47Z vladimir $
+% $Id: checkmeeg.m 3246 2009-07-02 17:22:57Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -436,10 +436,10 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
         reind = reind(1);
     end
     
-    restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind, leind, reind]);
+    restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind(:)', leind(:)', reind(:)']);
 
-    meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind, leind, reind, restind]);
-    meegstruct.fiducials.fid.pnt = meegstruct.fiducials.fid.pnt([nzind, leind, reind, restind], :);
+    meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind(:)', leind(:)', reind(:)', restind(:)']);
+    meegstruct.fiducials.fid.pnt = meegstruct.fiducials.fid.pnt([nzind(:)', leind(:)', reind(:)', restind(:)'], :);
 
     result = 1;
 end
