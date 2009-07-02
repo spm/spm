@@ -7,8 +7,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % forward computation and source reconstruction of the data.
 %
 % Use as
-%   [sens] = apply_montage(sens, montage, ...)
-%   [data] = apply_montage(data, montage, ...)
+%   [sens]    = apply_montage(sens,     montage,  ...)
+%   [data]    = apply_montage(data,     montage,  ...)
+%   [montage] = apply_montage(montage1, montage2, ...)
 % where the input is a FieldTrip sensor definition as obtained from READ_SENS
 % or a FieldTrip raw data structure as obtained from PREPROCESSING.
 %
@@ -21,11 +22,21 @@ function [sens] = apply_montage(sens, montage, varargin)
 %   'keepunused'    string, 'yes' or 'no' (default = 'no')
 %   'inverse'       string, 'yes' or 'no' (default = 'no')
 %
+% If the first input is a montage, then the second input montage will be
+% applied to the first. In effect the resulting montage will first do
+% montage1, then montage2.
+%
 % See also READ_SENS, TRANSFORM_SENS
 
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.19  2009/07/02 16:14:15  roboos
+% allow to apply one montage on another one
+%
+% Revision 1.18  2009/07/02 09:18:41  vlalit
+% Fixing a bug in building an inverse montage (confusion between 'montage' and 'tra')
+%
 % Revision 1.17  2009/07/01 09:21:37  roboos
 % changed handling of rank-reduced montage for inversion, give warning
 % removed the modification by vladimir for the sequential application of montages
@@ -87,6 +98,12 @@ function [sens] = apply_montage(sens, montage, varargin)
 keepunused    = keyval('keepunused',    varargin{:}); if isempty(keepunused),    keepunused    = 'no';  end
 inverse       = keyval('inverse',       varargin{:}); if isempty(inverse),       inverse       = 'no';  end
 
+% check the consistency of the input sensor array or data
+if isfield(sens, 'labelorg') && isfield(sens, 'labelnew')
+  % the input data structure is also a montage, i.e. apply the montages sequentially
+  sens.label = sens.labelnew;
+end
+
 % check the consistency of the montage
 if size(montage.tra,1)~=length(montage.labelnew)
   error('the number of channels in the montage is inconsistent');
@@ -98,8 +115,8 @@ if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
   tmp.labelnew = montage.labelorg; % swap around
   tmp.labelorg = montage.labelnew; % swap around
-  tmp.montage  = full(montage.tra);
-  if rank(tmp.montage) < length(tmp.tra)
+  tmp.tra      = full(montage.tra);
+  if rank(tmp.tra) < length(tmp.tra)
     warning('the linear projection for the montage is not full-rank, the resulting data will have reduced dimensionality');
     tmp.tra      = pinv(tmp.tra);
   else
@@ -173,11 +190,17 @@ end
 montage.tra        = sparse(montage.tra(:,selmont));
 montage.labelorg   = montage.labelorg(selmont);
 
-if isfield(sens, 'tra')
+if isfield(sens, 'labelorg') && isfield(sens, 'labelnew')
+  % apply the montage on top of the other montage
+  sens       = rmfield(sens, 'label');
+  sens.tra   = montage.tra * sens.tra;
+  sens.labelnew = montage.labelnew;
+
+elseif isfield(sens, 'tra')
   % apply the montage to the sensor array
   sens.tra   = montage.tra * sens.tra;
   sens.label = montage.labelnew;
-  
+
 elseif isfield(sens, 'trial')
   % apply the montage to the data that was preprocessed using fieldtrip
   Ntrials = numel(sens.trial);
@@ -201,5 +224,3 @@ end
 function y = indx2logical(x, n)
 y = false(1,n);
 y(x) = true;
-
-
