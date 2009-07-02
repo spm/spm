@@ -32,6 +32,10 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.14  2009/07/02 10:34:21  vlalit
+% Added eeglab_set to the list of formats where electrode locations can be found in
+%  the header.
+%
 % Revision 1.13  2009/06/03 09:52:15  roboos
 % added zebris_sfp
 %
@@ -174,7 +178,7 @@ switch fileformat
   % This is for EEG formats where electrode positions can be stored with the data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  case {'spmeeg_mat'}
+  case {'spmeeg_mat', 'eeglab_set'}
     % check the availability of the required low-level toolbox
     % this is required because the read_sens function is also on itself included in the forwinv toolbox
     hastoolbox('fileio');

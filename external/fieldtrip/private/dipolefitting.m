@@ -123,6 +123,16 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: dipolefitting.m,v $
+% Revision 1.57  2009/07/02 15:55:15  roboos
+% fixed typo
+%
+% Revision 1.56  2009/07/02 15:54:15  roboos
+% convert 1x6 dipole position (after scanning with symmetric pair) into 2x3 to prevent warning later
+%
+% Revision 1.55  2009/07/02 15:37:04  roboos
+% use senstype instead of strcmp
+% use fixdipole helper function for consistent dipole structure representation
+%
 % Revision 1.54  2009/06/03 09:51:16  roboos
 % changed input specification of dip.mom into 3xNdipoles
 % give explicit error if unsupported dipole model
@@ -447,7 +457,7 @@ if ntime<1
 end
 
 % check whether EEG is average referenced
-if strcmp(sens.type, 'electrodes')
+if senstype(sens, 'eeg')
   if any(rv(Vdata, avgref(Vdata))>0.001)
     warning('the EEG data is not average referenced, correcting this');
   end
@@ -457,7 +467,7 @@ end
 % set to zeros if no initial dipole was specified
 if ~isfield(cfg, 'dip')
   cfg.dip.pos = zeros(cfg.numdipoles, 3);
-  cfg.dip.mom = zeros(3, cfg.numdipoles);
+  cfg.dip.mom = zeros(3*cfg.numdipoles, 1);
 end
 
 % set to zeros if no initial dipole position was specified
@@ -467,7 +477,7 @@ end
 
 % set to zeros if no initial dipole moment was specified
 if ~isfield(cfg.dip, 'mom')
-  cfg.dip.mom = zeros(3, cfg.numdipoles);
+  cfg.dip.mom = zeros(3*cfg.numdipoles, 1);
 end
 
 % check the specified dipole model
@@ -520,8 +530,9 @@ if strcmp(cfg.gridsearch, 'yes')
     case 'regional'
       % find the grid point(s) with the minimum error
       [err, indx] = min(grid.error(grid.inside));
-      dip.pos = grid.pos(grid.inside(indx),:);  % note that for a symmetric dipole pair this results in a vector
-      dip.mom = zeros(cfg.numdipoles*3,1);      % set the dipole moment to zero
+      dip.pos = grid.pos(grid.inside(indx),:);          % note that for a symmetric dipole pair this results in a vector
+      dip.pos = reshape(dip.pos, cfg.numdipoles, 3);    % convert to a Nx3 array
+      dip.mom = zeros(cfg.numdipoles*3,1);              % set the dipole moment to zero
       if cfg.numdipoles==1
         fprintf('found minimum after scanning on grid point [%g %g %g]\n', dip.pos(1), dip.pos(2), dip.pos(3));
       elseif cfg.numdipoles==2
@@ -531,8 +542,9 @@ if strcmp(cfg.gridsearch, 'yes')
       for t=1:ntime
         % find the grid point(s) with the minimum error
         [err, indx] = min(grid.error(grid.inside,t));
-        dip(t).pos = grid.pos(grid.inside(indx),:);  % note that for a symmetric dipole pair this results in a vector
-        dip(t).mom = zeros(cfg.numdipoles*3,1);      % set the dipole moment to zero
+        dip(t).pos = grid.pos(grid.inside(indx),:);           % note that for a symmetric dipole pair this results in a vector
+        dip(t).pos = reshape(dip(t).pos, cfg.numdipoles, 3);  % convert to a Nx3 array
+        dip(t).mom = zeros(cfg.numdipoles*3,1);               % set the dipole moment to zero
         if cfg.numdipoles==1
           fprintf('found minimum after scanning for topography %d on grid point [%g %g %g]\n', t, dip(t).pos(1), dip(t).pos(2), dip(t).pos(3));
         elseif cfg.numdipoles==2
@@ -548,10 +560,10 @@ if strcmp(cfg.gridsearch, 'no')
   % use the initial guess supplied in the configuration for the remainder
   switch cfg.model
     case 'regional'
-      dip = cfg.dip;
+      dip = struct(cfg.dip);
     case 'moving'
       for t=1:ntime
-        dip(t) = cfg.dip;
+        dip(t) = struct(cfg.dip);
       end
     otherwise
       error('unsupported cfg.model');
@@ -562,16 +574,10 @@ end
 % i.e. [x1 y1 z1 x2 y2 z2] or [x1 y1 z1; x2 y2 z2]
 switch cfg.model
   case 'regional'
-    if length(dip.pos)==cfg.numdipoles*3
-      % reshape the vector representation into a N*3 matrix
-      dip.pos = transpose(reshape(dip.pos, 3, cfg.numdipoles));
-    end
+    dip = fixdipole(dip);
   case 'moving'
     for t=1:ntime
-      if length(dip(t).pos)==cfg.numdipoles*3
-        % reshape the vector representation into a N*3 matrix
-        dip(t).pos = transpose(reshape(dip(t).pos, 3, cfg.numdipoles));
-      end
+      dip(t) = fixdipole(dip(t));
     end
   otherwise
     error('unsupported cfg.model');
@@ -737,7 +743,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.54 2009/06/03 09:51:16 roboos Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.57 2009/07/02 15:55:15 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -16,6 +16,9 @@ function [mri] = read_mri(filename)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: read_mri.m,v $
+% Revision 1.7  2009/07/02 15:04:09  roboos
+% construct transformation matrix for dicom files
+%
 % Revision 1.6  2009/03/11 15:02:18  vlalit
 % Use either SPM5 or SPM8 to read *.nii files.
 %
@@ -209,12 +212,12 @@ elseif filetype(filename, 'dicom')
   dirlist  = {dirlist.name};
   for i=1:length(dirlist)
     filename = char(fullfile(p, dirlist{i}));
-    fprintf('reading ''%s''\n', filename);
+    fprintf('reading dicom image from ''%s''\n', filename);
     info       = dicominfo(filename);
     img(:,:,i) = dicomread(info);
     hdr(i)     = info;
     if i==1
-      % this pre-allocates enough space for the other slices
+      % this pre-allocates enough space for the subsequent slices
       img(1,1,length(dirlist)) = 0;
     end
   end
@@ -222,6 +225,15 @@ elseif filetype(filename, 'dicom')
   [z, indx]   = sort(cell2mat({hdr.SliceLocation}));
   hdr = hdr(indx);
   img = img(:,:,indx);
+
+  % construct a homgenous transformation matrix that performs the scaling from voxels to mm
+  dx = hdr(1).PixelSpacing(1);
+  dy = hdr(1).PixelSpacing(2);
+  dz = hdr(2).SliceLocation - hdr(1).SliceLocation;
+  transform = eye(4);
+  transform(1,1) = dx;
+  transform(2,2) = dy;
+  transform(3,3) = dz;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else

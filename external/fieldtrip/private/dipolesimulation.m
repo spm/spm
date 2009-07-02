@@ -59,6 +59,9 @@ function [simulated] = dipolesimulation(cfg)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: dipolesimulation.m,v $
+% Revision 1.24  2009/07/02 15:37:32  roboos
+% use fixdipole for consistent dipole structure representation
+%
 % Revision 1.23  2009/03/23 21:19:51  roboos
 % allow different amplitudes for different dipoles
 %
@@ -109,10 +112,8 @@ if ~isfield(cfg, 'absnoise'),   cfg.absnoise = 0;         end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text';    end
 if ~isfield(cfg, 'channel'),    cfg.channel = 'all';      end
 
+cfg.dip = fixdipole(cfg.dip);
 Ndipoles = size(cfg.dip.pos,1);
-if size(cfg.dip.pos,2)~=3
-  error('dipole positions should be specified as [x, y, z]');
-end
 
 % prepare the volume conductor and the sensor array
 [vol, sens, cfg] = prepare_headmodel(cfg, []);
@@ -125,10 +126,6 @@ if ~isfield(cfg, 'ntrials')
   end
 end
 Ntrials  = cfg.ntrials;
-
-if all(size(cfg.dip.mom)==[1 3])
-  cfg.dip.mom = cfg.dip.mom';
-end
 
 if isfield(cfg.dip, 'frequency')
   % this should be a column vector
@@ -252,7 +249,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: dipolesimulation.m,v 1.23 2009/03/23 21:19:51 roboos Exp $';
+cfg.version.id   = '$Id: dipolesimulation.m,v 1.24 2009/07/02 15:37:32 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
