@@ -26,6 +26,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.18  2009/07/02 09:18:41  vlalit
+% Fixing a bug in building an inverse montage (confusion between 'montage' and 'tra')
+%
 % Revision 1.17  2009/07/01 09:21:37  roboos
 % changed handling of rank-reduced montage for inversion, give warning
 % removed the modification by vladimir for the sequential application of montages
@@ -98,8 +101,8 @@ if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
   tmp.labelnew = montage.labelorg; % swap around
   tmp.labelorg = montage.labelnew; % swap around
-  tmp.montage  = full(montage.tra);
-  if rank(tmp.montage) < length(tmp.tra)
+  tmp.tra      = full(montage.tra);
+  if rank(tmp.tra) < length(tmp.tra)
     warning('the linear projection for the montage is not full-rank, the resulting data will have reduced dimensionality');
     tmp.tra      = pinv(tmp.tra);
   else
