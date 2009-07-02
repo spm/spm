@@ -28,6 +28,9 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.15  2009/07/02 15:38:06  roboos
+% use fixdipole for consistent dipole structure representation
+%
 % Revision 1.14  2009/03/13 07:24:52  roboos
 % changed handling of optimization function (fminunc/fminsearch), now uses hastoolbox which is also able to check the availablity of a license for the optimimization toolbox
 %
@@ -169,38 +172,15 @@ elseif iseeg
   dat = avgref(dat);
 end
 
-% check the input dipole position specification, should be Nx3
-[m, n] = size(dip.pos);
-if n==3
-  % this is ok
-elseif m==3
-  % it is possible to translate it into a Nx3 unambiguously
-  warning('input dipole positions should be specified as Nx3 matrix');
-  dip.pos = dip.pos';
-else
-  error('input dipole positions should be specified as Nx3 matrix');
-end
-
-if isfield(dip, 'mom')
-  % check the input dipole moment specification, should be 3xN
-  [m, n] = size(dip.mom);
-  if m==3
-    % this is ok
-  elseif n==3
-    % it is possible to translate it into a 3xN unambiguously
-    warning('input dipole moments should be specified as 3xN matrix');
-    dip.mom = dip.mom';
-  else
-    error('input dipole moments should be specified as 3xN matrix');
-  end
-end
+% ensure correct dipole position and moment specification
+dip = fixdipole(dip);
 
 % reformat the position parameters in case of multiple dipoles, this
 % should result in the matrix changing from [x1 y1 z1; x2 y2 z2] to
 % [x1 y1 z1 x2 y2 z2] for the constraints to work
-param = dip.pos';
-param = param(:)';
 numdip = size(dip.pos, 1);
+param  = dip.pos';
+param  = param(:)';
 
 % add the orientation to the nonlinear parameters
 if isfield(constr, 'fixedori') && constr.fixedori
@@ -271,8 +251,11 @@ if isfield(constr, 'fixedori') && constr.fixedori
   dipout.mom  = ori;  % dipole orientation as vector
   dipout.ampl = mom;  % dipole strength
 else
-  dipout.mom  = mom;  % dipole moment, which represents both the orientation and strength as vector
+  dipout.mom  = mom;  % dipole moment as vector or matrix, which represents both the orientation and strength as vector
 end
+
+% ensure correct dipole position and moment specification
+dipout = fixdipole(dipout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DIPFIT_ERROR computes the error between measured and model data
