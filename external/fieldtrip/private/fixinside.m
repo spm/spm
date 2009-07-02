@@ -12,6 +12,9 @@ function [source] = fixinside(source, opt);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: fixinside.m,v $
+% Revision 1.1  2009/07/02 08:04:36  roboos
+% moved fixdimord and fixinside from private to public
+%
 % Revision 1.3  2007/07/17 10:34:34  roboos
 % prevent display of source structure on screen by adding ;
 %

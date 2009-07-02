@@ -24,6 +24,9 @@ function [data] = fixdimord(data);
 % Copyright (C) 2006, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % $Log: fixdimord.m,v $
+% Revision 1.1  2009/07/02 08:04:36  roboos
+% moved fixdimord and fixinside from private to public
+%
 % Revision 1.8  2006/04/12 09:11:23  roboos
 % added ; to the end of a line
 %

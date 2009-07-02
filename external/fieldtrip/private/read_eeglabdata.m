@@ -36,6 +36,10 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabdata.m,v $
+% Revision 1.3  2009/07/01 15:35:19  vlalit
+% Try several different ways of looking for the data file
+%  before giving up (fix suggested by Jakob Scherer)
+%
 % Revision 1.2  2009/02/27 12:03:09  vlalit
 % Arno's fix for a bug reported by Antanas Spokas
 %
@@ -72,7 +76,20 @@ if ischar(header.orig.data)
   if strcmpi(header.orig.data(end-2:end), 'set'),
     header.ori = load('-mat', filename);
   else
-    fid = fopen(header.orig.data);
+      
+      % assuming that the data file is in the current directory
+      fid = fopen(header.orig.data);
+
+      % assuming the .dat and .set files are located in the same directory
+      if fid == -1
+          pathstr = fileparts(filename);
+          fid = fopen(fullfile(pathstr, header.orig.data));
+      end
+
+      if fid == -1
+          fid = fopen(fullfile(header.orig.filepath, header.orig.data)); %
+      end
+
     if fid == -1, error('Cannot not find data file'); end;
 
     % only read the desired trials

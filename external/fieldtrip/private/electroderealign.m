@@ -1,4 +1,4 @@
-function [norm] = electroderealign(cfg);
+function [norm] = electroderealign(cfg)
 
 % ELECTRODEREALIGN rotates and translates electrode positions to
 % template electrode positions or towards the head surface. It can
@@ -48,6 +48,7 @@ function [norm] = electroderealign(cfg);
 %   cfg.casesensitive  = 'yes' or 'no', determines whether string comparisons
 %                        between electrode labels are case sensitive (default = 'yes')
 %   cfg.feedback       = 'yes' or 'no' (default = 'no')
+%   cfg.outline        = 'yes' or 'no' to add the outline characteristic landmarks such as sulci (default = 'no')
 %
 % The electrode set that will be realigned is specified as
 %   cfg.elecfile       = string with filename, or alternatively
@@ -76,11 +77,14 @@ function [norm] = electroderealign(cfg);
 %                        single triangulated boundary, or a Nx3 matrix with surface
 %                        points
 %
-% See also READ_FCDC_ELEC, VOLUMEREALIGN
+% See also READ_ELEC, VOLUMEREALIGN
 
-% Copyright (C) 2005-2008, Robert Oostenveld
+% Copyright (C) 2005-2009, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.13  2009/06/30 07:10:11  roboos
+% first proper implementation of manual clicking of electrode locations (using scalp mesh)
+%
 % Revision 1.12  2009/06/04 10:03:46  roboos
 % fixed problem in the input og cfg.headshape when it was not required
 %
@@ -168,6 +172,7 @@ global fb
 % set the defaults
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';       end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'no';       end
+if ~isfield(cfg, 'outline'),       cfg.outline = 'no';       end
 if ~isfield(cfg, 'casesensitive'), cfg.casesensitive = 'yes'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangulated head surface, without labels
 if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
@@ -227,7 +232,7 @@ if useheadshape
   end
   if ~isfield(headshape, 'tri')
     % generate a closed triangulation from the surface points
-    headshape.pnt = unique(headshape,pnt, 'rows');
+    headshape.pnt = unique(headshape.pnt, 'rows');
     headshape.tri = projecttri(headshape.pnt);
   end
 end
@@ -497,16 +502,23 @@ elseif strcmp(cfg.method, 'interactive')
   norm = tmp;
   clear tmp
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(cfg.method, 'position')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % open a figure
+  % open a figure
   fig = figure;
   rotate3d on
-  % plot_mesh
-  % select_point
-
-  keyboard
+  plot_mesh(headshape, 'edgecolor', 'k')
+  xyz = select_point3d(headshape, 'multiple', true);
+  orig.pnt = xyz;
+  for i=1:size(orig.pnt,1)
+    orig.label{i,1} = 'unknown';
+  end
+  
+  if strcmp(cfg.outline, 'yes')
+    % FIXME also go over the outlines with manual clicking
+    keyboard
+  end
 
 else
   error('unknown method');
@@ -514,10 +526,22 @@ end
 
 % apply the spatial transformation to all electrodes, and replace the
 % electrode labels by their case-sensitive original values
-if any(strcmp(cfg.method, {'rigidbody', 'globalrescale', 'traditional', 'nonlin1', 'nonlin2', 'nonlin3', 'nonlin4', 'nonlin5'}))
-  norm.pnt   = warp_apply(norm.m, orig.pnt, cfg.method);
-else
-  norm.pnt   = warp_apply(norm.m, orig.pnt, 'homogenous');
+switch cfg.method
+  case {'rigidbody', 'globalrescale', 'traditional', 'nonlin1', 'nonlin2', 'nonlin3', 'nonlin4', 'nonlin5'}
+    norm.pnt   = warp_apply(norm.m, orig.pnt, cfg.method);
+    if isfield(orig, 'outline')
+      % FIXME also apply the warp to the outlines
+    end
+  case {'interactive'}
+    norm.pnt   = warp_apply(norm.m, orig.pnt, 'homogenous');
+    if isfield(orig, 'outline')
+      % FIXME also apply the warp to the outlines
+    end
+  case {'position'}
+    % the positions are already assigned in correspondence with the mesh
+    norm = orig;
+  otherwise
+    error('unknown method');
 end
 
 if isfield(orig, 'label')
@@ -533,7 +557,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.12 2009/06/04 10:03:46 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.13 2009/06/30 07:10:11 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;

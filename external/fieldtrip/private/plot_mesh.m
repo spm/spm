@@ -35,6 +35,9 @@ function plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.22  2009/06/29 16:03:16  roboos
+% allow input Nx3 as set of points
+%
 % Revision 1.21  2009/06/25 16:02:03  crimic
 % fixed little error
 %
@@ -94,6 +97,12 @@ function plot_mesh(bnd, varargin)
 % FIXME: introduce option for color coding (see sourceplot)
 keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 
+if ~isstruct(bnd) && isnumeric(bnd) && size(bnd,2)==3
+  % the input seems like a list of points, convert into something that resembles a mesh
+  warning('off', 'MATLAB:warn_r14_stucture_assignment');
+  bnd.pnt = bnd;
+end
+
 % get the optional input arguments
 
 faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),faceindex='none';end
@@ -107,7 +116,6 @@ tag         = keyval('tag',   varargin); if isempty(tag),tag='';end
 
 faceindex   = istrue(faceindex);
 vertexindex = istrue(vertexindex);
-
 
 % start with empty return values
 skin   = [255 213 119]/255;

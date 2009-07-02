@@ -47,6 +47,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.37  2009/06/30 07:08:55  roboos
+% removed debug keyboard statement
+%
 % Revision 1.36  2009/06/17 14:03:41  roboos
 % consistent handling of ginput in case figure is closed
 %
@@ -567,7 +570,6 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
           x = polygon{thispolygon}(1,1);
           y = polygon{thispolygon}(1,2);
           polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
-          keyboard
           % add the last line segment to the figure
           x = polygon{i}([end-1 end],1);
           y = polygon{i}([end-1 end],2);

@@ -21,6 +21,9 @@ function [selected] = select_point3d(bnd, varargin)
 %   ... do something here
 
 % $Log: select_point3d.m,v $
+% Revision 1.3  2009/06/30 07:09:18  roboos
+% print information about selected points
+%
 % Revision 1.2  2009/06/15 15:46:45  roboos
 % first implementation of point3d, multiple changes to point2d, still some work to be done to make them consistent
 %
@@ -75,15 +78,16 @@ while ~done
   key = get(gcf,'CurrentCharacter'); % which key was pressed (if any)?
 
   if strcmp(key, 'q')
-    % we are done with the clicking
+    % finished selecting points
     done = true;
   else
-    % a new point is selected
+    % a new point was selected
     if nearest
       selected(end+1,:) = v;
     else
       selected(end+1,:) = p;
     end % if nearest
+    fprintf('selected point at [%f %f %f]\n', selected(end,1), selected(end,2), selected(end,3));
   end
 
   if ~multiple

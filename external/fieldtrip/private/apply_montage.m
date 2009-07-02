@@ -26,6 +26,10 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.17  2009/07/01 09:21:37  roboos
+% changed handling of rank-reduced montage for inversion, give warning
+% removed the modification by vladimir for the sequential application of montages
+%
 % Revision 1.16  2009/06/27 13:24:54  vlalit
 % Additional fixes to make custom balancing work.
 %
@@ -92,9 +96,15 @@ end
 
 if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
-  tmp.labelnew = montage.labelorg;
-  tmp.labelorg = montage.labelnew;
-  tmp.tra      = pinv(full(montage.tra));
+  tmp.labelnew = montage.labelorg; % swap around
+  tmp.labelorg = montage.labelnew; % swap around
+  tmp.montage  = full(montage.tra);
+  if rank(tmp.montage) < length(tmp.tra)
+    warning('the linear projection for the montage is not full-rank, the resulting data will have reduced dimensionality');
+    tmp.tra      = pinv(tmp.tra);
+  else
+    tmp.tra      = inv(tmp.tra);
+  end
   montage      = tmp;
 end
 
@@ -167,14 +177,6 @@ if isfield(sens, 'tra')
   % apply the montage to the sensor array
   sens.tra   = montage.tra * sens.tra;
   sens.label = montage.labelnew;
-  
-  balance = montage;
-  if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-      balance.tra = montage.tra*getfield(getfield(sens.balance, sens.balance.current), 'tra');
-  end
-  
-  sens.balance.custom = balance;
-  sens.balance.current = 'custom';
   
 elseif isfield(sens, 'trial')
   % apply the montage to the data that was preprocessed using fieldtrip
