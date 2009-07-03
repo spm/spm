@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3237 2009-06-30 15:20:04Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3247 2009-07-03 15:09:56Z gareth $
 
 %%
 % Load data, if necessary
@@ -193,6 +193,7 @@ end
 % data, averaged over time window considered
 
 
+EEGscale=1;
 %% convert to VOLTS
 if strcmp(upper(P.modality),'EEG'),
    
@@ -228,7 +229,7 @@ if ~strcmp(eegunits,'V'),
     end; % if
 end; % if eeg data
 
-EEGscale
+
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
 base_dat_stdy = squeeze(std(D(P.Ic,bltb,ltr)*EEGscale,0,2)); %% baseline data- standard deviation
 
