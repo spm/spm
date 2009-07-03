@@ -6,7 +6,8 @@ function D = spm_eeg_bc(S)
 % (optional) fields of S:
 %   S.D    - MEEG object or filename of M/EEG mat-file with epoched data
 %   S.time - 2-element vector with start and end of baseline period [ms]
-%   S.save - save the baseline corrected data on disk [default: false]
+%   S.save - save the baseline corrected data in a separate file [default: true]
+%   S.updatehistory - update history information [default: true]
 %
 % D        - MEEG object (also saved on disk if requested)
 %__________________________________________________________________________
@@ -16,9 +17,9 @@ function D = spm_eeg_bc(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 2890 2009-03-17 12:04:18Z vladimir $
+% $Id: spm_eeg_bc.m 3248 2009-07-03 16:17:30Z vladimir $
 
-SVNrev = '$Rev: 2890 $';
+SVNrev = '$Rev: 3248 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -37,6 +38,14 @@ end
 
 D = spm_eeg_load(D);
 
+
+%-Redirect to Time-Frequency baseline correction if necessary
+%--------------------------------------------------------------------------
+if strncmpi(D.transformtype,'TF',2) % TF and TFphase
+    D = spm_eeg_tf_rescale(S);
+    return;
+end
+
 %-Get input parameters
 %--------------------------------------------------------------------------
 try
@@ -46,11 +55,6 @@ catch
     S.time = time;
 end
 
-try 
-    S.save;
-catch
-    S.save = false;
-end
 
 %-Converting to sec
 %--------------------------------------------------------------------------
@@ -67,39 +71,33 @@ end
 
 indchannels = [D.meegchannels D.eogchannels];
 
+
+if ~isfield(S, 'save') || S.save
+    S1         = [];
+    S1.D       = D;
+    S1.newname = ['b' D.fname];
+    D          = spm_eeg_copy(S1);
+end
+
 spm_progress_bar('Init', D.ntrials, 'trials baseline-corrected');
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
 else Ibar = 1:D.ntrials; end
 
-switch(transformtype(D))
-    case {'TF','TFphase'}
-        for k = 1: D.ntrials
-            tmp = mean(D(:, :, t(1):t(2), k), 3);
-            D(:, :, :, k) = D(:, :, :, k) - repmat(tmp, [1, 1, D.nsamples, 1]);
 
-            if ismember(k, Ibar), spm_progress_bar('Set', k); end
-        end
+for k = 1: D.ntrials
+    tmp = mean(D(indchannels, t(1):t(2), k), 2);
+    D(indchannels, :, k) = D(indchannels, :, k) - repmat(tmp, 1, D.nsamples);
 
-    case 'time'
-        for k = 1: D.ntrials
-            tmp = mean(D(indchannels, t(1):t(2), k), 2);
-            D(indchannels, :, k) = D(indchannels, :, k) - repmat(tmp, 1, D.nsamples);
-            
-            if ismember(k, Ibar), spm_progress_bar('Set', k); end
-        end
-
-    otherwise
-        error('Unknown transform type');
+    if ismember(k, Ibar), spm_progress_bar('Set', k); end
 end
 
 spm_progress_bar('Clear');
 
 %-Save data
 %--------------------------------------------------------------------------
-if S.save
-    error('Save option not handled yet.');
-    %D = D.history('spm_eeg_bc', S);
-    %save(D);
+if ~isfield(S, 'updatehistory') || S.updatehistory   
+    D = D.history(mfilename, S);
+    save(D);
 end
 
 %-Cleanup

@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2943 2009-03-24 19:09:45Z jean $
+% $Id: spm_eeg_review_uis.m 3248 2009-07-03 16:17:30Z vladimir $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -373,6 +373,14 @@ switch objects.type
                     end
                     miY = min(y(:));
                     maY = max(y(:));
+                    
+                    if miY == 0 && maY == 0
+                        miY = -eps;
+                        maY = eps;
+                    else
+                        miY = miY - miY.*1e-3;
+                        maY = maY + maY.*1e-3;
+                    end
                     % position of plotting area for eeg data in graphics figure
                     if size(p,2) <= 16  % for aesthetics purposes
                         Pos = [0.023 0.05 0.95 0.52];

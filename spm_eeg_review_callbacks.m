@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 3248 2009-07-03 16:17:30Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -1157,6 +1157,15 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if ~isfield(handles,'PLOT')
                     miY = min(v_data(:));
                     maY = max(v_data(:));
+                    
+                    if miY == 0 && maY == 0
+                        miY = -eps;
+                        maY = eps;
+                    else
+                        miY = miY - miY.*1e-3;
+                        maY = maY + maY.*1e-3;
+                    end
+                    
                     for i=1:length(VIZU.visuSensors)
                         cmenu = uicontextmenu;
                         uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);

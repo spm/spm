@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3213 2009-06-19 16:49:42Z vladimir $
+% $Id: spm_eeg_filter.m 3248 2009-07-03 16:17:30Z vladimir $
 
-SVNrev = '$Rev: 3213 $';
+SVNrev = '$Rev: 3248 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -206,6 +206,8 @@ else
         if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
     end
+    
+    disp('Baseline correction is no longer done automatically by spm_eeg_filter. Use spm_eeg_bc if necessary.');
 end
 
 spm_progress_bar('Clear');
