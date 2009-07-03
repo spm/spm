@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2928 2009-03-24 08:54:32Z lee $
+% $Id: spm_run_fmri_est.m 3249 2009-07-03 16:43:55Z guillaume $
 
 
 global defaults
@@ -33,23 +33,6 @@ original_dir = pwd;
 %-Move to the directory where the SPM.mat file is
 %-----------------------------------------------------------------------
 cd(fileparts(job.spmmat{:}));
-
-% COMMENTED OUT BY DRG. THIS SHOULD BE TAKEN CARE OF WITHIN SPM_SPM AND
-% SPM_SPM_BAYES. REMOVE THIS SECTION ONCE THIS HAS BEEN VERIFIED.
-%-If we've gotten to this point we're committed to overwriting files.
-% Delete them so we don't get stuck in spm_spm
-%-----------------------------------------------------------------------
-% files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
-%          '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
-%          '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
-% 
-% for i=1:length(files)
-%     j = spm_select('List',pwd,files{i});
-%     for k=1:size(j,1)
-%         spm_unlink(deblank(j(k,:)));
-%     end
-% end
-% END COMMENTED OUT BY DRG
 
 %=======================================================================
 % B A Y E S I A N   2nd   L E V E L   E S T I M A T I O N

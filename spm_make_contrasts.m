@@ -20,7 +20,7 @@ function [Con] = spm_make_contrasts (k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_make_contrasts.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_make_contrasts.m 3249 2009-07-03 16:43:55Z guillaume $
     
 % See section 5 of 
 % http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
@@ -34,7 +34,8 @@ if nf==1
 elseif nf==2
     k=[k 1];
 elseif nf>3
-    disp(sprintf('Error: spm_make_contrasts not written for %d-way ANOVAs !',nf));
+    fprintf('spm_make_contrasts not written for %d-way ANOVAs !\n',nf);
+    Con = [];
     return
 end
 

@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_contrasts.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_design_contrasts.m 3249 2009-07-03 16:43:55Z guillaume $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -33,6 +33,7 @@ for f=1:nf,
 end
 
 icon=spm_make_contrasts(kf);
+if isempty(icon), con = []; return; end
 
 % Get number of basis functions per condition
 if isfield(SPM,'xBF')

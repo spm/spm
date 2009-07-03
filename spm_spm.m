@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3193 2009-06-09 17:51:53Z guillaume $
+% $Id: spm_spm.m 3249 2009-07-03 16:43:55Z guillaume $
 
-SVNid   = '$Rev: 3193 $';
+SVNid   = '$Rev: 3249 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -492,8 +492,10 @@ try
         [VY.mat]  = deal(M);
         SPM.xY.VY = VY;
         units = {'mm' 'mm' '%'};
-        [xM.VM.mat] = deal(M);
-        SPM.xM = xM;
+        if ~isempty(xM.VM)
+            [xM.VM.mat] = deal(M);
+            SPM.xM = xM;
+        end
     end
 end
 
