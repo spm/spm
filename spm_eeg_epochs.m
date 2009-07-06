@@ -38,9 +38,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 3248 2009-07-03 16:17:30Z vladimir $
+% $Id: spm_eeg_epochs.m 3250 2009-07-06 09:31:13Z vladimir $
 
-SVNrev = '$Rev: 3248 $';
+SVNrev = '$Rev: 3250 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -151,7 +151,7 @@ if length(nsampl) > 1 || nsampl<1
     error('All trials should have identical and positive lengths');
 end
 
-inbounds = (trl(:,1)>1 & trl(:, 2)<=D.nsamples);
+inbounds = (trl(:,1)>=1 & trl(:, 2)<=D.nsamples);
 
 rejected = find(~inbounds);
 rejected = rejected(:)';

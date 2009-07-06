@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3246 2009-07-02 17:22:57Z vladimir $
+% $Id: checkmeeg.m 3250 2009-07-06 09:31:13Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -55,6 +55,40 @@ else
     if ~isfield(meegstruct.trials, 'events')
         [meegstruct.trials.events] = deal([]);
     end
+
+    for k = 1:Ntrials
+        event = meegstruct.trials(k).events;
+
+        if ~isempty(event)
+            % make sure that all required elements are present
+            if ~isfield(event, 'type'),     error('type field not defined for each event');  end
+            if ~isfield(event, 'time'),     error('time field not defined for each event');  end
+            if ~isfield(event, 'value'),    [event.value]    = deal([]);                     end
+            if ~isfield(event, 'offset'),   [event.offset]   = deal(0);                      end
+            if ~isfield(event, 'duration'), [event.duration] = deal([]);                     end
+
+
+            % make sure that all numeric values are double
+            for i=1:length(event)
+                if isnumeric(event(i).value)
+                    event(i).value = double(event(i).value);
+                end
+                event(i).time      = double(event(i).time);
+                event(i).offset    = double(event(i).offset);
+                event(i).duration  = double(event(i).duration);
+            end
+
+            if ~isempty(event)
+                % sort the events on the sample on which they occur
+                % this has the side effect that events without time are discarded
+                [dum, indx] = sort([event.time]);
+                event = event(indx);
+            end
+
+            meegstruct.trials(k).events = event;
+        end
+    end
+
     if ~isfield(meegstruct.trials, 'onset')
         [meegstruct.trials.onset] = deal([]);
     end
@@ -83,12 +117,12 @@ else
         disp('checkmeeg: no channel type, assigning default');
         [meegstruct.channels.type] = deal('Other');
     end
-    
+
     % This is for backward compatibility with early SPM8b. Can be removed
     % after a while.
     ind = strmatch('MEGREF', {meegstruct.channels.type}, 'exact');
     [meegstruct.channels(ind).type] = deal('REF');
-    
+
     if ~isfield(meegstruct.channels, 'X_plot2D')
         [meegstruct.channels.X_plot2D] = deal([]);
         [meegstruct.channels.Y_plot2D] = deal([]);
@@ -174,7 +208,7 @@ else
             % the use of copied (raw) integer data files
             case 'time'
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);                 
+                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
 
             case {'TF', 'TFphase'}
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
@@ -193,8 +227,8 @@ else
             meegstruct.data.y.scl_slope = sav_sc;
         end
 
-    end  
-    
+    end
+
     switch(meegstruct.transform.ID)
         case 'time'
             if Ntrials>1
@@ -209,7 +243,7 @@ else
                 expected_size = [Nchannels Nfrequencies Nsamples];
             end
 
-            
+
         otherwise
             error('Unknown transform type');
     end
@@ -350,7 +384,7 @@ end
 chantypes = getset(meegstruct, 'channels', 'type');
 eegind = strmatch('EEG', chantypes, 'exact');
 megind = strmatch('MEG', chantypes);
-lfpind = strmatch('LFP', chantypes, 'exact');  
+lfpind = strmatch('LFP', chantypes, 'exact');
 
 % Allow DCM on a pure LFP dataset
 if strcmp(option, 'dcm') && isempty([eegind megind]) && ~isempty(lfpind)
@@ -359,11 +393,11 @@ if strcmp(option, 'dcm') && isempty([eegind megind]) && ~isempty(lfpind)
 end
 
 if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
-     (strcmp(option, 'dcm') && ~isempty([eegind megind]))
+        (strcmp(option, 'dcm') && ~isempty([eegind megind]))
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
-    end    
+    end
 
     if ~isempty(eegind)
         if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)
@@ -421,7 +455,7 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
     else
         nzind = nzind(1);
     end
-    
+
     [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
@@ -435,7 +469,7 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
     else
         reind = reind(1);
     end
-    
+
     restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind(:)', leind(:)', reind(:)']);
 
     meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind(:)', leind(:)', reind(:)', restind(:)']);
