@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 2990 2009-03-28 17:33:52Z guillaume $
+# $Id: Makefile 3251 2009-07-06 17:29:44Z guillaume $
 #
 ###############################################################################
 #
@@ -46,8 +46,8 @@ SPMMEX  =\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
 	spm_bsplinc.$(SUF) spm_bsplins.$(SUF) spm_bias_mex.$(SUF)\
-	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_hist.$(SUF)\
-	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
+	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
+	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)
 
@@ -253,6 +253,9 @@ spm_dilate_erode.$(SUF): spm_dilate_erode.c
 
 spm_existfile.$(SUF): spm_existfile.c
 	$(MEX) spm_existfile.c $(MEXEND)
+
+spm_gamrnd.$(SUF): spm_gamrnd.c
+	$(MEX) spm_gamrnd.c $(MEXEND)
 
 spm_get_lm.$(SUF): spm_get_lm.c
 	$(MEX) spm_get_lm.c $(MEXEND)
