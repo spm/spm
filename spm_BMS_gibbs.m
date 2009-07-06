@@ -18,13 +18,12 @@ function [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 3235 2009-06-29 13:22:28Z will $
+% $Id: spm_BMS_gibbs.m 3252 2009-07-06 18:07:53Z guillaume $
 
 if nargin < 3 || isempty(Nsamp)
     Nsamp = 1e3;
 end
 
-max_val = log(realmax('double'));
 Ni      = size(lme,1);  % number of subjects
 Nk      = size(lme,2);  % number of models
 
@@ -36,10 +35,11 @@ end
 alpha0   = alpha0(:)';
 
 % Initialise; sample r from prior
+r  = zeros(1,Nk);
 for k = 1:Nk
     r(:,k) = spm_gamrnd(alpha0(k),1);
 end
-sr= sum(r,2);
+sr = sum(r,2);
 for k = 1:Nk
     r(:,k) = r(:,k)./sr;
 end
@@ -48,11 +48,12 @@ end
 lme=lme-mean(lme,2)*ones(1,Nk);
 
 % Gibbs sampling 
-for samp=1:2*Nsamp,
+r_samp = zeros(Nsamp,Nk);
+for samp=1:2*Nsamp
     
     mod_vec=sparse(Ni,Nk);
     % Sample m's given y, r
-    for i=1:Ni,
+    for i=1:Ni
         % Pick a model for this subject
         u=exp(lme(i,:)+log(r))+eps;
         m=u/sum(u);
@@ -66,7 +67,7 @@ for samp=1:2*Nsamp,
     for k = 1:Nk
         r(:,k) = spm_gamrnd(alpha(k),1);
     end
-    sr= sum(r,2);
+    sr = sum(r,2);
     for k = 1:Nk
         r(:,k) = r(:,k)./sr;
     end
@@ -82,6 +83,6 @@ for samp=1:2*Nsamp,
     
 end
 
-exp_r=mean(r_samp,1);
-xp=[];
+exp_r = mean(r_samp,1);
+xp    = [];
     
