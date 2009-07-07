@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: checkmeeg.m 3255 2009-07-07 20:05:36Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -160,7 +160,8 @@ else
         disp('checkmeeg: data file name missing');
         return;
     else        
-        [junk, meegstruct.data.fnamedat] = fileparts(meegstruct.data.fnamedat);
+        [junk, fnamedat] = fileparts(meegstruct.data.fnamedat);
+        meegstruct.data.fnamedat = [fnamedat '.dat'];
     end
     if ~isfield(meegstruct.data, 'datatype')
         disp('checkmeeg: data type missing, assigning default');
