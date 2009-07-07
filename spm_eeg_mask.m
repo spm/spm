@@ -12,14 +12,14 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3199 2009-06-12 16:18:28Z guillaume $
+% $Id: spm_eeg_mask.m 3253 2009-07-07 11:12:18Z guillaume $
 
-SVNrev = '$Rev: 3199 $';
+SVNrev = '$Rev: 3253 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FnUIsetup','M/EEG mask generation'); spm('Pointer','Watch');
+spm('FigName','M/EEG mask generation'); spm('Pointer','Watch');
 
 if nargin == 0
     S = [];
