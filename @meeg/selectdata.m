@@ -1,52 +1,68 @@
-function res = selectdata(this, chanlabel, timeborders, condition)
+function res = selectdata(this, varargin) 
 % Selects data using channel labels, time and condition labels as indices
 % FORMAT res = selectdata(D, chanlabel, timeborders, condition)
+%        res = selectdata(D, chanlabel, freqborders, timeborders, condition)
 %
 %  D - meeg object
 %  chanlabel - channel label, cell array of labels or [] (for all channels)
 %  timeborders - [start end] in sec or [] for all times
+%  freqborders - [start end] in Hz or [] for all frequencis (for TF datasets only)
 %  condition   - condition label, cell array of labels or [] (for all conditions)
-% _______________________________________________________________________
+% ________________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectdata.m 3219 2009-06-25 10:15:36Z vladimir $
+% $Id: selectdata.m 3254 2009-07-07 15:18:54Z vladimir $
 
 if this.Nsamples == 0
     res = [];
     return;
 end
 
-if nargin<4
+if (isequal(transformtype(this), 'time') && numel(varargin)<3) ||...
+   (strncmpi(transformtype(this),'TF',2) &&  numel(varargin)<4)
     error('Insufficient number of arguments for data selection');
+end
+
+chanlabel = varargin{1};
+
+if isequal(transformtype(this), 'time')
+    timeborders = varargin{2};
+    condition   = varargin{3};
+elseif strncmpi(transformtype(this),'TF',2)
+    freqborders = varargin{2};
+    timeborders = varargin{3};
+    condition   = varargin{4};
+    
+    if isempty(freqborders)
+        freqind = 1:nfrequencies(this);
+    else
+        freqind = indfrequency(this, freqborders(1)):indfrequency(this, freqborders(2));
+    end
+else
+    error('Unsupported transform type.');
 end
 
 if isempty(chanlabel)
     chanind = 1:nchannels(this);
 else
-    if ischar(chanlabel)
-        chanlabel = {chanlabel};
-    end
-    [junk, chanind] = spm_match_str(chanlabel, chanlabels(this));
+    chanind = indchannel(this, chanlabel);
 end
 
 if isempty(timeborders)
     timeind = 1:nsamples(this);
 else
-    timeAxis = time(this);
-    timeStart = min(find(timeAxis>=timeborders(1)));
-    timeEnd = max(find(timeAxis<=timeborders(2)));
-    timeind = timeStart:timeEnd;
+    timeind = indsample(this, timeborders(1)):indsample(this, timeborders(2));
 end
-
 
 if isempty(condition)
     trialind = 1:ntrials(this);
 else
-    if ischar(condition)
-        condition = {condition};
-    end
-    [junk, trialind] = spm_match_str(condition, {this.trials.label});
+    trialind = indtrial(this, condition);
 end
 
-res = double(this.data.y(chanind, timeind, trialind));
+if isequal(transformtype(this), 'time')
+    res = double(this.data.y(chanind, timeind, trialind));
+else
+    res = double(this.data.y(chanind, freqind, timeind, trialind));
+end

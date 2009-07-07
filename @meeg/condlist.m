@@ -6,7 +6,7 @@ function res = condlist(this, newcondlist)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: condlist.m 3046 2009-04-02 14:28:31Z vladimir $
+% $Id: condlist.m 3254 2009-07-07 15:18:54Z vladimir $
 
 res = getset(this, 'trials', 'label');
 if ~iscell(res)
@@ -23,7 +23,7 @@ if nargin == 1
 
     if numel(res)>1 && isfield(this.other, 'condlist') &&...
             iscell(this.other.condlist) && ~isempty(this.other.condlist)
-        [sel1, sel2] = spm_match_str(this.other.condlist, res);
+        [sel1, sel2] = match_str(this.other.condlist, res);
         res = res([sel2(:)' setdiff(1:numel(res), sel2)]);
     end
 else

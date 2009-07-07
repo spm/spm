@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3250 2009-07-06 09:31:13Z vladimir $
+% $Id: checkmeeg.m 3254 2009-07-07 15:18:54Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -159,8 +159,8 @@ else
     if ~isfield(meegstruct.data, 'fnamedat')
         disp('checkmeeg: data file name missing');
         return;
-    else
-        meegstruct.data.fnamedat = spm_str_manip(meegstruct.data.fnamedat, 't');
+    else        
+        [junk, meegstruct.data.fnamedat] = fileparts(meegstruct.data.fnamedat);
     end
     if ~isfield(meegstruct.data, 'datatype')
         disp('checkmeeg: data type missing, assigning default');
@@ -372,7 +372,7 @@ fieldnames_order = {
     'history'
     'cache'};
 
-[sel1, sel2] = spm_match_str(fieldnames_order, fieldnames(meegstruct));
+[sel1, sel2] = match_str(fieldnames_order, fieldnames(meegstruct));
 tempcell = struct2cell(meegstruct);
 meegstruct = cell2struct(tempcell(sel2), fieldnames_order, 1);
 
@@ -449,21 +449,21 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
     lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl' 'le', 't9', 'spmlpa'};
     relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 't10', 'spmrpa'};
 
-    [sel1, nzind] = spm_match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
+    [sel1, nzind] = match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
         disp('checkmeeg: could not find the nasion fiducial');
     else
         nzind = nzind(1);
     end
 
-    [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
+    [sel1, leind] = match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
     else
         leind = leind(1);
     end
 
-    [sel1, reind] = spm_match_str(relbl, lower(meegstruct.fiducials.fid.label));
+    [sel1, reind] = match_str(relbl, lower(meegstruct.fiducials.fid.label));
     if isempty(reind)
         disp('checkmeeg: could not find the right fiducial');
     else
