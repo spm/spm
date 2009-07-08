@@ -3,10 +3,11 @@ function S = spm_cfg_eeg_artefact
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 2225 2008-09-29 12:25:27Z stefan $
+% Vladimir Litvak
+% $Id: spm_cfg_eeg_artefact.m 3258 2009-07-08 17:46:54Z vladimir $
 
-rev = '$Rev: 2225 $';
+rev = '$Rev: 3258 $';
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -14,111 +15,94 @@ D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
 
-nothing = cfg_const;
-nothing.tag = 'nothing';
-nothing.name = 'No lists';
-nothing.val  = {1};
+badchanthresh = cfg_entry;
+badchanthresh.tag = 'badchanthresh';
+badchanthresh.name = 'Bad channel threshold';
+badchanthresh.strtype = 'r';
+badchanthresh.num = [1 1];
+badchanthresh.val = {0.2};
+badchanthresh.help = {'Fraction of trials with artefacts ', ...
+    'above which an M/EEG channel is declared as bad.'};
 
-out_list = cfg_entry;
-out_list.tag = 'out_list';
-out_list.name = 'Artefactual trial list';
-out_list.strtype = 'r';
-out_list.num = [0 inf];
-out_list.help = {'List artefactual trials (0 for none)'};
+chanall = cfg_const;
+chanall.tag = 'type';
+chanall.name = 'All';
+chanall.val = {'all'};
 
-in_list = cfg_entry;
-in_list.tag = 'in_list';
-in_list.name = 'Clean trial list';
-in_list.strtype = 'r';
-in_list.num = [0 inf];
-in_list.help = {'List clean trials (0 for none)'};
+chanmeg = cfg_const;
+chanmeg.tag = 'type';
+chanmeg.name = 'MEG';
+chanmeg.val = {'MEG'};
 
-list = cfg_branch;
-list.tag = 'list';
-list.name = 'Trial lists';
-list.val = {out_list in_list};
+chanmegplanar = cfg_const;
+chanmegplanar.tag = 'type';
+chanmegplanar.name = 'MEGPLANAR';
+chanmegplanar.val = {'MEGPLANAR'};
 
-External_list         = cfg_choice;
-External_list.tag     = 'External_list';
-External_list.name    = 'Use own artefact list';
-External_list.val = {nothing};
-External_list.help    = {'Choose this option if you want to specify your own artefact list'}';
-External_list.values = {list nothing};
+chaneeg = cfg_const;
+chaneeg.tag = 'type';
+chaneeg.name = 'EEG';
+chaneeg.val = {'EEG'};
 
-Weightingfunction = cfg_entry;
-Weightingfunction.tag = 'Weightingfunction';
-Weightingfunction.name = 'Weightingfunction';
-Weightingfunction.strtype = 'r';
-Weightingfunction.num = [1 1];
-Weightingfunction.val = {3};
-Weightingfunction.help = {'Input offset of weighting function'};
+chaneog = cfg_const;
+chaneog.tag = 'type';
+chaneog.name = 'EOG';
+chaneog.val = {'EOG'};
 
-Smoothing = cfg_entry;
-Smoothing.tag = 'Smoothing';
-Smoothing.name = 'Smoothing';
-Smoothing.strtype = 'r';
-Smoothing.num = [1 1];
-Smoothing.val = {20};
-Smoothing.help = {'FWHM for residual smoothing (ms)'};
+chanecg = cfg_const;
+chanecg.tag = 'type';
+chanecg.name = 'ECG';
+chanecg.val = {'ECG'};
 
-weighted_arg = cfg_branch;
-weighted_arg.tag = 'weighted_arg';
-weighted_arg.name = 'Robust averaging';
-weighted_arg.val = {Weightingfunction Smoothing};
+chanemg = cfg_const;
+chanemg.tag = 'type';
+chanemg.name = 'EMG';
+chanemg.val = {'EMG'};
 
-nothing = cfg_const;
-nothing.tag = 'nothing';
-nothing.name = 'No robust averaging';
-nothing.val  = {1};
+chanlfp = cfg_const;
+chanlfp.tag = 'type';
+chanlfp.name = 'LFP';
+chanlfp.val = {'LFP'};
 
-weighted         = cfg_choice;
-weighted.tag     = 'weighted';
-weighted.name    = 'Use robust averaging';
-weighted.val = {nothing};
-weighted.help    = {'Choose this option if you want to apply robust averaging'}';
-weighted.values = {weighted_arg nothing};
+chanfile = cfg_files;
+chanfile.tag = 'file';
+chanfile.name = 'Channel file';
+chanfile.filter = 'mat';
+chanfile.num = [1 1];
 
-nothing = cfg_const;
-nothing.tag = 'nothing';
-nothing.name = 'No thresholding';
-nothing.val  = {1};
+channels = cfg_choice;
+channels.tag = 'channels';
+channels.name = 'Channel selection';
+channels.values = {chanall, chanmeg, chanmegplanar, chaneeg, chaneog, chanecg, chanemg, chanlfp, chanfile};
+channels.val = {chanall};
 
-channels_threshold = cfg_entry;
-channels_threshold.tag = 'channels_threshold';
-channels_threshold.name = 'Channels to threshold';
-channels_threshold.strtype = 'r';
-channels_threshold.num = [1 inf];
-channels_threshold.help = {'Choose channel indices of channels which you want to threshold.'};
+artefact_funs = dir(fullfile(spm('dir'), 'spm_eeg_artefact_*.m'));
+artefact_funs = {artefact_funs(:).name};
 
-thresholdval = cfg_entry;
-thresholdval.tag = 'thresholdval';
-thresholdval.name = 'Thresholds';
-thresholdval.strtype = 'r';
-thresholdval.num = [1 inf];
-thresholdval.help = {'Channel-wise thresholds. Use single threshold to apply the same threshold to all channels'};
-thresholdval.val = {80};
+fun      = cfg_choice;
+fun.tag  = 'fun';
+fun.name = 'Detection algorithm';
+for i = 1:numel(artefact_funs)
+    fun.values{i} = feval(spm_str_manip(artefact_funs{i}, 'r'));
+end
 
-threshold = cfg_branch;
-threshold.tag = 'threshold';
-threshold.name = 'Thresholding';
-threshold.val = {channels_threshold thresholdval};
+methods = cfg_branch;
+methods.tag = 'methods';
+methods.name = 'Method';
+methods.val = {channels, fun};
 
-Check_Threshold         = cfg_choice;
-Check_Threshold.tag     = 'Check_Threshold';
-Check_Threshold.name    = 'Threshold channels';
-Check_Threshold.val = {threshold};
-Check_Threshold.help    = {'Choose this option if you want to threshold the data'}';
-Check_Threshold.values = {threshold nothing};
+methodsrep = cfg_repeat;
+methodsrep.tag = 'methodsrep';
+methodsrep.name = 'How to look for artefacts';
+methodsrep.help = {'Choose channels and methods for artefact detection'};
+methodsrep.values  = {methods};
+methodsrep.num     = [1 Inf];
 
-artefact = cfg_branch;
-artefact.tag = 'artefact';
-artefact.name = 'Artefact';
-artefact.val = {External_list weighted Check_Threshold};
 
 S = cfg_exbranch;
 S.tag = 'eeg_artefact';
 S.name = 'M/EEG Artefact detection';
-S.val = {D artefact};
+S.val = {D, badchanthresh, methodsrep};
 S.help = {'Detect artefacts in epoched M/EEG data.'};
 S.prog = @eeg_artefact;
 S.vout = @vout_eeg_artefact;
@@ -128,35 +112,22 @@ S.modality = {'EEG'};
 function out = eeg_artefact(job)
 % construct the S struct
 S.D = job.D{1};
-S.artefact = job.artefact;
+S.badchanthresh = job.badchanthresh;
 
-if isfield(S.artefact.External_list, 'nothing')
-    S.artefact.External_list = 0;
-else
-    S.artefact.External_list = 1;
-    S.artefact.in_list = job.artefact.External_list.in_list;
-    S.artefact.out_list = job.artefact.External_list.out_list;
-
+for i = 1:numel(job.methods)
+    if isfield(job.methods(i).channels, 'type')
+        S.methods(i).channels = job.methods(i).channels.type;
+    else
+        S.methods(i).channels = getfield(load(job.methods(i).channels.file{1}), 'label');
+    end
+    
+    fun = fieldnames(job.methods(i).fun);
+    fun = fun{1};
+    
+    S.methods(i).fun = fun;
+    S.methods(i).settings = getfield(job.methods(i).fun, fun);
 end
-
-if isfield(S.artefact.weighted, 'nothing')
-    S.artefact.Weighted = 0;
-else
-    S.artefact.Weighted = 1;
-    S.artefact.Weightingfunction = job.artefact.weighted.weighted_arg.Weightingfunction;
-    S.artefact.Smoothing = job.artefact.weighted.weighted_arg.Smoothing;
-
-end
-
-if isfield(S.artefact.Check_Threshold, 'nothing')
-    S.artefact.Check_Threshold = 0;
-else
-    S.artefact.Check_Threshold = 1;
-    S.artefact.threshold = job.artefact.Check_Threshold.threshold.thresholdval;
-    S.artefact.channels_threshold = job.artefact.Check_Threshold.threshold.channels_threshold;
-
-end
-
+    
 out.D = spm_eeg_artefact(S);
 out.Dfname = {out.D.fname};
 

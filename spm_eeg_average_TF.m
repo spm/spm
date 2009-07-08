@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3218 2009-06-22 15:45:53Z vladimir $
+% $Id: spm_eeg_average_TF.m 3258 2009-07-08 17:46:54Z vladimir $
 
-SVNrev = '$Rev: 3218 $';
+SVNrev = '$Rev: 3258 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -64,30 +64,39 @@ catch
     S.circularise = circularise;
 end
 
+
+%-Configure robust averaging
+%--------------------------------------------------------------------------
 if ~isfield(S, 'robust')
-    robust = 0;
+    robust = spm_input('Use robust averaging?','+1','yes|no',[1 0]);
+    if robust
+       S.robust = []; 
+    else
+        S.robust = false;
+    end
 else
-    robust = 1;
+    robust = isa(S.robust, 'struct');
+end
+
+
+if robust
     if ~isfield(S.robust, 'savew')
-        S.robust.savew = 0;
-        savew = 0;
-    else
-        savew = S.robust.savew;
-    end
-
+        S.robust.savew =  spm_input('Save weights?','+1','yes|no',[1 0]);
+    end    
+    savew = S.robust.savew;
+    
     if ~isfield(S.robust, 'bycondition')
-        S.robust.bycondition = 1;
-        bycondition = 1;
-    else
-        bycondition = S.robust.bycondition;
+        S.robust.bycondition = spm_input('Compute weights by condition?','+1','yes|no',[1 0]);
     end
-
+    
+    bycondition = S.robust.bycondition;
+        
     if ~isfield(S.robust, 'ks')
-        S.robust.ks = [];
-        ks          = [];
-    else
-        ks          = S.robust.ks;
+        S.robust.ks =  spm_input('Offset of the weighting function', '+1', 'r', '3', 1);
     end
+        
+    ks          = S.robust.ks;
+ 
 end
 
 %-Generate new MEEG object with new files
@@ -95,7 +104,7 @@ end
 Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
 
 if robust && savew
-    Dw = clone(D, ['W' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.ntrials]);
+    Dw = clone(D, ['W' fnamedat(D)], size(D));
 end
 
 cl   = D.condlist;
