@@ -6,7 +6,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % - launch the VB_ECD routine, aka. spm_eeg_inv_vbecd
 % - displays the results.
 % See the comments in the function and the article for further details
-% 
+%
 % Reference:
 % Kiebel et al., Variational Bayesian inversion of the equivalent current
 % dipole model in EEG/MEG., NeuroImage, 39:728-741, 2008
@@ -14,7 +14,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3247 2009-07-03 15:09:56Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3261 2009-07-09 11:36:09Z vladimir $
 
 %%
 % Load data, if necessary
@@ -46,8 +46,8 @@ else
 end
 
 % Use val to define which is the "current" inv{} to use
-% If no inverse solution already calculated (field 'inverse' doesn't exist) 
-% use that inv{}. Otherwise create a new one by copying the previous 
+% If no inverse solution already calculated (field 'inverse' doesn't exist)
+% use that inv{}. Otherwise create a new one by copying the previous
 % inv{} structure
 if isfield(D.inv{val},'inverse')
     % create an extra inv{}
@@ -72,8 +72,8 @@ if ~isfield(D.inv{val}, 'date')
     D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
 end
 
-if ~isfield(D.inv{val}, 'comment'), 
-   D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
+if ~isfield(D.inv{val}, 'comment'),
+    D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
 end
 
 D.inv{val}.method = 'vbecd';
@@ -96,19 +96,19 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
             P.forward.sens = D.inv{val}.datareg(m).sensors;
             % Channels to use
             P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
-            
-            
+
+
             M1 = D.inv{val}.datareg.toMNI;
             if ~isequal(P.modality,'EEG')
                 [U, L, V] = svd(M1(1:3, 1:3));
                 M1(1:3,1:3) =U*V';
             end
-%             disp('Undoing transformation to Tal space !');
-%             M1=eye(4)
-%             
+            %             disp('Undoing transformation to Tal space !');
+            %             M1=eye(4)
+            %
             P.forward.sens = forwinv_transform_sens(M1, P.forward.sens);
             P.forward.vol = forwinv_transform_vol(M1, P.forward.vol);
-            
+
         end
     end
 end
@@ -119,7 +119,7 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 
- 
+
 [P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 
@@ -128,13 +128,13 @@ if ~isfield(P.forward.sens,'prj')
 end
 
 
-%% 
+%%
 % Deal with data
 %===============
 
 % time bin or time window
 msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1e3)), ...
-            ' ',num2str(round(max(D.time)*1e3)),'] ms'];
+    ' ',num2str(round(max(D.time)*1e3)),'] ms'];
 ask_tb = 1;
 while ask_tb
     tb = spm_input(msg_tb,1,'r');   % ! in msec
@@ -157,26 +157,28 @@ else
 end
 
 %% get a baseline period- used to get precision
-msg_tb = ['Baseline time_win [',num2str(round(min(D.time)*1e3)), ...
-            ' ',num2str(round(max(D.time)*1e3)),'] ms'];
-ask_tb = 1;
-while ask_tb
-    btb = spm_input(msg_tb,1,'r');   % ! in msec
-    if length(btb)==1
-        if btb>=min(D.time([], 'ms')) && btb<=max(D.time([], 'ms'))
-            ask_tb = 0;
-        end
-    elseif length(btb)==2
-        if all(btb>=floor(min(D.time([], 'ms')))) && all(btb<=ceil(max(D.time([], 'ms')))) && btb(1)<=btb(2)
-            ask_tb = 0;
+if D.time(1)>0
+    msg_tb = ['Baseline time_win'];
+    ask_tb = 1;
+    while ask_tb
+        btb = spm_input(msg_tb,1,'r');   % ! in msec
+        if length(btb)==1
+            if btb>=min(D.time([], 'ms')) && btb<=max(D.time([], 'ms'))
+                ask_tb = 0;
+            end
+        elseif length(btb)==2
+            if all(btb>=floor(min(D.time([], 'ms')))) && all(btb<=ceil(max(D.time([], 'ms')))) && btb(1)<=btb(2)
+                ask_tb = 0;
+            end
         end
     end
-end
-if length(btb)==1
-    [kk,bltb] = min(abs(D.time([], 'ms')-btb)); % round to nearest time bin
+    btb = 1e-3*btb;
 else
-    [kk,bltb(1)] = min(abs(D.time([], 'ms')-btb(1)));  % round to nearest time bin
-    [kk,bltb(2)] = min(abs(D.time([], 'ms')-btb(2)));
+    btb = [D.time(1) 0];
+end
+
+bltb = D.indsample(btb);
+if length(btb) == 2
     bltb = bltb(1):bltb(2); % list of time bins 'tb' to use
 end
 
@@ -192,37 +194,32 @@ end
 
 % data, averaged over time window considered
 
-
 EEGscale=1;
 %% convert to VOLTS
 if strcmp(upper(P.modality),'EEG'),
-   
-    
     eegunits = unique(D.units(D.meegchannels('EEG')));
     Neegchans=numel(D.units(D.meegchannels('EEG')));
-if ~strcmp(eegunits,'V'),
-    warning('units unspecified');
-    if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
-        guess_units='uV';
+    if ~strcmp(eegunits,'V'),
+        warning('units unspecified');
+        if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
+            guess_units='uV';
         else
-        guess_units='V';
+            guess_units='V';
         end;
-     fprintf('No units specified but rms of data is %3.2f units\n',mean(std(D(P.Ic,ltb,ltr))))
-     msg_str=sprintf('Units of EEG are %s ?',guess_units);
-    ans=spm_input(msg_str,1,'s','yes');   
-    if ~strcmp(ans,'yes')
-        error('stop for now');
+        fprintf('No units specified but rms of data is %3.2f units\n',mean(std(D(P.Ic,ltb,ltr))))
+        if ~spm_input(sprintf('Units of EEG are %s ?', guess_units), '+1','yes|no',[1 0]);
+            error('stop for now');
         end; % if strcmp
-    D = units(D, 1:Neegchans, guess_units)
+        D = units(D, 1:Neegchans, guess_units);
     end; %if no units
-    
+
     eegunits = unique(D.units(D.meegchannels('EEG')));
     EEGscale=-1;
     if strcmp(eegunits,'V'),
-            EEGscale=1;
+        EEGscale=1;
     end; % if
     if strcmp(eegunits,'uV'),
-            EEGscale=1e-6;
+        EEGscale=1e-6;
     end % if
     if EEGscale==-1,
         error('unknown eeg units');
@@ -242,7 +239,7 @@ P.Nc           = length(P.Ic);
 P.Niter        = 200;           % \_ Using SK default values here...
 P.threshold_dF = 1e-2;  %1e-4   % /
 
-%%  
+%%
 % Deal with dipoles number and priors
 %====================================
 dip_q = 0; % number of dipole 'elements' added (single or pair)
@@ -256,7 +253,7 @@ clear dip_pr
 %def_ab_info    = [3 1e-12];
 
 %% new default priors
-%% b20/a20 should be the expect error variance in source moment (in nAM ?). 
+%% b20/a20 should be the expect error variance in source moment (in nAM ?).
 %% a,b determine distribution of hyper-priors (which determine paramter
 %% variances)
 %% b/a gives the expected mean of this dist'n, i.e. the variance of the
@@ -268,13 +265,13 @@ pos_noninfo=[1.5 500];  %% approx variability of sqrt(500) mm
 pos_info=[1.5 100];  %% approx variability of sqrt(100) mm
 
 %% b30/a30 should be the expected error variance in location parameters (in
-%% mm) 
+%% mm)
 
 
 corr = .999;
 
 while adding_dips
-    if dip_q>0, 
+    if dip_q>0,
         msg_dip =['Add dipoles to ',num2str(dip_c),' or stop?'];
         dip_ch = 'Single|Pair|Stop';
         dip_val = [1,2,0];
@@ -289,14 +286,14 @@ while adding_dips
     if a_dip == 0
         adding_dips = 0;
     elseif a_dip == 1
-    % add a single dipole to the model
+        % add a single dipole to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3), ...
             'ab20',[],'ab30',[],'Tw',eye(3),'Ts',eye(3));
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
-                    'Informative|Non-info',[1,0],2);
+            'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
             str = 'Location prior';
@@ -315,11 +312,11 @@ while adding_dips
         end
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
-                    'Informative|Non-info',[1,0],2);
+            'Informative|Non-info',[1,0],2);
         if wpr_q
             % informative moment prior
             dip_pr(dip_q).mu_w0 = spm_input('Moment prior', ...
-                                        1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
+                1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
             dip_pr(dip_q).ab20 = orient_info;
         else
             % no location  prior
@@ -328,14 +325,14 @@ while adding_dips
         end
         dip_c = dip_c+1;
     else
-    % add a pair of symmetric dipoles to the model
+        % add a pair of symmetric dipoles to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(6),'S_w0',eye(6), ...
             'ab20',[],'ab30',[],'Tw',eye(6),'Ts',eye(6));
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
-                    'Informative|Non-info',[1,0],2);
+            'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
             str = 'Location prior (right only)';
@@ -355,11 +352,11 @@ while adding_dips
         end
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
-                                           'Informative|Non-info',[1,0],2);
+            'Informative|Non-info',[1,0],2);
         if wpr_q
             % informative moment prior
             tmp = spm_input('Moment prior (right only)', ...
-                                        1+tr_q+dip_q+spr_q+3,'e',[1 1 1])';
+                1+tr_q+dip_q+spr_q+3,'e',[1 1 1])';
             tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
             dip_pr(dip_q).mu_w0 = tmp;
             dip_pr(dip_q).ab20 = orient_info;
@@ -370,20 +367,20 @@ while adding_dips
         end
         % Symmetry priors, soft or hard for both location and moment.
         mpr_q = spm_input('Symmetry prior ?', ...
-                       1+tr_q+dip_q+spr_q+wpr_q+3,'b','Soft|Hard',[1,0],1);
+            1+tr_q+dip_q+spr_q+wpr_q+3,'b','Soft|Hard',[1,0],1);
         if mpr_q
             % Soft prior, i.e. parameter correlation
             tmp = eye(6);
             tmp2 = eye(3); tmp2(1,1) = -1;
-            tmp(4:6,1:3) = tmp2*corr; 
-            tmp(1:3,4:6) = tmp2*corr; 
+            tmp(4:6,1:3) = tmp2*corr;
+            tmp(1:3,4:6) = tmp2*corr;
             dip_pr(dip_q).S_s0 = tmp;
             dip_pr(dip_q).S_w0 = tmp;
         else
             % hard prior, i.e. parameter reduction
             T = [eye(3) ; eye(3)]; T(4,1) = -1;
             dip_pr(dip_q).Tw = .5*T*T';
-            dip_pr(dip_q).Ts = .5*T*T';            
+            dip_pr(dip_q).Ts = .5*T*T';
         end
         dip_c = dip_c+2;
     end
@@ -393,16 +390,16 @@ end
 % Get all the priors together and build structure to pass to inv_vbecd !
 %============================
 priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
-                'mu_s0',cat(1,dip_pr(:).mu_s0), ...
-                'iS_w0',[],'iS_s0',[], ...
-                'Tw',blkdiag(dip_pr(:).Tw), ...
-                'Ts',blkdiag(dip_pr(:).Ts),...
-                'a20',[],'b20',[], ...
-                'a30',[],'b30',[]);
+    'mu_s0',cat(1,dip_pr(:).mu_s0), ...
+    'iS_w0',[],'iS_s0',[], ...
+    'Tw',blkdiag(dip_pr(:).Tw), ...
+    'Ts',blkdiag(dip_pr(:).Ts),...
+    'a20',[],'b20',[], ...
+    'a30',[],'b30',[]);
 % PROBLEM:
 % How to ensure different precision level, i.e. informative vs
 % non-informative, for different priors !!!
-% Trying to impose that with an a priori scaling of the prior covariance 
+% Trying to impose that with an a priori scaling of the prior covariance
 % matrices but I still think this is not the right way to go...
 
 tmp_ab20 = cat(1,dip_pr(:).ab20);
@@ -410,13 +407,13 @@ tmp_ab20 = cat(1,dip_pr(:).ab20);
 if length(unique(tmp_ab20(:,1)))==1
     % all model element have same prior precision, easy !
     priors.a20   = unique(tmp_ab20(:,1));
-    priors.b20   = unique(tmp_ab20(:,2));   
+    priors.b20   = unique(tmp_ab20(:,2));
     priors.iS_w0 = inv(blkdiag(dip_pr(:).S_w0));
 else
     % Not equal "informativeness" -> tricky
     % assume 2 levels, and use their ratio to weight variance mtx
     priors.a20   = min(tmp_ab20(:,1));
-    priors.b20   = min(tmp_ab20(:,2));   
+    priors.b20   = min(tmp_ab20(:,2));
     for ii=1:dip_c
         tmp_iS{ii} = inv(dip_pr(ii).S_w0*min(tmp_ab20(:,1))/tmp_ab20(ii,1));
     end
@@ -427,13 +424,13 @@ tmp_ab30 = cat(1,dip_pr(:).ab30);
 if length(unique(tmp_ab30(:,1)))==1
     % all model element have same prior precision, easy !
     priors.a30   = unique(tmp_ab30(:,1));
-    priors.b30   = unique(tmp_ab30(:,2));   
+    priors.b30   = unique(tmp_ab30(:,2));
     priors.iS_s0 = inv(blkdiag(dip_pr(:).S_s0));
 else
     % Not equal "informativeness" -> tricky
     % assume 2 levels, and use their ratio to weight variance mtx
     priors.a30   = min(tmp_ab30(:,1));
-    priors.b30   = min(tmp_ab30(:,2));   
+    priors.b30   = min(tmp_ab30(:,2));
     for ii=1:dip_q
         tmp_iS{ii} = inv(dip_pr(ii).S_s0*min(tmp_ab30(:,1))/tmp_ab30(ii,1));
     end
@@ -465,67 +462,67 @@ inverse = struct( ...
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
     P.ii = ii;
-    
-   
 
 
 
 
-%   disp('FIXING DIP TO GET SCALING');
-%   mu_s=[-30 20 20]';
-%   mu_w0=[ 1 1 0]';
-%   P.dv=10^-2;
-%   
-%   [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
-%        P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
-%  
-%signalmag=max(std(dat_y));
-%disp('Guessing at signal magnitude and SNR');
-%signalmag=5e-4;
 
-chanSNR=(dat_y./(base_dat_stdy)).^2;
-powerSNR=mean(chanSNR);
-disp(sprintf('Estimating SNR (power) to be %3.2f',powerSNR));
-errorvar=(mean(base_dat_stdy)).^2; %% variance of error 
-alla10 = numel(P.y)/2; 
-allb10 = alla10*errorvar/2; % data
-P.priors.a10=alla10;
-P.priors.b10=allb10;
 
-testing=0;
-if testing,
-   
-%% b10/a10 should be the expected error variance at the sensors -ideally
-%% should come from the standard error of the average trace
+    %   disp('FIXING DIP TO GET SCALING');
+    %   mu_s=[-30 20 20]';
+    %   mu_w0=[ 1 1 0]';
+    %   P.dv=10^-2;
+    %
+    %   [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
+    %        P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
+    %
+    %signalmag=max(std(dat_y));
+    %disp('Guessing at signal magnitude and SNR');
+    %signalmag=5e-4;
 
-%% b20/a20 should be the expect error variance in source moment (in nAM ?). 
-alla20=1.5; %% half number of orientation params for now
-allb20=alla20*10; %% 
+    chanSNR=(dat_y./(base_dat_stdy)).^2;
+    powerSNR=mean(chanSNR);
+    disp(sprintf('Estimating SNR (power) to be %3.2f',powerSNR));
+    errorvar=(mean(base_dat_stdy)).^2; %% variance of error
+    alla10 = numel(P.y)/2;
+    allb10 = alla10*errorvar/2; % data
+    P.priors.a10=alla10;
+    P.priors.b10=allb10;
 
-%% b30/a30 should be the expected error variance in location parameters (in
-%% mm) 
-alla30=1.5; %% half num of position params
-allb30=100;
+    testing=0;
+    if testing,
 
-P.priors.a20=alla20;
-%% prior info on b20
-P.priors.b20=allb20;
-P.priors.b30=allb30;
-P.priors.a30=alla30;
-end; % if 
+        %% b10/a10 should be the expected error variance at the sensors -ideally
+        %% should come from the standard error of the average trace
+
+        %% b20/a20 should be the expect error variance in source moment (in nAM ?).
+        alla20=1.5; %% half number of orientation params for now
+        allb20=alla20*10; %%
+
+        %% b30/a30 should be the expected error variance in location parameters (in
+        %% mm)
+        alla30=1.5; %% half num of position params
+        allb30=100;
+
+        P.priors.a20=alla20;
+        %% prior info on b20
+        P.priors.b20=allb20;
+        P.priors.b30=allb30;
+        P.priors.a30=alla30;
+    end; % if
 
     fprintf('\nLocalising source nr %d.\n',ii)
 
     P = spm_eeg_inv_vbecd(P);
 
-  
+
     ssres=sum(P.post.residuals.^2)./length(P.y);
     disp(sprintf('prior estimate var=%3.2e, post=  %3.2e, actual resid=%3.2e',P.priors.b10/P.priors.a10,P.post.b1/P.post.a1,ssres));
     disp(sprintf('prior estimate moment var=%3.2f , post=  %3.2f',P.priors.b20/P.priors.a20,P.post.b2/P.post.a2));
     disp(sprintf('prior estimate pos var=%3.2f (=%3.2fmm per dim), post= %3.2f',P.priors.b30/P.priors.a30,power(P.priors.b30/P.priors.a30,1/2),P.post.b3/P.post.a3));
     P.post.mu_s'
     P.post.mu_w'
- 
+
     % Get the results out.
     inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
