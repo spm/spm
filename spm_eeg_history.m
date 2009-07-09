@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 2902 2009-03-19 20:44:35Z guillaume $
+% $Id: spm_eeg_history.m 3262 2009-07-09 12:10:53Z vladimir $
 
 try
     h = S.history;
@@ -161,6 +161,10 @@ for i=1:numel(h)
                 ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
         case 'spm_eeg_downsample'
             hh{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
+        case 'spm_eeg_bc'
+            hh{i} = ['Baseline correction ' mat2str(h(i).args.time(:)') ' ms'];
+        case 'spm_eeg_copy'   
+            hh{i} = 'Copy dataset';
         case 'spm_eeg_montage'
             hh{i} = 'Change montage';
         case 'spm_eeg_artefact'

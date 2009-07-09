@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id$
+% $Id: spm_eeg_artefact.m 3071 2009-04-21 11:22:19Z vladimir $
 
-SVNrev = '$Rev$';
+SVNrev = '$Rev: 3071 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -73,6 +73,7 @@ end
 S1 =[];
 S1.D = D;
 S1.newname = ['a' D.fname];
+S1.updatehistory = 0;
 D = spm_eeg_copy(S1);
 
 
@@ -119,8 +120,14 @@ badtrialind = find(any(bad(goodchanind, :)));
 
 %-Update and save new dataset
 %--------------------------------------------------------------------------
-D = reject(D, badtrialind, 1);
-D = badchannels(D, badchanind, ones(size(badchanind)));
+if ~isempty(badtrialind)
+    D = reject(D, badtrialind, 1);
+end
+
+if ~isempty(badchanind)
+    D = badchannels(D, badchanind, ones(size(badchanind)));
+end
+
 D = D.history('spm_eeg_artefact', S);
 save(D);
 

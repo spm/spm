@@ -17,9 +17,9 @@ function D = spm_eeg_bc(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 3248 2009-07-03 16:17:30Z vladimir $
+% $Id: spm_eeg_bc.m 3262 2009-07-09 12:10:53Z vladimir $
 
-SVNrev = '$Rev: 3248 $';
+SVNrev = '$Rev: 3262 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -76,6 +76,7 @@ if ~isfield(S, 'save') || S.save
     S1         = [];
     S1.D       = D;
     S1.newname = ['b' D.fname];
+    S1.updatehistory = 0;
     D          = spm_eeg_copy(S1);
 end
 
