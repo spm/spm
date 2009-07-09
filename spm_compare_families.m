@@ -27,7 +27,7 @@ function [family,model] = spm_compare_families (lme,partition,names,Nsamp,prior)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3236 2009-06-29 17:08:03Z will $
+% $Id: spm_compare_families.m 3260 2009-07-09 10:52:42Z will $
 
 if nargin < 4 | isempty(Nsamp)
     Nsamp=1e4;
@@ -42,7 +42,6 @@ N=length(partition);
 
 % Number of families in partition
 K=length(unique(partition));
-family.alpha0=ones(1,K);
 
 % Size of families 
 for i=1:K,
@@ -56,15 +55,20 @@ switch prior,
         for i=1:K,
             model.alpha0(ind{i})=1/fam_size(i);
         end
+        family.alpha0=ones(1,K);
     case 'M-unity',
         model.alpha0=ones(1,N);
+        for i=1:K,
+            family.alpha0(i)=fam_size(i);
+        end
     otherwise
         disp('Error in spm_compare_families:Unknown prior');
 end
 
 % Get model posterior
-[exp_r,tmp,r_samp]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
+[exp_r,xp,r_samp]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
 model.exp_r=exp_r;
+model.xp=xp;
 
 % Get stats from family posterior
 for i=1:K,
@@ -73,7 +77,7 @@ for i=1:K,
     family.exp_r(i)=mean(family.r_samp(:,i));
 end
 
-% Exceedence probs
+% Family exceedence probs
 xp = zeros(1,K);
 r=family.r_samp;
 [y,j]=max(r,[],2);

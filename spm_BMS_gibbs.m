@@ -18,7 +18,7 @@ function [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 3252 2009-07-06 18:07:53Z guillaume $
+% $Id: spm_BMS_gibbs.m 3260 2009-07-09 10:52:42Z will $
 
 if nargin < 3 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -56,8 +56,8 @@ for samp=1:2*Nsamp
     for i=1:Ni
         % Pick a model for this subject
         u=exp(lme(i,:)+log(r))+eps;
-        m=u/sum(u);
-        modnum=spm_multrnd(m,1);
+        g=u/sum(u);
+        modnum=spm_multrnd(g,1);
         mod_vec(i,modnum)=1;
     end
     
@@ -83,6 +83,12 @@ for samp=1:2*Nsamp
     
 end
 
+% Posterior mean
 exp_r = mean(r_samp,1);
-xp    = [];
+
+% Exceedence probs
+xp = zeros(1,Nk);
+[y,j]=max(r_samp,[],2);
+tmp=histc(j,1:Nk)';
+xp=tmp/Nsamp;
     
