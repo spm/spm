@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3206 2009-06-16 13:06:44Z guillaume $
+% $Id: spm_render.m 3266 2009-07-10 14:31:34Z guillaume $
 
-SVNrev = '$Rev: 3206 $';
+SVNrev = '$Rev: 3266 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -306,9 +306,17 @@ spm_results_ui('Clear',Fgraph);
 rdr = get(Fgraph,'Renderer');
 set(Fgraph,'Renderer','OpenGL');
 
+ax0 = axes(...
+    'Parent',Fgraph,...
+    'Units','normalized',...
+    'Color', [1 1 1],...
+    'XTick',[],...
+    'YTick',[],...
+    'Position',[-0.05, -0.05, 1.05, 0.555]);
+
 ax = axes(...
     'Parent',Fgraph,...
-    'units','normalized',...
+    'Units','normalized',...
     'Position',[0.05, 0.05, 0.9, 0.4],...
     'Visible','off');
 
@@ -382,8 +390,16 @@ uimenu(c5,'Label','20%', 'Checked','off', 'Callback', @mytransparency);
 uimenu(c5,'Label','40%', 'Checked','off', 'Callback', @mytransparency);
 uimenu(c5,'Label','60%', 'Checked','off', 'Callback', @mytransparency);
 uimenu(c5,'Label','80%', 'Checked','off', 'Callback', @mytransparency);
-c6 = uimenu(cmenu, 'Label', 'Save As...','Separator','on','Callback', @mysave);
-setappdata(c6,'patch',hp);
+c6 = uimenu(cmenu, 'Label', 'Background Color');
+setappdata(c6,'fig',ax0);
+uimenu(c6,'Label','White', 'Callback', {@mybackgroundcolor, [1 1 1]});
+uimenu(c6,'Label','Black', 'Callback', {@mybackgroundcolor, [0 0 0]});
+uimenu(c6,'Label','Custom...', 'Callback', {@mybackgroundcolor, []});
+c7 = uimenu(cmenu, 'Label', 'Save As...','Separator','on','Callback', @mysave);
+setappdata(c7,'patch',hp);
+setappdata(c7,'fig',Fgraph);
+setappdata(c7,'axis',ax);
+setappdata(c7,'ax0',ax0);
 try, set(r,'uicontextmenu',cmenu); end
 try, set(hp,'uicontextmenu',cmenu); end
 set(r,'enable','on');
@@ -463,16 +479,62 @@ set(get(get(obj,'parent'),'children'),'Checked','off');
 set(obj,'Checked','on');
 
 %==========================================================================
+function mybackgroundcolor(obj,evd,varargin)
+if isempty(varargin{1})
+    c = uisetcolor(getappdata(get(obj,'parent'),'fig'), ...
+        'Pick a background color...');
+    if numel(c) == 1, return; end
+else
+    c = varargin{1};
+end
+set(getappdata(get(obj,'parent'),'fig'),'Color',c);
+
+%==========================================================================
 function mysave(obj,evd)
-g = gifti;
-g.vertices = get(getappdata(obj,'patch'),'Vertices');
-g.faces = get(getappdata(obj,'patch'),'Faces');
-g.cdata = get(getappdata(obj,'patch'),'FaceVertexCData');
-[filename, pathname] = uiputfile({'*.gii' 'GIfTI files (*.gii)'}, 'Save as');
+[filename, pathname, filterindex] = uiputfile({...
+    '*.gii' 'GIfTI files (*.gii)'; ...
+    '*.png' 'PNG files (*.png)'}, 'Save as');
 if ~isequal(filename,0) && ~isequal(pathname,0)
     [pth,nam,ext] = fileparts(filename);
-    if ~strcmpi(ext,'.gii'), filename = [filename '.gii']; end
-	save(g,fullfile(pathname, filename));
+    switch ext
+        case '.gii'
+            filterindex = 1;
+        case '.png'
+            filterindex = 2;
+        otherwise
+            switch filterindex
+                case 1
+                    filename = [filename '.gii'];
+                case 2
+                    filename = [filename '.png'];
+            end
+    end
+    switch filterindex
+        case 1
+            g = gifti;
+            g.vertices = get(getappdata(obj,'patch'),'Vertices');
+            g.faces = get(getappdata(obj,'patch'),'Faces');
+            g.cdata = get(getappdata(obj,'patch'),'FaceVertexCData');
+            save(g,fullfile(pathname, filename));
+        case 2
+            ax = getappdata(obj,'axis');
+            u = get(ax,'units');
+            set(ax,'units','pixels');
+            p = get(ax,'Position');
+            r = get(getappdata(obj,'fig'),'Renderer');
+            h = figure('Position',p+[0 0 10 10], ...
+                'InvertHardcopy','off', ...
+                'Color',get(getappdata(obj,'ax0'),'Color'), ...
+                'Renderer',r);
+            copyobj(getappdata(obj,'axis'),h);
+            set(ax,'units',u);
+            set(get(h,'children'),'visible','off');
+            %a = get(h,'children');
+            %set(a,'Position',get(a,'Position').*[0 0 1 1]+[10 10 0 0]);       
+            print(h, '-dpng', '-opengl', fullfile(pathname, filename));
+            close(h);
+            set(getappdata(obj,'fig'),'renderer',r);
+    end
 end
 
 %==========================================================================
