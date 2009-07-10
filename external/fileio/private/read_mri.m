@@ -16,6 +16,16 @@ function [mri] = read_mri(filename)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: read_mri.m,v $
+% Revision 1.10  2009/07/09 15:07:59  roboos
+% use another coordinate transformation matrix for fif MRI
+%
+% Revision 1.9  2009/07/08 08:08:45  roboos
+% also support mne toolbox fiff_read_mri function
+%
+% Revision 1.8  2009/07/07 10:40:37  roboos
+% Improved handling of sequence of files, also when the files don't have nice names.
+% Use SeriesNumber from the DICOM header to figure out which slices go together.
+%
 % Revision 1.7  2009/07/02 15:04:09  roboos
 % construct transformation matrix for dicom files
 %
@@ -188,52 +198,101 @@ elseif (filetype(filename, 'afni_brik') || filetype(filename, 'afni_head')) && h
   transform(2,4) = -dim(2) - transform(2,4);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif filetype(filename, 'neuromag_fif')
-  % use the neuromag functions to read the Neuromag MRI
-  % FIXME this needs to be checked to ensure consistency with the FieldTrip definition of volume data
+elseif filetype(filename, 'neuromag_fif') && hastoolbox('mne')
+  % use the mne functions to read the Neuromag MRI
+  hdr = fiff_read_mri(filename);
+  img = cat(3, hdr.slices.data);
+  hdr.slices = rmfield(hdr.slices, 'data'); % remove the image data to save memory
+  % hmm, which transformation matrix should I use?
+  if issubfield(hdr.voxel_trans, 'trans')
+    transform = hdr.voxel_trans.trans;
+  elseif issubfield(hdr.trans, 'trans')
+    transform = hdr.trans.trans;
+  end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif filetype(filename, 'neuromag_fif') && hastoolbox('meg_pd')
+  % use the meg_pd functions to read the Neuromag MRI
   [img,coords] = loadmri(filename);
   dev = loadtrans(filename,'MRI','HEAD');
-  transform = dev*coords;
+  transform  = dev*coords;
   hdr.coords = coords;
-  hdr.dev = dev;
+  hdr.dev    = dev;
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif filetype(filename, 'neuromag_fif')
+  error('reading MRI data from a fif file requires either the MNE toolbox or the meg_pd toolbox to be installed');
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif filetype(filename, 'dicom')
   % this uses the Image processing toolbox
-  % the DICOM file probably represents a stack of slices
+  % the DICOM file probably represents a stack of slices, possibly even multiple volumes
+  orig = dicominfo(filename);
+  dim(1) = orig.Rows;
+  dim(2) = orig.Columns;
+
   [p, f] = fileparts(filename);
+
+  % this works for the Siemens scanners at the FCDC
   tok = tokenize(f, '.');
   for i=5:length(tok)
-    tok{i} = '*';  % this works for the Siemens scanners at the FCDC
+    tok{i} = '*';  
   end
   filename = sprintf('%s.', tok{:});  % reconstruct the filename with wildcards and '.' between the segments
   filename = filename(1:end-1);       % remove the last '.'
   dirlist  = dir(fullfile(p, filename));
   dirlist  = {dirlist.name};
+
+  if length(dirlist)==1
+    % try something else to get a list of all the slices
+    dirlist = dir(fullfile(p, '*'));
+    dirlist = {dirlist(~[dirlist.isdir]).name};
+  end
+    
+  keep = false(1, length(dirlist));
   for i=1:length(dirlist)
     filename = char(fullfile(p, dirlist{i}));
-    fprintf('reading dicom image from ''%s''\n', filename);
-    info       = dicominfo(filename);
-    img(:,:,i) = dicomread(info);
-    hdr(i)     = info;
-    if i==1
-      % this pre-allocates enough space for the subsequent slices
-      img(1,1,length(dirlist)) = 0;
+    if ~filetype(filename, 'dicom')
+      keep(i) = false;
+      fprintf('skipping ''%s'' because of incorrect filetype\n', filename);
+    end
+    % read the header information
+    info     = dicominfo(filename);
+    if info.SeriesNumber~=orig.SeriesNumber
+      keep(i) = false;
+      fprintf('skipping ''%s'' because of different SeriesNumber\n', filename);
+    else
+      keep(i) = true;
+      hdr(i)  = info;
     end
   end
+  % remove the files that were skipped
+  hdr     = hdr(keep);
+  dirlist = dirlist(keep);
+
+  % pre-allocate enough space for the subsequent slices
+  dim(3) = length(dirlist);
+  img    = zeros(dim(1), dim(2), dim(3));
+  for i=1:length(dirlist)
+    fprintf('reading image data from ''%s''\n', filename);
+    img(:,:,i) = dicomread(hdr(i));
+  end
+  
   % reorder the slices
   [z, indx]   = sort(cell2mat({hdr.SliceLocation}));
   hdr = hdr(indx);
   img = img(:,:,indx);
-
-  % construct a homgenous transformation matrix that performs the scaling from voxels to mm
-  dx = hdr(1).PixelSpacing(1);
-  dy = hdr(1).PixelSpacing(2);
-  dz = hdr(2).SliceLocation - hdr(1).SliceLocation;
-  transform = eye(4);
-  transform(1,1) = dx;
-  transform(2,2) = dy;
-  transform(3,3) = dz;
+  
+  try
+    % construct a homgenous transformation matrix that performs the scaling from voxels to mm
+    dx = hdr(1).PixelSpacing(1);
+    dy = hdr(1).PixelSpacing(2);
+    dz = hdr(2).SliceLocation - hdr(1).SliceLocation;
+    transform = eye(4);
+    transform(1,1) = dx;
+    transform(2,2) = dy;
+    transform(3,3) = dz;
+  end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
