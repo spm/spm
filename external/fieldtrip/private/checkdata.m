@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.14  2009/07/06 09:38:24  jansch
+% added fixinside to source2volume
+%
 % Revision 1.13  2009/06/15 12:56:23  roboos
 % added a fixcoh function (for sparse->full)
 % added some explicit error handling to fixcsd function
@@ -1044,6 +1047,9 @@ if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
 if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
 if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
 if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+
+% make inside a volume
+data = fixinside(data, 'logical');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes

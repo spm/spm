@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.96  2009/07/09 10:00:45  roboos
+% no leading spaces for fake channel names in fcdc_buffer
+%
 % Revision 1.95  2009/06/17 13:43:20  roboos
 % don't include LastTimeStamp in output
 %
@@ -948,7 +951,7 @@ switch headerformat
     hdr.nTrials     = 1; % since continuous
     warning('creating fake channel names');
     for i=1:hdr.nChans
-      hdr.label{i} = sprintf('%3d', i);
+      hdr.label{i} = sprintf('%d', i);
     end
     % this should be a column vector
     hdr.label = hdr.label(:);

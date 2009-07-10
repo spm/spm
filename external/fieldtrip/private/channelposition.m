@@ -8,6 +8,17 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.8  2009/07/08 07:42:50  jansch
+% undone previous adjustment. convention now is that sequential balancing steps
+% should be recorded in the grad-structure itself; rather than having
+% balance.XXX and balance.YYY, it should be balance.XXX_YYY and
+% balance.current = 'XXX_YYY'
+%
+% Revision 1.7  2009/07/07 08:03:29  jansch
+% allowing for sequential unbalancing, convention being that the individual
+% balancing steps in balance.current are separated by '_', and the chronological
+% ordering of the balancing steps are from right to left
+%
 % Revision 1.6  2009/06/26 17:39:04  vlalit
 % Added the possiblity to handle custom montages applied to MEG sensors (for removing
 %  spatial confounds). Hopefully there won't be major side effects.
@@ -31,11 +42,17 @@ function [pnt, lab] = channelposition(sens, varargin)
 %
 
 if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
-
+  fnames = setdiff(fieldnames(sens.balance), 'current');
+  indx   = find(ismember(fnames, sens.balance.current));
+  
+  if length(indx)==1,
     %  undo the synthetic gradient balancing
     fprintf('undoing the %s balancing\n', sens.balance.current);
     sens = apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes');
     sens.balance.current = 'none';
+  else
+    warning('cannot undo %s balancing\n', sens.balance.current);
+  end
 end
 
 switch senstype(sens)    

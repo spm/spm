@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.72  2009/07/08 08:10:29  roboos
+% also detect int8 and int16 anatomical MRI and convert to double
+%
 % Revision 1.71  2009/06/17 14:05:25  roboos
 % use ischar instead of isstr
 %
@@ -352,10 +355,8 @@ end
 if isequal(cfg.anaparameter,'anatomy')
   if isfield(data, 'anatomy')
     hasana = 1;
-    mri8  = isa(data.anatomy, 'uint8');
-    mri16 = isa(data.anatomy, 'uint16');
     % convert integers to single precision float if neccessary
-    if mri8 || mri16
+    if isa(data.anatomy, 'uint8') || isa(data.anatomy, 'uint16') || isa(data.anatomy, 'int8') || isa(data.anatomy, 'int16')
       fprintf('converting anatomy to double\n');
       ana = double(data.anatomy);
     else

@@ -54,6 +54,9 @@ function [type] = filetype(filename, desired, varargin)
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.98  2009/07/07 10:38:38  roboos
+% added header check for dicom
+%
 % Revision 1.97  2009/05/06 15:42:06  roboos
 % also remember/check previous directory and don't do filetype caching in case type=unknown
 %
@@ -903,7 +906,7 @@ elseif filetype_check_extension(filename, '.lay')
   type = 'layout';
   manufacturer = 'Ole Jensen';
   content = 'layout of channels for plotting';
-elseif filetype_check_extension(filename, '.dcm') || filetype_check_extension(filename, '.ima')
+elseif filetype_check_extension(filename, '.dcm') || filetype_check_extension(filename, '.ima') || filetype_check_header(filename, 'DICM', 128)
   type = 'dicom';
   manufacturer = 'Dicom';
   content = 'image data';

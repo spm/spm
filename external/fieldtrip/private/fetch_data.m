@@ -11,6 +11,12 @@ function [dat] = fetch_data(data, varargin)
 % Copyright (C) 2008, Esther Meeuwissen
 %
 % $Log: fetch_data.m,v $
+% Revision 1.2  2009/07/06 09:41:18  jansch
+% multiple changes. allowing for selection of rpt in frequency data when input
+% data has rpttap. allowing for grandaveraging functionality in the case of
+% multiple inputs with the same dimensionalities. this is equivalent to the
+% XXXgrandaverage functions with keepindividual = 'yes'.
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -76,8 +82,8 @@ for trllop=1:trlnum
 end
 
 % overlap --> NaN
-trialnum(count>1)  = NaN;
-samplenum(count>1) = NaN;
+%trialnum(count>1)  = NaN;
+%samplenum(count>1) = NaN;
 
 % make a subselection for the desired samples
 count     = count(begsample:endsample);
@@ -88,7 +94,7 @@ samplenum = samplenum(begsample:endsample);
 if any(count==0)
   error('not all requested samples are present in the data');
 elseif any(count>1)
-  error('some of the requested samples occur twice in the data');
+%  error('some of the requested samples occur twice in the data');
 end
 
 % construct the output data array

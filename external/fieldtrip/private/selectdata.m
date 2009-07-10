@@ -29,6 +29,12 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.7  2009/07/06 09:41:18  jansch
+% multiple changes. allowing for selection of rpt in frequency data when input
+% data has rpttap. allowing for grandaveraging functionality in the case of
+% multiple inputs with the same dimensionalities. this is equivalent to the
+% XXXgrandaverage functions with keepindividual = 'yes'.
+%
 % Revision 1.6  2009/04/14 18:29:32  roboos
 % deleted the subfunction istrue, since it now is a seperate function
 %
@@ -84,6 +90,9 @@ avgovertime  = keyval('avgovertime',  kvp); if isempty(avgovertime), avgovertime
 avgoverroi   = keyval('avgoverroi',   kvp); if isempty(avgoverroi),  avgoverroi  = false; end
 avgoverrpt   = keyval('avgoverrpt',   kvp); if isempty(avgoverrpt),  avgoverrpt  = false; end
 
+% create anonymous function and apply it to the boolean input arguments
+istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || (~isempty(x) && x==1));
+
 % ensure that these are boolean arguments, optionally convert from "yes"/"no" to true/false
 avgoverchan = istrue(avgoverchan);
 avgoverfreq = istrue(avgoverfreq);
@@ -96,7 +105,7 @@ if length(data)>1 && selectrpt,
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% from here on the data is concatenated
+% concatenate the data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if length(data)>1,
@@ -132,9 +141,15 @@ if length(data)>1,
     end
   end
   catdim = find(sum(dimmat,2)<length(data));
-
+  
   if length(catdim)>1,
     error('ambiguous dimensions for concatenation');
+  elseif isempty(catdim) && isempty(strmatch('rpt',dimtok)) && isempty(strmatch('rpttap',dimtok)),
+    %treat as individual observations: prepend a first dimension 'rpt'
+    %(so this part should be able to cover the functionality of ...grandaverage)
+    catdim=0;
+  elseif isempty(catdim)
+    error('don''t know how to concatenate the data');
   end
 
   % concatenate the data
@@ -143,7 +158,26 @@ if length(data)>1,
     for m = 1:length(tmp)
       tmp{m} = getsubfield(data{m},param{k});
     end
-    data{1} = setsubfield(data{1}, param{k}, cat(catdim,tmp{:}));
+    if catdim==0,
+      ndim    = length(size(tmp{1}));
+      data{1} = setsubfield(data{1}, param{k}, permute(cat(ndim+1,tmp{:}),[ndim+1 1:ndim]));
+    else
+      data{1} = setsubfield(data{1}, param{k}, cat(catdim,tmp{:}));
+    end
+  end
+
+  if catdim==0,
+    %a dimension has been prepended
+    dimtok    = ['rpt' dimtok];
+    catdim    = 1;
+    dimord{1} = ['rpt_',dimord{1}];
+    if issubfield(data{1}, 'dim'),
+      dim       = [length(data) data{1}.dim];
+    end
+  else 
+    if issubfield(data{1}, 'dim'),
+      dim       = data{1}.dim;
+    end
   end
 
   % concatenate the relevant descriptive fields in the data-structure
@@ -182,9 +216,9 @@ if length(data)>1,
   end
 
   % FIXME this is ugly: solve it
-  if issource || isvolume,
-    data{1}.dim(catdim) = max(size(tmp));
-  end
+  %if issource || isvolume,
+  %  data{1}.dim(catdim) = max(size(tmp));
+  %end
 
   % sort concatenated data FIXME this is also ugly and depends on tmp
   if sortflag && ~iscell(tmp),
@@ -207,8 +241,12 @@ if length(data)>1,
   end
 
   % keep the first structure only
-  data = data{1};
-  dimord = dimord{1};
+  data        = data{1};
+  dimord      = dimord{1};
+  data.dimord = dimord;
+  if isfield(data, 'dim'),
+    data.dim    = dim;
+  end
 
 else
   % nothing to do
@@ -216,11 +254,25 @@ else
   dimord = dimord{1};
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% from here on the data is concatenated
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % determine the subselection in the data
 if selectrpt,
   dimtok = tokenize(data.dimord, '_');
   if strcmp(dimtok{1}, 'rpttap'),
-    error('here you have to ensure the correct handling of tapers');
+    %account for the tapers
+    sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
+    begtapcnt = sumtapcnt(1:end-1)+1;
+    endtapcnt = sumtapcnt(2:end);
+    begtapcnt = begtapcnt(selrpt);
+    endtapcnt = endtapcnt(selrpt);
+    tapers = zeros(1,sumtapcnt(end));
+    for k = 1:length(begtapcnt)
+      tapers(begtapcnt(k):endtapcnt(k)) = 1;
+    end
+    selrpt = find(tapers);
   else
     % do nothing
   end
@@ -232,7 +284,16 @@ end
 
 if selectfoi,
   if length(selfoi)==1, selfoi(2) = selfoi; end;
-  selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
+  if length(selfoi)==2,
+    %treat selfoi as lower limit and upper limit
+    selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
+  else
+    %treat selfoi as a list of frequencies
+    for k=1:length(selfoi)
+      tmpfoi(k) = nearest(data.freq, selfoi(k));
+    end
+    selfoi = tmpfoi;
+  end
 end
 
 if selecttoi,
@@ -269,7 +330,7 @@ elseif istlck,
   if avgovertime, data = avgoverdim(data, 'time');  end
 
 elseif issource,
-  error('this is not yet implemented');
+  %error('this is not yet implemented');
 
 elseif isvolume,
   error('this is not yet implemented');
