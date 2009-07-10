@@ -40,7 +40,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_reml_sc.m 3264 2009-07-10 14:01:31Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ for k = 1:K
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
     iCX    = iC*X;
-    if length(X)
+    if ~isempty(X)
         Cq = inv(X'*iCX);
     else
         Cq = sparse(0);

@@ -16,10 +16,11 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %                G: covariance partition indices
 %                h: covariance hyperparameters
 %                U: ordered patterns
-%               qE: conditional expectation of voxel weights
+%                M: MAP projector: qE = M*X
+%               qE: conditional expectation of voxel weights 
 %               qC: conditional variance of voxel weights
-%               Cp: prior covariance (ordered  pattern space)
-%               cp: prior covariance (original pattern space)
+%               Cp: empirical prior covariance (ordered  pattern space)
+%               cp: empirical prior covariance (original pattern space)
 %__________________________________________________________________________
 %
 % model: X = Y*P + X0*Q + R
@@ -44,7 +45,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 3139 2009-05-21 18:37:29Z karl $
+% $Id: spm_mvb.m 3264 2009-07-10 14:01:31Z karl $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
@@ -136,6 +137,7 @@ end
  
 % remove some patterns if there are too many
 %--------------------------------------------------------------------------
+clear M X Y
 qE       = sum(model.qE.^2,2);
 [i j]    = sort(-qE);
 try
@@ -148,8 +150,15 @@ U        = U(:,i);
 cp       = model.Cp;
 Cp       = cp(i,i);
 MAP      = U*model.MAP(i,:);
-qE       = U*model.qE(i,:);
- 
+
+% try to save conditional expectations (if there is enough memory)
+%--------------------------------------------------------------------------
+try
+    qE   = U*model.qE(i,:);
+catch
+    qE   = [];
+end
+
 % remove confounds from L = Y*U
 %--------------------------------------------------------------------------
 L        = L - X0*pinv(full(X0))*L;
@@ -161,7 +170,7 @@ qC       = sum(UCp.*U,2) - sum((UCp*L').*MAP,2);
  
 model.F  = F;
 model.U  = U;
-model.M  = MAP;
+model.M  = MAP;                             % MAP projector
 model.qE = qE;                              % conditional expectation
 model.Cp = Cp;                              % prior covariance (ordered)
 model.cp = cp;                              % prior covariance (original)

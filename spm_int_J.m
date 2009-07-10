@@ -61,13 +61,13 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 2517 2008-12-02 10:36:11Z klaas $
+% $Id: spm_int_J.m 3264 2009-07-10 14:01:31Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u; end
-M      = M(1);
+M       = M(1);
 try, dt = U.dt;  catch, dt = 1;  end
 try, ns = M.ns;  catch, ns = length(U.u); end
 
@@ -86,7 +86,7 @@ end
 try
     g  = fcnchk(M.g,'x','u','P','M');
 catch
-    g  = [];
+    g  = inline('x','x','v','P','M');
 end
 
 % Initial states and inputs
@@ -108,12 +108,12 @@ end
 try
     f(x,u,P,M);
 catch
-    f = inline(char(f),'x','v','P','M');
+    f = inline([char(f) '(x,v,P,M)'],'x','v','P','M');
 end
 try
     g(x,u,P,M);
 catch
-    g = inline(char(g),'x','v','P','M');
+    g = inline([char(g) '(x,v,P,M)'],'x','v','P','M');
 end
 
 % check for delay operator
@@ -150,11 +150,7 @@ for i = 1:ns
 
     % output - implement g(x)
     %----------------------------------------------------------------------
-    if length(g)
-        y(:,i) = spm_vec(g(x,u,P,M));
-    else
-        y(:,i) = spm_vec(x);
-    end
+    y(:,i) = spm_vec(g(x,u,P,M));
 
 end
 
