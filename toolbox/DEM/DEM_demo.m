@@ -91,7 +91,12 @@ function pushbutton51_Callback(hObject, eventdata, handles)
 
 set(handles.pushbutton51,'String','please wait')
 drawnow
+try
 guidata(1,handles);
+catch
+    spm_figure('GetWin','DEM');
+    guidata(1,handles);
+end
 try, eval(handles.file), end
 handles = set(0,'UserData');
 handles = guidata(1);
