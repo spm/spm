@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3266 2009-07-10 14:31:34Z guillaume $
+% $Id: spm_render.m 3272 2009-07-13 13:49:32Z guillaume $
 
-SVNrev = '$Rev: 3266 $';
+SVNrev = '$Rev: 3272 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -73,6 +73,34 @@ if nargin < 3 || isempty(prevrend.rendfile)
 end
 prevrend.rendfile = rendfile;
 
+[p,f,e] = fileparts(rendfile);
+loadgifti = false;
+if strcmpi(e,'.mat')
+    load(rendfile);
+    if ~exist('rend','var') && ~exist('Matrixes','var')
+        loadgifti = true;
+    end
+end
+if ~strcmpi(e,'.mat') || loadgifti
+    try
+        rend = export(gifti(rendfile),'patch');
+    catch
+        error('\nCannot read  render file "%s".\n', rendfile);
+    end
+    if num == 1
+        col = hot(256);
+    else
+        col = eye(3);
+        if spm_input('Which colours?','!+1','b',{'RGB','Custom'},[0 1],1)
+            for k = 1:num
+                col(k,:) = uisetcolor(col(k,:),sprintf('Colour of blob set %d',k));
+            end
+        end
+    end
+    surf_rend(dat,rend,col);
+    return
+end
+
 %-Get brightness & colours
 %--------------------------------------------------------------------------
 if nargin < 2  || isempty(prevrend.brt)
@@ -87,8 +115,8 @@ if nargin < 2  || isempty(prevrend.brt)
         % ask for custom colours & get rgb values
         %------------------------------------------------------------------
         if spm_input('Which colours?','!+1','b',{'RGB','Custom'},[0 1],1)
-            for k = 1:num,
-                col(k,:) = uisetcolor(col(k,:),sprintf('Color of blob set %d',k));
+            for k = 1:num
+                col(k,:) = uisetcolor(col(k,:),sprintf('Colour of blob set %d',k));
             end
         end
     else
@@ -106,24 +134,6 @@ prevrend.col = col;
 
 %-Perform the rendering
 %==========================================================================
-[p,f,e] = fileparts(rendfile);
-loadgifti = false;
-if strcmpi(e,'.mat')
-    load(rendfile);
-    if ~exist('rend','var') && ~exist('Matrixes','var')
-        loadgifti = true;
-    end
-end
-if ~strcmpi(e,'.mat') || loadgifti
-    try
-        rend = export(gifti(rendfile),'patch');
-    catch
-        error('\nCannot read  render file "%s".\n', rendfile);
-    end
-    surf_rend(dat,rend,col);
-    return
-end
-
 spm('Pointer','Watch');
 
 if ~exist('rend','var') % Assume old format...
@@ -326,18 +336,23 @@ v = spm_mesh_project(rend, dat);
 
 %-Compute mesh curvature texture
 %--------------------------------------------------------------------------
-C = spm_mesh_curvature(rend) > 0;
-C = 0.5 * repmat(C,1,3) + 0.3 * repmat(~C,1,3);
+curv = spm_mesh_curvature(rend) > 0;
+curv = 0.5 * repmat(curv,1,3) + 0.3 * repmat(~curv,1,3);
 
 %-Combine projected data and mesh curvature
 %--------------------------------------------------------------------------
-col = hot(256); col(1,:) = 0.5;
-if ~any(v)
-    cdat = 0.5*ones(length(v),3);
-else
-    cdat = squeeze(ind2rgb(floor(v(:)/max(v(:))*size(col,1)),col));
+cdat = zeros(size(v,2),3);
+if any(v(:))
+    if size(col,1)>3
+        cdat = squeeze(ind2rgb(floor(v(:)/max(v(:))*size(col,1)),col));
+    else
+        m = max(v(:));
+        for i=1:size(v,1)
+            cdat = cdat + v(i,:)'/m * col(i,:);
+        end
+    end
 end
-cdat     = repmat(v==0,3,1)' .* C + repmat(v~=0,3,1)' .* cdat;
+cdat = repmat(~any(v,1),3,1)' .* curv + repmat(any(v,1),3,1)' .* cdat;
 
 %-Display the surface mesh with texture
 %--------------------------------------------------------------------------
