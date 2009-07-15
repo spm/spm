@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 3071 2009-04-21 11:22:19Z vladimir $
+% $Id: spm_eeg_artefact.m 3277 2009-07-15 11:47:40Z guillaume $
 
-SVNrev = '$Rev: 3071 $';
+SVNrev = '$Rev: 3277 $';
 
 %-Startup
 %--------------------------------------------------------------------------

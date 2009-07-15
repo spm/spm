@@ -14,7 +14,7 @@ function [outfilenames]=spm_eeg_ft_beamformer_mult(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id:$
+% $Id: spm_eeg_ft_beamformer_mult.m 3277 2009-07-15 11:47:40Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%

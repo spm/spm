@@ -13,7 +13,7 @@ function P = spm_mesh_project(M, dat, method, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_project.m 3272 2009-07-13 13:49:32Z guillaume $
+% $Id: spm_mesh_project.m 3277 2009-07-15 11:47:40Z guillaume $
 
 if ishandle(M)
     V = get(M,'Vertices');
@@ -30,7 +30,7 @@ end
 
 P = zeros(length(dat),size(V,1));
 for i=1:length(dat)
-	Y      = zeros(dat(i).dim(1:3)');
+    Y      = zeros(dat(i).dim(1:3)');
     OFF    = dat(i).XYZ(1,:) + dat(i).dim(1)*(dat(i).XYZ(2,:)-1 + dat(i).dim(2)*(dat(i).XYZ(3,:)-1));
     Y(OFF) = dat(i).t .* (dat(i).t > 0);
     XYZ    = double(inv(dat(i).mat)*[V';ones(1,size(V,1))]);

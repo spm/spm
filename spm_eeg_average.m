@@ -21,9 +21,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id$
+% $Id: spm_eeg_average.m 3277 2009-07-15 11:47:40Z guillaume $
 
-SVNrev = '$Rev$';
+SVNrev = '$Rev: 3277 $';
 
 %-Startup
 %--------------------------------------------------------------------------

@@ -15,14 +15,14 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 3148 2009-05-26 17:33:41Z guillaume $
+% $Id: spm_changepath.m 3277 2009-07-15 11:47:40Z guillaume $
 
 
 if ~nargin
     Sf = spm_select(Inf,'mat','Select MAT files to fix');
 end
 if ischar(Sf)
-	S = cell(1,size(Sf,1));
+    S = cell(1,size(Sf,1));
     for i=1:size(Sf,1)
         try
             S{i} = load(deblank(Sf(i,:)));

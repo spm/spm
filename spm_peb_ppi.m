@@ -117,7 +117,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3271 2009-07-13 04:28:27Z Darren $
+% $Id: spm_peb_ppi.m 3277 2009-07-15 11:47:40Z guillaume $
 
 
 % set up the graphical interface
@@ -288,7 +288,7 @@ end
 % Setup variables
 %-------------------------------------------------------------------------
 N = length(xY(1).u);
-k = 1:NT:N*NT;  			% microtime to scan time indices
+k = 1:NT:N*NT;              % microtime to scan time indices
 
 
 % create basis functions and hrf in scan time and microtime
@@ -342,9 +342,9 @@ W = SPM.xX.W(Sess.row,Sess.row);
 
 % create structure for spm_PEB
 %-------------------------------------------------------------------------
-P{1}.X = [W*Hxb X0];		% Design matrix for lowest level
-P{1}.C = speye(N,N)/4;		% i.i.d assumptions
-P{2}.X = sparse(N + M,1);	% Design matrix for parameters (0's)
+P{1}.X = [W*Hxb X0];        % Design matrix for lowest level
+P{1}.C = speye(N,N)/4;      % i.i.d assumptions
+P{2}.X = sparse(N + M,1);   % Design matrix for parameters (0's)
 P{2}.C = Q;
 
 
@@ -485,7 +485,7 @@ switch ppiflag
 
         % convolve and resample at each scan for bold signal
         %---------------------------------------------------------------------
-        ppi	= conv(PSYxn,hrf);
+        ppi = conv(PSYxn,hrf);
         ppi = ppi(k);
 
         % similarly for psychological effect
