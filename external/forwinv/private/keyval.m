@@ -11,6 +11,9 @@ function [val] = keyval(key, varargin)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: keyval.m,v $
+% Revision 1.4  2009/07/14 16:11:02  roboos
+% speed up the input checks
+%
 % Revision 1.3  2009/05/14 19:24:02  roboos
 % removed ; at end of function declaration
 %
@@ -35,15 +38,13 @@ if mod(length(varargin),2)
   error('optional input arguments should come in key-value pairs, i.e. there should be an even number');
 end
 
-for i=1:2:length(varargin)
-  if ~ischar(varargin{i})
-    % the 1st, 3rd, etc. contain the keys, the 2nd, 4th, etc. contain the values
-    error('optional input arguments should come in key-value pairs, the optional input argument %d is invalid (should be a string)', i);
-  end
-end
-
+% the 1st, 3rd, etc. contain the keys, the 2nd, 4th, etc. contain the values
 keys = varargin(1:2:end);
 vals = varargin(2:2:end);
+
+if ~all(cellfun(@ischar, keys))
+  error('optional input arguments should come in key-value pairs, the optional input argument %d is invalid (should be a string)', i);
+end
 
 hit = find(strcmp(key, keys));
 if isempty(hit)
