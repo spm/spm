@@ -16,6 +16,9 @@ function [mri] = read_mri(filename)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: read_mri.m,v $
+% Revision 1.11  2009/07/16 12:57:12  roboos
+% fixed fprintf feedback for dicom reader
+%
 % Revision 1.10  2009/07/09 15:07:59  roboos
 % use another coordinate transformation matrix for fif MRI
 %
@@ -274,6 +277,7 @@ elseif filetype(filename, 'dicom')
   dim(3) = length(dirlist);
   img    = zeros(dim(1), dim(2), dim(3));
   for i=1:length(dirlist)
+    filename = char(fullfile(p, dirlist{i}));
     fprintf('reading image data from ''%s''\n', filename);
     img(:,:,i) = dicomread(hdr(i));
   end
