@@ -1,4 +1,4 @@
-function [x, y] = select_box(varargin)
+function [x, y] = select_box(handle, eventdata, varargin)
 
 % SELECT_BOX helper function for selecting a rectangular region
 % in the current figure using the mouse.
@@ -16,6 +16,9 @@ function [x, y] = select_box(varargin)
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: select_box.m,v $
+% Revision 1.6  2009/07/14 13:18:33  roboos
+% updated channel selection, use select_range and two local helper functions, also support multiple selections
+%
 % Revision 1.5  2009/06/04 10:50:50  roboos
 % changed handling of inputs
 %
@@ -31,12 +34,8 @@ function [x, y] = select_box(varargin)
 % Revision 1.1  2006/05/17 14:38:09  roboos
 % new implementation
 
-
 % get the optional arguments
 multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
-
-% convert 'yes/no' string to boolean value
-multiple = istrue(multiple);
 
 if multiple
   error('not yet implemented');
@@ -47,8 +46,8 @@ else
   point2 = get(gca,'CurrentPoint');    % button up detected
   point1 = point1(1,1:2);              % extract x and y
   point2 = point2(1,1:2);
-  x = [point1(1) point2(1)];
-  y = [point1(2) point2(2)];
+  x = sort([point1(1) point2(1)]);
+  y = sort([point1(2) point2(2)]);
 end
 
 

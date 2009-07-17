@@ -3,16 +3,31 @@ function plot_matrix(varargin)
 % PLOT_MATRIX
 %
 % Use as
-%   plot_matrix(dat, ...)
+%   plot_matrix(C, ...)
+% where C is a 2 dimensional MxN matrix, or
+%   plot_matrix(X, Y, C, ...)
+% where X and Y describe the 1xN horizontal and 1xM vertical axes 
+% respectively.
+%
+% Additional options should be specified in key-value pairs and can be
+%   'hpos'
+%   'vpos'
+%   'width'
+%   'height'
+%   'hlim'
+%   'vlim'
+%   'clim'
+%   'box'     can be 'yes' or 'no'
 %
 % Example use
 %   plot_matrix(randn(30,50), 'width', 1, 'height', 1, 'hpos', 0, 'vpos', 0)
 
-% FIXME offset
-
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_matrix.m,v $
+% Revision 1.6  2009/07/14 16:13:53  roboos
+% added implementation for clim and highlight
+%
 % Revision 1.5  2009/06/16 07:51:51  crimic
 % small change
 %
@@ -38,16 +53,23 @@ else
 end
 
 % get the optional input arguments
+keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'clim', 'box','highlight','highlightstyle'});
 hpos   = keyval('hpos',   varargin);
 vpos   = keyval('vpos',   varargin);
 width  = keyval('width',  varargin);
 height = keyval('height', varargin);
 hlim   = keyval('hlim',   varargin);
 vlim   = keyval('vlim',   varargin);
+clim   = keyval('clim',   varargin);
 box    = keyval('box',    varargin); if isempty(box), box = false; end
+highlight      = keyval('highlight',       varargin);
+highlightstyle = keyval('highlightstyle',  varargin); if isempty(highlightstyle), highlightstyle = 'opacity'; end
 % axis   = keyval('axis',   varargin); if isempty(axis), axis = false; end
 % label  = keyval('label',  varargin); % FIXME
 % style  = keyval('style',  varargin); % FIXME
+
+% convert the yes/no strings into boolean values
+box  = istrue(box);
 
 if isempty(hlim)
   hlim = 'maxmin';
@@ -55,6 +77,10 @@ end
 
 if isempty(vlim)
   vlim = 'maxmin';
+end
+
+if isempty(clim)
+  clim = 'maxmin';
 end
 
 if ischar(hlim)
@@ -78,6 +104,18 @@ if ischar(vlim)
       vlim = [-vlim vlim];
     otherwise
       error('unsupported option for vlim')
+  end % switch
+end % if ischar
+
+if ischar(clim)
+  switch clim
+    case 'maxmin'
+      clim = [min(cdat(:)) max(cdat(:))];
+    case 'absmax'
+      clim = max(abs(cdat(:)));
+      clim = [-clim clim];
+    otherwise
+      error('unsupported option for clim')
   end % switch
 end % if ischar
 
@@ -130,9 +168,23 @@ vdat = vdat .* height;
 % then shift to the new vertical position
 vdat = vdat + vpos;
 
-uimagesc(hdat, vdat, cdat);
+h = uimagesc(hdat, vdat, cdat, clim);
 
-if istrue(box)
+if ~isempty(highlight)
+  switch highlightstyle
+    case 'opacity'
+      set(h,'AlphaData',highlight);
+      set(h, 'AlphaDataMapping', 'scaled');
+      alim([0 1]);
+    case 'outline'
+      % the significant voxels could be outlined with a black contour
+      error('unsupported highlightstyle')
+    otherwise
+      error('unsupported highlightstyle')
+  end % switch highlightstyle
+end
+
+if box
   boxposition = zeros(1,4);
   % this plots a box around the original hpos/vpos with appropriate width/height
   boxposition(1) = hpos - width/2;

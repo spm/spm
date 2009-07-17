@@ -10,13 +10,13 @@ function [varargout] = plot_box(position, varargin);
 %   'facealpha'   = transparency value between 0 and 1
 %   'facecolor'   = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
 %   'edgecolor'   = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
-%   'hpos'        = 
-%   'vpos'        = 
-%   'width'       = 
-%   'height'      = 
-%   'hlim'        = 
-%   'vlim'        = 
-% 
+%   'hpos'        =
+%   'vpos'        =
+%   'width'       =
+%   'height'      =
+%   'hlim'        =
+%   'vlim'        =
+%
 % Example
 %   plot_box([-1 1 2 3], 'facecolor', 'b')
 %   axis([-4 4 -4 4])
@@ -24,6 +24,9 @@ function [varargout] = plot_box(position, varargin);
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_box.m,v $
+% Revision 1.6  2009/07/14 16:13:14  roboos
+% speed up the plotting if no rescaling needs to be done
+%
 % Revision 1.5  2009/06/04 08:48:23  roboos
 % updated documentation
 %
@@ -58,48 +61,57 @@ y2 = position(4);
 X = [x1 x2 x2 x1 x1];
 Y = [y1 y1 y2 y2 y1];
 
-abc = axis;
-if isempty(hlim)
-  hlim = abc([1 2]);
-end
+if isempty(hlim) && isempty(vlim) && isempty(hpos) && isempty(vpos) && isempty(height) && isempty(width)
+  % no scaling is needed, the input X and Y are already fine
+  % use a shortcut to speed up the plotting
 
-if isempty(vlim)
-  vlim = abc([3 4]);
-end
+else
+  % use the full implementation
+  abc = axis;
 
-if isempty(hpos);
-  hpos = (hlim(1)+hlim(2))/2;
-end
+  if isempty(hlim)
+    hlim = abc([1 2]);
+  end
 
-if isempty(vpos);
-  vpos = (vlim(1)+vlim(2))/2;
-end
+  if isempty(vlim)
+    vlim = abc([3 4]);
+  end
 
-if isempty(width),
-  width = hlim(2)-hlim(1);
-end
+  if isempty(hpos);
+    hpos = (hlim(1)+hlim(2))/2;
+  end
 
-if isempty(height),
-  height = vlim(2)-vlim(1);
-end
+  if isempty(vpos);
+    vpos = (vlim(1)+vlim(2))/2;
+  end
 
-% first shift the horizontal axis to zero
-X = X - (hlim(1)+hlim(2))/2;
-% then scale to length 1
-X = X ./ (hlim(2)-hlim(1));
-% then scale to the new width
-X = X .* width;
-% then shift to the new horizontal position
-X = X + hpos;
+  if isempty(width),
+    width = hlim(2)-hlim(1);
+  end
 
-% first shift the vertical axis to zero
-Y = Y - (vlim(1)+vlim(2))/2;
-% then scale to length 1
-Y = Y ./ (vlim(2)-vlim(1));
-% then scale to the new width
-Y = Y .* height;
-% then shift to the new vertical position
-Y = Y + vpos;
+  if isempty(height),
+    height = vlim(2)-vlim(1);
+  end
+
+  % first shift the horizontal axis to zero
+  X = X - (hlim(1)+hlim(2))/2;
+  % then scale to length 1
+  X = X ./ (hlim(2)-hlim(1));
+  % then scale to the new width
+  X = X .* width;
+  % then shift to the new horizontal position
+  X = X + hpos;
+
+  % first shift the vertical axis to zero
+  Y = Y - (vlim(1)+vlim(2))/2;
+  % then scale to length 1
+  Y = Y ./ (vlim(2)-vlim(1));
+  % then scale to the new width
+  Y = Y .* height;
+  % then shift to the new vertical position
+  Y = Y + vpos;
+
+end % shortcut
 
 % use an arbitrary color, which will be replaced by the correct color a few lines down
 C = 0;

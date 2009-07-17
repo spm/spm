@@ -29,6 +29,9 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.8  2009/07/15 12:11:57  jansch
+% fixed small bug
+%
 % Revision 1.7  2009/07/06 09:41:18  jansch
 % multiple changes. allowing for selection of rpt in frequency data when input
 % data has rpttap. allowing for grandaveraging functionality in the case of
@@ -117,10 +120,10 @@ if length(data)>1,
     param = {param};
   end
 
-  dimtok = tokenize(dimord{1}, '_');
+  dimtok                           = tokenize(dimord{1}, '_');
   dimtok(strmatch('chan', dimtok)) = {'label'}; % data.chan does not exist
 
-  dimmat = zeros(length(dimtok), length(data));
+  dimmat      = zeros(length(dimtok), length(data));
   dimmat(:,1) = 1;
   for k = 1:length(dimtok)
     try,
@@ -147,7 +150,7 @@ if length(data)>1,
   elseif isempty(catdim) && isempty(strmatch('rpt',dimtok)) && isempty(strmatch('rpttap',dimtok)),
     %treat as individual observations: prepend a first dimension 'rpt'
     %(so this part should be able to cover the functionality of ...grandaverage)
-    catdim=0;
+    catdim = 0;
   elseif isempty(catdim)
     error('don''t know how to concatenate the data');
   end
@@ -230,22 +233,23 @@ if length(data)>1,
       tmp     = ipermute(tmp(ind,:,:,:,:), [catdim setdiff(1:length(size(tmp)), catdim)]);
       data{1} = setsubfield(data{1}, param{k}, tmp);
     end
-  elseif iscell(tmp)
+  elseif exist('tmp', 'var') && iscell(tmp)
     %in this case (ugly!) tmp is probably a cell-array containing functional data
   end
-
+  
   % remove unspecified parameters
-  rmparam = setdiff(parameterselection('all',data{1}),param);
+  rmparam = setdiff(parameterselection('all',data{1}),[param 'pos']);
   for k = 1:length(rmparam)
     data{1} = rmsubfield(data{1}, rmparam{k});
   end
-
+  
   % keep the first structure only
   data        = data{1};
   dimord      = dimord{1};
   data.dimord = dimord;
   if isfield(data, 'dim'),
-    data.dim    = dim;
+    %data.dim    = dim;
+    data.dim = size(data.(param{1}));
   end
 
 else

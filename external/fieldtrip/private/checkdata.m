@@ -33,6 +33,10 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.15  2009/07/15 12:11:19  jansch
+% experimental bypass of sourcedescriptives to create source with single trial
+% power per voxel: dimord = 'rpt_pos', undocumented
+%
 % Revision 1.14  2009/07/06 09:38:24  jansch
 % added fixinside to source2volume
 %
@@ -495,6 +499,19 @@ if issource || isvolume,
     end
     if isfield(data, 'trial') && isstruct(data.trial)
       Nrpt = length(data.trial);
+    elseif isfield(data, 'avg') && isfield(data.avg, 'mom') && strcmp(sourcedimord, 'rpt_pos'),
+      Npos   = size(data.pos,1);
+      Nrpt   = length(data.cumtapcnt);
+      tmpmom = zeros(Npos, size(data.avg.mom{data.inside(1)},2));
+      tmpmom(data.inside,:) = cat(1,data.avg.mom{data.inside});
+      tmppow = zeros(Npos, Nrpt);
+      tapcnt = [0;cumsum(data.cumtapcnt)];
+      for k = 1:Nrpt
+        Ntap = tapcnt(k+1)-tapcnt(k);
+        tmppow(data.inside,k) = sum(abs(tmpmom(data.inside,(tapcnt(k)+1):tapcnt(k+1))).^2,2)./Ntap;
+      end
+      data.pow = tmppow';
+      data     = rmfield(data, 'avg');
     else
       Nrpt = 1;
     end
@@ -550,7 +567,7 @@ if issource || isvolume,
   % reshape each of the source reconstructed parameters
   dim = [data.dim 1];
 
-  param = parameterselection('all', data);
+  param = setdiff(parameterselection('all', data), {'fwhm','leadfield','q','rough'});
   for i=1:length(param)
     if any(param{i}=='.')
       % the parameter is nested in a substructure, which can have multiple elements (e.g. source.trial(1).pow, source.trial(2).pow, ...)

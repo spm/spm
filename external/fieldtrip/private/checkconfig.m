@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.17  2009/07/15 12:10:07  jansch
+% added subspace and keepsubspace for subcfg dics and lcmv
+%
 % Revision 1.16  2009/06/04 13:41:33  marvger
 % renamed mvlap case
 %
@@ -406,6 +409,8 @@ if ~isempty(createsubcfg)
           'reducerank'
           'keepcsd'
           'realfilter'
+	  'subspace'
+	  'keepsubspace'
           };
 
       case 'lcmv'
@@ -423,6 +428,7 @@ if ~isempty(createsubcfg)
           'reducerank'
           'keepcov'
 	  'subspace'
+	  'keepsubspace'
           };
 
       case 'pcc'

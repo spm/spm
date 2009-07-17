@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.73  2009/07/14 07:27:30  roboos
+% replaced read_fcdc_mri with read_mri to avoid warning
+%
 % Revision 1.72  2009/07/08 08:10:29  roboos
 % also detect int8 and int16 anatomical MRI and convert to double
 %
@@ -306,7 +309,7 @@ if ischar(data)
   % read the anatomical MRI data from file
   filename = data;
   fprintf('reading MRI from file\n');
-  data = read_fcdc_mri(filename);
+  data = read_mri(filename);
 end
 
 % check if the input data is valid for this function
