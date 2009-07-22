@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3190 2009-06-08 17:13:36Z guillaume $
+% $Id: spm.m 3281 2009-07-22 10:59:38Z guillaume $
 
 
 %=======================================================================
@@ -605,7 +605,7 @@ if nargin<2, FS=[1:36]; else FS=varargin{2}; end
 
 offset     = 1;
 try
-    if ismac, offset = 1.4; end
+    %if ismac, offset = 1.4; end
 end
 
 sf  = offset + 0.85*(min(spm('WinScale'))-1);
