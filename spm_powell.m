@@ -20,7 +20,7 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_powell.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_powell.m 3283 2009-07-23 17:37:36Z john $
 
 
 p     = p(:);
@@ -66,8 +66,12 @@ t        = bracket(f);
 pi       = pi*pmin;
 p        = p + pi;
 
-for i=1:length(p), fprintf('%-8.4g ', p(i)); end;
-fprintf('| %.5g\n', f);
+if length(p)<12,
+    for i=1:length(p), fprintf('%-8.4g ', p(i)); end;
+    fprintf('| %.5g\n', f);
+else
+    fprintf('%.5g\n', f);
+end
 min1d_plot('Clear');
 
 return;

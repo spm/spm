@@ -1,18 +1,18 @@
-function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
+function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 % Manage graphical output for spm_FindFields
 %
-% FORMAT spm_graphwip(mode,p1,...)
+% FORMAT spm_uw_show(mode,p1,...)
 %
 % mode      - Verb specifying action.
 % p1-p6     - Depends on mode.
 %
-% FORMAT spm_graphwip('FinIter',SS,beta,fot,sot,ref,q)
+% FORMAT spm_uw_show('FinIter',SS,beta,fot,sot,ref,q)
 %
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_uw_show.m 3283 2009-07-23 17:37:36Z john $
 
 
 persistent iter;
@@ -80,97 +80,91 @@ switch mode
       end
       fg = spm_figure('FindWin','Graphics');
       if isempty(fg)
-         fg = spm_figure('Create','Graphics');
-         if isempty(fg)
-            error('Cannot find or create graphics window');
-         end
-      end
-      spm_figure('Clear','Graphics');
-      %
-      % Get mask for display of deformation maps.
-      %
-      mask = zeros(p5.dim(1:3));
-      spm_smooth(reshape(p5.dat,p5.dim(1:3)),mask,5);
-      mask = mask > 0.3*mean(mean(mean(mask)));
+          spm_figure('Clear','Graphics');
+          %
+          % Get mask for display of deformation maps.
+          %
+          mask = zeros(p5.dim(1:3));
+          spm_smooth(reshape(p5.dat,p5.dim(1:3)),mask,5);
+          mask = mask > 0.3*mean(mean(mean(mask)));
        
-      %
-      % Display deformation maps.
-      %
-      figure(fg);
-      fg_pos = get(fg,'Position');
-      fs = spm('FontSizes');
-      pf = spm_platform('fonts');
+          %
+          % Display deformation maps.
+          %
+          figure(fg);
+          fg_pos = get(fg,'Position');
+          fs = spm('FontSizes');
+          pf = spm_platform('fonts');
 
-      %
-      % Write general title.
-      %
-      uicontrol(fg,'Style','Text',...
-                'Position',[fg_pos(3)/10 0.95*fg_pos(4) 8*fg_pos(3)/10 30],...
-                'String','Estimation of EPI deformation fields',...
-            'ForegroundColor','k','BackgroundColor','w',...
-                'FontSize',fs(20),'FontName',pf.times)
+          %
+          % Write general title.
+          %
+          uicontrol(fg,'Style','Text',...
+                    'Position',[fg_pos(3)/10 0.95*fg_pos(4) 8*fg_pos(3)/10 30],...
+                    'String','Estimation of EPI deformation fields',...
+                    'ForegroundColor','k','BackgroundColor','w',...
+                    'FontSize',fs(20),'FontName',pf.times)
 
-      %
-      % Code modelled on spm_check_registration.m
-      %          
-      mn = size(p2,2);
-      n  = round(mn^0.4);
-      m  = ceil(mn/n);
-      w  = 1/n;
-      h  = .75/m;
-      ds = (w+h)*0.02;
+          %
+          % Code modelled on spm_check_registration.m
+          %          
+          mn = size(p2,2);
+          n  = round(mn^0.4);
+          m  = ceil(mn/n);
+          w  = 1/n;
+          h  = .75/m;
+          ds = (w+h)*0.02;
 
-      spm_orthviews('Reset');
-      global st;
-      P = p5; 
-      for ij=1:mn,
-         P.dat = p2(:,ij);
-         P.dat = reshape(P.dat,P.dim(1:3)) .* mask;
-         i  = 1-h*(floor((ij-1)/n)+1);
-         j  = w*rem(ij-1,n);
-         gh = spm_orthviews('Image',P,[j+ds/2 i+ds/2 w-ds h-ds]);
-         if ij==1 
-            spm_orthviews('Space');
-            spm_orthviews('maxBB'); 
-         end;
-         if ij <= size(p3,2)  % If first order effect. 
-            string = sprintf('Derivative w.r.t. %s',eff_string{p3(ij)});
-         else
-            string = sprintf('Second order effect w.r.t. %s and %s',...
+          spm_orthviews('Reset');
+          global st;
+          P = p5; 
+          for ij=1:mn,
+             P.dat = p2(:,ij);
+             P.dat = reshape(P.dat,P.dim(1:3)) .* mask;
+             i  = 1-h*(floor((ij-1)/n)+1);
+             j  = w*rem(ij-1,n);
+             gh = spm_orthviews('Image',P,[j+ds/2 i+ds/2 w-ds h-ds]);
+             if ij==1 
+                 spm_orthviews('Space');
+                 spm_orthviews('maxBB'); 
+             end;
+             if ij <= size(p3,2)  % If first order effect. 
+                 string = sprintf('Derivative w.r.t. %s',eff_string{p3(ij)});
+             else
+                 string = sprintf('Second order effect w.r.t. %s and %s',...
                      eff_string{p4(ij-size(p3,2),1)},eff_string{p4(ij-size(p3,2),2)});
-         end
-         if mn > 6 
-            fsi = 12;
-         elseif mn > 4
-            fsi = 14;
-         else
-            fsi = 16;
-         end
-         uicontrol(fg,'Style','Text',...
-                'Position',[(st.vols{gh}.area(1)+(st.vols{gh}.area(3)+ds)/2)*fg_pos(3)...
-                            st.vols{gh}.area(2)*fg_pos(4)...
-                            ((st.vols{gh}.area(3)-ds)/2)*fg_pos(3)...
-                            (2*st.vols{gh}.area(4)/5)*fg_pos(4)],...
-                'String',string,...
-            'ForegroundColor','k','BackgroundColor','w',...
-                'FontSize',fs(fsi),'FontName',pf.times)
-      end;
+             end
+             if mn > 6 
+                 fsi = 12;
+             elseif mn > 4
+                 fsi = 14;
+             else
+                 fsi = 16;
+             end
+             uicontrol(fg,'Style','Text',...
+                    'Position',[(st.vols{gh}.area(1)+(st.vols{gh}.area(3)+ds)/2)*fg_pos(3)...
+                                st.vols{gh}.area(2)*fg_pos(4)...
+                                ((st.vols{gh}.area(3)-ds)/2)*fg_pos(3)...
+                                (2*st.vols{gh}.area(4)/5)*fg_pos(4)],...
+                    'String',string,...
+                    'ForegroundColor','k','BackgroundColor','w',...
+                    'FontSize',fs(fsi),'FontName',pf.times)
+          end;
+          %
+          % Show plot of residual squared error
+          %
+          axes('Position',[.1 .025 .375 .17]);
+          indx = find(p1 ~= 0); 
+          plot(indx,p1(indx),'-k','LineWidth',2);
+          title('Residual error','FontSize',fs(14),'FontName',pf.times);
 
-      %
-      % Show plot of residual squared error
-      %
-      axes('Position',[.1 .025 .375 .17]);
-      indx = find(p1 ~= 0); 
-      plot(indx,p1(indx),'-k','LineWidth',2);
-      title('Residual error','FontSize',fs(14),'FontName',pf.times);
-
-      %
-      % Show plot of relevant movement parameters.
-      %
-      axes('Position',[.575 .025 .375 .17]);
-      plot(p6);
-      title('Movement parameters','FontSize',fs(14),'FontName',pf.times);
-      
+          %
+          % Show plot of relevant movement parameters.
+          %
+          axes('Position',[.575 .025 .375 .17]);
+          plot(p6);
+          title('Movement parameters','FontSize',fs(14),'FontName',pf.times);
+      end
              
    case 'FinTot'     % Report on outcome of undeformation.
       spm_progress_bar('Clear');
