@@ -13,12 +13,12 @@ function ext = cfg_maxextent(obj, str)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_maxextent.m 2131 2008-09-22 06:04:53Z volkmar $
+% $Id: cfg_maxextent.m 3282 2009-07-23 07:44:16Z volkmar $
 
-rev = '$Rev: 2131 $'; %#ok
+rev = '$Rev: 3282 $'; %#ok
 ext = zeros(size(str));
 for k = 1:numel(str)
-    set(obj,'String',str{k});
+    set(obj,'String',str(k));
     next = get(obj, 'Extent');
     ext(k) = next(3);
 end;
