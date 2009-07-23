@@ -12,7 +12,7 @@ function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 3283 2009-07-23 17:37:36Z john $
+% $Id: spm_uw_show.m 3285 2009-07-23 19:25:22Z guillaume $
 
 
 persistent iter;
@@ -79,7 +79,7 @@ switch mode
          error('Wrong no. of arguments in call to ud_graphwip');
       end
       fg = spm_figure('FindWin','Graphics');
-      if isempty(fg)
+      if ~isempty(fg)
           spm_figure('Clear','Graphics');
           %
           % Get mask for display of deformation maps.
