@@ -62,6 +62,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.45  2009/07/19 13:19:42  jansch
+% fixed re-conversion into timelock datatype when input is timelock datatype
+%
 % Revision 1.44  2009/07/17 08:05:12  jansch
 % fixed small bug
 %
@@ -217,10 +220,12 @@ fieldtripdefs
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 
-% check if the input data is valid for this function
-data  = checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248'});
 isfreq = datatype(data, 'freq');
 israw  = datatype(data, 'raw');
+istlck = datatype(data, 'timelock');
+
+% check if the input data is valid for this function
+data  = checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248'});
 
 if isfreq,
   if ~isfield(data, 'fourierspctrm'), error('freq data should containt fourier spectra'); end
@@ -270,7 +275,7 @@ elseif ~strcmp(cfg.trials, 'all') && isfreq
   warning('subselection of trials is only supported for raw data as input');
 end
 
-if israw,
+if israw || istlck,
   Ntrials = length(data.trial);
 elseif isfreq,
   Ntrials = length(data.cumtapcnt);
@@ -620,7 +625,7 @@ if ~strcmp(cfg.planarmethod, 'sourceproject')
   % remember the planar gradiometer definition
   interp.grad = planar.grad;
   
-  if israw,
+  if israw || istlck,
     % compute the planar gradient by multiplying the gradient-matrices with the data
     for trial=1:Ntrials
       interp.trial{trial} = transform * data.trial{trial};
@@ -630,6 +635,11 @@ if ~strcmp(cfg.planarmethod, 'sourceproject')
     interp.fsample = data.fsample;
     interp.time    = data.time;
   
+    if istlck
+      % convert back into timelock structure
+      interp = checkdata(interp, 'datatype', 'timelock');
+    end
+
   elseif isfreq
     % compute the planar gradient by multiplying the gradient-matrices with the data
     siz       = size(data.fourierspctrm);
@@ -646,6 +656,7 @@ if ~strcmp(cfg.planarmethod, 'sourceproject')
     if isfield(data, 'cumsumcnt'), interp.cumsumcnt = data.cumsumcnt; end
     interp.freq   = data.freq;
     interp.dimord = data.dimord;  
+    interp.transform = transform;
   end
 
 end % nearest neighbours methods
@@ -662,7 +673,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.44 2009/07/17 08:05:12 jansch Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.45 2009/07/19 13:19:42 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

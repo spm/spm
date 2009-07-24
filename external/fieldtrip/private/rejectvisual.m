@@ -107,6 +107,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.29  2009/07/21 08:33:15  crimic
+% corrected typo
+%
 % Revision 1.28  2009/03/31 18:39:43  roboos
 % don't print removed if empty (thanks to Irina)
 %
@@ -394,7 +397,7 @@ if ~all(chansel)
       for i=1:(length(removed)-1)
         fprintf('%s, ', data.label{removed(i)});
       end
-      fprintf('%s\n', data.label{removed(i)});
+      fprintf('%s\n', data.label{removed(end)});
 
       % remove channels that are not selected
       for i=1:length(data.trial)
@@ -408,7 +411,7 @@ if ~all(chansel)
       for i=1:(length(removed)-1)
         fprintf('%s, ', data.label{removed(i)});
       end
-      fprintf('%s\n', data.label{removed(i)});
+      fprintf('%s\n', data.label{removed(end)});
       
       % fill the data from the bad channels with nans
       for i=1:length(data.trial)
@@ -431,7 +434,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.28 2009/03/31 18:39:43 roboos Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.29 2009/07/21 08:33:15 crimic Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

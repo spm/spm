@@ -28,6 +28,9 @@ function [data] = combineplanar(cfg, data)
 % Copyright (C) 2004, Ole Jensen, Robert Oostenveld
 %
 % $Log: combineplanar.m,v $
+% Revision 1.43  2009/07/23 08:11:29  crimic
+% fixed tiny bug
+%
 % Revision 1.42  2009/07/17 08:17:24  jansch
 % rewriting of big parts of the code; incorporating checkdata etc. implementation
 % of 'svd' combinemethod also for time domain data
@@ -246,7 +249,7 @@ if isfreq
     case 'sum'
       if isfield(data, 'powspctrm'),
         % compute the power of each planar channel, by summing the horizontal and vertical gradients
-	dimtok = tokenize(dimord);
+	dimtok = tokenize(dimord,'_');
 	catdim = strmatch('chan',dimtok);
 	if catdim==1,
 	  tmp1 = data.powspctrm(sel_dH,:,:,:) + data.powspctrm(sel_dV,:,:,:);
@@ -411,7 +414,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: combineplanar.m,v 1.42 2009/07/17 08:17:24 jansch Exp $';
+cfg.version.id  = '$Id: combineplanar.m,v 1.43 2009/07/23 08:11:29 crimic Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
