@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.97  2009/07/19 19:49:21  josdie
+% Deleted egi_egis changing a zero hdr.nSamplesPre to a one.
+%
 % Revision 1.96  2009/07/09 10:00:45  roboos
 % no leading spaces for fake channel names in fcdc_buffer
 %
@@ -883,10 +886,6 @@ switch headerformat
     % duration into the header since it is normally absent. This slot is
     % actually allocated to the age of the subject, although NetStation
     % does not use it when generating an EGIS session file.
-
-    if hdr.nSamplesPre == 0
-      hdr.nSamplesPre = 1; %If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
-    end;
 
     if any(chdr(:,3)-chdr(1,3))
       error('Number of samples not the same for all cells.');
