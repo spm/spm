@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3272 2009-07-13 13:49:32Z guillaume $
+% $Id: spm_render.m 3289 2009-07-27 15:28:24Z guillaume $
 
-SVNrev = '$Rev: 3272 $';
+SVNrev = '$Rev: 3289 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -508,7 +508,8 @@ set(getappdata(get(obj,'parent'),'fig'),'Color',c);
 function mysave(obj,evd)
 [filename, pathname, filterindex] = uiputfile({...
     '*.gii' 'GIfTI files (*.gii)'; ...
-    '*.png' 'PNG files (*.png)'}, 'Save as');
+    '*.png' 'PNG files (*.png)';...
+    '*.dae' 'Collada files (*.dae)'}, 'Save as');
 if ~isequal(filename,0) && ~isequal(pathname,0)
     [pth,nam,ext] = fileparts(filename);
     switch ext
@@ -516,12 +517,16 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             filterindex = 1;
         case '.png'
             filterindex = 2;
+        case '.dae'
+            filterindex = 3;
         otherwise
             switch filterindex
                 case 1
                     filename = [filename '.gii'];
                 case 2
                     filename = [filename '.png'];
+                case 3
+                    filename = [filename '.dae'];
             end
     end
     switch filterindex
@@ -549,6 +554,12 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             print(h, '-dpng', '-opengl', fullfile(pathname, filename));
             close(h);
             set(getappdata(obj,'fig'),'renderer',r);
+        case 3
+            g = gifti;
+            g.vertices = get(getappdata(obj,'patch'),'Vertices');
+            g.faces = get(getappdata(obj,'patch'),'Faces');
+            g.cdata = get(getappdata(obj,'patch'),'FaceVertexCData');
+            save(g,fullfile(pathname, filename),'collada');
     end
 end
 

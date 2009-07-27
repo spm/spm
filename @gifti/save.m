@@ -4,31 +4,59 @@ function save(this,filename,encoding)
 % this      - GIfTI object
 % filename  - name of GIfTI file that will be created
 % encoding  - optional argument to specify encoding format, among
-%             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary
+%             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary,
+%             Collada (.dae)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: save.m 3289 2009-07-27 15:28:24Z guillaume $
 
 error(nargchk(1,3,nargin));
 
-% Open file for writing
+% Check filename and file format
 %--------------------------------------------------------------------------
+ext = '.gii';
 if nargin == 1
     filename = 'untitled.gii';
 else
+    if nargin == 3 && strcmpi(encoding,'collada')
+        ext = '.dae';
+    end
     [p,f,e] = fileparts(filename);
-    if ~ismember(lower(e),{'.gii'})
-        e = '.gii';
+    if ~ismember(lower(e),{ext})
+        e = ext;
     end
     filename = fullfile(p,[f e]);
 end
 
+% Open file for writing
+%--------------------------------------------------------------------------
 fid = fopen(filename,'wt');
 if fid == -1
     error('Unable to write file %s: permission denied.',filename);
 end
+
+% Write file
+%--------------------------------------------------------------------------
+switch ext
+    case '.gii'
+        if nargin < 3, encoding = 'GZipBase64Binary'; end
+        fid = save_gii(fid,this,encoding);
+    case '.dae'
+        fid = save_dae(fid,this);
+    otherwise
+        error('Unknown file format.');
+end
+
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
+
+%==========================================================================
+% function fid = save_gii(fid,this,encoding)
+%==========================================================================
+function fid = save_gii(fid,this,encoding)
 
 % Defaults for DataArray's attributes
 %--------------------------------------------------------------------------
@@ -40,11 +68,7 @@ elseif ~isempty(strmatch('ieee-le',mach))
 else
     error('[GIFTI] Unknown byte order "%s".',mach);
 end
-if nargin > 2
-    def.Encoding       = encoding;
-else
-    def.Encoding       = 'GZipBase64Binary';
-end
+def.Encoding       = encoding;
 def.Intent             = 'NIFTI_INTENT_NONE';
 def.DataType           = 'NIFTI_TYPE_FLOAT32';
 def.ExternalFileName   = '';
@@ -214,4 +238,128 @@ for i=1:length(this.data)
 end
 
 fprintf(fid,'</GIFTI>\n');
-fclose(fid);
+
+%==========================================================================
+% function fid = save_dae(fid,this)
+%==========================================================================
+function fid = save_dae(fid,this)
+
+o = inline('blanks(x*3)');
+
+s = struct(this);
+
+% Prolog & root of the Collada XML file
+%--------------------------------------------------------------------------
+fprintf(fid,'<?xml version="1.0"?>\n');
+fprintf(fid,'<COLLADA xmlns="http://www.collada.org/2008/03/COLLADASchema" version="1.5.0">\n');
+
+% Assets
+%--------------------------------------------------------------------------
+fprintf(fid,'%s<asset>\n',o(1));
+fprintf(fid,'%s<contributor>\n',o(2));
+fprintf(fid,'%s<author_website>%s</author_website>\n',o(3),...
+    'http://www.fil.ion.ucl.ac.uk/spm/');
+fprintf(fid,'%s<authoring_tool>%s</authoring_tool>\n',o(3),spm('Ver'));
+fprintf(fid,'%s</contributor>\n',o(2));
+fprintf(fid,'%s<created>%s</created>\n',o(2),datestr(now,'yyyy-mm-ddTHH:MM:SSZ'));
+fprintf(fid,'%s<modified>%s</modified>\n',o(2),datestr(now,'yyyy-mm-ddTHH:MM:SSZ'));
+fprintf(fid,'%s<unit name="millimeter" meter="0.001"/>\n',o(2));
+fprintf(fid,'%s<up_axis>Z_UP</up_axis>\n',o(2));
+fprintf(fid,'%s</asset>\n',o(1));
+
+% Image, Materials, Effects
+%--------------------------------------------------------------------------
+%fprintf(fid,'%s<library_images/>\n',o(1));
+
+fprintf(fid,'%s<library_materials>\n',o(1));
+for i=1:numel(s)
+    fprintf(fid,'%s<material id="material%d" name="material%d">\n',o(2),i,i);
+    fprintf(fid,'%s<instance_effect url="#material%d-effect"/>\n',o(3),i);
+    fprintf(fid,'%s</material>\n',o(2));
+end
+fprintf(fid,'%s</library_materials>\n',o(1));
+
+fprintf(fid,'%s<library_effects>\n',o(1));
+for i=1:numel(s)
+    fprintf(fid,'%s<effect id="material%d-effect" name="material%d-effect">\n',o(2),i,i);
+    fprintf(fid,'%s<profile_COMMON>\n',o(3));
+    fprintf(fid,'%s<technique sid="COMMON">\n',o(4));
+    fprintf(fid,'%s<lambert>\n',o(5));
+    fprintf(fid,'%s<emission>\n',o(6));
+    fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0 0 0 1]);
+    fprintf(fid,'%s</emission>\n',o(6));
+    fprintf(fid,'%s<ambient>\n',o(6));
+    fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0 0 0 1]);
+    fprintf(fid,'%s</ambient>\n',o(6));
+    fprintf(fid,'%s<diffuse>\n',o(6));
+    fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0.8 0 0 1]);
+    fprintf(fid,'%s</diffuse>\n',o(6));
+    fprintf(fid,'%s<transparent>\n',o(6));
+    fprintf(fid,'%s<color>%d %d %d %d</color>\n',o(7),[1 1 1 1]);
+    fprintf(fid,'%s</transparent>\n',o(6));
+    fprintf(fid,'%s<transparency>\n',o(6));
+    fprintf(fid,'%s<float>%f</float>\n',o(7),0);
+    fprintf(fid,'%s</transparency>\n',o(6));
+    fprintf(fid,'%s</lambert>\n',o(5));
+    fprintf(fid,'%s</technique>\n',o(4));
+    fprintf(fid,'%s</profile_COMMON>\n',o(3));
+    fprintf(fid,'%s</effect>\n',o(2));
+end
+fprintf(fid,'%s</library_effects>\n',o(1));
+
+% Geometry
+%--------------------------------------------------------------------------
+fprintf(fid,'%s<library_geometries>\n',o(1));
+for i=1:numel(s)
+    fprintf(fid,'%s<geometry id="shape%d" name="shape%d">\n',o(2),i,i);
+    fprintf(fid,'%s<mesh>\n',o(3));
+    fprintf(fid,'%s<source id="shape%d-positions">\n',o(4),i);
+    fprintf(fid,'%s<float_array id="shape%d-positions-array" count="%d">',o(5),i,numel(s.vertices));
+    fprintf(fid,'%f ',repmat(s.vertices',1,[])/100);
+    fprintf(fid,'</float_array>\n');
+    fprintf(fid,'%s<technique_common>\n',o(5));
+    fprintf(fid,'%s<accessor count="%d" offset="0" source="#shape%d-positions-array" stride="3">\n',o(6),size(s.vertices,1),i);
+    fprintf(fid,'%s<param name="X" type="float" />\n',o(7));
+    fprintf(fid,'%s<param name="Y" type="float" />\n',o(7));
+    fprintf(fid,'%s<param name="Z" type="float" />\n',o(7));
+    fprintf(fid,'%s</accessor>\n',o(6));
+    fprintf(fid,'%s</technique_common>\n',o(5));
+    fprintf(fid,'%s</source>\n',o(4));
+    fprintf(fid,'%s<vertices id="shape%d-vertices">\n',o(4),i);
+    fprintf(fid,'%s<input semantic="POSITION" source="#shape%d-positions"/>\n',o(5),i);
+    fprintf(fid,'%s</vertices>\n',o(4));
+    fprintf(fid,'%s<triangles material="material%d" count="%d">\n',o(4),i,size(s.faces,1));
+    fprintf(fid,'%s<input semantic="VERTEX" source="#shape%d-vertices" offset="0"/>\n',o(5),i);
+    fprintf(fid,'%s<p>',o(5));
+    fprintf(fid,'%d ',repmat(s.faces',1,[])-1);
+    fprintf(fid,'</p>\n');
+    fprintf(fid,'%s</triangles>\n',o(4));
+    fprintf(fid,'%s</mesh>\n',o(3));
+    fprintf(fid,'%s</geometry>\n',o(2));
+end
+fprintf(fid,'%s</library_geometries>\n',o(1));
+
+% Scene
+%--------------------------------------------------------------------------
+fprintf(fid,'%s<library_visual_scenes>\n',o(1));
+fprintf(fid,'%s<visual_scene id="VisualSceneNode" name="SceneNode">\n',o(2));
+for i=1:numel(s)
+    fprintf(fid,'%s<node id="node" name="node">\n',o(3));
+    fprintf(fid,'%s<instance_geometry url="#shape%d">\n',o(4),i);
+    fprintf(fid,'%s<bind_material>\n',o(5));
+    fprintf(fid,'%s<technique_common>\n',o(6));
+    fprintf(fid,'%s<instance_material symbol="material%d" target="#material%d"/>\n',o(7),i,i);
+    fprintf(fid,'%s</technique_common>\n',o(6));
+    fprintf(fid,'%s</bind_material>\n',o(5));
+    fprintf(fid,'%s</instance_geometry>\n',o(4));
+    fprintf(fid,'%s</node>\n',o(3));
+end
+fprintf(fid,'%s</visual_scene>\n',o(2));
+fprintf(fid,'%s</library_visual_scenes>\n',o(1));
+fprintf(fid,'%s<scene>\n',o(1));
+fprintf(fid,'%s<instance_visual_scene url="#VisualSceneNode" />\n',o(2));
+fprintf(fid,'%s</scene>\n',o(1));
+
+% End of XML
+%--------------------------------------------------------------------------
+fprintf(fid,'</COLLADA>\n');
