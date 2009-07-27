@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 3289 2009-07-27 15:28:24Z guillaume $
+% $Id: save.m 3290 2009-07-27 18:11:52Z guillaume $
 
 error(nargchk(1,3,nargin));
 
@@ -246,8 +246,24 @@ function fid = save_dae(fid,this)
 
 o = inline('blanks(x*3)');
 
+% Split the mesh into connected components
+%--------------------------------------------------------------------------
 s = struct(this);
-
+try
+    C = spm_mesh_label(s.faces);
+    d = [];
+    for i=1:numel(unique(C))
+        d(i).faces    = s.faces(C==i,:);
+        u             = unique(d(i).faces);
+        d(i).vertices = s.vertices(u,:);
+        a             = 1:max(d(i).faces(:));
+        a(u)          = 1:size(d(i).vertices,1);
+        %a = sparse(1,double(u),1:1:size(d(i).vertices,1));
+        d(i).faces    = a(d(i).faces);
+    end
+    s = d;
+end
+    
 % Prolog & root of the Collada XML file
 %--------------------------------------------------------------------------
 fprintf(fid,'<?xml version="1.0"?>\n');
@@ -292,7 +308,7 @@ for i=1:numel(s)
     fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0 0 0 1]);
     fprintf(fid,'%s</ambient>\n',o(6));
     fprintf(fid,'%s<diffuse>\n',o(6));
-    fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0.8 0 0 1]);
+    fprintf(fid,'%s<color>%f %f %f %d</color>\n',o(7),[0.5 0.5 0.5 1]);
     fprintf(fid,'%s</diffuse>\n',o(6));
     fprintf(fid,'%s<transparent>\n',o(6));
     fprintf(fid,'%s<color>%d %d %d %d</color>\n',o(7),[1 1 1 1]);
@@ -314,11 +330,11 @@ for i=1:numel(s)
     fprintf(fid,'%s<geometry id="shape%d" name="shape%d">\n',o(2),i,i);
     fprintf(fid,'%s<mesh>\n',o(3));
     fprintf(fid,'%s<source id="shape%d-positions">\n',o(4),i);
-    fprintf(fid,'%s<float_array id="shape%d-positions-array" count="%d">',o(5),i,numel(s.vertices));
-    fprintf(fid,'%f ',repmat(s.vertices',1,[])/100);
+    fprintf(fid,'%s<float_array id="shape%d-positions-array" count="%d">',o(5),i,numel(s(i).vertices));
+    fprintf(fid,'%f ',repmat(s(i).vertices',1,[]));
     fprintf(fid,'</float_array>\n');
     fprintf(fid,'%s<technique_common>\n',o(5));
-    fprintf(fid,'%s<accessor count="%d" offset="0" source="#shape%d-positions-array" stride="3">\n',o(6),size(s.vertices,1),i);
+    fprintf(fid,'%s<accessor count="%d" offset="0" source="#shape%d-positions-array" stride="3">\n',o(6),size(s(i).vertices,1),i);
     fprintf(fid,'%s<param name="X" type="float" />\n',o(7));
     fprintf(fid,'%s<param name="Y" type="float" />\n',o(7));
     fprintf(fid,'%s<param name="Z" type="float" />\n',o(7));
@@ -328,10 +344,10 @@ for i=1:numel(s)
     fprintf(fid,'%s<vertices id="shape%d-vertices">\n',o(4),i);
     fprintf(fid,'%s<input semantic="POSITION" source="#shape%d-positions"/>\n',o(5),i);
     fprintf(fid,'%s</vertices>\n',o(4));
-    fprintf(fid,'%s<triangles material="material%d" count="%d">\n',o(4),i,size(s.faces,1));
+    fprintf(fid,'%s<triangles material="material%d" count="%d">\n',o(4),i,size(s(i).faces,1));
     fprintf(fid,'%s<input semantic="VERTEX" source="#shape%d-vertices" offset="0"/>\n',o(5),i);
     fprintf(fid,'%s<p>',o(5));
-    fprintf(fid,'%d ',repmat(s.faces',1,[])-1);
+    fprintf(fid,'%d ',repmat(s(i).faces',1,[])-1);
     fprintf(fid,'</p>\n');
     fprintf(fid,'%s</triangles>\n',o(4));
     fprintf(fid,'%s</mesh>\n',o(3));
@@ -344,7 +360,7 @@ fprintf(fid,'%s</library_geometries>\n',o(1));
 fprintf(fid,'%s<library_visual_scenes>\n',o(1));
 fprintf(fid,'%s<visual_scene id="VisualSceneNode" name="SceneNode">\n',o(2));
 for i=1:numel(s)
-    fprintf(fid,'%s<node id="node" name="node">\n',o(3));
+    fprintf(fid,'%s<node id="node%d">\n',o(3),i);
     fprintf(fid,'%s<instance_geometry url="#shape%d">\n',o(4),i);
     fprintf(fid,'%s<bind_material>\n',o(5));
     fprintf(fid,'%s<technique_common>\n',o(6));
