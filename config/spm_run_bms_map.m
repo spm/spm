@@ -41,28 +41,45 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 2915 2009-03-20 19:15:44Z maria $
+% $Id: spm_run_bms_map.m 3288 2009-07-27 09:23:54Z maria $
 
 % Input
 % -------------------------------------------------------------------------
-method = job.method;                % Inference method
-direct = job.dir{1};
-fname  = [direct,'BMS.mat'];        % Output filename (including directory)
-mask   = length(job.mask{1});       % Mask image
+method  = job.method;               % Inference method
+direct  = job.dir{1};
+fname   = [direct,'BMS.mat'];       % Output filename (including directory)
+mask    = length(job.mask{1});      % Mask image
 if mask
    mask_image = spm_vol(job.mask);  % Mask image Vol
 end
-nsamps = str2num(job.nsamp);        % Number of samples (nmodels > 3)
-do_ecp = job.out_file;              % Compute Exceedance Probability
+nsamps    = str2num(job.nsamp);     % Number of samples (nmodels > 3)
+do_maps   = job.out_file;           
+do_ecp    = do_maps > 0;            % Compute Exceedance Probability
+do_alpha  = do_maps > 1;            % Compute Alpha Parameters
 
 % Nb. of subjects and models
 % -------------------------------------------------------------------------
-nsubjs  = size(job.sess_map,2);
-nmodels = size(job.sess_map{1}(1).mod_map,1);
-nsess   = size(job.sess_map{1},2);
+nsubjs    = size(job.sess_map,2);
+nmodels   = size(job.sess_map{1}(1).mod_map,1);
+nsess     = size(job.sess_map{1},2);
+nnames    = size(job.mod_name,2);
+names     = job.mod_name;
+
+% Name models
+% -------------------------------------------------------------------------
+if nnames < nmodels
+    for nn=1:nmodels-nnames
+        names = [names, sprintf('m%d',nn)];
+    end
+end
+
+if size(unique(names(1:nmodels)),2) < nmodels,
+    id = 'Indentical names for different models!';  % Same name!
+    error(id);
+end
 
 if nmodels < 2
-    msgbox('Please select more than one file')  % Models must be > 1!
+    msgbox('Please select more than one file!')  % Models must be > 1!
     return
 end
 
@@ -117,9 +134,9 @@ switch method
 
         % Load Vols for all subjects/models 
         for i = 1:nmodels,
-            model_ppm(i).fname   = sprintf('%smodel%d_ppm.img',direct,i);
-            model_ppm(i).descrip = sprintf('PPM: model %d',i);
-            BMS.map.ffx.ppm{i} = model_ppm(i).fname;
+            model_ppm(i).fname   = sprintf('%s%s_model_ppm.img',direct,names{i});
+            model_ppm(i).descrip = sprintf('PPM: %s model',names{i});
+            BMS.map.ffx.ppm{i}   = model_ppm(i).fname;
             
             for s = 1:nsubjs,
                 for se = 1:nsess,
@@ -162,16 +179,6 @@ switch method
                 
         % BMS structure
         out.files{1}   = fname; 
-        
-        % Create alpha .img files for each model
-        model_alpha(1:nmodels) = struct(...
-        'fname',    '',...
-        'dim',      DIM',...
-        'dt',       [spm_type('float32') spm_platform('bigend')],...
-        'mat',      M,...
-        'pinfo',    [1 0 0]',...
-        'n', [1 1], ...
-        'descrip',  '');
     
         % Create PPM .img files for each model
         model_exp_r(1:nmodels) = struct(...
@@ -184,29 +191,43 @@ switch method
         'descrip',  '');
    
         if do_ecp
-        % Create EPM .img files for each model
-        model_xp(1:nmodels) = struct(...
-        'fname',    '',...
-        'dim',      DIM',...
-        'dt',       [spm_type('float32') spm_platform('bigend')],...
-        'mat',      M,...
-        'pinfo',    [1 0 0]',...
-        'n', [1 1], ...
-        'descrip',  '');   
+            % Create EPM .img files for each model
+            model_xp(1:nmodels) = struct(...
+            'fname',    '',...
+            'dim',      DIM',...
+            'dt',       [spm_type('float32') spm_platform('bigend')],...
+            'mat',      M,...
+            'pinfo',    [1 0 0]',...
+            'n', [1 1], ...
+            'descrip',  '');   
+        end
+        
+        if do_alpha
+            % Create alpha .img files for each model
+            model_alpha(1:nmodels) = struct(...
+            'fname',    '',...
+            'dim',      DIM',...
+            'dt',       [spm_type('float32') spm_platform('bigend')],...
+            'mat',      M,...
+            'pinfo',    [1 0 0]',...
+            'n', [1 1], ...
+            'descrip',  '');
         end
         
         % Load Vols for all subjects/models
         for i = 1:nmodels,
-            model_alpha(i).fname   = sprintf('%smodel%d_alpha.img',direct,i);
-            model_alpha(i).descrip = sprintf('Alpha: model %d',i);
-            BMS.map.rfx.alpha{i} = model_alpha(i).fname;
-            model_exp_r(i).fname   = sprintf('%smodel%d_xppm.img',direct,i);
-            model_exp_r(i).descrip = sprintf('Exp_r: model %d',i);
-            BMS.map.rfx.ppm{i}   = model_exp_r(i).fname;
+            model_exp_r(i).fname   = sprintf('%s%s_model_xppm.img',direct,names{i});
+            model_exp_r(i).descrip = sprintf('Exp_r: %s model',names{i});
+            BMS.map.rfx.ppm{i}     = model_exp_r(i).fname;
             if do_ecp
-            model_xp(i).fname      = sprintf('%smodel%d_epm.img',direct,i);
-            model_xp(i).descrip    = sprintf('XP: model %d',i);
-            BMS.map.rfx.epm{i}   = model_xp(i).fname;
+            model_xp(i).fname      = sprintf('%s%s_model_epm.img',direct,names{i});
+            model_xp(i).descrip    = sprintf('XP: %s model',names{i});
+            BMS.map.rfx.epm{i}     = model_xp(i).fname;
+            end
+            if do_alpha
+            model_alpha(i).fname   = sprintf('%s%s_model_alpha.img',direct,names{i});
+            model_alpha(i).descrip = sprintf('Alpha: %s model',names{i});
+            BMS.map.rfx.alpha{i}   = model_alpha(i).fname;
             end
             for s = 1:nsubjs,
                 for se = 1:nsess,
@@ -227,10 +248,10 @@ switch method
             end 
         end
         
-        % Create files
-        model_alpha   = spm_create_vol(model_alpha);
-        model_exp_r   = spm_create_vol(model_exp_r);
-        if do_ecp, model_xp = spm_create_vol(model_xp); end
+        % Create files     
+        model_exp_r              = spm_create_vol(model_exp_r);
+        if do_ecp, model_xp      = spm_create_vol(model_xp); end
+        if do_alpha, model_alpha = spm_create_vol(model_alpha); end
         
         % Save data and BMS
         BMS.fname = fname;
@@ -334,41 +355,42 @@ for z = 1:zdim,
                 
                 if Nvoxels > 0
                     % Initialise results
-                    alpha_total = zeros(Nvoxels,nmodels);
                     exp_r_total = zeros(Nvoxels,nmodels);
                     if do_ecp, xp_total = zeros(Nvoxels,nmodels); end
+                    if do_alpha, alpha_total = zeros(Nvoxels,nmodels); end
 
                     % Do BMS in all voxels of slice z
                     for n = 1:Nvoxels,
                         lme = z_models(:,:,non_nan(n));
                         % Group BMS
                         [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
-                        alpha_total(n,:) = alpha;          % Dirichlet par.
                         exp_r_total(n,:) = exp_r;          % Cond. Expecta.
                         if do_ecp, xp_total(n,:) = xp; end % Exceeda. Prob.
+                        if do_alpha, alpha_total(n,:) = alpha; end % Dirichlet par.
                     end
 
                     % Write images
                     for i = 1:nmodels,
-                        j(non_nan)     = alpha_total(:,i);
-                        model_alpha(i) = spm_write_plane(model_alpha(i),j,z);
                         j(non_nan)     = exp_r_total(:,i);
                         model_exp_r(i) = spm_write_plane(model_exp_r(i),j,z);
                         if do_ecp
                         j(non_nan)     = xp_total(:,i);
                         model_xp(i)    = spm_write_plane(model_xp(i),j,z);
                         end
+                        if do_alpha
+                        j(non_nan)     = alpha_total(:,i);
+                        model_alpha(i) = spm_write_plane(model_alpha(i),j,z);
+                        end
                     end
                 else
                     % Write images when Nvoxels = 0
                     for i = 1:nmodels,
-                        model_alpha(i) = spm_write_plane(model_alpha(i),j,z);
                         model_exp_r(i) = spm_write_plane(model_exp_r(i),j,z);
                         if do_ecp, model_xp(i) = spm_write_plane(model_xp(i),j,z); end
+                        if do_alpha, model_alpha(i) = spm_write_plane(model_alpha(i),j,z); end
                     end
                 end
-   
-             
+      
     end
 
 end % Loop over slices

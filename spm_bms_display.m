@@ -10,7 +10,7 @@ function [] = spm_bms_display(BMS,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 2765 2009-02-19 15:30:54Z guillaume $
+% $Id: spm_bms_display.m 3288 2009-07-27 09:23:54Z maria $
 
 % Main options (action)
 % =========================================================================
@@ -184,6 +184,7 @@ switch action
               'thres',  BMS.xSPM.thres,...
               'scale',  BMS.xSPM.scale,...
               'vols',   BMS.xSPM.vols,...
+              'k',      BMS.xSPM.k,...
               'BMS',    BMS));
 
     set([hX,hY,hZ],'UserData',hFxyz);
@@ -421,6 +422,7 @@ uicontrol(Finter,'Style','Text',...
         job.file{1} = user_data.BMS.fname;
         job.thres   = user_data.thres;
         job.scale   = user_data.scale;
+        job.k       = user_data.k;
         spm_run_bms_vis(job);
     
     % Change threshold
@@ -433,6 +435,7 @@ uicontrol(Finter,'Style','Text',...
         job.thres   = [];
         job.file{1} = user_data.BMS.fname;
         job.scale   = user_data.scale;
+        job.k       = user_data.k;
         spm_run_bms_vis(job);
     
     % Change scale
@@ -444,6 +447,7 @@ uicontrol(Finter,'Style','Text',...
         job.img{1}  = user_data.vols;
         job.thres   = user_data.thres;
         job.scale   = [];
+        job.k       = user_data.k;
         job.file{1} = user_data.BMS.fname;
         spm_run_bms_vis(job);
     

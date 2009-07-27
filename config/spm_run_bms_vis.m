@@ -13,12 +13,12 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 2788 2009-02-25 16:42:23Z maria $
+% $Id: spm_run_bms_vis.m 3288 2009-07-27 09:23:54Z maria $
 
 % Input
 % -------------------------------------------------------------------------
 if isempty(varargin)
-   job.file{1}=''; job.img{1}=''; job.thres = []; job.scale = [];
+   job.file{1}=''; job.img{1}=''; job.thres = []; job.scale = []; job.k=[];
 else
    job = varargin{1};
 end
@@ -26,6 +26,7 @@ file_str = length(job.file{1});
 image    = length(job.img{1});
 thres_b  = length(job.thres);
 odds_b   = length(job.scale);
+ext_thre = length(job.k);
 
 % Initialise SPM Interactive window
 % -------------------------------------------------------------------------
@@ -45,13 +46,14 @@ end
 
 % Load BMS
 load(file_fname);
+wd = fileparts(file_fname);
 
 % Select results (.img) from BMS Maps
 % -------------------------------------------------------------------------
 if image
    post = job.img{1};
 else
-   post = spm_select(1,'image','Select BMS Maps results (ex: ppm, alpha or epm image)');
+   post = spm_select(1,'image','Select BMS Maps results (ex: ppm, alpha or epm image)',[],wd,'.img');
 end
 
 % Select threshold to apply to image
@@ -60,6 +62,14 @@ if thres_b
    threshold = job.thres;
 else
    threshold = spm_input('Probability Threshold:', '+1', 'r', '0.5', [1, inf]);
+end
+
+% Extent threshold
+% -------------------------------------------------------------------------
+if ext_thre
+   k = job.k;
+else
+   k = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
 end
 
 % Select scale
@@ -88,7 +98,7 @@ zords_init    = repmat(1,1,xdim*ydim);
 [pathstr,name_image] = fileparts(V.fname);
 undersc              = find(name_image=='_');
 res_name             = name_image(undersc(end)+1);
-subset_model         = name_image(1:undersc(end)-1);
+subset_model         = name_image(1:undersc(end-1)-1);
 
 % Show results being displayed on graphics window
 switch res_name
@@ -126,7 +136,7 @@ end
 % -------------------------------------------------------------------------
 if ~isempty(z_above)
     
-    z_ps = z_above;
+    z_orig = z_above;
     % Log odds transform
     if odds
        z_odds = log(z_above./(ones(1,length(z_above))-z_above));
@@ -136,14 +146,32 @@ if ~isempty(z_above)
           odds = 0;                     % Don't plot odds
         end
     end
+    
+    % Calculate extent threshold filtering
+    % ---------------------------------------------------------------------
+    A     = spm_clusters(xyz_above);
+    Q     = [];
+    for i = 1:max(A)
+        j = find(A == i);
+        if length(j) >= k; Q = [Q j]; end
+    end
+
+    % ...eliminate voxels
+    %----------------------------------------------------------------------
+    Z     = z_above(:,Q);
+    XYZ   = xyz_above(:,Q);
+    z_ps  = z_orig(:,Q);
+    if isempty(Q)
+        warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
+    end
 
     % Save data in xSPM structure
-    voxels_mm     = M*[xyz_above;ones(1,size(xyz_above,2))];
+    voxels_mm     = M*[XYZ;ones(1,size(XYZ,2))];
     voxels_mm     = voxels_mm(1:3,:);
     xSPM.swd      = file_fname;
     xSPM.STAT     = '';
-    xSPM.Z        = z_above;
-    xSPM.XYZ      = xyz_above;
+    xSPM.Z        = Z;
+    xSPM.XYZ      = XYZ;
     xSPM.XYZmm    = voxels_mm;
     xSPM.xVol.M   = M;
     xSPM.xVol.DIM = DIM;
@@ -151,7 +179,7 @@ if ~isempty(z_above)
     xSPM.M        = M;
     xSPM.iM       = iM;
     xSPM.n        = 1;
-    xSPM.k        = 0;
+    xSPM.k        = k;
     xSPM.df       = [];
     xSPM.u        = threshold;
     xSPM.STAT     = '';

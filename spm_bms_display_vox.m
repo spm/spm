@@ -8,7 +8,7 @@ function spm_bms_display_vox(BMS,xyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 2915 2009-03-20 19:15:44Z maria $
+% $Id: spm_bms_display_vox.m 3288 2009-07-27 09:23:54Z maria $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -75,12 +75,12 @@ switch method
         
         if  isfield(BMS.map,'rfx')
             
-            nmodels    = size(BMS.map.rfx.alpha,2);      
+            nmodels    = size(BMS.map.rfx.ppm,2);      
             models     = [];
             exp_r_vox  = zeros(nmodels,1);
-            epm_exists = isfield(BMS.map.rfx,'epm');
+            epm_exists   = isfield(BMS.map.rfx,'epm');
             
-            if  epm_exists, xp_vox = zeros(nmodels,1); end
+            if  epm_exists,   xp_vox    = zeros(nmodels,1); end
         
             % Get values
             for i = 1:nmodels,
@@ -136,7 +136,7 @@ switch method
         
         else
                 
-            msgbox('Error: no FFX analysis in current BMS.mat!')
+            msgbox('Error: no RFX analysis in current BMS.mat!')
             return
 
         end
