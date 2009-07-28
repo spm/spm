@@ -17,7 +17,7 @@ function vxyz = spm_vb_neighbors(xyz,vol)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_neighbors.m 2887 2009-03-17 08:09:39Z lee $
+% $Id: spm_vb_neighbors.m 3291 2009-07-28 10:26:16Z guillaume $
 
 if nargin<2
     vol=0;
@@ -25,7 +25,7 @@ end
 
 nearestneighbor = 1;
 N               = size(xyz,1);
-DIM             = max(xyz);
+DIM             = max(xyz,[],1);
 if vol,
     I               = sub2ind([DIM(1),DIM(2),DIM(3)],xyz(:,1),xyz(:,2),xyz(:,3));
     is              = zeros(DIM(1),DIM(2),DIM(3));
