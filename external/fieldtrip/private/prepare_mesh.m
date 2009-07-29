@@ -1,11 +1,11 @@
 function bnd = prepare_mesh(cfg, mri)
 
-% PREPARE_MESH it allows to get a 3D representation of the volume
-% conduction model. The mesh can either be selected manually from raw mri data
-% or can be generated starting from a segmented volume information stored
-% in the mri structure.
-% The result is a bnd structure which contains the information about all
-% segmented surfaces related to mri and are expressed in world coordinates.
+% PREPARE_MESH creates a triangulated surface mesh for the volume
+% conduction model. The mesh can either be selected manually from raw
+% mri data or can be generated starting from a segmented volume
+% information stored in the mri structure. The result is a bnd
+% structure which contains the information about all segmented surfaces
+% related to mri and are expressed in world coordinates.
 %
 % Use as
 %   bnd = prepare_mesh(cfg, mri)
@@ -27,6 +27,9 @@ function bnd = prepare_mesh(cfg, mri)
 % Copyrights (C) 2009, Cristiano Micheli & Robert Oostenveld
 %
 % $Log: prepare_mesh.m,v $
+% Revision 1.11  2009/07/29 06:43:16  roboos
+% fixed basedonseg for headshape input (thanks to Vladimir)
+%
 % Revision 1.10  2009/07/16 09:00:51  crimic
 % added choice of  multiple mesh methods and fixed a small typo
 %
@@ -75,6 +78,7 @@ if nargin>1 && (~isfield(cfg,'headshape') || isempty(cfg.headshape))
   basedonvol        = isfield(mri, 'bnd');
   basedonheadshape  = 0;
 elseif nargin==1 && isfield(cfg,'headshape') && ~isempty(cfg.headshape)
+  basedonseg        = 0;
   basedonmri        = 0;
   basedonvol        = 0;
   basedonheadshape  = 1;
@@ -99,7 +103,7 @@ elseif basedonmri
   
 elseif basedonheadshape
   fprintf('using the head shape to construct a triangulated mesh\n');
-  bnd = prepare_mesh_headshape(cfg, mri);
+  bnd = prepare_mesh_headshape(cfg);
   
 elseif basedonvol
   fprintf('using the mesh specified in the input volume conductor\n');

@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.101  2009/07/28 11:22:54  roboos
+% improved detection of binary trigger channels for neuromag
+%
 % Revision 1.100  2009/06/09 13:54:30  marvger
 % removed warning for empty events; interferes with continuous pooling in
 % realtime applications
@@ -1225,9 +1228,13 @@ switch eventformat
     end
 
     if iscontinuous
-      binary     = {'STI 014', 'STI 015', 'STI 016'};
-      binaryindx = match_str(hdr.label, binary);
       analogindx = strmatch('STI', hdr.label);
+      binaryindx = find(strcmp(chantype(hdr), 'trigger'));
+      if isempty(binaryindx)
+        % use a predefined set of channel names
+        binary     = {'STI 014', 'STI 015', 'STI 016'};
+        binaryindx = match_str(hdr.label, binary);
+      end
 
       if ~isempty(binaryindx)
         % add triggers based on the binary trigger channel, this is based on

@@ -35,6 +35,9 @@ function plot_mesh(bnd, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.23  2009/07/29 06:40:16  roboos
+% allow empty pnt
+%
 % Revision 1.22  2009/06/29 16:03:16  roboos
 % allow input Nx3 as set of points
 %
@@ -142,11 +145,13 @@ end
 pnt = bnd.pnt;
 tri = bnd.tri;
 
-hs = patch('Vertices', pnt, 'Faces', tri);
-set(hs, 'FaceColor', facecolor);
-set(hs, 'FaceAlpha', facealpha);
-set(hs, 'EdgeColor', edgecolor);
-set(hs, 'tag', tag);
+if ~isempty(pnt)
+  hs = patch('Vertices', pnt, 'Faces', tri);
+  set(hs, 'FaceColor', facecolor);
+  set(hs, 'FaceAlpha', facealpha);
+  set(hs, 'EdgeColor', edgecolor);
+  set(hs, 'tag', tag);
+end
 
 if faceindex
   % plot the triangle indices (numbers) at each face

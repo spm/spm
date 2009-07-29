@@ -41,6 +41,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri)
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.29  2009/07/29 06:40:41  roboos
+% updated plotting functions
+%
 % Revision 1.28  2009/07/16 09:17:17  crimic
 % link to prepare_mesh.m function
 %
@@ -179,8 +182,8 @@ end
 % plot all channels and headshape points
 if strcmp(cfg.feedback, 'yes')
   cla
-  plot3(grad.pnt(:,1), grad.pnt(:,2), grad.pnt(:,3), 'b.');	% all coils
-  plot3(headshape.pnt(:,1), headshape.pnt(:,2), headshape.pnt(:,3), 'g.');
+  plot_sens(grad);
+  plot_mesh(headshape, 'vertexcolor', 'g', 'facecolor', 'none', 'edgecolor', 'none');
   drawnow
 end
 
@@ -223,7 +226,7 @@ for chan=1:Nchan
   end
   
   % compute the distance from every coil along this channels orientation
-  dist = [];
+  dist = zeros(size(coilsel));
   for i=1:length(coilsel)
     dist(i) = dot((allpnt(i,:)-thispnt), thisori);
   end
@@ -240,7 +243,7 @@ for chan=1:Nchan
   dist = sqrt(sum((headshape.pnt-repmat(thispnt,Nshape,1)).^2, 2));
   shapesel = find(dist<cfg.radius);
   if strcmp(cfg.feedback, 'yes')
-    plot3(headshape.pnt(shapesel,1), headshape.pnt(shapesel,2), headshape.pnt(shapesel,3), 'g.');
+    plot_mesh(headshape.pnt(shapesel,:), 'vertexcolor', 'g');
     drawnow
   end
   
