@@ -41,6 +41,9 @@ function label = senslabel(type)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: senslabel.m,v $
+% Revision 1.4  2009/07/29 07:07:59  roboos
+% use caching of input and output arguments to speed up the handling of multiple calls with the same input argument
+%
 % Revision 1.3  2009/06/19 16:51:50  vlalit
 % Added biosemi64 system of  Diane Whitmer, I don't know how generic it is.
 %
@@ -62,6 +65,21 @@ function label = senslabel(type)
 % Revision 1.1  2008/09/10 07:53:27  roboos
 % moved definition of channel label sets to seperate function
 %
+
+% these are for remembering the type on subsequent calls with the same input arguments
+persistent previous_argin previous_argout
+
+if nargin<1
+  % ensure that all input arguments are defined
+  type = [];
+end
+
+current_argin = {type};
+if isequal(current_argin, previous_argin)
+  % don't do the type detection again, but return the previous values from cache
+  label = previous_argout{1};
+  return
+end
 
 %  prevent defining all possible labels if not needed
 isbiosemi  = ~isempty(regexp(type, '^biosemi', 'once'));
@@ -1972,5 +1990,13 @@ if exist(type, 'var')
     label = label(:);
 else
     error('the requested sensor type is not supported');
+end
+
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout = {label};
+if isempty(previous_argin)
+  previous_argin  = current_argin;
+  previous_argout = current_argout;
 end
 
