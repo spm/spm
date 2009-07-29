@@ -5,12 +5,13 @@ function [p] = spm_wavspec (x,freqs,fs,show,rtf)
 % freqs     Frequencies to estimate power at
 % fs        sample rate
 % show      1 to plot real part of wavelet basis used (default = 0)
-% rtf       Wavelet factor
+% rtf       Wavelet factor (if > 10, then this parameter defaults to a 
+%           fixed window length of rtf milliseconds)
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_wavspec.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_wavspec.m 3296 2009-07-29 13:38:55Z will $
 
 x=x(:)';
 freqs=freqs(:)';
@@ -24,7 +25,14 @@ end
 
 Nf=length(freqs);
 Nsamp=length(x);
-M=spm_eeg_morlet(rtf,1000/fs,freqs);
+
+if rtf>10
+    win_freq=1000/rtf;
+    M = spm_eeg_morlet(5, 1000/fs, freqs, win_freq);
+else
+    M=spm_eeg_morlet(rtf,1000/fs,freqs);
+end
+
 
 if show
     dim=floor(sqrt(Nf));
