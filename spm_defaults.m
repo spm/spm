@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3297 2009-07-29 17:20:19Z guillaume $
+% $Id: spm_defaults.m 3299 2009-07-30 18:21:53Z guillaume $
 
 
 global defaults
@@ -34,7 +34,7 @@ defaults.renderer = 'zbuffer';
 
 % Stats defaults
 %=======================================================================
-defaults.stats.maxmem   = 2^30;
+defaults.stats.maxmem   = 2^26;
 defaults.stats.maxres   = 64;
 defaults.stats.fmri.ufp = 0.001;
 defaults.stats.pet.ufp  = 0.05;

@@ -284,9 +284,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3297 2009-07-29 17:20:19Z guillaume $
+% $Id: spm_spm.m 3299 2009-07-30 18:21:53Z guillaume $
 
-SVNid     = '$Rev: 3297 $';
+SVNid     = '$Rev: 3299 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -636,7 +636,8 @@ for z = 1:zdim                           %-loop over planes (2D or 3D data)
         %-Print progress information in command window
         %------------------------------------------------------------------
         str   = sprintf('Plane %3d/%-3d, block %3d/%-3d',z,zdim,bch,nbch);
-        fprintf('\r%-40s: %30s',str,' ');                               %-#
+        if z==1&&bch==1, str2=''; else str2=repmat(sprintf('\b'),1,72); end
+        fprintf('%s%-40s: %30s',str2,str,' ');                          %-#
 
         %-construct list of voxels in this block
         %------------------------------------------------------------------
@@ -695,13 +696,13 @@ for z = 1:zdim                           %-loop over planes (2D or 3D data)
 
             %-Whiten/Weight data and remove filter confounds
             %--------------------------------------------------------------
-            fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering');   %-#
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...filtering');%-#
 
             KWY   = spm_filter(xX.K,W*Y);
 
             %-General linear model: Weighted least squares estimation
             %--------------------------------------------------------------
-            fprintf('%s%30s',repmat(sprintf('\b'),1,30),' estimation'); %-#
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...estimation');%-#
 
             beta  = xX.pKX*KWY;                    %-Parameter estimates
             res   = spm_sp('r',xX.xKXs,KWY);       %-Residuals
