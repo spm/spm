@@ -1,40 +1,83 @@
-function [family,model] = spm_compare_families (lme,partition,names,Nsamp,prior)
-% Bayesian comparison of model families for group studies using Gibbs sampling
-% FORMAT [family,model] = spm_compare_families (lme,partition,names,Nsamp,prior)
+function [family,model] = spm_compare_families (lme,family)
+% Bayesian comparison of model families for group studies 
+% FORMAT [family,model] = spm_compare_families (lme,family)
+%
+% INPUT:
 %
 % lme           - array of log model evidences 
 %                   rows: subjects
 %                   columns: models (1..N)
-% partition     - [1 x N] vector such that partition(m)=k signifies that
-%                 model m belongs to family k (out of K) eg. [1 1 2 2 2 3 3]
-% names         - cell array of K family names eg, {'fam1','fam2','fam3'}
-% Nsamp         - Number of samples to get 
-% prior         - 'F-unity' alpha0=1 for each family (default)
-%               - 'M-unity' alpha0=1 for each model (not advised)
 %
-% family        - family posterior  
-%   .alpha0       prior counts
-%   .exp_r        expected value of r
-%   .rsamp        samples from posterior
-%   .xp           exceedance probs
+% family        - data structure containing family definition and inference parameters:
+%                  .infer='RFX' or 'FFX' (default)
+%                  .partition  [1 x N] vector such that partition(m)=k signifies that
+%                              model m belongs to family k (out of K) eg. [1 1 2 2 2 3 3]
+%                  .names      cell array of K family names eg, {'fam1','fam2','fam3'}
+%                  .Nsamp      RFX only: Number of samples to get (default=1e4)
+%                  .prior      RFX only: 'F-unity' alpha0=1 for each family (default)
+%                              or 'M-unity' alpha0=1 for each model (not advised)
 %
-% model          - model posterior
-%   .alpha0        prior counts
-%   .exp_r         expected value of r
+% OUTPUT:
 %
-% This function computes model/family posteriors using samples from spm_BMS_gibbs.
+% family        - RFX only:  
+%                   .alpha0       prior counts 
+%                   .exp_r        expected value of r
+%                   .rsamp        samples from posterior
+%                   .xp           exceedance probs
+%                - FFX only: 
+%                   .prior        family priors
+%                   .post         family posteriors
+%
+% model          - RFX only: 
+%                   .alpha0        prior counts
+%                   .exp_r         expected value of r
+%                - FFX only: 
+%                   .subj_lme      log model ev without subject effects
+%                   .prior         model priors
+%                   .like          model likelihoods
+%                   .posts         model posteriors
+%
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3260 2009-07-09 10:52:42Z will $
+% $Id: spm_compare_families.m 3298 2009-07-30 15:30:29Z will $
 
-if nargin < 4 | isempty(Nsamp)
-    Nsamp=1e4;
+try
+    infer=family.infer;
+catch
+    disp('Error in spm_compare_families: inference method not specified');
+    return
 end
 
-if nargin < 5 | isempty(prior)
-    prior='F-unity';
+try
+    partition=family.partition;
+catch
+    disp('Error in spm_compare_families: partition not specified');
+    return
+end
+
+try
+    names=family.names;
+catch
+    disp('Error in spm_compare_families: names not specified');
+    return
+end
+
+if strcmp(infer,'RFX')
+    try
+        Nsamp=family.Nsamp;
+    catch
+        Nsamp=1e4;
+        family.Nsamp=Nsamp;
+    end
+    
+    try
+        prior=family.prior;
+    catch
+        prior='F-unity';
+        family.prior='F-unity';
+    end
 end
 
 % Number of models
@@ -49,6 +92,36 @@ for i=1:K,
     fam_size(i)=length(ind{i});
 end
 
+if strcmp(infer,'FFX')
+    
+    % Family priors
+    for i=1:K,
+        family.prior(i)=1/K;
+    end
+    
+    % Model priors
+    for i=1:N,
+        model.prior(i)=1/fam_size(partition(i));
+    end
+    
+    % Model likelihoods
+    lme=lme-mean(lme,2)*ones(1,N); % Subtract subject effects
+    model.subj_lme=lme;
+    model.like=sum(lme,1);
+    model.like=exp(model.like);
+    
+    % Model posterior
+    num=model.prior.*model.like;
+    model.post=num/sum(num);
+    
+    % Family posterior
+    for i=1:K,
+        family.post(i)=sum(model.post(ind{i}));
+    end
+    
+    return;
+end
+    
 % Set model priors 
 switch prior,
     case 'F-unity',
