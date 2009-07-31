@@ -17,6 +17,8 @@ function [mri] = volumerealign(cfg, mri);
 % an MRI).
 %
 % The configuration can contain the following options
+%   cfg.clim           = [min max], scaling of the anatomy color (default
+%                        is to adjust to the minimum and maximum)
 %   cfg.method         = different methods for aligning the electrodes
 %                        'realignfiducial' realign the volume to the fiducials
 %                        'interactive'     manually using graphical user interface
@@ -34,11 +36,25 @@ function [mri] = volumerealign(cfg, mri);
 % - the Y-axis goes approximately towards LPA, orthogonal to X and in the plane spanned by the fiducials
 % - the Z-axis goes approximately towards the vertex, orthogonal to X and Y
 %
-% See also READ_FCDC_MRI, ELECTRODEREALIGN
+%
+% See also READ_MRI, ELECTRODEREALIGN
 
-% Copyright (C) 2006, Robert Oostenveld
+% Copyright (C) 2006-2009, Robert Oostenveld
 %
 % $Log: volumerealign.m,v $
+% Revision 1.12  2009/07/31 13:43:36  jansch
+% now really fixed a bug (unlike last time)
+%
+% Revision 1.11  2009/07/30 14:22:00  jansch
+% fixed bug in input arguments for volplot
+%
+% Revision 1.10  2009/07/29 13:53:49  roboos
+% added cfg.clim for color scaling, thanks to Hanneke
+%
+% Revision 2    2009/07/29 13:00:00 hanvdij
+% Added colorscaling option in the volplot function at the end of this
+% script.
+%
 % Revision 1.9  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -79,6 +95,7 @@ mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 % set the defaults
 if ~isfield(cfg, 'fiducial'),  cfg.fiducial = [];         end
 if ~isfield(cfg, 'parameter'), cfg.parameter = 'anatomy'; end
+if ~isfield(cfg, 'clim'),      cfg.clim      = [];        end
 
 if ~isfield(cfg, 'method')
   if ~isempty(cfg.fiducial)
@@ -116,7 +133,7 @@ switch cfg.method
       xc = round(xc);
       yc = round(yc);
       zc = round(zc);
-      volplot(x, y, z, dat, [xc yc zc]);
+      volplot(x, y, z, dat, [xc yc zc], cfg.clim);
       drawnow;
       try, [d1, d2, key] = ginput(1); catch, key='q'; end
       if key=='q'
@@ -170,7 +187,11 @@ elseif all(all(mri.transform==eye(4)))
   mri.transform = vox2head;
 else
   warning('removing old transformation matrix');
-  mri.transform = vox2head;
+  scale          = eye(4);
+  %FIXME check whether the following is ever necessary
+  %origvox2head   = mri.transform;
+  %scale(1:3,1:3) = diag(sqrt(sum(origvox2head(1:3,1:3).^2,2)));
+  mri.transform  = scale*vox2head;
 end
 
 % get the output cfg
@@ -185,7 +206,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumerealign.m,v 1.9 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: volumerealign.m,v 1.12 2009/07/31 13:43:36 jansch Exp $';
 
 % remember the configuration
 mri.cfg = cfg;
@@ -193,12 +214,19 @@ mri.cfg = cfg;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to show three orthogonal slices
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function volplot(x, y, z, dat, c);
+function volplot(x, y, z, dat, c, cscale);
 xi = c(1);
 yi = c(2);
 zi = c(3);
-cmin = min(dat(:));
-cmax = max(dat(:));
+
+% manual color scaling of anatomy data is usefull in case of some pixel noise
+if nargin<6 || isempty(cscale)
+  cmin = min(dat(:));
+  cmax = max(dat(:));
+else
+  cmin = cscale(1);
+  cmax = cscale(2);
+end
 
 h1 = subplot(2,2,1);
 h2 = subplot(2,2,2);

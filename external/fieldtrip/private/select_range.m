@@ -20,6 +20,9 @@ function select_range(handle, eventdata, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: select_range.m,v $
+% Revision 1.2  2009/07/30 19:10:25  ingnie
+% deleted disp(callback)
+%
 % Revision 1.1  2009/07/14 13:17:41  roboos
 % implemented new function, to be used as callback in interactive data selection
 %
@@ -190,7 +193,6 @@ end
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function evalCallback(callback, val)
-disp(callback)
 if ~isempty(callback)
   if isa(callback, 'cell')
     % the callback specifies a function and additional arguments

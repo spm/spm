@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.45  2009/07/30 19:44:43  ingnie
+% also allow datatype comp (by chekdata)
+%
 % Revision 1.44  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -162,7 +165,7 @@ function [freq] = freqanalysis(cfg, data);
 fieldtripdefs
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hasoffset', 'yes');
+data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'trackconfig', 'on');

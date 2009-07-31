@@ -7,13 +7,30 @@ function [varargout] = componentbrowser(cfg, comp)
 % where comp is a FieldTrip structure obtained from COMPONENTANALYSIS.
 %
 % The configuration has the following parameters:
-% cfg.layout = layout from PREPARE_LAYOUT (required)
 % cfg.comp   = a vector with the components to plot (ex. 1:10) (optional)
 % cfg.trial  = choose which trial to plot first (optional, only one trial)
+% cfg.layout = because the output of componentanalysis does not contain
+% 	information on the layout, you need to specify in a variety of ways:
+%  - you can provide a pre-computed layout structure (see prepare_layout)
+%  - you can give the name of an ascii layout file with extension *.lay
+%  - you can give the name of an electrode file
+%  - you can give an electrode definition, i.e. "elec" structure
+%  - you can give a gradiometer definition, i.e. "grad" structure
+%
+% See also COMPONENTANALYSIS
 
 % Copyright (C) 2009, Giovanni Piantoni
 %
 % $Log: componentbrowser.m,v $
+% Revision 1.2  2009/07/29 15:05:41  giopia
+% removed prepare_mask, added << >> buttons, updated help
+%
+% Revision 1.1  2009/07/17 14:25:39  giopia
+% moved to main directory
+%
+% Revision 1.4  2009/07/15 08:38:28  giopia
+% general cleanup, prepare_mask now standalone function
+%
 % Revision 1.3  2009/06/19 15:11:00  giopia
 % allows scroll through components
 %
@@ -46,21 +63,21 @@ end
 [cfg.layout] = prepare_layout(cfg, comp);
 
 % Identify the channels to plot
-[labels, cfg.chanidx] = intersect(comp.topolabel, cfg.layout.label); % in case channels are missing
-if isempty(cfg.chanidx)
+[labels, cfg.chanidx.lay, cfg.chanidx.comp] = intersect(cfg.layout.label, comp.topolabel); % in case channels are missing
+if isempty(cfg.chanidx.lay)
   error('componentbrowser:labelmismatch', 'The channel labels in the data do not match the labels of the layout');
 end
 
 % fixed variables
 cfg.shift   = 1.2;   % distance between topoplots
-cfg.gridscale   = 67;    % default parameter from topoplot
-[cfg.mask] = createmask(cfg.layout, cfg.gridscale);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Create figure and assign userdata
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% create figure
-[cfg.h] = figure('uni','pix', 'name', 'componentbrowser', 'vis', 'off', 'numbertitle', 'off');
+% create figure and axes
+cfg.h    = figure('uni','pix', 'name', 'componentbrowser', 'vis', 'off', 'numbertitle', 'off');
+cfg.axis = axes;
 hold on
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,13 +95,19 @@ uicontrol(cfg.h,'uni','pix','pos',[280 5 25 18],'str','+',...
   'call',{@plottopography, comp});
 
 % scroll trials
-uicontrol(cfg.h,'uni','pix','pos',[355 5 25 18],'str','<<',...
+uicontrol(cfg.h,'uni','pix','pos',[330 5 25 18],'str','<<',...
+  'call',{@plotactivation, comp});
+
+uicontrol(cfg.h,'uni','pix','pos',[355 5 25 18],'str', '<',...
   'call',{@plotactivation, comp});
 
 cfg.ntrl = uicontrol(cfg.h,'sty','text','uni','pix','pos',[380 5 70 18],...
   'str',['trial n.' num2str(cfg.trial)]);
 
-uicontrol(cfg.h,'uni','pix','pos',[450 5 25 18],'str','>>',...
+uicontrol(cfg.h,'uni','pix','pos',[450 5 25 18],'str', '>',...
+  'call',{@plotactivation, comp});
+
+uicontrol(cfg.h,'uni','pix','pos',[475 5 25 18],'str','>>',...
   'call',{@plotactivation, comp});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,14 +171,18 @@ for k = cfg.comp
   h_text(cnt) = plot_text(-2.5, -cnt*cfg.shift, ['n. ' num2str(cfg.comp(cnt))]);
 
   % plot only topography (no layout)
- h_topo(cnt) = plot_topo(comp.topo(cfg.chanidx, k), cfg.layout.pos(cfg.chanidx,1), cfg.layout.pos(cfg.chanidx,2), ...
-    'hpos', -1, 'vpos', -cnt*cfg.shift, 'mask', cfg.mask, 'gridscale', cfg.gridscale);
+  h_topo(cnt) = plot_topo(comp.topo(cfg.chanidx.comp, k), cfg.layout.pos(cfg.chanidx.lay,1), cfg.layout.pos(cfg.chanidx.lay,2), ...
+    'hpos', -1, 'vpos', -cnt*cfg.shift, 'mask', cfg.layout.mask);
   % plot layout
   plot_lay(cfg.layout, 'hpos', -1, 'vpos', -cnt*cfg.shift, 'point', false, 'box', false, 'label', false, 'mask', true, 'verbose', false);
 end
 
 set(h_text, 'tag', 'comptopo')
 set(h_topo, 'tag', 'comptopo')
+
+% in the colorbar, green should be zero
+colorlimits = get(cfg.axis, 'clim');
+set(cfg.axis, 'clim', [-1 1] * max(abs(colorlimits)))
 
 plotactivation([], cfg, comp)
 
@@ -172,16 +199,30 @@ else
   cfg = get(get(h, 'par'), 'user');
 
   % which button has been pressed
-  if intersect(h, findobj(cfg.h, 'str', '>>'))
+  if     intersect(h, findobj(cfg.h, 'str', '>>'))
+
+    cfg.trial = cfg.trial + 10;
+    if cfg.trial > size(comp.trial,2)
+      cfg.trial = size(comp.trial,2);
+    end
+
+  elseif intersect(h, findobj(cfg.h, 'str', '>'))
 
     cfg.trial = cfg.trial + 1;
     if cfg.trial > size(comp.trial,2)
       cfg.trial = size(comp.trial,2);
     end
+    
+  elseif intersect(h, findobj(cfg.h, 'str', '<'))
+
+    cfg.trial = cfg.trial - 1;
+    if cfg.trial < 1
+      cfg.trial = 1;
+    end
 
   elseif intersect(h, findobj(cfg.h, 'str', '<<'))
 
-    cfg.trial = cfg.trial - 1;
+    cfg.trial = cfg.trial - 10;
     if cfg.trial < 1
       cfg.trial = 1;
     end
@@ -208,35 +249,3 @@ set(h_inv, 'vis', 'off')
 set(h_act, 'tag', 'activations')
 set(cfg.h, 'user', cfg)
 hold off
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% CREATEMASK: create anatomical mask, only one for all the topoplots
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [mask] = createmask(lay, gridscale)
-% calculate anatomical mask only once, based only on lay
-
-% find limits for interpolation:
-xmin = +inf;
-xmax = -inf;
-ymin = +inf;
-ymax = -inf;
-for i=1:length(lay.mask)
-  xmin = min([xmin; lay.mask{i}(:,1)]);
-  xmax = max([xmax; lay.mask{i}(:,1)]);
-  ymin = min([ymin; lay.mask{i}(:,2)]);
-  ymax = max([ymax; lay.mask{i}(:,2)]);
-end
-
-xi = linspace(xmin, xmax, gridscale);   % x-axis for interpolation (row vector)
-yi = linspace(ymin, ymax, gridscale);   % y-axis for interpolation (row vector)
-Xi =  ones(gridscale,1)*xi;
-Yi = (ones(gridscale,1)*yi)';
-
-% apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
-mask = false(gridscale);
-for i=1:length(lay.mask)
-  lay.mask{i}(end+1,:) = lay.mask{i}(1,:); % force them to be closed
-  mask(inside_contour([Xi(:) Yi(:)], lay.mask{i})) = true;
-end
-
-

@@ -26,6 +26,9 @@ function [varargout] = plot_vector(varargin)
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_vector.m,v $
+% Revision 1.10  2009/07/30 09:13:58  ingnie
+% fixed bug in determining if function was called as plot(x,y,...) or plot(y,...)
+%
 % Revision 1.9  2009/07/14 16:14:45  roboos
 % fixed the plotting of the axes, which were not at [0, 0]
 % some general cleanup
@@ -52,7 +55,7 @@ function [varargout] = plot_vector(varargin)
 holdflag = ishold;
 hold on
 
-if nargin>2 && all(cellfun(@isnumeric, varargin(1:2)))
+if nargin>1 && all(cellfun(@isnumeric, varargin(1:2)))
   % the function was called like plot(x, y, ...)
   hdat = varargin{1};
   vdat = varargin{2};

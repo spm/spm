@@ -18,19 +18,48 @@ function [varargout] = plot_topo(dat, chanX, chanY, varargin)
 % Copyrights (C) 2009, Giovanni Piantoni
 %
 % $Log: plot_topo.m,v $
+% Revision 1.4  2009/07/29 15:04:16  giopia
+% resolved ambiguity of var mask
+%
+% Revision 1.3  2009/07/29 10:24:24  roboos
+% construct the binary image for masking inside this function and reuse it as long as the relevant input does not change
+% this is achieved with a persistent variable and by checking the input arguments
+%
 % Revision 1.2  2009/06/02 15:36:25  giopia
 % first implementation based on topoplot.m
 %
 
+% these are for speeding up the plotting on subsequent calls
+persistent previous_argin previous_maskimage
+
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'gridscale', 'mask'});
-hpos        = keyval('hpos', varargin);     if isempty(hpos);       hpos = 0;           end
-vpos        = keyval('vpos', varargin);     if isempty(vpos);       vpos = 0;           end
-width       = keyval('width', varargin);    if isempty(width);      width = 1;          end
-height      = keyval('height', varargin);   if isempty(height);     height = 1;         end
-gridscale   = keyval('gridscale', varargin);if isempty(gridscale);  gridscale = 67;     end; % 67 in original
-shading     = keyval('shading', varargin);  if isempty(shading);    shading = 'flat';   end;
-mask        = keyval('mask', varargin);
+hpos        = keyval('hpos',      varargin); if isempty(hpos);       hpos = 0;           end
+vpos        = keyval('vpos',      varargin); if isempty(vpos);       vpos = 0;           end
+width       = keyval('width',     varargin); if isempty(width);      width = 1;          end
+height      = keyval('height',    varargin); if isempty(height);     height = 1;         end
+gridscale   = keyval('gridscale', varargin); if isempty(gridscale);  gridscale = 67;     end; % 67 in original
+shading     = keyval('shading',   varargin); if isempty(shading);    shading = 'flat';   end;
+mask        = keyval('mask',      varargin);
+
+% try to speed up the preparation of the mask on subsequent calls
+current_argin = {chanX, chanY, gridscale, mask};
+if isequal(current_argin, previous_argin)
+  % don't construct the binary image, but reuse it from the previous call
+  maskimage = previous_maskimage;
+elseif ~isempty(mask)
+  % convert the mask into a binary image
+  maskimage = false(gridscale);
+  hlim      = [min(chanX) max(chanX)];
+  vlim      = [min(chanY) max(chanY)];
+  xi        = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
+  yi        = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
+  [Xi,Yi]   = meshgrid(xi', yi);
+  for i=1:length(mask)
+    mask{i}(end+1,:) = mask{i}(1,:);                 % force them to be closed
+    maskimage(inside_contour([Xi(:) Yi(:)], mask{i})) = true;
+  end
+end
 
 chanX = chanX * width  + hpos;
 chanY = chanY * height + vpos;
@@ -42,13 +71,23 @@ xi         = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation
 yi         = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
 [Xi,Yi,Zi] = griddata(chanX', chanY, dat, xi', yi, 'v4'); % Interpolate the topographic data
 
-Zi(~mask) = NaN;
+if ~isempty(maskimage)
+  % apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
+  Zi(~maskimage) = NaN;
+end
 
 deltax = xi(2)-xi(1); % length of grid entry
 deltay = yi(2)-yi(1); % length of grid entry
-h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor',shading);
+h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor', shading);
 
 % the (optional) output is the handle
 if nargout == 1
   varargout{1} = h;
+end
+
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+if isempty(previous_argin)
+  previous_argin     = current_argin;
+  previous_maskimage = maskimage;
 end
