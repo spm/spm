@@ -284,9 +284,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3299 2009-07-30 18:21:53Z guillaume $
+% $Id: spm_spm.m 3303 2009-08-03 15:26:49Z guillaume $
 
-SVNid     = '$Rev: 3299 $';
+SVNid     = '$Rev: 3303 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -598,9 +598,12 @@ end % (xX,'W')
 
 %-MAXMEM is the maximum amount of data processed at a time (bytes)
 %--------------------------------------------------------------------------
-MAXMEM   = spm_get_defaults('stats.maxmem');
-blksz    = min(xdim*ydim,ceil(MAXMEM/8/nScan));                %-block size
-nbch     = ceil(xdim*ydim/blksz);                              %-# blocks
+MAXMEM = spm_get_defaults('stats.maxmem');
+mmv    = MAXMEM/8/nScan;
+blksz  = min(xdim*ydim,ceil(mmv));                             %-block size
+nbch   = ceil(xdim*ydim/blksz);                                %-# blocks
+nbz    = max(1,min(zdim,floor(mmv/(xdim*ydim))));   nbz = 1;   %-# planes
+blksz  = blksz * nbz;
 
 %-Initialise variables used in the loop
 %==========================================================================
@@ -621,11 +624,12 @@ XYZ   = zeros(3,xdim*ydim*zdim);
 %==========================================================================
 spm_progress_bar('Init',100,str,'');
 
-for z = 1:zdim                           %-loop over planes (2D or 3D data)
+for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
 
     % current plane-specific parameters
     %----------------------------------------------------------------------
-    zords   = repmat(z,1,xdim*ydim);     %-plane Z coordinates
+    CrPl    = z:min(z+nbz-1,zdim);       %-plane list
+    zords   = CrPl(:)*ones(1,xdim*ydim); %-plane Z coordinates
     CrBl    = [];                        %-parameter estimates
     CrResI  = [];                        %-normalized residuals
     CrResSS = [];                        %-residual sum of squares
@@ -635,15 +639,23 @@ for z = 1:zdim                           %-loop over planes (2D or 3D data)
 
         %-Print progress information in command window
         %------------------------------------------------------------------
-        str   = sprintf('Plane %3d/%-3d, block %3d/%-3d',z,zdim,bch,nbch);
+        if numel(CrPl) == 1
+            str = sprintf('Plane %3d/%-3d, block %3d/%-3d',...
+                z,zdim,bch,nbch);
+        else
+            str = sprintf('Planes %3d-%-3d/%-3d',z,CrPl(end),zdim);
+        end
         if z==1&&bch==1, str2=''; else str2=repmat(sprintf('\b'),1,72); end
         fprintf('%s%-40s: %30s',str2,str,' ');                          %-#
 
         %-construct list of voxels in this block
         %------------------------------------------------------------------
         I     = (1:blksz) + (bch - 1)*blksz;       %-voxel indices
-        I     = I(I <= xdim*ydim);                 %-truncate
-        xyz   = [xords(I); yords(I); zords(I)];    %-voxel coordinates
+        I     = I(I <= numel(CrPl)*xdim*ydim);     %-truncate
+        xyz   = [repmat(xords,1,numel(CrPl)); ...
+                 repmat(yords,1,numel(CrPl)); ...
+                 reshape(zords',1,[])];
+        xyz   = xyz(:,I);                          %-voxel coordinates
         nVox  = size(xyz,2);                       %-number of voxels
 
         %-Get data & construct analysis mask
@@ -764,31 +776,31 @@ for z = 1:zdim                           %-loop over planes (2D or 3D data)
 
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...saving plane'); %-#
 
-        jj = NaN(xdim,ydim);
+        jj = NaN(xdim,ydim,numel(CrPl));
 
         %-Write Mask image
         %------------------------------------------------------------------
         if ~isempty(Q), jj(Q) = 1; end
-        VM    = spm_write_plane(VM, ~isnan(jj), z);
+        VM    = spm_write_plane(VM, ~isnan(jj), CrPl);
 
         %-Write beta images
         %------------------------------------------------------------------
         for i = 1:nBeta
             if ~isempty(Q), jj(Q) = CrBl(i,:); end
-            Vbeta(i) = spm_write_plane(Vbeta(i), jj, z);
+            Vbeta(i) = spm_write_plane(Vbeta(i), jj, CrPl);
         end
 
         %-Write residual images
         %------------------------------------------------------------------
         for i = 1:nSres
             if ~isempty(Q), jj(Q) = CrResI(i,:)./sqrt(CrResSS/erdf); end
-            VResI(i) = spm_write_plane(VResI(i), jj, z);
+            VResI(i) = spm_write_plane(VResI(i), jj, CrPl);
         end
 
         %-Write ResSS into ResMS (variance) image scaled by tr(RV) above
         %------------------------------------------------------------------
         if ~isempty(Q), jj(Q) = CrResSS; end
-        VResMS  = spm_write_plane(VResMS, jj, z);
+        VResMS  = spm_write_plane(VResMS, jj, CrPl);
 
     end % (xX,'W')
 
