@@ -1,18 +1,22 @@
-function spm_defs(job)
+function out = spm_defs(job)
 % Various deformation field utilities.
-% FORMAT spm_defs(job)
+% FORMAT out = spm_defs(job)
 % job - a job created via spm_config_defs.m and spm_jobman.m
+% out - a struct with fields
+%       .def    - file name of created deformation field
+%       .warped - file names of warped images
 %
 % See spm_config_defs.m for more information.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_defs.m 3306 2009-08-06 11:03:30Z volkmar $
 
 [Def,mat] = get_comp(job.comp);
-save_def(Def,mat,strvcat(job.ofname));
-apply_def(Def,mat,strvcat(job.fnames),job.interp);
+[dpath ipath] = get_paths(job);
+out.def    = save_def(Def,mat,strvcat(job.ofname),dpath);
+out.warped = apply_def(Def,mat,strvcat(job.fnames),ipath,job.interp);
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -230,18 +234,62 @@ mat         = VT.mat;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function save_def(Def,mat,ofname)
+function [dpath,ipath] = get_paths(job)
+switch char(fieldnames(job.savedir))
+    case 'savepwd'
+        dpath = pwd;
+        ipath = pwd;
+    case 'savesrc'
+        dpath = get_dpath(job);
+        ipath = '';
+    case 'savedef'
+        dpath = get_dpath(job);
+        ipath = dpath;
+    case 'saveusr'
+        dpath = job.savedir.saveusr{1};
+        ipath = dpath;
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function dpath = get_dpath(job)
+% Determine what is required, and pass the relevant bit of the
+% job out to the appropriate function.
+
+fn = fieldnames(job);
+fn = fn{1};
+switch fn
+case {'comp'}
+    dpath = get_dpath(job.(fn){1});
+case {'def'}
+    dpath = fileparts(job.(fn){1});
+case {'dartel'}
+    dpath = fileparts(job.(fn).flowfield{1});
+case {'sn2def'}
+    dpath = fileparts(job.(fn).matname{1});
+case {'inv'}
+    dpath = fileparts(job.(fn).space{1});
+case {'id'}
+    dpath = fileparts(job.(fn).space{1});
+otherwise
+    error('Unrecognised job type');
+end;
+
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function fname = save_def(Def,mat,ofname,odir)
 % Save a deformation field as an image
 
-if isempty(ofname), return; end;
+if isempty(ofname), fname = {}; return; end;
 
-fname = fullfile(pwd,['y_' ofname '.nii']);
+fname = {fullfile(odir,['y_' ofname '.nii'])};
 dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 3];
 dtype = 'FLOAT32-BE';
 off   = 0;
 scale = 1;
 inter = 0;
-dat   = file_array(fname,dim,dtype,off,scale,inter);
+dat   = file_array(fname{1},dim,dtype,off,scale,inter);
 
 N      = nifti;
 N.dat  = dat;
@@ -260,17 +308,25 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function apply_def(Def,mat,fnames,intrp)
+function ofnames = apply_def(Def,mat,fnames,odir,intrp)
 % Warp an image or series of images according to a deformation field
 
 intrp = [intrp*[1 1 1], 0 0 0];
+ofnames = cell(size(fnames,1),1);
 
 for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
     M = inv(V.mat);
     [pth,nam,ext] = spm_fileparts(fnames(i,:));
-    ofname = fullfile(pwd,['w',nam,ext]);
-    Vo = struct('fname',ofname,...
+    if isempty(odir)
+        % use same path as source image
+        opth = pth;
+    else
+        % use prespecified path
+        opth = odir;
+    end
+    ofnames{i} = fullfile(opth,['w',nam,ext]);
+    Vo = struct('fname',ofnames{i},...
                 'dim',[size(Def{1},1) size(Def{1},2) size(Def{1},3)],...
                 'dt',V.dt,...
                 'pinfo',V.pinfo,...

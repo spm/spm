@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 2500 2008-11-28 16:11:15Z john $
+% $Id: spm_cfg_defs.m 3306 2009-08-06 11:03:30Z volkmar $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -177,6 +177,40 @@ applyto      = files('Apply to','fnames','image',[0 Inf]);
 applyto.val  = {''};
 applyto.help = happly;
 
+savepwd      = cfg_const;
+savepwd.name = 'Current directory';
+savepwd.tag  = 'savepwd';
+savepwd.val  = {1};
+savepwd.help = {['All created files (deformation fields and warped images) ' ...
+                 'are written to the current directory.']};
+
+savesrc      = cfg_const;
+savesrc.name = 'Source directories';
+savesrc.tag  = 'savesrc';
+savesrc.val  = {1};
+savesrc.help = {['The combined deformation field is written into the ' ...
+                 'directory of the first deformation field, warped images ' ...
+                 'are written to the same directories as the source ' ...
+                 'images.']};
+
+savedef      = cfg_const;
+savedef.name = 'Source directory (deformation)';
+savedef.tag  = 'savedef';
+savedef.val  = {1};
+savedef.help = {['The combined deformation field and the warped images ' ...
+                 'are written into the directory of the first deformation ' ...
+                 'field.']};
+
+saveusr      = files('Output directory','saveusr','dir',[1 1]);
+saveusr.help = {['The combined deformation field and the warped images ' ...
+                 'are written into the specified directory.']};
+
+savedir      = cfg_choice;
+savedir.name = 'Output destination';
+savedir.tag  = 'savedir';
+savedir.values = {savepwd savesrc savedef saveusr};
+savedir.val  = {savepwd};
+
 interp      = cfg_menu;
 interp.name = 'Interpolation';
 interp.tag  = 'interp';
@@ -199,27 +233,29 @@ interp.help = {...
 };
 
 
-conf         = exbranch('Deformations','defs',{comp,saveas,applyto,interp});
+conf         = exbranch('Deformations','defs',{comp,saveas,applyto,savedir,interp});
 conf.prog    = @spm_defs;
-conf.vfiles  = @vfiles;
+conf.vout    = @vout;
 conf.help    = hsummary;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
 
-function vf = vfiles(job)
-vf = {};
-s  = strvcat(job.ofname);
-if ~isempty(s),
-    vf = {vf{:}, fullfile(pwd,['y_' s '.nii,1'])};
-end;
-
-s  = strvcat(job.fnames);
-for i=1:size(s,1),
-    [pth,nam,ext,num] = spm_fileparts(s(i,:));
-    vf = {vf{:}, fullfile(pwd,['w',nam,ext,num])};
-end;
+function vo = vout(job)
+vo = [];
+if ~strcmp(job.ofname,'<UNDEFINED>') && ~isempty(job.ofname)
+    vo            = cfg_dep;
+    vo.sname      = 'Combined deformation';
+    vo.src_output = substruct('.','def');
+    vo.tgt_spec   = cfg_findspec({{'filter','image','filter','nifti'}});
+end
+if iscellstr(job.fnames) && ~isempty(job.fnames)
+    vo(end+1)            = cfg_dep;
+    vo(end).sname      = 'Warped images';
+    vo(end).src_output = substruct('.','warped');
+    vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
+end
 return;
 %_______________________________________________________________________
 
