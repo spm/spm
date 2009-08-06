@@ -12,9 +12,9 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3253 2009-07-07 11:12:18Z guillaume $
+% $Id: spm_eeg_mask.m 3308 2009-08-06 18:19:40Z vladimir $
 
-SVNrev = '$Rev: 3253 $';
+SVNrev = '$Rev: 3308 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -63,8 +63,13 @@ end
 [junk begsample] = min(abs(begsample-[1:Nt]));
 [junk endsample] = min(abs(endsample-[1:Nt]));
 
-Y(: , :, 1:begsample)   = 0;
-Y(: , :, endsample:end) = 0;
+if begsample > 1
+    Y(: , :, 1:(begsample-1))   = 0;
+end
+
+if endsample<size(Y, 3)
+    Y(: , :, (endsample+1):end) = 0;
+end
 
 V.fname = S.outfile;
 
