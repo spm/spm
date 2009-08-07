@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.4  2009/08/05 08:36:57  roboos
+% preallocate the memory that will hold the coil positions, orientations and weights -> significant speedup
+%
 % Revision 1.3  2009/03/23 21:16:03  roboos
 % don't give error if balancing fails, but only warning and remove the balancing information
 %
@@ -100,6 +103,16 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   selREF    = selREF(:)';
   numMEG    = length(selMEG);
   numREF    = length(selREF);
+  
+  % determine the number of channels and coils
+  coilcount = 0;
+  coilcount = coilcount + sum([hdr.res4.senres(selREF).numCoils]);
+  coilcount = coilcount + sum([hdr.res4.senres(selMEG).numCoils]);
+  chancount = numMEG + numREF;
+  % preallocate the memory
+  grad.pnt = zeros(coilcount, 3);         % this will hold the position of each coil
+  grad.ori = zeros(coilcount, 3);         % this will hold the orientation of each coil
+  grad.tra = zeros(chancount, coilcount); % this describes how each coil contributes to each channel
 
   % combine the bottom and top coil of each MEG channel
   for i=1:numMEG
@@ -123,6 +136,10 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
     grad.tra(i,i       ) = 1;
     grad.tra(i,i+numMEG) = 1;
   end
+  
+  % the MEG channels always have 2 coils, the reference channels vary in the number of coils
+  chancount = 1*numMEG;
+  coilcount = 2*numMEG;
 
   % combine the coils of each reference channel
   for i=1:numREF
@@ -136,12 +153,14 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
       ori = hdr.res4.senres(n).ori';
     end
     % determine the number of coils for this channel
-    numcoils = sum(sum(pos.^2, 2)~=0);
+    numcoils = hdr.res4.senres(n).numCoils;
     % add the coils of this channel to the gradiometer array
+    chancount = chancount+1;
     for j=1:numcoils
-      grad.pnt(end+1, :)     = pos(j,:);
-      grad.ori(end+1, :)     = ori(j,:) .* -sign(hdr.res4.senres(n).properGain);
-      grad.tra(i+numMEG, end+1) = 1;
+      coilcount = coilcount+1;
+      grad.pnt(coilcount, :)         = pos(j,:);
+      grad.ori(coilcount, :)         = ori(j,:) .* -sign(hdr.res4.senres(n).properGain);
+      grad.tra(chancount, coilcount) = 1;
     end
   end
 
@@ -260,9 +279,9 @@ elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
     numcoils = sum(sum(pos.^2, 2)~=0);
     % add the coils of this channel to the gradiometer array
     for j=1:numcoils
-      grad.pnt(end+1, :)     = pos(j,:);
-      grad.ori(end+1, :)     = ori(j,:) .* -sign(hdr.gainV(n));
-      grad.tra(i+numMEG, end+1) = 1;
+      grad.pnt(numMEG+i, :)     = pos(j,:);
+      grad.ori(numMEG+i, :)     = ori(j,:) .* -sign(hdr.gainV(n));
+      grad.tra(numMEG+i, 2*numMEG+i) = 1;
     end
   end
 
