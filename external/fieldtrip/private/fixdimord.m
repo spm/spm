@@ -10,8 +10,8 @@ function [data] = fixdimord(data);
 % This will modify the data.dimord field to ensure consistency.
 % The name of the axis is the same as the name of the dimord, i.e. if
 % dimord='freq_time', then data.freq and data.time should be present.
-% 
-% The default dimensions in the data are described by 
+%
+% The default dimensions in the data are described by
 %  'time'
 %  'freq'
 %  'chan'
@@ -21,9 +21,15 @@ function [data] = fixdimord(data);
 %  'chancmb'
 %  'rpttap'
 
-% Copyright (C) 2006, Robert Oostenveld, Jan-Mathijs Schoffelen
+% Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % $Log: fixdimord.m,v $
+% Revision 1.3  2009/08/03 15:53:32  ingnie
+% fixed bug introduced in last revision, thanks to Esther
+%
+% Revision 1.2  2009/08/03 15:07:51  ingnie
+% cut off dimord from source and volume data, dimord is not implemented in source and volume data yet, but some functions do add it which causes unexpected behavior
+%
 % Revision 1.1  2009/07/02 08:04:36  roboos
 % moved fixdimord and fixinside from private to public
 %
@@ -52,10 +58,23 @@ function [data] = fixdimord(data);
 % new implementation
 %
 
+if strcmp('volume', datatype(data)) || strcmp('source', datatype(data));
+  if isfield(data, 'dimord')
+    % data should not have a dimord (is not implemented yet, but some
+    % functions add a dimord to these data which leads to unexpected behavior)
+    warning(sprintf('unexpected dimord "%s", dimord is removed from data', data.dimord));
+    data = rmfield(data, 'dimord');
+    return
+  else
+    %is okay
+    return
+  end
+end
+
 if ~isfield(data, 'dimord')
   if ~isfield(data, 'trial') || ~iscell(data.trial) || ...
-     ~isfield(data, 'time')  || ~iscell(data.time)  || ...
-     ~isfield(data, 'label') || ~iscell(data.label)
+      ~isfield(data, 'time')  || ~iscell(data.time)  || ...
+      ~isfield(data, 'label') || ~iscell(data.label)
     error('The data does not contain a dimord, but it also does not resemble raw data');
   elseif isfield(data, 'topo')
     % the data resembles a component decomposition
@@ -71,43 +90,43 @@ dimtok = tokenize(data.dimord, '_');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for i=1:length(dimtok)
-switch dimtok{i}
-case {'tim' 'time' 'toi' 'latency'}
-  dimtok{i} = 'time';
+  switch dimtok{i}
+    case {'tim' 'time' 'toi' 'latency'}
+      dimtok{i} = 'time';
 
-case {'frq' 'freq' 'foi' 'frequency'}
-  dimtok{i} = 'freq';
+    case {'frq' 'freq' 'foi' 'frequency'}
+      dimtok{i} = 'freq';
 
-case {'sgn' 'label' 'chan'}
-  dimtok{i} = 'chan';
+    case {'sgn' 'label' 'chan'}
+      dimtok{i} = 'chan';
 
-case {'rpt' 'trial'}
-  dimtok{i} = 'rpt';
+    case {'rpt' 'trial'}
+      dimtok{i} = 'rpt';
 
-case {'subj' 'subject'}
-  dimtok{i} = 'subj';
+    case {'subj' 'subject'}
+      dimtok{i} = 'subj';
 
-case {'comp'}
-  % don't change, it is ok
+    case {'comp'}
+      % don't change, it is ok
 
-case {'sgncmb' 'labelcmb' 'chancmb'}
-  dimtok{i} = 'chan';
+    case {'sgncmb' 'labelcmb' 'chancmb'}
+      dimtok{i} = 'chan';
 
-case {'rpttap'}
-  % this is a 2-D field, coding trials and tapers along the same dimension
-  % don't change, it is ok
+    case {'rpttap'}
+      % this is a 2-D field, coding trials and tapers along the same dimension
+      % don't change, it is ok
 
-case {'refchan'}
-  % don't change, it is ok
+    case {'refchan'}
+      % don't change, it is ok
 
-case {'vox' 'repl' 'wcond'}
-  % these are used in some fieldtrip functions, but are not considered standard
-  warning(sprintf('unexpected dimord "%s"', data.dimord));
+    case {'vox' 'repl' 'wcond'}
+      % these are used in some fieldtrip functions, but are not considered standard
+      warning(sprintf('unexpected dimord "%s"', data.dimord));
 
-otherwise
-  error(sprintf('unexpected dimord "%s"', data.dimord));
+    otherwise
+      error(sprintf('unexpected dimord "%s"', data.dimord));
 
-end % switch dimtok
+  end % switch dimtok
 end % for length dimtok
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -145,7 +164,7 @@ end
 % elseif isfield(data, 'fourierspctrm')
 %   mat = data.fourierspctrm;
 % end
-% 
+%
 % add the descriptive axis for each dimension
 % for i=1:length(dimtok)
 %   if isfield(data, dimtok{i})

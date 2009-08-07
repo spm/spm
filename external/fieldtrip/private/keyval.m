@@ -11,6 +11,9 @@ function [val] = keyval(key, varargin)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: keyval.m,v $
+% Revision 1.5  2009/08/04 11:58:28  roboos
+% perform a case-insensitive string comparison for keys
+%
 % Revision 1.4  2009/07/14 16:11:02  roboos
 % speed up the input checks
 %
@@ -46,12 +49,12 @@ if ~all(cellfun(@ischar, keys))
   error('optional input arguments should come in key-value pairs, the optional input argument %d is invalid (should be a string)', i);
 end
 
-hit = find(strcmp(key, keys));
+hit = find(strcmpi(key, keys));
 if isempty(hit)
   % the requested key was not found
   val = [];
 elseif length(hit)==1  
-  % the requested key was  found
+  % the requested key was found
   val = vals{hit};
 else
   error('multiple input arguments with the same name');

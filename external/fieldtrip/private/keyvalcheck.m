@@ -12,6 +12,9 @@ function keyvalcheck(arglist, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: keyvalcheck.m,v $
+% Revision 1.4  2009/08/05 08:50:50  roboos
+% allow different case in the option names, i.e. use case-insensitive comparisons
+%
 % Revision 1.3  2009/07/14 16:10:34  roboos
 % added caching for previous input
 %
@@ -42,8 +45,11 @@ if numel(keys)~=numel(vals)
   error('optional input arguments should come in key-value pairs, i.e. there should be an even number');
 end
 
+keys = cellfun(@lower, keys, 'UniformOutput', false);
+
 if ~isempty(required)
   % only check if specified
+  required  = cellfun(@lower, required, 'UniformOutput', false);
   set = intersect(keys, required);
   if numel(set)~=numel(required)
     error('the required input argument ''%s'' was not specified', set{:});
@@ -52,6 +58,7 @@ end
 
 if ~isempty(forbidden)
   % only check if specified
+  forbidden = cellfun(@lower, forbidden, 'UniformOutput', false);
   set = intersect(keys, forbidden);
   if numel(set)~=0
     error('the input argument ''%s'' is forbidden', set{:});
@@ -60,6 +67,7 @@ end
 
 if ~isempty(optional)
   % only check if specified
+  optional  = cellfun(@lower, optional, 'UniformOutput', false);
   set = setdiff(keys, optional);
   if numel(set)>0
     error('the input argument ''%s'' is forbidden', set{:});

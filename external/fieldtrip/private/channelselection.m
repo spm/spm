@@ -49,6 +49,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2009, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.39  2009/08/04 13:54:20  roboos
+% allow datachannel as single string
+%
 % Revision 1.38  2009/07/08 07:27:37  roboos
 % improved wildcard selection, now also in middle like "M*1"
 %
@@ -119,6 +122,11 @@ end
 if ~iscell(channel)
   % ensure that a single input argument like 'all' also works
   channel = {channel};
+end
+
+if ~iscell(datachannel)
+  % ensure that a single input argument like 'all' also works
+  datachannel = {datachannel};
 end
 
 % ensure that both inputs are column vectors

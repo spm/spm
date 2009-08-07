@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.18  2009/08/05 13:03:55  roboos
+% changed selection of file based on 'gui'
+%
 % Revision 1.17  2009/07/15 12:10:07  jansch
 % added subspace and keepsubspace for subcfg dics and lcmv
 %
@@ -510,14 +513,11 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
 
   if ~isempty(cfg.dataset)
     if strcmp(cfg.dataset, 'gui');
-      d = uigetdir;
-      if d==0
-        [f, p] = uigetfile;
-        if f==0
-          error('You should select a dataset file or directory');
-        else
-          d = fullfile(p, f);
-        end
+      [f, p] = uigetfile('*.*', 'Select a file');
+      if isequal(f, 0)
+        error('User pressed cancel');
+      else
+        d = fullfile(p, f);
       end
       cfg.dataset = d;
     end

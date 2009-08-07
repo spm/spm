@@ -22,6 +22,9 @@ function [varargout] = componentbrowser(cfg, comp)
 % Copyright (C) 2009, Giovanni Piantoni
 %
 % $Log: componentbrowser.m,v $
+% Revision 1.3  2009/08/05 08:58:54  roboos
+% changed the order of the input arguments to plot_topo from (val, x, y) into (x, y, val)
+%
 % Revision 1.2  2009/07/29 15:05:41  giopia
 % removed prepare_mask, added << >> buttons, updated help
 %
@@ -171,7 +174,7 @@ for k = cfg.comp
   h_text(cnt) = plot_text(-2.5, -cnt*cfg.shift, ['n. ' num2str(cfg.comp(cnt))]);
 
   % plot only topography (no layout)
-  h_topo(cnt) = plot_topo(comp.topo(cfg.chanidx.comp, k), cfg.layout.pos(cfg.chanidx.lay,1), cfg.layout.pos(cfg.chanidx.lay,2), ...
+  h_topo(cnt) = plot_topo(cfg.layout.pos(cfg.chanidx.lay,1), cfg.layout.pos(cfg.chanidx.lay,2), comp.topo(cfg.chanidx.comp, k), ...
     'hpos', -1, 'vpos', -cnt*cfg.shift, 'mask', cfg.layout.mask);
   % plot layout
   plot_lay(cfg.layout, 'hpos', -1, 'vpos', -cnt*cfg.shift, 'point', false, 'box', false, 'label', false, 'mask', true, 'verbose', false);

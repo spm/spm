@@ -5,6 +5,10 @@ function [varargout] = plot_text(X, Y, str, varargin)
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_text.m,v $
+% Revision 1.5  2009/08/05 08:52:09  roboos
+% added HorizontalAlignment option
+% use CamelCase for options that are passed on to the default set() function
+%
 % Revision 1.4  2009/06/02 15:40:36  giopia
 % added varargout to pass handle
 %
@@ -16,16 +20,17 @@ function [varargout] = plot_text(X, Y, str, varargin)
 %
 
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'color', 'fontsize', 'fontname'});
+keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'Color', 'FontSize', 'FontName', 'HorizontalAlignment'});
 hpos        = keyval('hpos',      varargin);
 vpos        = keyval('vpos',      varargin);
 width       = keyval('width',     varargin);
 height      = keyval('height',    varargin);
 hlim        = keyval('hlim',      varargin);
 vlim        = keyval('vlim',      varargin);
-color       = keyval('color',     varargin);  if isempty(color), color = 'k'; end
-fontsize    = keyval('fontsize',  varargin);
-fontname    = keyval('fontname',  varargin);
+Color       = keyval('Color',     varargin);  if isempty(Color), Color = 'k'; end
+FontSize    = keyval('FontSize',  varargin);
+FontName    = keyval('FontName',  varargin);
+HorizontalAlignment = keyval('HorizontalAlignment',  varargin); if isempty(HorizontalAlignment), HorizontalAlignment = 'center'; end
 
 abc = axis;
 if isempty(hlim)
@@ -71,11 +76,10 @@ Y = Y .* height;
 Y = Y + vpos;
 
 h = text(X, Y, str);
-set(h, 'HorizontalAlignment', 'center');
-% set(h, 'VerticalAlignment', 'middle'); % this is already the default
-set(h, 'Color', color);
-if ~isempty(fontsize), set(h, 'FontSize', fontsize); end
-if ~isempty(fontname), set(h, 'FontName', fontname); end
+set(h, 'HorizontalAlignment', HorizontalAlignment);
+set(h, 'Color', Color);
+if ~isempty(FontSize), set(h, 'FontSize', FontSize); end
+if ~isempty(FontName), set(h, 'FontName', FontName); end
 
 % the (optional) output is the handle
 if nargout == 1;

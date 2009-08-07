@@ -30,9 +30,15 @@ function [data] = checkdata(data, varargin)
 %   [data] = checkdata(data, 'senstype', {'ctf151', 'ctf275'}), e.g. in megrealign
 %   [data] = checkdata(data, 'datatype', {'timelock', 'freq'}), e.g. in sourceanalysis
 
-% Copyright (C) 2007-2008, Robert Oostenveld
+% Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.17  2009/08/03 15:08:24  ingnie
+% also send source and volume data to fixdimord
+%
+% Revision 1.16  2009/08/03 11:55:11  roboos
+% added comp2raw conversion
+%
 % Revision 1.15  2009/07/15 12:11:19  jansch
 % experimental bypass of sourcedescriptives to create source with single trial
 % power per voxel: dimord = 'rpt_pos', undocumented
@@ -288,7 +294,7 @@ if ~isequal(feedback, 'no')
   end
 end % give feedback
 
-if isfreq || istimelock || iscomp
+if isfreq || istimelock || iscomp || issource || isvolume
   % ensure consistency between the dimord string and the axes that describe the data dimensions
   data = fixdimord(data);
 end
@@ -370,6 +376,11 @@ if ~isempty(dtype)
       elseif isequal(dtype(iCell), {'raw'}) && isfreq
         data = freq2raw(data);
         isfreq = 0;
+        israw = 1;
+        okflag = 1;
+      elseif isequal(dtype(iCell), {'raw'}) && iscomp
+        data = comp2raw(data);
+        iscomp = 0;
         israw = 1;
         okflag = 1;
       end
@@ -1010,6 +1021,14 @@ elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
   data = checkdata(data, 'cmbrepresentation', 'full');
 
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% convert between datatypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = comp2raw(data)
+% just remove the component topographies
+data = rmfield(data, 'topo');
+data = rmfield(data, 'topolabel');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes

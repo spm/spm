@@ -1,23 +1,31 @@
 function [varargout] = plot_topo(dat, chanX, chanY, varargin)
 
-% PLOT_TOPO calculates and plots topography (no layout)
+% PLOT_TOPO interpolates and plots the 2-D spatial topography of the
+% potential or field distribution over the head
 %
 % Use as
-%   plot_topo(datavector, chanX, chanY, ...)
-%   plot_topo(datavector, chanX, chanY, ...)
+%   plot_topo(x, y, val, ...)
 %
 % Additional options should be specified in key-value pairs and can be
 %   'hpos'
 %   'vpos'
 %   'width'
 %   'height'
-%   'mask'
 %   'shading'
 %   'gridscale'
+%   'mask'
+%   'outline'
 
 % Copyrights (C) 2009, Giovanni Piantoni
 %
 % $Log: plot_topo.m,v $
+% Revision 1.6  2009/08/05 08:58:54  roboos
+% changed the order of the input arguments to plot_topo from (val, x, y) into (x, y, val)
+%
+% Revision 1.5  2009/08/05 08:53:20  roboos
+% plot the outline of the head if specified
+% keep hold on/off the same
+%
 % Revision 1.4  2009/07/29 15:04:16  giopia
 % resolved ambiguity of var mask
 %
@@ -32,8 +40,11 @@ function [varargout] = plot_topo(dat, chanX, chanY, varargin)
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
 
+holdflag = ishold;
+hold on
+
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'gridscale', 'mask'});
+keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'gridscale', 'shading', 'mask', 'outline'});
 hpos        = keyval('hpos',      varargin); if isempty(hpos);       hpos = 0;           end
 vpos        = keyval('vpos',      varargin); if isempty(vpos);       vpos = 0;           end
 width       = keyval('width',     varargin); if isempty(width);      width = 1;          end
@@ -41,6 +52,7 @@ height      = keyval('height',    varargin); if isempty(height);     height = 1;
 gridscale   = keyval('gridscale', varargin); if isempty(gridscale);  gridscale = 67;     end; % 67 in original
 shading     = keyval('shading',   varargin); if isempty(shading);    shading = 'flat';   end;
 mask        = keyval('mask',      varargin);
+outline     = keyval('outline',   varargin);
 
 % try to speed up the preparation of the mask on subsequent calls
 current_argin = {chanX, chanY, gridscale, mask};
@@ -56,9 +68,11 @@ elseif ~isempty(mask)
   yi        = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
   [Xi,Yi]   = meshgrid(xi', yi);
   for i=1:length(mask)
-    mask{i}(end+1,:) = mask{i}(1,:);                 % force them to be closed
+    mask{i}(end+1,:) = mask{i}(1,:);                   % force them to be closed
     maskimage(inside_contour([Xi(:) Yi(:)], mask{i})) = true;
   end
+else
+  maskimage = [];
 end
 
 chanX = chanX * width  + hpos;
@@ -67,9 +81,9 @@ chanY = chanY * height + vpos;
 hlim = [min(chanX) max(chanX)];
 vlim = [min(chanY) max(chanY)];
 
-xi         = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
-yi         = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
-[Xi,Yi,Zi] = griddata(chanX', chanY, dat, xi', yi, 'v4'); % Interpolate the topographic data
+xi         = linspace(hlim(1), hlim(2), gridscale);       % x-axis for interpolation (row vector)
+yi         = linspace(vlim(1), vlim(2), gridscale);       % y-axis for interpolation (row vector)
+[Xi,Yi,Zi] = griddata(chanX', chanY, dat, xi', yi, 'v4'); % interpolate the topographic data
 
 if ~isempty(maskimage)
   % apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
@@ -79,6 +93,13 @@ end
 deltax = xi(2)-xi(1); % length of grid entry
 deltay = yi(2)-yi(1); % length of grid entry
 h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor', shading);
+
+% plot the outline of the head, ears and nose
+for i=1:length(outline)
+  xval = outline{i}(:,1) * width  + hpos;
+  yval = outline{i}(:,2) * height + vpos;
+  plot(xval, yval, 'Color', 'k', 'LineWidth', 1)
+end
 
 % the (optional) output is the handle
 if nargout == 1
@@ -91,3 +112,8 @@ if isempty(previous_argin)
   previous_argin     = current_argin;
   previous_maskimage = maskimage;
 end
+
+if ~holdflag
+  hold off
+end
+

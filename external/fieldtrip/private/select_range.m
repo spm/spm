@@ -20,6 +20,13 @@ function select_range(handle, eventdata, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: select_range.m,v $
+% Revision 1.5  2009/08/04 11:56:55  roboos
+% again a change in the handling user data
+% added explicit option for clearing the user data in the figure
+%
+% Revision 1.4  2009/08/03 20:39:16  roboos
+% reverted to revision 1.2 and changed the setappdata handling
+%
 % Revision 1.2  2009/07/30 19:10:25  ingnie
 % deleted disp(callback)
 %
@@ -33,13 +40,24 @@ callback = keyval('callback', varargin);
 multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
 xrange   = keyval('xrange',   varargin); if isempty(xrange), xrange = true; end
 yrange   = keyval('yrange',   varargin); if isempty(yrange), yrange = true; end
+clear    = keyval('clear',   varargin);  if isempty(clear),  clear = false; end
 
 % convert 'yes/no' string to boolean value
 multiple  = istrue(multiple);
 xrange    = istrue(xrange);
 yrange    = istrue(yrange);
 
-userData = get(handle, 'userData');
+p = handle;
+while ~isequal(p, 0)
+  handle = p;
+  p = get(handle, 'parent');
+end
+
+if ishandle(handle)
+  userData = getappdata(handle, 'select_range_m');
+else
+  userData = [];
+end
 
 if isempty(userData)
   userData.range = []; % this is a Nx4 matrix with the selection range
@@ -73,7 +91,13 @@ switch event
     if inSelection(p, userData.range)
       % the user has clicked in one of the existing selections
       evalCallback(callback, userData.range);
-
+      if clear
+        delete(userData.box(ishandle(userData.box)));
+        userData.range = [];
+        userData.box   = [];
+        set(handle, 'Pointer', 'crosshair');
+      end
+      
     else
       if ~multiple
         % start with a new selection
@@ -81,32 +105,32 @@ switch event
         userData.range = [];
         userData.box   = [];
       end
-
+      
       % add a new selection range
       userData.range(end+1,1:4) = nan;
       userData.range(end,1) = p(1);
       userData.range(end,3) = p(2);
-
+      
       % add a new selection box
       xData = [nan nan nan nan nan];
       yData = [nan nan nan nan nan];
       userData.box(end+1) = line(xData, yData);
     end
-
+    
   case 'WindowButtonUpFcn'
     if selecting
       % select the other corner of the box
       userData.range(end,2) = p(1);
       userData.range(end,4) = p(2);
     end
-
+    
     if multiple && ~isempty(userData.range) && ~diff(userData.range(end,1:2)) && ~diff(userData.range(end,3:4))
       % start with a new selection
       delete(userData.box(ishandle(userData.box)));
       userData.range = [];
       userData.box   = [];
     end
-
+    
     if ~isempty(userData.range)
       % ensure that the selection is sane
       if diff(userData.range(end,1:2))<0
@@ -127,11 +151,17 @@ switch event
         userData.range(end,3:4) = [-inf inf];
       end
     end
-
+    
     if pointonly && ~multiple
       evalCallback(callback, userData.range);
+      if clear
+        delete(userData.box(ishandle(userData.box)));
+        userData.range = [];
+        userData.box   = [];
+        set(handle, 'Pointer', 'crosshair');
+      end
     end
-
+    
   case 'WindowButtonMotionFcn'
     if selecting && ~pointonly
       % update the selection box
@@ -149,7 +179,7 @@ switch event
         y1 = yLim(1);
         y2 = yLim(2);
       end
-
+      
       xData = [x1 x2 x2 x1 x1];
       yData = [y1 y1 y2 y2 y1];
       set(userData.box(end), 'xData', xData);
@@ -159,24 +189,25 @@ switch event
       set(userData.box(end), 'LineStyle', '--');
       set(userData.box(end), 'LineWidth', 1.5);
       set(userData.box(end), 'Visible', 'on');
-
+      
     else
       % update the cursor
       if inSelection(p, userData.range)
-        set(handle, 'Pointer', 'default');
+        set(handle, 'Pointer', 'hand');
       else
         set(handle, 'Pointer', 'crosshair');
       end
     end
-
+    
   otherwise
     error('unexpected event "%s"', event);
-
+    
 end % switch event
 
 % put the modified selections back into the figure
-set(handle, 'userData', userData);
-
+if ishandle(handle)
+  setappdata(handle, 'select_range_m', userData);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

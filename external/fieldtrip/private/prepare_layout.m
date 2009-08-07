@@ -47,6 +47,16 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.40  2009/08/05 08:22:09  roboos
+% better detection of empty/absent input data
+%
+% Revision 1.39  2009/08/05 06:32:41  roboos
+% fixed layout generation for ordered and vertical when no data was given as input, labels fully depend on cfg.channel, not on data.label
+%
+% Revision 1.38  2009/08/04 13:57:00  roboos
+% make tight vertical and orderer layout in case cfg.channel is specified
+% allow skipping the COMNT and SCALE positions through the cfg
+%
 % Revision 1.37  2009/06/30 07:08:55  roboos
 % removed debug keyboard statement
 %
@@ -203,14 +213,17 @@ if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
 if ~isfield(cfg, 'montage'),    cfg.montage = 'no';             end
 if ~isfield(cfg, 'image'),      cfg.image = [];                 end
 if ~isfield(cfg, 'bw'),         cfg.bw = 0;                     end
+if ~isfield(cfg, 'channel'),    cfg.channel = 'all';            end 
+if ~isfield(cfg, 'skipscale'),  cfg.skipscale = 'no';           end 
+if ~isfield(cfg, 'skipcomnt'),  cfg.skipcomnt = 'no';           end 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-skipscale = false; % in general a scale is desired
-skipcomnt = false; % in general a comment desired
+skipscale = strcmp(cfg.skipscale, 'yes'); % in general a scale is desired
+skipcomnt = strcmp(cfg.skipcomnt, 'yes'); % in general a comment desired
 
 if isa(cfg.layout, 'config')
   % convert the nested config-object back into a normal structure
@@ -236,8 +249,16 @@ elseif isstruct(cfg.layout) && isfield(cfg.layout, 'pos') && isfield(cfg.layout,
   lay.height = ones(nchans,1) * mindist * 0.6;
 
 elseif isequal(cfg.layout, 'butterfly')
-  nchan       = length(data.label);
-  lay.label   = data.label;
+  if nargin>1 && ~isempty(data)
+    % look at the data to determine the overlapping channels
+    cfg.channel = channelselection(cfg.channel, data.label);
+    chanindx    = match_str(data.label, cfg.channel);
+    nchan       = length(data.label(chanindx));
+    lay.label   = data.label(chanindx);
+  else
+    nchan     = length(cfg.channel);
+    lay.label = cfg.channel;
+  end
   lay.pos     = zeros(nchan,2);  % centered at (0,0)
   lay.width   = ones(nchan,1) * 1.0;
   lay.height  = ones(nchan,1) * 1.0;
@@ -247,8 +268,16 @@ elseif isequal(cfg.layout, 'butterfly')
   skipcomnt = true; % a comment is initially not desired, or at least requires more thought
 
 elseif isequal(cfg.layout, 'vertical')
-  nchan     = length(data.label);
-  lay.label = data.label;
+  if nargin>1 && ~isempty(data)
+    % look at the data to determine the overlapping channels
+    cfg.channel = channelselection(cfg.channel, data.label);
+    chanindx    = match_str(data.label, cfg.channel);
+    nchan       = length(data.label(chanindx));
+    lay.label   = data.label(chanindx);
+  else
+    nchan     = length(cfg.channel);
+    lay.label = cfg.channel;
+  end
   for i=1:(nchan+2)
     x = 0.5;
     y = 1-i/(nchan+1+2);
@@ -265,7 +294,16 @@ elseif isequal(cfg.layout, 'vertical')
   lay.outline = {};
 
 elseif isequal(cfg.layout, 'ordered')
-  nchan = length(data.label);
+  if nargin>1 && ~isempty(data)
+    % look at the data to determine the overlapping channels
+    cfg.channel = channelselection(cfg.channel, data.label);
+    chanindx    = match_str(data.label, cfg.channel);
+    nchan       = length(data.label(chanindx));
+    lay.label   = data.label(chanindx);
+  else
+    nchan     = length(cfg.channel);
+    lay.label = cfg.channel;
+  end
   ncol = ceil(sqrt(nchan))+1;
   nrow = ceil(sqrt(nchan))+1;
   k = 0;
@@ -281,7 +319,6 @@ elseif isequal(cfg.layout, 'ordered')
       end
     end
   end
-  lay.label = data.label;
 
   lay.label{end+1}  = 'SCALE';
   lay.width(end+1)  = 0.8 * 1/ncol;
@@ -296,7 +333,6 @@ elseif isequal(cfg.layout, 'ordered')
   x = (ncol-1)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
-
 
   % try to generate layout from other configuration options
 elseif ischar(cfg.layout) && filetype(cfg.layout, 'matlab')
@@ -698,6 +734,13 @@ if ~any(strcmp('COMNT', lay.label)) && strcmpi(cfg.style, '2d') && ~skipcomnt
   Y                 = max(lay.pos(:,2));
   Y                 = min(lay.pos(:,2));
   lay.pos(end+1,:)  = [X Y];
+elseif any(strcmp('COMNT', lay.label)) && skipcomnt
+  % remove the scale entry
+  sel = find(strcmp('COMNT', lay.label));
+  lay.label(sel) = [];
+  lay.pos(sel,:) = [];
+  lay.width(sel) = [];
+  lay.height(sel) = [];
 end
 
 if ~any(strcmp('SCALE', lay.label)) && strcmpi(cfg.style, '2d') && ~skipscale
@@ -709,6 +752,13 @@ if ~any(strcmp('SCALE', lay.label)) && strcmpi(cfg.style, '2d') && ~skipscale
   Y                 = max(lay.pos(:,2));
   Y                 = min(lay.pos(:,2));
   lay.pos(end+1,:)  = [X Y];
+elseif any(strcmp('SCALE', lay.label)) && skipscale
+  % remove the scale entry
+  sel = find(strcmp('SCALE', lay.label));
+  lay.label(sel) = [];
+  lay.pos(sel,:) = [];
+  lay.width(sel) = [];
+  lay.height(sel) = [];
 end
 
 % to plot the layout for debugging, you can use this code snippet

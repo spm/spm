@@ -27,7 +27,7 @@ function [output] = volumelookup(cfg, volume)
 %   cfg.box                = Nx3 vector, size of each box in cm/mm dep on unit of input
 %   cfg.round2nearestvoxel = 'yes' or 'no' (default = 'no'), voxel closest to point of interest is calculated
 %                             and box/sphere is centered around coordinates of that voxel
-% configuration options for labels to a mask:
+% configuration options for labels from a mask:
 %   cfg.inputcoord    = 'mni' or 'tal', coordinate system of the mri/source/stat
 %   cfg.atlas         = string, filename of atlas to use, either the AFNI
 %                        brik file that is available from http://afni.nimh.nih.gov/afni/doc/misc/ttatlas_tlrc,
@@ -42,6 +42,8 @@ function [output] = volumelookup(cfg, volume)
 %      for j = 1:length(sel)
 %        found_areas{j,1} = [num2str(labels.count(ind(j))) ': ' labels.name{ind(j)}];
 %      end
+% in found_areas you can then see how many times which labels are found
+% NB in the AFNI brick one location can have 2 labels!
 %
 % Dependent on the input coordinates and the coordinates of the atlas, the
 % input MRI is transformed betweem MNI and Talairach-Tournoux coordinates
@@ -50,6 +52,9 @@ function [output] = volumelookup(cfg, volume)
 % Copyright (C) 2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: volumelookup.m,v $
+% Revision 1.5  2009/08/03 15:20:19  ingnie
+% updated help
+%
 % Revision 1.4  2009/01/29 13:54:57  ingnie
 % changed help
 %

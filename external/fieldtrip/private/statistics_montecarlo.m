@@ -81,6 +81,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.31  2009/08/06 08:31:31  roboos
+% renamed some internal variables
+%
 % Revision 1.30  2009/04/23 07:48:23  roboos
 % added cfg.randomseed option, default is yes
 %
@@ -381,8 +384,8 @@ for i=1:Nrand
       % compare each data element with the maximum statistic
       prb_pos = prb_pos + (statobs<max(statrand(:)));
       prb_neg = prb_neg + (statobs>min(statrand(:)));
-      ref_pos(i) = max(statrand(:));
-      ref_neg(i) = min(statrand(:));
+      posdistribution(i) = max(statrand(:));
+      negdistribution(i) = min(statrand(:));
     else
       % compare each data element with its own statistic
       prb_pos = prb_pos + (statobs<statrand);
@@ -436,8 +439,8 @@ switch lower(cfg.correctm)
     fprintf('using a maximum-statistic based method for multiple comparison correction\n');
     fprintf('the returned probabilities and the thresholded mask are corrected for multiple comparisons\n');
     stat.mask = stat.prob<=cfg.alpha;
-    stat.ref_pos = ref_pos;
-    stat.ref_neg = ref_neg;
+    stat.posdistribution = posdistribution;
+    stat.negdistribution = negdistribution;
   case 'cluster'
     % the correction is implicit in the method
     fprintf('using a cluster-based method for multiple comparison correction\n');
