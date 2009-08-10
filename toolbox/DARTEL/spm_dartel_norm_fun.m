@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3314 2009-08-10 12:32:48Z john $
+% $Id: spm_dartel_norm_fun.m 3318 2009-08-10 14:24:15Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -221,7 +221,7 @@ for m=1:numel(PI),
                 end
             end
         end
-        odm = dm;
+        odm = dm(1:3);
         oM  = M;
 
         % Write the warped data for this time point.
