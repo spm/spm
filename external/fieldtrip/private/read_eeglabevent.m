@@ -33,6 +33,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabevent.m,v $
+% Revision 1.3  2009/08/09 01:45:24  josdie
+% Changed event value to equal EEGlab's event value rather than type.
+%
 % Revision 1.2  2009/02/02 20:45:34  josdie
 % FieldTrip's .value field now set to EEGlab's .type field.  FieldTrip's .type field set to 'trigger'.  FieldTrip's .duration field set to 0 rather than empty.
 %
@@ -64,7 +67,7 @@ end;
 event = [];
 oldevent = header.orig.event;
 for index = 1:length(oldevent)
-  event(index).value   = num2str( oldevent(index).type );
+  event(index).value   = num2str( oldevent(index).value );
   event(index).type   = 'trigger';
 if header.nTrials > 1
     event(index).sample = oldevent(index).latency-header.nSamplesPre;

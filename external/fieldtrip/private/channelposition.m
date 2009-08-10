@@ -8,6 +8,9 @@ function [pnt, lab] = channelposition(sens, varargin)
 % Copyright (C) 2009, Robert Oostenveld & Vladimir Litvak
 %
 % $Log: channelposition.m,v $
+% Revision 1.9  2009/08/10 12:33:57  vlalit
+% Adding thresholds to ignore small values in the tra also for Neuromag and planar
+%
 % Revision 1.8  2009/07/08 07:42:50  jansch
 % undone previous adjustment. convention now is that sequential balancing steps
 % should be recorded in the grad-structure itself; rather than having
@@ -102,8 +105,8 @@ switch senstype(sens)
       if length(sel)==2
         ind = [ind; i];
         lab(i,:) = {ch1, ch2};
-        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(abs(sens.tra(sel(1),:))>0.5, :), 1);
+        meanpnt2 = mean(sens.pnt(abs(sens.tra(sel(2),:))>0.5, :), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
       end
     end
@@ -129,8 +132,8 @@ switch senstype(sens)
       if (length(sel)==2)
         ind = [ind; i];
         lab(i,:) = {ch1, ch2};
-        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(abs(sens.tra(sel(1),:))>0.5,:), 1);
+        meanpnt2 = mean(sens.pnt(abs(sens.tra(sel(2),:))>0.5,:), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
       end
     end
@@ -158,9 +161,9 @@ switch senstype(sens)
       if (length(sel)==3)
         ind = [ind; i];
         lab(i,:) = {ch1, ch2, ch3};
-        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
-        meanpnt3 = mean(sens.pnt(find(sens.tra(sel(3),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(abs(sens.tra(sel(1),:))>0.5,:), 1);
+        meanpnt2 = mean(sens.pnt(abs(sens.tra(sel(2),:))>0.5,:), 1);
+        meanpnt3 = mean(sens.pnt(abs(sens.tra(sel(3),:))>0.5,:), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2; meanpnt3], 1);
       end
     end

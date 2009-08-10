@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.102  2009/08/09 03:34:55  josdie
+% Modified egi_egia so that combined subject average files have the cell names start with a four character subject code (e.g., S001) so that other software can decode the subject number more reliably.
+%
 % Revision 1.101  2009/07/28 11:22:54  roboos
 % improved detection of binary trigger channels for neuromag
 %
@@ -904,7 +907,7 @@ switch eventformat
         event(eventCount).sample   = (eventCount-1)*hdr.nSamples + 1;
         event(eventCount).offset   = -hdr.nSamplesPre;
         event(eventCount).duration =  hdr.nSamples;
-        event(eventCount).value    =  ['S' num2str(subject) cnames{cell}];
+        event(eventCount).value    =  ['S' sprintf('%03d',subject) cnames{cell}];
       end
     end
 
