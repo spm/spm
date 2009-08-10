@@ -13,7 +13,7 @@ function [D, montage] = spm_eeg_montage(S)
 %     or as a filename of a mat-file containing the montage structure.
 %   S.keepothers       - 'yes'/'no': keep or discart the channels not
 %                        involved in the montage [default: 'yes']
-%   S.blocksize        - size of blocks used internally to split large 
+%   S.blocksize        - size of blocks used internally to split large
 %                        continuous files [default ~20Mb]
 %   S.updatehistory    - if 0 the history is not updated (useful for
 %                        functions that use montage functionality.
@@ -23,7 +23,7 @@ function [D, montage] = spm_eeg_montage(S)
 % montage              - the applied montage
 %__________________________________________________________________________
 %
-% spm_eeg_montage applies montage provided or specified by the user to 
+% spm_eeg_montage applies montage provided or specified by the user to
 % data and sensors of an MEEG file and produces a new file. It works
 % correctly when no sensors are specified or when data and sensors are
 % consistent (which is ensured by spm_eeg_prep_ui).
@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3246 2009-07-02 17:22:57Z vladimir $
+% $Id: spm_eeg_montage.m 3317 2009-08-10 12:39:52Z vladimir $
 
-SVNrev = '$Rev: 3246 $';
+SVNrev = '$Rev: 3317 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -91,7 +91,7 @@ if ischar(S.montage)
 end
 
 montage = S.montage;
-    
+
 if ~all(isfield(montage, {'labelnew', 'labelorg', 'tra'})) || ...
         any([isempty(montage.labelnew), isempty(montage.labelorg), isempty(montage.tra)]) || ...
         length(montage.labelnew) ~= size(montage.tra, 1) || length(montage.labelorg) ~= size(montage.tra, 2)
@@ -112,7 +112,7 @@ add              = chlab(sort(ind));
 %--------------------------------------------------------------------------
 if ~isfield(S, 'keepothers')
     if ~isempty(add)
-       S.keepothers  = spm_input('Keep the other channels?', '+1', 'yes|no'); 
+        S.keepothers  = spm_input('Keep the other channels?', '+1', 'yes|no');
     else
         S.keepothers = 'yes';
     end
@@ -133,15 +133,15 @@ montage.labelorg = cat(1, montage.labelorg(:), add(:));
 m = size(montage.tra,1);
 n = size(montage.tra,2);
 if length(unique(montage.labelnew))~=m
-  error('not all output channels of the montage are unique');
+    error('not all output channels of the montage are unique');
 end
 if length(unique(montage.labelorg))~=n
-  error('not all input channels of the montage are unique');
+    error('not all input channels of the montage are unique');
 end
 
 % determine whether all channels that have to be rereferenced are available
 if length(intersect(D.chanlabels, montage.labelorg)) ~= n
-  error('not all channels that are used in the montage are available');
+    error('not all channels that are used in the montage are available');
 end
 
 % reorder the columns of the montage matrix
@@ -165,28 +165,28 @@ else
 end
 
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
-elseif  D.ntrials == 1, Ibar = [1:ceil(D.nsamples./nblocksamples)]; 
+elseif  D.ntrials == 1, Ibar = [1:ceil(D.nsamples./nblocksamples)];
 else Ibar = [1:D.ntrials]; end
 
 spm_progress_bar('Init', Ibar(end), 'applying montage');
 
 for i = 1:D.ntrials
     for j = 1:nblocks
-
+        
         Dnew(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = ...
             montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
-
+        
         if D.ntrials == 1 && ismember(j, Ibar)
             spm_progress_bar('Set', j);
         end
     end
-
+    
     if mod(D.nsamples, nblocksamples) ~= 0
         Dnew(:, (nblocks*nblocksamples +1) : D.nsamples, i) = ...
             montage.tra * squeeze(D(:, (nblocks*nblocksamples +1) : D.nsamples, i));
     end
-
-
+    
+    
     if D.ntrials>1 && ismember(i, Ibar)
         spm_progress_bar('Set', i);
     end
@@ -219,9 +219,9 @@ for i = 1:length(sensortypes)
         if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
             balance = forwinv_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', S.keepothers);
         else
-             balance = sensmontage;
+            balance = sensmontage;
         end
-
+        
         sens.balance.custom = balance;
         sens.balance.current = 'custom';
     end
@@ -249,7 +249,7 @@ end
 
 %-Create 2D positions for EEG by projecting the 3D positions to 2D
 %--------------------------------------------------------------------------
-if ~isempty(Dnew.meegchannels('EEG')) && ~isempty(Dnew.sensors('EEG')) 
+if ~isempty(Dnew.meegchannels('EEG')) && ~isempty(Dnew.sensors('EEG'))
     S1 = [];
     S1.task = 'project3D';
     S1.modality = 'EEG';
@@ -261,7 +261,7 @@ end
 
 %-Create 2D positions for MEG  by projecting the 3D positions to 2D
 %--------------------------------------------------------------------------
-if ~isempty(Dnew.meegchannels('MEG')) && ~isempty(Dnew.sensors('MEG')) 
+if ~isempty(Dnew.meegchannels('MEG')) && ~isempty(Dnew.sensors('MEG'))
     S1 = [];
     S1.task = 'project3D';
     S1.modality = 'MEG';

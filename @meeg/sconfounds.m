@@ -5,10 +5,10 @@ function res = sconfounds(this, newsconfounds)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sconfounds.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: sconfounds.m 3317 2009-08-10 12:39:52Z vladimir $
 
 if nargin == 2
-    [sel1, sel2] = match_str(chanlabels(this), newsconfounds.label);
+    [sel1, sel2] = match_str(chanlabels(this, meegchannels(this)), newsconfounds.label);
 
     if length(sel1)<length(meegchannels(this))
         error('The spatial confounds do not match the MEEG channels.');

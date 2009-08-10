@@ -5,7 +5,7 @@ function D = spm_eeg_correct_sensor_data(S)
 % S                    - input structure (optional)
 % (optional) fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.method        
+%   S.method
 %
 % Output:
 % sD                   - MEEG object (also written on disk)
@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3246 2009-07-02 17:22:57Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 3317 2009-08-10 12:39:52Z vladimir $
 
-SVNrev = '$Rev: 3246 $';
+SVNrev = '$Rev: 3317 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -44,95 +44,140 @@ end
 
 D = spm_eeg_load(D);
 
-if ~any(D.sconfounds)    
+if ~any(D.sconfounds)
     D = spm_eeg_spatial_confounds(S);
-    if ~any(D.sconfounds)    
+    if ~any(D.sconfounds)
         return;
     end
 end
-
-A = D.sconfounds;
 
 if ~isfield(S, 'correction')
     S.correction = spm_input('Correction method','+1', 'SSP|Berg', strvcat('SSP', 'Berg'));
 end
 
-label = D.chanlabels(setdiff(meegchannels(D, 'MEEG'), badchannels(D)));
+[mod, list] = modality(D, 1, 1);
 
+A = {};
+if isequal(mod, 'Multimodal')
+    sconf = getfield(D, 'sconfounds');
+    
+    for i = 1:numel(list)
+        chanind = setdiff(meegchannels(D, list{i}), badchannels(D));
+        [sel1, sel2] = spm_match_str(chanlabels(D, chanind), sconf.label);
+        
+        if any(sconf.bad(sel2))
+            error(['Channels ' sprintf('%s ', sconf.label{sel2}) ' should be set to bad.']);
+        end
+        
+        A{i} = sconf.coeff(sel2, :);
+    end
+else
+    A = {D.sconfounds};
+    list = {mod};
+end
+
+Dorig = D;
+
+for i = 1:numel(A)
+    label = D.chanlabels(setdiff(meegchannels(D, list{i}), badchannels(D)));
+    
+    montage = [];
+    montage.labelorg = label;
+    montage.labelnew = label;
+    
+    if size(A{i}, 1)~=numel(label)
+        error('Spatial confound vector does not match the channels');
+    end
+    
+    if isequal(lower(S.correction), 'berg')
+        [ok, D] = check(D, 'sensfid');
+        
+        if ~ok
+            if check(D, 'basic')
+                errordlg(['The requested file is not ready for source reconstruction.'...
+                    'Use prep to specify sensors and fiducials.']);
+            else
+                errordlg('The meeg file is corrupt or incomplete');
+            end
+            return
+        end
+        
+        %% ============ Find or prepare head model
+        
+        if ~isfield(D, 'val')
+            D.val = 1;
+        end
+        
+        if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
+                ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
+                ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+            D = spm_eeg_inv_mesh_ui(D, D.val);
+            D = spm_eeg_inv_datareg_ui(D, D.val);
+            D = spm_eeg_inv_forward_ui(D, D.val);
+            
+            save(D);
+        end
+        
+        [L, D] = spm_eeg_lgainmat(D, [], label);
+        
+        B = spm_svd(L*L', 0.01);
+        
+        lim = min(0.5*size(L, 1), 45); % 45 is the number of dipoles BESA would use.
+        
+        if size(B, 2) > lim;
+            B = B(:, 1:lim);
+        end
+        
+        SX = full([A{i} B]);
+        
+        SXi = pinv(SX);
+        SXi = SXi(1:size(A{i}, 2), :);
+        
+        montage.tra = eye(size(A{i}, 1)) - A{i}*SXi;
+    else
+        montage.tra = eye(size(A{i}, 1)) - A{i}*pinv(A{i});
+    end    
+    
+    %% ============  Use the montage functionality to compute source activity.
+    S1   = [];
+    S1.D = D;
+    S1.montage = montage;
+    S1.keepothers = 'yes';
+    S1.updatehistory  = 0;
+    
+    Dnew = spm_eeg_montage(S1); 
+    Dnew.inv = D.inv;
+    
+    if i>1
+        delete(D);
+    end
+    
+    D = Dnew;
+end
+
+%% ============  Change the channel order to the original order
+tra = eye(D.nchannels);
 montage = [];
 montage.labelorg = D.chanlabels;
-montage.labelnew = montage.labelorg;
-montage.tra      = eye(D.nchannels);
+montage.labelnew = Dorig.chanlabels;
 
-if size(A, 1)~=numel(label)
-    error('Spatial confound vector does not match the channels');
-end
+[sel1, sel2]  = spm_match_str(montage.labelnew, montage.labelorg);
 
-if isequal(lower(S.correction), 'berg')
-    [ok, D] = check(D, 'sensfid');
-    
-    if ~ok
-        if check(D, 'basic')
-            errordlg(['The requested file is not ready for source reconstruction.'...
-                'Use prep to specify sensors and fiducials.']);
-        else
-            errordlg('The meeg file is corrupt or incomplete');
-        end
-        return
-    end
+montage.tra = tra(sel2, :);
 
-    %% ============ Find or prepare head model
-
-    if ~isfield(D, 'val')
-        D.val = 1;
-    end
-
-    if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
-            ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
-            ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
-        D = spm_eeg_inv_mesh_ui(D, D.val);
-        D = spm_eeg_inv_datareg_ui(D, D.val);
-        D = spm_eeg_inv_forward_ui(D, D.val);
-    end
-
-    [L, D] = spm_eeg_lgainmat(D);
-    
-    B = spm_svd(L*L', 0.01);
-    
-    lim = min(0.5*size(L, 1), 45); % 45 is the number of dipoles BESA would use.
-    
-    if size(B, 2) > lim;
-        B = B(:, 1:lim);
-    end
-    
-    SX = full([A B]);
-    
-    SXi = pinv(SX);
-    SXi = SXi(1:size(A, 2), :);
-    
-    tra = eye(size(A, 1)) - A*SXi; 
-else
-    tra = eye(size(A, 1)) - A*pinv(A); 
-end
-   
-[sel1, sel2]  = spm_match_str(montage.labelorg, label);
-[sel3, sel4]  = spm_match_str(montage.labelnew, label);
-
-montage.tra(sel3, sel1) = tra(sel4, sel2);
-
-%% ============  Use the montage functionality to compute source activity.
 S1   = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 'yes';
+S1.keepothers = 'no';
+S1.updatehistory  = 0;
 
 Dnew = spm_eeg_montage(S1);
-
-if ~isempty(D.badchannels)
-    Dnew = badchannels(Dnew, D.badchannels, 1);
-end
-
+delete(D);
 D = Dnew;
+
+if ~isempty(badchannels(Dorig))
+    D = badchannels(D, badchannels(Dorig), 1);
+end
 
 D = D.history(mfilename, S);
 save(D);
