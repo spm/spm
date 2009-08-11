@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3248 2009-07-03 16:17:30Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 3319 2009-08-11 10:29:58Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -286,8 +286,6 @@ switch varargin{1}
                         opt.figname = 'Coregistred MEG sensor positions';
                     catch
                         pos3d = [D.sensors.meg.pnt];
-                        indMeg = unique([D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
-                        pos3d = pos3d(indMeg,:);
                         opt.figname = 'Uncoregistred MEG sensor positions';
                     end
                     pos3d(1,:);
