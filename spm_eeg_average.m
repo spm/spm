@@ -21,9 +21,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 3277 2009-07-15 11:47:40Z guillaume $
+% $Id: spm_eeg_average.m 3321 2009-08-12 13:10:15Z vladimir $
 
-SVNrev = '$Rev: 3277 $';
+SVNrev = '$Rev: 3321 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -128,7 +128,7 @@ end
 goodtrials  = pickconditions(D, cl, 1);
 chanind     = meegchannels(D);
 
-if 0%prod(size(D))*8 < spm('memory')
+if prod(size(D))*8 < spm('memory')
 
     %-Average everything at once if there is enough memory
     %======================================================================
