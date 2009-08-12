@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3317 2009-08-10 12:39:52Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 3320 2009-08-12 12:30:46Z vladimir $
 
-SVNrev = '$Rev: 3317 $';
+SVNrev = '$Rev: 3320 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -146,7 +146,10 @@ for i = 1:numel(A)
     S1.updatehistory  = 0;
     
     Dnew = spm_eeg_montage(S1); 
-    Dnew.inv = D.inv;
+    
+    if isfield(D,'inv')
+        Dnew.inv = D.inv;
+    end
     
     if i>1
         delete(D);
