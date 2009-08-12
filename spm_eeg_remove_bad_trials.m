@@ -71,12 +71,19 @@ for i = 1:length(goodtrials)
         Dnew(:, :, :, i) =  D(:, :, :, goodtrials(i));
     else
         Dnew(:, :, i) =  D(:, :, goodtrials(i));
-    end
+    end    
     
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end  %
 
 spm_progress_bar('Clear');
+
+%-Copy trial-specific data.
+%--------------------------------------------------------------------------
+Dnew = conditions(Dnew, [], conditions(D, goodtrials));
+Dnew = repl(Dnew, [], repl(D, goodtrials));
+Dnew = events(Dnew, [], events(D, goodtrials));
+Dnew = trialonset(Dnew, [], trialonset(D, goodtrials));
 
 %-Save the new M/EEG dataset
 %--------------------------------------------------------------------------
