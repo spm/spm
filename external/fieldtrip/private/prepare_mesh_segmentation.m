@@ -7,6 +7,9 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: prepare_mesh_segmentation.m,v $
+% Revision 1.4  2009/08/11 12:47:20  jansch
+% fixed bug in assignment of default cfg.threshold
+%
 % Revision 1.3  2009/07/17 10:10:56  crimic
 % added initial checks and variables consinstency
 %
@@ -14,13 +17,13 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 % fixed tiny error
 %
 % Revision 1.1  2009/07/13 14:45:06  crimic
-% copy code of existin funtions into stand-alone functions for inclusion in the prepare_mesh helper function
+% copy code of existing functions into stand-alone functions for inclusion in the prepare_mesh helper function
 %
 
 % some initial checks
 cfg = checkconfig(cfg, 'forbidden', 'numcompartments');
 if ~isfield(mri, 'tissue') && isfield(mri, 'gray'), cfg.tissue = 1; end
-if ~isfield(cfg.threshold, 'tissue'), cfg.threshold = 0; end
+if ~isfield(cfg, 'threshold'), cfg.threshold = 0; end
   
 fprintf('using the segmented MRI\n');
 

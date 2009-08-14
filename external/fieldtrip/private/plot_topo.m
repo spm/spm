@@ -1,4 +1,4 @@
-function [varargout] = plot_topo(dat, chanX, chanY, varargin)
+function [varargout] = plot_topo(chanX, chanY, dat, varargin)
 
 % PLOT_TOPO interpolates and plots the 2-D spatial topography of the
 % potential or field distribution over the head
@@ -19,6 +19,9 @@ function [varargout] = plot_topo(dat, chanX, chanY, varargin)
 % Copyrights (C) 2009, Giovanni Piantoni
 %
 % $Log: plot_topo.m,v $
+% Revision 1.7  2009/08/12 15:15:18  jansch
+% also changed the order of inputs on the first line of the function
+%
 % Revision 1.6  2009/08/05 08:58:54  roboos
 % changed the order of the input arguments to plot_topo from (val, x, y) into (x, y, val)
 %

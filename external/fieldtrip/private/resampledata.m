@@ -44,6 +44,11 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.22  2009/08/14 09:35:45  jansch
+% pass an updated trl matrix to the output as cfg.resampletrl, containing a
+% 'consistent' trial description matrix relative to the new sampling rate.
+% this is needed if in a later step fetch_data is invoked
+%
 % Revision 1.21  2009/04/03 08:06:35  jansch
 % included possibility to resample data structures with an original non-integer
 % sampling rate
@@ -141,6 +146,15 @@ if isempty(cfg.resamplefs) && isempty(cfg.time),
   cfg.resamplefs = 256;
 end
 
+% this is needed if only a subset of trials is requested,
+% and for an attempt to pass in the output a trl matrix
+% which contains the indexing in the updated sampling rate
+if isfield(data, 'cfg') % try to locate the trl in the nested configuration
+  trl = findcfg(data.cfg, 'trl');
+else
+  trl = [];
+end
+
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
@@ -148,11 +162,6 @@ if ~strcmp(cfg.trials, 'all')
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
   % update the trial definition (trl)
-  if isfield(data, 'cfg') % try to locate the trl in the nested configuration
-    trl = findcfg(data.cfg, 'trl');
-  else
-    trl = [];
-  end
   if isempty(trl)
     % a trial definition is expected in each continuous data set
     warning('could not locate the trial definition ''trl'' in the data structure');
@@ -238,6 +247,20 @@ elseif usetime
 
 end % if usefsample or usetime
 
+%try to give an updated trl matrix, which is necessary to fool
+%fetch_data and fetch_header at a potential later stage of the
+%analysis pipeline
+%FIXME this is only done in case of usefsample, think of whether
+%it is possible as well in the other case
+if ~isempty(trl) && usefsample,
+  trlorig = trl;
+  offsindx = round((trl(:,1)-trl(:,3)).*(fsres./fsorig));
+  offs     = round(trl(:,3).*(fsres./fsorig));
+  nsmp     = cellfun('size',data.trial,2)';
+  trl      = [offsindx+offs offsindx+offs+nsmp-1 offs];
+  cfg.resampletrl = trl;
+end
+
 fprintf('original sampling rate = %d Hz\nnew sampling rate = %d Hz\n', cfg.origfs, data.fsample);
 
 % get the output cfg
@@ -252,7 +275,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.21 2009/04/03 08:06:35 jansch Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.22 2009/08/14 09:35:45 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

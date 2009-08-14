@@ -41,6 +41,10 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.25  2009/08/13 20:47:02  jansch
+% changed typo in key-value pair 'hdr',hdr. this should read 'header',hdr and
+% speeds up the function considerably
+%
 % Revision 1.24  2009/01/14 15:11:22  roboos
 % corrected documentation for cfg.begsample/endsample
 % fixed bug in output data.cfg.trl (one sample too long at the end) for input cfg.toilim and input cfg.begsample/endsample
@@ -266,7 +270,7 @@ elseif ~isempty(cfg.trl)
     endsample = trl(iTrl,2);
     offset    = trl(iTrl,3);
     trllength        = endsample - begsample + 1;
-    data.trial{iTrl} = fetch_data(dataold, 'hdr', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans);
+    data.trial{iTrl} = fetch_data(dataold, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'docheck', 0);
     data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
   end
   data.hdr       = hdr;
@@ -313,7 +317,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.24 2009/01/14 15:11:22 roboos Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.25 2009/08/13 20:47:02 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg;    end
 try, cfg.previous = dataold.cfg; end % in case of ~isempty(cfg.trl)

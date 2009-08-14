@@ -25,6 +25,10 @@ function [data] = rejectcomponent(cfg, comp, data)
 % Copyright (C) 2005-2009, Robert Oostenveld
 % 
 % $Log: rejectcomponent.m,v $
+% Revision 1.12  2009/08/14 09:30:20  jansch
+% also pass configuration of input data-structure to the output data.cfg in
+% case of nargin==3
+%
 % Revision 1.11  2009/03/26 13:21:50  jansch
 % ensure correct montage in the case of hasdata
 %
@@ -111,7 +115,7 @@ if hasdata,
   invtopo  = pinv(topo);
   tra      = eye(length(selcomp)) - topo(:, cfg.component)*invtopo(cfg.component, :);
   %I am not sure about this, but it gives comparable results to the ~hasdata case
-  %when comp contains non-orthogonal (=ica) topographies
+  %when comp contains non-orthogonal (=ica) topographies, and contains a complete decomposition
 
   %the following is incorrect
   %topo     = comp.topo(selcomp, cfg.component);
@@ -175,9 +179,18 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectcomponent.m,v 1.11 2009/03/26 13:21:50 jansch Exp $';
-% remember the configuration details of the input data 
-try, cfg.previous = comp.cfg; end
+cfg.version.id = '$Id: rejectcomponent.m,v 1.12 2009/08/14 09:30:20 jansch Exp $';
+if nargin==2,
+  % remember the configuration details of the input data 
+  try, cfg.previous = comp.cfg; end
+elseif nargin==3,
+  try, cfg.previous{2} = comp.cfg; end
+  try, cfg.previous{1} = data.cfg; end
+  %the configuration of the data is relatively more important
+  %potential use of findcfg in subsequent analysis steps looks into 
+  %the previous{1} first
+end
+
 % keep the configuration in the output
 data.cfg = cfg;
 
