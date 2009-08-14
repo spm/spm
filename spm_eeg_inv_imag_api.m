@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 3075 2009-04-22 10:56:29Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 3324 2009-08-14 11:39:18Z vladimir $
 
 spm('Clear');
 
@@ -445,7 +445,11 @@ Reset(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 function Vis3D_Callback(hObject, eventdata, handles)
 Exit_Callback(hObject, eventdata, handles)
-spm_eeg_review(handles.D,6,handles.D.val)
+try
+    spm_eeg_inv_visu3D_api(handles.D);
+catch
+    spm_eeg_review(handles.D,6,handles.D.val);
+end
 Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in CheckImage.
