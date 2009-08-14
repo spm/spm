@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 2932 2009-03-24 11:05:15Z guillaume $
+% $Id: spm_eeg_inv_visu3D_api.m 3323 2009-08-14 11:29:27Z vladimir $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ axes(handles.sensors_axes);
 
 try, val = D.val; catch,  val = 1; D.val = 1; end
 try, con = D.con; catch,  con = 1; D.con = 1; end
-if D.con > length(D.inv{D.val}.inverse.J)
+if (D.con == 0) || (D.con > length(D.inv{D.val}.inverse.J))
     con = 1; D.con = 1;
 end
 handles.D = D;
@@ -136,7 +136,7 @@ try
     handles.pred_data = U*L*J(Is,:);
 
 catch
-    warndlg({'Please invert your model';'inverse.J not found'});
+    warndlg({'Please invert your model';'inverse solution not valid'});
     return
 end
     
