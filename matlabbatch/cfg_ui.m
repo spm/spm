@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3180 2009-06-03 12:42:16Z volkmar $
+% $Id: cfg_ui.m 3326 2009-08-17 10:04:15Z volkmar $
 
-rev = '$Rev: 3180 $'; %#ok
+rev = '$Rev: 3326 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -366,6 +366,7 @@ if ~isempty(udmodlist.cmod)
             else
                 switch contents{5}{k}
                     case 'cfg_menu',
+                        datastr{k} = 'Unknown selection';
                         for l = 1:numel(contents{4}{k})
                             if isequal(contents{2}{k}{1}, contents{4}{k}{l})
                                 datastr{k} = contents{3}{k}{l};
