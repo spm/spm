@@ -13,6 +13,9 @@ function [type, dimord] = datatype(data, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: datatype.m,v $
+% Revision 1.8  2009/08/17 08:41:00  jansch
+% added undocumented and experimental datatypes mvar and freqmvar
+%
 % Revision 1.7  2009/06/15 12:55:18  roboos
 % also recognize cohspctrm as type=freq
 %
@@ -45,11 +48,19 @@ isspike    = isfield(data, 'label') && isfield(data, 'waveform') && isa(data.wav
 isvolume   = isfield(data, 'transform') && isfield(data, 'dim');
 issource   = isfield(data, 'pos');
 isdip      = isfield(data, 'dip');
+ismvar     = isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
+isfreqmvar = isfield(data, 'freq') && isfield(data, 'transfer');
 
 if iscomp
   type = 'comp';  
   %comp should conditionally go before raw, otherwise the returned datatype
   %will be raw
+elseif isfreqmvar
+  type = 'freqmvar';
+  %freqmvar should conditionally go before freq, otherwise the returned datatype
+  %will be freq in the case of frequency mvar data
+elseif ismvar
+  type = 'mvar';
 elseif israw
   type = 'raw';
 elseif isfreq

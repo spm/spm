@@ -29,6 +29,13 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.10  2009/08/18 09:55:46  jansch
+% included possibility to concatenate over grid positions, allowing for cutting
+% the dipole grid and glueing it together later on
+%
+% Revision 1.9  2009/08/17 08:41:19  jansch
+% multiple changes
+%
 % Revision 1.8  2009/07/15 12:11:57  jansch
 % fixed small bug
 %
@@ -62,7 +69,7 @@ dtype  = cell(1,length(data));
 dimord = cell(1,length(data));
 
 for k = 1:length(data)
-  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume'});
+  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar'});
   [dtype{k}, dimord{k}]  = datatype(data{k});
 end
 
@@ -79,6 +86,7 @@ isfreq   = datatype(data{1},'freq');
 istlck   = datatype(data{1},'timelock');
 issource = datatype(data{1},'source');
 isvolume = datatype(data{1},'volume');
+isfreqmvar = datatype(data{1},'freqmvar');
 
 selchan  = keyval('channel', kvp); selectchan = ~isempty(selchan);
 selfoi   = keyval('foilim',  kvp); selectfoi  = ~isempty(selfoi);
@@ -94,7 +102,7 @@ avgoverroi   = keyval('avgoverroi',   kvp); if isempty(avgoverroi),  avgoverroi 
 avgoverrpt   = keyval('avgoverrpt',   kvp); if isempty(avgoverrpt),  avgoverrpt  = false; end
 
 % create anonymous function and apply it to the boolean input arguments
-istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || (~isempty(x) && x==1));
+istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || (~isempty(x) && numel(x)==1 && x==1));
 
 % ensure that these are boolean arguments, optionally convert from "yes"/"no" to true/false
 avgoverchan = istrue(avgoverchan);
@@ -126,18 +134,18 @@ if length(data)>1,
   dimmat      = zeros(length(dimtok), length(data));
   dimmat(:,1) = 1;
   for k = 1:length(dimtok)
-    try,
+    if isempty(strfind(dimtok{k},'rpt')),
       dimdat = getfield(data{1}, dimtok{k});
-    catch
-      % dimtok is probably 'rpt' or so
-      dimdat = getsubfield(data{1}, param{1});
+    else
+      % dimtok is 'rpt' or 'rpttap'
+      dimdat = size(getsubfield(data{1}, param{1}),1);
     end
     for m = 2:length(data)
-      try,
+      if isempty(strfind(dimtok{k},'rpt')),
         dimdat2 = getfield(data{m},dimtok{k});
-      catch
-        % dimtok is probably 'rpt' or so
-        dimdat2 = getsubfield(data{m}, param{1});
+      else
+        % dimtok is 'rpt' or 'rpttap'
+        dimdat2 = size(getsubfield(data{m}, param{1}),1);
       end
       try, dimmat(k,m) = all(dimdat(:)==dimdat2(:));            catch end;
       try, dimmat(k,m) = all(cellfun(@isequal,dimdat,dimdat2)); catch end;
@@ -182,26 +190,44 @@ if length(data)>1,
       dim       = data{1}.dim;
     end
   end
-
+  
   % concatenate the relevant descriptive fields in the data-structure
   if ~strcmp(dimtok{catdim},'rpt') && ~strcmp(dimtok{catdim},'rpttap'),
     for k = 1:length(data)
       if k==1,
         tmp = getsubfield(data{k}, dimtok{catdim});
+	if strcmp(dimtok{catdim},'pos') && isfield(data{k},'inside'),
+	  tmpinside  = getfield(data{k}, 'inside');
+	  tmpoutside = getfield(data{k}, 'outside'); 
+	  tmpnvox    = numel(tmpinside)+numel(tmpoutside);
+	end
       else
         if strcmp(dimtok{catdim},'pos'),
           tmp = [tmp; getsubfield(data{k}, dimtok{catdim})]; sortflag = 0;
-        else
+	  
+	  %FIXME make this robust, now inside as vector is assumed
+	  if exist('tmpinside', 'var')
+	    tmpx       = getfield(data{k}, 'inside');
+	    tmpx2      = getfield(data{k}, 'outside');
+	    tmpnvox    = numel(tmpinside)+numel(tmpoutside);
+	    tmpinside  = [tmpinside(:)'  tmpnvox(end)+tmpx(:)'];
+	    tmpoutside = [tmpoutside(:)' tmpnvox(end)+tmpx2(:)'];
+	  end
+	else
           tmp = [tmp  getsubfield(data{k}, dimtok{catdim})]; sortflag = 1;
         end
       end
     end
     data{1} = setsubfield(data{1}, dimtok{catdim}, tmp);
+    if exist('tmpinside', 'var')
+      data{1} = setfield(data{1}, 'inside',  tmpinside);
+      data{1} = setfield(data{1}, 'outside', tmpoutside);
+    end
   else
     % no such field as {'label','time','freq','pos'} has to be concatenated
     sortflag = 0;
   end
-
+  
   % concatenate the relevant descriptive fields in the data-structure (continued)
   tryfields = {'cumsumcnt' 'cumtapcnt' 'dof'};
   for k = 1:length(tryfields)
@@ -238,7 +264,7 @@ if length(data)>1,
   end
   
   % remove unspecified parameters
-  rmparam = setdiff(parameterselection('all',data{1}),[param 'pos']);
+  rmparam = setdiff(parameterselection('all',data{1}),[param 'pos' 'inside' 'outside']);
   for k = 1:length(rmparam)
     data{1} = rmsubfield(data{1}, rmparam{k});
   end
@@ -310,6 +336,24 @@ if selectroi,
 end
 
 if isfreq,
+  if isfield(data, 'labelcmb'),
+    %there is a crsspctrm field, this will only be selectdimmed
+    %if we apply a trick
+    tmpdata = data;
+    tmpdata.label = data.labelcmb;
+    if selectrpt,  tmpdata = seloverdim(tmpdata, 'rpt',  selrpt);  end
+    if selectchan, tmpdata = seloverdim(tmpdata, 'chan', selchan); end
+    if selectfoi,  tmpdata = seloverdim(tmpdata, 'freq', selfoi);  end
+    if selecttoi,  tmpdata = seloverdim(tmpdata, 'time', seltoi);  end
+    % average over dimensions
+    if avgoverrpt,  data = avgoverdim(data, 'rpt');   end
+    if avgoverchan, data = avgoverdim(data, 'chan');  end
+    if avgoverfreq, data = avgoverdim(data, 'freq');  end
+    if avgovertime, data = avgoverdim(data, 'time');  end
+    crsspctrm = tmpdata.crsspctrm; clear tmpdata;
+  else
+    crsspctrm = [];
+  end
   % make the subselection
   if selectrpt,  data = seloverdim(data, 'rpt',  selrpt);  end
   if selectchan, data = seloverdim(data, 'chan', selchan); end
@@ -320,6 +364,7 @@ if isfreq,
   if avgoverchan, data = avgoverdim(data, 'chan');  end
   if avgoverfreq, data = avgoverdim(data, 'freq');  end
   if avgovertime, data = avgoverdim(data, 'time');  end
+  if ~isempty(crsspctrm), data.crsspctrm = crsspctrm; end
 
 elseif istlck,
   % make the subselection
@@ -334,9 +379,24 @@ elseif istlck,
   if avgovertime, data = avgoverdim(data, 'time');  end
 
 elseif issource,
-  %error('this is not yet implemented');
+  %FIXME fill in everything
+  if selectrpt,  data = seloverdim(data, 'rpt',  selrpt);  end
+  if selectfoi,  data = seloverdim(data, 'freq', selfoi);  end
+  if avgoverrpt,  data = avgoverdim(data, 'rpt');  end
+  if avgoverfreq, data = avgoverdim(data, 'freq'); end
 
 elseif isvolume,
   error('this is not yet implemented');
+elseif isfreqmvar,
+  % make the subselection
+  if selectrpt,  data = seloverdim(data, 'rpt',  selrpt);  end
+  if selectchan, data = seloverdim(data, 'chan', selchan); end
+  if selectfoi,  data = seloverdim(data, 'freq', selfoi);  end
+  if selecttoi,  data = seloverdim(data, 'time', seltoi);  end
+  % average over dimensions
+  if avgoverrpt,  data = avgoverdim(data, 'rpt');   end
+  if avgoverchan, data = avgoverdim(data, 'chan');  end
+  if avgoverfreq, data = avgoverdim(data, 'freq');  end
+  if avgovertime, data = avgoverdim(data, 'time');  end
 end
 

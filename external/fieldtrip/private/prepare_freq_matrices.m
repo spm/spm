@@ -11,6 +11,9 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_freq_matrices.m,v $
+% Revision 1.25  2009/08/16 12:43:22  jansch
+% added default empty cfg.refchan
+%
 % Revision 1.24  2009/02/05 10:22:07  roboos
 % better support for single-trial data, thanks to Vladimir
 %
@@ -98,6 +101,7 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end
 if ~isfield(cfg, 'quickflag'), cfg.quickflag = 0; end
+if ~isfield(cfg, 'refchan'), cfg.refchan = []; end
 
 quickflag = cfg.quickflag==1;
 
