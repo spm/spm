@@ -13,7 +13,7 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_eeg_inv_checkmeshes.m 3328 2009-08-21 17:00:32Z vladimir $
 
 
 % initialise
@@ -22,9 +22,10 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin)
 try
     disp(D.inv{val}.mesh);
     mesh = spm_eeg_inv_transform_mesh(eye(4), D.inv{val}.mesh);
-    Mctx  = mesh.tess_ctx;
-    Mskl  = mesh.tess_iskull;
-    Mslp  = mesh.tess_scalp;
+    Mctx   = mesh.tess_ctx;
+    Miskl  = mesh.tess_iskull;
+    Moskl  = mesh.tess_oskull;
+    Mslp   = mesh.tess_scalp;
 catch
     warndlg('please create meshes')
     return
@@ -41,11 +42,16 @@ hold on
 
 % Inner-skull Mesh Display
 %--------------------------------------------------------------------------
-h_skl   = patch('vertices',Mskl.vert,'faces',Mskl.face,'EdgeColor','r','FaceColor','none');
+h_iskl   = patch('vertices',Miskl.vert,'faces',Miskl.face,'EdgeColor','r','FaceColor','none');
 
-% Scalp Mesh Display
+% Outer-skull Mesh Display
+%--------------------------------------------------------------------------
+h_oskl   = patch('vertices',Moskl.vert,'faces',Moskl.face,'EdgeColor',[1 .5 .35],'FaceColor','none');
+
+% Inner Scalp Mesh Display
 %--------------------------------------------------------------------------
 h_slp   = patch('vertices',Mslp.vert,'faces',Mslp.face,'EdgeColor',[1 .7 .55],'FaceColor','none');
+
 
 pls=0.05:0.2:0.9;
 N = nifti(mesh.sMRI);
