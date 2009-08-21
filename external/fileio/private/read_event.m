@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.103  2009/08/21 12:03:42  vlalit
+% Fixed a bug with handling of 16 and 32-bit Neuroscan cnt variants.
+%
 % Revision 1.102  2009/08/09 03:34:55  josdie
 % Modified egi_egia so that combined subject average files have the cell names start with a four character subject code (e.g., S001) so that other software can decode the subject number more reliably.
 %
@@ -1532,10 +1535,10 @@ switch eventformat
     event(end  ).offset   = -hdr.nSamplesPre;
     event(end  ).value    = [];
 
-  case 'ns_cnt'
+  case {'ns_cnt', 'ns_cnt16', 'ns_cnt32'}
     % read the header, the original header includes the event table
     if isempty(hdr)
-      hdr = read_header(filename);
+      hdr = read_header(filename, 'headerformat', eventformat);
     end
     % translate the event table into known FieldTrip event types
     for i=1:hdr.orig.nevent
