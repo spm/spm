@@ -1,11 +1,11 @@
-function [res, plotind] = coor2D(this, ind, val)
+function [res, plotind] = coor2D(this, ind, val, mindist)
 % returns x and y coordinates of channels in 2D plane
 % FORMAT coor2D(this)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak
-% $Id: coor2D.m 2720 2009-02-09 19:50:46Z vladimir $
+% Vladimir Litvak, Laurence Hunt
+% $Id: coor2D.m 3335 2009-08-25 16:37:02Z vladimir $
 
 
 megind = strmatch('MEG', chantype(this));
@@ -31,7 +31,7 @@ elseif ischar(ind)
     end
 end
 
-if nargin < 3
+if nargin < 3 || isempty(val)
     if ~isempty(intersect(ind, megind))
         if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
             meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
@@ -77,7 +77,11 @@ if nargin < 3
             end
         end
     end
-
+    
+    if nargin > 3 && ~isempty(mindist)
+       xy = shiftxy(xy,mindist); 
+    end
+    
     res = xy;
 else
     this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
@@ -85,6 +89,7 @@ else
     
     res = this;
 end
+
 
 function xy = grid(n)
 
@@ -95,3 +100,37 @@ x = x(2:(end-1));
 y = fliplr(x);
 [X, Y] = meshgrid(x, y);
 xy = [X(1:n); Y(1:n)];
+
+
+function xy = shiftxy(xy,mindist)
+
+x = xy(1,:);
+y = xy(2,:);
+
+l=1;
+i=1; %filler
+mindist = mindist/0.999; % limits the number of loops
+while (~isempty(i) && l<50)
+    xdiff = repmat(x,length(x),1) - repmat(x',1,length(x));
+    ydiff = repmat(y,length(y),1) - repmat(y',1,length(y));
+    xydist= sqrt(xdiff.^2 + ydiff.^2); %euclidean distance between all sensor pairs
+
+    [i,j] = find(xydist<mindist*0.999); 
+    rm=(i<=j); i(rm)=[]; j(rm)=[]; %only look at i>j
+    
+    for m = 1:length(i);
+       if (xydist(i(m),j(m)) == 0)
+           diffvec = [mindist./sqrt(2) mindist./sqrt(2)];
+       else
+           xydiff = [xdiff(i(m),j(m)) ydiff(i(m),j(m))];
+           diffvec = xydiff.*mindist./xydist(i(m),j(m)) - xydiff;
+       end
+        x(i(m)) = x(i(m)) - diffvec(1)/2;
+        y(i(m)) = y(i(m)) - diffvec(2)/2;
+        x(j(m)) = x(j(m)) + diffvec(1)/2;
+        y(j(m)) = y(j(m)) + diffvec(2)/2;
+    end
+    l = l+1;
+end
+
+xy = [x; y];
