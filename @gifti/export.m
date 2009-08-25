@@ -8,7 +8,7 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: export.m 3332 2009-08-25 13:50:08Z guillaume $
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 
@@ -20,7 +20,7 @@ switch lower(target)
         
     case 'patch'
         if isfield(this,'vertices')
-            s.vertices = subsref(this, substruct('.', 'vertices'));
+            s.vertices = double(subsref(this, substruct('.', 'vertices')));
         end
         if isfield(this,'faces')
             s.faces = subsref(this, substruct('.', 'faces'));
