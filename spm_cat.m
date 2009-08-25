@@ -22,7 +22,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 1172 2008-02-27 20:14:47Z karl $
+% $Id: spm_cat.m 3333 2009-08-25 16:12:44Z karl $
  
 % check x is not already a matrix
 %--------------------------------------------------------------------------
@@ -80,7 +80,7 @@ J     = max(J,[],1);
 [n m] = size(x);
 for i = 1:n
 for j = 1:m
-    if ~length(x{i,j})
+    if isempty(x{i,j})
         x{i,j} = sparse(I(i),J(j));
     end
 end

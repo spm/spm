@@ -1,7 +1,7 @@
-function [f] = spm_mc_fx_3(x,v,P)
+function [f] = spm_mc_fx_5(x,v,P)
 % equations of motion for the mountain car problem using basis functions
 % problem
-% FORMAT [f] = spm_mc_fx_3(x,v,P)
+% FORMAT [f] = spm_mc_fx_5(x,v,P)
 %
 % x   - hidden states
 % v   - exogenous inputs
@@ -16,24 +16,48 @@ function [f] = spm_mc_fx_3(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mc_fx_3.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_mc_fx_5.m 3333 2009-08-25 16:12:44Z karl $
  
  
-% gradient (G)
+% gradient of Hamiltonian (G)
 %--------------------------------------------------------------------------
-G     = spm_DEM_basis(x.x(1),v,P.p);
- 
+G   = spm_DEM_basis(x.x,v,P);
+
 % cost function (C)
 %--------------------------------------------------------------------------
-C     = spm_DEM_basis(x.x(1),v,P.q);
- 
+D   = tanh((1 - x.p)*8);
+C   = 2 - 32*x.q;
+C   = C*D - 1;
+
 % flow
 %--------------------------------------------------------------------------
-dt    = 1/8;
-f.x   = [x.x(2); G - x.x(2)*x.c]*dt;
-f.c   = [-C - x.c]*dt;
+dt  = 1/8;
+f.x = [x.v; G - x.v*x.c]*dt;
+f.c = [-C - x.c]*dt;
+f.p = -x.p/64;
+f.q = -x.q/64;
  
  
+
+return
+
+% NOTES for graphics
+%--------------------------------------------------------------------------
+x     = -2:1/64:2;
+d     =  0:1/64:2;
+for i = 1:length(x)
+    for j = 1:length(d)
+        D      = spm_phi((1 - d(j))*8);
+        A      = 2 - 32*exp(-(x(i) - 1).^2*32);
+        C(i,j) = A*D - 1;
+    end
+end
+
+surf(d,x,C)
+shading interp
+xlabel('drive')
+ylabel('position')
+
 % true scalar potential gradient (see spm_moutaincar_fx)
 %--------------------------------------------------------------------------
 % if x(1) < 0

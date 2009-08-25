@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_3.m 3140 2009-05-21 18:38:17Z karl $
+% $Id: ADEM_mountaincar_loss_3.m 3333 2009-08-25 16:12:44Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
@@ -162,7 +162,7 @@ drawnow
  
 % loss-functions or priors
 %--------------------------------------------------------------------------
-q0    = sparse(nq,1);
+q0    = sparse(nq,1) - 1;
 q     = sparse(nq*3/4,1,-32,nq,1) + 1;
 C0    = spm_DEM_basis(x,[],q0);
 C     = spm_DEM_basis(x,[],q);

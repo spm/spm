@@ -49,7 +49,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_ADEM_M_set.m 3333 2009-08-25 16:12:44Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -127,7 +127,7 @@ for i = 1:g
  
     % Assume fixed parameters if not specified
     %----------------------------------------------------------------------
-    if length(M(i).pC) == 0
+    if isempty(M(i).pC)
         p       = length(spm_vec(M(i).pE));
         M(i).pC = sparse(p,p);
     end
@@ -154,12 +154,12 @@ try
 catch
     v  = sparse(0,0);
 end
-if ~length(v)
+if isempty(v)
     try
         v = sparse(M(g - 1).m,1);
     end
 end
-if ~length(v)
+if isempty(v)
     try
         v = sparse(M(g).l,1);
     end
@@ -175,7 +175,7 @@ for i = 1:g
     catch
         a  = sparse(0,0);
     end
-    if ~length(a)
+    if isempty(a)
         try
             a = sparse(M(i).k,1);
         end
@@ -193,7 +193,7 @@ for i = (g - 1):-1:1
     catch
         x = sparse(M(i).n,1);
     end
-    if ~length(x) && M(i).n
+    if isempty(x) && M(i).n
         x = sparse(M(i).n,1);
     end
  
@@ -205,7 +205,7 @@ for i = (g - 1):-1:1
     try
         f       = feval(M(i).f,x,v,a,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
-            errordlg('please check nargout: M(%i).f(x,v,a,P)',i);
+            errordlg(sprintf('please check nargout: M(%i).f(x,v,a,P)',i));
         end
     catch
         errordlg(sprintf('evaluation failure: M(%i).f(x,v,a,P)',i))
@@ -236,7 +236,7 @@ end
 % remove empty levels
 %--------------------------------------------------------------------------
 try
-    g  = min(find(~spm_vec(M.m)));
+    g  = find(~spm_vec(M.m),1);
     M  = M(1:g);
 catch
     errordlg('please specify number of variables')
@@ -263,8 +263,8 @@ for i = 1:g
     
     % make sure components are cell arrays
     %----------------------------------------------------------------------
-    if length(M(i).Q) & ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
-    if length(M(i).R) & ~iscell(M(i).R), M(i).R = {M(i).R}; end 
+    if ~isempty(M(i).Q) && ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
+    if ~isempty(M(i).R) && ~iscell(M(i).R), M(i).R = {M(i).R}; end 
     
     % check hyperpriors
     %======================================================================
@@ -276,16 +276,16 @@ for i = 1:g
     
     % check hyperpriors (expectations)
     %----------------------------------------------------------------------
-    if ~length(M(i).hE), M(i).hE = sparse(length(M(i).Q),1); end
-    if ~length(M(i).gE), M(i).gE = sparse(length(M(i).R),1); end
+    if isempty(M(i).hE), M(i).hE = sparse(length(M(i).Q),1); end
+    if isempty(M(i).gE), M(i).gE = sparse(length(M(i).R),1); end
     
     % check hyperpriors (covariances)
     %----------------------------------------------------------------------
     try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
     try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
     
-    if ~length(M(i).hC), M(i).hC = speye(length(M(i).hE))*256; end
-    if ~length(M(i).gC), M(i).gC = speye(length(M(i).gE))*256; end
+    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE))*256; end
+    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE))*256; end
     
     % check Q and R (precision components)
     %======================================================================
@@ -339,7 +339,7 @@ for i = 1:g
     
     % remove fixed components if hyperparameters exist
     %----------------------------------------------------------------------
-    if length(M(i).hE)
+    if ~isempty(M(i).hE)
         M(i).V = sparse(M(i).l,M(i).l);
     end
                 
@@ -355,7 +355,7 @@ for i = 1:g
     
     % remove fixed components if hyperparameters exist
     %----------------------------------------------------------------------
-    if length(M(i).gE)
+    if ~isempty(M(i).gE)
         M(i).W = sparse(M(i).n,M(i).n);
     end
         

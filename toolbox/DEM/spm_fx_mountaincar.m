@@ -26,7 +26,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 3265 2009-07-10 14:02:22Z karl $
+% $Id: spm_fx_mountaincar.m 3333 2009-08-25 16:12:44Z karl $
  
  
 % determine controlled forces (a)
@@ -73,6 +73,7 @@ else
 end
 f     = [x(2); a + v - dHdx - x(2)/8]*dt;
  
+
 return
  
 % NOTES: Plots for figure

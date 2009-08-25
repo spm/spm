@@ -47,7 +47,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3058 2009-04-09 18:17:53Z karl $
+% $Id: spm_DEM_M_set.m 3333 2009-08-25 16:12:44Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -126,7 +126,7 @@ for i = 1:g
  
     % Assume fixed parameters if not specified
     %----------------------------------------------------------------------
-    if length(M(i).pC) == 0
+    if isempty(M(i).pC)
         p       = length(spm_vec(M(i).pE));
         M(i).pC = sparse(p,p);
     end
@@ -187,9 +187,7 @@ for i = (g - 1):-1:1
     try
         f       = feval(M(i).f,x,v,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
-            str = sprintf('please check: M(%i).f(x,v,P)',i);
-            msgbox(str)
-            error(' ')
+            errordlg(sprintf('please check: M(%i).f(x,v,P)',i));
         end
  
     catch
@@ -243,8 +241,8 @@ for i = 1:g
     
     % make sure components are cell arrays
     %----------------------------------------------------------------------
-    if ~isempty(M(i).Q) & ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
-    if ~isempty(M(i).R) & ~iscell(M(i).R), M(i).R = {M(i).R}; end 
+    if ~isempty(M(i).Q) && ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
+    if ~isempty(M(i).R) && ~iscell(M(i).R), M(i).R = {M(i).R}; end 
     
     % check hyperpriors
     %======================================================================
