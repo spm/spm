@@ -27,6 +27,30 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %        P = U*E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
 %
+% This routine uses a multivariate Bayesian (MVB) scheme to decode or
+% recognise brain states from neuroimages. It resolves the ill-posed
+% many-to-one mapping, from voxel values or data features to a target
+% variable, using a parametric empirical or hierarchical Bayesian model.
+% This model is inverted using standard variational techniques, in this
+% case expectation maximisation, to furnish the model evidence and the
+% conditional density of the model's parameters. This allows one to compare
+% different models or hypotheses about the mapping from functional or
+% structural anatomy to perceptual and behavioural consequences (or their
+% deficits). The aim of MVB is not to predict (because the outcomes are
+% known) but to enable inference on different models of structure-function
+% mappings; such as distributed and sparse representations. This allows one
+% to optimise the model itself and produce predictions that outperform
+% standard pattern classification approaches, like support vector machines.
+% Technically, the model inversion and inference uses the same empirical
+% Bayesian procedures developed for ill-posed inverse problems (e.g.,
+% source reconstruction in EEG).
+%
+% CAUTION: MVB should not be used to establish a significant mapping
+% between brain states and some classification or contrast vector. Its use
+% is limited to comparison of different models under the assumption
+% (hyperprior) that this mapping exists. To ensure the mapping exists, use
+% CVA or related approaches.
+%
 % See spm_mvb_ui and:
 %
 % Bayesian decoding of brain images.
@@ -45,7 +69,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 3264 2009-07-10 14:01:31Z karl $
+% $Id: spm_mvb.m 3334 2009-08-25 16:13:38Z karl $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------

@@ -38,7 +38,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 3139 2009-05-21 18:37:29Z karl $
+% $Id: spm_mvb_G.m 3334 2009-08-25 16:13:38Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -84,14 +84,22 @@ end
 % inverse solution
 %==========================================================================
  
-% Covariance components (with the first error Qe{1} fixed at -4)
+% Covariance components (with the first error Qe{1} fixed)
 %--------------------------------------------------------------------------
-if size(L,2)
+if size(L,2) > 0
     Q = {Qe{1} Qe{:} LQpL{:}};
 else
     Q = {Qe{1} Qe{:}};
 end
 m     = length(Q);
+
+% Lower bound on noise Qe{1} relative to signal (of about 2%)  
+%--------------------------------------------------------------------------
+if size(L,2) > 0
+    Q = {Qe{1} Qe{:} LQpL{:}};
+else
+    Q = {Qe{1} Qe{:}};
+end
 hE    = -32*ones(m,1);
 hC    = 256*speye(m,m);
 hE(1) = -4;
@@ -103,13 +111,12 @@ hC(1) = 0;
  
 h(2)  = h(2) + h(1);
 h     = h(2:end);
- 
+
 % prior covariance: source space
 %--------------------------------------------------------------------------
 Cp    = sparse(Nk,Nk);
-hp    = h([1:Np] + Ne);
 for i = 1:Np
-    Cp  = Cp  + hp(i)*Qp{i};
+    Cp  = Cp + h(i + Ne)*Qp{i};
 end
  
 % MAP estimates of instantaneous sources
