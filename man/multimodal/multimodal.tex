@@ -7,13 +7,13 @@ This dataset contains EEG, MEG, functional MRI and structural MRI data on the sa
 
 It can be used to demonstrate, for example, 3D source reconstruction of various electrophysiological measures of face perception, such as the "N170" evoked response (ERP) recorded with EEG, or the analogous "M170" evoked field (ERF) recorded with MEG. These localisations are informed by the anatomy of the brain (from the structural MRI) and possibly by functional activation in the same paradigm (from the functional MRI).
 
-The demonstration below involves localising the N170 using a distributed source method (called an "imaging" solution in SPM) analogous to "weighted minimum L2-norm". The data can also be used to explore further effects, e.g. induced effects (Friston et al, 2006), effects at different latencies, or the effects of adding fMRI constraints on the localisation.
+The demonstration below involves localising the N170 using a distributed source method (called an "imaging" solution in SPM). The data can also be used to explore further effects, e.g. induced effects (Friston et al, 2006), effects at different latencies, or the effects of adding fMRI constraints on the localisation.
 
-The EEG data were acquired on a 128 channel ActiveTwo system; the MEG data were acquired on a 151 channel CTF Omega system; the sMRI data were acquired using a phased-array headcoil on a Siemens Sonata 1.5T; the fMRI data were acquired using a gradient-echo EPI sequence on the Sonata. The dataset also includes data from a Polhemus digitizer, which are used to coregister the EEG and the MEG data with the structural MRI.
+The EEG data were acquired on a 128 channel ActiveTwo system; the MEG data were acquired on a 275 channel CTF/VSM system; the sMRI data were acquired using a phased-array headcoil on a Siemens Sonata 1.5T; the fMRI data were acquired using a gradient-echo EPI sequence on the Sonata. The dataset also includes data from a Polhemus digitizer, which are used to coregister the EEG and the MEG data with the structural MRI.
 
-Some related analyses of these data are reported in Henson et al (2005a, 2005b, 2007), Kiebel and Friston (2004) and Friston et al (2006; in press-a).
+Some related analyses of these data are reported in Henson et al (2005a, 2005b, 2007), Kiebel and Friston (2004) and Friston et al (2006).
 
-The analysis below is best done in Matlab7, but all mat files should be in a format readable by Matlab6.5.
+Most of the analysis below can be done in Matlab7.1 and up. However, recoding condition labels using GUI requires features of SPM8 only available in Matlab7.3 and up. Signal processing toolbox is required for filtering and downsampling steps. 
 
 \section{Paradigm and Data}
 
@@ -42,60 +42,46 @@ The structural was manually-positioned to match roughly Talairach space, with th
 \end{verbatim}
 The approximate position of 3 fiducials within this MRI space - the nasion, and the left and right peri-aricular points - are stored in the file:
 \begin{verbatim}
-    sMRI/smri_fids.mat
+    sMRI/smri_fid.txt
 \end{verbatim}
 These were identified manually (based on anatomy) and are used to define the MRI space relative to the EEG and MEG spaces, which need to be coregistered (see below). It doesn't matter that the positions are approximate, because more precise coregistration is done via digitised surfaces of the scalp ("head shape functions") that were created using the Polhemus 3D digitizer.
 
 \subsection{EEG data}
 
-The EEG data were acquired on a 128-channel ActiveTwo system, sampled at 2048 Hz (subsequently downsampled to 200Hz to reduce filesize), plus electrodes on left earlobe, right earlobe, and two bipolar channels to measure HEOG and VEOG. The data were referenced to the average of the left and right earlobes (for consistency with Henson et al, 2003). The 128 scalp channels are named: 32 A (Back), 32 B (Right), 32 C (Front) and 32 D (Left).
-
-The original data were converted into SPM M/EEG format and epoched from -200ms to +600ms post-stimulus (baseline-corrected from -200 to 0ms), ie 161 samples:
+The EEG data were acquired on a 128-channel ActiveTwo system, sampled at 2048 Hz, plus electrodes on left earlobe, right earlobe, and two bipolar channels to measure HEOG and VEOG. The 128 scalp channels are named: 32 A (Back), 32 B (Right), 32 C (Front) and 32 D (Left). The data acquired in two runs of the protocol is contained in two Biosemi raw data files:
 \begin{verbatim}
-    EEG/e_eeg.mat
-    EEG/e_eeg.dat
+    EEG/faces_run1.bdf
+    EEG/faces_run2.bdf
 \end{verbatim}
-(using the \verb!bdf_setup.mat! channel template provided with SPM5 in the EEGtemplates sub-directory).
-Other details about the data can be examined by typing:
+
+The EEG directory also contains the following files:
 \begin{verbatim}
-    D = spm_eeg_ldata
+    EEG/condition_labels.txt
 \end{verbatim}
-and selecting the \verb!e_meg.mat! file. This will show the contents of the structure "D" that is loaded into the Matlab workspace, the various fields of which can be explored. Note that the data values themselves are memory-mapped from the \verb!e_eeg.dat! file to the field D.data (e.g, D.data(1,2,3) returns the field strength in the first sensor at the second sample point during the third trial).
-
-You will see that there are 344 events (D.Nevents), consisting of 172 faces (event code 1) and 172 scrambled faces (event code 2), which are randomly intermixed (see D.events.code)\footnote{These data were actually concatenated from two separate runs on the same subject (using spm-eeg-merge), which is why there are twice as many events as with the MEG and fMRI data.}. If you type D.channels.name, you will see the order and the names of the channels.
-
-The EEG directory also contains a Polhemus sub-directory with the following files:
+This text file contains a list of condition labels in the same order as the trials appear in the two files (when concatenated) - 'faces' for presentation of faces and 'scrambled' for presentation of scrambled faces. 
+The EEG directory also contains the following files:
 \begin{verbatim}
-    EEG/Polhemus/eeg_fids.mat
-    EEG/Polhemus/eeg_sens_loc.mat
-    EEG/Polhemus/eeg_hsf.mat
+    EEG/electrode_locations.sfp
 \end{verbatim}
-All files contain matrices, the three columns of which code location in a right-handed 3D space, the axes of which conform to the Talairach space, i.e, the first column is x (left-right), the second is y (anterior-posterior) and the third is z (inferior-superior). The units are mm.
+This file contains electrode locations and fiducials measured with Polhemus digitizer.
+The EEG directory also contains the following files:
+\begin{verbatim}
+    EEG/headhsape.mat
+\end{verbatim}
+This file contains headshape and fiducials measured with Polhemus digitizer.
 
-The \verb!eeg_fids.mat! file contains the position of 3 fiducial markers that were placed approximately on the nasion and peri-aricular points and digitised by the Polhemus digitizer. The digitizer was also used to locate the position of each electrode (in the \verb!eeg_sens_loc.mat! file), and to trace out many points along the surface of the subject's scalp and nose (the "head shape function" in the \verb!eeg_hsf.mat! file). Later, we will coregister the fiducial points and the head shape to map the electrode positions in the "Polhemus space" to the "MRI space".
+The 3 fiducial markers were placed approximately on the nasion and peri-aricular points and digitised by the Polhemus digitizer. The digitizer was also used to locate the position of each electrode (in the \verb!electrode_locations.sfp! file), and to record multiple points on the surface of the  subject's scalp and nose (the "head shape function" in the \verb!headshape.mat! file). Later, we will coregister the fiducial points and the head shape to map the electrode positions in the "Polhemus space" to the "MRI space".
 
 \subsection{MEG data \label{meg}}
 
-The MEG data were acquired on a 151 channel CTF Omega system, using second-order axial gradiometers sampled at 625 Hz (subsequently downsampled to 200Hz to reduce filesize).  The original data were converted into SPM MEEG format and epoched from -200ms to +600ms post-stimulus (i.e, baseline-corrected from -200ms to 0ms), ie 161 samples:
+The MEG data were acquired on a 275 channel CTF/VSM system, using second-order axial gradiometers and synthetic third gradient for denoising and sampled at 480 Hz. Two runs of the protocol have been saved in two CTF datasets (each one is a directory with multiple files) 
 \begin{verbatim}
-    MEG/e_meg.mat
-    MEG/e_meg.dat
+    MEG/SPM_CTF_MEG_example_faces1_3D.ds
+    MEG/SPM_CTF_MEG_example_faces2_3D.ds
 \end{verbatim}
-The channel template for these data is also provided:
-\begin{verbatim}
-    MEG/CTF151_setup.mat
-\end{verbatim}
-(which may need to be copied to the EEGtemplates sub-directory of your local SPM5 installation directory, if not already there).
-The MEG data also contains a Polhemus sub-directory with the following files:
-\begin{verbatim}
-    MEG/Polhemus/meg_fids.mat
-    MEG/Polhemus/meg_sens_loc.mat
-    MEG/Polhemus/meg_sens_or.mat
-    MEG/Polhemus/meg_hsf.mat
-\end{verbatim}
-which are analogous to the corresponding MEG files described in the previous section\footnote{These matrices are transformations from the original CTF / Polhemus files - in which x codes anterior-posterior and y codes left-right - i.e, a 90 degree clockwise rotation about the z-axis.}. More specifically, the \verb!meg_fids.mat! contains the position of 3 "locator coils", positioned close to the fiducials\footnote{Unlike the MRI and EEG data, these fiducials were not precisely the nasion and peri-aricular points. However, given that the coregistration of the MEG and MRI data is based mainly on the headshape (see later), this inaccuracy in the MEG fiducials does not matter.}, the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 151 sensors (in the \verb!meg_sens_loc.mat! file) and their (axial gradiometer) orientations (\verb!meg_sens_or.mat!). The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the "Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space".
+The MEG data also contains a \verb!headshape.pol! file. This is an ASCII file with the headshape recorded during the MEG experiment in the format of FIL Polhemus digitizer. This format can be directly imported by SPM8, but it is probably different from the output of Polhemus digitizers at other locations.
 
-
+The locations of the 3 fiducials in the \verb!headshape.pol! file are the same as the positions of 3 "locator coils" the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 275 sensors.
 
 \subsection{fMRI data}
 
@@ -118,17 +104,60 @@ and the SPM "Job" files (see Section~\ref{fMRI}):
 
 \section{Getting Started}
 
-You need to start SPM5 and toggle "EEG" as the modality (bottom-right of SPM main window), or start SPM5 with \verb!spm eeg!.
-You will also need to 1) copy the MEG template file (\verb!CTF151_setup.mat!) to the EEGtemplates sub-directory within your SPM5 installation directory, if it is not already there (see ~section \ref{meg} above), and 2) ensure this EEGtemplates directory is on your Matlab path.
+You need to start SPM8 and toggle "EEG" as the modality (bottom-right of SPM main window), or start SPM8 with \verb!spm eeg!. In order for this to work you need to ensure that the main SPM directory is on your Matlab path.
 
 
 \section{EEG analysis}
 
-\subsection{Preprocessing the EEG data}
+\subsection{Convert}
 
-* Change directory to the EEG subdirectory (either in Matlab, or via the "CD" option in the SPM "Utils" menu)
+Press the \textsc{Convert} button and select the \texttt{faces_run1.bdf} file. At the prompt ``Define settings?'' select ``just read''.
+SPM will now read the original Biosemi format file and create an SPM combatible data file, called \texttt{spm8\_faces_run1.bdf} and \texttt{spm8\_faces_run1.bdf} in the current Matlab directory. You can either change directory to where the EEG files are or perhaps more conveniently create a new directory for your analysis results and make it Matlab's current directory before staring. If you want to repeat the analysis later you can always erase this directory without affecting the original data files. After the conversion is complete the data file will be automatically opened in SPM8 reviewing tool. By default you will see the 'info' pad. At the top of the window there is some basic information about the file. Below it you will see several clickable tabs with additional information. The 'history' tab lists the processing steps that have been applied to the file. At this stage there is only one such step - conversion. The 'channels' tab lists the channels in the file and their properties, the trial tab lists the trials or in the case of a continuous file all the triggers (events) that have been recorded. The 'inv' tab is used for reviewing the inverse solutions and is not relevant for the time being. Nothe that the detailed information in the tabs will not be available for Matlab 7.1.  At the top of the window there is another set of tabs. If you click on the 'EEG' tab you will see the raw EEG traces. The all look unusually flat because the continuous data we have just converted contains very low frequencies and constand baseline shifts. Therefore, if we try to view all the channels together, this can only be done with very low gain. 
+If you press the 'intensity rescaling' button (with arrows pointing up and down) several times you will start seeing EEG activity in a few channels but the other channels will not be visible as they will go out of range. You can also use the controls at the bottom of the window to scroll through the recording. As you do this, you will see vertical lines indicating triggers, in our case presentation of visual stimuli. 
 
-* Press 'Artefacts', select the \verb!e_eeg.mat! file, press 'no' to the 'read own artefact list?' question, 'no' to 'robust average?', 'yes' to 'threshold channels?', and enter 200 for the threshold
+\subsection{Downsample}
+Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 2048 Hz. This is an unnecessarily high sampling rate for a simple evoked response analysis, and we will now decrease the sampling rate to 200 Hz, thereby reducing the file size by more than ten fold and greatly speeding up the subsequent processing steps. This step requires the signal processing toolbox. Select \textsc{Downsample} from the ``Other'' drop-down menu and select the \texttt{spm8\_faces_run1.mat} file. Choose a new sampling rate of 200 (Hz). The progress bar will appear and the resulting data will be saved to files \texttt{dspm8\_faces_run1.mat} and \texttt{dspm8\_faces_run1.dat}. Note that this datasets and other intermediate datasets created during preprocessing will not be automatically opened in the reviewing tool, but you can always review them by selecting \verb!M\EEG! from the 'Display' drop down menu and choosing the corresponding .mat file.
+
+
+\subsection{Montage}
+
+In this step, we will identify the VEOG and HEOG channels, remove several channels that don't carry EEG data and are of no importance to the following and convert the 128 EEG channels to 'average reference' by subtracting the mean of all the channels from each channel. We generally recommend to remove all data channels that are no longer needed because it will reduce the total file size and conversion to average reference is necessary at present to for source modelling to work correctly.  To do so, we use the \textsc{mont ge} tool in SPM, which is a general approach for pre-multiplying the data matrix (channels $\times$ time) by another matrix that linearly weights all channel data. This provides a very general method for data transformation in M/EEG analysis.
+
+The appropriate montage-matrix can be derived as follows.
+In our case, we would like to only keep channels 1 to 128. In addition, there were four EOG channels (131, 132, 135, 136), where the VEOG is computed as the difference between channels 131 and 132, and the VEOG by the difference between channels 135 and 136. This matrix can be specified in SPM by either using a graphical interface, or by supplying the matrix saved in a file. We will do the latter. The script to generate this file can be found in the \texttt{example\_scripts} folder: \texttt{faces\_eeg\_montage.m}. Copy this script into the directory with  \texttt{dspm8\_faces_run1.mat} file and run it. This will generate a file named \texttt{faces\_eeg\_montage.mat}.
+
+You now call the montage function by choosing \textsc{Montage} in the ``Other'' drop-down menu and:
+\begin{itemize}
+\item{Select the M/EEG-file \texttt{dspm8\_faces_run1.mat}}
+\item{`How to specify the montage ?' Answer ``file''.}
+\item{Then select the generated \texttt{faces\_eeg\_montage.mat} file}
+\item{``Keep the other channels?'' : ``No''}
+\end{itemize}
+This will remove the uninteresting channels from the data. The progress bar appears and SPM will generate two new files \texttt{Mdspm8\_faces_run1.mat} and \texttt{Mdspm8\_faces_run1.dat}.
+
+\subsection{Epoch}
+To epoch the data click on \textsc{Epoching}. Select the \texttt{Mdspm8\_faces_run1.mat} file. Choose the peri-stimulus time window, first the start \texttt{-200}, then the end \texttt{600} ms. Choose 1 conditions. There is no information in the file at this stage to distinguish between faces and scrambled faces. We will add this information at a later stage. You can give this condition any label, for instance ``stim''. A GUI pops up which gives you a complete list of all events in the EEG file. Each event has type and value which might mean different things for different EEG and MEG systems. So you should be familiar with your particular system to find the right trigger for epoching. In our case it is not very difficult as all the events but one appear only once in the recording, whereas the event with type 'STATUS' and value 1 appears 172 times which is exactly the number of times a visual stimulus was presented. Select this event and press OK. Answer two times ``no'' to the questions ``review individual trials'', and ``save trial definitions''. The progress bar will appear and the epoched data will be saved to files \texttt{eMdspm8\_faces_run1.mat} and \texttt{eMdspm8\_faces_run1.dat}. 
+
+
+\subsection{Reassignment of trial labels}
+Open the file \texttt{eMdspm8\_faces_run1.mat} in the reviewing tool. The first thing you will see is that in the history tab there are now 4 processing steps. Now switch to the 'trials' tab. You will see a table with 172 rows - exatly the number of events we selected before. In the first column the label 'stim' appears in every row. What we would like to do now is change this label to 'faces' or 'scrambled' where appropriate. We should first open the file \verb!condition_labels.txt! with any text editor, such as Matlab editor or Windows notepad. In this file there are exactly 172 rows with either 'faces' or 'scrambled' in each row. Select and copy all the rows (Ctrl-A, Ctrl-C on Windows). Then go back to SPM and the trials tab. Place the cursor in the first row and first column cell with the 'stim' label and paste the copied labels (Ctrl-V). The new labels should now appear for all rows. Press the 'update' button above the table and then the 'SAVE' button at the top right corner of the window. The new labels are now saved in the dataset.  
+
+
+\subsection{Using the history and object methods to preprocess the second file}
+At this stage we need to repeat the preprocessing steps for the second file \texttt{faces_run2.bdf}. You can do it by going back to the 'Convert' section and repeating all the steps for this file, but there is a more efficient way. If you have been following the instructions until now the file \texttt{eMdspm8\_faces_run1.mat} should be open in the reviewing tool. If it is not the case, open it. Go to the 'history' tab and press the 'Save as script' button. This button should be available even for the versions of Matlab where the detailed history information cannot be displayed. A dialog will appear asking for the name of the Matlab script to save. Lets call it \texttt{preprocess.m}. Then there will be another dialogue suggesting to select the steps to save in the script. Just press OK to save all the steps. Now open the script in the Matlab editor. You will now need to make some changes to make it work for the second file. Here we suggest the simplest way to do it that does not require familiaty with Matlab programming. But if you are more familar with Matlab you'll definitely be able to do much better job. First, replace all the occurences of 'run1' in the file with 'run2'. You can use the 'Find & Replace' functionalty (Ctrl-F) to do it. Secondly, erase the line starting with \verb!S.timewindow! (line 5). This line defines the time window to read, in this case from the first to the last sample of the first file. The second file is slghtly longer than the first so we should let SPM determine the right time window automatically. Save the changes and run the script by pressing the 'Run' button or writing 'preprocess' in the command line. SPM will now automatically perform all the steps we have done before using the GUI. This is a very easy way for you to start processing your data automatically once you come up with the right sequence of steps for one file. After the script finishes running there will be a new set of files in the current directory including \texttt{eMdspm8\_faces_run2.mat} and \texttt{eMdspm8\_faces_run2.dat}. If you open these files in the reviewing tool and go to the 'trials' tab you will see that the trial labels are still 'stim'. The reason for this is that updates done using the reviewing tool are not presently recorded in the history (with the exception of the 'Prepare' interface, see below). You can still do this update automatically and add it to your script. If you write 'D' in the command line just after running the script and press 'Enter' you will see some information about the dataset \texttt{eMdspm8\_faces_run2}. D is an object, this is a special kind of data structure that makes it possible to keep different kinds of related information (in our case all the properties of our dataset) and define generic ways of manipulating these properties. For instance we can use the command:
+\begin{verbatim}
+D = conditions(D, [], importdata('condition_labels.txt'));save(D);
+\end{verbatim}
+to update the trial labels using information imported from the \texttt{condition_labels.txt}. You might need to write the full path to this text file inside the single quotes or copy the file to the directory where you are working for this command to work. 'conditions' is a 'method', special function that knows where to store the labels in the object. All the methods take the M\EEG object (usually called D in SPM by convention) as the first argument. The second argument is a list of indices of trials for which we want to change the label. We specify an empty matrix which is interpreted as 'all'. The third argument is the new labels which are imported from the text file using Matlab built-in function. We then save the updates dataset on disk using the 'save' method. If you now write \verb!D.conditions! or \verb!conditions(D)! (which are two equivalent ways of calling the 'conditions' method with just D as an argument), you should see a list of 172 labels, either 'faces' or 'scrambled'. If you add the commands above at the end of your automatically generated script, you can run it again and this time the output will have the right labels. 
+
+\subsection{Merge}
+We will now merge the two epoched files we have generated until now and continue working on the merged file. Select the 'Merge' command from the 'Other' drop-down menu. In the selection window that comes up click on \texttt{eMdspm8\_faces_run1.mat} and \texttt{eMdspm8\_faces_run2.mat}. Press 'done'. Answer 'leave as they are' to 'What to do with condition labels?'. This means that the trial labels we have just specified will be copied as they are to the merged file. A new dataset will be generated called \texttt{ceMdspm8\_faces_run1}.
+
+---------------------------------
+
+
+\subsection{Artefact rejection}
+Here we will  Press 'Artefacts', select the \verb!e_eeg.mat! file, press 'no' to the 'read own artefact list?' question, 'no' to 'robust average?', 'yes' to 'threshold channels?', and enter 200 for the threshold
 
 This will detect trials in which the signal recorded at any of the channels exceeds 200 microvolts (relative to pre-stimulus baseline). These trials will be marked as artefacts. Most of these artefacts occur on the VEOG channel, and reflect blinks during the critical time window\footnote{Channel-specific thresholds can be used by entering 130 thresholds, one per EEG/EOG channel, with a value of Inf for those channels that you do not want to threshold.}. The procedure will also detect channels in which there are a large number of artefacts (which may reflect problems specific to those electrodes, allowing them to be removed from subsequent analyses).
 
@@ -140,6 +169,27 @@ In this case, the Matlab window will show:
     139 159 173 221 266 268 279 281 292 293 298 326]
 \end{verbatim}
 (leaving 299 valid trials). A new file will also be created, \verb!ae_eeg.mat!(in which these artefacts are coded in the fields D.events.reject and D.channels.thresholded).
+
+
+\subsection{Preprocessing the EEG data}
+
+(subsequently downsampled to 200Hz to reduce filesize)
+The data were referenced to the average of the left and right earlobes (for consistency with Henson et al, 2003). 
+The original data were converted into SPM M/EEG format and epoched from -200ms to +600ms post-stimulus (baseline-corrected from -200 to 0ms), ie 161 samples:
+
+(using the \verb!bdf_setup.mat! channel template provided with SPM5 in the EEGtemplates sub-directory).
+Other details about the data can be examined by typing:
+\begin{verbatim}
+    D = spm_eeg_ldata
+\end{verbatim}
+and selecting the \verb!e_meg.mat! file. This will show the contents of the structure "D" that is loaded into the Matlab workspace, the various fields of which can be explored. Note that the data values themselves are memory-mapped from the \verb!e_eeg.dat! file to the field D.data (e.g, D.data(1,2,3) returns the field strength in the first sensor at the second sample point during the third trial).
+
+You will see that there are 344 events (D.Nevents), consisting of 172 faces (event code 1) and 172 scrambled faces (event code 2), which are randomly intermixed (see D.events.code)\footnote{These data were actually concatenated from two separate runs on the same subject (using spm-eeg-merge), which is why there are twice as many events as with the MEG and fMRI data.}. If you type D.channels.name, you will see the order and the names of the channels.
+
+
+* Change directory to the EEG subdirectory (either in Matlab, or via the "CD" option in the SPM "Utils" menu)
+
+
 
 At this point, you may want to look at the data. Press "Display: M/EEG", and select the \verb!ae_eeg.mat! file. After a short delay, the Graphics window should show the mean ERP (for trial 1) at each of the 130 channels (as in Figure~\ref{fig_32_2}). You can click on one of the channels (e.g, VEOG, on the top right of the display) to get a new window with the data for that channel expanded. You can alter the scaling or trial number using the sliders on the bottom of the Graphics window, or select a subset of channels to display by pressing the 'Channels' button.
 
@@ -338,6 +388,10 @@ You could also explore the other inversion options, like COH and MNM, which you 
 \section{MEG analysis}
 
 \subsection{Preprocessing the MEG data}
+
+ (subsequently downsampled to 200Hz to reduce filesize).  The original data were converted into SPM MEEG format and epoched from -200ms to +600ms post-stimulus (i.e, baseline-corrected from -200ms to 0ms), ie 161 samples:
+
+ The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the "Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space
 
 * Change directory to the MEG subdirectory (either in Matlab, or via the "CD" option in the SPM "Utils" menu)
 
