@@ -73,7 +73,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_nlsi_N.m 3337 2009-08-27 14:53:32Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -382,7 +382,7 @@ for ip = 1:64
  
             % prevent overflow
             %--------------------------------------------------------------
-            h     = min(max(h,-16),16);
+            h     = min(max(h,-32),32);
  
             % convergence
             %--------------------------------------------------------------
@@ -546,6 +546,7 @@ Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
 warning(sw);
+
 return
 
 

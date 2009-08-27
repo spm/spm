@@ -38,7 +38,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_mvb_G.m 3337 2009-08-27 14:53:32Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -91,15 +91,10 @@ if size(L,2) > 0
 else
     Q = {Qe{1} Qe{:}};
 end
-m     = length(Q);
 
 % Lower bound on noise Qe{1} relative to signal (of about 2%)  
 %--------------------------------------------------------------------------
-if size(L,2) > 0
-    Q = {Qe{1} Qe{:} LQpL{:}};
-else
-    Q = {Qe{1} Qe{:}};
-end
+m     = length(Q);
 hE    = -32*ones(m,1);
 hC    = 256*speye(m,m);
 hE(1) = -4;
@@ -107,7 +102,7 @@ hC(1) = 0;
  
 % ReML
 %--------------------------------------------------------------------------
-[Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2),hE,hC);
+[Cy,h,P,F,Fa,Fc] = spm_reml_sc(X*X',[],Q,size(X,2),hE,hC);
  
 h(2)  = h(2) + h(1);
 h     = h(2:end);
@@ -133,3 +128,4 @@ model.h   = h;
 model.qE  = qE;
 model.MAP = MAP;
 model.Cp  = Cp;
+
