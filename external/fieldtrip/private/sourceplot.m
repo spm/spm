@@ -121,6 +121,11 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.74  2009/08/24 09:15:07  jansch
+% included (experimental and undocumented) possibility to use image, rather than
+% imagesc for the plotting, allowing for coding different aspects of the data in
+% rgb-space
+%
 % Revision 1.73  2009/07/14 07:27:30  roboos
 % replaced read_fcdc_mri with read_mri to avoid warning
 %
@@ -392,7 +397,26 @@ else
 end
 
 % handle fun
-if hasfun
+if hasfun && issubfield(data, 'dimord') && strcmp(data.dimord(end-2:end),'rgb')
+  % treat functional data as rgb values
+  if any(fun(:)>1 | fun(:)<0)
+    %scale
+    tmpdim = size(fun);
+    nvox   = prod(tmpdim(1:end-1));
+    tmpfun = reshape(fun,[nvox tmpdim(end)]);
+    m1     = max(tmpfun,[],1);
+    m2     = min(tmpfun,[],1);
+    tmpfun = (tmpfun-m2(ones(nvox,1),:))./(m1(ones(nvox,1),:)-m2(ones(nvox,1),:));
+    fun = reshape(tmpfun, tmpdim);
+  end
+  qi      = 1;
+  hasfreq = 0;
+  hastime = 0;
+  
+  doimage = 1;
+  fcolmin = 0;
+  fcolmax = 1;
+elseif hasfun
   % determine scaling min and max (fcolmin fcolmax) and funcolormap
   funmin = min(fun(:));
   funmax = max(fun(:));
@@ -471,10 +495,14 @@ if hasfun
     hasfreq = 0;
     hastime = 0;
   end
+  
+  doimage = 0;
 else
   qi      = 1;
   hasfreq = 0;
   hastime = 0;
+
+  doimage = 0;
 end % handle fun
 
 %%% maskparameter
@@ -703,7 +731,7 @@ if isequal(cfg.method,'ortho')
         fprintf('\n');
       end
     end
-
+    
     % make vols and scales, containes volumes to be plotted (fun, ana, msk)
     vols = {};
     if hasana; vols{1} = ana; scales{1} = []; end; % needed when only plotting ana
@@ -714,22 +742,22 @@ if isequal(cfg.method,'ortho')
       % this seems to be a problem that people often have
       error('no anatomy is present and no functional data is selected, please check your cfg.funparameter');
     end
-
+    
     h1 = subplot(2,2,1);
-    [vols2D] = handle_ortho(vols, [xi yi zi qi], 2, dim);
-    plot2D(vols2D, scales);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 2, dim, doimage);
+    plot2D(vols2D, scales, doimage);
     xlabel('i'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([xi zi]); end
 
     h2 = subplot(2,2,2);
-    [vols2D] = handle_ortho(vols, [xi yi zi qi], 1, dim);
-    plot2D(vols2D, scales);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 1, dim, doimage);
+    plot2D(vols2D, scales, doimage);
     xlabel('j'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([yi zi]); end
 
     h3 = subplot(2,2,3);
-    [vols2D] = handle_ortho(vols, [xi yi zi qi], 3, dim);
-    plot2D(vols2D, scales);
+    [vols2D] = handle_ortho(vols, [xi yi zi qi], 3, dim, doimage);
+    plot2D(vols2D, scales, doimage);
     xlabel('i'); ylabel('j'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([xi yi]); end
 
@@ -1055,10 +1083,8 @@ elseif isequal(cfg.method,'slice')
   if hasana; vols2D{1} = quilt_ana; scales{1} = []; end; % needed when only plotting ana
   if hasfun; vols2D{2} = quilt_fun; scales{2} = [fcolmin fcolmax]; end;
   if hasmsk; vols2D{3} = quilt_msk; scales{3} = [opacmin opacmax]; end;
-
-  plot2D(vols2D, scales);
+  plot2D(vols2D, scales, doimage);
   axis off
-
   if strcmp(cfg.colorbar,  'yes'),
     if hasfun
       % use a normal Matlab coorbar
@@ -1081,7 +1107,7 @@ cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 % handle_ortho makes an overlay of 3D anatomical, functional and probability
 % volumes. The three volumes must be scaled between 0 and 1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [vols2D] = handle_ortho(vols, indx, slicedir, dim);
+function [vols2D] = handle_ortho(vols, indx, slicedir, dim, doimage);
 
 % put 2Dvolumes in fun, ana and msk
 if length(vols)>=1 && isempty(vols{1}); hasana=0; else ana=vols{1}; hasana=1; end;
@@ -1117,8 +1143,18 @@ end
 
 % cut out the slice of interest
 if hasana; ana = squeeze(ana(xi,yi,zi)); end;
-if hasfun; fun = squeeze(fun(xi,yi,zi,qi(1),qi(2))); end;
-if hasmsk; msk = squeeze(msk(xi,yi,zi)); end;
+if hasfun; 
+  if doimage
+    fun = squeeze(fun(xi,yi,zi,:));
+  else
+    fun = squeeze(fun(xi,yi,zi,qi(1),qi(2)));
+  end
+end
+if hasmsk && length(size(msk))>3
+  msk = squeeze(msk(xi,yi,zi,qi(1),qi(2)));
+elseif hasmsk  
+  msk = squeeze(msk(xi,yi,zi));
+end;
 
 %put fun, ana and msk in vols2D
 if hasana; vols2D{1} = ana; end;
@@ -1128,7 +1164,7 @@ if hasmsk; vols2D{3} = msk; end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % plot2D plots a two dimensional plot, used in ortho and slice
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plot2D(vols2D, scales);
+function plot2D(vols2D, scales, doimage);
 cla;
 % put 2D volumes in fun, ana and msk
 hasana = length(vols2D)>0 && ~isempty(vols2D{1});
@@ -1137,7 +1173,8 @@ hasmsk = length(vols2D)>2 && ~isempty(vols2D{3});
 
 % the transpose is needed for displaying the matrix using the Matlab image() function
 if hasana; ana = vols2D{1}'; end;
-if hasfun; fun = vols2D{2}'; end;
+if hasfun && ~doimage; fun = vols2D{2}'; end;
+if hasfun && doimage;  fun = permute(vols2D{2},[2 1 3]); end;
 if hasmsk; msk = vols2D{3}'; end;
 
 
@@ -1155,16 +1192,20 @@ end
 hold on
 
 if hasfun
-  hf = imagesc(fun);
-  caxis(scales{2});
-  % apply the opacity mask to the functional data
-  if hasmsk
-    % set the opacity
-    set(hf, 'AlphaData', msk)
-    set(hf, 'AlphaDataMapping', 'scaled')
-    alim(scales{3});
-  elseif hasana
-    set(hf, 'AlphaData', 0.5)
+  if doimage
+    hf = image(fun);
+  else
+    hf = imagesc(fun);
+    caxis(scales{2});
+    % apply the opacity mask to the functional data
+    if hasmsk
+      % set the opacity
+      set(hf, 'AlphaData', msk)
+      set(hf, 'AlphaDataMapping', 'scaled')
+      alim(scales{3});
+    elseif hasana
+      set(hf, 'AlphaData', 0.5)
+    end
   end
 end
 

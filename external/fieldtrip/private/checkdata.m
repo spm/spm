@@ -33,6 +33,12 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.18  2009/08/24 08:57:01  jansch
+% some changes regarding dealing with dim in source data. made a temporary
+% bypass for jan excluding sourcedata from fixdimord. this is done to be able
+% to further develop this part of the code without creating an entirely parallel
+% version of it. eventually the bypass will be removed
+%
 % Revision 1.17  2009/08/03 15:08:24  ingnie
 % also send source and volume data to fixdimord
 %
@@ -260,6 +266,8 @@ isspike    = datatype(data, 'spike');
 isvolume   = datatype(data, 'volume');
 issource   = datatype(data, 'source');
 isdip      = datatype(data, 'dip');
+ismvar     = datatype(data, 'mvar');
+isfreqmvar = datatype(data, 'freqmvar');
 
 % FIXME use the istrue function on ismeg and hasxxx options
 
@@ -291,12 +299,24 @@ if ~isequal(feedback, 'no')
     fprintf('the input is source data with %d positions\n', nsource);
   elseif isdip
     fprintf('the input is dipole data\n');
+  elseif ismvar
+    fprintf('the input is mvar data\n');
+  elseif isfreqmvar
+    fprintf('the input is freqmvar data\n');
   end
 end % give feedback
 
-if isfreq || istimelock || iscomp || issource || isvolume
-  % ensure consistency between the dimord string and the axes that describe the data dimensions
-  data = fixdimord(data);
+%HACK for jan to bypass source and volume data to enter fixdimord
+[st,result] = system('whoami');
+if isempty(strfind(result,'jan'))
+  if isfreq || istimelock || iscomp || issource || isvolume
+    % ensure consistency between the dimord string and the axes that describe the data dimensions
+    data = fixdimord(data);
+  end
+else
+  if isfreq || istimelock || iscomp
+    data = fixdimord(data);
+  end
 end
 
 if istimelock
@@ -342,6 +362,10 @@ if ~isempty(dtype)
         okflag = okflag + issource;
       case 'dip'
         okflag = okflag + isdip;
+      case 'mvar'
+        okflag = okflag + ismvar;
+      case 'freqmvar'
+        okflag = okflag + isfreqmvar;
     end % switch dtype
   end % for dtype
 
@@ -494,7 +518,7 @@ if issource || isvolume,
   if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
   if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
   if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
-
+  
   % the following section is to make a dimord-consistent representation of
   % volume and source data, taking trials, time and frequency into account
   if isequal(hasdimord, 'yes') && ~isfield(data, 'dimord')
@@ -573,12 +597,40 @@ if issource || isvolume,
       data = rmfield(data, 'trial');
     end
   end
-
+  
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the source reconstructed parameters
-  dim = [data.dim 1];
+  if isfield(data, 'dim'),
+    dim = [data.dim 1];
+  else
+    %HACK
+    dimtok = tokenize(data.dimord, '_');
+    for i=1:length(dimtok)
+      if strcmp(dimtok(i),'pos')
+        dim(1,i) = size(getsubfield(data,dimtok{i}),1);
+      elseif strcmp(dimtok(i),'rpt')
+        dim(1,i) = nan;
+      else
+        dim(1,i) = length(getsubfield(data,dimtok{i})); 
+      end
+    end
+    i = find(isnan(dim));
+    if ~isempty(i)
+      n = fieldnames(data);
+      for ii=1:length(n)
+        numels(1,ii) = numel(getfield(data,n{ii}));
+      end
+      nrpt = numels./prod(dim(setdiff(1:length(dim),i)));
+      nrpt = nrpt(nrpt==round(nrpt));
+      dim(i) = max(nrpt);
+    end
+    if numel(dim)==1, dim(1,2) = 1; end;
+  end
+ 
+  if issource, exclude = {'inside' 'fwhm' 'leadfield' 'q' 'rough'}; end
+  if isvolume, exclude = {         'fwhm' 'leadfield' 'q' 'rough'}; end
 
-  param = setdiff(parameterselection('all', data), {'fwhm','leadfield','q','rough'});
+  param = setdiff(parameterselection('all', data), exclude);
   for i=1:length(param)
     if any(param{i}=='.')
       % the parameter is nested in a substructure, which can have multiple elements (e.g. source.trial(1).pow, source.trial(2).pow, ...)
@@ -649,6 +701,8 @@ if ~isempty(cmbrepresentation)
   elseif isfreq &&  isfield(data, 'cohspctrm')
     data = fixcoh(data, cmbrepresentation, channelcmb);
   elseif isfreq && ~isfield(data, 'cohspctrm')
+    data = fixcsd(data, cmbrepresentation, channelcmb);
+  elseif isfreqmvar
     data = fixcsd(data, cmbrepresentation, channelcmb);
   else
     error('This function requires data with a covariance, coherence or cross-spectrum');
@@ -1057,7 +1111,11 @@ if isfield(data, 'dimord')
   %an ordered way which allows for the extraction of a transformation matrix
   %i.e. slice by slice
   try,
-    data.dim = pos2dim3d(data.pos, data.dim);
+    if isfield(data, 'dim'),
+      data.dim = pos2dim3d(data.pos, data.dim);
+    else
+      data.dim = pos2dim3d(data);
+    end
   catch
   end
 end

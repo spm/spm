@@ -16,6 +16,9 @@ function bnd = prepare_mesh_manual(cfg, mri)
 % Copyrights (C) 2009, Cristiano Micheli & Robert Oostenveld
 %
 % $Log: prepare_mesh_manual.m,v $
+% Revision 1.9  2009/08/27 16:12:13  crimic
+% minibug fix
+%
 % Revision 1.8  2009/07/13 14:43:05  crimic
 % inserted spherical harmonics sub-functions
 %
@@ -778,7 +781,7 @@ if ~isempty(pnt)
   bnd.pnt = pnt_;
   bnd.tri = tri;
   slicedata = getappdata(fig,'slicedata');
-  figure,plot_mesh(bnd,'vertices','yes','edges','yes','faces','yes')
+  figure,plot_mesh(bnd,'vertexcolor','k')
 end
 
 function cancel_mesh(hObject, eventdata, handles)
