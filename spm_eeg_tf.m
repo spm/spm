@@ -29,9 +29,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 3061 2009-04-17 12:17:00Z guillaume $
+% $Id: spm_eeg_tf.m 3341 2009-09-01 14:23:49Z vladimir $
 
-SVNrev = '$Rev: 3061 $';
+SVNrev = '$Rev: 3341 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -240,13 +240,6 @@ end
 
 spm_progress_bar('Clear');
 
-%-Remove baseline over frequencies and trials
-%--------------------------------------------------------------------------
-if tf.rm_baseline == 1
-    Dtf = spm_eeg_bc(struct('D',    Dtf, ...
-                            'time', tf.Sbaseline,...
-                            'save', false));
-end
 
 %-Save new M/EEG dataset
 %--------------------------------------------------------------------------
@@ -255,6 +248,14 @@ save(Dtf);
 if tf.phase
     Dtf2 = Dtf2.history('spm_eeg_tf', S);
     save(Dtf2);
+end
+
+%-Remove baseline over frequencies and trials
+%--------------------------------------------------------------------------
+if tf.rm_baseline == 1
+    Dtf = spm_eeg_bc(struct('D',    Dtf, ...
+                            'time', tf.Sbaseline,...
+                            'save', false));
 end
 
 %-Cleanup

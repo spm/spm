@@ -7,7 +7,7 @@ function D = spm_eeg_average_TF(S)
 % S.D           - MEEG object or filename of M/EEG mat-file with epoched TF data
 % S.circularise - flag that indicates whether average is straight (0) or
 %                 vector (1) of phase angles.
-% S.robust      - (optional) - use robust averaging
+% S.robust      - (optional) - use robust averaging (only for power)
 %                 .savew  - save the weights in an additional dataset
 %                 .bycondition - compute the weights by condition (1,
 %                                default) or from all trials (0)
@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3258 2009-07-08 17:46:54Z vladimir $
+% $Id: spm_eeg_average_TF.m 3341 2009-09-01 14:23:49Z vladimir $
 
-SVNrev = '$Rev: 3258 $';
+SVNrev = '$Rev: 3341 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -67,10 +67,15 @@ end
 
 %-Configure robust averaging
 %--------------------------------------------------------------------------
+
+if strcmp(D.transformtype, 'TFphase')
+    S.robust = 0;
+end
+
 if ~isfield(S, 'robust')
     robust = spm_input('Use robust averaging?','+1','yes|no',[1 0]);
     if robust
-       S.robust = []; 
+        S.robust = [];
     else
         S.robust = false;
     end
@@ -82,7 +87,7 @@ end
 if robust
     if ~isfield(S.robust, 'savew')
         S.robust.savew =  spm_input('Save weights?','+1','yes|no',[1 0]);
-    end    
+    end
     savew = S.robust.savew;
     
     if ~isfield(S.robust, 'bycondition')
@@ -90,13 +95,13 @@ if robust
     end
     
     bycondition = S.robust.bycondition;
-        
+    
     if ~isfield(S.robust, 'ks')
         S.robust.ks =  spm_input('Offset of the weighting function', '+1', 'r', '3', 1);
     end
-        
+    
     ks          = S.robust.ks;
- 
+    
 end
 
 %-Generate new MEEG object with new files
@@ -132,57 +137,25 @@ for j = 1:D.nchannels
         W(1, :, :, goodtrials) = W1;
     end
     for i = 1:D.nconditions
-
+        
         w = pickconditions(D, deblank(cl{i}), 1)';
         
         if isempty(w)
             continue;
         end
-
+        
         %-Straight average
         %------------------------------------------------------------------
         if ~circularise
-            if ~robust
-                Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
-            else
-                if bycondition
-                    [Y, W] = spm_robust_average(D(j, :, :, w), 4, ks);
-                    Dnew(j, :, :, i) = Y;
-                    if savew
-                        Dw(j, :, :, w)   = W;
-                    end
-                else
-                    X = D(j, :, :, w);
-                    X(isnan(X))      = 0;
-                    Dnew(j, :, :, i) = ...
-                        sum(W(1, :, :, w).*X, 4)./sum(W(1, :, :, w), 4);
-                end
-            end
-
+            Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
+            
             %-Vector average (eg PLV for phase)
             %------------------------------------------------------------------
         else
             tmp = D(j, :, :, w);
             tmp = cos(tmp) + sqrt(-1)*sin(tmp);
-
-            if ~robust
-                Dnew(j, :, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
-            else
-                if bycondition
-                    [Y, W] = spm_robust_average(tmp, 4, ks);
-                    aY     = sum(W(j, :, :, :).*abs(tmp), 4)./sum(W(j, :, :, :), 4);
-                    if savew
-                        Dw(j, :, :, w) = W;
-                    end
-                else
-                    tmp(isnan(tmp)) = 0;
-                    Y  = sum(W(1, :, :, w).*tmp)./sum(W(1, :, :, w), 4);
-                    aY = sum(W(1, :, :, w).*abs(tmp))./sum(W(1, :, :, w), 4);
-                end
-
-                Dnew(j, :, :, i) = squeeze(Y./aY);
-
-            end
+            
+            Dnew(j, :, :, i) = abs(mean(tmp,4)) ./ mean(abs(tmp),4);
         end
     end
     spm_progress_bar('Set', j);

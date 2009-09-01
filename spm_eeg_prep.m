@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3192 2009-06-09 08:29:22Z vladimir $
+% $Id: spm_eeg_prep.m 3341 2009-09-01 14:23:49Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -170,9 +170,14 @@ switch lower(S.task)
                     shape.pnt = [];
                 end
             case 'locfile'
-                label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
+                label = chanlabels(D, D.meegchannels('EEG'));
 
                 elec = fileio_read_sens(S.sensfile);
+                
+                % Remove headshape points
+                hspind = strmatch('headshape', elec.label);
+                elec.pnt(hspind, :) = [];
+                elec.label(hspind)  = [];
 
                 % This handles FIL Polhemus case and other possible cases
                 % when no proper labels are available.
@@ -366,11 +371,6 @@ switch lower(S.task)
         
         D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
         D = spm_eeg_inv_datareg_ui(D, val);
-
-        if isequal(D.modality(1, 0), 'EEG')
-            D = sensors(D, 'EEG', D.inv{1}.datareg.sensors);
-            D = fiducials(D, D.inv{1}.datareg.fid_eeg);
-        end
 
     %----------------------------------------------------------------------
     otherwise

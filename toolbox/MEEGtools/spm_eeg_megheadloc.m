@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3212 2009-06-19 15:20:48Z vladimir $
+% $Id: spm_eeg_megheadloc.m 3341 2009-09-01 14:23:49Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -158,7 +158,7 @@ for f=1:numel(D)
                 (squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3))) - norm(header_fid(2,:) - header_fid(3,:)))';...
                 (squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3))) - norm(header_fid(3,:) - header_fid(1,:)))'];
             
-            tracking_lost_ind = find(any(abs(dist_dev) > 0.005));
+            tracking_lost_ind = find(any(abs(dist_dev) > 0.01));
             
             if ~isempty(tracking_lost_ind)
                 warning(['Tracking loss detected in file ' D{f}.fname ' trial ' num2str(k)]);

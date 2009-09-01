@@ -17,9 +17,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 3248 2009-07-03 16:17:30Z vladimir $
+% $Id: spm_eeg_downsample.m 3341 2009-09-01 14:23:49Z vladimir $
 
-SVNrev = '$Rev: 3248 $';
+SVNrev = '$Rev: 3341 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -114,7 +114,7 @@ if strcmp(D.type, 'continuous')
     end
     
 else
-    spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
+    spm_progress_bar('Init', D.ntrials, 'Trials downsampled'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
     else Ibar = [1:D.ntrials]; end
     

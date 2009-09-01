@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3317 2009-08-10 12:39:52Z vladimir $
+% $Id: spm_eeg_montage.m 3341 2009-09-01 14:23:49Z vladimir $
 
-SVNrev = '$Rev: 3317 $';
+SVNrev = '$Rev: 3341 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -203,10 +203,11 @@ Dnew = spm_eeg_prep(S1);
 
 %-Apply montage to sensors
 %--------------------------------------------------------------------------
-sensortypes = {'MEG'}; % EEG disabled for now
+sensortypes = {'MEG', 'EEG'};
 for i = 1:length(sensortypes)
     sens = D.sensors(sensortypes{i});
-    if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
+    if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label) &&...
+            ~isequal(sensortypes{i}, 'EEG') % EEG disabled for now
         sensmontage = montage;
         sel1 = spm_match_str(sensmontage.labelorg, sens.label);
         sensmontage.labelorg = sensmontage.labelorg(sel1);
@@ -225,11 +226,17 @@ for i = 1:length(sensortypes)
         sens.balance.custom = balance;
         sens.balance.current = 'custom';
     end
-    Dnew = sensors(Dnew, sensortypes{i}, sens);
     
-    if isfield(Dnew, 'inv')
-        Dnew = rmfield(Dnew, 'inv');
+    if ~isempty(sens) && ~isempty(intersect(sens.label, Dnew.chanlabels))
+        Dnew = sensors(Dnew, sensortypes{i}, sens);
+    else
+        Dnew = sensors(Dnew, sensortypes{i}, []);
     end
+end
+
+% Remove any inverse solutions
+if isfield(Dnew, 'inv')
+    Dnew = rmfield(Dnew, 'inv');
 end
 
 %-Assign default EEG sensor positions if no positions are present or if
