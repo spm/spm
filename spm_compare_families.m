@@ -22,7 +22,7 @@ function [family,model] = spm_compare_families (lme,family)
 % family        - RFX only:  
 %                   .alpha0       prior counts 
 %                   .exp_r        expected value of r
-%                   .rsamp        samples from posterior
+%                   .s_samp       samples from posterior
 %                   .xp           exceedance probs
 %                - FFX only: 
 %                   .prior        family priors
@@ -31,6 +31,7 @@ function [family,model] = spm_compare_families (lme,family)
 % model          - RFX only: 
 %                   .alpha0        prior counts
 %                   .exp_r         expected value of r
+%                   .r_samp        samples from posterior
 %                - FFX only: 
 %                   .subj_lme      log model ev without subject effects
 %                   .prior         model priors
@@ -41,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3298 2009-07-30 15:30:29Z will $
+% $Id: spm_compare_families.m 3347 2009-09-02 16:04:20Z will $
 
 try
     infer=family.infer;
@@ -142,17 +143,18 @@ end
 [exp_r,xp,r_samp]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
 model.exp_r=exp_r;
 model.xp=xp;
+model.r_samp=r_samp;
 
 % Get stats from family posterior
 for i=1:K,
     ri=r_samp(:,ind{i});
-    family.r_samp(:,i)=sum(ri,2);
-    family.exp_r(i)=mean(family.r_samp(:,i));
+    family.s_samp(:,i)=sum(ri,2);
+    family.exp_r(i)=mean(family.s_samp(:,i));
 end
 
 % Family exceedence probs
 xp = zeros(1,K);
-r=family.r_samp;
+r=family.s_samp;
 [y,j]=max(r,[],2);
 tmp=histc(j,1:K)';
 family.xp=tmp/Nsamp;
