@@ -37,9 +37,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3080 2009-04-22 17:05:00Z will $
+% $Id: spm_eeg_convert2images.m 3342 2009-09-02 10:35:28Z guillaume $
 
-SVNrev = '$Rev: 3080 $';
+SVNrev = '$Rev: 3342 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -114,6 +114,10 @@ if strncmpi(D.transformtype, 'TF',2);
             %-Convert to NIfTI images
             %--------------------------------------------------------------
             cl  = D.condlist;
+            df  = diff(D.frequencies);
+            if any(diff(df))
+                warning('Irregular frequency spacing.');
+            end
             for i = 1 : D.nconditions
                 Itrials = pickconditions(D, cl{i}, 1)';
 
@@ -137,10 +141,10 @@ if strncmpi(D.transformtype, 'TF',2);
                     dat   = file_array(fname, [D.nfrequencies D.nsamples], 'FLOAT64-LE');
                     N.dat = dat;
                     N.mat = [...
-                        1  0               0  min(D.frequencies);...
-                        0  1000/D.fsample  0  time(D, 1, 'ms');...
-                        0  0               1  0;...
-                        0  0               0  1];
+                        df(1)   0               0  min(D.frequencies);...
+                        0       1000/D.fsample  0  time(D, 1, 'ms');...
+                        0       0               1  0;...
+                        0       0               0  1];
                     N.mat_intent = 'Aligned';
                     create(N);
 

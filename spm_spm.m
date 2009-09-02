@@ -284,9 +284,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3303 2009-08-03 15:26:49Z guillaume $
+% $Id: spm_spm.m 3342 2009-09-02 10:35:28Z guillaume $
 
-SVNid     = '$Rev: 3303 $';
+SVNid     = '$Rev: 3342 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -484,41 +484,6 @@ M        = VY(1).mat;
 DIM      = VY(1).dim(1:3)';
 xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
-
-%-Set data units for non-Talairach data
-%==========================================================================
-
-% assume mm in stardard space
-%--------------------------------------------------------------------------
-units = {'mm' 'mm' 'mm'};
-
-try
-    % 3-D case, with arbitrary dimensions
-    % (dimension check to disambiguate 3D source reconstruction from 2D+t 
-    % images, see spm_eeg_inv_Mesh2Voxels.m - to be improved...)
-    %----------------------------------------------------------------------
-    if strcmpi(spm_get_defaults('modality'),'EEG') && ~all(DIM == [91 109 91]')
-        
-        % z dimension is percent
-        %------------------------------------------------------------------
-        spm_check_orientations([VY; xM.VM]);
-        M(3,3) = 100 / DIM(3);
-        M(3,4) = 0;
-        [VY.mat]  = deal(M);
-        SPM.xY.VY = VY;
-        units = {'mm' 'mm' '%'};
-        if ~isempty(xM.VM)
-            [xM.VM.mat] = deal(M);
-            SPM.xM = xM;
-        end
-    end
-end
-
-% 2-D case
-%--------------------------------------------------------------------------
-if DIM(3) == 1
-    units{3} = '';
-end
 
 
 %-Maximum number of residual images for smoothness estimation
@@ -966,7 +931,6 @@ SPM.xVol.XYZ   = XYZ(:,1:S);        %-InMask XYZ coords (voxels)
 SPM.xVol.M     = M;                 %-voxels -> mm
 SPM.xVol.iM    = inv(M);            %-mm -> voxels
 SPM.xVol.DIM   = DIM;               %-image dimensions
-SPM.xVol.units = units;             %-image units
 SPM.xVol.FWHM  = FWHM;              %-Smoothness data
 SPM.xVol.R     = R;                 %-Resel counts
 SPM.xVol.S     = S;                 %-Volume (voxels)

@@ -135,9 +135,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm_results_ui.m 3342 2009-09-02 10:35:28Z guillaume $
  
-SCCSid = '$Rev: 3081 $';
+SCCSid = '$Rev: 3342 $';
  
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -251,7 +251,7 @@ SCCSid = '$Rev: 3081 $';
  
 %-Condition arguments
 %--------------------------------------------------------------------------
-if nargin == 0, Action='SetUp'; else, Action=varargin{1}; end
+if nargin == 0, Action='SetUp'; else Action=varargin{1}; end
  
  
 %==========================================================================
@@ -270,38 +270,73 @@ switch lower(Action), case 'setup'                         %-Set up results
     spm_figure('clear',hSat);
  
     %-Get thresholded xSPM data and parameters of design
-    %=======================================================================
-    if (nargin > 1) 
-    [SPM,xSPM] = spm_getSPM(varargin{2});
+    %======================================================================
+    if nargin > 1
+        [SPM,xSPM] = spm_getSPM(varargin{2});
     else
-    [SPM,xSPM] = spm_getSPM;
-    end;
- 
-    if isempty(xSPM) 
-    varargout = {[],[],[]};
-    return;
+        [SPM,xSPM] = spm_getSPM;
     end
  
+    if isempty(xSPM) 
+        varargout = {[],[],[]};
+        return;
+    end
+ 
+    %-Ensure pwd = swd so that relative filenames are valid
+    %----------------------------------------------------------------------
+    cd(SPM.swd)
+    
+    %-Get space information
+    %======================================================================
     M         = SPM.xVol.M;
     DIM       = SPM.xVol.DIM;
+
+    %-Space units
+    %----------------------------------------------------------------------
     try
         units = SPM.xVol.units;
     catch
-        units = {'mm' 'mm' 'mm'};
+        try
+            if strcmp(spm('CheckModality'),'EEG')
+                datatype = {...
+                    'Volumetric (2D/3D)',...
+                    'Scalp-Time',...
+                    'Scalp-Frequency',...
+                    'Time-Frequency'};
+                selected = spm_input('Data Type: ','+1','m',datatype);
+                datatype = datatype{selected};
+            else
+                datatype = 'Volumetric (2D/3D)';
+            end
+        catch
+            datatype     = 'Volumetric (2D/3D)';
+        end
+        
+        switch datatype
+            case 'Volumetric (2D/3D)'
+                units    = {'mm' 'mm' 'mm'};
+            case 'Scalp-Time'
+                units    = {'mm' 'mm' 'ms'};
+            case 'Scalp-Frequency'
+                units    = {'mm' 'mm' 'Hz'};
+            case 'Time-Frequency'
+                units    = {'Hz' 'ms' ''};
+            otherwise
+                error('Unknown data type.');
+        end
     end
- 
-    % ensure pwd = swd so that relative filenames are valid
-    %----------------------------------------------------------------------
-    cd(SPM.swd)
- 
+    if DIM(3) == 1, units{3} = ''; end
+    xSPM.units      = units;
+    SPM.xVol.units  = units;
+    
+     
     %-Setup Results User Interface; Display MIP, design matrix & parameters
     %======================================================================
-    spm('FigName',['SPM{',xSPM.STAT,'}: Results'],Finter,CmdLine);
- 
  
     %-Setup results GUI
     %----------------------------------------------------------------------
-    spm_figure('Clear',Finter)
+    spm_figure('Clear',Finter);
+    spm('FigName',['SPM{',xSPM.STAT,'}: Results'],Finter,CmdLine);
     hReg      = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter);
  
     %-Setup design interrogation menu
@@ -309,7 +344,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     hDesRepUI = spm_DesRep('DesRepUI',SPM);
     figure(Finter)
  
-    %-Setup Maximium intensity projection (MIP) & register
+    %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
     hMIPax = axes('Parent',Fgraph,'Position',[0.05 0.60 0.55 0.36],'Visible','off');
     hMIPax = spm_mip_ui(xSPM.Z,xSPM.XYZmm,M,DIM,hMIPax,units);
@@ -494,7 +529,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         %-p-values
         %------------------------------------------------------------------
         uicontrol(Finter,'Style','Text','String','p-values',...
-            'Position',[020 168 050 015].*WS,...
+            'Position',[020 168 080 015].*WS,...
             'FontAngle','Italic',...
             'FontSize',FS(10),...
             'HorizontalAlignment','Left',...
@@ -565,8 +600,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Hemodynamic modelling
         %------------------------------------------------------------------
-        global defaults
-        if strcmp(defaults.modality,'FMRI')
+        if strcmp(spm('CheckModality'),'FMRI')
             uicontrol(Finter,'Style','PushButton','String','Hemodynamics',...
                 'FontSize',FS(10),...
                 'ToolTipString','Hemodynamic modelling of regional response',...
@@ -687,7 +721,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         hFxyz = uicontrol(Finter,'Style','Pushbutton',...
             'visible','off','enable','off','Position',[010 010 265 030].*WS);
         uicontrol(Finter,'Style','Text','String','co-ordinates',...
-            'Position',[020 035 078 016].*WS,...
+            'Position',[020 035 090 016].*WS,...
             'FontAngle','Italic',...
             'FontSize',FS(10),...
             'HorizontalAlignment','Left',...
@@ -717,6 +751,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Tag','hY',...
             'Callback','spm_results_ui(''EdWidCB'')');
  
+        if DIM(3) ~= 1
         uicontrol(Finter,'Style','Text','String','z =',...
             'Position',[190 015 024 018].*WS,...
             'FontName',PF.times,'FontSize',FS(10),'FontAngle','Italic',...
@@ -728,11 +763,14 @@ switch lower(Action), case 'setup'                         %-Set up results
             'HorizontalAlignment','Right',...
             'Tag','hZ',...
             'Callback','spm_results_ui(''EdWidCB'')');
- 
+        else
+        hZ = [];
+        end
+        
         %-Statistic value reporting pane
         %------------------------------------------------------------------
         uicontrol(Finter,'Style','Text','String','statistic',...
-            'Position',[285 035 085 016].*WS,...
+            'Position',[285 035 090 016].*WS,...
             'FontAngle','Italic',...
             'FontSize',FS(10),...
             'HorizontalAlignment','Left',...
@@ -829,7 +867,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         if hC <= 0
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.DIM);
             if d>0 && nargout<2, warning(sprintf(...
-                '%s: Co-ords rounded to neatest voxel centre: Discrepancy %.2f',...
+                '%s: Co-ords rounded to nearest voxel centre: Discrepancy %.2f',...
                 mfilename,d))
             end
         else

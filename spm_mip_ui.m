@@ -1,12 +1,13 @@
 function varargout = spm_mip_ui(varargin)
 % GUI for displaying MIPs with interactive pointers
-% FORMAT hMIPax = spm_mip_ui(Z,XYZ,M,DIM,F)
+% FORMAT hMIPax = spm_mip_ui(Z,XYZ,M,DIM,F,units)
 % Z       - {1 x ?} vector point list of SPM values for MIP
 % XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
 % M       - voxels - > mm matrix
 % DIM     - image dimensions {voxels}
 % F       - Figure (or axes) to work in [Defaults to gcf]
 % hMIPax  - handle of MIP axes
+% units   - units of space
 %
 % FORMAT xyz = spm_mip_ui('GetCoords',h)
 % h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
@@ -68,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 2842 2009-03-09 15:40:51Z guillaume $
+% $Id: spm_mip_ui.m 3342 2009-09-02 10:35:28Z guillaume $
 
 
 %==========================================================================
@@ -161,7 +162,7 @@ end
 %-Axis offsets for 3d MIPs:
 %==========================================================================
 %-MIP pane dimensions and Talairach origin offsets
-%-See spm_mip.c for derivation
+%-See spm_project.c for derivation
 DXYZ = [182 218 182];
 CXYZ = [091 127 073];
 % DMIP = [DXYZ(2)+DXYZ(1), DXYZ(1)+DXYZ(3)];
@@ -210,7 +211,34 @@ switch lower(varargin{1}), case 'display'
 
     xyz = spm_XYZreg('RoundCoords',[0;0;0],M,DIM);
 
-
+    %-Display (MIP) transformation matrix
+    %----------------------------------------------------------------------
+    if isequal(units,{'mm' 'mm' 'mm'})
+        Md      = eye(4);
+    elseif isequal(units,{'mm' 'mm' ''})
+        Md      = eye(4);
+        Md(3,4) = -100;  % out of field of view (MNI) 
+    elseif isequal(units,{'mm' 'mm' 'ms'}) || isequal(units,{'mm' 'mm' 'Hz'})
+        Md      = eye(4);
+        Md(3,3) = 100 / (M(3,3)*DIM(3));
+        Md(3,4) = -100 * M(3,4) / (M(3,3)*DIM(3));
+    elseif isequal(units,{'Hz' 'ms' ''})
+        Md      = eye(4);
+        Md(1,1) = -136 / (M(1,1)*DIM(1));
+        Md(1,4) = M(1,4)*136 / (M(1,1)*DIM(1)) + 68;
+        Md(2,2) = 172 / (M(2,2)*DIM(2));
+        Md(2,4) = -M(2,4)*172 / (M(2,2)*DIM(2)) - 100;
+        Md(3,4) = -100;
+    elseif isequal(units,{'mm' 'mm' '%'})
+        warning('Handling of data units changed: please re-estimate model.');
+        units   = {'mm' 'mm' 'ms'};
+        Md      = eye(4);
+        Md(3,3) = 100 / (M(3,3)*DIM(3));
+        Md(3,4) = -100 * M(3,4) / (M(3,3)*DIM(3));
+    else
+        error('Unknown data units.');
+    end
+    
     %-Display MIP
     %----------------------------------------------------------------------
     Funits = get(F,'Units');
@@ -223,7 +251,7 @@ switch lower(varargin{1}), case 'display'
 
     %-NB: spm_mip's `image` uses a newplot, & screws stuff without the figure.
     figure(F)
-    spm_mip(Z,XYZ,M,units);
+    spm_mip(Z,Md(1:3,:)*[XYZ;ones(1,size(XYZ,2))],Md*M,units);
     hMIPim = get(gca,'Children');
 
 
@@ -241,6 +269,7 @@ switch lower(varargin{1}), case 'display'
 
     %-Create point markers
     %----------------------------------------------------------------------
+    xyz = Md(1:3,:)*[xyz(:);1];
     hX1r  = text(Po(1)+xyz(2),Po(2)+xyz(1),'<',...
         'Color','r','Fontsize',16,...
         'Tag','hX1r',...
@@ -309,6 +338,7 @@ switch lower(varargin{1}), case 'display'
         'XYZ',      XYZ,...
         'Z',        Z,...
         'M',        M,...
+        'Md',       Md,...
         'DIM',      DIM,...
         'hXr',      hXr))
 
@@ -349,7 +379,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Move marker points, update internal cache in hMIPxyz
         %------------------------------------------------------------------
-        spm_mip_ui('PosnMarkerPoints',xyz,h,'r');
+        spm_mip_ui('PosnMarkerPoints',MD.Md(1:3,:)*[xyz;1],h,'r');
         set(MD.hMIPxyz,'UserData',reshape(xyz(1:3),3,1))
         set(MD.hMIPxyz,'String',{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',xyz(1:3))})
 
@@ -371,7 +401,7 @@ switch lower(varargin{1}), case 'display'
         if ~any(strcmp(r,{'r','g'})), error('Invalid pointer colour spec'), end
         if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
         if nargin<2, xyz = spm_mip_ui('GetCoords',h); else xyz = varargin{2}; end
-
+        
         %-Get handles of marker points of appropriate colour from UserData of hMIPax
         %------------------------------------------------------------------
         hX = getfield(get(h,'UserData'),['hX',r]);
@@ -483,6 +513,7 @@ switch lower(varargin{1}), case 'display'
             'MIPaxPos', get(hMIPax,'Position')*[1,0;0,1;0,0;0,0],...
             'hMIPxyz',  MD.hMIPxyz,...
             'M',        MD.M,...
+            'Md',       MD.Md,...
             'DIM',      MD.DIM,...
             'hX',       MD.hXr))
 
@@ -555,7 +586,8 @@ switch lower(varargin{1}), case 'display'
         else
             error('Can''t work out which marker point')
         end
-
+        xyz = inv(MS.Md) * [xyz(:);1]; xyz = xyz(1:3);
+        
         %-Round coordinates according to DragType & set in hMIPxyz's UserData
         %------------------------------------------------------------------
         if DragType==0
@@ -575,9 +607,10 @@ switch lower(varargin{1}), case 'display'
         %-Move marker points
         %------------------------------------------------------------------
         set(MS.hX,'Units','Data')
-        set(MS.hX(1),'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
-        set(MS.hX(2),'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
-        set(MS.hX(3),'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
+        xyz2 = MS.Md(1:3,1:4) * [xyz(:);1];
+        set(MS.hX(1),'Position',[ Po(1) + xyz2(2), Po(2) + xyz2(1), 0])
+        set(MS.hX(2),'Position',[ Po(1) + xyz2(2), Po(3) - xyz2(3), 0])
+        set(MS.hX(3),'Position',[ Po(4) + xyz2(1), Po(3) - xyz2(3), 0])
 
 
         %-Update dynamic co-ordinate strings (if appropriate DragType)
