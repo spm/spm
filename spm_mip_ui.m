@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id: spm_mip_ui.m 3344 2009-09-02 15:03:41Z guillaume $
 
 
 %==========================================================================
@@ -220,8 +220,8 @@ switch lower(varargin{1}), case 'display'
         Md(3,4) = -100;  % out of field of view (MNI) 
     elseif isequal(units,{'mm' 'mm' 'ms'}) || isequal(units,{'mm' 'mm' 'Hz'})
         Md      = eye(4);
-        Md(3,3) = 100 / (M(3,3)*DIM(3));
-        Md(3,4) = -100 * M(3,4) / (M(3,3)*DIM(3));
+        Md(3,3) = 80 / (M(3,3)*DIM(3));
+        Md(3,4) = -80 * M(3,4) / (M(3,3)*DIM(3));
     elseif isequal(units,{'Hz' 'ms' ''})
         Md      = eye(4);
         Md(1,1) = -136 / (M(1,1)*DIM(1));
@@ -233,8 +233,8 @@ switch lower(varargin{1}), case 'display'
         warning('Handling of data units changed: please re-estimate model.');
         units   = {'mm' 'mm' 'ms'};
         Md      = eye(4);
-        Md(3,3) = 100 / (M(3,3)*DIM(3));
-        Md(3,4) = -100 * M(3,4) / (M(3,3)*DIM(3));
+        Md(3,3) = 80 / (M(3,3)*DIM(3));
+        Md(3,4) = -80 * M(3,4) / (M(3,3)*DIM(3));
     else
         error('Unknown data units.');
     end
