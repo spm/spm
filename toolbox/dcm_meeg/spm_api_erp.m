@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3112 2009-05-11 15:19:34Z karl $
+% $Id: spm_api_erp.m 3343 2009-09-02 14:08:32Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -248,6 +248,31 @@ guidata(hObject,handles);
 % -------------------------------------------------------------------------
 function handles = reset_Callback(hObject, eventdata, handles)
  
+% analysis type
+%--------------------------------------------------------------------------
+model = get(handles.ERP,           'String');
+model = model{get(handles.ERP,     'Value')};
+handles.DCM.options.analysis  = model;
+ 
+if isequal(model, 'ERP')
+    set(handles.han, 'Enable', 'on');
+else
+    set(handles.han, 'Value', 0);
+    set(handles.han, 'Enable', 'off');
+end
+
+% model type
+%--------------------------------------------------------------------------
+model = get(handles.model,         'String');
+model = model{get(handles.model,   'Value')};
+handles.DCM.options.model     = model;
+        
+% spatial type
+%--------------------------------------------------------------------------
+model = get(handles.Spatial,       'String');
+model = model{get(handles.Spatial, 'Value')};
+handles.DCM.options.spatial   = model;
+
 handles.DCM.options.trials   = str2num(get(handles.Y1,    'String'));
 handles.DCM.options.Tdcm(1)  = str2num(get(handles.T1,    'String'));
 handles.DCM.options.Tdcm(2)  = str2num(get(handles.T2,    'String'));
@@ -262,24 +287,6 @@ handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
 handles.DCM.options.location = get(handles.location,      'Value');
 handles.DCM.options.symmetry = get(handles.symmetry,      'Value');
- 
-% analysis type
-%--------------------------------------------------------------------------
-model = get(handles.ERP,           'String');
-model = model{get(handles.ERP,     'Value')};
-handles.DCM.options.analysis  = model;
- 
-% model type
-%--------------------------------------------------------------------------
-model = get(handles.model,         'String');
-model = model{get(handles.model,   'Value')};
-handles.DCM.options.model     = model;
- 
-% spatial type
-%--------------------------------------------------------------------------
-model = get(handles.Spatial,       'String');
-model = model{get(handles.Spatial, 'Value')};
-handles.DCM.options.spatial   = model;
  
 guidata(hObject,handles);
  
