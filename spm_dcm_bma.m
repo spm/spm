@@ -17,7 +17,7 @@ function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id
+% $Id$
 
 if nargin < 3 | isempty(Nsamp)
     Nsamp=1e3;
