@@ -1,20 +1,13 @@
 function D = spm_eeg_inv_vbecd_gui(D,val)
-% GUI function for the VB-ECD inversion
+% GUI function for Bayesian ECD inversion
 % - load the necessary data, if not provided
 % - fill in all the necessary bits for the VB-ECD inversion routine,
-%   especially the priors
-% - launch the VB_ECD routine, aka. spm_eeg_inv_vbecd
+% - launch the B_ECD routine, aka. spm_eeg_inv_vbecd
 % - displays the results.
-% See the comments in the function and the article for further details
-%
-% Reference:
-% Kiebel et al., Variational Bayesian inversion of the equivalent current
-% dipole model in EEG/MEG., NeuroImage, 39:728-741, 2008
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 3261 2009-07-09 11:36:09Z vladimir $
+% 
+% $Id: spm_eeg_inv_vbecd_gui.m 3352 2009-09-03 14:13:47Z gareth $
 
 %%
 % Load data, if necessary
@@ -46,8 +39,8 @@ else
 end
 
 % Use val to define which is the "current" inv{} to use
-% If no inverse solution already calculated (field 'inverse' doesn't exist)
-% use that inv{}. Otherwise create a new one by copying the previous
+% If no inverse solution already calculated (field 'inverse' doesn't exist) 
+% use that inv{}. Otherwise create a new one by copying the previous 
 % inv{} structure
 if isfield(D.inv{val},'inverse')
     % create an extra inv{}
@@ -72,8 +65,8 @@ if ~isfield(D.inv{val}, 'date')
     D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
 end
 
-if ~isfield(D.inv{val}, 'comment'),
-    D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
+if ~isfield(D.inv{val}, 'comment'), 
+   D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
 end
 
 D.inv{val}.method = 'vbecd';
@@ -81,9 +74,7 @@ D.inv{val}.method = 'vbecd';
 %% Struct that collects the inputs for vbecd code
 P = [];
 
-%P.modality = 'EEG';
 
-% Uncomment the line below to try other modalities
 P.modality = spm_eeg_modality_ui(D, 1, 1);
 
 if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
@@ -96,19 +87,19 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
             P.forward.sens = D.inv{val}.datareg(m).sensors;
             % Channels to use
             P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
-
-
+            
+            
             M1 = D.inv{val}.datareg.toMNI;
             if ~isequal(P.modality,'EEG')
                 [U, L, V] = svd(M1(1:3, 1:3));
                 M1(1:3,1:3) =U*V';
             end
-            %             disp('Undoing transformation to Tal space !');
-            %             M1=eye(4)
-            %
+          %   disp('Undoing transformation to Tal space !');
+          %   M1=eye(4)
+             
             P.forward.sens = forwinv_transform_sens(M1, P.forward.sens);
             P.forward.vol = forwinv_transform_vol(M1, P.forward.vol);
-
+            
         end
     end
 end
@@ -119,7 +110,7 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 
-
+ 
 [P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 
@@ -128,13 +119,13 @@ if ~isfield(P.forward.sens,'prj')
 end
 
 
-%%
+%% 
 % Deal with data
 %===============
 
 % time bin or time window
 msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1e3)), ...
-    ' ',num2str(round(max(D.time)*1e3)),'] ms'];
+            ' ',num2str(round(max(D.time)*1e3)),'] ms'];
 ask_tb = 1;
 while ask_tb
     tb = spm_input(msg_tb,1,'r');   % ! in msec
@@ -156,31 +147,6 @@ else
     ltb = ltb(1):ltb(2); % list of time bins 'tb' to use
 end
 
-%% get a baseline period- used to get precision
-if D.time(1)>0
-    msg_tb = ['Baseline time_win'];
-    ask_tb = 1;
-    while ask_tb
-        btb = spm_input(msg_tb,1,'r');   % ! in msec
-        if length(btb)==1
-            if btb>=min(D.time([], 'ms')) && btb<=max(D.time([], 'ms'))
-                ask_tb = 0;
-            end
-        elseif length(btb)==2
-            if all(btb>=floor(min(D.time([], 'ms')))) && all(btb<=ceil(max(D.time([], 'ms')))) && btb(1)<=btb(2)
-                ask_tb = 0;
-            end
-        end
-    end
-    btb = 1e-3*btb;
-else
-    btb = [D.time(1) 0];
-end
-
-bltb = D.indsample(btb);
-if length(btb) == 2
-    bltb = bltb(1):bltb(2); % list of time bins 'tb' to use
-end
 
 % trial type
 if D.ntrials>1
@@ -194,41 +160,46 @@ end
 
 % data, averaged over time window considered
 
+
 EEGscale=1;
-%% convert to VOLTS
+
+%% SORT OUT EEG UNITS AND CONVERT VALUES TO VOLTS
 if strcmp(upper(P.modality),'EEG'),
+    allunits=strvcat('uV','mV','V');   
+    allscales=[1e-6, 1e-3, 1]; %% 
+    EEGscale=0;
     eegunits = unique(D.units(D.meegchannels('EEG')));
     Neegchans=numel(D.units(D.meegchannels('EEG')));
-    if ~strcmp(eegunits,'V'),
-        warning('units unspecified');
-        if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
-            guess_units='uV';
+    for j=1:length(allunits),
+        if strcmp(deblank(allunits(j,:)),deblank(eegunits));
+            EEGscale=allscales(j);
+        end; % if
+    end; % for j
+    
+if EEGscale==0,
+    warning('units unspecified');
+    if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
+        guess_ind=[1 2 3];
         else
-            guess_units='V';
+        guess_ind=[3 2 1];
         end;
-        fprintf('No units specified but rms of data is %3.2f units\n',mean(std(D(P.Ic,ltb,ltr))))
-        if ~spm_input(sprintf('Units of EEG are %s ?', guess_units), '+1','yes|no',[1 0]);
-            error('stop for now');
-        end; % if strcmp
-        D = units(D, 1:Neegchans, guess_units);
-    end; %if no units
-
-    eegunits = unique(D.units(D.meegchannels('EEG')));
-    EEGscale=-1;
-    if strcmp(eegunits,'V'),
-        EEGscale=1;
-    end; % if
-    if strcmp(eegunits,'uV'),
-        EEGscale=1e-6;
-    end % if
-    if EEGscale==-1,
-        error('unknown eeg units');
-    end; % if
+     msg_str=sprintf('Units of EEG are %s ? (rms=%3.2e)',allunits(guess_ind(1),:),mean(std(D(P.Ic,ltb,ltr))));
+     dip_ch = sprintf('%s|%s|%s',allunits(guess_ind(1),:),allunits(guess_ind(2),:),allunits(guess_ind(3),:));
+    dip_val = [1,2,3];
+     def_opt=1;
+    unitind= spm_input(msg_str,2,'b',dip_ch,dip_val,def_opt);
+    %ans=spm_input(msg_str,1,'s','yes');   
+     allunits(guess_ind(unitind),:)
+     D = units(D, 1:Neegchans, allunits(guess_ind(unitind),:));
+     EEGscale=allscales(guess_ind(unitind));
+     D.save; %% Save the new units
+    end; %if EEGscale==0
+   
 end; % if eeg data
 
 
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
-base_dat_stdy = squeeze(std(D(P.Ic,bltb,ltr)*EEGscale,0,2)); %% baseline data- standard deviation
+
 
 %%
 % Other bits of the P structure, apart for priors and #dipoles
@@ -236,10 +207,8 @@ base_dat_stdy = squeeze(std(D(P.Ic,bltb,ltr)*EEGscale,0,2)); %% baseline data- s
 
 P.ltr          = ltr;
 P.Nc           = length(P.Ic);
-P.Niter        = 200;           % \_ Using SK default values here...
-P.threshold_dF = 1e-2;  %1e-4   % /
 
-%%
+
 % Deal with dipoles number and priors
 %====================================
 dip_q = 0; % number of dipole 'elements' added (single or pair)
@@ -247,195 +216,170 @@ dip_c = 0; % total number of dipoles in the model
 adding_dips = 1;
 clear dip_pr
 
-% These are defaults value picked from SK's example data set ran for the
-% paper, values should proabably be tweaked a bit...
-%def_ab_noninfo = [1e-3 1e-12];
-%def_ab_info    = [3 1e-12];
-
-%% new default priors
-%% b20/a20 should be the expect error variance in source moment (in nAM ?).
-%% a,b determine distribution of hyper-priors (which determine paramter
-%% variances)
-%% b/a gives the expected mean of this dist'n, i.e. the variance of the
-%% prior
-orient_noninfo=[1.5 15]; %% expected variance is given by 15/1.5
-orient_info=[1.5 0.15];
-
-pos_noninfo=[1.5 500];  %% approx variability of sqrt(500) mm
-pos_info=[1.5 100];  %% approx variability of sqrt(100) mm
-
-%% b30/a30 should be the expected error variance in location parameters (in
-%% mm)
 
 
-corr = .999;
+priorlocvardefault=[100, 100, 100]; %% location variance default in mm
+nopriorlocvardefault=[80*80, 80*80, 80*80];
+nopriormomvardefault=[10, 10, 10]; %% moment variance in nAM
+priormomvardefault=[1, 1, 1]; %% 
+
+
 
 while adding_dips
-    if dip_q>0,
+    if dip_q>0, 
         msg_dip =['Add dipoles to ',num2str(dip_c),' or stop?'];
-        dip_ch = 'Single|Pair|Stop';
+        dip_ch = 'Single|Symmetric Pair|Stop';
         dip_val = [1,2,0];
         def_opt=3;
     else
         msg_dip =['Add dipoles to model'];
         def_opt=1;
-        dip_ch = 'Single|Pair';
+        dip_ch = 'Single|Symmetric Pair';
         dip_val = [1,2];
     end
     a_dip = spm_input(msg_dip,2+tr_q+dip_q,'b',dip_ch,dip_val,def_opt);
     if a_dip == 0
         adding_dips = 0;
     elseif a_dip == 1
-        % add a single dipole to the model
+    % add a single dipole to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3), ...
-            'ab20',[],'ab30',[],'Tw',eye(3),'Ts',eye(3));
+            'ab20',[],'ab30',[]); %% ,'Tw',eye(3),'Ts',eye(3));
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
-            'Informative|Non-info',[1,0],2);
+                    'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
             str = 'Location prior';
             while 1
                 s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
                 outside = ~forwinv_inside_vol(s0',P.forward.vol);
+                str2='Prior location variance (mm2)';
+                diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+              
                 if all(~outside), break, end
-                str = 'Prior location must be inside head';
-            end
-            dip_pr(dip_q).mu_s0 = s0;
-            dip_pr(dip_q).ab30 = pos_info;
+                    str = 'Prior location must be inside head';
+                  end
+            dip_pr(dip_q).mu_s0 = s0;    
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(3,1);
-            dip_pr(dip_q).ab30 = pos_noninfo;
+            diags_s0= nopriorlocvardefault';
         end
+        %% prior cov matrix for single dipole location (i.e. no crosstalk)
+        dip_pr(dip_q).S_s0=eye(length(diags_s0)).*repmat(diags_s0,1,length(diags_s0)); 
+        
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
-            'Informative|Non-info',[1,0],2);
+                    'Informative|Non-info',[1,0],2);
         if wpr_q
             % informative moment prior
-            dip_pr(dip_q).mu_w0 = spm_input('Moment prior', ...
-                1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
-            dip_pr(dip_q).ab20 = orient_info;
+            w0= spm_input('Moment prior', ...
+                                        1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
+            str2='Prior moment variance (nAm2)';
+            diags_w0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priormomvardefault)';
+            dip_pr(dip_q).mu_w0 =w0;
+             
         else
             % no location  prior
             dip_pr(dip_q).mu_w0 = zeros(3,1);
-            dip_pr(dip_q).ab20 = orient_noninfo;
+            diags_w0= nopriormomvardefault';
         end
+        %% set up covariance matrix for orientation with no crosstalk terms (for single
+        %% dip)
+        dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
         dip_c = dip_c+1;
     else
-        % add a pair of symmetric dipoles to the model
+    % add a pair of symmetric dipoles to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(6),'S_w0',eye(6), ...
             'ab20',[],'ab30',[],'Tw',eye(6),'Ts',eye(6));
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
-            'Informative|Non-info',[1,0],2);
+                    'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
             str = 'Location prior (right only)';
             while 1
-                tmp = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
-                outside = ~forwinv_inside_vol(tmp',P.forward.vol);
+                tmp_s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                str2='Prior location variance (mm2)';
+                tmp_diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+              
+                outside = ~forwinv_inside_vol(tmp_s0',P.forward.vol);
                 if all(~outside), break, end
                 str = 'Prior location must be inside head';
             end
-            tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
-            dip_pr(dip_q).mu_s0 = tmp ;
-            dip_pr(dip_q).ab30 = pos_info;
+            tmp_s0 = [tmp_s0 ; tmp_s0] ; tmp_s0(4) = -tmp_s0(4);
+            tmp_diags_s0 = [tmp_diags_s0 ; tmp_diags_s0] ; 
+            
+            dip_pr(dip_q).mu_s0 = tmp_s0 ;
+           
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(6,1);
-            dip_pr(dip_q).ab30 = pos_noninfo;
-        end
+            tmp_diags_s0 = [nopriorlocvardefault';nopriorlocvardefault'];
+        end %% end of if informative prior
+        %% setting up a covariance matrix where there is covariance between
+        %% the x parameters negatively coupled, y,z positively.
+         dip_pr(dip_q).S_s0 = eye(length(tmp_diags_s0)).*repmat(tmp_diags_s0,1,length(tmp_diags_s0));
+         dip_pr(dip_q).S_s0(4,1)=-dip_pr(dip_q).S_s0(4,4); % reflect in x
+         dip_pr(dip_q).S_s0(5,2)=dip_pr(dip_q).S_s0(5,5); % maintain y and z 
+         dip_pr(dip_q).S_s0(6,3)=dip_pr(dip_q).S_s0(6,6);
+         
+         dip_pr(dip_q).S_s0(1,4)=dip_pr(dip_q).S_s0(4,1);
+         dip_pr(dip_q).S_s0(2,5)=dip_pr(dip_q).S_s0(5,2);
+         dip_pr(dip_q).S_s0(3,6)=dip_pr(dip_q).S_s0(6,3);
+            
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
-            'Informative|Non-info',[1,0],2);
+                                           'Informative|Non-info',[1,0],2);
         if wpr_q
             % informative moment prior
-            tmp = spm_input('Moment prior (right only)', ...
-                1+tr_q+dip_q+spr_q+3,'e',[1 1 1])';
-            tmp = [tmp ; tmp] ; tmp(4) = -tmp(4);
+            tmp= spm_input('Moment prior (right only)', ...
+                                      1+tr_q+dip_q+spr_q+3,'e',[1 1 1])';
+            tmp = [tmp ; tmp] ; tmp(4) = tmp(4);
             dip_pr(dip_q).mu_w0 = tmp;
-            dip_pr(dip_q).ab20 = orient_info;
+            
+            str2='Prior moment variance (nAm2)';
+            diags_w0 = spm_input(str2, 1+tr_q+dip_q+spr_q+3,'e',priormomvardefault)';
+            tmp_diags_w0=[diags_w0; diags_w0];
+            
         else
-            % no location  prior
+            % no moment  prior
             dip_pr(dip_q).mu_w0 = zeros(6,1);
-            dip_pr(dip_q).ab20 = orient_noninfo;
+            tmp_diags_w0 = [nopriormomvardefault'; nopriormomvardefault'];
         end
-        % Symmetry priors, soft or hard for both location and moment.
-        mpr_q = spm_input('Symmetry prior ?', ...
-            1+tr_q+dip_q+spr_q+wpr_q+3,'b','Soft|Hard',[1,0],1);
-        if mpr_q
-            % Soft prior, i.e. parameter correlation
-            tmp = eye(6);
-            tmp2 = eye(3); tmp2(1,1) = -1;
-            tmp(4:6,1:3) = tmp2*corr;
-            tmp(1:3,4:6) = tmp2*corr;
-            dip_pr(dip_q).S_s0 = tmp;
-            dip_pr(dip_q).S_w0 = tmp;
-        else
-            % hard prior, i.e. parameter reduction
-            T = [eye(3) ; eye(3)]; T(4,1) = -1;
-            dip_pr(dip_q).Tw = .5*T*T';
-            dip_pr(dip_q).Ts = .5*T*T';
-        end
+        %dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
+        %% couple all orientations positively or leave for now...
+                dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
+            dip_pr(dip_q).S_w0(4,1)=dip_pr(dip_q).S_w0(4,4); %
+            dip_pr(dip_q).S_w0(5,2)=dip_pr(dip_q).S_w0(5,5); %
+            dip_pr(dip_q).S_w0(6,3)=dip_pr(dip_q).S_w0(6,6); %
+            dip_pr(dip_q).S_w0(1,4)=dip_pr(dip_q).S_w0(4,1); %
+            dip_pr(dip_q).S_w0(2,5)=dip_pr(dip_q).S_w0(5,2); %
+            dip_pr(dip_q).S_w0(3,6)=dip_pr(dip_q).S_w0(6,3); %
+        
+        
+        
         dip_c = dip_c+2;
     end
 end
 
+ str2='Number of iterations';
+ Niter = spm_input(str2, 1+tr_q+dip_q+2+1,'e',10)';
+              
 %%
-% Get all the priors together and build structure to pass to inv_vbecd !
+% Get all the priors together and build structure to pass to inv_becd 
+
 %============================
+
 priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
-    'mu_s0',cat(1,dip_pr(:).mu_s0), ...
-    'iS_w0',[],'iS_s0',[], ...
-    'Tw',blkdiag(dip_pr(:).Tw), ...
-    'Ts',blkdiag(dip_pr(:).Ts),...
-    'a20',[],'b20',[], ...
-    'a30',[],'b30',[]);
-% PROBLEM:
-% How to ensure different precision level, i.e. informative vs
-% non-informative, for different priors !!!
-% Trying to impose that with an a priori scaling of the prior covariance
-% matrices but I still think this is not the right way to go...
-
-tmp_ab20 = cat(1,dip_pr(:).ab20);
-% assume that parameter b20/30 have always the same value...
-if length(unique(tmp_ab20(:,1)))==1
-    % all model element have same prior precision, easy !
-    priors.a20   = unique(tmp_ab20(:,1));
-    priors.b20   = unique(tmp_ab20(:,2));
-    priors.iS_w0 = inv(blkdiag(dip_pr(:).S_w0));
-else
-    % Not equal "informativeness" -> tricky
-    % assume 2 levels, and use their ratio to weight variance mtx
-    priors.a20   = min(tmp_ab20(:,1));
-    priors.b20   = min(tmp_ab20(:,2));
-    for ii=1:dip_c
-        tmp_iS{ii} = inv(dip_pr(ii).S_w0*min(tmp_ab20(:,1))/tmp_ab20(ii,1));
-    end
-    priors.iS_w0 = blkdiag(tmp_iS{:});
-end
-
-tmp_ab30 = cat(1,dip_pr(:).ab30);
-if length(unique(tmp_ab30(:,1)))==1
-    % all model element have same prior precision, easy !
-    priors.a30   = unique(tmp_ab30(:,1));
-    priors.b30   = unique(tmp_ab30(:,2));
-    priors.iS_s0 = inv(blkdiag(dip_pr(:).S_s0));
-else
-    % Not equal "informativeness" -> tricky
-    % assume 2 levels, and use their ratio to weight variance mtx
-    priors.a30   = min(tmp_ab30(:,1));
-    priors.b30   = min(tmp_ab30(:,2));
-    for ii=1:dip_q
-        tmp_iS{ii} = inv(dip_pr(ii).S_s0*min(tmp_ab30(:,1))/tmp_ab30(ii,1));
-    end
-    priors.iS_s0 = blkdiag(tmp_iS{:});
-end
+                'mu_s0',cat(1,dip_pr(:).mu_s0), ...
+                'S_w0',blkdiag(dip_pr(:).S_w0),'S_s0',blkdiag(dip_pr(:).S_s0));
+                
+            
 P.priors = priors;
 
 %%
@@ -462,76 +406,49 @@ inverse = struct( ...
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
     P.ii = ii;
+    
+ %% set up figures 
+    P.handles.hfig  = spm_figure('GetWin','Graphics');
+    spm_clf(P.handles.hfig)
+    P.handles.SPMdefaults.col = get(P.handles.hfig,'colormap');
+    P.handles.SPMdefaults.renderer = get(P.handles.hfig,'renderer');
+    set(P.handles.hfig,'userdata',P)
+    
+    for j=1:Niter,
+     Pout(j) = spm_eeg_inv_vbecd(P);
+     varresids(j)=var(Pout(j).y-Pout(j).ypost);
+     pov(j)=100*(1-varresids(j)/var(Pout(j).y)); %% percent variance explained
+     allF(j)=Pout(j).F;
+     dip_mom=reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3);
+     dip_amp(j,:)=sqrt(dot(dip_mom,dip_mom));
+    % display
+     displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,Pout(j).post_mu_w,Pout(j).post_mu_s,Pout(j).post_S_s,Pout(j).post_S_w,P,j,[],Pout(j).F,Pout(j).ypost,[]);
+ 
+    end; % for  j
+    allF=[Pout.F];
+    [maxFvals,maxind]=max(allF);
 
 
-
-
-
-
-    %   disp('FIXING DIP TO GET SCALING');
-    %   mu_s=[-30 20 20]';
-    %   mu_w0=[ 1 1 0]';
-    %   P.dv=10^-2;
-    %
-    %   [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, P.forward.sens, P.forward.vol,...
-    %        P.dv.*ones(1, length(mu_w0))); %% order of 10-4 for eeg
-    %
-    %signalmag=max(std(dat_y));
-    %disp('Guessing at signal magnitude and SNR');
-    %signalmag=5e-4;
-
-    chanSNR=(dat_y./(base_dat_stdy)).^2;
-    powerSNR=mean(chanSNR);
-    disp(sprintf('Estimating SNR (power) to be %3.2f',powerSNR));
-    errorvar=(mean(base_dat_stdy)).^2; %% variance of error
-    alla10 = numel(P.y)/2;
-    allb10 = alla10*errorvar/2; % data
-    P.priors.a10=alla10;
-    P.priors.b10=allb10;
-
-    testing=0;
-    if testing,
-
-        %% b10/a10 should be the expected error variance at the sensors -ideally
-        %% should come from the standard error of the average trace
-
-        %% b20/a20 should be the expect error variance in source moment (in nAM ?).
-        alla20=1.5; %% half number of orientation params for now
-        allb20=alla20*10; %%
-
-        %% b30/a30 should be the expected error variance in location parameters (in
-        %% mm)
-        alla30=1.5; %% half num of position params
-        allb30=100;
-
-        P.priors.a20=alla20;
-        %% prior info on b20
-        P.priors.b20=allb20;
-        P.priors.b30=allb30;
-        P.priors.a30=alla30;
-    end; % if
-
-    fprintf('\nLocalising source nr %d.\n',ii)
-
-    P = spm_eeg_inv_vbecd(P);
-
-
-    ssres=sum(P.post.residuals.^2)./length(P.y);
-    disp(sprintf('prior estimate var=%3.2e, post=  %3.2e, actual resid=%3.2e',P.priors.b10/P.priors.a10,P.post.b1/P.post.a1,ssres));
-    disp(sprintf('prior estimate moment var=%3.2f , post=  %3.2f',P.priors.b20/P.priors.a20,P.post.b2/P.post.a2));
-    disp(sprintf('prior estimate pos var=%3.2f (=%3.2fmm per dim), post= %3.2f',P.priors.b30/P.priors.a30,power(P.priors.b30/P.priors.a30,1/2),P.post.b3/P.post.a3));
-    P.post.mu_s'
-    P.post.mu_w'
-
+    P=Pout(maxind); %% take best F
     % Get the results out.
     inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
-    inverse.loc{ii} = reshape(P.post.mu_s,3,dip_c); % loc of dip (3 x n_dip)
-    inverse.j{ii} = P.post.mu_w; % dipole(s) orient/ampl, in 1 column
-    inverse.cov_loc{ii} = P.post.S_s; % cov matrix of source location
-    inverse.cov_j{ii} = P.post.S_w; % cov matrix of source orient/ampl
-    inverse.exitflag(ii) = P.ok; % Converged (1) or not (0)
+    inverse.loc{ii} = reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
+    inverse.j{ii} = P.post_mu_w; % dipole(s) orient/ampl, in 1 column
+    inverse.cov_loc{ii} = P.post_S_s; % cov matrix of source location
+    inverse.cov_j{ii} = P.post_S_w; % cov matrix of source orient/ampl
+    inverse.exitflag(ii) = 1; % Converged (1) or not (0)
     inverse.P{ii} = P; % save all kaboodle too.
+    %% show final result
+    pause(1);
+    
+    
+    spm_clf(P.handles.hfig)
+    displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,Pout(maxind).post_mu_w,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,Pout(maxind).post_S_w,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind);
+    disp('press a key to continue..');
+    pause;
+    close(P.handles.hfig)
+    
 end
 D.inv{val}.inverse = inverse;
 
@@ -539,8 +456,269 @@ D.inv{val}.inverse = inverse;
 % Save results and display
 %-------------------------
 save(D)
-P.handles.hfig  = spm_figure('GetWin','Graphics');
-close(P.handles.hfig)
-spm_eeg_inv_vbecd_disp('init',D);
+
+%P.handles.hfig  = spm_figure('GetWin','Graphics');
+%close(P.handles.hfig)
+%spm_eeg_inv_vbecd_disp('init',D);
 
 return
+
+
+
+
+
+function [P] = displayVBupdate2(y,pov_iter,F_iter,maxit,dipamp_iter,mu_w,mu_s,S_s,S_w,P,it,flag,F,yHat,maxind)
+
+%% yHat is estimate of y based on dipole position
+if ~exist('flag','var')
+    flag = [];
+end
+if ~exist('maxind','var')
+    maxind = [];
+end
+
+if isempty(flag) || isequal(flag,'ecd')
+    % plot dipoles
+    try
+        opt.ParentAxes = P.handles.axesECD;
+        opt.hfig = P.handles.hfig;
+        opt.handles.hp = P.handles.hp;
+        opt.handles.hq = P.handles.hq;
+        opt.handles.hs = P.handles.hs;
+        opt.handles.ht = P.handles.ht;
+        opt.query = 'replace';
+    catch
+        P.handles.axesECD = axes(...
+            'parent',P.handles.hfig,...
+            'Position',[0.13 0.55 0.775 0.4],...
+            'hittest','off',...
+            'visible','off',...
+            'deleteFcn',@back2defaults);
+        opt.ParentAxes = P.handles.axesECD;
+        opt.hfig = P.handles.hfig;
+    end
+    w = reshape(mu_w,3,[]);
+    s = reshape(mu_s, 3, []);
+    [out] = spm_eeg_displayECD(...
+        s,w,reshape(diag(S_s),3,[]),[],opt);
+        P.handles.hp = out.handles.hp;
+        P.handles.hq = out.handles.hq;
+        P.handles.hs = out.handles.hs;
+        P.handles.ht = out.handles.ht;
+end
+
+% plot data and predicted data
+pos = P.forward.sens.prj;
+ChanLabel = P.channels;
+in.f = P.handles.hfig;
+in.noButtons = 1;
+try
+    P.handles.axesY;
+catch
+    figure(P.handles.hfig)
+    P.handles.axesY = axes(...
+        'Position',[0.02 0.3 0.3 0.2],...
+        'hittest','off');
+    in.ParentAxes = P.handles.axesY;
+    spm_eeg_plotScalpData(y,pos,ChanLabel,in);
+    title(P.handles.axesY,'measured data')
+end
+if isempty(flag) || isequal(flag,'data') || isequal(flag,'ecd')
+    %yHat = P.gmn*mu_w;
+    miY = min([yHat;y]);
+    maY = max([yHat;y]);
+    try
+        P.handles.axesYhat;
+        d = get(P.handles.axesYhat,'userdata');
+        yHat = yHat(d.goodChannels);
+        clim = [min(yHat(:))-( max(yHat(:))-min(yHat(:)) )/63,...
+            max(yHat(:))];
+        ZI = griddata(...
+            d.interp.pos(1,:),d.interp.pos(2,:),full(double(yHat)),...
+            d.interp.XI,d.interp.YI);
+        set(d.hi,'Cdata',flipud(ZI));
+        caxis(P.handles.axesYhat,clim);
+        delete(d.hc)
+        [C,d.hc] = contour(P.handles.axesYhat,flipud(ZI),...
+            'linecolor',0.5.*ones(3,1));
+        set(P.handles.axesYhat,...
+            'userdata',d);
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesYhat = axes(...
+            'Position',[0.37 0.3 0.3 0.2],...
+            'hittest','off');
+        in.ParentAxes = P.handles.axesYhat;
+        spm_eeg_plotScalpData(yHat,pos,ChanLabel,in);
+        title(P.handles.axesYhat,'predicted data')
+    end
+    try
+        P.handles.axesYhatY;
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesYhatY = axes(...
+            'Position',[0.72 0.3 0.25 0.2],...
+            'NextPlot','replace',...
+            'box','on');
+    end
+    plot(P.handles.axesYhatY,y,yHat,'.')
+    set(P.handles.axesYhatY,...
+        'nextplot','add')
+    plot(P.handles.axesYhatY,[miY;maY],[miY;maY],'r')
+    set(P.handles.axesYhatY,...
+        'nextplot','replace')
+    title(P.handles.axesYhatY,'predicted vs measured data')
+    axis(P.handles.axesYhatY,'square','tight')
+    grid(P.handles.axesYhatY,'on')
+
+end
+
+
+if isempty(flag) || isequal(flag,'var')
+    % plot precision hyperparameters
+    try
+        P.handles.axesVar1;
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar1 = axes(...
+            'Position',[0.05 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'box','on');
+    end
+    plot(P.handles.axesVar1,F_iter,'o-');
+    if ~isempty(maxind),
+        hold on;
+        h=plot(P.handles.axesVar1,maxind,F_iter(maxind),'rd');
+        set(h,'linewidth',4);
+        end;
+    set(P.handles.axesVar1,'Xlimmode','manual');
+    set(P.handles.axesVar1,'Xlim',[1 maxit]);
+    set(P.handles.axesVar1,'Xtick',1:maxit);
+    set(P.handles.axesVar1,'Xticklabel',num2str([1:maxit]'));
+    set(P.handles.axesVar1,'Yticklabel','');
+    title(P.handles.axesVar1,'Free energy ')
+    axis(P.handles.axesVar1,'square');
+    set(P.handles.axesVar1,'Ylimmode','auto'); %,'tight')
+    
+    grid(P.handles.axesVar1,'on')
+
+    try
+        P.handles.axesVar2;
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar2 = axes(...
+            'Position',[0.37 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'box','on');
+    end
+    
+    
+    plot(P.handles.axesVar2,pov_iter,'*-') 
+    if ~isempty(maxind),
+        hold on;
+        h=plot(P.handles.axesVar2,maxind,pov_iter(maxind),'rd');
+        set(h,'linewidth',4);
+        end;   
+    set(P.handles.axesVar2,'Xlimmode','manual');
+    set(P.handles.axesVar2,'Xlim',[1 maxit]);
+    set(P.handles.axesVar2,'Xtick',1:maxit);
+    set(P.handles.axesVar2,'Xticklabel',num2str([1:maxit]'));
+    set(P.handles.axesVar2,'Ylimmode','manual'); %,'tight')
+     set(P.handles.axesVar2,'Ylim',[0 100]);
+    set(P.handles.axesVar2,'Ytick',[0:20:100]);
+    set(P.handles.axesVar2,'Yticklabel',num2str([0:20:100]'));
+ 
+    %set(P.handles.axesVar2,'Yticklabel','');
+    title(P.handles.axesVar2,'Percent variance explained');
+    axis(P.handles.axesVar2,'square');
+    
+    
+    grid(P.handles.axesVar2,'on')
+    
+
+    try
+        P.handles.axesVar3;
+    catch
+        figure(P.handles.hfig)
+        P.handles.axesVar3 = axes(...
+            'Position',[0.72 0.05 0.25 0.2],...
+            'NextPlot','replace',...
+            'box','on');
+    end
+    plot(P.handles.axesVar3,1:it,dipamp_iter','o-');
+      if ~isempty(maxind),
+        hold on;
+        h=plot(P.handles.axesVar3,maxind,dipamp_iter(maxind,:)','rd');
+        set(h,'linewidth',4);
+        end;
+    
+    set(P.handles.axesVar3,'Xlimmode','manual');
+    set(P.handles.axesVar3,'Xlim',[1 maxit]);
+    set(P.handles.axesVar3,'Xtick',1:maxit);
+    set(P.handles.axesVar3,'Xticklabel',num2str([1:maxit]'));
+    set(P.handles.axesVar3,'Yticklabel','');
+    title(P.handles.axesVar3,'Dipole amp (nAm) ')
+    axis(P.handles.axesVar3,'square');
+    set(P.handles.axesVar3,'Ylimmode','auto'); %,'tight')
+    grid(P.handles.axesVar3,'on')
+
+    
+    
+end
+
+
+
+if ~isempty(flag) && (isequal(flag,'ecd') || isequal(flag,'mGN') )
+    try
+        P.handles.hte(2);
+    catch
+        figure(P.handles.hfig)
+        P.handles.hte(2) = uicontrol('style','text',...
+            'units','normalized',...
+            'position',[0.2,0.91,0.6,0.02],...
+            'backgroundcolor',[1,1,1]);
+    end
+    set(P.handles.hte(2),'string',...
+        ['ECD locations: Modified Gauss-Newton scheme... ',num2str(floor(P.pc)),'%'])
+else
+    try
+        set(P.handles.hte(2),'string','VB updates on hyperparameters')
+    end       
+end
+
+try
+    P.handles.hte(1);
+catch
+    figure(P.handles.hfig)
+    P.handles.hte(1) = uicontrol('style','text',...
+        'units','normalized',...
+        'position',[0.2,0.94,0.6,0.02],...
+        'backgroundcolor',[1,1,1]);
+end
+try
+    set(P.handles.hte(1),'string',...
+        ['Model evidence: p(y|m) >= ',num2str(F(end),'%10.3e\n')])
+end
+
+try
+    P.handles.hti;
+catch
+    figure(P.handles.hfig)
+    P.handles.hti = uicontrol('style','text',...
+        'units','normalized',...
+        'position',[0.3,0.97,0.4,0.02],...
+        'backgroundcolor',[1,1,1],...
+        'string',['VB ECD inversion: trial #',num2str(P.ltr(P.ii))]);
+end
+drawnow
+
+function back2defaults(e1,e2)
+hf = spm_figure('FindWin','Graphics');
+P = get(hf,'userdata');
+try
+    set(hf,'colormap',P.handles.SPMdefaults.col);
+    set(hf,'renderer',P.handles.SPMdefaults.renderer);
+end
+
+
+
