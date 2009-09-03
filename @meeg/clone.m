@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 3228 2009-06-26 17:43:19Z vladimir $
+% $Id: clone.m 3350 2009-09-03 13:19:20Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -45,6 +45,10 @@ elseif length(dim) == 4
     d(end, end, end, end) = 0;
     nsampl = dim(3);
     ntrial = dim(4);
+    
+    if ~strncmpi(transformtype(new), 'TF',2)
+        new = transformtype(new, 'TF');
+    end        
 else
    error('Dimensions different from 3 or 4 are not supported.');
 end

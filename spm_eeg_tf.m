@@ -29,9 +29,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_eeg_tf.m 3350 2009-09-03 13:19:20Z vladimir $
 
-SVNrev = '$Rev: 3341 $';
+SVNrev = '$Rev: 3350 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -133,7 +133,7 @@ M = spm_eeg_morlet(tf.Mfactor, 1000/D.fsample, tf.frequencies);
 Nfrequencies = length(tf.frequencies);
 
 Dtf = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
-Dtf = frequencies(Dtf, tf.frequencies);
+Dtf = Dtf.frequencies(:, tf.frequencies);
 
 % fix all channels
 sD = struct(Dtf);
@@ -156,7 +156,7 @@ Dtf = coor2D(Dtf, [1:length(tf.channels)], coor2D(D,tf.channels));
 
 if tf.phase == 1
     Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
-    Dtf2 = frequencies(Dtf2, tf.frequencies);
+    Dtf2 = Dtf2.frequencies(:, tf.frequencies);
     Dtf2 = transformtype(Dtf2, 'TFphase');
     
     % fix all channels
