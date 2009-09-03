@@ -1,8 +1,9 @@
-function [CVA] = spm_cva(xSPM,SPM,hReg)
+function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % VOI extraction of adjusted data and CVA
-% FORMAT [CVA] = spm_cva(xSPM,SPM,hReg);
+% FORMAT [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 %
 % xSPM   - structure containing specific SPM details
+%     xSPM.Ic  - indice of contrast (in SPM.xCon)
 % SPM    - structure containing generic analysis details
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
@@ -74,85 +75,75 @@ function [CVA] = spm_cva(xSPM,SPM,hReg)
 %
 % A multivariate analysis of evoked responses in EEG and MEG data. Friston
 % KJ, Stephan KM, Heather JD, Frith CD, Ioannides AA, Liu LC, Rugg MD,
-% Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;3(3 Pt
-% 1):167-74.
+% Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;
+% 3(3):167-174.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 2958 2009-03-26 11:19:20Z guillaume $
+% $Id: spm_cva.m 3354 2009-09-03 15:25:12Z guillaume $
  
-
-% review old analysis or proceed with a new one
-%--------------------------------------------------------------------------
-switch questdlg('new canonical variates analysis?');
-    case {'No'}
-        CVA = spm_cva_results;
-        return
-    case {'Cancel'}
-        return
-end
 
 % get figure handles
 %--------------------------------------------------------------------------
-Fcva   = spm_figure('GetWin','MVB');
-Finter = spm_figure('GetWin','Interactive');
+Finter = spm_figure('FindWin','Interactive');
+spm_results_ui('Clear');
+spm_input('!DeleteInputObj');
 header = get(Finter,'Name');
 set(Finter,'Name','Canonical Variates analysis')
+
+% review old analysis or proceed with a new one
+%--------------------------------------------------------------------------
+if nargin < 4
+    action = spm_input('Canonical Variates Analysis','!+1','b', ...
+        {'New Analysis','Results'},{'A','R'},1);
+    if strcmpi(action,'r')
+        CVA = spm_cva_results;
+        return
+    end
+end
  
- 
-% contrast and VOI specification
+%-Contrast and VOI specification
 %==========================================================================
  
-%-Get contrast
+% get contrast
 %--------------------------------------------------------------------------
 con    = SPM.xCon(xSPM.Ic).name;
 c      = SPM.xCon(xSPM.Ic).c;
 c      = full(c);
  
-%-Get VOI name
+% get VOI name
 %--------------------------------------------------------------------------
-name   = ['CVA_' spm_input('name','-8','s',con)];
- 
-%-Get current location {mm}
-%--------------------------------------------------------------------------
-xyzmm  = spm_results_ui('GetCoords');
- 
-%-Specify search volume
-%--------------------------------------------------------------------------
-SPACE  = spm_input('Search volume...','!+1','b',...
-                  {'Sphere','Box','Image'},['S','B','I']);
-Q      = ones(1,size(SPM.xVol.XYZ, 2));
-XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
-XYZmm  = XYZmm(1:3,:);
- 
-switch SPACE
- 
-    case 'S' %-Sphere
-    %----------------------------------------------------------------------
-    D     = spm_input('radius of VOI {mm}','!+1');
-    str   = sprintf('%0.1fmm sphere',D);
-    j     = find(sum((XYZmm - xyzmm*Q).^2) <= D^2);
- 
-    case 'B' %-Box
-    %----------------------------------------------------------------------
-    D     = spm_input('box dimensions [k l m] {mm}','!+1');
-    if length(D) < 3
-        D = D(1)*[1 1 1];
-    end
-    str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-    j     = find(all(abs(XYZmm - xyzmm*Q) <= D(:)*Q/2));
- 
-    case 'I' %-Mask Image
-    %----------------------------------------------------------------------
-    Msk   = spm_select(1,'image','Image defining search volume');
-    D     = spm_vol(Msk);
-    str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-    XYZ   = D.mat \ [XYZmm; Q];
-    j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
- 
+try
+    name = CVA.name;
+catch
+    name = spm_input('name','-8','s',con);
 end
+name   = strrep(name,' ','_');
+name   = ['CVA_' name];
  
+% get current location {mm}
+%--------------------------------------------------------------------------
+try
+    xyzmm = CVA.xY.xyz;
+catch
+    xyzmm = spm_results_ui('GetCoords');
+end
+    
+% specify search volume
+%--------------------------------------------------------------------------
+try
+    xY = CVA.xY;
+    CVA = rmfield(CVA,'xY');
+catch
+    xY = [];
+end
+xY.xyz = xyzmm;
+
+Q      = ones(1,size(SPM.xVol.XYZ, 2));
+XYZmm  = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
+
+[xY, XYZ, j] = spm_ROI(xY, XYZmm);
  
 % voxels defined
 %--------------------------------------------------------------------------
@@ -163,11 +154,11 @@ spm('Pointer','Watch')
  
 % get explanatory variables (data)
 %--------------------------------------------------------------------------
-XYZ  = XYZmm(:,j);
 Y    = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
  
 if isempty(Y)
-    warndlg({'No voxels in this VOI';'Please use a larger volume'})
+    spm('alert*',{'No voxels in this VOI';'Please use a larger volume'},...
+        'Canonical Variates analysis');
     return
 end
  
@@ -240,9 +231,11 @@ end
 %--------------------------------------------------------------------------
 p     = max(p,exp(-16));
 
-% save results
+%-Save results
 %==========================================================================
- 
+M     = SPM.xVol.M(1:3,1:3); %-voxels to mm matrix
+VOX   = sqrt(diag(M'*M))';   %-voxel dimensions 
+
 % assemble results
 %--------------------------------------------------------------------------
 CVA.contrast = con;          % contrast name
@@ -254,7 +247,7 @@ CVA.X0       = X0;           % null space of contrast
  
 CVA.XYZ      = XYZ;          % locations of voxels (mm)
 CVA.xyz      = xyzmm;        % seed voxel location (mm)
-CVA.VOX      = xSPM.VOX;     % dimension of voxels (mm)
+CVA.VOX      = VOX;          % dimension of voxels (mm)
  
 CVA.V        = V;            % canonical vectors  (data)
 CVA.v        = v;            % canonical variates (data)
@@ -269,14 +262,18 @@ CVA.p        = p;            % p-values
  
 % save
 %--------------------------------------------------------------------------
-save(fullfile(SPM.swd,name),'CVA')
+if spm_matlab_version_chk('7') >= 0
+    save(fullfile(SPM.swd,name),'-V6','CVA')
+else
+    save(fullfile(SPM.swd,name),'CVA')
+end
 assignin('base','CVA',CVA)
  
 % display results
 %--------------------------------------------------------------------------
 spm_cva_results(CVA);
 
-%-Reset title
+% reset title
 %--------------------------------------------------------------------------
 set(Finter,'Name',header)
 spm('Pointer','Arrow')

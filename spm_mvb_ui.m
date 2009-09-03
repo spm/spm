@@ -1,6 +1,6 @@
-function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
+function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % multivariate Bayes (Bayesian decoding of a contrast)
-% % FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
+% % FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 %
 % Sets up, evaluates and saves an MVB structure:
 %
@@ -20,6 +20,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % MVB.Sp_info             % parameters of VOI
 % MVB.Ni                  % number of greedy search steps
 % MVB.sg                  % size of reedy search split
+% MVB.priors              % model (spatial prior)
 % MVB.fSPM                % SPM analysis (.mat file)
 %
 % where MVB.M contins the following field:
@@ -61,7 +62,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % See: spm_mvb and
 %
 % Bayesian decoding of brain images.
-% Friston K, Chu C, Mourão-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
+% Friston K, Chu C, Mourao-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
 % Neuroimage. 2008 Jan 1;39(1):181-205
 % 
 % Multiple sparse priors for the M/EEG inverse problem.
@@ -76,88 +77,86 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_mvb_ui.m 3354 2009-09-03 15:25:12Z guillaume $
  
  
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
-Fmvb = spm_figure('GetWin','MVB');
+Finter     = spm_figure('FindWin','Interactive');
+spm_results_ui('Clear');
+spm_input('!DeleteInputObj');
+header     = get(Finter,'Name');
+Fmvb       = spm_figure('GetWin','MVB');
 spm_clf(Fmvb);
  
 %-Get contrast: only the first line of F-contrast 
 %--------------------------------------------------------------------------
-contrast = SPM.xCon(xSPM.Ic).name;
-c        = SPM.xCon(xSPM.Ic).c(:,1); 
+contrast   = SPM.xCon(xSPM.Ic).name;
+c          = SPM.xCon(xSPM.Ic).c(:,1); 
  
 %-Get VOI name
 %--------------------------------------------------------------------------
-name   = ['MVB_' spm_input('name','-8','s',contrast)];
+try
+    name   = MVB.name;
+catch
+    name   = spm_input('name','-8','s',contrast);
+end
+name       = strrep(name,' ','_');
+name       = ['MVB_' name];
  
 %-Get current location {mm}
 %--------------------------------------------------------------------------
-xyzmm  = spm_results_ui('GetCoords');
- 
+try
+    xyzmm  = MVB.xyzmm;
+catch
+    xyzmm  = spm_results_ui('GetCoords');
+end
+
 %-Specify search volume
 %--------------------------------------------------------------------------
-str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
-SPACE  = spm_input('Search volume...','!+1','m',...
-        {['Sphere',str],['Box',str],'Image'},['S','B','I']);
-Q      = ones(1,size(SPM.xVol.XYZ,2));
-XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
-XYZmm  = XYZmm(1:3,:);
- 
-switch SPACE
- 
-    case 'S' %-Sphere
-    %---------------------------------------------------------------
-    D     = spm_input('radius of VOI {mm}','!+1');
-    str   = sprintf('%0.1fmm sphere',D);
-    j     = find(sum((XYZmm - xyzmm*Q).^2) <= D^2);
-    
- 
-    case 'B' %-Box
-    %---------------------------------------------------------------
-    D     = spm_input('box dimensions [k l m] {mm}','!+1');
-    if length(D) < 3
-        D = D(1)*[1 1 1];
-    end
-    str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-    j     = find(all(abs(XYZmm - xyzmm*Q) <= D(:)*Q/2));
-    
- 
-    case 'I' %-Mask Image
-    %---------------------------------------------------------------
-    Msk   = spm_select(1,'image','Image defining search volume');
-    D     = spm_vol(Msk);
-    str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-    XYZ   = D.mat \ [XYZmm; Q];
-    j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
- 
+try
+    xY     = MVB.xY;
+    MVB    = rmfield(MVB,'xY');
+catch
+    xY     = [];
 end
+xY.xyz     = xyzmm;
+
+Q          = ones(1,size(SPM.xVol.XYZ,2));
+XYZmm      = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
+
+[xY, XYZ, j] = spm_ROI(xY, XYZmm);
  
 % Get explanatory variables (data)
 %--------------------------------------------------------------------------
-XYZ    = XYZmm(:,j);
-Y      = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
+XYZ        = XYZmm(:,j);
+Y          = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
  
 % Check there are intracranial voxels
 %--------------------------------------------------------------------------
 if isempty(Y)
-    warndlg({'No voxels in this VOI';'Please use a larger volume'})
-    return
+	spm('alert*',{'No voxels in this VOI';'Please use a larger volume'},...
+        'Multivariate Bayes');
 end
  
 %-Get model[s]
 %--------------------------------------------------------------------------
-str    = {'compact','sparse','smooth','support'};
-Ip     = spm_input('model (spatial prior)','!+1','m',str);
-priors = str{Ip};
- 
+try
+    priors = lower(MVB.priors);
+catch
+    str    = {'compact','sparse','smooth','support'};
+    Ip     = spm_input('model (spatial prior)','!+1','m',str);
+    priors = str{Ip};
+end
+
 %-Number of iterations
 %--------------------------------------------------------------------------
-str    = 'size of successive subdivisions';
-sg     = spm_input(str,'!+1','e',.5);
-
+try
+    sg     = MVB.sg;
+catch
+    str    = 'size of successive subdivisions';
+    sg     = spm_input(str,'!+1','e',.5);
+end
  
 % MVB is now specified
 %==========================================================================
@@ -187,8 +186,12 @@ V   = SPM.xVi.V;
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
-str      = 'Greedy search steps';
-Ni       = spm_input(str,'!+1','i',max(8,ceil(log(size(U,2))/log(1/sg))));
+try
+    Ni   = MVB.Ni;
+catch
+    str  = 'Greedy search steps';
+    Ni   = spm_input(str,'!+1','i',max(8,ceil(log(size(U,2))/log(1/sg))));
+end
 M        = spm_mvb(X,Y,X0,U,V,Ni,sg);
 M.priors = priors;
  
@@ -206,10 +209,11 @@ MVB.V        = V;                           % serial correlation in repeosne
 MVB.K        = full(V)^(-1/2);              % whitening matrix
 MVB.VOX      = xSPM.M;                      % voxel scaling
 MVB.xyzmm    = xyzmm;                       % centre of VOI (mm)
-MVB.Space    = SPACE;                       % VOI definition
-MVB.Sp_info  = D;                           % parameters of VOI
+MVB.Space    = xY.def;                      % VOI definition
+MVB.Sp_info  = xY.spec;                     % parameters of VOI
 MVB.Ni       = Ni;                          % number of greedy search steps
 MVB.sg       = sg;                          % size of reedy search split
+MVB.priors   = priors;                      % model (spatial prior)
 MVB.fSPM     = fullfile(SPM.swd,'SPM.mat'); % SPM analysis (.mat file)
  
 % display
@@ -223,10 +227,9 @@ if spm_matlab_version_chk('7') >= 0
 else
     save(fullfile(SPM.swd,name),'MVB')
 end
- 
+assignin('base','MVB',MVB)
+
 %-Reset title
 %--------------------------------------------------------------------------
-spm('FigName',['SPM{',xSPM.STAT,'}: Results']);
+set(Finter,'Name',header)
 spm('Pointer','Arrow')
-
-
