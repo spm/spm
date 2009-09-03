@@ -22,7 +22,7 @@ function spm_transverse(varargin)
 % i.e., the updating is one way only.
 %
 % See also: spm_getSPM
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_transverse is called by the SPM results section and uses
 % variables in SPM and SPM to create three transverse sections though a
@@ -31,65 +31,70 @@ function spm_transverse(varargin)
 %
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 3073 2009-04-21 16:33:44Z guillaume $
+% $Id: spm_transverse.m 3348 2009-09-03 10:32:01Z guillaume $
 
 
 switch lower(varargin{1})
 
     case 'set'
     % draw slices
-    %---------------------------------------------------------------
-
+    %----------------------------------------------------------------------
     init(varargin{2},varargin{3});
 
     case 'setcoords'
     % reposition
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     disp('Reposition');
 
     case 'clear'
     % clear
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     clear_global;
-end;
+end
+
 return;
 
 
-
+%==========================================================================
+% function init(SPM,hReg)
+%==========================================================================
 function init(SPM,hReg)
 
 %-Get figure handles
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 
-
 %-Get the image on which to render
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spms   = spm_select(1,'image','Select image for rendering on');
 spm('Pointer','Watch');
 
 %-Delete previous axis and their pagination controls (if any)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm_results_ui('Clear',Fgraph);
 
 global transv
 transv      = struct('blob',[],'V',spm_vol(spms),'h',[],'hReg',hReg,'fig',Fgraph);
 transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',SPM.DIM(1:3),...
-                 'iM',SPM.iM,...
-             'vox', sqrt(sum(SPM.M(1:3,1:3).^2)), 'u', SPM.u);
+                     'iM',SPM.iM,...
+                     'vox', sqrt(sum(SPM.M(1:3,1:3).^2)), 'u', SPM.u);
 
 %-Get current location and convert to pixel co-ordinates
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xyzmm  = spm_XYZreg('GetCoords',transv.hReg);
 xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);
+try
+    units = SPM.units;
+catch
+    units = {'mm' 'mm' 'mm'};
+end
 
-% extract data from SPM [at one plane separation]
-% and get background slices
-%----------------------------------------------------------------------
+%-Extract data from SPM [at one plane separation] and get background slices
+%--------------------------------------------------------------------------
 dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
 A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
@@ -140,7 +145,7 @@ if transv.blob.dim(3) > 1,
 end;
 
 %-Configure {128 level} colormap
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cmap   = get(Fgraph,'Colormap');
 if size(cmap,1) ~= 128
     figure(Fgraph)
@@ -163,7 +168,7 @@ siz    = siz(3:4);
 P = xyz.*transv.blob.vox';
 
 %-Render activation foci on background images
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if transv.blob.dim(3) > 1
     zm     = min([(siz(1) - 120)/(dim(1)*3),(siz(2)/2 - 60)/dim(2)]);
     xo     = (siz(1)-(dim(1)*zm*3)-120)/2;
@@ -175,7 +180,7 @@ if transv.blob.dim(3) > 1
     tmp = SPM.iM\[xyz(1:2)' (xyz(3)-1) 1]';
     
     ax=transv.h(1);tpoint=get(ax,'title');
-    str=sprintf('z = %0.0fmm',tmp(3));
+    str=sprintf('z = %0.0f%s',tmp(3),units{3});
     set(tpoint,'string',str);
     
     transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
@@ -187,7 +192,7 @@ if transv.blob.dim(3) > 1
     tmp = SPM.iM\[xyz(1:2)' xyz(3) 1]';
     
     ax=transv.h(5);tpoint=get(ax,'title');
-    str=sprintf('z = %0.0fmm',tmp(3));
+    str=sprintf('z = %0.0f%s',tmp(3),units{3});
     set(tpoint,'string',str);
     
     transv.h(7) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(5));
@@ -199,14 +204,14 @@ if transv.blob.dim(3) > 1
     tmp = SPM.iM\[xyz(1:2)' (xyz(3)+1) 1]';
 
     ax=transv.h(9);tpoint=get(ax,'title');
-    str=sprintf('z = %0.0fmm',tmp(3));
+    str=sprintf('z = %0.0f%s',tmp(3),units{3});
     set(tpoint,'string',str);
     
     transv.h(11) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(9));
     transv.h(12) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(9));
     
     % colorbar
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     q      = [80+dim(1)*zm*3+xo 20+yo 20 dim(2)*zm];
     if SPM.STAT=='P'
         str='Effect size';
@@ -232,12 +237,12 @@ else
     transv.h(1) = axes('Units','pixels','Parent',Fgraph,'Position',[20+xo 20+yo dim(1)*zm dim(2)*zm]);
     transv.h(2) = image(rot90(spm_grid(T2)),'Parent',transv.h(1));
     axis image; axis off;
-    title(sprintf('z = %0.0fmm',xyzmm(3)));
+    title(sprintf('z = %0.0f%s',xyzmm(3),units{3}));
     transv.h(3) = line([1 1]*P(1),[0 dim(2)],'Color','w','Parent',transv.h(1));
     transv.h(4) = line([0 dim(1)],[1 1]*(dim(2)-P(2)+1),'Color','w','Parent',transv.h(1));
     
     % colorbar
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     q      = [40+dim(1)*zm+xo 20+yo 20 dim(2)*zm];
     transv.h(5) = axes('Units','pixels','Parent',Fgraph,'Position',q,'Visible','off');
     transv.h(6) = image([0 mx/32],[mn mx],(1:D)' + D,'Parent',transv.h(5));
@@ -252,20 +257,22 @@ else
     axis xy;
     
     
-end;
+end
 
 spm_XYZreg('Add2Reg',transv.hReg,transv.h(1), 'spm_transverse');
 
 for h=transv.h,
     set(h,'DeleteFcn',@clear_global);
-end;
+end
 
 %-Reset pointer
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm('Pointer','Arrow')
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+%==========================================================================
+% function reposition(xyzmm)
+%==========================================================================
 function reposition(xyzmm)
 global transv
 if ~isstruct(transv), return; end;
@@ -274,13 +281,13 @@ spm('Pointer','Watch');
 
 
 %-Get current location and convert to pixel co-ordinates
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % xyzmm  = spm_XYZreg('GetCoords',transv.hReg)
 xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);
 
 % extract data from SPM [at one plane separation]
 % and get background slices
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dim    = ceil(transv.blob.dim(1:3)'.*transv.blob.vox);
 A      = transv.blob.iM*transv.V.mat;
 hld    = 0;
@@ -331,7 +338,7 @@ if transv.blob.dim(3) > 1,
 end;
 
 %-Configure {128 level} colormap
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cmap   = get(transv.fig,'Colormap');
 if size(cmap,1) ~= 128
     figure(transv.fig)
@@ -350,7 +357,7 @@ end
 P = xyz.*transv.blob.vox';
 
 %-Render activation foci on background images
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if transv.blob.dim(3) > 1
 
     set(transv.h(2),'Cdata',rot90(spm_grid(T1)));
@@ -371,7 +378,7 @@ if transv.blob.dim(3) > 1
     set(transv.h(12),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
    
     % colorbar
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     set(transv.h(14), 'Ydata',[mn mx], 'Cdata',(1:D)' + D);
     set(transv.h(13),'XTickLabel',[],'Ylim',[mn mx]);
     
@@ -382,29 +389,31 @@ else
     set(transv.h(4),'Xdata',[0 dim(1)],'Ydata',[1 1]*(dim(2)-P(2)+1));
 
     % colorbar
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     set(transv.h(6), 'Ydata',[0 d], 'Cdata',(1:D)' + D);
     set(transv.h(5),'XTickLabel',[],'Ylim',[0 d]);
     
-end;
+end
 
 
 %-Reset pointer
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm('Pointer','Arrow')
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+%==========================================================================
+% function clear_global(varargin)
+%==========================================================================
 function clear_global(varargin)
 global transv
 if isstruct(transv),
     for h = transv.h,
         if ishandle(h), set(h,'DeleteFcn',''); end;
-    end;
+    end
     for h = transv.h,
         if ishandle(h), delete(h); end;
-    end;
+    end
     transv = [];
     clear global transv;
-end;
+end
 return;

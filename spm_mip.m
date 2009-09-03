@@ -34,7 +34,7 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id: spm_mip.m 3348 2009-09-03 10:32:01Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ load('MIP.mat');
 %--------------------------------------------------------------------------
 if isempty(units{3}) && ~strcmp(units{2},'mm')
 
-    %-2d case: Time-Frequency
+    %-2d case: Time-Frequency or Frequency-Frequency
     %----------------------------------------------------------------------
     mip = 4*grid_trans;
       

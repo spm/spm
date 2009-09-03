@@ -135,9 +135,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id: spm_results_ui.m 3348 2009-09-03 10:32:01Z guillaume $
  
-SCCSid = '$Rev: 3342 $';
+SCCSid = '$Rev: 3348 $';
  
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -302,7 +302,8 @@ switch lower(Action), case 'setup'                         %-Set up results
                     'Volumetric (2D/3D)',...
                     'Scalp-Time',...
                     'Scalp-Frequency',...
-                    'Time-Frequency'};
+                    'Time-Frequency',...
+                    'Frequency-Frequency'};
                 selected = spm_input('Data Type: ','+1','m',datatype);
                 datatype = datatype{selected};
             else
@@ -321,6 +322,8 @@ switch lower(Action), case 'setup'                         %-Set up results
                 units    = {'mm' 'mm' 'Hz'};
             case 'Time-Frequency'
                 units    = {'Hz' 'ms' ''};
+            case 'Frequency-Frequency'
+                units    = {'Hz' 'Hz' ''};
             otherwise
                 error('Unknown data type.');
         end
