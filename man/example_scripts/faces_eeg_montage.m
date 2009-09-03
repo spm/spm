@@ -4,7 +4,9 @@ montage.labelorg = D.chanlabels;
 
 montage.labelnew = [montage.labelorg(1:128), 'HEOG', 'VEOG'];
 
-tra = eye(128);
+tra = eye(D.nchannels);
+tra(129:end, :) = [];
+tra = detrend(tra, 'constant');
 
 % VEOG
 tra(129, [131 132]) = [1 -1];
