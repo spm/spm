@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 3046 2009-04-02 14:28:31Z vladimir $
+% $Id: spm_eeg_grandmean.m 3364 2009-09-04 18:31:15Z vladimir $
 
-SVNrev = '$Rev: 3046 $';
+SVNrev = '$Rev: 3364 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -213,8 +213,11 @@ for i = 1:Nfiles
     types = unique([types, D{i}.conditions]);
 end
 
-Ntypes = numel(types);
+% The order of the conditions will be consistent with the first file
+[sel1, sel2] = spm_match_str(D{1}.condlist, types);
+types = types([sel2, setdiff(1:length(types), sel2)]);
 
+Ntypes = numel(types);
 
 % how many repetitons per trial type
 nrepl = zeros(Nfiles, Ntypes);
