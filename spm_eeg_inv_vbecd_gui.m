@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3352 2009-09-03 14:13:47Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3358 2009-09-04 09:44:01Z gareth $
 
 %%
 % Load data, if necessary
@@ -416,6 +416,7 @@ for ii=1:length(ltr)
     
     for j=1:Niter,
      Pout(j) = spm_eeg_inv_vbecd(P);
+     close(gcf);
      varresids(j)=var(Pout(j).y-Pout(j).ypost);
      pov(j)=100*(1-varresids(j)/var(Pout(j).y)); %% percent variance explained
      allF(j)=Pout(j).F;
@@ -445,10 +446,7 @@ for ii=1:length(ltr)
     
     spm_clf(P.handles.hfig)
     displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,Pout(maxind).post_mu_w,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,Pout(maxind).post_S_w,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind);
-    disp('press a key to continue..');
-    pause;
-    close(P.handles.hfig)
-    
+  % 
 end
 D.inv{val}.inverse = inverse;
 
@@ -457,9 +455,6 @@ D.inv{val}.inverse = inverse;
 %-------------------------
 save(D)
 
-%P.handles.hfig  = spm_figure('GetWin','Graphics');
-%close(P.handles.hfig)
-%spm_eeg_inv_vbecd_disp('init',D);
 
 return
 
