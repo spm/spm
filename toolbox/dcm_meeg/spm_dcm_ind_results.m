@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Results for induced Dynamic Causal Modeling (DCM)
-% FORMAT spm_dcm_ind_results(DCM,Action);
+% FORMAT [DCM] = spm_dcm_ind_results(DCM,Action);
 % Action:
 %     'Frequency modes'
 %     'Time-modes'
@@ -13,7 +13,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 %     'Input (u - ms)'
 %     'Dipoles'
 %     'Saveimg'           
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % DCM is a causal modelling procedure for dynamical systems in which
 % causality is inherent in the differential equations that specify the model.
@@ -24,14 +24,14 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % on the parameterisation of the model, a bilinear approximation affords a
 % simple re-parameterisation in terms of effective connectivity.  This
 % effective connectivity can be latent or intrinsic or, through bilinear
-% terms, model input-dependent changes in effective connectivity.  Parameter
+% terms, model input-dependent changes in effective connectivity. Parameter
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 3112 2009-05-11 15:19:34Z karl $
+% $Id: spm_dcm_ind_results.m 3362 2009-09-04 14:21:40Z guillaume $
 
 
 % get figure handle
@@ -63,6 +63,7 @@ switch(lower(Action))
     % reconstitute time-frequency and get principle model over channels
     %----------------------------------------------------------------------
     nk    = length(Hz);
+    TF    = cell(nt,nr);
     for i = 1:nt
         for j = 1:nr
             TF{i,j} = sparse(ns,nk);
@@ -88,10 +89,15 @@ switch(lower(Action))
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));
             
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'TFR')
-                V.dt=[spm_type('float64') 0];
-                V.mat = eye(4);
+                V.dt    = [spm_type('float64') spm_platform('bigend')];
+                V.mat   = [Hz(2)-Hz(1)  0              0  min(Hz);...
+                           0            pst(2)-pst(1)  0  min(pst);...
+                           0            0              1  0;...
+                           0            0              0  1];
+                V.mat(1,4) = V.mat(1,4) - V.mat(1,1);
+                V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
-                V.dim = [length(Hz) length(pst)  1 ];
+                V.dim   = [length(Hz) length(pst)  1 ];
                 V.fname =sprintf('%s_TFR%d%d.img',DCM.name(1:end-4),i,j);
                 spm_write_vol(V, TF{i,j}');
             end
@@ -222,8 +228,13 @@ case{lower('Coupling (A - Hz)')}
             if j == 1, ylabel({'to';  DCM.Sname{i}}), end
             
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Amatrix')
-                V.dt    = [spm_type('float64') 0];
-                V.mat   = eye(4);
+                V.dt    = [spm_type('float64') spm_platform('bigend')];
+                V.mat   = [Hz(2)-Hz(1)  0            0  min(Hz);...
+                           0            Hz(2)-Hz(1)  0  min(Hz);...
+                           0            0            1  0;...
+                           0            0            0  1];
+                V.mat(1,4) = V.mat(1,4) - V.mat(1,1);
+                V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
                 V.dim   = [length(Hz) length(Hz)  1 ];
                 V.fname = sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
@@ -274,8 +285,13 @@ case{lower('Coupling (B - Hz)')}
 
             
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Bmatrix')
-               V.dt    = [spm_type('float64') 0];
-               V.mat   = eye(4);
+               V.dt    = [spm_type('float64') spm_platform('bigend')];
+               V.mat   = [Hz(2)-Hz(1)  0            0  min(Hz);...
+                          0            Hz(2)-Hz(1)  0  min(Hz);...
+                          0            0            1  0;...
+                          0            0            0  1];
+               V.mat(1,4) = V.mat(1,4) - V.mat(1,1);
+               V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                V.pinfo = [1 0 0]';
                V.dim   = [length(Hz) length(Hz)  1 ];
                V.fname = sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
