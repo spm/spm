@@ -33,6 +33,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabevent.m,v $
+% Revision 1.4  2009/08/29 05:11:31  josdie
+% After consultation with Arno, changed so that value (when present) and type fields in EEGlab .set files are treated as being reversed from value and type fields in FieldTrip files.
+%
 % Revision 1.3  2009/08/09 01:45:24  josdie
 % Changed event value to equal EEGlab's event value rather than type.
 %
@@ -67,8 +70,14 @@ end;
 event = [];
 oldevent = header.orig.event;
 for index = 1:length(oldevent)
-  event(index).value   = num2str( oldevent(index).value );
-  event(index).type   = 'trigger';
+    event(index).value   = num2str( oldevent(index).type );
+    if isfield(oldevent,'code')
+        event(index).type   = oldevent(index).code;
+    elseif isfield(oldevent,'value')
+        event(index).type   = oldevent(index).value;
+    else
+        event(index).type   = 'trigger';
+    end;
 if header.nTrials > 1
     event(index).sample = oldevent(index).latency-header.nSamplesPre;
     event(index).offset = header.nSamplesPre;

@@ -17,6 +17,9 @@ function [EventCodes, segHdr, eventData] = read_sbin_events(filename)
 %
 
 % $Log: read_sbin_events.m,v $
+% Revision 1.4  2009/09/04 02:44:49  josdie
+% Fixed crash for segmented files due to typo in last revision.
+%
 % Revision 1.3  2009/04/29 10:55:16  jansch
 % incorporated handling of unsegmented files
 %
@@ -120,7 +123,7 @@ if unsegmented
     nsmp = 1;
 else
     %data are organized in segments
-    nsmp = Nsamples;
+    nsmp = NSamples;
 end
 
 eventData	= zeros(NEvent,NSegments*NSamples);
