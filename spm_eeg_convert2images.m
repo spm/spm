@@ -37,9 +37,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id: spm_eeg_convert2images.m 3361 2009-09-04 13:58:01Z guillaume $
 
-SVNrev = '$Rev: 3342 $';
+SVNrev = '$Rev: 3361 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ if strncmpi(D.transformtype, 'TF',2);
                 while true
                     [images.electrodes_of_interest, Ypos] = ...
                         spm_input(str, Ypos, 'r', [], [1 Inf]);
-                    if any(ismember(images.electrodes_of_interest, [1:D.nchannels]))
+                    if any(ismember(images.electrodes_of_interest, 1:D.nchannels))
                         break;
                     end
                 end
@@ -145,6 +145,8 @@ if strncmpi(D.transformtype, 'TF',2);
                         0       1000/D.fsample  0  time(D, 1, 'ms');...
                         0       0               1  0;...
                         0       0               0  1];
+                    N.mat(1,4) = N.mat(1,4) - N.mat(1,1);
+                    N.mat(2,4) = N.mat(2,4) - N.mat(2,2);
                     N.mat_intent = 'Aligned';
                     create(N);
 
@@ -184,7 +186,7 @@ if strncmpi(D.transformtype, 'TF',2);
             if isfield(S.images,'t_win')
                 % Only extract time points in specified window
                 tims=time(D);
-                if S.images.t_win(1) < tims(1) | S.images.t_win(2) > tims(end)
+                if S.images.t_win(1) < tims(1) || S.images.t_win(2) > tims(end)
                     disp('Error: Impossible specification of time extraction window');
                     disp(S.images.t_win);
                     return;
