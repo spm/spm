@@ -7,7 +7,7 @@ function spm_dcm_compare(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan
-% $Id: spm_dcm_compare.m 2254 2008-09-30 15:22:45Z rosalyn $
+% $Id: spm_dcm_compare.m 3363 2009-09-04 15:11:19Z christophe $
 
 
 % Get DCM filenames
@@ -95,7 +95,7 @@ barh(1:n,P)
 set(gca,'YTick',1:n)
 set(gca,'YTickLabel',name)
 title({'conditional model probability';'under uniform model priors'})
-xlabel('psoterior probability')
+xlabel('posterior probability')
 axis square
 grid on
 

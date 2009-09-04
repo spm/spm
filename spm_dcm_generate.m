@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 2942 2009-03-24 18:18:07Z klaas $
+% $Id: spm_dcm_generate.m 3363 2009-09-04 15:11:19Z christophe $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -125,6 +125,7 @@ for i = 1:n,
     Y.y(:,i) = Y.y(:,i)-Xp*Y.y(:,i);
 end
 DCM.Y = Y;
+DCM.y = Y.y;
 
 % Save synthetic DCM
 %--------------------------------------------------------------------------

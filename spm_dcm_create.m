@@ -22,7 +22,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 2746 2009-02-14 16:43:58Z klaas $
+% $Id: spm_dcm_create.m 3363 2009-09-04 15:11:19Z christophe $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -259,7 +259,7 @@ switch upper(source_model)
         % Import existing model - prompt user to choose it
         %=================================================
         P     = spm_select(1,'^DCM.*\.mat$','Select source DCM_???.mat');
-        load(P{:})
+        load(P)
 
         
     otherwise
@@ -289,7 +289,11 @@ switch upper(source_model)
     case 'GUI'
         Y.dt  = SPM.xY.RT;
     otherwise
-        Y.dt  = DCM.Y.dt;
+        try
+            Y.dt  = DCM.Y.dt;
+        catch
+            Y.dt = DCM.delays(1);
+        end
 end
 Y.X0  = X0;
 for i = 1:DCM.n,

@@ -17,11 +17,11 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_run_bms_dcm.m 3363 2009-09-04 15:11:19Z christophe $
 
 job     = varargin{1};
 fname  ='BMS.mat';                  % Output filename
-fname  = [job.dir{1},fname];        % Output filename (including directory)
+fname  = fullfile(job.dir{1},fname);% Output filename (including directory)
 F = [];
 N = {};
 
