@@ -16,6 +16,9 @@ function bnd = prepare_mesh_manual(cfg, mri)
 % Copyrights (C) 2009, Cristiano Micheli & Robert Oostenveld
 %
 % $Log: prepare_mesh_manual.m,v $
+% Revision 1.10  2009/08/31 11:13:45  crimic
+% minibug fix
+%
 % Revision 1.9  2009/08/27 16:12:13  crimic
 % minibug fix
 %
@@ -569,6 +572,12 @@ while again
           % switch to the next polygon
           thispolygon = thispolygon + 1;
           polygon{thispolygon} = zeros(0,2);
+          slicedata = getappdata(fig,'slicedata');
+          m = length(slicedata);
+          slicedata(m+1).proj    = prop{1};
+          slicedata(m+1).slice   = prop{2};
+          slicedata(m+1).polygon = polygon;
+          setappdata(fig,'slicedata',slicedata);
         end
         
       case {'q', 27}
@@ -581,7 +590,7 @@ while again
           plot(x, y, 'g.-');
         end
         again = 0;
-        set(gcf,'WindowButtonDownFcn','');
+        %set(gcf,'WindowButtonDownFcn','');
         slicedata = getappdata(fig,'slicedata');
         m = length(slicedata);
         if ~isempty(polygon{thispolygon})
@@ -815,6 +824,7 @@ set(findobj('string','ij'),'value',1);
 cb_btn(hObject);
 
 function which_task1(hObject, eventdata, handles)
+set(gcf,'WindowButtonDownFcn','');
 set(findobj('string','View'),'value',1);
 set(findobj('string','Ins'), 'value',0);
 set(findobj('string','Del'), 'value',0);
@@ -829,6 +839,7 @@ set(gcf,'WindowButtonDownFcn',@cb_btn_dwn);
 change_panel
 
 function which_task3(hObject, eventdata, handles)
+set(gcf,'WindowButtonDownFcn','');
 set(findobj('string','View'),'value',0);
 set(findobj('string','Ins'), 'value',0);
 set(findobj('string','Del'), 'value',1);

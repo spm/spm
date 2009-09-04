@@ -23,6 +23,9 @@ function plot_vol(vol, varargin)
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_vol.m,v $
+% Revision 1.10  2009/09/04 09:26:28  crimic
+% made sphere mesh lighter, added plot_mesh options
+%
 % Revision 1.9  2009/06/25 16:03:06  crimic
 % function now compatible with toolbox guidelines
 %
@@ -65,7 +68,7 @@ vertexindex = istrue(vertexindex);
   
 
 % we will probably need a sphere, so let's prepare one
-[pnt, tri] = icosahedron642;
+[pnt, tri] = icosahedron162;
 
 % prepare a single or multiple triangulated boundaries
 switch voltype(vol)
@@ -99,6 +102,8 @@ end
  
 % plot the triangulated surfaces of the volume conduction model
 for i=1:length(bnd)
-  plot_mesh(bnd(i));
+  plot_mesh(bnd(i),'faceindex',faceindex,'vertexindex',vertexindex, ...
+    'vertexsize',vertexsize,'facecolor',facecolor,'edgecolor',edgecolor, ...
+    'vertexcolor',vertexcolor,'facealpha',facealpha);
 end
 

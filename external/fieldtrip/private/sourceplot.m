@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.75  2009/08/30 14:58:42  crimic
+% typo corrected
+%
 % Revision 1.74  2009/08/24 09:15:07  jansch
 % included (experimental and undocumented) possibility to use image, rather than
 % imagesc for the plotting, allowing for coding different aspects of the data in
@@ -1107,7 +1110,7 @@ cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 % handle_ortho makes an overlay of 3D anatomical, functional and probability
 % volumes. The three volumes must be scaled between 0 and 1.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [vols2D] = handle_ortho(vols, indx, slicedir, dim, doimage);
+function [vols2D] = handle_ortho(vols, indx, slicedir, dim, doimage)
 
 % put 2Dvolumes in fun, ana and msk
 if length(vols)>=1 && isempty(vols{1}); hasana=0; else ana=vols{1}; hasana=1; end;
@@ -1192,6 +1195,7 @@ end
 hold on
 
 if hasfun
+
   if doimage
     hf = image(fun);
   else
@@ -1206,6 +1210,7 @@ if hasfun
     elseif hasana
       set(hf, 'AlphaData', 0.5)
     end
+
   end
 end
 
