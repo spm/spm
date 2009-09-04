@@ -13,7 +13,7 @@ function [y]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3353 2009-09-03 14:14:24Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3359 2009-09-04 09:45:25Z gareth $
 
 x=U.u; %% input , unused
 
@@ -35,6 +35,7 @@ allmom=reshape(P(Ndips*Pospars+1:Ndips*Ndippars),Mompars,Ndips)';
 MEGRANK=2; %% restricting rank of MEG data, could change this in future
 
 y=0;
+outside=0;
 for i=1:Ndips,
     
     pos=allpos(i,:);
@@ -47,13 +48,17 @@ for i=1:Ndips,
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
        [tmp] = forwinv_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
     end
-    gmn=tmp;    
-
-   
+    gmn=tmp;       
     y=y+gmn*mom';
+    outside = outside+ ~forwinv_inside_vol(pos,vol);
 end; % for i
 
+
 y=y*M.sc_y; %% scale data appropriately
+if outside
+    y=y.^2;
+    end;  % penalise sources outside head
+
 
 
 
