@@ -1,4 +1,4 @@
-function S = spm_eeg_convert2scalp(S)
+function [S, Pout] = spm_eeg_convert2scalp(S)
 % Convert epoched M/EEG data from SPM to NIfTI format by projecting
 % onto the scalp surface
 % FORMAT S = spm_eeg_convert2scalp(S)
@@ -13,6 +13,7 @@ function S = spm_eeg_convert2scalp(S)
 %   S.modality         - modality to be used 
 %
 % S         - output structure containing parameters used
+% Pout      - list of generated image files
 %__________________________________________________________________________
 %
 % spm_eeg_convert2scalp converts M/EEG data from the SPM format to the
@@ -28,9 +29,9 @@ function S = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 3361 2009-09-04 13:58:01Z guillaume $
+% $Id: spm_eeg_convert2scalp.m 3367 2009-09-04 23:04:04Z vladimir $
 
-SVNrev = '$Rev: 3361 $';
+SVNrev = '$Rev: 3367 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -67,9 +68,10 @@ end
 %-Recursive call if multiple MEEG files
 %--------------------------------------------------------------------------
 if numel(Fname) > 1
+    Pout = cell(1, numel(Fname));
     for i=1:numel(Fname)
         S.Fname = Fname{i};
-        S = spm_eeg_convert2scalp(S);
+        [S, Pout{i}] = spm_eeg_convert2scalp(S);
     end
     S.Fname = Fname;
     return;
@@ -112,7 +114,7 @@ if strcmp(modality,'MEGPLANAR')
     Cel_magpl = [];
     Cind_magpl = [];
     for i=1:size(pairs,1) %loop over pairs
-        if any(Cind==pairs(i,1))&any(Cind==pairs(i,2)) %both channels are good, include them
+        if any(Cind==pairs(i,1)) && any(Cind==pairs(i,2)) %both channels are good, include them
             ind1=find(Cind==pairs(i,1));
             ind2=find(Cind==pairs(i,2));
             Cel_magpl = [Cel_magpl; round(mean([Cel(ind1,:); Cel(ind2,:)]))];
@@ -145,8 +147,9 @@ else
 end
 
 cl = D.condlist;
-for i = 1 : D.nconditions
-
+Pout = {};
+for i = 1 : D.nconditions    
+    
     %-Make output directory for each condition
     %----------------------------------------------------------------------
     dname = sprintf('type_%s', strrep(deblank(cl{i}),' ','_'));
@@ -167,6 +170,9 @@ for i = 1 : D.nconditions
         %-Create output image header (matching MNI space)
         %------------------------------------------------------------------
         fname = fullfile(Pi, sprintf('trial%04d.img', Itrials(j)));
+        
+        Pout{i}{j} = fname;
+        
         N     = nifti;
         DIM   = [n n D.nsamples];
         dat   = file_array(fname,[DIM 1],'FLOAT32-LE');
@@ -195,6 +201,7 @@ for i = 1 : D.nconditions
 
     end % for j = 1 : k
 
+    Pout{i} = char(Pout{i});
 end % for i = 1 : D.nconditions
 
 

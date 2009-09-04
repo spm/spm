@@ -1,4 +1,4 @@
-function [D, S] = spm_eeg_convert2images(S)
+function [D, S, Pout] = spm_eeg_convert2images(S)
 % User interface for conversion of M/EEG-files to SPM image file format
 % FORMAT [D, S] = spm_eeg_convert2images(S)
 %
@@ -37,9 +37,9 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3361 2009-09-04 13:58:01Z guillaume $
+% $Id: spm_eeg_convert2images.m 3367 2009-09-04 23:04:04Z vladimir $
 
-SVNrev = '$Rev: 3361 $';
+SVNrev = '$Rev: 3367 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -118,9 +118,12 @@ if strncmpi(D.transformtype, 'TF',2);
             if any(diff(df))
                 warning('Irregular frequency spacing.');
             end
+            Pout = cell(1, D.nconditions);
             for i = 1 : D.nconditions
-                Itrials = pickconditions(D, cl{i}, 1)';
-
+                Itrials = pickconditions(D, cl{i}, 1)';                
+                
+                Pout{i} = {};
+                
                 dname = sprintf('%dROI_TF_trialtype_%s', images.Nregion, cl{i});
                 [sts, msg] = mkdir(D.path, dname);
                 if ~sts, error(msg); end
@@ -136,6 +139,8 @@ if strncmpi(D.transformtype, 'TF',2);
                         fname = 'average.img';
                     end
                     fname = fullfile(P,fname);
+                    
+                    Pout{i} = [Pout{i}, {fname}];
 
                     N     = nifti;
                     dat   = file_array(fname, [D.nfrequencies D.nsamples], 'FLOAT64-LE');
@@ -153,6 +158,7 @@ if strncmpi(D.transformtype, 'TF',2);
                     N.dat(:, :) = spm_cond_units(squeeze(mean(D(images.electrodes_of_interest, :, :, l), 1)));
 
                 end
+                Pout{i} = char(Pout{i});
             end
 
         %-Average over frequency
@@ -211,7 +217,7 @@ if strncmpi(D.transformtype, 'TF',2);
             %-Convert that dataset into images
             %--------------------------------------------------------------
             S.Fname = fullfile(Dnew.path, Dnew.fname);
-            S = spm_eeg_convert2scalp(S);
+            [S, Pout] = spm_eeg_convert2scalp(S);
 
         %-Otherwise...
         %------------------------------------------------------------------
@@ -223,7 +229,7 @@ else
     %-Time Epoched data
     %======================================================================
     S.Fname = fullfile(D.path, D.fname);
-    S = spm_eeg_convert2scalp(S);
+    [S, Pout] = spm_eeg_convert2scalp(S);
 end
 
 %-Cleanup
