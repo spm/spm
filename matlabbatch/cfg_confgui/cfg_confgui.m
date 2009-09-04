@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 2787 2009-02-25 08:02:53Z volkmar $
+% $Id: cfg_confgui.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 2787 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 %% Declaration of fields
 
@@ -571,7 +571,7 @@ else
     out.c0 = cfg_struct2cfg(varargin{1}.gencode_var);
 end
 % Generate code
-[str tag] = gencode(out.c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
+[str tag] = gencode(out.c0,'',{});
 [p n e v] = fileparts(varargin{1}.gencode_fname); %#ok<NASGU>
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
 fid = fopen(out.cfg_file{1}, 'w');

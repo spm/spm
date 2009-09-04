@@ -1,20 +1,36 @@
-function [str, name, ind] = gencode_substruct(subs, name)
+function str = gencode_substruct(subs, name)
 
-% Generate MATLAB code that shows the subscript reference subs. If name is
-% given, it is prepended to the string, otherwise it is set to ''.
-% str is a 1-line cellstr, name is the used name and ind is 1 (to conform
-% to general gencode calling syntax).
+% GENCODE_SUBSTRUCT  String representation of subscript structure.
+% Generate MATLAB code equivalent to subscript structure subs. See help
+% on SUBSTRUCT, SUBSASGN and SUBSREF for details how subscript structures
+% are used.
+%
+% str = gencode_substruct(subs, name)
+% Input arguments:
+%  subs - a subscript structure
+%  name - optional: name of variable to be dereferenced
+% Output arguments:
+%  str  - a one-line cellstr containing a string representation of the
+%         subscript structure
+% If name is given, it is prepended to the string.
 % For '()' and '{}' also pseudo subscripts are allowed: if subs.subs{...}
 % is a string, it will be printed literally, even if it is not equal to
-% ':'. This way, one can create code snippets that contain e.g. references
-% to a loop variable by name.
+% ':'. This way, it is possible create code snippets that contain
+% e.g. references to a loop variable by name.
+%
+% See also GENCODE, GENCODE_RVALUE, GENCODE_SUBSTRUCTCODE.
+%
+% This code has been developed as part of a batch job configuration
+% system for MATLAB. See  
+%      http://sourceforge.net/projects/matlabbatch
+% for details about the original project.
 %_______________________________________________________________________
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_substruct.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: gencode_substruct.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 ind = 1;
 if nargin < 2
@@ -22,7 +38,11 @@ if nargin < 2
 end
 
 if ~isstruct(subs) || ~all(isfield(subs, {'type','subs'}))
-    cfg_message('matlabbatch:usage', 'Item is not a substruct.');
+    if any(exist('cfg_message') == 2:6)
+        cfg_message('matlabbatch:usage', 'Item is not a substruct.');
+    else
+        warning('gencode_substruct:usage', 'Item is not a substruct.');
+    end
 else
     str = {name};
     for k = 1:numel(subs)

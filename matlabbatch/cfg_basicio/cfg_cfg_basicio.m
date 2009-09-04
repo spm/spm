@@ -647,7 +647,7 @@ cfg_assignin.name    = 'Pass Output to Workspace';
 cfg_assignin.val     = {name output };
 cfg_assignin.help    = {
                         'Assign a computation result to a workspace variable.'
-                        'The value entered into "Output Item" will be assigned to a MATLAB workspace variable whose name is specified in "Output Variable Name". This can be useful to assess the results of computations with other MATLAB routines or for debugging.'
+                        'The value entered into "Output Item" will be assigned to a MATLAB workspace variable whose name is specified in "Output Variable Name". If this variable already exists, a new variable name will be generated. This can be useful to assess the results of computations with other MATLAB routines or for debugging.'
                         }';
 cfg_assignin.prog = @cfg_run_assignin;
 % ---------------------------------------------------------------------

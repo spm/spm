@@ -1,30 +1,33 @@
 function [str, sts] = gencode_rvalue(item)
-% function [str, sts] = gencode_rvalue(item)
-% Generate the right hand side for a valid MATLAB variable assignment.
-%
-% Input argument:
-% item - value to generate code for
-%
-% Output arguments:
-% str - cellstr with generated code, line per line
-% sts - true, if successful, false if code could not be generated
-%
-% This function is a helper to GENCODE, but can be used on its own to
-% generate a code for the following types of variables:
+
+% GENCODE_RVALUE  Code for right hand side of MATLAB assignment
+% Generate the right hand side for a valid MATLAB variable
+% assignment. This function is a helper to GENCODE, but can be used on
+% its own to generate code for the following types of variables:
 % * scalar, 1D or 2D numeric, logical or char arrays
 % * scalar or 1D cell arrays, where each item can be one of the supported
 %   array types (i.e. nested cells are allowed)
 %
-% This code is part of a batch job configuration system for MATLAB. See 
-%      help matlabbatch
-% for a general overview.
+% function [str, sts] = gencode_rvalue(item)
+% Input argument:
+%  item - value to generate code for
+% Output arguments:
+%  str - cellstr with generated code, line per line
+%  sts - true, if successful, false if code could not be generated
+%
+% See also GENCODE, GENCODE_SUBSTRUCT, GENCODE_SUBSTRUCTCODE.
+%
+% This code has been developed as part of a batch job configuration
+% system for MATLAB. See  
+%      http://sourceforge.net/projects/matlabbatch
+% for details about the original project.
 %_______________________________________________________________________
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 2417 2008-10-30 08:24:13Z volkmar $
+% $Id: gencode_rvalue.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 2417 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 str = {};
 sts = true;
@@ -42,7 +45,7 @@ switch class(item)
                 str = str1;
             else
                 % String array, print brackets and concatenate str1
-                str = {'[' str1{:} ']'};
+                str = [ {'['} str1(:)' {']'} ];
             end
         else
             % not an rvalue
@@ -58,7 +61,7 @@ switch class(item)
                 if ~sts
                     break;
                 end
-                str1 = {str1{:} str2{:}};
+                str1 = [str1(:)' str2(:)'];
             end
             if sts
                 if numel(str1) == 1
@@ -67,11 +70,11 @@ switch class(item)
                 else
                     % Cell vector, print braces and concatenate str1
                     if size(item,1) == 1
-                        endstr = '}''';
+                        endstr = {'}'''};
                     else
-                        endstr = '}';
+                        endstr = {'}'};
                     end
-                    str = {'{' str1{:} endstr};
+                    str = [{'{'} str1(:)' endstr];
                 end
             end
         else
@@ -87,7 +90,7 @@ switch class(item)
             str{1} = sprintf('@%s', fstr);
         end
     otherwise
-        if isobject(item) || ~(isnumeric(item) || islogical(item)) || ndims(item) > 2
+        if isobject(item) || ~(isnumeric(item) || islogical(item)) || issparse(item) || ndims(item) > 2
             sts = false;
         else
             % treat item as numeric or logical, don't create 'class'(...)

@@ -9,9 +9,9 @@ function out = cfg_example_run_div(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_example_run_div.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_example_run_div.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 out.mod = mod(job.a, job.b);
-out.rem = mod(job.a, job.b);
+out.rem = rem(job.a, job.b);

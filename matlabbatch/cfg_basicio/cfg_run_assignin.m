@@ -9,8 +9,12 @@ function cfg_run_assignin(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_assignin.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_run_assignin.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
-assignin('base', job.name, job.output);
+% check for existence of variable
+vars = evalin('base','feval(@who);');
+% generate new name
+name = genvarname(job.name, vars);
+assignin('base', name, job.output);

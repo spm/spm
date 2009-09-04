@@ -1,19 +1,8 @@
-function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
+function [str, tag, cind] = gencode(item, tag, tagctx)
 
-% function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
+% function [str, tag, cind] = gencode(item, tag, tagctx)
 % Generate code to recreate an cfg_dep object.
 %
-% Traversal options
-% struct with fields
-% stopspec - match spec to stop code generation (not used here)
-% dflag    - (not used here)
-% clvl     - current level in tree - level is increased if fields of
-%            structures or cell items are traversed
-% mlvl     - maximum level to generate - range 1 (top level only) to
-%            Inf (all levels)
-% cnt      - item count - not used outside cfg_item objects
-% mcnt     - (not evaluated here)
-% 
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
 % for a general overview.
@@ -21,37 +10,20 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: gencode.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
 end;
 if nargin < 3
-    stoptag = tag;
-end;
-if nargin < 4
-    tropts = cfg_tropts({{}},1,inf,1,inf,true);
+    tagctx = {};
+end
+if isempty(tag)
+    tag = genvarname('val', tagctx);
 end;
 
-%% Get variable name
-% Check whether to generate code
-if tropts.clvl > tropts.mlvl
-    % Stopping - tag based on stoptag, tag of item and expected new item count
-    tag = genvarname(sprintf('%s_%s_0001', stoptag, tag));
-    str = {};
-    cind = [];
-    ccnt = 0;
-    return;
-else
-    % Tag based on item count
-    if isempty(tag)
-        tag = genvarname(sprintf('val_%04d', tropts.cnt));
-    end;
-end;
-% Item count
-ccnt = 1;
 cind = 1;
 
 str = {};
@@ -68,14 +40,14 @@ for k = 1:numel(item)
                 if numel(item(k).(fn{l})) >= 1
                     % force index (1) if there is exactly one entry
                     tag1 = sprintf('%s(%d).%s', tag, k, fn{l});
-                    [str1 tag1] = gencode_substructcode(item(k).(fn{l}), tag1);
-                    str = {str{:} str1{:}};
+                    str1 = gencode_substructcode(item(k).(fn{l}), tag1);
+                    str  = [str(:)' str1(:)'];
                 end;
             otherwise
                 % other field should not be indexed
                 tag1 = sprintf('%s(%d).%s', tag, k, fn{l});
-                [str1 tag1 ccnt1 cind1] = gencode(item(k).(fn{l}), tag1, tag1, tropts);
-                str = {str{:} str1{:}};
+                str1 = gencode(item(k).(fn{l}), tag1, [{tag1} tagctx]);
+                str  = [str(:)' str1(:)'];
         end;
     end;
 end;

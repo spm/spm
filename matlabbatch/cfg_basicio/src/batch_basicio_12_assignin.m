@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 2787 $)
+% Job configuration created by cfg_util (rev $Rev: 3355 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.type = 'cfg_entry';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Output Variable Name';
@@ -39,5 +39,5 @@ matlabbatch{3}.menu_cfg{1}.menu_struct{1}.conf_exbranch.vout = [];
 matlabbatch{3}.menu_cfg{1}.menu_struct{1}.conf_exbranch.check = [];
 matlabbatch{3}.menu_cfg{1}.menu_struct{1}.conf_exbranch.help = {
                                                                 'Assign a computation result to a workspace variable.'
-                                                                'The value entered into "Output Item" will be assigned to a MATLAB workspace variable whose name is specified in "Output Variable Name". This can be useful to assess the results of computations with other MATLAB routines or for debugging.'
+                                                                'The value entered into "Output Item" will be assigned to a MATLAB workspace variable whose name is specified in "Output Variable Name". If this variable already exists, a new variable name will be generated. This can be useful to assess the results of computations with other MATLAB routines or for debugging.'
                                                                 }';

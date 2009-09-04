@@ -1,4 +1,4 @@
-function cellhelp = vgtbx_help2cell(topic);
+function cellhelp = help2cell(topic)
 % VGTBX_HELP2CELL - translate help texts into cell arrays
 % cellhelp = help2cell(topic)
 % Create a cell array of help strings from the MATLAB help on 'topic'.

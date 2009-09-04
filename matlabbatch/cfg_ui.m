@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3326 2009-08-17 10:04:15Z volkmar $
+% $Id: cfg_ui.m 3355 2009-09-04 09:37:35Z volkmar $
 
-rev = '$Rev: 3326 $'; %#ok
+rev = '$Rev: 3355 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -755,7 +755,8 @@ while ~sts
                 if ishandle(val) % delete accidentally created objects
                     delete(val);
                 end
-                str = strcat({encl(1)}, cstr, {encl(2)}, {char(10)});
+                % escape single quotes and place the whole string in single quotes
+                str = strcat({encl(1)}, strrep(cstr,'''',''''''), {encl(2)}, {char(10)});
             else
                 cestr = {encl(1) cstr{:} encl(2)};
                 str = strcat(cestr, {char(10)});
