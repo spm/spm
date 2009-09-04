@@ -373,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3130 2009-05-18 14:41:31Z volkmar $
+% $Id: cfg_util.m 3357 2009-09-04 09:42:17Z volkmar $
 
-rev = '$Rev: 3130 $';
+rev = '$Rev: 3357 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -993,7 +993,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
     tropts(1).mlvl = Inf;
     tropts(1).cnt  = 1;
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, '', {}, [funcname '_'], tropts);
+    [cstr tag] = gencode_item(c0, '', {}, [funcname '_'], tropts);
     funcname = [funcname '_' tag];
     fname = fullfile(p, [funcname '.m']);
     unpostfix = '';
@@ -1014,7 +1014,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
 else
     % generate root level code
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, 'jobs', {}, [funcname '_'], tropts);
+    [cstr tag] = gencode_item(c0, 'jobs', {}, [funcname '_'], tropts);
     fname = fullfile(p, [funcname '.m']);
     if nargin < 4 || isempty(preamble) || ~iscellstr(preamble)
         try
