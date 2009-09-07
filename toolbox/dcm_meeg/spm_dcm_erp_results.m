@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 2906 2009-03-20 13:01:01Z karl $
+% $Id: spm_dcm_erp_results.m 3369 2009-09-07 23:31:28Z vladimir $
 
 
 % get figure handle
@@ -491,6 +491,7 @@ case{lower('Dipoles')}
             sdip.n_dip   = np*ns;
             sdip.Mtb     = 1;
             sdip.j{1}    = full(P.L);
+            sdip.j{1}    = sdip.j{1}./repmat(sqrt(sum(sdip.j{1}.^2)), 3, 1);
             sdip.j{1}    = sdip.j{1}(:);
             sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
             spm_eeg_inv_ecd_DrawDip('Init', sdip)
