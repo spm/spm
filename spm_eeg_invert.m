@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3267 2009-07-10 15:12:51Z vladimir $
+% $Id: spm_eeg_invert.m 3370 2009-09-08 14:11:48Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -565,7 +565,7 @@ for i = 1:Nl
     
     % Data ID
     %==========================================================================  
-    ID  = spm_data_id(UYYU);
+    ID  = spm_data_id(UYYU{i});
  
     % Covariances: sensor space - Ce and source space - L*Cp
     %----------------------------------------------------------------------
