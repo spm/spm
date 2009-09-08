@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3358 2009-09-04 09:44:01Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3372 2009-09-08 14:33:45Z gareth $
 
 %%
 % Load data, if necessary
@@ -244,8 +244,8 @@ while adding_dips
     % add a single dipole to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
-            'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3), ...
-            'ab20',[],'ab30',[]); %% ,'Tw',eye(3),'Ts',eye(3));
+            'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3));
+          %%  'ab20',[],'ab30',[]); %% ,'Tw', [],'Ts', []);
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
                     'Informative|Non-info',[1,0],2);
@@ -294,8 +294,9 @@ while adding_dips
     % add a pair of symmetric dipoles to the model
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
-            'mu_w0',[],'mu_s0',[],'S_s0',eye(6),'S_w0',eye(6), ...
-            'ab20',[],'ab30',[],'Tw',eye(6),'Ts',eye(6));
+            'mu_w0',[],'mu_s0',[],'S_s0',eye(6),'S_w0',eye(6));
+        %%...
+          %  'ab20',[],'ab30',[]); %%,'Tw',eye(6),'Ts',eye(6));
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
                     'Informative|Non-info',[1,0],2);

@@ -30,7 +30,7 @@ function P = spm_eeg_inv_vbecd(P)
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % Gareth Barnes 
-% $Id: spm_eeg_inv_vbecd.m 3351 2009-09-03 14:11:02Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 3372 2009-09-08 14:33:45Z gareth $
 
 
 
@@ -87,16 +87,20 @@ M.IS='spm_eeg_wrap_dipfit_vbecd';
  startguess=M.pE;
  M.Setup=P; %% pass volume conductor and sensor locations on
  M.sc_y=sc_y; %%  pass on scaling factor
- [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
- 
-
-[Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
-
-P.Ep=Ep;
-P.Cp=Cp;
-P.S=S;
-P.F=F;
-P.ypost=spm_eeg_wrap_dipfit_vbecd(P.Ep,M,U)./sc_y; %% scale it back
+ outsideflag=1;
+ while outsideflag==1, %% don't use sources which end up outside the head
+    [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
+    [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
+    P.Ep=Ep;
+    P.Cp=Cp;
+    P.S=S;
+    P.F=F;
+    [P.ypost,outsideflag]=spm_eeg_wrap_dipfit_vbecd(P.Ep,M,U); 
+    P.ypost=P.ypost./sc_y; %%  scale it back
+    if outsideflag
+        disp('running again, one or more dipoles outside head.');
+        end;
+ end; % while
 P.post_mu_s=Ep(1:length(mu_s));
 P.post_mu_w=Ep(length(mu_s)+1:end);
 P.post_S_s=Cp(1:length(mu_s),1:length(mu_s));

@@ -1,4 +1,4 @@
-function [y]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
+function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 % A cost function/wrapper to sit between non-linear optimisation spm_nlsi_gn.m
 % and dipole fit routine spm__eeg_inv_vbecd.m
 % sens and vol structures should be passed in M, where
@@ -13,7 +13,7 @@ function [y]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3359 2009-09-04 09:45:25Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3372 2009-09-08 14:33:45Z gareth $
 
 x=U.u; %% input , unused
 
