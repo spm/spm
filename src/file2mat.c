@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 2894 2009-03-18 12:43:34Z guillaume $
+ * $Id: file2mat.c 3373 2009-09-08 19:55:45Z guillaume $
  * John Ashburner
  */
 
@@ -29,11 +29,17 @@ typedef char *caddr_t;
 #define fstat _fstati64
 #define open _open
 #define close _close
+#if defined _MSC_VER
+#define size_t __int64
+#else
+#define size_t unsigned long long
+#endif
 #endif
 #else
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
+#define size_t unsigned long long
 #endif
 
 /*
@@ -58,7 +64,7 @@ return size;
 
 #define MXDIMS 256
 
-static int icumprod[MXDIMS], ocumprod[MXDIMS];
+static long long icumprod[MXDIMS], ocumprod[MXDIMS];
 
 static void get_1_sat(int ndim, int idim[], int *iptr[], unsigned char idat[], int odim[], unsigned char odat[], int indi, int indo)
 {
@@ -408,7 +414,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 #endif
     const double *pr;
     mxArray *arr;
-    unsigned int siz;
+    size_t siz;
     if (!mxIsStruct(ptr)) mexErrMsgTxt("Not a structure.");
 
     dtype = (int)(getpr(ptr, "dtype", 1, &n)[0]);
@@ -483,7 +489,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             mexErrMsgTxt("File is smaller than the dimensions say it should be.");
         }
         offset = map->off % page_size();
-        map->len = siz + offset;
+        map->len = siz + (size_t)offset;
         map->off = map->off - offset;
 #ifdef SPM_WIN32
         (void)close(fd);
@@ -598,8 +604,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     ocumprod[0] = 1;
     for(i=0; i<ndim; i++)
     {
-        icumprod[i+1] = icumprod[i]*idim[i];
-        ocumprod[i+1] = ocumprod[i]*odim[i];
+        icumprod[i+1] = icumprod[i]*(long long)idim[i];
+        ocumprod[i+1] = ocumprod[i]*(long long)odim[i];
 
         /* Fix for each plane of 1 bit Analyze images being
            padded out to a whole number of bytes */
