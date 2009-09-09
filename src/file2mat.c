@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 3373 2009-09-08 19:55:45Z guillaume $
+ * $Id: file2mat.c 3375 2009-09-09 13:54:09Z guillaume $
  * John Ashburner
  */
 
@@ -441,6 +441,10 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
         siz = (map->dtype->bytes*siz+7)/8;
     else
         siz = siz*(map->dtype->bytes/8);
+    
+    /* On 32bit platforms, cannot map more than 2^31-1 bytes */
+    if ((sizeof(map->data) == 4) && (siz > 2147483647ULL))
+         mexErrMsgTxt("The total number of bytes mapped is too large.");
 
     pr       = getpr(ptr, "be",1, &n);
 #ifdef SPM_BIGENDIAN
