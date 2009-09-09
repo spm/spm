@@ -16,9 +16,9 @@ function D = spm_eeg_remove_bad_trials(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_average.m 3277 2009-07-15 11:47:40Z guillaume $
+% $Id: spm_eeg_remove_bad_trials.m 3378 2009-09-09 16:47:16Z guillaume $
 
-SVNrev = '$Rev: 3277 $';
+SVNrev = '$Rev: 3378 $';
 
 %-Startup
 %--------------------------------------------------------------------------

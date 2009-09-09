@@ -77,7 +77,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 3354 2009-09-03 15:25:12Z guillaume $
+% $Id: spm_mvb_ui.m 3378 2009-09-09 16:47:16Z guillaume $
  
  
 %-Get figure handles and set title
@@ -135,7 +135,7 @@ Y          = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
 % Check there are intracranial voxels
 %--------------------------------------------------------------------------
 if isempty(Y)
-	spm('alert*',{'No voxels in this VOI';'Please use a larger volume'},...
+    spm('alert*',{'No voxels in this VOI';'Please use a larger volume'},...
         'Multivariate Bayes');
 end
  

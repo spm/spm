@@ -5,7 +5,7 @@ function res = delete(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: delete.m 3378 2009-09-09 16:47:16Z guillaume $
 
 res = 1;
 
