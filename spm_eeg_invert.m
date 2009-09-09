@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3370 2009-09-08 14:11:48Z vladimir $
+% $Id: spm_eeg_invert.m 3374 2009-09-09 13:17:35Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -216,7 +216,7 @@ UL    = U{1}'*L;
 for i = 2:Nl
     L     = R{i}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i}));
     U{i}  = spm_svd(L*L',exp(-16));
-    Nm(i) = min(size(U,2),Nmax);
+    Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
     A{i}  = UL*pinv(full(L));
 end
