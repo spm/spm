@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3374 2009-09-09 13:17:35Z vladimir $
+% $Id: spm_eeg_invert.m 3380 2009-09-10 09:32:50Z rik $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -89,8 +89,8 @@ try, Nm    = inverse.Nm;     catch, Nm    = 128;               end
 try, Nr    = inverse.Nr;     catch, Nr    = 16;                end
 try, xyz   = inverse.xyz;    catch, xyz   = [0 0 0];           end
 try, rad   = inverse.rad;    catch, rad   = 128;               end
-try, lpf   = inverse.lpf;    catch, lpf   = 2;                 end
-try, hpf   = inverse.hpf;    catch, hpf   = 128;               end
+try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
+try, hpf   = inverse.hpf;    catch, hpf   = 48;               end
 try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
