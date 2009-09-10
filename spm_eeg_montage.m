@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_eeg_montage.m 3382 2009-09-10 15:46:31Z vladimir $
 
-SVNrev = '$Rev: 3341 $';
+SVNrev = '$Rev: 3382 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -193,6 +193,15 @@ for i = 1:D.ntrials
 end
 
 Dnew = chanlabels(Dnew, 1:Dnew.nchannels, montage.labelnew);
+
+% Transfer bad flags in case there are channels with the
+% same name in both files.
+if  ~isempty(D.badchannels)
+    sel = spm_match_str(Dnew.chanlabels, D.chanlabels(D.badchannels));
+    if ~isempty(sel)
+        Dnew = badchannels(Dnew, sel, 1);
+    end
+end
 
 % Set channel types to default
 S1 = [];
