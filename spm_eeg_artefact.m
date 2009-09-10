@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 3277 2009-07-15 11:47:40Z guillaume $
+% $Id: spm_eeg_artefact.m 3381 2009-09-10 12:04:25Z vladimir $
 
-SVNrev = '$Rev: 3277 $';
+SVNrev = '$Rev: 3381 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -99,6 +99,8 @@ for i = 1:numel(S.methods)
         end
     end
 
+    chanind = setdiff(chanind, D.badchannels);
+    
     if ~isempty(chanind)
         S1 =  S.methods(i).settings;
         S1.D = D;
@@ -111,6 +113,7 @@ end
 %-Classify MEEG channels as bad if the fraction of bad trials exceeds threshold
 %-------------------------------------------------------------------------------
 badchanind  = intersect(find(mean(bad, 2)>S.badchanthresh), meegchannels(D));
+badchanind  = union(badchanind, D.badchannels);
 goodchanind = setdiff(1:D.nchannels, badchanind);
 
 %-Classify trials as bad if they have artefacts in good M/EEG channels
