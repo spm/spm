@@ -21,26 +21,38 @@ At the \matlab\ prompt type \texttt{spm eeg}, press the \textsc{Convert} button 
 
 SPM will now read the original Biosemi format file and create an SPM compatible data file, called \texttt{spm8\_subject1.mat} and \texttt{spm8\_subject1.dat} in the directory containing the original data file (\texttt{DATA\_DIR}).
 
+\subsection{Downsample}
+Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 512 Hz. This is an unnecessarily high sampling rate for a simple evoked response analysis, and we will now decrease the sampling rate to 200 Hz, thereby reducing the file size by more than half. Select \textsc{Downsample} from the ``Other'' drop-down menu and select the \texttt{spm8\_subject1.mat} file. Choose a new sampling rate of 200 (Hz). The progress bar will appear and the resulting data will be saved to files \texttt{dspm8\_subject1.mat} and \texttt{dspm8\_subject1.dat}. This step requires the Signal Processing Toolbox.
+
+
+\subsection{Filter}
+Filtering the data in time removes unwanted frequency bands from the data. Usually, for evoked response analysis, the low frequencies are kept, while the high frequencies are assumed to carry noise. Here, we will use a bandpass filter to remove ultra-low frequencies close to DC, and also remove high frequencies at the same time
+\begin{itemize}
+\item{Click on \textsc{Filter} and select the \texttt{dspm8\_subject1.mat} file.}
+\item{Select a ``bandpass'' filter with band 0.5 30 (Hz).}
+\end{itemize}
+The progress bar will appear and the resulting filtered data will be saved in files \texttt{fdspm8\_subject1.mat} and \texttt{fdspm8\_subject1.dat}.
+
 \subsection{Montage}
 
-In this step, we will identify the VEOG and HEOG channels, and also remove several channels that don't carry EEG data and are of no importance to the following. We generally recommend to remove all data channels that are no longer needed because it will reduce the total file size. To do so, we use the \textsc{montage} tool in SPM, which is a general approach for pre-multiplying the data matrix (channels $\times$ time) by another matrix that linearly weights all channel data. This provides a very general method for data transformation in M/EEG analysis.
+In this step, we will identify the VEOG and HEOG channels, and also remove several channels that don't carry EEG data and are of no importance to the following. We generally recommend to remove all data channels that are no longer needed because it will reduce the total file size. We will also convert the data to average reference montage by subtracting from each channel the mean of all EEG channels. To do so, we use the \textsc{montage} tool in SPM, which is a general approach for pre-multiplying the data matrix (channels $\times$ time) by another matrix that linearly weights all channel data. This provides a very general method for data transformation in M/EEG analysis.
 
 The appropriate montage-matrix can be derived as follows.
-In our case, we would like to only keep channels 1 to 128. In addition, there were three EOG channels (129, 130, 131), where the HEOG is computed as the difference between channels 131 and 130, and the VEOG by the difference between channels 130 and 129. This matrix can be specified in SPM by either using a graphical interface, or by supplying the matrix saved in a file. We will do the latter. The script to generate this file can be found in the \texttt{example\_scripts} folder: \texttt{montage\_subject1.m}. Copy this script into \texttt{DATA\_DIR} and run it. This will generate a file named \texttt{MONT\_EXP.mat}.
+In our case, we would like to only keep EEG channels 1 to 128 and subtract from each channel the average of all EEG channels. In addition, there were three EOG channels (129, 130, 131), where the HEOG is computed as the difference between channels 131 and 130, and the VEOG by the difference between channels 130 and 129. This matrix can be specified in SPM by either using a graphical interface, or by supplying the matrix saved in a file. We will do the latter. The script to generate this file can be found in the \texttt{example\_scripts} folder: \texttt{montage\_subject1.m}. Copy this script into \texttt{DATA\_DIR} and run it. This will generate a file named \texttt{MONT\_EXP.mat}.
 
 You now call the montage function by choosing \textsc{Montage} in the ``Other'' drop-down menu and:
 \begin{itemize}
-\item{Select the M/EEG-file \texttt{spm8\_subject1.mat}}
+\item{Select the M/EEG-file \texttt{fdspm8\_subject1.mat}}
 \item{`How to specify the montage ?' Answer ``file''.}
 \item{Then select the generated \texttt{MONT\_EXP.mat} file}
 \item{``Keep the other channels?'' : ``No''}
 \end{itemize}
-This will remove the uninteresting channels from the data. The progress bar appears and SPM will generate two new files \texttt{Mspm8\_subject1.mat} and \texttt{Mspm8\_subject1.dat}.
+This will remove the uninteresting channels from the data. The progress bar appears and SPM will generate two new files \texttt{Mfdspm8\_subject1.mat} and \texttt{Mfdspm8\_subject1.dat}.
 
 This step will also assign default locations to the sensors, as this information is unfortunately not contained in the original Biosemi \texttt{*.bdf} file. It is usually the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience this is a critical step. SPM provide tools (\textsc{Prepare}) for linking data and location information, leaving it the responsibility of the user to verify the success of this process. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the \textsc{Prepare} tool from the ``Other'' drop-down menu to use digitized sensor location data.
 
 \subsection{Epoch}
-To epoch the data click on \textsc{Epoching}. Select the \texttt{Mspm8\_subject1.mat} file. Choose the peri-stimulus time window, first the start \texttt{-100}, then the end \texttt{400} ms. Choose 2 conditions. You can call the first condition ``standard''. A GUI pops up which gives you a complete list of all events in the EEG file. The standard condition had 480 trials, so select the type with value 1 and press OK. The second condition can be called ``rare''. The rare stimulus was given 120 times and has value 3 in the list. Select this trial type and press OK. Answer two times ``no'' to the questions  ``review individual trials'', and ``save trial definitions''. The progress bar will appear and the epoched data will be saved to files \texttt{eMspm8\_subject1.mat} and \texttt{eMspm8\_subject1.dat}.
+To epoch the data click on \textsc{Epoching}. Select the \texttt{Mfdspm8\_subject1.mat} file. Choose the peri-stimulus time window, first the start \texttt{-100}, then the end \texttt{400} ms. Choose 2 conditions. You can call the first condition ``standard''. A GUI pops up which gives you a complete list of all events in the EEG file. The standard condition had 480 trials, so select the type with value 1 and press OK. The second condition can be called ``rare''. The rare stimulus was given 120 times and has value 3 in the list. Select this trial type and press OK. Answer two times ``no'' to the questions  ``review individual trials'', and ``save trial definitions''. The progress bar will appear and the epoched data will be saved to files \texttt{eMfdspm8\_subject1.mat} and \texttt{eMfdspm8\_subject1.dat}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=120mm]{mmn/topo1}
@@ -49,22 +61,11 @@ To epoch the data click on \textsc{Epoching}. Select the \texttt{Mspm8\_subject1
 \end{center}
 \end{figure}
 
-\subsection{Downsample}
-Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 512 Hz. This is an unnecessarily high sampling rate for a simple evoked response analysis, and we will now decrease the sampling rate to 200 Hz, thereby reducing the file size by more than half. Select \textsc{Downsample} from the ``Other'' drop-down menu and select the \texttt{eMspm8\_subject1.mat} file. Choose a new sampling rate of 200 (Hz). The progress bar will appear and the resulting data will be saved to files \texttt{deMspm8\_subject1.mat} and \texttt{deMspm8\_subject1.dat}. This step is computationally demanding.
-
-\subsection{Filter}
-Filtering the data in time removes unwanted frequency bands from the data. Usually, for evoked response analysis, the low frequencies are kept, while the high frequencies are assumed to carry noise. Here, we will use a bandpass filter to remove ultra-low frequencies close to DC, and also remove high frequencies at the same time
-\begin{itemize}
-\item{Click on \textsc{Filter} and select the \texttt{deMspm8\_subject1.mat} file.}
-\item{Select a ``bandpass'' filter with band 0.5 30 (Hz).}
-\end{itemize}
-The progress bar will appear and the resulting filtered data will be saved in files \texttt{fdeMspm8\_subject1.mat} and \texttt{fdeMspm8\_subject1.dat}.
-
 \subsection{Artefacts}
  A number of different methods of artefact removal are implemented in SPM8. Here, we will demonstrate a simple thresholding method. However, before doing so, we will look at the data in the display:
 \begin{itemize}
 \item{Choose ``M/EEG'' from the ``Display'' dropdown menu.}
-\item{Select the \texttt{fdeMspm8\_subject1.mat} file.}
+\item{Select the \texttt{eMfdspm8\_subject1.mat} file.}
 \item{Click on the ``EEG'' tab.}
 \item{Press the ``scalp'' radio button.}
 \end{itemize}
@@ -74,19 +75,23 @@ The time-series for the first trial will then appear in the topographical layout
 Right-click on the channel; this tells you that this channel is ``A14''. You will also see as an entry in this menu ``bad: 0''. Select this entry, and click the left button. This will make the menu disappear, but the channel now has a grey background. You have marked this channel as bad. Click on ``save''in the top-right corner. This channel will then be ignored in subsequent processing. In fact this channel probably doesn't need removing, but we do so for teaching purposes only.
 \\
 \\
-Now, click on \textsc{Artefacts} and:
-\begin{itemize}
-\item{Select the \texttt{fdeMspm8\_subject1.mat} file.}
-\item{Answer ``no'' to ``Read own artefact list ?''.}
-\item{Answer ``no'' to ``Robust average ?''.}
-\item{Answer ``yes'' to ``Threshold channels ?''}
-\item{Press return to choose the default for which channels you want to threshold, i.e., all 130 channels (128 EEG, 2 EOG). }
-\item{Choose as threshold 80 ($\mu V$).}
-\end{itemize}
-The progress bar will appear and the resulting data will be saved to files \texttt{afdeMspm8\_subject1.mat} and \texttt{afdeMspm8\_subject1.dat}. Sixty five trials will have been rejected. There are also interactive artefact removal routines available from \texttt{Toolbox} $\rightarrow$ \texttt{MEEG tools} $\rightarrow$  \texttt{Fieldtrip visual artifact rejection}.
+Now, click on \textsc{Artefacts}. A window of SPM8 batch interface will open. You might be already familiar with this interface from other SPM8 functions. It is also possible to use the batch interface to run the preprocessing steps that we have performed until now, but for artefact detection this is the only graphical interface. Click on 'File name' and select the \verb!eMfdspm8_subject1.mat! file.  Double click 'How to look for artefacts' and a new branch will appear. It is possible to define several sets of channels to scan and several different methods for artefact detection. We will use simple thresholding applied to all channels. Click on 'Detection algorithm' and select 'Threshold channels' in the small window below. Double click on 'Threshold' and enter 80 (in this case uV). The batch is now fully configured. Run it by pressing the green button at the top of the batch window. 
+
+This will detect trials in which the signal recorded at any of the channels exceeds 80 microvolts (relative to pre-stimulus baseline). These trials will be marked as artefacts. Most of these artefacts occur on the VEOG channel, and reflect blinks during the critical time window. The procedure will also detect channels in which there are a large number of artefacts (which may reflect problems specific to those electrodes, allowing them to be removed from subsequent analyses).
+
+In this case, the Matlab window will show:
+\begin{verbatim}
+  1 bad channels: A14 
+71 rejected trials: 1    3    4    5   27   28   29   88   98  110  125  126  143  152  155  156  157  158  159  160  161  166  167  168  169  170  171  172  173  174  175  176  177  178  179  180  181  182  183  184  185  186  187  188  189  190  191  192  193  194  205  237  254  256  264  276  312  318  362  411  425  435  441  450  492  514  543  550  575  585  597
+\end{verbatim}
+(leaving 529 valid trials). A new file will also be created, \verb!aeMfdspm8_subject1.mat!.
+
+There are also interactive artefact removal routines available from \texttt{Toolbox} $\rightarrow$ \texttt{MEEG tools} $\rightarrow$  \texttt{Fieldtrip visual artifact rejection}.
 
 \subsection{Averaging}
-To produce an ERP click on \textsc{Averaging} and select the \texttt{afdeMspm8\_subject1.mat} file. The progress bar will appear and the resulting data will be saved to files \texttt{mafdeMspm8\_subject1.mat} and \texttt{mafdeMspm8\_subject1.dat}. The Graphics window will pop up and allow you to look at the averaged data. To look at the ERP, click on the EEG tab, and press the ``scalp'' radio button. Now hold  the Shift button down on the keyboard whilst selecting trial 2 with the left mouse button in the upper right corner of the graphics window. This will overlay responses to standard and rare trials on the same figure axes.
+To produce an ERP click on \textsc{Averaging} and select the \verb!aeMfdspm8_subject1.mat! file. At this point you can perform either orinary averaging or 'robust averaging'. Robust averaging makes it possible to supress artefacts automatically without rejecting trials or channels compltely, but just the contaminated parts. For robust averaging answer 'yes' to 'Use robust averaging?'. Answer 'yes' to 'Save weights', and 'yes' to 'Compute weights by condition' {\{footnote} In this case we do not want to pool both conditions together because the number of standard and rare trials are quite different.} and press 'Enter' to accept the default 'Offset of the weighting function'. A new dataset will be generated \verb!maeMfdspm8_subject1!  and automatically opened in the reviewing tool so that you can examine the ERP. There will also be an additional dataset named \verb!WaeMfdspm8_subject1! this dataset will contain instead of EEG data the weights used by robust averaging. This is useful to see what was suppressed and whether there might be some condition-specific bias that could affect the results. 
+
+The Graphics window will pop up and allow you to look at the averaged data. To look at the ERP, click on the EEG tab, and press the ``scalp'' radio button. Now hold  the Shift button down on the keyboard whilst selecting trial 2 with the left mouse button in the upper right corner of the graphics window. This will overlay responses to standard and rare trials on the same figure axes.
 
 Now press the 'plus' icon at the top of this graphics window and select channel C23 (seventh central channel down from the top) with a left mouse click. This will plot the ERPs shown in Figure~\ref{c23}. This completes the preprocessing step.
 \begin{figure}
@@ -105,11 +110,11 @@ A useful feature of SPM is the ability to use Random Field Theory to correct for
 Here, we will consider a 3D example, where the third dimension is time, and test across trials within this single subject. We first create a 3D image for each trial of the two types, with dimensions M$\times$M$\times$S, where S=101 is the number of samples (time points). We then take these images into an unpaired t-test across trials (in a 2nd-level model) to compare ``standard'' and ``rare'' events. We can then use classical SPM to identify locations in space and time in which a reliable difference occurs, correcting across the multiple comparisons entailed. This would be appropriate if, for example, we had no a priori knowledge where or when the difference between standard and rare trials would emerge. The appropriate images are created as follows
 \begin{itemize}
 \item{Select the ``Convert to image'' option from the ``Other'' pulldown menu.}
-\item{Select the \texttt{afdeMspm8\_subject1.mat} file.}
+\item{Select the \texttt{aeMfdspm8\_subject1.mat} file.}
 \item{For ``output image dimensions'' accept the default of 32 (leading to a 32x32 pixel space).}
 \item{For ``interpolate' or ``mask out'' bad channels, select ``interpolate''.}
 \end{itemize}
-SPM will take some time as it writes out a NIfTI image for each trial (except rejected trials), in a new directory called \texttt{afdeMspm8\_subject1}, which will itself contain two subdirectories, one for each trialtype, called \texttt{type\_rare} and \texttt{type\_standard}. In each trialtype subdirectory there will be image and header files for each non-rejected trial of that type, e.g, trial0001.img/hdr. You can press ``Display: images'' to view one of these images - it will have dimensions 32$\times$32$\times$101.
+SPM will take some time as it writes out a NIfTI image for each trial (except rejected trials), in a new directory called \texttt{aeMfdspm8\_subject1}, which will itself contain two subdirectories, one for each trialtype, called \texttt{type\_rare} and \texttt{type\_standard}. In each trialtype subdirectory there will be image and header files for each non-rejected trial of that type, e.g, trial0001.img/hdr. You can press ``Display: images'' to view one of these images - it will have dimensions 32$\times$32$\times$101.
 
 To perform statistics on these images:
 \begin{itemize}
@@ -161,7 +166,7 @@ This brings up the source localisation GUI shown in Figure~\ref{source_gui}. The
 \subsection{Mesh}
 The first step is to load the data and create a cortical mesh upon which M/EEG data will be projected:
 \begin{itemize}
-\item{Press the ``Load'' button in the souce localisation GUI and select the file \texttt{mafdeMspm8\_subject1.mat}.}
+\item{Press the ``Load'' button in the souce localisation GUI and select the file \texttt{maeMfdspm8\_subject1.mat}.}
 \item{Enter ``Standard'' under ``Comment/Label for this analysis'' and press OK.}
 \item{Now press the ``template'' button.}
 \item{For ``Cortical mesh'', select ``normal''.}
@@ -251,7 +256,7 @@ Pressing the ``DCM'' button will open up the DCM GUI shown in Figure~\ref{dcm_gu
 \end{figure}
 We will now complete the three model specification entries shown in Figure~\ref{specify}:
 \begin{itemize}
-\item{Press the ``new data'' button and select the \texttt{mafdeMspm8\_subject1.mat} file.}
+\item{Press the ``new data'' button and select the \texttt{maeMfdspm8\_subject1.mat} file.}
 \item{Enter the ``between-trial effects'' and design matrix information shown in Figure~\ref{specify}(a).}
 \item{Press the ``Display'' button.}
 \end{itemize}

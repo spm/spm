@@ -2,10 +2,13 @@ D = spm_eeg_load('spm8_subject1.mat');
 
 montage.labelorg = D.chanlabels;
 
-montage.labelnew = [montage.labelorg(1:128), 'HEOG', 'VEOG'];
+montage.labelnew = [montage.labelorg(1:128), 'HEOG', 'VEOG']';
 
 tra = eye(D.nchannels);
-tra(131:end, :) = [];
+tra(129:end, :) = [];
+
+% Create the average reference montage
+tra = detrend(tra, 'constant');
 
 % HEOG
 tra(129, 129) = 0;
