@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 3383 2009-09-10 17:53:49Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -197,7 +197,8 @@ else
         S.usetrials = S.continuous.trials.usetrials;
     end
     if isfield(S.continuous.trials, 'trlfile')
-        S.trlfile = S.continuous.trials.trlfile;
+        S.trlfile = char(S.continuous.trials.trlfile);
+        S.usetrials = 0;
     end
     
     if isfield(S.continuous.trials, 'define')
