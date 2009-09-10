@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 3381 2009-09-10 12:04:25Z vladimir $
+% $Id: spm_eeg_artefact.m 3384 2009-09-10 18:36:56Z vladimir $
 
-SVNrev = '$Rev: 3381 $';
+SVNrev = '$Rev: 3384 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,6 +51,10 @@ catch
 end
 
 D = spm_eeg_load(D);
+
+if isequal(D.type, 'continuous')
+    error('Artefact detection can only be applied to epoched data');
+end
 
 %-Backward compatibility
 %--------------------------------------------------------------------------

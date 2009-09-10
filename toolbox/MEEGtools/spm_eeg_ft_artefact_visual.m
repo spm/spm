@@ -10,7 +10,7 @@ function D = spm_eeg_ft_artefact_visual(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 3384 2009-09-10 18:36:56Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 
@@ -33,6 +33,9 @@ if ischar(D)
     end
 end
 
+if isequal(D.type, 'continuous')
+    error('Artefact detection can only be applied to epoched data');
+end
 
 data = D.ftraw(0);
 
