@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3367 2009-09-04 23:04:04Z vladimir $
+% $Id: spm_eeg_convert2images.m 3389 2009-09-11 10:26:37Z vladimir $
 
-SVNrev = '$Rev: 3367 $';
+SVNrev = '$Rev: 3389 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ if strncmpi(D.transformtype, 'TF',2);
             try
                 images.electrodes_of_interest = S.images.elecs;
             catch
-                str  = 'electrodes[s]';
+                str  = 'channel[s]';
                 Ypos = '+1';
                 while true
                     [images.electrodes_of_interest, Ypos] = ...
@@ -184,6 +184,11 @@ if strncmpi(D.transformtype, 'TF',2);
                 S.images.freqs = images.Frequency_window;
             end
 
+            % This is a slightly ugly fix for the problem of very small
+            % power values for MEG (in T^2). 
+            megchanind = strmatch('MEG', D.chantype);
+            nonmegchanind = setdiff(1:D.nchannels, megchanind);
+            
             %-Generate new dataset with averaged data over frequency window
             %--------------------------------------------------------------
             fnamedat = ['F' num2str(images.Frequency_window(1)) '_' ...
@@ -200,18 +205,34 @@ if strncmpi(D.transformtype, 'TF',2);
                 tind=find(tims > S.images.t_win(1) & tims < S.images.t_win(2));
                 Nind=length(tind);
                 Dnew = clone(D, fnamedat, [D.nchannels Nind D.ntrials]);
-                Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                squeeze(mean(D(:, inds, tind(1):tind(end), :), 2));
+                
+                if ~isempty(megchanind)
+                    Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                        1e30*squeeze(mean(D(megchanind, inds, tind(1):tind(end), :), 2));
+                end
+                if ~isempty(nonmegchanind)
+                    Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                        squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2));
+                end
             else
                 Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
-                Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                squeeze(mean(D(:, inds, :, :), 2));
+                if ~isempty(megchanind)
+                    Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                        1e30*squeeze(mean(D(megchanind, inds, :, :), 2));
+                end
+                if ~isempty(nonmegchanind)
+                    Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                        squeeze(mean(D(nonmegchanind, inds, :, :), 2));
+                end
             end
-            
-            
-
+                        
             
             Dnew = transformtype(Dnew, 'time');
+            
+            if ~isempty(megchanind)
+                Dnew = units(Dnew, megchanind, 'fT^2');
+            end
+            
             save(Dnew);
 
             %-Convert that dataset into images
