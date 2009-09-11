@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3228 2009-06-26 17:43:19Z vladimir $
+% $Id: spm_MEEGtools.m 3390 2009-09-11 10:58:17Z vladimir $
 
 
 funlist = {
@@ -20,7 +20,6 @@ funlist = {
     'Fieldtrip DICS beamformer' , 'spm_eeg_ft_beamformer_freq'
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
-    'Save DCM-IR results as images' , 'spm_dcm_ind_save_images'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'

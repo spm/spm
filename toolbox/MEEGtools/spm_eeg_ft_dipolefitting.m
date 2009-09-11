@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 3146 2009-05-26 09:54:23Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 3390 2009-09-11 10:58:17Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -68,7 +68,7 @@ sens = forwinv_transform_sens(M1, sens);
 
 chanind = setdiff(meegchannels(D, modality), D.badchannels);
 
-[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+%[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
 
 %% ============ Select the data and convert to Fieldtrip struct
