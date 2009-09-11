@@ -43,9 +43,15 @@ function layoutplot(cfg, data)
 %
 % See also prepare_layout, topoplotER, topoplotTFR, multiplotER, multiplotTFR
 
+% Undocumented options
+%   cfg.montage
+
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: layoutplot.m,v $
+% Revision 1.11  2009/09/10 12:30:00  roboos
+% added option for plotting an arrow for each of the bipolar electrode pairs, requires a montage and a layout
+%
 % Revision 1.10  2009/05/12 12:35:15  roboos
 % moved plotting to seperate function (plot_lay) where it can be reused
 %
@@ -136,4 +142,35 @@ if isfield(cfg, 'image') && ~isempty(cfg.image)
 end
 
 plot_lay(lay, 'point', true, 'box', true, 'label', true, 'mask', true, 'outline', true);
+
+% the following code can be used to verify a bipolar montage, given the
+% layout of the monopolar channels 
+if isfield(cfg, 'montage') && ~isempty(cfg.montage)
+  fprintf('plotting an arrow for each of the bipolar electrode pairs\n');
+  % the arrow begins at the +1 electrode
+  % the arrow ends   at the -1 electrode
+  for i=1:length(cfg.montage.labelnew)
+    begindx = find(cfg.montage.tra(i,:)==+1);
+    endindx = find(cfg.montage.tra(i,:)==-1);
+    if ~numel(begindx)==1 || ~numel(endindx)==1
+      % the re-referenced channel does not seem to be a bipolar pair
+      continue
+    end
+    % find the position of the begin and end of the arrow
+    beglab = cfg.montage.labelorg{begindx};
+    endlab = cfg.montage.labelorg{endindx};
+    begindx = find(strcmp(lay.label, beglab)); % the index in the layout
+    endindx = find(strcmp(lay.label, endlab)); % the index in the layout
+    if ~numel(begindx)==1 || ~numel(endindx)==1
+      % one of the channels in the bipolar pair does not seem to be in the layout
+      continue
+    end
+
+    begpos = lay.pos(begindx,:);
+    endpos = lay.pos(endindx,:);
+    arrow(begpos, endpos, 'Length', 5)
+
+  end % for all re-referenced channels
+end % if montage
+
 

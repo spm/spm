@@ -127,6 +127,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.109  2009/09/08 14:23:21  roboos
+% changed the syntaxt for concatenation of implicitref to cfg.channel
+%
 % Revision 1.108  2009/06/17 13:44:14  roboos
 % fixed output label in case of rereferencing with a montage
 %
@@ -528,7 +531,7 @@ else
   
   if ~isempty(cfg.implicitref)
     % add the label of the implicit reference channel to these cell-arrays
-    cfg.channel    = {cfg.channel{:} cfg.implicitref};
+    cfg.channel    = cat(1, cfg.channel(:), cfg.implicitref);
   end
   cfg.refchannel = channelselection(cfg.refchannel, cfg.channel);
   
@@ -685,7 +688,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.108 2009/06/17 13:44:14 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.109 2009/09/08 14:23:21 roboos Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

@@ -119,6 +119,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.45  2009/09/08 07:11:42  roboos
+% fixed bug in masking, thanks to Stephan Moratti
+%
 % Revision 1.44  2009/04/27 16:26:33  ingnie
 % fixed bug in plotting electrodes when cfg.highlight is cell.
 %
@@ -537,7 +540,7 @@ if ~strcmp(cfg.style,'blank')
 
   if ~isempty(cfg.mask),
     % this mask is based on some statistical feature of the data itself, e.g. significance and is not related to the anatomical mask
-    [maskX,maskY,maskZ] = griddata(y', x, double(cfg.mask), yi', xi, cfg.interpolation);
+    [maskX,maskY,maskZ] = griddata(x', y, double(cfg.mask), xi', yi, cfg.interpolation);
     % mask should be scaled between 0 and 1, clip the values that ly outside that range
     maskZ(isnan(maskZ)) = 0;
     maskZ(isinf(maskZ)) = 0;
