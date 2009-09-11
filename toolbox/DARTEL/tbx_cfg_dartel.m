@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 3162 2009-05-29 13:47:42Z john $
+% $Id: tbx_cfg_dartel.m 3387 2009-09-11 08:03:00Z volkmar $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -31,8 +31,8 @@ odir.num     = [1 1];
 bb         = cfg_entry;
 bb.tag     = 'bb';
 bb.name    = 'Bounding box';
-bb.val{1} = double([NaN NaN NaN
-                    NaN NaN NaN]);
+bb.val     = {[NaN NaN NaN
+                    NaN NaN NaN]};
 bb.help    = {'The bounding box (in mm) of the volume that is to be written (relative to the anterior commissure). Non-finite values will be replaced by the bounding box of the tissue probability maps used in the segmentation.'};
 bb.strtype = 'e';
 bb.num     = [2 3];
@@ -42,7 +42,7 @@ bb.num     = [2 3];
 vox         = cfg_entry;
 vox.tag     = 'vox';
 vox.name    = 'Voxel size';
-vox.val{1} = double(1.5);
+vox.val     = {1.5};
 vox.help    = {'The (isotropic) voxel sizes of the written images. A non-finite value will be replaced by the average voxel size of the tissue probability maps used by the segmentation.'};
 vox.strtype = 'e';
 vox.num     = [1 1];
@@ -52,62 +52,55 @@ vox.num     = [1 1];
 image         = cfg_menu;
 image.tag     = 'image';
 image.name    = 'Image option';
-image.val{1} = double(0);
+image.val     = {0};
 image.help    = {'A resliced version of the original image can be produced, which may have various procedures applied to it.  All options will rescale the images so that the mean of the white matter intensity is set to one. The ``skull stripped'''' versions are the images simply scaled by the sum of the grey and white matter probabilities.'};
-image.labels = {
+image.labels  = {
                 'Original'
                 'Bias Corrected'
                 'Skull-Stripped'
                 'Bias Corrected and Skull-stripped'
                 'None'
 }';
-image.values{1} = double(1);
-image.values{2} = double(3);
-image.values{3} = double(5);
-image.values{4} = double(7);
-image.values{5} = double(0);
+image.values = {1 3 5 7 0};
 % ---------------------------------------------------------------------
 % GM Grey Matter
 % ---------------------------------------------------------------------
 GM         = cfg_menu;
 GM.tag     = 'GM';
 GM.name    = 'Grey Matter';
-GM.val{1} = double(1);
+GM.val     = {1};
 GM.help    = {'Produce a resliced version of this tissue class?'};
-GM.labels = {
+GM.labels  = {
              'Yes'
              'No'
 }';
-GM.values{1} = double(1);
-GM.values{2} = double(0);
+GM.values  = {1 0};
 % ---------------------------------------------------------------------
 % WM White Matter
 % ---------------------------------------------------------------------
 WM         = cfg_menu;
 WM.tag     = 'WM';
 WM.name    = 'White Matter';
-WM.val{1} = double(1);
+WM.val     = {1};
 WM.help    = {'Produce a resliced version of this tissue class?'};
-WM.labels = {
+WM.labels  = {
              'Yes'
              'No'
 }';
-WM.values{1} = double(1);
-WM.values{2} = double(0);
+WM.values  = {1 0};
 % ---------------------------------------------------------------------
 % CSF CSF
 % ---------------------------------------------------------------------
 CSF         = cfg_menu;
 CSF.tag     = 'CSF';
 CSF.name    = 'CSF';
-CSF.val{1} = double(0);
+CSF.val     = {0};
 CSF.help    = {'Produce a resliced version of this tissue class?'};
-CSF.labels = {
+CSF.labels  = {
               'Yes'
               'No'
 }';
-CSF.values{1} = double(1);
-CSF.values{2} = double(0);
+CSF.values  = {1 0};
 % ---------------------------------------------------------------------
 % initial Initial Import
 % ---------------------------------------------------------------------
@@ -143,7 +136,7 @@ images.num     = [1 Inf];
 template         = cfg_entry;
 template.tag     = 'template';
 template.name    = 'Template basename';
-template.val = {'Template'};
+template.val     = {'Template'};
 template.help    = {'Enter the base for the template name.  Templates generated at each outer iteration of the procedure will be basename_1.nii, basename_2.nii etc.  If empty, then no template will be saved. Similarly, the estimated flow-fields will have the basename appended to them.'};
 template.strtype = 's';
 template.num     = [1 Inf];
@@ -153,25 +146,23 @@ template.num     = [1 Inf];
 rform         = cfg_menu;
 rform.tag     = 'rform';
 rform.name    = 'Regularisation Form';
-rform.val{1} = double(0);
+rform.val     = {0};
 rform.help    = {'The registration is penalised by some ``energy'''' term.  Here, the form of this energy term is specified. Three different forms of regularisation can currently be used.'};
 rform.labels = {
                 'Linear Elastic Energy'
                 'Membrane Energy'
                 'Bending Energy'
 }';
-rform.values{1} = double(0);
-rform.values{2} = double(1);
-rform.values{3} = double(2);
+rform.values  = {0 1 2};
 % ---------------------------------------------------------------------
 % its Inner Iterations
 % ---------------------------------------------------------------------
 its         = cfg_menu;
 its.tag     = 'its';
 its.name    = 'Inner Iterations';
-its.val{1} = double(3);
+its.val     = {3};
 its.help    = {'The number of Gauss-Newton iterations to be done within this outer iteration. After this, new average(s) are created, which the individual images are warped to match.'};
-its.labels = {
+its.labels  = {
               '1'
               '2'
               '3'
@@ -183,23 +174,14 @@ its.labels = {
               '9'
               '10'
 }';
-its.values{1} = double(1);
-its.values{2} = double(2);
-its.values{3} = double(3);
-its.values{4} = double(4);
-its.values{5} = double(5);
-its.values{6} = double(6);
-its.values{7} = double(7);
-its.values{8} = double(8);
-its.values{9} = double(9);
-its.values{10} = double(10);
+its.values  = {1 2 3 4 5 6 7 8 9 10};
 % ---------------------------------------------------------------------
 % rparam Reg params
 % ---------------------------------------------------------------------
 rparam         = cfg_entry;
 rparam.tag     = 'rparam';
 rparam.name    = 'Reg params';
-rparam.val{1} = double([0.100000000000000006 0.0100000000000000002 0.00100000000000000002]);
+rparam.val     = {[0.1 0.01 0.001]};
 rparam.help    = {
                   'For linear elasticity, the parameters are mu, lambda and id. For membrane energy, the parameters are lambda, unused and id.id is a term for penalising absolute displacements, and should therefore be small.  For bending energy, the parameters are lambda, id1 and id2, and the regularisation is by (-lambda*Laplacian + id1)^2 + id2.'
                   'Use more regularisation for the early iterations so that the deformations are smooth, and then use less for the later ones so that the details can be better matched.'
@@ -212,7 +194,7 @@ rparam.num     = [1 3];
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  A single time point would be equivalent to a small deformation model. Smaller values allow faster computations, but are less accurate in terms of inverse consistency and may result in the one-to-one mapping breaking down.  Earlier iteration could use fewer time points, but later ones should use about 64 (or fewer if the deformations are very smooth).'};
 K.labels = {
             '1'
@@ -226,25 +208,16 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % slam Smoothing Parameter
 % ---------------------------------------------------------------------
 slam         = cfg_menu;
 slam.tag     = 'slam';
 slam.name    = 'Smoothing Parameter';
-slam.val{1} = double(1);
+slam.val     = {1};
 slam.help    = {'A LogOdds parameterisation of the template is smoothed using a multi-grid scheme.  The amount of smoothing is determined by this parameter.'};
-slam.labels = {
+slam.labels  = {
                'None'
                '0.5'
                '1'
@@ -254,14 +227,7 @@ slam.labels = {
                '16'
                '32'
 }';
-slam.values{1} = double(0);
-slam.values{2} = double(0.5);
-slam.values{3} = double(1);
-slam.values{4} = double(2);
-slam.values{5} = double(4);
-slam.values{6} = double(8);
-slam.values{7} = double(16);
-slam.values{8} = double(32);
+slam.values  = {0 0.5 1 2 4 8 16 32};
 % ---------------------------------------------------------------------
 % param Outer Iteration
 % ---------------------------------------------------------------------
@@ -320,7 +286,7 @@ param.num     = [1 Inf];
 lmreg         = cfg_entry;
 lmreg.tag     = 'lmreg';
 lmreg.name    = 'LM Regularisation';
-lmreg.val{1} = double(0.0100000000000000002);
+lmreg.val     = {0.01};
 lmreg.help    = {'Levenberg-Marquardt regularisation.  Larger values increase the the stability of the optimisation, but slow it down.  A value of zero results in a Gauss-Newton strategy, but this is not recommended as it may result in instabilities in the FMG.'};
 lmreg.strtype = 'e';
 lmreg.num     = [1 1];
@@ -330,9 +296,9 @@ lmreg.num     = [1 1];
 cyc         = cfg_menu;
 cyc.tag     = 'cyc';
 cyc.name    = 'Cycles';
-cyc.val{1} = double(3);
+cyc.val     = {3};
 cyc.help    = {'Number of cycles used by the full multi-grid matrix solver. More cycles result in higher accuracy, but slow down the algorithm. See Numerical Recipes for more information on multi-grid methods.'};
-cyc.labels = {
+cyc.labels  = {
               '1'
               '2'
               '3'
@@ -342,23 +308,16 @@ cyc.labels = {
               '7'
               '8'
 }';
-cyc.values{1} = double(1);
-cyc.values{2} = double(2);
-cyc.values{3} = double(3);
-cyc.values{4} = double(4);
-cyc.values{5} = double(5);
-cyc.values{6} = double(6);
-cyc.values{7} = double(7);
-cyc.values{8} = double(8);
+cyc.values  = {1 2 3 4 5 6 7 8};
 % ---------------------------------------------------------------------
 % its Iterations
 % ---------------------------------------------------------------------
 its         = cfg_menu;
 its.tag     = 'its';
 its.name    = 'Iterations';
-its.val{1} = double(3);
+its.val     = {3};
 its.help    = {'Number of relaxation iterations performed in each multi-grid cycle. More iterations are needed if using ``bending energy'''' regularisation, because the relaxation scheme only runs very slowly. See the chapter on solving partial differential equations in Numerical Recipes for more information about relaxation methods.'};
-its.labels = {
+its.labels  = {
               '1'
               '2'
               '3'
@@ -368,14 +327,7 @@ its.labels = {
               '7'
               '8'
 }';
-its.values{1} = double(1);
-its.values{2} = double(2);
-its.values{3} = double(3);
-its.values{4} = double(4);
-its.values{5} = double(5);
-its.values{6} = double(6);
-its.values{7} = double(7);
-its.values{8} = double(8);
+its.values   = {1 2 3 4 5 6 7 8};
 % ---------------------------------------------------------------------
 % optim Optimisation Settings
 % ---------------------------------------------------------------------
@@ -399,10 +351,10 @@ warp         = cfg_exbranch;
 warp.tag     = 'warp';
 warp.name    = 'Run DARTEL (create Templates)';
 warp.val     = {images settings };
-warp.check   = @check_runjob;
+warp.check   = @check_dartel_template;
 warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds.'};
 warp.prog = @spm_dartel_template;
-warp.vout = @vout_runjob;
+warp.vout = @vout_dartel_template;
 % ---------------------------------------------------------------------
 % images Images
 % ---------------------------------------------------------------------
@@ -428,25 +380,23 @@ images.num     = [1 Inf];
 rform         = cfg_menu;
 rform.tag     = 'rform';
 rform.name    = 'Regularisation Form';
-rform.val{1} = double(0);
+rform.val     = {0};
 rform.help    = {'The registration is penalised by some ``energy'''' term.  Here, the form of this energy term is specified. Three different forms of regularisation can currently be used.'};
-rform.labels = {
+rform.labels  = {
                 'Linear Elastic Energy'
                 'Membrane Energy'
                 'Bending Energy'
 }';
-rform.values{1} = double(0);
-rform.values{2} = double(1);
-rform.values{3} = double(2);
+rform.values  = {0 1 2};
 % ---------------------------------------------------------------------
 % its Inner Iterations
 % ---------------------------------------------------------------------
 its         = cfg_menu;
 its.tag     = 'its';
 its.name    = 'Inner Iterations';
-its.val{1} = double(3);
+its.val     = {3};
 its.help    = {'The number of Gauss-Newton iterations to be done within this outer iteration.'};
-its.labels = {
+its.labels  = {
               '1'
               '2'
               '3'
@@ -458,23 +408,14 @@ its.labels = {
               '9'
               '10'
 }';
-its.values{1} = double(1);
-its.values{2} = double(2);
-its.values{3} = double(3);
-its.values{4} = double(4);
-its.values{5} = double(5);
-its.values{6} = double(6);
-its.values{7} = double(7);
-its.values{8} = double(8);
-its.values{9} = double(9);
-its.values{10} = double(10);
+its.values  = {1 2 3 4 5 6 7 8 9 10};
 % ---------------------------------------------------------------------
 % rparam Reg params
 % ---------------------------------------------------------------------
 rparam         = cfg_entry;
 rparam.tag     = 'rparam';
 rparam.name    = 'Reg params';
-rparam.val{1} = double([0.100000000000000006 0.0100000000000000002 0.00100000000000000002]);
+rparam.val     = {[0.1 0.01 0.001]};
 rparam.help    = {
                   'For linear elasticity, the parameters are mu, lambda and id. For membrane energy, the parameters are lambda, unused and id.id is a term for penalising absolute displacements, and should therefore be small.  For bending energy, the parameters are lambda, id1 and id2, and the regularisation is by (-lambda*Laplacian + id1)^2 + id2.'
                   'Use more regularisation for the early iterations so that the deformations are smooth, and then use less for the later ones so that the details can be better matched.'
@@ -487,9 +428,9 @@ rparam.num     = [1 3];
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  A single time point would be equivalent to a small deformation model. Smaller values allow faster computations, but are less accurate in terms of inverse consistency and may result in the one-to-one mapping breaking down.  Earlier iteration could use fewer time points, but later ones should use about 64 (or fewer if the deformations are very smooth).'};
-K.labels = {
+K.labels  = {
             '1'
             '2'
             '4'
@@ -501,16 +442,7 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values  = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % template Template
 % ---------------------------------------------------------------------
@@ -573,7 +505,7 @@ param.num     = [1 Inf];
 lmreg         = cfg_entry;
 lmreg.tag     = 'lmreg';
 lmreg.name    = 'LM Regularisation';
-lmreg.val{1} = double(0.0100000000000000002);
+lmreg.val     = {0.01};
 lmreg.help    = {'Levenberg-Marquardt regularisation.  Larger values increase the the stability of the optimisation, but slow it down.  A value of zero results in a Gauss-Newton strategy, but this is not recommended as it may result in instabilities in the FMG.'};
 lmreg.strtype = 'e';
 lmreg.num     = [1 1];
@@ -583,7 +515,7 @@ lmreg.num     = [1 1];
 cyc         = cfg_menu;
 cyc.tag     = 'cyc';
 cyc.name    = 'Cycles';
-cyc.val{1} = double(3);
+cyc.val     = {3};
 cyc.help    = {'Number of cycles used by the full multi-grid matrix solver. More cycles result in higher accuracy, but slow down the algorithm. See Numerical Recipes for more information on multi-grid methods.'};
 cyc.labels = {
               '1'
@@ -595,23 +527,16 @@ cyc.labels = {
               '7'
               '8'
 }';
-cyc.values{1} = double(1);
-cyc.values{2} = double(2);
-cyc.values{3} = double(3);
-cyc.values{4} = double(4);
-cyc.values{5} = double(5);
-cyc.values{6} = double(6);
-cyc.values{7} = double(7);
-cyc.values{8} = double(8);
+cyc.values  = {1 2 3 4 5 6 7 8};
 % ---------------------------------------------------------------------
 % its Iterations
 % ---------------------------------------------------------------------
 its         = cfg_menu;
 its.tag     = 'its';
 its.name    = 'Iterations';
-its.val{1} = double(3);
+its.val     = {3};
 its.help    = {'Number of relaxation iterations performed in each multi-grid cycle. More iterations are needed if using ``bending energy'''' regularisation, because the relaxation scheme only runs very slowly. See the chapter on solving partial differential equations in Numerical Recipes for more information about relaxation methods.'};
-its.labels = {
+its.labels  = {
               '1'
               '2'
               '3'
@@ -621,14 +546,7 @@ its.labels = {
               '7'
               '8'
 }';
-its.values{1} = double(1);
-its.values{2} = double(2);
-its.values{3} = double(3);
-its.values{4} = double(4);
-its.values{5} = double(5);
-its.values{6} = double(6);
-its.values{7} = double(7);
-its.values{8} = double(8);
+its.values  = {1 2 3 4 5 6 7 8};
 % ---------------------------------------------------------------------
 % optim Optimisation Settings
 % ---------------------------------------------------------------------
@@ -652,10 +570,10 @@ warp1         = cfg_exbranch;
 warp1.tag     = 'warp1';
 warp1.name    = 'Run DARTEL (existing Templates)';
 warp1.val     = {images settings };
-warp1.check   = @check_runjob;
+warp1.check   = @check_dartel_template;
 warp1.help    = {'Run the DARTEL nonlinear image registration procedure to match individual images to pre-existing template data. Start out with smooth templates, and select crisp templates for the later iterations.'};
 warp1.prog = @spm_dartel_warp;
-warp1.vout = @vout_runjob1;
+warp1.vout = @vout_dartel_warp;
 % ---------------------------------------------------------------------
 % flowfields Flow fields
 % ---------------------------------------------------------------------
@@ -701,23 +619,22 @@ many_subj.help = {[...
 jactransf         = cfg_menu;
 jactransf.tag     = 'jactransf';
 jactransf.name    = 'Modulation';
-jactransf.val{1} = double(0);
+jactransf.val     = {0};
 jactransf.help    = {'This allows the spatially normalised images to be rescaled by the Jacobian determinants of the deformations. Note that the rescaling is only approximate for deformations generated using smaller numbers of time steps.'};
-jactransf.labels = {
+jactransf.labels  = {
                     'Pres. Concentration (No "modulation")'
                     'Pres. Amount ("Modulation")'
 }';
-jactransf.values{1} = double(0);
-jactransf.values{2} = double(1);
+jactransf.values  = {0 1};
 % ---------------------------------------------------------------------
 % K Time Steps
 % ---------------------------------------------------------------------
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  Note that Jacobian determinants are not very accurate for very small numbers of time steps (less than about 16).'};
-K.labels = {
+K.labels  = {
             '1'
             '2'
             '4'
@@ -729,30 +646,21 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values  = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.val{1} = double(1);
+interp.val     = {1};
 interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
                   '    Nearest Neighbour:     - Fastest, but not normally recommended.'
                   '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
                   '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
 }';
-interp.labels = {
+interp.labels  = {
                  'Nearest neighbour'
                  'Trilinear'
                  '2nd Degree B-spline'
@@ -762,14 +670,7 @@ interp.labels = {
                  '6th Degree B-Spline'
                  '7th Degree B-Spline'
 }';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
+interp.values  = {0 1 2 3 4 5 6 7};
 % ---------------------------------------------------------------------
 % crt_warped Create Warped
 % ---------------------------------------------------------------------
@@ -797,9 +698,9 @@ flowfields.num     = [1 Inf];
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  Note that Jacobian determinants are not very accurate for very small numbers of time steps (less than about 16).'};
-K.labels = {
+K.labels  = {
             '1'
             '2'
             '4'
@@ -811,16 +712,7 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % jacdet Jacobian determinants
 % ---------------------------------------------------------------------
@@ -857,9 +749,9 @@ images.num     = [1 Inf];
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  Note that Jacobian determinants are not very accurate for very small numbers of time steps (less than about 16).'};
-K.labels = {
+K.labels  = {
             '1'
             '2'
             '4'
@@ -871,16 +763,7 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
@@ -904,14 +787,7 @@ interp.labels = {
                  '6th Degree B-Spline'
                  '7th Degree B-Spline'
 }';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
+interp.values  = {0 1 2 3 4 5 6 7};
 % ---------------------------------------------------------------------
 % crt_iwarped Create Inverse Warped
 % ---------------------------------------------------------------------
@@ -992,7 +868,7 @@ template.help   = {...
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Gaussian FWHM';
-fwhm.val{1}  = [8 8 8];
+fwhm.val     = {[8 8 8]};
 fwhm.strtype = 'e';
 fwhm.num     = [1 3];
 fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian blurring kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions. Note that you can also specify [0 0 0], but any ``modulated'' data will show aliasing (see eg Wikipedia), which occurs because of the way the warped images are generated.'};
@@ -1110,9 +986,9 @@ template.num     = [0 1];
 K         = cfg_menu;
 K.tag     = 'K';
 K.name    = 'Time Steps';
-K.val{1} = double(6);
+K.val     = {6};
 K.help    = {'The number of time points used for solving the partial differential equations.  Note that Jacobian determinants are not very accurate for very small numbers of time steps (less than about 16).'};
-K.labels = {
+K.labels  = {
             '1'
             '2'
             '4'
@@ -1124,25 +1000,16 @@ K.labels = {
             '256'
             '512'
 }';
-K.values{1} = double(0);
-K.values{2} = double(1);
-K.values{3} = double(2);
-K.values{4} = double(3);
-K.values{5} = double(4);
-K.values{6} = double(5);
-K.values{7} = double(6);
-K.values{8} = double(7);
-K.values{9} = double(8);
-K.values{10} = double(9);
+K.values  = {0 1 2 3 4 5 6 7 8 9};
 % ---------------------------------------------------------------------
 % fwhm Smoothing
 % ---------------------------------------------------------------------
 fwhm         = cfg_menu;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing';
-fwhm.val{1} = double(4);
+fwhm.val     = {4};
 fwhm.help    = {'The residuals can be smoothed with a Gaussian to reduce dimensionality. More smoothing is recommended if there are fewer training images.'};
-fwhm.labels = {
+fwhm.labels  = {
                'None'
                ' 2mm'
                ' 4mm'
@@ -1153,15 +1020,7 @@ fwhm.labels = {
                '14mm'
                '16mm'
 }';
-fwhm.values{1} = double(0);
-fwhm.values{2} = double(2);
-fwhm.values{3} = double(4);
-fwhm.values{4} = double(6);
-fwhm.values{5} = double(8);
-fwhm.values{6} = double(10);
-fwhm.values{7} = double(12);
-fwhm.values{8} = double(14);
-fwhm.values{9} = double(16);
+fwhm.values  = {0 2 4 6 8 10 12 14 16};
 % ---------------------------------------------------------------------
 % resids Generate Residuals
 % ---------------------------------------------------------------------
@@ -1228,23 +1087,21 @@ flowfields.num     = [1 Inf];
 rform         = cfg_menu;
 rform.tag     = 'rform';
 rform.name    = 'Regularisation Form';
-rform.val{1} = double(0);
+rform.val     = {0};
 rform.help    = {'The registration is penalised by some ``energy'''' term.  Here, the form of this energy term is specified. Three different forms of regularisation can currently be used.'};
-rform.labels = {
+rform.labels  = {
                 'Linear Elastic Energy'
                 'Membrane Energy'
                 'Bending Energy'
 }';
-rform.values{1} = double(0);
-rform.values{2} = double(1);
-rform.values{3} = double(2);
+rform.values  = {0 1 2};
 % ---------------------------------------------------------------------
 % rparam Reg params
 % ---------------------------------------------------------------------
 rparam         = cfg_entry;
 rparam.tag     = 'rparam';
 rparam.name    = 'Reg params';
-rparam.val{1} = double([0.25 0.125 1e-06]);
+rparam.val     = {[0.25 0.125 1e-06]};
 rparam.help    = {'For linear elasticity, the parameters are `mu'', `lambda'' and `id''. For membrane and bending energy, the parameters are `lambda'', unused and `id''. The term `id'' is for penalising absolute displacements, and should therefore be small.'};
 rparam.strtype = 'e';
 rparam.num     = [1 3];
@@ -1269,7 +1126,7 @@ flokern.prog = @spm_dartel_kernel;
 % ---------------------------------------------------------------------
 % kernfun Kernel Utilities
 % ---------------------------------------------------------------------
-kernfun         = cfg_repeat;
+kernfun         = cfg_choice;
 kernfun.tag     = 'kernfun';
 kernfun.name    = 'Kernel Utilities';
 kernfun.help    = {
@@ -1278,7 +1135,6 @@ kernfun.help    = {
                    'Various pattern recognition algorithms are available freely over the Internet. Possible approaches include Support-Vector Machines, Relevance-Vector machines and Gaussian Process Models. Gaussian Process Models probably give the most accurate probabilistic predictions, and allow kernels generated from different pieces of data to be most easily combined.'
 }';
 kernfun.values  = {reskern flokern};
-kernfun.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % dartel DARTEL Tools
 % ---------------------------------------------------------------------
@@ -1301,21 +1157,27 @@ dartel.values  = {initial warp warp1 nrm crt_warped jacdet crt_iwarped kernfun }
 %_______________________________________________________________________
 
 function dep = vout_initial_import(job)
-cls = [job.GM, job.WM, job.CSF];
+cls = {'GM', 'WM', 'CSF'};
 kk = 1;
 for k=1:3,
-    if cls(k),
+    if isnumeric(job.(cls{k})) && job.(cls{k})
         dep(kk)            = cfg_dep;
-        dep(kk).sname      = sprintf('Imported Tissue %d', k);
+        dep(kk).sname      = sprintf('Imported Tissue (%s)', cls{k});
         dep(kk).src_output = substruct('.','cfiles','()',{':',k});
         dep(kk).tgt_spec   = cfg_findspec({{'filter','nifti'}});
         kk = kk + 1;
     end
 end
+if isnumeric(job.image) && job.image
+    dep(kk)            = cfg_dep;
+    dep(kk).sname      = sprintf('Resliced Original Images');
+    dep(kk).src_output = substruct('.','files');
+    dep(kk).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function chk = check_runjob(job)
+function chk = check_dartel_template(job)
 n1 = numel(job.images);
 n2 = numel(job.images{1});
 chk = '';
@@ -1328,20 +1190,29 @@ end;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function dep = vout_runjob(job)
-dep(1)            = cfg_dep;
-dep(1).sname      = 'Template';
-dep(1).src_output = substruct('.','template','()',{':'});
-dep(1).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+function dep = vout_dartel_template(job)
 
-dep(2)            = cfg_dep;
-dep(2).sname      = 'Flow Fields';
-dep(2).src_output = substruct('.','files','()',{':'});
-dep(2).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+if isa(job.settings.template,'cfg_dep') || ~ ...
+        isempty(deblank(job.settings.template))
+    for it=0:numel(job.settings.param),
+        tdep(it+1)            = cfg_dep;
+        tdep(it+1).sname      = sprintf('Template (Iteration %d)', it);
+        tdep(it+1).src_output = substruct('.','template','()',{it+1});
+        tdep(it+1).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+    end
+else
+    tdep = cfg_dep;
+    tdep = tdep(false);
+end
+fdep            = cfg_dep;
+fdep.sname      = 'Flow Fields';
+fdep.src_output = substruct('.','files','()',{':'});
+fdep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+dep = [tdep fdep];
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function dep = vout_runjob1(job)
+function dep = vout_dartel_warp(job)
 dep            = cfg_dep;
 dep.sname      = 'Flow Fields';
 dep.src_output = substruct('.','files','()',{':'});
