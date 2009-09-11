@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 3375 2009-09-09 13:54:09Z guillaume $
+ * $Id: file2mat.c 3392 2009-09-11 14:13:38Z guillaume $
  * John Ashburner
  */
 
@@ -242,10 +242,10 @@ void get_w64(int ndim, int idim[], int *iptr[], unsigned long long idat[],
     }
 }
 
-void swap8(int n, unsigned char d[])
+void swap8(long long n, unsigned char d[])
 { /* DO NOTHING */}
 
-void swap16(int n, unsigned char d[])
+void swap16(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+2*n; d<de; d+=2)
@@ -254,7 +254,7 @@ void swap16(int n, unsigned char d[])
     }
 }
 
-void swap32(int n, unsigned char d[])
+void swap32(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+4*n; d<de; d+=4)
@@ -264,7 +264,7 @@ void swap32(int n, unsigned char d[])
     }
 }
 
-void swap64(int n, unsigned char d[])
+void swap64(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+8*n; d<de; d+=8)
