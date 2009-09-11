@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.36  2009/09/08 14:34:01  roboos
+% also detect 64 bit windows version (thanks to arno)
+%
 % Revision 1.35  2009/04/21 09:54:15  roboos
 % added prtools
 %
@@ -318,7 +321,7 @@ if autoadd && ~status
 
   % for windows computers in the F.C. Donders Centre
   prefix = 'h:\common\matlab';
-  if ~status && strcmp(computer, 'PCWIN')
+  if ~status && (strcmp(computer, 'PCWIN') || strcmp(computer, 'PCWIN64'))
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
