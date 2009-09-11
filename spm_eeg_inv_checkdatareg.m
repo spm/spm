@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 2760 2009-02-18 18:38:20Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 3388 2009-09-11 08:44:35Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -73,16 +73,6 @@ catch
     return
 end
 
-% EEG fiducials or MEG coils (coreg.)
-%--------------------------------------------------------------------------
-h_fid   = plot3(Lfid(:,1),Lfid(:,2),Lfid(:,3),'oc');
-set(h_fid,'MarkerFaceColor','c','MarkerSize',12,'MarkerEdgeColor','k');
-
-% MRI fiducials
-%--------------------------------------------------------------------------
-h_fidmr = plot3(Lfidmri(:,1),Lfidmri(:,2),Lfidmri(:,3),'dm');
-set(h_fidmr,'MarkerFaceColor','m','MarkerSize',12,'MarkerEdgeColor','k');
-
 % headshape locations
 %--------------------------------------------------------------------------
 if ~isempty(Lhsp)
@@ -95,6 +85,17 @@ end
 h_sens  = plot3(Lsens(:,1),Lsens(:,2),Lsens(:,3),'og');
 set(h_sens,'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
 % 
+
+% EEG fiducials or MEG coils (coreg.)
+%--------------------------------------------------------------------------
+h_fid   = plot3(Lfid(:,1),Lfid(:,2),Lfid(:,3),'oc');
+set(h_fid,'MarkerFaceColor','c','MarkerSize',12,'MarkerEdgeColor','k');
+
+% MRI fiducials
+%--------------------------------------------------------------------------
+h_fidmr = plot3(Lfidmri(:,1),Lfidmri(:,2),Lfidmri(:,3),'dm');
+set(h_fidmr,'MarkerFaceColor','m','MarkerSize',12,'MarkerEdgeColor','k');
+
 % camera view
 %--------------------------------------------------------------------------
 axis image off
