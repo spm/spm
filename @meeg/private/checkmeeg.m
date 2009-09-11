@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3255 2009-07-07 20:05:36Z vladimir $
+% $Id: checkmeeg.m 3394 2009-09-11 16:04:10Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -57,6 +57,11 @@ else
     end
 
     for k = 1:Ntrials
+        if  length(meegstruct.trials(k).bad)>1 || ~ismember(meegstruct.trials(k).bad, [0, 1])
+            disp(['checkmeeg: illegal value for bad flag in trial ' num2str(k) ', setting to zero.']);
+            meegstruct.trials(k).bad = 0;
+        end
+        
         event = meegstruct.trials(k).events;
 
         if ~isempty(event)
