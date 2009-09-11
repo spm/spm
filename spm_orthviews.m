@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2947 2009-03-25 11:23:38Z volkmar $
+% $Id: spm_orthviews.m 3386 2009-09-11 07:54:46Z volkmar $
 
 
 
@@ -1662,7 +1662,15 @@ case 'window',
         else
             defstr = '';
         end;
-        spm_orthviews('window',current_handle,spm_input('Range','+1','e',defstr,2));
+        [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
+        while numel(w) < 1 || numel(w) > 2
+            uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
+            [w yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
+        end
+        if numel(w) == 1
+            w(2) = w(1)+eps;
+        end
+        spm_orthviews('window',current_handle,w);
     end;
 
 case 'window_gl',
@@ -1677,10 +1685,16 @@ case 'window_gl',
         else
             defstr = '';
         end;
-        data = spm_input('Range','+1','e',defstr,2);
-
+        [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
+        while numel(w) < 1 || numel(w) > 2
+            uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
+            [w yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
+        end
+        if numel(w) == 1
+            w(2) = w(1)+eps;
+        end
         for i = 1:length(get_cm_handles),
-            st.vols{i}.window = data;
+            st.vols{i}.window = w;
         end;
     end;
     redraw_all;
