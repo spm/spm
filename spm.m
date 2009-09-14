@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3396 2009-09-11 18:29:13Z guillaume $
+% $Id: spm.m 3401 2009-09-14 18:33:23Z guillaume $
 
 
 %=======================================================================
@@ -997,7 +997,7 @@ case 'memory'
 %=======================================================================
 % m = spm('Memory')
 %-----------------------------------------------------------------------
-maxmemdef = 20*1024*1024; % 20 MB for all other platforms
+maxmemdef = 200*1024*1024; % 200 MB for all other platforms
 if ispc
     try
         evalc('m=feature(''memstats'');');

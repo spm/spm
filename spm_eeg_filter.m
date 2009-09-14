@@ -22,9 +22,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_eeg_filter.m 3401 2009-09-14 18:33:23Z guillaume $
 
-SVNrev = '$Rev: 3341 $';
+SVNrev = '$Rev: 3401 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -149,12 +149,7 @@ if strcmp(D.type, 'continuous')
     % work on blocks of channels
     % determine blocksize
     % determine block size, dependent on memory
-    try
-        % 2/3 of largest block of contiguous memory, for Windows platforms
-        evalc('memsz=2/3*feature(''memstats'');');
-    catch
-        memsz = 200*1024*1024; % 200 MB
-    end
+    memsz  = 2/3*spm('Memory');
     datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
     blknum = ceil(datasz/memsz);
     blksz  = ceil(nchannels(D)/blknum);
