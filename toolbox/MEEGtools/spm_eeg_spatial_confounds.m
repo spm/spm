@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 3228 2009-06-26 17:43:19Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 3400 2009-09-14 17:29:50Z vladimir $
 
 
-SVNrev = '$Rev: 3228 $';
+SVNrev = '$Rev: 3400 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -34,10 +34,97 @@ end
 D = spm_eeg_load(D);
 
 if ~isfield(S, 'method')
-    S.method = spm_input('How to define?','+1','SVD|SPMEEG|BESA|Clear', strvcat('SVD', 'SPMEEG', 'BESA', 'Clear'));
+    S.method = spm_input('How to define?','+1', 'm', 'SVD|SPMEEG|Eyes|BESA|Clear', strvcat('SVD', 'SPMEEG', 'Eyes', 'BESA', 'Clear'));
 end
 
 switch upper(S.method)
+    case 'EYES'
+        [ok, D] = check(D, 'sensfid');
+        
+        if ~ok
+            if check(D, 'basic')
+                errordlg(['The requested file is not ready for source reconstruction.'...
+                    'Use prep to specify sensors and fiducials.']);
+            else
+                errordlg('The meeg file is corrupt or incomplete');
+            end
+            return
+        end
+        
+        %% ============ Find or prepare head model
+        
+        if ~isfield(D, 'val')
+            D.val = 1;
+        end
+        
+        if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
+                ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
+                ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+            D = spm_eeg_inv_mesh_ui(D, D.val);
+            D = spm_eeg_inv_datareg_ui(D, D.val);
+            D = spm_eeg_inv_forward_ui(D, D.val);
+            
+            save(D);
+        end
+        
+        eyes = gifti(struct('pnt', [-34 53 -38; 34 53 -38]));
+
+        
+        sconf = [];
+        sconf.label = D.chanlabels(D.meegchannels);
+        sconf.coeff = nan(length(sconf.label), 6);
+        sconf.bad = ones(length(sconf.label), 1);
+        
+        [junk, modalities] = modality(D, 1, 1);
+        
+        for k = 1:numel(modalities)
+            
+            for i = 1:numel(D.inv{D.val}.forward)
+                if strncmp(modalities{k}, D.inv{D.val}.forward(i).modality, 3)
+                    m = i;
+                end
+            end
+                      
+            
+            vol  = D.inv{D.val}.forward(m).vol;
+            if isa(vol, 'char')
+                vol = fileio_read_vol(vol);
+            end
+            datareg  = D.inv{D.val}.datareg(m);
+            
+            sens = datareg.sensors;
+            
+            M1 = datareg.toMNI;
+            [U, L, V] = svd(M1(1:3, 1:3));
+            M1(1:3,1:3) =U*V';
+            
+            vol = forwinv_transform_vol(M1, vol);
+            sens = forwinv_transform_sens(M1, sens);
+            
+            chanind = setdiff(meegchannels(D, modalities{k}), badchannels(D));
+            
+            if isempty(chanind)
+                continue;
+            end
+            
+            [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+            
+            
+            if strncmp(modalities{k}, 'MEG', 3)
+                reducerank = 2;
+            else
+                reducerank = 3;
+            end
+            
+            L  = forwinv_compute_leadfield(eyes.vertices, sens, vol, 'reducerank', reducerank);
+            
+            [sel1, sel2] = spm_match_str(sconf.label, D.chanlabels(chanind));
+            
+            sconf.coeff(sel1, :) = spm_cond_units(L(sel2, :));
+            sconf.bad(sel1, :) = 0;
+        end
+        
+        D = sconfounds(D, sconf);
     case 'BESA'
         if ~isfield(S, 'conffile')
             S.conffile = spm_select(1, '\.bsa$', 'Select BESA *.bsa file');

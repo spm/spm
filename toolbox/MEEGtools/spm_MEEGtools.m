@@ -4,11 +4,12 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3390 2009-09-11 10:58:17Z vladimir $
+% $Id: spm_MEEGtools.m 3400 2009-09-14 17:29:50Z vladimir $
 
 
 funlist = {
     'Copy MEG sensors', 'spm_eeg_copygrad';
+    'Re-reference EEG', 'spm_eeg_reref_eeg';
     'Fieldtrip interactive plotting', 'spm_eeg_plot_interactive';
     'Fieldtrip visual artefact rejection', 'spm_eeg_ft_artefact_visual';
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
