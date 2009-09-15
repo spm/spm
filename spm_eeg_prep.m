@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_eeg_prep.m 3403 2009-09-15 13:41:17Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -59,23 +59,19 @@ switch lower(S.task)
 
         type = fileio_chantype(D.chanlabels);
                 
-        spmtype = repmat({'Other'}, 1, numel(type));
-        
-        [sel1, sel2] = spm_match_str(type, dictionary(:, 1));
-
-        spmtype(sel1) = dictionary(sel2, 2);
-                
         % If there is useful information in the original types it
         % overwrites the default assignment
         if isfield(D, 'origchantypes') 
-            [sel1, sel2] = spm_match_str(chanlabels(D, ind), D.origchantypes.label);            
+            [sel1, sel2] = spm_match_str(chanlabels(D, ind), D.origchantypes.label);                                    
             
-            type = D.origchantypes.type(sel2);
-            
-            [sel1, sel2] = spm_match_str(type, dictionary(:, 1));
-            
-            spmtype(sel1) = dictionary(sel2, 2);
-        end        
+            type(ind(sel1)) = D.origchantypes.type(sel2);
+        end                  
+                        
+        spmtype = repmat({'Other'}, 1, length(ind));
+        
+        [sel1, sel2] = spm_match_str(type(ind), dictionary(:, 1));
+
+        spmtype(sel1) = dictionary(sel2, 2);
 
         D = chantype(D, ind, spmtype);
         
