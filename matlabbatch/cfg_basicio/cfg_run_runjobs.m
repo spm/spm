@@ -12,9 +12,9 @@ function out = cfg_run_runjobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_runjobs.m 1973 2008-08-01 11:52:41Z volkmar $
+% $Id: cfg_run_runjobs.m 3402 2009-09-15 12:08:33Z volkmar $
 
-rev = '$Rev: 1973 $'; %#ok
+rev = '$Rev: 3402 $'; %#ok
 
 if isfield(job.save, 'savejobs')
     [p n e v] = fileparts(job.save.savejobs.outstub);
@@ -51,10 +51,10 @@ if ~isempty(hjobs)
     cjob = cfg_util('initjob', hjobs);
     cfg_util('run', cjob);
     out.jout = cfg_util('getalloutputs', cjob);
-    if isfield(job.save, 'savejobs')
-        [p n e v] = fileparts(job.save.savejobs.outstub);
-        out.jobrun{1} = fullfile(p, [n '_run.m']);
-        cfg_util('saverun', cjob, out.jobrun{1});
-    end;
+%    if isfield(job.save, 'savejobs')
+%        [p n e v] = fileparts(job.save.savejobs.outstub);
+%        out.jobrun{1} = fullfile(p, [n '_run.m']);
+%        cfg_util('saverun', cjob, out.jobrun{1});
+%    end;
     cfg_util('deljob', cjob);
 end;
