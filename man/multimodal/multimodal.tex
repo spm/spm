@@ -609,18 +609,11 @@ If you then press ``Image'', press ``12'' for the smoothing kernel, and SPM will
 
 Note that the first two images are unsmoothed (but normalised); the latter two are smoothed by a 12mm isotropic Gaussian kernel. The last number in the file name refers to the condition number; the penultimate number refers to the reconstruction number (i.e. the number in red in the reconstruction window, i.e, \texttt{D.val}, here 1).
 
-The smoothed results for Condition 1 will also be displayed in the Graphics window, together with the normalised structural, as in Figure~\ref{multimodal:fig:19}. Note that the solution image is in MNI (normalised) space, because the use of a canonical mesh provides us with a mapping between the cortex mesh in native space and the corresponding MNI space.
+The smoothed results for Condition 1 will also be displayed in the Graphics window, together with the normalised structural. Note that the solution image is in MNI (normalised) space, because the use of a canonical mesh provides us with a mapping between the cortex mesh in native space and the corresponding MNI space.
 
 You can also of course view the image with the normal SPM ``Display:image'' option, and locate the coordinates of the ``hotspots'' in MNI space. Note that these images contain RMS (unsigned) source estimates (see Henson et al, 2007).
 
 If you want to see where activity (in this time/freq contrast) is greater for faces and scrambled faces, you can use SPM \texttt{ImCalc} facility to create a difference image of \texttt{sw\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1\_\-1.nii} - \texttt{sw\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1\_\-2.nii}: you should see bilateral fusiform. For further discussion of localising a differential effect (as in Section~\ref{multimodal:eeg:3D} with ERPs), vs taking the difference of two localisations, as here, see Henson et al (2007).
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=100mm]{multimodal/figures/meg_msp_image}
-\caption{\em  Display of the smoothed 3D image of the MSP-estimated activity between 150-200ms in the frequency band 5-40Hz for faces, together with the normalised structural. Note large hotspots in bilateral fusiform.\label{multimodal:fig:19}}
-\end{center}
-\end{figure}
 
 You could also explore the other inversion options, like COH and IID, which you will note give more superficial solutions (a known problem with standard minimum norm; see also Friston et al, 2008; Henson et al, 2009a). To do this quickly (without repeating the MRI segmentation, coregistration and forward modelling), press the ``new'' button in the reconstruction window, which by default will copy these parts from the previous reconstruction.
 
@@ -699,9 +692,11 @@ Anyway, these contrasts of fMRI data can now be used as spatial priors to aid th
 
 \section{Multimodal integration \label{multimodal:integration}}
 
-Here we can illustrate two types of multimodal integration: 1) ``fusion'' of the EEG and MEG data (Henson et al, 2009b), and 2) use of the fMRI data as spatial priors on the MEG/EEG data (Henson et al, under revision).
-
-Workk in progress.
+In a future version of this chapter, we will illustrate here two types of multimodal integration:
+\begin{itemize}
+ \item ``fusion'' of the EEG and MEG data (Henson et al, 2009b),
+ \item use of the fMRI data as spatial priors on the MEG/EEG data (Henson et al, under revision).
+\end{itemize}
 
 \section{References}
 
