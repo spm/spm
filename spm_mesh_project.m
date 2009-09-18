@@ -5,6 +5,8 @@ function P = spm_mesh_project(M, dat, method, varargin)
 %            or a [nx3] vertices array
 % dat      - a structure array [1xm] with fields dim, mat, XYZ and t 
 %            (see spm_render.m)
+%            or a structure array [1xm] with fields mat and dat
+%            or a char array/cellstr of image filenames
 % method   - interpolation method {'nn'}
 % varargin - other parameters required by the interpolation method
 %
@@ -13,7 +15,7 @@ function P = spm_mesh_project(M, dat, method, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_project.m 3277 2009-07-15 11:47:40Z guillaume $
+% $Id: spm_mesh_project.m 3409 2009-09-18 15:40:25Z guillaume $
 
 if ishandle(M)
     V = get(M,'Vertices');
@@ -28,11 +30,22 @@ if ~strcmpi(method,'nn')
     error('Only Nearest Neighbours interpolation is available.');
 end
 
+if ischar(dat), dat = cellstr(dat); end
 P = zeros(length(dat),size(V,1));
-for i=1:length(dat)
-    Y      = zeros(dat(i).dim(1:3)');
-    OFF    = dat(i).XYZ(1,:) + dat(i).dim(1)*(dat(i).XYZ(2,:)-1 + dat(i).dim(2)*(dat(i).XYZ(3,:)-1));
-    Y(OFF) = dat(i).t .* (dat(i).t > 0);
-    XYZ    = double(inv(dat(i).mat)*[V';ones(1,size(V,1))]);
-    P(i,:) = spm_sample_vol(Y,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+for i=1:numel(dat)
+    if iscellstr(dat)
+        v      = spm_vol(dat{i});
+        Y      = spm_read_vols(v);
+        mat    = v.mat;
+    elseif isfield(dat,'dat')
+        Y      = dat(i).dat;
+        mat    = dat(i).mat;
+    else
+        Y      = zeros(dat(i).dim(1:3)');
+        OFF    = dat(i).XYZ(1,:) + dat(i).dim(1)*(dat(i).XYZ(2,:)-1 + dat(i).dim(2)*(dat(i).XYZ(3,:)-1));
+        Y(OFF) = dat(i).t .* (dat(i).t > 0);
+        mat    = dat(i).mat;
+    end
+    XYZ        = double(inv(mat)*[V';ones(1,size(V,1))]);
+    P(i,:)     = spm_sample_vol(Y,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
 end

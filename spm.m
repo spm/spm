@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3401 2009-09-14 18:33:23Z guillaume $
+% $Id: spm.m 3409 2009-09-18 15:40:25Z guillaume $
 
 
 %=======================================================================
@@ -495,7 +495,7 @@ if nargin<2, Vis='on'; else Vis=varargin{2}; end
 %-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Menu'))
 Fmenu = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
-set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+set(Fmenu,'name',sprintf('%s%s: Menu',spm('ver'),spm('GetUser',' (%s)')));
 S0 = spm('WinSize','0',1);
 SM = spm('WinSize','M');
 set(Fmenu,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] + SM);
@@ -738,7 +738,7 @@ spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
 spm_conman('Initialise','reset');
-local_clc, spm('FnBanner','GUI cleared');
+local_clc;
 fprintf('\n');
 %evalin('base','clear')
 
