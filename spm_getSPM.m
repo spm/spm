@@ -181,7 +181,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3056 2009-04-09 06:24:31Z volkmar $
+% $Id: spm_getSPM.m 3410 2009-09-21 18:53:24Z guillaume $
 
 
 %-GUI setup
@@ -222,12 +222,7 @@ cd(SPM.swd);
 %-Check the model has been estimated
 %--------------------------------------------------------------------------
 try
-    xX   = SPM.xX;                  %-Design definition structure
-    XYZ  = SPM.xVol.XYZ;            %-XYZ coordinates
-    S    = SPM.xVol.S;              %-search Volume {voxels}
-    R    = SPM.xVol.R;              %-search Volume {resels}
-    M    = SPM.xVol.M(1:3,1:3);     %-voxels to mm matrix
-    VOX  = sqrt(diag(M'*M))';       %-voxel dimensions
+    XYZ  = SPM.xVol.XYZ;
 catch
     
     %-Check the model has been estimated
@@ -237,9 +232,17 @@ catch
     if spm_input(str,1,'bd','yes|no',[1,0],1)
          SPM = spm_spm(SPM);
     else
+        SPM = []; xSPM = [];
         return
     end
 end
+
+xX   = SPM.xX;                      %-Design definition structure
+XYZ  = SPM.xVol.XYZ;                %-XYZ coordinates
+S    = SPM.xVol.S;                  %-search Volume {voxels}
+R    = SPM.xVol.R;                  %-search Volume {resels}
+M    = SPM.xVol.M(1:3,1:3);         %-voxels to mm matrix
+VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
 
 % check the data and other files have valid filenames
 %-----------------------------------------------------------------------
