@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3400 2009-09-14 17:29:50Z vladimir $
+% $Id: spm_MEEGtools.m 3412 2009-09-22 16:04:22Z vladimir $
 
 
 funlist = {
@@ -25,6 +25,7 @@ funlist = {
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
+    'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'
     };
 
 str = sprintf('%s|', funlist{:, 1});
