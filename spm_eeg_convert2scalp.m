@@ -29,9 +29,9 @@ function [S, Pout] = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 3367 2009-09-04 23:04:04Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 3414 2009-09-23 19:17:12Z vladimir $
 
-SVNrev = '$Rev: 3367 $';
+SVNrev = '$Rev: 3414 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -137,13 +137,16 @@ P  = fullfile(P, F);
 
 %-Loop over conditions
 %--------------------------------------------------------------------------
-if strcmp(modality,'MEGPLANAR')
-    d1 = D(Cind(:,1),:,:); %get data from first in pair
-    d2 = D(Cind(:,2),:,:); %get data from second in pair
+if strcmp(modality,'MEGPLANAR') &&...
+         isempty(strmatch('fT'), D.units(Cind))
+    d1 = 1e15*D(Cind(:,1),:,:); %get data from first in pair
+    d2 = 1e15*D(Cind(:,2),:,:); %get data from second in pair
     d  = sqrt((d1.^2 + d2.^2)/2); %take RMS
-    d  = spm_cond_units(d);
+elseif strcmp(modality,'MEG') &&...
+         isempty(strmatch('fT'), D.units(Cind))
+    d  = 1e15*D(Cind, :,:);
 else
-    d  = spm_cond_units(D(Cind, :,:));
+    d  = D(Cind, :,:);
 end
 
 cl = D.condlist;

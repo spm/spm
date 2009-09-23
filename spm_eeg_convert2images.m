@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3391 2009-09-11 11:45:17Z rik $
+% $Id: spm_eeg_convert2images.m 3414 2009-09-23 19:17:12Z vladimir $
 
-SVNrev = '$Rev: 3391 $';
+SVNrev = '$Rev: 3414 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -174,7 +174,14 @@ if strncmpi(D.transformtype, 'TF',2);
                     N.mat_intent = 'Aligned';
                     create(N);
 
-                    N.dat(:, :) = spm_cond_units(squeeze(mean(D(images.channels_of_interest, :, :, l), 1)));
+                    if ~isempty(strmatch('MEG'), D.chantype(images.channels_of_interest)) &&...
+                            isempty(strmatch('fT'), D.units(images.channels_of_interest))
+                        scale = 1e15;
+                    else
+                        scale = 1;
+                    end
+                    
+                    N.dat(:, :) = scale*squeeze(mean(D(images.channels_of_interest, :, :, l), 1));
 
                 end
                 Pout{i} = char(Pout{i});
