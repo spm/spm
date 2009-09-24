@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3318 2009-08-10 14:24:15Z john $
+% $Id: spm_dartel_norm_fun.m 3417 2009-09-24 18:05:27Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -205,7 +205,7 @@ for m=1:numel(PI),
             if isfield(NI,'extras') && isfield(NI.extras,'mat'),
                 M1 = NI.extras.mat;
                 if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0,
-                    M0 = M1;
+                    M0 = M1(:,:,j);
                 end
             end
             M   = NU.mat0\M0;
