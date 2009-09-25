@@ -32,7 +32,7 @@ function [D, alljumps] = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% $Id: spm_eeg_remove_jumps.m 3198 2009-06-12 14:50:07Z vladimir $
+% $Id: spm_eeg_remove_jumps.m 3419 2009-09-25 14:29:40Z vladimir $
 
 % Input parameters
 %==========================================================================
@@ -141,7 +141,7 @@ for blk = 1:blknum
         if ~isfield(S, 'stdthreshold')
             jumps = find(abs(ddat) > thr);
         else
-            jumps = find(abs(ddat) > S.stdthreshold*std(ddat));
+            jumps = find(abs(ddat) > S.stdthreshold*std(dat));
         end
         if ~isempty(jumps)
 
@@ -234,7 +234,7 @@ for n = 1:D.ntrials
     Nevents = numel(ev);
     for i=1:numel(alljumps{n})
         ev(Nevents+i).type     = 'artefact';
-        ev(Nevents+i).value    = [];
+        ev(Nevents+i).value    = 'jump';
         ev(Nevents+i).duration = [];
         ev(Nevents+i).time     = alljumps{n}(i)+trialonset;
     end
