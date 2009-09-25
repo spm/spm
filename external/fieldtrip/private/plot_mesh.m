@@ -7,18 +7,22 @@ function plot_mesh(bnd, varargin)
 % Use as
 %   plot_mesh(bnd, ...)
 %
+% PLOT_MESH also allows to plot only vertices by
+%   plot_mesh(pnt)
+% where pnt is a list of 3d points cartesian coordinates.
+%
 % Graphic facilities are available for vertices, edges and faces. A list of
 % the arguments is given below with the correspondent admitted choices.
 %
-%     'faces'         true or false
-%     'vertices'      true or false
-%     'edges'         true or false
 %     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'faceindex'     true or false
 %     'vertexindex'   true or false
 %     'facealpha'     transparency, between 0 and 1
+%
+% If you don't want the faces or vertices to be plotted, you should
+% specify facecolor or respectively edgecolor as 'none'.
 %
 % Example
 %   [pnt, tri] = icosahedron162;
@@ -27,14 +31,29 @@ function plot_mesh(bnd, varargin)
 %   plot_mesh(bnd, 'facecolor', 'skin', 'edgecolor', 'none')
 %   camlight
 %
-% PLOT_MESH allows to plot points on top of mesh plots, as:
-%   plot_mesh(pnt)
-% where pnt is a list of 3d points cartesian coordinates.
-% The function will return a warning in this case.
+% See also TRIMESH
 
 % Copyright (C) 2009, Cristiano Micheli
 %
 % $Log: plot_mesh.m,v $
+% Revision 1.29  2009/09/24 07:46:50  crimic
+% added realistic colors
+%
+% Revision 1.28  2009/09/23 09:27:35  roboos
+% removed accidental keyboard statement
+%
+% Revision 1.27  2009/09/23 09:26:55  roboos
+% empty is not an appropriate facecolor
+%
+% Revision 1.26  2009/09/23 09:18:17  roboos
+% made handling of facecolor=none more robust, idem for vertex and edgecolor
+%
+% Revision 1.25  2009/09/23 06:53:20  roboos
+% updated documentation, some cleanup of the code and defaults (no functional changes)
+%
+% Revision 1.24  2009/09/23 06:41:34  roboos
+% added "see also"
+%
 % Revision 1.23  2009/07/29 06:40:16  roboos
 % allow empty pnt
 %
@@ -107,24 +126,33 @@ if ~isstruct(bnd) && isnumeric(bnd) && size(bnd,2)==3
 end
 
 % get the optional input arguments
+facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),   facecolor='white';end
+vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor), vertexcolor='none';end
+edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),   edgecolor='k';end
+faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),   faceindex=false;end
+vertexindex = keyval('vertexindex', varargin); if isempty(vertexindex), vertexindex=false;end
+vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),  vertexsize=10;end
+facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),   facealpha=1;end
+tag         = keyval('tag',         varargin); if isempty(tag),         tag='';end
 
-faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),faceindex='none';end
-vertexindex = keyval('vertexindex', varargin);
-vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),vertexsize=10;end
-facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),facecolor='white';end
-vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor),vertexcolor='none';end
-edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),edgecolor='k';end
-facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),facealpha=1;end
-tag         = keyval('tag',   varargin); if isempty(tag),tag='';end
-
+% convert string into boolean values
 faceindex   = istrue(faceindex);
 vertexindex = istrue(vertexindex);
 
-% start with empty return values
 skin   = [255 213 119]/255;
-skull  = [140  85  85]/255;
 brain  = [202 100 100]/255;
 cortex = [255 213 119]/255;
+    
+% there a various ways of disabling the plotting
+if isequal(vertexcolor, 'false') || isequal(vertexcolor, 'no') || isequal(vertexcolor, 'off') || isequal(vertexcolor, false)
+  vertexcolor = 'none';
+end
+if isequal(facecolor, 'false') || isequal(facecolor, 'no') || isequal(facecolor, 'off') || isequal(facecolor, false)
+  facecolor = 'none';
+end
+if isequal(edgecolor, 'false') || isequal(edgecolor, 'no') || isequal(edgecolor, 'off') || isequal(edgecolor, false)
+  edgecolor = 'none';
+end
 
 % new colors management
 if strcmpi(vertexcolor,'skin') || strcmpi(vertexcolor,'brain') || strcmpi(vertexcolor,'cortex')

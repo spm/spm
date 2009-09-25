@@ -13,11 +13,19 @@ function [innermost, inside] = find_innermost_boundary(bnd)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: find_innermost_boundary.m,v $
+% Revision 1.3  2009/09/23 13:16:27  roboos
+% also support single boundary
+%
 % Revision 1.2  2003/03/04 21:46:18  roberto
 % added CVS log entry and synchronized all copyright labels
 %
 
 ncmp = length(bnd);
+
+if ncmp==1
+  innermost = 1;
+  return
+end
 
 % try to locate the innermost compartment
 for i=1:ncmp

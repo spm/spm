@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.104  2009/09/22 11:15:47  vlalit
+% Changes by Laurence Hunt for distinguishing between analog and digital event channels for Neuromag.
+%
 % Revision 1.103  2009/08/21 12:03:42  vlalit
 % Fixed a bug with handling of 16 and 32-bit Neuroscan cnt variants.
 %
@@ -1233,34 +1236,28 @@ switch eventformat
       isepoched       = hdr.orig.isepoched;
     end
 
+
+    
     if iscontinuous
-      analogindx = strmatch('STI', hdr.label);
-      binaryindx = find(strcmp(chantype(hdr), 'trigger'));
-      if isempty(binaryindx)
+      analogindx = find(strcmp(chantype(hdr), 'analog trigger'));
+      binaryindx = find(strcmp(chantype(hdr), 'digital trigger'));
+      
+      
+      if isempty(binaryindx)&&isempty(analogindx) 
+        % included in case of problems with older systems and MNE reader:
         % use a predefined set of channel names
         binary     = {'STI 014', 'STI 015', 'STI 016'};
         binaryindx = match_str(hdr.label, binary);
       end
-
+      
       if ~isempty(binaryindx)
-        % add triggers based on the binary trigger channel, this is based on
-        % an email on 14 Sep 2004, at 16:33, Lauri Parkkonen wrote:
-        %   Anke's file is probably quite recent one. It should have normal binary
-        %   coding on STI014 and its "analog" counterparts on STI1 ... STI6,
-        %   swinging between 0 ... +5 volts. These latter channels are virtual,
-        %   i.e., they are generated from STI014 for backwards compatibility. STI1
-        %   is the LSB of STI014 etc. For all the new stuff, I would recommend
-        %   using STI014 as that's the way the triggers will be stored in the future
-        %   (maybe the channel name is going to change to something more reasonable
-        %   like TRIG). Unfortunately, some older files from the 306-channel system
-        %   have the STI014 coded in a different way - the two 8-bit halves code
-        %   the input and output triggers separately.
         trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 0);
         event   = appendevent(event, trigger);
-      elseif ~isempty(analogindx)
+      end
+      if ~isempty(analogindx)
         % add the triggers to the event structure based on trigger channels with the name "STI xxx"
-        % there are some issues with noise on these analog trigger channels
-        % therefore look for the analog triggers only if no binary trigger channel is present
+        % there are some issues with noise on these analog trigger
+        % channels, on older systems only
         % read the trigger channel and do flank detection
         trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 1);
         event   = appendevent(event, trigger);

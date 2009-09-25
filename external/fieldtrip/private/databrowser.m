@@ -20,13 +20,22 @@ function [cfg] = databrowser(cfg, data)
 %   cfg.artfctdef.xxx.artifact  = Nx2 matrix with artifact segments
 %   cfg.viewmode                = string, 'butterfly', 'vertical', 'component' (default = 'butterfly')
 %   cfg.selectfeature           = string, name of feature to be selected/added (default = 'visual')
-%   cfg.selectmode              = string, what to do with a selection, can be 'joint', 'individual', 'mutiplot', 'topoplot-avg', 'topoplot-pow' (default = 'joint' 
+%   cfg.selectmode              = string, what to do with a selection, can be 'joint', 'individual', 'multiplot', 'topoplot-avg', 'topoplot-pow' (default = 'joint')
 %
 % See also PREPROCESSING
 
 % Copyright (C) 2009, Robert Oostenveld, Ingrid Niewenhuis
 %
 % $Log: databrowser.m,v $
+% Revision 1.15  2009/09/24 12:11:55  ingnie
+% return opt to guidata after selecting other artifact type (by typing number on keyboard)
+%
+% Revision 1.14  2009/09/24 11:45:28  ingnie
+% added some comment, deleted set xtick in viewmode vertical to make x-axis appear
+%
+% Revision 1.13  2009/09/24 08:43:08  giopia
+% fixed bug in selectmode: begsample -> begsel, endsample -> endsel
+%
 % Revision 1.12  2009/08/05 14:16:53  roboos
 % added various options for selectmode
 %
@@ -195,7 +204,7 @@ end
 
 % FIXME ensure nice sorting of artifact labels
 
-% make a single vector representing all artifacts
+% make a artdata representing all artifacts in a "raw data" format
 datbegsample = min(trlorg(:,1));
 datendsample = max(trlorg(:,2));
 artdat = zeros(length(artifact), datendsample);
@@ -209,7 +218,7 @@ for i=1:length(artifact)
 end
 
 artdata = [];
-artdata.trial{1}       = artdat;
+artdata.trial{1}       = artdat; % every artifact is a "channel"
 artdata.time{1}        = offset2time(0, fsample, datendsample);
 artdata.label          = artlabel;
 artdata.fsample        = fsample;
@@ -327,7 +336,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: databrowser.m,v 1.12 2009/08/05 14:16:53 roboos Exp $';
+cfg.version.id = '$Id: databrowser.m,v 1.15 2009/09/24 12:11:55 ingnie Exp $';
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
 
@@ -474,11 +483,11 @@ elseif strcmp(opt.cfg.selectmode, 'multiplot')
   % cut out the requested data segment
   if isempty(opt.orgdata)
     tmpcfg = opt.cfg; % FIXME: some options should be passed, but not all
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = preprocessing(tmpcfg);
   else
     tmpcfg = [];
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = redefinetrial(tmpcfg, opt.orgdata);
     % FIXME: also apply filters to the data in memory?
   end
@@ -497,11 +506,11 @@ elseif strcmp(opt.cfg.selectmode, 'topoplot-avg')
   % cut out the requested data segment
   if isempty(opt.orgdata)
     tmpcfg = opt.cfg; % FIXME: some options should be passed, but not all
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = preprocessing(tmpcfg);
   else
     tmpcfg = [];
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = redefinetrial(tmpcfg, opt.orgdata);
     % FIXME: also apply filters to the data in memory?
   end
@@ -521,11 +530,11 @@ elseif strcmp(opt.cfg.selectmode, 'topoplot-avg')
   % cut out the requested data segment
   if isempty(opt.orgdata)
     tmpcfg = opt.cfg; % FIXME: some options should be passed, but not all
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = preprocessing(tmpcfg);
   else
     tmpcfg = [];
-    tmpcfg.trl = [begsample endsample begsample];
+    tmpcfg.trl = [begsel endsel begsel];
     rawdata = redefinetrial(tmpcfg, opt.orgdata);
     % FIXME: also apply filters to the data in memory?
   end
@@ -575,6 +584,7 @@ switch key
   case {'1' '2' '3' '4' '5' '6' '7' '8' '9'}
     % switch to another artifact type
     opt.ftsel = str2double(key);
+    guidata(h, opt);
     fprintf('switching to the "%s" artifact\n', opt.artdata.label{opt.ftsel});
   case 'leftarrow'
     opt.trlop = max(opt.trlop - 1, 1); % should not be smaller than 1
@@ -811,7 +821,6 @@ switch opt.cfg.viewmode
       end
     end
     
-    set(gca, 'xTick', [])
     set(gca, 'yTick', [])
     title(sprintf('%s %d, time from %g to %g s', opt.trialname, opt.trlop, tim(1), tim(end)));
     

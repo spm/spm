@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.20  2009/09/21 11:12:51  roboos
+% added openmeeg as supported voltype, thanks to Cristiano
+%
 % Revision 1.19  2009/05/29 11:50:34  vlalit
 % Fixed a bug with wrong kind of brackets
 %
@@ -315,7 +318,7 @@ elseif iseeg
       end
       sens.pnt = pnt;
 
-    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
+    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'openmeeg'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

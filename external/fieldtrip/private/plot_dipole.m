@@ -20,6 +20,9 @@ function plot_dipole(pos, ori, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: plot_dipole.m,v $
+% Revision 1.4  2009/09/23 14:55:36  crimic
+% small fix
+%
 % Revision 1.3  2009/06/03 16:13:19  roboos
 % updated documentation
 %
@@ -134,8 +137,8 @@ for i=1:size(pos,1)
   stick.pnt = warp_apply(translate([tx ty tz]), stick.pnt, 'homogeneous');
 
   % plot the sphere and the stick
-  plot_mesh(sphere, 'faces', true', 'vertices', false, 'edges', false, 'facecolor', color);
-  plot_mesh(stick,  'faces', true', 'vertices', false, 'edges', false, 'facecolor', color);
+  plot_mesh(sphere, 'vertexcolor', 'none', 'edgecolor', false, 'facecolor', color);
+  plot_mesh(stick,  'vertexcolor', 'none', 'edgecolor', false, 'facecolor', color);
 
 end % for each dipole
 
