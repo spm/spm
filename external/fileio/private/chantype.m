@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.13  2009/09/22 11:15:47  vlalit
+% Changes by Laurence Hunt for distinguishing between analog and digital event channels for Neuromag.
+%
 % Revision 1.12  2009/03/30 17:53:38  vlalit
 % Fixed a bug in BTi handling code from the last update
 %
@@ -115,7 +118,7 @@ if senstype(input, 'neuromag')
       type{sel} = 'eeg';
     end
     for sel=find(hdr.orig.channames.KI(:)==3)'
-      type{sel} = 'trigger';
+      type{sel} = 'digital trigger';
     end
     % determinge the MEG channel subtype
     selmeg=find(hdr.orig.channames.KI(:)==1)';
@@ -161,7 +164,26 @@ if senstype(input, 'neuromag')
       type(sel) = {'mcg'};
     end
     for sel=find([hdr.orig.chs.kind]==3)' %Stim channels
-      type(sel) = {'trigger'};
+      if any([hdr.orig.chs(sel).logno] == 101) %new systems: 101 (and 102, if enabled) are digital;
+                                               %low numbers are 'pseudo-analog' (if enabled)
+        type(sel([hdr.orig.chs(sel).logno] == 101)) = {'digital trigger'};
+        type(sel([hdr.orig.chs(sel).logno] == 102)) = {'digital trigger'};
+        type(sel([hdr.orig.chs(sel).logno] <= 32)) = {'analog trigger'};
+        others = [hdr.orig.chs(sel).logno] > 32 & [hdr.orig.chs(sel).logno] ~= 101 & ...
+            [hdr.orig.chs(sel).logno] ~= 102;
+        type(sel(others)) = {'other trigger'};
+      elseif any([hdr.orig.chs(sel).logno] == 14) %older systems: STI 014/015/016 are digital;
+                                                  %lower numbers 'pseudo-analog'(if enabled)
+        type(sel([hdr.orig.chs(sel).logno] == 14)) = {'digital trigger'};
+        type(sel([hdr.orig.chs(sel).logno] == 15)) = {'digital trigger'};
+        type(sel([hdr.orig.chs(sel).logno] == 16)) = {'digital trigger'};
+        type(sel([hdr.orig.chs(sel).logno] <= 13)) = {'analog trigger'};
+        others = [hdr.orig.chs(sel).logno] > 16;
+        type(sel(others)) = {'other trigger'};
+      else
+          warning('There does not seem to be a suitable trigger channel.');
+          type(sel) = {'other trigger'};
+      end
     end
     for sel=find([hdr.orig.chs.kind]==202)' %EOG
       type(sel) = {'eog'};
@@ -172,7 +194,7 @@ if senstype(input, 'neuromag')
     for sel=find([hdr.orig.chs.kind]==402)' %ECG
       type(sel) = {'ecg'};
     end
-    for sel=find([hdr.orig.chs.kind]==502)' %MISC
+    for sel=find([hdr.orig.chs.kind]==502)'  %MISC
       type(sel) = {'misc'};
     end
     for sel=find([hdr.orig.chs.kind]==602)' %Resp
