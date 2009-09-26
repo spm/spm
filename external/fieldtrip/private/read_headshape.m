@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.13  2009/09/26 10:46:25  vlalit
+% Added 4d_pdf to the list of BTi formats
+%
 % Revision 1.12  2009/04/01 16:59:43  vlalit
 % Slight fix for JMs fix to assign unique names to the other BTi fiducials. Also make
 %  sure that fid.label is a column cell array.
@@ -106,7 +109,7 @@ switch fileformat
                 getfield(orig.MRI_Info, shape.fid.label{i}));
         end
 
-    case {'4d_xyz', '4d_m4d', '4d_hs', '4d'}
+    case {'4d_xyz', '4d_m4d', '4d_hs', '4d', '4d_pdf'}
         [p, f, x] = fileparts(filename);
         if ~strcmp(fileformat, '4d_hs')
             filename = fullfile(p, 'hs_file');
