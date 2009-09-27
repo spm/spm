@@ -21,9 +21,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3218 2009-06-22 15:45:53Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3425 2009-09-27 20:34:28Z vladimir $
 
-SVNrev = '$Rev: 3218 $';
+SVNrev = '$Rev: 3425 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -64,7 +64,9 @@ switch lower(S.tf.method)
         end
         for c=1:D.ntrials
             inds=find(tims>S.tf.Sbaseline(1) & tims<S.tf.Sbaseline(2));
-            x=squeeze(Din(:,:,:,c));
+            % reshape instead of squeeze as there may be other singleton
+            % dimensions
+            x=reshape(Din(:,:,:,c), size(Din, [1:3]));
             xbase=mean(x(:,:,inds),3);
             switch lower(S.tf.method)
                 case 'logr'
@@ -82,12 +84,12 @@ switch lower(S.tf.method)
         
     case 'log'
         for c=1:D.ntrials
-            D(:,:,:,c) = log(squeeze(Din(:,:,:,c)));
+            D(:,:,:,c) = log(Din(:,:,:,c));
         end
         
     case 'sqrt'
         for c=1:D.ntrials
-            D(:,:,:,c) = sqrt(squeeze(Din(:,:,:,c)));
+            D(:,:,:,c) = sqrt(Din(:,:,:,c));
         end
         
     otherwise
