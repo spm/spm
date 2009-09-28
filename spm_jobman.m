@@ -44,8 +44,8 @@ function varargout = spm_jobman(varargin)
 % FORMAT spm_jobman('initcfg')
 % Initialise cfg_util configuration and set path accordingly.
 %
-% FORMAT job = spm_jobman('spm5tospm8',job)
-% Takes an SPM5 job structure and returns a SPM8 compatible version.
+% FORMAT jobs = spm_jobman('spm5tospm8',jobs)
+% Takes a cell list of SPM5 job structures and returns SPM8 compatible versions.
 %
 % FORMAT job = spm_jobman('spm5tospm8bulk',jobfiles)
 % Takes a cell string with SPM5 job filenames and saves them in SPM8
@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3225 2009-06-25 17:29:45Z volkmar $
+% $Id: spm_jobman.m 3426 2009-09-28 09:22:24Z volkmar $
 
 
 if nargin==0
