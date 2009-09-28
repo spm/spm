@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3394 2009-09-11 16:04:10Z vladimir $
+% $Id: checkmeeg.m 3428 2009-09-28 20:05:01Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -33,7 +33,14 @@ end
 
 if ~isfield(meegstruct, 'timeOnset')
     meegstruct.timeOnset = 0;
+elseif isempty(meegstruct.timeOnset)
+    if meegstruct.Fsample ~= 0
+        meegstruct.timeOnset = 1/meegstruct.Fsample;
+    else
+        meegstruct.timeOnset = 0; % This is to enable creation of empty meeg objects
+    end
 end
+   
 
 if ~isfield(meegstruct, 'trials') && (Nsamples~=0)
     disp('checkmeeg: no trials description');
