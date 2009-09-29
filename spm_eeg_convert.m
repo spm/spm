@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3088 2009-04-29 14:46:28Z vladimir $
+% $Id: spm_eeg_convert.m 3432 2009-09-29 23:37:45Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -325,6 +325,12 @@ else % Read by trials
         end
 
         ntrial = size(trl, 1);
+        
+        if ntrial == 0
+          warning([S.dataset ': No trials to read. Bailing out.']);  
+          D = [];
+          return;
+        end          
     end
     D.Nsamples = nsampl;
     if isfield(event, 'sample')
