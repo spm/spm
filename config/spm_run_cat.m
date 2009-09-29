@@ -1,4 +1,4 @@
-function spm_3Dto4D(job)
+function spm_run_cat(job)
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -9,7 +9,8 @@ function spm_3Dto4D(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_cat.m 1185 2008-03-04 16:31:21Z volkmar $
+% John Ashburner
+% $Id: spm_run_cat.m 3430 2009-09-29 16:55:38Z guillaume $
 
 
 V    = spm_vol(strvcat(job.vols{:}));

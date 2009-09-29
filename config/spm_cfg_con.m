@@ -4,9 +4,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 2223 2008-09-29 11:31:16Z volkmar $
+% $Id: spm_cfg_con.m 3430 2009-09-29 16:55:38Z guillaume $
 
-rev = '$Rev: 2223 $';
+rev = '$Rev: 3430 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -32,7 +32,7 @@ name.num     = [1 Inf];
 convec         = cfg_entry;
 convec.tag     = 'convec';
 convec.name    = 'T contrast vector';
-convec.help    = {'Enter T contrast vector. This is done similarly to the SPM2 contrast manager. A 1 x n vector should be entered for T-contrasts.'};
+convec.help    = {'Enter T contrast vector. This is done similarly to the contrast manager. A 1 x n vector should be entered for T-contrasts.'};
 convec.strtype = 'e';
 convec.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -91,7 +91,7 @@ name.num     = [1 Inf];
 convec         = cfg_entry;
 convec.tag     = 'convec';
 convec.name    = 'F contrast vector';
-convec.help    = {'Enter F contrast vector. This is done similarly to the SPM2 contrast manager. One or multiline contrasts may be entered.'};
+convec.help    = {'Enter F contrast vector. This is done similarly to the contrast manager. One or multiline contrasts may be entered.'};
 convec.strtype = 'e';
 convec.num     = [Inf Inf];
 % ---------------------------------------------------------------------
