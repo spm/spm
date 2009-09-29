@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 3262 2009-07-09 12:10:53Z vladimir $
+% $Id: spm_eeg_history.m 3429 2009-09-29 09:41:36Z vladimir $
 
 try
     h = S.history;
@@ -157,8 +157,13 @@ for i=1:numel(h)
         case 'spm_eeg_epochs'
             hh{i} = 'Epoch';
         case 'spm_eeg_filter'
-            hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
-                ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
+            if length(h(i).args.filter.PHz) == 2
+                hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
+                    ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
+            else
+                hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
+                    ' filter ' num2str(h(i).args.filter.PHz, '%g') ' Hz'];
+            end
         case 'spm_eeg_downsample'
             hh{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
         case 'spm_eeg_bc'

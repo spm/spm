@@ -15,9 +15,9 @@ function D = spm_eeg_interpolate_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_interpolate_artefact.m 3412 2009-09-22 16:04:22Z vladimir $
+% $Id: spm_eeg_interpolate_artefact.m 3429 2009-09-29 09:41:36Z vladimir $
 
-SVNrev = '$Rev: 3412 $';
+SVNrev = '$Rev: 3429 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -98,6 +98,7 @@ spm_progress_bar('Clear');
 %--------------------------------------------------------------------------
 D = D.history(mfilename, S);
 
+save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------

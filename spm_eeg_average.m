@@ -21,9 +21,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 3321 2009-08-12 13:10:15Z vladimir $
+% $Id: spm_eeg_average.m 3429 2009-09-29 09:41:36Z vladimir $
 
-SVNrev = '$Rev: 3321 $';
+SVNrev = '$Rev: 3429 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -250,7 +250,7 @@ for i = 1:D.nconditions
         s = [s '\n'];
     end
 end
-disp(sprintf(s));                                                       %-#
+disp(s);                                                       %-#
 
 if robust
     disp('Robust averaging might have introduced high frequencies in the data. It is advised to re-apply low-pass filter');

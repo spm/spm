@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3320 2009-08-12 12:30:46Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 3429 2009-09-29 09:41:36Z vladimir $
 
-SVNrev = '$Rev: 3320 $';
+SVNrev = '$Rev: 3429 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ for i = 1:numel(A)
         
         [L, D] = spm_eeg_lgainmat(D, [], label);
         
-        B = spm_svd(L*L', 0.01);
+        B = spm_svd(L*L', 0.1);
         
         lim = min(0.5*size(L, 1), 45); % 45 is the number of dipoles BESA would use.
         

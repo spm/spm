@@ -1,5 +1,5 @@
 function D = spm_eeg_spatial_confounds(S)
-% This function defines spatial confounds and adds them to MEEG dataset. 
+% This function defines spatial confounds and adds them to MEEG dataset.
 %
 % Disclaimer: this code is provided as an example and is not guaranteed to work
 % with data on which it was not tested. If it does not work for you, feel
@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 3400 2009-09-14 17:29:50Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 3429 2009-09-29 09:41:36Z vladimir $
 
 
-SVNrev = '$Rev: 3400 $';
+SVNrev = '$Rev: 3429 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ switch upper(S.method)
         end
         
         eyes = gifti(struct('pnt', [-34 53 -38; 34 53 -38]));
-
+        
         
         sconf = [];
         sconf.label = D.chanlabels(D.meegchannels);
@@ -84,7 +84,7 @@ switch upper(S.method)
                     m = i;
                 end
             end
-                      
+            
             
             vol  = D.inv{D.val}.forward(m).vol;
             if isa(vol, 'char')
@@ -140,19 +140,34 @@ switch upper(S.method)
         for i = 1:numel(cl)
             svdinput = [svdinput mean(D.selectdata(D.chanlabels(setdiff(D.meegchannels, D.badchannels)), S.timewin, cl{i}), 3)];
         end
-        U = spm_svd(svdinput);
-
-        if ~isfield(S, 'ncomp')
+        [U, L, V] = spm_svd(svdinput);
+        
+        
+        if isfield(S, 'svdthresh')
+            temp = zeros(size(svdinput));
+            for n = size(V, 2):-1:1
+                temp = temp+U(:, n)*L(n,n)*V(:,n)';
+                if max(max(temp))>S.svdthresh;
+                    S.ncomp = min(n+1, size(V, 2));
+                    break;
+                else
+                    S.ncomp = 0;
+                end
+            end
+        elseif ~isfield(S, 'ncomp')
             S.ncomp = spm_input('How many components?', '+1', 'n', '1', 1);
         end
-        [sel1, sel2] = spm_match_str(D.chanlabels(D.meegchannels), D.chanlabels(setdiff(D.meegchannels, D.badchannels)));
-        sconf = [];
-        sconf.label = D.chanlabels(D.meegchannels);
-        sconf.coeff = nan(length(sconf.label), S.ncomp);
-        sconf.coeff(sel1, :) = U(sel2, 1:S.ncomp);
-        sconf.bad = ones(length(sconf.label), 1);
-        sconf.bad(sel1, :) = 0;
-        D = sconfounds(D, sconf);
+        
+        if S.ncomp>0
+            [sel1, sel2] = spm_match_str(D.chanlabels(D.meegchannels), D.chanlabels(setdiff(D.meegchannels, D.badchannels)));
+            sconf = [];
+            sconf.label = D.chanlabels(D.meegchannels);
+            sconf.coeff = nan(length(sconf.label), S.ncomp);
+            sconf.coeff(sel1, :) = U(sel2, 1:S.ncomp);
+            sconf.bad = ones(length(sconf.label), 1);
+            sconf.bad(sel1, :) = 0;
+            D = sconfounds(D, sconf);
+        end
     case 'SPMEEG'
         if ~isfield(S, 'conffile')
             S.conffile =  spm_select(1, 'mat', 'Select M/EEG mat file with sconfounds');
