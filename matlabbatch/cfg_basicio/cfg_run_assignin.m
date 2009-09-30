@@ -9,12 +9,17 @@ function cfg_run_assignin(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_assignin.m 3355 2009-09-04 09:37:35Z volkmar $
+% $Id: cfg_run_assignin.m 3434 2009-09-30 13:01:28Z volkmar $
 
-rev = '$Rev: 3355 $'; %#ok
+rev = '$Rev: 3434 $'; %#ok
 
 % check for existence of variable
 vars = evalin('base','feval(@who);');
 % generate new name
 name = genvarname(job.name, vars);
+if ~isequal(name,job.name)
+    cfg_message('cfg_basicio:cfg_run_assignin:newname', ['Using ''%s'' ' ...
+                        'instead of suggested variable name ''%s''.'], ...
+                name, job.name);
+end
 assignin('base', name, job.output);

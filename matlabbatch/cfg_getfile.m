@@ -60,6 +60,10 @@ function [t,sts] = cfg_getfile(varargin)
 % FORMAT [files,dirs]=cfg_getfile('FPList',direc,filt)
 % FORMAT [files,dirs]=cfg_getfile('ExtFPList',direc,filt,frames)
 % As above, but returns files with full paths (i.e. prefixes direc to each)
+% FORMAT [files,dirs]=cfg_getfile('FPListRec',direc,filt)
+% FORMAT [files,dirs]=cfg_getfile('ExtFPListRec',direc,filt,frames)
+% As above, but returns files with full paths (i.e. prefixes direc to
+% each) and searches through sub directories recursively.
 %
 % FORMAT cfg_getfile('prevdirs',dir)
 % Add directory dir to list of previous directories.
@@ -78,7 +82,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3223 2009-06-25 17:27:12Z volkmar $
+% $Id: cfg_getfile.m 3434 2009-09-30 13:01:28Z volkmar $
 
 t = {};
 sts = false;
@@ -150,6 +154,20 @@ if nargin > 0 && ischar(varargin{1})
                     % subdirs too
                     sts = cellfun(@(sts1)cpath(sts1, direc), sts, 'UniformOutput',false);
                 end
+            end
+        case {'fplistrec', 'extfplistrec'}
+            % list directory
+            [f1 d1] = cfg_getfile(varargin{1}(1:end-3),varargin{2:end});
+            f2 = cell(size(d1));
+            d2 = cell(size(d1));
+            for k = 1:numel(d1)
+                % recurse into sub directories
+                [f2{k} d2{k}] = cfg_getfile(varargin{1}, d1{k}, ...
+                                            varargin{3:end});
+            end
+            t = vertcat(f1, f2{:});
+            if nargout > 1
+                sts = vertcat(d1, d2{:});
             end
         case 'prevdirs',
             if nargin > 1

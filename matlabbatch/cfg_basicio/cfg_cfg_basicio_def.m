@@ -27,6 +27,7 @@ cfg_basicio_def.cfg_named_file.name = '<UNDEFINED>';
 cfg_basicio_def.cfg_named_file.files = {'<UNDEFINED>'};
 cfg_basicio_def.file_fplist.dir = '<UNDEFINED>';
 cfg_basicio_def.file_fplist.filter = '<UNDEFINED>';
+cfg_basicio_def.file_fplist.rec = 'FPList';
 cfg_basicio_def.file_filter.files = '<UNDEFINED>';
 cfg_basicio_def.file_filter.typ = '<UNDEFINED>';
 cfg_basicio_def.file_filter.filter = '<UNDEFINED>';
