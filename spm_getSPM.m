@@ -181,7 +181,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3410 2009-09-21 18:53:24Z guillaume $
+% $Id: spm_getSPM.m 3433 2009-09-30 10:32:02Z guillaume $
 
 
 %-GUI setup
@@ -810,8 +810,12 @@ xSPM   = struct( ...
 
 % RESELS per voxel (density) if it exists
 %--------------------------------------------------------------------------
-try, xSPM.VRpv  = SPM.VRpv;       end
-try, xSPM.units = SPM.xVol.units; end
+try, xSPM.VRpv = SPM.VRpv; end
+try
+    xSPM.units = SPM.xVol.units; 
+catch
+    try, xSPM.units = varargin{1}.units; end;
+end
 
 % p-values for topological and voxel-wise FDR
 %--------------------------------------------------------------------------

@@ -9,7 +9,7 @@ function spm_run_results(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 3095 2009-05-04 11:22:18Z volkmar $
+% $Id: spm_run_results.m 3433 2009-09-30 10:32:02Z guillaume $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -37,6 +37,20 @@ for k = 1:numel(cspec)
         xSPM.thresDesc  = job.conspec.threshdesc;
         xSPM.title      = job.conspec.titlestr;
         xSPM.k          = job.conspec.extent;
+        switch job.units
+            case 1
+                xSPM.units    = {'mm' 'mm' 'mm'};
+            case 2
+                xSPM.units    = {'mm' 'mm' 'ms'};
+            case 3
+                xSPM.units    = {'mm' 'mm' 'Hz'};
+            case 4
+                xSPM.units    = {'Hz' 'ms' ''};
+            case 5
+                xSPM.units    = {'Hz' 'Hz' ''};
+            otherwise
+                error('Unknown data type.');
+        end
         [hReg xSPM SPM] = spm_results_ui('Setup',xSPM);
         if job.print
             spm_list('List',xSPM,hReg);

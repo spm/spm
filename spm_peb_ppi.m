@@ -20,8 +20,8 @@ function PPI = spm_peb_ppi(varargin)
 %                SPM.Sess.U(i).name{j}. The third column is the contrast
 %                weight. Unless there are parametric effects the second
 %                column will generally be a 1.
-% ppiname      - Filename of PPI to save. The path should not be included.
-%                The PPI file will be saved in the SPM working directory.
+% ppiname      - Basename of the PPI file to save. The saved file will be:
+%                <PATH_TO_SPM.MAT>/PPI_<ppiname>.mat
 % showGraphics - empty or 1 = yes, 0 = no.
 %
 %
@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3430 2009-09-29 16:55:38Z guillaume $
+% $Id: spm_peb_ppi.m 3433 2009-09-30 10:32:02Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================

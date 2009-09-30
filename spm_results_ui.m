@@ -135,9 +135,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3348 2009-09-03 10:32:01Z guillaume $
+% $Id: spm_results_ui.m 3433 2009-09-30 10:32:02Z guillaume $
  
-SCCSid = '$Rev: 3348 $';
+SCCSid = '$Rev: 3433 $';
  
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -294,7 +294,11 @@ switch lower(Action), case 'setup'                         %-Set up results
     %-Space units
     %----------------------------------------------------------------------
     try
-        units = SPM.xVol.units;
+        try
+            units = SPM.xVol.units;
+        catch
+            units = xSPM.units;
+        end
     catch
         try
             if strcmp(spm('CheckModality'),'EEG')
