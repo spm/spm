@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3380 2009-09-10 09:32:50Z rik $
+% $Id: spm_eeg_invert.m 3437 2009-10-01 15:14:49Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -95,6 +95,7 @@ try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
+try, pQ    = inverse.pQ;     catch, pQ    = [];                end
  
 try
     modality = inverse.modality;  
@@ -287,8 +288,8 @@ for i = 1:Nl
     
     % get temporal covariance (Y'*Y) to find temporal modes
     %----------------------------------------------------------------------
+    YTY   = sparse(0);
     for j = 1:Nt(i)
-        YTY   = sparse(0);
         c     = D{i}.pickconditions(trial{j});
         Ne    = length(c);
         for k = 1:Ne
@@ -424,8 +425,6 @@ end
  
 % augment with exogenous (eg, fMRI) source priors in pQ
 %==========================================================================
-try, pQ; catch, pQ = {}; end
- 
 for i = 1:length(pQ)
  
     switch(type)
@@ -433,7 +432,7 @@ for i = 1:length(pQ)
         case {'MSP','GS','ARD'}
         %------------------------------------------------------------------
             if isvector(pQ{i}) && length(pQ{i}) == Ns
-                Qp{end + 1}.q   = pQ{n}(:);
+                Qp{end + 1}.q   = pQ{i}(:);
                 LQpL{end + 1}.q = UL*Qp{end}.q;
             else
                 error('Using MSP(GS/ARD) please supply spatial priors as vectors')

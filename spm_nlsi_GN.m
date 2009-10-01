@@ -78,7 +78,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_nlsi_GN.m 3437 2009-10-01 15:14:49Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -348,6 +348,7 @@ for k = 1:64
         C.p   = p;
         C.h   = h;
         C.F   = F;
+        C.Cp  = Cp;
         
         % E-Step: Conditional update of gradients and curvature
         %------------------------------------------------------------------
@@ -365,6 +366,7 @@ for k = 1:64
         %------------------------------------------------------------------
         p     = C.p;
         h     = C.h;
+        Cp    = C.Cp;
  
         % and increase regularization
         %------------------------------------------------------------------
