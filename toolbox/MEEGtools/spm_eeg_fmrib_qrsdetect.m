@@ -18,9 +18,9 @@ function D = spm_eeg_fmrib_qrsdetect(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_fmrib_qrsdetect.m 3419 2009-09-25 14:29:40Z vladimir $
+% $Id: spm_eeg_fmrib_qrsdetect.m 3435 2009-10-01 10:24:08Z vladimir $
 
-SVNrev = '$Rev: 3419 $';
+SVNrev = '$Rev: 3435 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ end
 
 % Get the indicex for ECG channel
 %--------------------------------------------------------------------------
-if ~(isfield(S, 'ecgchan') && ~isempty(S, 'ecgchan'))
+if ~(isfield(S, 'ecgchan') && ~isempty(S.ecgchan))
    ecgchan = setdiff(D.ecgchannels, D.badchannels);
    if length(ecgchan)~=1
        [selection, ok]= listdlg('ListString', D.chanlabels(ecgchan), 'SelectionMode', 'single' ,'Name', 'Select ecg channel' , 'ListSize', [400 300]);

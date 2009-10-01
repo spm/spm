@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 3205 2009-06-16 10:15:00Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 3435 2009-10-01 10:24:08Z vladimir $
 
 %%
-SVNrev = '$Rev: 3205 $';
+SVNrev = '$Rev: 3435 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -200,7 +200,7 @@ np = size(S.chancomb, 1);
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
 Dcoh = clone(D, ['COH' fnamedat(D)], [np length(freq.freq) length(freq.time) D.nconditions]);
-Dcoh = frequencies(Dcoh, freq.freq);
+Dcoh = frequencies(Dcoh, [], freq.freq);
 Dcoh = fsample(Dcoh, 1./mean(diff(freq.time)));
 Dcoh = timeonset(Dcoh, freq.time(1));
 [ok, Dcoh] = check(Dcoh);
