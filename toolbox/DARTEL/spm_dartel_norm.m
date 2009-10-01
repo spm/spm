@@ -9,7 +9,7 @@ function out = spm_dartel_norm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm.m 3256 2009-07-08 13:23:08Z john $
+% $Id: spm_dartel_norm.m 3436 2009-10-01 11:03:58Z john $
 
 
 PU = job.flowfields;
@@ -69,7 +69,7 @@ for i=1:numel(PU),
                 if isfield(NI,'extras') && isfield(NI.extras,'mat'),
                     mat1 = NI.extras.mat;
                     if size(mat1,3) >= j && sum(sum(mat1(:,:,j).^2)) ~=0,
-                        mat = mat1;
+                        mat = mat1(:,:,j);
                     end;
                 end;
                 M   = mat\NU.mat0;
