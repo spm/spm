@@ -96,6 +96,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.38  2009/09/30 12:58:53  jansch
+% added optional call to preproc_denoise and preproc_subspace
+%
 % Revision 1.37  2009/08/05 08:36:09  roboos
 % don't fill up the complete data with nans if a nan is detected
 % the behaviour of not filtering and giving a warning remains the same
@@ -298,6 +301,7 @@ if ~isfield(cfg, 'montage'),      cfg.montage = 'no';           end
 if ~isfield(cfg, 'dftinvert'),    cfg.dftinvert = 'no';         end
 if ~isfield(cfg, 'standardize'),  cfg.standardize = 'no';       end
 if ~isfield(cfg, 'denoise'),      cfg.denoise = '';             end
+if ~isfield(cfg, 'subspace'),     cfg.subspace = [];            end
 
 % test whether the Matlab signal processing toolbox is available
 if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
@@ -370,6 +374,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do the filtering on the padded data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(cfg.denoise),
+  hflag    = isfield(cfg.denoise, 'hilbert') && strcmp(cfg.denoise.hilbert, 'yes');
+  datlabel = match_str(label, cfg.denoise.channel);
+  reflabel = match_str(label, cfg.denoise.refchannel);
+  tmpdat   = preproc_denoise(dat(datlabel,:), dat(reflabel,:), hflag);
+  dat(datlabel,:) = tmpdat;
+end
 if strcmp(cfg.medianfilter, 'yes'), dat = preproc_medianfilter(dat, cfg.medianfiltord); end
 if strcmp(cfg.lpfilter, 'yes'),     dat = preproc_lowpassfilter(dat, fsample, cfg.lpfreq, cfg.lpfiltord, cfg.lpfilttype, cfg.lpfiltdir); end
 if strcmp(cfg.hpfilter, 'yes'),     dat = preproc_highpassfilter(dat, fsample, cfg.hpfreq, cfg.hpfiltord, cfg.hpfilttype, cfg.hpfiltdir); end
@@ -463,12 +474,8 @@ end
 if strcmp(cfg.standardize, 'yes'),
   dat = preproc_standardize(dat, 1, size(dat,2));
 end
-if ~isempty(cfg.denoise),
-  hflag    = isfield(cfg.denoise, 'hilbert') && strcmp(cfg.denoise.hilbert, 'yes');
-  datlabel = match_str(label, cfg.denoise.channel);
-  reflabel = match_str(label, cfg.denoise.refchannel);
-  tmpdat   = preproc_denoise(dat(datlabel,:), dat(reflabel,:), hflag);
-  dat(datlabel,:) = tmpdat;
+if ~isempty(cfg.subspace),
+  dat = preproc_subspace(dat, cfg.subspace);
 end
 if ~isempty(cfg.precision)
   % convert the data to another numeric precision, i.e. double, single or int32

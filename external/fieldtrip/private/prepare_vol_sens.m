@@ -40,6 +40,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.21  2009/09/27 19:12:38  crimic
+% 	wrapper adapted for openmeeg forward solution
+%
 % Revision 1.20  2009/09/21 11:12:51  roboos
 % added openmeeg as supported voltype, thanks to Cristiano
 %
@@ -318,7 +321,7 @@ elseif iseeg
       end
       sens.pnt = pnt;
 
-    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'openmeeg'}
+    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -368,6 +371,13 @@ elseif iseeg
         vol.mat = vol.mat - repmat(avg, size(vol.mat,1), 1);
       end
 
+    case {'openmeeg'}
+      % do nothing
+      % in case of openmeeg do nothing because electrodes projection is
+      % already performed in command line INRIA routines
+      % FIXME: to be checked the average referencing of the openmeeg tool 
+      % vol.mat = vol.mat;
+      
     otherwise
       error('unsupported volume conductor model for EEG');
   end

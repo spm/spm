@@ -67,6 +67,9 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.21  2009/09/30 12:46:11  jansch
+% Took out the loop over signals generally leading to a decent speed-up
+%
 % Revision 1.20  2009/03/19 10:53:51  roboos
 % some cocde cleanup and whitespace, no functional change
 %
@@ -201,54 +204,99 @@ else
   fprintf('searching for artifacts in %d channels\n', numsgn);
 end
 
-for sgnlop=1:numsgn
-  % read the data and apply preprocessing options
-  sumval = 0;
-  sumsqr = 0;
-  numsmp = 0;
-  fprintf('searching channel %s ', cfg.artfctdef.zvalue.channel{sgnlop});
-  for trlop = 1:numtrl
-    fprintf('.');
-    if isfetch
-      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
-    else
-      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
-    end
-    dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
-    % accumulate the sum and the sum-of-squares
-    sumval = sumval + sum(dat{trlop},2);
-    sumsqr = sumsqr + sum(dat{trlop}.^2,2);
-    numsmp = numsmp + size(dat{trlop},2);
-  end % for trlop
-
-  % compute the average and the standard deviation
-  datavg = sumval./numsmp;
-  datstd = sqrt(sumsqr./numsmp - (sumval./numsmp).^2);
-
-  for trlop = 1:numtrl
-    if sgnlop==1
-      % initialize some matrices
-      zdata{trlop} = zeros(size(dat{trlop}));
-      zmax{trlop}  = -inf + zeros(size(dat{trlop}));
-      zsum{trlop}  = zeros(size(dat{trlop}));
-      zindx{trlop} = zeros(size(dat{trlop}));
-    end
-    zdata{trlop}  = (dat{trlop} - datavg)./datstd;              % convert the filtered data to z-values
-    zsum{trlop}   = zsum{trlop} + zdata{trlop};                 % accumulate the z-values over channels
-    zmax{trlop}   = max(zmax{trlop}, zdata{trlop});             % find the maximum z-value and remember it
-    zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);   % also remember the channel number that has the largest z-value
-
-    % This alternative code does the same, but it is much slower
-    %   for i=1:size(zmax{trlop},2)
-    %       if zdata{trlop}(i)>zmax{trlop}(i)
-    %         % update the maximum value and channel index
-    %         zmax{trlop}(i)  = zdata{trlop}(i);
-    %         zindx{trlop}(i) = sgnind(sgnlop);
-    %       end
-    %     end
+% read the data and apply preprocessing options
+sumval = zeros(numsgn, 1);
+sumsqr = zeros(numsgn, 1);
+numsmp = zeros(numsgn, 1);
+fprintf('searching trials');
+for trlop = 1:numtrl
+  fprintf('.');
+  if isfetch
+    dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
+  else
+    dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
   end
-  fprintf('\n');
-end % for sgnlop
+  dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel, hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
+  % accumulate the sum and the sum-of-squares
+  sumval = sumval + sum(dat{trlop},2);
+  sumsqr = sumsqr + sum(dat{trlop}.^2,2);
+  numsmp = numsmp + size(dat{trlop},2);
+end % for trlop
+
+% compute the average and the standard deviation
+datavg = sumval./numsmp;
+datstd = sqrt(sumsqr./numsmp - (sumval./numsmp).^2);
+
+for trlop = 1:numtrl
+  % initialize some matrices
+  zmax{trlop}  = -inf + zeros(1,size(dat{trlop},2));
+  zsum{trlop}  = zeros(1,size(dat{trlop},2));
+  zindx{trlop} = zeros(1,size(dat{trlop},2));
+  
+  nsmp          = size(dat{trlop},2);
+  zdata         = (dat{trlop} - datavg(:,ones(1,nsmp)))./datstd(:,ones(1,nsmp));  % convert the filtered data to z-values
+  zsum{trlop}   = sum(zdata,1);                   % accumulate the z-values over channels
+  [zmax{trlop},ind] = max(zdata,[],1);            % find the maximum z-value and remember it
+  zindx{trlop}      = sgnind(ind);                % also remember the channel number that has the largest z-value
+
+  % This alternative code does the same, but it is much slower
+  %   for i=1:size(zmax{trlop},2)
+  %       if zdata{trlop}(i)>zmax{trlop}(i)
+  %         % update the maximum value and channel index
+  %         zmax{trlop}(i)  = zdata{trlop}(i);
+  %         zindx{trlop}(i) = sgnind(sgnlop);
+  %       end
+  %     end
+end % for trlop 
+
+%for sgnlop=1:numsgn
+%  % read the data and apply preprocessing options
+%  sumval = 0;
+%  sumsqr = 0;
+%  numsmp = 0;
+%  fprintf('searching channel %s ', cfg.artfctdef.zvalue.channel{sgnlop});
+%  for trlop = 1:numtrl
+%    fprintf('.');
+%    if isfetch
+%      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
+%    else
+%      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
+%    end
+%    dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
+%    % accumulate the sum and the sum-of-squares
+%    sumval = sumval + sum(dat{trlop},2);
+%    sumsqr = sumsqr + sum(dat{trlop}.^2,2);
+%    numsmp = numsmp + size(dat{trlop},2);
+%  end % for trlop
+%
+%  % compute the average and the standard deviation
+%  datavg = sumval./numsmp;
+%  datstd = sqrt(sumsqr./numsmp - (sumval./numsmp).^2);
+%
+%  for trlop = 1:numtrl
+%    if sgnlop==1
+%      % initialize some matrices
+%      zdata{trlop} = zeros(size(dat{trlop}));
+%      zmax{trlop}  = -inf + zeros(size(dat{trlop}));
+%      zsum{trlop}  = zeros(size(dat{trlop}));
+%      zindx{trlop} = zeros(size(dat{trlop}));
+%    end
+%    zdata{trlop}  = (dat{trlop} - datavg)./datstd;              % convert the filtered data to z-values
+%    zsum{trlop}   = zsum{trlop} + zdata{trlop};                 % accumulate the z-values over channels
+%    zmax{trlop}   = max(zmax{trlop}, zdata{trlop});             % find the maximum z-value and remember it
+%    zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);   % also remember the channel number that has the largest z-value
+%
+%    % This alternative code does the same, but it is much slower
+%    %   for i=1:size(zmax{trlop},2)
+%    %       if zdata{trlop}(i)>zmax{trlop}(i)
+%    %         % update the maximum value and channel index
+%    %         zmax{trlop}(i)  = zdata{trlop}(i);
+%    %         zindx{trlop}(i) = sgnind(sgnlop);
+%    %       end
+%    %     end
+%  end
+%  fprintf('\n');
+%end % for sgnlop
 
 for trlop = 1:numtrl
   zsum{trlop} = zsum{trlop} ./ sqrt(numsgn);
@@ -360,6 +408,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.20 2009/03/19 10:53:51 roboos Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.21 2009/09/30 12:46:11 jansch Exp $';
 
 

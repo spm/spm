@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.46  2009/09/30 12:50:16  jansch
+% added mvar as a supported datatype
+%
 % Revision 1.45  2009/07/30 19:44:43  ingnie
 % also allow datatype comp (by chekdata)
 %
@@ -165,7 +168,7 @@ function [freq] = freqanalysis(cfg, data);
 fieldtripdefs
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
+data = checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'trackconfig', 'on');

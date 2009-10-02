@@ -72,6 +72,9 @@ function [cfg] = headmodelplot(cfg, data)
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.30  2009/09/30 12:51:17  jansch
+% included option to plot fiducials (as specified in cfg.fiducial)
+%
 % Revision 1.29  2009/05/18 16:00:33  roboos
 % fixed problem with plotlines, changed output to cfg instead of vol+sens
 %
@@ -200,6 +203,7 @@ if ~isfield(cfg, 'plotgrid'),         cfg.plotgrid = 'yes';          end
 if ~isfield(cfg, 'plotinside'),       cfg.plotinside = 'yes';        end
 if ~isfield(cfg, 'plotoutside'),      cfg.plotoutside = 'no';        end
 if ~isfield(cfg, 'plotbnd'),          cfg.plotbnd = 'no';            end
+if ~isfield(cfg, 'plotfiducial'),     cfg.plotfiducial = 'no';       end
 
 % extract/read the gradiometer and volume conductor
 [vol, sens, cfg] = prepare_headmodel(cfg, data);
@@ -508,6 +512,11 @@ elseif ismeg
     z = [pnt0(:,3) pnt1(:,3)]';
     line(x, y, z, 'color', 'm');
   end % plotlines
+
+  if strcmp(cfg.plotfiducial, 'yes') && ~isempty(cfg.fiducial),
+    fiduc = cfg.fiducial;
+    plot3(fiduc(:,1), fiduc(:,2), fiduc(:,3), 'mo', 'lineWidth', 4);
+  end
 
 end % iseeg or ismeg
 

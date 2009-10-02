@@ -127,6 +127,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.110  2009/10/01 11:39:36  jansch
+% also put offset-field in output if nargin>1 and hasoffset
+%
 % Revision 1.109  2009/09/08 14:23:21  roboos
 % changed the syntaxt for concatenation of implicitref to cfg.channel
 %
@@ -475,11 +478,12 @@ if nargin>1
   if isfield(data, 'cfg'); cfg.previous = data.cfg; end
   
   % take along relevant fields of input data to output data
-  if isfield(data, 'hdr');      dataout.hdr     = data.hdr;         end
-  if isfield(data, 'fsample');  dataout.fsample = data.fsample;     end
-  if isfield(data, 'grad');     dataout.grad    = data.grad;        end
-  if isfield(data, 'elec');     dataout.elec    = data.elec;        end
-  
+  if isfield(data, 'hdr'),      dataout.hdr     = data.hdr;         end
+  if isfield(data, 'fsample'),  dataout.fsample = data.fsample;     end
+  if isfield(data, 'grad'),     dataout.grad    = data.grad;        end
+  if isfield(data, 'elec'),     dataout.elec    = data.elec;        end
+  if isfield(data, 'offset'),   dataout.offset  = data.offset;      end
+
   % replace the input data with the output data
   data = dataout;
   
@@ -688,7 +692,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.109 2009/09/08 14:23:21 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.110 2009/10/01 11:39:36 jansch Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

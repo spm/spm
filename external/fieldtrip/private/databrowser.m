@@ -27,6 +27,18 @@ function [cfg] = databrowser(cfg, data)
 % Copyright (C) 2009, Robert Oostenveld, Ingrid Niewenhuis
 %
 % $Log: databrowser.m,v $
+% Revision 1.19  2009/10/01 07:59:52  ingnie
+% 11 iso 10 xticks (devides time into 10 steps). redraw after feature selection
+%
+% Revision 1.18  2009/09/30 15:27:59  ingnie
+% added button(=also legend) for artifacts/features. Make sure current feature is always plotted on top
+%
+% Revision 1.17  2009/09/30 09:48:00  ingnie
+% opt.ftsel look at cfg.selectfeature, not just 1. fixed behavior scrolling through channels -> always keep same number of channels displayed. same spaces in code and fixed some typos in comment
+%
+% Revision 1.16  2009/09/28 11:17:11  giopia
+% informative xtick in viewmode vertical. Check nticks and sprintf precision
+%
 % Revision 1.15  2009/09/24 12:11:55  ingnie
 % return opt to guidata after selecting other artifact type (by typing number on keyboard)
 %
@@ -259,9 +271,10 @@ opt.artdata  = artdata;
 opt.cfg      = cfg;        % the configuration of this function, not of the preprocessing
 opt.hdr      = hdr;
 opt.trlop    = 1;          % active trial being displayed
-opt.ftsel    = 1;          % current artifact/feature being selected
+opt.ftsel    = find(strcmp(artlabel,cfg.selectfeature)); % current artifact/feature being selected
 opt.trlorg   = trlorg;
 opt.fsample  = fsample;
+opt.artcol   = [0.9686 0.7608 0.7686; 0.7529 0.7098 0.9647; 0.7373 0.9725 0.6824;0.8118 0.8118 0.8118; 0.9725 0.6745 0.4784; 0.9765 0.9176 0.5686];
 opt.cleanup  = false;      % this is needed for a corrent handling if the figure is closed (either in the corner or by "q")
 if strcmp(cfg.continuous, 'yes')
   opt.trialname = 'segment';
@@ -294,10 +307,17 @@ uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbut
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+downarrow')
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+uparrow')
 
+%legend artifacts/features
+for iArt = 1:length(artlabel)
+  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', artlabel{iArt}, 'userdata', num2str(iArt), 'position', [0.91, 0.9 - ((iArt-1)*0.1), 0.08, 0.05], 'backgroundcolor', opt.artcol(iArt,:))
+end
+
 uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
 uilayout(h, 'tag', 'group2', 'width', 0.05, 'height', 0.05);
+
 uilayout(h, 'tag', 'group1', 'style', 'pushbutton', 'callback', @keyboard_cb);
 uilayout(h, 'tag', 'group2', 'style', 'pushbutton', 'callback', @keyboard_cb);
+uilayout(h, 'tag', 'group3', 'style', 'pushbutton', 'callback', @keyboard_cb);
 
 uilayout(h, 'tag', 'group1', 'retag', 'viewui');
 uilayout(h, 'tag', 'group2', 'retag', 'viewui');
@@ -336,7 +356,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: databrowser.m,v 1.15 2009/09/24 12:11:55 ingnie Exp $';
+cfg.version.id = '$Id: databrowser.m,v 1.19 2009/10/01 07:59:52 ingnie Exp $';
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
 
@@ -369,7 +389,7 @@ else
     thissample = thistrlbeg;
   end
   % look at opt.cfg.blocksize and make opt.trl accordingly
-  % if original data contains more than one trial, it will fail in fetc_data
+  % if original data contains more than one trial, it will fail in fetch_data
   datbegsample = min(opt.trlorg(:,1));
   datendsample = max(opt.trlorg(:,2));
   smppertrl  = round(opt.fsample * opt.cfg.blocksize);
@@ -586,6 +606,7 @@ switch key
     opt.ftsel = str2double(key);
     guidata(h, opt);
     fprintf('switching to the "%s" artifact\n', opt.artdata.label{opt.ftsel});
+    redraw_cb(h, eventdata);
   case 'leftarrow'
     opt.trlop = max(opt.trlop - 1, 1); % should not be smaller than 1
     guidata(h, opt);
@@ -597,11 +618,10 @@ switch key
   case 'uparrow'
     chansel = match_str(opt.hdr.label, opt.cfg.channel);
     minchan = min(chansel);
-    maxchan = max(chansel);
     numchan = length(chansel);
-    chansel = (minchan:maxchan) - numchan;
+    chansel = minchan - numchan : minchan - 1;
     if min(chansel)<1
-      chansel = chansel  - min(chansel) + 1;
+      chansel = chansel - min(chansel) + 1;
     end
     % convert numeric array into cell-array with channel labels
     opt.cfg.channel = opt.hdr.label(chansel);
@@ -610,12 +630,11 @@ switch key
     redraw_cb(h, eventdata);
   case 'downarrow'
     chansel = match_str(opt.hdr.label, opt.cfg.channel);
-    minchan = min(chansel);
     maxchan = max(chansel);
     numchan = length(chansel);
-    chansel = (minchan:maxchan) + numchan;
+    chansel = maxchan + 1 : maxchan + numchan;
     if max(chansel)>length(opt.hdr.label)
-      chansel = chansel - (max(chansel)-length(opt.hdr.label));
+      chansel = chansel - (max(chansel) - length(opt.hdr.label));
     end
     % convert numeric array into cell-array with channel labels
     opt.cfg.channel = opt.hdr.label(chansel);
@@ -724,9 +743,6 @@ cla;       % clear the content in the current axis
 
 fprintf('redrawing with viewmode %s\n', opt.cfg.viewmode);
 
-
-artcol = [0.9686 0.7608 0.7686; 0.7529 0.7098 0.9647; 0.7373 0.9725 0.6824;0.8118 0.8118 0.8118; 0.9725 0.6745 0.4784; 0.9765 0.9176 0.5686];
-
 begsample = opt.trlvis(opt.trlop, 1);
 endsample = opt.trlvis(opt.trlop, 2);
 offset    = opt.trlvis(opt.trlop, 3);
@@ -753,12 +769,17 @@ fprintf('done\n');
 fprintf('plotting data... ');
 switch opt.cfg.viewmode
   case 'butterfly'
-    for i=1:length(opt.artdata.label)
+    %to assure current feature is plotted on top
+    ordervec = 1:length(opt.artdata.label);
+    ordervec(opt.ftsel) = [];
+    ordervec(end+1) = opt.ftsel;
+    
+    for i = ordervec
       tmp = diff([0 art(i,:) 0]);
       artbeg = find(tmp==+1);
       artend = find(tmp==-1) - 1;
       for j=1:numel(artbeg)
-        plot_box([tim(artbeg(j)) tim(artend(j)) -opt.cfg.zscale opt.cfg.zscale], 'facecolor', artcol(i,:), 'edgecolor', 'none');
+        plot_box([tim(artbeg(j)) tim(artend(j)) -opt.cfg.zscale opt.cfg.zscale], 'facecolor', opt.artcol(i,:), 'edgecolor', 'none');
       end
     end
     
@@ -799,16 +820,21 @@ switch opt.cfg.viewmode
     opt.hlim = hlim;
     opt.hpos = hpos;
     
-    for j=1:length(opt.artdata.label)
+    %to assure current feature is plotted on top
+    ordervec = 1:length(opt.artdata.label);
+    ordervec(opt.ftsel) = [];
+    ordervec(end+1) = opt.ftsel;
+    
+    for j = ordervec
       tmp = diff([0 art(j,:) 0]);
       artbeg = find(tmp==+1);
       artend = find(tmp==-1) - 1;
-      arttim = [tim(artbeg)' tim(artend)'];                              % convert the artifact sample number to time
+      arttim = [tim(artbeg)' tim(artend)'];                            % convert the artifact sample number to time
       arttim = (arttim - opt.hlim(1)) / (opt.hlim(2) - opt.hlim(1));   % convert to value relative to box, i.e. from 0 to 1
       arttim = arttim * (opt.hpos(2) - opt.hpos(1)) + opt.hpos(1);     % convert from relative to actual value along the horizontal figure axis
       
       for k=1:numel(artbeg)
-        plot_box([arttim(k,1) arttim(k,2) ax(3) ax(4)], 'facecolor', artcol(j,:), 'edgecolor', 'none');
+        plot_box([arttim(k,1) arttim(k,2) ax(3) ax(4)], 'facecolor', opt.artcol(j,:), 'edgecolor', 'none');
       end
     end % for each of the artifact channels
     
@@ -821,6 +847,10 @@ switch opt.cfg.viewmode
       end
     end
     
+	  nticks = 11;
+    set(gca, 'xTick', linspace(ax(1), ax(2), nticks))
+    xTickLabel = cellstr(num2str( linspace(tim(1), tim(end), nticks)' , '%1.2f'))';
+    set(gca, 'xTickLabel', xTickLabel)
     set(gca, 'yTick', [])
     title(sprintf('%s %d, time from %g to %g s', opt.trialname, opt.trlop, tim(1), tim(end)));
     

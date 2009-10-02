@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.19  2009/10/01 12:41:11  jansch
+% added some restructuring possibilities for sourcedimords
+%
 % Revision 1.18  2009/08/24 08:57:01  jansch
 % some changes regarding dealing with dim in source data. made a temporary
 % bypass for jan excluding sourcedata from fixdimord. this is done to be able
@@ -521,7 +524,7 @@ if issource || isvolume,
   
   % the following section is to make a dimord-consistent representation of
   % volume and source data, taking trials, time and frequency into account
-  if isequal(hasdimord, 'yes') && ~isfield(data, 'dimord')
+  if isequal(hasdimord, 'yes') && (~isfield(data, 'dimord') || ~strcmp(data.dimord,sourcedimord))
 
     % determine the size of the data
     if isfield(data, 'dimord'),
@@ -532,9 +535,7 @@ if issource || isvolume,
       Nfreq = 1;
       Ntime = 1;
     end
-    if isfield(data, 'trial') && isstruct(data.trial)
-      Nrpt = length(data.trial);
-    elseif isfield(data, 'avg') && isfield(data.avg, 'mom') && strcmp(sourcedimord, 'rpt_pos'),
+    if isfield(data, 'avg') && isfield(data.avg, 'mom') && (isfield(data, 'freq') || isfield(data, 'frequency')) && strcmp(sourcedimord, 'rpt_pos'),
       Npos   = size(data.pos,1);
       Nrpt   = length(data.cumtapcnt);
       tmpmom = zeros(Npos, size(data.avg.mom{data.inside(1)},2));
@@ -547,10 +548,34 @@ if issource || isvolume,
       end
       data.pow = tmppow';
       data     = rmfield(data, 'avg');
+    elseif isfield(data, 'avg') && isfield(data.avg, 'mom') && isfield(data, 'time') && strcmp(sourcedimord, 'pos_time'),
+      Npos   = size(data.pos,1);
+      Nrpt   = 1;
+      tmpmom = zeros(Npos, size(data.avg.mom{data.inside(1)},2));
+      tmpmom(data.inside,:) = cat(1,data.avg.mom{data.inside});
+      data.mom = tmpmom;
+      if isfield(data.avg, 'noise'),
+        tmpnoise = data.avg.noise(:);
+	data.noise = tmpnoise(:,ones(1,size(tmpmom,2)));
+      end
+      data = rmfield(data, 'avg');
+      Ntime = length(data.time);  
+    elseif isfield(data, 'trial') && isfield(data.trial(1), 'mom') && isfield(data, 'time') && strcmp(sourcedimord, 'rpt_pos_time'),
+      Npos   = size(data.pos,1);
+      Nrpt   = length(data.trial);
+      Ntime  = length(data.time);
+      tmpmom = zeros(Nrpt, Npos, Ntime);
+      for k = 1:Nrpt
+        tmpmom(k,data.inside,:) = cat(1,data.trial(k).mom{data.inside});
+      end
+      data     = rmfield(data, 'trial');
+      data.mom = tmpmom;
+    elseif isfield(data, 'trial') && isstruct(data.trial)
+      Nrpt = length(data.trial);
     else
       Nrpt = 1;
     end
-
+    
     % start with an initial specification of the dimord and dim
     if (~isfield(data, 'dim') || ~isfield(data, 'dimord'))
       if issource

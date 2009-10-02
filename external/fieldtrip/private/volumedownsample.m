@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.26  2009/10/01 12:48:16  jansch
+% allow for volumetric data with dimensionality > 3
+%
 % Revision 1.25  2009/05/19 15:22:30  jansch
 % remove functional paramters prior to downsampling
 %
@@ -191,6 +194,9 @@ down.xgrid     = xsel;
 down.ygrid     = ysel;
 down.zgrid     = zsel;
 down.dim = [length(xsel) length(ysel) length(zsel)];
+if length(source.dim)>3,
+  down.dim = [down.dim source.dim(4:end)];
+end
 
 % update the downsampled homogenous transformation matrix
 down = grid2transform(down);
@@ -237,7 +243,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.25 2009/05/19 15:22:30 jansch Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.26 2009/10/01 12:48:16 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

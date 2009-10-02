@@ -11,6 +11,10 @@ function [hdr] = fetch_header(data)
 % Copyright (C) 2008, Esther Meeuwissen
 %
 % $Log: fetch_header.m,v $
+% Revision 1.2  2009/10/01 12:36:01  jansch
+% workaround if input data has been resampled, so that the comparison with
+% trl matrix does not lead to a crash
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -32,7 +36,14 @@ end
 % check whether data.trial is consistent with trl
 if size(trl,1)~=length(data.trial)
   error('trial definition is not internally consistent')
-elseif any(trllen~=(trl(:,2)-trl(:,1)+1))
+elseif any(trllen~=(trl(:,2)-trl(:,1)+1)) && ~isempty(findcfg(data.cfg, 'resamplefs')) && ~isempty(findcfg(data.cfg,'resampletrl')),
+  warning('the data have been resampled along the way, the trl-definition is in the original sampling rate, attempt to adjust for this may introduce some timing inaccuracies');
+  trlold = trl;
+  trl    = findcfg(data.cfg, 'resampletrl');   
+end
+
+%this has to be done again
+if any(trllen~=(trl(:,2)-trl(:,1)+1))
   error('trial definition is not internally consistent')
 end
 

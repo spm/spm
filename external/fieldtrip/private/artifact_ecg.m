@@ -15,6 +15,7 @@ function [cfg, artifact] = artifact_ecg(cfg, data)
 %   cfg.artfctdef.ecg.psttim  = 0.3;  post-artifact rejection-interval in seconds
 %   cfg.artfctdef.ecg.method  = 'zvalue'; peak-detection method
 %   cfg.artfctdef.ecg.cutoff  = 3; peak-threshold
+%   cfg.artfctdef.ecg.inspect = Nx1 list of channels which will be shown in a QRS-locked average
 %   cfg.continuous            = 'yes' or 'no' whether the file contains continuous data
 %
 % The output artifact variable is an Nx2-matrix, containing the
@@ -28,6 +29,9 @@ function [cfg, artifact] = artifact_ecg(cfg, data)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.25  2009/09/30 12:40:11  jansch
+% allow to work on data which have been downsampled from the original sampling rate
+%
 % Revision 1.24  2009/02/19 10:09:47  jansch
 % added possibility to take a data structure as second input
 %
@@ -164,14 +168,41 @@ if ~isfield(cfg, 'continuous')
 end
 
 % read in the ecg-channel and do blc and squaring
+if nargin==2,
+  tmpcfg = [];
+  tmpcfg.channel = artfctdef.channel;
+  ecgdata = preprocessing(tmpcfg, data);
+  ecg     = ecgdata.trial;
+end
+
 for j = 1:ntrl
   if nargin==1,
     ecg{j} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
-  elseif nargin==2,
-    ecg{j} = fetch_data(data,        'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
   end
   ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
   ecg{j} = ecg{j}.^2;
+end
+
+if nargin==2 && ~isempty(findcfg(data.cfg,'resamplefs')) && ~isempty(findcfg(data.cfg,'resampletrl')),
+  %the data have been resampled along the way, the trl is in the original sampling rate
+  %adjust this
+  warning('the data have been resampled along the way, the trl-definition is in the original sampling rate, attempt to adjust for this may introduce some timing inaccuracies');
+  trlold     = trl;
+  trl = findcfg(data.cfg,'resampletrl');
+%  fsampleold = findcfg(data.cfg,'origfs');
+%  fsamplenew = findcfg(data.cfg,'resamplefs');
+%  dfs        = fsamplenew./fsampleold;
+%  trl(:,1) = round((trlold(:,1)-1).*dfs)+1;
+%  trl(:,2) = round((trlold(:,2)-1).*dfs)+1;
+%  %I don't know how to deal with some rounding errors brought about by strange values of sampling rates etc
+%  %allow slips of 1 sample
+%  trllen   = cellfun('size',data.trial,2)';
+%  trllen2  = trl(:,2)-trl(:,1)+1;
+%  toolong  = trllen2-trllen==1;
+%  tooshort = trllen2-trllen==-1;
+%  trl(toolong,2)  = trl(toolong,2)-1;
+%  trl(tooshort,2) = trl(tooshort,2)+1;
+%  data.cfg.trl = trl;
 end
 
 tmp   = cell2mat(ecg);
@@ -188,7 +219,7 @@ end
 accept = 0;
 while accept == 0,
   h = figure;
-  plot(trace);
+  plot(trace);zoom;
   hold on;
   plot([1 Nsmp], [artfctdef.cutoff artfctdef.cutoff], 'r:');
   hold off;
@@ -242,19 +273,25 @@ dat    = zeros(length(sgnind), trl(1,2)-trl(1,1)+1);
 ntrl   = size(trl,1);
 
 if ~isempty(sgnind)
+  ntrlok = 0;
   for j = 1:ntrl
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
     if nargin==1,
       dum = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
       dat = dat + preproc_baselinecorrect(dum);
+      ntrlok = ntrlok + 1;
     elseif nargin==2,
-      dum = fetch_data(data, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
-      dat = dat + preproc_baselinecorrect(dum);
+      dum = fetch_data(data, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'), 'docheck', 0);
+      if any(~isfinite(dum(:))),
+      else
+        ntrlok = ntrlok + 1;
+        dat    = dat + preproc_baselinecorrect(dum);
+      end
     end
   end
 end
 
-dat  = dat./ntrl;
+dat  = dat./ntrlok;
 time = offset2time(trl(1,3), hdr.Fs, size(dat,2));
 tmp  = dat(1:end-1,:);
 mdat = max(abs(tmp(:)));
@@ -327,4 +364,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.24 2009/02/19 10:09:47 jansch Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.25 2009/09/30 12:40:11 jansch Exp $';

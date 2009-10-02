@@ -12,6 +12,9 @@ function [source] = fixinside(source, opt);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: fixinside.m,v $
+% Revision 1.2  2009/10/01 12:31:52  jansch
+% enforce inside vector to be column
+%
 % Revision 1.1  2009/07/02 08:04:36  roboos
 % moved fixdimord and fixinside from private to public
 %
@@ -35,10 +38,10 @@ end
 if ~isfield(source, 'inside')
   if isfield(source, 'pos')
     % assume that all positions are inside the region of interest
-    source.inside  = 1:size(source.pos,1);
+    source.inside  = [1:size(source.pos,1)]';
     source.outside = [];
   elseif isfield(source, 'dim')
-    source.inside  = 1:prod(source.dim);
+    source.inside  = [1:prod(source.dim)]';
     source.outside = [];
   end
 end
@@ -65,7 +68,7 @@ if ~logicalfmt && strcmp(opt, 'logical')
   end
   inside(source.inside)  = (1==1);  % true
   inside(source.outside) = (1==0);  % false
-  source.inside = inside;
+  source.inside = inside(:);
   if isfield(source, 'outside')
     source = rmfield(source, 'outside');
   end

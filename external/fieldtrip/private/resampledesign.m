@@ -21,6 +21,10 @@ function [resample] = resampedesign(cfg, design);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: resampledesign.m,v $
+% Revision 1.5  2009/10/01 13:02:05  jansch
+% added check for double occurrences of bootstrap samples if the number of
+% replicates is <20
+%
 % Revision 1.4  2009/01/12 15:16:47  jansch
 % enabled  bootstrap-resampling for repeated measures
 %
@@ -228,11 +232,45 @@ elseif length(cfg.uvar)==1 && strcmp(cfg.resampling, 'bootstrap') && length(cfg.
   %sanity check on number of repetitions
   if any(Nrep~=Nrep(1)), error('all units of observation should have an equal number of repetitions'); end
 
-  for i=1:cfg.numrandomization
-    tmp           = randsample(1:Nrepl/Nrep(1), Nrepl/Nrep(1));
-    for k=1:size(indx,1)
-      resample(i,indx(k,:)) = indx(k,tmp);
+  if max(units(:))<20, 
+    warning('fewer than 20 units warrants explicit checking of double occurrences of ''bootstraps''');
+    checkunique = 1;
+  else
+    checkunique = 0;
+  end
+
+  if ~checkunique,
+    for i=1:cfg.numrandomization
+      tmp           = randsample(1:Nrepl/Nrep(1), Nrepl/Nrep(1));
+      for k=1:size(indx,1)
+        resample(i,indx(k,:)) = indx(k,tmp);
+      end
     end
+  else
+    tmp = zeros(cfg.numrandomization*10, Nrepl/Nrep(1));
+    for i=1:cfg.numrandomization*10
+      tmp(i,:) = sort(randsample(1:Nrepl/Nrep(1), Nrepl/Nrep(1)));
+    end
+    
+    tmp = unique(tmp, 'rows');
+    fprintf('found %d unique rows in bootstrap matrix of %d bootstraps', size(tmp,1), cfg.numrandomization*10);
+    
+    if size(tmp,1)<cfg.numrandomization
+      fprintf('using only %d unique bootstraps\n', size(tmp,1));
+      cfg.numrandomization = size(tmp,1);
+      index = 1:size(tmp,1);
+    else
+      index = randperm(size(tmp,1));
+      index = index(1:cfg.numrandomization);
+    end
+    
+    tmp = tmp(index,:);
+    for i=1:cfg.numrandomization
+      for k=1:size(indx,1)
+        resample(i,indx(k,:)) = indx(k,tmp(i,:));
+      end
+    end
+  
   end
 else
   error('Unsupported configuration for resampling.');

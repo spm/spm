@@ -28,6 +28,9 @@ function [data] = combineplanar(cfg, data)
 % Copyright (C) 2004, Ole Jensen, Robert Oostenveld
 %
 % $Log: combineplanar.m,v $
+% Revision 1.44  2009/09/30 12:48:14  jansch
+% added cumtapcnt as input to svdfft
+%
 % Revision 1.43  2009/07/23 08:11:29  crimic
 % fixed tiny bug
 %
@@ -283,7 +286,7 @@ if isfreq
 	    dum = permute(dum, [2 3 1]);
 	    dum = reshape(dum, [2 Ntim*Nrpt]);
 	    timbin = ~isnan(dum(1,:));
-	    dum2   = svdfft(dum(:,timbin),1);
+	    dum2   = svdfft(dum(:,timbin),1,data.cumtapcnt);
             dum(1,timbin) = dum2;
 	    dum = reshape(dum(1,:),[Ntim Nrpt]);
 	    fourier(:,j,k,:) = transpose(dum);
@@ -414,7 +417,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: combineplanar.m,v 1.43 2009/07/23 08:11:29 crimic Exp $';
+cfg.version.id  = '$Id: combineplanar.m,v 1.44 2009/09/30 12:48:14 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

@@ -11,6 +11,9 @@ function [outputlabel, outputindex] = inputlabel2outputlabel(cfg, freq)
 %   TODO: more flexible way of combining, e.g. by providing a cell-array 
 
 % $Log: inputlabel2outputlabel.m,v $
+% Revision 1.3  2009/10/01 12:43:36  jansch
+% allowing for single missing dV or dH channels
+%
 % Revision 1.2  2006/06/23 10:51:02  jansch
 % changed format of outputlabel
 %
@@ -37,7 +40,14 @@ elseif strcmp(cfg.combinechan, 'planar')
   lab_dV      = freq.label(sel_dV);
 
   if length(sel_dH)~=length(sel_dV)
-    error('not all planar channel combinations are complete')
+    [int,ih,iv] = intersect(H,V);
+    sel_dH = sel_dH(ih);
+    sel_dV = sel_dV(iv);
+    %error('not all planar channel combinations are complete')
+  else
+    ih  = 1:length(sel_dH);
+    iv  = 1:length(sel_dV);
+    int = 1:length(ih); 
   end
   
   % find the other channels that are present in the data
@@ -47,8 +57,9 @@ elseif strcmp(cfg.combinechan, 'planar')
   % define the channel names after combining the planar combinations
   % they should be sorted according to the order of the horizontal planar channels in the data
   [dum, sel_planar] = match_str(freq.label, planar(:,1));
+  if exist('ih', 'var'), sel_planar = sel_planar(int); end
   lab_comb          = planar(sel_planar,3);
-  [dum, sel_comb]   = match_str(planar(H,3),planar(V,3));
+  [dum, sel_comb]   = match_str(planar(H(ih),3),planar(V(iv),3));
   
   outputlabel = {};
   outputindex = {};

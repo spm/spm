@@ -119,6 +119,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.46  2009/09/30 12:34:54  jansch
+% *** empty log message ***
+%
 % Revision 1.45  2009/09/08 07:11:42  roboos
 % fixed bug in masking, thanks to Stephan Moratti
 %
@@ -355,6 +358,7 @@ if ~isfield(cfg,'hlmarker')     cfg.hlmarker = 'o';    end;
 if ~isfield(cfg,'hlcolor')      cfg.hlcolor = [0 0 0]; end;
 if ~isfield(cfg,'hlmarkersize') cfg.hlmarkersize = 6;  end;
 if ~isfield(cfg,'hllinewidth')	cfg.hllinewidth = 3;   end;
+if ~isfield(cfg,'hlfacecolor')  cfg.hlfacecolor = cfg.hlcolor; end;
 
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('topoplot(): Colormap must be a n x 3 matrix'); end
@@ -375,7 +379,7 @@ cfg = checkconfig(cfg, 'renamed',     {'headlimits',  'interplimits'});
 if isfield(cfg,'interplimits')
   if ~ischar(cfg.interplimits), error('topoplot(): interplimits value must be a string'); end
   cfg.interplimits = lower(cfg.interplimits);
-  if ~strcmp(cfg.interplimits,'electrodes') && ~strcmp(cfg.interplimits,'head'),
+  if ~strcmp(cfg.interplimits,'electrodes') && ~strcmp(cfg.interplimits,'head') && ~strcmp(cfg.interplimits,'headleft'),
     error('topoplot(): Incorrect value for interplimits');
   end
 end;
@@ -500,6 +504,17 @@ if ~strcmp(cfg.style,'blank')
       ymin = min([ymin; cfg.layout.mask{i}(:,2)]);
       ymax = max([ymax; cfg.layout.mask{i}(:,2)]);
     end
+  elseif strcmp(cfg.interplimits,'headleft')
+    xmin = +inf;
+    xmax = -inf;
+    ymin = +inf;
+    ymax = -inf;
+    for i=1:length(cfg.layout.mask)
+      xmin = min([xmin; cfg.layout.mask{i}(:,1)]);
+      xmax = 0.02;
+      ymin = min([ymin; cfg.layout.mask{i}(:,2)]);
+      ymax = max([ymax; cfg.layout.mask{i}(:,2)]);
+    end
   else
     xmin = min(cfg.layout.pos(:,1));
     xmax = max(cfg.layout.pos(:,1));
@@ -582,18 +597,18 @@ if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
     plot(x(normal),        y(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth, 'markerfacecolor', cfg.hlfacecolor);
   elseif iscell(cfg.highlight)
     plot(x,y,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
     for iCell = 1:length(cfg.highlight)
-      plot(x(cfg.highlight{iCell}), y(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
+      plot(x(cfg.highlight{iCell}), y(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell}, 'markerfacecolor', cfg.hlfacecolor{iCell});
     end
   else
     error('Unknown highlight type');
   end;
 elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
   if isnumeric(cfg.highlight)
-    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',cfg.hllinewidth);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',cfg.hllinewidth, 'markerfacecolor', cfg.hlfacecolor);
   else
     error('Unknown highlight type');
   end;
@@ -614,7 +629,7 @@ elseif strcmp(cfg.electrodes,'dotnum')
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
     plot(x(normal)       , y(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth', cfg.hllinewidth);
+    plot(x(cfg.highlight), y(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth', cfg.hllinewidth, 'markerfacecolor', cfg.hlfacecolor);
   else
     error('Unknown highlight type');
   end;

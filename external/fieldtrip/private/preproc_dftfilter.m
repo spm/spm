@@ -28,6 +28,9 @@ function [filt] = preproc_dftfilter(dat, Fs, Fl)
 % modifications Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: preproc_dftfilter.m,v $
+% Revision 1.3  2009/09/30 13:01:10  jansch
+% included temporary mean subtraction to avoid leakage (with large DC-offsets) this could still be an issue
+%
 % Revision 1.2  2008/05/23 09:13:58  roboos
 % cleaned up code and documentation, ensure that all functions are consistent, added proper implementation to the scratch functions
 %
@@ -66,12 +69,16 @@ end
 % determine the largest integer number of line-noise cycles that fits in the data
 sel = 1:round(floor(Nsamples * Fl/Fs) * Fs/Fl);
 
+% temporarily remove mean to avoid leakage
+mdat = mean(dat(:,sel),2);
+dat  = dat - mdat(:,ones(1,Nsamples));
+
 % fit a sin and cos to the signal and subtract them
 time  = (0:Nsamples-1)/Fs;
 tmp  = exp(j*2*pi*Fl*time);                    % complex sin and cos
 % ampl = 2*dat*tmp'/Nsamples;                  % estimated amplitude of complex sin and cos
 ampl = 2*dat(:,sel)*tmp(sel)'/length(sel);     % estimated amplitude of complex sin and cos on integer number of cycles
 est  = ampl*tmp;                               % estimated signal at this frequency
-filt = dat - est;                              % subtract estimated signal
+%filt = dat - est;                              % subtract estimated signal
+filt = dat - est + mdat(:,ones(1,Nsamples));
 filt = real(filt);
-

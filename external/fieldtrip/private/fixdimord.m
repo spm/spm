@@ -24,6 +24,9 @@ function [data] = fixdimord(data);
 % Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % $Log: fixdimord.m,v $
+% Revision 1.4  2009/10/01 12:23:10  jansch
+% added {'pos'} as placeholder
+%
 % Revision 1.3  2009/08/03 15:53:32  ingnie
 % fixed bug introduced in last revision, thanks to Esther
 %
@@ -122,6 +125,9 @@ for i=1:length(dimtok)
     case {'vox' 'repl' 'wcond'}
       % these are used in some fieldtrip functions, but are not considered standard
       warning(sprintf('unexpected dimord "%s"', data.dimord));
+
+    case {'pos'}
+      % this will be the future default for simple sources
 
     otherwise
       error(sprintf('unexpected dimord "%s"', data.dimord));
