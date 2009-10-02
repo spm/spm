@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3437 2009-10-01 15:14:49Z karl $
+% $Id: spm_eeg_invert.m 3438 2009-10-02 08:47:27Z rik $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -89,8 +89,8 @@ try, Nm    = inverse.Nm;     catch, Nm    = 128;               end
 try, Nr    = inverse.Nr;     catch, Nr    = 16;                end
 try, xyz   = inverse.xyz;    catch, xyz   = [0 0 0];           end
 try, rad   = inverse.rad;    catch, rad   = 128;               end
-try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
-try, hpf   = inverse.hpf;    catch, hpf   = 48;               end
+try, lpf   = inverse.lpf;    catch, lpf   = 0;                 end
+try, hpf   = inverse.hpf;    catch, hpf   = 48;                end
 try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
@@ -269,7 +269,7 @@ for i = 1:Nl
     % Confounds and temporal subspace
     %----------------------------------------------------------------------
     T      = spm_dctmtx(Nb(i),Nb(i));
-    j      = find( (dct{i} > lpf) & (dct{i} < hpf) );
+    j      = find( (dct{i} >= lpf) & (dct{i} <= hpf) );
     T      = T(:,j);
     dct{i} = dct{i}(j);
  
