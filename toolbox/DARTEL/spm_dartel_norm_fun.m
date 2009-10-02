@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3417 2009-09-24 18:05:27Z john $
+% $Id: spm_dartel_norm_fun.m 3439 2009-10-02 14:21:34Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -178,6 +178,7 @@ for m=1:numel(PI),
     NO.mat0_intent = mat_intent;
     NO.descrip = sprintf('Smoothed (%gx%gx%g) DARTEL normed',fwhm);
     out{m} = NO.dat.fname;
+    NO.extras = [];
     create(NO);
 
     % Smoothing settings
@@ -208,6 +209,7 @@ for m=1:numel(PI),
                     M0 = M1(:,:,j);
                 end
             end
+
             M   = NU.mat0\M0;
             dm  = [size(NI.dat),1,1,1,1];
             if ~all(dm(1:3)==odm) || ~all(M(:)==oM(:)),

@@ -9,7 +9,7 @@ function out = spm_dartel_norm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm.m 3436 2009-10-01 11:03:58Z john $
+% $Id: spm_dartel_norm.m 3439 2009-10-02 14:21:34Z john $
 
 
 PU = job.flowfields;
@@ -54,7 +54,7 @@ for i=1:numel(PU),
         NO.mat_intent  = 'Aligned';
         NO.mat0_intent = 'Aligned';
         NO.descrip = 'DARTEL warped';
-
+        NO.extras  = [];
         create(NO);
         fprintf('%s',nam); drawnow;
 
