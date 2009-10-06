@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3288 2009-07-27 09:23:54Z maria $
+% $Id: spm_cfg_bms.m 3445 2009-10-06 11:22:23Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -116,16 +116,17 @@ name_mod.values  = {mod_name };
 name_mod.num     = [0 Inf];
 
 % ---------------------------------------------------------------------
-% file BMS.mat
+% load_f Log-evidence matrix
 % ---------------------------------------------------------------------
 load_f         = cfg_files;
 load_f.tag     = 'load_f';
-load_f.name    = 'Log-evidence Matrix';
-load_f.help    = {['Load .mat file with log-evidence values for '...
-                  'comparison (optional). The file should contain '...
-                  'an F matrix consisting of [s x m] log-evidence '...
-                  'values, where s is the number of subjects and m '...
-                  'the number of models.']};
+load_f.name    = 'Log-evidence matrix';
+load_f.help    = {['Optional: load .mat file with log-evidence values for '...
+                  'comparison. This option is a faster alternative to selecting '...
+                  'the DCM.mat files for each subject/model (above in '...
+                  '''Data''). The file should contain an F matrix consisting ' ...
+                  'of [s x m] log-evidence values, where s is the number '...
+                  'of subjects and m the number of models.']};
 load_f.filter  = 'mat';
 load_f.ufilter = '.*';
 load_f.val     = {{''}};
@@ -136,7 +137,7 @@ load_f.num     = [0 1];
 % ---------------------------------------------------------------------
 method         = cfg_menu;
 method.tag     = 'method';
-method.name    = 'Inference Method';
+method.name    = 'Inference method';
 method.help    = {['Specify inference method: random effects '...
                    '(2nd-level) or fixed effects (1st-level) analysis.']};
 method.labels  = {
@@ -147,6 +148,146 @@ method.values  = {
                   'FFX'
                   'RFX'
 }'; 
+
+% ---------------------------------------------------------------------
+% priors Priors
+% ---------------------------------------------------------------------
+priors         = cfg_menu;
+priors.tag     = 'priors';
+priors.name    = 'Priors (RFX)';
+priors.help    = {['Specify priors for family-level inference. '...
+                   'Options: ''F-unity'' sets alpha0=1 for each family '...
+                   'while ''M-unity'' sets alpha0=1 for each model (not '...
+                   'advised).']};
+priors.labels  = {
+                  'Model'
+                  'Family'
+}';
+priors.values  = {
+                  'M-unity'
+                  'F-unity'
+}';
+priors.val      = {'M-unity'};
+
+
+% ---------------------------------------------------------------------
+% family_file Family file
+% ---------------------------------------------------------------------
+family_file         = cfg_files;
+family_file.tag     = 'family_file';
+family_file.name    = 'Load family';
+family_file.help    = {['Load family file. This file should contain the '...
+                        'structure ''family'' with fields ''names'' and '...
+                        '''partition''. Example: family.names = {''F1'', '...
+                        '''F2''} and family.partition = [1 2 2 1 1]. '...
+                        ' This structure specifies two families with names '...
+                        '''F1'' and ''F2'' and assigns model 1, 4 and 5 to '...
+                        'the first family and models 2 and 3 to the second '...
+                        'family']};
+family_file.val{1}  = {''};
+family_file.filter  = 'mat';
+family_file.ufilter = '.*';
+family_file.num     = [0 1];
+
+% ---------------------------------------------------------------------
+% family_name Family name
+% ---------------------------------------------------------------------
+family_name         = cfg_entry;
+family_name.tag     = 'family_name';
+family_name.name    = 'Name';
+family_name.help    = {'Specify name for family'};
+family_name.strtype = 's';
+family_name.num     = [0 Inf];
+
+% ---------------------------------------------------------------------
+% family_models family_models
+% ---------------------------------------------------------------------
+family_models         = cfg_entry;
+family_models.tag     = 'family_models';
+family_models.name    = 'Models';
+family_models.help    = {['Specify models belonging to this family. '...
+                          'Example: write ''2 6'' if the second and sixth model '...
+                          'belong to this family.']};
+family_models.strtype = 'e';
+family_models.num     = [Inf 1];
+
+% ---------------------------------------------------------------------
+% family Family
+% ---------------------------------------------------------------------
+family         = cfg_branch;
+family.tag     = 'family';
+family.name    = 'Family';
+family.val     = {family_name family_models };
+family.help    = {'Specify family name and models.'};
+
+% ---------------------------------------------------------------------
+% select_family Specify family
+% ---------------------------------------------------------------------
+select_family         = cfg_repeat;
+select_family.tag     = 'select_family';
+select_family.name    = 'Specify family';
+select_family.values  = {family };
+select_family.help    = {'Specify family name and models.'};
+
+% ---------------------------------------------------------------------
+% family_level Family level
+% ---------------------------------------------------------------------
+family_level         = cfg_choice;
+family_level.tag     = 'family_level';
+family_level.name    = 'Family level';
+family_level.help    = {['Family level inference. Options: load family.mat '...
+                        'or specify family names and models using '...
+                        'the interface.']};
+family_level.val     = {family_file };
+family_level.values  = {family_file select_family };
+
+% ---------------------------------------------------------------------
+% bma_ratio Odds ratio
+% ---------------------------------------------------------------------
+bma_ratio         = cfg_entry;
+bma_ratio.tag     = 'bma_ratio';
+bma_ratio.name    = 'Odds ratio';
+bma_ratio.help    = {'Specify odds ratio'};
+bma_ratio.strtype = 's';
+bma_ratio.num     = [0 Inf];
+bma_ratio.val     = {'0'};
+
+% ---------------------------------------------------------------------
+% bma_nsamp Nb. of Samples
+% ---------------------------------------------------------------------
+bma_nsamp         = cfg_entry;
+bma_nsamp.tag     = 'bma_nsamp';
+bma_nsamp.name    = 'Nb. of samples';
+bma_nsamp.help    = {'Specify number of samples'};
+bma_nsamp.strtype = 's';
+bma_nsamp.num     = [0 Inf];
+bma_nsamp.val     = {'1e3'};
+
+% ---------------------------------------------------------------------
+% bma_do Average models
+% ---------------------------------------------------------------------
+bma_do         = cfg_menu;
+bma_do.tag     = 'bma_do';
+bma_do.name    = 'Average models';
+bma_do.help    = {'Average models'};
+bma_do.labels  = {
+                  'yes'
+                  'no'
+}';
+bma_do.values  = {
+                  1
+                  0
+}'; 
+bma_do.val     = {0};
+
+% ---------------------------------------------------------------------
+% bma BMA
+% ---------------------------------------------------------------------
+bma         = cfg_branch;
+bma.tag     = 'bma';
+bma.name    = 'BMA';
+bma.help    = {'Bayesian Model Averaging'};
+bma.val     = {bma_do bma_nsamp bma_ratio };
 
 % ---------------------------------------------------------------------
 % verify_id Verify data ID
@@ -177,7 +318,7 @@ out_file.help    = {['Specify which output files to save (only valid for'...
                      ''...
                     ['Default option (and faster option): '...
                      'PPM = xppm.img (Posterior Probability Maps) '...
-                     'for each model.']...
+                     'for each model. ']...
                      ''...
                     ['Second option: PPM + EPM = xppm.img + '...
                      'epm.img (Exceedance Probability '...
@@ -316,7 +457,7 @@ scale.val     = {[]};
 bms_dcm      = cfg_exbranch;
 bms_dcm.tag  = 'bms_dcm';
 bms_dcm.name = 'BMS: DCM';
-bms_dcm.val  = {dir dcm load_f method verify_id};
+bms_dcm.val  = {dir dcm load_f method priors family_level verify_id};
 bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
     '(DCM) for fMRI or MEEG.']...
     ''...
@@ -361,7 +502,7 @@ bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps. '...
     ''...
     ['Input: log-evidence maps (.img) for each model, session and '...
     'subject. Note that there must be identical numbers of models for '...
-    'all each sessions, and identical numbers of sessions for all '...
+    'all sessions, and identical numbers of sessions for all '...
     'subjects.']...
     ''...
     ['Output: For the fixed effects analysis, posterior probability maps '...

@@ -1,4 +1,4 @@
-function out=spm_api_bmc(F,N,alpha,exp_r,xp)
+function out=spm_api_bmc(F,N,exp_r,xp)
 % API to select and compare DCMs using Bayesian model comparison
 % FORMAT out=spm_api_bmc(F,N,alpha,exp_r,xp)
 %
@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,alpha,exp_r,xp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 2825 2009-03-04 15:08:59Z guillaume $
+% $Id: spm_api_bmc.m 3445 2009-10-06 11:22:23Z maria $
 
 if nargin < 3
     inf_method = 'FFX';

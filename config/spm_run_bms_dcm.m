@@ -17,65 +17,77 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3363 2009-09-04 15:11:19Z christophe $
+% $Id: spm_run_bms_dcm.m 3445 2009-10-06 11:22:23Z maria $
 
+% input
+% -------------------------------------------------------------------------
 job     = varargin{1};
-fname  ='BMS.mat';                  % Output filename
-fname  = fullfile(job.dir{1},fname);% Output filename (including directory)
+fname   = 'BMS.mat';                 % Output filename
+fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
+priors  = job.priors;
+ld_f    = ~isempty(job.load_f{1});
+
 F = [];
 N = {};
 
 % prepare the data
-if  isempty(job.load_f{1})==0
-    data=job.load_f{1};
+% -------------------------------------------------------------------------
+if  ld_f
+    data = job.load_f{1};
     load(data);
-    nm   = size(F,2);                               % No of Models
-    N    = 1:nm;
-
+    nm      = size(F,2);                               % No of Models
+    ns      = size(F,1);                               % No of Models
+    N       = 1:nm;
+    subj    = [];
+    f_fname = data;
+    
 else
 
+    f_fname = [];
     ns      = size(job.sess_dcm,2);                 % No of Subjects
     nsess   = size(job.sess_dcm{1},2);              % No of sessions
     nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
-
+    
     % Check if No of models > 2
     if nm < 2
         msgbox('Please select more than one file')
         return
     end
-
+    
     for k=1:ns
-
+        
         data{k}         = [job.sess_dcm{k}(:).mod_dcm];
         nsess_now       = size(job.sess_dcm{k},2);
         nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
-
+        
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
-
+            
             ID = zeros(nsess, nm);
             
             for j=1:nm
-
-                F_sess      = [];                
-
+                
+                F_sess      = [];
+                
                 for h = 1:nsess_now
-
+                    
                     tmp     = data{k}(j,h);
                     DCM_tmp = load(tmp{1});
+                    
                     F_sess  = [F_sess,DCM_tmp.DCM.F];
-
+                    subj(k).sess(h).model(j).fname = tmp{1};
+                    
                     % Data ID verification. At least for now we'll
                     % re-compute the IDs rather than use the ones stored
                     % with the DCM.
                     if job.verify_id
                         M = DCM_tmp.DCM.M;
-
+                        
                         if isfield(DCM_tmp.DCM, 'xY')
                             Y = DCM_tmp.DCM.xY;  %not fMRI
                         else
                             Y = DCM_tmp.DCM.Y;   % fMRI
                         end
-
+                        
                         if isfield(M,'FS')
                             try
                                 ID(h, j)  = spm_data_id(feval(M.FS,Y.y,M));
@@ -85,14 +97,14 @@ else
                         else
                             ID(h, j) = spm_data_id(Y.y);
                         end
-
+                        
                     end
                 end
-
+                
                 F_mod       = sum(F_sess);
                 F(k,j)      = F_mod;
                 N{j}        = sprintf('model%d',j);
-
+                
             end
             
             if job.verify_id
@@ -108,86 +120,149 @@ else
             out.files{1} = [];
             msgbox('Error: the number of sessions/models should be the same for all subjects!')
             return
-
+            
         end
-
+        
     end
 end
 
 
-% make inference and visualization
-if strcmp(job.method,'FFX');                    %%% single subject BMS or 1st level( fixed effects) group BMS
+% bayesian model selection 
+% -------------------------------------------------------------------------
 
-    P = spm_api_bmc(sum(F,1),N);
+% free energy
+sumF = sum(F,1);
+
+% family or model level
+
+if isfield(job.family_level,'family_file')
+    
+    if ~isempty(job.family_level.family_file{1})
+    
+        load(job.family_level.family_file{1});
+        do_family    = 1;
+        family.prior = priors;
+        family.infer = job.method;
+    
+        nfam    = size(family.names,2);
+        npart   = length(unique(family.partition));
+        maxpart = max(family.partition);
+    
+        if nfam ~= npart || npart == 1 || maxpart > npart
+            msgbox('Invalid family file!')
+            out.files{1} = [];
+            return
+        end
+    else     
+        error('Please specify family file!');
+    end
+    
+else
+    
+    if isempty(job.family_level.family)
+        do_family    = 0;
+    else
+        do_family    = 1;
+        nfam         = size(job.family_level.family,2);
+        
+        names_fam  = {};
+        models_fam = [];
+        for f=1:nfam
+            names_fam    = [names_fam,job.family_level.family(f).family_name];
+            models_fam(job.family_level.family(f).family_models) = f;
+        end
+        
+        family.names     = names_fam;
+        family.partition = models_fam;
+        
+        npart   = length(unique(family.partition));
+        maxpart = max(family.partition);
+    
+        if nfam ~= npart || npart == 1 || maxpart > npart
+           msgbox('Invalid family!')
+           out.files{1} = [];
+           return
+        end
+        
+        family.prior     = priors;
+        family.infer     = job.method;
+      
+    end
+    
+end
+
+% single subject BMS or 1st level( fixed effects) group BMS
+if strcmp(job.method,'FFX'); 
+    
+    if ~do_family
+        
+        model.post = spm_api_bmc(sumF,N);
+        family     = [];
+       
+    else
+        
+        model.post     = spm_api_bmc(sumF,N);
+        [family,model] = spm_compare_families (F,family);
+               
+    end
 
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'ffx')
             str = { 'Warning: existing BMS.mat file has been over-written!'};
             msgbox(str)
-            BMS.DCM.ffx.F      = F;
-            BMS.DCM.ffx.P      = P;
-            BMS.DCM.ffx.SF     = sum(F,1);
-            BMS.DCM.ffx.data   = data;
-        else
-            BMS.DCM.ffx.F     = F;
-            BMS.DCM.ffx.P     = P;
-            BMS.DCM.ffx.SF     = sum(F,1);
-            BMS.DCM.ffx.data  = data;
         end
-        save(fname,'BMS')
-        out.files{1} = fname;
-    else
-        BMS.DCM.ffx.F     = F;
-        BMS.DCM.ffx.P     = P;
-        BMS.DCM.ffx.SF     = sum(F,1);
-        BMS.DCM.ffx.data  = data;
-        save(fname,'BMS')
-        out.files{1} = fname;
     end
-else
-    % 2nd-level (random effects) BMS
-    if  nm==2
-        [alpha,exp_r,xp] = spm_BMS(F, 1e6, 1);
+    BMS.DCM.ffx.data    = subj;
+    BMS.DCM.ffx.F_fname = f_fname;
+    BMS.DCM.ffx.F       = F;
+    BMS.DCM.ffx.SF      = sumF;
+    BMS.DCM.ffx.model   = model;
+    BMS.DCM.ffx.family  = family;
+     
+    save(fname,'BMS')
+    out.files{1} = fname;
+    
+% 2nd-level (random effects) BMS
+else   
+    
+    if ~do_family
+       
+        if nm <= ns
+            [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
+        else
+            [alpha,exp_r,xp] = spm_BMS_gibbs(F);
+        end
+        model.alpha = alpha;
+        model.exp_r = exp_r;
+        model.xp    = xp;
+        family      = [];
     else
-        [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
+        
+        [family,model] = spm_compare_families (F,family);
+        
     end
 
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'rfx')
-            str = { 'Warning: existing BMS.mat file has been over-written!'};
+            str = { 'Warning:  existing BMS.mat file has been over-written!'};
             msgbox(str)
-            BMS.DCM.rfx.F      = F;
-            BMS.DCM.rfx.SF     = sum(F,1);
-            BMS.DCM.rfx.alpha = alpha;
-            BMS.DCM.rfx.exp_r = exp_r;
-            BMS.DCM.rfx.xp    = xp;
-            BMS.DCM.rfx.data  = data;
-        else
-            BMS.DCM.rfx.F      = F;
-            BMS.DCM.rfx.SF     = sum(F,1);
-            BMS.DCM.rfx.alpha  = alpha;
-            BMS.DCM.rfx.exp_r  = exp_r;
-            BMS.DCM.rfx.xp     = xp;
-            BMS.DCM.rfx.data   = data;
         end
-        save(fname,'BMS')
-        out.files{1}= fname;
-    else
-        BMS.DCM.rfx.F      = F;
-        BMS.DCM.rfx.SF     = sum(F,1);
-        BMS.DCM.rfx.alpha = alpha;
-        BMS.DCM.rfx.exp_r = exp_r;
-        BMS.DCM.rfx.xp    = xp;
-        BMS.DCM.rfx.data  = data;
-        save(fname,'BMS')
-        out.files{1}= fname;
     end
+    BMS.DCM.rfx.data    = subj;
+    BMS.DCM.rfx.F_fname = f_fname;  
+    BMS.DCM.rfx.F       = F;
+    BMS.DCM.rfx.SF      = sumF;
+    BMS.DCM.rfx.model   = model;
+    BMS.DCM.rfx.family  = family;
+    
+    save(fname,'BMS')
+    out.files{1}= fname;
 
-    P = spm_api_bmc(sum(F,1),N,alpha,exp_r,xp);  %%% display the result
-
-
+    % display the result
+    P = spm_api_bmc(sumF,N,model.exp_r,model.xp); 
+    
 end
 
 spm_figure('GetWin','Graphics');

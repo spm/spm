@@ -7,7 +7,7 @@ function out = spm_run_bms_dcm_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen and Maria Joao Rosa
-% $Id: spm_run_bms_dcm_vis.m 3074 2009-04-21 18:03:57Z maria $
+% $Id: spm_run_bms_dcm_vis.m 3445 2009-10-06 11:22:23Z maria $
 
 job     = varargin{1};
 
@@ -18,7 +18,7 @@ else
     load(job.file{1});
 end
 
-for loop=1:inf
+for loop=1:1e10
 
     A = spm_input('Inference method','0','b',{'Fixed |Random|Bye'},[0 1 2],3);
 
@@ -39,9 +39,16 @@ for loop=1:inf
 
         case (1)
             if isfield(BMS.DCM,'rfx')
-                N        =size(BMS.DCM.rfx.F,2);
-                N        =1:N;
-                out=spm_api_bmc(BMS.DCM.rfx.SF,N,BMS.DCM.rfx.alpha,BMS.DCM.rfx.exp_r,BMS.DCM.rfx.xp);
+                N        = size(BMS.DCM.rfx.F,2);
+                N        = 1:N;
+                
+                if isfield(BMS.DCM.rfx,'model')
+                out      = spm_api_bmc(BMS.DCM.rfx.SF,...
+                    N,BMS.DCM.rfx.model.exp_r,BMS.DCM.rfx.model.xp);
+                else % Older version (prior to family level)
+                out      = spm_api_bmc(BMS.DCM.rfx.SF,...
+                    N,BMS.DCM.rfx.exp_r,BMS.DCM.rfx.xp);
+                end
             else
                 msgbox('This result does not exist! Please perform BMS first!');
                 spm_input('Thank you',1,'d');
