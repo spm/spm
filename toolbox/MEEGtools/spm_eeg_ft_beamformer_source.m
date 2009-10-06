@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3200 2009-06-12 17:29:40Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3443 2009-10-06 08:22:03Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -75,6 +75,7 @@ if ~isfield(S, 'sources')
         end
     else
         S.sources = spm_eeg_dipoles_ui;
+        S.sources.pos = S.sources.pnt;
     end
 end
 
@@ -103,11 +104,11 @@ modality = spm_eeg_modality_ui(D, 1, 1);
 %% ============ Select the data and convert to Fieldtrip struct
 if ~isfield(S, 'conditions')
     clb = D.condlist;
-
+    
     if numel(clb) > 1
-
+        
         [selection, ok]= listdlg('ListString', clb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
-
+        
         if ~ok
             return;
         end
@@ -222,7 +223,7 @@ else
     cfg.grid.pos = [];
     for s = 1:size(S.sources.pos, 1)
         cfg.grid.pos = [cfg.grid.pos; sphere+repmat(S.sources.pos(s, :), nvoi, 1)];
-    end    
+    end
 end
 
 cfg.grad = sens;
@@ -231,6 +232,7 @@ cfg.vol = vol;
 cfg.channel = modality;
 cfg.method = 'lcmv';
 cfg.keepfilter = 'yes';
+cfg.keepleadfield = 'yes';
 cfg.lambda =  S.lambda;
 source1 = ft_sourceanalysis(cfg, timelock1);
 
@@ -243,6 +245,38 @@ cfg.channel = modality;
 cfg.lambda =  S.lambda;
 cfg.rawtrial = 'yes';
 source2 = ft_sourceanalysis(cfg, timelock2);
+
+crosstalk = [];
+for i = 1:nsources
+    for j = 1:nsources
+        cc = corrcoef([cfg.grid.filter{i}' cfg.grid.leadfield{j}]).^2;
+        crosstalk(i, j) = cc(1, 2);
+    end
+end
+%%
+if nsources > 1    
+    Fgraph = spm_figure('GetWin','Graphics');
+    colormap(gray)
+    figure(Fgraph)
+    clf
+    
+    % images
+    %----------------------------------------------------------------------
+    subplot(2, 1 , 1)
+    imagesc(crosstalk)
+    title('Source crosstalk (R^2)','FontSize',13)
+    set(gca,'YTick',[1:nsources],'YTickLabel',S.sources.label,'FontSize',8)
+    set(gca,'XTick',[1:nsources],'XTickLabel',S.sources.label,'FontSize',8)
+    xlabel('from','FontSize',10)
+    ylabel('to','FontSize',10)
+    axis square
+    
+    % table
+    %----------------------------------------------------------------------
+    subplot(2,1,2)
+    text(1/6,1/2,num2str(crosstalk,' %-8.2f'),'FontSize',16)
+    axis off,axis square
+end
 %%
 sourcedata=[];
 sourcedata.trial=zeros(size(timelock2.trial, 1), nsources, length(timelock2.time));
@@ -252,7 +286,7 @@ for i=1:length(source2.trial)
     for j = 1:nsources
         if nvoi>0
             y = cat(1, source2.trial(i).mom{(j-1)*nvoi+[1:nvoi]});
-
+            
             % compute regional response in terms of first eigenvariate
             %-----------------------------------------------------------------------
             [m n]   = size(y);
@@ -294,6 +328,8 @@ Dsource = chantype(Dsource, 1:length(S.sources.label), 'LFP');
 Dsource = conditions(Dsource, [], D.conditions(trialind));
 
 Dsource = history(Dsource, 'spm_eeg_ft_beamformer_source', S);
+
+Dsource.crosstalk = crosstalk;
 
 save(Dsource);
 

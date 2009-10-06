@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3419 2009-09-25 14:29:40Z vladimir $
+% $Id: spm_MEEGtools.m 3443 2009-10-06 08:22:03Z vladimir $
 
 
 funlist = {
@@ -26,7 +26,8 @@ funlist = {
     'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
     'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'
-    'FMRIB Detect ECG peaks',   'spm_eeg_fmrib_qrsdetect'             
+    'FMRIB Detect ECG peaks',   'spm_eeg_fmrib_qrsdetect'     
+    'Detect eyeblinks',  'spm_eeg_detect_eyeblinks'
     };
 
 str = sprintf('%s|', funlist{:, 1});
