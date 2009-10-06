@@ -29,9 +29,9 @@ function [S, Pout] = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 3415 2009-09-24 14:24:38Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 3442 2009-10-06 08:19:14Z vladimir $
 
-SVNrev = '$Rev: 3415 $';
+SVNrev = '$Rev: 3442 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -143,7 +143,8 @@ if strcmp(modality,'MEGPLANAR') &&...
     d2 = 1e15*D(Cind(:,2),:,:); %get data from second in pair
     d  = sqrt((d1.^2 + d2.^2)/2); %take RMS
 elseif strcmp(modality,'MEG') &&...
-         isempty(strmatch('fT', D.units(Cind)))
+        isempty(strmatch('fT', D.units(Cind))) && ...
+        isempty(strmatch('dB', D.units(Cind)))
     d  = 1e15*D(Cind, :,:);
 else
     d  = D(Cind, :,:);
