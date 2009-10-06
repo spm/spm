@@ -9,7 +9,7 @@ function out = spm_dartel_norm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm.m 3439 2009-10-02 14:21:34Z john $
+% $Id: spm_dartel_norm.m 3444 2009-10-06 11:06:11Z john $
 
 
 PU = job.flowfields;
@@ -86,8 +86,7 @@ for i=1:numel(PU),
                     end;
                     f = spm_bsplins(f,ty1,ty2,ty3,spl_param);
                     if jactransf,
-                        scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
-                        NO.dat(:,:,:,j,k,l)=f.*dt*scal;
+                        NO.dat(:,:,:,j,k,l)=f.*dt;
                     else
                         NO.dat(:,:,:,j,k,l)=f;
                     end;
