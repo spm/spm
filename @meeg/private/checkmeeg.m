@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3428 2009-09-28 20:05:01Z christophe $
+% $Id: checkmeeg.m 3446 2009-10-06 16:19:36Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -459,8 +459,8 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
     end
 
     nzlbl = {'fidnz', 'nz', 'nas', 'nasion', 'spmnas'};
-    lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl' 'le', 't9', 'spmlpa'};
-    relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 't10', 'spmrpa'};
+    lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl', 'le', 'l', 't9', 'spmlpa'};
+    relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 'r', 't10', 'spmrpa'};
 
     [sel1, nzind] = match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
