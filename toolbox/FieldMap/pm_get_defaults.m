@@ -16,16 +16,22 @@ function varargout = pm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_get_defaults.m 1806 2008-06-10 11:33:23Z chloe $
+% $Id: pm_get_defaults.m 3449 2009-10-08 15:09:33Z chloe $
 % ---------------------------------------------------------------------
-pm_defaults;
-pm_def.sessname='session';
+ global pm_def
+ if isempty(pm_def)
+      pm_defaults;
+      pm_def.sessname='session';
+ end
 
 [default_file_path, tmpname] = fileparts(mfilename('fullpath'));
 pm_def.defaultsfilename{1} = sprintf('%s%s%s',default_file_path,filesep,'pm_defaults.m');
-tmpTEMPLATE = pm_def.MFLAGS.TEMPLATE;
-pm_def.MFLAGS.TEMPLATE=[];
-pm_def.MFLAGS.TEMPLATE{1}=tmpTEMPLATE;
+if ischar(pm_def.MFLAGS.TEMPLATE)
+    pm_def.MFLAGS.TEMPLATE = {pm_def.MFLAGS.TEMPLATE};
+end
+% tmpTEMPLATE = pm_def.MFLAGS.TEMPLATE;
+% pm_def.MFLAGS.TEMPLATE=[];
+% pm_def.MFLAGS.TEMPLATE{1}=tmpTEMPLATE;
 
 % construct subscript reference struct from dot delimited tag string
 tags = textscan(defstr,'%s', 'delimiter','.');
@@ -34,6 +40,6 @@ subs = struct('type','.','subs',tags{1}');
 if nargin == 1
     varargout{1} = subsref(pm_def, subs);
 else
-    defaults = subsasgn(defaults, subs, varargin{1});
+    pm_def = subsasgn(pm_def, subs, varargin{1});
 end
 
