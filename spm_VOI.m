@@ -54,7 +54,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 2782 2009-02-24 18:53:13Z guillaume $
+% $Id: spm_VOI.m 3450 2009-10-08 16:11:13Z guillaume $
 
 
 %-Parse arguments
@@ -143,7 +143,10 @@ u          = xSPM.u;
 S          = xSPM.S;
 
 try, xSPM.Ps  = xSPM.Ps(k); end
-[up, xSPM.Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,SPM.xVol.XYZ(:,k),u);
+if STAT ~= 'P'
+    [up, xSPM.Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,SPM.xVol.XYZ(:,k),u);
+    uu            = spm_uc(0.05,df,STAT,R,n,S);
+end
 try % if STAT == 'T'
     V2R               = 1/prod(xSPM.FWHM(DIM>1));
     [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Z,SPM.xVol.XYZ(:,k),V2R,u);
@@ -152,8 +155,7 @@ catch
     ue                = NaN;
     xSPM.Pc           = [];
 end
-uu            = spm_uc(0.05,df,STAT,R,n,S);
-xSPM.uc       = [uu up ue uc];
+try, xSPM.uc          = [uu up ue uc]; end
 
 %-Tabulate p values
 %--------------------------------------------------------------------------

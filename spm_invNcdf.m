@@ -62,7 +62,7 @@ function x = spm_invNcdf(F,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 2550 2008-12-10 13:07:04Z john $
+% $Id: spm_invNcdf.m 3450 2009-10-08 16:11:13Z guillaume $
 
 
 
@@ -90,7 +90,7 @@ x = zeros(rs);
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  ones(size(u))  &  v>0 );
 if any(~md(:)), x(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+    warning('SPM:outOfRangeNormal','Returning NaN for out of range arguments'), end
 
 %-Compute where defined
 Q  = find( md );

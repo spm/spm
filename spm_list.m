@@ -115,7 +115,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3342 2009-09-02 10:35:28Z guillaume $
+% $Id: spm_list.m 3450 2009-10-08 16:11:13Z guillaume $
 
 
 % satellite figure global variable
@@ -531,7 +531,9 @@ switch lower(varargin{1}), case 'list'                            %-List
             Pn      = [];
             Qc      = [];
             Qp      = [];
+            ws      = warning('off','SPM:outOfRangeNormal');
             Ze      = spm_invNcdf(U);
+            warning(ws);
         end
 
 
@@ -645,7 +647,9 @@ switch lower(varargin{1}), case 'list'                            %-List
                         Pu    = [];
                         Qu    = [];
                         Qp    = [];
+                        ws      = warning('off','SPM:outOfRangeNormal');
                         Ze    = spm_invNcdf(Z(d));
+                        warning(ws);
                     end
 
                     h     = text(tCol(7),y,sprintf(TabDat.fmt{7},Pu),...
