@@ -49,10 +49,10 @@ function [cfg] = definetrial(cfg);
 % input and should give a Nx3 matrix in the same format as "trl" as the
 % output. You can add extra custom fields to the configuration structure to
 % pass as arguments to your own trialfun. Furthermore, inside the trialfun
-% you can use the READ_FCDC_EVENT function to get the event information
+% you can use the READ_EVENT function to get the event information
 % from your data file.
 %
-% See also PREPROCESSING, READ_FCDC_HEADER, READ_FCDC_DATA, READ_FCDC_EVENT
+% See also PREPROCESSING, READ_HEADER, READ_DATA, READ_EVENT
 
 % Undocumented local options:
 % cfg.datafile
@@ -64,6 +64,9 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.57  2009/10/07 12:42:16  roevdmei
+% changed reference to older FCDC read functions
+%
 % Revision 1.56  2009/01/20 13:01:31  sashae
 % changed configtracking such that it is only enabled when BOTH explicitly allowed at start
 % of the fieldtrip function AND requested by the user
@@ -233,7 +236,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: definetrial.m,v 1.56 2009/01/20 13:01:31 sashae Exp $';
+cfg.version.id = '$Id: definetrial.m,v 1.57 2009/10/07 12:42:16 roevdmei Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

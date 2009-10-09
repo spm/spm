@@ -1,10 +1,27 @@
 function plot_line(X, Y, varargin)
 
-% PLOT_LINE
+% PLOT_LINE helper function for plotting a line, which can also be used in
+% combination with the multiple channel layout display in FieldTrip.
+%
+% Use as
+%   plot_line(X, Y, ...)
+% where optional input arguments should come in key-value pairs and may
+% include
+%   hpos
+%   vpos
+%   width
+%   height
+%   hlim
+%   vlim
+%   color
+%   linestyle
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_line.m,v $
+% Revision 1.6  2009/10/07 13:52:03  roboos
+% updated documentation
+%
 % Revision 1.5  2009/07/14 16:13:14  roboos
 % speed up the plotting if no rescaling needs to be done
 %

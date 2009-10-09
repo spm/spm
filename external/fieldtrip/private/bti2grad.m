@@ -1,4 +1,4 @@
-function [grad] = bti2grad(hdr)
+function [grad] = bti2grad(hdr, balanceflag)
 
 % BTI2GRAD converts a 4D header to a gradiometer structure that can be
 % understood by FieldTrip and Robert Oostenveld's low-level forward and
@@ -18,6 +18,11 @@ function [grad] = bti2grad(hdr)
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.5  2009/10/07 09:45:50  jansch
+% restructured the handling of balancing; balancing for data in which the
+% weight table is of type 1 is still disabled, and balancing is applied for
+% data with weight tables of type ~= 1
+%
 % Revision 1.4  2009/04/02 10:13:15  jansch
 % disabled balancing for 148-sensor system (weight table version 1) since
 % channel order is not known
@@ -174,49 +179,58 @@ elseif isfield(hdr, 'config'),
   
   grad.unit  = 'm';
   
-  balanceflag = 1;
-  if balanceflag,
-    if ~isa(hdr.user_block_data, 'cell')
-      for k = 1:length(hdr.user_block_data)
-        tmp{k}=hdr.user_block_data(k);
-      end
-      hdr.user_block_data = tmp;
-    end
-
-    %check whether weights have been applied and stored in header
+  %check whether there is anything to balance
+  if ~isa(hdr.user_block_data, 'cell')
     for k = 1:length(hdr.user_block_data)
-      ubtype{k,1} = hdr.user_block_data{k}.hdr.type;
+      tmp{k}=hdr.user_block_data(k);
     end
-    ubsel   = strmatch('B_weights_used', ubtype);
+    hdr.user_block_data = tmp;
+  end
+
+  %check whether weights have been applied and stored in header
+  for k = 1:length(hdr.user_block_data)
+    ubtype{k,1} = hdr.user_block_data{k}.hdr.type;
+  end
+  ubsel   = strmatch('B_weights_used', ubtype);
+  
+  if ~isempty(ubsel),
+    %balance gradiometers
+    weights  = hdr.user_block_data{ubsel};
+    if hdr.user_block_data{ubsel}.version==1,
+      %the user_block does not contain labels to the channels and references
+      %warning('the weight table does not contain contain labels to the channels and references: assuming the channel order as they occur in the header and the refchannel order M.A M.aA G.A');
+      label    = {hdr.config.channel_data(:).name}';
+      meglabel = channelselection('MEG',    label);
+      imeg     = match_str(label, meglabel);
+      tabreflabel = {'MxA';'MyA';'MzA';'MxaA';'MyaA';'MzaA';'GxxA';'GyyA';'GyxA';'GzxA';'GzyA'}; %FIXME this is hard coded according to a few tests
+      reflabel = channelselection('MEGREF', label);
+      [dum, order] = match_str(reflabel, tabreflabel);
+      weights.dweights = weights.dweights(imeg,:);
+      weights.aweights = weights.aweights(imeg,:);
+    else
+      meglabel = weights.channames;
+      reflabel = weights.drefnames;
+      order    = 1:length(reflabel);
+    end
+    nmeg              = length(meglabel);
+    nref              = length(reflabel);
+    montage.labelorg  = cat(1, meglabel, reflabel);
+    montage.labelnew  = cat(1, meglabel, reflabel);
+    montage.tra       = [eye(nmeg, nmeg), -weights.dweights(:,order); zeros(nref, nmeg), eye(nref, nref)];
+    balance           = struct(weights.position, montage);
     
-    if ~isempty(ubsel),
-      %balance gradiometers
-      weights  = hdr.user_block_data{ubsel};
-      if hdr.user_block_data{ubsel}.version==1,
-        %the user_block does not contain labels to the channels and references
-	warning('the weight table does not contain contain labels to the channels and references: assuming the order as they occur in the header');
-        label    = {hdr.config.channel_data(:).name}';
-	meglabel = channelselection('MEG',    label);
-	imeg     = match_str(label, meglabel);
-	reflabel = channelselection('MEGREF', label);
-	weights.dweights = weights.dweights(imeg,:);
-      else
-        meglabel = weights.channames;
-        reflabel = weights.drefnames;
-      end
-      nmeg              = length(meglabel);
-      nref              = length(reflabel);
-      montage.labelorg  = cat(1, meglabel, reflabel);
-      montage.labelnew  = cat(1, meglabel, reflabel);
-      montage.tra       = [eye(nmeg, nmeg), -weights.dweights; zeros(nref, nmeg), eye(nref, nref)];
-      balance           = struct(weights.position, montage);
-      if hdr.user_block_data{ubsel}.version==1,
-        warning('not applying balancing because order of reference list is unknown');
-      else  
-        grad.balance      = balance;
-        grad.balance.current = weights.position;
-	grad              = apply_montage(grad, getfield(grad.balance, grad.balance.current));
-      end
+    %check the version and the input arguments
+    if nargin==1,
+      balanceflag = hdr.user_block_data{ubsel}.version~=1;
+    end
+    
+    if balanceflag,
+      fprintf('applying digital weights in the gradiometer balancing matrix\n');
+      grad.balance      = balance;
+      grad.balance.current = weights.position;
+      grad              = apply_montage(grad, getfield(grad.balance, grad.balance.current));
+    else
+      fprintf('not applying digital weights in the gradiometer balancing matrix\n');
     end
   end
   

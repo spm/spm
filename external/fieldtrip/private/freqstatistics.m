@@ -39,6 +39,11 @@ function [stat] = freqstatistics(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: freqstatistics.m,v $
+% Revision 1.23  2009/10/07 10:03:30  jansch
+% temporary workaround to work with private copy statistics_wrapperJM, in order
+% to develop some code. users whose (part of their) username contains 'jan'
+% will run into problems, and have to uncomment lines 140, 143-145
+%
 % Revision 1.22  2009/04/08 15:57:08  roboos
 % moved the handling of the output cfg (with all history details) from wrapper to main function
 %
@@ -136,8 +141,14 @@ elseif isfield(cfg, 'parameter')
   end
 end
 
-% call the general function
-[stat, cfg] = statistics_wrapper(cfg, varargin{:});
+[status,output] = system('whoami');
+if isempty(strfind(output,'jan')),
+  % call the general function
+  [stat, cfg] = statistics_wrapper(cfg, varargin{:});
+else
+  % call the general function
+  [stat, cfg] = statistics_wrapperJM(cfg, varargin{:});
+end
 
 % add version information to the configuration
 try
@@ -148,7 +159,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqstatistics.m,v 1.22 2009/04/08 15:57:08 roboos Exp $';
+cfg.version.id = '$Id: freqstatistics.m,v 1.23 2009/10/07 10:03:30 jansch Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];

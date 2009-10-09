@@ -127,6 +127,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.111  2009/10/08 19:03:28  roboos
+% in case of continuous, also use hdr.nSamplesPre for reading in complete data as single trial
+%
 % Revision 1.110  2009/10/01 11:39:36  jansch
 % also put offset-field in output if nargin>1 and hasoffset
 %
@@ -566,7 +569,7 @@ else
       trl = zeros(1, 3);
       trl(1,1) = 1;
       trl(1,2) = hdr.nSamples*hdr.nTrials;
-      trl(1,3) = 0;
+      trl(1,3) = -hdr.nSamplesPre;
     else
       trl = zeros(hdr.nTrials, 3);
       for i=1:hdr.nTrials
@@ -692,7 +695,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.110 2009/10/01 11:39:36 jansch Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.111 2009/10/08 19:03:28 roboos Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

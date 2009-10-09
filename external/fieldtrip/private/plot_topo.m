@@ -19,6 +19,12 @@ function [varargout] = plot_topo(chanX, chanY, dat, varargin)
 % Copyrights (C) 2009, Giovanni Piantoni
 %
 % $Log: plot_topo.m,v $
+% Revision 1.9  2009/10/09 11:18:23  jansch
+% fixed some inappropriate behaviour
+%
+% Revision 1.8  2009/10/09 10:23:34  jansch
+% added interplim as option, according to topoplot (default = electrodes)
+%
 % Revision 1.7  2009/08/12 15:15:18  jansch
 % also changed the order of inputs on the first line of the function
 %
@@ -47,7 +53,7 @@ holdflag = ishold;
 hold on
 
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'gridscale', 'shading', 'mask', 'outline'});
+keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'gridscale', 'shading', 'mask', 'outline', 'interplim'});
 hpos        = keyval('hpos',      varargin); if isempty(hpos);       hpos = 0;           end
 vpos        = keyval('vpos',      varargin); if isempty(vpos);       vpos = 0;           end
 width       = keyval('width',     varargin); if isempty(width);      width = 1;          end
@@ -56,6 +62,25 @@ gridscale   = keyval('gridscale', varargin); if isempty(gridscale);  gridscale =
 shading     = keyval('shading',   varargin); if isempty(shading);    shading = 'flat';   end;
 mask        = keyval('mask',      varargin);
 outline     = keyval('outline',   varargin);
+interplim   = keyval('interplim', varargin); if isempty(interplim);  interplim = 'electrodes'; end
+
+chanX = chanX * width  + hpos;
+chanY = chanY * height + vpos;
+
+if strcmp(interplim, 'electrodes'),
+  hlim = [min(chanX) max(chanX)];
+  vlim = [min(chanY) max(chanY)];
+elseif strcmp(interplim, 'mask') && ~isempty(mask),
+  hlim = [inf -inf];
+  vlim = [inf -inf];
+  for i=1:length(mask)
+    hlim = [min([hlim(1); mask{i}(:,1)+hpos]) max([hlim(2); mask{i}(:,1)+hpos])];
+    vlim = [min([vlim(1); mask{i}(:,2)+vpos]) max([vlim(2); mask{i}(:,2)+vpos])];
+  end
+else
+  hlim = [min(chanX) max(chanX)];
+  vlim = [min(chanY) max(chanY)];
+end
 
 % try to speed up the preparation of the mask on subsequent calls
 current_argin = {chanX, chanY, gridscale, mask};
@@ -65,24 +90,20 @@ if isequal(current_argin, previous_argin)
 elseif ~isempty(mask)
   % convert the mask into a binary image
   maskimage = false(gridscale);
-  hlim      = [min(chanX) max(chanX)];
-  vlim      = [min(chanY) max(chanY)];
+  %hlim      = [min(chanX) max(chanX)];
+  %vlim      = [min(chanY) max(chanY)];
   xi        = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
   yi        = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
   [Xi,Yi]   = meshgrid(xi', yi);
   for i=1:length(mask)
+    mask{i}(:,1) = mask{i}(:,1)+hpos;
+    mask{i}(:,2) = mask{i}(:,2)+vpos;
     mask{i}(end+1,:) = mask{i}(1,:);                   % force them to be closed
     maskimage(inside_contour([Xi(:) Yi(:)], mask{i})) = true;
   end
 else
   maskimage = [];
 end
-
-chanX = chanX * width  + hpos;
-chanY = chanY * height + vpos;
-
-hlim = [min(chanX) max(chanX)];
-vlim = [min(chanY) max(chanY)];
 
 xi         = linspace(hlim(1), hlim(2), gridscale);       % x-axis for interpolation (row vector)
 yi         = linspace(vlim(1), vlim(2), gridscale);       % y-axis for interpolation (row vector)

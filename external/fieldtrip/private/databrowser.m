@@ -27,6 +27,16 @@ function [cfg] = databrowser(cfg, data)
 % Copyright (C) 2009, Robert Oostenveld, Ingrid Niewenhuis
 %
 % $Log: databrowser.m,v $
+% Revision 1.22  2009/10/09 15:27:12  ingnie
+% added button to identify channel in butterfly viewmode
+%
+% Revision 1.21  2009/10/08 10:02:06  ingnie
+% fixed bug when no cfg.eventfile, thanks to Steven for reporting
+%
+% Revision 1.20  2009/10/07 13:51:38  roboos
+% allow for maxmin as vertical scale
+% implemented drawing of events (sofar only in butterfly view mode)
+%
 % Revision 1.19  2009/10/01 07:59:52  ingnie
 % 11 iso 10 xticks (devides time into 10 steps). redraw after feature selection
 %
@@ -112,6 +122,7 @@ if ~isfield(cfg, 'selectmode'),      cfg.selectmode = 'joint';        end % join
 if ~isfield(cfg, 'viewmode'),        cfg.viewmode = 'butterfly';      end % butterfly, vertical, component, settings
 if ~isfield(cfg, 'blocksize'),       cfg.blocksize = 1;               end % only for segmenting continuous data, i.e. one long trial
 if ~isfield(cfg, 'preproc'),         cfg.preproc = [];                end % see preproc for options
+if ~isfield(cfg, 'eventfile'),       cfg.eventfile = [];              end
 
 if ischar(cfg.selectfeature)
   % ensure that it is a cell array
@@ -131,6 +142,9 @@ if nargin>1
   % fetch the header
   hdr = fetch_header(data);
   
+  % fetch the events
+  event = fetch_event(data);
+  
   cfg.channel = channelselection(cfg.channel, data.label);
   chansel = match_str(data.label, cfg.channel);
   fsample = 1/(data.time{1}(2)-data.time{1}(1));
@@ -143,6 +157,13 @@ if nargin>1
 else
   % read the header
   hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  
+  % read the events
+  if ~isempty(cfg.eventfile)
+    event = read_event(cfg.eventfile);
+  else
+    event = [];
+  end
   
   % this option relates to reading over trial boundaries in a pseudo-continuous dataset
   if ~isfield(cfg, 'continuous')
@@ -214,8 +235,6 @@ for i=1:length(cfg.selectfeature)
   end
 end
 
-% FIXME ensure nice sorting of artifact labels
-
 % make a artdata representing all artifacts in a "raw data" format
 datbegsample = min(trlorg(:,1));
 datendsample = max(trlorg(:,2));
@@ -270,6 +289,7 @@ end
 opt.artdata  = artdata;
 opt.cfg      = cfg;        % the configuration of this function, not of the preprocessing
 opt.hdr      = hdr;
+opt.event    = event;
 opt.trlop    = 1;          % active trial being displayed
 opt.ftsel    = find(strcmp(artlabel,cfg.selectfeature)); % current artifact/feature being selected
 opt.trlorg   = trlorg;
@@ -307,9 +327,14 @@ uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbut
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+downarrow')
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+uparrow')
 
-%legend artifacts/features
+% legend artifacts/features
 for iArt = 1:length(artlabel)
   uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', artlabel{iArt}, 'userdata', num2str(iArt), 'position', [0.91, 0.9 - ((iArt-1)*0.1), 0.08, 0.05], 'backgroundcolor', opt.artcol(iArt,:))
+end
+
+if strcmp(cfg.viewmode, 'butterfly')
+  % button to find label of nearest channel to datapoint
+  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'channame', 'userdata', 'n', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
 end
 
 uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
@@ -356,7 +381,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: databrowser.m,v 1.19 2009/10/01 07:59:52 ingnie Exp $';
+cfg.version.id = '$Id: databrowser.m,v 1.22 2009/10/09 15:27:12 ingnie Exp $';
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
 
@@ -521,7 +546,7 @@ elseif strcmp(opt.cfg.selectmode, 'multiplot')
   tmpcfg.showlabels = 'markers'; % FIXME
   tmpcfg.interactive = 'yes';
   figure; multiplotER(tmpcfg, timelock);
-
+  
 elseif strcmp(opt.cfg.selectmode, 'topoplot-avg')
   % cut out the requested data segment
   if isempty(opt.orgdata)
@@ -546,7 +571,7 @@ elseif strcmp(opt.cfg.selectmode, 'topoplot-avg')
   tmpcfg.interactive = 'no';
   figure; topoplotER(tmpcfg, timelock);
   
-  elseif strcmp(opt.cfg.selectmode, 'topoplot-pow')
+elseif strcmp(opt.cfg.selectmode, 'topoplot-pow')
   % cut out the requested data segment
   if isempty(opt.orgdata)
     tmpcfg = opt.cfg; % FIXME: some options should be passed, but not all
@@ -685,9 +710,15 @@ switch key
     redraw_cb(h, eventdata);
   case 'v'
     % select the vertical scaling
-    response = inputdlg('vertical scale', 'specify', 1, {num2str(opt.cfg.zscale)});
+    response = inputdlg('vertical scale, number or ''maxmin'')', 'specify', 1, {num2str(opt.cfg.zscale)});
     if ~isempty(response)
-      opt.cfg.zscale = str2double(response);
+      if isnan(str2double(response)) && strcmp(response, 'maxmin')
+        minval = min(opt.curdat.trial{1}(:));
+        maxval = max(opt.curdat.trial{1}(:));
+        opt.cfg.zscale = max(abs([minval maxval]));
+      else
+        opt.cfg.zscale = str2double(response);
+      end
     end
     guidata(h, opt);
     redraw_cb(h, eventdata);
@@ -698,6 +729,20 @@ switch key
     opt.cfg.channel = opt.hdr.label(select);
     guidata(h, opt);
     redraw_cb(h, eventdata);
+  case 'n'
+    if strcmp(opt.cfg.viewmode, 'butterfly')
+      % click in data and get name of nearest channel
+      fprintf('click in the figure to receive the name of the closest channel\n');
+      val = ginput(1);
+      channame = val2nearestchan(opt.curdat,val);
+      channb = match_str(opt.curdat.label,channame);
+      fprintf('channel name: %s\n',channame);
+      redraw_cb(h, eventdata);
+      hold on
+      xtext = opt.cfg.zscale - 0.1*opt.cfg.zscale;
+      plot_text(val(1), xtext, channame, 'FontSize', 16);
+      plot(opt.curdat.time{1}, opt.curdat.trial{1}(channb,:),'k','LineWidth',2)
+    end
   case 'control+control'
     % do nothing
   case 'shift+shift'
@@ -748,6 +793,15 @@ endsample = opt.trlvis(opt.trlop, 2);
 offset    = opt.trlvis(opt.trlop, 3);
 chanindx  = match_str(opt.hdr.label, opt.cfg.channel);
 
+if ~isempty(opt.event)
+  % select only the events in the current time window
+  event     = opt.event;
+  evtsample = [event(:).sample];
+  event     = event(evtsample>=begsample & evtsample<=endsample);
+else
+  event = [];
+end
+
 if isempty(opt.orgdata)
   fprintf('reading data... ');
   dat = read_data(opt.cfg.datafile, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', strcmp(opt.cfg.continuous, 'no'), 'dataformat', opt.cfg.dataformat, 'headerformat', opt.cfg.headerformat);
@@ -766,6 +820,10 @@ fprintf('preprocessing data... ');
 [dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), opt.fsample, opt.cfg.preproc, offset);
 fprintf('done\n');
 
+opt.curdat.label    = lab;
+opt.curdat.time{1}  = tim;
+opt.curdat.trial{1} = dat;
+
 fprintf('plotting data... ');
 switch opt.cfg.viewmode
   case 'butterfly'
@@ -781,6 +839,18 @@ switch opt.cfg.viewmode
       for j=1:numel(artbeg)
         plot_box([tim(artbeg(j)) tim(artend(j)) -opt.cfg.zscale opt.cfg.zscale], 'facecolor', opt.artcol(i,:), 'edgecolor', 'none');
       end
+    end
+    
+    % plot a line with text for each event
+    for i=1:length(event)
+      try
+        eventstr = sprintf('%s=%d', event(i).type, event(i).value);
+      catch
+        eventstr = 'unknown';
+      end
+      eventtim = (event(i).sample-begsample+offset)/opt.fsample;
+      plot_line([eventtim eventtim], [-opt.cfg.zscale opt.cfg.zscale]);
+      plot_text(eventtim, opt.cfg.zscale, eventstr);
     end
     
     % plot the data on top of the box
@@ -847,7 +917,7 @@ switch opt.cfg.viewmode
       end
     end
     
-	  nticks = 11;
+    nticks = 11;
     set(gca, 'xTick', linspace(ax(1), ax(2), nticks))
     xTickLabel = cellstr(num2str( linspace(tim(1), tim(end), nticks)' , '%1.2f'))';
     set(gca, 'xTickLabel', xTickLabel)

@@ -47,6 +47,9 @@ function [stat] = sourcestatistics(cfg, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: sourcestatistics.m,v $
+% Revision 1.44  2009/10/07 10:06:21  jansch
+% temporary workaround to work with private copy statistics_wrapperJM, in order to develop some code (of coures with the eventual benefit for all). users whose (part of their) username contains 'jan' may run into problems, and have to uncomment lines 157, 161-163
+%
 % Revision 1.43  2009/04/08 15:57:08  roboos
 % moved the handling of the output cfg (with all history details) from wrapper to main function
 %
@@ -153,9 +156,14 @@ elseif strcmp(cfg.method, 'randcluster')
   % use the source-specific statistical subfunction
   stat = sourcestatistics_randcluster(cfg, varargin{:});
 else
-  % use the data-indepentend statistical wrapper function
-  % this will collect the data and subsequently call STATISTICS_XXX
-  [stat, cfg] = statistics_wrapper(cfg, varargin{:});
+  [status,output] = system('whoami');
+  if isempty(strfind(output,'jan')),
+    % use the data-indepentend statistical wrapper function
+    % this will collect the data and subsequently call STATISTICS_XXX
+    [stat, cfg] = statistics_wrapper(cfg, varargin{:});
+  else
+    [stat, cfg] = statistics_wrapperJM(cfg, varargin{:});
+  end
 end
 
 % add version information to the configuration
@@ -167,7 +175,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcestatistics.m,v 1.43 2009/04/08 15:57:08 roboos Exp $';
+cfg.version.id = '$Id: sourcestatistics.m,v 1.44 2009/10/07 10:06:21 jansch Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
