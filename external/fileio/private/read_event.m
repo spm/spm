@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.105  2009/10/08 11:15:20  roevdmei
+% added support for nmc_archive_k
+%
 % Revision 1.104  2009/09/22 11:15:47  vlalit
 % Changes by Laurence Hunt for distinguishing between analog and digital event channels for Neuromag.
 %
@@ -1601,7 +1604,11 @@ switch eventformat
       event(end  ).duration =  hdr.nSamples;
       event(end  ).value    = value(i);
     end
+    
+  case 'nmc_archive_k'
+    event = read_nmc_archive_k_event(filename);
 
+    
   otherwise
     error('unsupported event format');
 end

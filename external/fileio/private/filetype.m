@@ -54,6 +54,9 @@ function [type] = filetype(filename, desired, varargin)
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.99  2009/10/07 09:48:00  jansch
+% added some lines to be able to deal with memory mapped files
+%
 % Revision 1.98  2009/07/07 10:38:38  roboos
 % added header check for dicom
 %
@@ -256,6 +259,10 @@ if isequal(current_argin, previous_argin) && isequal(current_pwd, previous_pwd)
   % don't do the detection again, but return the previous value from cache
   type = previous_argout{1};
   return
+end
+
+if strcmp(class(filename), 'memmapfile'),
+  filename = filename.Filename;
 end
 
 % % get the optional arguments
