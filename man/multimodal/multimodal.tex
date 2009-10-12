@@ -370,7 +370,7 @@ Given that one has data from multiple subjects, one can create a NIFTI file for 
 
 \section{MEG analysis}
 
-\subsection{Preprocessing the MEG data}
+\subsection{Preprocessing the MEG data\label{multimodal:data:meg:preproc}}
 
 First change directory to the MEG subdirectory (either in \matlab\, or via the ``CD'' option in the SPM ``Utils'' menu)
 
@@ -555,7 +555,7 @@ Press \textsc{Results} and define a new T-contrast as $[1\: -1]$. Keep the defau
 
 This will list two ``regions'' within the 2D time-frequency space in which faces produce greater power than scrambled faces, having corrected for multiple T-tests across pixels. The larger one has a maximum at 5 Hz and 185 ms post-stimulus, corresponding to the M170 seen earlier in the averaged files (but now with a statistical test of its significance, in terms of evoked and induced power). The second, smaller region has a maximum at 12 Hz and 100 ms, possibly corresponding to a smaller but earlier effect on the M100 (also sometimes reported, depending on what faces are contrasted with).
 
-\subsection{``Imaging'' reconstruction of differential power}
+\subsection{``Imaging'' reconstruction of differential power\label{multimodal:data:meg:recon_pow}}
 
 In Section~\ref{multimodal:eeg:3D} we localised the differential evoked potential difference in EEG data corresponding to the N170.  Here we will localise the total power of faces vs scrambled faces in a timewindow corresponding to that of the M170, ie including potential induced components (see Friston et al, 2006).
 
@@ -631,7 +631,7 @@ Toggle the modality from EEG to fMRI, and change directory to the fMRI subdirect
 Press the \textsc{Batch} button and then:
 
 \begin{itemize}
-\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{^fM.*}).
+\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{\^fM.*}).
 
 \item Add a \textsc{Spatial: Coreg: Estimate} module, and select the \texttt{smri.img} image in the \texttt{sMRI} directory for the ``Reference Image'' and select a ``Dependency'' for the ``Source Image'', which is the Mean image produced by the previous Realign module.
 
