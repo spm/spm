@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3343 2009-09-02 14:08:32Z vladimir $
+% $Id: spm_api_erp.m 3457 2009-10-13 00:09:30Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -126,13 +126,23 @@ catch
     model = model{get(handles.Spatial,'Value')};
     DCM.options.spatial = model;
 end
-switch model
-    case{'IMG'}, set(handles.Spatial,'Value',1);
-    case{'ECD'}, set(handles.Spatial,'Value',2);
-    case{'LFP'}, set(handles.Spatial,'Value',3);
-    otherwise
+
+if ismember(DCM.options.analysis, {'IND', 'PHA'})
+    switch model
+        case{'IMG'}, set(handles.Spatial,'Value',1);
+        case{'ECD'}, set(handles.Spatial,'Value',1);
+        case{'LFP'}, set(handles.Spatial,'Value',2);
+        otherwise
+    end
+else
+    switch model
+        case{'IMG'}, set(handles.Spatial,'Value',1);
+        case{'ECD'}, set(handles.Spatial,'Value',2);
+        case{'LFP'}, set(handles.Spatial,'Value',3);
+        otherwise
+    end
 end
- 
+
 % Filename
 %--------------------------------------------------------------------------
 try, set(handles.name,'String',f);  end
@@ -1177,7 +1187,7 @@ switch handles.DCM.options.analysis
         end
         set(handles.model,      'Enable','off');
         set(handles.Spatial,    'Value', 1);
-        set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
+        set(handles.Spatial,    'String',{'ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
         set(handles.Imaging,    'Enable','off' )
         set(handles.onset,      'Enable','on');
@@ -1194,7 +1204,7 @@ switch handles.DCM.options.analysis
         set(handles.Nmodes,  'Enable', 'off');
         set(handles.model,   'Enable','off');
         set(handles.Spatial, 'Value', 1);
-        set(handles.Spatial, 'String',{'ECD','ECD','LFP'});
+        set(handles.Spatial, 'String',{'ECD','LFP'});
         set(handles.Wavelet, 'Enable','on','String','Hilbert transform');
         set(handles.Imaging, 'Enable','off' )
         set(handles.onset,   'Enable','off');
