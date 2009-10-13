@@ -42,7 +42,7 @@ function [cfgname, defname] = spm_tbx_config2cfg(c0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_tbx_config2cfg.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_tbx_config2cfg.m 3460 2009-10-13 12:48:52Z volkmar $
 
 % Convert to cfg_ tree. This will produce warnings if some elements could
 % not be converted properly.
@@ -53,7 +53,7 @@ defname = sprintf('tbx_def_%s', tag);
 [c defaults] = val2def(c, [], defname, '');
 
 % generate code for configuration
-cstr = gencode(c,'',{},'',cfg_tropts(cfg_findspec, 0, Inf, 0, Inf, true));
+cstr = gencode(c,'',{});
 fid = fopen(sprintf('%s.m', cfgname),'w');
 fprintf(fid, 'function %s = %s\n', tag, cfgname);
 fprintf(fid, ...
