@@ -4,7 +4,7 @@ function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
 %
 % post      [Nd x M] vector of posterior model probabilities
 %           If Nd>1 then inference is based on a RFX posterior p(r|Y)
-% subj      subj(n).model(m).fname: DCM filename
+% subj      subj(n).sess(s).model(m).fname: DCM filename
 % Nsamp     Number of samples (default = 1e3)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
 %           all models used in average)
@@ -17,7 +17,7 @@ function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3348 2009-09-03 10:32:01Z guillaume $
+% $Id: spm_dcm_bma.m 3459 2009-10-13 10:37:51Z maria $
 
 if nargin < 3 | isempty(Nsamp)
     Nsamp=1e3;
@@ -27,12 +27,13 @@ if nargin < 4 | isempty(oddsr)
 end
 
 Nsub=length(subj);
+theta=[];
 
 [Nd M]=size(post);
 if Nd > 1 
     rfx=1;
     if Nsamp>Nd,
-        disp('Error in spm_dcm_bma: not enough samples');
+        error('Error in spm_dcm_bma: not enough samples');
     end
 else
     rfx=0;
@@ -45,6 +46,7 @@ if rfx
     Nocc=length(post_ind);
     disp(' ');
     disp(sprintf('%d models in Occams window',Nocc));
+    if Nocc==0, return; end
     for occ=1:Nocc,
         m=post_ind(occ);
         disp(sprintf('Model %d, <r|Y>=%1.2f',m,mean_post(m)));
@@ -61,6 +63,7 @@ else
     Nocc=length(post_ind);
     disp(' ');
     disp(sprintf('%d models in Occams window',Nocc));
+    if Nocc==0, return; end
     for occ=1:Nocc,
         m=post_ind(occ);
         disp(sprintf('Model %d, p(m|Y)=%1.2f',m,post(m)));
@@ -75,16 +78,15 @@ end
 for n=1:Nsub,
     for kk=1:Nocc,
         sel=post_ind(kk);
-        load_str=['load ',subj(n).model(sel).fname];
+        load_str=['load ',subj(n).sess(1).model(sel).fname];
         eval(load_str);
-        subj(n).model(kk).Ep=DCM.Ep;
-        subj(n).model(kk).Cp=full(DCM.Cp);
+        subj(n).sess(1).model(kk).Ep=DCM.Ep;
+        subj(n).sess(1).model(kk).Cp=full(DCM.Cp);
     end
 end
 
 % Pre-allocate sample arrays
-Np=length(subj(n).model(kk).Ep);
-theta=zeros(Np,Nsamp);
+Np=length(spm_vec(subj(n).sess(1).model(kk).Ep));
 theta_all=zeros(Np,Nsub);
 
 for i=1:Nsamp,
@@ -97,9 +99,10 @@ for i=1:Nsamp,
     
     % Pick parameters from model for each subject
     for n=1:Nsub,
-        mu=subj(n).model(m).Ep;
-        sig=subj(n).model(m).Cp;
-        tmp=spm_samp_gauss (mu,sig,1);
+        mu=subj(n).sess(1).model(m).Ep;
+        mu=spm_vec(mu);
+        sig=subj(n).sess(1).model(m).Cp;
+        tmp=spm_samp_gauss (mu,sig,1)';
         theta_all(:,n)=tmp(:);
     end
     

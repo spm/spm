@@ -1,5 +1,4 @@
 function out = spm_run_bms_dcm (varargin)
-
 % API to compare DCMs on the basis of their log-evidences. Three methods
 % are available to identify the best among alternative models:
 %
@@ -17,7 +16,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3445 2009-10-06 11:22:23Z maria $
+% $Id: spm_run_bms_dcm.m 3459 2009-10-13 10:37:51Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -26,6 +25,18 @@ fname   = 'BMS.mat';                 % Output filename
 fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
 priors  = job.priors;
 ld_f    = ~isempty(job.load_f{1});
+bma_do  = isfield(job.bma,'bma_yes');
+data_se = ~isempty(job.sess_dcm);
+
+% Check DCM.mat files 
+if bma_do
+    if data_se
+       bma.nsamp       = str2num(job.bma.bma_yes.bma_nsamp);
+       bma.odds_ratio  = str2num(job.bma.bma_yes.bma_ratio);
+    else
+        error('Plase specify DCM.mat files to do BMA!')
+    end
+end
 
 F = [];
 N = {};
@@ -126,15 +137,15 @@ else
     end
 end
 
-
 % bayesian model selection 
+% -------------------------------------------------------------------------
 % -------------------------------------------------------------------------
 
 % free energy
 sumF = sum(F,1);
 
 % family or model level
-
+% -------------------------------------------------------------------------
 if isfield(job.family_level,'family_file')
     
     if ~isempty(job.family_level.family_file{1})
@@ -147,14 +158,14 @@ if isfield(job.family_level,'family_file')
         nfam    = size(family.names,2);
         npart   = length(unique(family.partition));
         maxpart = max(family.partition);
+        m_indx  = 1:nm;
     
         if nfam ~= npart || npart == 1 || maxpart > npart
-            msgbox('Invalid family file!')
+            error('Invalid family file!')
             out.files{1} = [];
-            return
         end
     else     
-        error('Please specify family file!');
+        do_family = 0;
     end
     
 else
@@ -167,8 +178,10 @@ else
         
         names_fam  = {};
         models_fam = [];
+        m_indx     = [];
         for f=1:nfam
             names_fam    = [names_fam,job.family_level.family(f).family_name];
+            m_indx       = [m_indx,job.family_level.family(f).family_models'];
             models_fam(job.family_level.family(f).family_models) = f;
         end
         
@@ -177,9 +190,10 @@ else
         
         npart   = length(unique(family.partition));
         maxpart = max(family.partition);
-    
-        if nfam ~= npart || npart == 1 || maxpart > npart
-           msgbox('Invalid family!')
+        nmodfam = length(m_indx);
+
+        if nfam ~= npart || npart == 1 || maxpart > npart || nmodfam > nm 
+           error('Invalid family!')
            out.files{1} = [];
            return
         end
@@ -192,18 +206,31 @@ else
 end
 
 % single subject BMS or 1st level( fixed effects) group BMS
+% -------------------------------------------------------------------------
 if strcmp(job.method,'FFX'); 
+    
+    model.post     = spm_api_bmc(sumF,N);
     
     if ~do_family
         
-        model.post = spm_api_bmc(sumF,N);
         family     = [];
        
     else
         
-        model.post     = spm_api_bmc(sumF,N);
-        [family,model] = spm_compare_families (F,family);
+        Ffam           = F(:,m_indx);
+        [family,model] = spm_compare_families (Ffam,family);
                
+    end
+    
+    if bma_do, 
+       
+       bma.post        = model.post;
+       bma.theta       = spm_dcm_bma(bma.post,subj,bma.nsamp,bma.odds_ratio);
+      
+    else
+        
+        bma = [];
+        
     end
 
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
@@ -219,11 +246,13 @@ if strcmp(job.method,'FFX');
     BMS.DCM.ffx.SF      = sumF;
     BMS.DCM.ffx.model   = model;
     BMS.DCM.ffx.family  = family;
+    BMS.DCM.ffx.bma     = bma;
      
     save(fname,'BMS')
     out.files{1} = fname;
     
 % 2nd-level (random effects) BMS
+% -------------------------------------------------------------------------
 else   
     
     if ~do_family
@@ -231,15 +260,27 @@ else
         if nm <= ns
             [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
         else
-            [alpha,exp_r,xp] = spm_BMS_gibbs(F);
+            [exp_r,xp] = spm_BMS_gibbs(F);
         end
-        model.alpha = alpha;
+        model.alpha = [];
         model.exp_r = exp_r;
         model.xp    = xp;
         family      = [];
     else
         
-        [family,model] = spm_compare_families (F,family);
+        Ffam           = F(:,m_indx);
+        [family,model] = spm_compare_families (Ffam,family);
+        
+    end
+    
+    if bma_do, 
+       
+       bma.post        = model.r_samp;
+       bma.theta       = spm_dcm_bma(bma.post,subj,bma.nsamp,bma.odds_ratio);
+      
+    else
+        
+        bma = [];
         
     end
 
@@ -256,6 +297,7 @@ else
     BMS.DCM.rfx.SF      = sumF;
     BMS.DCM.rfx.model   = model;
     BMS.DCM.rfx.family  = family;
+    BMS.DCM.rfx.bma     = bma;
     
     save(fname,'BMS')
     out.files{1}= fname;
@@ -265,6 +307,8 @@ else
     
 end
 
+% verify data
+% -------------------------------------------------------------------------
 spm_figure('GetWin','Graphics');
 axes('position', [0.01, 0.01, 0.01, 0.01]); 
 axis off

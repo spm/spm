@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3445 2009-10-06 11:22:23Z maria $
+% $Id: spm_cfg_bms.m 3459 2009-10-13 10:37:51Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -235,9 +235,10 @@ select_family.help    = {'Specify family name and models.'};
 family_level         = cfg_choice;
 family_level.tag     = 'family_level';
 family_level.name    = 'Family level';
-family_level.help    = {['Family level inference. Options: load family.mat '...
-                        'or specify family names and models using '...
-                        'the interface.']};
+family_level.help    = {['Optional field to perform family level inference.'...
+                         'Options: load family.mat '...
+                         'or specify family names and models using '...
+                         'the interface.']};
 family_level.val     = {family_file };
 family_level.values  = {family_file select_family };
 
@@ -247,7 +248,9 @@ family_level.values  = {family_file select_family };
 bma_ratio         = cfg_entry;
 bma_ratio.tag     = 'bma_ratio';
 bma_ratio.name    = 'Odds ratio';
-bma_ratio.help    = {'Specify odds ratio'};
+bma_ratio.help    = {['Specify odds ratio. Posterior odds ratio for '...
+                     'defining Occam''s window (default=0, ie all models '...
+                     ' used in average).']};
 bma_ratio.strtype = 's';
 bma_ratio.num     = [0 Inf];
 bma_ratio.val     = {'0'};
@@ -257,37 +260,39 @@ bma_ratio.val     = {'0'};
 % ---------------------------------------------------------------------
 bma_nsamp         = cfg_entry;
 bma_nsamp.tag     = 'bma_nsamp';
-bma_nsamp.name    = 'Nb. of samples';
-bma_nsamp.help    = {'Specify number of samples'};
+bma_nsamp.name    = 'Number of samples';
+bma_nsamp.help    = {'Specify number of samples (default = 1e3).'};
 bma_nsamp.strtype = 's';
 bma_nsamp.num     = [0 Inf];
 bma_nsamp.val     = {'1e3'};
 
 % ---------------------------------------------------------------------
-% bma_do Average models
+% bma_no no
 % ---------------------------------------------------------------------
-bma_do         = cfg_menu;
-bma_do.tag     = 'bma_do';
-bma_do.name    = 'Average models';
-bma_do.help    = {'Average models'};
-bma_do.labels  = {
-                  'yes'
-                  'no'
-}';
-bma_do.values  = {
-                  1
-                  0
-}'; 
-bma_do.val     = {0};
+bma_no         = cfg_const;
+bma_no.tag     = 'bma_no';
+bma_no.name    = 'Do not compute';
+bma_no.val     = {0};
+bma_no.help    = {'Do not prepare Bayesian Model Averaging (BMA)'}';
+
+% ---------------------------------------------------------------------
+% bma_yes yes
+% ---------------------------------------------------------------------
+bma_yes         = cfg_branch;
+bma_yes.tag     = 'bma_yes';
+bma_yes.name    = 'Choose parameters';
+bma_yes.val     = {bma_nsamp bma_ratio };
+bma_yes.help    = {'Prepare Bayesian Model Averaging (BMA)'}';
 
 % ---------------------------------------------------------------------
 % bma BMA
 % ---------------------------------------------------------------------
-bma         = cfg_branch;
+bma         = cfg_choice;
 bma.tag     = 'bma';
 bma.name    = 'BMA';
-bma.help    = {'Bayesian Model Averaging'};
-bma.val     = {bma_do bma_nsamp bma_ratio };
+bma.help    = {'Optional field to prepare bayesian model averaging (BMA).'};
+bma.val     = {bma_no };
+bma.values  = {bma_no bma_yes };
 
 % ---------------------------------------------------------------------
 % verify_id Verify data ID
@@ -298,8 +303,8 @@ verify_id.name    = 'Verify data identity';
 verify_id.help    = {['Verify whether the model comparison is valid '...
                    'i.e. whether the models have been fitted to the same data.']};
 verify_id.labels  = {
-                  'yes'
-                  'no'
+                  'Yes'
+                  'No'
 }';
 verify_id.values  = {
                   1
@@ -457,7 +462,7 @@ scale.val     = {[]};
 bms_dcm      = cfg_exbranch;
 bms_dcm.tag  = 'bms_dcm';
 bms_dcm.name = 'BMS: DCM';
-bms_dcm.val  = {dir dcm load_f method priors family_level verify_id};
+bms_dcm.val  = {dir dcm load_f method priors family_level bma verify_id};
 bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
     '(DCM) for fMRI or MEEG.']...
     ''...
