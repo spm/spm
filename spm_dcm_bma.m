@@ -17,7 +17,7 @@ function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3459 2009-10-13 10:37:51Z maria $
+% $Id: spm_dcm_bma.m 3461 2009-10-13 15:25:24Z maria $
 
 if nargin < 3 | isempty(Nsamp)
     Nsamp=1e3;
@@ -78,8 +78,8 @@ end
 for n=1:Nsub,
     for kk=1:Nocc,
         sel=post_ind(kk);
-        load_str=['load ',subj(n).sess(1).model(sel).fname];
-        eval(load_str);
+        load_str=subj(n).sess(1).model(sel).fname;
+        load(load_str);
         subj(n).sess(1).model(kk).Ep=DCM.Ep;
         subj(n).sess(1).model(kk).Cp=full(DCM.Cp);
     end
