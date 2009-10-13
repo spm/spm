@@ -13,7 +13,7 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 3288 2009-07-27 09:23:54Z maria $
+% $Id: spm_run_bms_vis.m 3458 2009-10-13 10:05:35Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -92,13 +92,19 @@ xdim          = DIM(1); ydim  = DIM(2); zdim  = DIM(3);
 xords         = xords(:)';  yords = yords(:)';
 I             = 1:xdim*ydim;
 zords_init    = repmat(1,1,xdim*ydim);
+svol          = xdim*ydim*zdim;
 
 % Legend of results being plotted
 % -------------------------------------------------------------------------
 [pathstr,name_image] = fileparts(V.fname);
 undersc              = find(name_image=='_');
-res_name             = name_image(undersc(end)+1);
-subset_model         = name_image(1:undersc(end-1)-1);
+
+if ~isempty(undersc) && length(undersc)>1
+    res_name             = name_image(undersc(end)+1);
+    subset_model         = name_image(1:undersc(end-1)-1);
+else
+    res_name = '';
+end
 
 % Show results being displayed on graphics window
 switch res_name
@@ -118,6 +124,7 @@ end
 % -------------------------------------------------------------------------
 xyz_above = [];
 z_above   = [];
+xyz_total = [];
 
 for z = 1:zdim,
     
@@ -129,7 +136,7 @@ for z = 1:zdim,
         xyz_above = [xyz_above,xyz(:,above)];
         z_above   = [z_above,zvals(above)];
     end
-
+    xyz_total = [xyz_total,xyz];
 end
 
 % SPM figure: SPM, MIP and GUI
@@ -166,32 +173,37 @@ if ~isempty(z_above)
     end
 
     % Save data in xSPM structure
-    voxels_mm     = M*[XYZ;ones(1,size(XYZ,2))];
-    voxels_mm     = voxels_mm(1:3,:);
-    xSPM.swd      = file_fname;
-    xSPM.STAT     = '';
-    xSPM.Z        = Z;
-    xSPM.XYZ      = XYZ;
-    xSPM.XYZmm    = voxels_mm;
-    xSPM.xVol.M   = M;
-    xSPM.xVol.DIM = DIM;
-    xSPM.DIM      = DIM;
-    xSPM.M        = M;
-    xSPM.iM       = iM;
-    xSPM.n        = 1;
-    xSPM.k        = k;
-    xSPM.df       = [];
-    xSPM.u        = threshold;
-    xSPM.STAT     = '';
-    xSPM.VOX      = vox;        
-    xSPM.thres    = threshold;
-    xSPM.vols     = post;
-    xSPM.scale    = odds;
-    xSPM.units    = {'mm'  'mm'  'mm'};
-    xSPM.Ps       = [];
-    xSPM.S        = 0;
-    xSPM.z_ps     = z_ps;
-    BMS.xSPM      = xSPM;
+    voxels_mm         = M*[XYZ;ones(1,size(XYZ,2))];
+    voxels_mm         = voxels_mm(1:3,:);
+    xSPM.swd          = file_fname;
+    xSPM.STAT         = '';
+    xSPM.Z            = Z;
+    xSPM.XYZ          = XYZ;
+    xSPM.XYZmm        = voxels_mm;
+    xSPM.xVol.M       = M;
+    xSPM.xVol.DIM     = DIM;
+    xSPM.SPM.xVol.XYZ = xyz_total;
+    xSPM.SPM.xVol.S   = svol;
+    xSPM.SPM.xVol.M   = M;
+    xSPM.SPM.xVol.DIM = DIM;
+    xSPM.DIM          = DIM;
+    xSPM.M            = M;
+    xSPM.iM           = iM;
+    xSPM.n            = 1;
+    xSPM.k            = k;
+    xSPM.df           = [];
+    xSPM.u            = threshold;
+    xSPM.FWHM         = 10;                    % arbritary value
+    xSPM.STAT         = '';
+    xSPM.VOX          = vox;        
+    xSPM.thres        = threshold;
+    xSPM.vols         = post;
+    xSPM.scale        = odds;
+    xSPM.units        = {'mm'  'mm'  'mm'};
+    xSPM.Ps           = [];
+    xSPM.S            = 0;
+    xSPM.z_ps         = z_ps;
+    BMS.xSPM          = xSPM;
     
     % Display on workspace
     assignin('base','BMS',BMS);

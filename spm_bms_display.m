@@ -10,7 +10,7 @@ function [] = spm_bms_display(BMS,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 3288 2009-07-27 09:23:54Z maria $
+% $Id: spm_bms_display.m 3458 2009-10-13 10:05:35Z maria $
 
 % Main options (action)
 % =========================================================================
@@ -202,8 +202,17 @@ switch action
                 'Interruptible','on','Enable','on',...
                 'Position',[130 055 140 020].*WS,...
                 'ForegroundColor','k');
+            
+    % Compare groups
+    % ---------------------------------------------------------------------
+    uicontrol(Finter,'Style','PushButton','String','compare groups',...
+                'FontSize',FS(10),...
+                'ToolTipString','Compare two groups. E.g. controls vs patients.',...
+                'Callback','spm_bms_display('''',''groups'');',...
+                'Interruptible','on','Enable','on',...
+                'Position',[015 055 100 020].*WS,...
+                'ForegroundColor','k');
            
-    
     % Draw Save, Clear and Exit
     % ---------------------------------------------------------------------
     hClear = uicontrol(Finter,'Style','PushButton','String','clear',...
@@ -291,9 +300,17 @@ switch action
             'Callback','spm_bms_display('''',''listCluster'');',...
             'Interruptible','on','Enable','on',...
             'Position',[015 120 100 020].*WS)
-    uicontrol(Finter,'Style','PushButton','String','','FontSize',FS(10),...
-            'Enable','on',...
-            'Callback','',...
+    uicontrol(Finter,'Style','PushButton','String','ROI','FontSize',FS(10),...
+            'ToolTipString',...
+            'plot probabilities for selected ROI',...
+            'Callback','spm_bms_display('''',''plotROI'');',...
+            'Position',[015 095 100 020].*WS)
+        
+    uicontrol(Finter,'Style','PushButton','String','small volume','FontSize',FS(10),...
+            'ToolTipString',['Small Volume Correction - probability values ',...
+            'for a small search region'],...
+            'Callback','spm_bms_display('''',''listVOI'');',...
+            'Interruptible','on','Enable','on',...
             'Position',[015 095 100 020].*WS)
         
     % Draw Options
@@ -306,12 +323,19 @@ uicontrol(Finter,'Style','Text',...
             'FontSize',FS(10),...
             'HorizontalAlignment','Left',...
             'ForegroundColor','w')
-    uicontrol(Finter,'Style','PushButton','String','plot','FontSize',...
-            FS(10),'ToolTipString','plot results at current voxel',...
-            'Callback','spm_bms_display('''',''do_plot'')',...
+        
+    strp  = { 'plot...','current voxel','ROI'};
+    tstrp = { 'plot results from comparisons at: ',...
+        'current voxel / ','region of interest /'};
+    tmpp  = { 'spm_bms_display('''',''do_plot'')',...
+            'spm_bms_display('''',''do_ROI'')'};
+        
+    uicontrol(Finter,'Style','PopUp','String',strp,'FontSize',FS(10),...
+            'ToolTipString',cat(2,tstrp{:}),...
+            'UserData',tmpp,...
+            'Callback','spm_bms_display('''',''overlays'')',...
             'Interruptible','on','Enable','on',...
-            'Position',[285 145 100 020].*WS,...
-            'Tag','plotButton')
+            'Position',[285 145 100 020].*WS)
     str  = { 'overlays...','slices','sections','render','previous sections'};
     tstr = { 'overlay results on another image: ',...
         '3 slices / ''ortho sections / ','render /','previous ortho sections'};
@@ -354,7 +378,20 @@ uicontrol(Finter,'Style','Text',...
         user_data = get(user_data.hMIPax,'UserData');
         user_data = get(user_data.hMIPxyz,'UserData');
         xyz_vx    = iM*[user_data; 1];
-        spm_bms_display_vox(BMS,xyz_vx(1:3));     
+        spm_bms_display_vox(BMS,xyz_vx(1:3));   
+        
+    % Do ROI - action: 'do_ROI'
+    % =====================================================================
+    case 'do_ROI'
+        
+        fig       = gcf;
+        user_data = get(fig,'UserData');
+        iM        = user_data.iM;
+        BMS       = user_data.BMS;
+        user_data = get(user_data.hMIPax,'UserData');
+        user_data = get(user_data.hMIPxyz,'UserData');
+        xyz_vx    = iM*[user_data; 1];
+        spm_bms_display_ROI(BMS);     
 
     % Do overlays - action: 'overlays'
     % =====================================================================
@@ -477,14 +514,14 @@ uicontrol(Finter,'Style','Text',...
         
     % Small volume
     % =====================================================================
-    case 'VOI'
+    case 'listVOI'
         
         fig       = gcf;
         user_data = get(fig,'UserData');
         xSPM      = user_data.xSPM;
         hReg      = user_data.hReg;
         xSPM.STAT = 'P';
-        spm_VOI(BMS,xSPM,hReg);
+        spm_VOI(xSPM.SPM,xSPM,hReg);
         
     % Model partitioning
     % =====================================================================
@@ -493,6 +530,23 @@ uicontrol(Finter,'Style','Text',...
         user_data = get(fig,'UserData');
         BMS       = user_data.BMS;
         spm_bms_partition(BMS);
+        
+    % Model partitioning
+    % =====================================================================
+    case 'groups'   
+        
+        fig         = gcf;
+        user_data   = get(fig,'UserData');
+        BMS         = user_data.BMS;
+        
+        con_image   = spm_bms_compare_groups();
+        
+        job.img{1}  = con_image;
+        job.file{1} = user_data.BMS.fname;
+        job.thres   = [];
+        job.scale   = [];
+        job.k       = [];
+        spm_run_bms_vis(job);
         
 end  % End switch  
 

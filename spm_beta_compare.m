@@ -17,9 +17,9 @@ function xp = spm_beta_compare(alpha1,alpha2,Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_beta_compare.m 3448 2009-10-07 14:47:49Z will $
+% $Id: spm_beta_compare.m 3458 2009-10-13 10:05:35Z maria $
 
-if nargin < 2
+if nargin < 3
     Nsamp = 1e4;
 end
 
