@@ -25,12 +25,12 @@ You need to start SPM and toggle ``EEG'' as the modality (bottom-right of SPM ma
 
 After calling \texttt{spm eeg}, you see SPM's graphical user interface, the top-left window. The button for calling the DCM-GUI is found in the second partition from the top, on the right hand side. When pressing the button, the GUI pops up (Figure~\ref{dcm-ir:fig:1}). The GUI is partitioned into five parts, going from the top to the bottom. The first part is about loading and saving existing DCMs, and selecting the type of model. The second part is about selecting data, the third is for specification of the spatial forward model, the fourth is for specifying connectivity, and the last row of buttons allows you to estimate parameters and view results.
 
-%\begin{figure}
-%\begin{center}
-%\includegraphics[width=100mm]{dcm_ir/figures/figure1}
-%\caption{\em  xxx\label{dcm-ir:fig:1}}
-%\end{center}
-%\end{figure}
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{dcm_ir/figures/figure1}
+\caption{\em figure 1. DCM window configured for the FnBn model.\label{dcm-ir:fig:1}}
+\end{center}
+\end{figure}
 
 You have to select the data first and specify the model in a fixed order (data selection $>$ spatial model $>$
 connectivity model). This order is necessary, because there are dependencies among the three parts that would be hard to resolve
@@ -68,7 +68,7 @@ Press the ``Display'' button to look at the selected data. You will see the evok
 \begin{figure}
 \begin{center}
 \includegraphics[width=160mm]{dcm_ir/figures/figure2}
-\caption{\em  figure 2. \label{dcm-ir:fig:2}}
+\caption{\em  figure 2.  Averaged evoked responses after configuring the 'Data and design' section.\label{dcm-ir:fig:2}}
 \end{center}
 \end{figure}
 
@@ -115,19 +115,19 @@ The rightmost matrix in the first row is the input matrix. It is usually not squ
 
 The matrix (matrices) in the second specify which of the connections defined in the first row can be modified by experimental effects. A connection which is not modified will have the same value for all conditions. If you don't allow modifying any of the connections, then exactly the same model will be fit to all conditions. For the purpose of allowing modification by experimental effects it does not matter whether a connection is linear or non-linear. Hence, there is one matrix per experimental effect (defined in the ``Data and design'' panel). In our case there is only one effect the effect of faces vs. scrambled faces. Also self connections can be modified by experimental effects, thus the diagonal entries of the second row matrices can also be toggled.
 
-Figure ~\ref{dcm-ir:fig:3} is taken from the paper of Chen et al. \cite{cc_asymm} and shows several alternative models that could apply to the data. We will start with specifying the model with nonlinear forward and backward connections (FnBn) and with effect of condition on these connections. The corresponding button configuration is shown in Figure ~\ref{dcm-ir:fig:4}. Compare the depiction of FnBn modeli in Figure 3 and the specification in Figure 4 to see the correspondence. Note that the effect of condition is not shown in Figure 3. Now copy the speficication to the DCM GUI.
+Figure ~\ref{dcm-ir:fig:3} is taken from the paper of Chen et al. \cite{cc_asymm} and shows several alternative models that could apply to the data. We will start with specifying the model with nonlinear forward and backward connections (FnBn) and with effect of condition on these connections. The corresponding button configuration is shown in Figure ~\ref{dcm-ir:fig:4}. Compare the depiction of FnBn model in Figure 3 and the specification in Figure 4 to see the correspondence. Note that the effect of condition is not shown in Figure 3. Now copy the speficication to the DCM GUI.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=160mm]{dcm_ir/figures/figure3}
-\caption{\em  figure 3. \label{dcm-ir:fig:3}}
+\caption{\em  figure 3. Four different models proposed by Chen et al. \cite{cc_asymm} \label{dcm-ir:fig:3}}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=60mm]{dcm_ir/figures/figure4}
-\caption{\em  figure 4. \label{dcm-ir:fig:4}}
+\caption{\em  figure 4. Connectivity configuration for the FnBn model.\label{dcm-ir:fig:4}}
 \end{center}
 \end{figure}
 
@@ -182,9 +182,15 @@ You can now compare the fully nonlinear model with alternative models. Presented
 \includegraphics[width=40mm]{dcm_ir/figures/figure5_FlBl}
 \includegraphics[width=40mm]{dcm_ir/figures/figure5_FlBn}
 \includegraphics[width=40mm]{dcm_ir/figures/figure5_FnBl}
-\caption{\em  figure 5. \label{dcm-ir:fig:5}}
+\caption{\em  figure 5. Connectivity configurations for the alternative models. Left to right: FlBl, FlBn, FnBl. \label{dcm-ir:fig:5}}
 \end{center}
 \end{figure}
 
-Press the \textsc{BMS} button. This will open the SPM batch tool for model selection. Specify a directory to write the output file to.  For the ``Inference method'' select ``Fixed effects'' (see \cite{klaas_bms} for additional explanations). Then click on ``Data'' and at the box below click on ``New: Subject''. Click on ``Subject'' and in the box below on ``New: Session''. Click on models and in the selection window that comes up select the DCM mat files for all the models (remember the order in which you select the files as it is helpful for interpretation of the results). Then run the model comparison by pressing the green ``Run'' button. You will see, at the top, a bar plot of the log-model evidences for all models. At the bottom, you will see the probability, for each model, that it produced the data. By convention, a model can be said to be the best among a selection of other models, with strong evidence, if its log-model evidence exceeds all other log-model evidences by at least 3. In our case the FnBn model is superior to the other models as was found in the original paper \cite{cc_asymm} for a different group of subjects. 
+Press the \textsc{BMS} button. This will open the SPM batch tool for model selection. Specify a directory to write the output file to.  For the ``Inference method'' select ``Fixed effects'' (see \cite{klaas_bms} for additional explanations). Then click on ``Data'' and at the box below click on ``New: Subject''. Click on ``Subject'' and in the box below on ``New: Session''. Click on models and in the selection window that comes up select the DCM mat files for all the models (remember the order in which you select the files as it is helpful for interpretation of the results). Then run the model comparison by pressing the green ``Run'' button. You will see, at the top, a bar plot of the log-model evidences for all models ~\ref{dcm-ir:fig:6}. At the bottom, you will see the probability, for each model, that it produced the data. By convention, a model can be said to be the best among a selection of other models, with strong evidence, if its log-model evidence exceeds all other log-model evidences by at least 3. In our case the FnBn model is superior to the other models as was found in the original paper \cite{cc_asymm} for a different group of subjects. 
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{dcm_ir/figures/figure6}
+\caption{\em  figure 6. Bayesian model comparison results.\label{dcm-ir:fig:4}}
+\end{center}
+\end{figure}
