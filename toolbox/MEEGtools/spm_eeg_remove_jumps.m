@@ -11,6 +11,8 @@ function [D, alljumps] = spm_eeg_remove_jumps(S)
 % threshold  - threshold, default = 3000 fT (3pT)
 % stdthreshold - if present overrides the threshold field and specifies the
 %               threshold in terms of standard deviation
+% remove     - if set to zero, jumps are detected and marked, but not
+%              removed
 %
 % OUTPUT:
 % D          - MEEG object
@@ -32,7 +34,7 @@ function [D, alljumps] = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% $Id: spm_eeg_remove_jumps.m 3419 2009-09-25 14:29:40Z vladimir $
+% $Id: spm_eeg_remove_jumps.m 3463 2009-10-14 11:30:05Z vladimir $
 
 % Input parameters
 %==========================================================================
@@ -76,6 +78,18 @@ try
 catch
     channels = meegchannels(D);
 end
+
+% remove or detect? 
+% -------------------------------------------------------------------------
+try
+    remove = S.remove;
+    if ~isnumeric(remove) || ~ismember(remove, 1:2)
+        remove = 1;
+    end;
+catch
+    remove = 1;
+end;
+
 
 % Detect and remove jumps
 %==========================================================================
@@ -143,7 +157,7 @@ for blk = 1:blknum
         else
             jumps = find(abs(ddat) > S.stdthreshold*std(dat));
         end
-        if ~isempty(jumps)
+        if ~isempty(jumps) && remove
 
             % collapse jumps than are closer than 10 timepoints apart
             %--------------------------------------------------------------
