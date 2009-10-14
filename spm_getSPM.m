@@ -181,7 +181,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3433 2009-09-30 10:32:02Z guillaume $
+% $Id: spm_getSPM.m 3465 2009-10-14 15:14:29Z guillaume $
 
 
 %-GUI setup
@@ -550,7 +550,7 @@ end
 
 %-Compute (unfiltered) SPM pointlist for masked conjunction requested
 %==========================================================================
-fprintf('\t%-32s: %30s\n','SPM computation','...initialising')          %-#
+fprintf('\t%-32s: %30s','SPM computation','...initialising')            %-#
 
 
 %-Compute conjunction as minimum of SPMs
@@ -578,19 +578,14 @@ for i = Im
     else
         Q = Mask >  um;
     end
-    XYZ       = XYZ(:,Q);
-    Z         = Z(Q);
+    XYZ   = XYZ(:,Q);
+    Z     = Z(Q);
     if isempty(Q)
         fprintf('\n')                                                   %-#
         warning(sprintf('No voxels survive masking at p=%4.2f',pm));
         break
     end
 end
-
-%-clean up interface
-%--------------------------------------------------------------------------
-fprintf('\t%-32s: %30s\n','SPM computation','...done')                  %-#
-spm('Pointer','Arrow')
 
 
 %==========================================================================
@@ -613,7 +608,8 @@ end
 %--------------------------------------------------------------------------
 if STAT ~= 'P'
 
-
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...height threshold')  %-#
+    
     %-Get height threshold
     %----------------------------------------------------------------------
     try
@@ -642,7 +638,10 @@ if STAT ~= 'P'
 
         case 'FDR' % False discovery rate
         %------------------------------------------------------------------
-        if topoFDR, error('Change defaults.stats.topoFDR to use voxel FDR.'); end
+        if topoFDR, 
+            fprintf('\n');                                              %-#
+            error('Change defaults.stats.topoFDR to use voxel FDR.'); 
+        end
         try
             u = xSPM.u;
         catch
@@ -669,6 +668,7 @@ if STAT ~= 'P'
 
         otherwise
         %------------------------------------------------------------------
+        fprintf('\n');                                                  %-#
         error(sprintf('Unknown control method "%s".',thresDesc));
 
     end % switch thresDesc
@@ -677,6 +677,7 @@ if STAT ~= 'P'
     %----------------------------------------------------------------------
     if ~topoFDR
         %-Voxel-wise FDR
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...for voxelFDR')  %-#
         switch STAT
             case 'Z'
                 Ps   = (1-spm_Ncdf(Zum)).^n;
@@ -726,6 +727,7 @@ Q      = find(Z > u);
 Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
+    fprintf('\n');                                                      %-#
     warning(sprintf('No voxels survive height threshold u=%0.2g',u))
 end
 
@@ -734,6 +736,8 @@ end
 %--------------------------------------------------------------------------
 if ~isempty(XYZ) && nc == 1
 
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold')  %-#
+    
     %-Get extent threshold [default = 0]
     %----------------------------------------------------------------------
     try
@@ -756,6 +760,7 @@ if ~isempty(XYZ) && nc == 1
     Z     = Z(:,Q);
     XYZ   = XYZ(:,Q);
     if isempty(Q)
+        fprintf('\n');                                                  %-#
         warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
     end
 
@@ -765,20 +770,19 @@ else
 
 end % (if ~isempty(XYZ))
 
+%-For Bayesian inference provide (default) option to display contrast values
+%--------------------------------------------------------------------------
+if STAT == 'P'
+    if spm_input('Plot effect-size/statistic',1,'b',{'Yes','No'},[1 0])
+        Z = spm_get_data(xCon(Ic).Vcon,XYZ);
+    end
+end
 
 %==========================================================================
 % - E N D
 %==========================================================================
-fprintf('\t%-32s: %30s\n','SPM computation','...done')                  %-#
-
-% For Bayesian inference provide (default) option to display contrast values
-if STAT == 'P'
-    if spm_input('Plot effect-size/statistic',1,'b',{'Yes','No'},[1 0])
-        Z = spm_get_data(xCon(Ic).Vcon,XYZ);
-%         CC = spm_get_data(xCon(Ic).Vcon,XYZ); 
-%         Z = CC(:,Q);
-    end
-end
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                  %-#
+spm('Pointer','Arrow')
 
 %-Assemble output structures of unfiltered data
 %==========================================================================

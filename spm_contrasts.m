@@ -1,31 +1,30 @@
 function [SPM] = spm_contrasts(SPM,Ic)
-% Fills in SPM.xCon and writes con_????.img and SPM?_????.img
+% Fills in SPM.xCon and writes con_????.img, ess_????.img and SPM?_????.img
 % FORMAT [SPM] = spm_contrasts(SPM,Ic)
 %
 % SPM - SPM data structure
 % Ic  - indices of xCon to compute
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 3103 2009-05-09 18:50:01Z Darren $
+% $Id: spm_contrasts.m 3465 2009-10-14 15:14:29Z guillaume $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
 % slow. A side benefit is one can look at results with just read
-% privileges. -DRG
-%-----------------------------------------------------------------------
+% privileges.
+%--------------------------------------------------------------------------
 tmpSPM = SPM;
 
-
 %-Get and change to results directory
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     cd(SPM.swd);
 end
 
 %-Get contrast definitions (if available)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     xCon = SPM.xCon;
 catch
@@ -33,36 +32,36 @@ catch
 end
 
 %-Set all contrasts by default
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin < 2
     Ic   = 1:length(xCon);
 end
 
 %-Map parameter and hyperarameter files
-%-----------------------------------------------------------------------
-if xCon(Ic(1)).STAT == 'P'
+%--------------------------------------------------------------------------
+if ~isempty(xCon) && xCon(Ic(1)).STAT == 'P'
     
     %-Conditional estimators and error variance hyperparameters
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Vbeta = SPM.VCbeta;
 else
     
     %-OLS estimators and error variance estimate
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Vbeta = SPM.Vbeta;
     VHp   = SPM.VResMS;
 end
 
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
-%=======================================================================
+%==========================================================================
 spm('Pointer','Watch')
 XYZ   = SPM.xVol.XYZ;
 for i = 1:length(Ic)
     
     
     %-Canonicalise contrast structure with required fields
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     ic  = Ic(i);
     if isempty(xCon(ic).eidf)
         X1o           = spm_FcUtil('X1o',xCon(ic),SPM.xX.xKXs);
@@ -72,7 +71,7 @@ for i = 1:length(Ic)
     
     
     %-Write contrast/ESS images?
-    %===================================================================
+    %======================================================================
     if isempty(xCon(ic).Vcon)
         
         switch(xCon(ic).STAT)
@@ -81,18 +80,17 @@ for i = 1:length(Ic)
                 
                 if strcmp(xCon(ic).STAT,'P') && strcmp(SPM.PPM.xCon(ic).PSTAT,'F')
                     % Chi^2 Bayesian inference for compound contrast
-                    
+                    %------------------------------------------------------
                     disp('Chi^2 Bayesian inference for compound contrast');
-                    fprintf('\t%-32s: %30s',sprintf('X2 image %2d',i),...
-                        '...computing') %-#
+                    fprintf('\t%-32s: %30s',sprintf('X2 image %2d',ic),...
+                        '...computing');                                %-#
                     
-                    xCon=spm_vb_x2(SPM,XYZ,xCon,ic);
+                    xCon = spm_vb_x2(SPM,XYZ,xCon,ic);
                     
                 else  %-Implement contrast as sum of scaled beta images
-                    %---------------------------------------------------------------
-                    
-                    fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',i),...
-                        '(spm_add)','...initialising') %-#
+                    %------------------------------------------------------
+                    fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',ic),...
+                        '(spm_add)','...initialising');                 %-#
                     
                     Q     = find(abs(xCon(ic).c) > 0);
                     V     = Vbeta(Q);
@@ -101,7 +99,7 @@ for i = 1:length(Ic)
                     end
                     
                     %-Prepare handle for contrast image
-                    %-----------------------------------------------------------
+                    %------------------------------------------------------
                     xCon(ic).Vcon = struct(...
                         'fname',  sprintf('con_%04d.img',ic),...
                         'dim',    SPM.xVol.DIM',...
@@ -111,7 +109,7 @@ for i = 1:length(Ic)
                         'descrip',sprintf('SPM contrast - %d: %s',ic,xCon(ic).name));
                     
                     %-Write image
-                    %-----------------------------------------------------------
+                    %------------------------------------------------------
                     fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
                     xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
                     xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
@@ -123,16 +121,16 @@ for i = 1:length(Ic)
                 end
                 
             case 'F'  %-Implement ESS as sum of squared weighted beta images
-                %---------------------------------------------------------------
-                fprintf('\t%-32s: %30s',sprintf('ESS image %2d',i),...
-                    '...computing') %-#
+                %----------------------------------------------------------
+                fprintf('\t%-32s: %30s',sprintf('ESS image %2d',ic),...
+                    '...computing');                                    %-#
                 
                 %-Residual (in parameter space) forming mtx
-                %-----------------------------------------------------------
+                %----------------------------------------------------------
                 h       = spm_FcUtil('Hsqr',xCon(ic),SPM.xX.xKXs);
                 
                 %-Prepare handle for ESS image
-                %-----------------------------------------------------------
+                %----------------------------------------------------------
                 xCon(ic).Vcon = struct(...
                     'fname',  sprintf('ess_%04d.img',ic),...
                     'dim',    SPM.xVol.DIM',...
@@ -142,15 +140,15 @@ for i = 1:length(Ic)
                     'descrip',sprintf('SPM ESS -contrast %d: %s',ic,xCon(ic).name));
                 
                 %-Write image
-                %-----------------------------------------------------------
-                fprintf('%s',repmat(sprintf('\b'),1,30))                 %-#
+                %----------------------------------------------------------
+                fprintf('%s',repmat(sprintf('\b'),1,30))                %-#
                 xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
                 xCon(ic).Vcon = spm_resss(Vbeta,xCon(ic).Vcon,h);
                 xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
                 
                 
             otherwise
-                %---------------------------------------------------------------
+                %----------------------------------------------------------
                 error(['unknown STAT "',xCon(ic).STAT,'"'])
                 
         end % (switch(xCon...)
@@ -159,18 +157,18 @@ for i = 1:length(Ic)
     
     
     %-Write inference SPM/PPM
-    %===================================================================
+    %======================================================================
     if isempty(xCon(ic).Vspm) || xCon(ic).STAT=='P'
         % As PPM effect size threshold, gamma, may have changed
         % always update PPM file
         
-        fprintf('\t%-32s: %30s\n',sprintf('spm{%c} image %2d',xCon(ic).STAT,i),...
-            '...computing')  %-#
+        fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,ic),...
+            '...computing');                                            %-#
         
         switch(xCon(ic).STAT)
             
-            case 'T'                                  %-Compute SPM{t} image
-                %---------------------------------------------------------------
+            case 'T'                                 %-Compute SPM{t} image
+                %----------------------------------------------------------
                 cB    = spm_get_data(xCon(ic).Vcon,XYZ);
                 l     = spm_get_data(VHp,XYZ);
                 VcB   = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
@@ -178,8 +176,8 @@ for i = 1:length(Ic)
                 str   = sprintf('[%.1f]',SPM.xX.erdf);
                 
                 
-            case 'P'                                  %-Compute PPM{P} image
-                %---------------------------------------------------------------
+            case 'P'                                 %-Compute PPM{P} image
+                %----------------------------------------------------------
                 
                 if all(strcmp({SPM.PPM.xCon(ic).PSTAT},'T'))
                     % Simple contrast - Gaussian distributed
@@ -202,14 +200,14 @@ for i = 1:length(Ic)
                         for j = 1:length(SPM.PPM.l)
                             
                             % hyperparameter and Taylor approximation
-                            %---------------------------------------------------
+                            %----------------------------------------------
                             l   = spm_get_data(SPM.VHp(j),XYZ);
                             VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
                         end
                     end
                     
                     % posterior probability cB > g
-                    %-----------------------------------------------------------
+                    %------------------------------------------------------
                     Gamma          = xCon(ic).eidf;
                     Z              = 1 - spm_Ncdf(Gamma,cB,VcB);
                     str            = sprintf('[%.2f]',Gamma);
@@ -225,23 +223,23 @@ for i = 1:length(Ic)
                 end
                 
                 
-            case 'F'                                  %-Compute SPM{F} image
-                %---------------------------------------------------------------
+            case 'F'                                 %-Compute SPM{F} image
+                %----------------------------------------------------------
                 MVM = spm_get_data(xCon(ic).Vcon,XYZ)/trMV;
                 RVR = spm_get_data(VHp,XYZ);
                 Z   = MVM./RVR;
                 str = sprintf('[%.1f,%.1f]',xCon(ic).eidf,SPM.xX.erdf);
                 
             otherwise
-                %---------------------------------------------------------------
+                %----------------------------------------------------------
                 error(['unknown STAT "',xCon(ic).STAT,'"']);
                 
         end % (switch(xCon(ic)...)
         
         
         %-Write SPM - statistic image
-        %---------------------------------------------------------------
-        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing')    %-#
+        %------------------------------------------------------------------
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing');      %-#
         
         xCon(ic).Vspm = struct(...
             'fname',  sprintf('spm%c_%04d.img',xCon(ic).STAT,ic),...
@@ -260,18 +258,18 @@ for i = 1:length(Ic)
         
         clear tmp Z
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-            '...written %s',spm_str_manip(xCon(ic).Vspm.fname,'t')))  %-#
+            '...written %s',spm_str_manip(xCon(ic).Vspm.fname,'t')));   %-#
         
     end % (if isempty(xCon(ic)...)
     
 end % (for i = 1:length(Ic))
 
 % place xCon back in SPM
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xCon = xCon;
 
 % Check if SPM has changed. Save only if it has.
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isequal(tmpSPM,SPM)
     if spm_matlab_version_chk('7') >=0
         save('SPM', 'SPM', '-V6');
@@ -279,4 +277,3 @@ if ~isequal(tmpSPM,SPM)
         save('SPM', 'SPM');
     end
 end
-

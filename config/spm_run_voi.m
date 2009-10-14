@@ -1,0 +1,219 @@
+function out = spm_run_voi(job)
+% SPM job execution function
+% takes a harvested job data structure and call SPM functions to perform
+% computations on the data.
+% Input:
+% job    - harvested job data structure (see matlabbatch help)
+% Output:
+% out    - computation results, usually a struct variable.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Guillaume Flandin
+% $Id: spm_run_voi.m 3465 2009-10-14 15:14:29Z guillaume $
+
+fprintf('## Note: this VOI facility is in a beta version.      ##\n');
+fprintf('## Interface and features might change in the future. ##\n');
+
+%-Load SPM.mat
+%--------------------------------------------------------------------------
+swd     = spm_str_manip(job.spmmat{1},'H');
+load(fullfile(swd,'SPM.mat'));
+SPM.swd = swd;
+
+%-Initialise VOI voxels coordinates
+%--------------------------------------------------------------------------
+[x,y,z] = ndgrid(1:SPM.xVol.DIM(1),1:SPM.xVol.DIM(2),1:SPM.xVol.DIM(3));
+XYZ     = [x(:),y(:),z(:)]'; clear x y z
+XYZmm   = SPM.xVol.M(1:3,:) * [XYZ;ones(1,size(XYZ,2))];
+
+%-Estimate VOIs
+%--------------------------------------------------------------------------
+voi     = cell(1,numel(job.roi));
+for i=1:numel(job.roi)
+    voi = roi_estim(XYZmm,i,job,SPM,voi);
+end
+
+%-Evaluate resulting VOI
+%--------------------------------------------------------------------------
+voi     = roi_eval(voi,job.expression);
+
+%-Save VOI as image
+%--------------------------------------------------------------------------
+V = struct('fname', fullfile(swd, ['VOI_' job.name '.img']), ...
+    'dim',     SPM.xVol.DIM', ...
+    'dt',      [spm_type('uint8') spm_platform('bigend')], ...
+    'mat',     SPM.xVol.M, ...
+    'pinfo',   [1 0 0]', ...
+    'descrip', 'VOI');
+V = spm_create_vol(V);
+
+for i=1:V.dim(3)
+    V = spm_write_plane(V,voi(:,:,i),i);
+end
+
+%-Extract VOI time-series
+%--------------------------------------------------------------------------
+xY.name    = job.name;
+xY.Ic      = job.adjust;
+xY.Sess    = job.session;
+xY.xyz     = []'; % irrelevant here
+xY.def     = 'mask';
+xY.spec    = V;
+
+xSPM.XYZmm = XYZmm;
+xSPM.XYZ   = XYZ;
+xSPM.M     = SPM.xVol.M; % irrelevant here
+
+[Y,xY]     = spm_regions(xSPM,SPM,[],xY);
+
+%-Export results
+%--------------------------------------------------------------------------
+assignin('base','Y',Y);
+assignin('base','xY',xY);
+
+if isfield(SPM,'Sess'), s = sprintf('_%i',xY.Sess); else s = ''; end
+out.voimat = cellstr(fullfile(swd,['VOI_' job.name s '.mat']));
+out.voiimg = cellstr(V.fname);
+
+%==========================================================================
+function voi = roi_estim(xyz,n,job,SPM,voi)
+
+if ~isempty(voi{n}), return; end
+
+voi{n} = false(SPM.xVol.DIM');
+
+Q      = ones(1,size(xyz,2));
+
+switch char(fieldnames(job.roi{n}))
+    
+    case 'sphere'
+    %----------------------------------------------------------------------
+        c              = get_centre(xyz,n,job,SPM,voi);
+        r              = job.roi{n}.sphere.radius;
+        voi{n}(sum((xyz - c*Q).^2) <= r^2) = true;
+    
+    case 'box'
+    %----------------------------------------------------------------------
+        c              = get_centre(xyz,n,job,SPM,voi);
+        d              = job.roi{n}.box.dim(:);
+        voi{n}(all(abs(xyz - c*Q) <= d*Q/2)) = true;
+    
+    case 'spm'
+    %----------------------------------------------------------------------
+        if isempty(job.roi{n}.spm.spmmat{1})
+            job.roi{n}.spm.spmmat = job.spmmat;
+        end
+        [SPM1,xSPM]    = getSPM(job.roi{n}.spm);
+        voi1           = zeros(SPM1.xVol.DIM');
+        voi1(sub2ind(SPM1.xVol.DIM',xSPM.XYZ(1,:),xSPM.XYZ(2,:),xSPM.XYZ(3,:))) = 1;
+        XYZ            = SPM1.xVol.iM(1:3,:)*[xyz; Q];
+        voi{n}(spm_sample_vol(voi1, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0) = true;
+    
+    case 'mask'
+    %----------------------------------------------------------------------
+        v              = spm_vol(job.roi{n}.mask.image{1});
+        t              = job.roi{n}.mask.threshold;
+        iM             = inv(v.mat);
+        XYZ            = iM(1:3,:)*[xyz; Q];
+        voi{n}(spm_sample_vol(v, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > t) = true;
+    
+    case 'label'
+    %----------------------------------------------------------------------
+        v              = spm_vol(job.roi{n}.label.image{1});
+        l              = job.roi{n}.label.list;
+        iM             = inv(v.mat);
+        XYZ            = iM(1:3,:)*[xyz; Q];
+        voi{n}(ismember(spm_sample_vol(v, XYZ(1,:), XYZ(2,:), XYZ(3,:),0),l)) = true;
+    
+end
+
+%==========================================================================
+function voi = roi_eval(voi,expr)
+for i=1:numel(voi)
+    eval(sprintf('i%d=voi{%d};',i,i));
+end
+try
+    eval(['voi=' expr ';']);
+catch
+    error('The expression cannot be evaluated.');
+end
+
+%==========================================================================
+function idx = roi_expr(expr)
+e   = regexp(expr,'i\d+','match');
+idx = zeros(1,numel(e));
+for i=1:numel(e)
+    idx(i) = str2num(e{i}(2:end));
+end
+
+%==========================================================================
+function [SPM, xSPM] = getSPM(s)
+xSPM.swd       = spm_str_manip(s.spmmat{1},'H');
+xSPM.Ic        = s.contrast;
+xSPM.u         = s.thresh;
+xSPM.thresDesc = s.threshdesc;
+xSPM.k         = s.extent;
+xSPM.title     = '';
+xSPM.Im        = [];
+if ~isempty(s.mask)
+    xSPM.Im    = s.mask.contrast;
+    xSPM.pm    = s.mask.thresh;
+    xSPM.Ex    = s.mask.mtype;
+end
+[SPM,xSPM]     = spm_getSPM(xSPM);
+
+%==========================================================================
+function c = get_centre(xyz,n,job,SPM,voi)
+t             = char(fieldnames(job.roi{n}));
+c             = job.roi{n}.(t).centre(:);
+mv            = char(fieldnames(job.roi{n}.(t).move));
+if strcmp(mv,'fixed'), return; end
+
+m             = job.roi{n}.(t).move.(mv).spm;
+e             = job.roi{n}.(t).move.(mv).mask;
+k             = union(roi_expr(e), m);
+for i=1:numel(k)
+    voi       = roi_estim(xyz,k(i),job,SPM,voi);
+end
+try
+    if isempty(job.roi{m}.spm.spmmat{1})
+        job.roi{m}.spm.spmmat = job.spmmat;
+    end
+catch
+    error('The SPM index does not correspond to a Tresholded SPM ROI.');
+end
+[mySPM, xSPM] = getSPM(job.roi{m}.spm);
+XYZ           = SPM.xVol.iM(1:3,:)*[xSPM.XYZmm;ones(1,size(xSPM.XYZmm,2))];
+Z             = xSPM.Z;
+if ~isempty(e)
+    R         = spm_sample_vol(uint8(roi_eval(voi,e)), ...
+                  XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0;
+    XYZ       = XYZ(:,R);
+    XYZmm     = xSPM.XYZmm(:,R);
+    Z         = xSPM.Z(R);
+end
+[N Z M A]     = spm_max(Z,XYZ);
+if isempty(Z)
+    warning('No voxel survived. Default to user-specified centre.');
+    return
+end
+
+str           = '[%3.0f %3.0f %3.0f]';
+switch mv
+    case 'global'
+        [i,j] = max(Z);
+        nc    = SPM.xVol.M(1:3,:)*[M(:,j);1];
+        str   = sprintf(['centre moved to global maxima ' str],nc);
+    case 'local'
+        XYZ   = SPM.xVol.M(1:3,:)*[M;ones(1,size(M,2))];
+        nc    = spm_XYZreg('NearestXYZ',c,XYZ);
+        str   = sprintf(['centre moved from ' str ' to ' str],c,nc);
+    case 'supra'
+        nc    = spm_XYZreg('NearestXYZ',c,XYZmm);
+        str   = sprintf(['centre moved from ' str ' to ' str],c,nc);
+    otherwise
+        error(sprintf('Unknown option: ''%s''.',mv));
+end
+c             = nc;
+fprintf(['   ' upper(t(1)) t(2:end) ' ' str '\n']);                                              %-#

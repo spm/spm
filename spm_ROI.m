@@ -6,6 +6,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 %    xY.rej      - cell array of disabled VOI definition options
 %    xY.xyz      - centre of VOI {mm}
 %    xY.spec     - VOI definition parameters
+%    xY.str      - description of the VOI
 %
 % FORMAT [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xm] locations of voxels {mm}
@@ -16,17 +17,13 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 3354 2009-09-03 15:25:12Z guillaume $
+% $Id: spm_ROI.m 3465 2009-10-14 15:14:29Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
 end
 
-try
-    xY;
-catch
-    xY = [];
-end
+try, xY; catch, xY = []; end
 
 %-Specify ROI
 %==========================================================================
@@ -54,7 +51,7 @@ switch lower(xY.def)
 
     case 'sphere'
     %----------------------------------------------------------------------
-    if ~isfield(xY,'xyz')
+    if ~isfield(xY,'xyz') || isempty(xY.xyz)
         xY.xyz = spm_input('sphere centre [x y z] {mm}',...
             '!+0','r','0 0 0',3);
     end
@@ -65,7 +62,7 @@ switch lower(xY.def)
 
     case 'box'
     %----------------------------------------------------------------------
-    if ~isfield(xY,'xyz')
+    if ~isfield(xY,'xyz') || isempty(xY.xyz)
         xY.xyz = spm_input('box centre [x y z] {mm}',...
             '!+0','r','0 0 0',3);
     end
@@ -94,7 +91,7 @@ switch lower(xY.def)
         
     case 'cluster'
     %----------------------------------------------------------------------
-    if ~isfield(xY,'xyz')
+    if ~isfield(xY,'xyz') || isempty(xY.xyz)
         xY.xyz = spm_input('seed voxel [x y z] {mm}',...
             '!+0','r','0 0 0',3);
     end
@@ -142,3 +139,4 @@ switch lower(xY.def)
 end
 
 XYZmm      = XYZmm(:,j);
+if strcmpi(xY.def,'mask') && ~isempty(XYZmm), xY.xyz = mean(XYZmm,2); end
