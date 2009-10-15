@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3371 2009-09-08 14:15:52Z vladimir $
+% $Id: spm_eeg_average_TF.m 3466 2009-10-15 10:52:57Z vladimir $
 
-SVNrev = '$Rev: 3371 $';
+SVNrev = '$Rev: 3466 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -147,8 +147,23 @@ for j = 1:D.nchannels
         %-Straight average
         %------------------------------------------------------------------
         if ~circularise
-            Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
-            
+            if ~robust
+                Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
+            else
+                if bycondition
+                    [Y, W] = spm_robust_average(D(j, :, :, w), 4, ks);
+                    Dnew(j, :, :, i) = Y;
+                    if savew
+                        Dw(j, :, :, w)   = W;
+                    end
+                else
+                    X = D(j, :, :, w);
+                    X(isnan(X))      = 0;
+                    Dnew(j, :, :, i) = ...
+                        sum(W(1, :, :, w).*X, 4)./sum(W(1, :, :, w), 4);
+                end
+            end
+
             %-Vector average (eg PLV for phase)
             %------------------------------------------------------------------
         else
