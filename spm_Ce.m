@@ -1,27 +1,33 @@
 function [C] = spm_Ce(v,a)
-% return error covariance constraints for serially correlated data
+% return error covariance constraints (for serially correlated data)
 % FORMAT [C] = spm_Ce(v,a)
-% v  - (1 x l) v(i) = number of observations for ith block
+% v  - (1 x l) v(i) = number of observations for i-th block
 % a  - AR coefficient expansion point  (default a = [])
 % 
-%  C{1} = h(1)*AR(a)
-%  C{2} = h(1)*AR(a) + h(2)*dAR(a)/da(1);
-%  C{3} = h(1)*AR(a) + h(2)*dAR(a)/da(1) + h(3)*dAR(a)/da(2);
+% a  = [] (default) - block diagonal identity matrices specified by v:
+%
+%   C{i}  = blkdiag( zeros(v(1),v(1)),...,AR(0),...,zeros(v(end),v(end)))
+%   AR(0) = eye(v(i),v(i))
+%
+% otherwise:
+%
+%   C{i}     = AR(a) - a*dAR(a)/da;
+%   C{i + 1} = AR(a) + a*dAR(a)/da;
 %
 % See also: spm_Q.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_Ce.m 1143 2008-02-07 19:33:33Z spm $
-
-
-
+% $Id: spm_Ce.m 3468 2009-10-15 18:59:38Z karl $
+ 
+ 
 % defaults
 %--------------------------------------------------------------------------
-if nargin == 1, a = []; end
-
-% create blocks
+if nargin == 1, a = [];   end
+if nargin == 2, a = a(1); end
+ 
+% create block diagonal components
 %--------------------------------------------------------------------------
 C    = {};
 l    = length(v);
@@ -36,19 +42,19 @@ if l > 1
             y          = y    + k;
             C{end + 1} = sparse(x,y,q,n,n);
         end
-        k          = v(i) + k;
+        k     = v(i) + k;
     end
 else
     
     % dCda
     %----------------------------------------------------------------------
-    C{1}  = spm_Q(a,v);
-    dCda  = spm_diff('spm_Q',a,v,1);
-    for i = 1:length(a)
-            try
-        C{i + 1} = dCda{i};
-            catch
-                C{i + 1} = dCda;
-            end
+    if ~isempty(a)
+        Q    = spm_Q(a,v);
+        dQda = spm_diff('spm_Q',a,v,1);
+        C{1} = Q - dQda{1}*a;
+        C{2} = Q + dQda{1}*a;
+    else
+        C{1} = speye(v,v);
     end
+ 
 end

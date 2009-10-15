@@ -16,9 +16,10 @@ function [xVi] = spm_non_sphericity(xVi)
 % xVi.V    -  speye(n,n)
 %
 % See also; spm_Ce.m & spm_spm_ui.m
-%___________________________________________________________________________
+%__________________________________________________________________________
+%
 % Non-sphericity specification
-% =========================
+% =========================================================================
 %
 % In some instances the i.i.d. assumptions about the errors do not hold:
 %
@@ -51,20 +52,20 @@ function [xVi] = spm_non_sphericity(xVi)
 % stage. The components will be found in xX.xVi and enter the estimation 
 % procedure exactly as the serial correlations in fMRI models.
 % 
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_non_sphericity.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_non_sphericity.m 3468 2009-10-15 18:59:38Z karl $
 
 
 % create covariance components Q{:}
-%===========================================================================
-[n f] = size(xVi.I);            % # observations, % # Factors
+%==========================================================================
+[n f] = size(xVi.I);                    % # observations, % # Factors
 l     = max(xVi.I);                     % levels
 
 % if var(i): add variance component for each level of factor i,
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Q     = {};
 for i = find(xVi.var)
     for j = 1:l(i)
@@ -75,7 +76,7 @@ for i = find(xVi.var)
 end
 
 % effects (discounting factors with dependencies) as defined by interactions
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 X     = ones(n,1);
 for i = find(~xVi.dep & (l > 1))
     Xi    = sparse(1:n,xVi.I(:,i),1,n,l(i));
@@ -88,8 +89,8 @@ for i = find(~xVi.dep & (l > 1))
     end
 end
 
-% dependencies among repeated measures created by the hadamrad product
-%---------------------------------------------------------------------------
+% dependencies among repeated measures created by the Hadamard product
+%--------------------------------------------------------------------------
 for i = find(xVi.dep)
     q     = sparse(1:n,xVi.I(:,i),1,n,l(i));
     P     = q*q';
@@ -101,11 +102,10 @@ for i = find(xVi.dep)
 end
 
 % set Q in non-sphericity structure
-%---------------------------------------------------------------------------
-
+%==========================================================================
 
 % if i.i.d nonsphericity (V) is known otherwise there are components {Vi}
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if length(Q) > 1
     xVi.Vi = Q;
 else
