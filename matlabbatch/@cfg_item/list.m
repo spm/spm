@@ -45,9 +45,8 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % 'showdoc' - calls showdoc to display the help text and option hints for
 %             the current item.
 % This code is the generic list function, suitable for all cfg_leaf items.
-% It calls harvest(item, false, false) to retreive the contents of the .val
-% field. This harvest call ensures that the correct val (val{1}, dependency
-% or default value) is listed.
+% To ensure that the correct val (val{1}, dependency or default value)
+% is listed, the val field is treated in a special way.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -56,9 +55,9 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 2085 2008-09-12 10:26:59Z volkmar $
+% $Id: list.m 3469 2009-10-16 08:43:15Z volkmar $
 
-rev = '$Rev: 2085 $'; %#ok
+rev = '$Rev: 3469 $'; %#ok
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};
@@ -77,6 +76,21 @@ if match(item, spec)
                     val{k} = {all_set_item(item)};
                 case 'showdoc'
                     val{k} = {showdoc(item,'')};
+                case 'val'
+                    % special case for val item
+                    if tropts.dflag
+                        if isempty(item.def)
+                            dval = item.val;
+                            if isa(dval, 'cfg_dep')
+                                dval = [];
+                            end;
+                            val{k} = {dval};
+                        else
+                            val{k} = {{item.def({})}};
+                        end
+                    else
+                         val{k} = {subsref(item, substruct('.', fn{k}))};
+                    end
                 case fieldnames(item)
                     val{k} = {subsref(item, substruct('.', fn{k}))};
                 otherwise

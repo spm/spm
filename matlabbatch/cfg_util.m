@@ -373,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3357 2009-09-04 09:42:17Z volkmar $
+% $Id: cfg_util.m 3469 2009-10-16 08:43:15Z volkmar $
 
-rev = '$Rev: 3357 $';
+rev = '$Rev: 3469 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -526,9 +526,7 @@ switch lower(cmd),
         else
             cjob = numel(jobs)+1;
         end
-        % update application defaults - not only in .values, but also in
-        % pre-configured .val items
-        jobs(cjob).c0 = initialise(c0, '<DEFAULTS>', false);
+        jobs(cjob).c0 = c0;
         if nargin == 1
             jobs(cjob).cj = jobs(cjob).c0;
             jobs(cjob).cjid2subs = {};
@@ -878,8 +876,14 @@ for k = 1:2:numel(cjsubs)
             cjsubs(k+1).subs = {1};
         end
     end
+    cm = subsref(job.c0, c0subs(1:(k+1)));
+    if k == numel(cjsubs)-1
+        % initialise dynamic defaults - not only in defaults tree, but
+        % also in pre-configured .val items.
+        cm = initialise(cm, '<DEFAULTS>', false);
+    end
     % add path to module to cj
-    job.cj = subsasgn(job.cj, cjsubs(1:(k+1)), subsref(job.c0, c0subs(1:(k+1))));
+    job.cj = subsasgn(job.cj, cjsubs(1:(k+1)), cm);
 end
 % set id in module    
 job.cj = subsasgn(job.cj, [cjsubs substruct('.', 'id')], cjsubs);
@@ -1199,15 +1203,17 @@ if nargin > 1
         c1 = initialise(c1, def, true);
     end
 end
-c1 = initialise(c1, '<DEFAULTS>', true);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
 function [cjob, mod_job_idlist] = local_initjob(cjob, job)
 % Initialise a cell array of jobs
 for n = 1:numel(job)
+    % update application defaults - not only in .values, but also in
+    % pre-configured .val items
+    cj1 = initialise(cjob.c0, '<DEFAULTS>', false);
     % init job
-    cj1 = initialise(cjob.c0, job{n}, false);
+    cj1 = initialise(cj1, job{n}, false);
     % canonicalise (this may break dependencies, see comment in
     % local_getcjid2subs)
     [cj1 cjid2subs1] = local_getcjid2subs(cj1);
@@ -1313,9 +1319,9 @@ function job = local_runcj(job, cjob, pflag)
 % corresponding modules will not be run again. This feature is currently unused.
 
 cfg_message('matlabbatch:run:jobstart', ...
-            ['\n\n-----------------------------------------------------------------------\n',...
+            ['\n\n------------------------------------------------------------------------\n',...
              'Running job #%d\n', ...
-             '-----------------------------------------------------------------------'], cjob);
+             '------------------------------------------------------------------------'], cjob);
 
 job1 = local_compactjob(job);
 % copy cjid2subs, it will be modified for each module that is run
