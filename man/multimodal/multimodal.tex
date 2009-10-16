@@ -885,7 +885,7 @@ You can now compare the fully nonlinear model with alternative models (eg. those
 \end{center}
 \end{figure}
 
-Press the \textsc{BMS} button. This will open the SPM batch tool for model selection. Specify a directory to write the output file to.  For the ``Inference method'' select ``Fixed effects'' (see \cite{klaas_bms} for additional explanations). Then click on ``Data'' and in the box below click on ``New: Subject''. Click on ``Subject'' and in the box below on ``New: Session''. Click on models and in the selection window that comes up select the DCM mat files for all the models (remember the order in which you select the files as this is necessary for interpretating the results). Then run the model comparison by pressing the green ``Run'' button. You will see, at the top, a bar plot of the log-model evidences for all models ~\ref{dcm-ir:fig:6}. At the bottom, you will see the probability, for each model, that it produced the data. By convention, a model can be said to be the best among a selection of other models, with strong evidence, if its log-model evidence exceeds all other log-model evidences by at least 3. In our case the FnBn model is superior to the other models as was found in the original paper \cite{cc_asymm} for a different group of subjects. 
+Press the \textsc{BMS} button. This will open the SPM batch tool for model selection. Specify a directory to write the output file to.  For the ``Inference method'' select ``Fixed effects'' (see \cite{klaas_bms} for additional explanations). Then click on ``Data'' and in the box below click on ``New: Subject''. Click on ``Subject'' and in the box below on ``New: Session''. Click on models and in the selection window that comes up select the DCM mat files for all the models (remember the order in which you select the files as this is necessary for interpreting the results). Then run the model comparison by pressing the green ``Run'' button. You will see, at the top, a bar plot of the log-model evidences for all models ~\ref{dcm-ir:fig:6}. At the bottom, you will see the probability, for each model, that it produced the data. By convention, a model can be said to be the best among a selection of other models, with strong evidence, if its log-model evidence exceeds all other log-model evidences by at least 3. In our case the FnBn model is superior to the other models as was found in the original paper \cite{cc_asymm} for a different group of subjects. 
 
 \begin{figure}
 \begin{center}
@@ -909,7 +909,7 @@ dbespm8_SPM_CTF_MEG_example_faces1_3D.dat
 \end{verbatim}
 
 See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data. DCM-Phase requires a head model and coregistration. We therefore recommend that you go through the necessary processing steps on the above file and save the results. This includes the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
-comprising the MRI, CoReg, Forward, Invert and Save sub-steps.
+comprising the MRI, Co-register, Forward and Save sub-steps (see ~\ref{multimodal:data:meg:recon_pow}).
 
 \subsection{Getting Started}
 
@@ -936,7 +936,7 @@ ms. Select \texttt{1} for ``detrend'', to  remove the mean from each data record
 
 \subsection{Electromagnetic model}
 
-With DCM-Phase, there are two options for how to extract the source data. Firstly, you can use 3 orthogonal single equivalent current dipoles (ECD) for each source and invert the resulting source model to get source waveforms. This option is suitable for multichannel EEG or MEG data. Alternatively, you can treat each channel as a source (LFP option). This is appropriate when the channels already contain source data either recorded directly with intracranial electrodes or extracted (e.g. using a beamformer). 
+With DCM-Phase, there are two options for how to extract the source data. Firstly, you can use 3 orthogonal single equivalent current dipoles (ECD) for each source, invert the resulting source model to get 3 source waveforms and take the first principal component. This option is suitable for multichannel EEG or MEG data. Alternatively, you can treat each channel as a source (LFP option). This is appropriate when the channels already contain source data either recorded directly with intracranial electrodes or extracted (e.g. using a beamformer). 
 
 Note that a difference to DCM for evoked responses is that the parameters of the spatial model are not optimized. This means that DCM-Phase (like DCM-IR) will project the data into source space using the spatial locations you provide.
 
