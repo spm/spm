@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.20  2009/10/12 14:52:29  jansch
+% fix to handle missing offset field in mvar data
+%
 % Revision 1.19  2009/10/01 12:41:11  jansch
 % added some restructuring possibilities for sourcedimords
 %
@@ -697,6 +700,9 @@ if isequal(hasoffset,'yes')
     for i=1:length(data.time);
       data.offset(i) = time2offset(data.time{i}, data.fsample);
     end
+    okflag = 1;
+  elseif ~okflag && datatype(data, 'mvar')
+    data.offset = 0;
     okflag = 1;
   end
 

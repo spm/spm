@@ -77,6 +77,9 @@ function [cfg] = multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.52  2009/10/12 14:25:02  jansch
+% allow for plotting only x or y axis in cfg.axes
+%
 % Revision 1.51  2009/07/14 13:21:09  roboos
 % changed the interactive plotting: instead of using plotSelection it now uses the selection function from the new plotting module (select_range and select_channel) and uses a local subfunction to update the cfg and call the next figure
 %
@@ -582,7 +585,7 @@ if strcmp(cfg.showlabels,'yes')
 end
 
 % Draw axes:
-if strcmp(cfg.axes,'yes')
+if strcmp(cfg.axes,'yes') || strcmp(cfg.axes, 'xy')
   % Draw y axis
   xs =  xpos+width*([0 0]-xlim(1))/(xlim(2)-xlim(1));
   ys =  ypos+height*(ylim-ylim(1))/(ylim(2)-ylim(1));
@@ -590,6 +593,16 @@ if strcmp(cfg.axes,'yes')
   % Draw x axis
   xs =  xpos+width*(xlim-xlim(1))/(xlim(2)-xlim(1));
   ys =  ypos+height*([0 0]-ylim(1))/(ylim(2)-ylim(1));
+  plot(xs,ys,'k');
+elseif strcmp(cfg.axes,'x')
+  % Draw x axis
+  xs =  xpos+width*(xlim-xlim(1))/(xlim(2)-xlim(1));
+  ys =  ypos+height*([0 0]-ylim(1))/(ylim(2)-ylim(1));
+  plot(xs,ys,'k');
+elseif strcmp(cfg.axes,'y')
+  % Draw y axis
+  xs =  xpos+width*([0 0]-xlim(1))/(xlim(2)-xlim(1));
+  ys =  ypos+height*(ylim-ylim(1))/(ylim(2)-ylim(1));
   plot(xs,ys,'k');
 end
 

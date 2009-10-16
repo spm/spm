@@ -79,6 +79,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.62  2009/10/12 14:12:03  jansch
+% changed input from arbitrary coordinates and rotation to nas/lpa/rpa based for the per trial realignment
+%
 % Revision 1.61  2009/05/14 19:21:03  roboos
 % consistent handling of cfg.headshape in code and documentation
 %
@@ -147,7 +150,7 @@ if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';           end
 if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 
 %do realignment per trial
-pertrial = all(ismember({'X';'Y';'Z';'phiX';'phiY';'phiZ'}, data.label));
+pertrial = all(ismember({'nasX';'nasY';'nasZ';'lpaX';'lpaY';'lpaZ';'rpaX';'rpaY';'rpaZ'}, data.label));
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
@@ -239,6 +242,9 @@ templ.meanL = [0 0 0];
 templ.meanR = [0 0 0];
 for i=1:Ntemplate
   % determine the 4 ref sensors for this individual template helmet 
+  % FIXME this assumes that coils and sensors coincide, this is generally not
+  % true, however there is not much of a problem, because the points are only
+  % used to get a transformation matrix
   indxC = strmatch(labC, template(i).label, 'exact'); 
   indxF = strmatch(labF, template(i).label, 'exact'); 
   indxL = strmatch(labL, template(i).label, 'exact'); 
@@ -363,10 +369,10 @@ if ~pertrial,
 else
   %the forward model and realignment matrices have to be computed for each trial
   %this also goes for the singleshell volume conductor model
-  x = which('rigidbodyJM'); %this function is needed
-  if isempty(x),
-    error('you are trying out experimental code for which you need some extra functionality which is currently not in the release version of fieldtrip. if you are interested in trying it out, contact jan-mathijs'); 
-  end
+  %x = which('rigidbodyJM'); %this function is needed
+  %if isempty(x),
+  %  error('you are trying out experimental code for which you need some extra functionality which is currently not in the release version of fieldtrip. if you are interested in trying it out, contact jan-mathijs'); 
+  %end
 end
 
 % interpolate the data towards the template gradiometers
@@ -374,12 +380,13 @@ for i=1:Ntrials
   fprintf('realigning trial %d\n', i);
   if pertrial,
     %warp the gradiometer array according to the motiontracking data
-    sel   = match_str(rest.label, {'X';'Y';'Z';'phiX';'phiY';'phiZ'});
+    sel   = match_str(rest.label, {'nasX';'nasY';'nasZ';'lpaX';'lpaY';'lpaZ';'rpaX';'rpaY';'rpaZ'});
     hmdat = rest.trial{i}(sel,:);
     if ~all(hmdat==repmat(hmdat(:,1),[1 size(hmdat,2)]))
       error('only one position per trial is at present allowed');
     else
-      M    = rigidbodyJM(hmdat(:,1))
+      %M    = rigidbodyJM(hmdat(:,1))
+      M    = headcoordinates(hmdat(1:3,1),hmdat(4:6,1),hmdat(7:9,1));
       grad = transform_sens(M, data.grad); 
     end
 
@@ -499,7 +506,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.61 2009/05/14 19:21:03 roboos Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.62 2009/10/12 14:12:03 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

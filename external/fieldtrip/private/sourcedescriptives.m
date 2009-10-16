@@ -40,6 +40,11 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.45  2009/10/12 14:40:24  jansch
+% multiple changes, most important being to use cellfun rather than repeated
+% subfunction calls in a loop over voxels, and defining hasrefdip etc, to
+% avoid multiple isempty evaluations
+%
 % Revision 1.44  2009/04/08 08:35:50  roboos
 % ensure that the nai is based on the vectorised power and noise (otherwise the element-wise division fails)
 %
@@ -104,12 +109,14 @@ source = checkdata(source, 'datatype', 'source', 'feedback', 'yes');
 % set the defaults
 if ~isfield(cfg, 'transform'),        cfg.transform        = [];            end
 if ~isfield(cfg, 'projectmom'),       cfg.projectmom       = 'no';          end % if yes -> svdfft
+if ~isfield(cfg, 'numcomp'),          cfg.numcomp          = 1;             end
 if ~isfield(cfg, 'powmethod'),        cfg.powmethod        = [];            end % see below
 if ~isfield(cfg, 'cohmethod'),        cfg.cohmethod        = [];            end % see below
 if ~isfield(cfg, 'feedback'),         cfg.feedback         = 'textbar';     end
 if ~isfield(cfg, 'supmethod'),        cfg.supmethod        = 'none';        end
 if ~isfield(cfg, 'resolutionmatrix'), cfg.resolutionmatrix = 'no';          end
 if ~isfield(cfg, 'eta'),              cfg.eta              = 'no';          end
+if ~isfield(cfg, 'fa'),               cfg.fa               = 'no';          end
 if ~isfield(cfg, 'kurtosis'),         cfg.kurtosis         = 'no';          end
 if ~isfield(cfg, 'keeptrials'),       cfg.keeptrials       = 'no';          end
 if ~isfield(cfg, 'keepcsd'),          cfg.keepcsd          = 'no';          end
@@ -208,6 +215,7 @@ if ispccdata
   supsel = [supdipsel supchansel];
 
   if projectmom
+    source.avg.ori = cell(1, Ndipole);
     progress('init', cfg.feedback, 'projecting dipole moment');
     for diplop=1:length(source.inside)
       progress(diplop/length(source.inside), 'projecting dipole moment %d/%d\n', diplop, length(source.inside));
@@ -218,7 +226,7 @@ if ispccdata
       refchan = source.avg.mom{i}(refchansel, :);
       supchan = source.avg.mom{i}(supchansel, :);
       % compute the projection of the scanning dipole along the direction of the dominant amplitude
-      if length(dipsel)>1, [mom, rmom]  = svdfft(mom, 1, source.cumtapcnt); else rmom = []; end
+      if length(dipsel)>1, [mom, rmom]  = svdfft(mom, cfg.numcomp, source.cumtapcnt); else rmom = []; end
       source.avg.ori{source.inside(diplop)} = rmom;
       % compute the projection of the reference dipole along the direction of the dominant amplitude
       if length(refdipsel)>1, [ref, rref] = svdfft(ref, 1, source.cumtapcnt); else rref = []; end
@@ -247,7 +255,7 @@ if ispccdata
         rotmat(end+1,:) = 0;
         rotmat(end,length([dipsel(:);refdipsel(:);supdipsel(:);supchansel(:)])+j) = 1;
       end
-
+      
       % compute voxel-level csd-matrix
       source.avg.csd{i}      = rotmat * source.avg.csd{i} * rotmat';
       % compute voxel-level noisecsd-matrix
@@ -256,12 +264,18 @@ if ispccdata
       if isfield(source.avg, 'filter'),   source.avg.filter{i}   = rotmat * source.avg.filter{i}; end
       % compute rotated leadfield
       % FIXME in the presence of a refdip and/or supdip, this does not work; leadfield is Nx3
-      if isfield(source,  'leadfield'),   source.leadfield{i}    = source.leadfield{i} * rotmat'; end
+      if isfield(source,  'leadfield'),   
+        %FIXME this is a proposed dirty fix
+        n1 = size(source.leadfield{i},2);
+        %n2 = size(rotmat,2) - n1;
+        n2 = size(rotmat,2) - n1 +1; %added 1 JM
+        source.leadfield{i}    = source.leadfield{i} * rotmat(1:n2, 1:n1)'; 
+      end
     end %for diplop
     progress('close');
 
     % remember what the interpretation is of all CSD output components
-    scandiplabel = repmat({'scandip'}, 1, 1);                    % only one dipole orientation remains
+    scandiplabel = repmat({'scandip'}, 1, cfg.numcomp);          % only one dipole orientation remains
     refdiplabel  = repmat({'refdip'},  1, length(refdipsel)>0);  % for svdfft at max. only one dipole orientation remains
     supdiplabel  = repmat({'supdip'},  1, length(supdipsel)>0);  % for svdfft at max. only one dipole orientation remains
     refchanlabel = repmat({'refchan'}, 1, length(refchansel));
@@ -305,40 +319,46 @@ if ispccdata
     fprintf('using average voxel-level cross-spectral densities\n');
   end % if keeptrials
 
+  hasrefdip  = ~isempty(refdipsel);
+  hasrefchan = ~isempty(refchansel);
+  hassupdip  = ~isempty(supdipsel);
+  hassupchan = ~isempty(supchansel);
+  
   if keeptrials
     % do the processing of the CSD matrices for each trial
     if ~strcmp(cfg.supmethod, 'none')
       error('suppression is only supported for average CSD');
     end
-
+    dipselcell = mat2cell(repmat(dipsel(:)', [Ndipole 1]), ones(Ndipole,1), length(dipsel));
+    if hasrefdip,  refdipselcell  = mat2cell(repmat(refdipsel(:)',  [Ndipole 1]), ones(Ndipole,1), length(refdipsel));  end
+    if hasrefchan, refchanselcell = mat2cell(repmat(refchansel(:)', [Ndipole 1]), ones(Ndipole,1), length(refchansel)); end
+    if hassupdip,  supdipselcell  = mat2cell(repmat(supdipsel(:)',  [Ndipole 1]), ones(Ndipole,1), length(supdipsel));  end
+    if hassupchan, supchanselcell = mat2cell(repmat(supchansel(:)', [Ndipole 1]), ones(Ndipole,1), length(supchansel)); end
+    
     progress('init', cfg.feedback, 'computing singletrial voxel-level power');
     for triallop = 1:Ntrial
-      % initialize the variables
+      %initialize the variables
       source.trial(triallop).pow = zeros(Ndipole, 1);
-      if ~isempty(refdipsel),  source.trial(triallop).refdippow     = zeros(Ndipole, 1); end
-      if ~isempty(refchansel), source.trial(triallop).refchanpow    = zeros(Ndipole, 1); end
-      if ~isempty(supdipsel),  source.trial(triallop).supdippow     = zeros(Ndipole, 1); end
-      if ~isempty(supchansel), source.trial(triallop).supchanpow    = zeros(Ndipole, 1); end
+      if hasrefdip,  source.trial(triallop).refdippow     = zeros(Ndipole, 1); end
+      if hasrefchan, source.trial(triallop).refchanpow    = zeros(Ndipole, 1); end
+      if hassupdip,  source.trial(triallop).supdippow     = zeros(Ndipole, 1); end
+      if hassupchan, source.trial(triallop).supchanpow    = zeros(Ndipole, 1); end
 
       progress(triallop/Ntrial, 'computing singletrial voxel-level power %d%d\n', triallop, Ntrial);
-      for diplop = 1:length(source.inside)
-        i = source.inside(diplop);
-        % compute the power of each source component
-        source.trial(triallop).pow(i) = powmethodfun(source.trial(triallop).csd{i}(dipsel,dipsel));
-        if ~isempty(refdipsel),  source.trial(triallop).refdippow(i)  = powmethodfun(source.trial(triallop).csd{i}(refdipsel,refdipsel));   end
-        if ~isempty(supdipsel),  source.trial(triallop).supdippow(i)  = powmethodfun(source.trial(triallop).csd{i}(supdipsel,supdipsel));   end
-        if ~isempty(refchansel), source.trial(triallop).refchanpow(i) = powmethodfun(source.trial(triallop).csd{i}(refchansel,refchansel)); end
-        if ~isempty(supchansel), source.trial(triallop).supchanpow(i) = powmethodfun(source.trial(triallop).csd{i}(supchansel,supchansel)); end
-        %FIXME kan volgens mij niet
-        if isnoise && isfield(source.trial(triallop), 'noisecsd'),
-          % compute the power of the noise projected on each source component
-          source.trial(triallop).noise(i) = powmethodfun(source.trial(triallop).noisecsd{i}(dipsel,dipsel));
-          if ~isempty(refdipsel),  source.trial(triallop).refdipnoise(i)  = powmethodfun(source.trial(triallop).noisecsd{i}(refdipsel,refdipsel));   end
-          if ~isempty(supdipsel),  source.trial(triallop).supdipnoise(i)  = powmethodfun(source.trial(triallop).noisecsd{i}(supdipsel,supdipsel));   end
-          if ~isempty(refchansel), source.trial(triallop).refchannoise(i) = powmethodfun(source.trial(triallop).noisecsd{i}(refchansel,refchansel)); end
-          if ~isempty(supchansel), source.trial(triallop).supchannoise(i) = powmethodfun(source.trial(triallop).noisecsd{i}(supchansel,supchansel)); end
-        end % if isnoise
-      end % for diplop
+      source.trial(triallop).pow(source.inside) = cellfun(powmethodfun, source.trial(triallop).csd(source.inside), dipselcell(source.inside));
+      if hasrefdip,  source.trial(triallop).refdippow(source.inside) = cellfun(powmethodfun,source.trial(triallop).csd(source.inside), refdipselcell(source.inside));  end
+      if hassupdip,  source.trial(triallop).supdippow(source.inside) = cellfun(powmethodfun,source.trial(triallop).csd(source.inside), supdipselcell(source.inside));  end
+      if hasrefchan, source.trial(triallop).refchanpow(source.inside) = cellfun(powmethodfun,source.trial(triallop).csd(source.inside), refchanselcell(source.inside)); end
+      if hassupchan, source.trial(triallop).supchanpow(source.inside) = cellfun(powmethodfun,source.trial(triallop).csd(source.inside), supchanselcell(source.inside)); end
+      %FIXME kan volgens mij niet
+      if isnoise && isfield(source.trial(triallop), 'noisecsd'),
+        % compute the power of the noise projected on each source component
+        source.trial(triallop).noise = cellfun(powmethodfun,source.trial(triallop).csd, dipselcell);
+        if hasrefdip,  source.trial(triallop).refdipnoise  = cellfun(powmethodfun,source.trial(triallop).noisecsd, refdipselcell);  end
+        if hassupdip,  source.trial(triallop).supdipnoise  = cellfun(powmethodfun,source.trial(triallop).noisecsd, supdipselcell);  end
+        if hasrefchan, source.trial(triallop).refchannoise = cellfun(powmethodfun,source.trial(triallop).noisecsd, refchanselcell); end
+        if hassupchan, source.trial(triallop).supchannoise = cellfun(powmethodfun,source.trial(triallop).noisecsd, supchanselcell); end
+      end % if isnoise
     end % for triallop
     progress('close');
 
@@ -368,6 +388,7 @@ if ispccdata
       source.avg.csd{i}   = tmpcsd;
     end % for diplop
     source.avg.csdlabel = source.avg.csdlabel(scnindx);
+      
     if isnoise && ~strcmp(cfg.supmethod, 'none')
       source.avg = rmfield(source.avg, 'noisecsd');
     end
@@ -386,23 +407,38 @@ if ispccdata
       if ~isempty(supchansel), source.avg.supchannoise    = nan*zeros(Ndipole, 1); end
     end % if isnoise
     if ~isempty(refsel),       source.avg.coh           = nan*zeros(Ndipole, 1); end
-    if strcmp(cfg.eta, 'yes'), 
-      source.avg.eta           = nan*zeros(Ndipole, 1);
-      source.avg.ori           = cell(1, Ndipole);
+    if strcmp(cfg.eta, 'yes'),
+      source.avg.eta           = nan*zeros(Ndipole, 1); 
+      source.avg.ori             = cell(1, Ndipole);
+    end
+    if strcmp(cfg.eta, 'yes') && ~isempty(refsel), 
+      source.avg.etacsd = nan*zeros(Ndipole, 1);
+      source.avg.ucsd   = cell(1, Ndipole);
+    end
+    if strcmp(cfg.fa, 'yes'),
+      source.avg.fa = nan*zeros(Ndipole, 1);
     end
 
     for diplop = 1:length(source.inside)
       i = source.inside(diplop);
 
       % compute the power of each source component
-      source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipsel,dipsel));
+      if strcmp(cfg.projectmom, 'yes') && cfg.numcomp>1,
+        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipsel,dipsel), 1);
+      else
+        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipsel,dipsel));
+      end
       if ~isempty(refdipsel),  source.avg.refdippow(i)  = powmethodfun(source.avg.csd{i}(refdipsel,refdipsel));   end
       if ~isempty(supdipsel),  source.avg.supdippow(i)  = powmethodfun(source.avg.csd{i}(supdipsel,supdipsel));   end
       if ~isempty(refchansel), source.avg.refchanpow(i) = powmethodfun(source.avg.csd{i}(refchansel,refchansel)); end
       if ~isempty(supchansel), source.avg.supchanpow(i) = powmethodfun(source.avg.csd{i}(supchansel,supchansel)); end
       if isnoise
         % compute the power of the noise projected on each source component
-        source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipsel,dipsel));
+        if strcmp(cfg.projectmom, 'yes') && cfg.numcomp>1,
+          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipsel,dipsel), 1);
+        else
+          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipsel,dipsel));
+        end
         if ~isempty(refdipsel),  source.avg.refdipnoise(i)  = powmethodfun(source.avg.noisecsd{i}(refdipsel,refdipsel));   end
         if ~isempty(supdipsel),  source.avg.supdipnoise(i)  = powmethodfun(source.avg.noisecsd{i}(supdipsel,supdipsel));   end
         if ~isempty(refchansel), source.avg.refchannoise(i) = powmethodfun(source.avg.noisecsd{i}(refchansel,refchansel)); end
@@ -437,9 +473,18 @@ if ispccdata
       % compute eta
       if strcmp(cfg.eta, 'yes')
         [source.avg.eta(i), source.avg.ori{i}] = csd2eta(source.avg.csd{i}(dipsel,dipsel));
+	if ~isempty(refsel),
+	  %FIXME this only makes sense when only a reference signal OR a dipole is selected
+	  [source.avg.etacsd(i), source.avg.ucsd{i}] = csd2eta(source.avg.csd{i}(dipsel,refsel));
+	end
+      end
+
+      %compute fa
+      if strcmp(cfg.fa, 'yes')
+        source.avg.fa(i) = csd2fa(source.avg.csd{i}(dipsel,dipsel));
       end
     end % for diplop
-
+    
     if strcmp(cfg.keepcsd, 'no')
       source.avg = rmfield(source.avg, 'csd');
     end
@@ -836,7 +881,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.44 2009/04/08 08:35:50 roboos Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.45 2009/10/12 14:40:24 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output
@@ -850,24 +895,46 @@ function [eta, u] = csd2eta(csd)
 eta     = s(2,2)./s(1,1);
 u       = u'; %orientation is defined in the rows
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% helper function to compute fa from a csd-matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [fa] = csd2fa(csd)
+s  = svd(real(csd));
+ns = rank(real(csd));
+s  = s(1:ns);
+ms = mean(s);
+fa = sqrt( (ns./(ns-1)) .* (sum((s-ms).^2))./(sum(s.^2)) );
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute power
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function p = powmethod_lambda1(x);
-s = svd(x);
+function p = powmethod_lambda1(x, ind);
+
+if nargin==1,
+  ind = 1:size(x,1);
+end
+s = svd(x(ind,ind));
 p = s(1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute power
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function p = powmethod_trace(x);
-p = trace(x);
+function p = powmethod_trace(x, ind);
+
+if nargin==1,
+  ind = 1:size(x,1);
+end
+p = trace(x(ind,ind));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute power
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function p = powmethod_regular(x);
-p = abs(x);
+function p = powmethod_regular(x, ind);
+
+if nargin==1,
+  ind = 1:size(x,1);
+end
+p = abs(x(ind,ind));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to obtain the largest singular value or trace of the

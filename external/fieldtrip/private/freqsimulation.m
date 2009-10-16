@@ -43,10 +43,10 @@ function [data] = freqsimulation(cfg)
 % cfg.s3.phase    = phase (in rad) relative to cosine of signal 1  (default depends on method)
 %                 = number or 'random'
 % cfg.s3.ampl     = amplitude of signal 3
-% cfg.s4.freq     = frequency of signal 3
+% cfg.s4.freq     = frequency of signal 4
 % cfg.s4.phase    = phase (in rad) relative to cosine of signal 1  (default depends on method)
 %                 = number or 'random'
-% cfg.s4.ampl     = amplitude of signal 3
+% cfg.s4.ampl     = amplitude of signal 4
 %
 % cfg.n1.ampl     = root-mean-square amplitude of wide-band signal prior to filtering
 % cfg.n1.bpfreq   = [Flow Fhigh]
@@ -131,6 +131,9 @@ function [data] = freqsimulation(cfg)
 % Copyright (C) 2007-2008, Ingrid Nieuwenhuis & Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: freqsimulation.m,v $
+% Revision 1.15  2009/10/12 14:15:06  jansch
+% some typo fixes in comments
+%
 % Revision 1.14  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -545,7 +548,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: freqsimulation.m,v 1.14 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id   = '$Id: freqsimulation.m,v 1.15 2009/10/12 14:15:06 jansch Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

@@ -167,6 +167,10 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.141  2009/10/12 14:44:07  jansch
+% built in possibility (undocumented) to efficiently project single trial estimates
+% through precomputed lcmv filters
+%
 % Revision 1.140  2009/06/04 13:37:28  marvger
 % changed mvlap name to mvl to make it consistent with literature
 %
@@ -1120,10 +1124,33 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = cfg2keyval(getfield(cfg, cfg.method));
 
-  if strcmp(cfg.method, 'lcmv')
+  if strcmp(cfg.method, 'lcmv') && ~isfield(grid, 'filter'),
     for i=1:Nrepetitions
       fprintf('scanning repetition %d\n', i);
       dip(i) = beamformer_lcmv(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:});
+    end
+  elseif strcmp(cfg.method, 'lcmv')
+    %don't loop over repetitions (slow), but reshape the input data to obtain single trial timecourses efficiently
+    %in the presence of filters pre-computed on the average (or whatever)
+    siz    = size(avg);
+    tmpavg = reshape(permute(avg,[2 3 1]),[siz(2) siz(3)*siz(1)]);
+    tmpdip = beamformer_lcmv(grid, sens, vol, tmpavg, squeeze(mean(Cy,1)), optarg{:});
+    for i=1:length(tmpdip.inside)
+      indx = tmpdip.inside(i);
+      tmpdip.mom{indx} = reshape(tmpdip.mom{indx}, [siz(3) siz(1)])';
+    end
+    try, tmpdip = rmfield(tmpdip, 'pow'); end
+    try, tmpdip = rmfield(tmpdip, 'cov'); end
+    try, tmpdip = rmfield(tmpdip, 'noise'); end
+    for i=1:Nrepetitions
+      dip(i).pos     = tmpdip.pos;
+      dip(i).inside  = tmpdip.inside;
+      dip(i).outside = tmpdip.outside;
+      dip(i).mom     = cell(1,size(tmpdip.pos,1));
+      for ii=1:length(tmpdip.inside)
+        indx = tmpdip.inside(ii);
+	dip(i).mom{indx} = tmpdip.mom{indx}(i,:);
+      end
     end
   elseif strcmp(cfg.method, 'sam')
     for i=1:Nrepetitions
@@ -1188,7 +1215,9 @@ if isfield(grid, 'xgrid')
   source.xgrid = grid.xgrid;
   source.ygrid = grid.ygrid;
   source.zgrid = grid.zgrid;
-  source.dim    = [length(source.xgrid) length(source.ygrid) length(source.zgrid)];
+  source.dim   = [length(source.xgrid) length(source.ygrid) length(source.zgrid)];
+else
+  source.dim   = [size(grid.pos,1) 1];
 end
 
 source.vol = vol;
@@ -1314,7 +1343,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.140 2009/06/04 13:37:28 marvger Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.141 2009/10/12 14:44:07 jansch Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

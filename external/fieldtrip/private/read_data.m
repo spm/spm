@@ -31,6 +31,12 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.89  2009/10/16 07:31:18  roboos
+% renamed chieti into itab for consistency with other formats
+%
+% Revision 1.88  2009/10/13 10:12:51  roboos
+% added support for chieti_raw
+%
 % Revision 1.87  2009/10/08 11:13:40  roevdmei
 % added support for nmc_archive_k
 %
@@ -723,6 +729,15 @@ switch dataformat
       'channels',chanindx);
     dat = cell2mat(tmp.data');
 
+  case  'itab_raw'
+    % check the presence of the required low-level toolbox
+    hastoolbox('lc-libs', 1);
+    chansel = hdr.orig.chansel;  % these are the channels that are visible to fieldtrip
+    % read the data using the dll
+    dat = lcReadData(chansel, begsample, endsample, filename);
+    % take the subset of channels that is selected by the user
+    dat = dat(chanindx, :);
+    
   case  'combined_ds'
     dat = read_combined_ds(filename, hdr, begsample, endsample, chanindx);
 

@@ -14,6 +14,9 @@ function [source] = source2full(source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2full.m,v $
+% Revision 1.19  2009/10/12 14:20:19  jansch
+% removed necessity to have xgrid etc in the input
+%
 % Revision 1.18  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -78,15 +81,28 @@ fieldtripdefs
 
 if ~isfield(source, 'inside')  || ...
    ~isfield(source, 'outside') || ...
-   ~isfield(source, 'xgrid')   || ...
-   ~isfield(source, 'ygrid')   || ...
-   ~isfield(source, 'zgrid')   || ...
    ~isfield(source, 'dim')
   error('one of the required fields is missing in the source structure');
 end
 
+if ~isfield(source, 'pos') && (~isfield(source, 'xgrid') || ~isfield(source, 'ygrid') || ...
+                               ~isfield(source, 'zgrid'))
+  error('the input data needs at least a ''pos'' field, or ''x/y/zgrid''');
+end
+
+if isfield(source, 'xgrid'),
+  xgrid = source.xgrid;
+  ygrid = source.ygrid;
+  zgrid = source.zgrid;
+else
+  %FIXME this assumes that the voxel data are ordered as if in a regularly spaced 3D grid,
+  %but with only the inside voxels present
+  xgrid = 1:source.dim(1);
+  ygrid = 1:source.dim(2);
+  zgrid = 1:source.dim(3);
+end
 % recreate the positions of the dipole grid
-[X, Y, Z] = ndgrid(source.xgrid, source.ygrid, source.zgrid);
+[X, Y, Z] = ndgrid(xgrid, ygrid, zgrid);
 pos = [X(:) Y(:) Z(:)];
 
 Nsparse = length(source.inside);
@@ -242,7 +258,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2full.m,v 1.18 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: source2full.m,v 1.19 2009/10/12 14:20:19 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

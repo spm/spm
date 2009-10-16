@@ -1,9 +1,9 @@
-function [proj] = elproj(pos, method);
+function [proj] = elproj(pos, method)
 
 % ELPROJ makes a azimuthal projection of a 3D electrode cloud
 %  on a plane tangent to the sphere fitted through the electrodes
 %  the projection is along the z-axis
-%   
+%
 %  [proj] = elproj([x, y, z], 'method');
 %
 % Method should be one of these:
@@ -26,6 +26,9 @@ function [proj] = elproj(pos, method);
 % Copyright (C) 2000-2008, Robert Oostenveld
 %
 % $Log: elproj.m,v $
+% Revision 1.5  2009/10/14 15:27:40  roboos
+% give error on method that is not recognized
+%
 % Revision 1.4  2008/05/15 10:54:24  roboos
 % updated documentation
 %
@@ -44,10 +47,6 @@ end
 
 if nargin<2
   method='polar';
-end
-
-if nargin<3
-  secant=1;
 end
 
 if strcmp(method, 'orthographic')
@@ -96,16 +95,19 @@ elseif strcmp(method, 'stereographic')
   xp(find(th==pi/2 | z<0)) = NaN;
   yp(find(th==pi/2 | z<0)) = NaN;
   proj = [xp yp];
-  
+
 elseif strcmp(method, 'inverse')
   % compute the inverse projection of the default angular projection
   [th, r] = cart2pol(x, y);
   [xi, yi, zi] = sph2cart(th, pi/2 - r, 1);
   proj = [xi, yi, zi];
 
-else 
+elseif strcmp(method, 'polar')
   % use default angular projection
   [az, el, r] = cart2sph(x, y, z);
   [x, y] = pol2cart(az, pi/2 - el);
-  proj = [x, y]; 
+  proj = [x, y];
+
+else
+  error('unsupported method (%s)', method);
 end

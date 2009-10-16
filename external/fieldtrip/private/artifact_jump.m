@@ -42,6 +42,10 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.27  2009/10/12 14:26:47  jansch
+% added default for not taking cumulated z-value across channels for artifact
+% identification
+%
 % Revision 1.26  2009/03/10 14:25:59  roboos
 % fixed bug in copying of cfg.continuous to tmpcfg, also keek data and headerformat
 %
@@ -150,6 +154,7 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
   % settings for the zvalue subfunction
   if ~isfield(cfg.artfctdef.jump,'cutoff'),        cfg.artfctdef.jump.cutoff     = 20;              end
   if ~isfield(cfg.artfctdef.jump,'channel'),       cfg.artfctdef.jump.channel    = 'MEG';           end
+  if ~isfield(cfg.artfctdef.jump,'cumulative'),    cfg.artfctdef.jump.cumulative = 'no';            end
   if isfield(cfg, 'padding') && cfg.padding~=0
     if ~isfield(cfg.artfctdef.jump,'trlpadding'), cfg.artfctdef.jump.trlpadding = 0.5*cfg.padding; end
     if ~isfield(cfg.artfctdef.jump,'artpadding'), cfg.artfctdef.jump.artpadding = 0.5*cfg.padding; end

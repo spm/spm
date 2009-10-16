@@ -16,7 +16,7 @@ function [lay] = prepare_layout(cfg, data);
 % You can specify either one of the following configuration options
 %   cfg.layout      filename containg the layout
 %   cfg.rotate      number, rotation around the z-axis in degrees (default = [], which means automatic)
-%   cfg.projection  string, 2D projection method can be 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
+%   cfg.projection  string, 2D projection method can be 'stereographic', 'orthographic', 'polar', 'gnomic' or 'inverse' (default = 'polar')
 %   cfg.elec        structure with electrode positions, or
 %   cfg.elecfile    filename containing electrode positions
 %   cfg.grad        structure with gradiometer definition, or
@@ -47,6 +47,14 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.41  2009/10/14 15:26:36  roboos
+% There was a typo in the cfg.projection default, which was ortographic
+% (without "h").  The consequence was that the actual default being
+% used is polar (because the underlying function would not recognise
+% the typo and switch to its own polar default). I have changed the
+% default to polar, consistent with its actual behaviour sofar. Polar
+% is also the most robust for electrodes along the edge.
+%
 % Revision 1.40  2009/08/05 08:22:09  roboos
 % better detection of empty/absent input data
 %
@@ -202,7 +210,7 @@ if (nargin<2), data = []; end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isfield(cfg, 'rotate'),     cfg.rotate = [];                end  % [] => rotation is determined based on the type of sensors
 if ~isfield(cfg, 'style'),      cfg.style = '2d';               end
-if ~isfield(cfg, 'projection'), cfg.projection = 'ortographic'; end
+if ~isfield(cfg, 'projection'), cfg.projection = 'polar';       end
 if ~isfield(cfg, 'layout'),     cfg.layout = [];                end
 if ~isfield(cfg, 'grad'),       cfg.grad = [];                  end
 if ~isfield(cfg, 'elec'),       cfg.elec = [];                  end

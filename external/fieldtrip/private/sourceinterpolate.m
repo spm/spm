@@ -33,6 +33,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.54  2009/10/12 14:18:32  jansch
+% allow for multidimensional sources containing frequency and/or time axes
+%
 % Revision 1.53  2009/07/09 16:08:22  vlalit
 % replaced read_fcdc_mri with read_mri to avoid warning
 %
@@ -279,6 +282,10 @@ fprintf('selecting subvolume of %.1f%%\n', 100*sum(sel)./prod(anatomical.dim));
 % start with an empty output structure
 interp = [];
 
+dimf  = [functional.dim 1 1];
+allav = zeros([anatomical.dim dimf(4:end)]);
+functional.inside = functional.inside(:,:,:,1,1);
+
 % reslice and interpolate inside
 interp.inside = zeros(anatomical.dim);
 % interpolate with method nearest
@@ -289,27 +296,32 @@ interp.inside = logical(interp.inside);
 % reslice and interpolate all functional volumes
 for i=1:length(vol_name)
   fprintf('reslicing and interpolating %s\n', vol_name{i});
-  fv = double(vol_data{i});
-  av = zeros(anatomical.dim);
-  % av( sel) = my_interpn(fx, fy, fz, fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
-  if islogical(vol_data{i})
-    % interpolate always with method nearest
-    av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), 'nearest', cfg.feedback);
-    av = logical(av);
-  else
-    % extrapolate the outside of the functional volumes for better interpolation at the edges
-    [xi, yi, zi] = ndgrid(1:functional.dim(1), 1:functional.dim(2),1:functional.dim(3));
-    X = [xi(functional.inside(:)) yi(functional.inside(:)) zi(functional.inside(:))];
-    Y = fv(functional.inside(:));
-    XI = [xi(~functional.inside(:)) yi(~functional.inside(:)) zi(~functional.inside(:))];
-    YI = griddatan(X, Y, XI, 'nearest');
-    fv(~functional.inside) = YI;
-    % interpolate functional onto anatomical grid
-    av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
-    av(~sel) = nan;
-    av(~interp.inside) = nan;
+  for k=1:dimf(4)
+    for m=1:dimf(5)
+      fv = double(vol_data{i}(:,:,:,k,m));
+      av = zeros(anatomical.dim);
+      % av( sel) = my_interpn(fx, fy, fz, fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
+      if islogical(vol_data{i})
+        % interpolate always with method nearest
+        av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), 'nearest', cfg.feedback);
+        av = logical(av);
+      else
+        % extrapolate the outside of the functional volumes for better interpolation at the edges
+        [xi, yi, zi] = ndgrid(1:functional.dim(1), 1:functional.dim(2),1:functional.dim(3));
+        X = [xi(functional.inside(:)) yi(functional.inside(:)) zi(functional.inside(:))];
+        Y = fv(functional.inside(:));
+        XI = [xi(~functional.inside(:)) yi(~functional.inside(:)) zi(~functional.inside(:))];
+        YI = griddatan(X, Y, XI, 'nearest');
+        fv(~functional.inside) = YI;
+        % interpolate functional onto anatomical grid
+        av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
+        av(~sel) = nan;
+        av(~interp.inside) = nan;
+      end
+      allav(:,:,:,k,m) = av;
+    end
   end
-  interp = setsubfield(interp, vol_name{i}, av);
+  interp = setsubfield(interp, vol_name{i}, allav);
 end
 
 % add the other parameters to the output
@@ -332,7 +344,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.53 2009/07/09 16:08:22 vlalit Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.54 2009/10/12 14:18:32 jansch Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

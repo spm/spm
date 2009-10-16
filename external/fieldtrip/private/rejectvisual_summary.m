@@ -45,6 +45,8 @@ for i=1:ntrl
       level(:,i) = max(dat, [], 2) - min(dat, [], 2);
     case 'kurtosis'
       level(:,i) = kurtosis(dat, [], 2);
+    case '1/var'
+      level(:,i) = 1./(std(dat, [], 2).^2);
     otherwise
       error('unsupported method');
   end
@@ -135,7 +137,8 @@ while interactive
     for i=1:length(toggle)
       figure
       % the data being displayed here is NOT filtered
-      plot(data.time{toggle(i)}, data.trial{toggle(i)}(chansel,:));
+      %plot(data.time{toggle(i)}, data.trial{toggle(i)}(chansel,:));
+      plot(data.time{toggle(i)}, blc(data.trial{toggle(i)}(chansel,:)));
       title(sprintf('trial %d', toggle(i)));
     end
     continue;

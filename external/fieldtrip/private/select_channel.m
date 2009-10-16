@@ -42,6 +42,10 @@ function select_channel(handle, eventdata, varargin)
 % Copyright (C) 2009, Robert Oostenveld
 %
 % $Log: select_channel.m,v $
+% Revision 1.4  2009/10/16 09:18:48  jansch
+% ensure column representation in select_channel_multiple to avoid crash when
+% called from multiplotER
+%
 % Revision 1.3  2009/07/14 13:18:33  roboos
 % updated channel selection, use select_range and two local helper functions, also support multiple selections
 %
@@ -123,9 +127,9 @@ end
 function select_channel_multiple(range, callback)
 
 info   = guidata(gcf);
-x      = info.x;
-y      = info.y;
-label  = info.label;
+x      = info.x(:);
+y      = info.y(:);
+label  = info.label(:);
 
 % determine which channels ly in the selected range
 select = false(size(label));

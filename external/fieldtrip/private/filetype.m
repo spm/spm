@@ -54,6 +54,12 @@ function [type] = filetype(filename, desired, varargin)
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.101  2009/10/16 07:31:18  roboos
+% renamed chieti into itab for consistency with other formats
+%
+% Revision 1.100  2009/10/13 10:12:51  roboos
+% added support for chieti_raw
+%
 % Revision 1.99  2009/10/07 09:48:00  jansch
 % added some lines to be able to deal with memory mapped files
 %
@@ -819,6 +825,12 @@ elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(file
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
 
+  % known Chieti ITAB file types
+elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filename, 'FORMAT: ATB-BIOMAGDATA')
+  type = 'itab_raw';
+  manufacturer = 'Chieti ITAB';
+  content = 'MEG data, including sensor positions';
+
   % known Nexstim file types
 elseif filetype_check_extension(filename, '.nxe')
   type = 'nexstim_nxe';
@@ -897,6 +909,8 @@ elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'raw EEG data';
 elseif (filetype_check_extension(filename, '.sbin') || filetype_check_extension(filename, '.raw'))
+  % note that the Chieti MEG data format also has the extension *.raw
+  % but that can be detected by looking at the file header
   type = 'egi_sbin';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'averaged EEG data';
