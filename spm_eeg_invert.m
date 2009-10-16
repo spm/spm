@@ -68,7 +68,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3438 2009-10-02 08:47:27Z rik $
+% $Id: spm_eeg_invert.m 3471 2009-10-16 12:11:22Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -589,6 +589,7 @@ for i = 1:Nl
     %----------------------------------------------------------------------
     SSR   = 0;
     SST   = 0;
+    J     = {};
     for j = 1:Nt(i)
         
         % trial-type specific source reconstruction
