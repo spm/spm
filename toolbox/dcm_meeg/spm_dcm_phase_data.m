@@ -26,7 +26,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 2953 2009-03-25 15:29:42Z vladimir $
+% $Id: spm_dcm_phase_data.m 3472 2009-10-16 17:10:26Z will $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -50,7 +50,8 @@ X=[];
 for jj=1:length(chosen_conds)
     cname=cond_name{chosen_conds(jj)};
     new_trials=pickconditions(D,cname);
-    trials=[trials;new_trials];
+    %trials=[trials;new_trials];
+    trials=[trials(:);new_trials(:)];
 
     X=[X;ones(length(new_trials),1)*DCM.xU.X(jj)];
 end
@@ -84,6 +85,7 @@ DCM.xY.pst=time(D);
 tmin=DCM.options.Tdcm(1)/1000;
 tmax=DCM.options.Tdcm(2)/1000;
 ind=find(DCM.xY.pst>=tmin & DCM.xY.pst<=tmax);
+
 
 % Read in trials
 Ntr=length(trials);
@@ -152,4 +154,5 @@ for n=1:Ntrials,
 end
 disp('Source extraction complete ...');
 
+DCM.xY.source=1;
 

@@ -9,7 +9,7 @@ function [DCM] = spm_dcm_phase_results(DCM,Action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_dcm_phase_results.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_dcm_phase_results.m 3472 2009-10-16 17:10:26Z will $
 
 
 % get figure handle
@@ -50,7 +50,7 @@ switch(lower(Action))
             if (j==1)
                 text((i+1)*dx+cx,j*dx+cy,DCM.Sname{i});
             end
-            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.2f',abs(DCM.Ep.As(j,i))));    
+            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.3f',abs(DCM.Ep.As(j,i))));    
         end
     end
     axis ij
@@ -69,7 +69,7 @@ switch(lower(Action))
             if (j==1)
                 text((i+1)*dx+cx,j*dx+cy,DCM.Sname{i});
             end
-            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.2f',DCM.Pp.As(j,i)));    
+            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.3f',DCM.Pp.As(j,i)));    
         end
     end
     axis ij
@@ -93,7 +93,7 @@ case{lower('Coupling (Bs)')}
             if (j==1)
                 text((i+1)*dx+cx,j*dx+cy,DCM.Sname{i});
             end
-            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.2f',DCM.Ep.Bs{1}(j,i)));    
+            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.3f',DCM.Ep.Bs{1}(j,i)));    
         end
     end
     axis ij
@@ -112,7 +112,7 @@ case{lower('Coupling (Bs)')}
             if (j==1)
                 text((i+1)*dx+cx,j*dx+cy,DCM.Sname{i});
             end
-            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.2f',DCM.Pp.Bs{1}(j,i)));    
+            text((i+1)*dx+cx,(j+1)*dx+cy,sprintf('%1.3f',DCM.Pp.Bs{1}(j,i)));    
         end
     end
     axis ij

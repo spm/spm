@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_dcm_phase.m 3472 2009-10-16 17:10:26Z will $
 
 
 % check options 
@@ -42,6 +42,14 @@ try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
 try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
 
+% Data and spatial model
+%==========================================================================
+DCM    = spm_dcm_erp_dipfit(DCM, 1);
+
+% Get data if not gotten already
+if ~isfield(DCM.xY,'source')   
+    DCM  = spm_dcm_phase_data(DCM);
+end
 
 disp('Estimating Model ...');
 
@@ -134,6 +142,10 @@ for n=1:length(DCM.xY.y)
     xx=DCM.xY.y{n}(1,:);
     M.trial{n}.x=double(xx(:)');
 end
+
+
+% keyboard
+% myx=spm_gen_phase(pE,M,xU);
 
 % EM: inversion
 %--------------------------------------------------------------------------
