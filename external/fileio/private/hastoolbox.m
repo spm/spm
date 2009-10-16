@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.37  2009/10/13 10:11:06  roboos
+% added lc-libs
+%
 % Revision 1.36  2009/09/08 14:34:01  roboos
 % also detect 64 bit windows version (thanks to arno)
 %
@@ -193,6 +196,7 @@ url = {
   'BEMCP'      'contact Christophe Phillips'
   'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg'
   'PRTOOLS'    'see http://www.prtools.org'
+  'LC-LIBS'    'contact Stefania Della Penna'
   };
 
 if nargin<2
@@ -290,6 +294,8 @@ switch toolbox
     status  = (exist('plot_topo', 'file') && exist('plot_mesh', 'file') && exist('plot_matrix', 'file'));
   case 'PRTOOLS'
     status  = (exist('prversion', 'file') && exist('dataset', 'file') && exist('svc', 'file'));
+  case 'LC-LIBS'
+    status  = (exist('lcReadHeader', 'file') && exist('lcReadData', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

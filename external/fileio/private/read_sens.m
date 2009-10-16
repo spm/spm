@@ -32,6 +32,12 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.16  2009/10/16 07:32:08  roboos
+% renamed chieti into itab for consistency with other formats
+%
+% Revision 1.15  2009/10/13 10:12:51  roboos
+% added support for chieti_raw
+%
 % Revision 1.14  2009/07/02 10:34:21  vlalit
 % Added eeglab_set to the list of formats where electrode locations can be found in
 %  the header.
@@ -146,10 +152,14 @@ switch fileformat
     fid        = fopen(filename);
     tmp        = textscan(fid, ' %[^ \t]%n%n%n');
     fclose(fid);
-     
     sens.label = tmp{1};
     sens.pnt   = [tmp{2:4}];
    
+  case 'itab_raw'
+    hastoolbox('fileio');
+    hdr = read_header(filename);
+    sens = hdr.grad;
+    
   case 'neuromag_mne'
     hastoolbox('fileio');
     hdr = read_header(filename,'headerformat','neuromag_mne');

@@ -30,6 +30,9 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_biosemi_bdf.m,v $
+% Revision 1.2  2009/10/12 12:14:23  roboos
+% fixed small typo in readLowLevel fnuction, thanks to Philip
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -289,7 +292,7 @@ if offset < 2*1024^3
   % buf = read_16bit(filename, offset, numwords);
 else
   % use plain matlab, thanks to Philip van der Broek
-  p = fopen(filename,'r','ieee-le');
+  fp = fopen(filename,'r','ieee-le');
   status = fseek(fp, offset, 'bof');
   if status
     error(['failed seeking ' filename]);

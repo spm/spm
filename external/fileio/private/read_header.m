@@ -55,6 +55,15 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.102  2009/10/16 12:27:53  roboos
+% some small changes pertaining to the itab/chieti format
+%
+% Revision 1.101  2009/10/16 07:31:18  roboos
+% renamed chieti into itab for consistency with other formats
+%
+% Revision 1.100  2009/10/13 10:12:51  roboos
+% added support for chieti_raw
+%
 % Revision 1.99  2009/10/08 11:17:44  roevdmei
 % added support for nmc_archive_k
 %
@@ -683,6 +692,39 @@ switch headerformat
       hdr.nTrials = 1;
     end;
     hdr.label = {orig.label};
+
+  case  'itab_raw'
+    % check the presence of the required low-level toolbox
+    hastoolbox('lc-libs', 1);
+    
+    header_info = lcReadHeader(filename);
+
+    % some channels don't have a label and are not supported by fieldtrip
+    chansel = true(size(header_info.ch));
+    for i=1:length(chansel)
+      chansel(i) = ~isempty(header_info.ch(i).label);
+    end
+    % convert into numeric array with indices
+    chansel = find(chansel);
+
+    % convert the header information into a fieldtrip compatible format
+    hdr.nChans      = length(chansel);
+    hdr.label       = {header_info.ch(chansel).label};
+    hdr.label       = hdr.label(:);  % should be column vector
+    hdr.Fs          = header_info.smpfq;
+    if header_info.nsmpl==0
+      % for continuous data
+      hdr.nSamples    = header_info.ntpdata;
+      hdr.nSamplesPre = 0; % it is a single continuous trial
+      hdr.nTrials     = 1; % it is a single continuous trial
+    else
+      error('epoched data in a itab_raw file is not yet supported (but should be easy to add)');
+    end
+    % keep the original details AND the list of channels as used by fieldtrip
+    hdr.orig         = header_info;
+    hdr.orig.chansel = chansel;
+    % add the gradiometer definition
+    hdr.grad         = itab2grad(header_info);
 
   case  'combined_ds'
     hdr = read_combined_ds(filename);

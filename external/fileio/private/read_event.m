@@ -59,6 +59,12 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.107  2009/10/16 12:27:53  roboos
+% some small changes pertaining to the itab/chieti format
+%
+% Revision 1.106  2009/10/16 07:31:18  roboos
+% renamed chieti into itab for consistency with other formats
+%
 % Revision 1.105  2009/10/08 11:15:20  roevdmei
 % added support for nmc_archive_k
 %
@@ -1161,6 +1167,9 @@ switch eventformat
       event = db_select('fieldtrip.event', {'type', 'value', 'sample', 'offset', 'duration'});
     end
 
+  case 'itab_raw'
+    error('suppoport for events in this fileformat is not yet implemented')
+
   case 'matlab'
     % read the events from a normal Matlab file
     tmp   = load(filename, 'event');
@@ -1175,7 +1184,7 @@ switch eventformat
       ls = dir(filename);
       dapfile = {};
       for i=1:length(ls)
-        if ~isempty(regexp(ls(i).name, '.dap$'))
+        if ~isempty(regexp(ls(i).name, '.dap$', 'once' ))
           dapfile{end+1} = fullfile(filename, ls(i).name);
         end
       end

@@ -1,4 +1,4 @@
-function [type] = senstype(sens, desired)
+function [type] = senstype(input, desired)
 
 % SENSTYPE determines the type of sensors by looking at the channel names
 % and comparing them with predefined lists.
@@ -33,6 +33,8 @@ function [type] = senstype(sens, desired)
 %   'yokogawa160'
 %   'yokogawa160_planar'
 %   'plexon'
+%   'itab153'
+%   'itab153_planar'
 %
 % The optional input argument for the desired type can be any of the above,
 % or any of the following
@@ -59,6 +61,12 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.21  2009/10/16 12:27:53  roboos
+% some small changes pertaining to the itab/chieti format
+%
+% Revision 1.20  2009/10/13 10:39:19  roboos
+% added support for 153 channel itab system
+%
 % Revision 1.19  2009/07/29 08:04:38  roboos
 % cleaned up the code, no functional change
 %
@@ -130,24 +138,50 @@ if nargin<2
   desired = [];
 end
 
-current_argin = {sens, desired};
+current_argin = {input, desired};
 if isequal(current_argin, previous_argin)
   % don't do the type detection again, but return the previous values from cache
   type = previous_argout{1};
   return
 end
 
-% the input may be a data structure which then contains a sens/elec structure
-if isa(sens, 'struct')
-  if isfield(sens, 'sens')
-    sens = sens.sens;
-  elseif isfield(sens, 'grad')
-    sens = sens.grad;
-  elseif isfield(sens, 'elec')
-    sens = sens.elec;
+isdata   = isa(input, 'struct') && isfield(input, 'hdr')   && isfield(input.hdr, 'label');
+isheader = isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
+isgrad   = isa(input, 'struct') && isfield(input, 'pnt')   && isfield(input, 'ori');
+iselec   = isa(input, 'struct') && isfield(input, 'pnt')   && ~isfield(input, 'ori');
+islabel  = isa(input, 'cell')   && isa(input{1}, 'char');
+
+% the input may be a data structure which then contains a grad/elec structure
+if isdata
+  if isfield(input.hdr, 'grad')
+    sens = input.hdr.grad;
+    isgrad = true;
+  elseif isfield(input.hdr, 'elec')
+    sens = input.hdr.elec;
+    iselec = true;
+  else
+    sens.label = input.hdr.label;
+    islabel = true;
   end
-elseif isa(sens, 'cell')
-  dum.label = sens; sens = dum; clear dum
+elseif isheader
+  if isfield(input, 'grad')
+    sens = input.grad;
+    isgrad = true;
+  elseif isfield(input, 'elec')
+    sens   = input.elec;
+    iselec = true;
+  else
+    sens.label = input.label;
+    islabel = true;
+  end
+elseif isgrad
+  sens = input;
+elseif iselec
+  sens = input;
+elseif islabel
+  sens.label = input;
+else
+  sens = [];
 end
 
 if isfield(sens, 'type')
@@ -162,7 +196,7 @@ else
   % start with unknown, then try to determine the proper type by looking at the labels
   type = 'unknown';
 
-  if isfield(sens, 'label') && isfield(sens, 'pnt') && isfield(sens, 'ori')
+  if isgrad
     % probably this is MEG, determine the type of magnetometer/gradiometer system
     % note that the order here is important: first check whether it matches a 275 channel system, then a 151 channel system, since the 151 channels are a subset of the 275
     if     (mean(ismember(senslabel('ctf275'),        sens.label)) > 0.8)
@@ -185,6 +219,10 @@ else
       type = 'bti248_planar';
     elseif (mean(ismember(senslabel('bti148_planar'), sens.label)) > 0.8)
       type = 'bti148_planar';
+    elseif (mean(ismember(senslabel('itab153'),       sens.label)) > 0.8)
+      type = 'itab153';
+    elseif (mean(ismember(senslabel('itab153_planar'), sens.label)) > 0.8)
+      type = 'itab153_planar';
     elseif (mean(ismember(senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';
     elseif (mean(ismember(senslabel('neuromag306alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
@@ -203,7 +241,7 @@ else
       type = 'meg';
     end
 
-  elseif isfield(sens, 'label') && isfield(sens, 'pnt') && ~isfield(sens, 'ori')
+  elseif iselec
     % probably this is EEG
     if     (mean(ismember(senslabel('biosemi256'),    sens.label)) > 0.8)
       type = 'biosemi256';
@@ -225,7 +263,7 @@ else
       type = 'electrode';
     end
 
-  elseif isfield(sens, 'label') && ~isfield(sens, 'pnt') && ~isfield(sens, 'ori')
+  elseif islabel
     % look only at the channel labels
     if     (mean(ismember(senslabel('ctf275'),        sens.label)) > 0.8)
       type = 'ctf275';
@@ -247,6 +285,10 @@ else
       type = 'bti248_planar';
     elseif (mean(ismember(senslabel('bti148_planar'), sens.label)) > 0.8)
       type = 'bti148_planar';
+    elseif (mean(ismember(senslabel('itab153'),       sens.label)) > 0.8)
+      type = 'itab153';
+    elseif (mean(ismember(senslabel('itab153_planar'), sens.label)) > 0.8)
+      type = 'itab153_planar';
     elseif (mean(ismember(senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';
     elseif (mean(ismember(senslabel('neuromag306alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
@@ -299,6 +341,8 @@ if ~isempty(desired)
       type = any(strcmp(type, {'neuromag122' 'neuromag306'}));
     case 'yokogawa'
       type = any(strcmp(type, {'yokogawa160' 'yokogawa160_planar'}));
+    case 'itab'
+      type = any(strcmp(type, {'itab153' 'itab153_planar'}));
     case 'meg_axial'
       % note that neuromag306 is mixed planar and axial
       type = any(strcmp(type, {'magnetometer' 'neuromag306' 'ctf151' 'ctf275' 'bti148' 'bti248' 'yokogawa160'}));
