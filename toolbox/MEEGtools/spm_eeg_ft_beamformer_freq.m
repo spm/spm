@@ -11,7 +11,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3443 2009-10-06 08:22:03Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3477 2009-10-16 23:24:46Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -122,12 +122,15 @@ data = D.ftraw(0);
 data.trial = data.trial(ind);
 data.time =  data.time(ind);
 %%
-if ~isfield(S, 'centerfreq')
-    S.centerfreq =  spm_input('Frequency (Hz):', '+1', 'r', '', 1);
-end
-
-if ~isfield(S, 'tapsmofrq')
-    S.tapsmofrq  =  spm_input('Frequency window (Hz):', '+1', 'r', '', 1);
+if ~isfield(S, 'freqrange')
+    if ~(isfield(S, 'centerfreq') && isfield(S, 'tapsmofrq'))
+        S.freqrange = spm_input('Frequency range (Hz):', '+1', 'r', '', 2);
+        S.centerfreq = mean(S.freqrange);
+        S.tapsmofrq  = 0.5*diff(S.freqrange);
+    end
+else
+    S.centerfreq = mean(S.freqrange);
+    S.tapsmofrq  = 0.5*diff(S.freqrange);
 end
 
 cfg = [];
