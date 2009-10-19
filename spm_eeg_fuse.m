@@ -11,9 +11,9 @@ function D = spm_eeg_fuse(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 3446 2009-10-06 16:19:36Z vladimir $
+% $Id: spm_eeg_fuse.m 3488 2009-10-19 22:03:39Z vladimir $
 
-SVNrev = '$Rev: 3446 $';
+SVNrev = '$Rev: 3488 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -176,7 +176,11 @@ if ismember('EEG', newmodalities) && isempty(Dout.sensors('EEG'))
     Dout = spm_eeg_prep(S1);
 end         
 
-Dout = rmfield(Dout, 'inv');
+%-Remove previous inversions.
+%--------------------------------------------------------------------------
+if isfield(Dout, 'inv')
+    Dout = rmfield(Dout, 'inv');
+end
 
 %-Save new M/EEG data
 %--------------------------------------------------------------------------
