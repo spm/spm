@@ -26,6 +26,9 @@ function [varargout] = plot_vector(varargin)
 % Copyrights (C) 2009, Robert Oostenveld
 %
 % $Log: plot_vector.m,v $
+% Revision 1.11  2009/10/18 11:43:27  ingnie
+% added option Color
+%
 % Revision 1.10  2009/07/30 09:13:58  ingnie
 % fixed bug in determining if function was called as plot(x,y,...) or plot(y,...)
 %
@@ -72,7 +75,7 @@ else
 end
 
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'style', 'label', 'fontsize', 'axis', 'box','highlight','highlightstyle'});
+keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'style', 'label', 'fontsize', 'axis', 'box','highlight','highlightstyle','color'});
 hpos   = keyval('hpos',     varargin);
 vpos   = keyval('vpos',     varargin);
 width  = keyval('width',    varargin);
@@ -84,6 +87,7 @@ label  = keyval('label',    varargin);
 fontsize = keyval('fontsize', varargin);
 axis   = keyval('axis',     varargin); if isempty(axis),  axis = false; end
 box    = keyval('box',      varargin); if isempty(box),   box = false; end
+color  = keyval('color',    varargin);
 highlight      = keyval('highlight',       varargin);
 highlightstyle = keyval('highlightstyle',  varargin); if isempty(highlightstyle), highlightstyle = 'box'; end
 
@@ -174,7 +178,11 @@ if ~isempty(highlight)
   end % switch highlightstyle
 end
 
-h = plot(hdat, vdat, style);
+if isempty(color)
+  h = plot(hdat, vdat, style);
+else
+  h = plot(hdat, vdat, style, 'Color', color);
+end
 
 if ~isempty(label)
   boxposition(1) = hpos - width/2;

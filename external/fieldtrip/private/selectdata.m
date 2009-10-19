@@ -29,6 +29,12 @@ function [data] = selectdata(varargin)
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
 % $Log: selectdata.m,v $
+% Revision 1.13  2009/10/17 18:06:43  jansch
+% built-in support to compute jackknife samples
+%
+% Revision 1.12  2009/10/17 17:50:25  jansch
+% allowed conversion back to raw datatype
+%
 % Revision 1.11  2009/10/01 12:14:05  jansch
 % some changes
 %
@@ -72,8 +78,16 @@ dtype  = cell(1,length(data));
 dimord = cell(1,length(data));
 
 for k = 1:length(data)
-  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar'});
+  data{k} = checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw'});
   [dtype{k}, dimord{k}]  = datatype(data{k});
+  if strcmp(dtype{k}, 'raw'),
+    %convert to timelock and keep track of this
+    israw = 1;
+    data{k} = checkdata(data{k}, 'datatype', 'timelock');
+    [dtype{k}, dimord{k}] = datatype(data{k});
+  else
+    israw = 0;
+  end
 end
 
 if any(~strmatch(dtype{1},dtype))
@@ -103,6 +117,7 @@ avgoverfreq  = keyval('avgoverfreq',  kvp); if isempty(avgoverfreq), avgoverfreq
 avgovertime  = keyval('avgovertime',  kvp); if isempty(avgovertime), avgovertime = false; end
 avgoverroi   = keyval('avgoverroi',   kvp); if isempty(avgoverroi),  avgoverroi  = false; end
 avgoverrpt   = keyval('avgoverrpt',   kvp); if isempty(avgoverrpt),  avgoverrpt  = false; end
+dojack       = keyval('jackknife',    kvp); if isempty(dojack),      dojack      = false; end
 
 % create anonymous function and apply it to the boolean input arguments
 istrue = @(x)(ischar(x) && (strcmpi(x, 'yes') || strcmpi(x, 'true')) || (~isempty(x) && numel(x)==1 && x==1));
@@ -113,6 +128,11 @@ avgoverfreq = istrue(avgoverfreq);
 avgovertime = istrue(avgovertime);
 avgoverroi  = istrue(avgoverroi);
 avgoverrpt  = istrue(avgoverrpt);
+dojack      = istrue(dojack);
+
+if dojack && avgoverrpt,
+  error('it is not possible to do both a jackknife and to average across replicates');
+end
 
 if length(data)>1 && selectrpt,
   error('multiple data structures as input is not supported in combination with subselection of trials');
@@ -357,6 +377,7 @@ if isfreq,
     if avgoverrpt,  tmpdata = avgoverdim(tmpdata, 'rpt');   end
     if avgoverfreq, tmpdata = avgoverdim(tmpdata, 'freq');  end
     if avgovertime, tmpdata = avgoverdim(tmpdata, 'time');  end
+    if dojack,      tmpdata = leaveoneout(tmpdata);         end    
     crsspctrm = tmpdata.crsspctrm; clear tmpdata;
   else
     crsspctrm = [];
@@ -371,6 +392,7 @@ if isfreq,
   if avgoverchan, data = avgoverdim(data, 'chan');  end
   if avgoverfreq, data = avgoverdim(data, 'freq');  end
   if avgovertime, data = avgoverdim(data, 'time');  end
+  if dojack,      data = leaveoneout(data);         end    
   if ~isempty(crsspctrm), data.crsspctrm = crsspctrm; end
 
 elseif istlck,
@@ -384,6 +406,7 @@ elseif istlck,
   if avgoverchan, data = avgoverdim(data, 'chan');  end
   if avgoverfreq, data = avgoverdim(data, 'freq');  end
   if avgovertime, data = avgoverdim(data, 'time');  end
+  if dojack,      data = leaveoneout(data);         end    
 
 elseif issource,
   %FIXME fill in everything
@@ -405,5 +428,10 @@ elseif isfreqmvar,
   if avgoverchan, data = avgoverdim(data, 'chan');  end
   if avgoverfreq, data = avgoverdim(data, 'freq');  end
   if avgovertime, data = avgoverdim(data, 'time');  end
+  if dojack,      data = leaveoneout(data);         end    
 end
 
+%convert back to raw
+if israw
+  data = checkdata(data, 'datatype', 'raw');
+end

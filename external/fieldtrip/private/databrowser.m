@@ -21,12 +21,23 @@ function [cfg] = databrowser(cfg, data)
 %   cfg.viewmode                = string, 'butterfly', 'vertical', 'component' (default = 'butterfly')
 %   cfg.selectfeature           = string, name of feature to be selected/added (default = 'visual')
 %   cfg.selectmode              = string, what to do with a selection, can be 'joint', 'individual', 'multiplot', 'topoplot-avg', 'topoplot-pow' (default = 'joint')
+%   cfg.colorgroups             = 'sequential' 'labelcharx' (x = xth character in label), 'chantype' or
+%                                  vector with lenght(data/hdr.label) defining groups (default = 'sequential') 
+%   cfg.channelcolormap         = COLORMAP (default = customized lines map with 15 colors)
 %
 % See also PREPROCESSING
 
 % Copyright (C) 2009, Robert Oostenveld, Ingrid Niewenhuis
 %
 % $Log: databrowser.m,v $
+% Revision 1.24  2009/10/18 19:46:39  ingnie
+% fixed bug
+%
+% Revision 1.23  2009/10/18 12:41:37  ingnie
+% Added options colorgroups and linescolormap (does not work yer in butterfly mode, probably due to closerequestFcn).
+% Changed name of channame button into identify.
+% Minor changes in comments and white space.
+%
 % Revision 1.22  2009/10/09 15:27:12  ingnie
 % added button to identify channel in butterfly viewmode
 %
@@ -123,6 +134,10 @@ if ~isfield(cfg, 'viewmode'),        cfg.viewmode = 'butterfly';      end % butt
 if ~isfield(cfg, 'blocksize'),       cfg.blocksize = 1;               end % only for segmenting continuous data, i.e. one long trial
 if ~isfield(cfg, 'preproc'),         cfg.preproc = [];                end % see preproc for options
 if ~isfield(cfg, 'eventfile'),       cfg.eventfile = [];              end
+if ~isfield(cfg, 'colorgroups'),     cfg.colorgroups = 'sequential';  end
+lines_color = [0.75 0 0;0 0 1;0 1 0;0.44 0.19 0.63;0 0.13 0.38;0.5 0.5 0.5;1 0.75 0;1 0 0;0.89 0.42 0.04;0.85 0.59 0.58;0.57 0.82 0.31;0 0.69 0.94;1 0 0.4;0 0.69 0.31;0 0.44 0.75];
+if ~isfield(cfg, 'channelcolormap'), cfg.channelcolormap = lines_color;  end
+
 
 if ischar(cfg.selectfeature)
   % ensure that it is a cell array
@@ -149,7 +164,7 @@ if nargin>1
   chansel = match_str(data.label, cfg.channel);
   fsample = 1/(data.time{1}(2)-data.time{1}(1));
   Nchans  = length(chansel);
-  
+    
   % this is how the input data is segmented
   trlorg = findcfg(data.cfg, 'trl');
   Ntrials = size(trlorg, 1);
@@ -208,6 +223,52 @@ end
 
 if Ntrials == 0
   error('no trials to display');
+end
+
+% determine coloring of channels
+if nargin>1
+  labels_all = data.label;
+else
+  labels_all= hdr.label;
+end
+if size(cfg.channelcolormap,2) ~= 3
+  error('cfg.channelcolormap is not valid, size should be Nx3')
+end
+if isstruct(cfg.colorgroups) 
+  % groups defined by user
+  if length(labels_all) ~= length(cfg.colorgroups)
+    error('length(cfg.colorgroups) should be length(data/hdr.label)')
+  end
+  R = cfg.channelcolormap(:,1);
+  G = cfg.channelcolormap(:,2);
+  B = cfg.channelcolormap(:,3);
+  chan_colors = [R(cfg.colorgroups(:)) G(cfg.colorgroups(:)) B(cfg.colorgroups(:))]; 
+elseif strcmp(cfg.colorgroups, 'chantype')
+  type = chantype(labels_all);
+  [tmp1 tmp2 cfg.colorgroups] = unique(type);
+  fprintf('%3d colorgroups were identified\n',length(tmp1))
+  R = cfg.channelcolormap(:,1);
+  G = cfg.channelcolormap(:,2);
+  B = cfg.channelcolormap(:,3);
+  chan_colors = [R(cfg.colorgroups(:)) G(cfg.colorgroups(:)) B(cfg.colorgroups(:))];
+elseif strcmp(cfg.colorgroups(1:9), 'labelchar')
+  % groups determined by xth letter of label
+  labelchar_num = str2double(cfg.colorgroups(10));
+  vec_letters = num2str(zeros(length(labels_all),1));
+  for iChan = 1:length(labels_all)
+    vec_letters(iChan) = labels_all{iChan}(labelchar_num);
+  end
+  [tmp1 tmp2 cfg.colorgroups] = unique(vec_letters);
+  fprintf('%3d colorgroups were identified\n',length(tmp1))
+  R = cfg.channelcolormap(:,1);
+  G = cfg.channelcolormap(:,2);
+  B = cfg.channelcolormap(:,3);
+  chan_colors = [R(cfg.colorgroups(:)) G(cfg.colorgroups(:)) B(cfg.colorgroups(:))];
+elseif strcmp(cfg.colorgroups, 'sequential')
+  % no grouping
+  chan_colors = lines(length(labels_all));
+else
+  error('do not understand cfg.colorgroups')
 end
 
 % collect the artifacts that have been detected from cfg.artfctdef.xxx.artifact
@@ -295,6 +356,7 @@ opt.ftsel    = find(strcmp(artlabel,cfg.selectfeature)); % current artifact/feat
 opt.trlorg   = trlorg;
 opt.fsample  = fsample;
 opt.artcol   = [0.9686 0.7608 0.7686; 0.7529 0.7098 0.9647; 0.7373 0.9725 0.6824;0.8118 0.8118 0.8118; 0.9725 0.6745 0.4784; 0.9765 0.9176 0.5686];
+opt.chan_colors = chan_colors;
 opt.cleanup  = false;      % this is needed for a corrent handling if the figure is closed (either in the corner or by "q")
 if strcmp(cfg.continuous, 'yes')
   opt.trialname = 'segment';
@@ -334,7 +396,7 @@ end
 
 if strcmp(cfg.viewmode, 'butterfly')
   % button to find label of nearest channel to datapoint
-  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'channame', 'userdata', 'n', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
+  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'identify', 'userdata', 'n', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
 end
 
 uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
@@ -381,7 +443,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: databrowser.m,v 1.22 2009/10/09 15:27:12 ingnie Exp $';
+cfg.version.id = '$Id: databrowser.m,v 1.24 2009/10/18 19:46:39 ingnie Exp $';
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
 
@@ -827,7 +889,7 @@ opt.curdat.trial{1} = dat;
 fprintf('plotting data... ');
 switch opt.cfg.viewmode
   case 'butterfly'
-    %to assure current feature is plotted on top
+    % to assure current feature is plotted on top
     ordervec = 1:length(opt.artdata.label);
     ordervec(opt.ftsel) = [];
     ordervec(end+1) = opt.ftsel;
@@ -852,7 +914,7 @@ switch opt.cfg.viewmode
       plot_line([eventtim eventtim], [-opt.cfg.zscale opt.cfg.zscale]);
       plot_text(eventtim, opt.cfg.zscale, eventstr);
     end
-    
+    set(0,'DefaultAxesColorOrder',opt.chan_colors(chanindx,:)) %FIXME does not work??
     % plot the data on top of the box
     plot_vector(tim, dat)
     ax(1) = tim(1);
@@ -890,7 +952,7 @@ switch opt.cfg.viewmode
     opt.hlim = hlim;
     opt.hpos = hpos;
     
-    %to assure current feature is plotted on top
+    % to assure current feature is plotted on top
     ordervec = 1:length(opt.artdata.label);
     ordervec(opt.ftsel) = [];
     ordervec(end+1) = opt.ftsel;
@@ -908,12 +970,12 @@ switch opt.cfg.viewmode
       end
     end % for each of the artifact channels
     
-    for i=1:length(chanindx)
+    for i = 1:length(chanindx)
       datsel = i;
       laysel = match_str(laytime.label, opt.hdr.label(chanindx(i)));
       if ~isempty(datsel)
         plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'HorizontalAlignment', 'right');
-        plot_vector(tim, dat(datsel, :), 'hpos', laytime.pos(laysel,1), 'vpos', laytime.pos(laysel,2), 'width', laytime.width(laysel), 'height', laytime.height(laysel), 'hlim', hlim, 'vlim', vlim, 'box', false);
+        plot_vector(tim, dat(datsel, :), 'hpos', laytime.pos(laysel,1), 'vpos', laytime.pos(laysel,2), 'width', laytime.width(laysel), 'height', laytime.height(laysel), 'hlim', hlim, 'vlim', vlim, 'box', false, 'color', opt.chan_colors(chanindx(i),:));
       end
     end
     
