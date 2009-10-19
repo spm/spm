@@ -1,5 +1,5 @@
 function out = spm_run_bms_dcm (varargin)
-% API to compare DCMs on the basis of their log-evidences. Three methods
+% API to compare DCMs on the basis of their log-evidences. Four methods
 % are available to identify the best among alternative models:
 %
 %  (1) single subject BMS using Bayes factors
@@ -8,6 +8,8 @@ function out = spm_run_bms_dcm (varargin)
 %     (see Stephan et al,NeuroImage, 2007)
 %  (3) random effects group BMS using exceedance probabilities
 %     (see Stephan et al,NeuroImage, 2009)
+%  (4) comparing model families
+%     (see Penny et al, PLOS-CB, submitted) 
 %
 % Note: All functions use the negative free energy (F) as an approximation
 % to the log model evidence.
@@ -16,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3459 2009-10-13 10:37:51Z maria $
+% $Id: spm_run_bms_dcm.m 3479 2009-10-19 10:10:55Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -28,11 +30,32 @@ ld_f    = ~isempty(job.load_f{1});
 bma_do  = isfield(job.bma,'bma_yes');
 data_se = ~isempty(job.sess_dcm);
 
-% Check DCM.mat files 
+do_bma_famwin = 0;
+do_bma_all    = 0;
+
+% check DCM.mat files and BMA 
+% -------------------------------------------------------------------------
 if bma_do
     if data_se
+       load(job.sess_dcm{1}(1).mod_dcm{1})
+       n  = size(DCM.a,2);
+       m  = size(DCM.c,2); 
+       mi = size(DCM.c,2); 
        bma.nsamp       = str2num(job.bma.bma_yes.bma_nsamp);
        bma.odds_ratio  = str2num(job.bma.bma_yes.bma_ratio);
+       bma.a           = zeros(n,n,bma.nsamp);
+       bma.b           = zeros(n,n,m,bma.nsamp);
+       bma.c           = zeros(n,mi,bma.nsamp);
+       
+       if isfield(job.bma.bma_yes.bma_set,'bma_famwin')
+           do_bma_famwin = 1;
+       else
+           if isfield(job.bma.bma_yes.bma_set,'bma_all')
+               do_bma_all = 1;
+           else
+               bma_fam    = double(job.bma.bma_yes.bma_set.bma_part);
+           end
+       end
     else
         error('Plase specify DCM.mat files to do BMA!')
     end
@@ -212,21 +235,44 @@ if strcmp(job.method,'FFX');
     model.post     = spm_api_bmc(sumF,N);
     
     if ~do_family
-        
         family     = [];
-       
     else
-        
         Ffam           = F(:,m_indx);
-        [family,model] = spm_compare_families (Ffam,family);
-               
+        [family,model] = spm_compare_families (Ffam,family);     
     end
     
-    if bma_do, 
+    if bma_do,  
+       if do_bma_famwin
+           [fam_max,fam_max_i]  = max(family.post);
+           post_indx = find(family.partition==fam_max_i);
+           bma.post  = model.post(post_indx);
+       else
+           if do_bma_all  
+              bma.post = model.post;
+           else
+               if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
+                    post_indx = find(family.partition==bma_fam);
+                    bma.post  = model.post(post_indx);
+               else
+                    error('Incorrect family for BMA!');
+               end
+                   
+           end
+       end
+
+       % bayesian model averaging
+       % ------------------------------------------------------------------
+       theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
+
+       % reshape parameters
+       % ------------------------------------------------------------------
+       for i = 1:bma.nsamp,
+           [A,B,C]     = spm_dcm_reshape(theta(:,i),m,n,1);
+           bma.a(:,:,i)   = A(:,:);
+           bma.b(:,:,:,i) = B(:,:,:);
+           bma.c(:,:,i)   = C(:,:);
+       end
        
-       bma.post        = model.post;
-       bma.theta       = spm_dcm_bma(bma.post,subj,bma.nsamp,bma.odds_ratio);
-      
     else
         
         bma = [];
@@ -273,11 +319,37 @@ else
         
     end
     
-    if bma_do, 
-       
-       bma.post        = model.r_samp;
-       bma.theta       = spm_dcm_bma(bma.post,subj,bma.nsamp,bma.odds_ratio);
-      
+    if bma_do,  
+       if do_bma_famwin
+           [fam_max,fam_max_i]  = max(family.exp_r);
+           post_indx = find(family.partition==fam_max_i);
+           bma.post  = model.exp_r(post_indx);
+       else
+           if do_bma_all  
+              bma.post = model.exp_r;
+           else
+              if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
+                post_indx = find(family.partition==bma_fam);
+                bma.post = model.exp_r(post_indx);
+              else
+                    error('Incorrect family for BMA!');
+               end
+           end
+       end
+
+       % bayesian model averaging
+       % ------------------------------------------------------------------
+       theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
+
+       % reshape parameters
+       % ------------------------------------------------------------------
+       for i = 1:bma.nsamp,
+           [A,B,C]     = spm_dcm_reshape(theta(:,i),m,n,1);
+           bma.a(:,:,i)   = A(:,:);
+           bma.b(:,:,:,i) = B(:,:,:);
+           bma.c(:,:,i)   = C(:,:);
+       end
+
     else
         
         bma = [];

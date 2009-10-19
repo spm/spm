@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3459 2009-10-13 10:37:51Z maria $
+% $Id: spm_cfg_bms.m 3479 2009-10-19 10:10:55Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -176,14 +176,14 @@ priors.val      = {'M-unity'};
 family_file         = cfg_files;
 family_file.tag     = 'family_file';
 family_file.name    = 'Load family';
-family_file.help    = {['Load family file. This file should contain the '...
+family_file.help    = {['Load family.mat file. This file should contain the '...
                         'structure ''family'' with fields ''names'' and '...
                         '''partition''. Example: family.names = {''F1'', '...
                         '''F2''} and family.partition = [1 2 2 1 1]. '...
                         ' This structure specifies two families with names '...
                         '''F1'' and ''F2'' and assigns model 1, 4 and 5 to '...
                         'the first family and models 2 and 3 to the second '...
-                        'family']};
+                        'family.']};
 family_file.val{1}  = {''};
 family_file.filter  = 'mat';
 family_file.ufilter = '.*';
@@ -195,7 +195,7 @@ family_file.num     = [0 1];
 family_name         = cfg_entry;
 family_name.tag     = 'family_name';
 family_name.name    = 'Name';
-family_name.help    = {'Specify name for family'};
+family_name.help    = {'Specify name for family.'};
 family_name.strtype = 's';
 family_name.num     = [0 Inf];
 
@@ -227,7 +227,7 @@ select_family         = cfg_repeat;
 select_family.tag     = 'select_family';
 select_family.name    = 'Specify family';
 select_family.values  = {family };
-select_family.help    = {'Specify family name and models.'};
+select_family.help    = {'Create family. Specify family name and models.'};
 
 % ---------------------------------------------------------------------
 % family_level Family level
@@ -241,6 +241,47 @@ family_level.help    = {['Optional field to perform family level inference.'...
                          'the interface.']};
 family_level.val     = {family_file };
 family_level.values  = {family_file select_family };
+
+% ---------------------------------------------------------------------
+% bma_part Choose family
+% ---------------------------------------------------------------------
+bma_part         = cfg_entry;
+bma_part.tag     = 'bma_part';
+bma_part.name    = 'Choose family';
+bma_part.help    = {['Specify family (integer). E.g. ''2'' for the second '...
+                    'family to use in BMA. ']};
+bma_part.strtype = 'e';
+bma_part.num     = [0 Inf];
+
+% ---------------------------------------------------------------------
+% bma_no no
+% ---------------------------------------------------------------------
+bma_all         = cfg_const;
+bma_all.tag     = 'bma_all';
+bma_all.name    = 'All families';
+bma_all.val     = {'fanwin'};
+bma_all.help    = {'Use all families for Bayesian Model Averaging (BMA).'}';
+
+% ---------------------------------------------------------------------
+% bma_no no
+% ---------------------------------------------------------------------
+bma_famwin         = cfg_const;
+bma_famwin.tag     = 'bma_famwin';
+bma_famwin.name    = 'Winning family';
+bma_famwin.val     = {'fanwin'};
+bma_famwin.help    = {'Use winning family for Bayesian Model Averaging (BMA).'}';
+
+% ---------------------------------------------------------------------
+% bma_set BMA set
+% ---------------------------------------------------------------------
+bma_set         = cfg_choice;
+bma_set.tag     = 'bma_set';
+bma_set.name    = 'Family';
+bma_set.help    = {['Specify family for Bayesian Model Averaging (BMA). '...
+                    'Options: ''winning family'', ''choose family'' or '...
+                    '''all families''.']};
+bma_set.val     = {bma_famwin };
+bma_set.values  = {bma_famwin bma_part bma_all };
 
 % ---------------------------------------------------------------------
 % bma_ratio Odds ratio
@@ -273,7 +314,7 @@ bma_no         = cfg_const;
 bma_no.tag     = 'bma_no';
 bma_no.name    = 'Do not compute';
 bma_no.val     = {0};
-bma_no.help    = {'Do not prepare Bayesian Model Averaging (BMA)'}';
+bma_no.help    = {'Do not compute Bayesian Model Averaging (BMA).'}';
 
 % ---------------------------------------------------------------------
 % bma_yes yes
@@ -281,8 +322,8 @@ bma_no.help    = {'Do not prepare Bayesian Model Averaging (BMA)'}';
 bma_yes         = cfg_branch;
 bma_yes.tag     = 'bma_yes';
 bma_yes.name    = 'Choose parameters';
-bma_yes.val     = {bma_nsamp bma_ratio };
-bma_yes.help    = {'Prepare Bayesian Model Averaging (BMA)'}';
+bma_yes.val     = {bma_nsamp bma_ratio bma_set };
+bma_yes.help    = {'Compute Bayesian Model Averaging (BMA).'}';
 
 % ---------------------------------------------------------------------
 % bma BMA
@@ -290,7 +331,7 @@ bma_yes.help    = {'Prepare Bayesian Model Averaging (BMA)'}';
 bma         = cfg_choice;
 bma.tag     = 'bma';
 bma.name    = 'BMA';
-bma.help    = {'Optional field to prepare bayesian model averaging (BMA).'};
+bma.help    = {'Optional field to compute Bayesian Model Averaging (BMA).'};
 bma.val     = {bma_no };
 bma.values  = {bma_no bma_yes };
 

@@ -4,7 +4,8 @@ function spm_dcm_ui(Action)
 % FORMAT spm_dcm_ui('estimate')
 % FORMAT spm_dcm_ui('review')
 % FORMAT spm_dcm_ui('compare')
-% FORMAT spm_dcm_ui('average')
+% FORMAT spm_dcm_ui('average (BPA)')
+% FORMAT spm_dcm_ui('average (BMA)')
 %
 % * Specify a new model
 % * Estimate a specified model
@@ -71,7 +72,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 2685 2009-02-03 19:16:00Z guillaume $
+% $Id: spm_dcm_ui.m 3479 2009-10-19 10:10:55Z maria $
 
 
 % Get figure handles
@@ -86,8 +87,8 @@ spm('Pointer','Arrow');
 % Options, using pull-down menu
 %--------------------------------------------------------------------------
 if ~nargin
-    str      = 'Action: ';
-    Actions  = {'specify','estimate','review','compare','average','quit'};
+    str       = 'Action: ';
+    Actions   = {'specify','estimate','review','compare','average (BPA)','average (BMA)','quit'};
     selected = spm_input(str,1,'m',Actions);
     Action   = Actions{selected};
 end
@@ -152,13 +153,21 @@ case 'compare',
 %==========================================================================
 % Average several models (Bayesian FFX)
 %==========================================================================
-case 'average',
+case 'average (bpa)',
     
     spm('FnBanner','spm_dcm_average');
     
-    spm_dcm_average(1);  % ERP: 0; fMRI: any value > 0
-
+    spm_dcm_average(1);         % ERP: 0; fMRI: any value > 0
     
+%==========================================================================
+% Average model parameters from BMS (BMA)
+%==========================================================================
+case 'average (bma)',
+    
+    spm('FnBanner','spm_dcm_average');
+    
+    spm_dcm_bma_results;  
+   
 %==========================================================================
 % Quit DCM GUI
 %==========================================================================

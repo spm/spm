@@ -34,9 +34,15 @@ mask_image = spm_vol(mask);         % Mask image Vol
 % Nb. of subjects and models
 % -------------------------------------------------------------------------
 if isfield(BMS.map,method)
-   data   = BMS.map.ffx.data;
+   switch method
+       case 'ffx'
+            data   = BMS.map.ffx.data;
+       case 'rfx'
+            data   = BMS.map.rfx.data;
+   end
 else
-   data   = BMS.map.rfx.data;
+  msgbox(sprintf('Error: no %s analysis in current BMS.mat!',method))
+  return                  
 end
 
 nsubjs    = size(data,2);
@@ -186,7 +192,7 @@ switch method
             hvox   = axes('Position',[0.55 0.18 0.30 0.20],'Parent',...
                     Fgraph,'Visible','off');
         
-            bar(1:nmodels,exp_r)
+            bar(1:nmodels,xp)
             set(gca,'XTick',1:nmodels)
             set(gca,'XTickLabel',1:nmodels)
             set(gca,'YLim',[0 1])
@@ -199,7 +205,7 @@ switch method
             hvox   = axes('Position',[0.16 0.18 0.30 0.20],'Parent',...
                     Fgraph,'Visible','off'); 
 
-            bar(1:nmodels,xp)
+            bar(1:nmodels,exp_r)
             set(gca,'XTick',1:nmodels)
             set(gca,'XTickLabel',1:nmodels)
             set(gca,'YLim',[0 1])

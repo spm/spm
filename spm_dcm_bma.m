@@ -1,9 +1,10 @@
-function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
+function [theta] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Model-independent samples from DCM posterior  
-% FORMAT [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
+% FORMAT [theta] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 %
 % post      [Nd x M] vector of posterior model probabilities
 %           If Nd>1 then inference is based on a RFX posterior p(r|Y)
+% post_indx models to use in BMA (position of models in subj sctructure)
 % subj      subj(n).sess(s).model(m).fname: DCM filename
 % Nsamp     Number of samples (default = 1e3)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
@@ -17,7 +18,7 @@ function [theta] = spm_dcm_bma (post,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3461 2009-10-13 15:25:24Z maria $
+% $Id: spm_dcm_bma.m 3479 2009-10-19 10:10:55Z maria $
 
 if nargin < 3 | isempty(Nsamp)
     Nsamp=1e3;
@@ -77,7 +78,7 @@ end
 % Load DCM posteriors for models in Occam's window
 for n=1:Nsub,
     for kk=1:Nocc,
-        sel=post_ind(kk);
+        sel=post_indx(post_ind(kk));
         load_str=subj(n).sess(1).model(sel).fname;
         load(load_str);
         subj(n).sess(1).model(kk).Ep=DCM.Ep;
@@ -96,7 +97,6 @@ for i=1:Nsamp,
     else
         m=spm_multrnd(post,1);
     end
-    
     % Pick parameters from model for each subject
     for n=1:Nsub,
         mu=subj(n).sess(1).model(m).Ep;
