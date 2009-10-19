@@ -61,6 +61,9 @@ function [type] = senstype(input, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.22  2009/10/19 10:12:52  vlalit
+% Fixed a bug that caused shape to be recognized as elec.
+%
 % Revision 1.21  2009/10/16 12:27:53  roboos
 % some small changes pertaining to the itab/chieti format
 %
@@ -148,7 +151,7 @@ end
 isdata   = isa(input, 'struct') && isfield(input, 'hdr')   && isfield(input.hdr, 'label');
 isheader = isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
 isgrad   = isa(input, 'struct') && isfield(input, 'pnt')   && isfield(input, 'ori');
-iselec   = isa(input, 'struct') && isfield(input, 'pnt')   && ~isfield(input, 'ori');
+iselec   = isa(input, 'struct') && isfield(input, 'pnt')   && isfield(input, 'label') && ~isfield(input, 'ori');
 islabel  = isa(input, 'cell')   && isa(input{1}, 'char');
 
 % the input may be a data structure which then contains a grad/elec structure
