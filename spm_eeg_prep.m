@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3446 2009-10-06 16:19:36Z vladimir $
+% $Id: spm_eeg_prep.m 3484 2009-10-19 10:17:40Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -232,15 +232,15 @@ switch lower(S.task)
                 lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl', 'le', 'l', 't9', 'spmlpa'};
                 relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 'r', 't10', 'spmrpa'};
                 
-                [sel1, nzind] = match_str(nzlbl, lower(fid.fid.label)); 
+                [sel1, nzind] = spm_match_str(nzlbl, lower(fid.fid.label)); 
                  if ~isempty(nzind)                   
                     nzind = nzind(1);
                 end
-                [sel1, leind] = match_str(lelbl, lower(fid.fid.label));
+                [sel1, leind] = spm_match_str(lelbl, lower(fid.fid.label));
                  if ~isempty(leind)                   
                     leind = leind(1);
                  end               
-                [sel1, reind] = match_str(relbl, lower(fid.fid.label));
+                [sel1, reind] = spm_match_str(relbl, lower(fid.fid.label));
                 if ~isempty(reind)                 
                     reind = reind(1);
                 end
