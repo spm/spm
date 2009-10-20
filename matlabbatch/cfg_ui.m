@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3469 2009-10-16 08:43:15Z volkmar $
+% $Id: cfg_ui.m 3489 2009-10-20 09:49:40Z volkmar $
 
-rev = '$Rev: 3469 $'; %#ok
+rev = '$Rev: 3489 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -599,7 +599,7 @@ switch(udmodule.contents{5}{citem})
                     udmodule.contents{2}{citem}{k}.name, k), ...
                     'Callback',@(ob,ev)local_setvaledit(ob,cmd2{k},ev), ...
                     'Tag','CmValReplItemDyn');
-                str2{k+ncitems} = sprintf('DELETE: %s (%d)',...
+                str2{k+ncitems} = sprintf('Delete: %s (%d)',...
                     udmodule.contents{2}{citem}{k}.name, k);
                 cmd2{k+ncitems} = [Inf k];
                 uimenu(handles.MenuEditValDelItem, ...

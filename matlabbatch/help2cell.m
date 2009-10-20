@@ -1,4 +1,4 @@
-function cellhelp = help2cell(topic);
+function cellhelp = help2cell(topic)
 % HELP2CELL - translate help texts into cell arrays
 % cellhelp = help2cell(topic)
 % Create a cell array of help strings from the MATLAB help on 'topic'.
@@ -12,9 +12,9 @@ function cellhelp = help2cell(topic);
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: help2cell.m 3469 2009-10-16 08:43:15Z volkmar $
+% $Id: help2cell.m 3489 2009-10-20 09:49:40Z volkmar $
 
-rev = '$Rev: 3469 $'; %#ok
+rev = '$Rev: 3489 $'; %#ok
 
 try
     tmphelp = textscan(help(topic),'%s', 'delimiter',char(10));
