@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3443 2009-10-06 08:22:03Z vladimir $
+% $Id: spm_MEEGtools.m 3494 2009-10-21 16:42:32Z gareth $
 
 
 funlist = {
@@ -19,6 +19,7 @@ funlist = {
     'Use CTF head localization' , 'spm_eeg_megheadloc'
     'Fieldtrip beamformer source extraction' , 'spm_eeg_ft_beamformer_source'
     'Fieldtrip DICS beamformer' , 'spm_eeg_ft_beamformer_freq'
+    'Volumetric LCMV beamformer' , 'spm_eeg_ft_beamformer_gui'
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
