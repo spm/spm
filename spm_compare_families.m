@@ -42,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3347 2009-09-02 16:04:20Z will $
+% $Id: spm_compare_families.m 3493 2009-10-21 14:55:53Z will $
 
 try
     infer=family.infer;
@@ -140,10 +140,11 @@ switch prior,
 end
 
 % Get model posterior
-[exp_r,xp,r_samp]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
+[exp_r,xp,r_samp,g_post]=spm_BMS_gibbs(lme,model.alpha0,Nsamp);
 model.exp_r=exp_r;
 model.xp=xp;
 model.r_samp=r_samp;
+model.g_post=g_post;
 
 % Get stats from family posterior
 for i=1:K,

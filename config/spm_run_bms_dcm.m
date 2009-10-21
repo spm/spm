@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3491 2009-10-21 10:44:31Z will $
+% $Id: spm_run_bms_dcm.m 3493 2009-10-21 14:55:53Z will $
 
 % input
 % -------------------------------------------------------------------------
@@ -311,7 +311,9 @@ else
         if nm <= ns
             [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
         else
-            [exp_r,xp] = spm_BMS_gibbs(F);
+            % Will changed next 2 lines 
+            [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
+            model.g_post=g_post;
         end
         model.alpha = [];
         model.exp_r = exp_r;
@@ -328,14 +330,17 @@ else
        if do_bma_famwin
            [fam_max,fam_max_i]  = max(family.exp_r);
            post_indx = find(family.partition==fam_max_i);
-           bma.post  = model.exp_r(post_indx);
+           % Will changed (exp_r -> g_post)
+           bma.post  = model.g_post(:,post_indx);
        else
            if do_bma_all  
-              bma.post = model.exp_r;
+              % Will changed (exp_r -> g_post)
+              bma.post = model.g_post;
            else
               if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
                 post_indx = find(family.partition==bma_fam);
-                bma.post = model.exp_r(post_indx);
+                % Will changed (exp_r -> g_post)
+                bma.post = model.g_post(:,post_indx);
               else
                     error('Incorrect family for BMA!');
                end
@@ -346,8 +351,11 @@ else
        
        % bayesian model averaging
        % ------------------------------------------------------------------
-       theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
-
+       
+       % Will - added Nocc o/p
+       [theta, Nocc] = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
+       bma.Nocc=Nocc;
+       
        % reshape parameters
        % ------------------------------------------------------------------
        for i = 1:bma.nsamp,

@@ -1,6 +1,6 @@
-function [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
+function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Bayesian model selection for group studies using Gibbs sampling
-% FORMAT [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
+% FORMAT [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 %
 % INPUT:
 % lme      - array of log model evidences 
@@ -13,12 +13,13 @@ function [exp_r,xp,r_samp] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % exp_r   - [1 x  Nk] expectation of the posterior p(r|y)
 % xp      - exceedance probabilities
 % r_samp  - [Nsamp x Nk] matrix of samples from posterior
-% 
+% g_post  - [Ni x Nk] matrix of posterior probabilities with 
+%           g_post(i,k) being post prob that subj i used model k
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 3260 2009-07-09 10:52:42Z will $
+% $Id: spm_BMS_gibbs.m 3493 2009-10-21 14:55:53Z will $
 
 if nargin < 3 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -49,6 +50,8 @@ lme=lme-mean(lme,2)*ones(1,Nk);
 
 % Gibbs sampling 
 r_samp = zeros(Nsamp,Nk);
+g_post = zeros(Ni,Nk);
+
 for samp=1:2*Nsamp
     
     mod_vec=sparse(Ni,Nk);
@@ -57,6 +60,7 @@ for samp=1:2*Nsamp
         % Pick a model for this subject
         u=exp(lme(i,:)+log(r))+eps;
         g=u/sum(u);
+        gmat(i,:)=g;
         modnum=spm_multrnd(g,1);
         mod_vec(i,modnum)=1;
     end
@@ -75,6 +79,7 @@ for samp=1:2*Nsamp
     % Only keep last Nsamp samples
     if samp > Nsamp
         r_samp(samp-Nsamp,:)=r;
+        g_post=g_post+gmat;
     end
     
     if mod(samp,1e4)==0
@@ -82,6 +87,7 @@ for samp=1:2*Nsamp
     end
     
 end
+g_post=g_post/Nsamp;
 
 % Posterior mean
 exp_r = mean(r_samp,1);
@@ -91,4 +97,6 @@ xp = zeros(1,Nk);
 [y,j]=max(r_samp,[],2);
 tmp=histc(j,1:Nk)';
 xp=tmp/Nsamp;
+
+
     
