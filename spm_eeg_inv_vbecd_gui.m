@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3372 2009-09-08 14:33:45Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3492 2009-10-21 13:52:31Z gareth $
 
 %%
 % Load data, if necessary
@@ -124,7 +124,7 @@ end
 %===============
 
 % time bin or time window
-msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1e3)), ...
+msg_tb = ['time_bin or average_win [',num2str(round(min(D.time)*1e3)), ...
             ' ',num2str(round(max(D.time)*1e3)),'] ms'];
 ask_tb = 1;
 while ask_tb
@@ -353,12 +353,12 @@ while adding_dips
             tmp_diags_w0 = [nopriormomvardefault'; nopriormomvardefault'];
         end
         %dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
-        %% couple all orientations positively or leave for now...
+        %% couple all orientations, except x, positively or leave for now...
                 dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
-            dip_pr(dip_q).S_w0(4,1)=dip_pr(dip_q).S_w0(4,4); %
+            dip_pr(dip_q).S_w0(4,1)=-dip_pr(dip_q).S_w0(4,4); %
             dip_pr(dip_q).S_w0(5,2)=dip_pr(dip_q).S_w0(5,5); %
             dip_pr(dip_q).S_w0(6,3)=dip_pr(dip_q).S_w0(6,6); %
-            dip_pr(dip_q).S_w0(1,4)=dip_pr(dip_q).S_w0(4,1); %
+            dip_pr(dip_q).S_w0(1,4)=-dip_pr(dip_q).S_w0(4,1); %
             dip_pr(dip_q).S_w0(2,5)=dip_pr(dip_q).S_w0(5,2); %
             dip_pr(dip_q).S_w0(3,6)=dip_pr(dip_q).S_w0(6,3); %
         
