@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 3472 2009-10-16 17:10:26Z will $
+% $Id: spm_dcm_phase.m 3497 2009-10-21 21:54:28Z vladimir $
 
 
 % check options 
@@ -47,9 +47,9 @@ try, onset = DCM.options.onset; catch, onset              = 80;        end
 DCM    = spm_dcm_erp_dipfit(DCM, 1);
 
 % Get data if not gotten already
-if ~isfield(DCM.xY,'source')   
+%if ~isfield(DCM.xY,'source')   
     DCM  = spm_dcm_phase_data(DCM);
-end
+%end
 
 disp('Estimating Model ...');
 

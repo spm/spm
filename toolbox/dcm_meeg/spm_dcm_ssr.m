@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_dcm_ssr.m 3497 2009-10-21 21:54:28Z vladimir $
 
 
 % check options
@@ -127,14 +127,14 @@ DCM.xY.X0 = sparse(Nf,0);
 
 % Data ID
 %==========================================================================
-if isfield(M,'FS')
+if isfield(DCM.M,'FS')
     try
-        ID  = spm_data_id(feval(M.FS,xY.y,M));
+        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
     catch
-        ID  = spm_data_id(feval(M.FS,xY.y));
+        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y));
     end
 else
-    ID  = spm_data_id(xY.y);
+    ID  = spm_data_id(DCM.xY.y);
 end
 
 

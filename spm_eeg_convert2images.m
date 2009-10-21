@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3442 2009-10-06 08:19:14Z vladimir $
+% $Id: spm_eeg_convert2images.m 3497 2009-10-21 21:54:28Z vladimir $
 
-SVNrev = '$Rev: 3442 $';
+SVNrev = '$Rev: 3497 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -64,11 +64,19 @@ end
 
 %-Time-Frequency data
 %==========================================================================
-if strncmpi(D.transformtype, 'TF',2);
-
+if strncmpi(D.transformtype, 'TF',2)
+    
+    %-If it's clear what to average over, assign automatically
+    %----------------------------------------------------------------------
+    if D.nchannels == 1
+        S.images.fmt = 'frequency';
+    elseif D.nfrequencies == 1
+        S.images.fmt = 'channels';
+    end
+    
     %-Average over channels or frequencies?
     %----------------------------------------------------------------------
-    try
+    try        
         images.fmt = S.images.fmt;
     catch
         spm_input('average over ...', 1, 'd')
@@ -90,15 +98,14 @@ if strncmpi(D.transformtype, 'TF',2);
                 images.channels_of_interest = S.images.elecs;
             catch
                 if D.nchannels > 1
-                    str  = 'channels[s]';
-                    Ypos = '+1';
-                    while true
-                        [images.channels_of_interest, Ypos] = ...
-                            spm_input(str, Ypos, 'r', [], [1 Inf]);
-                        if any(ismember(images.channels_of_interest, 1:D.nchannels))
-                            break;
-                        end
+                    meegchan = D.meegchannels;
+                    [selection, ok]= listdlg('ListString', D.chanlabels(meegchan), 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
+                    if ~ok
+                        return;
                     end
+                    
+                    images.channels_of_interest = meegchan(selection);
+                    
                 else
                     images.channels_of_interest = 1;
                 end

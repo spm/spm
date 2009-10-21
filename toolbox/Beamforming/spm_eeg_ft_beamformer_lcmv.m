@@ -11,7 +11,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3496 2009-10-21 18:25:37Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3497 2009-10-21 21:54:28Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%

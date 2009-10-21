@@ -21,9 +21,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 3429 2009-09-29 09:41:36Z vladimir $
+% $Id: spm_eeg_average.m 3497 2009-10-21 21:54:28Z vladimir $
 
-SVNrev = '$Rev: 3429 $';
+SVNrev = '$Rev: 3497 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -247,7 +247,7 @@ for i = 1:D.nconditions
     if i < D.nconditions
         s = [s ', '];
     else
-        s = [s '\n'];
+        s = [s '.'];
     end
 end
 disp(s);                                                       %-#

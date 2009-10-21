@@ -7,9 +7,6 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 %   S.D                - MEEG object or filename of M/EEG mat-file
 %   S.tf               - structure with (optional) fields:
 %     S.tf.frequencies - vector of frequencies (Hz)
-%     S.tf.rm_baseline - baseline removal (yes/no: 1/0)
-%     S.tf.Sbaseline   - 2-element vector: start and stop of baseline
-%                        (if rm_baseline yes)
 %     S.tf.Mfactor     - Morlet wavelet factor
 %     S.tf.channels    - vector of channel indices for which to compute TF
 %     S.tf.phase       - compute phase (yes/no: 1/0)
@@ -29,9 +26,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 3350 2009-09-03 13:19:20Z vladimir $
+% $Id: spm_eeg_tf.m 3497 2009-10-21 21:54:28Z vladimir $
 
-SVNrev = '$Rev: 3350 $';
+SVNrev = '$Rev: 3497 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -61,24 +58,6 @@ catch
 end
 
 try
-    tf.rm_baseline = S.tf.rm_baseline;
-catch
-    tf.rm_baseline = ...
-        spm_input('Removal of baseline', '+1', 'y/n', [1,0], 2);
-    S.tf.rm_baseline = tf.rm_baseline;
-end
-
-if tf.rm_baseline
-    try
-        tf.Sbaseline = S.tf.Sbaseline;
-    catch
-        tf.Sbaseline = ...
-            spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
-        S.tf.Sbaseline = tf.Sbaseline;
-    end
-end
-
-try
     tf.Mfactor = S.tf.Mfactor;
 catch
     tf.Mfactor = ...
@@ -89,8 +68,13 @@ end
 try
     tf.channels = S.tf.channels;
 catch
-    tf.channels = ...
-        spm_input('Select channels', '+1', 'i', num2str([1:D.nchannels]));
+    meegchan = D.meegchannels;
+    [selection, ok]= listdlg('ListString', D.chanlabels(meegchan), 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
+    if ~ok
+        return;
+    end
+    
+    tf.channels = meegchan(selection);
     S.tf.channels = tf.channels;
 end
 
@@ -147,7 +131,6 @@ for i = 1:length(tf.channels)
     end
     ctype = D.chantype(tf.channels(i));
     sD.channels(i).type = ctype{1};
-%     Dtf = coor2D(Dtf, tf.channels(i), coor2D(D, tf.channels(i)));
     % units?
 
 end
@@ -173,7 +156,6 @@ if tf.phase == 1
         % units?
     end
     Dtf2 = meeg(sD);
-    %     Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
     Dtf2 = coor2D(Dtf2, [1:length(tf.channels)], coor2D(D,tf.channels));
 else
     Dtf2 = [];
@@ -248,14 +230,6 @@ save(Dtf);
 if tf.phase
     Dtf2 = Dtf2.history('spm_eeg_tf', S);
     save(Dtf2);
-end
-
-%-Remove baseline over frequencies and trials
-%--------------------------------------------------------------------------
-if tf.rm_baseline == 1
-    Dtf = spm_eeg_bc(struct('D',    Dtf, ...
-                            'time', tf.Sbaseline,...
-                            'save', false));
 end
 
 %-Cleanup

@@ -4,7 +4,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % basic gui for an LCMV univariate beamformer
 %
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3495 2009-10-21 17:44:17Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 3497 2009-10-21 21:54:28Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%

@@ -36,8 +36,7 @@ spatial parameters, but also allows one to infer about connectivity.
 \\
 \\
 Our methods group is continuing to work on further
-improvements and extensions to DCM. At the same time, we take great
-care that the core functionality implemented in SPM8 is robust and usable. In the following, we will describe the usage of DCM for evoked
+improvements and extensions to DCM. In the following, we will describe the usage of DCM for evoked
 responses (both MEG and EEG), DCM for induced responses (i.e., based
 on power data in the time-frequency domain), and DCM for local field
 potentials (measured as steady-state responses). All three DCMs share the
@@ -59,8 +58,8 @@ what kind of hypotheses can be tested with DCM
 background information is the recent SPM book
 \cite{spm_book}, where Parts 6 and 7 cover not only DCM for M/EEG but
 also related research from our group. The DCMs for induced responses
-and steady-state responses are covered in \cite{cc_induced} and
-\cite{rm_spectralnmm,rm_massmodelspectral}. Also note that there is a DCM example file, which we put onto the webpage http://www.fil.ion.ucl.ac.uk/spm/data/eeg\_mmn/. After downloading DCMexample.mat, you can load (see below) this file using the DCM GUI, and have a look at the various options, or change some, after reading the description below.
+and steady-state responses are covered in \cite{cc_induced, cc_asymm} and
+\cite{dcm_ssr,rm_spectralnmm,rm_massmodelspectral}. Also note that there is a DCM example file, which we put onto the webpage http://www.fil.ion.ucl.ac.uk/spm/data/eeg\_mmn/. After downloading DCMexample.mat, you can load (see below) this file using the DCM GUI, and have a look at the various options, or change some, after reading the description below.
 
 \section{Overview}
 In summary, the goal of DCM is to explain measured data (such as evoked
@@ -83,13 +82,13 @@ account. This makes DCM a spatiotemporal model of the full data set
 describe DCM also as a spatiotemporal source reconstruction algorithm which uses
 additional temporal constraints given by neural mass dynamics and
 long-range effective connectivity. This is achieved by parameterising
-the lead-field, i.e.,~the spatial projection of source
+the lead-field, i.e., the spatial projection of source
 activity to the sensors. In the current version, this can be done
 using two different approaches. The first assumes that the leadfield
 of each source is modelled by a single equivalent current dipole
 (ECD) \cite{sjk_dcm_erp}. The second approach posits that each source
 can be presented as a 'patch' of dipoles on the grey matter sheet
-(Daunizeau et al., in preparation). This spatial model is complemented
+\cite{jean_distributed}. This spatial model is complemented
 by a model of the temporal dynamics of each source. Importantly, these
 dynamics not only describe how the intrinsic source dynamics evolve
 over time, but also how a source reacts to external input, coming
@@ -138,38 +137,16 @@ potentials or fields. These data must be in the SPM-format. On the
 right-hand side you can enter trial indices of the evoked responses in
 this SPM-file. For example, if you want to model the
 second and third evoked response contained within an SPM-file, specify
-indices 2 and 3. If the two evoked responses, for some reason, are in
+indices 2 and 3. The indices correspond to the order specified by the \textit{condlist} method (see \ref{Chap:eeg:preprocessing}). If the two evoked responses, for some reason, are in
 different files, you have to merge these files first. You can do this
 with the SPM preprocessing function \textit{merge}
-(\textit{spm\_eeg\_merge}), see chapter
-\ref{Chap:eeg:preprocessing}. You can also choose how you want to
-model multiple evoked responses. When you enter multiple evoked
-responses, the default is to model the modulations of connectivity
-parameters independently of each other. You can change this default to
-model the way connections are modelled over trials. For
-example, when you want to model three evoked responses, you can model
-the modulations of a connection strength of the second and third
-evoked responses as two uncoupled multiplicative gains on the connection
-strength of the first evoked response. However, you can also choose to
-couple the connection strength of the first evoked response with the
-two gains by imposing a linear relationship on how this connection changes over trials. This can be useful when one wants to add
-constraints on how connections (or other DCM parameters)
-change over trials. A compelling example of this can be
-found in \cite{marta_mmndcm}.
+(\textit{spm\_eeg\_merge}), see \ref{Chap:eeg:preprocessing}. You can also choose how you want to
+model the experimental effects (i.e. the differences between conditions). For example, if trial \texttt{1} is the standard and trial \texttt{2} is the deviant response in an oddball paradigm, you can use the standard as the baseline and model the differences in the connections that are necessary to fit the deviant. To do that type \texttt{0 1} in the text box below trial indices. Alternatively, if you type \texttt{-1 1} then the baseline will be the average of the two conditions and the same factor will be subtracted from the baseline connection values to model the standard and added to model the deviant. The latter option is  perhaps not optimal for an oddball paradigm but might be suitable for other paradigms where there is no clear 'baseline condition'.  When you want to model three or more evoked responses, you can model the modulations of a connection strength of the second and third evoked responses as two separate experimental effects relative to the first evoked response. However, you can also choose to couple the connection strength of the first evoked response with the two gains by imposing a linear relationship on how this connection changes over trials. Then you can specify a single effect (e.g. \texttt{-1 0 1}).  This can be useful when one wants to add constraints on how connections (or other DCM parameters) change over trials. A compelling example of this can be found in \cite{marta_mmndcm}. For each experimental effect you specify, you will be able to select the connections in the model that are affected by it (see below).
 
-When you hit enter after entering the
-row vector of trial indices, a file requester will ask you for the
-name of the SPM-file. Alternatively, you can press the button
-'data file'. Under 'time window (ms)' you have to enter the
+Press the button \texttt{'data file'} to load the M/EEG dataset. Under 'time window (ms)' you have to enter the
 peri-stimulus times which you want to model, e.g. 1 to 200 ms.
 
-You can choose whether you want to model the mean or
-drifts of the data at sensor level. If you don't,
-select 0 for 'detrend', otherwise select the number of discrete cosine
-transform terms you want to use to model the mean (1) or low-frequency
-drifts ($> 1$). In DCM, we use a projection of the data to a subspace to reduce the amount of data. The type of spatial projection
-is described in \cite{matthias_dcm_constraints}. You can select the
-number of modes you wish to keep. The default is 8.
+You can choose whether you want to model the mean or drifts of the data at sensor level. Select 1 for 'detrend' to just model the mean. Otherwise select the number of discrete cosine transform terms you want to use to model low-frequency drifts ($> 1$). In DCM, we use a projection of the data to a subspace to reduce the amount of data. The type of spatial projection is described in \cite{matthias_dcm_constraints}. You can select the number of modes you wish to keep. The default is 8.
 
 You can also choose to window your data, along peri-stimulus time,
 with a hanning window (radio button). This windowing will reduce the
@@ -184,9 +161,7 @@ press the red $<$ button to get back to the data and design part.
 With the present version of DCM, you have three options for how to spatially
 model your evoked responses. Either you use a single equivalent
 current dipole (ECD) for each source, or you use a patch on the
-cortical surface (IMG), or you don't use a spatial model at all (local field potentials (LFP)). The second option is not
-described in the peer-reviewed literature yet (Daunizeau et al., in
-preparation). In all three cases, you have to enter the source names (one
+cortical surface (IMG), or you don't use a spatial model at all (local field potentials (LFP)). In all three cases, you have to enter the source names (one
 name in one row). For ECD and IMG, you have to specify the prior source locations (in mm in MNI
 coordinates). Note that by default DCM uses  uninformative priors on
 dipole orientations, but tight priors on locations. This is because tight priors on locations ensure that the posterior location will not deviate to much from its prior location. This means each dipole stays in its designated area and retains its meaning. The prior location for each
@@ -199,8 +174,7 @@ You can also load the prior locations from a file
 press 'dipoles'.
 
 The onset-parameter determines when the stimulus,
-presented at 0ms peri-stimulus time, is assumed to cause an
-impulse. In DCM, we usually do not model the rather small early responses, but start modelling at the first large
+presented at 0 ms peri-stimulus time, is assumed to activate the cortical area to which it is connected. In DCM, we usually do not model the rather small early responses, but start modelling at the first large
 deflection. Because the propagation of the stimulus impulse through
 the input nodes causes a delay, we found that the default value of 60
 ms onset time is a good value for many evoked responses where the
@@ -209,7 +183,7 @@ prior, i.e., the inversion routine can adjust it. The prior mean should be chose
 You may also find that changing the onset prior has an effect on how your data are
 fitted. This is because the onset time has strongly nonlinear effects
 (a delay) on the data, which might cause differences in which maximum
-was found at convergence, for different prior values.
+was found at convergence, for different prior values. It is also possible to type several numbers in this box (identical or not) and then there will be several inputs whose timing can be optimized separately. These inputs can be connected to different model sources. This can be useful, for instance, for modelling a paradigm with combined auditory and visual stimulation.
 
 When you want to proceed to the next model
 specification stage, hit the $>$ (forward) button and proceed
@@ -226,10 +200,9 @@ $(2,\;1)$ in the intrinsic forward connectivity matrix means that you
 specify a forward connection from area 1 to 2. Some people find the
 meaning of each element slightly counter-intuitive, because the
 column index corresponds to the source area, and the row index to the
-target area.
+target area. This convention is motivated by direct correspondence between the matrices of buttons in the GUI and connectivity matrices in DCM equations and should be clear to anyone familiar with matrix multiplication.
 
-In the present GUI implementation, there is only one input
-allowed. This input can go to any area and to multiple areas. You can select
+The one or more inputs that you specified previously can go to any area and to multiple areas. You can select
 the receiving areas by selecting area indices in the \textit{C input} vector.
 
 The \textit{B} matrix contains all gain modulations of connection
@@ -280,7 +253,7 @@ from the prior mean, taking into account the posterior variance.
 
 With the option \textit{coupling(B)} you can access the posterior
 means for the gain modulations of the intrinsic connectivities and
-the probability that they are unequal to the prior means.
+the probability that they are unequal to the prior means. If you specified several experimental effects, you will be asked which of them you want to look at.
 
 With \textit{coupling(C)} you see a summary of the posterior
 distribution for the strength of the input into the input receiving
@@ -293,7 +266,7 @@ The option \textit{Input} shows you the estimated input function. As
 described by \cite{od_dcm_erp}, this is a gamma function with the
 addition of low-frequency terms.
 
-With \textit{Response}, you can plot the selected data, i.e.~the data,
+With \textit{Response}, you can plot the selected data, i.e. the data,
 selected by the spatial modes, but back-projected into sensor space.
 
 With \textit{Response (image)}, you see the same as under Results but
@@ -309,13 +282,8 @@ assign parameter values as initial starting points for the free-energy
 gradient ascent scheme. These values are taken from another already
 estimated DCM, which you have to select.
 
-The button \textit{BMC} allows you do Bayesian model comparison of
-multiple models. After selecting DCMs, you will see, at the top, a
-bar plot of the log-model evidences for all models. At the bottom, you
-will see the probability, for each model, that it produced the
-data. By convention, a model can be said to be the best among a
-selection of other models, with strong evidence, if its log-model
-evidence exceeds all other log-model evidences by at least 3.
+The button \textit{BMS} allows you do Bayesian model comparison of
+multiple models. It will open the SPM batch tool for model selection. Specify a directory to write the output file to.  For the ``Inference method'' you can choose between ``Fixed effects'' and ``Random effects'' (see \cite{klaas_bms} for additional explanations). Choose ``Fixed effects'' if you are not sure. Then click on ``Data'' and in the box below click on ``New: Subject''. Click on ``Subject'' and in the box below on ``New: Session''. Click on models and in the selection window that comes up select the DCM mat files for all the models (remember the order in which you select the files as this is necessary for interpretating the results). Then run the model comparison by pressing the green ``Run'' button. You will see, at the top, a bar plot of the log-model evidences for all models. At the bottom, you will see the probability, for each model, that it produced the data. By convention, a model can be said to be the best among a selection of other models, with strong evidence, if its log-model evidence exceeds all other log-model evidences by at least 3.
 
 \section{Steady-State Responses}
 
@@ -348,7 +316,7 @@ The final selection concerns what frequencies you wish to model. These could be 
 Once you hit the 'invert DCM' option the cross spectral densities are computed automatically (using the spectral-toolbox). The data for inversion includes the auto-spectra and cross-spectra between channels or between channel modes. This is computed using a multivariate autoregressive model, which can accurately measure periodicities in the time-domain data. Overall the spectra are then presented as an upper-triangular, s x s matrix, with auto-spectra on the main diagonal and cross-spectra in the off-diagonal terms.
 
 \subsection{Output and Results}
-The results menu provides several data estimates. By examining the 'data', you will be able to see observed spectra in the matrix format described above. Selecting 'Cross-spectral density' gives both observed and predicted responses. To examine the connectivity estimates you can select the 'coupling (A)' results option, or for the modulatory parameters, the 'coupling (B)' option. Also you can examine the input strength at each source by selecting the 'coupling (C)' option, as in DCM for ERPs. The option 'trial-specific effects' shows the change in connectivity parameter estimates (from B) from trial to trial relative to the baseline connection (from A). To examine the spectral input to these sources choose the 'Input' option; this should look like a mixture of white and pink noise. Finally the 'dipoles' option allows visualisation of the a posteriori position and orientation of all dipoles in your model.
+The results menu provides several data estimates. By examining the 'spectral data', you will be able to see observed spectra in the matrix format described above. Selecting 'Cross-spectral density' gives both observed and predicted responses. To examine the connectivity estimates you can select the 'coupling (A)' results option, or for the modulatory parameters, the 'coupling (B)' option. Also you can examine the input strength at each source by selecting the 'coupling (C)' option, as in DCM for ERPs. The option 'trial-specific effects' shows the change in connectivity parameter estimates (from B) from trial to trial relative to the baseline connection (from A). To examine the spectral input to these sources choose the 'Input' option; this should look like a mixture of white and pink noise. Finally the 'dipoles' option allows visualisation of the a posteriori position and orientation of all dipoles in your model.
 
 \section{Induced responses}
 DCM for induced responses aims to model coupling within and between frequencies that are associated with linear and non-linear mechanisms respectively. The procedure to do this is similar to that for DCM for ERP/ERF. In the following, we will just point out the differences in how to specify models in the GUI. Before using the technique, we recommend reading about the principles behind DCM for induced responses \cite{cc_induced}.

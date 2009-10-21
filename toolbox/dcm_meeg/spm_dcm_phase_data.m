@@ -26,7 +26,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 3472 2009-10-16 17:10:26Z will $
+% $Id: spm_dcm_phase_data.m 3497 2009-10-21 21:54:28Z vladimir $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -44,13 +44,18 @@ D = spm_eeg_load(Dfile);
 % DCM.options.trials (from spm_api_erp) contains list of conditions
 % Get list of actual trial indices
 chosen_conds=DCM.options.trials;
+
+% Here using the otherwise unused Nmodes option to select a subset of trials
+trial_step = DCM.options.Nmodes;
 cond_name=condlist(D);
 trials=[];
 X=[];
 for jj=1:length(chosen_conds)
     cname=cond_name{chosen_conds(jj)};
     new_trials=pickconditions(D,cname);
-    %trials=[trials;new_trials];
+    
+    new_trials = new_trials(1:trial_step:end);
+    
     trials=[trials(:);new_trials(:)];
 
     X=[X;ones(length(new_trials),1)*DCM.xU.X(jj)];
@@ -82,9 +87,8 @@ Nc = length(DCM.xY.Ic);
 
 % Compute indices for time window
 DCM.xY.pst=time(D);
-tmin=DCM.options.Tdcm(1)/1000;
-tmax=DCM.options.Tdcm(2)/1000;
-ind=find(DCM.xY.pst>=tmin & DCM.xY.pst<=tmax);
+ind = D.indsample(1e-3*DCM.options.Tdcm);
+ind = ind(1):ind(2);
 
 
 % Read in trials
@@ -153,6 +157,4 @@ for n=1:Ntrials,
     end
 end
 disp('Source extraction complete ...');
-
-DCM.xY.source=1;
 

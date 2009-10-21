@@ -5,14 +5,14 @@ The influence that the phase of one oscillator has on the change of phase of ano
 
 \subsection{Data}
 
-We will use the epoched data from the first MEG file:
+We will use the merged epoched MEG dataset:
 
 \begin{verbatim}
-dbespm8_SPM_CTF_MEG_example_faces1_3D.mat
-dbespm8_SPM_CTF_MEG_example_faces1_3D.dat
+cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
+cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
 \end{verbatim}
 
-See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data. DCM-Phase requires a head model and coregistration. We therefore recommend that you go through the necessary processing steps on the above file and save the results. This includes the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
+See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data. DCM-Phase requires a head model and coregistration. If you have been following the previous chapters of this tutorial, these should already be available in the dataset. Otherwise, you should perform the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
 comprising the MRI, Co-register, Forward and Save sub-steps (see ~\ref{multimodal:data:meg:recon_pow}).
 
 \subsection{Getting Started}
@@ -22,7 +22,7 @@ After calling \texttt{spm eeg}, you see SPM's graphical user interface, the top-
 
 \subsection{Data and design}
 
- You should switch the DCM model type to ``PHASE'' which is the option for DCM-Phase. Press ``new data'' and select the data file \texttt{dbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}. This is an epoched data file with multiple trials per condition.  On the right-hand side enter the trial indices
+ You should switch the DCM model type to ``PHASE'' which is the option for DCM-Phase. Press ``new data'' and select the data file \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}. This is an epoched data file with multiple trials per condition.  On the right-hand side enter the trial indices
 \begin{verbatim}
 1 2
 \end{verbatim} 
@@ -31,12 +31,12 @@ for the 'face' and 'scrambled' evoked responses (we will model both trial types)
 \begin{verbatim}
 1 0
 \end{verbatim} 
- in the first row of the box. This means that ``face'' trial types can have different connectivity parameters than ''scrambled'' trial types. If we now click somewhere outside the box, a default name will be assigned to this effect - ``effect1''. It will appear in the small text box next to the coefficients box. It is possible to change this name to something else e.g. ``face''. Now we can select the peristimulus time window we want to model. 
-Leave this at the default
+in the first row of the box. This means that ``face'' trial types can have different connectivity parameters than ''scrambled'' trial types. If we now click somewhere outside the box, a default name will be assigned to this effect - ``effect1''. It will appear in the small text box next to the coefficients box. It is possible to change this name to something else e.g. ``face''. Now we can select the peristimulus time window we want to model. 
+Set it to:
 \begin{verbatim}
-1 200
+1 300
 \end{verbatim} 
-ms. Select \texttt{1} for ``detrend'', to  remove the mean from each data record.  The number of modes is not a relevant parameter for DCM-Phase. You can now click on the $>$ (forward) button, which will bring you to the next stage \textit{electromagnetic model}. From this part, you can press the red $<$ button to get back to the data and design part.
+ms. Select \texttt{1} for ``detrend'', to  remove the mean from each data record.  The \texttt{sub-trials} option makes it possible to select just a subset of trials for the analysis (select 2 for every second trial, 3 - for every third etc.). This is useful because DCM-Phase takes quite a long time to invert for all the trials and you might want to first try a smaller subset to get an idea about the possible results. Here we will assume that you used all the trials (sub-trials was set to 1). You can now click on the $>$ (forward) button, which will bring you to the next stage \textit{electromagnetic model}. From this part, you can press the red $<$ button to get back to the data and design part.
 
 \subsection{Electromagnetic model}
 
@@ -59,7 +59,7 @@ Now enter in the right text box:
 \end{verbatim}
 
 These correspond to left Occipital Face Area, and left Fusiform Face Area.
-The onset-parameter is irrelevant for DCM-Phase. Now hit the $>$ (forward) button and proceed to the \textit{neuronal model}. Generally, if you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage. See ~\ref{multimodal:data:meg:recon_pow}. But we have.
+The onset-parameter is irrelevant for DCM-Phase. Now hit the $>$ (forward) button and proceed to the \textit{neuronal model}. Generally, if you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage. See ~\ref{multimodal:data:meg:recon_pow}. 
 
 \subsection{Neuronal model}
 
@@ -76,7 +76,7 @@ connection from LFFA to LOFA is allowed to be different for scrambled versus uns
 \end{center}
 \end{figure}
 
-The connectivity for Model 4 can be set up by configuring the radio buttons as shown in Figure~\ref{dcm-phase:fig:2}. You can now press the \texttt{Invert DCM} button. This will take about 15 minutes to estimate the model parameters.
+The connectivity for Model 4 can be set up by configuring the radio buttons as shown in Figure~\ref{dcm-phase:fig:2}. You can now press the \texttt{Invert DCM} button. It can take up to an hour to estimate the model parameters depending on the speed of your computer.
 
 \begin{figure}
 \begin{center}
@@ -98,7 +98,7 @@ After estimation is finished, you can assess the results by choosing from the pu
 \end{center}
 \end{figure}
 
-If one fits all the four models shown in Figure~\ref{dcm-phase:fig:1} then they can be formally compared using Bayesian Model Selection. This is implemented by pressing the \texttt{BMS} button. You will need to first create a directory for the results to go in eg. \texttt{BMS-results}. For 'Inference Method' select FFX (the RFX option is only viable if you have models from a group of subjects). Under 'Data', Select 'New Subject' and under 'Subject' select 'New Session'. Then under 'Models' select the \texttt{DCM.mat} files you have created.  Then press the green play button. This will produce the results plot shown in Figure~\ref{dcm-phase:fig:4}. This leads us to conclude that 
+If one fits all the four models shown in Figure~\ref{dcm-phase:fig:1} then they can be formally compared using Bayesian Model Selection. This is implemented by pressing the \texttt{BMS} button. You will need to first create a directory for the results to go in e.g. \texttt{BMS-results}. For 'Inference Method' select FFX (the RFX option is only viable if you have models from a group of subjects). Under 'Data', Select 'New Subject' and under 'Subject' select 'New Session'. Then under 'Models' select the \texttt{DCM.mat} files you have created.  Then press the green play button. This will produce the results plot shown in Figure~\ref{dcm-phase:fig:4}. This leads us to conclude that 
 LFFA and LOFA act in master slave arrangement with LFFA as the master.
 
 \begin{figure}

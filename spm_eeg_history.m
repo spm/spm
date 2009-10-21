@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 3429 2009-09-29 09:41:36Z vladimir $
+% $Id: spm_eeg_history.m 3497 2009-10-21 21:54:28Z vladimir $
 
 try
     h = S.history;
@@ -67,6 +67,8 @@ fp = fopen(fname, 'wt');
 if fp == -1
     error('File %s cannot be opened for writing.', fname);
 end
+
+fprintf(fp, '%s\n\n', 'spm(''defaults'', ''eeg'');');
 
 for i = 1:Nh
 

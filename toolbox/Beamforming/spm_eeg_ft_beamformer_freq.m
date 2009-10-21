@@ -11,7 +11,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3477 2009-10-16 23:24:46Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3497 2009-10-21 21:54:28Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%

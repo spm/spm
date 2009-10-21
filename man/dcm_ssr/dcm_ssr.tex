@@ -2,7 +2,7 @@
 
 \section{Overview}
 
-This chapter describes the analysis of a 2-channel Local Field Potential (LFPs) data set using dynamic causal modelling. The LFPs were recorded from a single rodent using intracranial electrodes \cite{dcm_ssr_anaesthesia}. We thank Marc Tittgemeyer for providing us with this data. The theory DCM for steady state responses (DCM-SSR) is described in \cite{dcm_ssr}.
+This chapter describes the analysis of a 2-channel Local Field Potential (LFPs) data set using dynamic causal modelling. The LFPs were recorded from a single rodent using intracranial electrodes \cite{dcm_ssr_anaesthesia}. We thank Marc Tittgemeyer for providing us with this data. The theory behind DCM for steady state responses (DCM-SSR) is described in \cite{dcm_ssr}.
 
 We measured local field potentials from primary (A1) and secondary auditory (A2) cortex in a rodent following the application of four different doses of the anaesthetic agent Isoflurane; 1.4, 1.8, 2.4 and 2.8mg. The rodent was presented with a white noise auditory input for several minutes at each anaesthetised level and time series recordings were obtained for the entire epoch. We performed a steady state DCM analysis using different models, defined according to the extrinsic connections between A1 and A2.
 
@@ -10,7 +10,7 @@ Using Bayesian model comparison we found very strong evidence (Bayes Factor$_{1,
 
 In what follows, these results will be recreated step-by-step using SPM8.
 
-To proceed with the data analysis, first download the data set from the SPM website\footnote{Anaesthesia Depth in Rodent Dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/dcm_ssr/}}. The data comprises a data file called \texttt{LFP\_white\_noise\_r24\_anaes.dat} and its corresponding mat file \texttt{LFP\_white\_noise\_r24\_anaes.mat}. This has been converted from ASCII data using \texttt{spm\_lfp\_txt2mat\_anaes.m} also on the website. This file can be altered to suit your own conditions/sampling parameters.
+To proceed with the data analysis, first download the data set from the SPM website\footnote{Anaesthesia Depth in Rodent Dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/dcm_ssr/}}. The data comprises a data file called \texttt{dLFP\_white\_noise\_r24\_anaes.dat} and its corresponding mat file \texttt{dLFP\_white\_noise\_r24\_anaes.mat}. This has been converted from ASCII data using \texttt{spm\_lfp\_txt2mat\_anaes.m} also on the website and subsequently downsampled to 125 Hz. The conversion script can be altered to suit your own conditions/sampling parameters.
 
 \subsection{The data}
 
@@ -18,8 +18,7 @@ To proceed with the data analysis, first download the data set from the SPM webs
 \item To check data parameters after conversion using ASCII files: in the SPM M/EEG GUI press \textsc{Display/M/EEG}.
 \item In our data set we can see there are five trials: four depths of anaesthetic: \texttt{Iso14}, \texttt{Iso18}, \texttt{Iso24} and \texttt{Iso28} and one awake trial \texttt{awake}.
 \item We can also see that the data are clean for both the A1 and A2 channels, to view this press \textsc{other}, as the data are LFP type.
-\item Before we begin our DCM analysis we prepare the data by downsampling  to create two files a data file called \texttt{dLFP\_white\_noise\_r24\_anaes.dat} and its corresponding mat file \texttt{dLFP\_white\_noise\_r24\_anaes.mat}.
-\item We are then ready to begin the DCM analysis. To open the DCM GUI press \textsc{DCM} in the SPM M/EEG GUI.
+\item We are now ready to begin the DCM analysis. To open the DCM GUI press \textsc{DCM} in the SPM M/EEG GUI.
 \end{itemize}
 
 \begin{figure}
@@ -35,10 +34,10 @@ To proceed with the data analysis, first download the data set from the SPM webs
 \item Before you begin any DCM analysis you must decide on two things: the data feature from your time series and the model you wish to use.
 \item For our long time series we will examine the steady state and so in the top panel of the DCM GUI select \textsc{SSR} in the data drop-down menu.
 \item Next in the second drop down menu we select our model. For this LFP data we employ the \textsc{LFP} model and so this is then selected. 
-\item Then we are ready to load our downsampled data: press \textsc{new data} and select the file \texttt{dLFP\_white\_noise\_r24\_anaes.mat}.
+\item Then we are ready to load our data: press \textsc{new data} and select the file \texttt{dLFP\_white\_noise\_r24\_anaes.mat}.
 \item Press the red arrow to move forward.
 \item The second panel allows you to specify the data and design. We will use the first 30sec of the time series for our analysis. To specify this timing enter \texttt{1} and \texttt{30000} in the time window.
-\item Next we select the detrending parameters which we set to \texttt{1} for detrend, \texttt{1} for subsample (as the data has already been downsampled) and \texttt{2} for the modes using the drop down menus.
+\item Next we select the detrending parameters which we set to \texttt{1} for detrend, \texttt{1} for subsample (as the data has already been downsampled) and \texttt{2} for the modes (in this case this is the same as the number of channels) using the drop down menus.
 \item We can then specify which trials we want to use. Since we are interested in the anaesthetized trials we enter \texttt{1 2 3 4} under the trials label and \texttt{effect1 effect2 effect3} in the between trial effects panel. Next we specify the design matrix. This is entered numerically in the large panel. Since we have 4 trials and 3 between trial effects (one less) we enter a matrix with rows:[ 0 1 0 0 ] (row 1), [0 0 1 0] (row 2) and [0 0 0 1] (row 3). This will allow us to examine "main effect" differences between the four conditions.
 \item Press the red arrow to move forward.
 \item The third panel contains the spec for the electromagnetic model. This is very simple for LFPs. In the drop down menu select \textsc{LFP}. In the source names panel, enter \texttt{A1} and \texttt{A2}. You are finished.
