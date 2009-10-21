@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3479 2009-10-19 10:10:55Z maria $
+% $Id: spm_run_bms_dcm.m 3491 2009-10-21 10:44:31Z will $
 
 % input
 % -------------------------------------------------------------------------
@@ -89,6 +89,8 @@ else
     end
     
     for k=1:ns
+        
+        disp(sprintf('Loading DCMs for subject %d', k));
         
         data{k}         = [job.sess_dcm{k}(:).mod_dcm];
         nsess_now       = size(job.sess_dcm{k},2);
@@ -260,6 +262,8 @@ if strcmp(job.method,'FFX');
            end
        end
 
+       disp('FFX Bayesian model averaging ...');
+       
        % bayesian model averaging
        % ------------------------------------------------------------------
        theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
@@ -301,6 +305,7 @@ if strcmp(job.method,'FFX');
 % -------------------------------------------------------------------------
 else   
     
+    disp('Computing RFX model/family posteriors ...');
     if ~do_family
        
         if nm <= ns
@@ -337,6 +342,8 @@ else
            end
        end
 
+       disp('RFX Bayesian model averaging ...');
+       
        % bayesian model averaging
        % ------------------------------------------------------------------
        theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
