@@ -11,7 +11,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3499 2009-10-22 11:36:11Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -287,7 +287,7 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
     end
 
     csource = source{1};
-    csource.pow = (pow*S.contrast');    
+    csource.pow = (pow*S.contrast(:));    
               
     cfg1 = [];
     cfg1.sourceunits   = 'mm';  
@@ -342,7 +342,7 @@ else
             pow(:, j) = source.trial(ind(j)).pow(:);
         end
 
-        source.pow = (pow*S.contrast);
+        source.pow = (pow*S.contrast(:));
 
         sourceint = ft_sourceinterpolate(cfg, source, sMRI);
 
