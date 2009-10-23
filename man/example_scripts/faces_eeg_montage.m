@@ -8,7 +8,7 @@ tra = eye(D.nchannels);
 tra(129:end, :) = [];
 tra = detrend(tra, 'constant');
 
-% VEOG
+% HEOG
 tra(129, [131 132]) = [1 -1];
 
 % VEOG
