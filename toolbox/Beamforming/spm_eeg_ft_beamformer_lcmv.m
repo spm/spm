@@ -11,7 +11,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3502 2009-10-23 10:55:15Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -48,10 +48,10 @@ if isempty(S.Niter),
     S.Niter=1;
 end; % if
 
-if ~isfield(S,'weightspect'), 
-    S.weightspect=[];
-end; 
-
+% if ~isfield(S,'weightspect'), 
+%     S.weightspect=[];
+% end; 
+% 
 if ~isfield(S,'weightttest'), 
     S.weightttest=[];
 end; 
@@ -361,6 +361,10 @@ disp('now running through freq bands and constructing t stat images');
 for fband=1:Nbands,
     freqrange=S.freqbands{fband};
     freq_ind=intersect(find(fHz>=freqrange(1)),find(fHz<freqrange(2)));
+    if length(freq_ind)<=1,
+        disp(sprintf('Cannot use band %3.2f-%3.2f',freqrange(1),freqrange(2)));
+        error('Need more than one frequency bin in the covariance band');
+        end
     freqrangetest=S.testbands{fband};
     Ntestbands=length(freqrangetest)/2;
     if floor(Ntestbands)~=Ntestbands,
@@ -378,15 +382,6 @@ for fband=1:Nbands,
          end;
     covtrial=zeros(Nchans,Nchans);
    
-    if ~isempty(S.weightspect),
-        [fweighted,weightspectind]=intersect(fHz,S.weightspect(fband).fHz);
-        if abs(max(fHz(freq_ind)-S.weightspect(fband).fHz))>0,
-            error('weight spect vector wrong length');
-            end; % 
-        filtervect=S.weightspect(fband).fAmp; %% arb filter
-    else
-        filtervect=ones(length(freq_ind),1);
-    end;  % weightspect
     
     if ~isempty(S.weightttest),
         [fweightedt,weightspectindt]=intersect(fHz,S.weightttest(fband).fHz);
@@ -398,10 +393,10 @@ for fband=1:Nbands,
         tfiltervect=ones(length(freq_indtest),1);
         end;  % weightspect
         
-    Allfiltervect=repmat(filtervect,1,Nchans);
+
 
 for i=1:Ntrials, %% read in all individual trial types 
-     ffttrial=squeeze(fftnewdata(i,freq_ind,:)).*Allfiltervect;
+     ffttrial=squeeze(fftnewdata(i,freq_ind,:)); % .*Allfiltervect;
      covtrial=covtrial+real(cov(ffttrial));
 end; % for i
   covtrial=covtrial/Ntrials;
