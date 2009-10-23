@@ -11,7 +11,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3502 2009-10-23 10:55:15Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3505 2009-10-23 13:10:41Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -265,21 +265,22 @@ end;
 [uniquewindows]=unique(S.design.Xstartlatencies);
 Nwindows=length(uniquewindows);
     
-for i=1:Nwindows,
+for i=1:Nwindows,     %% puts trials into epoch data according to order of design.X structures
     winstart=uniquewindows(i); %% window start
     cfg=[];
     cfg.keeptrials='yes';
     cfg.channel=channel_labels;
     cfg.feedback='off';
-    cfg.trials=S.design.Xtrials(find(winstart==S.design.Xstartlatencies)); %% trials starting at these times
+    useind=find(winstart==S.design.Xstartlatencies); %% indices into design.X structures
+    cfg.trials=S.design.Xtrials(useind); %% trials starting at these times
     cfg.latency=[winstart winstart+S.design.Xwindowduration];
     subdata=ft_timelockanalysis(cfg,data); % subset of original data
-    allepochdata(cfg.trials,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
+    allepochdata(useind,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
 end; % for i
 
 
 for i=1:Ntrials, %% read in all individual trial types
-    epochdata=squeeze(allepochdata(S.design.Xtrials(i),:,:))'; %% get an epoch of data with channels in columns
+    epochdata=squeeze(allepochdata(i,:,:))'; %% get an epoch of data with channels in columns
     if S.detrend==1
         dtepochdata=detrend(epochdata); %% detrend epoch data, this includes removind dc level. NB. This will have an effect on specific evoked response components !
         else 
@@ -409,18 +410,6 @@ end; % for i
   noise = allsvd(end); %% use smallest eigenvalue
   redNfeatures=Nfeatures;
   
-%   if S.dimauto, %% only do this flag set
-%     if nmodes99<redNfeatures,
-%         redNfeatures=nmodes99+1;
-%         disp(sprintf('reducing number of features to those describing 99 percent of data (from %d to %d)',Nfeatures,redNfeatures));
-%       end; % 
-%    end; % if S.dimauto
-%     
-%   if length(freq_indtest)<redNfeatures,    
-%         disp(sprintf('reducing number of features to match bandwidth (from %d to %d)',redNfeatures,length(freq_indtest)));
-%         redNfeatures=length(freq_indtest);
-%     end;
-%   
     
   disp(sprintf('covariance band from %3.2f to %3.2fHz (%d bins), test band %s (%d bins)',fHz(freq_ind(1)),fHz(freq_ind(end)),length(freq_ind),freq_teststr,length(freq_indtest)))
   
