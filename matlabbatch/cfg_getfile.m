@@ -82,7 +82,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3434 2009-09-30 13:01:28Z volkmar $
+% $Id: cfg_getfile.m 3506 2009-10-23 15:40:47Z volkmar $
 
 t = {};
 sts = false;
@@ -107,6 +107,7 @@ if nargin > 0 && ischar(varargin{1})
             if any(strcmpi(varargin{3},{'dir','extdir'}))
                 % only filter last directory in path
                 for k = 1:numel(t)
+                    t{k} = cpath(t{k});
                     if t{k}(end) == filesep
                         [p n] = fileparts(t{k}(1:end-1));
                     else
