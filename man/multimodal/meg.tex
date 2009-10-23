@@ -84,6 +84,8 @@ The difference between \texttt{shape.pnt} and \texttt{shape.fid.pnt} is that the
 
 Now select \textsc{Prepare} from the ``Other'' menu and in the file selection window select \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D.mat}. A menu will appear at the top of SPM interactive window (bottom left window). In the ``Sensors'' submenu choose ``Load MEG Fiducials/Headshape''. In the file selection window choose the \texttt{headshape.mat} file and save the dataset with \texttt{File/Save}.
 
+If you do not have a separately measured headshape and are planning to use the original MEG fiducials for coregistration, this step is not necessary. As an exercise, you can skip it for the tutorial dataset and later do the coregistration without the headshape and see if it affects the results.
+
 \subsection{Basic ERFs} 
 
 Press the \textsc{Averaging} button and select the \texttt{cdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.mat} file. Answer ``yes'' to ``Use robust averaging?''. You can either save the weights if you want to examine them or not save if you want the averaging to work faster since the weights dataset that needs to be written is quite large. Answer ``no'' to ``weight by condition'' and accept the default ``Offset of the weighting function''. A new dataset will be created in the MEG directory called \texttt{mcdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.\{mat,dat\}} (``m'' for ``mean'').
