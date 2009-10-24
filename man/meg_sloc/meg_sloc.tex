@@ -1,10 +1,10 @@
-\chapter{Dipole fitting, MSP, min-norm and beamforming on the same simulated dataset. \label{Chap:data:sloc}}
+\chapter{MEG source localisation\label{Chap:data:sloc}}
 
 \section{Overview}
 In this section we will generate some simulated data to show how the inversion algorithms compare when the ground-truth is known. 
 
 \section{Simulation}
-The code used to generate the simulated data is called \texttt{simmegdip_for_faces.m} and is located in the \texttt{example_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model etc from the SPM M/EEG dataset
+The code used to generate the simulated data is called \texttt{simmegdip\_for\_faces.m} and is located in the \texttt{example\_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model etc from the SPM M/EEG dataset
 
 \begin{verbatim}
 cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
@@ -14,18 +14,18 @@ cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
 you created in chapter \ref{Chap:data:multimodal} and replaces the channel data with simulated data. It also forces the head model to be single-sphere.
 You can manipulate this code to change the number or locations of the simulated dipoles by changing.
 
-\beginverbatim
+\begin{verbatim}
 dipolepositions=[ 52, -29, 13; -52, -29, 13]; % in mni space
-\endverbatim
+\end{verbatim}
 or modify the signal vector in anyway to change the time series being simulated. At the simplest level, the matrices \textit{dipamp} and \textit{dipfreq} define how each source behaves during a given condition. 
 
-\beginverbatim
+\begin{verbatim}
 % cond 1 cond 2
 dipamp=	  [1 		0;...     % dip 1
            1 		0].*1e-1; % dip 2 
 dipfreq =	[10 		10;... 	% dip 1
          	20 		20];      % dip 2
-\endverbatim
+\end{verbatim}
 
 That is, the two dipoles are currently set to be on (at 10 and 20Hz) during the faces condition and off during the amplitude condition.
 
@@ -37,7 +37,7 @@ This file has dipoles at [52, -29, 13] and  [-52, -29, 13] in  in MNI space. The
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide1}
+\includegraphics[width=100mm]{meg_sloc/slide1}
 \caption{\em Simulated source data \label{meg_sloc:fig:1}}
 \end{center}
 \end{figure}
@@ -51,11 +51,11 @@ Moving left to right along the bottom panel you will notice that all of the butt
 
 \subsection{IID (minimum norm)}
 We will start off with the traditional minimum norm solution. This starts by assuming that all source elements contribute something to the measured data. The constraint is that the total power (in the sources) should be minimised.
-Press \texttt{``Invert''}. Under reconstruction method press \textttt{``Imaging''}. For \textttt{``All conditions or trials''} press \texttt{``Yes''}. For model press \texttt{``Custom''}. Model inversion \texttt{``IID''}. Under Time-window ``0 600''. For \texttt{``PST Hanning''} select \texttt{``Yes}. For High-pass (Hz) select \texttt{``1''} for Low-pass (Hz) select \texttt{``48''}. Under \texttt{``Restrict solutions''} select \texttt{``No''}. 
+Press \texttt{``Invert''}. Under reconstruction method press \texttt{``Imaging''}. For \texttt{``All conditions or trials''} press \texttt{``Yes''}. For model press \texttt{``Custom''}. Model inversion \texttt{``IID''}. Under Time-window ``0 600''. For \texttt{``PST Hanning''} select \texttt{``Yes}. For High-pass (Hz) select \texttt{``1''} for Low-pass (Hz) select \texttt{``48''}. Under \texttt{``Restrict solutions''} select \texttt{``No''}. 
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide2}
+\includegraphics[width=100mm]{meg_sloc/slide2}
 \caption{\em IID imaging source reconstruction \label{meg_sloc:fig:2}}
 \end{center}
 \end{figure}
@@ -65,7 +65,7 @@ It appears (\ref{meg_sloc:fig:2}) that the minimum norm solution has reconstruct
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide3}
+\includegraphics[width=100mm]{meg_sloc/slide3}
 \caption{\em IID imaging source reconstruction at 205ms \label{meg_sloc:fig:3}}
 \end{center}
 \end{figure}
@@ -75,7 +75,7 @@ Often we will interested in the difference between conditions over a specific ti
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide4}
+\includegraphics[width=100mm]{meg_sloc/slide4}
 \caption{\em Exported functional image from IID source reconstruction overlayed on the template structural image.\label{meg_sloc:fig:4}}
 \end{center}
 \end{figure}
@@ -85,7 +85,7 @@ The COH option allows the mixture of two possible source covariance matrices: th
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide5}
+\includegraphics[width=100mm]{meg_sloc/slide5}
 \caption{\em COH imaging source reconstruction.\label{meg_sloc:fig:5}}
 \end{center}
 \end{figure}
@@ -96,7 +96,7 @@ Press \texttt{``Invert''}. Under reconstruction method press \texttt{``Imaging''
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide6}
+\includegraphics[width=100mm]{meg_sloc/slide6}
 \caption{\em ARD imaging source reconstruction.\label{meg_sloc:fig:6}}
 \end{center}
 \end{figure}
@@ -106,7 +106,7 @@ We could now make a volume to compare with the minimum norm solution (Figure~\re
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide7}
+\includegraphics[width=100mm]{meg_sloc/slide7}
 \caption{\em Exported functional image from ARD source reconstruction overlayed on the template structural image.\label{meg_sloc:fig:7}}
 \end{center}
 \end{figure}
@@ -118,7 +118,7 @@ Press \texttt{``Invert''}. Under reconstruction method press \texttt{``Imaging''
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide8}
+\includegraphics[width=100mm]{meg_sloc/slide8}
 \caption{\em GS imaging source reconstruction.\label{meg_sloc:fig:8}}
 \end{center}
 \end{figure}
@@ -131,7 +131,7 @@ As we tested all the above models on the same data we can make a model compariso
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide9}
+\includegraphics[width=100mm]{meg_sloc/slide9}
 \caption{\em Bayesian model evidence for different prior specifications.\label{meg_sloc:fig:9}}
 \end{center}
 \end{figure}
@@ -143,20 +143,20 @@ The current beamformer implementations differ from the above in that they test p
 
 \subsection{LCMV beamformer}
 On the main SPM menu select the Toolbox pull-down menu. Under \texttt{``Beamforming''} select \texttt{``Volumetric LCMV beamformer''}.
-Select file \texttt{sim\_data_aud1020Hz.mat}.
+Select file \texttt{sim\_data\_aud1020Hz.mat}.
 The first menu will ask you to select the active condition. Select 'faces' and click \texttt{``OK''}. You will then be asked at what time the condition 'faces' begins.  At \texttt{``Offset (ms) from faces''}, type 0. At the duration prompt type 600. i.e. we are using the same 0-600ms window as before. At the baseline condition prompt select 'scrambled'. \texttt{``Offset ms from scrambled''} should be set to 0ms also. We will be comparing the same time window 0-600ms across epochs labelled either scrambled, or faces. At the number of frequency bands prompt type ``2''. The more frequency bands one computes at this stage the smaller the overhead in time. For the first band type ``15 25'', for the second try ``1 48''. For \texttt{``gridstep''} type ``10'' mm (number of voxels hence speed decreases by a factor of 8 each time this is halved). Leave regularization at 0. Select \texttt{``yes''} for preview results.
 As you selected preview you will see an image similar to Figure~\ref{meg_sloc:fig:10}, in which we restricted our analyses to the frequency band around one source. This is a t-statistic image showing the difference between the two conditions (note in this image left is on right). You can navigate through the image using the mouse and need to press  \texttt{``q''} to leave the window. The second figure produced Figure~\ref{meg_sloc:fig:11} should be comparable with the previous time-window analyses on the 1-48Hz band. 
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide10}
+\includegraphics[width=100mm]{meg_sloc/slide10}
 \caption{\em LCMV beamformer results for 15-25Hz.\label{meg_sloc:fig:10}}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide11}
+\includegraphics[width=100mm]{meg_sloc/slide11}
 \caption{\em LCMV beamformer results for 1-48Hz.\label{meg_sloc:fig:11}}
 \end{center}
 \end{figure}
@@ -167,7 +167,7 @@ You will find the volumetric images within the sub-directory \texttt{''tstatBf\_
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide12}
+\includegraphics[width=100mm]{meg_sloc/slide12}
 \caption{\em Comparison of ARD and LCMV beamformer results.\label{meg_sloc:fig:12}}
 \end{center}
 \end{figure}
@@ -177,7 +177,7 @@ In \texttt{``Beamforming''} select \texttt{``Fieldtrip DICS beamformer''}. For a
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide13}
+\includegraphics[width=100mm]{meg_sloc/slide13}
 \caption{\em DICS beamformer results.\label{meg_sloc:fig:13}}
 \end{center}
 \end{figure}
@@ -190,16 +190,16 @@ Up until this point the analysis we have used could have been applied to either 
 
 In the main menu click on the drop-down \texttt{``Display''} menu. Select \texttt{``M/EEG''}. For the dipole fitting we are going to use averaged MEG data, this is prefixed with an ``m'' in SPM. You can generate this file by averaging the epoched file that we have used until now. Select the file:
 
-\beginverbatim
+\begin{verbatim}
 msimdata_aud1020Hz.mat
-\endverbatim
+\end{verbatim}
 
 You will now see the simulated data. You will be looking at the ``Trial 1 (..) Faces'' trial,  but if you switch (top-right menu) to ``Trial 2 (..) scrambled'' you will see that our simulated sources are not active during this condition.  If you now click on the field map button you will see a cursor on the time-series plot and a field map for this time instant as in figure 3. Use the slider at the bottom of the field map to vary the time instant plotted. At 205ms (Figure~\ref{meg_sloc:fig:14}A) you will notice that there are clearly two dipolar patterns, whereas at 235ms (Figure~\ref{meg_sloc:fig:14}B) there is only one.
 We will now move on to explore Bayesian dipole fitting to these two time instants.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide14}
+\includegraphics[width=100mm]{meg_sloc/slide14}
 \caption{\em Scalp maps for averaged simulated data.\label{meg_sloc:fig:14}}
 \end{center}
 \end{figure}
@@ -214,7 +214,7 @@ You will see the 10 successive fits of the same data using a random starting loc
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/Slide15}
+\includegraphics[width=140mm]{meg_sloc/slide15}
 \caption{\em Results of fitting a single dipole with noninformative priors.\label{meg_sloc:fig:15}}
 \end{center}
 \end{figure}
@@ -222,15 +222,15 @@ You will see the 10 successive fits of the same data using a random starting loc
 
 \subsubsection{Fitting a single dipole with reasonable and unreasonable priors}
 We will now provide some prior knowledge to the dipole fit perhaps led by the literature or a particular hypothesis. In this case we know the answer, but let us specify a location a couple of cm from where we know the source to be (at -52,-29,13mm) and try the fit again.
-At the  \texttt{``time\_bin or average\_win''} prompt enter ``235''. For  \texttt{``Trial type number''} choose ``1'' (we want to model the faces data). At the  \texttt{``Add dipoles to model''} click  \texttt{``Single''}. For  \texttt{``location prior''} click  \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance leave at ``100 100 100'' mm^2. This means that we are not sure about the source location to better than 10mm in each dimension. For  \texttt{``Moment prior''} click  \texttt{``Non-info''}. At the  \texttt{``Add dipoles to 1 or stop?''} prompt click  \texttt{``stop''}. Leave the default number of iterations at ``10''. Again you will get a final fit location and model evidence (-3.8), which should have improved (be more positive) on the evidence above. 
+At the  \texttt{``time\_bin or average\_win''} prompt enter ``235''. For  \texttt{``Trial type number''} choose ``1'' (we want to model the faces data). At the  \texttt{``Add dipoles to model''} click  \texttt{``Single''}. For  \texttt{``location prior''} click  \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance leave at ``100 100 100'' mm$^2$. This means that we are not sure about the source location to better than 10mm in each dimension. For  \texttt{``Moment prior''} click  \texttt{``Non-info''}. At the  \texttt{``Add dipoles to 1 or stop?''} prompt click  \texttt{``stop''}. Leave the default number of iterations at ``10''. Again you will get a final fit location and model evidence (-3.8), which should have improved (be more positive) on the evidence above. 
 Now go through exactly the same procedure as above but for the prior location enter ``+62 -20 10'', i.e. on the wrong side of the head. You will note that the algorithm finds the correct location but the evidence for this model (with the incorrect prior) is much lower (-8.4). You could also try to fit a symmetric pair to this latency dataset (see below), model evidence -150.
 
 \subsubsection{Fitting more dipoles}
 We will start by examining the time instant at which we can clearly see a two-dipolar field pattern.
-At the \texttt{``time\_bin or average\_win''} prompt enter ``205''. For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``62 -20 10''. For prior location variance enter ``400 400 400'' mm^2, that is, the prior standard deviation on the dipole location is 20mm in each direction. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance enter ``400 400 400'' mm^2. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``stop''}. Leave the default number of iterations at ``10''. Note down the final model evidence (570). 
+At the \texttt{``time\_bin or average\_win''} prompt enter ``205''. For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``62 -20 10''. For prior location variance enter ``400 400 400'' mm$^2$, that is, the prior standard deviation on the dipole location is 20mm in each direction. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance enter ``400 400 400'' mm$^2$. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``stop''}. Leave the default number of iterations at ``10''. Note down the final model evidence (570). 
 
-Alternatively we can exploit the fact that we have prior knowledge that the dipoles will be approximately left-right symmetric in location and orientation. At the \texttt{``time\_bin or average\_win''} prompt enter ``205''.  For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Symmetric Pair''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter \texttt{``62 -20 10''}. For prior location variance enter ``400 400 400'' mm^2. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``stop''}. Leave the default number of iterations at ``10''. Note that the final locations are approximately correct, but importantly the model evidence (-9.6) is much lower than previously. Given this information one would accept the two distinct dipole model over the symmetric pair. 
+Alternatively we can exploit the fact that we have prior knowledge that the dipoles will be approximately left-right symmetric in location and orientation. At the \texttt{``time\_bin or average\_win''} prompt enter ``205''.  For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Symmetric Pair''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter \texttt{``62 -20 10''}. For prior location variance enter ``400 400 400'' mm$^2$. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``stop''}. Leave the default number of iterations at ``10''. Note that the final locations are approximately correct, but importantly the model evidence (-9.6) is much lower than previously. Given this information one would accept the two distinct dipole model over the symmetric pair. 
 
 Finally we can take our best model so far, and try adding in an extra source.
-At the \texttt{``time\_bin or average\_win''} prompt enter ``205''. For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``62 -20 10''. For prior location variance enter ``400 400 400'' mm^2, that is, the prior standard deviation on the dipole location is 20mm in each direction. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance enter ``400 400 400'' mm^2. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``Single''}. We will add an extra dipole that can be anywhere in the head, so for \texttt{``Location Prior''} click \texttt{``Non-info''}. For \texttt{``Moment Prior''} click \texttt{``non-info''}. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``Stop''}. Leave the default number of iterations at ``10''. Note down the final model evidence (550). That is, the evidence has now begun to decrease once more suggesting that the two distinct dipole model is the best for these data.
+At the \texttt{``time\_bin or average\_win''} prompt enter ``205''. For \texttt{``Trial type number''} choose ``1''. At the \texttt{``Add dipoles to model''} click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``62 -20 10''. For prior location variance enter ``400 400 400'' mm$^2$, that is, the prior standard deviation on the dipole location is 20mm in each direction. For \texttt{``Moment prior''} click \texttt{``Non-info''}. At the \texttt{``Add dipoles to 1 or stop?''} prompt click \texttt{``Single''}. For \texttt{``location prior''} click \texttt{``Informative''}. For the location enter ``-62 -20 10''. For prior location variance enter ``400 400 400'' mm$^2$. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``Single''}. We will add an extra dipole that can be anywhere in the head, so for \texttt{``Location Prior''} click \texttt{``Non-info''}. For \texttt{``Moment Prior''} click \texttt{``non-info''}. At the \texttt{``Add dipoles to 2 or stop?''} prompt click \texttt{``Stop''}. Leave the default number of iterations at ``10''. Note down the final model evidence (550). That is, the evidence has now begun to decrease once more suggesting that the two distinct dipole model is the best for these data.
 
