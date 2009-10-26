@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3508 2009-10-26 13:04:17Z maria $
+% $Id: spm_cfg_bms.m 3511 2009-10-26 16:19:29Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -325,15 +325,17 @@ bma_yes         = cfg_branch;
 bma_yes.tag     = 'bma_yes';
 bma_yes.name    = 'Choose parameters';
 bma_yes.val     = {bma_nsamp bma_ratio bma_set };
-bma_yes.help    = {'Compute Bayesian Model Averaging (BMA).'}';
+bma_yes.help    = {['Compute Bayesian Model Averaging (BMA). '...
+                    'Only available for DCM for fMRI!']}';
 
 % ---------------------------------------------------------------------
 % bma BMA
 % ---------------------------------------------------------------------
 bma         = cfg_choice;
 bma.tag     = 'bma';
-bma.name    = 'BMA';
-bma.help    = {'Optional field to compute Bayesian Model Averaging (BMA).'};
+bma.name    = 'BMA (fMRI)';
+bma.help    = {['Optional field to compute Bayesian Model Averaging (BMA). '...
+                'Only available for DCM for fMRI!']};
 bma.val     = {bma_no };
 bma.values  = {bma_no bma_yes };
 

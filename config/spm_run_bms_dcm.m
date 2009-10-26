@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3508 2009-10-26 13:04:17Z maria $
+% $Id: spm_run_bms_dcm.m 3511 2009-10-26 16:19:29Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -124,7 +124,9 @@ else
                     clear DCM
 
                     tmp = job.sess_dcm{k}(h).mod_dcm{j};
-                    DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp');
+%                   DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp'); % Use
+%                   this option if you have the file loadmat.m
+                    DCM = load(tmp);
 
                     F_sess  = [F_sess,DCM.DCM.F];
 
