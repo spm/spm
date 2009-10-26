@@ -1,4 +1,4 @@
-function out=spm_api_bmc(F,N,exp_r,xp)
+function out=spm_api_bmc(F,N,exp_r,xp,family)
 % API to select and compare DCMs using Bayesian model comparison
 % FORMAT out=spm_api_bmc(F,N,alpha,exp_r,xp)
 %
@@ -15,16 +15,23 @@ function out=spm_api_bmc(F,N,exp_r,xp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3445 2009-10-06 11:22:23Z maria $
+% $Id: spm_api_bmc.m 3508 2009-10-26 13:04:17Z maria $
 
-if nargin < 3
+if isempty(xp)
     inf_method = 'FFX';
 else
     inf_method = 'RFX';
 end
+
+if nargin>4
+    plot_family = 1;
+else
+    plot_family = 0;
+end
+
 nm = length(N);
 
-Fgraph  = spm_figure('GetWin','Graphics'); spm_clf(Fgraph);
+Fgraph  = spm_figure('GetWin','Graphics','BMS: results');
 
 switch inf_method
 
@@ -33,6 +40,7 @@ switch inf_method
     %======================================================================
     case ('FFX')
         
+        figure(Fgraph);
         %-Compute conditional probability of DCMs under flat priors.
         %------------------------------------------------------------------
         F    = F - min(F);
@@ -66,6 +74,36 @@ switch inf_method
         grid on
         
         out = P;
+        
+        if plot_family
+            
+            Ffam = spm_figure('CreateWin','Graphics','BMS: results');
+            figure(Ffam);
+           
+            %-Display results - families
+            %------------------------------------------------------------------
+            subplot(2,1,1)
+            Nfam = length(family.post);
+            bar(1:nm,P)
+            set(gca,'XTick',1:nm)
+            set(gca,'XTickLabel',family.names)
+            ylabel('Posterior Model Probability','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            xlabel('Models','Fontsize',14)
+            axis square
+            grid on
+            
+            subplot(2,1,2)
+            bar(1:Nfam,family.post)
+            set(gca,'XTick',1:Nfam)
+            set(gca,'XTickLabel',family.names)
+            ylabel('Posterior Family Probability','Fontsize',14)
+            xlabel('Families','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
+            
+        end
     
     %======================================================================
     % Random Effect
@@ -96,4 +134,36 @@ switch inf_method
         
         out = [];
         
+        if plot_family
+            
+            Ffam = spm_figure('CreateWin','Graphics','BMS: results');
+            figure(Ffam);
+            
+            %-Display results - families
+            %------------------------------------------------------------------
+            subplot(2,1,1)
+            Nfam = length(family.exp_r);
+            bar(1:Nfam,family.exp_r)
+            set(gca,'XTick',1:Nfam)
+            set(gca,'XTickLabel',family.names)
+            ylabel('Posterior Family Probability','Fontsize',14)
+            xlabel('Families','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
+            
+            subplot(2,1,2)
+            bar(1:Nfam,family.xp')
+            set(gca,'XTick',1:Nfam)
+            set(gca,'XTickLabel',family.names)
+            ylabel('Exceedance Family Probability','Fontsize',14)
+            xlabel('Families','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
+            
+        end
+        
 end
+
+

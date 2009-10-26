@@ -41,11 +41,10 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 3288 2009-07-27 09:23:54Z maria $
+% $Id: spm_run_bms_map.m 3508 2009-10-26 13:04:17Z maria $
 
 % Input
 % -------------------------------------------------------------------------
-method  = job.method;               % Inference method
 direct  = job.dir{1};
 fname   = [direct,'BMS.mat'];       % Output filename (including directory)
 mask    = length(job.mask{1});      % Mask image
@@ -64,6 +63,20 @@ nmodels   = size(job.sess_map{1}(1).mod_map,1);
 nsess     = size(job.sess_map{1},2);
 nnames    = size(job.mod_name,2);
 names     = job.mod_name;
+
+% method
+% -------------------------------------------------------------------------
+if strcmp(job.method,'FFX');
+    method = 'FFX';
+else
+    method = 'RFX';
+    if strcmp(job.method,'RFX')
+        do_vb = 1;
+    else
+        do_vb    = 0;
+        do_alpha = 0;
+    end
+end
 
 % Name models
 % -------------------------------------------------------------------------
@@ -355,17 +368,23 @@ for z = 1:zdim,
                 
                 if Nvoxels > 0
                     % Initialise results
-                    exp_r_total = zeros(Nvoxels,nmodels);
-                    if do_ecp, xp_total = zeros(Nvoxels,nmodels); end
+                    exp_r_total              = zeros(Nvoxels,nmodels);
+                    if do_ecp, xp_total      = zeros(Nvoxels,nmodels); end
                     if do_alpha, alpha_total = zeros(Nvoxels,nmodels); end
 
                     % Do BMS in all voxels of slice z
                     for n = 1:Nvoxels,
                         lme = z_models(:,:,non_nan(n));
+                        
                         % Group BMS
-                        [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
-                        exp_r_total(n,:) = exp_r;          % Cond. Expecta.
-                        if do_ecp, xp_total(n,:) = xp; end % Exceeda. Prob.
+                        if do_vb
+                            [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
+                        else
+                            [exp_r,xp]       = spm_BMS_Gibbs(lme);
+                        end
+                            
+                        exp_r_total(n,:)              = exp_r;  % Cond. Expecta.
+                        if do_ecp, xp_total(n,:)      = xp; end % Exceeda. Prob.
                         if do_alpha, alpha_total(n,:) = alpha; end % Dirichlet par.
                     end
 

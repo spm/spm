@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3479 2009-10-19 10:10:55Z maria $
+% $Id: spm_cfg_bms.m 3508 2009-10-26 13:04:17Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -142,11 +142,13 @@ method.help    = {['Specify inference method: random effects '...
                    '(2nd-level) or fixed effects (1st-level) analysis.']};
 method.labels  = {
                   'Fixed effects (FFX)'
-                  'Random effects (RFX)'
+                  'Random effects (RFX) - VB'
+                  'Random effects (RFX) - Gibbs'
 }';
 method.values  = {
                   'FFX'
                   'RFX'
+                  'RFX-Gibbs'
 }'; 
 
 % ---------------------------------------------------------------------
@@ -259,7 +261,7 @@ bma_part.num     = [0 Inf];
 bma_all         = cfg_const;
 bma_all.tag     = 'bma_all';
 bma_all.name    = 'All families';
-bma_all.val     = {'fanwin'};
+bma_all.val     = {'famwin'};
 bma_all.help    = {'Use all families for Bayesian Model Averaging (BMA).'}';
 
 % ---------------------------------------------------------------------

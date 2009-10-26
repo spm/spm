@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3493 2009-10-21 14:55:53Z will $
+% $Id: spm_run_bms_dcm.m 3508 2009-10-26 13:04:17Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -30,11 +30,24 @@ ld_f    = ~isempty(job.load_f{1});
 bma_do  = isfield(job.bma,'bma_yes');
 data_se = ~isempty(job.sess_dcm);
 
-do_bma_famwin = 0;
-do_bma_all    = 0;
+% method
+% -------------------------------------------------------------------------
+if strcmp(job.method,'FFX');
+    method = 'FFX';
+else
+    method = 'RFX';
+    if strcmp(job.method,'RFX')
+        str_meth = 'VB';
+    else
+        str_meth = 'Gibbs';
+    end 
+end
 
 % check DCM.mat files and BMA 
 % -------------------------------------------------------------------------
+do_bma_famwin = 0;
+do_bma_all    = 0;
+
 if bma_do
     if data_se
        load(job.sess_dcm{1}(1).mod_dcm{1})
@@ -82,6 +95,9 @@ else
     nsess   = size(job.sess_dcm{1},2);              % No of sessions
     nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
     
+    F       = zeros(ns,nm);
+    N       = cell(nm);
+    
     % Check if No of models > 2
     if nm < 2
         msgbox('Please select more than one file')
@@ -89,13 +105,12 @@ else
     end
     
     for k=1:ns
-        
+
         disp(sprintf('Loading DCMs for subject %d', k));
-        
-        data{k}         = [job.sess_dcm{k}(:).mod_dcm];
+
         nsess_now       = size(job.sess_dcm{k},2);
         nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
-        
+
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
             
             ID = zeros(nsess, nm);
@@ -106,11 +121,16 @@ else
                 
                 for h = 1:nsess_now
                     
-                    tmp     = data{k}(j,h);
-                    DCM_tmp = load(tmp{1});
-                    
-                    F_sess  = [F_sess,DCM_tmp.DCM.F];
-                    subj(k).sess(h).model(j).fname = tmp{1};
+                    clear DCM
+
+                    tmp = job.sess_dcm{k}(h).mod_dcm{j};
+                    DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp');
+
+                    F_sess  = [F_sess,DCM.DCM.F];
+
+                    subj(k).sess(h).model(j).fname = tmp;
+                    subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
+                    subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
                     
                     % Data ID verification. At least for now we'll
                     % re-compute the IDs rather than use the ones stored
@@ -178,7 +198,7 @@ if isfield(job.family_level,'family_file')
         load(job.family_level.family_file{1});
         do_family    = 1;
         family.prior = priors;
-        family.infer = job.method;
+        family.infer = method;
     
         nfam    = size(family.names,2);
         npart   = length(unique(family.partition));
@@ -224,7 +244,7 @@ else
         end
         
         family.prior     = priors;
-        family.infer     = job.method;
+        family.infer     = method;
       
     end
     
@@ -232,41 +252,46 @@ end
 
 % single subject BMS or 1st level( fixed effects) group BMS
 % -------------------------------------------------------------------------
-if strcmp(job.method,'FFX'); 
-    
-    model.post     = spm_api_bmc(sumF,N);
+if strcmp(method,'FFX'); 
     
     if ~do_family
-        family     = [];
+        family         = [];
+        model.post     = spm_api_bmc(sumF,N,[],[]);
     else
         Ffam           = F(:,m_indx);
-        [family,model] = spm_compare_families (Ffam,family);     
+        [family,model] = spm_compare_families (Ffam,family);
+        P              = spm_api_bmc(sumF,N,[],[],family);
     end
     
     if bma_do,  
-       if do_bma_famwin
-           [fam_max,fam_max_i]  = max(family.post);
-           post_indx = find(family.partition==fam_max_i);
-           bma.post  = model.post(post_indx);
-       else
-           if do_bma_all  
-              bma.post = model.post;
-           else
-               if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
-                    post_indx = find(family.partition==bma_fam);
-                    bma.post  = model.post(post_indx);
-               else
+        if do_family
+            if do_bma_famwin
+                [fam_max,fam_max_i]  = max(family.post);
+                bma.indx = find(family.partition==fam_max_i);
+                bma.post  = model.post(bma.indx);
+            else
+                if do_bma_all  
+                   bma.post  = model.post;
+                   bma.indx = 1:nm;
+                else
+                    if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
+                           bma.indx = find(family.partition==bma_fam);
+                           bma.post  = model.post(bma.indx);
+                    else
                     error('Incorrect family for BMA!');
-               end
-                   
-           end
-       end
+                    end         
+                end
+            end
+        else
+               bma.post  = model.post;
+               bma.indx = 1:nm;
+        end  
 
        disp('FFX Bayesian model averaging ...');
        
        % bayesian model averaging
        % ------------------------------------------------------------------
-       theta = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
+       theta = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
 
        % reshape parameters
        % ------------------------------------------------------------------
@@ -305,15 +330,14 @@ if strcmp(job.method,'FFX');
 % -------------------------------------------------------------------------
 else   
     
-    disp('Computing RFX model/family posteriors ...');
+    disp(sprintf('Computing RFX model/family posteriors (using %s method)...', str_meth));
     if ~do_family
-       
-        if nm <= ns
+        if nm <= ns || strcmp(job.method,'RFX')
             [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
+            model.g_post     = exp_r;
         else
-            % Will changed next 2 lines 
             [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
-            model.g_post=g_post;
+            model.g_post             = g_post;
         end
         model.alpha = [];
         model.exp_r = exp_r;
@@ -322,39 +346,47 @@ else
     else
         
         Ffam           = F(:,m_indx);
-        [family,model] = spm_compare_families (Ffam,family);
+        [family,model] = spm_compare_families(Ffam,family);
         
     end
     
+    % display the result
+    if do_family
+        P = spm_api_bmc(sumF,N,model.exp_r,model.xp,family);
+    else
+        P = spm_api_bmc(sumF,N,model.exp_r,model.xp); 
+    end
+    
     if bma_do,  
-       if do_bma_famwin
-           [fam_max,fam_max_i]  = max(family.exp_r);
-           post_indx = find(family.partition==fam_max_i);
-           % Will changed (exp_r -> g_post)
-           bma.post  = model.g_post(:,post_indx);
-       else
-           if do_bma_all  
-              % Will changed (exp_r -> g_post)
-              bma.post = model.g_post;
-           else
-              if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
-                post_indx = find(family.partition==bma_fam);
-                % Will changed (exp_r -> g_post)
-                bma.post = model.g_post(:,post_indx);
-              else
+        if do_family
+            if do_bma_famwin
+                [fam_max,fam_max_i]  = max(family.exp_r);
+                bma.indx = find(family.partition==fam_max_i);
+                bma.post  = model.g_post(:,bma.indx);
+            else
+                if do_bma_all  
+                   bma.post = model.g_post;
+                   bma.indx = 1:nm;
+                else
+                    if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
+                           bma.indx = find(family.partition==bma_fam);
+                           bma.post = model.g_post(:,bma.indx);
+                    else
                     error('Incorrect family for BMA!');
-               end
-           end
-       end
-
+                    end         
+                end
+            end
+        else
+               bma.post  = model.g_post;
+               bma.indx = 1:nm;
+        end 
+    
        disp('RFX Bayesian model averaging ...');
-       
        % bayesian model averaging
        % ------------------------------------------------------------------
        
-       % Will - added Nocc o/p
-       [theta, Nocc] = spm_dcm_bma(bma.post,post_indx,subj,bma.nsamp,bma.odds_ratio);
-       bma.Nocc=Nocc;
+       [theta, Nocc] = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
+       bma.Nocc      = Nocc;
        
        % reshape parameters
        % ------------------------------------------------------------------
@@ -388,22 +420,19 @@ else
     
     save(fname,'BMS')
     out.files{1}= fname;
-
-    % display the result
-    P = spm_api_bmc(sumF,N,model.exp_r,model.xp); 
     
 end
 
 % verify data
 % -------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
-axes('position', [0.01, 0.01, 0.01, 0.01]); 
-axis off
-if job.verify_id
-    text(0, 0, 'Data identity has been verified');
-else
-    text(0, 0, 'Data identity has not been verified');
-end
-
-end
+% spm_figure('FindWin','Graphics')
+% axes('position', [0.01, 0.01, 0.01, 0.01]); 
+% axis off
+% if job.verify_id
+%     text(0, 0, 'Data identity has been verified');
+% else
+%     text(0, 0, 'Data identity has not been verified');
+% end
+% 
+% end
 

@@ -23,12 +23,12 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3493 2009-10-21 14:55:53Z will $
+% $Id: spm_dcm_bma.m 3508 2009-10-26 13:04:17Z maria $
 
-if nargin < 3 | isempty(Nsamp)
+if nargin < 3 || isempty(Nsamp)
     Nsamp=1e3;
 end
-if nargin < 4 | isempty(oddsr)
+if nargin < 4 || isempty(oddsr)
     oddsr=0;
 end
 
@@ -66,10 +66,8 @@ if rfx
         % Load DCM posteriors for models in Occam's window
         for kk=1:Nocc(i),
             sel=post_indx(post_ind{i}(kk));
-            load_str=subj(i).sess(1).model(sel).fname;
-            load(load_str);
-            params(i).model(kk).Ep=DCM.Ep;
-            params(i).model(kk).Cp=full(DCM.Cp);
+            params(i).model(kk).Ep=subj(i).sess(1).model(sel).Ep;
+            params(i).model(kk).Cp=full(subj(i).sess(1).model(sel).Cp);
         end
     end
 else
@@ -93,10 +91,8 @@ else
     for n=1:Nsub,
         for kk=1:Nocc,
             sel=post_indx(post_ind(kk));
-            load_str=subj(n).sess(1).model(sel).fname;
-            load(load_str);
-            params(n).model(kk).Ep=DCM.Ep;
-            params(n).model(kk).Cp=full(DCM.Cp);
+            params(n).model(kk).Ep=subj(n).sess(1).model(sel).Ep;
+            params(n).model(kk).Cp=full(subj(n).sess(1).model(sel).Cp);
         end
     end
 end
@@ -105,6 +101,8 @@ end
 Np=length(spm_vec(params(1).model(1).Ep));
 theta_all=zeros(Np,Nsub);
 
+disp('')
+disp('Averaging models in Occams window...')
 for i=1:Nsamp,
     % Pick a model
     if ~rfx
