@@ -10,15 +10,16 @@ function [t,sts] = cfg_getfile(varargin)
 %            [10 12] - select from 10 to 12 files
 %     typ  - file type
 %           'any'   - all files
+%           'batch' - SPM batch files (.m, .mat and XML)
+%           'dir'   - select a directory
 %           'image' - Image files (".img" and ".nii")
 %                     Note that it gives the option to select
 %                     individual volumes of the images.
-%           'mesh'  - Mesh files (".gii" and ".mat")
-%           'xml'   - XML files
 %           'mat'   - Matlab .mat files or .txt files (assumed to contain
 %                     ASCII representation of a 2D-numeric array)
-%           'batch' - SPM batch files (.m, .mat and XML)
-%           'dir'   - select a directory
+%           'mesh'  - Mesh files (".gii" and ".mat")
+%           'nifti' - NIfTI files without the option to select frames
+%           'xml'   - XML files
 %           Other strings act as a filter to regexp.  This means
 %           that e.g. DCM*.mat files should have a typ of '^DCM.*\.mat$'
 %      mesg - a prompt (default 'Select files...')
@@ -82,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3506 2009-10-23 15:40:47Z volkmar $
+% $Id: cfg_getfile.m 3510 2009-10-26 13:24:42Z volkmar $
 
 t = {};
 sts = false;
