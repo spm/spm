@@ -11,7 +11,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3505 2009-10-23 13:10:41Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3515 2009-10-28 15:02:51Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -425,6 +425,7 @@ end; % for i
 
 
  tstat=zeros(length(grid.inside),S.Niter);
+ normdiff=zeros(length(grid.inside),S.Niter);
 maxt=zeros(2,S.Niter);
 power_trial=zeros(Ntrials,length(freq_indtest));
 evoked_trial=zeros(Ntrials,length(freq_indtest));
@@ -493,8 +494,8 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             s2y=var(yba_epochs);
             sPooled = sqrt(((nx-1) .* s2x + (ny-1) .* s2y) ./ dfe);
             se = sPooled .* sqrt(1./nx + 1./ny);
-            tstat(maskedgrid_inside_ind(i),power_flag,iter) = pdiff ./ se; %
-        
+            tstat(maskedgrid_inside_ind(i),iter) = pdiff ./ se; %
+            normdiff(maskedgrid_inside_ind(i),iter)=pdiff/(weights*weights');
         end; % for Niter
         
          
@@ -517,7 +518,7 @@ stats(fband).fHz=fHz;
 dispthresh_uv=max(stats(fband).tstat)/2;
 if S.Niter>1,
     %% get corrected p values to t
-        allglobalmax=squeeze(max(abs(stats(fband).tstat(:,power_flag,1:end))));
+        allglobalmax=squeeze(max(abs(stats(fband).tstat(:,1:end))));
         [sortglobalmax,sortglobalmaxind]=sort(allglobalmax','descend');
         corrpmax_tstat=sortglobalmaxind/length(sortglobalmaxind); %% corrected p value for maximum
         stats(fband).corrpmax_tstat=corrpmax_tstat(TrueIter,:); 
@@ -526,8 +527,8 @@ if S.Niter>1,
 end; % if
   
 
-talpositions = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, grid.pos(grid.inside(maskedgrid_inside_ind),:));
-gridpositions=grid.pos(grid.inside(maskedgrid_inside_ind),:);
+    talpositions = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, grid.pos(grid.inside(maskedgrid_inside_ind),:));
+    gridpositions=grid.pos(grid.inside(maskedgrid_inside_ind),:);
 
 
     
@@ -535,21 +536,20 @@ gridpositions=grid.pos(grid.inside(maskedgrid_inside_ind),:);
     
     
     csource=grid; %% only plot and write out unpermuted iteration
-    csource.pow_tstat(csource.inside) = tstat(:,power_flag,TrueIter);
-%     csource.evoked_tstat2(csource.inside) = tstat(:,1,TrueIter).*conj(tstat(:,1,TrueIter)); %% this is a complex number so get magnitude for plotting
-%     csource.evoked_tstat2(csource.outside)=0;
-     csource.pow_tstat(csource.outside)=0;
-    
+    csource.pow_tstat(csource.inside) = tstat(:,TrueIter);
+    csource.pow_tstat(csource.outside)=0;
     csource.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos);
+    
+    csource.normdiff(csource.inside) =normdiff(:,TrueIter);
+    csource.normdiff(csource.outside)=0;
+    
     
      % CTF positions inside head
     ctf_inside = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos(csource.inside,:));
     
     
     if isempty(S.gridpos), %% only write images if they use whole volume
-        
-    
-    
+         
     
     cfg1 = [];
     cfg1.sourceunits   = 'mm';
@@ -557,11 +557,11 @@ gridpositions=grid.pos(grid.inside(maskedgrid_inside_ind),:);
     cfg1.downsample = 1;
     sourceint_pow_tstat = ft_sourceinterpolate(cfg1, csource, sMRI);
     
-%     cfg1 = [];
-%     cfg1.sourceunits   = 'mm';
-%     cfg1.parameter = 'evoked_tstat2';
-%     cfg1.downsample = 1;
-%     sourceint_evoked_tstat2 = ft_sourceinterpolate(cfg1, csource, sMRI);
+     cfg1 = [];
+     cfg1.sourceunits   = 'mm';
+     cfg1.parameter = 'normdiff';
+     cfg1.downsample = 1;
+     sourceint_normdiff= ft_sourceinterpolate(cfg1, csource, sMRI);
 %     
     
     
@@ -620,10 +620,10 @@ gridpositions=grid.pos(grid.inside(maskedgrid_inside_ind),:);
         outvol = spm_create_vol(outvol);
         spm_write_vol(outvol, sourceint_pow_tstat.pow_tstat);
          
-%         outvol.fname= fullfile(D.path, dirname, ['tstat2_ev_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr '.nii']);
-%         stats(fband).outfile_evoked_tstat2=outvol.fname;
-%         outvol = spm_create_vol(outvol);
-%         spm_write_vol(outvol, sourceint_evoked_tstat2.evoked_tstat2);
+         outvol.fname= fullfile(D.path, dirname, ['normdiff_pow_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr '.nii']);
+         stats(fband).outfile_normdiff=outvol.fname;
+         outvol = spm_create_vol(outvol);
+         spm_write_vol(outvol, sourceint_normdiff.normdiff);
 % 
     
     end; % if ~S.gridpos
