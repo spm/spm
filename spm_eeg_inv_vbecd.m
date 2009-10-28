@@ -30,7 +30,7 @@ function P = spm_eeg_inv_vbecd(P)
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % Gareth Barnes 
-% $Id: spm_eeg_inv_vbecd.m 3372 2009-09-08 14:33:45Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 3514 2009-10-28 14:37:09Z gareth $
 
 
 
@@ -48,47 +48,50 @@ if strcmp(upper(P.modality),'EEG'),
 end; % if 
 
 y = P.y;
-sc_y=1/std(y); %% rescale data to fit into minimisation routine (same magnitude for EEG and MEG means same threshold and exit criteria)
+sc_y=10000/std(y); %% rescale data to fit into minimisation routine (same magnitude for EEG and MEG means same threshold and exit criteria)
 y = y*sc_y;
 
 
-[u,s,v] = svd(S_w0); 
+
+
+
+
+Y.y=y;
+U.u=1;
+
+ outsideflag=1;
+ while outsideflag==1, %% don't use sources which end up outside the head
+
+
+    [u,s,v] = svd(S_w0); 
 %% set random moment, scaled by prior variances
-mu_w = mu_w0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_w0)); %% source units  
+    mu_w = mu_w0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_w0)); %% source units  
 
-[u,s,v] = svd(S_s0); %% 
-%% a random guess for the location, based on variance of the prior
+    [u,s,v] = svd(S_s0); %% 
+    %% a random guess for the location, based on variance of the prior
 
-outside=1;
-while (outside),
-    outside=0;
-    mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); % 
-    for i=1:3:length(mu_s), %% check each dipole is inside the head
+    outside=1;
+    while (outside),
+        outside=0;
+        mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); % 
+        for i=1:3:length(mu_s), %% check each dipole is inside the head
         pos=mu_s(i:i+2);
         outside = outside+ ~forwinv_inside_vol(pos',P.forward.vol);
-    end; 
-end;
+        end; 
+    end;
 
      
 
 % get lead fields
 
-Y.y=y;
-U.u=1;
 
-M.pE  = [mu_s;mu_w]; %% prior parameter estimate 
-M.pC  = blkdiag(S_s0,S_w0); % %% prior covariance estimate
-M.pC
-
-M.IS='spm_eeg_wrap_dipfit_vbecd';
-
-
- 
- startguess=M.pE;
- M.Setup=P; %% pass volume conductor and sensor locations on
- M.sc_y=sc_y; %%  pass on scaling factor
- outsideflag=1;
- while outsideflag==1, %% don't use sources which end up outside the head
+    M.pE  = [mu_s;mu_w]; %% prior parameter estimate 
+    M.pC  = blkdiag(S_s0,S_w0); % %% prior covariance estimate
+    M.IS='spm_eeg_wrap_dipfit_vbecd';
+    startguess=M.pE;
+    M.Setup=P; %% pass volume conductor and sensor locations on
+    M.sc_y=sc_y; %%  pass on scaling factor
+     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
     [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
     P.Ep=Ep;
@@ -100,6 +103,7 @@ M.IS='spm_eeg_wrap_dipfit_vbecd';
     if outsideflag
         disp('running again, one or more dipoles outside head.');
         end;
+    
  end; % while
 P.post_mu_s=Ep(1:length(mu_s));
 P.post_mu_w=Ep(length(mu_s)+1:end);

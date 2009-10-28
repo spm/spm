@@ -4,7 +4,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % basic gui for an LCMV univariate beamformer
 %
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_ft_beamformer_gui.m 3514 2009-10-28 14:37:09Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -56,7 +56,7 @@ if ~isfield(D, 'val')
     D.val = 1;
 end
 
-D.inv{1}.forward(1).voltype
+
 
 for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
