@@ -78,7 +78,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 3437 2009-10-01 15:14:49Z karl $
+% $Id: spm_nlsi_GN.m 3517 2009-10-29 15:11:56Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -222,7 +222,7 @@ iu    = [1:nu] + np;
 %--------------------------------------------------------------------------
 pC    = V'*pC*V;
 uC    = speye(nu)/1e-8;
-ipC   = inv(spm_cat(diag({pC,uC})));
+ipC   = inv(spm_cat(spm_spm_diag({pC,uC})));
  
 % initialize conditional density
 %--------------------------------------------------------------------------

@@ -80,7 +80,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_DFP.m 3517 2009-10-29 15:11:56Z guillaume $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -164,8 +164,8 @@ end
 
 % and fixed components P
 %--------------------------------------------------------------------------
-Q0    = kron(iV,spm_cat(diag({M.V})));
-R0    = kron(iV,spm_cat(diag({M.W})));
+Q0    = kron(iV,spm_cat(spm_diag({M.V})));
+R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
 nh    = length(Q);                         % number of hyperparameters
 
@@ -173,7 +173,7 @@ nh    = length(Q);                         % number of hyperparameters
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE; M.gE});             % prior expectation of h
-ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
 ph.ic = spm_pinv(ph.c);                    % prior precision
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
@@ -279,7 +279,7 @@ end
 for i = 1:n
     Ix{i,i} = speye(nx,nx);
 end
-dfdw        = spm_cat(diag({Ix,Iv,Dy,Dc}));
+dfdw        = spm_cat(spm_diag({Ix,Iv,Dy,Dc}));
 
 % add constant terms
 %--------------------------------------------------------------------------
@@ -291,7 +291,7 @@ for i = 2:n
     Dx{i - 1,i} = speye(nx,nx);
     Dy{i - 1,i} = speye(ny,ny);
 end
-Du        = spm_cat(diag({Dx,Dv}));
+Du        = spm_cat(spm_diag({Dx,Dv}));
 Dc        = spm_cat(Dc);
 Dy        = spm_cat(Dy);
 

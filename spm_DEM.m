@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 2805 2009-03-02 12:07:04Z karl $
+% $Id: spm_DEM.m 3517 2009-10-29 15:11:56Z guillaume $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -187,12 +187,12 @@ nh    = length(Q);
 %--------------------------------------------------------------------------
 Px    = kron(spm_DEM_R(n,1),speye(nx,nx)*0);
 Pv    = kron(spm_DEM_R(d,1),speye(nv,nv)*0);
-Pu    = spm_cat(diag({Px Pv}));
+Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
 ph.ic = spm_pinv(ph.c);                    % prior precision 
@@ -272,7 +272,7 @@ Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dy    = kron(spm_speye(n,n,1),spm_speye(ny,ny,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
-D     = spm_cat(diag({Dx,Dv,Dy,Dc}));
+D     = spm_cat(spm_diag({Dx,Dv,Dy,Dc}));
               
 % and null blocks
 %--------------------------------------------------------------------------

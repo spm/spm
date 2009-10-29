@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_L_priors.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_L_priors.m 3517 2009-10-29 15:11:56Z guillaume $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -142,4 +142,4 @@ end
  
 % prior covariance
 %--------------------------------------------------------------------------
-pC  = spm_cat(diag({pC, Lpos, exp(8)*L, J}));
+pC  = spm_cat(spm_diag({pC, Lpos, exp(8)*L, J}));

@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_Nf(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_Nf.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_nlsi_Nf.m 3517 2009-10-29 15:11:56Z guillaume $
 
 
 if isfield(M,'fastEM') && M.fastEM
@@ -259,7 +259,7 @@ uC    = speye(nu,nu)*exp(32);
 ipC   = inv(pC);                      % p - state parameters
 igC   = inv(gC);                      % g - observer parameters
 iuC   = inv(uC);                      % u - fixed parameters
-ibC   = spm_cat(diag({ipC,igC,iuC})); % b - all parameters
+ibC   = spm_cat(spm_diag({ipC,igC,iuC})); % b - all parameters
 
 
 % initialize conditional density

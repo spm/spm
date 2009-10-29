@@ -36,7 +36,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_bireduce.m 3517 2009-10-29 15:11:56Z guillaume $
 
 
 % set up
@@ -137,6 +137,6 @@ for i = 1:l
     end
 end
 for i = 1:l
-    L2{i} = spm_cat(diag({0, D{i}}));
+    L2{i} = spm_cat(spm_diag({0, D{i}}));
 end
     

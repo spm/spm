@@ -14,7 +14,7 @@ function [V,X] = spm_DEM_int(M,Z,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_int.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM_int.m 3517 2009-10-29 15:11:56Z guillaume $
  
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ u.w    = w;
 %--------------------------------------------------------------------------
 Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(n,n,1),spm_speye(nv,nv,0));
-D     = spm_cat(diag({Dv,Dx,Dv,Dx}));
+D     = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
 dfdw  = kron(eye(n,n),eye(nx,nx));
  
 % initialise conditional estimators of states to be saved (V and X)

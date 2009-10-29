@@ -107,7 +107,7 @@ function [DEM] = spm_GDEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_GDEM.m 2922 2009-03-23 18:03:39Z guillaume $
+% $Id: spm_GDEM.m 3517 2009-10-29 15:11:56Z guillaume $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -188,8 +188,8 @@ end
  
 % and fixed components P
 %--------------------------------------------------------------------------
-Q0    = kron(iV,spm_cat(diag({M.V})));
-R0    = kron(iV,spm_cat(diag({M.W})));
+Q0    = kron(iV,spm_cat(spm_diag({M.V})));
+R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
 Q0    = kron(iV,speye(nv));
 R0    = kron(iV,speye(nx));
@@ -200,12 +200,12 @@ nh    = length(Q);                         % number of hyperparameters
 %--------------------------------------------------------------------------
 Px    = kron(iV(1:n,1:n),sparse(nx,nx));
 Pv    = kron(iV(1:d,1:d),sparse(nv,nv));
-Pu    = spm_cat(diag({Px Pv}));
+Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
 ph.ic = inv(ph.c);                         % prior precision
@@ -270,12 +270,12 @@ pu.v{1}   = spm_vec({G.v});
 Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
-Du    = spm_cat(diag({Dx,Dv}));
-Dq    = spm_cat(diag({Dx,Dv,Dc}));
+Du    = spm_cat(spm_diag({Dx,Dv}));
+Dq    = spm_cat(spm_diag({Dx,Dv,Dc}));
  
 Dx    = kron(spm_speye(g,g,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(g,g,1),spm_speye(nr,nr,0));
-Dp    = spm_cat(diag({Dv,Dx,Dv,Dx}));
+Dp    = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
 dfdw  = kron(speye(g,g),speye(nx,nx));
 dydv  = kron(speye(n,g),speye(ny,nr));
  

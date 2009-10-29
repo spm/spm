@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_dcm_dem.m 3517 2009-10-29 15:11:56Z guillaume $
 
 % check options
 %==========================================================================
@@ -114,7 +114,7 @@ for i = 1:Nr
     eJ(i,j) = 1;
 end
 gE.J  = eJ;
-gC    = spm_cat(diag({gC, diag(spm_vec(cJ))}));
+gC    = spm_cat(spm_diag({gC, diag(spm_vec(cJ))}));
 n     = size(J,2);
 
 % likelihood model

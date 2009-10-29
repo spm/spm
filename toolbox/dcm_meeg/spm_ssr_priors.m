@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 2354 2008-10-17 11:57:57Z karl $
+% $Id: spm_ssr_priors.m 3517 2009-10-29 15:11:56Z guillaume $
  
 
 % add prior on endogenous inputs (neuronal) and noise
@@ -42,5 +42,5 @@ pE.d  = [0 0];           pV.d = [1/16 1/16];       % amplitude noise IID
 
 % and augment prior covariance
 %--------------------------------------------------------------------------
-pC    = spm_cat(diag({pC, diag(spm_vec(pV))}));
+pC    = spm_cat(spm_diag({pC, diag(spm_vec(pV))}));
  
