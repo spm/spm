@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3519 2009-10-29 17:08:53Z maria $
+% $Id: spm_run_bms_dcm.m 3520 2009-10-29 17:17:28Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -125,6 +125,7 @@ else
            nsess_now       = length(subj(k).sess);
            nmodels         = length(subj(k).sess(1).model);
         else
+           disp(sprintf('Loading DCMs for subject %d', k));
            nsess_now       = size(job.sess_dcm{k},2);
            nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
         end
@@ -140,9 +141,7 @@ else
                 for h = 1:nsess_now
                    
                     if ~ld_msp
-                        
-                        disp(sprintf('Loading DCMs for subject %d', k));
-                        
+                                              
                         clear DCM
                         
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
