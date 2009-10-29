@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3511 2009-10-26 16:19:29Z maria $
+% $Id: spm_run_bms_dcm.m 3519 2009-10-29 17:08:53Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -27,6 +27,7 @@ fname   = 'BMS.mat';                 % Output filename
 fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
 priors  = job.priors;
 ld_f    = ~isempty(job.load_f{1});
+ld_msp  = ~isempty(job.model_sp{1});
 bma_do  = isfield(job.bma,'bma_yes');
 data_se = ~isempty(job.sess_dcm);
 
@@ -50,27 +51,34 @@ do_bma_all    = 0;
 
 if bma_do
     if data_se
-       load(job.sess_dcm{1}(1).mod_dcm{1})
-       n  = size(DCM.a,2);
-       m  = size(DCM.c,2); 
-       mi = size(DCM.c,2); 
-       bma.nsamp       = str2num(job.bma.bma_yes.bma_nsamp);
-       bma.odds_ratio  = str2num(job.bma.bma_yes.bma_ratio);
-       bma.a           = zeros(n,n,bma.nsamp);
-       bma.b           = zeros(n,n,m,bma.nsamp);
-       bma.c           = zeros(n,mi,bma.nsamp);
-       
-       if isfield(job.bma.bma_yes.bma_set,'bma_famwin')
-           do_bma_famwin = 1;
-       else
-           if isfield(job.bma.bma_yes.bma_set,'bma_all')
-               do_bma_all = 1;
-           else
-               bma_fam    = double(job.bma.bma_yes.bma_set.bma_part);
-           end
-       end
+        load(job.sess_dcm{1}(1).mod_dcm{1})   
     else
-        error('Plase specify DCM.mat files to do BMA!')
+        if ld_msp
+            disp('Loading model space')
+            load(job.model_sp{1});
+            load(subj(1).sess(1).model(1).fname)
+        else
+            error('Plase specify DCM.mat files to do BMA!')
+        end
+    end
+    
+    n  = size(DCM.a,2);
+    m  = size(DCM.c,2);
+    mi = size(DCM.c,2);
+    bma.nsamp       = str2num(job.bma.bma_yes.bma_nsamp);
+    bma.odds_ratio  = str2num(job.bma.bma_yes.bma_ratio);
+    bma.a           = zeros(n,n,bma.nsamp);
+    bma.b           = zeros(n,n,m,bma.nsamp);
+    bma.c           = zeros(n,mi,bma.nsamp);
+    
+    if isfield(job.bma.bma_yes.bma_set,'bma_famwin')
+        do_bma_famwin = 1;
+    else
+        if isfield(job.bma.bma_yes.bma_set,'bma_all')
+            do_bma_all = 1;
+        else
+            bma_fam    = double(job.bma.bma_yes.bma_set.bma_part);
+        end
     end
 end
 
@@ -89,11 +97,18 @@ if  ld_f
     f_fname = data;
     
 else
-
+    
     f_fname = [];
-    ns      = size(job.sess_dcm,2);                 % No of Subjects
-    nsess   = size(job.sess_dcm{1},2);              % No of sessions
-    nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
+    
+    if ld_msp
+        ns      = length(subj);                         % No of Subjects
+        nsess   = length(subj(1).sess);                 % No of sessions
+        nm      = length(subj(1).sess(1).model);        % No of Models
+    else
+        ns      = size(job.sess_dcm,2);                 % No of Subjects
+        nsess   = size(job.sess_dcm{1},2);              % No of sessions
+        nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
+    end
     
     F       = zeros(ns,nm);
     N       = cell(nm);
@@ -106,10 +121,13 @@ else
     
     for k=1:ns
 
-        disp(sprintf('Loading DCMs for subject %d', k));
-
-        nsess_now       = size(job.sess_dcm{k},2);
-        nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
+        if ld_msp
+           nsess_now       = length(subj(k).sess);
+           nmodels         = length(subj(k).sess(1).model);
+        else
+           nsess_now       = size(job.sess_dcm{k},2);
+           nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
+        end
 
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
             
@@ -120,19 +138,30 @@ else
                 F_sess      = [];
                 
                 for h = 1:nsess_now
-                    
-                    clear DCM
-
-                    tmp = job.sess_dcm{k}(h).mod_dcm{j};
-%                   DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp'); % Use
-%                   this option if you have the file loadmat.m
-                    DCM = load(tmp);
-
-                    F_sess  = [F_sess,DCM.DCM.F];
-
-                    subj(k).sess(h).model(j).fname = tmp;
-                    subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
-                    subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
+                   
+                    if ~ld_msp
+                        
+                        disp(sprintf('Loading DCMs for subject %d', k));
+                        
+                        clear DCM
+                        
+                        tmp = job.sess_dcm{k}(h).mod_dcm{j};
+%                       DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp'); % Use
+%                       this option if you have the file loadmat.m
+                        DCM = load(tmp);
+                        
+                        F_sess  = [F_sess,DCM.DCM.F];
+                        
+                        subj(k).sess(h).model(j).fname = tmp;
+                        subj(k).sess(h).model(j).F     = DCM.DCM.F;
+                        subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
+                        subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
+                        
+                    else
+                        
+                        F_sess = [F_sess,subj(k).sess(h).model(j).F];
+                        
+                    end
                     
                     % Data ID verification. At least for now we'll
                     % re-compute the IDs rather than use the ones stored
@@ -425,16 +454,21 @@ else
     
 end
 
-% verify data
+% Save model_space
 % -------------------------------------------------------------------------
-% spm_figure('FindWin','Graphics')
-% axes('position', [0.01, 0.01, 0.01, 0.01]); 
-% axis off
-% if job.verify_id
-%     text(0, 0, 'Data identity has been verified');
-% else
-%     text(0, 0, 'Data identity has not been verified');
-% end
-% 
-% end
+if ~ld_msp
+    disp('Saving model space...')
+    fname = [job.dir{1} 'model_space'];
+    save(fname,'subj')
+end
+
+% Data verification
+% -------------------------------------------------------------------------
+if job.verify_id
+    disp('Data identity has been verified');
+else
+    disp('Data identity has not been verified');
+end
+
+end
 
