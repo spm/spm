@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_regions.m 3521 2009-10-29 18:37:41Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -120,6 +120,7 @@ end
 xY.M = xSPM.M;
 [xY, xY.XYZmm, Q] = spm_ROI(xY, xSPM.XYZmm);
 try, xY = rmfield(xY,'M'); end
+try, xY = rmfield(xY,'rej'); end
 
 if isempty(xY.XYZmm), error('Empty region.'); end
 
