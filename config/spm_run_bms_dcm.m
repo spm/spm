@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3520 2009-10-29 17:17:28Z maria $
+% $Id: spm_run_bms_dcm.m 3522 2009-10-29 20:08:50Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -145,9 +145,9 @@ else
                         clear DCM
                         
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
-%                       DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp'); % Use
+                      DCM = loadmat(tmp,'DCM.F','DCM.Ep','DCM.Cp'); % Use
 %                       this option if you have the file loadmat.m
-                        DCM = load(tmp);
+%                         DCM = load(tmp);
                         
                         F_sess  = [F_sess,DCM.DCM.F];
                         
@@ -284,6 +284,7 @@ end
 % -------------------------------------------------------------------------
 if strcmp(method,'FFX'); 
     
+    disp('Computing FFX model/family posteriors ...');
     if ~do_family
         family         = [];
         model.post     = spm_api_bmc(sumF,N,[],[]);

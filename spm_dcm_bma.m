@@ -23,16 +23,28 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3508 2009-10-26 13:04:17Z maria $
+% $Id: spm_dcm_bma.m 3522 2009-10-29 20:08:50Z maria $
 
-if nargin < 3 || isempty(Nsamp)
+if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
 end
-if nargin < 4 || isempty(oddsr)
+if nargin < 5 || isempty(oddsr)
     oddsr=0;
 end
 
 Nsub=length(subj);
+Nses=length(subj(1).sess);
+
+% Number of regions
+load(subj(1).sess(1).model(1).fname);
+nreg = DCM.n;
+m    = DCM.M.m;
+if isfield(DCM,'D')
+    nonLin = 1;
+else
+    nonLin = 0;
+end
+
 theta=[];
 
 [Ni M]=size(post);
@@ -65,9 +77,55 @@ if rfx
         
         % Load DCM posteriors for models in Occam's window
         for kk=1:Nocc(i),
+            
             sel=post_indx(post_ind{i}(kk));
+            
             params(i).model(kk).Ep=subj(i).sess(1).model(sel).Ep;
             params(i).model(kk).Cp=full(subj(i).sess(1).model(sel).Cp);
+              
+            % Average sessions
+            if Nses > 1
+                
+                for ss=1:Nses 
+                    clear miCp mEp
+
+                    sess_model.Ep=subj(i).sess(ss).model(sel).Ep;
+                    sess_model.Cp=full(subj(i).sess(ss).model(sel).Cp);
+                                      
+                    pCdiag = diag(sess_model.Cp);
+                    wsel   = find(~(pCdiag==0));
+                    
+                    if nonLin
+                       % but keep the D values if present !
+                       npABC = n*n + n*n*m + n*m + 1 ; % nr of parameters in A,B,C+1
+                       cwsel = wsel; cwsel(max(find(wsel<=npABC))+(1:6*n))=[];
+                    else
+                    cwsel = wsel(1:end-6*nreg);
+                    end
+
+                    % Get posterior precision matrix from model
+                    miCp(:,:,ss) = inv(full(sess_model.Cp(cwsel,cwsel)));
+                    % Get posterior mean from model
+                    mEp(:,ss)    = full(sess_model.Ep(cwsel));
+
+                end
+                
+                % Average models using Bayesian fixed effects analysis -> average Ep,Cp
+                % averaged posterior covariance
+                final_iCp = sum(miCp,3);
+                Cp        = inv(final_iCp);
+                % averaged posterior mean
+                weighted_Ep = zeros(length(cwsel),1);
+                for ss = 1:Nses,
+                    weighted_Ep = weighted_Ep + miCp(:,:,ss)*mEp(:,ss);
+                end
+                Ep = Cp*weighted_Ep;
+
+                params(i).model(kk).Ep(cwsel)=Ep;
+                params(i).model(kk).Cp(cwsel,cwsel)=Cp;
+                
+            end
+            
         end
     end
 else
@@ -91,8 +149,52 @@ else
     for n=1:Nsub,
         for kk=1:Nocc,
             sel=post_indx(post_ind(kk));
+           
             params(n).model(kk).Ep=subj(n).sess(1).model(sel).Ep;
             params(n).model(kk).Cp=full(subj(n).sess(1).model(sel).Cp);
+              
+            % Average sessions
+            if Nses > 1
+                
+                for ss=1:Nses 
+                    clear miCp mEp
+                    
+                    sess_model.Ep=subj(n).sess(ss).model(sel).Ep;
+                    sess_model.Cp=full(subj(n).sess(ss).model(sel).Cp);
+                                      
+                    pCdiag = diag(sess_model.Cp);
+                    wsel   = find(~(pCdiag==0));
+                    
+                    if nonLin
+                       % but keep the D values if present !
+                       npABC = n*n + n*n*m + n*m + 1 ; % nr of parameters in A,B,C+1
+                       cwsel = wsel; cwsel(max(find(wsel<=npABC))+(1:6*n))=[];
+                    else
+                    cwsel = wsel(1:end-6*nreg);
+                    end
+
+                    % Get posterior precision matrix from model
+                    miCp(:,:,ss) = inv(full(sess_model.Cp(cwsel,cwsel)));
+                    % Get posterior mean from model
+                    mEp(:,ss)    = full(sess_model.Ep(cwsel));
+
+                end
+                
+                % Average models using Bayesian fixed effects analysis -> average Ep,Cp
+                % averaged posterior covariance
+                final_iCp = sum(miCp,3);
+                Cp        = inv(final_iCp);
+                % averaged posterior mean
+                weighted_Ep = zeros(length(cwsel),1);
+                for ss = 1:Nses,
+                    weighted_Ep = weighted_Ep + miCp(:,:,ss)*mEp(:,ss);
+                end
+                Ep = Cp*weighted_Ep;
+
+                params(n).model(kk).Ep(cwsel)=Ep;
+                params(n).model(kk).Cp(cwsel,cwsel)=Cp;
+                
+            end 
         end
     end
 end
