@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3523 2009-10-30 11:16:29Z maria $
+% $Id: spm_run_bms_dcm.m 3524 2009-10-30 12:06:05Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -50,13 +50,13 @@ do_bma_famwin = 0;
 do_bma_all    = 0;
 
 if bma_do
-    if data_se
-        load(job.sess_dcm{1}(1).mod_dcm{1})   
-    else
-        if ld_msp
+    if ld_msp
             disp('Loading model space')
             load(job.model_sp{1});
             load(subj(1).sess(1).model(1).fname)
+    else
+        if data_se
+            load(job.sess_dcm{1}(1).mod_dcm{1})  
         else
             error('Plase specify DCM.mat files to do BMA!')
         end
@@ -79,6 +79,11 @@ if bma_do
         else
             bma_fam    = double(job.bma.bma_yes.bma_set.bma_part);
         end
+    end
+else
+    if ld_msp
+            disp('Loading model space')
+            load(job.model_sp{1});
     end
 end
 
@@ -454,7 +459,7 @@ end
 
 % Save model_space
 % -------------------------------------------------------------------------
-if ~ld_msp
+if ~ld_msp && data_se
     disp('Saving model space...')
     fname = [job.dir{1} 'model_space'];
     save(fname,'subj')
