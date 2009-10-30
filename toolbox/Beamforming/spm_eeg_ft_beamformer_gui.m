@@ -4,7 +4,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % basic gui for an LCMV univariate beamformer
 %
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3514 2009-10-28 14:37:09Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 3526 2009-10-30 14:57:31Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -110,6 +110,12 @@ for i = 1:Ntimewindows, %%spm_input('Number of time windows:', '+1', 'r', '1', 1
             duration= spm_input(outstr, '+1', 'r', '', 1);
         end; % if i==1
         S.timewindows{i}=[starttime;starttime+duration]/1000;
+    else
+        duration=(S.timewindows{1}(2)-S.timewindows{1}(1))*1000; %% convert back to ms
+        duration_check=(S.timewindows{2}(2)-S.timewindows{2}(1))*1000;
+        if duration~=duration_check,
+            error('durations of time windows not equal');
+        end;
         
     end; % if isfield timewindows
     
@@ -141,7 +147,7 @@ S.design.X(find(trialtypes==1),1)=1;
 S.design.X(find(trialtypes==2),1)=-1;
  
  contrast=[1];
-     S.design.contrast=contrast;
+      S.design.contrast=contrast;
       S.design.Xwindowduration=duration/1000; %% in seconds 
       S.design.Xtrials=triallist'; % correspond to the trials 
       S.design.Xstartlatencies=latencies(:,1); %% correspond to start latencies within trials
