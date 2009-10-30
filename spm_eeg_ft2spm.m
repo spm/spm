@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 3196 2009-06-11 12:54:47Z vladimir $
+% $Id: spm_eeg_ft2spm.m 3525 2009-10-30 13:37:07Z vladimir $
 
 isTF = 0;
 
@@ -151,7 +151,7 @@ else
 end
 
 if  isfield(ftdata, 'hdr') && isfield(ftdata.hdr, 'grad')
-    D = sensors(forwinv_convert_units(ftdata.hdr.grad, 'mm'), 'MEG');
+    D = sensors(D, 'MEG', forwinv_convert_units(ftdata.hdr.grad, 'mm'));
     
     S = [];
     S.task = 'project3D';
