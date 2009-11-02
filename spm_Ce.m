@@ -19,12 +19,12 @@ function [C] = spm_Ce(v,a)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Ce.m 3486 2009-10-19 11:14:08Z vladimir $
+% $Id: spm_Ce.m 3527 2009-11-02 20:27:13Z karl $
  
  
 % defaults
 %--------------------------------------------------------------------------
-if nargin == 1, a = [];   end
+if nargin == 1, a = []; end
  
 % create block diagonal components
 %--------------------------------------------------------------------------

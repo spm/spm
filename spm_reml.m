@@ -33,7 +33,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3297 2009-07-29 17:20:19Z guillaume $
+% $Id: spm_reml.m 3527 2009-11-02 20:27:13Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ if isempty(X)
 else
     X = spm_svd(X(q,:));
 end
- 
+
 % initialise and specify hyperpriors
 %==========================================================================
 for i = 1:m
@@ -72,6 +72,8 @@ for i = 1:m
 end
 hE  = sparse(m,1);
 hP  = speye(m,m)/exp(32);
+dF  = Inf;
+t   = 4;
  
  
 % ReML (EM/VB)
@@ -132,7 +134,7 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh,dFdh,{4});
+    dh    = spm_dx(dFdhh,dFdh,{t});
     h     = h + dh;
  
     % Convergence (1% change in log-evidence)
@@ -140,8 +142,9 @@ for k = 1:K
     
     % update regulariser
     %----------------------------------------------------------------------
+    if dF < dFdh'*dh, t = max(t - 1,-4); end
     dF    = dFdh'*dh;
-    fprintf('%-40s: %3i %14s%e\n','  ReML Iteration',k,'...',full(dF));
+    fprintf('%-24s: %3i %14s%e [%i]\n','  ReML Iteration',k,'...',full(dF),t);
     
     % final estimate of covariance (with missing data points)
     %----------------------------------------------------------------------

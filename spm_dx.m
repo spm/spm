@@ -4,7 +4,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % dfdx   = df/dx
 % f      = dx/dt
 % t      = integration time: (default t = Inf);
-%          if t is a cell (i.e., {t}) then t is set ti:
+%          if t is a cell (i.e., {t}) then t is set to:
 %          exp(t - log(diag(-dfdx))
 %
 % dx     = x(t) - x(0)
@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_dx.m 3527 2009-11-02 20:27:13Z karl $
 
 % defaults
 %--------------------------------------------------------------------------

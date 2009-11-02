@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_eeg_invert_fuse.m 3527 2009-11-02 20:27:13Z karl $
                         
  
 % D - SPM MEEG object
@@ -547,7 +547,7 @@ end
  
 % assess accuracy; signal to noise (over sources)
 %==========================================================================
-R2   = 100*(SST - SSR)./SST
+R2   = 100*(SST - SSR)./SST;
 R2   = mean(R2);
 fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE))
  
