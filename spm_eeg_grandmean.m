@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 3364 2009-09-04 18:31:15Z vladimir $
+% $Id: spm_eeg_grandmean.m 3532 2009-11-04 16:57:51Z vladimir $
 
-SVNrev = '$Rev: 3364 $';
+SVNrev = '$Rev: 3532 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -210,7 +210,7 @@ end
 % how many different trial types and bad channels
 types = {};
 for i = 1:Nfiles
-    types = unique([types, D{i}.conditions]);
+    types = unique([types, D{i}.condlist]);
 end
 
 % The order of the conditions will be consistent with the first file
@@ -222,11 +222,12 @@ Ntypes = numel(types);
 % how many repetitons per trial type
 nrepl = zeros(Nfiles, Ntypes);
 for i = 1:Nfiles
-    cl{i} = D{i}.conditions;
-    for j = 1:D{i}.nconditions
-        ind = strmatch(cl{i}{j}, types);
-        nrepl(i, ind) =  D{i}.repl(j);
-    end
+    for j = 1:numel(types)
+        ind = D{i}.indtrial(types{j});
+        if ~isempty(ind)
+            nrepl(i, j) =  D{i}.repl(ind);
+        end
+    end 
 end
 
 if ~S.weighted
@@ -258,7 +259,7 @@ if strncmp(D{1}.transformtype, 'TF',2)
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.badchannels)
-                    ind = strmatch(types(i), cl{k}(:));
+                    ind = D{k}.pickconditions(types{i});
                     if ~isempty(ind)
                         d(j, :, :) = d(j, :, :) + nrepl(k, i)*D{k}(j, :, :, ind);
                         w(j, i) = w(j, i) + nrepl(k, i);
@@ -286,7 +287,7 @@ else
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.badchannels)
-                    ind = strmatch(types(i), cl{k}(:));
+                    ind = D{k}.pickconditions(types{i});
                     if ~isempty(ind)
                         d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind);
                         w(j, i) = w(j, i) + nrepl(k, i);
