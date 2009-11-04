@@ -1,57 +1,72 @@
 function S = spm_cfg_eeg_grandmean
 % configuration file for averaging evoked responses
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_cfg_eeg_grandmean.m 3531 2009-11-04 14:58:54Z guillaume $
 
-rev = '$Rev: 2225 $';
-D = cfg_files;
-D.tag = 'D';
-D.name = 'File Names';
-D.filter = 'mat';
-D.num = [1 inf];
-D.help = {'Select the M/EEG mat file.'};
+% -------------------------------------------------------------------------
+% weighted Weighted average
+% -------------------------------------------------------------------------
+weighted         = cfg_menu;
+weighted.tag     = 'weighted';
+weighted.name    = 'Weighted average?';
+weighted.help    = {'Average weighted by number of replications in input.'};
+weighted.labels  = {'Yes' 'No'};
+weighted.values  = {1 0};
 
-Pout = cfg_entry;
-Pout.tag = 'Pout';
-Pout.name = 'Output filename';
-Pout.strtype = 's';
-Pout.num = [1 inf];
-Pout.help = {'Choose filename'};
+%--------------------------------------------------------------------------
+% D File Names
+%--------------------------------------------------------------------------
+D            = cfg_files;
+D.tag        = 'D';
+D.name       = 'File Names';
+D.filter     = 'mat';
+D.num        = [1 inf];
+D.help       = {'Select the M/EEG mat file.'};
 
-S = cfg_exbranch;
-S.tag = 'eeg_grandmean';
-S.name = 'M/EEG Grandmean';
-S.val = {D Pout};
-S.help = {'Average multiple evoked responses'};
-S.prog = @eeg_grandmean;
-S.vout = @vout_eeg_grandmean;
-S.modality = {'EEG'};
+%--------------------------------------------------------------------------
+% Dout Output filename
+%--------------------------------------------------------------------------
+Dout         = cfg_entry;
+Dout.tag     = 'Dout';
+Dout.name    = 'Output filename';
+Dout.strtype = 's';
+Dout.num     = [1 inf];
+Dout.help    = {'Choose filename'};
 
+%--------------------------------------------------------------------------
+% S Grandmean
+%--------------------------------------------------------------------------
+S            = cfg_exbranch;
+S.tag        = 'eeg_grandmean';
+S.name       = 'M/EEG Grandmean';
+S.val        = {D Dout weighted};
+S.help       = {'Average multiple evoked responses'};
+S.prog       = @eeg_grandmean;
+S.vout       = @vout_eeg_grandmean;
+S.modality   = {'EEG'};
 
+%==========================================================================
 function out = eeg_grandmean(job)
 % construct the S struct
-S.P = strvcat(job.D);
-S.Pout = job.Pout;
+S.D = strvcat(job.D);
+S.Dout = job.Dout;
+S.weighted = job.weighted;
 
 out.D = spm_eeg_grandmean(S);
 out.Dfname = {out.D.fname};
 
+%==========================================================================
 function dep = vout_eeg_grandmean(job)
-% Output is always in field "D", no matter how job is structured
-dep = cfg_dep;
-dep.sname = 'Grandmean Data';
-% reference field "D" from output
-dep.src_output = substruct('.','D');
-% this can be entered into any evaluated input
-dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
 
-dep(2) = cfg_dep;
-dep(2).sname = 'Grandmean Datafile';
-% reference field "Dfname" from output
+dep(1)            = cfg_dep;
+dep(1).sname      = 'Grandmean Data';
+dep(1).src_output = substruct('.','D');
+dep(1).tgt_spec   = cfg_findspec({{'strtype','e'}});
+
+dep(2)            = cfg_dep;
+dep(2).sname      = 'Grandmean Datafile';
 dep(2).src_output = substruct('.','Dfname');
-% this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-

@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_run_voi.m 3531 2009-11-04 14:58:54Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -216,4 +216,4 @@ switch mv
         error(sprintf('Unknown option: ''%s''.',mv));
 end
 c             = nc;
-fprintf(['   ' upper(t(1)) t(2:end) ' ' str '\n']);                                              %-#
+fprintf(['   ' upper(t(1)) t(2:end) ' ' str '\n']);                     %-#
