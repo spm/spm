@@ -18,7 +18,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3524 2009-10-30 12:06:05Z maria $
+% $Id: spm_run_bms_dcm.m 3530 2009-11-04 10:19:45Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -105,6 +105,7 @@ else
     
     f_fname = [];
     
+    % Verify dimensions of data and model space
     if ld_msp
         ns      = length(subj);                         % No of Subjects
         nsess   = length(subj(1).sess);                 % No of sessions
@@ -126,6 +127,7 @@ else
     
     for k=1:ns
 
+        % Verify dimensions of data and model space for current session
         if ld_msp
            nsess_now       = length(subj(k).sess);
            nmodels         = length(subj(k).sess(1).model);
@@ -149,11 +151,14 @@ else
                                               
                         clear DCM
                         
+                        % Load DCM (model)
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
                         DCM = load(tmp);
                         
+                        % Free energy for sessions
                         F_sess  = [F_sess,DCM.DCM.F];
                         
+                        % Create model space
                         subj(k).sess(h).model(j).fname = tmp;
                         subj(k).sess(h).model(j).F     = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
@@ -190,6 +195,7 @@ else
                     end
                 end
                 
+                % Sum over sessions
                 F_mod       = sum(F_sess);
                 F(k,j)      = F_mod;
                 N{j}        = sprintf('model%d',j);
@@ -357,7 +363,12 @@ if strcmp(method,'FFX');
     BMS.DCM.ffx.family  = family;
     BMS.DCM.ffx.bma     = bma;
      
-    save(fname,'BMS')
+    if spm_matlab_version_chk('7') >= 0
+        save(fname,'-V6','BMS');
+    else
+        save(fname,'BMS');
+    end
+    
     out.files{1} = fname;
     
 % 2nd-level (random effects) BMS
@@ -452,7 +463,11 @@ else
     BMS.DCM.rfx.family  = family;
     BMS.DCM.rfx.bma     = bma;
     
-    save(fname,'BMS')
+    if spm_matlab_version_chk('7') >= 0
+        save(fname,'-V6','BMS');
+    else
+        save(fname,'BMS');
+    end
     out.files{1}= fname;
     
 end
@@ -462,7 +477,11 @@ end
 if ~ld_msp && data_se
     disp('Saving model space...')
     fname = [job.dir{1} 'model_space'];
-    save(fname,'subj')
+    if spm_matlab_version_chk('7') >= 0
+        save(fname,'-V6','subj');
+    else
+        save(fname,'subj');
+    end  
 end
 
 % Data verification
