@@ -6,6 +6,7 @@ function D = spm_eeg_epochs(S)
 % (optional) fields of S:
 %   S.D                 - MEEG object or filename of M/EEG mat-file with
 %                         continuous data
+%   S.bc                - baseline-correct the data (1 - yes, 0 - no).
 %
 % Either (to use a ready-made trial definition):
 %   S.epochinfo.trl             - Nx2 or Nx3 matrix (N - number of trials)
@@ -38,9 +39,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 3250 2009-07-06 09:31:13Z vladimir $
+% $Id: spm_eeg_epochs.m 3533 2009-11-04 17:36:54Z vladimir $
 
-SVNrev = '$Rev: 3250 $';
+SVNrev = '$Rev: 3533 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -122,6 +123,11 @@ else
 
 end
 
+if ~isfield(S, 'bc')
+    S.bc = 1;
+    % S.bc = spm_input('Subtract baseline?','+1','yes|no',[1 0], 1);
+end
+
 trl = epochinfo.trl;
 conditionlabels = epochinfo.conditionlabels;
 
@@ -198,15 +204,17 @@ Dnew = type(Dnew, 'single');
 
 %-Perform baseline correction if there are negative time points
 %--------------------------------------------------------------------------
-if time(Dnew, 1) < 0
-    S1               = [];
-    S1.D             = Dnew;
-    S1.time          = [time(Dnew, 1, 'ms') 0];
-    S1.save          = false;
-    S1.updatehistory = false;    
-    Dnew             = spm_eeg_bc(S1);
-else
-    warning('There was no baseline specified. The data is not baseline-corrected');
+if S.bc
+    if time(Dnew, 1) < 0
+        S1               = [];
+        S1.D             = Dnew;
+        S1.time          = [time(Dnew, 1, 'ms') 0];
+        S1.save          = false;
+        S1.updatehistory = false;
+        Dnew             = spm_eeg_bc(S1);
+    else
+        warning('There was no baseline specified. The data is not baseline-corrected');
+    end
 end
 
 %-Save new evoked M/EEG dataset
@@ -214,7 +222,7 @@ end
 D = Dnew;
 % Remove some redundant stuff potentially put in by spm_eeg_definetrial
 if isfield(S, 'event'), S = rmfield(S, 'event'); end
-D = D.history('spm_eeg_epochs', S);
+D = D.history(mfilename, S);
 save(D);
 
 %-Cleanup
