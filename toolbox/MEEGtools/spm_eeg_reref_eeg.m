@@ -19,9 +19,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson
-% $Id: spm_eeg_reref_eeg.m 3400 2009-09-14 17:29:50Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 3539 2009-11-05 22:40:56Z vladimir $
 
-SVNrev = '$Rev: 3400 $';
+SVNrev = '$Rev: 3539 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -80,7 +80,7 @@ tra = eye(D.nchannels);
 tra(eegchan,refchan) = tra(eegchan,refchan) - 1/length(refchan);
 
 S1=[];
-S1.D = D.fname;
+S1.D = D;
 S1.montage.labelorg = D.chanlabels;
 S1.montage.labelnew = D.chanlabels;
 S1.montage.tra = tra;
