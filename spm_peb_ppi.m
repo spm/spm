@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3433 2009-09-30 10:32:02Z guillaume $
+% $Id: spm_peb_ppi.m 3537 2009-11-05 20:57:00Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -347,6 +347,7 @@ W = SPM.xX.W(Sess.row,Sess.row);
 
 % Create structure for spm_PEB
 %--------------------------------------------------------------------------
+clear P
 P{1}.X = [W*Hxb X0];        % Design matrix for lowest level
 P{1}.C = speye(N,N)/4;      % i.i.d assumptions
 P{2}.X = sparse(N + M,1);   % Design matrix for parameters (0's)
