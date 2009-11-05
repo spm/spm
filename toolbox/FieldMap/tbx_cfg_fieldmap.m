@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 3085 2009-04-24 20:09:58Z chloe $
+% $Id: tbx_cfg_fieldmap.m 3536 2009-11-05 15:00:32Z chloe $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -261,7 +261,7 @@ epi.name    = 'Select EPI to Unwarp';
 epi.help    = {'Select an image to distortion correct. The corrected image will be saved with the prefix u. The original and the distortion corrected images can be displayed for comparison.'};
 epi.filter = 'image';
 epi.ufilter = '.*';
-epi.num     = [0 1];
+epi.num     = [1 1];
 % ---------------------------------------------------------------------
 % session Session
 % ---------------------------------------------------------------------
@@ -603,17 +603,17 @@ for i=1:numel(job.subj),
    out(i)=FieldMap_Run(job.subj(i));
 end
 %------------------------------------------------------------------------
-function fieldmap_realimag(job)
+function out=fieldmap_realimag(job)
 for i=1:numel(job.subj),
    out(i)=FieldMap_Run(job.subj(i));
 end
 %------------------------------------------------------------------------
-function fieldmap_phasemag(job)
+function out=fieldmap_phasemag(job)
 for i=1:numel(job.subj),
    out(i)=FieldMap_Run(job.subj(i));
 end
 %------------------------------------------------------------------------
-function fieldmap_precalcfieldmap(job)
+function out=fieldmap_precalcfieldmap(job)
 for i=1:numel(job.subj),
    out(i)=FieldMap_Run(job.subj(i));
 end
