@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 3348 2009-09-03 10:32:01Z guillaume $
+% $Id: spm_mip_ui.m 3535 2009-11-05 14:32:51Z guillaume $
 
 
 %==========================================================================
@@ -674,16 +674,22 @@ switch lower(varargin{1}), case 'display'
 
             DIM = get(findobj('Tag','hFxyz'), 'UserData');
 
+            [mod, chanind] = spm_eeg_modality_ui(D, 1, 1);
+            otherind = setdiff(1:nchannels(D), chanind);
+            if ~isempty(otherind)
+                D = chantype(D, otherind, 'Other');
+            end
             [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), 1);
             Cel = DIM.M * [Cel'; ones(2,size(Cel,1))];
             Cel = Cel(1:2,:)';
             pos = [Cel'; zeros(1,size(Cel,1))];
             Cel(:,1) = Cel(:,1) + Po(2);
             Cel(:,2) = Cel(:,2) + Po(1);
-            hold on, hChanPlot = plot(Cel(:, 2), Cel(:, 1), 'b*');
+            hold(h,'on'), hChanPlot = plot(h,Cel(:, 2), Cel(:, 1), 'b*');
 
             hChanText = cell(1,size(Cel,1));
             name = D.chanlabels(Cind);
+            figure(spm_figure('FindWin'));
             for i = 1:size(Cel, 1)
                 hChanText{i} = text(Cel(i, 2)+0.5, Cel(i, 1), name{i}, 'Color', 'b');
             end
