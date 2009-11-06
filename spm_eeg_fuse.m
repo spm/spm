@@ -11,9 +11,9 @@ function D = spm_eeg_fuse(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 3488 2009-10-19 22:03:39Z vladimir $
+% $Id: spm_eeg_fuse.m 3540 2009-11-06 12:10:43Z guillaume $
 
-SVNrev = '$Rev: 3488 $';
+SVNrev = '$Rev: 3540 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ try
     D = S.D;
 catch
     [D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
-    if ~sts, Dout = []; return; end
+    if ~sts, D = []; return; end
     S.D = D;
 end
 
@@ -42,7 +42,7 @@ catch
     error('Trouble reading files');
 end
 
-Nfiles = length(D);
+Nfiles = numel(D);
 
 if Nfiles < 2
     error('Need at least two files for fusion.');
