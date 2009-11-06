@@ -17,14 +17,14 @@ function D = spm_eeg_filter(S)
 % This function filters M/EEG data and requires the signal processing 
 % toolbox from The MathWorks:
 %               http://www.mathworks.com/products/signal/
-% (functions butter.m and filtfilt.m)
+% (function butter.m)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3401 2009-09-14 18:33:23Z guillaume $
+% $Id: spm_eeg_filter.m 3541 2009-11-06 17:34:40Z guillaume $
 
-SVNrev = '$Rev: 3401 $';
+SVNrev = '$Rev: 3541 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -166,7 +166,7 @@ if strcmp(D.type, 'continuous')
         for j = 1:numel(blkchan)
 
             if ismember(blkchan(j), Fchannels)
-                Dtemp(j, :) = filtfilt(filter.para{1}, filter.para{2}, Dtemp(j,:));
+                Dtemp(j, :) = spm_filtfilt(filter.para{1}, filter.para{2}, Dtemp(j,:));
             end
 
             if ismember(j, Ibar), spm_progress_bar('Set', blkchan(j)); end
@@ -192,7 +192,7 @@ else
 
         for j = 1:nchannels(D)
             if ismember(j, Fchannels)
-                d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
+                d(j,:) = spm_filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
             end
         end
 

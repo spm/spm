@@ -13,9 +13,9 @@ function D = spm_eeg_detect_eyeblinks(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_detect_eyeblinks.m 3443 2009-10-06 08:22:03Z vladimir $
+% $Id: spm_eeg_detect_eyeblinks.m 3541 2009-11-06 17:34:40Z guillaume $
 
-SVNrev = '$Rev: 3443 $';
+SVNrev = '$Rev: 3541 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ lp = 2*1./D.fsample;
 hp = 2*15./D.fsample;
 h1=fir1(1001,[lp hp]);
 %to view filter properties can use: fvtool(h1,1,'Fs',D.fsample)
-eog_filt = detrend(filtfilt(h1,1,eog_data), 'constant');
+eog_filt = detrend(spm_filtfilt(h1,1,eog_data), 'constant');
 
 %% find eye-movements
 
