@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3499 2009-10-22 11:36:11Z vladimir $
+% $Id: spm.m 3542 2009-11-06 19:54:53Z guillaume $
 
 
 %=======================================================================
@@ -655,6 +655,7 @@ elseif Win(1)=='0'
     if size(Rect,1) > 1 % Multiple Monitors
         %-Use Monitor containing the Pointer
         pl = get(0,'PointerLocation');
+        Rect(:,[3 4]) = Rect(:,[3 4]) + Rect(:,[1 2]);
         w  = find(pl(1)>=Rect(:,1) & pl(1)<=Rect(:,3) &...
                   pl(2)>=Rect(:,2) & pl(2)<=Rect(:,4));
         if numel(w)~=1, w = 1; end
