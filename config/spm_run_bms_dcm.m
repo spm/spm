@@ -17,8 +17,8 @@ function out = spm_run_bms_dcm (varargin)
 % __________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Chun-Chuan Chen
-% $Id: spm_run_bms_dcm.m 3530 2009-11-04 10:19:45Z maria $
+% CC Chen & Maria Joao Rosa
+% $Id: spm_run_bms_dcm.m 3543 2009-11-09 09:40:46Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -307,7 +307,7 @@ if strcmp(method,'FFX');
         if do_family
             if do_bma_famwin
                 [fam_max,fam_max_i]  = max(family.post);
-                bma.indx = find(family.partition==fam_max_i);
+                bma.indx  = find(family.partition==fam_max_i);
                 bma.post  = model.post(bma.indx);
             else
                 if do_bma_all  
@@ -315,7 +315,7 @@ if strcmp(method,'FFX');
                    bma.indx = 1:nm;
                 else
                     if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0 
-                           bma.indx = find(family.partition==bma_fam);
+                           bma.indx  = find(family.partition==bma_fam);
                            bma.post  = model.post(bma.indx);
                     else
                     error('Incorrect family for BMA!');
@@ -336,7 +336,7 @@ if strcmp(method,'FFX');
        % reshape parameters
        % ------------------------------------------------------------------
        for i = 1:bma.nsamp,
-           [A,B,C]     = spm_dcm_reshape(theta(:,i),m,n,1);
+           [A,B,C]        = spm_dcm_reshape(theta(:,i),m,n,1);
            bma.a(:,:,i)   = A(:,:);
            bma.b(:,:,:,i) = B(:,:,:);
            bma.c(:,:,i)   = C(:,:);

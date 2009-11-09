@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3522 2009-10-29 20:08:50Z maria $
+% $Id: spm_dcm_bma.m 3543 2009-11-09 09:40:46Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -85,7 +85,7 @@ if rfx
               
             % Average sessions
             if Nses > 1
-                
+
                 for ss=1:Nses 
                     clear miCp mEp
 
@@ -125,6 +125,12 @@ if rfx
                 params(i).model(kk).Cp(cwsel,cwsel)=Cp;
                 
             end
+            
+            [evec, eval] = eig(params(i).model(kk).Cp);
+            deig=diag(eval);
+            
+            params(i).model(kk).dCp=deig;
+            params(i).model(kk).vCp=evec;
             
         end
     end
@@ -195,6 +201,12 @@ else
                 params(n).model(kk).Cp(cwsel,cwsel)=Cp;
                 
             end 
+            
+            [evec, eval] = eig(params(n).model(kk).Cp);
+            deig=diag(eval);
+            
+            params(n).model(kk).dCp=deig;
+            params(n).model(kk).vCp=evec;
         end
     end
 end
@@ -218,7 +230,9 @@ for i=1:Nsamp,
         mu=params(n).model(m).Ep;
         mu=spm_vec(mu);
         sig=params(n).model(m).Cp;
-        tmp=spm_samp_gauss (mu,sig,1)';
+        dsig=params(n).model(m).dCp;
+        vsig=params(n).model(m).vCp;
+        tmp=spm_samp_gauss (mu,sig,1,dsig,vsig)';
         theta_all(:,n)=tmp(:);
     end
     

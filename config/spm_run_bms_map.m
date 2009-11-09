@@ -34,14 +34,16 @@ function out = spm_run_bms_map (job)
 %     BMS.map.ffx(rfx).epm      - only for RFX (optional)
 %     BMS.map.ffx(rfx).alpha    - only for RFX
 %
-% [1] Stephan et al., (under review), Bayesian Model Selection for Group 
-% Studies, NeuroImage.
-% [2] Penny et al., 2004, Comparing Dynamic Causal Models, NeuroImage.
+% [1] Rosa et al., 2009, Bayesian Model Selection Maps for Group Studies,
+% NeuroImage.
+% [2] Stephan et al., 2009, Bayesian Model Selection for Group Studies,
+% NeuroImage.
+% [3] Penny et al., 2004, Comparing Dynamic Causal Models, NeuroImage.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 3508 2009-10-26 13:04:17Z maria $
+% $Id: spm_run_bms_map.m 3543 2009-11-09 09:40:46Z maria $
 
 % Input
 % -------------------------------------------------------------------------
