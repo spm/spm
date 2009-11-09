@@ -5,20 +5,19 @@ function out = spm_run_bms_dcm (varargin)
 %  (1) single subject BMS using Bayes factors
 %     (see Penny et al, NeuroImage, 2004)
 %  (2) fixed effects group BMS using group Bayes factors
-%     (see Stephan et al,NeuroImage, 2007)
+%     (see Stephan et al, NeuroImage, 2007)
 %  (3) random effects group BMS using exceedance probabilities
-%     (see Stephan et al,NeuroImage, 2009)
+%     (see Stephan et al, NeuroImage, 2009)
 %  (4) comparing model families
 %     (see Penny et al, PLOS-CB, submitted) 
 %
 % Note: All functions use the negative free energy (F) as an approximation
 % to the log model evidence.
-%
-% __________________________________________________________________________
+% _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3543 2009-11-09 09:40:46Z maria $
+% $Id: spm_run_bms_dcm.m 3546 2009-11-09 17:08:38Z guillaume $
 
 % input
 % -------------------------------------------------------------------------
@@ -174,12 +173,12 @@ else
                     % re-compute the IDs rather than use the ones stored
                     % with the DCM.
                     if job.verify_id
-                        M = DCM_tmp.DCM.M;
+                        M = DCM.DCM.M;
                         
-                        if isfield(DCM_tmp.DCM, 'xY')
-                            Y = DCM_tmp.DCM.xY;  %not fMRI
+                        if isfield(DCM.DCM, 'xY')
+                            Y = DCM.DCM.xY;  % not fMRI
                         else
-                            Y = DCM_tmp.DCM.Y;   % fMRI
+                            Y = DCM.DCM.Y;   % fMRI
                         end
                         
                         if isfield(M,'FS')
