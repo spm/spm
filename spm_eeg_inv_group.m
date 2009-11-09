@@ -28,9 +28,9 @@ function spm_eeg_inv_group(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_eeg_inv_group.m 3545 2009-11-09 16:49:21Z vladimir $
 
-SVNrev = '$Rev: 2914 $';
+SVNrev = '$Rev: 3545 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -123,11 +123,28 @@ inverse = spm_eeg_inv_custom_ui(D{1});
 
 % Select modality
 %==========================================================================
-inverse.modality  = spm_eeg_modality_ui(D{1}, 1, 1);
+% Modality
+%------------------------------------------------------------------
+[mod, list] = modality(D{1}, 1, 1);
+if strcmp(mod, 'Multimodal')
+    [selection, ok]= listdlg('ListString', list, 'SelectionMode', 'multiple' ,...
+        'Name', 'Select modalities' , 'InitialValue', 1:numel(list),  'ListSize', [400 300]);
+    if ~ok
+        return;
+    end
+    
+    inverse.modality  = list(selection);
+    
+    if numel(inverse.modality) == 1
+        inverse.modality = inverse.modality{1};
+    end
+else
+    inverse.modality = mod;
+end
 
 for i = 2:Ns
     [mod, list] = modality(D{i}, 1, 1);
-    if ~ismember(inverse.modality, list)
+    if ~all(ismember(inverse.modality, list))
         error([inverse.modality ' modality is missing from ' D{i}.fname]);
     end
 end
