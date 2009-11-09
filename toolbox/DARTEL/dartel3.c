@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 2644 2009-01-23 13:01:50Z john $ */
+/* $Id: dartel3.c 3548 2009-11-09 21:25:10Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -26,7 +26,7 @@ static void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArra
             mexErrMsgTxt("Data must be numeric, real, full and double");
 
     if (mxGetNumberOfDimensions(prhs[0])!=4) mexErrMsgTxt("Wrong number of dimensions.");
-    if (mxGetNumberOfDimensions(prhs[1])!=3 && mxGetNumberOfDimensions(prhs[1])!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    if (mxGetNumberOfDimensions(prhs[1])>4) mexErrMsgTxt("Wrong number of dimensions.");
     if (mxGetNumberOfDimensions(prhs[2])!=mxGetNumberOfDimensions(prhs[1])) mexErrMsgTxt("Incompatible number of dimensions.");
     dm[0] = mxGetDimensions(prhs[0])[0];
     dm[1] = mxGetDimensions(prhs[0])[1];
@@ -40,14 +40,14 @@ static void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArra
         mexErrMsgTxt("Incompatible 1st dimension.");
     if (mxGetDimensions(prhs[1])[1] != dm[1])
         mexErrMsgTxt("Incompatible 2nd dimension.");
-    if (mxGetDimensions(prhs[1])[2] != dm[2])
+    if (mxGetNumberOfDimensions(prhs[1])>=3 && mxGetDimensions(prhs[1])[2] != dm[2])
         mexErrMsgTxt("Incompatible 3rd dimension.");
 
     if (mxGetDimensions(prhs[2])[0] != dm[0])
         mexErrMsgTxt("Incompatible 1st dimension.");
     if (mxGetDimensions(prhs[2])[1] != dm[1])
         mexErrMsgTxt("Incompatible 2nd dimension.");
-    if (mxGetDimensions(prhs[2])[2] != dm[2])
+    if (mxGetNumberOfDimensions(prhs[2])>=3 && mxGetDimensions(prhs[2])[2] != dm[2])
         mexErrMsgTxt("Incompatible 3rd dimension.");
 
     if (nrhs>=5)

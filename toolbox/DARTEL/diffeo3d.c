@@ -1,4 +1,4 @@
-/* $Id: diffeo3d.c 3032 2009-04-01 14:14:18Z guillaume $ */
+/* $Id: diffeo3d.c 3548 2009-11-09 21:25:10Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include <mex.h>
@@ -292,23 +292,23 @@ void composition_jacobian(int dm[],
     Ax   =  A;
     Ay   =  A+mm;
     Az   =  A+mm*2;
-    JA00 = JA+mm*0; JA01 = JA+mm*3; JA02 = JA+mm*6;
-    JA10 = JA+mm*1; JA11 = JA+mm*4; JA12 = JA+mm*7;
-    JA20 = JA+mm*2; JA21 = JA+mm*5; JA22 = JA+mm*8;
+    JA00 = JA+mm*0; JA01 = JA+mm*1; JA02 = JA+mm*2;
+    JA10 = JA+mm*3; JA11 = JA+mm*4; JA12 = JA+mm*5;
+    JA20 = JA+mm*6; JA21 = JA+mm*7; JA22 = JA+mm*8;
 
     Bx   =  B;
     By   =  B+mm;
     Bz   =  B+mm*2;
-    JB00 = JB+mm*0; JB01 = JB+mm*3; JB02 = JB+mm*6;
-    JB10 = JB+mm*1; JB11 = JB+mm*4; JB12 = JB+mm*7;
-    JB20 = JB+mm*2; JB21 = JB+mm*5; JB22 = JB+mm*8;
+    JB00 = JB+mm*0; JB01 = JB+mm*1; JB02 = JB+mm*2;
+    JB10 = JB+mm*3; JB11 = JB+mm*4; JB12 = JB+mm*5;
+    JB20 = JB+mm*6; JB21 = JB+mm*7; JB22 = JB+mm*8;
 
     Cx   =  C;
     Cy   =  C+mm;
     Cz   =  C+mm*2;
-    JC00 = JC+mm*0; JC01 = JC+mm*3; JC02 = JC+mm*6;
-    JC10 = JC+mm*1; JC11 = JC+mm*4; JC12 = JC+mm*7;
-    JC20 = JC+mm*2; JC21 = JC+mm*5; JC22 = JC+mm*8;
+    JC00 = JC+mm*0; JC01 = JC+mm*1; JC02 = JC+mm*2;
+    JC10 = JC+mm*3; JC11 = JC+mm*4; JC12 = JC+mm*5;
+    JC20 = JC+mm*6; JC21 = JC+mm*7; JC22 = JC+mm*8;
 
     for(i=0; i<mm; i++)
     {

@@ -13,7 +13,7 @@ function out = spm_dartel_resids(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 1387 2008-04-14 14:34:15Z john $
+% $Id: spm_dartel_resids.m 3548 2009-11-09 21:25:10Z john $
 
 
 PG = job.template{1};
@@ -181,7 +181,7 @@ for i=1:numel(PI{1}),
         res = res.*dt; % Jacobian transform
         if fwhm>0,
             vx = sqrt(sum(NO.mat(1:3,1:3).^2));
-            spm_smooth(res,res,fwhm*vx); % Note the abuse of MATLAB
+            spm_smooth(res,res,fwhm/vx); % Note the abuse of MATLAB
         end
         NO.dat(:,:,:,1,j) = res; 
     end
