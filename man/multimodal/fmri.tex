@@ -9,7 +9,7 @@ Toggle the modality from EEG to fMRI, and change directory to the fMRI subdirect
 Press the \textsc{Batch} button and then:
 
 \begin{itemize}
-\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{\^fM.*}).
+\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{\textasciicircum fM.*}).
 
 \item Add a \textsc{Spatial: Coreg: Estimate} module, and select the \texttt{smri.img} image in the \texttt{sMRI} directory for the ``Reference Image'' and select a ``Dependency'' for the ``Source Image'', which is the Mean image produced by the previous Realign module.
 
@@ -63,10 +63,10 @@ There is some agreement between these fMRI effects and the localisation of the d
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{multimodal/figures/fmri_faces_vs_scrambled}
-\caption{\em  SPM{F} for faces vs scrambled faces. Note that the coordinates are in the MRI native space (no normalisation performed) so bear a close, but not exact, relationship with MNI coordinates (affecting brain outline in MIP too).\label{multimodal:fig:22}}
+\caption{\em  SPM{F} for faces vs scrambled faces.\label{multimodal:fig:22}}
 \end{center}
 \end{figure}
 
 You can also press \textsc{Results} and select the ``faces + scrambled vs Baseline (all BFs)'' contrast. Using the same threshold of $p<.05$ FWE corrected, you should see a large swathe of activity over most of the occipital, parietal and motor cortices, reflecting the general visuomotor requirements of the task (relative to interstimulus fixation). The more posterior ventral occipital/temporal BOLD responses are consistent with the MEG localisation of faces (or scrambled faces) versus baseline, though note that the more anterior ventral temporal activity in the MEG localisation is not present in the fMRI data, which suggests (but does not imply) that the MEG localisation may be erroneous.
 
-These contrasts of fMRI data can now be used as spatial priors to aid the localisation of EEG and/or MEG data (Henson et al, under revision), as in the next section.
+These contrasts of fMRI data can now be used as spatial priors to aid the localisation of EEG and/or MEG data, as in the next section.
