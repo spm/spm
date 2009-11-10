@@ -1,11 +1,11 @@
-\section{DCM for Phase Coupling \label{multimodal:data:dcm_phase}}
+\chapter{DCM for Phase Coupling \label{Chap:data:dcm_phase}}
 
-This section presents an extension of the Dynamic Causal Modelling (DCM) framework to the analysis of phase-coupled data. A weakly coupled oscillator approach is used to describe dynamic phase changes in a network of oscillators.
+This chapter presents an extension of the Dynamic Causal Modelling (DCM) framework to the analysis of phase-coupled data. A weakly coupled oscillator approach is used to describe dynamic phase changes in a network of oscillators.
 The influence that the phase of one oscillator has on the change of phase of another is characterised in terms of a Phase Interaction Function (PIF) as described in \cite{dcm_phase}. SPM supports PIFs specified using arbitrary order Fourier series. However, to simplify the interface, one is restricted to simple sinusoidal PIFs with the GUI. 
 
-\subsection{Data}
+\section{Data}
 
-We will use the merged epoched MEG dataset:
+We will use the merged epoched MEG dataset from Chapter~\ref{multimodal:data:meg}:
 
 \begin{verbatim}
 cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
@@ -15,12 +15,12 @@ cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
 See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data. DCM-Phase requires a head model and coregistration. If you have been following the previous chapters of this tutorial, these should already be available in the dataset. Otherwise, you should perform the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
 comprising the MRI, Co-register, Forward and Save sub-steps (see ~\ref{multimodal:data:meg:recon_pow}).
 
-\subsection{Getting Started}
+\section{Getting Started}
 
 You need to start SPM and toggle ``EEG'' as the modality (bottom-right of SPM main window), or start SPM with \texttt{spm eeg}. In order for this to work you need to ensure that the main SPM directory is on your \matlab\ path.
 After calling \texttt{spm eeg}, you see SPM's graphical user interface, the top-left window. The button for calling the DCM-GUI is found in the second partition from the top, on the right hand side. When pressing the button, the GUI pops up (Figure~\ref{dcm-ir:fig:1}).
 
-\subsection{Data and design}
+\section{Data and design}
 
  You should switch the DCM model type to ``PHASE'' which is the option for DCM-Phase. Press ``new data'' and select the data file \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}. This is an epoched data file with multiple trials per condition.  On the right-hand side enter the trial indices
 \begin{verbatim}
@@ -38,7 +38,7 @@ Set it to:
 \end{verbatim} 
 ms. Select \texttt{1} for ``detrend'', to  remove the mean from each data record.  The \texttt{sub-trials} option makes it possible to select just a subset of trials for the analysis (select 2 for every second trial, 3 - for every third etc.). This is useful because DCM-Phase takes quite a long time to invert for all the trials and you might want to first try a smaller subset to get an idea about the possible results. Here we will assume that you used all the trials (sub-trials was set to 1). You can now click on the $>$ (forward) button, which will bring you to the next stage \textit{electromagnetic model}. From this part, you can press the red $<$ button to get back to the data and design part.
 
-\subsection{Electromagnetic model}
+\section{Electromagnetic model}
 
 With DCM-Phase, there are two options for how to extract the source data. Firstly, you can use 3 orthogonal single equivalent current dipoles (ECD) for each source, invert the resulting source model to get 3 source waveforms and take the first principal component. This option is suitable for multichannel EEG or MEG data. Alternatively, you can treat each channel as a source (LFP option). This is appropriate when the channels already contain source data either recorded directly with intracranial electrodes or extracted (e.g. using a beamformer). 
 
@@ -61,7 +61,7 @@ Now enter in the right text box:
 These correspond to left Occipital Face Area, and left Fusiform Face Area.
 The onset-parameter is irrelevant for DCM-Phase. Now hit the $>$ (forward) button and proceed to the \textit{neuronal model}. Generally, if you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage. See ~\ref{multimodal:data:meg:recon_pow}. 
 
-\subsection{Neuronal model}
+\section{Neuronal model}
 
 We will now define a coupled oscillator model for investigating network synchronization of alpha activity. To this end, we first enter the values 8 and 12 to define the frequency window. The wavelet number is irrelevant for DCM-Phase. After source reconstruction (using a pseudo-inverse approach), source data is bandpass filtered and then the Hilbert transform is used to extract the instantaneous phase. The DCM-Phase model is then fitted used standard routines as described in \cite{dcm_phase}.
 
@@ -71,7 +71,7 @@ connection from LFFA to LOFA is allowed to be different for scrambled versus uns
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=160mm]{multimodal/figures/phase-models}
+\includegraphics[width=160mm]{dcm_phase/figures/phase_models}
 \caption{\em Four different DCM-Phase models  \label{dcm-phase:fig:1}}
 \end{center}
 \end{figure}
@@ -80,20 +80,20 @@ The connectivity for Model 4 can be set up by configuring the radio buttons as s
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=50mm]{multimodal/figures/model4_conn}
+\includegraphics[width=50mm]{dcm_phase/figures/model4_conn}
 \caption{\em Radio button configurations for DCM-Phase model 4  \label{dcm-phase:fig:2}}
 \end{center}
 \end{figure}
 
-\subsection{Results}
+\section{Results}
 
 After estimation is finished, you can assess the results by choosing from the pull-down menu at the bottom (middle). The \texttt{Sin(Data)-Region i} option will show the sin of the phase data in region $i$, for the first 16 trials. The blue line corresponds to the data and the red to the DCM-Phase model fit. The 
 \texttt{Coupling(As)} and \texttt{Coupling(Bs)} buttons display the estimated endogenous and modulatory activity shown in Figure~\ref{dcm-phase:fig:3}.
 
 \begin{figure}
 \begin{center}
-%\includegraphics[width=50mm]{multimodal/figures/endogenous}
-\includegraphics[width=50mm]{multimodal/figures/modulatory}
+%\includegraphics[width=50mm]{dcm_phase/figures/endogenous}
+\includegraphics[width=50mm]{dcm_phase/figures/modulatory}
 \caption{\em The figure shows the estimated parameters for endogenous coupling (left column) and modulatory parameters (right column) for the 4th DCM.  \label{dcm-phase:fig:3}}
 \end{center}
 \end{figure}
@@ -103,12 +103,12 @@ LFFA and LOFA act in master slave arrangement with LFFA as the master.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=50mm]{multimodal/figures/bms-phase}
+\includegraphics[width=50mm]{dcm_phase/figures/bms_phase}
 \caption{\em Bayesian comparison of the four DCM-Phase models shown in Figure~\ref{dcm-phase:fig:1}.\label{dcm-phase:fig:4}}
 \end{center}
 \end{figure}
 
-\subsection{Extensions}
+\section{Extensions}
 
 In the DCM-Phase model accessible from the GUI, it is assumed that the phase interaction functions are of simple sinusoidal form ie. $a_{ij} \sin(\phi_j - \phi_i)$. The coefficients $a_{ij}$ are the values shown in the endogenous 
 parameter matrices in eg. Figure~\ref{dcm-phase:fig:3}. These can then be changed by an amount $b_{ij}$ as shown in the modulatory parameter matrices. 
