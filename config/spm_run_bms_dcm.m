@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3549 2009-11-10 17:16:45Z maria $
+% $Id: spm_run_bms_dcm.m 3550 2009-11-10 17:49:11Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -94,11 +94,12 @@ N = {};
 if  ld_f
     data = job.load_f{1};
     load(data);
-    nm      = size(F,2);                               % No of Models
-    ns      = size(F,1);                               % No of Models
-    N       = 1:nm;
-    subj    = [];
-    f_fname = data;
+    nm        = size(F,2);                               % No of Models
+    ns        = size(F,1);                               % No of Models
+    N         = 1:nm;
+    subj      = [];
+    f_fname   = data;
+    fname_msp = [];
     
 else
     
@@ -106,13 +107,15 @@ else
     
     % Verify dimensions of data and model space
     if ld_msp
-        ns      = length(subj);                         % No of Subjects
-        nsess   = length(subj(1).sess);                 % No of sessions
-        nm      = length(subj(1).sess(1).model);        % No of Models
+        ns        = length(subj);                         % No of Subjects
+        nsess     = length(subj(1).sess);                 % No of sessions
+        nm        = length(subj(1).sess(1).model);        % No of Models
+        fname_msp = [job.dir{1} job.model_sp{1}];
     else
-        ns      = size(job.sess_dcm,2);                 % No of Subjects
-        nsess   = size(job.sess_dcm{1},2);              % No of sessions
-        nm      = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
+        ns        = size(job.sess_dcm,2);                 % No of Subjects
+        nsess     = size(job.sess_dcm{1},2);              % No of sessions
+        nm        = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
+        fname_msp = [job.dir{1} 'model_space.mat'];
     end
     
     F       = zeros(ns,nm);
@@ -159,7 +162,6 @@ else
                         
                         % Create model space
                         subj(k).sess(h).model(j).fname      = tmp;
-                        subj_path(k).sess(h).model(j).fname = tmp;
                         subj(k).sess(h).model(j).F          = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep         = DCM.DCM.Ep;
                         subj(k).sess(h).model(j).Cp         = DCM.DCM.Cp;
@@ -355,7 +357,7 @@ if strcmp(method,'FFX');
             msgbox(str)
         end
     end
-    BMS.DCM.ffx.data    = subj_path;
+    BMS.DCM.ffx.data    = fname_msp;
     BMS.DCM.ffx.F_fname = f_fname;
     BMS.DCM.ffx.F       = F;
     BMS.DCM.ffx.SF      = sumF;
@@ -456,7 +458,7 @@ else
             msgbox(str)
         end
     end
-    BMS.DCM.rfx.data    = subj_path;
+    BMS.DCM.rfx.data    = fname_msp;
     BMS.DCM.rfx.F_fname = f_fname;  
     BMS.DCM.rfx.F       = F;
     BMS.DCM.rfx.SF      = sumF;
@@ -478,11 +480,10 @@ end
 % -------------------------------------------------------------------------
 if ~ld_msp && data_se
     disp('Saving model space...')
-    fname = [job.dir{1} 'model_space'];
     if spm_matlab_version_chk('7') >= 0
-        save(fname,'-V6','subj');
+        save(fname_msp,'-V6','subj');
     else
-        save(fname,'subj');
+        save(fname_msp,'subj');
     end  
 end
 
