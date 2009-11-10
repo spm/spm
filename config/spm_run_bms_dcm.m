@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3546 2009-11-09 17:08:38Z guillaume $
+% $Id: spm_run_bms_dcm.m 3549 2009-11-10 17:16:45Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -158,10 +158,11 @@ else
                         F_sess  = [F_sess,DCM.DCM.F];
                         
                         % Create model space
-                        subj(k).sess(h).model(j).fname = tmp;
-                        subj(k).sess(h).model(j).F     = DCM.DCM.F;
-                        subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
-                        subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
+                        subj(k).sess(h).model(j).fname      = tmp;
+                        subj_path(k).sess(h).model(j).fname = tmp;
+                        subj(k).sess(h).model(j).F          = DCM.DCM.F;
+                        subj(k).sess(h).model(j).Ep         = DCM.DCM.Ep;
+                        subj(k).sess(h).model(j).Cp         = DCM.DCM.Cp;
                         
                     else
                         
@@ -354,7 +355,7 @@ if strcmp(method,'FFX');
             msgbox(str)
         end
     end
-    BMS.DCM.ffx.data    = subj;
+    BMS.DCM.ffx.data    = subj_path;
     BMS.DCM.ffx.F_fname = f_fname;
     BMS.DCM.ffx.F       = F;
     BMS.DCM.ffx.SF      = sumF;
@@ -362,6 +363,7 @@ if strcmp(method,'FFX');
     BMS.DCM.ffx.family  = family;
     BMS.DCM.ffx.bma     = bma;
      
+    disp('Saving BMS.mat file...')
     if spm_matlab_version_chk('7') >= 0
         save(fname,'-V6','BMS');
     else
@@ -454,7 +456,7 @@ else
             msgbox(str)
         end
     end
-    BMS.DCM.rfx.data    = subj;
+    BMS.DCM.rfx.data    = subj_path;
     BMS.DCM.rfx.F_fname = f_fname;  
     BMS.DCM.rfx.F       = F;
     BMS.DCM.rfx.SF      = sumF;
@@ -462,6 +464,7 @@ else
     BMS.DCM.rfx.family  = family;
     BMS.DCM.rfx.bma     = bma;
     
+    disp('Saving BMS.mat file...')
     if spm_matlab_version_chk('7') >= 0
         save(fname,'-V6','BMS');
     else
