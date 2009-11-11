@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 2687 2009-02-04 17:14:42Z guillaume $
+% $Id: subsasgn.m 3556 2009-11-11 18:20:34Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -35,7 +35,7 @@ switch subs(1).type
                         in = 'NIFTI_INTENT_VECTOR';
                         dt = 'NIFTI_TYPE_FLOAT32';
                     case 'cdata'
-                        in = 'NIFTI_INTENT_SHAPE';
+                        in = 'NIFTI_INTENT_NONE';
                         dt = 'NIFTI_TYPE_FLOAT32';
                     otherwise
                         error('This should not happen.');
@@ -60,12 +60,15 @@ switch subs(1).type
                         this.data{n}.data = int32(builtin('subsasgn',this.data{n}.data,subs(2:end),A-1));
                     else
                         this.data{n}.data = int32(A - 1);
+                        this.data{n}.attributes.Dim = size(A);
                     end
                 else
                     if length(subs) > 1
                         this.data{n}.data = single(builtin('subsasgn',this.data{n}.data,subs(2:end),A));
+                        this.data{n}.attributes.Dim = size(this.data{n}.data);
                     else
                         this.data{n}.data = single(A);
+                        this.data{n}.attributes.Dim = size(A);
                     end
                 end
             end

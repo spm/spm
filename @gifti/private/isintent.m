@@ -9,7 +9,7 @@ function [a, b] = isintent(this,intent)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: isintent.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: isintent.m 3556 2009-11-11 18:20:34Z guillaume $
 
 a = [];
 b = [];
@@ -40,7 +40,7 @@ for i=1:length(this(1).data)
                 a(end+1) = loc;
                 b(end+1) = i;
             end
-        case {'LABEL', 'SHAPE', 'TIME_SERIES', 'RGB_VECTOR', ...
+        case {'NONE', 'LABEL', 'SHAPE', 'TIME_SERIES', 'RGB_VECTOR', ...
                 'RGBA_VECTOR' c{:}}
             [tf, loc] = ismember('cdata',intent);
             if tf

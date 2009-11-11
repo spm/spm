@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 3290 2009-07-27 18:11:52Z guillaume $
+% $Id: save.m 3556 2009-11-11 18:20:34Z guillaume $
 
 error(nargchk(1,3,nargin));
 
@@ -60,7 +60,7 @@ function fid = save_gii(fid,this,encoding)
 
 % Defaults for DataArray's attributes
 %--------------------------------------------------------------------------
-[unused,unused,mach] = fopen(fid);
+[unused,unused,mach]   = fopen(fid);
 if ~isempty(strmatch('ieee-be',mach))
     def.Endian         = 'BigEndian';
 elseif ~isempty(strmatch('ieee-le',mach))
@@ -68,7 +68,7 @@ elseif ~isempty(strmatch('ieee-le',mach))
 else
     error('[GIFTI] Unknown byte order "%s".',mach);
 end
-def.Encoding       = encoding;
+def.Encoding           = encoding;
 def.Intent             = 'NIFTI_INTENT_NONE';
 def.DataType           = 'NIFTI_TYPE_FLOAT32';
 def.ExternalFileName   = '';

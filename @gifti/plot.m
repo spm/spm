@@ -4,7 +4,7 @@ function varargout = plot(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: plot.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: plot.m 3556 2009-11-11 18:20:34Z guillaume $
 
 % if ishandle(varargin{1})
 %     h = figure(varargin{1});
@@ -32,6 +32,11 @@ else
         h = gcf;
         cdata = subsref(varargin{2},struct('type','.','subs','cdata'));
     end
+    if nargin > 2
+        indc = varargin{3};
+    else
+        indc = 1;
+    end
 end
 
 hp = patch(struct(...
@@ -41,7 +46,7 @@ hp = patch(struct(...
     'EdgeColor', 'none');
 
 if ~isempty(cdata)
-    set(hp,'FaceVertexCData',cdata(:), 'FaceColor','interp')
+    set(hp,'FaceVertexCData',cdata(:,indc), 'FaceColor','interp')
 end
 
 axis equal;
