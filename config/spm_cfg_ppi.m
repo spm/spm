@@ -4,7 +4,7 @@ function ppis = spm_cfg_ppi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_ppi.m 3430 2009-09-29 16:55:38Z guillaume $
+% $Id: spm_cfg_ppi.m 3553 2009-11-11 12:34:37Z guillaume $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -52,7 +52,7 @@ con.help    = {['Matrix of input variables and contrast weights.'...
 ' Unless there are parametric effects the second column will generally ' ...
 'be a 1.']};
 con.strtype = 'e';
-con.num     = [Inf Inf];
+con.num     = [Inf 3];
 
 % ---------------------------------------------------------------------
 % sd Simple deconvolution

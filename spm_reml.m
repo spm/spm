@@ -33,7 +33,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3527 2009-11-02 20:27:13Z karl $
+% $Id: spm_reml.m 3553 2009-11-11 12:34:37Z guillaume $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -144,7 +144,7 @@ for k = 1:K
     %----------------------------------------------------------------------
     if dF < dFdh'*dh, t = max(t - 1,-4); end
     dF    = dFdh'*dh;
-    fprintf('%-24s: %3i %14s%e [%i]\n','  ReML Iteration',k,'...',full(dF),t);
+    fprintf('%-40s: %3i %9s%e [%2i]\n','  ReML Iteration',k,'...',full(dF),t);
     
     % final estimate of covariance (with missing data points)
     %----------------------------------------------------------------------
