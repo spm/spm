@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 3544 2009-11-09 13:45:56Z vladimir $
+% $Id: spm_eeg_invert_ui.m 3558 2009-11-11 20:23:05Z karl $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ switch q_rec
                 trials = {};
                 condlabels = D.condlist;
                 for  i = 1:D.nconditions
-                    str = sprintf('invert %s', condlabels{i})
+                    str = sprintf('invert %s', condlabels{i});
                     if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
                         trials{end + 1} = condlabels{i};
                     end
@@ -100,5 +100,5 @@ switch q_rec
             D.inv{val}.inverse.modality = mod;
         end
         
-        D                            = spm_eeg_invert(D);
+        D                            = spm_eeg_invert_both(D);
 end

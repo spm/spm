@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 3323 2009-08-14 11:29:27Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 3558 2009-11-11 20:23:05Z karl $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -131,9 +131,10 @@ try
     handles.Nmax      = max(abs(J(:)));
 
     % sensor data
-    %----------------------------------------------------------------------   
-    handles.sens_data = U*Y*T(Ts,:)';
-    handles.pred_data = U*L*J(Is,:);
+    %----------------------------------------------------------------------
+    A                 = pinv(full(spm_cat(spm_diag(U))));
+    handles.sens_data = A*Y*T(Ts,:)';
+    handles.pred_data = A*L*J(Is,:);
 
 catch
     warndlg({'Please invert your model';'inverse solution not valid'});
@@ -731,7 +732,7 @@ try
 catch
     vde = [];
 end
-if ~length(vde)
+if isempty(vde)
     handles.location = datacursormode(handles.fig);
     set(handles.location,'Enable','on','DisplayStyle','datatip','SnapToDataVertex','on');
     waitforbuttonpress

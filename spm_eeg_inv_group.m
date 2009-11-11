@@ -26,25 +26,25 @@ function spm_eeg_inv_group(S)
 % K.J. Friston. NeuroImage, 42:1490-1498, 2008.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 3545 2009-11-09 16:49:21Z vladimir $
-
-SVNrev = '$Rev: 3545 $';
-
+% $Id: spm_eeg_inv_group.m 3558 2009-11-11 20:23:05Z karl $
+ 
+SVNrev = '$Rev: 3558 $';
+ 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-
+ 
 %-Check if to proceed
 %--------------------------------------------------------------------------
 str = questdlg({'This will overwrite previous source reconstructions.', ...
     'Do you wish to continue?'},'M/EEG Group Inversion','Yes','No','Yes');
 if ~strcmp(str,'Yes'), return, end
-
+ 
 % Load data
 %==========================================================================
-
+ 
 % Give file names
 %--------------------------------------------------------------------------
 if ~nargin
@@ -53,7 +53,7 @@ if ~nargin
 end
 Ns    = size(S,1);
 swd   = pwd;
-
+ 
 % Load data and set method
 %==========================================================================
 for i = 1:Ns
@@ -78,12 +78,12 @@ for i = 1:Ns
     save(D{i});
     
 end
-
+ 
 % Check for existing forward models and consistent Gain matrices
 %--------------------------------------------------------------------------
 Nd = zeros(1,Ns);
 for i = 1:Ns
-    fprintf('checking for foward models: subject %i\n',i);
+    fprintf('checking for forward models: subject %i\n',i);
     try
         [L, D{i}] = spm_eeg_lgainmat(D{i});
         Nd(i) = size(L,2);               % number of dipoles
@@ -91,7 +91,7 @@ for i = 1:Ns
         Nd(i) = 0;
     end
 end
-
+ 
 % use template head model where necessary
 %==========================================================================
 if max(Nd > 1024)
@@ -100,27 +100,27 @@ else
     NS = 1:Ns;
 end
 for i = NS
-
+ 
     cd(D{i}.path);
-
-    % specify cortical mesh size (1 tp 4; 1 = 5125, 2 = 8196 dipoles)
+ 
+    % specify cortical mesh size (1 to 4; 1 = 5125, 2 = 8196 dipoles)
     %----------------------------------------------------------------------
     Msize  = 2;
-
+ 
     % use a template head model and associated meshes
     %======================================================================
     D{i} = spm_eeg_inv_mesh_ui(D{i}, 1, 1, Msize);
-
+ 
     % save forward model parameters
     %----------------------------------------------------------------------
     save(D{i});
-
+ 
 end
-
+ 
 % Get inversion parameters
 %==========================================================================
 inverse = spm_eeg_inv_custom_ui(D{1});
-
+ 
 % Select modality
 %==========================================================================
 % Modality
@@ -141,31 +141,31 @@ if strcmp(mod, 'Multimodal')
 else
     inverse.modality = mod;
 end
-
+ 
 for i = 2:Ns
     [mod, list] = modality(D{i}, 1, 1);
     if ~all(ismember(inverse.modality, list))
         error([inverse.modality ' modality is missing from ' D{i}.fname]);
     end
 end
-
+ 
 % and save them (assume trials = types)
 %--------------------------------------------------------------------------
 for i = 1:Ns
     D{i}.inv{1}.inverse = inverse;
 end
-
+ 
 % specify time-frequency window contrast
 %==========================================================================
 tfwin = spm_input('Time-Frequency contrast?','+1','y/n',[1,0],1);
 if tfwin
-
+ 
     % get time window
     %----------------------------------------------------------------------
     woi              = spm_input('Time window (ms)','+1','r',[100 200]);
     woi              = sort(woi);
     contrast.woi     = round([woi(1) woi(end)]);
-
+ 
     % get frequency window
     %----------------------------------------------------------------------
     fboi             = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
@@ -179,41 +179,47 @@ if tfwin
 else
     contrast = [];
 end
-
+ 
 % Register and compute a forward model
 %==========================================================================
 for i = NS
-
+ 
     fprintf('Registering and computing forward model (subject: %i)\n',i);
-
+       
     % Forward model
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg_ui(D{i}, 1);
-    D{i} = spm_eeg_inv_forward_ui(D{i});
+    if i == 1
+        D{i}    = spm_eeg_inv_forward_ui(D{i});
+        voltype = D{i}.inv{1}.forward.voltype;
+    else
+        D{i}.inv{1}.forward.voltype = voltype;
+        D{i}    = spm_eeg_inv_forward(D{i});
+    end
     
     % save forward model
     %----------------------------------------------------------------------
     save(D{i});
-
+ 
 end
-
+ 
 % Invert the forward model
 %==========================================================================
-D     = spm_eeg_invert(D);
+D     = spm_eeg_invert_both(D);
 if ~iscell(D), D = {D}; end
-
+ 
 % Save
 %==========================================================================
 for i = 1:Ns
     save(D{i});
 end
 clear D
-
-
+ 
+ 
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
 if ~isempty(contrast)
-
+ 
     % evaluate contrast and write image
     %----------------------------------------------------------------------
     for i = 1:Ns
@@ -221,9 +227,11 @@ if ~isempty(contrast)
         D.inv{1}.contrast = contrast;
         D     = spm_eeg_inv_results(D);
         D     = spm_eeg_inv_Mesh2Voxels(D);
+        save(D);
     end
 end
-
+ 
 % Cleanup
 %==========================================================================
 cd(swd);
+

@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_lgainmat.m 3558 2009-11-11 20:23:05Z karl $
 
 
 % get gain or lead-feild matrix
@@ -19,7 +19,8 @@ val = D.val;
 forward = D.inv{val}.forward;
 
 for ind = 1:numel(forward)
-    modality = forward(ind).modality;  
+    modality = forward(ind).modality;
+    
     % channels
     %--------------------------------------------------------------------------
     chanind = strmatch(modality, D.chantype);

@@ -77,12 +77,8 @@ D.inv{val}.inverse.rad     = [ 32 32];
 
 % and finally, invert
 %--------------------------------------------------------------------------
-if strcmp(modality, 'Multimodal')
-    D.inv{val}.inverse.modality = 'Fusion';
-    D = spm_eeg_invert_fuse(D);
-else
-    D = spm_eeg_invert(D);
-end
+D = spm_eeg_invert(D);
+
 
 % Compute conditional expectation of mean square (MS) response
 %==========================================================================
