@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3543 2009-11-09 09:40:46Z maria $
+% $Id: spm_api_bmc.m 3555 2009-11-11 16:24:44Z maria $
 
 if isempty(xp)
     inf_method = 'FFX';
@@ -81,20 +81,9 @@ switch inf_method
             figure(Ffam);
            
             %-Display results - families
-            %--------------------------------------------------------------
-         
-            subplot(2,1,1)
+            %--------------------------------------------------------------       
             Nfam = length(family.post);
-            bar(1:nm,P)
-            set(gca,'XTick',1:nm)
-            set(gca,'XTickLabel',family.names)
-            ylabel('Model Posterior Probability','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
-            xlabel('Models','Fontsize',14)
-            axis square
-            grid on
-            
-            subplot(2,1,2)
+            subplot(2,1,1)
             bar(1:Nfam,family.post)
             set(gca,'XTick',1:Nfam)
             set(gca,'XTickLabel',family.names)
