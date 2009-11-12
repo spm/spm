@@ -46,7 +46,7 @@ function [t,sts] = cfg_getfile(varargin)
 % function to canonicalise paths: Prepends cwd to relative paths, processes
 % '..' & '.' directories embedded in path.
 % path     - string matrix containing path name
-% cwd      - current working directory [defaut '.']
+% cwd      - current working directory [default '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
 % FORMAT [files,dirs]=cfg_getfile('List',direc,filt)
@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3510 2009-10-26 13:24:42Z volkmar $
+% $Id: cfg_getfile.m 3560 2009-11-12 10:02:32Z volkmar $
 
 t = {};
 sts = false;
