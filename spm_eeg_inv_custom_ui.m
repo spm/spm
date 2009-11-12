@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3562 2009-11-12 14:56:14Z guillaume $
+% $Id: spm_eeg_inv_custom_ui.m 3564 2009-11-12 18:46:17Z vladimir $
  
 % defaults from D is specified
 %==========================================================================
@@ -58,7 +58,7 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
  
     % High-pass filter
     %----------------------------------------------------------------------
-    inverse.lpf  = spm_input('High-pass (Hz)','+1','1|8|16',[1 8 16],q);
+    inverse.lpf  = spm_input('High-pass (Hz)','+1','0|1|8|16',[0 1 8 16],q);
     
     % Low-pass filter
     %----------------------------------------------------------------------

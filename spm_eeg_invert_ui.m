@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_invert_ui.m 3564 2009-11-12 18:46:17Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -100,5 +100,5 @@ switch q_rec
             D.inv{val}.inverse.modality = mod;
         end
         
-        D                            = spm_eeg_invert_both(D);
+        D                            = spm_eeg_invert(D);
 end

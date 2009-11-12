@@ -28,9 +28,9 @@ function spm_eeg_inv_group(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_inv_group.m 3564 2009-11-12 18:46:17Z vladimir $
  
-SVNrev = '$Rev: 3558 $';
+SVNrev = '$Rev: 3564 $';
  
 %-Startup
 %--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ end
  
 % Invert the forward model
 %==========================================================================
-D     = spm_eeg_invert_both(D);
+D     = spm_eeg_invert(D);
 if ~iscell(D), D = {D}; end
  
 % Save
