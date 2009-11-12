@@ -56,9 +56,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 3192 2009-06-09 08:29:22Z vladimir $
+% $Id: spm_eeg_merge.m 3563 2009-11-12 15:06:05Z vladimir $
 
-SVNrev = '$Rev: 3192 $';
+SVNrev = '$Rev: 3563 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -218,9 +218,9 @@ Dout = D{1};
 [p, f, x] = fileparts(fnamedat(Dout));
 
 if ~isTF
-    Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
+    Dout = clone(Dout, fullfile(pwd, ['c' f x]), [Dout.nchannels Dout.nsamples sum(Ntrials)]);
 else
-    Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nfrequencies Dout.nsamples sum(Ntrials)]);
+    Dout = clone(Dout, fullfile(pwd, ['c' f x]), [Dout.nchannels Dout.nfrequencies Dout.nsamples sum(Ntrials)]);
 end
 
 
