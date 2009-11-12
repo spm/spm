@@ -89,6 +89,14 @@ function varargout = cfg_util(cmd, varargin)
 % and its contents will be prepended to each of the created files. This
 % allows to automatically include e.g. copyright or revision.
 %
+%  cfg_util('genscript', job_id, scriptdir, filename)
+% 
+% Generate a script which collects missing inputs of a batch job and runs
+% the job using cfg_util('filljob', ...). The script will be written to
+% file filename.m in scriptdir, the job will be saved to filename_job.m in
+% the same folder. The script must be completed by adding code to collect
+% the appropriate inputs for the job.
+%
 %  outputs = cfg_util('getAllOutputs', job_id)
 % 
 % outputs - cell array with module outputs. If a module has not yet been
@@ -373,9 +381,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3469 2009-10-16 08:43:15Z volkmar $
+% $Id: cfg_util.m 3561 2009-11-12 10:09:19Z volkmar $
 
-rev = '$Rev: 3469 $';
+rev = '$Rev: 3561 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -460,6 +468,58 @@ switch lower(cmd),
             tropts = cfg_tropts(cfg_findspec, 1, 2, 0, Inf, true);
         end
         local_gencode(cm, fname, tropts);
+    case 'genscript',
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob)
+            % Get information about job
+            [mod_job_idlist, str, sts, dep sout] = cfg_util('showjob', cjob);
+            opensel = find(~sts);
+            fspec = cfg_findspec({{'hidden',false}});
+            tropts = cfg_tropts({{'hidden','true'}},1,inf,1,inf,false);
+            oclass = cell(1,numel(opensel));
+            onames = cell(1,numel(opensel));
+            % List modules with open inputs
+            for cmind = 1:numel(opensel)
+                [item_mod_idlist, stop, contents] = cfg_util('listmod', cjob, mod_job_idlist{opensel(cmind)}, [], fspec, tropts, {'class','name','all_set_item'});
+                % module name is 1st in list
+                % collect classes and names of open inputs
+                oclass{cmind} = contents{1}(~[contents{3}{:}]);
+                onames{cmind} = cellfun(@(iname)sprintf([contents{2}{1} ': %s'],iname),contents{2}(~[contents{3}{:}]),'UniformOutput',false);
+            end
+            % Generate filenames, save job
+            scriptdir = char(varargin{2});
+            [un filename]  = fileparts(varargin{3});
+            scriptfile = fullfile(scriptdir, [filename '.m']);
+            jobfile    = {fullfile(scriptdir, [filename '_job.m'])};
+            cfg_util('savejob', cjob, char(jobfile));
+            % Prepare script code
+            oclass = [oclass{:}];
+            onames = [onames{:}];
+            % Document open inputs
+            script = {'% List of open inputs'};
+            for cmind = 1:numel(oclass)
+                script{end+1} = sprintf('%% %s - %s', onames{cmind}, oclass{cmind});
+            end
+            % Create script stub code
+            script{end+1} = 'nrun = X; % enter the number of runs here';
+            script        = [script{:} gencode(jobfile)];
+            script{end+1} = 'jobs = repmat(jobfile, 1, nrun);';
+            script{end+1} = sprintf('inputs = cell(%d, nrun);', numel(oclass));
+            script{end+1} = 'for crun = 1:nrun';
+            for cmind = 1:numel(oclass)
+                script{end+1} = sprintf('    inputs{%d, crun} = MATLAB_CODE_TO_FILL_INPUT; %% %s - %s', cmind, onames{cmind}, oclass{cmind});
+            end
+            script{end+1} = 'end';
+            script{end+1} = 'job_id = cfg_util(''initjob'', jobs);';
+            script{end+1} = 'sts    = cfg_util(''filljob'', job_id, inputs{:});';
+            script{end+1} = 'if sts';
+            script{end+1} = '    cfg_util(''run'', job_id);';
+            script{end+1} = 'end';
+            script{end+1} = 'cfg_util(''deljob'', job_id);';
+            fid = fopen(scriptfile, 'w');
+            fprintf(fid, '%s\n', script{:});
+            fclose(fid);
+        end
     case 'getalloutputs',
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob) && ~isempty(jobs(cjob).cjrun)

@@ -505,48 +505,44 @@ mixture of variables and scripts. All job snippets found will be
 concatenated into a single job, the missing inputs will be filled and
 the resulting job will be run.
 
-The following MATLAB code snippet can be used to fill in and run the
-\verb|face_single_subject_template.m| batch. Instead of using
-\verb|spm_select| as file selector, files could be read from e.g. a MATLAB
-variable: 
+The batch system can generate a script skeleton for any loaded
+job. From the batch GUI, this feature is accessible via ``File:Save
+Batch and Script''. This skeleton consists of a commented list of
+necessary inputs, a \verb|for| loop to enter inputs for multiple runs
+or subjects and the code to initialise and run the job. An example is
+available in \verb|face_single_subject_script.m|:
 
 \begin{verbatim}
-% Collect missing inputs
-subjdir = cellstr(spm_select([1 1],'dir','Subject Dir'));
-subjepi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
-subjana = cellstr(spm_select([1 1],'image','Anatomy image'));
-subjcon = cellstr(spm_select([1 1],'mat','Multiple conditions'));
-% Run batch, assuming face_single_subject_template.m is in 
-% MATLAB path or working directory.
-% If it is not, then a full path and file name can be used instead.
-spm_jobman('serial', 'face_single_subject_template.m', '', ...
-           subjdir, subjepi, subjana, subjcon);
+% List of open inputs
+% Named Directory Selector: Directory - cfg_files
+% Realign: Estimate & Reslice: Session - cfg_files
+% Coreg: Estimate: Source Image - cfg_files
+% fMRI model specification: Multiple conditions - cfg_files
+nrun = X; % enter the number of runs here
+jobfile = {fullfile(spm('dir'),'man','batch','face_single_subject_template.m')};
+jobs = repmat(jobfile, 1, nrun);
+inputs = cell(4, nrun);
+for crun = 1:nrun
+    % Named Directory Selector: Directory - cfg_files
+    inputs{1, crun} = MATLAB_CODE_TO_FILL_INPUT;
+    % Realign: Estimate & Reslice: Session - cfg_files
+    inputs{2, crun} = MATLAB_CODE_TO_FILL_INPUT; 
+    % Coreg: Estimate: Source Image - cfg_files
+    inputs{3, crun} = MATLAB_CODE_TO_FILL_INPUT; 
+    % fMRI model specification: Multiple conditions - cfg_files
+    inputs{4, crun} = MATLAB_CODE_TO_FILL_INPUT; 
+end
+job_id = cfg_util('initjob', jobs);
+sts    = cfg_util('filljob', job_id, inputs{:});
+if sts
+    cfg_util('run', job_id);
+end
+cfg_util('deljob', job_id);
 \end{verbatim}
 
-To run the same job for multiple subjects, this code could be modified to:
-
-\begin{verbatim}
-% Collect missing inputs
-subj1dir = cellstr(spm_select([1 1],'dir','Subject Dir'));
-subj1epi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
-subj1ana = cellstr(spm_select([1 1],'image','Anatomy image'));
-subj1con = cellstr(spm_select([1 1],'mat','Multiple conditions'));
-subj2dir = cellstr(spm_select([1 1],'dir','Subject Dir'));
-subj2epi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
-subj2ana = cellstr(spm_select([1 1],'image','Anatomy image'));
-subj2con = cellstr(spm_select([1 1],'mat','Multiple conditions'));
-% Run batch, assuming face_single_subject_template.m is in your 
-% MATLAB path or working directory
-% If it is not, then a full path and file name can be used instead.
-spm_jobman('serial', ...
-    {'face_single_subject_template.m', 'face_single_subject_template.m'}, ...
-    '', subj1dir, subj1epi, subj1ana, subj1con, ...
-    subj2dir, subj2epi, subj2ana, subj2con);
-\end{verbatim}
-
-Here the job argument has been replaced by a cell array containing
-the same job twice, and the argument list for the second subject has
-been added.
+The skeleton needs to be adapted to the actual data layout by adding
+MATLAB code which specifies the number of runs and the input data in
+the \verb|for| loop.
 
 \subsection{Modifying a saved job}
 

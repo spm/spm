@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3489 2009-10-20 09:49:40Z volkmar $
+% $Id: cfg_ui.m 3561 2009-11-12 10:09:19Z volkmar $
 
-rev = '$Rev: 3489 $'; %#ok
+rev = '$Rev: 3561 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 13-Oct-2009 12:03:33
+% Last Modified by GUIDE v2.5 08-Nov-2009 21:42:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1168,6 +1168,38 @@ end
 local_pointer('arrow');
 
 % --------------------------------------------------------------------
+function MenuFileScript_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuFileScript (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% --------------------------------------------------------------------
+
+udmodlist = get(handles.modlist, 'userdata');
+opwd = pwd;
+if ~isempty(udmodlist.wd)
+    cd(udmodlist.wd);
+end;
+[file pth idx] = uiputfile({'*.m','Matlab .m Script File'},...
+    'Script File name');
+cd(opwd);
+if isnumeric(file) && file == 0
+    return;
+end;
+local_pointer('watch');
+[p n e v] = fileparts(file);
+if isempty(e) || ~strcmp(e,'.m')
+    e = '.m';
+end
+try
+    cfg_util('genscript', udmodlist.cjob, pth, [n e]);
+    udmodlist.modified = false;
+    set(handles.modlist,'userdata',udmodlist);
+catch
+    l = lasterror;
+    errordlg(l.message,'Error generating job script', 'modal');
+end
+local_pointer('arrow');
+
 function MenuFileRun_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuFileRun (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
