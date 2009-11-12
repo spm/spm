@@ -1,6 +1,5 @@
 function [inverse] = spm_eeg_inv_custom_ui(D)
 % GUI for parameters of inversion of forward model for EEG-MEG
-% FORMAT [inverse] = spm_eeg_inv_custom_ui
 % FORMAT [inverse] = spm_eeg_inv_custom_ui(D)
 %
 % D  - M/EEG data structure
@@ -9,20 +8,20 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 %
 %     inverse.type   - 'GS' Greedy search on MSPs
 %                      'ARD' ARD search on MSPs
-%                      'MSP' GS and ARD multiple sparse priors
 %                      'LOR' LORETA-like model
 %                      'IID' LORETA and minimum norm
 %     inverse.woi    - time window of interest ([start stop] in ms)
+%     inverse.Han    - switch for Hanning window
 %     inverse.lpf    - band-pass filter - low frequency cut-off (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cut-off (Hz)
-%     inverse.Han    - switch for Hanning window
+%     inverse.pQ     - any source priors (eg from fMRI) - cell array
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
 %     inverse.rad    - radius (mm) of VOIs
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_inv_custom_ui.m 3562 2009-11-12 14:56:14Z guillaume $
  
 % defaults from D is specified
 %==========================================================================
@@ -64,17 +63,42 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     % Low-pass filter
     %----------------------------------------------------------------------
     inverse.hpf  = spm_input('Low-pass (Hz)','+1','48|128|256',[48 128 256],q);
-        
+    
+    % Other source priors (eg from fMRI)
+    %----------------------------------------------------------------------
+    if spm_input('Source priors','+1','no|yes',[0 1],1)
+        [P, sts]   = spm_select(1, 'mesh', 'Select source priors');
+        if sts
+            [p,f,e] = fileparts(P);
+            switch lower(e)
+                case '.gii'
+                    g = gifti(P);
+                    inverse.pQ = cell(1,size(g.cdata,2));
+                    for i=1:size(g.cdata,2)
+                        inverse.pQ{i} = g.cdata(:,i);
+                    end
+                case '.mat'
+                    load(P);
+                    inverse.pQ = pQ;
+                otherwise
+                    error('Unknown file type.');
+            end
+        end
+    else
+        inverse.pQ = {};
+    end
+    
     % Source space restictions
     %----------------------------------------------------------------------
-    if spm_input('Restrict solutions','+1','no|yes',[0 1],1);
- 
-        [f,p]       = uigetfile('*.mat','source (n x 3) location file');
-        xyz         = load(fullfile(p,f));
-        name        = fieldnames(xyz);
-        xyz         = getfield(xyz, name{1});
-        inverse.xyz = xyz;
-        inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
+    if spm_input('Restrict solutions','+1','no|yes',[0 1],1)
+
+        [P, sts] = spm_select(1, 'mat', 'Select source (n x 3) location file');
+        if sts
+            xyz         = load(P);
+            name        = fieldnames(xyz);
+            inverse.xyz = xyz.(name{1});
+            inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
+        end
         
     end
 end

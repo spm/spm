@@ -4,7 +4,7 @@
 In this section we will generate some simulated data to show how the inversion algorithms compare when the ground-truth is known. 
 
 \section{Simulation}
-The code used to generate the simulated data is called \texttt{simmegdip\_for\_faces.m} and is located in the \texttt{example\_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model etc from the SPM M/EEG dataset
+The code used to generate the simulated data is called \texttt{simmegdip\_for\_faces.m} and is located in the \texttt{example\_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model etc from the SPM M/EEG dataset\footnote{Multimodal face-evoked dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/mmfaces/}}:
 
 \begin{verbatim}
 cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
@@ -12,7 +12,7 @@ cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
 \end{verbatim}
 
 you created in chapter \ref{Chap:data:multimodal} and replaces the channel data with simulated data. It also forces the head model to be single-sphere.
-You can manipulate this code to change the number or locations of the simulated dipoles by changing.
+You can manipulate this code to change the number or locations of the simulated dipoles by changing
 
 \begin{verbatim}
 dipolepositions=[ 52, -29, 13; -52, -29, 13]; % in mni space

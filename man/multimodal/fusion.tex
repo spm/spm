@@ -84,27 +84,33 @@ Now press the ``save'' button in the Interactive window and enter a filename lik
 
 Press ``fMRI priors'', and select the \texttt{uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file in the ``Fused'' directory. You will then be prompted for the image file that defines the thresholded clusters, for which you should select the \texttt{FacesVsScrambled\_\-FWE05\_\-60.img} file in the ``fMRI/Stats'' directory.
 %%You will then be prompted for the grey matter (GM) image that was used to define the cortical mesh, for which you should select the ``c1smri.img'' file in the ``sMRI'' directory.
-Finally, you will be asked whether the image is in Native or MNI space, which in this case is MNI space, because the fMRI images were spatially normalised.
+You will then be asked whether the image is in Native or MNI space, which in this case is MNI space, because the fMRI images were spatially normalised.
 
 A figure will appear, showing the location of each fMRI cluster as projected onto the cortical mesh.
 
-A new image will be created (in the ``fMRI/Stats'' directory) called \texttt{cluster\_\-FacesVsScrambled\_\-FWE05\_\-60.img}, which contains the six binary priors, as will a new \matlab\ file called \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1.mat}, which contains the information necessary to construct the covariance components for subsequent inversion.
+A new image will be created (in the ``fMRI/Stats'' directory) called \texttt{cluster\_\-FacesVsScrambled\_\-FWE05\_\-60.img}, which contains the six binary priors, as will a new \matlab\ file called \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1.mat}, which contains the information necessary to construct the covariance components for subsequent inversion. That same information is also saved in a GIfTI file called \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1.func.gii} to easily display each spatial prior onto the cortical mesh.
 
 Now press the ``new'' button to create a fourth inversion, and type ``N/M170+fMRI'' as the label.
 
-To finish this with current state of code, press``save'', then 
-\begin{verbatim}
-	D  = spm_eeg_load('uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D.mat');
-	pQ = load('priors_uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D_1.mat');
-	D.val = 4;
-	D.inv{4} = D.inv{1};
-	D.inv{4}.inverse.pQ = pQ.pQ;
-	D = spm_eeg_invert(D);
-	D.save
-	spm_eeg_invert_display(D);
-\end{verbatim}
+Press ``Invert'', select ``Imaging'', press ''yes'' for ''all conditions or trials'', ``Custom'' to get more flexibility in the inversion settings.
 
-Then see Figure~\ref{multimodal:fusion:fig:4}.
+Choose the default settings but for ``Source priors'' select the MAT-file \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-1.mat} that was just created above. 
+
+Say ``No'' to ``Restrict solutions'', and then to the prompt ``Multiple modalities'', press ``fuse''.
+
+%%To finish this with current state of code, press``save'', then 
+%%\begin{verbatim}
+%%	D  = spm_eeg_load('uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D.mat');
+%%	pQ = load('priors_uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D_1.mat');
+%%	D.val = 4;
+%%	D.inv{4} = D.inv{1};
+%%	D.inv{4}.inverse.pQ = pQ.pQ;
+%%	D = spm_eeg_invert(D);
+%%	D.save
+%%	spm_eeg_invert_display(D);
+%%\end{verbatim}
+
+Press ``save'' and see Figure~\ref{multimodal:fusion:fig:4}.
 
 %%press ``Invert'' again (note that all forward models are copied by default from the first inversion) and select the same options as above, except that when asked ``Multiple modalities'', press ``select'' this time, and select just ``EEG''. This should produce the results in Figure~\ref{multimodal:fusion:fig:5}.
 
