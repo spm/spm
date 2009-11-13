@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3498 2009-10-22 10:15:09Z vladimir $
+% $Id: spm_eeg_convert2images.m 3570 2009-11-13 16:12:28Z vladimir $
 
-SVNrev = '$Rev: 3498 $';
+SVNrev = '$Rev: 3570 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -248,6 +248,8 @@ if strncmpi(D.transformtype, 'TF',2)
                     Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
                         squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2));
                 end
+                
+                Dnew = timeonset(Dnew, tims(tind(1)));
             else
                 Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
                 if ~isempty(megchanind)
