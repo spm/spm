@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3446 2009-10-06 16:19:36Z vladimir $
+% $Id: checkmeeg.m 3571 2009-11-13 16:16:48Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -71,15 +71,15 @@ else
         
         event = meegstruct.trials(k).events;
 
-        if ~isempty(event)
+        if ~isempty(event) && ~(numel(event) == 1 && isequal(event.type, 'no events'))
             % make sure that all required elements are present
             if ~isfield(event, 'type'),     error('type field not defined for each event');  end
             if ~isfield(event, 'time'),     error('time field not defined for each event');  end
             if ~isfield(event, 'value'),    [event.value]    = deal([]);                     end
             if ~isfield(event, 'offset'),   [event.offset]   = deal(0);                      end
             if ~isfield(event, 'duration'), [event.duration] = deal([]);                     end
-
-
+            
+            
             % make sure that all numeric values are double
             for i=1:length(event)
                 if isnumeric(event(i).value)
@@ -89,16 +89,18 @@ else
                 event(i).offset    = double(event(i).offset);
                 event(i).duration  = double(event(i).duration);
             end
-
+            
             if ~isempty(event)
                 % sort the events on the sample on which they occur
                 % this has the side effect that events without time are discarded
                 [dum, indx] = sort([event.time]);
                 event = event(indx);
             end
-
-            meegstruct.trials(k).events = event;
+        else
+            event = [];
         end
+        
+        meegstruct.trials(k).events = event;
     end
 
     if ~isfield(meegstruct.trials, 'onset')

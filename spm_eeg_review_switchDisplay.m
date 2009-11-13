@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 3571 2009-11-13 16:16:48Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -545,7 +545,7 @@ switch D.PSD.VIZU.uitable
                         for i=1:nt
                             table{i,1} = D.trials(i).label;
                             ne = length(D.trials(i).events);
-                            if ne == 0
+                            if ne == 0 || ((ne == 1) && isequal(D.trials(i).events(1).type, 'no events'))
                                 table{i,2} = 'no events';
                                 table{i,3} = 'no events';
                                 table{i,4} = 'no events';
