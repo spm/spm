@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 3513 $)
+% Job configuration created by cfg_util (rev $Rev: 3567 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg.menu_entry.conf_entry.type = 'cfg_entry';
 matlabbatch{1}.menu_cfg.menu_entry.conf_entry.name = 'Evaluated Input';
@@ -308,7 +308,7 @@ matlabbatch{24}.menu_cfg.menu_entry.conf_entry.help = {};
 matlabbatch{24}.menu_cfg.menu_entry.conf_entry.def = [];
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.type = 'cfg_exbranch';
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.name = 'Call MATLAB function';
-matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.tag = 'cfg_call_matlab';
+matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.tag = 'call_matlab';
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{1}(1) = cfg_dep;
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{1}(1).tname = 'Val Item';
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{1}(1).tgt_spec = {};

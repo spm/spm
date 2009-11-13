@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3561 2009-11-12 10:09:19Z volkmar $
+% $Id: cfg_ui.m 3567 2009-11-13 14:55:48Z volkmar $
 
-rev = '$Rev: 3561 $'; %#ok
+rev = '$Rev: 3567 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -217,7 +217,7 @@ appid = get(gcbo, 'Userdata');
 if ~ischar(file)
     return;
 end;
-fid = fopen(fullfile(path, file),'w');
+fid = fopen(fullfile(path, file), 'wt');
 if fid < 1
     cfg_message('matlabbatch:savefailed', ...
             'Save failed: no defaults written to %s.', ...

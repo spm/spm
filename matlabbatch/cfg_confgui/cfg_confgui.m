@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 3510 2009-10-26 13:24:42Z volkmar $
+% $Id: cfg_confgui.m 3567 2009-11-13 14:55:48Z volkmar $
 
-rev = '$Rev: 3510 $'; %#ok
+rev = '$Rev: 3567 $'; %#ok
 
 %% Declaration of fields
 
@@ -586,7 +586,7 @@ end
 [str tag] = gencode(out.c0,'',{});
 [p n e v] = fileparts(varargin{1}.gencode_fname); %#ok<NASGU>
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
-fid = fopen(out.cfg_file{1}, 'w');
+fid = fopen(out.cfg_file{1}, 'wt');
 fprintf(fid, 'function %s = %s\n', tag, n);
 fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH configuration\n' ...
@@ -609,7 +609,7 @@ if varargin{1}.gencode_opts.gencode_o_def
     [str dtag] = gencode(out.djob, sprintf('%s_def', tag));
     dn = sprintf('%s_def', n);
     out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
-    fid = fopen(out.def_file{1}, 'w');
+    fid = fopen(out.def_file{1}, 'wt');
     fprintf(fid, 'function %s = %s\n', dtag, dn);
     fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH defaults\n' ...
@@ -625,7 +625,7 @@ end
 if varargin{1}.gencode_opts.gencode_o_mlb
     % Generate cfg_util initialisation file
     out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
-    fid = fopen(out.mlb_file{1}, 'w');
+    fid = fopen(out.mlb_file{1}, 'wt');
     fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
     fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...

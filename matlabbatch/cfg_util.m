@@ -381,9 +381,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3561 2009-11-12 10:09:19Z volkmar $
+% $Id: cfg_util.m 3567 2009-11-13 14:55:48Z volkmar $
 
-rev = '$Rev: 3561 $';
+rev = '$Rev: 3567 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -516,7 +516,7 @@ switch lower(cmd),
             script{end+1} = '    cfg_util(''run'', job_id);';
             script{end+1} = 'end';
             script{end+1} = 'cfg_util(''deljob'', job_id);';
-            fid = fopen(scriptfile, 'w');
+            fid = fopen(scriptfile, 'wt');
             fprintf(fid, '%s\n', script{:});
             fclose(fid);
         end
@@ -780,7 +780,7 @@ switch lower(cmd),
                     % throw an error, or a valid filename will be used.
                     n = cfg_validatejobname(n, false);
                     jobstr = gencode(matlabbatch, tag);
-                    fid = fopen(fullfile(p, [n '.m']),'w');
+                    fid = fopen(fullfile(p, [n '.m']), 'wt');
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
                     fprintf(fid, '%% Job configuration created by %s (rev %s)\n', mfilename, rev);
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
@@ -1070,7 +1070,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
         unpostfix = [unpostfix '1'];
         fname = fullfile(p, [funcname unpostfix '.m']);
     end
-    fid = fopen(fname,'w');
+    fid = fopen(fname, 'wt');
     fprintf(fid, 'function %s = %s\n', tag, funcname);
     fprintf(fid, '%s\n', preamble{:});
     fprintf(fid, '%s\n', cstr{:});
@@ -1090,7 +1090,7 @@ else
             preamble = {};
         end
     end
-    fid = fopen(fname,'w');
+    fid = fopen(fname, 'wt');
     fprintf(fid, 'function %s = %s\n', tag, funcname);
     fprintf(fid, '%s\n', preamble{:});
     fprintf(fid, '%s\n', cstr{:});

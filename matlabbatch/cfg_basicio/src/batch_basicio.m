@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 3513 $)
+% Job configuration created by cfg_util (rev $Rev: 3567 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg.menu_entry.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg.menu_entry.conf_files.name = 'Files to move/copy/delete';
@@ -1367,7 +1367,7 @@ matlabbatch{100}.menu_cfg.menu_entry.conf_entry.help = {};
 matlabbatch{100}.menu_cfg.menu_entry.conf_entry.def = [];
 matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.type = 'cfg_exbranch';
 matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.name = 'Call MATLAB function';
-matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.tag = 'cfg_call_matlab';
+matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.tag = 'call_matlab';
 matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.val{1}(1) = cfg_dep;
 matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.val{1}(1).tname = 'Val Item';
 matlabbatch{101}.menu_cfg.menu_struct.conf_exbranch.val{1}(1).tgt_spec = {};

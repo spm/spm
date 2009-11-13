@@ -1002,14 +1002,14 @@ fun.name    = 'Function to be called';
 fun.strtype = 'f';
 fun.num     = [1  1];
 % ---------------------------------------------------------------------
-% cfg_call_matlab Call MATLAB function
+% call_matlab Call MATLAB function
 % ---------------------------------------------------------------------
-cfg_call_matlab         = cfg_exbranch;
-cfg_call_matlab.tag     = 'cfg_call_matlab';
-cfg_call_matlab.name    = 'Call MATLAB function';
-cfg_call_matlab.val     = {inputs outputs fun };
-cfg_call_matlab.prog = @(job)cfg_call_matlab('run',job);
-cfg_call_matlab.vout = @(job)cfg_call_matlab('vout',job);
+call_matlab         = cfg_exbranch;
+call_matlab.tag     = 'call_matlab';
+call_matlab.name    = 'Call MATLAB function';
+call_matlab.val     = {inputs outputs fun };
+call_matlab.prog = @(job)cfg_call_matlab('run',job);
+call_matlab.vout = @(job)cfg_call_matlab('vout',job);
 % ---------------------------------------------------------------------
 % cfg_basicio BasicIO
 % ---------------------------------------------------------------------
@@ -1017,4 +1017,4 @@ cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
-cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input load_vars cfg_save_vars cfg_assignin runjobs cfg_call_matlab };
+cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input load_vars cfg_save_vars cfg_assignin runjobs call_matlab };
