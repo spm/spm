@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3537 2009-11-05 20:57:00Z guillaume $
+% $Id: spm_peb_ppi.m 3569 2009-11-13 15:51:07Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -282,7 +282,7 @@ catch
     showGraphics = 1;
 end
 if showGraphics
-	Fgraph       = spm_figure('GetWin','PPI');
+    Fgraph       = spm_figure('GetWin','PPI');
     spm_clf(Fgraph);
     FS           = spm('FontSizes');
 end

@@ -16,7 +16,7 @@ function con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: $
+% $Id: spm_bms_compare_groups.m 3569 2009-11-13 15:51:07Z guillaume $
 
 % Find graphics window
 % -------------------------------------------------------------------------

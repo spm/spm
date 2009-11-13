@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: $
+% $Id: spm_dcm_bma_results.m 3569 2009-11-13 15:51:07Z guillaume $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
