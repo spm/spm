@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_MEEGtools.m 3566 2009-11-13 12:37:38Z vladimir $
 
 
 funlist = {
@@ -26,6 +26,7 @@ funlist = {
     'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'
     'FMRIB Detect ECG peaks',   'spm_eeg_fmrib_qrsdetect'     
     'Detect eyeblinks',  'spm_eeg_detect_eyeblinks'
+    'Relabel trials for epoched CTF datasets', 'spm_eeg_recode_epoched_ctf'
     };
 
 str = sprintf('%s|', funlist{:, 1});
