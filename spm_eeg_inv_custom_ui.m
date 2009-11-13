@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3564 2009-11-12 18:46:17Z vladimir $
+% $Id: spm_eeg_inv_custom_ui.m 3568 2009-11-13 15:25:30Z guillaume $
  
 % defaults from D is specified
 %==========================================================================
@@ -67,7 +67,8 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     % Other source priors (eg from fMRI)
     %----------------------------------------------------------------------
     if spm_input('Source priors','+1','no|yes',[0 1],1)
-        [P, sts]   = spm_select(1, 'mesh', 'Select source priors');
+        f = '(.*\.gii$)|(.*\.mat$)|(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
+        [P, sts]   = spm_select(1, f, 'Select source priors');
         if sts
             [p,f,e] = fileparts(P);
             switch lower(e)
@@ -79,6 +80,12 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
                     end
                 case '.mat'
                     load(P);
+                    inverse.pQ = pQ;
+                case {'.img', '.nii'}
+                    S.D = D;
+                    S.fmri = P;
+                    D = spm_eeg_inv_fmripriors(S);
+                    load(D.inv{D.val}.fmri.priors);
                     inverse.pQ = pQ;
                 otherwise
                     error('Unknown file type.');
