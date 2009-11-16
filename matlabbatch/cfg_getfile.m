@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3572 2009-11-16 13:10:43Z volkmar $
+% $Id: cfg_getfile.m 3573 2009-11-16 17:12:06Z volkmar $
 
 t = {};
 sts = false;
@@ -1360,10 +1360,10 @@ case {'image'},   code = 1; ext = {'.*\.nii(,\d+){0,2}$','.*\.img(,\d+){0,2}$','
 case {'mesh'},    code = 0; ext = {'.*\.gii$','.*\.GII$','.*\.mat$','.*\.MAT$'};
 case {'nifti'},   code = 0; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
 case {'gifti'},   code = 0; ext = {'.*\.gii$','.*\.GII$'};
-case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
-                            '.*\.img(,[0-9]*){0,1}$',...
-                            '.*\.NII(,[0-9]*){0,1}$',...
-                            '.*\.IMG(,[0-9]*){0,1}$'};
+case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,2}$',...
+                            '.*\.img(,[0-9]*){0,2}$',...
+                            '.*\.NII(,[0-9]*){0,2}$',...
+                            '.*\.IMG(,[0-9]*){0,2}$'};
 case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
 case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.txt','.*\.TXT'};
 case {'batch'},   code = 0; 
