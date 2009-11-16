@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3560 2009-11-12 10:02:32Z volkmar $
+% $Id: cfg_getfile.m 3572 2009-11-16 13:10:43Z volkmar $
 
 t = {};
 sts = false;
@@ -1356,7 +1356,7 @@ if nargin<2, filt    = '.*';    end;
 if nargin<1, typ     = 'any';   end;
 switch lower(typ),
 case {'any','*'}, code = 0; ext = {'.*'};
-case {'image'},   code = 1; ext = {'.*\.nii(,\d+)?$','.*\.img(,\d+)?$','.*\.NII(,\d+)?$','.*\.IMG(,\d+)?$'};
+case {'image'},   code = 1; ext = {'.*\.nii(,\d+){0,2}$','.*\.img(,\d+){0,2}$','.*\.NII(,\d+){0,2}$','.*\.IMG(,\d+){0,2}$'};
 case {'mesh'},    code = 0; ext = {'.*\.gii$','.*\.GII$','.*\.mat$','.*\.MAT$'};
 case {'nifti'},   code = 0; ext = {'.*\.nii$','.*\.img$','.*\.NII$','.*\.IMG$'};
 case {'gifti'},   code = 0; ext = {'.*\.gii$','.*\.GII$'};
