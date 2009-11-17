@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3550 2009-11-10 17:49:11Z maria $
+% $Id: spm_run_bms_dcm.m 3575 2009-11-17 17:40:19Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -380,7 +380,7 @@ else
     
     disp(sprintf('Computing RFX model/family posteriors (using %s method)...', str_meth));
     if ~do_family
-        if nm <= ns || strcmp(job.method,'RFX')
+        if strcmp(str_meth,'VB')
             [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
             model.g_post     = exp_r;
         else
