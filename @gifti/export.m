@@ -8,7 +8,7 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 3332 2009-08-25 13:50:08Z guillaume $
+% $Id: export.m 3578 2009-11-18 16:19:45Z guillaume $
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 
@@ -26,7 +26,7 @@ switch lower(target)
             s.faces = subsref(this, substruct('.', 'faces'));
         end
         if isfield(this,'cdata')  
-            s.facevertexcdata = subsref(this, substruct('.', 'cdata'));
+            s.facevertexcdata = double(subsref(this, substruct('.', 'cdata')));
         end
         try, s; catch, s = struct([]); end
         

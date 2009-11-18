@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3568 2009-11-13 15:25:30Z guillaume $
+% $Id: spm_eeg_inv_custom_ui.m 3578 2009-11-18 16:19:45Z guillaume $
  
 % defaults from D is specified
 %==========================================================================
@@ -73,7 +73,7 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
             [p,f,e] = fileparts(P);
             switch lower(e)
                 case '.gii'
-                    g = gifti(P);
+                    g = export(gifti(P),'patch');
                     inverse.pQ = cell(1,size(g.cdata,2));
                     for i=1:size(g.cdata,2)
                         inverse.pQ{i} = g.cdata(:,i);
