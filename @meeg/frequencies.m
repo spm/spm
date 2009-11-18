@@ -5,7 +5,7 @@ function res = frequencies(this, ind, f)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: frequencies.m 3350 2009-09-03 13:19:20Z vladimir $
+% $Id: frequencies.m 3579 2009-11-18 16:21:55Z vladimir $
 
 if nargin < 3
     if strncmpi(transformtype(this), 'TF',2)
@@ -27,10 +27,10 @@ else
     end
     
     if isempty(ind) || isequal(ind, ':')
-        ind = 1:size(this, 2);
+        ind = 1:size(this.data.y, 2);
     end
     
-    if length(ind)~=length(f) || max(ind)>size(this, 2)
+    if length(ind)~=length(f) || max(ind)>size(this.data.y, 2)
           error('Wrong frequency axis or indices'); 
     end
 
