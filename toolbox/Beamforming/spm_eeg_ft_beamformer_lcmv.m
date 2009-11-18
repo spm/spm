@@ -11,7 +11,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3515 2009-10-28 15:02:51Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3582 2009-11-18 17:04:42Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -310,8 +310,8 @@ if strcmp('EEG', modality)
     cfg.reducerank=3;
 else
     cfg.grad = D.sensors('MEG');
-    cfg.reducerank=3;
-    disp('NOT reducing possible source orientations to a tangential plane for MEG');
+    cfg.reducerank=2;
+    disp('Reducing possible source orientations to a tangential plane for MEG');
 end
 
 
@@ -520,8 +520,8 @@ if S.Niter>1,
     %% get corrected p values to t
         allglobalmax=squeeze(max(abs(stats(fband).tstat(:,1:end))));
         [sortglobalmax,sortglobalmaxind]=sort(allglobalmax','descend');
-        corrpmax_tstat=sortglobalmaxind/length(sortglobalmaxind); %% corrected p value for maximum
-        stats(fband).corrpmax_tstat=corrpmax_tstat(TrueIter,:); 
+        
+        stats(fband).corrpmax_tstat=find(TrueIter==sortglobalmaxind)/length(sortglobalmaxind);
         stats(fband).thresh05globalmax_tstat=sortglobalmax(round(length(sortglobalmaxind)*5/100),:);
         dispthresh_uv=stats(fband).thresh05globalmax_tstat; % display only significant effects
 end; % if
