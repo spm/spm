@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 2834 2009-03-06 17:57:50Z john $
+% $Id: spm_cfg_normalise.m 3577 2009-11-18 16:13:00Z volkmar $
 
-rev = '$Rev: 2834 $';
+rev = '$Rev: 3577 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -393,7 +393,7 @@ function dep = vout_estimate(job)
 for k=1:numel(job.subj)
     dep(k)            = cfg_dep;
     dep(k).sname      = sprintf('Norm Params File (Subj %d)',k);
-    dep(k).src_output = substruct('()',{k},'.','snparams');
+    dep(k).src_output = substruct('()',{k},'.','params');
     dep(k).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 end;
 %------------------------------------------------------------------------
