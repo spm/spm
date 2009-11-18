@@ -120,7 +120,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3564 2009-11-12 18:46:17Z vladimir $
+% $Id: spm_eeg_invert.m 3576 2009-11-18 15:54:08Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -169,11 +169,12 @@ Nrmax     = Nr;                              % max number of temporal modes
 fprintf('Checking leadfields:\n')
 %==========================================================================
 for i = 1:Nl
+    fprintf('Subject %d\n',i);
+    
     for m = 1:Nmod
  
         % Check gain or lead-field matrices
         %------------------------------------------------------------------
-        fprintf('Subject %d: %s\n',i, modalities{m});
         [L D{i}] = spm_eeg_lgainmat(D{i});
         Ic{i,m}  = setdiff(meegchannels(D{i}, modalities{m}), badchannels(D{i}));
         Nd(i)    = size(L,2);                          % number of dipoles
