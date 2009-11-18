@@ -51,9 +51,6 @@ function [D] = spm_eeg_invert(D, val)
 %     inverse.VE     - variance explained in spatial/temporal subspaces (%)
 %     inverse.R2     - variance in subspaces accounted for by model (%)
 %     inverse.scale  - scaling of data for each of j modalities
- 
- 
-%     inverse.
 %__________________________________________________________________________
 %
 % 1. This routine implements "group-based" inversion, corresponding to
@@ -120,7 +117,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3576 2009-11-18 15:54:08Z vladimir $
+% $Id: spm_eeg_invert.m 3581 2009-11-18 16:50:47Z rik $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -159,34 +156,35 @@ try
         modalities = {modalities};
     end
 catch
-    [tmp, modalities] = modality(D{1}, 1, 1);
+    for m = 1:length(D{1}.inv{D{1}.val}.forward)
+        modalities{m} = D{1}.inv{D{1}.val}.forward(m).modality;
+    end
 end
 Nmod      = numel(modalities);               % number of modalities
 Nmmax     = Nm;                              % max number of spatial modes
 Nrmax     = Nr;                              % max number of temporal modes
 
  
-fprintf('Checking leadfields:\n')
 %==========================================================================
 for i = 1:Nl
-    fprintf('Subject %d\n',i);
+    fprintf('Checking leadfields for subject %i:',i)
+    [L D{i}] = spm_eeg_lgainmat(D{i});
     
     for m = 1:Nmod
- 
+        
         % Check gain or lead-field matrices
         %------------------------------------------------------------------
-        [L D{i}] = spm_eeg_lgainmat(D{i});
         Ic{i,m}  = setdiff(meegchannels(D{i}, modalities{m}), badchannels(D{i}));
         Nd(i)    = size(L,2);                          % number of dipoles
-        Nc(i,m)  = length(Ic{i,m});                   % number of channels
+        Nc(i,m)  = length(Ic{i,m});                    % number of channels
  
         if isempty(Ic{i,m})
-            errordlg(['This modality is missing from file ' D{i}.fname]);
+            errordlg(['Modality ' modalities{m} 'is missing from file ' D{i}.fname]);
             return
         end
  
         if any(diff(Nd))
-            errordlg('please ensure subjects have the same number of dipoles')
+            errordlg('Please ensure subjects have the same number of dipoles')
             return
         end
  
