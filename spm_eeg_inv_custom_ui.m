@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3580 2009-11-18 16:23:35Z guillaume $
+% $Id: spm_eeg_inv_custom_ui.m 3584 2009-11-19 15:11:36Z rik $
  
 % defaults from D is specified
 %==========================================================================
@@ -85,7 +85,8 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
                     S.D = D;
                     S.fmri = P;
                     D = spm_eeg_inv_fmripriors(S);
-                    load(D.inv{D.val}.fmri.priors);
+                    inverse.fmri = D.inv{D.val}.inverse.fmri;
+                    load(inverse.fmri.priors);
                     inverse.pQ = pQ;
                 otherwise
                     error('Unknown file type.');

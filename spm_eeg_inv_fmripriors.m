@@ -14,12 +14,11 @@ function D = spm_eeg_inv_fmripriors(S)
 %  .smooth - variance of the smoothing kernel onto the surface [default: 0.2] {unused}
 %  .disp   - whether to display priors on mesh [default: 0]
 %
-% D.inv{D.val}.fmri.priors   - MAT filename containing a variable 'pQ' that
-%                              is a [ncomp] cell array of [nb vertices] 
-%                              vectors describing spatial priors
-% D.inv{D.val}.fmri.texture  - GIfTI texture filename containing all
-%                              spatial priors
-% D.inv{D.val}.fmri.clusters - image filename containing clusters as labels
+% D.inv{D.val}.inverse.fmri.priors   - MAT filename containing a variable 'pQ' that
+%            is a [ncomp] cell array of [nb vertices] vectors describing spatial priors
+% D.inv{D.val}.inverse.fmri.texture  - GIfTI texture filename containing all
+%            spatial priors
+% D.inv{D.val}.inverse.fmri.clusters - image filename containing clusters as labels
 %__________________________________________________________________________
 %
 % Reference:
@@ -31,7 +30,7 @@ function D = spm_eeg_inv_fmripriors(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 3557 2009-11-11 18:55:42Z guillaume $
+% $Id: spm_eeg_inv_fmripriors.m 3584 2009-11-19 15:11:36Z rik $
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -174,26 +173,26 @@ end
 %-Save spatial priors vectors as MAT-file
 %--------------------------------------------------------------------------
 [pth,name] = fileparts(D.fname);
-D.inv{val}.fmri.priors = fullfile(pth,['priors_' name '_' num2str(val) '.mat']);
+D.inv{val}.inverse.fmri.priors = fullfile(pth,['priors_' name '_' num2str(val) '.mat']);
 if spm_matlab_version_chk('7') >=0
-    save(D.inv{val}.fmri.priors,'pQ','-V6');
+    save(D.inv{val}.inverse.fmri.priors,'pQ','-V6');
 else
-    save(D.inv{val}.fmri.priors,'pQ');
+    save(D.inv{val}.inverse.fmri.priors,'pQ');
 end
 
 %-Save spatial priors vectors as GIfTI file
 %--------------------------------------------------------------------------
 [pth,name] = fileparts(D.fname);
-D.inv{val}.fmri.texture = fullfile(pth,['priors_' name '_' num2str(val) '.func.gii']);
+D.inv{val}.inverse.fmri.texture = fullfile(pth,['priors_' name '_' num2str(val) '.func.gii']);
 G          = gifti;
 G.cdata    = cat(1, pQ{:})';
-save(G,D.inv{val}.fmri.texture);
+save(G,D.inv{val}.inverse.fmri.texture);
 
 %-Save clusters as an image of labels
 %--------------------------------------------------------------------------
 [pth,name] = fileparts(S.fmri);
-D.inv{val}.fmri.clusters = fullfile(pth,['cluster_' name '.img']);
-V = struct('fname',   D.inv{val}.fmri.clusters, ...
+D.inv{val}.inverse.fmri.clusters = fullfile(pth,['cluster_' name '.img']);
+V = struct('fname',   D.inv{val}.inverse.fmri.clusters, ...
            'dim',     V.dim, ...
            'dt',      [spm_type('uint16') spm_platform('bigend')], ...
            'mat',     V.mat, ...
@@ -207,4 +206,4 @@ end
 
 %-Save D structure
 %--------------------------------------------------------------------------
-D.save;
+%D.save;
