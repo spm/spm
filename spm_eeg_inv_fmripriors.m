@@ -30,7 +30,7 @@ function D = spm_eeg_inv_fmripriors(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 3584 2009-11-19 15:11:36Z rik $
+% $Id: spm_eeg_inv_fmripriors.m 3586 2009-11-19 16:56:58Z rik $
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -99,6 +99,18 @@ catch
     S.ncomp = Inf; % all components
 end
 
+try
+    S.bincomp;
+catch
+    S.bincomp = 1; % default to binary priors
+end
+
+try
+    S.varcomp;
+catch
+    S.varcomp = 1; % default to variance priors (vectors)
+end
+
 % try
 %     S.smooth;
 % catch
@@ -158,7 +170,9 @@ for i = 1:size(q,1)
     qq    = q(i,:)';
     %qq   = spm_mesh_smooth(struct('faces',double(m.face),'vertices',m.vert),qq, S.smooth);
     qq    = qq .* (qq > exp(-8));
-    pQ{i} =  double(qq > 0)';  % binarise
+    if S.bincomp
+        pQ{i} =  double(qq > 0)';  % binarise
+    end
 end
 
 %-Display and export clusters
@@ -169,24 +183,6 @@ if S.disp
             struct('texture',pQ{i}));
     end
 end
-
-%-Save spatial priors vectors as MAT-file
-%--------------------------------------------------------------------------
-[pth,name] = fileparts(D.fname);
-D.inv{val}.inverse.fmri.priors = fullfile(pth,['priors_' name '_' num2str(val) '.mat']);
-if spm_matlab_version_chk('7') >=0
-    save(D.inv{val}.inverse.fmri.priors,'pQ','-V6');
-else
-    save(D.inv{val}.inverse.fmri.priors,'pQ');
-end
-
-%-Save spatial priors vectors as GIfTI file
-%--------------------------------------------------------------------------
-[pth,name] = fileparts(D.fname);
-D.inv{val}.inverse.fmri.texture = fullfile(pth,['priors_' name '_' num2str(val) '.func.gii']);
-G          = gifti;
-G.cdata    = cat(1, pQ{:})';
-save(G,D.inv{val}.inverse.fmri.texture);
 
 %-Save clusters as an image of labels
 %--------------------------------------------------------------------------
@@ -202,6 +198,28 @@ V = spm_create_vol(V);
 
 for i=1:V.dim(3)
     V = spm_write_plane(V,l(:,:,i),i);
+end
+
+%-Save spatial priors vectors as GIfTI file
+%--------------------------------------------------------------------------
+[pth,name] = fileparts(D.fname);
+D.inv{val}.inverse.fmri.texture = fullfile(pth,['priors_' name '_' num2str(val) '.func.gii']);
+G          = gifti;
+G.cdata    = cat(1, pQ{:})';
+save(G,D.inv{val}.inverse.fmri.texture);
+
+%-Save spatial priors vectors as MAT-file
+%--------------------------------------------------------------------------
+[pth,name] = fileparts(D.fname);
+D.inv{val}.inverse.fmri.priors = fullfile(pth,['priors_' name '_' num2str(val) '.mat']);
+if ~S.varcomp
+    pQ = pQ*pQ';
+end
+
+if spm_matlab_version_chk('7') >=0
+    save(D.inv{val}.inverse.fmri.priors,'pQ','-V6');
+else
+    save(D.inv{val}.inverse.fmri.priors,'pQ');
 end
 
 %-Save D structure

@@ -101,7 +101,9 @@ function [D] = spm_eeg_invert(D, val)
 %__________________________________________________________________________
 %
 % 3. It also allows incorporation of spatial source priors, eg, from fMRI
-% (see spm_eeg_inv_fmripriors.m)
+% (see spm_eeg_inv_fmripriors.m). Note that if a vector is passed in 
+% inverse.pQ, then variance components used (pass a matrix if a covariance
+% component is desired).
 %
 % See: A Parametric Empirical Bayesian framework for fMRI-constrained
 % MEG/EEG source reconstruction.
@@ -117,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3581 2009-11-18 16:50:47Z rik $
+% $Id: spm_eeg_invert.m 3586 2009-11-19 16:56:58Z rik $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -564,7 +566,7 @@ for i = 1:length(pQ)
             %--------------------------------------------------------------
             if isvector(pQ{i}) && length(pQ{i}) == Ns
                 pQ{i}         = pQ{i}(:);
-                Qp{end + 1}   = sparse(diag(pQ{i}*pQ{i}'));
+                Qp{end + 1}   = sparse(diag(pQ{i}.^2));
                 LQpL{end + 1} = UL*Qp{end}*UL';
             elseif size(pQ{i},1) == Ns && size(pQ{i},2) == Ns
                 Qp{end + 1}   = pQ{i};
