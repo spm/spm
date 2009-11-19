@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3430 2009-09-29 16:55:38Z guillaume $
+% $Id: spm_figure.m 3587 2009-11-19 19:05:38Z guillaume $
 
 
 %=======================================================================
@@ -317,6 +317,7 @@ if isempty(Tags)
     set(F,'Position',pos);
 
     %-Reset figures callback functions
+    zoom(F,'off');
     set(F,'KeyPressFcn','',...
         'WindowButtonDownFcn','',...
         'WindowButtonMotionFcn','',...
