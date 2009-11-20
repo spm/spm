@@ -1,5 +1,4 @@
-function [sel1, sel2] = match_str(a, b);
-
+function [sel1, sel2] = spm_match_str(a, b)
 % MATCH_STR looks for matching labels in two listst of strings
 % and returns the indices into both the 1st and 2nd list of the matches.
 % They will be ordered according to the first input argument.
@@ -8,30 +7,11 @@ function [sel1, sel2] = match_str(a, b);
 %
 % The strings can be stored as a char matrix or as an vertical array of
 % cells, the matching is done for each row.
-
+%_______________________________________________________________________
 % Copyright (C) 2000, Robert Oostenveld
-%
-% $Log: match_str.m,v $
-% Revision 1.6  2006/11/06 21:11:45  roboos
-% also deal with empty [] input
-%
-% Revision 1.5  2004/11/10 17:11:40  roboos
-% reverted to original implementation and reimplemented the speed up
-% from scratch. The previous two revisions both were incompatible
-% with the original implementation.
-%
-% Revision 1.4  2004/11/09 15:28:57  roboos
-% fixed incompatibility that was introduced by previous speed increase:
-% the original version gave back double occurences, and other fieldtrip
-% functions (sourceanalysis) rely on this. The previously commited
-% version only gave back one occurence of each hit, this is fixed by jansch
-% in this version
-%
-% Revision 1.3  2004/10/22 15:59:41  roboos
-% large speed increase by replacing 2 nested for loops by a standard matlab function (intersect)
-%
-% Revision 1.2  2003/03/17 10:37:28  roberto
-% improved general help comments and added copyrights
+
+% Robert Oostenveld
+% $Id: spm_match_str.m 3589 2009-11-20 17:17:41Z guillaume $
 
 % ensure that both are cell-arrays
 if isempty(a)

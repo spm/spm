@@ -9,13 +9,12 @@ function t = spm_convmtx(v,n)
 %   If R is a row vector and X is a row vector of length N,
 %   then X*CONVMTX(R,N) is the same as CONV(R,X).
 %   See also CONV.
-%__________________________________________________________________________
-%   Author(s): L. Shure, 5-17-88
-%          T. Krauss, 3-30-93, removed dependence on toeplitz
-%   Copyright 1988-2004 The MathWorks, Inc.
-%   $Revision: 1373 $  $Date: 2004/12/26 22:15:33 $
+%_______________________________________________________________________
+% Copyright (C) 1988-2004 The MathWorks, Inc.
 
-%--------------------------------------------------------------------------
+% L. Shure and T. Krauss
+% $Id: spm_convmtx.m 3589 2009-11-20 17:17:41Z guillaume $
+
 [mv,nv] = size(v);
 v = v(:);                                     % make v a column vector
 c = [v; sparse(n-1,1)];

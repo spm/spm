@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3067 2009-04-20 13:58:07Z guillaume $
+% $Id: spm_cfg_factorial_design.m 3589 2009-11-20 17:17:41Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -479,7 +479,7 @@ fnum.tag     = 'fnum';
 fnum.name    = 'Factor number';
 fnum.help    = {'Enter the number of the factor.'};
 fnum.strtype = 'e';
-fnum.num     = [Inf 1];
+fnum.num     = [1 1];
 % ---------------------------------------------------------------------
 % fmain Main effect
 % ---------------------------------------------------------------------

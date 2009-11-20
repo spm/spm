@@ -5,7 +5,7 @@ function res = fiducials(this, newfiducials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: fiducials.m 3589 2009-11-20 17:17:41Z guillaume $
 
 switch nargin
     case 1

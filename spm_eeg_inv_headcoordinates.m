@@ -10,15 +10,11 @@ function M1 = spm_eeg_inv_headcoordinates(nas, lpa, rpa)
 % the X-axis goes towards nas
 % the Y-axis goes approximately towards lpa, orthogonal to X and in the plane spanned by the fiducials
 % the Z-axis goes approximately towards the vertex, orthogonal to X and Y
-%
-% See also WARPING, WARP3D
-
+%_______________________________________________________________________
 % Copyright (C) 2003 Robert Oostenveld
-%
-% $Log: headcoordinates.m,v $
-% Revision 1.1  2004/09/27 16:00:04  roboos
-% initial submission
-%
+
+% Robert Oostenveld
+% $Id: spm_eeg_inv_headcoordinates.m 3589 2009-11-20 17:17:41Z guillaume $
 
 % ensure that they are row vectors
 lpa = lpa(:)';
