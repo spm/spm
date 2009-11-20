@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_DEM.m 3588 2009-11-20 14:06:08Z guillaume $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -211,7 +211,7 @@ for i = 1:(nl - 1)
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
  
 end
-Up    = spm_cat(diag(qp.u));
+Up    = spm_cat(spm_diag(qp.u));
  
 % initialise and augment with confound parameters B; with flat priors
 %--------------------------------------------------------------------------

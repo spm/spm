@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 3139 2009-05-21 18:37:29Z karl $
+% $Id: spm_sp_reml.m 3588 2009-11-20 14:06:08Z guillaume $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ for i = 1:m
     v{i} = Q{i}.v(:);
 end
 q     = spm_cat(q);
-dedh  = spm_cat(diag(v));
+dedh  = spm_cat(spm_diag(v));
  
  
 % pre-compute bases
