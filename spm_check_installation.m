@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3574 2009-11-17 11:59:54Z guillaume $
+% $Id: spm_check_installation.m 3590 2009-11-20 18:55:44Z guillaume $
 
 if isdeployed, return; end
 
@@ -268,11 +268,12 @@ fprintf('MEX extension: %s\n',mexext);
 try
     cc = mex.getCompilerConfigurations('C','Selected');
     if ~isempty(cc)
+        cc = cc(1); % can be C or C++
         fprintf('C Compiler: %s (%s).\n', cc.Name, cc.Version);
         fprintf('C Compiler settings: %s (''%s'')\n', ...
             cc.Details.CompilerExecutable, cc.Details.OptimizationFlags);
     else
-        fprintf('No C compiler is selected (see mex -setup).');
+        fprintf('No C compiler is selected (see mex -setup)\n');
     end
 end
 try
@@ -459,12 +460,17 @@ dispw = false;
 for i=1:length(f)
     [p,name,ext] = fileparts(f{i});
     info = struct('file','', 'id',[], 'date','', 'md5','');
-    if ismember(ext,{'.m','.man','.txt','.xml','.c','.h'})
+    if ismember(ext,{'.m','.man','.txt','.xml','.c','.h',''})
         info = extract_info(fullfile(ccd,f{i}));
     end
     info.file = fullfile(r,f{i});
     try
-        info.md5 = md5sum(fullfile(ccd,f{i}));
+        try
+            info.md5 = md5sum(fullfile(ccd,f{i}));
+        catch
+            %[s, info.md5] = system(['md5sum "' fullfile(ccd,f{i}) '"']);
+            %info.md5 = strtok(info.md5);
+        end
     end
     if isempty(l), l = info;
     else l(end+1) = info;
@@ -499,7 +505,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3574 2009-11-17 11:59:54Z guillaume $ tag)
+%Extract Subversion properties ($Id: spm_check_installation.m 3590 2009-11-20 18:55:44Z guillaume $ tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
