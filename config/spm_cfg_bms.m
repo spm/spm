@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3519 2009-10-29 17:08:53Z maria $
+% $Id: spm_cfg_bms.m 3592 2009-11-23 10:34:06Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -194,8 +194,8 @@ method.values  = {
 % ---------------------------------------------------------------------
 priors         = cfg_menu;
 priors.tag     = 'priors';
-priors.name    = 'Priors (RFX)';
-priors.help    = {['Specify priors for family-level inference. '...
+priors.name    = 'Priors (Family)';
+priors.help    = {['Specify priors for family-level inference (RFX only). '...
                    'Options: ''Family'' sets alpha0=1 for each family '...
                    'while ''Model'' sets alpha0=1 for each model (not '...
                    'advised).']};
@@ -207,7 +207,7 @@ priors.values  = {
                   'M-unity'
                   'F-unity'
 }';
-priors.val      = {'M-unity'};
+priors.val      = {'F-unity'};
 
 
 % ---------------------------------------------------------------------
@@ -215,7 +215,7 @@ priors.val      = {'M-unity'};
 % ---------------------------------------------------------------------
 family_file         = cfg_files;
 family_file.tag     = 'family_file';
-family_file.name    = 'Load family';
+family_file.name    = 'Load family file';
 family_file.help    = {['Load family.mat file. This file should contain the '...
                         'structure ''family'' with fields ''names'' and '...
                         '''partition''. Example: family.names = {''F1'', '...
@@ -265,22 +265,33 @@ family.help    = {'Specify family name and models.'};
 % ---------------------------------------------------------------------
 select_family         = cfg_repeat;
 select_family.tag     = 'select_family';
-select_family.name    = 'Specify family';
+select_family.name    = 'Construct families';
 select_family.values  = {family };
 select_family.help    = {'Create family. Specify family name and models.'};
 
 % ---------------------------------------------------------------------
-% family_level Family level
+% family_level Specify families
 % ---------------------------------------------------------------------
 family_level         = cfg_choice;
 family_level.tag     = 'family_level';
-family_level.name    = 'Family level';
+family_level.name    = 'Specify families';
 family_level.help    = {['Optional field to perform family level inference.'...
                          'Options: load family.mat '...
                          'or specify family names and models using '...
                          'the interface.']};
 family_level.val     = {family_file };
 family_level.values  = {family_file select_family };
+
+% ---------------------------------------------------------------------
+% family_menu Family level inference
+% ---------------------------------------------------------------------
+family_menu         = cfg_branch;
+family_menu.tag     = 'family_menu';
+family_menu.name    = 'Family level inference';
+family_menu.help    = {['Family level inference (optional). Leave fields '...
+                        'empty if not interested in comparing families of '...
+                        'models.']};
+family_menu.val     = {family_level priors };
 
 % ---------------------------------------------------------------------
 % bma_part Choose family
@@ -545,7 +556,7 @@ scale.val     = {[]};
 bms_dcm      = cfg_exbranch;
 bms_dcm.tag  = 'bms_dcm';
 bms_dcm.name = 'BMS: DCM';
-bms_dcm.val  = {dir dcm model_sp load_f method priors family_level bma verify_id};
+bms_dcm.val  = {dir dcm model_sp load_f method family_menu bma verify_id};
 bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
     '(DCM) for fMRI or MEEG.']...
     ''...

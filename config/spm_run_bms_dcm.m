@@ -17,18 +17,19 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3575 2009-11-17 17:40:19Z maria $
+% $Id: spm_run_bms_dcm.m 3592 2009-11-23 10:34:06Z maria $
 
 % input
 % -------------------------------------------------------------------------
 job     = varargin{1};
 fname   = 'BMS.mat';                 % Output filename
 fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
-priors  = job.priors;
+priors  = job.family_menu.priors;
 ld_f    = ~isempty(job.load_f{1});
 ld_msp  = ~isempty(job.model_sp{1});
 bma_do  = isfield(job.bma,'bma_yes');
 data_se = ~isempty(job.sess_dcm);
+
 
 % method
 % -------------------------------------------------------------------------
@@ -52,7 +53,11 @@ if bma_do
     if ld_msp
             disp('Loading model space')
             load(job.model_sp{1});
-            load(subj(1).sess(1).model(1).fname)
+            if exist('subj','var')
+                load(subj(1).sess(1).model(1).fname)
+            else
+               error('Incorrect model space file! File must contain ''subj'' structure.')
+            end
     else
         if data_se
             load(job.sess_dcm{1}(1).mod_dcm{1})  
@@ -80,9 +85,12 @@ if bma_do
         end
     end
 else
-    if ld_msp
+    if ld_msp                
             disp('Loading model space')
             load(job.model_sp{1});
+            if ~exist('subj','var')
+               error('Incorrect model space file! File must contain ''subj'' structure.')
+            end
     end
 end
 
@@ -110,7 +118,7 @@ else
         ns        = length(subj);                         % No of Subjects
         nsess     = length(subj(1).sess);                 % No of sessions
         nm        = length(subj(1).sess(1).model);        % No of Models
-        fname_msp = [job.dir{1} job.model_sp{1}];
+        fname_msp = [job.model_sp{1}];
     else
         ns        = size(job.sess_dcm,2);                 % No of Subjects
         nsess     = size(job.sess_dcm{1},2);              % No of sessions
@@ -232,11 +240,11 @@ sumF = sum(F,1);
 
 % family or model level
 % -------------------------------------------------------------------------
-if isfield(job.family_level,'family_file')
+if isfield(job.family_menu.family_level,'family_file')
     
-    if ~isempty(job.family_level.family_file{1})
+    if ~isempty(job.family_menu.family_level.family_file{1})
     
-        load(job.family_level.family_file{1});
+        load(job.family_menu.family_level.family_file{1});
         do_family    = 1;
         family.prior = priors;
         family.infer = method;
@@ -256,19 +264,19 @@ if isfield(job.family_level,'family_file')
     
 else
     
-    if isempty(job.family_level.family)
+    if isempty(job.family_menu.family_level.family)
         do_family    = 0;
     else
         do_family    = 1;
-        nfam         = size(job.family_level.family,2);
+        nfam         = size(job.family_menu.family_level.family,2);
         
         names_fam  = {};
         models_fam = [];
         m_indx     = [];
         for f=1:nfam
-            names_fam    = [names_fam,job.family_level.family(f).family_name];
-            m_indx       = [m_indx,job.family_level.family(f).family_models'];
-            models_fam(job.family_level.family(f).family_models) = f;
+            names_fam    = [names_fam,job.family_menu.family_level.family(f).family_name];
+            m_indx       = [m_indx,job.family_menu.family_level.family(f).family_models'];
+            models_fam(job.family_menu.family_level.family(f).family_models) = f;
         end
         
         family.names     = names_fam;
@@ -300,7 +308,7 @@ if strcmp(method,'FFX');
         family         = [];
         model.post     = spm_api_bmc(sumF,N,[],[]);
     else
-        Ffam           = F(:,m_indx);
+        Ffam           = F(:,sort(m_indx));
         [family,model] = spm_compare_families (Ffam,family);
         P              = spm_api_bmc(sumF,N,[],[],family);
     end
@@ -386,14 +394,15 @@ else
         else
             [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
             model.g_post             = g_post;
+            alpha                    = [];
         end
-        model.alpha = [];
+        model.alpha = alpha;
         model.exp_r = exp_r;
         model.xp    = xp;
         family      = [];
     else
         
-        Ffam           = F(:,m_indx);
+        Ffam           = F(:,sort(m_indx));
         [family,model] = spm_compare_families(Ffam,family);
         
     end
@@ -478,7 +487,7 @@ end
 
 % Save model_space
 % -------------------------------------------------------------------------
-if ~ld_msp && data_se
+if ~ld_msp && data_se && ~ld_f
     disp('Saving model space...')
     if spm_matlab_version_chk('7') >= 0
         save(fname_msp,'-V6','subj');

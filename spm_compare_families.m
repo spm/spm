@@ -42,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3493 2009-10-21 14:55:53Z will $
+% $Id: spm_compare_families.m 3592 2009-11-23 10:34:06Z maria $
 
 try
     infer=family.infer;
@@ -95,6 +95,7 @@ end
 
 if strcmp(infer,'FFX')
     
+    family.prior = [];
     % Family priors
     for i=1:K,
         family.prior(i)=1/K;

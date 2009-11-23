@@ -19,10 +19,10 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 3493 2009-10-21 14:55:53Z will $
+% $Id: spm_BMS_gibbs.m 3592 2009-11-23 10:34:06Z maria $
 
 if nargin < 3 || isempty(Nsamp)
-    Nsamp = 1e3;
+    Nsamp = 1e4;
 end
 
 Ni      = size(lme,1);  % number of subjects

@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3569 2009-11-13 15:51:07Z guillaume $
+% $Id: spm_dcm_bma_results.m 3592 2009-11-23 10:34:06Z maria $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
@@ -53,7 +53,9 @@ if isfield(BMS.DCM,method)
                     cmat  = BMS.DCM.ffx.bma.c;
                     
                 end
-                load(BMS.DCM.ffx.data(1).sess(1).model(1).fname)
+                disp('Loading model space...')
+                load(BMS.DCM.ffx.data)
+                load(subj(1).sess(1).model(1).fname)
             
         case 'rfx'
                 if isempty(BMS.DCM.rfx.bma)
@@ -65,7 +67,9 @@ if isfield(BMS.DCM,method)
                     cmat = BMS.DCM.rfx.bma.c;
                     
                 end
-                load(BMS.DCM.rfx.data(1).sess(1).model(1).fname)
+                disp('Loading model space...')
+                load(BMS.DCM.rfx.data)
+                load(subj(1).sess(1).model(1).fname)
     end
 else
     msgbox(sprintf('No %s analysis in current BMS.mat file!',method))
@@ -117,7 +121,17 @@ for i=1:n,
             axis off
         else
             hist(amat(i,j,:),bins,'r');
-            xlim([-max(amat(i,j,:)) max(amat(i,j,:))])
+            amax = max(amat(i,j,:));
+            if amax > 0
+                xlim([-amax amax])
+            else
+                if amax < 0
+                   amin = min(amat(i,j,:));
+                   xlim([amin amax])
+                else
+                    xlim([-10 10])
+                end
+            end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
             title(sprintf('%s to %s',region(j).name,region(i).name));
@@ -145,7 +159,17 @@ for i=1:n,
             axis off
         else
             hist(bmat(i,j,mod_input,:),bins,'r');
-            xlim([-max(bmat(i,j,mod_input,:)) max(bmat(i,j,mod_input,:))])
+            bmax = max(bmat(i,j,mod_input,:));
+            if bmax > 0
+                xlim([-bmax bmax])
+            else
+                if bmax < 0
+                   bmin = min(bmat(i,j,mod_input,:));
+                   xlim([bmin bmax])
+                else
+                    xlim([-10 10])
+                end
+            end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
             title(sprintf('%s to %s',region(j).name,region(i).name));
@@ -169,7 +193,17 @@ for i=1:n,
         plot([0 0],[0 1],'k');
     else
         hist(cmat(i,drive_input,:),bins,'r');
-        xlim([-max(cmat(i,drive_input,:)) max(cmat(i,drive_input,:))])
+        cmax = max(cmat(i,drive_input,:));
+        if cmax > 0
+           xlim([-cmax cmax])
+        else
+            if cmax < 0
+                cmin = min(cmat(i,drive_input,:));
+                xlim([cmin cmax])
+            else
+                xlim([-10 10])
+            end
+        end
     end
     set(gca,'YTickLabel',[]);
     set(gca,'FontSize',12);
