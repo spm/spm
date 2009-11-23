@@ -1,11 +1,12 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 3513 $)
+% Job configuration created by cfg_util (rev $Rev: 3591 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg.menu_struct.conf_choice.type = 'cfg_choice';
 matlabbatch{1}.menu_cfg.menu_struct.conf_choice.name = 'BasicIO';
 matlabbatch{1}.menu_cfg.menu_struct.conf_choice.tag = 'cfg_basicio';
 %%
 matlabbatch{1}.menu_cfg.menu_struct.conf_choice.values = {
+                                                          '<UNDEFINED>'
                                                           '<UNDEFINED>'
                                                           '<UNDEFINED>'
                                                           '<UNDEFINED>'

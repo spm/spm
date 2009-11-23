@@ -21,9 +21,9 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 2101 2008-09-16 13:56:26Z volkmar $
+% $Id: initialise.m 3591 2009-11-23 10:19:57Z volkmar $
 
-rev = '$Rev: 2101 $'; %#ok
+rev = '$Rev: 3591 $'; %#ok
 
 if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
@@ -72,7 +72,7 @@ else
                 vtag = fieldnames(val);
                 val1 = cell(size(vtag));
                 for k = 1:numel(vtag)
-                    val1{k} = struct(vtag{k}, val.(vtag{k}));
+                    val1{k} = struct(vtag{k}, {val.(vtag{k})});
                 end;
                 val = val1;
             elseif iscell(val) && all(cellfun(@isstruct,val))

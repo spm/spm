@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 3567 $)
+% Job configuration created by cfg_util (rev $Rev: 3591 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg.menu_entry.conf_entry.type = 'cfg_entry';
 matlabbatch{1}.menu_cfg.menu_entry.conf_entry.name = 'Evaluated Input';
@@ -327,7 +327,7 @@ matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{3}(1).tgt_spec = {};
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{3}(1).sname = 'Entry: Function to be called (cfg_entry)';
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{3}(1).src_exbranch = substruct('.','val', '{}',{24}, '.','val', '{}',{1}, '.','val', '{}',{1});
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.val{3}(1).src_output = substruct('()',{1});
-matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.prog = @(job)cfg_call_matlab('run',job);
-matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.vout = @(job)cfg_call_matlab('vout',job);
+matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.prog = @(job)cfg_run_call_matlab('run',job);
+matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.vout = @(job)cfg_run_call_matlab('vout',job);
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.check = [];
 matlabbatch{25}.menu_cfg.menu_struct.conf_exbranch.help = {};

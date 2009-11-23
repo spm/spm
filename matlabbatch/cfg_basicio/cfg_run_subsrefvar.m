@@ -1,23 +1,24 @@
-function varargout = cfg_call_matlab(cmd, varargin)
-% A generic interface to call any MATLAB function through the batch system
-% and make its output arguments available as dependencies.
-% varargout = cfg_call_matlab(cmd, varargin)
+function varargout = cfg_run_subsrefvar(cmd, varargin)
+% Template function to implement callbacks for an cfg_exbranch. The calling
+% syntax is
+% varargout = cfg_run_subsrefvar(cmd, varargin)
 % where cmd is one of
-% 'run'      - out = cfg_call_matlab('run', job)
-%              Run the function, and return the specified output arguments
-% 'vout'     - dep = cfg_call_matlab('vout', job)
-%              Return dependencies as specified via the output cfg_repeat.
-% 'check'    - str = cfg_call_matlab('check', subcmd, subjob)
+% 'run'      - out = cfg_run_subsrefvar('run', job)
+%              Run a job, and return its output argument
+% 'vout'     - dep = cfg_run_subsrefvar('vout', job)
+%              Examine a job structure with all leafs present and return an
+%              array of cfg_dep objects.
+% 'check'    - str = cfg_run_subsrefvar('check', subcmd, subjob)
 %              Examine a part of a fully filled job structure. Return an empty
 %              string if everything is ok, or a string describing the check
 %              error. subcmd should be a string that identifies the part of
 %              the configuration to be checked.
-% 'defaults' - defval = cfg_call_matlab('defaults', key)
+% 'defaults' - defval = cfg_run_subsrefvar('defaults', key)
 %              Retrieve defaults value. key must be a sequence of dot
 %              delimited field names into the internal def struct which is
 %              kept in function local_def. An error is returned if no
 %              matching field is found.
-%              cfg_call_matlab('defaults', key, newval)
+%              cfg_run_subsrefvar('defaults', key, newval)
 %              Set the specified field in the internal def struct to a new
 %              value.
 % Application specific code needs to be inserted at the following places:
@@ -29,10 +30,10 @@ function varargout = cfg_call_matlab(cmd, varargin)
 % 'check'    - create and populate switch subcmd switchyard
 % 'defaults' - modify initialisation of defaults in subfunction local_defs
 % Callbacks can be constructed using anonymous function handles like this:
-% 'run'      - @(job)cfg_call_matlab('run', job)
-% 'vout'     - @(job)cfg_call_matlab('vout', job)
-% 'check'    - @(job)cfg_call_matlab('check', 'subcmd', job)
-% 'defaults' - @(val)cfg_call_matlab('defaults', 'defstr', val{:})
+% 'run'      - @(job)cfg_run_subsrefvar('run', job)
+% 'vout'     - @(job)cfg_run_subsrefvar('vout', job)
+% 'check'    - @(job)cfg_run_subsrefvar('check', 'subcmd', job)
+% 'defaults' - @(val)cfg_run_subsrefvar('defaults', 'defstr', val{:})
 %              Note the list expansion val{:} - this is used to emulate a
 %              varargin call in this function handle.
 %
@@ -43,43 +44,43 @@ function varargout = cfg_call_matlab(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_call_matlab.m 3513 2009-10-27 15:56:02Z volkmar $
+% $Id: cfg_run_subsrefvar.m 3591 2009-11-23 10:19:57Z volkmar $
 
-rev = '$Rev: 3513 $'; %#ok
+rev = '$Rev: 3591 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
         case 'run'
             job = local_getjob(varargin{1});
             % do computation, return results in variable out
-            in  = cell(size(job.inputs));
-            for k = 1:numel(in)
-                in{k} = job.inputs{k}.(char(fieldnames(job.inputs{k})));
-            end
-            out.outputs = cell(size(job.outputs));
-            [out.outputs{:}] = feval(job.fun, in{:});
-            % make sure output filenames are cellstr arrays, not char
-            % arrays
-            for k = 1:numel(out.outputs)
-                if isfield(job.outputs{k},'filter') && isa(out.outputs{k},'char')
-                    out.outputs{k} = cellstr(out.outputs{k});
+            for k = 1:numel(job.subsreference)
+                switch char(fieldnames(job.subsreference{k}))
+                    case 'subsfield'                        
+                        subs(k).type = '.';
+                        subs(k).subs = job.subsreference{k}.subsfield;
+                    case 'subsinda'
+                        subs(k).type = '()';
+                        subs(k).subs = job.subsreference{k}.subsinda;
+                    case 'subsindc'
+                        subs(k).type = '{}';
+                        subs(k).subs = job.subsreference{k}.subsindc;
+                        if any(cellfun(@(x)(isequal(x,':')||numel(x)>1), ...
+                                job.subsreference{k}.subsindc))
+                            cfg_message('cfg_basicio:subsrefvar', ...
+                                'Trying to access multiple cell elements - only returning first one.');
+                        end
                 end
             end
+            out.output = subsref(job.input, subs);
             if nargout > 0
                 varargout{1} = out;
             end
         case 'vout'
             job = local_getjob(varargin{1});
-            % initialise empty cfg_dep array
             dep = cfg_dep;
-            dep = dep(false);
-            % determine outputs, return cfg_dep array in variable dep
-            for k = 1:numel(job.outputs)
-                dep(k)            = cfg_dep;
-                dep(k).sname      = sprintf('Call MATLAB: output %d - %s %s', k, char(fieldnames(job.outputs{k})), char(fieldnames(job.outputs{k}.(char(fieldnames(job.outputs{k}))))));
-                dep(k).src_output = substruct('.','outputs','{}',{k});
-                dep(k).tgt_spec   = cfg_findspec({{'strtype','e', char(fieldnames(job.outputs{k})), job.outputs{k}.(char(fieldnames(job.outputs{k})))}});
-            end
+            dep.sname      = 'Referenced part of variable';
+            dep.src_output = substruct('.','output');
+            dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
             varargout{1} = dep;
         case 'check'
             if ischar(varargin{1})
@@ -88,6 +89,13 @@ if ischar(cmd)
                 str = '';
                 switch subcmd
                     % implement checks, return status string in variable str
+                    case 'subsind'
+                        if (ischar(subjob) && isequal(subjob, ':')) || ...
+                                (isnumeric(subjob) && isequal(subjob, round(subjob)) && all(subjob > 0))
+                            str = '';
+                        else
+                            str = 'Subscript index must be either a vector of natural numbers or the character '':''.';
+                        end
                     otherwise
                         cfg_message('unknown:check', ...
                             'Unknown check subcmd ''%s''.', subcmd);

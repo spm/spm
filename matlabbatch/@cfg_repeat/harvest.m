@@ -24,9 +24,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: harvest.m 3591 2009-11-23 10:19:57Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 3591 $'; %#ok
 
 typ = class(item);
 tag = gettag(item);
@@ -51,9 +51,11 @@ if numel(item.values)==1 && isa(item.values{1},'cfg_branch') && ~item.forcestruc
         njtsubs(1).type = '()';
     end;
 else
-    val = cell(size(citems));
     if ~dflag
+        val = cell(size(citems));
         njtsubs(1).type = '{}';
+    else
+        val = struct([]);
     end;
 end;
 for i=1:numel(citems),
@@ -79,7 +81,7 @@ for i=1:numel(citems),
             % instead of a cell array. This makes defaults easier to
             % read.
             if numel(item.values)>1 || item.forcestruct,
-                val.(ctag) = cval.(ctag);
+                val(1).(ctag) = cval.(ctag);
             else
                 val = {cval};
             end;
