@@ -47,7 +47,7 @@ function [F,pm] = spm_vb_roi_basis (VOI_fnames,SPM,bases,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 3590 2009-11-20 18:55:44Z guillaume $
+% $Id: spm_vb_roi_basis.m 3594 2009-11-24 16:28:48Z guillaume $
 
 % check input parameters
 %--------------------------------------------------------------------------
@@ -84,6 +84,7 @@ for p=1:nVOIs
     data_sess(p).Y=xY.y;
 end
 xyz  = xY.XYZmm;
+N    = size(xyz,2);
 xyz  = SPM.xVol.M\[xyz;ones(1,size(xyz,2))];
 xyz  = xyz(1:3,:);
 vxyz = spm_vb_neighbors(xyz',1);
