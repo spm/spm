@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_inv_results.m 3593 2009-11-24 09:09:59Z vladimir $
 
 % SPM data structure
 %==========================================================================
@@ -129,27 +129,29 @@ for i = 1:length(J)
             %--------------------------------------------------------------
             Nt    = length(c);
             for j = 1:Nt
-                fprintf('evaluating trial %i, condition %i\n',j,i)
+                fprintf( 'evaluating trial %i, condition %i\n',j,i)
                 try
                     
                     % unimodal data
                     %------------------------------------------------------
-                    Y     = U{k}*D(Ic,It,c(j))*scale;
+                    Y     = D(Ic{1},It,c(j))*TTW;
+                    Y     = U{1}*Y*scale;
                     
                 catch
                     
                     % multimodal data
                     %------------------------------------------------------
                     for k = 1:length(U)
-                        UY{k,1} = U{k}*D(Ic{k},It,c(j))*scale(k);
+                        Y       = D(Ic{k},It,c(j))*TTW;
+                        UY{k,1} = U{k}*Y*scale(k);
                     end
                     Y = spm_cat(UY);
                 end
                 
-                MYW   = M*Y*TTW;
+                MYW   = M*Y;
+                
                 JW{i} = JW{i} + MYW(:,1);
                 JWWJ  = JWWJ  + sum(MYW.^2,2);
-                
             end
 
             % conditional expectation of total energy (source space GW)
