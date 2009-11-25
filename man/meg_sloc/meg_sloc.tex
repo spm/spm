@@ -27,7 +27,7 @@ dipfreq =	[10 		10;... 	% dip 1
          	20 		20];      % dip 2
 \end{verbatim}
 
-That is, the two dipoles are currently set to be on (at 10 and 20Hz) during the faces condition and off during the amplitude condition.
+That is, the two dipoles are currently set to be on (at 10 and 20Hz) during the faces condition and off during the scrambled condition.
 
 You can run the script to create a new or modified dataset each time. If you run it with no changes, it will generate the dataset:
 \\
@@ -80,7 +80,7 @@ Often we will interested in the difference between conditions over a specific ti
 \end{center}
 \end{figure}
 
-\subsection{Smooth priors (COH}
+\subsection{Smooth priors (COH)}
 The COH option allows the mixture of two possible source covariance matrices: the minimum norm prior above and a much smoother source covariance matrix in which adjacent sources are correlated (over the scale of a few mm). Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{COH}. Under Time-window ``0-600''. For \texttt{PST Hanning} select \texttt{Yes}. For High-pass (Hz) select \texttt{1} for Low-pass (Hz) select \texttt{48}. Under \texttt{Restrict solutions} select \texttt{No}.   You will see a plot similar to Figure~\ref{meg_sloc:fig:5} appear. The lower panel shows the glass brain in which bilateral sources are apparent. The upper panel shows the time-series of the source with the largest amplitude. In this case the peak activation is identified at location 59,-32 13. The 10Hz time-course (associated with this source) is also clearly visible in the top panel.  Log evidence is 8211210.
 
 \begin{figure}
@@ -164,6 +164,7 @@ As you selected preview you will see an image similar to Figure~\ref{meg_sloc:fi
 Now to compare the beamformer images with some of our other reconstructions:
 
 You will find the volumetric images within the sub-directory \texttt{''tstatBf\_images}. You can use the \texttt{''checkReg} button to compare these images with other volumes (produced above using the \texttt{Window''/``Image} options. In Figure~\ref{meg_sloc:fig:12} the ARD and beamformer 0-600ms, 1-48Hz contrasts are shown alongside an anatomical image from the spm/templates directory.
+If you would like to observe the case where the beamformer breaks down due to correlated sources you could change the frequency of the two dipoles used in the simulation to be identical (e.g. dipfreq=[20 20;20 20]) and look at how the beamformer images  degrade, whereas the MSP schemes (COH,ARD etc) should be relatively unaffected.
 
 \begin{figure}
 \begin{center}
