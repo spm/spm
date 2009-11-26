@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 3599 2009-11-26 14:08:07Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 3599 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
@@ -42,6 +42,15 @@ cfg_defaults.cfg_ui.ExpertEdit = 'off';
 % execution incurs an overhead during job execution because the job
 % must be harvested more often.
 cfg_defaults.cfg_util.runparallel = false;
+% cfg_util('genscript',...) hook to add application specific initialisation
+% code to generated scripts. This must be a function handle that takes no
+% input arguments and returns two output arguments - the code to be
+% inserted as a string array, and a flag indicating whether cfg_util should
+% add job execution code (flag == true) or not (flag == false).
+% The generated code will be inserted after the for loop which collects the
+% input. In the generated code, variables 'jobs' and 'inputs' can be
+% referenced. These will hold the 
+cfg_defaults.cfg_util.genscript_run = [];
 
 % Message defaults
 cfg_defaults.msgdef.identifier  = 'cfg_defaults:defaultmessage';

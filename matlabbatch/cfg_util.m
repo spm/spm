@@ -381,9 +381,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3567 2009-11-13 14:55:48Z volkmar $
+% $Id: cfg_util.m 3599 2009-11-26 14:08:07Z volkmar $
 
-rev = '$Rev: 3567 $';
+rev = '$Rev: 3599 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -510,12 +510,21 @@ switch lower(cmd),
                 script{end+1} = sprintf('    inputs{%d, crun} = MATLAB_CODE_TO_FILL_INPUT; %% %s - %s', cmind, onames{cmind}, oclass{cmind});
             end
             script{end+1} = 'end';
-            script{end+1} = 'job_id = cfg_util(''initjob'', jobs);';
-            script{end+1} = 'sts    = cfg_util(''filljob'', job_id, inputs{:});';
-            script{end+1} = 'if sts';
-            script{end+1} = '    cfg_util(''run'', job_id);';
-            script{end+1} = 'end';
-            script{end+1} = 'cfg_util(''deljob'', job_id);';
+            genscript_run = cfg_get_defaults('cfg_util.genscript_run');
+            if ~isempty(genscript_run) && subsasgn_check_funhandle(genscript_run)
+                [s1 cont] = feval(genscript_run);
+                script = [script(:); s1(:)];
+            else
+                cont = true;
+            end
+            if cont
+                script{end+1} = 'job_id = cfg_util(''initjob'', jobs);';
+                script{end+1} = 'sts    = cfg_util(''filljob'', job_id, inputs{:});';
+                script{end+1} = 'if sts';
+                script{end+1} = '    cfg_util(''run'', job_id);';
+                script{end+1} = 'end';
+                script{end+1} = 'cfg_util(''deljob'', job_id);';
+            end
             fid = fopen(scriptfile, 'wt');
             fprintf(fid, '%s\n', script{:});
             fclose(fid);
