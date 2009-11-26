@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 3339 2009-08-28 19:14:37Z john $
+% $Id: spm_cfg_defs.m 3597 2009-11-26 10:41:44Z volkmar $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -106,7 +106,13 @@ sn2def.help  = hsn;
 img          = files('Image to base Id on','space','image',[1 1]);
 img.help     = himg;
 
-id           = branch('Identity','id',{img});
+id           = branch('Identity (Reference Image)','id',{img});
+id.help      = hid;
+
+voxid        = entry('Voxel sizes','vox','e',[1 3]);
+bbid         = entry('Bounding box','bb','e',[2 3]);
+
+idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
 id.help      = hid;
 
 ffield = files('Flow field','flowfield','nifti',[1 1]);
@@ -140,7 +146,7 @@ K.help = {...
 drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
 drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
-other = {sn2def,drtl,def,id};
+other = {sn2def,drtl,def,id,idbbvox};
 
 img          = files('Image to base inverse on','space','image',[1 1]);
 img.help     = himg;
@@ -244,13 +250,13 @@ return;
 
 function vo = vout(job)
 vo = [];
-if ~strcmp(job.ofname,'<UNDEFINED>') && ~isempty(job.ofname)
+if ~isempty(job.ofname) && ~isequal(job.ofname,'<UNDEFINED>') 
     vo            = cfg_dep;
     vo.sname      = 'Combined deformation';
     vo.src_output = substruct('.','def');
     vo.tgt_spec   = cfg_findspec({{'filter','image','filter','nifti'}});
 end
-if iscellstr(job.fnames) && ~isempty(job.fnames)
+if ~isempty(job.fnames) && ~isequal(job.fnames, {''})
     if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
     vo(end).sname      = 'Warped images';
     vo(end).src_output = substruct('.','warped');
