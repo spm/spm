@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 2663 2009-01-28 20:24:36Z karl $
+% $Id: spm_graph.m 3598 2009-11-26 11:48:59Z guillaume $
 
 
 
@@ -566,7 +566,7 @@ switch Cplot
         P     = Sess(s).U(u).P(p).P;
         q     = [];
         for i = 0:Sess(s).U(u).P(p).h;
-            q = [q spm_en(P).^i];
+            q = [q P.^i];
         end
         q     = spm_orth(q);
 
