@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 3597 2009-11-26 10:41:44Z volkmar $
+% $Id: spm_cfg_defs.m 3600 2009-11-26 14:12:49Z volkmar $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -106,13 +106,7 @@ sn2def.help  = hsn;
 img          = files('Image to base Id on','space','image',[1 1]);
 img.help     = himg;
 
-id           = branch('Identity (Reference Image)','id',{img});
-id.help      = hid;
-
-voxid        = entry('Voxel sizes','vox','e',[1 3]);
-bbid         = entry('Bounding box','bb','e',[2 3]);
-
-idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
+id           = branch('Identity','id',{img});
 id.help      = hid;
 
 ffield = files('Flow field','flowfield','nifti',[1 1]);
@@ -146,7 +140,7 @@ K.help = {...
 drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
 drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
-other = {sn2def,drtl,def,id,idbbvox};
+other = {sn2def,drtl,def,id};
 
 img          = files('Image to base inverse on','space','image',[1 1]);
 img.help     = himg;
