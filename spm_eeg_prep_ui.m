@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 3192 2009-06-09 08:29:22Z vladimir $
+% $Id: spm_eeg_prep_ui.m 3601 2009-11-27 18:20:31Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 3192 $';
+SVNrev = '$Rev: 3601 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -469,9 +469,11 @@ shape = fileio_read_headshape(S.headshapefile);
 lblshape = shape.fid.label;
 
 fid = fiducials(S.D);
-lblfid = fid.fid.label;
 
-S.regfid = match_fiducials(lblshape, lblfid);
+if ~isempty(fid)
+    lblfid = fid.fid.label;
+    S.regfid = match_fiducials(lblshape, lblfid);
+end
 
 D = spm_eeg_prep(S);
 
