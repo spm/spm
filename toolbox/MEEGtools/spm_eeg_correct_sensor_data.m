@@ -1,14 +1,14 @@
 function D = spm_eeg_correct_sensor_data(S)
-% Function for extracting source data using dipoles.
+% Function for removing artefacts from the data based on their topography
 % FORMAT D = spm_eeg_correct_sensor_data(S)
 %
 % S                    - input structure (optional)
 % (optional) fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.method
-%
+%   S.method           - 'SSP' - simple projection
+%                      - 'Berg' - the method of Berg (see the reference below)
 % Output:
-% sD                   - MEEG object (also written on disk)
+% D                   - MEEG object (also written on disk)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3429 2009-09-29 09:41:36Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 3602 2009-11-30 13:38:48Z vladimir $
 
-SVNrev = '$Rev: 3429 $';
+SVNrev = '$Rev: 3602 $';
 
 %-Startup
 %--------------------------------------------------------------------------
