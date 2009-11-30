@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3543 2009-11-09 09:40:46Z maria $
+% $Id: spm_dcm_bma.m 3603 2009-11-30 18:56:50Z guillaume $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -212,35 +212,35 @@ else
 end
 
 % Pre-allocate sample arrays
-Np=length(spm_vec(params(1).model(1).Ep));
-theta_all=zeros(Np,Nsub);
+Np = length(spm_vec(params(1).model(1).Ep));
+theta_all = zeros(Np,Nsub);
 
 disp('')
 disp('Averaging models in Occams window...')
-for i=1:Nsamp,
+for i=1:Nsamp
     % Pick a model
     if ~rfx
-        m=spm_multrnd(post,1);
+        m = spm_multrnd(post,1);
     end
     % Pick parameters from model for each subject
-    for n=1:Nsub,
+    for n=1:Nsub
         if rfx
-            m=spm_multrnd(renorm(n).post,1);
+            m = spm_multrnd(renorm(n).post,1);
         end
-        mu=params(n).model(m).Ep;
-        mu=spm_vec(mu);
-        sig=params(n).model(m).Cp;
-        dsig=params(n).model(m).dCp;
-        vsig=params(n).model(m).vCp;
-        tmp=spm_samp_gauss (mu,sig,1,dsig,vsig)';
-        theta_all(:,n)=tmp(:);
+        mu   = params(n).model(m).Ep;
+        mu   = spm_vec(mu);
+        sig  = params(n).model(m).Cp;
+        dsig = params(n).model(m).dCp;
+        vsig = params(n).model(m).vCp;
+        tmp  = spm_samp_gauss(mu,{dsig,vsig},1);
+        theta_all(:,n) = tmp(:);
     end
     
     % Average over subjects
     if Nsub>1
-        theta(:,i)=mean(theta_all,2);
+        theta(:,i) = mean(theta_all,2);
     else
-        theta(:,i)=theta_all;
+        theta(:,i) = theta_all;
     end
 end
 
