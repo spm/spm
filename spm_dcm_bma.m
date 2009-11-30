@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3603 2009-11-30 18:56:50Z guillaume $
+% $Id: spm_dcm_bma.m 3604 2009-11-30 19:05:20Z guillaume $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -232,7 +232,7 @@ for i=1:Nsamp
         sig  = params(n).model(m).Cp;
         dsig = params(n).model(m).dCp;
         vsig = params(n).model(m).vCp;
-        tmp  = spm_samp_gauss(mu,{dsig,vsig},1);
+        tmp  = spm_normrnd(mu,{dsig,vsig},1);
         theta_all(:,n) = tmp(:);
     end
     
