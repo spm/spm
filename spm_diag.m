@@ -7,7 +7,7 @@ function D = spm_diag(varargin)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_diag.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_diag.m 3605 2009-12-01 13:29:43Z karl $
 
 try
     X = varargin{1};
@@ -31,7 +31,7 @@ else
     % return the cell array whose K-th diagonal is X
     %----------------------------------------------------------------------
     if any([m n] == 1)
-        D  = cell(max(m,n)+abs(K));
+        D  = cell(max(m,n) + abs(K));
         D(logical(diag(ones(1,max(m,n)),K))) = X;
 
     % return the K-th diagonal of X

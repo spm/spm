@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3593 2009-11-24 09:09:59Z vladimir $
+% $Id: spm_eeg_invert.m 3605 2009-12-01 13:29:43Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -373,23 +373,27 @@ for i = 1:Nl
  
     % get temporal covariance (Y'*Y) to find temporal modes
     %======================================================================
-    YTY   = sparse(0);
+    Ay    = cell(Nmod,1);                            % modality-specifc
+    YTY   = sparse(0);                               % accumulator
     for m = 1:Nmod                                   % loop over modalities
  
         % get (spatially aligned) data
         %------------------------------------------------------------------
         YY    = 0;
+        Ay{m} = 0;
         for j = 1:Nt(i)                              % pool over conditions
             c     = D{i}.pickconditions(trial{j});   % and trials
             for k = 1:length(c)
-                y  = A{i,m}*squeeze(D{i}(Ic{i,m},It{i},c(k)));
-                YY = YY + y'*y;
+                y     = A{i,m}*D{i}(Ic{i,m},It{i},c(k));
+                Ay{m} = Ay{m} + y;
+                YY    = YY + y'*y;
             end
         end
- 
+        
         % Scale data (in case fusing multiple modalities)
         %------------------------------------------------------------------
-        scale(i,m) = 1/sqrt(trace(YY)/Nm(m));
+        scale(i,m) = sign(trace(Ay{m}'*(UL{m}*UL{1}')*Ay{1}));
+        scale(i,m) = scale(i,m)/sqrt(trace(YY)/Nm(m));
         YTY        = YTY + YY*(scale(i,m)^2);
         
     end
@@ -428,13 +432,13 @@ for i = 1:Nl
  
             % stack (scaled aligned data) over modalities
             %--------------------------------------------------------------
-            Ay    = cell(Nmod,1);
+            Ay    = cell(Nmod,1);                % modality accumulator
             for m = 1:Nmod
-                y       = squeeze(D{i}(Ic{i,m},It{i},c(k)))*S{i};
+                y       = D{i}(Ic{i,m},It{i},c(k))*S{i};
                 Ay{m}   = A{i,m}*y*scale(i,m);
             end
             Ay          = spm_cat(Ay)/length(c); % contribution to ERP
-            AyyA        = Ay*Ay'/length(c);      % and covariance
+            AyyA        = Ay*Ay';                % and covariance
             Nn(i)       = Nn(i) + Nr(i);         % number of samples
  
             % accumulate first & second-order statistics (subject-specific)

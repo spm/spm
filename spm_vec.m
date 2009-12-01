@@ -11,13 +11,14 @@ function [vX] = spm_vec(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_vec.m 3554 2009-11-11 15:11:04Z guillaume $
+% $Id: spm_vec.m 3605 2009-12-01 13:29:43Z karl $
 
 % initialise X and vX
 %--------------------------------------------------------------------------
-X     = varargin;
-if length(X) == 1
-    X = X{1};
+if nargin == 1
+    X = varargin{1};
+else
+    X = varargin;
 end
 vX    = [];
 

@@ -53,7 +53,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3547 2009-11-09 18:29:59Z guillaume $
+% $Id: spm_int.m 3605 2009-12-01 13:29:43Z karl $
  
  
 % convert U to U.u if necessary
@@ -147,7 +147,8 @@ for  i = 1:length(T)
     %----------------------------------------------------------------------
     else
         if isfield(M,'g')
-            y(:,s(i))  = feval(g,x([1:n] + 1),u,P,M);
+            q          = spm_unvec(x([1:n] + 1),M.x);
+            y(:,s(i))  = spm_vec(feval(g,q,u,P,M));
         else
             y(:,s(i))  = L*x;
         end

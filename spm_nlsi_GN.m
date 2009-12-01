@@ -78,7 +78,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 3518 2009-10-29 15:16:13Z guillaume $
+% $Id: spm_nlsi_GN.m 3605 2009-12-01 13:29:43Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -215,8 +215,8 @@ end
 V     = spm_svd(pC,exp(-32));
 nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
-ip    = [1:np];
-iu    = [1:nu] + np;
+ip    = [1:np]';
+iu    = [1:nu]' + np;
  
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
