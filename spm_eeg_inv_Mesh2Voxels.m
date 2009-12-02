@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3018 2009-03-31 17:27:02Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3607 2009-12-02 10:50:32Z guillaume $
  
 % checks
 %--------------------------------------------------------------------------
@@ -126,12 +126,17 @@ for c = 1:length(GW)
     
     Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f.nii',NAME,val,c));
     Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f.nii',NAME,val,c));
+    
+    Vout           = struct(...
+        'fname',     Outputfilename,...
+        'dim',       Vin.dim,...
+        'dt',        [spm_type('float32') spm_platform('bigend')],...
+        'mat',       Vin.mat,...
+        'pinfo',     [1 0 0]',...
+        'descrip',   '');
+    
     InterpOp       = [teta alpha beta];
     SPvalues       = zeros(nf*np,1);
-    Vout           = Vin;
-    Vout           = rmfield(Vout,'pinfo');
-    Vout.fname     = Outputfilename;
-    Vout.dt(1)     = spm_type('int16');
     RECimage       = zeros(Vout.dim);
  
     % And interpolate those values into voxels
