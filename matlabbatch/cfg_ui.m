@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3567 2009-11-13 14:55:48Z volkmar $
+% $Id: cfg_ui.m 3610 2009-12-03 13:18:26Z volkmar $
 
-rev = '$Rev: 3567 $'; %#ok
+rev = '$Rev: 3610 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1116,6 +1116,7 @@ if strcmpi(cmd,'continue')
             errordlg(l.message,'Error loading job', 'modal');
         end    
         set(handles.modlist, 'userdata', udmodlist);
+        set(handles.module, 'userdata', []);
         local_showjob(hObject);
         local_pointer('arrow');
     end;
