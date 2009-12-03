@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3602 2009-11-30 13:38:48Z vladimir $
+% $Id: spm_MEEGtools.m 3608 2009-12-03 11:49:46Z vladimir $
 
 
 funlist = {
@@ -23,6 +23,7 @@ funlist = {
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
+    'Fieldtrip multitaper power map', 'spm_eeg_ft_multitaper_powermap'
     'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'
     'FMRIB Detect ECG peaks',   'spm_eeg_fmrib_qrsdetect'     
     'Detect eyeblinks',  'spm_eeg_detect_eyeblinks'
