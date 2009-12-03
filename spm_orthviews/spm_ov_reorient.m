@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 2536 2008-12-08 14:14:20Z volkmar $
+% $Id: spm_ov_reorient.m 3609 2009-12-03 13:16:14Z volkmar $
 
-rev = '$Revision: 2536 $';
+rev = '$Revision: 3609 $';
 
 global st;
 if isempty(st)
@@ -50,7 +50,7 @@ switch cmd
             'Tag', ['REORIENT_1_', num2str(volhandle)], ...
             'Visible', 'off');
         item5 = uimenu(item0, 'Label', 'Help', 'Callback', ...
-            sprintf('spm_help(''%s '');', mfilename));
+            sprintf('spm_help(''%s'');', mfilename));
         ret = item0;
 
     case 'context_init'
@@ -194,7 +194,7 @@ switch cmd
     case 'apply'
         [p n e v] = fileparts(st.vols{volhandle}.fname);
         P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, '', p));
-        if ~isempty(P) || isempty(P{1})
+        if ~isempty(P) && ~isempty(P{1})
             spm_progress_bar('Init', numel(P), 'Reorient', 'Images completed');
             for k = 1:numel(P)
                 M = spm_get_space(P{k});
