@@ -6,7 +6,6 @@ function Dtf = spm_eeg_ft_multitaper_powermap(S)
 % S           - input structure (optional)
 % (optional) fields of S:
 %   S.D       - filename, or M/EEG object
-%   S.timewin  - time window in ms
 %   S.freqwin  - frequency window (Hz)
 %   S.freqres  - frequency resolution (Hz)
 %   S.log      - compute log of power (1 - yes, 0- no)
@@ -23,10 +22,10 @@ function Dtf = spm_eeg_ft_multitaper_powermap(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_powermap.m 3611 2009-12-03 13:20:12Z vladimir $
+% $Id: spm_eeg_ft_multitaper_powermap.m 3612 2009-12-03 23:45:55Z vladimir $
  
 %%
-SVNrev = '$Rev: 3611 $';
+SVNrev = '$Rev: 3612 $';
 
 %-Startup
 %--------------------------------------------------------------------------

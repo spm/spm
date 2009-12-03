@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3570 2009-11-13 16:12:28Z vladimir $
+% $Id: spm_eeg_convert2images.m 3612 2009-12-03 23:45:55Z vladimir $
 
-SVNrev = '$Rev: 3570 $';
+SVNrev = '$Rev: 3612 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -183,7 +183,8 @@ if strncmpi(D.transformtype, 'TF',2)
 
                     if ~isempty(strmatch('MEG', D.chantype(images.channels_of_interest))) &&...
                             isempty(strmatch('fT', D.units(images.channels_of_interest))) && ...
-                            isempty(strmatch('dB', D.units(images.channels_of_interest)))
+                            isempty(strmatch('dB', D.units(images.channels_of_interest))) && ...
+                            isempty(strmatch('%', D.units(images.channels_of_interest)))
                         scale = 1e30;
                     else
                         scale = 1;
