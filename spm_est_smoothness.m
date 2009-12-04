@@ -52,7 +52,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3057 2009-04-09 06:26:50Z volkmar $
+% $Id: spm_est_smoothness.m 3613 2009-12-04 18:47:59Z guillaume $
 
 
 %-Assign input arguments
@@ -133,8 +133,8 @@ for i = 1:length(V) % for all residual images
     
     [d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
     
-    if N >= 1. v(:, 1) = v(:, 1) + dx.^2;  end
-    if N >= 2. v(:, 2) = v(:, 2) + dy.^2;  end
+    if N >= 1, v(:, 1) = v(:, 1) + dx.^2;  end
+    if N >= 2, v(:, 2) = v(:, 2) + dy.^2;  end
     if N >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
 
     ssq  = ssq + d.^2;
