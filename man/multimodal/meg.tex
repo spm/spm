@@ -140,9 +140,9 @@ The power spectra for each trial-type can be displayed using the usual Display b
 \end{center}
 \end{figure}
 
-We can also look at evidence of phase-locking of ongoing oscillatory activity by averaging the phase angle information. This time, we do not take the straight (arithmetic) mean, since the data are phase angles, and this average is not  meaningful. Instead we calculate their vector mean (when converting the angles to vectors in Argand space). This corresponds to a ``Phase-Locking Value'' (PLV) which lies between 0 for no phase-locking across trials and 1 for perfect phase-locking.
+We can also look at evidence of phase-locking of ongoing oscillatory activity by averaging the phase angle information. We compute the vector mean (by converting the angles to vectors in Argand space), which yelds  complex numbers. We can generate two kinds of images from these numbers. The first is an image of the angles, which shows the mean phase of the oscillation (relative to the trial onset) at each time point. The second is an image of the absolute values (also called ``Phase-Locking Value'', PLV) which lie between 0 for no phase-locking across trials and 1 for perfect phase-locking.
 
-Press the \textsc{Averaging} button and select the \texttt{tf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. This time you will be prompted for either a straight or a vector average, for which you should select ``Vector (PLV)''. The \matlab\ window will echo:
+Press the \textsc{Averaging} button and select the \texttt{tf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. This time you will be prompted for either ``angle'' or ``abs(PLV)'' average, for which you should select ``abs(PLV)''. The \matlab\ window will echo:
 
 \begin{verbatim}
   mtf2_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat: Number of replications per contrast:

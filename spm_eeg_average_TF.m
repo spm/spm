@@ -22,9 +22,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3466 2009-10-15 10:52:57Z vladimir $
+% $Id: spm_eeg_average_TF.m 3616 2009-12-08 15:16:39Z vladimir $
 
-SVNrev = '$Rev: 3466 $';
+SVNrev = '$Rev: 3616 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -54,14 +54,14 @@ end
 %-Get other parameters
 %--------------------------------------------------------------------------
 try
-    circularise = S.circularise;
+    plv = S.circularise;
 catch
-    circularise = 0;
+    plv = 0;
     if strcmp(D.transformtype, 'TFphase')
-        circularise = spm_input('Average of phase angles?','+1', ...
-            'straight|vector(PLV)',[0 1], 1);
+        plv = spm_input('Average of phase angles?','+1', ...
+            'angle|abs(PLV)',[0 1], 1);
     end
-    S.circularise = circularise;
+    S.circularise = plv;
 end
 
 
@@ -146,7 +146,7 @@ for j = 1:D.nchannels
         
         %-Straight average
         %------------------------------------------------------------------
-        if ~circularise
+        if ~strcmp(D.transformtype, 'TFphase')
             if ~robust
                 Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
             else
@@ -169,7 +169,11 @@ for j = 1:D.nchannels
         else
             tmp = D(j, :, :, w);
             tmp = exp(sqrt(-1)*tmp);
-            Dnew(j, :, :, i) = abs(mean(tmp,4));
+            if plv
+                Dnew(j, :, :, i) = abs(mean(tmp,4));
+            else
+                Dnew(j, :, :, i) = angle(mean(tmp,4));
+            end
         end
     end
     spm_progress_bar('Set', j);
