@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3584 2009-11-19 15:11:36Z rik $
+% $Id: spm_eeg_inv_custom_ui.m 3618 2009-12-08 16:05:15Z vladimir $
  
 % defaults from D is specified
 %==========================================================================
@@ -99,6 +99,9 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     % Source space restictions
     %----------------------------------------------------------------------
     if spm_input('Restrict solutions','+1','no|yes',[0 1],1)
+        
+        warndlg(['Please note that model comparison of restricted solutions is presently not valid. ' ...
+            'The problem is known and it will be fixed in future releases.']);
 
         [P, sts] = spm_select(1, 'mat', 'Select source (n x 3) location file');
         if sts

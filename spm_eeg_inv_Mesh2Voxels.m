@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3607 2009-12-02 10:50:32Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3618 2009-12-08 16:05:15Z vladimir $
  
 % checks
 %--------------------------------------------------------------------------
@@ -38,14 +38,6 @@ try
 catch
     Disp = 0;
 end
- 
-% Scale to grand mean power (%)
-%--------------------------------------------------------------------------
-GW       = spm_vec(D.inv{val}.contrast.GW);
-scale    = 1/mean(GW);
-GW       = spm_unvec(GW*scale,D.inv{val}.contrast.GW);
-D.inv{val}.contrast.scalefactor = scale;
-
  
 % smoothing FWHM (mm)
 %--------------------------------------------------------------------------
@@ -113,12 +105,23 @@ GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 % sampling point of the triangles (cycle over conditions)
 %==========================================================================
 [PTH,NAME,EXT] = fileparts(D.fname);
-for c = 1:length(GW)
+
+GW = D.inv{val}.contrast.GW;
+
+for c = 1:length(GW)   
+    
+    Contrast = GW{c};
+    
+    % Scale to total power (%)
+    %--------------------------------------------------------------------------
+    Contrast = spm_vec(Contrast);
+    scale    = 1/mean(Contrast);
+    Contrast = spm_unvec(Contrast*scale, GW{c});
+    D.inv{val}.contrast.scalefactor(c) = scale;
     
     
     % Smooth on the cortical surface
     %----------------------------------------------------------------------
-    Contrast = GW{c};
     Contrast = sparse(D.inv{val}.inverse.Is,1,Contrast,nd,1);
     for i = 1:32
         Contrast = GL*Contrast;
