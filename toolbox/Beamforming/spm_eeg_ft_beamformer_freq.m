@@ -11,7 +11,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3500 2009-10-22 13:57:33Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3615 2009-12-08 09:49:29Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -100,15 +100,19 @@ sens = forwinv_transform_sens(M1, sens);
 
 clb = D.condlist;
 
-if numel(clb) > 1
-
-    [selection, ok]= listdlg('ListString', clb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
-    
-    if ~ok
-        return;
-    end        
+if ~isfield(S, 'conditions')
+    if numel(clb) > 1
+        
+        [selection, ok]= listdlg('ListString', clb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
+        
+        if ~ok
+            return;
+        end
+    else
+        selection = 1;
+    end
 else
-    selection = 1;
+    selection = find(ismember(clb, S.conditions));
 end
 %%
 ind = [];
@@ -116,6 +120,11 @@ condvec = [];
 for i = 1:length(selection)
     ind = [ind D.pickconditions(clb(selection(i)))];
     condvec = [condvec selection(i)*ones(size(D.pickconditions(clb(selection(i)))))];
+end
+%%
+if isempty(ind)
+    warning('No valid trials found');
+    return;
 end
 %%
 data = D.ftraw(0); 
@@ -163,6 +172,10 @@ end
 %%
 if ~isfield(S, 'lambda')
     S.lambda = [num2str(spm_input('Regularization (%):', '+1', 'r', '0')) '%'];
+end
+
+if ~isfield(S, 'gridres')
+    S.gridres = spm_input('Grid resolution (mm)', '+1', 'r', '10');
 end
 
 if ~isfield(S, 'preview')
@@ -216,10 +229,10 @@ end
 cfg.channel = D.chanlabels(D.meegchannels(modality));
 cfg.vol                   = vol;
 
-cfg.grid.xgrid = -90:10:90;
-cfg.grid.ygrid = -120:10:100;
-cfg.grid.zgrid = -70:10:110;
-cfg.inwardshift = 0;
+cfg.grid.xgrid = -90:S.gridres:90;
+cfg.grid.ygrid = -120:S.gridres:100;
+cfg.grid.zgrid = -70:S.gridres:110;
+cfg.inwardshift = -10;
 grid            = ft_prepare_leadfield(cfg);          
  
 
@@ -271,7 +284,8 @@ cfg.grid.filter  = filtsource.avg.filter; % use the filter computed in the previ
 
 sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
 
-if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
+if (isfield(S, 'preview') && S.preview) || ~isempty(refchan) ||...
+      (isfield(S, 'singleimage') && S.singleimage)  
     for i = 1:numel(freq)
         source{i}   = ft_sourceanalysis(cfg, freq{i});
     end
@@ -305,7 +319,7 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan)
         ft_sourceplot(cfg1,sourceint);
     end
     
-    if ~isempty(refchan)
+    if ~isempty(refchan) || (isfield(S, 'singleimage') && S.singleimage)  
         res = mkdir(D.path, 'images');
         outvol = spm_vol(sMRI);        
         outvol.dt(1) = spm_type('float32');
