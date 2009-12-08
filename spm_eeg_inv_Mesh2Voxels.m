@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3618 2009-12-08 16:05:15Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3619 2009-12-08 16:13:44Z vladimir $
  
 % checks
 %--------------------------------------------------------------------------
@@ -112,7 +112,7 @@ for c = 1:length(GW)
     
     Contrast = GW{c};
     
-    % Scale to total power (%)
+    % Scale to mean power (%)
     %--------------------------------------------------------------------------
     Contrast = spm_vec(Contrast);
     scale    = 1/mean(Contrast);
