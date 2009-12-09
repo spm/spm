@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3592 2009-11-23 10:34:06Z maria $
+% $Id: spm_run_bms_dcm.m 3624 2009-12-09 11:07:38Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -37,11 +37,6 @@ if strcmp(job.method,'FFX');
     method = 'FFX';
 else
     method = 'RFX';
-    if strcmp(job.method,'RFX')
-        str_meth = 'VB';
-    else
-        str_meth = 'Gibbs';
-    end 
 end
 
 % check DCM.mat files and BMA 
@@ -69,19 +64,19 @@ if bma_do
     n  = size(DCM.a,2);
     m  = size(DCM.c,2);
     mi = size(DCM.c,2);
-    bma.nsamp       = str2num(job.bma.bma_yes.bma_nsamp);
-    bma.odds_ratio  = str2num(job.bma.bma_yes.bma_ratio);
+    bma.nsamp       = 1e4;
+    bma.odds_ratio  = 1/20;
     bma.a           = zeros(n,n,bma.nsamp);
     bma.b           = zeros(n,n,m,bma.nsamp);
     bma.c           = zeros(n,mi,bma.nsamp);
     
-    if isfield(job.bma.bma_yes.bma_set,'bma_famwin')
+    if isfield(job.bma.bma_yes,'bma_famwin')
         do_bma_famwin = 1;
     else
-        if isfield(job.bma.bma_yes.bma_set,'bma_all')
+        if isfield(job.bma.bma_yes,'bma_all')
             do_bma_all = 1;
         else
-            bma_fam    = double(job.bma.bma_yes.bma_set.bma_part);
+            bma_fam    = double(job.bma.bma_yes.bma_part);
         end
     end
 else
@@ -96,6 +91,7 @@ end
 
 F = [];
 N = {};
+nonLin = 0;
 
 % prepare the data
 % -------------------------------------------------------------------------
@@ -173,6 +169,12 @@ else
                         subj(k).sess(h).model(j).F          = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep         = DCM.DCM.Ep;
                         subj(k).sess(h).model(j).Cp         = DCM.DCM.Cp;
+                        subj(k).sess(h).model(j).nonLin     = 0;
+                        
+                        if isfield(DCM.DCM,'D')
+                           subj(k).sess(h).model(j).nonLin  = 1;
+                           nonLin = 1;
+                        end
                         
                     else
                         
@@ -346,10 +348,15 @@ if strcmp(method,'FFX');
        % reshape parameters
        % ------------------------------------------------------------------
        for i = 1:bma.nsamp,
-           [A,B,C]        = spm_dcm_reshape(theta(:,i),m,n,1);
-           bma.a(:,:,i)   = A(:,:);
-           bma.b(:,:,:,i) = B(:,:,:);
-           bma.c(:,:,i)   = C(:,:);
+           if nonLin
+             [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
+             bma.d(:,:,:,i)  = D(:,:,:);
+           else           
+             [A,B,C]         = spm_dcm_reshape(theta(:,i),m,n,1);
+           end
+             bma.a(:,:,i)    = A(:,:);
+             bma.b(:,:,:,i)  = B(:,:,:);
+             bma.c(:,:,i)    = C(:,:);
        end
        
     else
@@ -386,16 +393,11 @@ if strcmp(method,'FFX');
 % -------------------------------------------------------------------------
 else   
     
-    disp(sprintf('Computing RFX model/family posteriors (using %s method)...', str_meth));
+    disp('Computing RFX model/family posteriors...');
     if ~do_family
-        if strcmp(str_meth,'VB')
-            [alpha,exp_r,xp] = spm_BMS(F, 1e6, 0);
-            model.g_post     = exp_r;
-        else
-            [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
-            model.g_post             = g_post;
-            alpha                    = [];
-        end
+        [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
+        model.g_post             = g_post;
+        alpha                    = [];
         model.alpha = alpha;
         model.exp_r = exp_r;
         model.xp    = xp;
@@ -448,10 +450,15 @@ else
        % reshape parameters
        % ------------------------------------------------------------------
        for i = 1:bma.nsamp,
-           [A,B,C]     = spm_dcm_reshape(theta(:,i),m,n,1);
-           bma.a(:,:,i)   = A(:,:);
-           bma.b(:,:,:,i) = B(:,:,:);
-           bma.c(:,:,i)   = C(:,:);
+           if nonLin
+             [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
+             bma.d(:,:,:,i)  = D(:,:,:);
+           else           
+             [A,B,C]         = spm_dcm_reshape(theta(:,i),m,n,1);
+           end
+             bma.a(:,:,i)    = A(:,:);
+             bma.b(:,:,:,i)  = B(:,:,:);
+             bma.c(:,:,i)    = C(:,:);
        end
 
     else

@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3604 2009-11-30 19:05:20Z guillaume $
+% $Id: spm_dcm_bma.m 3624 2009-12-09 11:07:38Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -39,11 +39,6 @@ Nses=length(subj(1).sess);
 load(subj(1).sess(1).model(1).fname);
 nreg = DCM.n;
 m    = DCM.M.m;
-if isfield(DCM,'D')
-    nonLin = 1;
-else
-    nonLin = 0;
-end
 
 theta=[];
 
@@ -79,6 +74,12 @@ if rfx
         for kk=1:Nocc(i),
             
             sel=post_indx(post_ind{i}(kk));
+                 
+            if ~exist('max_Ep_length','var')
+                max_Ep_length = length(subj(i).sess(1).model(sel).Ep);
+            elseif (max_Ep_length<length(subj(i).sess(1).model(sel).Ep))
+                max_Ep_length = length(subj(i).sess(1).model(sel).Ep);
+            end
             
             params(i).model(kk).Ep=subj(i).sess(1).model(sel).Ep;
             params(i).model(kk).Cp=full(subj(i).sess(1).model(sel).Cp);
@@ -95,12 +96,12 @@ if rfx
                     pCdiag = diag(sess_model.Cp);
                     wsel   = find(~(pCdiag==0));
                     
-                    if nonLin
+                    if subj(i).sess(ss).model(sel).nonLin
                        % but keep the D values if present !
                        npABC = n*n + n*n*m + n*m + 1 ; % nr of parameters in A,B,C+1
                        cwsel = wsel; cwsel(max(find(wsel<=npABC))+(1:6*n))=[];
                     else
-                    cwsel = wsel(1:end-6*nreg);
+                       cwsel = wsel(1:end-6*nreg);
                     end
 
                     % Get posterior precision matrix from model
@@ -155,7 +156,13 @@ else
     for n=1:Nsub,
         for kk=1:Nocc,
             sel=post_indx(post_ind(kk));
-           
+            
+            if ~exist('max_Ep_length','var')
+                max_Ep_length = length(subj(n).sess(1).model(sel).Ep);
+            elseif (max_Ep_length<length(subj(n).sess(1).model(sel).Ep))
+                max_Ep_length = length(subj(n).sess(1).model(sel).Ep);
+            end
+            
             params(n).model(kk).Ep=subj(n).sess(1).model(sel).Ep;
             params(n).model(kk).Cp=full(subj(n).sess(1).model(sel).Cp);
               
@@ -171,7 +178,7 @@ else
                     pCdiag = diag(sess_model.Cp);
                     wsel   = find(~(pCdiag==0));
                     
-                    if nonLin
+                    if subj(n).sess(ss).model(sel).nonLin
                        % but keep the D values if present !
                        npABC = n*n + n*n*m + n*m + 1 ; % nr of parameters in A,B,C+1
                        cwsel = wsel; cwsel(max(find(wsel<=npABC))+(1:6*n))=[];
@@ -212,7 +219,8 @@ else
 end
 
 % Pre-allocate sample arrays
-Np = length(spm_vec(params(1).model(1).Ep));
+%Np = length(spm_vec(params(1).model(1).Ep));
+Np = max_Ep_length;
 theta_all = zeros(Np,Nsub);
 
 disp('')
@@ -227,13 +235,22 @@ for i=1:Nsamp
         if rfx
             m = spm_multrnd(renorm(n).post,1);
         end
-        mu   = params(n).model(m).Ep;
-        mu   = spm_vec(mu);
-        sig  = params(n).model(m).Cp;
-        dsig = params(n).model(m).dCp;
-        vsig = params(n).model(m).vCp;
-        tmp  = spm_normrnd(mu,{dsig,vsig},1);
-        theta_all(:,n) = tmp(:);
+        
+        mu                    = params(n).model(m).Ep;
+        mu(end:max_Ep_length) = 0;        
+        mu                    = spm_vec(mu);
+        
+        dim1                  = size(params(n).model(m).dCp);
+        dsig                  = zeros(max_Ep_length,1);
+        dsig(1:dim1,1)        = params(n).model(m).dCp;
+        
+        [dim1,dim2]           = size(params(n).model(m).vCp);
+        vsig                  = zeros(max_Ep_length,max_Ep_length);
+        vsig(1:dim1,1:dim2)   = params(n).model(m).vCp;
+           
+        tmp                   = spm_normrnd(mu,{dsig,vsig},1);
+        theta_all(:,n)        = tmp(:);
+        
     end
     
     % Average over subjects

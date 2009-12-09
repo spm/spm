@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3592 2009-11-23 10:34:06Z maria $
+% $Id: spm_cfg_bms.m 3624 2009-12-09 11:07:38Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -174,19 +174,32 @@ method.tag     = 'method';
 method.name    = 'Inference method';
 method.help    = {['Specify inference method: random effects '...
                    '(2nd-level, RFX) or fixed effects (1st-level, FFX) analysis. '...
-                   '(RFX) VB - uses a Variational Bayes approach and is recommended '...
-                   'when the number of subjects exceeds the number of models. '...
-                   '(RFX) Gibbs - uses Gibbs sampling and should be used if the number '...
-                   'of subjects is smaller than the number of models.']};
+                   'RFX uses Gibbs sampling.']};
 method.labels  = {
                   'Fixed effects (FFX)'
-                  'Random effects (RFX) - VB'
-                  'Random effects (RFX) - Gibbs'
+                  'Random effects (RFX)'
 }';
 method.values  = {
                   'FFX'
                   'RFX'
-                  'RFX-Gibbs'
+}'; 
+
+% ---------------------------------------------------------------------
+% method_maps Inference Method (maps)
+% ---------------------------------------------------------------------
+method_maps         = cfg_menu;
+method_maps.tag     = 'method_maps';
+method_maps.name    = 'Inference method';
+method_maps.help    = {['Specify inference method: random effects '...
+                   '(2nd-level, RFX) or fixed effects (1st-level, FFX) analysis. '...
+                   'RFX uses a Variational Bayes approach.']};
+method_maps.labels  = {
+                  'Fixed effects (FFX)'
+                  'Random effects (RFX)'
+}';
+method_maps.values  = {
+                  'FFX'
+                  'RFX'
 }'; 
 
 % ---------------------------------------------------------------------
@@ -194,7 +207,7 @@ method.values  = {
 % ---------------------------------------------------------------------
 priors         = cfg_menu;
 priors.tag     = 'priors';
-priors.name    = 'Priors (Family)';
+priors.name    = 'Priors';
 priors.help    = {['Specify priors for family-level inference (RFX only). '...
                    'Options: ''Family'' sets alpha0=1 for each family '...
                    'while ''Model'' sets alpha0=1 for each model (not '...
@@ -287,7 +300,7 @@ family_level.values  = {family_file select_family };
 % ---------------------------------------------------------------------
 family_menu         = cfg_branch;
 family_menu.tag     = 'family_menu';
-family_menu.name    = 'Family level inference';
+family_menu.name    = 'Family inference';
 family_menu.help    = {['Family level inference (optional). Leave fields '...
                         'empty if not interested in comparing families of '...
                         'models.']};
@@ -298,7 +311,7 @@ family_menu.val     = {family_level priors };
 % ---------------------------------------------------------------------
 bma_part         = cfg_entry;
 bma_part.tag     = 'bma_part';
-bma_part.name    = 'Choose family';
+bma_part.name    = 'Enter family';
 bma_part.help    = {['Specify family (integer). E.g. ''2'' for the second '...
                     'family to use in BMA. ']};
 bma_part.strtype = 'e';
@@ -323,42 +336,6 @@ bma_famwin.val     = {'fanwin'};
 bma_famwin.help    = {'Use winning family for Bayesian Model Averaging (BMA).'}';
 
 % ---------------------------------------------------------------------
-% bma_set BMA set
-% ---------------------------------------------------------------------
-bma_set         = cfg_choice;
-bma_set.tag     = 'bma_set';
-bma_set.name    = 'Family';
-bma_set.help    = {['Specify family for Bayesian Model Averaging (BMA). '...
-                    'Options: ''winning family'', ''choose family'' or '...
-                    '''all families''.']};
-bma_set.val     = {bma_famwin };
-bma_set.values  = {bma_famwin bma_part bma_all };
-
-% ---------------------------------------------------------------------
-% bma_ratio Odds ratio
-% ---------------------------------------------------------------------
-bma_ratio         = cfg_entry;
-bma_ratio.tag     = 'bma_ratio';
-bma_ratio.name    = 'Odds ratio';
-bma_ratio.help    = {['Specify odds ratio. Posterior odds ratio for '...
-                     'defining Occam''s window (default=0, ie all models '...
-                     ' used in average).']};
-bma_ratio.strtype = 's';
-bma_ratio.num     = [0 Inf];
-bma_ratio.val     = {'0'};
-
-% ---------------------------------------------------------------------
-% bma_nsamp Nb. of Samples
-% ---------------------------------------------------------------------
-bma_nsamp         = cfg_entry;
-bma_nsamp.tag     = 'bma_nsamp';
-bma_nsamp.name    = 'Number of samples';
-bma_nsamp.help    = {'Specify number of samples (default = 1e3).'};
-bma_nsamp.strtype = 's';
-bma_nsamp.num     = [0 Inf];
-bma_nsamp.val     = {'1e3'};
-
-% ---------------------------------------------------------------------
 % bma_no no
 % ---------------------------------------------------------------------
 bma_no         = cfg_const;
@@ -368,21 +345,23 @@ bma_no.val     = {0};
 bma_no.help    = {'Do not compute Bayesian Model Averaging (BMA).'}';
 
 % ---------------------------------------------------------------------
-% bma_yes yes
+% bma_yes BMA set
 % ---------------------------------------------------------------------
-bma_yes         = cfg_branch;
+bma_yes         = cfg_choice;
 bma_yes.tag     = 'bma_yes';
-bma_yes.name    = 'Choose parameters';
-bma_yes.val     = {bma_nsamp bma_ratio bma_set };
-bma_yes.help    = {['Compute Bayesian Model Averaging (BMA). '...
-                    'Only available for DCM for fMRI!']}';
+bma_yes.name    = 'Choose family';
+bma_yes.help    = {['Specify family for Bayesian Model Averaging (BMA). '...
+                    'Options: ''winning family'', ''choose family'' or '...
+                    '''all families''.']};
+bma_yes.val     = {bma_famwin };
+bma_yes.values  = {bma_famwin bma_all bma_part };
 
 % ---------------------------------------------------------------------
 % bma BMA
 % ---------------------------------------------------------------------
 bma         = cfg_choice;
 bma.tag     = 'bma';
-bma.name    = 'BMA (fMRI)';
+bma.name    = 'BMA';
 bma.help    = {['Optional field to compute Bayesian Model Averaging (BMA). '...
                 'Only available for DCM for fMRI!']};
 bma.val     = {bma_no };
@@ -596,7 +575,7 @@ bms_dcm_vis.prog = @spm_run_bms_dcm_vis;
 bms_map_inf      = cfg_exbranch;
 bms_map_inf.tag  = 'bms_map_inf';
 bms_map_inf.name = 'BMS: Maps';
-bms_map_inf.val  = {dir map name_mod method out_file mask nsamp };
+bms_map_inf.val  = {dir map name_mod method_maps out_file mask nsamp };
 bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps. '...
     ''...
     ['Input: log-evidence maps (.img) for each model, session and '...

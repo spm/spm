@@ -43,7 +43,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 3543 2009-11-09 09:40:46Z maria $
+% $Id: spm_run_bms_map.m 3624 2009-12-09 11:07:38Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -68,16 +68,10 @@ names     = job.mod_name;
 
 % method
 % -------------------------------------------------------------------------
-if strcmp(job.method,'FFX');
+if strcmp(job.method_maps,'FFX');
     method = 'FFX';
 else
     method = 'RFX';
-    if strcmp(job.method,'RFX')
-        do_vb = 1;
-    else
-        do_vb    = 0;
-        do_alpha = 0;
-    end
 end
 
 % Name models
@@ -379,11 +373,7 @@ for z = 1:zdim,
                         lme = z_models(:,:,non_nan(n));
                         
                         % Group BMS
-                        if do_vb
-                            [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
-                        else
-                            [exp_r,xp]       = spm_BMS_Gibbs(lme);
-                        end
+                        [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
                             
                         exp_r_total(n,:)              = exp_r;  % Cond. Expecta.
                         if do_ecp, xp_total(n,:)      = xp; end % Exceeda. Prob.
