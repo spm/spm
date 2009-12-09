@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3573 2009-11-16 17:12:06Z volkmar $
+% $Id: cfg_getfile.m 3621 2009-12-09 08:11:17Z volkmar $
 
 t = {};
 sts = false;
@@ -1237,12 +1237,13 @@ if ~isequal(str, dstr)
             str = dstr;
     end
 end
-[p n e v] = cellfun(@fileparts, str, 'uniformoutput',false);
-fstr = strcat(n, e, v);
 filt = getfilt(ob);
-[fstr1 fsel] = do_filter(fstr, filt.ext);
-str = str(fsel);
-
+if filt.code >= 0 % filter files, but not dirs
+    [p n e v] = cellfun(@fileparts, str, 'uniformoutput',false);
+    fstr = strcat(n, e, v);
+    [fstr1 fsel] = do_filter(fstr, filt.ext);
+    str = str(fsel);
+end
 lim = get(sib(ob,'files'),'UserData');
 if numel(str)>lim(2),
     msg(ob,['Retained ' num2str(lim(2)) ' of the ' num2str(numel(str)) ' files.']);
