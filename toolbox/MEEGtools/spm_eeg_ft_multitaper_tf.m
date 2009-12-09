@@ -26,10 +26,10 @@ function Dtf = spm_eeg_ft_multitaper_tf(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_tf.m 3205 2009-06-16 10:15:00Z vladimir $
+% $Id: spm_eeg_ft_multitaper_tf.m 3623 2009-12-09 09:40:36Z vladimir $
  
 %%
-SVNrev = '$Rev: 3205 $';
+SVNrev = '$Rev: 3623 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -145,6 +145,8 @@ cfg.tapsmofrq(cfg.foi>50)                = 5;
 % window will overlap a segment with no data and you will get NaNs in the
 % output. The same idea at the end.
 cfg.toi=(prestim+(timewin/2)):step:(poststim-(timewin/2)-1/data.fsample); % Time axis
+
+cfg.toi = cfg.toi((cfg.toi-(timewin/2)>=D.time(1)) & (cfg.toi+timewin/2+1/data.fsample)<=D.time(end));
 
 freq = ft_freqanalysis(cfg, data);
 
