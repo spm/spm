@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3628 2009-12-10 10:51:46Z maria $
+% $Id: spm_dcm_bma_results.m 3629 2009-12-10 11:06:55Z maria $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
@@ -54,7 +54,7 @@ if isfield(BMS.DCM,method)
                     cmat  = BMS.DCM.ffx.bma.c;
                     if isfield(BMS.DCM.ffx.bma,'d')
                         dmat = BMS.DCM.ffx.bma.d;
-                        mod_reg = spm_input('Select modulating region ? ',1,'r',[],1);
+                        mod_reg = spm_input('Select modulating region ? ','+1','r',[],1);
                         nonLin = 1;
                     end
                     
@@ -73,7 +73,7 @@ if isfield(BMS.DCM,method)
                     cmat = BMS.DCM.rfx.bma.c;
                     if isfield(BMS.DCM.rfx.bma,'d')
                        dmat = BMS.DCM.rfx.bma.d;
-                       mod_reg   = spm_input('Select modulating region ? ',1,'r',[],1);
+                       mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1);
                        nonLin = 1;
                     end
                     
@@ -137,12 +137,10 @@ set(F,'userdata',usd);
 clf(F);
 
 if nonLin
-    labels = {'a: intrinsic connections','b: intrinsic connections',...
-        'c: intrinsic connections','d: intrinsic connections'};
+    labels = {'a: int.','b: mod.','c: inp.', 'd: non.'};
     callbacks = {@plot_a,@plot_b,@plot_c,@plot_d};
 else
-    labels = {'a: int.','b: mod.',...
-        'c: inp.'};
+    labels = {'a: int.','b: mod.','c: inp.'};
     callbacks = {@plot_a,@plot_b,@plot_c};
 end
 
@@ -297,9 +295,14 @@ function plot_d()
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
 
+hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+if ~isempty(hc)
+    delete(hc)
+end
+
 titlewin = 'BMA: non-linear connections (d)';
-hTitAx = axes('Parent',hf,'Position',[0.02 0.92 0.86 0.02],...
-    'Visible','off');
+hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+    'Visible','off','tag','VBLaplace');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
