@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3624 2009-12-09 11:07:38Z maria $
+% $Id: spm_run_bms_dcm.m 3628 2009-12-10 10:51:46Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -173,7 +173,8 @@ else
                         
                         if isfield(DCM.DCM,'D')
                            subj(k).sess(h).model(j).nonLin  = 1;
-                           nonLin = 1;
+                           nonLin   = 1;
+                           nPnonLin = length(DCM.DCM.Ep);
                         end
                         
                     else
@@ -347,8 +348,9 @@ if strcmp(method,'FFX');
 
        % reshape parameters
        % ------------------------------------------------------------------
+       disp('Reshaping parameters ...');
        for i = 1:bma.nsamp,
-           if nonLin
+           if (nonLin && size(theta,1)==nPnonLin)
              [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
              bma.d(:,:,:,i)  = D(:,:,:);
            else           
@@ -358,7 +360,12 @@ if strcmp(method,'FFX');
              bma.b(:,:,:,i)  = B(:,:,:);
              bma.c(:,:,i)    = C(:,:);
        end
-       
+       bma.ma = mean(bma.a,3);
+       bma.mb = mean(bma.b,4);
+       bma.mc = mean(bma.c,3);
+       if (nonLin && size(theta,1)==nPnonLin)
+           bma.md = mean(bma.d,4);
+       end
     else
         
         bma = [];
@@ -449,8 +456,9 @@ else
        
        % reshape parameters
        % ------------------------------------------------------------------
+       disp('Reshaping parameters ...');
        for i = 1:bma.nsamp,
-           if nonLin
+           if (nonLin && size(theta,1)==nPnonLin)
              [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
              bma.d(:,:,:,i)  = D(:,:,:);
            else           
@@ -459,6 +467,12 @@ else
              bma.a(:,:,i)    = A(:,:);
              bma.b(:,:,:,i)  = B(:,:,:);
              bma.c(:,:,i)    = C(:,:);
+       end
+       bma.ma = mean(bma.a,3);
+       bma.mb = mean(bma.b,4);
+       bma.mc = mean(bma.c,3);
+       if (nonLin && size(theta,1)==nPnonLin)
+           bma.md = mean(bma.d,4);
        end
 
     else

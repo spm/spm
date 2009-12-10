@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3592 2009-11-23 10:34:06Z maria $
+% $Id: spm_dcm_bma_results.m 3628 2009-12-10 10:51:46Z maria $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
@@ -39,6 +39,7 @@ end
 %--------------------------------------------------------------------------
 load(fname)
 
+nonLin = 0;
 % select method
 %--------------------------------------------------------------------------
 if isfield(BMS.DCM,method)
@@ -51,6 +52,11 @@ if isfield(BMS.DCM,method)
                     amat  = BMS.DCM.ffx.bma.a;
                     bmat  = BMS.DCM.ffx.bma.b;
                     cmat  = BMS.DCM.ffx.bma.c;
+                    if isfield(BMS.DCM.ffx.bma,'d')
+                        dmat = BMS.DCM.ffx.bma.d;
+                        mod_reg = spm_input('Select modulating region ? ',1,'r',[],1);
+                        nonLin = 1;
+                    end
                     
                 end
                 disp('Loading model space...')
@@ -65,6 +71,11 @@ if isfield(BMS.DCM,method)
                     amat = BMS.DCM.rfx.bma.a;
                     bmat = BMS.DCM.rfx.bma.b;
                     cmat = BMS.DCM.rfx.bma.c;
+                    if isfield(BMS.DCM.rfx.bma,'d')
+                       dmat = BMS.DCM.rfx.bma.d;
+                       mod_reg   = spm_input('Select modulating region ? ',1,'r',[],1);
+                       nonLin = 1;
+                    end
                     
                 end
                 disp('Loading model space...')
@@ -105,28 +116,82 @@ bins = Nsamp/100;
 F  = spm_figure('GetWin','Graphics','BMA: results');
 FS = spm('FontSizes');
 
-figure(F);
+usd.amat        = amat;
+usd.bmat        = bmat;
+usd.cmat        = cmat;
+if nonLin
+    usd.dmat    = dmat;
+    usd.mod_reg = drive_input;
+end
+usd.region      = region;
+usd.n           = n;
+usd.m           = m;
+usd.ni          = mi;
+usd.FS          = FS;
+usd.drive_input = drive_input;
+usd.mod_input   = mod_input;
+usd.bins        = bins;
+usd.Nsamp       = Nsamp;
+
+set(F,'userdata',usd);
+clf(F);
+
+if nonLin
+    labels = {'a: intrinsic connections','b: intrinsic connections',...
+        'c: intrinsic connections','d: intrinsic connections'};
+    callbacks = {@plot_a,@plot_b,@plot_c,@plot_d};
+else
+    labels = {'a: int.','b: mod.',...
+        'c: inp.'};
+    callbacks = {@plot_a,@plot_b,@plot_c};
+end
+
+[handles] = spm_uitab(F,labels,callbacks,'BMA_parameters',1);
+
+set(handles.htab,'backgroundcolor',[1 1 1])
+set(handles.hh,'backgroundcolor',[1 1 1])
+set(handles.hp,'HighlightColor',0.8*[1 1 1])
+set(handles.hp,'backgroundcolor',[1 1 1])
+
+feval(@plot_a,F)
+
+end
+
+function plot_a(F)
+
+try
+    F;
+catch
+    F = get(gco,'parent');
+end
+
+hc = intersect(findobj('tag','VBLaplace'),get(F,'children'));
+if ~isempty(hc)
+    delete(hc)
+end
+
+ud = get(F,'userdata');
 
 titlewin = 'BMA: intrinsic connections (a)';
-hTitAx = axes('Parent',F,'Position',[0.02 0.97 0.86 0.02],...
-        'Visible','off');
+hTitAx = axes('Parent',F,'Position',[0.2,0.04,0.6,0.02],...
+    'Visible','off','tag','VBLaplace');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
-        'VerticalAlignment','baseline','FontWeight','Bold','FontSize',FS(12))
+    'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:n,
-    for j=1:n,
-        k=(i-1)*n+j;
-        subplot(n,n,k);
+for i=1:ud.n,
+    for j=1:ud.n,
+        k=(i-1)*ud.n+j;
+        subplot(ud.n,ud.n,k);
         if (i==j)
             axis off
         else
-            hist(amat(i,j,:),bins,'r');
-            amax = max(amat(i,j,:));
+            hist(ud.amat(i,j,:),ud.bins,'r');
+            amax = max(ud.amat(i,j,:));
             if amax > 0
                 xlim([-amax amax])
             else
                 if amax < 0
-                   amin = min(amat(i,j,:));
+                   amin = min(ud.amat(i,j,:));
                    xlim([amin amax])
                 else
                     xlim([-10 10])
@@ -134,37 +199,43 @@ for i=1:n,
             end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
-            title(sprintf('%s to %s',region(j).name,region(i).name));
+            title(sprintf('%s to %s',ud.region(j).name,ud.region(i).name));
         end
     end
 end
 
-% modulatory connections density
-%--------------------------------------------------------------------------
-F = spm_figure('CreateWin','Graphics','BMA: results');
+end
 
-figure(F);
+function plot_b()
+
+hf = get(gco,'parent');
+ud = get(hf,'userdata');
+
+hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+if ~isempty(hc)
+    delete(hc)
+end
 
 titlewin = 'BMA: modulatory connections (b)';
-hTitAx = axes('Parent',F,'Position',[0.02 0.97 0.86 0.02],...
-        'Visible','off');
+hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+    'Visible','off','tag','VBLaplace');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
-        'VerticalAlignment','baseline','FontWeight','Bold','FontSize',FS(12))
+    'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:n,
-    for j=1:n,
-        k=(i-1)*n+j;
-        subplot(n,n,k);
+for i=1:ud.n,
+    for j=1:ud.n,
+        k=(i-1)*ud.n+j;
+        subplot(ud.n,ud.n,k);
         if (i==j)
             axis off
         else
-            hist(bmat(i,j,mod_input,:),bins,'r');
-            bmax = max(bmat(i,j,mod_input,:));
+            hist(ud.bmat(i,j,ud.mod_input,:),ud.bins,'r');
+            bmax = max(ud.bmat(i,j,ud.mod_input,:));
             if bmax > 0
                 xlim([-bmax bmax])
             else
                 if bmax < 0
-                   bmin = min(bmat(i,j,mod_input,:));
+                   bmin = min(ud.bmat(i,j,ud.mod_input,:));
                    xlim([bmin bmax])
                 else
                     xlim([-10 10])
@@ -172,33 +243,42 @@ for i=1:n,
             end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
-            title(sprintf('%s to %s',region(j).name,region(i).name));
+            title(sprintf('%s to %s',ud.region(j).name,ud.region(i).name));
         end
     end
 end
 
-% input connection density
-%--------------------------------------------------------------------------
-F = spm_figure('CreateWin','Graphics','BMA: results');
+
+end
+
+function plot_c()
+
+hf = get(gco,'parent');
+ud = get(hf,'userdata');
+
+hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+if ~isempty(hc)
+    delete(hc)
+end
 
 titlewin = 'BMA: input connections (c)';
-hTitAx = axes('Parent',F,'Position',[0.02 0.97 0.86 0.02],...
-        'Visible','off');
+hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+    'Visible','off','tag','VBLaplace');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
-        'VerticalAlignment','baseline','FontWeight','Bold','FontSize',FS(12))
+    'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:n,
-    subplot(1,n,i);
-    if length(find(cmat(i,drive_input,:)==0))==Nsamp
+for j=1:ud.n,
+    subplot(1,ud.n,j);
+    if length(find(ud.cmat(j,ud.drive_input,:)==0))==ud.Nsamp
         plot([0 0],[0 1],'k');
     else
-        hist(cmat(i,drive_input,:),bins,'r');
-        cmax = max(cmat(i,drive_input,:));
+        hist(ud.cmat(j,ud.drive_input,:),ud.bins,'r');
+        cmax = max(ud.cmat(j,ud.drive_input,:));
         if cmax > 0
            xlim([-cmax cmax])
         else
             if cmax < 0
-                cmin = min(cmat(i,drive_input,:));
+                cmin = min(ud.cmat(j,ud.drive_input,:));
                 xlim([cmin cmax])
             else
                 xlim([-10 10])
@@ -207,5 +287,46 @@ for i=1:n,
     end
     set(gca,'YTickLabel',[]);
     set(gca,'FontSize',12);
-    title(sprintf('%s ',region(i).name));
+    title(sprintf('%s ',ud.region(j).name));
+end
+
+end
+
+function plot_d()
+
+hf = get(gco,'parent');
+ud = get(hf,'userdata');
+
+titlewin = 'BMA: non-linear connections (d)';
+hTitAx = axes('Parent',hf,'Position',[0.02 0.92 0.86 0.02],...
+    'Visible','off');
+text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
+    'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
+
+for i=1:ud.n,
+    for j=1:ud.n,
+        k=(i-1)*ud.n+j;
+        subplot(ud.n,ud.n,k);
+        if (i==j)
+            axis off
+        else
+            hist(ud.bmat(i,j,ud.mod_input,:),ud.bins,'r');
+            bmax = max(ud.dmat(i,j,ud.mod_input,:));
+            if bmax > 0
+                xlim([-bmax bmax])
+            else
+                if bmax < 0
+                   bmin = min(ud.dmat(i,j,ud.mod_reg,:));
+                   xlim([bmin bmax])
+                else
+                    xlim([-10 10])
+                end
+            end
+            set(gca,'YTickLabel',[]);
+            set(gca,'FontSize',12);
+            title(sprintf('%s to %s',ud.region(j).name,ud.region(i).name));
+        end
+    end
+end
+
 end

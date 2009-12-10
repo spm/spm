@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3624 2009-12-09 11:07:38Z maria $
+% $Id: spm_dcm_bma.m 3628 2009-12-10 10:51:46Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -219,7 +219,6 @@ else
 end
 
 % Pre-allocate sample arrays
-%Np = length(spm_vec(params(1).model(1).Ep));
 Np = max_Ep_length;
 theta_all = zeros(Np,Nsub);
 
