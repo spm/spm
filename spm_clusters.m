@@ -1,9 +1,9 @@
 function A = spm_clusters(L)
 % Return the cluster index for a point list
 % FORMAT [A] = spm_clusters(L)
-% L     - locations [x y x]' {in voxels}
+% L     - locations [x y x]' {in voxels} ([3 x m] matrix)
 %
-% A     - cluster index or region number
+% A     - cluster index or region number ([1 x m] vector)
 %__________________________________________________________________________
 %
 % spm_clusters characterizes a point list of voxel values defined with
@@ -14,7 +14,7 @@ function A = spm_clusters(L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_clusters.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_clusters.m 3630 2009-12-10 16:51:08Z guillaume $
 
 
 if isempty(L), A = []; return; end
@@ -36,4 +36,5 @@ vol(indx) = 1;
 
 % Map back to list
 %--------------------------------------------------------------------------
-A = cci(indx');
+A = cci(indx);
+A = A(:)';
