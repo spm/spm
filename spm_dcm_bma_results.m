@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3632 2009-12-11 09:58:31Z maria $
+% $Id: spm_dcm_bma_results.m 3636 2009-12-11 14:31:26Z maria $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
@@ -113,7 +113,8 @@ bins = Nsamp/100;
 
 % intrinsic connection density
 %--------------------------------------------------------------------------
-F  = spm_figure('GetWin','Graphics','BMA: results');
+F  = spm_figure('GetWin','Graphics');
+set(F,'name','BMA: results');
 FS = spm('FontSizes');
 
 usd.amat        = amat;

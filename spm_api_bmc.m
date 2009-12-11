@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3632 2009-12-11 09:58:31Z maria $
+% $Id: spm_api_bmc.m 3636 2009-12-11 14:31:26Z maria $
 
 if isempty(xp)
     inf_method = 'FFX';
@@ -43,53 +43,58 @@ switch inf_method
         
         figure(Fgraph);
         
-        if ~plot_family
-            
-            %-Compute conditional probability of DCMs under flat priors.
-            %------------------------------------------------------------------
-            F    = F - min(F);
-            i    = F < (max(F) - 32);
-            P    = F;
-            P(i) = max(F) - 32;
-            P    = P - min(P);
-            P    = exp(P);
-            P    = P/sum(P);
-            
-            %-Display results
-            %------------------------------------------------------------------
-            subplot(2,1,1)
-            bar(1:nm,F)
-            set(gca,'XTick',1:nm)
-            set(gca,'XTickLabel',1:nm)
-            ylabel('Log-evidence (relative)','Fontsize',14)
-            xlabel('Models','Fontsize',14)
-            title({'Bayesian Model Selection'},'Fontsize',14)
-            axis square
-            grid on
-            
-            subplot(2,1,2)
-            bar(1:nm,P)
-            set(gca,'XTick',1:nm)
-            set(gca,'XTickLabel',1:nm)
-            ylabel('Model Posterior Probability','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
-            xlabel('Models','Fontsize',14)
-            axis square
-            grid on
-            
-            out = P;
-            
-        else
+        %-Compute conditional probability of DCMs under flat priors.
+        %------------------------------------------------------------------
+        F    = F - min(F);
+        i    = F < (max(F) - 32);
+        P    = F;
+        P(i) = max(F) - 32;
+        P    = P - min(P);
+        P    = exp(P);
+        P    = P/sum(P);
+        
+        %-Display results
+        %------------------------------------------------------------------
+        subplot(2,1,1)
+        bar(1:nm,F)
+        set(gca,'XTick',1:nm)
+        set(gca,'XTickLabel',1:nm)
+        ylabel('Log-evidence (relative)','Fontsize',14)
+        xlabel('Models','Fontsize',14)
+        title({'Bayesian Model Selection'},'Fontsize',14)
+        axis square
+        grid on
+        
+        subplot(2,1,2)
+        bar(1:nm,P)
+        set(gca,'XTick',1:nm)
+        set(gca,'XTickLabel',1:nm)
+        ylabel('Model Posterior Probability','Fontsize',14)
+        title('Bayesian Model Selection','Fontsize',14)
+        xlabel('Models','Fontsize',14)
+        axis square
+        grid on
+        
+        out = P;
+        
+        if plot_family
             
             %-Display results - families
             %--------------------------------------------------------------
+            F  = spm_figure('CreateWin','Graphics','BMS: results');
+            figure(F);
             
             Nfam = length(family.post);
             subplot(2,1,1)
-            bar(1:Nfam,family.like)
+            
+            maxfam = max(family.like);
+            orderm = floor(log10(maxfam));
+            family.like = family.like./10^orderm;
+            
+            bar(1:Nfam,family.like)        
             set(gca,'XTick',1:Nfam)
             set(gca,'XTickLabel',family.names)
-            ylabel('Log-evidence (relative)','Fontsize',14)
+            ylabel(sprintf('Log-evidence (relative) *10e%d',orderm),'Fontsize',14)
             xlabel('Families','Fontsize',14)
             title('Bayesian Model Selection','Fontsize',14)
             axis square
@@ -114,33 +119,37 @@ switch inf_method
     %======================================================================
     case ('RFX')
 
-        if ~plot_family
-            %-Display results
-            %------------------------------------------------------------------
-            subplot(2,1,1)
-            bar(1:length(N),exp_r)
-            set(gca,'XTick',1:length(N))
-            set(gca,'XTickLabel',1:nm)
-            ylabel('Model Expected Probability','Fontsize',14)
-            xlabel('Models','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
-            axis square
-            grid on
+
+        %-Display results
+        %------------------------------------------------------------------
+        subplot(2,1,1)
+        bar(1:length(N),exp_r)
+        set(gca,'XTick',1:length(N))
+        set(gca,'XTickLabel',1:nm)
+        ylabel('Model Expected Probability','Fontsize',14)
+        xlabel('Models','Fontsize',14)
+        title('Bayesian Model Selection','Fontsize',14)
+        axis square
+        grid on
+        
+        subplot(2,1,2)
+        bar(1:length(N),xp')
+        set(gca,'XTick',1:length(N))
+        set(gca,'XTickLabel',1:nm)
+        ylabel('Model Exceedance Probability','Fontsize',14)
+        xlabel('Models','Fontsize',14)
+        title('Bayesian Model Selection','Fontsize',14)
+        axis square
+        grid on
+        
+        out = [];
+        
+        if plot_family
             
-            subplot(2,1,2)
-            bar(1:length(N),xp')
-            set(gca,'XTick',1:length(N))
-            set(gca,'XTickLabel',1:nm)
-            ylabel('Model Exceedance Probability','Fontsize',14)
-            xlabel('Models','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
-            axis square
-            grid on
-            
-            out = [];
-            
-        else
-            
+            %-Display results - families
+            %--------------------------------------------------------------
+            F  = spm_figure('CreateWin','Graphics','BMS: results');
+            figure(F);
             
             %-Display results - families
             %------------------------------------------------------------------
