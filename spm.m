@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3574 2009-11-17 11:59:54Z guillaume $
+% $Id: spm.m 3634 2009-12-11 12:30:09Z john $
 
 
 %=======================================================================
@@ -301,15 +301,20 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
-set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
-set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
-set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
-RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
-set(Fwelcome,'Units','pixels', 'Position',...
-    [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
-set(Fwelcome,'Visible','on');
-
+%-Root workspace
+Rect = get(0, 'MonitorPosition');
+if all(ismember(Rect(:),[0 1]))
+    warning('SPM:noDisplay','Unable to open display.');
+else
+    Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
+    set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+    set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
+    set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
+    RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
+    set(Fwelcome,'Units','pixels', 'Position',...
+        [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
+    set(Fwelcome,'Visible','on');
+end
 %=======================================================================
 case 'asciiwelcome'                           %-ASCII SPM banner welcome
 %=======================================================================
@@ -326,7 +331,7 @@ case lower(Modalities)       %-Initialise SPM in PET, fMRI, EEG modality
 %=======================================================================
 % spm(Modality)
 spm_check_installation('basic');
-try, feature('JavaFigures',0); end
+try feature('JavaFigures',0); end
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
@@ -474,7 +479,7 @@ end
 if ischar(Modality)
     ModNum = find(ismember(Modalities,Modality));
 else
-    if ~any(Modality == [1:length(Modalities)])
+    if ~any(Modality == 1:length(Modalities))
         Modality = 'ERROR';
         ModNum   = [];
     else
@@ -492,6 +497,13 @@ case 'createmenuwin'                            %-Create SPM menu window
 %=======================================================================
 % Fmenu = spm('CreateMenuWin',Vis)
 %-----------------------------------------------------------------------
+Rect = get(0, 'MonitorPosition');
+if all(ismember(Rect(:),[0 1]))
+    warning('SPM:noDisplay','Unable to open display.');
+    varargout = {[]};
+    return
+end
+
 if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Menu' 'Tag'ged windows
@@ -531,6 +543,13 @@ case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
 %-----------------------------------------------------------------------
+Rect = get(0, 'MonitorPosition');
+if all(ismember(Rect(:),[0 1]))
+    warning('SPM:noDisplay','Unable to open display.');
+    varargout = {[]};
+    return
+end
+
 if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Interactive' 'Tag'ged windows
@@ -604,7 +623,7 @@ case {'fontsize','fontsizes','fontscale'}                 %-Font scaling
 % [FS,sf] = spm('FontSizes',FS)
 % sf = spm('FontScale')
 %-----------------------------------------------------------------------
-if nargin<2, FS=[1:36]; else FS=varargin{2}; end
+if nargin<2, FS=1:36; else FS=varargin{2}; end
 
 offset     = 1;
 try
