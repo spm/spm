@@ -1,7 +1,9 @@
-function [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit)
+function [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit,freq_prior)
 % Prior moments of DCM for phase coupling
-% FORMAT [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit)
+% FORMAT [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit,freq_prior)
 %
+% freq_prior   Priors on frequency: 'hard_freq' (default),'soft_freq'
+% 
 % Fields of DCM:
 %
 % As,Bs{m},Ac,Bc{m} - binary constraints (first two mandatory)
@@ -21,8 +23,12 @@ function [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_phase_priors.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_phase_priors.m 3637 2009-12-11 16:40:15Z will $
  
+if nargin < 4 | isempty(freq_prior)
+    freq_prior='hard_freq';
+end
+
 As=DCM.As;
 Bs=DCM.Bs;
 
@@ -61,7 +67,17 @@ end
 
 % Frequency priors
 E.df=zeros(n,1);
-V.df=1e-6*ones(n,1);
+switch freq_prior
+    case 'hard_freq',
+        V.df=1e-6*ones(n,1);
+    case 'soft_freq',
+        new_df=(DCM.options.Fdcm(2)-DCM.options.Fdcm(1))/2;
+        new_sig=new_df/3;
+        V.df=new_sig*ones(n,1);
+    otherwise
+        disp('Unknown prior on frequencies');
+        return
+end
 
 % input-dependent
 %--------------------------------------------------------------------------
