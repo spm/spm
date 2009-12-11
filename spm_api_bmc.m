@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3555 2009-11-11 16:24:44Z maria $
+% $Id: spm_api_bmc.m 3632 2009-12-11 09:58:31Z maria $
 
 if isempty(xp)
     inf_method = 'FFX';
@@ -32,6 +32,7 @@ end
 nm = length(N);
 
 Fgraph  = spm_figure('GetWin','Graphics','BMS: results');
+clf(Fgraph);
 
 switch inf_method
 
@@ -41,49 +42,60 @@ switch inf_method
     case ('FFX')
         
         figure(Fgraph);
-        %-Compute conditional probability of DCMs under flat priors.
-        %------------------------------------------------------------------
-        F    = F - min(F);
-        i    = F < (max(F) - 32);
-        P    = F;
-        P(i) = max(F) - 32;
-        P    = P - min(P);
-        P    = exp(P);
-        P    = P/sum(P);
-
-        %-Display results
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        bar(1:nm,F)
-        set(gca,'XTick',1:nm)
-        set(gca,'XTickLabel',1:nm)
-        ylabel('Log-evidence (relative)','Fontsize',14)
-        xlabel('Models','Fontsize',14)
-        title({'Bayesian Model Selection'},'Fontsize',14)
-        axis square
-        grid on
         
-        subplot(2,1,2)
-        bar(1:nm,P)
-        set(gca,'XTick',1:nm)
-        set(gca,'XTickLabel',1:nm)
-        ylabel('Model Posterior Probability','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
-        xlabel('Models','Fontsize',14)
-        axis square
-        grid on
-        
-        out = P;
-        
-        if plot_family
+        if ~plot_family
             
-            Ffam = spm_figure('CreateWin','Graphics','BMS: results');
-            figure(Ffam);
-           
+            %-Compute conditional probability of DCMs under flat priors.
+            %------------------------------------------------------------------
+            F    = F - min(F);
+            i    = F < (max(F) - 32);
+            P    = F;
+            P(i) = max(F) - 32;
+            P    = P - min(P);
+            P    = exp(P);
+            P    = P/sum(P);
+            
+            %-Display results
+            %------------------------------------------------------------------
+            subplot(2,1,1)
+            bar(1:nm,F)
+            set(gca,'XTick',1:nm)
+            set(gca,'XTickLabel',1:nm)
+            ylabel('Log-evidence (relative)','Fontsize',14)
+            xlabel('Models','Fontsize',14)
+            title({'Bayesian Model Selection'},'Fontsize',14)
+            axis square
+            grid on
+            
+            subplot(2,1,2)
+            bar(1:nm,P)
+            set(gca,'XTick',1:nm)
+            set(gca,'XTickLabel',1:nm)
+            ylabel('Model Posterior Probability','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            xlabel('Models','Fontsize',14)
+            axis square
+            grid on
+            
+            out = P;
+            
+        else
+            
             %-Display results - families
-            %--------------------------------------------------------------       
+            %--------------------------------------------------------------
+            
             Nfam = length(family.post);
             subplot(2,1,1)
+            bar(1:Nfam,family.like)
+            set(gca,'XTick',1:Nfam)
+            set(gca,'XTickLabel',family.names)
+            ylabel('Log-evidence (relative)','Fontsize',14)
+            xlabel('Families','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
+            
+            subplot(2,1,2)
             bar(1:Nfam,family.post)
             set(gca,'XTick',1:Nfam)
             set(gca,'XTickLabel',family.names)
@@ -93,6 +105,8 @@ switch inf_method
             axis square
             grid on
             
+            out = [];
+            
         end
     
     %======================================================================
@@ -100,34 +114,33 @@ switch inf_method
     %======================================================================
     case ('RFX')
 
-        %-Display results
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        bar(1:length(N),exp_r)
-        set(gca,'XTick',1:length(N))
-        set(gca,'XTickLabel',1:nm)
-        ylabel('Model Expected Probability','Fontsize',14)
-        xlabel('Models','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
-        axis square
-        grid on
-
-        subplot(2,1,2)
-        bar(1:length(N),xp')
-        set(gca,'XTick',1:length(N))
-        set(gca,'XTickLabel',1:nm)
-        ylabel('Model Exceedance Probability','Fontsize',14)
-        xlabel('Models','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
-        axis square
-        grid on
-        
-        out = [];
-        
-        if plot_family
+        if ~plot_family
+            %-Display results
+            %------------------------------------------------------------------
+            subplot(2,1,1)
+            bar(1:length(N),exp_r)
+            set(gca,'XTick',1:length(N))
+            set(gca,'XTickLabel',1:nm)
+            ylabel('Model Expected Probability','Fontsize',14)
+            xlabel('Models','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
             
-            Ffam = spm_figure('CreateWin','Graphics','BMS: results');
-            figure(Ffam);
+            subplot(2,1,2)
+            bar(1:length(N),xp')
+            set(gca,'XTick',1:length(N))
+            set(gca,'XTickLabel',1:nm)
+            ylabel('Model Exceedance Probability','Fontsize',14)
+            xlabel('Models','Fontsize',14)
+            title('Bayesian Model Selection','Fontsize',14)
+            axis square
+            grid on
+            
+            out = [];
+            
+        else
+            
             
             %-Display results - families
             %------------------------------------------------------------------
@@ -151,6 +164,8 @@ switch inf_method
             title('Bayesian Model Selection','Fontsize',14)
             axis square
             grid on
+            
+            out = [];
             
         end
         

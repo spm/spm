@@ -17,14 +17,13 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3628 2009-12-10 10:51:46Z maria $
+% $Id: spm_run_bms_dcm.m 3632 2009-12-11 09:58:31Z maria $
 
 % input
 % -------------------------------------------------------------------------
 job     = varargin{1};
 fname   = 'BMS.mat';                 % Output filename
 fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
-priors  = job.family_menu.priors;
 ld_f    = ~isempty(job.load_f{1});
 ld_msp  = ~isempty(job.model_sp{1});
 bma_do  = isfield(job.bma,'bma_yes');
@@ -243,13 +242,12 @@ sumF = sum(F,1);
 
 % family or model level
 % -------------------------------------------------------------------------
-if isfield(job.family_menu.family_level,'family_file')
+if isfield(job.family_level,'family_file')
     
-    if ~isempty(job.family_menu.family_level.family_file{1})
+    if ~isempty(job.family_level.family_file{1})
     
-        load(job.family_menu.family_level.family_file{1});
+        load(job.family_level.family_file{1});
         do_family    = 1;
-        family.prior = priors;
         family.infer = method;
     
         nfam    = size(family.names,2);
@@ -267,19 +265,19 @@ if isfield(job.family_menu.family_level,'family_file')
     
 else
     
-    if isempty(job.family_menu.family_level.family)
+    if isempty(job.family_level.family)
         do_family    = 0;
     else
         do_family    = 1;
-        nfam         = size(job.family_menu.family_level.family,2);
+        nfam         = size(job.family_level.family,2);
         
         names_fam  = {};
         models_fam = [];
         m_indx     = [];
         for f=1:nfam
-            names_fam    = [names_fam,job.family_menu.family_level.family(f).family_name];
-            m_indx       = [m_indx,job.family_menu.family_level.family(f).family_models'];
-            models_fam(job.family_menu.family_level.family(f).family_models) = f;
+            names_fam    = [names_fam,job.family_level.family(f).family_name];
+            m_indx       = [m_indx,job.family_level.family(f).family_models'];
+            models_fam(job.family_level.family(f).family_models) = f;
         end
         
         family.names     = names_fam;
@@ -295,7 +293,6 @@ else
            return
         end
         
-        family.prior     = priors;
         family.infer     = method;
       
     end

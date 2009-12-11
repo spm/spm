@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 3624 2009-12-09 11:07:38Z maria $
+% $Id: spm_cfg_bms.m 3632 2009-12-11 09:58:31Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -135,9 +135,11 @@ model_sp.help    = {['Optional: load .mat file with all subjects, sessions '...
                   ['The model space file should contain the structure ''subj''. ' ...
                   'This structure should have the field ''sess'' for sessions, '...
                   'then the subfield ''model'' and in ''model'' there should be '...
-                  'four subfields: ''fname'' contains the path to the DCM.mat file, '...
+                  'five subfields: ''fname'' contains the path to the DCM.mat file, '...
                   '''.F'' the Free Energy of that model, '...
-                  '''.Ep'' and ''Cp'' the mean and covariance of the parameters estimates. ']
+                  '''.Ep'' and ''Cp'' the mean and covariance of the parameters estimates. '...
+                  'Finally the subfield ''.nonLin'' should be 1 if the model is non-linear and '...
+                  '0 otherwise.']
                   ['Example: subj(3).sess(1).model(4).fname contains the path to the DCM.mat '...
                   'file for subject 3, session 1 and model 4. subj(3).sess(1).model(4).F '...
                   'contains the value of the Free Energy for the same model/session/subject.']};
@@ -202,25 +204,26 @@ method_maps.values  = {
                   'RFX'
 }'; 
 
-% ---------------------------------------------------------------------
-% priors Priors
-% ---------------------------------------------------------------------
-priors         = cfg_menu;
-priors.tag     = 'priors';
-priors.name    = 'Priors';
-priors.help    = {['Specify priors for family-level inference (RFX only). '...
-                   'Options: ''Family'' sets alpha0=1 for each family '...
-                   'while ''Model'' sets alpha0=1 for each model (not '...
-                   'advised).']};
-priors.labels  = {
-                  'Model'
-                  'Family'
-}';
-priors.values  = {
-                  'M-unity'
-                  'F-unity'
-}';
-priors.val      = {'F-unity'};
+% % ---------------------------------------------------------------------
+% % priors Priors
+% % ---------------------------------------------------------------------
+% priors         = cfg_menu;
+% priors.tag     = 'priors';
+% priors.name    = 'Priors';
+% priors.help    = {['Specify priors for family-level inference (RFX only).
+% '...
+%                    'Options: ''Family'' sets alpha0=1 for each family '...
+%                    'while ''Model'' sets alpha0=1 for each model (not '...
+%                    'advised).']};
+% priors.labels  = {
+%                   'Model'
+%                   'Family'
+% }';
+% priors.values  = {
+%                   'M-unity'
+%                   'F-unity'
+% }';
+% priors.val      = {'F-unity'};
 
 
 % ---------------------------------------------------------------------
@@ -228,7 +231,7 @@ priors.val      = {'F-unity'};
 % ---------------------------------------------------------------------
 family_file         = cfg_files;
 family_file.tag     = 'family_file';
-family_file.name    = 'Load family file';
+family_file.name    = 'Load family';
 family_file.help    = {['Load family.mat file. This file should contain the '...
                         'structure ''family'' with fields ''names'' and '...
                         '''partition''. Example: family.names = {''F1'', '...
@@ -278,7 +281,7 @@ family.help    = {'Specify family name and models.'};
 % ---------------------------------------------------------------------
 select_family         = cfg_repeat;
 select_family.tag     = 'select_family';
-select_family.name    = 'Construct families';
+select_family.name    = 'Construct family';
 select_family.values  = {family };
 select_family.help    = {'Create family. Specify family name and models.'};
 
@@ -287,24 +290,13 @@ select_family.help    = {'Create family. Specify family name and models.'};
 % ---------------------------------------------------------------------
 family_level         = cfg_choice;
 family_level.tag     = 'family_level';
-family_level.name    = 'Specify families';
+family_level.name    = 'Family inference';
 family_level.help    = {['Optional field to perform family level inference.'...
                          'Options: load family.mat '...
                          'or specify family names and models using '...
                          'the interface.']};
 family_level.val     = {family_file };
 family_level.values  = {family_file select_family };
-
-% ---------------------------------------------------------------------
-% family_menu Family level inference
-% ---------------------------------------------------------------------
-family_menu         = cfg_branch;
-family_menu.tag     = 'family_menu';
-family_menu.name    = 'Family inference';
-family_menu.help    = {['Family level inference (optional). Leave fields '...
-                        'empty if not interested in comparing families of '...
-                        'models.']};
-family_menu.val     = {family_level priors };
 
 % ---------------------------------------------------------------------
 % bma_part Choose family
@@ -351,7 +343,7 @@ bma_yes         = cfg_choice;
 bma_yes.tag     = 'bma_yes';
 bma_yes.name    = 'Choose family';
 bma_yes.help    = {['Specify family for Bayesian Model Averaging (BMA). '...
-                    'Options: ''winning family'', ''choose family'' or '...
+                    'Options: ''winning family'', ''enter family'' or '...
                     '''all families''.']};
 bma_yes.val     = {bma_famwin };
 bma_yes.values  = {bma_famwin bma_all bma_part };
@@ -535,7 +527,7 @@ scale.val     = {[]};
 bms_dcm      = cfg_exbranch;
 bms_dcm.tag  = 'bms_dcm';
 bms_dcm.name = 'BMS: DCM';
-bms_dcm.val  = {dir dcm model_sp load_f method family_menu bma verify_id};
+bms_dcm.val  = {dir dcm model_sp load_f method family_level bma verify_id};
 bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
     '(DCM) for fMRI or MEEG.']...
     ''...

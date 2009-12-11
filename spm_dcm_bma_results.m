@@ -11,7 +11,7 @@ function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3629 2009-12-10 11:06:55Z maria $
+% $Id: spm_dcm_bma_results.m 3632 2009-12-11 09:58:31Z maria $
 
 if nargin < 6
     % function called without parameters (e.g. via GUI)
@@ -163,7 +163,7 @@ catch
     F = get(gco,'parent');
 end
 
-hc = intersect(findobj('tag','VBLaplace'),get(F,'children'));
+hc = intersect(findobj('tag','bma_results'),get(F,'children'));
 if ~isempty(hc)
     delete(hc)
 end
@@ -172,7 +172,7 @@ ud = get(F,'userdata');
 
 titlewin = 'BMA: intrinsic connections (a)';
 hTitAx = axes('Parent',F,'Position',[0.2,0.04,0.6,0.02],...
-    'Visible','off','tag','VBLaplace');
+    'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
@@ -209,14 +209,14 @@ function plot_b()
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
 
-hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
 if ~isempty(hc)
     delete(hc)
 end
 
 titlewin = 'BMA: modulatory connections (b)';
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
-    'Visible','off','tag','VBLaplace');
+    'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
@@ -254,14 +254,14 @@ function plot_c()
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
 
-hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
 if ~isempty(hc)
     delete(hc)
 end
 
 titlewin = 'BMA: input connections (c)';
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
-    'Visible','off','tag','VBLaplace');
+    'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
@@ -295,14 +295,14 @@ function plot_d()
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
 
-hc = intersect(findobj('tag','VBLaplace'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
 if ~isempty(hc)
     delete(hc)
 end
 
 titlewin = 'BMA: non-linear connections (d)';
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
-    'Visible','off','tag','VBLaplace');
+    'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 

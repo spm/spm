@@ -42,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3592 2009-11-23 10:34:06Z maria $
+% $Id: spm_compare_families.m 3632 2009-12-11 09:58:31Z maria $
 
 try
     infer=family.infer;
@@ -105,7 +105,7 @@ if strcmp(infer,'FFX')
     for i=1:N,
         model.prior(i)=1/fam_size(partition(i));
     end
-    
+
     % Model likelihoods
     lme=lme-mean(lme,2)*ones(1,N); % Subtract subject effects
     model.subj_lme=lme;
@@ -119,8 +119,8 @@ if strcmp(infer,'FFX')
     % Family posterior
     for i=1:K,
         family.post(i)=sum(model.post(ind{i}));
+        family.like(i)=sum(model.like(ind{i}));
     end
-    
     return;
 end
     
