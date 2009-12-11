@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3626 2009-12-09 16:49:36Z vladimir $
+% $Id: spm_eeg_invert.m 3633 2009-12-11 10:34:15Z guillaume $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -130,9 +130,9 @@ Nl = length(D);                                  % number of subjects
 % D - SPM data structure
 %==========================================================================
 if nargin > 1
-    D.val = val;
-elseif ~isfield(D, 'val')
-    D.val = 1;
+    D{1}.val = val;
+elseif ~isfield(D{1}, 'val')
+    D{1}.val = 1;
 end
 
 inverse    = D{1}.inv{D{1}.val}.inverse;
