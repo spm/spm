@@ -113,7 +113,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 3606 2009-12-01 16:20:07Z volkmar $
+% $Id: spm_orthviews.m 3639 2009-12-14 16:36:39Z guillaume $
 
 
 
@@ -242,22 +242,21 @@ switch lower(action),
         end;
         
     case 'reposition',
-        if numel(varargin)<1, tmp = findcent;
+        if isempty(varargin), tmp = findcent;
         else tmp = varargin{1}; end;
-        if isequal(size(tmp),[3 1]),
+        if numel(tmp) == 3
             h = valid_handles(st.snap);
             if ~isempty(h)
-                tmp=st.vols{h(1)}.mat*...
-                    round(st.vols{h(1)}.mat\[tmp; ...
-                    1]);
-            end;
+                tmp = st.vols{h(1)}.mat * ...
+                    round(st.vols{h(1)}.mat\[tmp(:); 1]);
+            end
             st.centre = tmp(1:3);
-        end;
+        end
         redraw_all;
         eval(st.callback);
         if isfield(st,'registry'),
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
-        end;
+        end
         cm_pos;
         
     case 'setcoords',
