@@ -115,7 +115,7 @@ Finally, you will have a choice between ``evoked'' and ``induced''. Here one can
 
 At this stage you have the possibility to export your image as NIfTI by pressing the ``Image'' button. You will be asked to specify the amount of smoothing. An unsmoothed image will be exported in any case. Smoothing can help to get better results in a between-subject statistical test. However, it compromises your spatial resolution. You should try different options to see what works for your data. When you use the group inversion (see below) you may not need smoothing at all.
 
-Note that when a file contains several conditions, the images are normalized so that sum of power across all conditions is 1. Thus you might get differently scaled images if you invert each condition alone as opposed to inverting them together. It is recommended to put all the conditions you intend to compare in the same inversion.
+Note that the images are normalized so that mean power across all sources is 1.
 
 \section{Rendering interface}
 By pressing the \texttt{Render} button you can open a new GUI window which will show you a rendering of the inversion results on the brain surface. You can rotate the brain, focus on different time points, run a movie and compare the predicted and observed scalp topographies and time series. A useful option is ``virtual electrode'' which allows you to extract the time course from any point on the mesh and the MIP at the time of maximal activation at this point. Just press the button and click anywhere in the brain.\\
