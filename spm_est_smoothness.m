@@ -52,7 +52,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3613 2009-12-04 18:47:59Z guillaume $
+% $Id: spm_est_smoothness.m 3643 2009-12-15 16:53:34Z guillaume $
 
 
 %-Assign input arguments
@@ -187,7 +187,7 @@ v(I,:) = []; Ix(I) = []; Iy(I) = []; Iz(I) = [];
 
 %-Write Resels Per Voxel image
 %-----------------------------------------------------------------------
-fprintf('\r%-40s: %30s\n',str,'...writing resels/voxel image');      %-#
+fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing resels/voxel image');%-#
 
 resel_img_3 = sqrt(v./(4*log(2)));
 resel_img   = prod(resel_img_3,2);
@@ -217,3 +217,5 @@ FWHM     = FWHM / prod(FWHM)^(1/N) * (1/resel).^(1/N);
 %-Carefully fill-in accounting for dimension
 fwhm     = [Inf Inf Inf];
 fwhm(1:length(FWHM)) = FWHM;
+
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
