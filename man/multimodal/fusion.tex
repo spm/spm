@@ -24,7 +24,7 @@ Now we can demonstrate simultaneous reconstruction of the MEG and EEG data, as d
 \begin{itemize}
 \item Press the ``3D source reconstruction'' button, and load the \texttt{uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. Type a label (eg ``N/M170'').
 
-\item Press the ``MRI'' button, select the \texttt{smri.img} file within the \texttt{sMRI} sub-directory, and select ``normal'' for the cortical mesh. Because this MRI was normalised previous, this step should not take long, finishing with display of the cortex (blue), inner skull (red), outer skull (orange) and scalp (pink) meshes.
+\item Press the ``MRI'' button, select the \texttt{smri.img} file within the \texttt{sMRI} sub-directory, and select ``normal'' for the cortical mesh. Because this MRI was normalised previously, this step should not take long, finishing with display of the cortex (blue), inner skull (red), outer skull (orange) and scalp (pink) meshes.
 
 \item Press the ``Co-register'' button. Press ``type'' and for ``nas'', enter [0 91 -28] for ``lpa'' press ``type'' and enter [-72 4 -59] for ``rpa'' press ``type'' and enter [71 -6 -62]. Finally, answer ``no'' to ``Use headshape points?''. Then select either ``EEG'' or ``MEG'' to display corresponding
 data registration. Note that the MEG data will have been coregistered to the EEG data in the headspace. If you want to display the other modality afterwards, just press the ``display'' button below the ``Co-register'' button.
@@ -54,7 +54,7 @@ Then the actual MSP algorithm will run and the summary of the solution will be d
 Note that because we have inverted only the differential ERP/ERF, these results cannot be compared directly to the unimodal inversions in the previous sections of this chapter. For a fairer comparison:
 
 \begin{itemize}
-\item Press the ``new'' button and type ``N170'' as the label, press ``Invert'' again (note that all forward models are copied by default from the first inversion) and select the same options as above, except that when asked ``Multiple modalities'', press ``select'' this time, and select just ``EEG''. This should produce the results in Figure~\ref{multimodal:fusion:fig:2}. Notice the more posterior maxima.
+\item Press the ``new'' button and type ``N170'' as the label, press ``Invert'' again (note that all forward models are copied by default from the first inversion) and select the same options as above, except that when asked ``Select modalities'', select just ``EEG''. This should produce the results in Figure~\ref{multimodal:fusion:fig:2}. Notice the more posterior maxima.
 
 \begin{figure}
 \begin{center}
@@ -63,7 +63,7 @@ Note that because we have inverted only the differential ERP/ERF, these results 
 \end{center}
 \end{figure}
 
-\item Press the ``new'' button and type ``M170'' as the label, press ``Invert'' again and select the same options as above, except that when asked ``Multiple modalities'', press ``select'' and select just ``MEG'' this time. This should produce the results in Figure~\ref{multimodal:fusion:fig:3}. Notice the more anterior and medial activity.
+\item Press the ``new'' button and type ``M170'' as the label, press ``Invert'' again and select the same options as above, except that when asked ``Select modalities'', select just ``MEG'' this time. This should produce the results in Figure~\ref{multimodal:fusion:fig:3}. Notice the more anterior and medial activity.
 
 \begin{figure}
 \begin{center}
@@ -94,18 +94,18 @@ Now we can use this cluster image in a new inversion:
 
 \item ... select the \texttt{FacesVsScrambled\_\-FWE05\_\-60.img} file in the ``fMRI/Stats'' directory, and select ``MNI'' for the ``Image space'' (because the fMRI images were spatially normalised).
 
-\item Say ``No'' to ``Restrict solutions'', and then select both the ``EEG'' and ``MEG'' modalities in the new ``Select modalities'' window, in order to fuse them (together with the fMRI priors).
+\item Say ``No'' to ``Restrict solutions'', and then select both the ``EEG'' and ``MEG'' modalities in the ``Select modalities'' window, in order to fuse them (together with the fMRI priors).
 
 Note that, once the inversion has finished, a new image will be created (in the ``fMRI/Stats'' directory) called \texttt{cluster\_\-FacesVsScrambled\_\-FWE05\_\-60.img}, which contains the six binary priors, as will a GIfTI version called \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-4.func.gii}. If you want to display each spatial prior on the cortical mesh, first make sure you save the current reconstruction, and then type in the \matlab\ window: 
 
 \begin{verbatim}
-      D = spm_eeg_load(‘uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D.mat’);
-	val = 4;    % Fourth inversion; assuming you have followed the above steps
-	G = gifti(D.inv{val}.mesh.tess_mni);
-	P = gifti(D.inv{val}.inverse.fmri.texture);
-	for i=1:size(P.cdata,2);
-  	    figure, plot(G,P,i);
-	end
+  D = spm_eeg_load('uwmcdbespm8_SPM_CTF_MEG_example_faces1_3D.mat');
+  val = 4;    % Fourth inversion; assuming you have followed the above steps
+  G = gifti(D.inv{val}.mesh.tess_mni);
+  P = gifti(D.inv{val}.inverse.fmri.texture);
+  for i=1:size(P.cdata,2);
+    figure, plot(G,P,i);
+  end
 \end{verbatim}
 
 Finally, a new \matlab\ file called \texttt{priors\_\-uwmcdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D\_\-4.mat} will also be saved to the current directory, which contains the information necessary to construct the covariance components for subsequent inversion. So if you want to use these fMRI priors in another inversion, next time you are prompted for the ``Source priors?'', rather than selecting an image (``img'' file) as we did above, you can select this ``mat'' file, so SPM will not need to recreate the covariance matrices from the image file, but can use the covariance matrices directly.

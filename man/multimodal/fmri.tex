@@ -9,9 +9,9 @@ Toggle the modality from EEG to fMRI, and change directory to the fMRI subdirect
 Press the \textsc{Batch} button and then:
 
 \begin{itemize}
-\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{\textasciicircum fM.*}).
+\item Select \textsc{Spatial: Realign: Estimate \& Reslice} from the SPM menu, create two sessions, and select the 390 \texttt{fM*.img} EPI images within the corresponding Session1 / Session 2 subdirectories (you can use the filter  \texttt{\textasciicircum fM.*}). In the ``Resliced images'' option, choose ``Mean Image Only''.
 
-\item Add a \textsc{Spatial: Coreg: Estimate} module, and select the \texttt{smri.img} image in the \texttt{sMRI} directory for the ``Reference Image'' and select a ``Dependency'' for the ``Source Image'', which is the Mean image produced by the previous Realign module.
+\item Add a \textsc{Spatial: Coreg: Estimate} module, and select the \texttt{smri.img} image in the \texttt{sMRI} directory for the ``Reference Image'' and select a ``Dependency'' for the ``Source Image'', which is the Mean image produced by the previous Realign module. For the ``Other Images'', select a ``Dependency'' which are the realigned images (two sessions) from Realign.
 
 \item Add a \textsc{Spatial: Segment} module, and select the \texttt{smri.img} image as the ``Data''.
 
@@ -48,7 +48,7 @@ Press the \textsc{batch} button and then:
 
 \item Add a ``Stats: Contrast Manager'' module, and for the ``Select SPM.mat'', choose the ``Dependency'' of the \texttt{SPM.mat} file from the previous ``Model Estimation module''.
 
-\item Under ``Contrast Sessions'', create a new F-contrast with a ``Name'' like \texttt{faces vs scrambled (all BFs)} and then enter  \texttt{[eye(3) eye(3) zeros(3,6)]}. This will produce a 3x12 matrix that picks out the three basis functions per condition (each as a separate row), summing across the two conditions (with zeros for the movement parameter regressors, which are of no interest). Then select ``Replicate (average over sessions)''.
+\item Under ``Contrast Sessions'', create a new F-contrast with a ``Name'' like \texttt{faces vs scrambled (all BFs)} and then enter  \texttt{[eye(3) -eye(3) zeros(3,6)]}. This will produce a 3x12 matrix that picks out the three basis functions per condition (each as a separate row), summing across the two conditions (with zeros for the movement parameter regressors, which are of no interest). Then select ``Replicate (average over sessions)''.
 
 \item Under ``Contrast Sessions'', create a new F-contrast with a ``Name'' like \texttt{faces + scrambled vs Baseline (all BFs)} and then enter the \matlab \texttt{[eye(3) eye(3) zeros(3,6)]}. Again, select ``Replicate (average over sessions)''.
 
