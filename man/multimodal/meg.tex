@@ -176,7 +176,9 @@ This will create 2D time-frequency images for each trial of the two types with d
 \end{center}
 \end{figure}
 
-As in Section~\ref{multimodal:eeg:3DSPM}, we then take these images into an unpaired t-test across trials to compare faces versus scrambled faces. We can then use classical SPM to identify times and frequencies in which a reliable difference occurs, correcting across the multiple comparisons entailed (Kilner et al, 2005).
+As in Section~\ref{multimodal:eeg:3Dsmooth}, these images can be further smoothed in time and frequency if desired. 
+
+Then as in Section~\ref{multimodal:eeg:3DSPM}, we then take these images into an unpaired t-test across trials to compare faces versus scrambled faces. We can then use classical SPM to identify times and frequencies in which a reliable difference occurs, correcting across the multiple comparisons entailed (Kilner et al, 2005).
 
 First create a new directory, eg. \texttt{mkdir TFstatsPow}.
 
@@ -193,9 +195,9 @@ Press \textsc{Results} and define a new T-contrast as $[1\: -1]$. Keep the defau
 
 This will list two ``regions'' within the 2D time-frequency space in which faces produce greater power than scrambled faces, having corrected for multiple T-tests across pixels. The larger one has a maximum at 5 Hz and 185 ms post-stimulus, corresponding to the M170 seen earlier in the averaged files (but now with a statistical test of its significance, in terms of evoked and induced power). The second, smaller region has a maximum at 12 Hz and 100 ms, possibly corresponding to a smaller but earlier effect on the M100 (also sometimes reported, depending on what faces are contrasted with).
 
-\subsection{``Imaging'' reconstruction of differential power\label{multimodal:data:meg:recon_pow}}
+\subsection{``Imaging'' reconstruction of total power for each condition \label{multimodal:data:meg:recon_pow}}
 
-In Section~\ref{multimodal:eeg:3D} we localised the differential evoked potential difference in EEG data corresponding to the N170.  Here we will localise the total power of faces vs scrambled faces in a timewindow corresponding to that of the M170, ie including potential induced components (see Friston et al, 2006).
+In Section~\ref{multimodal:eeg:3D} we localised the differential evoked potential difference in EEG data corresponding to the N170.  Here we will localise the total power of faces, and of scrambled faces, ie including potential induced components (see Friston et al, 2006).
 
 Press the ``3D source reconstruction'' button, and press the ``load'' button at the top of the new window. Select the \texttt{cdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.mat} file and type a label (eg \texttt{M170}) for this analysis.
 
@@ -205,7 +207,7 @@ If you have not used this MRI image for source reconstruction before, this step 
 
 Both the cortical mesh and the skull and scalp meshes are not created directly from the segmented MRI, but rather are determined from template meshes in MNI space via inverse spatial normalisation (Mattout et al, 2007; Henson et al, 2009a).
 
-Press the ``Co-register'' button. You will be asked for each of the 3 fiducial points to specify its location on the MRI images. This can be done by selecting a corresponding point from a hard-coded list (``select''). These points are inverse transformed for each individual image using the same deformation field that is used to create the meshes. The other two options are typing the MNI coordinates for each point (``type'') or clicking on the corresponding point in the image (``click''). Here, we will type coordinates based on where the experimenter defined the fiducials on the \texttt{smri.img}. These coordinates can be found in the \texttt{smri\_fid.txt} file also provided. So press ``type'' and for ``nas'', enter [0  91  -28]; for ``lpa'' press ``type'' and enter [-72   4  -59]; for ``rpa'' press ``type'' and enter [71  -6  -62]. Finally, answer ``yes'' to ``Use headshape points?''.
+Press the ``Co-register'' button. You will be asked for each of the 3 fiducial points to specify its location on the MRI images. This can be done by selecting a corresponding point from a hard-coded list (``select''). These points are inverse transformed for each individual image using the same deformation field that is used to create the meshes. The other two options are typing the MNI coordinates for each point (``type'') or clicking on the corresponding point in the image (``click''). Here, we will type coordinates based on where the experimenter defined the fiducials on the \texttt{smri.img}. These coordinates can be found in the \texttt{smri\_fid.txt} file also provided. So press ``type'' and for ``nas'', enter [0  91  -28]; for ``lpa'' press ``type'' and enter [-72   4  -59]; for ``rpa'' press ``type'' and enter [71  -6  -62]. Finally, answer ``no'' to ``Use headshape points?'' (see EEG Section~\ref{multimodal:eeg:3D}).
 
 This stage coregisters the MEG sensor positions with the structural MRI and cortical mesh, via an approximate matching of the fiducials in the two spaces, followed by a more accurate surface-matching routine that fits the head-shape function (measured by Polhemus) to the scalp that was created in the previous meshing stage via segmentation of the MRI. When coregistration has finished, the field \texttt{D.inv\{1\}}.datareg will be updated. Press ``save'' in top right of window to update the corresponding mat file on disk. With the \matlab\ Rotation tool on (from the ``Tools'' tab in the SPM Graphics window, if not already on), right click near the top image and select ``Go to X-Z'' view. This should produce a figure like that in Figure~\ref{multimodal:fig:17}, which you can rotate with the mouse to check all sensors. Note that the data are in head space (not MNI space), in this case corresponding to the Polhemus space in which the X and Y dimensions are swapped relative to MNI space.
 
@@ -218,9 +220,17 @@ This stage coregisters the MEG sensor positions with the structural MRI and cort
 
 Press the ``Forward Model'' button. Choose ``Local Spheres'' (you may also try the other options; see Henson et al, 2009a). A figure will be displaying showing the local (overlapping) spheres fit to each sensor, and final the set of all spheres.
 
-Press ``Invert'', select ``Imaging'', select ``yes'' to ``All conditions or trials?'', and ``Standard'' for the model (i.e, to use defaults; you can customise a number of options if you press Custom instead) (see Friston et al, 2008, for more details about these parameters). There will be lead field computation followed by the actual inversion. A summary plot of the results will be displayed at the end, as in Figure~\ref{multimodal:fig:18}.
+Press ``Invert'', select ``Imaging'', select ``yes'' to ``All conditions or trials?'', and ``Standard'' for the model (i.e, to use defaults; you can customise a number of options if you press Custom instead) (see Friston et al, 2008, for more details about these parameters). There will be lead field computation followed by the actual inversion. A summary plot of the results will be displayed at the end.
 
-You can now explore the results via the 3D reconstruction window. If you type 159 into the box in the bottom right (corresponding to the time in ms) and press ``mip'', you should see bilateral ventral lateral temporal activity. Note that this localisation is different from the previous EEG localisation because 1) condition 1 now refers to faces, not the difference between faces and scrambled faces, and 2) the results reflect total power (across trials), induced and evoked, rather than purely evoked\footnote{Though in reality, most of the power is low-frequency and evoked}. The timecourses come from the peak voxel. The red curve shows the condition currently being shown (corresponding to the ``Condition 1'' toggle bar in the reconstruction window); the grey curve(s) will show all other conditions. If you press the "condition 1" toggle, it will change to Condition 2, which is the total power for scrambled faces, then press ``mip'' again and the display will update (note the colours of the lines have now reversed from before, with red now corresponding to scrambled faces).
+You can now explore the results via the 3D reconstruction window. If you type 180 into the box in the bottom right (corresponding to the time in ms) and press ``mip'', you should see several ventral temporal hotspots, as in Figure~\ref{multimodal:fig:18}. Note that this localisation is different from the previous EEG localisation because 1) condition 1 now refers to faces, not the difference between faces and scrambled faces, and 2) the results reflect total power (across trials), induced and evoked, rather than purely evoked\footnote{Though in reality, most of the power is low-frequency and evoked}. The timecourses come from the peak voxel (with little evidence of a face/scrambled difference for this particular maximum). The red curve shows the condition currently being shown (corresponding to the ``Condition 1'' toggle bar in the reconstruction window); the grey curve(s) will show all other conditions. If you press the "condition 1" toggle, it will change to Condition 2, which is the total power for scrambled faces, then press ``mip'' again and the display will update (note the colours of the lines have now reversed from before, with red now corresponding to scrambled faces).
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=90mm]{multimodal/figures/meg_msp.png}
+\caption{\em  Graphic output for MSP-estimated activity at 159ms for faces.\label{multimodal:fig:18}}
+\end{center}
+\end{figure}
+
 
 If press ``movie'', you will see the changes in the source strengths over peristimulus time (from the limits 0 to 300ms currently chosen by default).
 
@@ -229,13 +239,6 @@ If you press ``render'' you can get a very neat graphical interface to explore t
 You can also explore the other inversion options, like COH and IID, which you will note give more superficial solutions (a known problem with standard minimum norm; see also Friston et al, 2008; Henson et al, 2009a). To do this quickly (without repeating the MRI segmentation, coregistration and forward modelling), press the ``new'' button in the reconstruction window, which by default will copy these parts from the previous reconstruction. 
 
 In the following we will concentrate on how one prepares this single subject data for subsequent entry into a group analysis.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=90mm]{multimodal/figures/meg_msp.png}
-\caption{\em  Graphic output for MSP-estimated activity at 159ms for faces.\label{multimodal:fig:18}}
-\end{center}
-\end{figure}
 
 Press the ``Window'' button in the reconstruction window, enter ``150 200'' as the timewindow of interest and ``5 15'' as the frequency band of interest (from the SPM time-frequency analysis, at least from one channel). Then choose the ``induced'' option. After a delay (as SPM calculates the power across all trials) the Graphics window will show the mean activity for this time/frequency contrast (for faces alone, assuming the condition toggle is showing ``condition 1'').
 
