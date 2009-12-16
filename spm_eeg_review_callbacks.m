@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3319 2009-08-11 10:29:58Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 3646 2009-12-16 16:01:03Z jean $
 
 spm('pointer','watch');
 drawnow expose
@@ -1502,9 +1502,31 @@ catch
     str{2} = ['Date: ',D.other.inv{invN}.date(1,:)];
 end
 if isfield(D.other.inv{invN}.inverse, 'modality')
-    str{3} = ['Modality: ',D.other.inv{invN}.inverse.modality];
+    mod0 = D.other.inv{invN}.inverse.modality;
+    if ischar(mod0)
+        mod = mod0;
+    else
+        mod = [];
+        for i = 1:length(mod0)
+            mod = [mod,' ',mod0{i}];
+        end
+    end
+    str{3} = ['Modality: ',mod];
 else % For backward compatibility
-    str{3} = ['Modality: ',D.other.inv{invN}.modality];
+    try
+        mod0 = D.other.inv{invN}.modality;
+        if ischar(mod0)
+            mod = mod0;
+        else
+            mod = [];
+            for i = 1:length(mod0)
+                mod = [mod,' ',mod0{i}];
+            end
+        end
+        str{3} = ['Modality: ',mod];
+    catch
+        str{3} = 'Modality: ?';
+    end
 end
     
 if strcmp(D.other.inv{invN}.method,'Imaging')
