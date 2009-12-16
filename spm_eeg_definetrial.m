@@ -24,10 +24,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2902 2009-03-19 20:44:35Z guillaume $
+% $Id: spm_eeg_definetrial.m 3647 2009-12-16 18:55:59Z rik $
 
 
-SVNrev = '$Rev: 2902 $';
+SVNrev = '$Rev: 3647 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -108,7 +108,6 @@ if ~isfield(event, 'time')
 end
 
 if ~isfield(event, 'sample')
-
     for i = 1:numel(event)
         if S.timeonset == 0
             event(i).sample = event(i).time*S.fsample;
@@ -156,6 +155,14 @@ if ~isfield(S, 'trialdef')
     end
 end
 
+for i = 1:length(S.trialdef)
+    if ~isfield(S.trialdef(i),'trlshift')
+        trlshift(i) = 0;
+    else
+        trlshift(i) = round(S.trialdef(i).trlshift * S.fsample/1000); % assume passed as ms
+    end
+end
+
 %-Build trl based on selected events
 %--------------------------------------------------------------------------
 trl = [];
@@ -190,6 +197,12 @@ for i=1:numel(S.trialdef)
         end
         trldur = round(0.001*(-S.pretrig+S.posttrig)*S.fsample);
         trlend = trlbeg + trldur;
+        
+        % Added by Rik in case wish to shift triggers (e.g, due to a delay
+        % between trigger and visual/auditory stimulus reaching subject).
+        trlbeg = trlbeg + trlshift(i);
+        trlend = trlend + trlshift(i);
+        
         % add the beginsample, endsample and offset of this trial to the list
         trl = [trl; trlbeg trlend trloff];
         conditionlabels{end+1} = S.trialdef(i).conditionlabel;
