@@ -37,7 +37,7 @@ function varargout = pm_invert_phasemap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_invert_phasemap.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_invert_phasemap.m 3644 2009-12-16 10:51:34Z christophe $
 
 %
 % Decode first input parameter.
@@ -122,7 +122,7 @@ end
 if nargout == 1
    varargout{1} = ipm;
 end
-if length(varargin) == 2 & exist(P) == 1
+if length(varargin) == 2 & exist('P','var') == 1
    oP = struct('fname',     varargin{2},...
                'dim',       [dim spm_type('int16')],...
                'mat',       P.mat,...
