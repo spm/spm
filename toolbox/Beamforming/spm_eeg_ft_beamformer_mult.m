@@ -1,26 +1,27 @@
 function [outfilenames,ctf_inside,ctf_weights]=spm_eeg_ft_beamformer_mult(S)
-% Computes power-based beamformer image
-% FORMAT [outfilenames,ctf_inside,ctf_weights]=spm_eeg_ft_beamformer_mult (S)
+% Compute power-based beamformer image
+% FORMAT [outfilenames,ctf_inside,ctf_weights]=spm_eeg_ft_beamformer_mult(S)
 %
-% S         MEEG object where coregistration has been performed.
+% S            - struct (optional)
+% (optional) fields of S:
+% S.D          - meeg object or filename
 %
-% 
 % Outputs (1) normalised power, (2) t-stat and (3) multivarariate
 % (Hotellings)images. Uses Sekihara eigenval approach to choose optimal
 % direction.
 %
-% outfilenames       Output filenames (for 1,2,3)
+% outfilenames - Output filenames (for 1,2,3)
 %
-%                    The following fields are returned if you set 
-%                    S.return_weights=1:
+%                The following fields are returned if you set 
+%                S.return_weights=1:
 %
-% ctf_inside         CTF locations inside head
-% ctf_weights        Corresponding beamformer weight matrices
-% _______________________________________________________________________
-% Copyright (C) 2009 Institute of Neurology, UCL
+% ctf_inside   - CTF locations inside head
+% ctf_weights  - Corresponding beamformer weight matrices
+%__________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_mult.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_ft_beamformer_mult.m 3652 2009-12-18 18:54:43Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -33,7 +34,7 @@ end
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    D = spm_select(1, 'mat', 'Select MEEG mat file');
     S.D = D;
 end
 

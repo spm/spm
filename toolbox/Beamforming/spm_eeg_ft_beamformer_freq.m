@@ -1,17 +1,16 @@
 function spm_eeg_ft_beamformer_freq(S)
-% Script for making power images using DICS beamformer. Requires as input
-% an MEEG file where coregistration has been performed.
+% Compute power images using DICS beamformer
+% FORMAT spm_eeg_ft_beamformer_freq(S)
 %
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+% S            - struct (optional)
+% (optional) fields of S:
+% S.D          - meeg object or filename
+%                coregistration must has been performed beforehand
+%__________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3615 2009-12-08 09:49:29Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3652 2009-12-18 18:54:43Z guillaume $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -24,7 +23,7 @@ end
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    D = spm_select(1, 'mat', 'Select EEG mat file');
     S.D = D;
 end
 

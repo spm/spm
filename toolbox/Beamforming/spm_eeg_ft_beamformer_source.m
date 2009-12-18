@@ -1,36 +1,29 @@
 function Dsource = spm_eeg_ft_beamformer_source(S)
-% Use LCMV beamformer to extract source activity from specific points in
-% the brain.
+% Extract source activity from specific points in the brain using LCMV
+% beamformer
 %
 % FORMAT Dsource = spm_eeg_ft_beamformer_source(S)
 %
-% S         - struct (optional)
+% S            - struct (optional)
 % (optional) fields of S:
-% S.D - meeg object or filename
+% S.D          - meeg object or filename
 % S.conditions - cell array of strings - condition labels to use
-% S.sources - specification of source locations. Struct with two fields:
-%             .label - cell array of strings - labels for the sources
-%             .pos - N x 3 matrix of MNI positions
-% S.lambda -  regularization constant (either numeric or string like '10%')
-% S.outfile - output file name (default 'B' + input name)
+% S.sources    - specification of source locations. Struct with two fields:
+%                .label - cell array of strings - labels for the sources
+%                .pos - N x 3 matrix of MNI positions
+% S.lambda     -  regularization constant (either numeric or string like '10%')
+% S.outfile    - output file name (default 'B' + input name)
 % S.appendchannels - cell array of strings - labels of channels from the
-%             input dataset to be appended to the source data
+%                input dataset to be appended to the source data
 %
 % Output:
-% Dsource   - MEEG object containing the source data and (optionally)
-%             appended channel data.
-%
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+% Dsource      - MEEG object containing the source data and (optionally)
+%                appended channel data.
+%__________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 3652 2009-12-18 18:54:43Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -41,7 +34,7 @@ end
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    D = spm_select(1, 'mat', 'Select MEEG mat file');
     S.D = D;
 end
 

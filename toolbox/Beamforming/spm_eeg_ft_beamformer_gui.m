@@ -1,10 +1,16 @@
 function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
-% _______________________________________________________________________
-% Copyright (C) 2009 Institute of Neurology, UCL
-% basic gui for an LCMV univariate beamformer
-%
+% LCMV univariate beamformer
+% FORMAT [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
+% 
+% S            - struct (optional)
+% (optional) fields of S:
+% S.D          - meeg object or filename
+%                coregistration must has been performed beforehand
+%__________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3526 2009-10-30 14:57:31Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 3652 2009-12-18 18:54:43Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -17,7 +23,7 @@ end
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    D = spm_select(1, '\.mat$', 'Select MEEG mat file');
     S.D = D;
 end
 
@@ -190,5 +196,3 @@ end
  
     
 end % function
-
-

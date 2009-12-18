@@ -1,17 +1,14 @@
 function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
-% Computes power-based beamformer image
-% FORMAT [outfilenames,ctf_inside,ctf_weights]=spm_eeg_ft_beamformer_lcmv (S)
+% Compute power-based beamformer image
+% FORMAT [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 %
-% S         MEEG object where coregistration has been performed.
-%
-% 
 % returns a stats structure containing univariate t test on power
 % and a list of the image files produced
-% _______________________________________________________________________
-% Copyright (C) 2009 Institute of Neurology, UCL
+%__________________________________________________________________________
+% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3582 2009-11-18 17:04:42Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3652 2009-12-18 18:54:43Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -106,7 +103,7 @@ end; % if
 try
     D = S.D;
 catch
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    D = spm_select(1, 'mat', 'Select MEEG mat file');
     S.D = D;
 end
 
