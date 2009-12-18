@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 3593 2009-11-24 09:09:59Z vladimir $
+% $Id: spm_eeg_inv_results.m 3651 2009-12-18 16:53:52Z guillaume $
 
 % SPM data structure
 %==========================================================================
@@ -45,19 +45,19 @@ fprintf('\ncomputing contrast - please wait\n')
 
 % inversion parameters
 %--------------------------------------------------------------------------
-J    = model.inverse.J;                           % Trial average MAP estimate
-T    = model.inverse.T;                           % temporal projector
-U    = model.inverse.U;                           % spatial  projector[s]
-Is   = model.inverse.Is;                          % Indices of ARD vertices
-Ic   = model.inverse.Ic;                          % Indices of channels
-It   = model.inverse.It;                          % Indices of time bins
-pst  = model.inverse.pst;                         % peristimulus time (ms)
-Nd   = model.inverse.Nd;                          % number of mesh dipoles
-Nb   = size(T,1);                                 % number of time bins
-Nc   = size(U,1);                                 % number of channels
+J    = model.inverse.J;                        % Trial average MAP estimate
+T    = model.inverse.T;                        % temporal projector
+U    = model.inverse.U;                        % spatial  projector[s]
+Is   = model.inverse.Is;                       % Indices of ARD vertices
+Ic   = model.inverse.Ic;                       % Indices of channels
+It   = model.inverse.It;                       % Indices of time bins
+pst  = model.inverse.pst;                      % peristimulus time (ms)
+Nd   = model.inverse.Nd;                       % number of mesh dipoles
+Nb   = size(T,1);                              % number of time bins
+Nc   = size(U,1);                              % number of channels
 
 try
-    scale = model.inverse.scale;                 % Trial average MAP estimate
+    scale = model.inverse.scale;              % Trial average MAP estimate
 catch
     scale = 1;
 end
@@ -116,8 +116,8 @@ for i = 1:length(J)
             JW{i} = J{i}*TW(:,1);
             GW{i} = sum((J{i}*TW).^2,2) + qC;
 
-            % mean energy over trials
-            %------------------------------------------------------------------
+        % mean energy over trials
+        %------------------------------------------------------------------
         case{'induced'}
 
             JW{i} = sparse(0);
@@ -128,8 +128,8 @@ for i = 1:length(J)
             % conditional expectation of contrast (J*W) and its energy
             %--------------------------------------------------------------
             Nt    = length(c);
+            spm_progress_bar('Init',Nt,sprintf('condition %d',i),'trials');
             for j = 1:Nt
-                fprintf( 'evaluating trial %i, condition %i\n',j,i)
                 try
                     
                     % unimodal data
@@ -152,7 +152,9 @@ for i = 1:length(J)
                 
                 JW{i} = JW{i} + MYW(:,1);
                 JWWJ  = JWWJ  + sum(MYW.^2,2);
+                spm_progress_bar('Set',j)
             end
+            spm_progress_bar('Clear')
 
             % conditional expectation of total energy (source space GW)
             %--------------------------------------------------------------
@@ -161,7 +163,6 @@ for i = 1:length(J)
     end
 
 end
-
 
 
 % Save results

@@ -4,7 +4,7 @@
 In this section we will generate some simulated data to show how the inversion algorithms compare when the ground-truth is known. 
 
 \section{Simulation}
-The code used to generate the simulated data is called \texttt{simmegdip\_for\_faces.m} and is located in the \texttt{example\_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model etc from the SPM M/EEG dataset\footnote{Multimodal face-evoked dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/mmfaces/}}:
+The code used to generate the simulated data is called \texttt{simmegdip\_for\_faces.m} and is located in the \texttt{man/example\_scripts} directory. The simulation code takes the experimental setup: sensor locations, triggers, head model, etc, from the SPM M/EEG dataset\footnote{Multimodal face-evoked dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/mmfaces/}}:
 
 \begin{verbatim}
 cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
@@ -15,25 +15,23 @@ you created in chapter \ref{Chap:data:multimodal} and replaces the channel data 
 You can manipulate this code to change the number or locations of the simulated dipoles by changing
 
 \begin{verbatim}
-dipolepositions=[ 52, -29, 13; -52, -29, 13]; % in mni space
+dipolepositions = [ 52, -29, 13; -52, -29, 13]; % in mni space
 \end{verbatim}
-or modify the signal vector in anyway to change the time series being simulated. At the simplest level, the matrices \textit{dipamp} and \textit{dipfreq} define how each source behaves during a given condition. 
+or modify the signal vector in anyway to change the time series being simulated. At the simplest level, the matrices \texttt{dipamp} and \texttt{dipfreq} define how each source behaves during a given condition. 
 
 \begin{verbatim}
 % cond 1 cond 2
-dipamp=	  [1 		0;...     % dip 1
-           1 		0].*1e-1; % dip 2 
-dipfreq =	[10 		10;... 	% dip 1
-         	20 		20];      % dip 2
+dipamp  = [ 1  0;...     % dip 1
+            1  0].*1e-1; % dip 2 
+dipfreq = [10 10;...     % dip 1
+           20 20];       % dip 2
 \end{verbatim}
 
 That is, the two dipoles are currently set to be on (at 10 and 20Hz) during the faces condition and off during the scrambled condition.
 
-You can run the script to create a new or modified dataset each time. If you run it with no changes, it will generate the dataset:
-\\
-\texttt{simdata\_aud1020Hz.mat}
-\\
-This file has dipoles at [52, -29, 13] and  [-52, -29, 13] in  in MNI space. The dipoles are energized at 10Hz and 20Hz from 0.1 to 0.4 seconds (Figure~\ref{meg_sloc:fig:1}). In each epoch the activation profile is identical, the channel data will be slightly different due to the white noise added.
+You can run the script to create a new or modified dataset each time. If you run it with no changes, it will generate the dataset \texttt{simdata\_aud1020Hz.mat}. This dataset is also available from the Multimodal face-evoked dataset webpage.
+
+This file has dipoles at [52, -29, 13] and  [-52, -29, 13] in MNI space. The dipoles are energized at 10Hz and 20Hz from 0.1 to 0.4 seconds (Figure~\ref{meg_sloc:fig:1}). In each epoch the activation profile is identical, the channel data will be slightly different due to the white noise added.
 
 \begin{figure}
 \begin{center}
@@ -42,16 +40,15 @@ This file has dipoles at [52, -29, 13] and  [-52, -29, 13] in  in MNI space. The
 \end{center}
 \end{figure}
 
-
 \section{Imaging solutions for evoked or induced responses}
 
-On the main menu Click \texttt{3D Source Reconstruction}. Press \texttt{Load}. Select the unaveraged file \texttt{simdata\_aud1020Hz.mat}
+On the main menu Click \texttt{3D Source Reconstruction}. Press \texttt{Load}. Select the unaveraged file \texttt{simdata\_aud1020Hz.mat}.
 
 Moving left to right along the bottom panel you will notice that all of the buttons (MRI, Co-register, Forward Model) are active. This means that the preprocessing stages have already been carried out on these data (see multi-modal evoked responses chapter).
 
 \subsection{IID (minimum norm)}
 We will start off with the traditional minimum norm solution. This starts by assuming that all source elements contribute something to the measured data. The constraint is that the total power (in the sources) should be minimised.
-Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{IID}. Under Time-window ``0 600''. For \texttt{PST Hanning} select \texttt{Yes}. For High-pass (Hz) select \texttt{1} for Low-pass (Hz) select \texttt{48}. Under \texttt{Restrict solutions} select \texttt{No}. 
+Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{IID}. Under Time-window ``0 600''. For \texttt{PST Hanning} select \texttt{Yes}. For High-pass (Hz) select \texttt{1} for Low-pass (Hz) select \texttt{48}. For \texttt{Source priors}, select \texttt{No}. Under \texttt{Restrict solutions} select \texttt{No}. 
 
 \begin{figure}
 \begin{center}
@@ -61,7 +58,7 @@ Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \
 \end{figure}
 
  
-It appears (\ref{meg_sloc:fig:2}) that the minimum norm solution has reconstructed only one of the sources. Note, however, the location of the dotted line in the upper time-series window. The source amplitude reconstruction is based on the location of this line (and conversely the time series shown taken from the maximum image voxel). In the \texttt{ms or mm} box fill in ``205'' then press \texttt{mip}. You should now see that the minimum norm solution is indeed bilateral, although rather diffuse (Figure~\ref{meg_sloc:fig:3}).  Note the log-evidence 8203626.
+It appears (\ref{meg_sloc:fig:2}) that the minimum norm solution has reconstructed only one of the sources. Note, however, the location of the dotted line in the upper time-series window. The source amplitude reconstruction is based on the location of this line (and conversely the time series shown taken from the maximum image voxel). In the \texttt{ms or mm} box fill in ``205'' then press \texttt{mip}. You should now see that the minimum norm solution is indeed bilateral, although rather diffuse (Figure~\ref{meg_sloc:fig:3}).  Note the log-evidence 5263658.
 
 \begin{figure}
 \begin{center}
@@ -81,7 +78,7 @@ Often we will interested in the difference between conditions over a specific ti
 \end{figure}
 
 \subsection{Smooth priors (COH)}
-The COH option allows the mixture of two possible source covariance matrices: the minimum norm prior above and a much smoother source covariance matrix in which adjacent sources are correlated (over the scale of a few mm). Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{COH}. Under Time-window ``0-600''. For \texttt{PST Hanning} select \texttt{Yes}. For High-pass (Hz) select \texttt{1} for Low-pass (Hz) select \texttt{48}. Under \texttt{Restrict solutions} select \texttt{No}.   You will see a plot similar to Figure~\ref{meg_sloc:fig:5} appear. The lower panel shows the glass brain in which bilateral sources are apparent. The upper panel shows the time-series of the source with the largest amplitude. In this case the peak activation is identified at location 59,-32 13. The 10Hz time-course (associated with this source) is also clearly visible in the top panel.  Log evidence is 8211210.
+The COH option allows the mixture of two possible source covariance matrices: the minimum norm prior above and a much smoother source covariance matrix in which adjacent sources are correlated (over the scale of a few mm). Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{COH}. Under Time-window ``0 600''. For \texttt{PST Hanning} select \texttt{Yes}. For High-pass (Hz) select \texttt{1} for Low-pass (Hz) select \texttt{48}. For \texttt{Source priors}, select \texttt{No}. Under \texttt{Restrict solutions} select \texttt{No}.   You will see a plot similar to Figure~\ref{meg_sloc:fig:5} appear. The lower panel shows the glass brain in which bilateral sources are apparent. The upper panel shows the time-series of the source with the largest amplitude. In this case the peak activation is identified at location 59,-32 13. The 10Hz time-course (associated with this source) is also clearly visible in the top panel.  Log evidence is 5272712.
 
 \begin{figure}
 \begin{center}
@@ -92,7 +89,7 @@ The COH option allows the mixture of two possible source covariance matrices: th
 
 \subsection{ARD}
 ARD works by creating a basis set of many possible source configurations (e.g. many single sources and left-right symmetric correlated sources) or components. It then works through to eliminate those components which contribute the least (to the model evidence).
-Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{ARD}. Under Time-window ``0-600''. For \texttt{PST Hanning} select \texttt{Yes}. For \texttt{High-pass (Hz)} select ``1'' for \texttt{Low-pass (Hz)} select ``48''. Under \texttt{Restrict solutions} select \texttt{No}.  In Figure~\ref{meg_sloc:fig:6} the lower panel shows the glass brain in which bilateral sources are apparent and more focal than previously observed. This becomes more evident if you now work through to produce a contrast. Press the \texttt{Window}, \texttt{Time window (ms)} prompt type ``0 600''. \texttt{Frequency [band] of interest (Hz)} type ``1 40'', for \texttt{Power} select \texttt{induced}. Then press \texttt{Image} to see the result overlaid on an MNI brain (Figure~\ref{meg_sloc:fig:7}). Note the evidence 8379513.
+Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{ARD}. Under Time-window ``0 600''. For \texttt{PST Hanning} select \texttt{Yes}. For \texttt{High-pass (Hz)} select ``1'' for \texttt{Low-pass (Hz)} select ``48''. For \texttt{Source priors}, select \texttt{No}. Under \texttt{Restrict solutions} select \texttt{No}.  In Figure~\ref{meg_sloc:fig:6} the lower panel shows the glass brain in which bilateral sources are apparent and more focal than previously observed. This becomes more evident if you now work through to produce a contrast. Press the \texttt{Window}, \texttt{Time window (ms)} prompt type ``0 600''. \texttt{Frequency [band] of interest (Hz)} type ``1 40'', for \texttt{Power} select \texttt{induced}. Then press \texttt{Image} to see the result overlaid on an MNI brain (Figure~\ref{meg_sloc:fig:7}). Note the evidence 5470698.
 
 \begin{figure}
 \begin{center}
@@ -114,7 +111,7 @@ We could now make a volume to compare with the minimum norm solution (Figure~\re
 
 \subsection{Greedy Search (GS)}
 In contrast to ARD, the greedy search routine builds up successive combinations of source configurations until the model evidence can no longer be improved.
-Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{GS}. Under Time-window ``0-600''. For \texttt{PST Hanning} select \texttt{Yes}. \texttt{For High-pass (Hz)} select \texttt{1} for \texttt{Low-pass (Hz)} select ``48''. Under \texttt{Restrict solutions} select \texttt{No}.  Note again the more focal sources (Figure~\ref{meg_sloc:fig:8}) as compared to the minimum norm solution; although the time-series estimation seems to have suffered. Note the evidence 8374355.
+Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \texttt{All conditions or trials} press \texttt{Yes}. For model press \texttt{Custom}. Model inversion \texttt{GS}. Under Time-window ``0-600''. For \texttt{PST Hanning} select \texttt{Yes}. \texttt{For High-pass (Hz)} select \texttt{1} for \texttt{Low-pass (Hz)} select ``48''. For \texttt{Source priors}, select \texttt{No}. Under \texttt{Restrict solutions} select \texttt{No}. Note again the more focal sources (Figure~\ref{meg_sloc:fig:8}) as compared to the minimum norm solution; although the time-series estimation seems to have suffered. Note the evidence 5464023.
 
 \begin{figure}
 \begin{center}
@@ -126,7 +123,7 @@ Press \texttt{Invert}. Under reconstruction method press \texttt{Imaging}. For \
 \subsection{Multiple Sparse Priors (Standard)}
 The standard button is simply the use of a greedy search using the whole time window available in a band of 2-128Hz. following default options: Greedy Search, all time, hanning windowed, filter 2-128Hz.
 
-\subsection{Model comparison}.
+\subsection{Model comparison}
 As we tested all the above models on the same data we can make a model comparison. Figure~\ref{meg_sloc:fig:9} shows that the ARD model is marginally superior to the GS and both of these improve upon IID and COH solutions.
 
 \begin{figure}
