@@ -1,7 +1,7 @@
 
 
 %% ORIGINAL FACES DATA FILE
-origspmfilename='cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat'
+origspmfilename='cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat';
 
 %% OUTPUT SIMULATED DATA FILE
 spmfilename='simdata_aud1020Hz';
@@ -145,7 +145,7 @@ D2=sensors(D2,'MEG',raw1.grad);
 D2=fiducials(D2,D.fiducials);
 D2.inv=D.inv;
 D2 = conditions(D2, [], D.conditions);
-D2=coor2d(D2,'MEG',coor2d(D)); %% save projected 2d channel locations
+D2=coor2D(D2,'MEG',coor2d(D)); %% save projected 2d channel locations
 D2.save;
 
 figure;
@@ -156,10 +156,10 @@ set(gca,'FontSize',18);
 set(gcf,'color','w');
 
 %% write an averaged data set also
-  S=[]
-  S.D=D2;
-  S.robust=0;
-  D2av = spm_eeg_average(S);
+S=[];
+S.D=D2;
+S.robust=0;
+D2av = spm_eeg_average(S);
 
   
   
