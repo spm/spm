@@ -7,7 +7,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Q   - {1 x q} covariance components
 % N   - number of samples
 % D   - Flag for positive-definite scheme
-% t   - regularisation [default: 4]
+% t   - regularisation [-4 to 4] (default 4)
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -35,16 +35,16 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3649 2009-12-17 16:57:24Z guillaume $
-
-
-% check defaults
+% $Id: spm_reml.m 3657 2009-12-23 20:22:10Z karl $
+ 
+ 
+% hceck defaults
 %--------------------------------------------------------------------------
 try, N; catch, N  = 1;  end       % assume a single sample if not specified
 try, K; catch, K  = 32; end       % default number of iterations
 try, D; catch, D  = 0;  end       % default checking
 try, t; catch, t  = 4;  end       % default regularisation
-
+ 
 % catch NaNs
 %--------------------------------------------------------------------------
 W     = Q;
@@ -53,12 +53,12 @@ YY    = YY(q,q);
 for i = 1:length(Q)
     Q{i} = Q{i}(q,q);
 end
-
+ 
 % dimensions
 %--------------------------------------------------------------------------
 n     = length(Q{1});
 m     = length(Q);
-
+ 
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
@@ -66,7 +66,7 @@ if isempty(X)
 else
     X = spm_svd(X(q,:));
 end
-
+ 
 % initialise h and specify hyperpriors
 %==========================================================================
 h   = zeros(m,1);
@@ -77,8 +77,8 @@ hE  = sparse(m,1);
 hP  = speye(m,m)/exp(32);
 dF  = Inf;
 D   = 8*(D > 0);
-
-
+ 
+ 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 for k = 1:K
@@ -89,7 +89,7 @@ for k = 1:K
     for i = 1:m
         C = C + Q{i}*h(i);
     end
-
+ 
     % positive [semi]-definite check
     %----------------------------------------------------------------------
     for i = 1:D
@@ -149,7 +149,7 @@ for k = 1:K
 
         end
     end
-
+ 
     % add hyperpriors
     %----------------------------------------------------------------------
     e     = h     - hE;
@@ -172,24 +172,34 @@ for k = 1:K
     dF    = pF;
 
 
+    % predicted change in F - increase regularisation if increasing
+    %----------------------------------------------------------------------
+    pF    = dFdh'*dh;
+    if pF > dF
+        t = t - 1;
+    else
+        t = t + 1/4;
+    end
+    dF    = pF;
+ 
+    
     % Convergence (1% change in log-evidence)
     %======================================================================
-    fprintf('%s %-23d: %10s%e [%+3.2f]\n','  ReML Iteration',k,'...',full(pF),t);
-
+    fprintf('%-24s: %3i %9s%e [%+3.2f]\n','  ReML Iteration',k,'...',full(pF),t);
+ 
     % final estimate of covariance (with missing data points)
     %----------------------------------------------------------------------
     if dF < 1e-1, break, end
-
 end
 
-
+ 
 % re-build predicted covariance
 %==========================================================================
 V     = 0;
 for i = 1:m
     V = V + W{i}*h(i);
 end
-
+ 
 % check V is positive semi-definite (if not already checked)
 %==========================================================================
 if ~D
@@ -198,26 +208,28 @@ if ~D
         return
     end
 end
-
+ 
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 Ph    = -dFdhh;
 if nargout > 3
-
+ 
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
     %----------------------------------------------------------------------
     Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
-
+ 
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
     Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
-
+ 
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
     Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2 - N*spm_logdet(C)/2;
-
+ 
     % Free-energy
     %----------------------------------------------------------------------
     F  = Fa - Fc;
-
+ 
 end
+
+

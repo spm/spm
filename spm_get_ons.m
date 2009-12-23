@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 2636 2009-01-21 09:57:20Z guillaume $
+% $Id: spm_get_ons.m 3657 2009-12-23 20:22:10Z karl $
 
 
 %-GUI setup
@@ -119,7 +119,6 @@ for i = 1:v
         str      = ['vector of onsets - ' Uname{1}];
         ons      = spm_input(str,4,'r',' ',[Inf 1]);
         U(i).ons = ons(:);
-
     end
 
     % durations
@@ -146,7 +145,7 @@ for i = 1:v
 
     % peri-stimulus times {seconds}
     %----------------------------------------------------------------------
-    pst   = [0:(k-1)]*T*dt - ons(1)*TR;
+    pst   = [0:(k-1)]*T*dt - min(ons)*TR;
     for j = 1:length(ons)
         w      = [0:(k-1)]*T*dt - ons(j)*TR;
         v      = find(w >= 0);
@@ -160,8 +159,8 @@ for i = 1:v
     % get parameter stucture xP
     %----------------------------------------------------------------------
     try
-        xP          = U(i).P;
-        Pname       = xP(1).name;
+        xP    = U(i).P;
+        Pname = xP(1).name;
 
         switch Pname
 
@@ -174,8 +173,8 @@ for i = 1:v
 
     catch
 
-        Pname       = {'none','time','other'};
-        Pname       = spm_input('parametric modulation',6,'b',Pname);
+        Pname = {'none','time','other'};
+        Pname = spm_input('parametric modulation',6,'b',Pname);
 
         switch Pname
 
@@ -207,9 +206,9 @@ for i = 1:v
 
                     % sub-indices and inputs
                     %------------------------------------------------------
-                    xP(q).name  = Pname;
-                    xP(q).P     = P(:);
-                    xP(q).h     = h;
+                    xP(q).name = Pname;
+                    xP(q).P    = P(:);
+                    xP(q).h    = h;
 
                 end
         end % switch
@@ -240,8 +239,8 @@ for i = 1:v
 
     % create stimulus functions (32 bin offset)
     %======================================================================
-    ton       = round(ons*TR/dt) + 32;          % onsets
-    tof       = round(dur*TR/dt) + ton + 1;         % offset
+    ton       = round(ons*TR/dt) + 32;               % onsets
+    tof       = round(dur*TR/dt) + ton + 1;          % offset
     sf        = sparse((k*T + 128),size(u,2));
     ton       = max(ton,1);
     tof       = max(tof,1);
@@ -253,8 +252,8 @@ for i = 1:v
             sf(tof(j),:) = sf(tof(j),:) - u(j,:);
         end
     end
-    sf        = cumsum(sf);                 % integrate
-    sf        = sf(1:(k*T + 32),:);             % stimulus
+    sf        = cumsum(sf);                         % integrate
+    sf        = sf(1:(k*T + 32),:);                 % stimulus
 
     % place in ouputs structure
     %----------------------------------------------------------------------

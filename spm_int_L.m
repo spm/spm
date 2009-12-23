@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 2707 2009-02-06 19:51:34Z karl $
+% $Id: spm_int_L.m 3657 2009-12-23 20:22:10Z karl $
  
  
 % convert U to U.u if necessary
@@ -137,7 +137,7 @@ for i = 1:ns
  
     % output - implement g(x)
     %----------------------------------------------------------------------
-    if length(g)
+    if ~isempty(g)
         y(:,i) = spm_vec(g(x,u,P,M));
     else
         y(:,i) = spm_vec(x);

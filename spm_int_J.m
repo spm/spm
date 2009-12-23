@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 3605 2009-12-01 13:29:43Z karl $
+% $Id: spm_int_J.m 3657 2009-12-23 20:22:10Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -108,12 +108,12 @@ end
 try
     f(x,u,P,M);
 catch
-    f = inline([char(f) '(x,v,P,M)'],'x','v','P','M');
+    f = inline(char(f),'x','v','P','M');
 end
 try
     g(x,u,P,M);
 catch
-    g = inline([char(g) '(x,v,P,M)'],'x','v','P','M');
+    g = inline(char(g),'x','v','P','M');
 end
 
 % check for delay operator

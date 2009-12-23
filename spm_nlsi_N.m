@@ -1,6 +1,6 @@
-function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
+function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Bayesian inversion of a linear-nonlinear model of the form F(p)*G(g)'
-% FORMAT [Ep,Eg,Cp,Cg,S,F]= spm_nlsi_N(M,U,Y)
+% FORMAT [Ep,Eg,Cp,Cg,S,F,L]= spm_nlsi_N(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
@@ -54,6 +54,16 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % log evidence
 %--------------------------------------------------------------------------
 % F   - [-ve] free energy F = log evidence = p(y|m)
+% 
+%     L(1) = - ey'*iS*ey/2;             accuracy of states
+%     L(2) = - ep'*ipC*ep/2;            accuracy of parameters (f)
+%     L(3) = - eg'*igC*eg/2;            accuracy of parameters (g)
+%     L(4) = - eu'*iuC*eu/2;            accuracy of parameters (u)
+%     L(5) = - eh'*ihC*eh/2;            accuracy of precisions (u)
+%     L(6) = - ns*nr*log(8*atan(1))/2;  constant
+%     L(7) = - nq*spm_logdet(S)/2;      precision
+%     L(8) = spm_logdet(ibC*Cb)/2;      parameter complexity
+%     L(9) = spm_logdet(ihC*Ch)/2;      precision complexity
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
@@ -73,13 +83,16 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_nlsi_N.m 3657 2009-12-23 20:22:10Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
 try
     M.nograph;
 catch 
+    M.nograph = 0;
+end
+if ~M.nograph
     Fsi = spm_figure('GetWin','SI');
 end
  
@@ -128,7 +141,7 @@ if iscell(y)
     
     ns = size(y{1},1);
     
-    % concatenate samples over cell, sensuring the same for predictions
+    % concatenate samples over cell, ensuring the same for predictions
     %----------------------------------------------------------------------
     y  = spm_cat(y(:));             
     IS = inline(['spm_cat(' IS '(P,M,U))'],'P','M','U');
@@ -151,7 +164,7 @@ catch
     end
     M.x = sparse(M.n,1);
 end
-
+ 
 % input
 %--------------------------------------------------------------------------
 try
@@ -205,7 +218,7 @@ end
 try
     hE  = M.hE;
 catch
-    hE  = sparse(nh,1) - 32;
+    hE  = sparse(nh,1) - log(mean(var(y)));
 end
  
 % hyperpriors - covariance
@@ -213,7 +226,7 @@ end
 try
     ihC = inv(M.hC);
 catch
-    ihC = speye(nh,nh)/256;
+    ihC = speye(nh,nh)*8;
 end
  
 % dimension reduction of parameter space
@@ -236,11 +249,10 @@ sw    = warning('off','all');
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
 uC    = speye(nu,nu)*exp(32);
-ipC   = inv(pC);                      % p - state parameters
-igC   = inv(gC);                      % g - observer parameters
-iuC   = inv(uC);                      % u - fixed parameters
-ibC   = spm_cat(spm_diag({ipC,igC,iuC})); % b - all parameters
-
+ipC   = inv(pC);                               % p - state parameters
+igC   = inv(gC);                               % g - observer parameters
+iuC   = inv(uC);                               % u - fixed parameters
+ibC   = spm_cat(spm_diag({ipC,igC,iuC}));      % all parameters
  
 % initialize conditional density
 %--------------------------------------------------------------------------
@@ -248,7 +260,7 @@ Ep    = M.P;
 Eg    = M.gE;
 Eu    = spm_pinv(dgdu)*spm_vec(y);
 warning(sw);
-
+ 
 % EM
 %==========================================================================
 C.F   = -Inf;                                 % free-energy: f(x,u,p)
@@ -257,11 +269,11 @@ dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 sw    = warning('off','all');
  
-
+ 
 % expansion point
 %--------------------------------------------------------------------------
 x0     = ones(size(y,1),1)*spm_vec(M.x)';
-
+ 
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
 for ip = 1:64
@@ -273,7 +285,7 @@ for ip = 1:64
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
     [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
-
+ 
     
     % check for dissipative dynamics
     %----------------------------------------------------------------------
@@ -293,32 +305,15 @@ for ip = 1:64
         [dGdg G] = spm_diff(M.G,Eg,M,1,{Vg});
         yp       = FS((x - x0)*G',M);
         
-        
-        % Optimize g: parameters confounds
+        % prediction errors - states
         %==================================================================
-        
-        % prediction errors
-        %------------------------------------------------------------------
         ey    = spm_vec(y)  - spm_vec(yp) - dgdu*Eu;
-        eu    = spm_vec(Eu) - spm_vec(uE);
-
-        % update gradients and curvature
+ 
+        % prediction errors - parameters
         %------------------------------------------------------------------
-        dFdu  =  dgdu'*ey   - iuC*eu;
-        dFduu = -dgdu'*dgdu - iuC;
-
-        % Conditional updates of  u
-        %------------------------------------------------------------------
-        du    = spm_dx(dFduu,dFdu);
-        Eu    = Eu + du;
-
-        % recompute prediction errors
-        %------------------------------------------------------------------
-        ey    = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
         ep    = Vp'*(spm_vec(Ep) - spm_vec(pE));
         eg    = Vg'*(spm_vec(Eg) - spm_vec(gE));
         eu    =      spm_vec(Eu) - spm_vec(uE);
-        eb    = [ep; eg; eu];
  
         % gradients
         %------------------------------------------------------------------
@@ -332,10 +327,10 @@ for ip = 1:64
         catch
             dgdg = FS((x - x0)*dGdg,M);
         end
-        dgdb  = [dgdp dgdg dgdu];
- 
+  
         % Optimize F(h): parameters of iS(h)
         %==================================================================
+        dgdb   = [dgdp dgdg dgdu];           
         for ih = 1:8
  
             % precision
@@ -377,12 +372,8 @@ for ip = 1:64
             
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------
-            dh    = spm_dx(dFdhh,dFdh);
+            dh    = spm_dx(dFdhh,dFdh,{4});
             h     = h + dh;
- 
-            % prevent overflow
-            %--------------------------------------------------------------
-            h     = min(max(h,-32),32);
  
             % convergence
             %--------------------------------------------------------------
@@ -390,19 +381,29 @@ for ip = 1:64
  
         end
  
-        % optimise F(g,u)
+        % E-step: optimise F(g,u)
         %==================================================================
-
-        % update gradients and curvature
+        
+        % update gradients and curvature - counfounds
+        %------------------------------------------------------------------
+        dFdu  =  dgdu'*iS*ey   - iuC*eu;
+        dFduu = -dgdu'*iS*dgdu - iuC;
+        
+        % Conditional updates of confounds (u)
+        %------------------------------------------------------------------
+        du    = spm_dx(dFduu,dFdu,{4});
+        Eu    = Eu + du;
+        
+        % update gradients and curvature - parameters
         %------------------------------------------------------------------
         dFdg  =  dgdg'*iS*ey   - igC*eg;
         dFdgg = -dgdg'*iS*dgdg - igC;
-
-        % E-step: Conditional updates of g and u
+ 
+        % Conditional updates of parameters (g)
         %------------------------------------------------------------------
-        dg    = spm_dx(dFdgg,dFdg);
+        dg    = spm_dx(dFdgg,dFdg,{4});
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
-
+ 
         % convergence
         %------------------------------------------------------------------
         dG    = dFdg'*dg;
@@ -412,16 +413,16 @@ for ip = 1:64
     
     % optimise objective function: F(p) = log-evidence - divergence
     %======================================================================
-    F = ...
-        - ey'*iS*ey/2 ...
-        - ep'*ipC*ep/2 ...
-        - eg'*igC*eg/2 ...
-        - eu'*iuC*eu/2 ...
-        - eh'*ihC*eh/2 ...
-        - ns*nr*log(8*atan(1))/2 ...
-        - nq*spm_logdet(S)/2 ...
-        + spm_logdet(ibC*Cb)/2 ...
-        + spm_logdet(ihC*Ch)/2;
+    L(1) = - ey'*iS*ey/2;
+    L(2) = - ep'*ipC*ep/2;
+    L(3) = - eg'*igC*eg/2;
+    L(4) = - eu'*iuC*eu/2;
+    L(5) = - eh'*ihC*eh/2;
+    L(6) = - ns*nr*log(8*atan(1))/2;
+    L(7) = - nq*spm_logdet(S)/2;
+    L(8) = spm_logdet(ibC*Cb)/2;
+    L(9) = spm_logdet(ihC*Ch)/2;
+    F    = sum(L);
     
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
@@ -440,10 +441,10 @@ for ip = 1:64
         %------------------------------------------------------------------
         dFdp  =  dgdp'*iS*ey   - ipC*ep;
         dFdpp = -dgdp'*iS*dgdp - ipC;
-
+ 
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1,8);
+        v     = min(v + 1,4);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -454,6 +455,7 @@ for ip = 1:64
         C.Eu  = Eu;
         C.h   = h;
         C.F   = F;
+        C.L   = L;
   
     else
  
@@ -467,7 +469,7 @@ for ip = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        v     = min(v - 1,0);
+        v     = min(v - 2,-4);
         str   = 'EM(-)';
  
     end
@@ -476,7 +478,7 @@ for ip = 1:64
     %======================================================================
     dp    = spm_dx(dFdpp,dFdp,{v});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
-
+ 
     
     
     % subplot times
@@ -486,7 +488,7 @@ for ip = 1:64
     else
         yt = [1:size(yp,1)]*Y.dt*1000;
     end
-
+ 
     % graphics
     %----------------------------------------------------------------------
     try
@@ -545,16 +547,7 @@ end
 Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
+L      = C.L;
 warning(sw);
-
+ 
 return
-
-
-
-
-% notes
-%==========================================================================
-Up    = spm_svd(dFdpp,0);
-dFdp  = Up'*dFdp;
-dFdpp = Up'*dFdpp*Up;
-Vp    = Vp*Up;
