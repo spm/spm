@@ -17,7 +17,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_contrasts.m 1485 2008-04-27 12:23:42Z klaas $
+% $Id: spm_dcm_contrasts.m 3654 2009-12-23 20:09:54Z karl $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -43,19 +43,17 @@ end
 
 
 dx    = 35;
-wx=30;
-wy=20;
-
-d     = uicontrol(Finter,'String','done',...
-    'Position',[300 50 060 020].*WS);
+wx    = 30;
+wy    = 20;
+d     = uicontrol(Finter,'String','done','Position',[300 50 060 020].*WS);
 
 % Define left edge dialogue
 % itext_left=080;
 % inum_left=180;
 
-itext_left=030;
-inum_left=80;
-name_length=8; % number of characters in short names
+itext_left  = 030;
+inum_left   = 80;
+name_length = 8; % number of characters in short names
 for i=1:n
     if length(Y.name{i}) > name_length
         short_name(i).str = Y.name{i}(1:name_length);
@@ -115,7 +113,7 @@ case 'A' % intrinsic
             end
         end
     end
-    con_mat=a;
+    con_mat = a;
     
 case 'B' % modulatory
     %---------------------------------------------------
@@ -167,7 +165,7 @@ case 'B' % modulatory
         end
         
     end
-    con_mat=b;
+    con_mat = b;
     
 case 'C' % input
     %---------------------------------------------------
@@ -234,9 +232,9 @@ if isfield(DCM,'contrast')
 else
     num_contrast=1;
 end
-DCM.contrast(num_contrast).con_vec=con_vec;
-DCM.contrast(num_contrast).con_mat=con_mat;
-DCM.contrast(num_contrast).con_type=D;
+DCM.contrast(num_contrast).con_vec  = con_vec;
+DCM.contrast(num_contrast).con_mat  = con_mat;
+DCM.contrast(num_contrast).con_type = D;
 
 if spm_matlab_version_chk('7') >= 0
     save(P(:),'-V6','DCM');
