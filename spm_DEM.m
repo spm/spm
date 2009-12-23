@@ -15,10 +15,11 @@ function [DEM] = spm_DEM(DEM)
 %
 %   M(i).pE = prior expectation of p model-parameters
 %   M(i).pC = prior covariances of p model-parameters
-%   M(i).hE = prior expectation of h hyper-parameters (cause noise)
-%   M(i).hC = prior covariances of h hyper-parameters (cause noise)
-%   M(i).gE = prior expectation of g hyper-parameters (state noise)
-%   M(i).gC = prior covariances of g hyper-parameters (state noise)
+%   M(i).hE = prior expectation of h log-precision (cause noise)
+%   M(i).hC = prior covariances of h log-precision (cause noise)
+%   M(i).gE = prior expectation of g log-precision (state noise)
+%   M(i).gC = prior covariances of g log-precision (state noise)
+%   M(i).xP = precision (states)
 %   M(i).Q  = precision components (input noise)
 %   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
@@ -78,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3588 2009-11-20 14:06:08Z guillaume $
+% $Id: spm_DEM.m 3655 2009-12-23 20:15:34Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -86,7 +87,6 @@ function [DEM] = spm_DEM(DEM)
  
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-clear spm_DEM_eval
 Fdem = spm_figure('GetWin','DEM');
  
 % tolerance for changes in norm
@@ -119,16 +119,19 @@ try nE = M(1).E.nE; catch nE = 1;  end
 try nM = M(1).E.nM; catch nM = 8;  end
 try nN = M(1).E.nN; catch nN = 16; end
 try K  = M(1).E.K;  catch K  = 1;  end
- 
+
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 if nx
     td = 1/nD;                         % integration time for D-Step
-    te = 2;                            % integration time for E-Step
 else
     td = {8};
-    te = 2;
+end
+if M(1).E.linear
+    te = 8;                            % integration time for E-Step
+else
+    te = 4;
 end
  
 % precision components Q{} requiring [Re]ML estimators (M-Step)
@@ -185,14 +188,16 @@ nh    = length(Q);
  
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
-Px    = kron(spm_DEM_R(n,1),speye(nx,nx)*0);
-Pv    = kron(spm_DEM_R(d,1),speye(nv,nv)*0);
+xP    = spm_cat(spm_diag({M.xP}));
+Px    = kron(spm_DEM_R(n,1),xP);
+Pv    = kron(spm_DEM_R(d,1),sparse(nv,nv));
 Pu    = spm_cat(spm_diag({Px Pv}));
+Pu    = Pu + speye(nu,nu)*nu*eps;
  
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));    % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
 ph.ic = spm_pinv(ph.c);                    % prior precision 
@@ -226,7 +231,14 @@ pp.ic = spm_pinv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
-qp.e  = spm_vec(qp.p);
+for i = 1:(nl - 1)
+    try
+        qp.e{i} = qp.p{i} + qp.u{i}'*(spm_vec(M(i).P) - spm_vec(M(i).pE));
+    catch
+        qp.e{i} = qp.p{i};                           % initial qp.e
+    end
+end   
+qp.e  = spm_vec(qp.e);
 qp.c  = sparse(nf,nf);
 qp.b  = sparse(ny,nb);
 
@@ -297,8 +309,12 @@ if ~nf && ~nh, nN = 1; end
  
 % Iterate DEM
 %==========================================================================
-Fm     = -exp(64);
+Fm     = -Inf;
 for iN = 1:nN
+    
+    % get time and celar persistent variables in evaluation routines
+    %----------------------------------------------------------------------
+    tic; clear spm_DEM_eval
  
     % E-Step: (with embedded D-Step)
     %======================================================================
@@ -374,13 +390,12 @@ for iN = 1:nN
                 % conditional covariance [of states {u}]
                 %----------------------------------------------------------
                 qu.p   = dE.du'*iS*dE.du + Pu;
-                Ru     = speye(nu,nu)*nu*eps(norm(qu.p,1));
-                qu.c   = inv(qu.p + Ru);
+                qu.c   = spm_inv(qu.p);
                 qu_c   = qu_c*qu.c;
                                 
                 % and conditional covariance [of parameters {P}]
                 %----------------------------------------------------------
-                dE.dP  = [dE.dp spm_cat(dEdb)];
+                dE.dP  = spm_cat({dE.dp dEdb});
                 ECEu   = dE.du*qu.c*dE.du';
                 ECEp   = dE.dP*qp.c*dE.dP';
                 
@@ -443,11 +458,11 @@ for iN = 1:nN
                 
                 % first-order derivatives
                 %----------------------------------------------------------             
-                dVdu  = -dE.du'*iS*E     - dWdu/2  - (Pu + Ru)*u(1:nu); 
+                dVdu  = -dE.du'*iS*E     - dWdu/2  - Pu*u(1:nu); 
                 
                 % and second-order derivatives
                 %----------------------------------------------------------
-                dVduu = -dE.du'*iS*dE.du - dWduu/2 - (Pu + Ru);
+                dVduu = -dE.du'*iS*dE.du - dWduu/2 - Pu;
                 dVduy = -dE.du'*iS*dE.dy;
                 dVduc = -dE.du'*iS*dE.dc;
                 
@@ -481,9 +496,10 @@ for iN = 1:nN
                 if ~nx && ((dFdu'*du < 1e-2) || (norm(du,1) < TOL))
                     break
                 end
+                
+               % report (D-Steps)
+               %-----------------------------------------------------------
                 if ~nx && nY < 8
-                    % report (D-Steps)
-                    %------------------------------------------------------
                     str{1} = sprintf('D-Step: %i (%i)',iD,iY);
                     str{2} = sprintf('I:%.6e',full(Fd));
                     str{3} = sprintf('u:%.2e',full(du'*du));
@@ -524,7 +540,7 @@ for iN = 1:nN
         dFdp(ip)     = dFdp(ip)     - pp.ic*qp.e;
         dFdpp(ip,ip) = dFdpp(ip,ip) - pp.ic;
         qp.ic(ip,ip) = qp.ic(ip,ip) + pp.ic;
-        qp.c         = spm_pinv(qp.ic);
+        qp.c         = spm_inv(qp.ic);
              
         % evaluate objective function <L(t)>
         %==================================================================
@@ -534,7 +550,7 @@ for iN = 1:nN
  
         % if F is increasing, save expansion point and derivatives
         %------------------------------------------------------------------
-        if L > Fe
+        if L > Fe || iN == 1
             
             Fe      = L;
             te      = min(te + 1,8);
@@ -585,7 +601,7 @@ for iN = 1:nN
         for i = 1:nh
            iS = iS + Q{i}*exp(qh.h(i));
         end
-        S     = inv(iS);
+        S     = spm_inv(iS);
         dS    = ECE + EE - S*nY;
          
         % 1st-order derivatives: dFdh = dF/dh
@@ -611,13 +627,13 @@ for iN = 1:nN
         
         % update ReML estimate of parameters
         %------------------------------------------------------------------
-        dh    = spm_dx(dFdhh,dFdh);
+        dh    = spm_dx(dFdhh,dFdh,{4});
         qh.h  = qh.h + dh;
         mh    = mh   + dh;
         
         % conditional covariance of hyperparameters
         %------------------------------------------------------------------
-        qh.c  = -spm_pinv(dFdhh);
+        qh.c  = -spm_inv(dFdhh);
  
         % convergence (M-Step)
         %------------------------------------------------------------------
@@ -641,7 +657,8 @@ for iN = 1:nN
     
     % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if L > (Fm + 1e-2)
+    if L > (Fm + 1e-2) || mp'*mp > TOL || mh'*mh > TOL
+
  
         Fm    = L;
         F(iN) = Fm;
@@ -671,7 +688,7 @@ for iN = 1:nN
         end
         
         % save condotional densities
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         B.QU   = QU;
         B.qp   = qp;
         B.qh   = qh;
@@ -698,10 +715,11 @@ for iN = 1:nN
         % report (EM-Steps)
         %------------------------------------------------------------------
         str{1} = sprintf('DEM: %i (%i:%i:%i)',iN,iD,iE,iM);
-        str{2} = sprintf('F:%.6e',full(Fm - F(1)));
+        str{2} = sprintf('F:%.4e',full(Fm - F(1)));
         str{3} = sprintf('p:%.2e',full(mp'*mp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));
-        fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
+        str{5} = sprintf('(%.2e sec)',full(toc));
+        fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
  
     else
  

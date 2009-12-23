@@ -22,10 +22,11 @@ function [M] = spm_DEM_M_set(M)
 %
 %   M(i).pE = prior expectation of p model-parameters
 %   M(i).pC = prior covariances of p model-parameters
-%   M(i).hE = prior expectation of h hyper-parameters (input noise)
-%   M(i).hC = prior covariances of h hyper-parameters (input noise)
-%   M(i).gE = prior expectation of g hyper-parameters (state noise)
-%   M(i).gC = prior covariances of g hyper-parameters (state noise)
+%   M(i).hE = prior expectation of h log-precision (cause noise)
+%   M(i).hC = prior covariances of h log-precision (cause noise)
+%   M(i).gE = prior expectation of g log-precision (state noise)
+%   M(i).gC = prior covariances of g log-precision (state noise)
+%   M(i).xC = prior covariances of states
 %   M(i).Q  = precision components (input noise)
 %   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
@@ -47,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_DEM_M_set.m 3655 2009-12-23 20:15:34Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -218,6 +219,24 @@ for i = (g - 1):-1:1
     try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
     try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
     try M(i).gp = fcnchk(M(i).gp,'x','v','P'); end
+    
+end
+    
+% priors on states
+%--------------------------------------------------------------------------
+for i = 1:g
+    if isfield(M(i),'xP')
+        if size(M(i).xP) == [1 1];
+            M(i).xP = speye(M(i).n,M(i).n)*M(i).xP;
+        elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
+            errordlg(sprintf('please Check: M(%i).xP',i))
+        end
+    else
+        for j = 1:g
+            M(j).xP = sparse(M(j).n,M(j).n);
+        end
+        break
+    end
 end
 
 % number of x (hidden states)
@@ -302,7 +321,7 @@ for i = 1:g
         end
     end
     
-    % check V and W (expansion point for precisions)
+    % check V and W (lower bound on precisions)
     %======================================================================
 
     % check V and assume unit precision if improperly specified
@@ -311,7 +330,11 @@ for i = 1:g
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
         catch
-            M(i).V = speye(M(i).l,M(i).l);
+            if isempty(M(i).hE)
+                M(i).V = speye(M(i).l,M(i).l);
+            else
+                M(i).V = sparse(M(i).l,M(i).l);
+            end
         end
     end
     
@@ -322,7 +345,11 @@ for i = 1:g
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
         catch
-            M(i).W = speye(M(i).n,M(i).n);
+            if isempty(M(i).gE)
+                M(i).W = speye(M(i).n,M(i).n);
+            else
+                M(i).W = sparse(M(i).n,M(i).n);
+            end
         end
     end
       

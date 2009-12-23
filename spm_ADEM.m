@@ -55,7 +55,7 @@ function [DEM] = spm_ADEM(DEM)
 %--------------------------------------------------------------------------
 %   pP.P    = parameters for each level
 %
-% hyper-parameters (log-transformed) - h, g
+% hyper-parameters (log-transformed) - h,g
 %--------------------------------------------------------------------------
 %   pH.h    = cause noise
 %   pH.g    = state noise
@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3588 2009-11-20 14:06:08Z guillaume $
+% $Id: spm_ADEM.m 3655 2009-12-23 20:15:34Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -128,10 +128,7 @@ G(1).E.d = M(1).E.n;
  
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-clear spm_DEM_eval 
-sw = warning('off');
 Fdem = spm_figure('GetWin','DEM');
- 
  
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
@@ -332,6 +329,10 @@ W      = spm_cat(w(:));
 %==========================================================================
 F      = -Inf;
 for iE = 1:nE
+    
+    % get time and celar persistent variables in evaluation routines
+    %----------------------------------------------------------------------
+    tic; clear spm_DEM_eval
  
     % E-Step: (with embedded D-Step)
     %======================================================================
@@ -515,14 +516,14 @@ for iE = 1:nE
             end
             dWdp    = CJu'*spm_vec(dE.du');
             dWdpp   = CJu'*dEdup;
+
+            % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
+            %--------------------------------------------------------------
+            dFdp  = dFdp  - dWdp/2  - dE.dp'*iS*E;
+            dFdpp = dFdpp - dWdpp/2 - dE.dp'*iS*dE.dp;
+            qp.ic = qp.ic           + dE.dp'*iS*dE.dp;
+            
         end
- 
- 
-        % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
-        %------------------------------------------------------------------
-        dFdp  = dFdp  - dWdp/2  - dE.dp'*iS*E;
-        dFdpp = dFdpp - dWdpp/2 - dE.dp'*iS*dE.dp;
-        qp.ic = qp.ic           + dE.dp'*iS*dE.dp;
  
         % and quantities for M-Step
         %------------------------------------------------------------------
@@ -719,7 +720,8 @@ for iE = 1:nE
     str{2} = sprintf('F:%.4e',full(L - F(1)));
     str{3} = sprintf('p:%.2e',full(dp'*dp));
     str{4} = sprintf('h:%.2e',full(mh'*mh));
-    fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
+    str{5} = sprintf('(%.2e sec)',full(toc));
+    fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
     
     if (norm(dp,1) < exp(-8)) && (norm(mh,1) < exp(-8)), break, end
  
@@ -762,5 +764,4 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
- 
-warning(sw);
+

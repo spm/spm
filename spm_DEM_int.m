@@ -14,7 +14,7 @@ function [V,X] = spm_DEM_int(M,Z,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_int.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_DEM_int.m 3655 2009-12-23 20:15:34Z karl $
  
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -90,14 +90,14 @@ for t  = 1:nt
  
         % evaluate
         %------------------------------------------------------------------ 
-        [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
+        [u dg df] = spm_DEM_diff(M,u);
  
         % tensor products for Jabobian
         %------------------------------------------------------------------
-        dgdv = kron(spm_speye(n,n,1),dgdv);
-        dgdx = kron(spm_speye(n,n,1),dgdx);
-        dfdv = kron(spm_speye(n,n,0),dfdv);
-        dfdx = kron(spm_speye(n,n,0),dfdx);
+        dgdv = kron(spm_speye(n,n,1),dg.dv);
+        dgdx = kron(spm_speye(n,n,1),dg.dx);
+        dfdv = kron(spm_speye(n,n,0),df.dv);
+        dfdx = kron(spm_speye(n,n,0),df.dx);
 
         % Save realisation 
         %==================================================================

@@ -80,17 +80,16 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 3588 2009-11-20 14:06:08Z guillaume $
+% $Id: spm_DFP.m 3655 2009-12-23 20:15:34Z karl $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
-clear spm_DEM_eval
 [M Y U X] = spm_DEM_set(DEM);
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-Fdem     = spm_figure('GetWin','DEM');
-Fdfp     = spm_figure('GetWin','DFP');
+Fdem = spm_figure('GetWin','DEM');
+Fdfp = spm_figure('GetWin','DFP');
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
@@ -102,9 +101,9 @@ d    = M(1).E.d + 1;                   % embedding order of q(v)
 n    = M(1).E.n + 1;                   % embedding order of q(x)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
 try
-    N    = M(1).E.N;                   % number of particles
+    N = M(1).E.N;                      % number of particles
 catch
-    N    = 16;                         % number of particles
+    N = 16;                            % number of particles
 end
 
 % number of states and parameters
@@ -312,6 +311,10 @@ if ~nf && ~nh, nN = 1; end
 % Iterate DEM
 %==========================================================================
 for iN = 1:nN
+    
+    % get time and celar persistent variables in evaluation routines
+    %----------------------------------------------------------------------
+    tic; clear spm_DEM_eval
  
     % E-Step: (with embedded D-Step)
     %======================================================================
@@ -670,7 +673,8 @@ for iN = 1:nN
     str{2} = sprintf('F:%.6e',full(F(iN)));
     str{3} = sprintf('p:%.2e',full(mp'*mp));
     str{4} = sprintf('h:%.2e',full(mh'*mh));
-    fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
+    str{5} = sprintf('(%.2e sec)',full(toc));
+    fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
     
     if norm(mp) < TOL && norm(mh) < TOL, break, end
 

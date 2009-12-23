@@ -11,10 +11,10 @@ function spm_DEM_qU(qU,pU)
 % pU         - optional input for known states
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_DEM_qU.m 3122 2009-05-13 16:05:59Z karl $
-
+% $Id: spm_DEM_qU.m 3655 2009-12-23 20:15:34Z karl $
+ 
 % unpack
 %--------------------------------------------------------------------------
 clf
@@ -34,15 +34,15 @@ end
 try
     pA = qU.a;
 end
-
+ 
 % time-series specification
 %--------------------------------------------------------------------------
 g     = length(V);          % order of hierarchy
 N     = size(V{1},2);       % length of data sequence
 dt    = 1;                  % time step
 t     = [1:N]*dt;           % time
-
-
+ 
+ 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 ci    = spm_invNcdf(1 - 0.05);
@@ -54,20 +54,20 @@ try
         s = [s sqrt(diag(S{i}))];
     end
 end
-
+ 
 % loop over levels
 %--------------------------------------------------------------------------
 for i = 1:g
-
+ 
     if N == 1
-
+ 
         % causal states and error - single observation
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         t = 1:size(V{i},1);
         plot(t,full(E{i}),'r:',t,full(V{i}))
-
-
+ 
+ 
         % conditional covariances
         %------------------------------------------------------------------
         if i > 1 && size(c,1)
@@ -80,16 +80,16 @@ for i = 1:g
             plot(t,full(E{i}),'r:',t,full(V{i}))
             hold off
         end
-
+ 
         % title and grid
         %------------------------------------------------------------------
         title('causal states','FontSize',16);
         grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
-
+ 
     else
-
+ 
         % causal states and error - time series
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
@@ -101,7 +101,7 @@ for i = 1:g
         end, hold off
         set(gca,'XLim',[t(1) t(end)])
         a   = axis;
-
+ 
         % conditional covariances
         %------------------------------------------------------------------
         if i > 1 && size(c,1)
@@ -117,11 +117,13 @@ for i = 1:g
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
         end
-
-        % title, action, grid and true casues (if available)
+ 
+        % title, action, grid and true causes (if available)
         %------------------------------------------------------------------
         if i == 1
             title('prediction and error','FontSize',16);
+        elseif ~size(V{i},1)
+            title('no causes','FontSize',16);
         else
             title('causal states','FontSize',16);
             try, hold on
@@ -134,7 +136,7 @@ for i = 1:g
         xlabel('time','FontSize',14)
         axis square
         axis(a)
-
+ 
         % hidden states
         %------------------------------------------------------------------
         try
@@ -173,7 +175,7 @@ for i = 1:g
         end
     end
 end
-
+ 
 % plot action if specified
 %--------------------------------------------------------------------------
 if isfield(qU,'a')

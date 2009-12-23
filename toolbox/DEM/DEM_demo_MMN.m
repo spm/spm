@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: DEM_demo_MMN.m 3655 2009-12-23 20:15:34Z karl $
  
 % figure
 %--------------------------------------------------------------------------
@@ -216,3 +216,5 @@ for i = 1:(n + 1)
     axis square
     
 end
+
+drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')

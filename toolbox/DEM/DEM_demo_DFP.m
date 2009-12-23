@@ -14,13 +14,16 @@ spm_figure('GetWin','Graphics');
  
 % get a simple convolution model
 %==========================================================================
-M     = spm_DEM_M('convolution model');
+M      = spm_DEM_M('convolution model');
+M(1).V = exp(8);
+M(1).W = exp(16);
+
  
 % and generate data
 %==========================================================================
 N     = 32;                                        % length of data sequence
 U     = exp(-([1:N] - N/4).^2/(2*(N/32)^2));       % Gaussian cause
-DEM   = spm_DEM_generate(M,U,{},{[] 16});
+DEM   = spm_DEM_generate(M,U,{},{32 16});
  
 % display
 %--------------------------------------------------------------------------

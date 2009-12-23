@@ -7,14 +7,14 @@ function [y,n] = ADEM_plaid(x,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_plaid.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: ADEM_plaid.m 3655 2009-12-23 20:15:34Z karl $
  
 % default stimulus
 %--------------------------------------------------------------------------
 try
     n;
 catch
-    n = 6;
+    n = 4;
 end
  
 % stimulus

@@ -17,7 +17,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_face_inference.m 1880 2008-07-02 12:41:41Z karl $
+% $Id: DEM_demo_face_inference.m 3655 2009-12-23 20:15:34Z karl $
 
 
 % temporal smoothness - s.d. of kernel
@@ -89,3 +89,5 @@ title('basis 1','FontSize',16)
 subplot(4,4,16)
 spm_DEM_movie([0 1 0 0]');
 title('basis 2','FontSize',16)
+
+disp(' '),disp('Click faces to play movies'),disp(' ')

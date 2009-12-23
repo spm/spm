@@ -9,6 +9,9 @@
 %==========================================================================
 f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('convolution model');
+
+M(1).V  = exp(8);                           % error precision
+M(1).W  = exp(16);                          % error precision
  
 % and generate data
 %==========================================================================

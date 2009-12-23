@@ -3,19 +3,21 @@
 % Gabor patch that moves in a (one-dimensional) visual field. The
 % inversion of this dynamic model can be viewed as deconvolving spatial and
 % category attributes from a moving stimulus (or selective re-sampling of
-% the input to recover the stimulus that can be represented.
+% the input) to recover the stimulus that can be represented. The
+% prediction shown in the lower panels had position information removed.
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_Gabor.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: DEM_demo_Gabor.m 3655 2009-12-23 20:15:34Z karl $
 
 clear M
 spm_figure('GetWin','Graphics');
  
 % temporal correlations
 %--------------------------------------------------------------------------
-M(1).E.s  = 1/2;
+M(1).E.s      = 1/2;
+M(1).E.linear = 0;
  
 
 % model specification - 1st level

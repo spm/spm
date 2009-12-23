@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: DEM_demo_song_priors.m 3655 2009-12-23 20:15:34Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
@@ -143,4 +143,5 @@ title('LFP','Fontsize',18)
 subplot(3,2,6)
 spm_DEM_EEG(DEMb,dt,[1 2],1);
 title('LFP','Fontsize',18)
-drawnow
+drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')
+

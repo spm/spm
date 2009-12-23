@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 1880 2008-07-02 12:41:41Z karl $
+% $Id: DEM_demo_song_inference.m 3655 2009-12-23 20:15:34Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -109,3 +109,5 @@ for i = 1:size(P,2)
     text(P(1,i),P(2,i) + 1/2,str{i},'Fontsize',16)
 
 end
+
+drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')

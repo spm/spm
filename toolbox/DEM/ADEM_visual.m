@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 2521 2008-12-02 19:49:39Z karl $
+% $Id: ADEM_visual.m 3655 2009-12-23 20:15:34Z karl $
  
  
 % recognition model (M)
@@ -39,7 +39,7 @@ M(1).W  = exp(8);                           % error precision
 % level 2:
 % a perturbation to x(1)
 %--------------------------------------------------------------------------
-M(2).v  = 0;                                % inputs
+M(2).v  = 0;                                 % inputs
 M(2).V  = exp(-16);                          % flat priors on movement
  
 % Generative model (G)

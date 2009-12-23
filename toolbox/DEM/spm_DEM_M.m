@@ -8,7 +8,8 @@ function [M] = spm_dem_M(model,varargin)
 %        'Independent component analysis','ICA'
 %        'Sparse coding',"SC'
 %        'convolution model'
-%        'State space model','SSM'
+%        'State space model','SSM',','Double Well'
+%        'Lorenz'
 %        'Ornstein_Uhlenbeck','OU'
 %
 % l(i) - number of outputs from level i
@@ -50,7 +51,7 @@ switch lower(model)
         % Get design matrices for each level
         %------------------------------------------------------------------
         M(1).E.linear = 1;
-        if length(varargin);
+        if ~isempty(varargin);
             pE   = varargin;
         else
             error('Please specify design matrices');
@@ -81,7 +82,7 @@ switch lower(model)
 
         % Get design matrix
         %------------------------------------------------------------------
-        if length(varargin);
+        if ~isempty(varargin);
             pE  = varargin{1};
         else
             global SPM_DATA
@@ -212,8 +213,6 @@ switch lower(model)
         M(1).f  = inline('P.f*x + P.h*v','x','v','P');
         M(1).g  = inline('P.g*x','x','v','P');
         M(1).pE = pE;                               % prior expectation
-        M(1).V  = exp(8);                           % error precision
-        M(1).W  = exp(16);                          % error precision
 
         % level 2
         %------------------------------------------------------------------
@@ -227,9 +226,9 @@ switch lower(model)
 
  
 
-        % non-hierarchical linear generative model (dynamic)
+        % non-hierarchical nonlinear generative model (dynamic)
         %==================================================================
-    case{'state space model','ssm'}
+    case{'state space model','ssm','double well'}
         
         
         % temporal correlations
@@ -251,7 +250,34 @@ switch lower(model)
         M(2).v = 0;
         M(2).V = 1/8;
         
+                % non-hierarchical nonlinear generative model (dynamic)
+        %==================================================================
+    case{'lorenz'}
         
+        
+        % correlations
+        %--------------------------------------------------------------------------
+        M(1).E.linear = 2;
+        M(1).E.s  = 1/8;
+
+        % level 1
+        %--------------------------------------------------------------------------
+        P       = [18.0; -4.0; 46.92];
+        x       = [0.9; 0.8; 30];
+        f       = '[-P(1) P(1) 0; (P(3)-x(3)) -1 -x(1); x(2) x(1) P(2)]*x/32;';
+        M(1).f  = f;
+        M(1).g  = inline('sum(x)','x','v','P');
+        M(1).x  = x;
+        M(1).pE = P;
+        M(1).V  = exp(0);
+        M(1).W  = exp(16);
+
+        % level 2
+        %--------------------------------------------------------------------------
+        M(2).v  = 0;
+        M(2).V  = exp(16);
+        
+
         % Ornstein_Uhlenbeck linear generative model (dynamic)
         %==================================================================
     case{'Ornstein_Uhlenbeck','ou'}

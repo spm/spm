@@ -3,14 +3,14 @@ function [varargout] = spm_DEM_set(DEM)
 % FORMAT [DEM] = spm_DEM_set(DEM)
 %
 % DEM.M  - hierarchical model
-% DEM.Y  - response varaible, output or data
+% DEM.Y  - response variable, output or data
 % DEM.U  - explanatory variables, inputs or prior expectation of causes
 % DEM.X  - confounds
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_set.m 1880 2008-07-02 12:41:41Z karl $
+% $Id: spm_DEM_set.m 3655 2009-12-23 20:15:34Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
@@ -20,7 +20,14 @@ catch
     errordlg('please check your model')
 end
 
-% check whether data or specified explicitly or with a generative model
+
+% check format of inputs and data
+% -------------------------------------------------------------------------
+try, DEM.Y = DEM.Y.y'; end
+try, DEM.U = DEM.U.u'; end
+
+
+% check whether data are specified explicitly or with a generative model
 % -------------------------------------------------------------------------
 try
     N = size(DEM.Y,2);
