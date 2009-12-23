@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_dcm_erp.m 3653 2009-12-23 20:06:48Z karl $
 
 % check options
 %==========================================================================
@@ -37,12 +37,13 @@ name = sprintf('DCM_%s',date);
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                   catch, DCM.name  = name;      end
-try, h     = DCM.options.h;      catch, h         = 1;         end
-try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;         end
-try, onset = DCM.options.onset;  catch, onset     = 60;        end
-try, model = DCM.options.model;  catch, model     = 'NMM';     end
-try, lock  = DCM.options.lock;   catch, lock      = 0;         end
+try, DCM.name;                   catch, DCM.name  = name;        end
+try, DCM.xU;                     catch, DCM.xU.X  = sparse(1,0); end
+try, h     = DCM.options.h;      catch, h         = 1;           end
+try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;           end
+try, onset = DCM.options.onset;  catch, onset     = 60;          end
+try, model = DCM.options.model;  catch, model     = 'NMM';       end
+try, lock  = DCM.options.lock;   catch, lock      = 0;           end
 
 
 
@@ -50,7 +51,7 @@ try, lock  = DCM.options.lock;   catch, lock      = 0;         end
 % Data and spatial model (use h only for de-trending data)
 %==========================================================================
 DCM    = spm_dcm_erp_data(DCM,h);
-DCM    = spm_dcm_erp_dipfit(DCM, 1);
+DCM    = spm_dcm_erp_dipfit(DCM,1);
 xY     = DCM.xY;
 xU     = DCM.xU;
 M      = DCM.M;
@@ -71,16 +72,16 @@ Nm     = max(Nm,Nr);
 % confounds - DCT: (force a parameter per channel = activity under x = 0)
 %--------------------------------------------------------------------------
 if h == 0
-    X0 = zeros(Ns, h);
+    X0 = zeros(Ns,h);
 else
-    X0 = spm_dctmtx(Ns, h);
+    X0 = spm_dctmtx(Ns,h);
 end
 T0     = speye(Ns) - X0*inv(X0'*X0)*X0';
 xY.X0  = X0;
 
-% Serial correlations (precision components) AR(1/4) model
+% Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
-xY.Q   = {spm_Q(1/4,Ns,1)};
+xY.Q   = {spm_Q(7/8,Ns,1)};
 
 
 %-Inputs
@@ -89,11 +90,13 @@ xY.Q   = {spm_Q(1/4,Ns,1)};
 % between-trial effects
 %--------------------------------------------------------------------------
 try
-    if size(xU.X,2) - length(DCM.B)
-        warndlg({'please ensure number of trial specific effects', ...
-                 'encoded by DCM.xU.X & DCM.B are the same'})
+    if length(DCM.B) < Nx
+        for i = 1:Nx
+            DCM.B{i} = sparse(Nr,Nr);
+        end
     end
 catch
+    xU.X  = sparse(1,0);
     DCM.B = {};
 end
 
@@ -111,10 +114,22 @@ try, M = rmfield(M,'g'); end
 %--------------------------------------------------------------------------
 [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
+% check for previous priors
+%--------------------------------------------------------------------------
 try
-    pE  = M.pE;
-    pC  = M.pC;
-    fprintf('Using existing priors\n')
+    if length(spm_vec(pE)) == length(spm_vec(M.pE))
+        pE  = M.pE;
+        pC  = M.pC;
+        fprintf('Using previous priors\n')
+    end
+end
+
+% check for initial parameters
+%--------------------------------------------------------------------------
+try
+    if length(spm_vec(pE)) == length(spm_vec(M.P))
+        fprintf('Using intial parameters\n')
+    end
 end
 
 % lock experimental effects by introducing prior correlations
@@ -180,7 +195,7 @@ Nm    = size(U,2);
 
 % EM: inversion
 %==========================================================================
-[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F,LE] = spm_nlsi_N(M,xU,xY);
 
 
 % Data ID
@@ -216,8 +231,8 @@ x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 j     = find(kron(gE.J,ones(1,Nr)));    % Indices of contributing states
 for i = 1:Nt
     x{i} = x{i} - x0;                   % centre on expansion point
-    y{i} = x{i}*L'*M.E;                 % prediction (sensor space)
-    r{i} = T0*(xY.y{i}*M.E - y{i});     % residuals  (sensor space)
+    y{i} = T0*x{i}*L'*M.E;              % prediction (sensor space)
+    r{i} = T0*xY.y{i}*M.E - y{i};       % residuals  (sensor space)
     x{i} = x{i}(:,j);                   % Depolarization in sources
 end
 
@@ -236,6 +251,7 @@ DCM.H  = y;                    % conditional responses (y), projected space
 DCM.K  = x;                    % conditional responses (x)
 DCM.R  = r;                    % conditional residuals (y)
 DCM.F  = F;                    % Laplace log evidence
+DCM.L  = LE;                   % Laplace log evidence components
 DCM.ID = ID;                   % data ID
 
 
@@ -337,10 +353,6 @@ end
 
 % and save
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >= 0
-    save(DCM.name, '-V6', 'DCM');
-else
-    save(DCM.name, 'DCM');
-end
+save(DCM.name,  'DCM');
 assignin('base','DCM',DCM)
 return

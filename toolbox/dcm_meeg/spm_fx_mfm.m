@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2395 2008-10-23 18:28:16Z karl $
+% $Id: spm_fx_mfm.m 3653 2009-12-23 20:06:48Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -122,7 +122,7 @@ VE   =  60;                                  % reversal  potential excite (Na)
 VI   = -90;                                  % reversal  potential inhib (Cl)
 VR   = -40;                                  % threshold potential
  
-CV   = 8/1000;                               % membrane capacitance
+CV   = exp(P.CV)*8/1000;                     % membrane capacitance
 GL   = 1;                                    % leak conductance
 fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
  
@@ -139,7 +139,7 @@ if mfm
         end
     end
 
-    D   = sparse(diag([1/16 1 1]));          % diffusion
+    D   = sparse(diag([1/8 1 1]));          % diffusion
     D   = exp(P.S)*D;
     
 else

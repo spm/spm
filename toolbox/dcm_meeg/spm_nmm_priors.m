@@ -46,7 +46,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_nmm_priors.m 3653 2009-12-23 20:06:48Z karl $
  
  
 % disable log zero warning
@@ -116,11 +116,15 @@ pE.R   = sparse(u,2);    pC.R  = ones(u,1)*[1/16 1/16];
 
 % and delays (intrinsic and extrinsic)
 %--------------------------------------------------------------------------
-pE.D   = [0 0];          pC.D  = [1 1]/128;
+pE.D   = [0 0];          pC.D  = [1 1]/64;
 
 % Exogenous background activity
 %--------------------------------------------------------------------------
-pE.X   = 0;              pC.X  = 1/128;
+pE.X   = 0;              pC.X  = 1/64;
+
+% Capacitance
+%--------------------------------------------------------------------------
+pE.CV  = 0;              pC.CV = 1/32;
 
 warning('on','MATLAB:log:logOfZero');
  

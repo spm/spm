@@ -28,9 +28,25 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 3369 2009-09-07 23:31:28Z vladimir $
+% $Id: spm_dcm_erp_results.m 3653 2009-12-23 20:06:48Z karl $
 
 
+% get Action if necessary
+%--------------------------------------------------------------------------
+if nargin < 2
+    
+    str{1} = 'ERPs (sources)';
+    str{2} = 'Coupling (A)';
+    str{3} = 'Coupling (B)';
+    str{4} = 'Coupling (C)';
+    str{5} = 'trial-specific effects';
+    str{6} = 'Input';
+    str{7} = 'Response';
+    str{8} = 'Data';
+    Action = str{spm_input('Action',0,'m',str)};
+    
+end
+    
 % get figure handle
 %--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');

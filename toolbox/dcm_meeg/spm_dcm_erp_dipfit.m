@@ -35,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_dcm_erp_dipfit.m 3653 2009-12-23 20:06:48Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -123,8 +123,7 @@ end
 
 for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(DCM.xY.modality, D.inv{D.val}.forward(m).modality, 3)
-        DCM.M.dipfit.vol  = D.inv{D.val}.forward(m).vol;
-        
+        DCM.M.dipfit.vol      = D.inv{D.val}.forward(m).vol;
         DCM.M.dipfit.datareg  = D.inv{D.val}.datareg(m);
     end
 end
@@ -163,7 +162,7 @@ switch DCM.options.spatial
         % defaults: Nm = 8; number of modes per region
         %------------------------------------------------------------------
         try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
-        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 4;     end
+        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
  
         % Compute spatial basis (eigenmodes of lead field)
         %==================================================================
@@ -173,8 +172,8 @@ switch DCM.options.spatial
         vert   = D.inv{D.val}.mesh.tess_mni.vert;
         for i  = 1:Np
             Dp = sum([vert(:,1) - xyz(1,i), ...
-                vert(:,2) - xyz(2,i), ...
-                vert(:,3) - xyz(3,i)].^2,2);
+                      vert(:,2) - xyz(2,i), ...
+                      vert(:,3) - xyz(3,i)].^2,2);
  
             % nearest mesh points
             %--------------------------------------------------------------

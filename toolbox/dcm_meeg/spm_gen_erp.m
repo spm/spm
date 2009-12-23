@@ -15,7 +15,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 2710 2009-02-06 19:57:40Z karl $
+% $Id: spm_gen_erp.m 3653 2009-12-23 20:06:48Z karl $
 
 % within-trial inputs
 %==========================================================================
@@ -34,6 +34,9 @@ U.u = feval(fu,[1:ns]*U.dt,P,M);
 %==========================================================================
 try
     X = U.X;
+    if isempty(X)
+        X = sparse(1,0);
+    end
 catch
     X = sparse(1,0);
 end
