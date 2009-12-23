@@ -1,6 +1,6 @@
 function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % multivariate Bayes (Bayesian decoding of a contrast)
-% % FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
+% FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 %
 % Sets up, evaluates and saves an MVB structure:
 %
@@ -12,7 +12,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % MVB.Y                   % multivariate response
 % MVB.X0                  % null space of design
 % MVB.XYZ                 % location of voxels (mm)
-% MVB.V                   % serial correlation in repeosne
+% MVB.V                   % serial correlation in response
 % MVB.K                   % whitening matrix
 % MVB.VOX                 % voxel scaling
 % MVB.xyzmm               % centre of VOI (mm)
@@ -23,7 +23,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % MVB.priors              % model (spatial prior)
 % MVB.fSPM                % SPM analysis (.mat file)
 %
-% where MVB.M contins the following field:
+% where MVB.M contains the following fields:
 %
 %                F: log-evidence [F(0), F(1),...]
 %                G: covariance partition indices
@@ -57,7 +57,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % between brain states and some classification or contrast vector. Its use
 % is limited to comparison of different models under the assumption
 % (hyperprior) that this mapping exists. To ensure the mapping exists, use
-% CVA or related approaches.
+% CVA or compute the randomisation p-value (see spm_mvb_p)
 %
 % See: spm_mvb and
 %
@@ -77,7 +77,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 3378 2009-09-09 16:47:16Z guillaume $
+% $Id: spm_mvb_ui.m 3656 2009-12-23 20:17:30Z karl $
  
  
 %-Get figure handles and set title

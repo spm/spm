@@ -3,7 +3,7 @@ function [p] = spm_mvb_p(MVB,k)
 % FORMAT [p] = spm_mvb_p(MVB,k)
 %
 % MVB - Multivariate Bayes structure
-% k   - number of smaples > 20
+% k   - number of samples > 20
 %
 % p   - p-value: of (relative) F using an empirical null distribution
 %
@@ -15,7 +15,7 @@ function [p] = spm_mvb_p(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_p.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_mvb_p.m 3656 2009-12-23 20:17:30Z karl $
  
 %-number of samples
 %--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ catch
     MVB  = MVB.MVB;
 end
  
-
+ 
 % whiten target and predictor (X) variables (Y) (i.e., remove correlations)
 %--------------------------------------------------------------------------
 K     = MVB.K;
@@ -63,15 +63,19 @@ Y     = R'*Y;
 F     = MVB.M.F;
 F     = max(F) - F(1);
  
-% k-fold cross-validation
+% Randomisation testing
 %==========================================================================
 for i = 1:k
  
-    % randomise target vector
+    % randomise target vector (using phase-shuffling if V ~= I)
     %----------------------------------------------------------------------
-    X0    = R'*spm_phase_shuffle(X);
+    if MVB.V(1,2)
+        X0 = R'*spm_phase_shuffle(X);
+    else
+        X0 = R'*X(randperm(Ns),:);
+    end
  
-    % Training
+    % Optimise mapping
     %======================================================================
     M     = spm_mvb(X0,Y,[],U,[],MVB.Ni,MVB.sg);
  
@@ -87,7 +91,7 @@ for i = 1:k
     hist(F0,q); hold on
     plot([F F],[0 q],'r'); hold off;
     str = sprintf('p < %0.4f (%i samples)',p,i);
-    title({[MVB.name ' (' MVB.contrast ')']; str})
+    title({[MVB.name ' (' MVB.contrast ')']; str},'FontSize',16)
     xlabel('log odds ratio')
     ylabel('null distribution')
     axis square
@@ -98,11 +102,14 @@ end
  
 % display and assign in base memory
 %--------------------------------------------------------------------------
-fprintf('\n randomisation p-value = %.4f; \n',p)
+str = sprintf('randomisation p-value = %.4f',p);
+xlabel({'log odds ratio';str},'FontSize',16)
+disp(['Thank you; ' str])
 MVB.p_value = p;
-
  
 % save results
 %--------------------------------------------------------------------------
-save(MVB.name,'MVB')
+try
+   save(MVB.name,'MVB');
+end
 assignin('base','MVB',MVB)
