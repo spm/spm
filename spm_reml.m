@@ -7,7 +7,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Q   - {1 x q} covariance components
 % N   - number of samples
 % D   - Flag for positive-definite scheme
-% t   - regularisation [-4 to 4] (default 4)
+% t   - regularisation (default 4)
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -35,10 +35,10 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_reml.m 3658 2010-01-04 12:32:42Z guillaume $
  
  
-% hceck defaults
+% check defaults
 %--------------------------------------------------------------------------
 try, N; catch, N  = 1;  end       % assume a single sample if not specified
 try, K; catch, K  = 32; end       % default number of iterations
@@ -170,22 +170,10 @@ for k = 1:K
         t = t + 1/4;
     end
     dF    = pF;
-
-
-    % predicted change in F - increase regularisation if increasing
-    %----------------------------------------------------------------------
-    pF    = dFdh'*dh;
-    if pF > dF
-        t = t - 1;
-    else
-        t = t + 1/4;
-    end
-    dF    = pF;
- 
     
     % Convergence (1% change in log-evidence)
     %======================================================================
-    fprintf('%-24s: %3i %9s%e [%+3.2f]\n','  ReML Iteration',k,'...',full(pF),t);
+    fprintf('%s %-23d: %10s%e [%+3.2f]\n','  ReML Iteration',k,'...',full(pF),t);
  
     % final estimate of covariance (with missing data points)
     %----------------------------------------------------------------------
@@ -231,5 +219,3 @@ if nargout > 3
     F  = Fa - Fc;
  
 end
-
-
