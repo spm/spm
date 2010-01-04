@@ -39,9 +39,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 3533 2009-11-04 17:36:54Z vladimir $
+% $Id: spm_eeg_epochs.m 3660 2010-01-04 19:11:24Z guillaume $
 
-SVNrev = '$Rev: 3533 $';
+SVNrev = '$Rev: 3660 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -65,6 +65,12 @@ S.D = fullfile(D.path, D.fname);
 %--------------------------------------------------------------------------
 if ~strncmpi(D.type, 'cont', 4)
     error('The file must contain continuous data.');
+end
+
+
+if ~isfield(S, 'bc')
+    S.bc = 1;
+    % S.bc = spm_input('Subtract baseline?','+1','yes|no',[1 0], 1);
 end
 
 %-First case: deftrials (default for GUI call)
@@ -99,6 +105,8 @@ if isfield(S, 'trialdef') || nargin == 0
 
     S_definetrial.timeonset = D.timeonset;
 
+    S_definetrial.bc = S.bc;
+
     [epochinfo.trl, epochinfo.conditionlabels, S] = spm_eeg_definetrial(S_definetrial);
 
     %-Second case: epochinfo (trlfile and trl)
@@ -121,11 +129,6 @@ else
         end
     end
 
-end
-
-if ~isfield(S, 'bc')
-    S.bc = 1;
-    % S.bc = spm_input('Subtract baseline?','+1','yes|no',[1 0], 1);
 end
 
 trl = epochinfo.trl;
