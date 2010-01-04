@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3634 2009-12-11 12:30:09Z john $
+% $Id: spm.m 3659 2010-01-04 17:37:03Z guillaume $
 
 
 %=======================================================================
@@ -301,20 +301,15 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-%-Root workspace
-Rect = get(0, 'MonitorPosition');
-if all(ismember(Rect(:),[0 1]))
-    warning('SPM:noDisplay','Unable to open display.');
-else
-    Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
-    set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
-    set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
-    set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
-    RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
-    set(Fwelcome,'Units','pixels', 'Position',...
-        [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
-    set(Fwelcome,'Visible','on');
-end
+Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
+set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
+set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
+RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
+set(Fwelcome,'Units','pixels', 'Position',...
+    [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
+set(Fwelcome,'Visible','on');
+
 %=======================================================================
 case 'asciiwelcome'                           %-ASCII SPM banner welcome
 %=======================================================================
@@ -331,7 +326,7 @@ case lower(Modalities)       %-Initialise SPM in PET, fMRI, EEG modality
 %=======================================================================
 % spm(Modality)
 spm_check_installation('basic');
-try feature('JavaFigures',0); end
+try, feature('JavaFigures',0); end
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
@@ -497,13 +492,6 @@ case 'createmenuwin'                            %-Create SPM menu window
 %=======================================================================
 % Fmenu = spm('CreateMenuWin',Vis)
 %-----------------------------------------------------------------------
-Rect = get(0, 'MonitorPosition');
-if all(ismember(Rect(:),[0 1]))
-    warning('SPM:noDisplay','Unable to open display.');
-    varargout = {[]};
-    return
-end
-
 if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Menu' 'Tag'ged windows
@@ -543,13 +531,6 @@ case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
 %-----------------------------------------------------------------------
-Rect = get(0, 'MonitorPosition');
-if all(ismember(Rect(:),[0 1]))
-    warning('SPM:noDisplay','Unable to open display.');
-    varargout = {[]};
-    return
-end
-
 if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Interactive' 'Tag'ged windows
@@ -1184,8 +1165,7 @@ str = 'Can''t obtain SPM Revision information.';
 
 if isempty(SPM_VER) || (nargin > 0 && ReDo)
     if isdeployed && ispc
-        % fake version for isdeployed PCWIN - .m files seem to be
-        % compressed/pcoded/encrypted on this target
+        % fake version (.m files compressed/pcoded/encrypted)
         v.Name    = 'Statistical Parametric Mapping';
         v.Version = '8';
         v.Release = 'SPM8';

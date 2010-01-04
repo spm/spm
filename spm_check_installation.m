@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3590 2009-11-20 18:55:44Z guillaume $
+% $Id: spm_check_installation.m 3659 2010-01-04 17:37:03Z guillaume $
 
 if isdeployed, return; end
 
@@ -227,7 +227,7 @@ fprintf('\n');
 fprintf('Platform: %s (maxsize=%d)\n', C, maxsize);
 if ispc
    platform = [system_dependent('getos'),' ',system_dependent('getwinsys')];
-elseif ismac
+elseif exist('ismac') && ismac
     [fail, input] = unix('sw_vers');
     if ~fail
     platform = strrep(input, 'ProductName:', '');
@@ -261,6 +261,13 @@ for i=1:size(M,1)
     fprintf(' [%d %d %d %d]',M(i,:));
 end
 fprintf(' (%dbit)\n', get(0,'ScreenDepth'));
+
+%-Detect OpenGL rendering
+%--------------------------------------------------------------------------
+S =  opengl('data');
+fprintf('OpenGL version: %s',S.Version);
+if S.Software, fprintf('(Software)\n'); else fprintf('(Hardware)\n'); end
+fprintf('OpenGL renderer: %s (%s)\n',S.Vendor,S.Renderer);
 
 %-Detect MEX setup
 %--------------------------------------------------------------------------
@@ -505,7 +512,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3590 2009-11-20 18:55:44Z guillaume $ tag)
+%Extract Subversion properties ($Id: spm_check_installation.m 3659 2010-01-04 17:37:03Z guillaume $ tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
