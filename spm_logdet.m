@@ -9,7 +9,7 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_logdet.m 3661 2010-01-05 17:00:47Z guillaume $
 
 % assume diagonal form
 %--------------------------------------------------------------------------
@@ -33,7 +33,7 @@ warning(sw)
 
 % invoke svd is rank deficient
 %--------------------------------------------------------------------------
-if imag(H) || isinf(H)
+if ~isreal(H) || isinf(H)
     s  = svd(full(C));
     H  = sum(log(s(s > TOL & s < 1/TOL)));
 end
