@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3659 2010-01-04 17:37:03Z guillaume $
+% $Id: spm_check_installation.m 3662 2010-01-05 17:58:31Z guillaume $
 
 if isdeployed, return; end
 
@@ -206,15 +206,15 @@ fprintf('\n');
 fprintf('MATLAB is installed in: %s\n',matlabroot);
 fprintf('MATLAB version is %s\n',version);
 fprintf('MATLAB toolboxes: '); hastbx = false;
-if license('test','signal_toolbox')
+if license('test','signal_toolbox') && ~isempty(ver('signal'))
     vtbx = ver('signal'); hastbx = true;
     fprintf('signal (v%s) ',vtbx.Version);
 end
-if license('test','image_toolbox')
+if license('test','image_toolbox') && ~isempty(ver('images'))
     vtbx = ver('images'); hastbx = true;
     fprintf('images (v%s) ',vtbx.Version);
 end
-if license('test','statistics_toolbox')
+if license('test','statistics_toolbox') && ~isempty(ver('stats'))
     vtbx = ver('stats'); hastbx = true;
     fprintf('stats (v%s)',vtbx.Version);
 end
@@ -512,7 +512,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3659 2010-01-04 17:37:03Z guillaume $ tag)
+%Extract Subversion properties ($Id: spm_check_installation.m 3662 2010-01-05 17:58:31Z guillaume $ tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
