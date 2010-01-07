@@ -3,9 +3,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 3534 2009-11-05 12:34:21Z guillaume $
+% $Id: spm_cfg_smooth.m 3663 2010-01-07 12:26:48Z guillaume $
 
-rev = '$Rev: 3534 $';
+rev = '$Rev: 3663 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ dtype.def     = @(val)spm_get_defaults('smooth.dtype', val{:});
 im         = cfg_menu;
 im.tag     = 'im';
 im.name    = 'Implicit masking';
-im.help    = {'An "implicit mask" is a mask implied by a particular voxel value (NaN for images with integer type, 0 for float images).'
+im.help    = {'An "implicit mask" is a mask implied by a particular voxel value (0 for images with integer type, NaN for float images).'
                'If set to ''Yes'', the implicit masking of the input image is preserved in the smoothed image.'};
 im.labels  = {'Yes' 'No'};
 im.values  = {1 0};

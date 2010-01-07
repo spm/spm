@@ -15,7 +15,7 @@ Event-related designs may be stochastic or deterministic.  Stochastic designs in
 \caption{\em After starting SPM in fMRI mode and pressing the ``Specify 1st-level'' button, the SPM batch editor window should appear as above. The options for ``fMRI model specification'' can be examined by clicking on them. A single click will bring up some help text in the lower subwindow (not shown in the above graphic). Options highlighted with a ``$<$-X'' are mandatory and must be filled in by the user. Each of the options shown above is described in this chapter. \label{spec}}
 \end{figure}
 
-In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two ``levels''. The `first level' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the ``Specify first level'' and ``Estimate'' options. The results of these analyses can then be presented as ``case studies''. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a ``Random-Effects (RFX) analysis'' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the ``summary-statistic'' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a ``second level'' model.
+In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two ``levels''. The ``first level'' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the ``Specify first level'' and ``Estimate'' options. The results of these analyses can then be presented as ``case studies''. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a ``Random-Effects (RFX) analysis'' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the ``summary-statistic'' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a ``second level'' model.
 
 Figure~\ref{spec} shows how the SPM graphics window appears during fMRI model specification.
 
@@ -95,11 +95,11 @@ You could then specify the onsets for condition 2 by typing in eg. \verb!my_onse
 
 \subparagraph{Durations}
 
-Specify the event durations (in seconds). Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.
+Specify the event durations. Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.
 
 \subparagraph{Time Modulation}
 
-This option allows for the characterisation of nonstationary responses.  Specifically, you can model either linear or nonlinear time effects. For example, 1st order modulation would model the stick functions and a linear change of the stick function heights over time. Higher order modulation will introduce further columns that contain the stick functions scaled by time squared, time cubed etc.
+This option allows for the characterisation of nonstationary responses. Specifically, you can model either linear or nonlinear time effects. For example, 1st order modulation would model the stick functions and a linear change of the stick function heights over time. Higher order modulation will introduce further columns that contain the stick functions scaled by time squared, time cubed etc.
 
 \subparagraph{Parametric Modulations}
 
