@@ -307,7 +307,7 @@ function varargout=spm_XYZreg(varargin)
 % %-Peek at the registry
 % getfield(get(hReg,'UserData'),'Reg')
 % %-Delete hB from the registry by "cleaning"
-% nReg = spm_XYZreg('CleanReg',hReg)
+% spm_XYZreg('CleanReg',hReg)
 % % (...it's gone
 %
 % %-Make a new button and cross register
@@ -320,7 +320,7 @@ function varargout=spm_XYZreg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_XYZreg.m 3664 2010-01-07 16:08:51Z volkmar $
 
 
 
@@ -700,7 +700,6 @@ hReg = varargin{2};
 RD = get(hReg,'UserData');
 RD.Reg = spm_XYZreg('VReg',RD.Reg,'Warn');
 set(hReg,'UserData',RD)
-varargout = {Reg};
 
 
 %=======================================================================
