@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_hdm_ui.m 3666 2010-01-10 17:54:31Z klaas $
 
 
 % get figure handles
@@ -192,8 +192,8 @@ set(gca,'YTickLabel',{  'SIGNAL decay',...
              sprintf('%0.2f',P(4)),'',...
             'EXTRACTION',...
              sprintf('%0.0f %s',P(5)*100,'%'),'',...
-            'SIGNAL RATIO',...
-             sprintf('%0.0f %s',P(6),'%'),''},'FontSize',8)
+            'log SIGNAL RATIO',...
+             sprintf('%0.2f %s',P(6),'%'),''},'FontSize',8)
 
 
 % get display state kernels (i.e. state dynamics) 
