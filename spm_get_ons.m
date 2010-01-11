@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_get_ons.m 3667 2010-01-11 01:40:57Z Darren $
 
 
 %-GUI setup
@@ -239,7 +239,7 @@ for i = 1:v
 
     % create stimulus functions (32 bin offset)
     %======================================================================
-    ton       = round(ons*TR/dt) + 32;               % onsets
+    ton       = round(ons*TR/dt) + 33;               % onsets
     tof       = round(dur*TR/dt) + ton + 1;          % offset
     sf        = sparse((k*T + 128),size(u,2));
     ton       = max(ton,1);
