@@ -1,4 +1,4 @@
-function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
+function [theta, theta_sbj, Nocc] = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Model-independent samples from DCM posterior  
 % FORMAT [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 %
@@ -23,7 +23,7 @@ function [theta, Nocc] = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3628 2009-12-10 10:51:46Z maria $
+% $Id: spm_dcm_bma.m 3669 2010-01-11 11:17:20Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp=1e3;
@@ -254,9 +254,11 @@ for i=1:Nsamp
     
     % Average over subjects
     if Nsub>1
-        theta(:,i) = mean(theta_all,2);
+        theta(:,i)       = mean(theta_all,2);
+        theta_sbj(:,:,i) = theta_all; 
     else
-        theta(:,i) = theta_all;
+        theta(:,i)       = theta_all;
+        theta_sbj(:,i)   = theta_all; 
     end
 end
 

@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3654 2009-12-23 20:09:54Z karl $
+% $Id: spm_run_bms_dcm.m 3669 2010-01-11 11:17:20Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -334,6 +334,11 @@ if strcmp(method,'FFX');
         end
 
         disp('FFX Bayesian model averaging ...');
+        
+        % bayesian model averaging
+        % ------------------------------------------------------------------
+        [theta, theta_sbj] = spm_dcm_bma(bma.post,bma.indx,subj,...
+                             bma.nsamp,bma.odds_ratio);
 
        % reshape parameters
        % ------------------------------------------------------------------
@@ -355,6 +360,9 @@ if strcmp(method,'FFX');
        if (nonLin && size(theta,1)==nPnonLin)
            bma.md = mean(bma.d,4);
        end
+       bma.theta_sbj  = theta_sbj;
+       bma.mtheta_sbj = mean(theta_sbj,3);
+       bma.stheta_sbj = std(theta_sbj,0,3);
     else
 
         bma = [];
@@ -438,10 +446,9 @@ else
     
        disp('RFX Bayesian model averaging ...');
        % bayesian model averaging
-       % ------------------------------------------------------------------
-       
-       [theta, Nocc] = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
-       bma.Nocc      = Nocc;
+       % ------------------------------------------------------------------    
+       [theta,theta_sbj] = spm_dcm_bma(bma.post,bma.indx,subj,...
+           bma.nsamp,bma.odds_ratio);
        
        % reshape parameters
        % ------------------------------------------------------------------
@@ -464,22 +471,9 @@ else
            bma.md = mean(bma.d,4);
        end
 
-        disp('RFX Bayesian model averaging ...');
-        % bayesian model averaging
-        % ------------------------------------------------------------------
-
-        [theta, Nocc] = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
-        bma.Nocc      = Nocc;
-
-        % reshape parameters
-        % ------------------------------------------------------------------
-        for i = 1:bma.nsamp,
-            P              = spm_unvec(theta(:,i),M.pE);
-            bma.a(:,:,i)   = P.A(:,:);
-            bma.b(:,:,:,i) = P.B(:,:,:);
-            bma.c(:,:,i)   = P.C(:,:);
-            bma.d(:,:,:,i) = P.D(:,:,:);
-        end
+       bma.theta_sbj  = theta_sbj;
+       bma.mtheta_sbj = mean(theta_sbj,3);
+       bma.stheta_sbj = std(theta_sbj,0,3);
 
     else
 
