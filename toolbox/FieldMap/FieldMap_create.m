@@ -22,7 +22,7 @@ function [VDM IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_create.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: FieldMap_create.m 3670 2010-01-11 14:08:02Z chloe $
 %_______________________________________________________________________
 
   
@@ -72,12 +72,14 @@ if ~isfield(pm_defs,'mflags')
    IP.mflags.nerode=pm_defs.MFLAGS.NERODE;
    IP.mflags.ndilate=pm_defs.MFLAGS.NDILATE;
    IP.mflags.thresh=pm_defs.MFLAGS.THRESH;
+   IP.mflags.reg=pm_defs.MFLAGS.REG;
 else
    IP.mflags.template=pm_defs.mflags.template;
    IP.mflags.fwhm=pm_defs.mflags.fwhm; 
    IP.mflags.nerode=pm_defs.mflags.nerode;
    IP.mflags.ndilate=pm_defs.mflags.ndilate;
    IP.mflags.thresh=pm_defs.mflags.thresh;
+   IP.mflags.reg=pm_defs.mflags.reg;
 end
 
 % Get FieldMap parameters 
