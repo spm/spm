@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 1846 2008-06-23 15:46:53Z vladimir $
+% $Id: spm_eeg_var_measures.m 3673 2010-01-12 17:49:34Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -48,8 +48,30 @@ if strcmp(D.type, 'continuous')
     data = ft_preprocessing(cfg);   
 elseif D.ntrials < 3 || (D.nsamples/D.fsample) < 1
     error('Expecting continuous data or epoched files with multiple trials at least 1 sec long');
-else
+else % ============ Select the data and convert to Fieldtrip struct    
+    clb = D.condlist;
+    
+    if numel(clb) > 1
+        
+        [selection, ok]= listdlg('ListString', clb, 'SelectionMode', 'multiple' ,'Name', 'Select conditions' , 'ListSize', [400 300]);
+        
+        if ~ok
+            return;
+        end
+    else
+        selection = 1;
+    end
+    
+    ind = D.pickconditions(clb(selection));
+    
+    
+    if isempty(ind)
+        error('No valid trials found');
+    end
+    
     data = D.ftraw(0);
+    data.trial = data.trial(ind);
+    data.time =  data.time(ind);
 end
 %%
 data.fsample = round(data.fsample);
