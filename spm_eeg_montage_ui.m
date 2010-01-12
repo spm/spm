@@ -12,13 +12,13 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 3208 2009-06-16 21:00:50Z vladimir $
+% $Id: spm_eeg_montage_ui.m 3674 2010-01-12 18:25:05Z jean $
 
 error(nargchk(1,1,nargin));
 
 % Create the figure
 %--------------------------------------------------------------------------
-fig  = figure('visible','off');
+fig  = figure;
 S0   = spm('WinSize','0',1);
 pos  = get(fig,'position');
 pos2 = [40 70 pos(3)-60 pos(4)-100];
@@ -36,6 +36,7 @@ addButtons(fig);
 table    = cat(2,montage.labelnew(:),num2cell(montage.tra));
 colnames = cat(2,'channel labels',montage.labelorg(:)');
 
+pause(1e-1) % This is weird, but fixes java troubles.
 [ht,hc]  = spm_uitable(table,colnames);
 set(ht,'position',pos2, 'units','normalized');
 
@@ -53,8 +54,6 @@ ud.hi      = hi;
 ud.ht      = ht;
 ud.montage = montage;
 set(fig,'userdata',ud);
-
-set(fig,'visible','on');
 uiwait(fig);
 
 % Get the montage from the GUI
