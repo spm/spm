@@ -12,7 +12,7 @@ In what follows, these results will be recreated step-by-step using SPM8.
 
 To proceed with the data analysis, first download the data set from the SPM website\footnote{Anaesthesia Depth in Rodent Dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/dcm_ssr/}}. The data comprises a data file called \texttt{dLFP\_white\_noise\_r24\_anaes.dat} and its corresponding mat file \texttt{dLFP\_white\_noise\_r24\_anaes.mat}. This has been converted from ASCII data using \texttt{spm\_lfp\_txt2mat\_anaes.m} also on the website and subsequently downsampled to 125 Hz. The conversion script can be altered to suit your own conditions/sampling parameters.
 
-\subsection{The data}
+\section{The data}
 
 \begin{itemize}
 \item To check data parameters after conversion using ASCII files: in the SPM M/EEG GUI press \textsc{Display/M/EEG}.
@@ -28,7 +28,7 @@ To proceed with the data analysis, first download the data set from the SPM webs
 \end{center}
 \end{figure}
 
-\subsection{Dynamic Causal Modelling of Steady State Responses}
+\section{Dynamic Causal Modelling of Steady State Responses}
 
 \begin{itemize}
 \item Before you begin any DCM analysis you must decide on two things: the data feature from your time series and the model you wish to use.
@@ -60,7 +60,7 @@ To proceed with the data analysis, first download the data set from the SPM webs
 \end{center}
 \end{figure}
 
-\subsection{Results}
+\section{Results}
 
 \begin{itemize}
 \item Once all models have run, we compare their evidences to find to best or winning model.
