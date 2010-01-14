@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 3324 2009-08-14 11:39:18Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 3679 2010-01-14 10:49:35Z vladimir $
 
 spm('Clear');
 
@@ -129,7 +129,7 @@ D = spm_eeg_load(S);
 if ~ok
     if check(D, 'basic')
         warndlg(['The requested file is not ready for source reconstruction.'...
-            'Use prep to specify sensors and fiducials.']);
+            'See Matlab window for details.']);
     else
         warndlg('The meeg file is corrupt or incomplete');
     end

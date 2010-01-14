@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3671 2010-01-11 14:57:10Z vladimir $
+% $Id: checkmeeg.m 3679 2010-01-14 10:49:35Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -406,13 +406,20 @@ megind = strmatch('MEG', chantypes);
 lfpind = strmatch('LFP', chantypes, 'exact');
 
 % Allow DCM on a pure LFP dataset
-if strcmp(option, 'dcm') && isempty([eegind megind]) && ~isempty(lfpind)
+if strcmp(option, 'dcm') && isempty([eegind megind])...
+        && ~isempty(lfpind)&& strcmp(meegstruct.transform.ID, 'time')
     result = 1;
     return;
 end
 
 if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
-        (strcmp(option, 'dcm') && ~isempty([eegind megind]))
+        (strcmp(option, 'dcm') && ~isempty([eegind megind]))    
+    
+    if ~strcmp(meegstruct.transform.ID, 'time')
+        disp('checkmeeg: incorrect data type for source reconstruction');
+        return;
+    end
+    
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
