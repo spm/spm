@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3569 2009-11-13 15:51:07Z guillaume $
+% $Id: spm_peb_ppi.m 3678 2010-01-14 04:54:38Z Darren $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -142,10 +142,12 @@ end
 cwd    = pwd;
 cd(SPM.swd)
 
-RT     = SPM.xY.RT;
-dt     = SPM.xBF.dt;
-NT     = RT/dt;
-
+% Setup variables
+%--------------------------------------------------------------------------
+RT      = SPM.xY.RT;
+dt      = SPM.xBF.dt;
+NT      = RT/dt;
+fMRI_T0 = SPM.xBF.T0;
 
 % Ask whether to perform physiophysiologic or psychophysiologic interactions
 %--------------------------------------------------------------------------
@@ -288,7 +290,7 @@ if showGraphics
 end
 
 
-% Setup variables
+% Setup more variables
 %--------------------------------------------------------------------------
 N = length(xY(1).u);
 k = 1:NT:N*NT;                             % microtime to scan time indices
@@ -362,7 +364,13 @@ switch ppiflag
     xn = xb*C{2}.E(1:N);
     xn = spm_detrend(xn);
 
-    % Save variables
+    % Save variables (NOTE: xn is in microtime and does not account for
+    % slice timing shifts). To convert to BOLD signal convolve with a hrf.
+    % Use a microtime to scan time index to convert to scan time: e.g.,
+    % k = 1:NT:N*NT; where NT = number of bins per TR = TR/dt or SPM.xBF.T
+    % and N = number of scans in the session. Finally account for slice
+    % timing effects by shifting the index accordingly. See approximately
+    % lines 420 and 421 below for an example.)
     %----------------------------------------------------------------------
     PPI.xn = xn;
 
@@ -407,10 +415,10 @@ switch ppiflag
     xn2  = spm_detrend(xn2);
     xnxn = xn1.*xn2;
 
-    % Convolve and resample at each scan for bold signal
+    % Convolve, convert to scan time, and account for slice timing shift
     %----------------------------------------------------------------------
     ppi = conv(xnxn,hrf);
-    ppi = ppi(k);
+    ppi = ppi((k-1) + fMRI_T0);
 
     % Save variables
     %----------------------------------------------------------------------
@@ -495,15 +503,16 @@ switch ppiflag
     %----------------------------------------------------------------------
     PSYxn = PSY.*xn;
 
-    % Convolve and resample at each scan for bold signal
+    % Convolve, convert to scan time, and account for slice timing shift
     %----------------------------------------------------------------------
     ppi = conv(PSYxn,hrf);
-    ppi = ppi(k);
+    ppi = ppi((k-1) + fMRI_T0);
 
-    % Similarly for psychological effect
+    % Convolve psych effect, convert to scan time, and account for slice
+    % timing shift
     %----------------------------------------------------------------------
     PSYHRF = conv(PSY,hrf);
-    PSYHRF = PSYHRF(k);
+    PSYHRF = PSYHRF((k-1) + fMRI_T0);
 
     % Save psychological variables
     %----------------------------------------------------------------------
