@@ -1,34 +1,32 @@
 function out = spm_run_factorial_design(job)
-% SPM job execution function
-% takes a harvested job data structure and call SPM functions to perform
-% computations on the data.
+% SPM job execution function - factorial design specification
 % Input:
 % job    - harvested job data structure (see matlabbatch help)
 % Output:
-% out    - computation results, usually a struct variable.
-%_______________________________________________________________________
+% out    - struct variable containing the path of the saved SPM.mat
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 3067 2009-04-20 13:58:07Z guillaume $
+% $Id: spm_run_factorial_design.m 3685 2010-01-14 17:18:51Z guillaume $
 
+%--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
 % linear model), data specification, and other parameters necessary for
 % the statistical analysis. These parameters are saved in a
 % configuration file (SPM.mat) in the current directory, and are
-% passed on to spm_spm.m (via the Estimate button) which estimates the design.
-% Inference on these estimated parameters is then handled by the SPM
-% results section.
+% passed on to spm_spm.m (via the Estimate button) which estimates the
+% design. Inference on these estimated parameters is then handled by the 
+% SPM results section.
 %
-% This function comprises two parts. The first defines
-% the user interface and the second sets up the necessary SPM structures.
-% The second part has been largely cannibalised from spm_spm_ui.m which
-% we have retained for developmental continuity.
+% This function, that sets up the necessary SPM structures, has been
+% largely cannibalised from spm_spm_ui.m which we have retained for 
+% developmental continuity.
 %
 % It has in common with spm_spm_ui.m its use of the I factor matrix,
 % the H,C,B,G design matrix partitions, the sF,sCFI,CFIforms,sCC,CCforms,
 % sGXcalc,sGloNorm,sGMsca option definition variables and use of the
-% functions spm_DesMtx.m, spm_meanby.m and spm_non_sphericity.m.
+% functions spm_DesMtx.m, spm_meanby.m and spm_get_vc.m.
 %
 % It departs from spm_spm_ui.m in that it does not use the design
 % definition data structure D. Also, it uses the new SPM.factor field,
@@ -42,37 +40,36 @@ function out = spm_run_factorial_design(job)
 % Two facilities are provided for specifying more complicated designs
 % (5) Full-factorial and (6) Flexible-factorial. These should be able to
 % specify all design options (and more) that were available in SPM2.
-% For each of these design types one can additionally specify regressors using the
-% `covariates' option.
+% For each of these design types one can additionally specify regressors
+% using the `covariates' option.
 %
-% Options (5) and (6) differ in the
-% efficiency (eg. number of key strokes/button presses) with which a given
-% design can be specified. For example, one-way ANOVAs can be specified
-% using either option, but (5) is usually more efficient.
+% Options (5) and (6) differ in the efficiency (eg. number of key 
+% strokes/button presses) with which a given design can be specified. For 
+% example, one-way ANOVAs can be specified using either option, but (5) is 
+% usually more efficient.
 %
 % Full-factorial designs
 % ______________________
 %
-% This option is best used when you wish to test for all
-% main effects and interactions in one-way, two-way or three-way ANOVAs.
+% This option is best used when you wish to test for all main effects and
+% interactions in one-way, two-way or three-way ANOVAs.
 %
 % Design specification proceeds in 2 stages. Firstly, by creating new
-% factors and specifying the
-% number of levels and name for each. Nonsphericity, ANOVA-by-factor (for PET data)
-% and
-% scaling options (for PET data) can also be specified at this stage. Secondly,
-% scans are assigned separately to each cell. This accomodates unbalanced designs.
+% factors and specifying the number of levels and name for each.
+% Nonsphericity, ANOVA-by-factor (for PET data) and scaling options (for
+% PET data) can also be specified at this stage. Secondly, scans are 
+% assigned separately to each cell. This accomodates unbalanced designs.
 %
 % For example, if you wish to test for a main effect in the population
-% from which your subjects are drawn
-% and have modelled that effect at the first level using K basis functions
-% (eg. K=3 informed basis functions) you can use a one-way ANOVA with K-levels.
-% Create a single factor with K levels and then assign the data to each
-% cell eg. canonical, temporal derivative and dispersion derivative cells,
-% where each cell is assigned scans from multiple subjects.
+% from which your subjects are drawn and have modelled that effect at the 
+% first level using K basis functions (eg. K=3 informed basis functions) 
+% you can use a one-way ANOVA with K-levels. Create a single factor with K
+% levels and then assign the data to each cell eg. canonical, temporal
+% derivative and dispersion derivative cells, where each cell is assigned
+% scans from multiple subjects.
 %
 % SPM will automatically generate the contrasts necessary to test for all
-% main effects and interactions
+% main effects and interactions.
 %
 % Flexible-factorial designs
 % __________________________
@@ -81,42 +78,40 @@ function out = spm_run_factorial_design(job)
 % decide whether you wish each block to be a main effect or a (two-way)
 % interaction.
 %
-% This option is best used for one-way, two-way or
-% three-way ANOVAs but where you do not wish to test for all possible
-% main effects and interactions. This is perhaps most useful for PET
-% where there is usually not enough data to test for all possible
-% effects. Or for 3-way ANOVAs where you do not wish to test for all
-% of the two-way interactions. A typical example here would be a
-% group-by-drug-by-task analysis where, perhaps, only (i) group-by-drug or
-% (ii) group-by-task interactions are of interest. In this case it is only
-% necessary to have two-blocks in the design matrix - one for each
-% interaction. The three-way interaction can then be tested for using a
-% contrast that computes the difference between (i) and (ii).
+% This option is best used for one-way, two-way or three-way ANOVAs but 
+% where you do not wish to test for all possible main effects and
+% interactions. This is perhaps most useful for PET where there is usually
+% not enough data to test for all possible effects. Or for 3-way ANOVAs
+% where you do not wish to test for all of the two-way interactions. A
+% typical example here would be a group-by-drug-by-task analysis where,
+% perhaps, only (i) group-by-drug or (ii) group-by-task interactions are
+% of interest. In this case it is only necessary to have two-blocks in the
+% design matrix - one for each interaction. The three-way interaction can
+% then be tested for using a contrast that computes the difference between
+% (i) and (ii).
 %
-% Design specification then proceeds in 3 stages. Firstly, factors
-% are created and names specified for each. Nonsphericity, ANOVA-by-factor and
+% Design specification then proceeds in 3 stages. Firstly, factors are
+% created and names specified for each. Nonsphericity, ANOVA-by-factor and
 % scaling options can also be specified at this stage.
 %
-% Secondly, a list of
-% scans is produced along with a factor matrix, I. This is an nscan x 4 matrix
-% of factor level indicators (see xX.I below). The first factor must be
-% 'replication' but the other factors can be anything. Specification of I and
-% the scan list can be achieved in
-% one of two ways (a) the 'Specify All' option allows I
-% to be typed in at the user interface or (more likely) loaded in from the matlab
-% workspace. All of the scans are then selected in one go. (b) the
-% 'Subjects' option allows you to enter scans a subject at a time. The
-% corresponding experimental conditions (ie. levels of factors) are entered
-% at the same time. SPM will then create the factor matrix I. This style of
-% interface is similar to that available in SPM2.
+% Secondly, a list of scans is produced along with a factor matrix, I. 
+% This is an nscan x 4 matrix of factor level indicators (see xX.I below).
+% The first factor must be 'replication' but the other factors can be
+% anything. Specification of I and the scan list can be achieved in one
+% of two ways (a) the 'Specify All' option allows I to be typed in at the
+% user interface or (more likely) loaded in from the matlab workspace. 
+% All of the scans are then selected in one go. (b) the 'Subjects' option
+% allows you to enter scans a subject at a time. The corresponding
+% experimental conditions (ie. levels of factors) are entered at the same
+% time. SPM will then create the factor matrix I. This style of interface
+% is similar to that available in SPM2.
 %
 % Thirdly, the design matrix is built up a block at a time. Each block
 % can be a main effect or a (two-way) interaction.
 %
+%--------------------------------------------------------------------------
 %
-% ----------------------------------------------------------------------
-%
-% Variables saved in the SPM stucture
+% Variables saved in the SPM stucture:
 %
 % xY.VY         - nScan x 1 struct array of memory mapped images
 %                 (see spm_vol for definition of the map structure)
@@ -128,11 +123,11 @@ function out = spm_run_factorial_design(job)
 % xX.X          - design matrix
 % xX.xVi        - correlation constraints for non-spericity correction
 % xX.iH         - vector of H partition (condition effects) indices,
-%                 identifying columns of X correspoding to H
+%                 identifying columns of X corresponding to H
 % xX.iC         - vector of C partition (covariates of interest) indices
 % xX.iB         - vector of B partition (block effects) indices
 % xX.iG         - vector of G partition (nuisance variables) indices
-% xX.name     - p x 1 cellstr of effect names corresponding to columns
+% xX.name       - p x 1 cellstr of effect names corresponding to columns
 %                 of the design matrix
 %
 % xC            - structure array of covariate details
@@ -163,8 +158,8 @@ function out = spm_run_factorial_design(job)
 % xGX.sGloNorm  - string describing global normalisation option
 %
 % xM            - structure describing masking options
-% xM.T          - Threshold masking value (-Inf=>None,
-%                 real=>absolute, complex=>proportional (i.e. times global) )
+% xM.T          - Threshold masking value (-Inf=>None, real=>absolute,
+%                 complex=>proportional (i.e. times global))
 % xM.TH         - nScan x 1 vector of analysis thresholds, one per image
 % xM.I          - Implicit masking (0=>none, 1=>implicit zero/NaN mask)
 % xM.VM         - struct array of explicit mask images
@@ -180,17 +175,16 @@ function out = spm_run_factorial_design(job)
 %                 of the design, displaying the fieldnames (with "_"'s
 %                 converted to spaces) in bold as topics, with
 %                 the corresponding text to the right
+%
+%--------------------------------------------------------------------------
 
-global defaults
-if isempty(defaults)
-    spm_defaults;
-end
-
+%-Change directory
+%--------------------------------------------------------------------------
 original_dir = pwd;
 cd(job.dir{1});
 
 %-Ask about overwriting files from previous analyses...
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if exist(fullfile(job.dir{1},'SPM.mat'),'file')
     str = { 'Current directory contains existing SPM file:',...
         'Continuing will overwrite existing file!'};
@@ -203,7 +197,7 @@ end
 
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
     '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
     '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
@@ -215,10 +209,11 @@ for i=1:length(files)
     end
 end
 
-
 %-Option definitions
-%-------------------------------------------------------------------
+%==========================================================================
+
 %-Generic factor names
+%--------------------------------------------------------------------------
 sF = {'sF1','sF2','sF3','sF4'};
 
 %-Covariate by factor interaction options
@@ -228,164 +223,181 @@ sCFI = {'<none>';...                                        %-1
 
 %-DesMtx argument components for covariate by factor interaction options
 % (Used for CFI's Covariate Centering (CC), GMscale & Global normalisation)
-CFIforms = {    '[]',       'C',    '{}';...        %-1
-    'I(:,1)',       'FxC',  '{sF{1}}';...           %-2
-    'I(:,2)',       'FxC',  '{sF{2}}';...           %-3
-    'I(:,3)',       'FxC',  '{sF{3}}';...           %-4
-    'I(:,4)',       'FxC',  '{sF{4}}';...           %-5
-    'I(:,[4,2])',   'FxC',  '{sF{4},sF{2}}';...     %-6
-    'I(:,[4,3])',   'FxC',  '{sF{4},sF{3}}' };      %-7
+%--------------------------------------------------------------------------
+CFIforms = {'[]',   'C',    '{}';...                        %-1
+    'I(:,1)',       'FxC',  '{sF{1}}';...                   %-2
+    'I(:,2)',       'FxC',  '{sF{2}}';...                   %-3
+    'I(:,3)',       'FxC',  '{sF{3}}';...                   %-4
+    'I(:,4)',       'FxC',  '{sF{4}}';...                   %-5
+    'I(:,[4,2])',   'FxC',  '{sF{4},sF{2}}';...             %-6
+    'I(:,[4,3])',   'FxC',  '{sF{4},sF{3}}' };              %-7
 
 %-Centre (mean correction) options for covariates & globals            (CC)
 % (options 9-12 are for centering of global when using AnCova GloNorm) (GC)
-sCC = {     'around overall mean';...           %-1
-    'around sF1 means';...                      %-2
-    'around sF2 means';...                      %-3
-    'around sF3 means';...                      %-4
-    'around sF4 means';...                      %-5
-    'around sF2 (within sF4) means';...         %-6
-    'around sF3 (within sF4) means';...         %-7
-    '<no centering>';...                        %-8
-    'around user specified value';...           %-9
-    '(as implied by AnCova)';...                %-10
-    'GM';...                                    %-11
-    '(redundant: not doing AnCova)'}';          %-12
+%--------------------------------------------------------------------------
+sCC = {'around overall mean';...                            %-1
+    'around sF1 means';...                                  %-2
+    'around sF2 means';...                                  %-3
+    'around sF3 means';...                                  %-4
+    'around sF4 means';...                                  %-5
+    'around sF2 (within sF4) means';...                     %-6
+    'around sF3 (within sF4) means';...                     %-7
+    '<no centering>';...                                    %-8
+    'around user specified value';...                       %-9
+    '(as implied by AnCova)';...                            %-10
+    'GM';...                                                %-11
+    '(redundant: not doing AnCova)'}';                      %-12
+
 %-DesMtx I forms for covariate centering options
+%--------------------------------------------------------------------------
 CCforms = {'ones(nScan,1)',CFIforms{2:end,1},''}';
 
 %-Global calculation options                                       (GXcalc)
-sGXcalc  = {    'omit';...                                  %-1
+%--------------------------------------------------------------------------
+sGXcalc  = {'omit';...                                      %-1
     'user specified';...                                    %-2
     'mean voxel value (within per image fullmean/8 mask)'}; %-3
 
-
 %-Global normalization options                                    (GloNorm)
-sGloNorm = {    'AnCova';...                            %-1
-    'AnCova by sF1';...                                 %-2
-    'AnCova by sF2';...                                 %-3
-    'AnCova by sF3';...                                 %-4
-    'AnCova by sF4';...                                 %-5
-    'AnCova by sF2 (within sF4)';...                    %-6
-    'AnCova by sF3 (within sF4)';...                    %-7
-    'proportional scaling';...                          %-8
-    '<no global normalisation>'};                       %-9
+%--------------------------------------------------------------------------
+sGloNorm = {'AnCova';...                                    %-1
+    'AnCova by sF1';...                                     %-2
+    'AnCova by sF2';...                                     %-3
+    'AnCova by sF3';...                                     %-4
+    'AnCova by sF4';...                                     %-5
+    'AnCova by sF2 (within sF4)';...                        %-6
+    'AnCova by sF3 (within sF4)';...                        %-7
+    'proportional scaling';...                              %-8
+    '<no global normalisation>'};                           %-9
 
 
 %-Grand mean scaling options                                        (GMsca)
-sGMsca = {  'scaling of overall grand mean';...         %-1
-    'scaling of sF1 grand means';...                    %-2
-    'scaling of sF2 grand means';...                    %-3
-    'scaling of sF3 grand means';...                    %-4
-    'scaling of sF4 grand means';...                    %-5
-    'scaling of sF2 (within sF4) grand means';...       %-6
-    'scaling of sF3 (within sF4) grand means';...       %-7
-    '(implicit in PropSca global normalisation)';...    %-8
-    '<no grand Mean scaling>'   };                      %-9
-%-NB: Grand mean scaling by subject is redundent for proportional scaling
+% (NB: Grand mean scaling by subject is redundent for proportional scaling)
+%--------------------------------------------------------------------------
+sGMsca = {'scaling of overall grand mean';...               %-1
+    'scaling of sF1 grand means';...                        %-2
+    'scaling of sF2 grand means';...                        %-3
+    'scaling of sF3 grand means';...                        %-4
+    'scaling of sF4 grand means';...                        %-5
+    'scaling of sF2 (within sF4) grand means';...           %-6
+    'scaling of sF3 (within sF4) grand means';...           %-7
+    '(implicit in PropSca global normalisation)';...        %-8
+    '<no grand Mean scaling>'   };                          %-9
 
-% Conditions of no interest defaults
-B=[];
-Bnames={};
+%-Conditions of no interest defaults
+%--------------------------------------------------------------------------
+B      = [];
+Bnames = {};
 
-switch strvcat(fieldnames(job.des)),
+switch char(fieldnames(job.des))
+    
+    %-One sample t-test
+    %======================================================================
     case 't1',
-        % One sample t-test
-        DesName='One sample t-test';
+        
+        DesName = 'One sample t-test';
 
-        P=job.des.t1.scans;
-        n=length(P);
-        I=[1:n]';
-        I=[I,ones(n,3)];
+        P = job.des.t1.scans;
+        n = length(P);
+        I = [1:n]';
+        I = [I,ones(n,3)];
 
-        [H,Hnames]=spm_DesMtx(I(:,2),'-','mean');
+        [H,Hnames] = spm_DesMtx(I(:,2),'-','mean');
 
-        SPM.factor(1).name='Group';
-        SPM.factor(1).levels=1;
-        SPM.factor(1).variance=0;
-        SPM.factor(1).dept=0;
+        SPM.factor(1).name     = 'Group';
+        SPM.factor(1).levels   = 1;
+        SPM.factor(1).variance = 0;
+        SPM.factor(1).dept     = 0;
+        
+    %-Two-sample t-test
+    %======================================================================
     case 't2',
-        % Two-sample t-test
-        DesName='Two-sample t-test';
+        
+        DesName = 'Two-sample t-test';
 
-        P=job.des.t2.scans1;
-        n1=length(job.des.t2.scans1);
-        P=[P;job.des.t2.scans2];
-        n2=length(job.des.t2.scans2);
+        P  = job.des.t2.scans1;
+        n1 = length(job.des.t2.scans1);
+        P  = [P; job.des.t2.scans2];
+        n2 = length(job.des.t2.scans2);
 
-        I=[];
-        I=[1:n1]';
-        I=[I;[1:n2]'];
-        I=[I,[ones(n1,1);2*ones(n2,1)]];
-        I=[I,ones(n1+n2,2)];
+        I = [];
+        I = [1:n1]';
+        I = [I;[1:n2]'];
+        I = [I,[ones(n1,1);2*ones(n2,1)]];
+        I = [I,ones(n1+n2,2)];
 
-        [H,Hnames]=spm_DesMtx(I(:,2),'-','Group');
+        [H,Hnames] = spm_DesMtx(I(:,2),'-','Group');
 
         % Names and levels
-        SPM.factor(1).name='Group';
-        SPM.factor(1).levels=2;
+        SPM.factor(1).name     = 'Group';
+        SPM.factor(1).levels   = 2;
 
         % Ancova options
-        SPM.factor(1).gmsca=job.des.t2.gmsca;
-        SPM.factor(1).ancova=job.des.t2.ancova;
+        SPM.factor(1).gmsca    = job.des.t2.gmsca;
+        SPM.factor(1).ancova   = job.des.t2.ancova;
 
         % Nonsphericity options
-        SPM.factor(1).variance=job.des.t2.variance;
-        SPM.factor(1).dept=job.des.t2.dept;
+        SPM.factor(1).variance = job.des.t2.variance;
+        SPM.factor(1).dept     = job.des.t2.dept;
 
+    %-Paired t-test
+    %======================================================================
     case 'pt',
-        % Paired t-test
-        DesName='Paired t-test';
+        
+        DesName = 'Paired t-test';
 
-        Npairs=length(job.des.pt.pair);
-        P=[];
-        for p=1:Npairs,
-            P=[P;job.des.pt.pair(p).scans];
+        Npairs  = length(job.des.pt.pair);
+        P       = [];
+        for p   = 1:Npairs,
+            P   = [P;job.des.pt.pair(p).scans];
         end
 
-        I=ones(Npairs*2,1);
-        I(:,2)=kron([1:Npairs]',ones(2,1));
-        I(:,3)=kron(ones(Npairs,1),[1 2]');
-        I(:,4)=I(:,1);
+        I       = ones(Npairs*2,1);
+        I(:,2)  = kron([1:Npairs]',ones(2,1));
+        I(:,3)  = kron(ones(Npairs,1),[1 2]');
+        I(:,4)  = I(:,1);
 
-        [H,Hnames]=spm_DesMtx(I(:,2),'-','Subject');
-        [B,Bnames]=spm_DesMtx(I(:,3),'-','Condition');
+        [H,Hnames] = spm_DesMtx(I(:,2),'-','Subject');
+        [B,Bnames] = spm_DesMtx(I(:,3),'-','Condition');
 
         % Names and levels
-        SPM.factor(1).name='Subject';
-        SPM.factor(1).levels=Npairs;
-        SPM.factor(2).name='Condition';
-        SPM.factor(2).levels=2;
+        SPM.factor(1).name     = 'Subject';
+        SPM.factor(1).levels   = Npairs;
+        SPM.factor(2).name     = 'Condition';
+        SPM.factor(2).levels   = 2;
 
         % Ancova options
-        SPM.factor(1).gmsca=0;
-        SPM.factor(1).ancova=0;
-        SPM.factor(2).gmsca=job.des.pt.gmsca;
-        SPM.factor(2).ancova=job.des.pt.ancova;
+        SPM.factor(1).gmsca    = 0;
+        SPM.factor(1).ancova   = 0;
+        SPM.factor(2).gmsca    = job.des.pt.gmsca;
+        SPM.factor(2).ancova   = job.des.pt.ancova;
 
         % Nonsphericity options
-        SPM.factor(1).variance=0;
-        SPM.factor(1).dept=0;
-        SPM.factor(2).variance=0;
-        SPM.factor(2).dept=0;
+        SPM.factor(1).variance = 0;
+        SPM.factor(1).dept     = 0;
+        SPM.factor(2).variance = 0;
+        SPM.factor(2).dept     = 0;
 
+    %-Multiple regression
+    %======================================================================
     case 'mreg',
-        % Multiple regression
-        DesName='Multiple regression';
+        
+        DesName = 'Multiple regression';
 
-        P=job.des.mreg.scans;
-        n=length(P);
-        I=[1:n]';
-        I=[I,ones(n,3)];
+        P = job.des.mreg.scans;
+        n = length(P);
+        I = [1:n]';
+        I = [I,ones(n,3)];
 
         % Names and levels
-        SPM.factor(1).name='';
-        SPM.factor(1).levels=1;
+        SPM.factor(1).name     = '';
+        SPM.factor(1).levels   = 1;
 
         % Nonsphericity options
-        SPM.factor(1).variance=0;
-        SPM.factor(1).dept=0;
+        SPM.factor(1).variance = 0;
+        SPM.factor(1).dept     = 0;
 
-        H=[];Hnames=[];
+        H = []; Hnames = [];
         if job.des.mreg.incint==0
             B = []; Bnames = '';
         else
@@ -399,31 +411,34 @@ switch strvcat(fieldnames(job.des)),
             job.cov(end).iCFI  = 1;
         end
 
+    %-Full Factorial Design
+    %======================================================================
     case 'fd',
-        % Full Factorial Design
-        DesName='Full factorial';
+        
+        DesName = 'Full factorial';
 
-        [I,P,H,Hnames] = spm_set_factorial_design (job);
+        [I,P,H,Hnames] = spm_set_factorial_design(job.des.fd);
 
-        Nfactors=length(job.des.fd.fact);
-        for i=1:Nfactors,
+        Nfactors = length(job.des.fd.fact);
+        for i=1:Nfactors
             % Names and levels
-            SPM.factor(i).name=job.des.fd.fact(i).name;
-            SPM.factor(i).levels=job.des.fd.fact(i).levels;
+            SPM.factor(i).name     = job.des.fd.fact(i).name;
+            SPM.factor(i).levels   = job.des.fd.fact(i).levels;
 
             % Ancova options
-            SPM.factor(i).gmsca=job.des.fd.fact(i).gmsca;
-            SPM.factor(i).ancova=job.des.fd.fact(i).ancova;
+            SPM.factor(i).gmsca    = job.des.fd.fact(i).gmsca;
+            SPM.factor(i).ancova   = job.des.fd.fact(i).ancova;
 
             % Nonsphericity options
-            SPM.factor(i).variance=job.des.fd.fact(i).variance;
-            SPM.factor(i).dept=job.des.fd.fact(i).dept;
-
+            SPM.factor(i).variance = job.des.fd.fact(i).variance;
+            SPM.factor(i).dept     = job.des.fd.fact(i).dept;
         end
 
+    %-Flexible factorial design
+    %======================================================================
     case 'fblock',
-        % Flexible factorial design
-        DesName='Flexible factorial';
+        
+        DesName = 'Flexible factorial';
 
         if isfield(job.des.fblock.fsuball,'fsubject')
             nsub=length(job.des.fblock.fsuball.fsubject);
@@ -571,35 +586,34 @@ switch strvcat(fieldnames(job.des)),
         end
 
         if nmain==0 && ni==0
-            disp('Error in design specification: You have not specified any main effects or interactions');
-            return
+            error('You have not specified any main effects or interactions');
         end
 
-        for i=1:nf,
+        for i=1:nf
             % Names and levels
-            SPM.factor(i).name=job.des.fblock.fac(i).name;
-            SPM.factor(i).levels=length(unique(I(:,i+1)));
+            SPM.factor(i).name     = job.des.fblock.fac(i).name;
+            SPM.factor(i).levels   = length(unique(I(:,i+1)));
 
             % Ancova options
-            SPM.factor(i).gmsca=job.des.fblock.fac(i).gmsca;
-            SPM.factor(i).ancova=job.des.fblock.fac(i).ancova;
+            SPM.factor(i).gmsca    = job.des.fblock.fac(i).gmsca;
+            SPM.factor(i).ancova   = job.des.fblock.fac(i).ancova;
 
             % Nonsphericity options
-            SPM.factor(i).variance=job.des.fblock.fac(i).variance;
-            SPM.factor(i).dept=job.des.fblock.fac(i).dept;
+            SPM.factor(i).variance = job.des.fblock.fac(i).variance;
+            SPM.factor(i).dept     = job.des.fblock.fac(i).dept;
 
         end
 
-
 end
-nScan=size(I,1); %-#obs
 
 % Set up data structures for non-sphericity routine
-SPM.xVi.I=I;
+%==========================================================================
+nScan = size(I,1);
+SPM.xVi.I = I;
 SPM = spm_get_vc(SPM);
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
-%===================================================================
+%==========================================================================
 dstr   = {'covariate','nuisance variable'};
 C  = []; Cnames = [];  %-Covariate DesMtx partitions & names
 G  = []; Gnames = [];
@@ -636,7 +650,7 @@ for i=1:nc,
     end
 
     %-Do any interaction (only for single covariate vectors)
-    %-----------------------------------------------------------
+    %----------------------------------------------------------------------
     if iCFI > 1             %-(NB:iCFI=1 if size(c,2)>1)
         tI        = [eval(CFIforms{iCFI,1}),c];
         tConst    = CFIforms{iCFI,2};
@@ -650,7 +664,7 @@ for i=1:nc,
 
     %-Store raw covariate details in xC struct for reference
     %-Pack c into appropriate DesMtx partition
-    %-----------------------------------------------------------
+    %----------------------------------------------------------------------
     %-Construct description string for covariate
     str = {sprintf('%s',rcname)};
     if size(rc,2)>1, str = {sprintf('%s (block of %d covariates)',...
@@ -659,65 +673,60 @@ for i=1:nc,
     if iCFI> 1, str=[str;{['fitted as interaction ',sCFI{iCFI}]}]; end
 
     typ = 1;
-    tmp       = struct( 'rc',rc,    'rcname',rcname,...
-        'c',c,      'cname',{cname},...
-        'iCC',iCC,  'iCFI',iCFI,...
-        'type',typ,...
-        'cols',[1:size(c,2)] + ...
-        size([H,C],2) +  ...
-        size([B,G],2)*min(typ-1,1),...
-        'descrip',{str}             );
-    if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
+    tmp = struct(...
+        'rc',   rc,    'rcname', rcname,...
+        'c',    c,     'cname',  {cname},...
+        'iCC',  iCC,   'iCFI',   iCFI,...
+        'type', typ,...
+        'cols', [1:size(c,2)] + size([H,C],2) + size([B,G],2)*min(typ-1,1),...
+        'descrip', {str});
+    if isempty(xC), xC = tmp; else xC = [xC,tmp]; end
     C     = [C,c];
     Cnames = [Cnames; cname];
 
 end
 clear c tI tConst tFnames
 
-xGX=[];
-xM=[];
 
-
-
-%===================================================================
+%==========================================================================
 % - C O N F I G U R E   D E S I G N -
-%===================================================================
+%==========================================================================
 
 %-Images & image info: Map Y image files and check consistency of
 % dimensions and orientation / voxel size
-%===================================================================
-fprintf('%-40s: ','Mapping files')                               %-#
-VY    = spm_vol(char(P));
+%==========================================================================
+fprintf('%-40s: ','Mapping files')                                      %-#
+VY = spm_vol(char(P));
 
-%-Check compatability of images (Bombs for single image)
-%-------------------------------------------------------------------
+%-Check compatibility of images
+%--------------------------------------------------------------------------
 spm_check_orientations(VY);
 
-fprintf('%30s\n','...done')                                      %-#
+fprintf('%30s\n','...done')                                             %-#
 
 %-Global values, scaling and global normalisation
-%===================================================================
+%==========================================================================
 %-Compute global values
-%-------------------------------------------------------------------
-switch strvcat(fieldnames(job.globalc))
+%--------------------------------------------------------------------------
+switch char(fieldnames(job.globalc))
     case 'g_omit',
-        iGXcalc=1;
+        iGXcalc = 1;
     case 'g_user',
-        iGXcalc=2;
+        iGXcalc = 2;
     case 'g_mean',
-        iGXcalc=3;
+        iGXcalc = 3;
 end
 
 switch job.globalm.glonorm
     case 1,
-        iGloNorm=9;
+        iGloNorm = 9;
     case 2,
-        iGloNorm=8;
+        iGloNorm = 8;
     case 3,
-        iGloNorm=1;
+        iGloNorm = 1;
 end
 if SPM.factor(1).levels > 1
-    % Over-ride if factor-specific ANCOVA has been specified
+    % Override if factor-specific ANCOVA has been specified
     for i=1:length(SPM.factor),
         if SPM.factor(i).ancova
             iGloNorm=i+2;
@@ -726,11 +735,11 @@ if SPM.factor(1).levels > 1
 end
 
 %-Analysis threshold mask
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Work out available options:
 % -Inf=>None, real=>absolute, complex=>proportional, (i.e. times global)
 M_T = -Inf;
-switch strvcat(fieldnames(job.masking.tm)),
+switch char(fieldnames(job.masking.tm)),
     case 'tma',
         % Absolute
         M_T = job.masking.tm.tma.athresh;
@@ -766,26 +775,26 @@ switch iGXcalc,
     case 3
         %-Compute as mean voxel value (within per image fullmean/8 mask)
         g = zeros(nScan,1 );
-        fprintf('%-40s: %30s','Calculating globals',' ')             %-#
+        fprintf('%-40s: %30s','Calculating globals',' ')                %-#
         for i = 1:nScan
             str = sprintf('%3d/%-3d',i,nScan);
-            fprintf('%s%30s',repmat(sprintf('\b'),1,30),str)%-#
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),str)            %-#
             g(i) = spm_global(VY(i));
         end
-        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')       %-#
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')        %-#
     otherwise
         error('illegal iGXcalc')
 end
 rg = g;
 
-fprintf('%-40s: ','Design configuration')                        %-#
+fprintf('%-40s: ','Design configuration')                               %-#
 
-%-Grand mean scaling options                                 (GMsca)
-%-------------------------------------------------------------------
+%-Grand mean scaling options                                        (GMsca)
+%--------------------------------------------------------------------------
 if iGloNorm==8
     iGMsca=8;   %-grand mean scaling implicit in PropSca GloNorm
 else
-    switch strvcat(fieldnames(job.globalm.gmsca))
+    switch char(fieldnames(job.globalm.gmsca))
         case 'gmsca_yes',
             iGMsca=1;
         case 'gmsca_no',
@@ -801,16 +810,16 @@ else
     end
 end
 
-%-Value for PropSca / GMsca                                     (GM)
-%-------------------------------------------------------------------
+%-Value for PropSca / GMsca                                            (GM)
+%--------------------------------------------------------------------------
 switch iGMsca,
-    case 9                      %-Not scaling (GMsca or PropSca)
-        GM = 0;                         %-Set GM to zero when not scaling
+    case 9                                %-Not scaling (GMsca or PropSca)
+        GM = 0;                           %-Set GM to zero when not scaling
     case 1                                %-Ask user value of GM
         GM = job.globalm.gmsca.gmsca_yes.gmscv;
     otherwise
         if iGloNorm==8
-            switch strvcat(fieldnames(job.globalm.gmsca))
+            switch char(fieldnames(job.globalm.gmsca))
                 case 'gmsca_yes',
                     % Proportionally scale to this value
                     GM = job.globalm.gmsca.gmsca_yes.gmscv;
@@ -833,7 +842,7 @@ if GM==0,
 end
 
 %-Sort out description strings for GloNorm and GMsca
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 sGloNorm = sGloNorm{iGloNorm};
 sGMsca   = sGMsca{iGMsca};
 if iGloNorm==8
@@ -845,7 +854,7 @@ end
 %-Scaling: compute global scaling factors gSF required to implement
 % proportional scaling global normalisation (PropSca) or grand mean
 % scaling (GMsca), as specified by iGMsca (& iGloNorm)
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 switch iGMsca,
     case 8
         %-Proportional scaling global normalisation
@@ -865,13 +874,14 @@ end
 
 
 %-Apply gSF to memory-mapped scalefactors to implement scaling
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:nScan
     VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i);
 end
 
-%-Global centering (for AnCova GloNorm)                         (GC)
+%-Global centering (for AnCova GloNorm)                                (GC)
 %-If not doing AnCova then GC is irrelevant
+%--------------------------------------------------------------------------
 if ~any(iGloNorm == [1:7])
     iGC = 12;
     gc  = [];
@@ -881,11 +891,11 @@ else
 end
 
 %-AnCova: Construct global nuisance covariates partition (if AnCova)
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if any(iGloNorm == [1:7])
 
     %-Centre global covariate as requested
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     switch iGC, case {1,2,3,4,5,6,7}    %-Standard sCC options
         gc = spm_meanby(g,eval(CCforms{iGC}));
         case 8                  %-No centering
@@ -901,7 +911,7 @@ if any(iGloNorm == [1:7])
     end
 
     %-AnCova - add scaled centred global to DesMtx `G' partition
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     rcname     = 'global';
     tI         = [eval(CFIforms{iGloNorm,1}),g - gc];
     tConst     = CFIforms{iGloNorm,2};
@@ -910,7 +920,7 @@ if any(iGloNorm == [1:7])
     clear tI tConst tFnames
 
     %-Save GX info in xC struct for reference
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     str     = {sprintf('%s: %s',dstr{2},rcname)};
     if any(iGMsca==[1:7]), str=[str;{['(after ',sGMsca,')']}]; end
     if iGC ~= 8, str=[str;{['used centered ',sCC{iGC}]}]; end
@@ -925,13 +935,13 @@ if any(iGloNorm == [1:7])
         'descrip',      {str}       );
 
     G = [G,f]; Gnames = [Gnames; gnames];
-    if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
+    if isempty(xC), xC = tmp; else xC = [xC,tmp]; end
 
 
 elseif iGloNorm==8 || iGXcalc>1
 
     %-Globals calculated, but not AnCova: Make a note of globals
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     if iGloNorm==8
         str = { 'global values: (used for proportional scaling)';...
             '("raw" unscaled globals shown)'};
@@ -942,27 +952,27 @@ elseif iGloNorm==8 || iGXcalc>1
     end
 
     rcname ='global';
-    tmp     = struct(   'rc',rg,    'rcname',rcname,...
+    tmp     = struct('rc',rg,    'rcname',rcname,...
         'c',{[]},   'cname' ,{{}},...
         'iCC',0,    'iCFI'  ,0,...
         'type',     3,...
         'cols',     {[]},...
         'descrip',  {str}           );
 
-    if isempty(xC), xC = tmp; else, xC = [xC,tmp]; end
+    if isempty(xC), xC = tmp; else xC = [xC,tmp]; end
 end
 
 
 %-Save info on global calculation in xGX structure
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xGX = struct(...
-    'iGXcalc',iGXcalc,  'sGXcalc',sGXcalc,  'rg',rg,...
-    'iGMsca',iGMsca,    'sGMsca',sGMsca,    'GM',GM,'gSF',gSF,...
-    'iGC',  iGC,        'sGC',  sCC{iGC},   'gc',   gc,...
-    'iGloNorm',iGloNorm,    'sGloNorm',sGloNorm);
+    'iGXcalc', iGXcalc,  'sGXcalc', sGXcalc,  'rg',rg,...
+    'iGMsca',  iGMsca,   'sGMsca',  sGMsca,   'GM',GM,    'gSF',gSF,...
+    'iGC',     iGC,      'sGC',     sCC{iGC}, 'gc',gc,...
+    'iGloNorm',iGloNorm, 'sGloNorm',sGloNorm);
 
 %-Make a description string
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isinf(M_T)
     xsM.Analysis_threshold = 'None (-Inf)';
 elseif isreal(M_T)
@@ -974,7 +984,7 @@ end
 
 %-Construct masking information structure and compute actual analysis
 % threshold using scaled globals (rg.*gSF)
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isreal(M_T),
     M_TH = M_T  * ones(nScan,1);    %-NB: -Inf is real
 else
@@ -982,14 +992,14 @@ else
 end
 
 %-Implicit masking: Ignore zero voxels in low data-types?
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % (Implicit mask is NaN in higher data-types.)
 type = getfield(spm_vol(P{1,1}),'dt')*[1,0]';
 if ~spm_type(type,'nanrep')
     M_I = job.masking.im;  % Implicit mask ?
     if M_I,
         xsM.Implicit_masking = 'Yes: zero''s treated as missing';
-    else,
+    else
         xsM.Implicit_masking = 'No';
     end
 else
@@ -998,7 +1008,7 @@ else
 end
 
 %-Explicit masking
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isempty(job.masking.em{:})
     VM = [];
     xsM.Explicit_masking = 'No';
@@ -1010,7 +1020,7 @@ end
 xM     = struct('T',M_T, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
 
 %-Construct full design matrix (X), parameter names and structure (xX)
-%===================================================================
+%==========================================================================
 X      = [H C B G];
 tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
 xX     = struct(    'X',        X,...
@@ -1024,24 +1034,24 @@ xX     = struct(    'X',        X,...
 
 
 %-Design description (an nx2 cellstr) - for saving and display
-%===================================================================
-tmp = { sprintf('%d condition, +%d covariate, +%d block, +%d nuisance',...
+%==========================================================================
+tmp = {sprintf('%d condition, +%d covariate, +%d block, +%d nuisance',...
     size(H,2),size(C,2),size(B,2),size(G,2));...
     sprintf('%d total, having %d degrees of freedom',...
     size(X,2),rank(X));...
     sprintf('leaving %d degrees of freedom from %d images',...
-    size(X,1)-rank(X),size(X,1))                };
-xsDes = struct( 'Design',           {DesName},...
-    'Global_calculation',       {sGXcalc},...
-    'Grand_mean_scaling',       {sGMsca},...
-    'Global_normalisation',     {sGloNorm},...
-    'Parameters',           {tmp}           );
+    size(X,1)-rank(X),size(X,1))};
+xsDes = struct('Design',    {DesName},...
+    'Global_calculation',   {sGXcalc},...
+    'Grand_mean_scaling',   {sGMsca},...
+    'Global_normalisation', {sGloNorm},...
+    'Parameters',           {tmp});
 
 
-fprintf('%30s\n','...done')                                      %-#
+fprintf('%30s\n','...done')                                             %-#
 
 %-Assemble SPM structure
-%===================================================================
+%==========================================================================
 SPM.xY.P    = P;            % filenames
 SPM.xY.VY   = VY;           % mapped data
 SPM.nscan   = size(xX.X,1); % scan number
@@ -1053,28 +1063,28 @@ SPM.xsDes   = xsDes;        % description
 
 % Automatic contrast generation only works for 'Full factorials'
 if ~strcmp(DesName,'Full factorial')
-    % Remove the .factor field to prevent attempted automatic contrast generation
-    SPM=rmfield(SPM,'factor');
+    SPM = rmfield(SPM,'factor');
 end
 
 %-Save SPM.mat and set output argument
-%-------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration')                    %-#
+%--------------------------------------------------------------------------
+fprintf('%-40s: ','Saving SPM configuration')                           %-#
 
 if spm_matlab_version_chk('7') >= 0
     save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');
-end;
-fprintf('%30s\n','...SPM.mat saved')                             %-#
-
-%-Display Design report
-%===================================================================
-fprintf('%-40s: ','Design reporting')                            %-#
-fname     = cat(1,{SPM.xY.VY.fname}');
-spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
-fprintf('%30s\n','...done')                                      %-#
+end
+fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
+
+%-Display Design report
+%==========================================================================
+fprintf('%-40s: ','Design reporting')                                   %-#
+fname     = cat(1,{SPM.xY.VY.fname}');
+spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
+fprintf('%30s\n','...done')                                             %-#
+
 cd(original_dir); % Change back dir
-fprintf('Done\n')                                                %-#
+fprintf('Done\n')                                                       %-#
