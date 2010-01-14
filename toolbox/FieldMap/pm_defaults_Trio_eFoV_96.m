@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio_eFoV.m 2616 2009-01-19 16:49:42Z chloe $
+% $Id: pm_defaults_Trio_eFoV_96.m 3682 2010-01-14 15:38:48Z guillaume $
 
 global pm_def
 

@@ -20,19 +20,19 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 3179 2009-06-03 12:41:21Z volkmar $
+% $Id: spm_eeg_displayECD.m 3682 2010-01-14 15:38:48Z guillaume $
 
 hfig = [];
 ParentAxes = [];
 tag = '';
 query = [];
 handles = [];
-try options; catch, options=[];end
-try hfig = options.hfig;end
-try tag = options.tag;end
-try ParentAxes  = options.ParentAxes;end
-try query = options.query;end
-try handles = options.handles; end
+try, options; catch, options=[];end
+try, hfig = options.hfig;end
+try, tag = options.tag;end
+try, ParentAxes  = options.ParentAxes;end
+try, query = options.query;end
+try, handles = options.handles; end
 try
     figure(hfig);
 catch
@@ -41,9 +41,9 @@ catch
     ParentAxes = axes('parent',hfig);
 end
 
-try Pos{1}; catch, Pos={Pos};end
-try Orient{1}; catch, Orient={Orient};end
-try Var{1}; catch, Var = {Var};end
+try, Pos{1}; catch, Pos={Pos};end
+try, Orient{1}; catch, Orient={Orient};end
+try, Var{1}; catch, Var = {Var};end
 
 ndip = size(Pos{1},2);
 if ~exist('Names','var') || isempty(Names)
@@ -153,10 +153,10 @@ if ndip > 0
     
     if length(Pos) > 1
         
-        try set(handles.hp(end,:),'visible','on');end
-        try set(handles.hq(end,:),'visible','on');end
-        try set(handles.hs(end,:),'visible','on');end
-        try set(handles.ht(end,:),'visible','on');end
+        try, set(handles.hp(end,:),'visible','on'); end
+        try, set(handles.hq(end,:),'visible','on'); end
+        try, set(handles.hs(end,:),'visible','on'); end
+        try, set(handles.ht(end,:),'visible','on'); end
         
         handles.uic(1) = uicontrol(handles.fi,...
             'units','normalized',...
@@ -184,10 +184,10 @@ if ndip > 0
         
     else
         
-        try set(handles.hp(1,:),'visible','on');end
-        try set(handles.hq(1,:),'visible','on');end
-        try set(handles.hs(1,:),'visible','on');end
-        try set(handles.ht(1,:),'visible','on');end
+        try, set(handles.hp(1,:),'visible','on'); end
+        try, set(handles.hq(1,:),'visible','on'); end
+        try, set(handles.hs(1,:),'visible','on'); end
+        try, set(handles.ht(1,:),'visible','on'); end
         
     end
     
@@ -205,15 +205,15 @@ function doChange1(i1,i2)
 val = get(i1,'value');
 handles = get(i1,'userdata');
 if ~val
-    try set(handles.hp(1,:),'visible','off');end
-    try set(handles.hq(1,:),'visible','off');end
-    try set(handles.hs(1,:),'visible','off');end
-    try set(handles.ht(1,:),'visible','off');end
+    try, set(handles.hp(1,:),'visible','off'); end
+    try, set(handles.hq(1,:),'visible','off'); end
+    try, set(handles.hs(1,:),'visible','off'); end
+    try, set(handles.ht(1,:),'visible','off'); end
 else
-    try set(handles.hp(1,:),'visible','on');end
-    try set(handles.hq(1,:),'visible','on');end
-    try set(handles.hs(1,:),'visible','on');end
-    try set(handles.ht(1,:),'visible','on');end
+    try, set(handles.hp(1,:),'visible','on');  end
+    try, set(handles.hq(1,:),'visible','on');  end
+    try, set(handles.hs(1,:),'visible','on');  end
+    try, set(handles.ht(1,:),'visible','on');  end
 end
 
 
@@ -222,13 +222,13 @@ function doChange2(i1,i2)
 val = get(i1,'value');
 handles = get(i1,'userdata');
 if ~val
-    try set(handles.hp(2,:),'visible','off');end
-    try set(handles.hq(2,:),'visible','off');end
-    try set(handles.hs(2,:),'visible','off');end
-    try set(handles.ht(2,:),'visible','off');end
+    try, set(handles.hp(2,:),'visible','off'); end
+    try, set(handles.hq(2,:),'visible','off'); end
+    try, set(handles.hs(2,:),'visible','off'); end
+    try, set(handles.ht(2,:),'visible','off'); end
 else
-    try set(handles.hp(2,:),'visible','on');end
-    try set(handles.hq(2,:),'visible','on');end
-    try set(handles.hs(2,:),'visible','on');end
-    try set(handles.ht(2,:),'visible','on');end
+    try, set(handles.hp(2,:),'visible','on');  end
+    try, set(handles.hq(2,:),'visible','on');  end
+    try, set(handles.hs(2,:),'visible','on');  end
+    try, set(handles.ht(2,:),'visible','on');  end
 end
