@@ -355,11 +355,11 @@ rec.name    = 'Descend into subdirectories';
 rec.help    = {'Files can be selected from the specified directory only or from the specified directory and all its subdirectories.'};
 rec.labels = {
               'Yes'
-              'Yes'
+              'No'
               }';
 rec.values = {
-              true
-              false
+              'FPListRec'
+              'FPList'
               }';
 % ---------------------------------------------------------------------
 % file_fplist File Selector (Batch Mode)

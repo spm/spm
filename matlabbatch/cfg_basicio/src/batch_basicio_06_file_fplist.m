@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 3434 $)
+% Job configuration created by cfg_util (rev $Rev: 3686 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg.menu_entry.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg.menu_entry.conf_files.name = 'Directory';
@@ -25,11 +25,11 @@ matlabbatch{3}.menu_cfg.menu_entry.conf_menu.name = 'Descend into subdirectories
 matlabbatch{3}.menu_cfg.menu_entry.conf_menu.tag = 'rec';
 matlabbatch{3}.menu_cfg.menu_entry.conf_menu.labels = {
                                                        'Yes'
-                                                       'Yes'
+                                                       'No'
                                                        }';
 matlabbatch{3}.menu_cfg.menu_entry.conf_menu.values = {
-                                                       true
-                                                       false
+                                                       'FPListRec'
+                                                       'FPList'
                                                        }';
 matlabbatch{3}.menu_cfg.menu_entry.conf_menu.check = [];
 matlabbatch{3}.menu_cfg.menu_entry.conf_menu.help = {'Files can be selected from the specified directory only or from the specified directory and all its subdirectories.'};
