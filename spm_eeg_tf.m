@@ -26,9 +26,9 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_tf.m 3688 2010-01-19 15:39:30Z vladimir $
 
-SVNrev = '$Rev: 3497 $';
+SVNrev = '$Rev: 3688 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -118,23 +118,11 @@ Nfrequencies = length(tf.frequencies);
 
 Dtf = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
 Dtf = Dtf.frequencies(:, tf.frequencies);
+Dtf = transformtype(Dtf, 'TF');
 
-% fix all channels
-sD = struct(Dtf);
-
-for i = 1:length(tf.channels)
-    lbl = D.chanlabels(tf.channels(i));
-    sD.channels(i).label = lbl{1};
-    
-    if D.badchannels(tf.channels(i))
-        sD.channels(i).bad = 1;
-    end
-    ctype = D.chantype(tf.channels(i));
-    sD.channels(i).type = ctype{1};
-    % units?
-
-end
-Dtf = meeg(sD);
+Dtf = chanlabels(Dtf, [1:length(tf.channels)], D.chanlabels(tf.channels));
+Dtf = badchannels(Dtf, [1:length(tf.channels)], D.badchannels(tf.channels));
+Dtf = chantype(Dtf, [1:length(tf.channels)], D.chantype(tf.channels));
 Dtf = coor2D(Dtf, [1:length(tf.channels)], coor2D(D,tf.channels));
 
 if tf.phase == 1
@@ -142,20 +130,9 @@ if tf.phase == 1
     Dtf2 = Dtf2.frequencies(:, tf.frequencies);
     Dtf2 = transformtype(Dtf2, 'TFphase');
     
-    % fix all channels
-    sD = struct(Dtf2);
-
-    for i = 1:length(tf.channels)
-        lbl = D.chanlabels(tf.channels(i));
-        sD.channels(i).label = lbl{1};
-        if D.badchannels(tf.channels(i))
-            sD.channels(i).bad = 1;
-        end
-        ctype = D.chantype(tf.channels(i));
-        sD.channels(i).type = ctype{1};
-        % units?
-    end
-    Dtf2 = meeg(sD);
+    Dtf2 = chanlabels(Dtf2, [1:length(tf.channels)], D.chanlabels(tf.channels));
+    Dtf2 = badchannels(Dtf2, [1:length(tf.channels)], D.badchannels(tf.channels));
+    Dtf2 = chantype(Dtf2, [1:length(tf.channels)], D.chantype(tf.channels));
     Dtf2 = coor2D(Dtf2, [1:length(tf.channels)], coor2D(D,tf.channels));
 else
     Dtf2 = [];
