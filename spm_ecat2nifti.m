@@ -6,12 +6,14 @@ function N = spm_ecat2nifti(fname,opts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_ecat2nifti.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
-if nargin==1,
+if nargin==1
     opts = struct('ext','.nii');
-end;
+else
+    if opts.ext(1) ~= '.', opts.ext = ['.' opts.ext]; end
+end
 
 fp       = fopen(fname,'r','ieee-be');
 if fp == -1,

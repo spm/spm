@@ -1,11 +1,11 @@
 function smooth = spm_cfg_smooth
-% SPM Configuration file
+% SPM Configuration file for Smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 3663 2010-01-07 12:26:48Z guillaume $
+% $Id: spm_cfg_smooth.m 3691 2010-01-20 17:08:30Z guillaume $
 
-rev = '$Rev: 3663 $';
+rev = '$Rev: 3691 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -33,7 +33,7 @@ dtype         = cfg_menu;
 dtype.tag     = 'dtype';
 dtype.name    = 'Data Type';
 dtype.help    = {'Data-type of output images.  SAME indicates the same datatype as the original images.'};
-dtype.labels = {
+dtype.labels  = {
                 'SAME'
                 'UINT8   - unsigned char'
                 'INT16   - signed short'
@@ -41,8 +41,8 @@ dtype.labels = {
                 'FLOAT32 - single prec. float'
                 'FLOAT64 - double prec. float'
 }';
-dtype.values = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float32') spm_type('float64')};
-dtype.def     = @(val)spm_get_defaults('smooth.dtype', val{:});
+dtype.values  = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float32') spm_type('float64')};
+dtype.val     = {0};
 % ---------------------------------------------------------------------
 % im Implicit masking
 % ---------------------------------------------------------------------

@@ -86,51 +86,20 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 %       Q = spm_imcalc(Vi,Vo,'c*X',{1},c)
 % Here we've pre-specified the expression and passed the vector c as an
 % additional variable (you'll be prompted to select the n images).
-%
-% FORMAT out = spm_imcalc_ui(job)
-% Input:
-% job - a job structure.
-% Output:
-% out.files{1} - file name of output image.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 2535 2008-12-08 14:12:20Z volkmar $
-
-%-Decompose job structure and run with arguments
-%-----------------------------------------------------------------------
-if nargin == 1 && isstruct(P) && isfield(P, 'input')
-    job = P;
-    flags = {job.options.dmtx, job.options.mask, job.options.dtype, job.options.interp};
-    [p,nam,ext,num] = spm_fileparts(job.output);
-    if isempty(p)
-        if isempty(job.outdir{1})
-            p=pwd;
-        else
-            p = job.outdir{1};
-        end;
-    end;
-    if isempty(strfind(ext,','))
-        ext=[ext ',1'];
-    end;
-    out.files{1} = fullfile(p,[nam ext num]);
-    spm_imcalc_ui(strvcat(job.input{:}),out.files{1},job.expression, ...
-                  flags);
-    % return out as 1st output argument
-    Q = out;
-    return;
-end;
+% $Id: spm_imcalc_ui.m 3691 2010-01-20 17:08:30Z guillaume $
 
 %-GUI setup
-%-----------------------------------------------------------------------
-SCCSid = '$Rev: 2535 $';
+%--------------------------------------------------------------------------
+SVNid = '$Rev: 3691 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
-spm('FnBanner',mfilename,SCCSid);
-spm_help('!ContextHelp',[mfilename,'.m'])
+spm('FnBanner',mfilename,SVNid);
 
 %-Condition arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<4, flags={}; end
 if nargin<3, f=''; end
 if nargin<2, Q=''; end
@@ -154,12 +123,12 @@ spm('FigName','ImCalc: working',Finter,CmdLine);
 spm('Pointer','Watch')
 
 %-Map input files
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Vi = spm_vol(char(P));
 if isempty(Vi), error('no input images specified'), end
 
 %-Check for consistency of image dimensions and orientation / voxel size
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if length(Vi)>1 && any(any(diff(cat(1,Vi.dim),1,1),1))
     warning(['images don''t all have same dimensions',...
         ' - using those of 1st image']);
@@ -169,29 +138,27 @@ if any(any(any(diff(cat(3,Vi.mat),1,3),3)))
         ' - using 1st image']);
 end
 
-
 %-Work out filename for output image
-%------------------------------------------------------------------
-[p n e v] = spm_fileparts(Q);
-e = spm_str_manip(e,'ev'); % Canonicalise extension
+%--------------------------------------------------------------------------
+[p n e] = spm_fileparts(Q);
+if isempty(p), p = pwd; end
 if ~exist(p,'dir')
     warning('Invalid directory: writing to current directory')
-    p = '.';
+    p = pwd;
 end
 
-Vo = struct(    'fname',    fullfile(p, [n, '.', e]),...
-        'dim',      Vi(1).dim(1:3),...
-        'dt',       [type spm_platform('bigend')],...
-        'mat',      Vi(1).mat,...
-        'descrip',  'spm - algebra');
-
+Vo = struct('fname',   fullfile(p, [n, e]),...
+            'dim',     Vi(1).dim(1:3),...
+            'dt',      [type spm_platform('bigend')],...
+            'mat',     Vi(1).mat,...
+            'descrip', 'spm - algebra');
 
 %-Call spm_imcalc to handle computations
-%------------------------------------------------------------------
+%--------------------------------------------------------------------------
 args = {dmtx,mask,hold};
 Vo   = spm_imcalc(Vi,Vo,f,args);
 
 %-End
-%------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm('Pointer');
 spm('FigName','ImCalc: done',Finter,CmdLine);

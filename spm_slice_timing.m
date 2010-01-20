@@ -98,12 +98,11 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_slice_timing.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_slice_timing.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 2696 $');
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
-spm_help('!ContextHelp',mfilename);
+SPMid = spm('FnBanner',mfilename,'$Rev: 3691 $');
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing',0);
 
 if nargin < 1,
         % get number of subjects

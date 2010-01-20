@@ -42,12 +42,8 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 3677 2010-01-14 04:46:29Z Darren $
+% $Id: spm_get_ons.m 3691 2010-01-20 17:08:30Z guillaume $
 
-
-%-GUI setup
-%--------------------------------------------------------------------------
-spm_help('!ContextHelp',mfilename)
 
 % time units
 %--------------------------------------------------------------------------

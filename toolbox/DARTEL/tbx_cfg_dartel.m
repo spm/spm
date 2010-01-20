@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 3387 2009-09-11 08:03:00Z volkmar $
+% $Id: tbx_cfg_dartel.m 3691 2010-01-20 17:08:30Z guillaume $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -897,7 +897,7 @@ vox.tag      = 'vox';
 vox.name     = 'Voxel sizes';
 vox.num      = [1 3];
 vox.strtype  = 'e';
-vox.def      = @(val)spm_get_defaults('defs.vox',val{:});
+vox.val      = {[NaN NaN NaN]};
 vox.help     = {[...
 'Specify the voxel sizes of the deformation field to be produced. ',...
 'Non-finite values will default to the voxel sizes of the template image',...
@@ -910,7 +910,7 @@ bb.tag       = 'bb';
 bb.name      = 'Bounding box';
 bb.strtype   = 'e';
 bb.num       = [2 3];
-bb.def       = @(val)spm_get_defaults('defs.bb',val{:});
+bb.val       = {[NaN NaN NaN; NaN NaN NaN]};
 bb.help      = {[...
 'Specify the bounding box of the deformation field to be produced. ',...
 'Non-finite values will default to the bounding box of the template image',...

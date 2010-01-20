@@ -16,8 +16,8 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %
 %
 %     SPM.xY
-%             P: [n x ? char]   - filenames
-%            VY: [n x 1 struct] - filehandles
+%             P: [n x ? char]       - filenames
+%            VY: [n x 1 struct]     - filehandles
 %            RT: Repeat time
 %
 %    SPM.xGX
@@ -30,15 +30,15 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %           gSF: [n x 1 double]     - Global scaling factor
 %
 %    SPM.xVi
-%            Vi: {[n x n sparse]..}   - covariance components
-%          form: {'none'|'AR(1)'} - form of non-sphericity
+%            Vi: {[n x n sparse]..} - covariance components
+%          form: {'none'|'AR(1)'}   - form of non-sphericity
 %
 %     SPM.xM
-%             T: [n x 1 double]  - Masking index
-%            TH: [n x 1 double]  - Threshold
+%             T: [n x 1 double]     - Masking index
+%            TH: [n x 1 double]     - Threshold
 %             I: 0
-%            VM:                 - Mask filehandles
-%            xs: [1x1 struct]    - cellstr description
+%            VM:                    - Mask filehandles
+%            xs: [1x1 struct]       - cellstr description
 %
 % (see also spm_spm_ui)
 %
@@ -172,17 +172,14 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston, Jean-Baptiste Poline & Christian Büchel
-% $Id: spm_fmri_spm_ui.m 3468 2009-10-15 18:59:38Z karl $
+% Karl Friston, Jean-Baptiste Poline & Christian Buchel
+% $Id: spm_fmri_spm_ui.m 3691 2010-01-20 17:08:30Z guillaume $
 
-SCCSid  = '$Rev: 3468 $';
+SVNid  = '$Rev: 3691 $';
 
 %-GUI setup
 %--------------------------------------------------------------------------
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
-spm_help('!ContextHelp',mfilename)
-
-global defaults
 
 % get design matrix and/or data
 %==========================================================================
@@ -194,7 +191,7 @@ if ~nargin
         % specify a design
         %------------------------------------------------------------------
         if sf_abort, spm_clf(Finter), return, end
-        SPM     = spm_fMRI_design;
+        SPM   = spm_fMRI_design;
         spm_fMRI_design_show(SPM);
         return
 
@@ -217,17 +214,15 @@ end
 % get Repeat time
 %--------------------------------------------------------------------------
 try
-    RT        = SPM.xY.RT;
+    SPM.xY.RT;
 catch
-    RT        = spm_input('Interscan interval {secs}','+1');
-    SPM.xY.RT = RT;
+    SPM.xY.RT = spm_input('Interscan interval {secs}','+1');
 end
-
 
 % session and scan number
 %--------------------------------------------------------------------------
-nscan = SPM.nscan;
-nsess = length(nscan);
+nscan         = SPM.nscan;
+nsess         = length(nscan);
 
 % check data are specified
 %--------------------------------------------------------------------------
@@ -237,30 +232,27 @@ catch
 
     % get filenames
     %----------------------------------------------------------------------
-    P     = [];
+    P         = [];
     for i = 1:nsess
-        str = sprintf('select scans for session %0.0f',i);
-        q   = spm_select(nscan(i),'image',str);
-        P   = strvcat(P,q);
+        str   = sprintf('select scans for session %0.0f',i);
+        q     = spm_select(nscan(i),'image',str);
+        P     = strvcat(P,q);
     end
 
     % place in data field
     %----------------------------------------------------------------------
-    SPM.xY.P = P;
+    SPM.xY.P  = P;
 
 end
 
 
-
 % Assemble remaining design parameters
 %==========================================================================
-spm_help('!ContextHelp',mfilename)
-SPM.SPMid = spm('FnBanner',mfilename,SCCSid);
+SPM.SPMid     = spm('FnBanner',mfilename,SVNid);
 
 
 % Global normalization
 %--------------------------------------------------------------------------
-nsess = length(SPM.nscan);
 try
     SPM.xGX.iGXcalc;
 catch
@@ -280,35 +272,28 @@ SPM.xGX.sGMsca  = 'session specific';
 try
     myLastWarn = 0;
     HParam     = [SPM.xX.K(:).HParam];
-    if ( length(HParam) == 1 )
+    if length(HParam) == 1 
         HParam = HParam*ones(1,nsess);
-    elseif ( length(HParam) ~= nsess )
-        
-        % The number of specified HParam values and sessions do not match. 
-        % Throw an error, continue with manual HPF specification, and go to
-        % the catch block
+    elseif length(HParam) ~= nsess
         myLastWarn = 1;
-        error;
+        error('Continue with manual HPF specification in the catch block');
     end
 catch
-    
     % specify low frequency confounds
     %----------------------------------------------------------------------
     spm_input('Temporal autocorrelation options','+1','d',mfilename)
     switch spm_input('High-pass filter?','+1','b','none|specify');
 
-        case 'specify'  % default 128 seconds
+        case 'specify'  % default in seconds
             %--------------------------------------------------------------
-            HParam = 128*ones(1,nsess);
+            HParam = spm_get_defaults('stats.fmri.hpf')*ones(1,nsess);
             str    = 'cutoff period (secs)';
             HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
 
         case 'none'     % Inf seconds (i.e. constant term only)
             %--------------------------------------------------------------
-            HParam = Inf*ones(1,nsess);
+            HParam = Inf(1,nsess);
     end
-    % This avoids displaying the warning if we had exited the try block
-    % at the level of accessing HParam.
     if myLastWarn
         warning('SPM:InvalidHighPassFilterSpec',...
             ['Different number of High-pass filter values and sessions.\n',...
@@ -320,12 +305,11 @@ end
 % create and set filter struct
 %--------------------------------------------------------------------------
 for  i = 1:nsess
-    K(i) = struct(  'HParam',   HParam(i),...
-        'row',      SPM.Sess(i).row,...
-        'RT',       SPM.xY.RT);
+    K(i) = struct('HParam', HParam(i),...
+                  'row',    SPM.Sess(i).row,...
+                  'RT',     SPM.xY.RT);
 end
 SPM.xX.K = spm_filter(K);
-
 
 % intrinsic autocorrelations (Vi)
 %--------------------------------------------------------------------------
@@ -333,7 +317,7 @@ try
     cVi   = SPM.xVi.form;
 catch
     % Construct Vi structure for non-sphericity ReML estimation
-    %======================================================================
+    %----------------------------------------------------------------------
     str   = 'Correct for serial correlations?';
     cVi   = {'none','AR(1)'};
     cVi   = spm_input(str,'+1','b',cVi);
@@ -367,7 +351,6 @@ end
 SPM.xVi.form = cVi;
 
 
-
 %==========================================================================
 % - C O N F I G U R E   D E S I G N
 %==========================================================================
@@ -381,10 +364,9 @@ spm('Pointer','Watch');
 
 %-Map files
 %--------------------------------------------------------------------------
-fprintf('%-40s: ','Mapping files')                                   %-#
+fprintf('%-40s: ','Mapping files')                                      %-#
 VY    = spm_vol(SPM.xY.P);
-fprintf('%30s\n','...done')                                          %-#
-
+fprintf('%30s\n','...done')                                             %-#
 
 %-check internal consistency of images
 %--------------------------------------------------------------------------
@@ -400,17 +382,17 @@ SPM.xY.VY = VY;
 GM    = 100;
 q     = length(VY);
 g     = zeros(q,1);
-fprintf('%-40s: %30s','Calculating globals',' ')                     %-#
+fprintf('%-40s: %30s','Calculating globals',' ')                        %-#
 for i = 1:q
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',i,q)) %-#
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',i,q))%-#
     g(i) = spm_global(VY(i));
 end
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 
 % scale if specified (otherwise session specific grand mean scaling)
 %--------------------------------------------------------------------------
 gSF   = GM./g;
-if strcmp(lower(SPM.xGX.iGXcalc),'none')
+if strcmpi(SPM.xGX.iGXcalc,'none')
     for i = 1:nsess
         gSF(SPM.Sess(i).row) = GM./mean(g(SPM.Sess(i).row));
     end
@@ -432,21 +414,21 @@ SPM.xGX.gSF = gSF;
 %-Masking structure automatically set to 80% of mean
 %==========================================================================
 try
-    TH = g.*gSF*defaults.mask.thresh;
+    TH = g.*gSF*spm_get_defaults('mask.thresh');
 catch
     TH = g.*gSF*0.8;
 end
-SPM.xM = struct( 'T',    ones(q,1),...
-    'TH',   TH,...
-    'I',    0,...
-    'VM',   {[]},...
-    'xs',   struct('Masking','analysis threshold'));
+SPM.xM = struct('T',    ones(q,1),...
+                'TH',   TH,...
+                'I',    0,...
+                'VM',   {[]},...
+                'xs',   struct('Masking','analysis threshold'));
 
 
 %-Design description - for saving and display
 %==========================================================================
 for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
-Fstr      = sprintf('[min] Cutoff period %d seconds',min(HParam));
+Fstr      = sprintf('[min] Cutoff: %d {s}',min([SPM.xX.K(:).HParam]));
 SPM.xsDes = struct(...
     'Basis_functions',      SPM.xBF.name,...
     'Number_of_sessions',   sprintf('%d',nsess),...
@@ -459,22 +441,24 @@ SPM.xsDes = struct(...
 
 
 %-Save SPM.mat
-%--------------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration')                        %-#
+%==========================================================================
+fprintf('%-40s: ','Saving SPM configuration')                           %-#
 if spm_matlab_version_chk('7') >= 0,
     save('SPM', 'SPM', '-V6');
 else
     save('SPM', 'SPM');
-end;
-fprintf('%30s\n','...SPM.mat saved')                                 %-#
+end
+fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 
 %-Display Design report
 %==========================================================================
-fprintf('%-40s: ','Design reporting')                                %-#
-fname     = cat(1,{SPM.xY.VY.fname}');
-spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
-fprintf('%30s\n','...done')                                          %-#
+if ~CmdLine
+    fprintf('%-40s: ','Design reporting')                               %-#
+    fname = cat(1,{SPM.xY.VY.fname}');
+    spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
+    fprintf('%30s\n','...done')                                         %-#
+end
 
 
 %-End: Cleanup GUI
@@ -482,7 +466,6 @@ fprintf('%30s\n','...done')                                          %-#
 spm_clf(Finter)
 spm('FigName','Stats: configured',Finter,CmdLine);
 spm('Pointer','Arrow')
-fprintf('\n\n')
 
 
 %==========================================================================
@@ -491,7 +474,7 @@ fprintf('\n\n')
 
 function abort = sf_abort
 %==========================================================================
-if exist(fullfile('.','SPM.mat'))
+if exist(fullfile(pwd,'SPM.mat'),'file')
     str = { 'Current directory contains existing SPM file:',...
             'Continuing will overwrite existing file!'};
 

@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 3600 2009-11-26 14:12:49Z volkmar $
+% $Id: spm_cfg_defs.m 3691 2010-01-20 17:08:30Z guillaume $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -93,11 +93,11 @@ matname      = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
 matname.help = hmatname;
 
 vox          = entry('Voxel sizes','vox','e',[1 3]);
-vox.def      = @(val)spm_get_defaults('defs.vox',val{:});
+vox.val      = {[NaN NaN NaN]};
 vox.help     = hvox;
 
 bb           = entry('Bounding box','bb','e',[2 3]);
-bb.def       = @(val)spm_get_defaults('defs.bb',val{:});
+bb.val       = {[NaN NaN NaN;NaN NaN NaN]};
 bb.help      = hbb;
 
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
@@ -127,7 +127,7 @@ forbak.help = {[...
 K = mnu('Time Steps','K',...
         {'1','2','4','8','16','32','64','128','256','512'},...
         {0,1,2,3,4,5,6,7,8,9});
-K.def  = @(val)spm_get_defaults('defs.K',val{:});
+K.val  = {6};
 K.help = {...
     ['The number of time points used for solving the '...
      'partial differential equations.  A single time point would be '...

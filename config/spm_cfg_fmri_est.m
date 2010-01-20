@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2928 2009-03-24 08:54:32Z lee $
+% $Id: spm_cfg_fmri_est.m 3691 2010-01-20 17:08:30Z guillaume $
 
-rev = '$Rev: 2928 $';
+rev = '$Rev: 3691 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -149,7 +149,7 @@ signal.values = {
                  'Global'
                  'Uninformative'
 }';
-signal.def     = @(val)spm_get_defaults('stats.est.signal', val{:});
+signal.val     = {'UGL'};
 % ---------------------------------------------------------------------
 % ARP AR model order
 % ---------------------------------------------------------------------
@@ -165,7 +165,7 @@ ARP.help    = {
 }';
 ARP.strtype = 'e';
 ARP.num     = [Inf 1];
-ARP.def     = @(val)spm_get_defaults('stats.est.ARP', val{:});
+ARP.val     = {3};
 % ---------------------------------------------------------------------
 % UGL UGL
 % ---------------------------------------------------------------------

@@ -53,18 +53,17 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 1912 2008-07-11 18:02:03Z guillaume $
+% $Id: spm_image.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 1912 $');
-    spm_help('!ContextHelp',[mfilename,'.m']);
+    spm('FnBanner',mfilename,'$Rev: 3691 $');
 
     % get the image's filename {P}
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     P      = spm_select(1,'image','Select image');
     spm_image('init',P);
     return;

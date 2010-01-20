@@ -7,10 +7,10 @@ function out = spm_run_fmri_spec(job)
 % job    - harvested job data structure (see matlabbatch help)
 % Output:
 % out    - computation results, usually a struct variable.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 2948 2009-03-25 11:27:40Z volkmar $
+% $Id: spm_run_fmri_spec.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
 spm('defaults','FMRI');
@@ -19,8 +19,8 @@ global defaults
 original_dir = pwd;
 my_cd(job.dir);
 
-%-Ask about overwriting files from previous analyses...
-%-------------------------------------------------------------------
+%-Ask about overwriting files from previous analyses
+%--------------------------------------------------------------------------
 if exist(fullfile(job.dir{1},'SPM.mat'),'file')
     str = { 'Current directory contains existing SPM file:',...
         'Continuing will overwrite existing file!'};
@@ -33,7 +33,7 @@ end
 
 % If we've gotten to this point we're committed to overwriting files.
 % Delete them so we don't get stuck in spm_spm
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
     '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
     '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
@@ -46,12 +46,12 @@ for i=1:length(files)
 end
 
 % Variables
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xY.RT = job.timing.RT;
 SPM.xY.P = [];
 
 % Slice timing
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The following lines have the side effect of modifying the global
 % defaults variable. This is necessary to pass job.timing.fmri_t to
 % spm_hrf.m. The original values are saved here and restored at the end
@@ -63,14 +63,14 @@ defaults.stats.fmri.t=job.timing.fmri_t;
 defaults.stats.fmri.t0=job.timing.fmri_t0;
 
 % Basis function variables
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xBF.UNITS = job.timing.units;
 SPM.xBF.dt    = job.timing.RT/job.timing.fmri_t;
 SPM.xBF.T     = job.timing.fmri_t;
 SPM.xBF.T0    = job.timing.fmri_t0;
 
 % Basis functions
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 if strcmp(fieldnames(job.bases),'hrf')
     if all(job.bases.hrf.derivs == [0 0])
         SPM.xBF.name = 'hrf';
@@ -108,20 +108,20 @@ if isempty(job.sess),
     SPM.xBF.Volterra = false;
 else
     SPM.xBF.Volterra = job.volt;
-end;
+end
 
 for i = 1:numel(job.sess),
     sess = job.sess(i);
 
     % Image filenames
-    %-------------------------------------------------------------
+    %----------------------------------------------------------------------
     SPM.nscan(i) = numel(sess.scans);
     SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
     U = [];
 
     % Augment the singly-specified conditions with the multiple
     % conditions specified in a .mat file provided by the user
-    %------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isempty(sess.multi{1})
         try
             multicond = load(sess.multi{1});
@@ -129,9 +129,9 @@ for i = 1:numel(job.sess),
             error('Cannot load %s',sess.multi{1});
         end
         if ~(isfield(multicond,'names')&&isfield(multicond,'onsets')&&...
-         isfield(multicond,'durations')) || ...
-        ~all([numel(multicond.names),numel(multicond.onsets), ...
-              numel(multicond.durations)]==numel(multicond.names))
+                isfield(multicond,'durations')) || ...
+        	~all([numel(multicond.names),numel(multicond.onsets), ...
+                numel(multicond.durations)]==numel(multicond.names))
             error(['Multiple conditions MAT-file ''%s'' is invalid.\n',...
            'File must contain names, onsets, and durations '...
            'cell arrays of equal length.\n'],sess.multi{1});
@@ -143,10 +143,9 @@ for i = 1:numel(job.sess),
             cond.onset    = multicond.onsets{j};
             cond.duration = multicond.durations{j};
             
-            % ADDED BY DGITELMAN
             % Mutiple Conditions Time Modulation
-            %------------------------------------------------------
-            % initialize the variable.
+            %--------------------------------------------------------------
+            % initialise the variable.
             cond.tmod = 0;
             if isfield(multicond,'tmod');
                 try
@@ -157,8 +156,8 @@ for i = 1:numel(job.sess),
             end
 
             % Mutiple Conditions Parametric Modulation
-            %------------------------------------------------------
-            % initialize the parametric modulation variable.
+            %--------------------------------------------------------------
+            % initialise the parametric modulation variable.
             cond.pmod = [];
             if isfield(multicond,'pmod')
                 % only access existing modulators
@@ -186,7 +185,7 @@ for i = 1:numel(job.sess),
     end
 
     % Configure the input structure array
-    %-------------------------------------------------------------
+    %----------------------------------------------------------------------
     for j = 1:length(sess.cond),
         cond      = sess.cond(j);
         U(j).name = {cond.name};
@@ -228,19 +227,19 @@ for i = 1:numel(job.sess),
 
 
     % User specified regressors
-    %-------------------------------------------------------------
-    C = [];
+    %----------------------------------------------------------------------
+    C     = [];
     Cname = cell(1,numel(sess.regress));
     for q = 1:numel(sess.regress),
         Cname{q} = sess.regress(q).name;
-        C         = [C, sess.regress(q).val(:)];
+        C        = [C, sess.regress(q).val(:)];
     end
 
     % Augment the singly-specified regressors with the multiple regressors
     % specified in the regressors.mat file
-    %------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~strcmp(sess.multi_reg,'')
-        tmp=load(char(sess.multi_reg{:}));
+        tmp = load(char(sess.multi_reg{:}));
         if isstruct(tmp) && isfield(tmp,'R')
             R = tmp.R;
         elseif isnumeric(tmp)
@@ -252,11 +251,11 @@ for i = 1:numel(job.sess),
             R = [];
         end
 
-        C=[C, R];
-        nr=size(R,2);
-        nq=length(Cname);
+        C  = [C, R];
+        nr = size(R,2);
+        nq = length(Cname);
         for inr=1:nr,
-            Cname{inr+nq}=['R',int2str(inr)];
+            Cname{inr+nq} = ['R',int2str(inr)];
         end
     end
     SPM.Sess(i).C.C    = C;
@@ -265,7 +264,7 @@ for i = 1:numel(job.sess),
 end
 
 % Factorial design
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isfield(job,'fact')
     if ~isempty(job.fact)
         NC=length(SPM.Sess(1).U); % Number of conditions
@@ -285,23 +284,23 @@ else
 end
 
 % Globals
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xGX.iGXcalc = job.global;
 SPM.xGX.sGXcalc = 'mean voxel value';
 SPM.xGX.sGMsca  = 'session specific';
 
 % High Pass filter
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:numel(job.sess),
     SPM.xX.K(i).HParam = job.sess(i).hpf;
 end
 
 % Autocorrelation
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xVi.form = job.cvi;
 
 % Let SPM configure the design
-%-------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM = spm_fmri_spm_ui(SPM);
 
 if ~isempty(job.mask)&&~isempty(job.mask{1})
@@ -310,15 +309,15 @@ if ~isempty(job.mask)&&~isempty(job.mask{1})
 end
 
 %-Save SPM.mat
-%-----------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration')   %-#
+%--------------------------------------------------------------------------
+fprintf('%-40s: ','Saving SPM configuration')                           %-#
 if spm_matlab_version_chk('7') >= 0
     save('SPM','-V6','SPM');
 else
     save('SPM','SPM');
 end;
 
-fprintf('%30s\n','...SPM.mat saved')                     %-#
+fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 my_cd(original_dir); % Change back dir
@@ -326,18 +325,13 @@ spm_get_defaults('stats.fmri.fmri_t',olddefs.stats.fmri.fmri_t); % Restore old t
 spm_get_defaults('stats.fmri.fmri_t0',olddefs.stats.fmri.fmri_t0); % parameters
 fprintf('Done\n')
 return
-%-------------------------------------------------------------------------
 
-%-------------------------------------------------------------------------
-function my_cd(varargin)
-% jobDir must be the actual directory to change to, NOT the job structure.
-jobDir = varargin{1};
+%==========================================================================
+function my_cd(jobDir)
 if ~isempty(jobDir)
     try
         cd(char(jobDir));
-        fprintf('Changing directory to: %s\n',char(jobDir));
     catch
         error('Failed to change directory. Aborting run.')
     end
 end
-return;

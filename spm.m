@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3659 2010-01-04 17:37:03Z guillaume $
+% $Id: spm.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
 %=======================================================================
@@ -692,12 +692,10 @@ case 'colour'                                     %-SPM interface colour
 %-Distribution livery
   varargout = {[0.8 0.8 1.0],'vile violet'};
 
-global defaults
-if isempty(defaults), spm_defaults; end
-if isfield(defaults,'ui') && isfield(defaults.ui,'colour2')
-    varargout{1} = defaults.ui.colour2;
+try
+    varargout = {spm_get_defaults('ui.colour'),'bluish'};
 end
-
+    
 
 %=======================================================================
 case 'figname'                                %-Robust SPM figure naming

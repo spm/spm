@@ -5,7 +5,6 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % 1st level
 %--------------------------------------------------------------------------
 % SPM.
-%
 %       xY: [1x1 struct] - data structure
 %    nscan: [1xs double] - nscan(s) = number of scans in session s
 %      xBF: [1x1 struct] - Basis function structure
@@ -165,16 +164,14 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 2496 2008-11-27 13:40:32Z karl $
+% $Id: spm_fMRI_design.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
-SCCSid  = '$Rev: 2496 $';
+SVNid = '$Rev: 3691 $';
 
 %-GUI setup
 %--------------------------------------------------------------------------
-SPMid = spm('SFnBanner',mfilename,SCCSid);
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
-spm_help('!ContextHelp',mfilename)
+spm('FnBanner',mfilename,SVNid);
 
 if nargin == 1
     save_SPM = 1;
@@ -187,49 +184,45 @@ end
 % global parameters
 %--------------------------------------------------------------------------
 try
-    fMRI_T  = SPM.xBF.T;
-    fMRI_T0 = SPM.xBF.T0;
+    fMRI_T     = SPM.xBF.T;
+    fMRI_T0    = SPM.xBF.T0;
 catch
-    fMRI_T  = 16;
-    fMRI_T0 = 1;
+    fMRI_T     = spm_get_defaults('stats.fmri.fmri_t');
+    fMRI_T0    = spm_get_defaults('stats.fmri.fmri_t0');
     SPM.xBF.T  = fMRI_T;
     SPM.xBF.T0 = fMRI_T0;
 end
 
-
-% get nscan and RT if not in SPM
+% get nscan and RT
 %--------------------------------------------------------------------------
 try
     SPM.xY.RT;
 catch
-    spm_input('Basic parameters...',1,'d',mfilename)
-    SPM.xY.RT = spm_input('Interscan interval {secs}','+1','r',[],1);
+    SPM.xY.RT  = spm_input('Interscan interval {secs}','+1','r',[],1);
 end
 try
     SPM.nscan;
 catch
-    SPM.nscan = spm_input('scans per session e.g. 64 64 64','+1');
+    SPM.nscan  = spm_input('scans per session e.g. 64 64 64','+1');
 end
 
 % time units, dt = time bin {secs}
 %--------------------------------------------------------------------------
-SPM.xBF.dt = SPM.xY.RT/SPM.xBF.T;
+SPM.xBF.dt        = SPM.xY.RT/SPM.xBF.T;
 try
     SPM.xBF.UNITS;
 catch
-    str           = 'specify design in';
-    SPM.xBF.UNITS = spm_input(str,'+1','scans|secs');
+    SPM.xBF.UNITS = spm_input('specify design in','+1','scans|secs');
 end
 
 % separate specifications for non-replicated sessions
 %--------------------------------------------------------------------------
 rep     = 0;
 if length(SPM.nscan) > 1 && ~any(diff(SPM.nscan)) && ~isfield(SPM,'Sess')
-    str = 'are sessions replications';
-    rep = spm_input(str,'+1','yes|no',[1 0]);
+    rep = spm_input('are sessions replications','+1','yes|no',[1 0]);
 end
 
-% Get basis functions
+% get basis functions
 %--------------------------------------------------------------------------
 try
     bf      = SPM.xBF.bf;
@@ -243,8 +236,7 @@ end
 try
     V   = SPM.xBF.Volterra;
 catch
-    str = 'model interactions (Volterra)';
-    V   = spm_input(str,'+1','y/n',[2 1]);
+    V   = spm_input('model interactions (Volterra)','+1','y/n',[2 1]);
     SPM.xBF.Volterra  = V;
 end
 
@@ -259,7 +251,7 @@ for s = 1:length(SPM.nscan)
 
     % number of scans for this session
     %----------------------------------------------------------------------
-    k   = SPM.nscan(s);
+    k = SPM.nscan(s);
 
     if (s == 1) || ~rep
 
@@ -357,7 +349,7 @@ for s = 1:length(SPM.nscan)
     Xx    = blkdiag(Xx,X);
     Xb    = blkdiag(Xb,B);
 
-end %- for s
+end
 
 
 % finished
@@ -372,13 +364,12 @@ SPM.xX.name   = {Xname{:} Bname{:}};
 if save_SPM
     %-End: Save SPM.mat
     %----------------------------------------------------------------------
-    fprintf('\t%-32s:\n ','Saving fMRI design')                         %-#
+    fprintf('%-40s: ','Saving fMRI design')                             %-#
     if spm_matlab_version_chk('7') >= 0,
         save('SPM', 'SPM', '-V6');
     else
         save('SPM', 'SPM');
-    end;
+    end
     fprintf('%30s\n','...SPM.mat saved');
 end
 spm_input('!DeleteInputObj')
-

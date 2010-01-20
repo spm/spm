@@ -20,8 +20,7 @@ function spm_mip(Z,XYZ,M,units)
 % This routine loads a mip putline from MIP.mat. This is an image with
 % contours and grids defining the space of Talairach & Tournoux (1988).
 % mip05 corresponds to the Talairach atlas, mip96 to the MNI templates.
-% The outline and grid are superimposed at intensity defaults.grid,
-% defaulting to 0.4.
+% The outline and grid are superimposed at intensity 0.4.
 %
 % A default colormap of 64 levels is assumed. The pointlist image is
 % scaled to fit in the interval [0.25,1]*64 for display. Flat images
@@ -34,14 +33,13 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 3348 2009-09-03 10:32:01Z guillaume $
+% $Id: spm_mip.m 3691 2010-01-20 17:08:30Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
-global defaults
-try, Grid = defaults.grid; catch, Grid = 0.4;               end
 try, units;                catch, units = {'mm' 'mm' 'mm'}; end
 try, M;                    catch, M = 1; end
+Grid = 0.4;
 
 % transpose locations if necessary
 %--------------------------------------------------------------------------

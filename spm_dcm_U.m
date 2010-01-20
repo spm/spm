@@ -1,6 +1,6 @@
-function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
+function spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
 % Insert new inputs into a DCM model
-% FORMAT [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
+% FORMAT spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
 %
 % DCM_filename      Name of DCM file
 % SPM_filename      Name of SPM file (eg. 'SPM')
@@ -16,12 +16,11 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % This function can be used, for example, to replace subject X's inputs by subject Y's.
 % The model can then be re-estimated without having to go through
 % model specification again.
-%
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 1440 2008-04-18 10:00:22Z klaas $
+% $Id: spm_dcm_U.m 3691 2010-01-20 17:08:30Z guillaume $
 
 
 load(DCM_filename);
@@ -35,7 +34,7 @@ Sess   = SPM.Sess(session);
 
 
 % Check numbers of inputs match
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Number of selected inputs from SPM file
 m_sel  = length(find(cell2mat(input_nos)));
 
@@ -51,7 +50,7 @@ end
 
 
 % Replace inputs
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Number of inputs in SPM file
 u      = length(Sess.U);
 
@@ -112,6 +111,4 @@ if spm_matlab_version_chk('7') >= 0
     save(DCM_filename, 'DCM','-V6');
 else
     save(DCM_filename, 'DCM');
-end;
-
-return 
+end

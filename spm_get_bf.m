@@ -28,12 +28,8 @@ function [xBF] = spm_get_bf(xBF)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_bf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_bf.m 3691 2010-01-20 17:08:30Z guillaume $
 
-
-%-GUI setup
-%-----------------------------------------------------------------------
-spm_help('!ContextHelp',mfilename)
 
 % length of time bin
 %-----------------------------------------------------------------------
