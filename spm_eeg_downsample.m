@@ -10,26 +10,28 @@ function D = spm_eeg_downsample(S)
 % D               - MEEG object (also written on disk)
 %__________________________________________________________________________
 % 
-% This function requires the Signal Processing toolbox from The MathWorks:
+% This function uses the Signal Processing toolbox from The MathWorks:
 %               http://www.mathworks.com/products/signal/
-% (function resample.m)
+% (function resample.m) if present and an homebrew version otherwise
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 3690 2010-01-20 12:33:36Z jean $
+% $Id: spm_eeg_downsample.m 3693 2010-01-21 21:59:16Z guillaume $
 
-SVNrev = '$Rev: 3690 $';
+SVNrev = '$Rev: 3693 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
 
-%-Test for the presence of required Matlab toolbox
+%-Test for the presence of Signal Processing Matlab toolbox
 %--------------------------------------------------------------------------
-if ~license('test','signal_toolbox')
-    error('M/EEG dowsampling requires the Signal Processing Toolbox.');
+flag_TBX = license('checkout','signal_toolbox');
+if ~flag_TBX
+    disp(['warning: using homemade resampling routine ' ...
+          'as signal toolbox is not available.']);
 end
 
 %-Get MEEG object
@@ -67,27 +69,28 @@ P = round(10*fsample_new);
 Q = round(10*D.fsample);
 
 %-First pass: Determine new D.nsamples
-%--------------------------------------------------------------------------
-d = double(squeeze(D(1, :, 1)));
-flag_TBX = license('checkout','signal_toolbox');
+%==========================================================================
 if flag_TBX % Signal Proc. Toolbox
-    d2 = resample(d', P, Q)';
+    nsamples_new = ceil(nsamples(D)*P/Q);
 else
-    disp('Warning: no Signal Processing Toolbox: revert back to default SPM routines!')
-    [d2,alpha] = resample0(d,P/Q);
-    fsample_new = D.fsample*alpha;
+    d             = double(squeeze(D(1, :, 1)));
+    [d2,alpha]    = spm_resample(d,P/Q);
+    fsample_new   = D.fsample*alpha;
     S.fsample_new = fsample_new;
     disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
+    nsamples_new  = size(d2, 2);
 end
-nsamples_new = size(d2, 2);
 
-% generate new meeg object with new filenames
+%-Generate new meeg object with new filenames
+%--------------------------------------------------------------------------
 Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
 t0 = clock;
 
 %-Second pass: resample all
-%--------------------------------------------------------------------------
+%==========================================================================
 if strcmp(D.type, 'continuous')
+    %-Continuous
+    %----------------------------------------------------------------------
     spm_progress_bar('Init', D.nchannels, 'Channels downsampled');
     
     % work on blocks of channels
@@ -112,7 +115,7 @@ if strcmp(D.type, 'continuous')
             if flag_TBX % Signal Proc. Toolbox
                 Dtemp(j,1:nsamples_new) = resample(d', P, Q)';
             else
-                Dtemp(j,1:nsamples_new) = resample0(d,P/Q);
+                Dtemp(j,1:nsamples_new) = spm_resample(d,P/Q);
             end
             spm_progress_bar('Set', blkchan(j));
         end
@@ -124,6 +127,8 @@ if strcmp(D.type, 'continuous')
     end
     
 else
+    %-Epoched
+    %----------------------------------------------------------------------
     spm_progress_bar('Init', D.ntrials, 'Trials downsampled'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
     else Ibar = [1:D.ntrials]; end
@@ -134,7 +139,7 @@ else
             if flag_TBX % Signal Proc. Toolbox
                 d2 = resample(d', P, Q)';
             else
-                d2 = resample0(d,P/Q);
+                d2 = spm_resample(d,P/Q);
             end
             Dnew(j, 1:nsamples_new, i) = d2;
         end
@@ -160,13 +165,10 @@ save(D);
 spm('FigName','M/EEG downsampling: done'); spm('Pointer','Arrow');
 
 
-
-
-
-  
-function [Y,alpha] = resample0(X,alpha)
+%==========================================================================
+function [Y,alpha] = spm_resample(X,alpha)
 % [Jean:] Basic resample function (when no Signal Proc. Toolbox)
-% FORMAT Y = resample0(X,alpha)
+% FORMAT Y = spm_resample(X,alpha)
 % IN:
 %   - X: a nXm matrix of n time series
 %   - alpha: the ration of input versus output sampling frequencies. If
@@ -176,24 +178,21 @@ function [Y,alpha] = resample0(X,alpha)
 %   - alpha: true alpha used (due to rational rounding)
 % This function operates on rows of a signal matrix. This means it can be
 % used on a block of channels.
-N0 = size(X,2);
-N = floor(N0*alpha);
-alpha = N/N0;
-Y = fftshift(fft(X,[],2),2);
-sy = size(Y,2);
+
+N0     = size(X,2);
+N      = floor(N0*alpha);
+alpha  = N/N0;
+Y      = fftshift(fft(X,[],2),2);
+sy     = size(Y,2);
 middle = floor(sy./2)+1;
 if alpha>1 % upsample
     N2 = floor((N-N0)./2);
     if N0/2 == floor(N0/2)
         Y(:,1) = []; % throw away non symmetric DFT coef
     end
-    Y = [zeros(size(Y,1),N2),Y,zeros(size(Y,1),N2)];
+    Y  = [zeros(size(Y,1),N2),Y,zeros(size(Y,1),N2)];
 else % downsample
     N2 = floor(N./2);
-    Y = Y(:,middle-N2:middle+N2);
+    Y  = Y(:,middle-N2:middle+N2);
 end
-Y = alpha*ifft(ifftshift(Y,2),[],2);
-return
-
- 
-
+Y      = alpha*ifft(ifftshift(Y,2),[],2);
