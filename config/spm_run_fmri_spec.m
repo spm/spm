@@ -10,11 +10,8 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_run_fmri_spec.m 3692 2010-01-21 21:43:31Z guillaume $
 
-
-spm('defaults','FMRI');
-global defaults
 
 original_dir = pwd;
 my_cd(job.dir);
@@ -57,10 +54,10 @@ SPM.xY.P = [];
 % spm_hrf.m. The original values are saved here and restored at the end
 % of this function, after the design has been specified. The original
 % values may not be restored if this function crashes.
-olddefs.stats.fmri.fmri_t=spm_get_defaults('stats.fmri.fmri_t');
-olddefs.stats.fmri.fmri_t0=spm_get_defaults('stats.fmri.fmri_t0');
-defaults.stats.fmri.t=job.timing.fmri_t;
-defaults.stats.fmri.t0=job.timing.fmri_t0;
+olddefs.stats.fmri.fmri_t  = spm_get_defaults('stats.fmri.fmri_t');
+olddefs.stats.fmri.fmri_t0 = spm_get_defaults('stats.fmri.fmri_t0');
+spm_get_defaults('stats.fmri.t',  job.timing.fmri_t);
+spm_get_defaults('stats.fmri.t0', job.timing.fmri_t0);
 
 % Basis function variables
 %--------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: Unwarp_batch.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: Unwarp_batch.m 3692 2010-01-21 21:43:31Z guillaume $
 
 which spm
 
@@ -16,11 +16,10 @@ which spm
 %
 % Enter the name of the directory that contains data/subjects 
 %
-owd = '/data/FieldMap_examples/sonata_subject'
+owd = '/data/FieldMap_examples/sonata_subject';
 cd(owd);
 
-spm('defaults','FMRI');
-defaults = spm('GetGlobal','defaults');
+defaults = spm('defaults','FMRI');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

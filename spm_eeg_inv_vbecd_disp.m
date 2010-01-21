@@ -12,15 +12,13 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_eeg_inv_vbecd_disp.m 3692 2010-01-21 21:43:31Z guillaume $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
 % the dipole location stays in place...
 
 global st
-% global defaults
-% sw = warning('off');
 
 Fig     = spm_figure('GetWin','Graphics');
 colors  = {'y','b','g','r','c','m'};              % 6 possible colors

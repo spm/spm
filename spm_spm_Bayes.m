@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 3310 2009-08-07 13:33:41Z guillaume $
+% $Id: spm_spm_Bayes.m 3692 2010-01-21 21:43:31Z guillaume $
 
 
 %-Say hello
@@ -236,8 +236,7 @@ spm('Pointer','Watch')
 
 %-maxMem is the maximum amount of data processed at a time (bytes)
 %-----------------------------------------------------------------------
-global defaults
-MAXMEM = defaults.stats.maxmem;
+MAXMEM = spm_get_defaults('stats.maxmem');
 blksz  = ceil(MAXMEM/8/nScan);
 SHp    = 0;             % sum of hyperparameters
 for  z = 1:zdim

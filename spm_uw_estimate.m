@@ -169,10 +169,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 2696 2009-02-05 20:29:48Z guillaume $
-
-
-global defaults
+% $Id: spm_uw_estimate.m 3692 2010-01-21 21:43:31Z guillaume $
 
 if nargin < 1 | isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
@@ -200,7 +197,8 @@ defnames = fieldnames(defpar);
 % Replace hardcoded defaults with spm_defaults
 % when exist and defined.
 %
-if exist('defaults','var') & isfield(defaults,'unwarp') & isfield(defaults.unwarp,'estimate')
+defaults = spm_get_defaults;
+if isfield(defaults,'unwarp') && isfield(defaults.unwarp,'estimate')
    ud = defaults.unwarp.estimate;
    if isfield(ud,'basfcn'),    defpar.order = ud.basfcn; end
    if isfield(ud,'regorder'),  defpar.regorder = ud.regorder; end

@@ -181,7 +181,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_getSPM.m 3692 2010-01-21 21:43:31Z guillaume $
 
 
 %-GUI setup
@@ -597,9 +597,8 @@ k   = 0;           % extent threshold {voxels}
 
 %-Get FDR mode
 %--------------------------------------------------------------------------
-defaults = spm('GetGlobal','defaults');
 try
-    topoFDR = defaults.stats.topoFDR;
+    topoFDR = spm_get_defaults('stats.topoFDR');
 catch
     topoFDR = true;
 end

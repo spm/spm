@@ -20,14 +20,13 @@ function [hrf,p] = spm_hrf(RT,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 2765 2009-02-19 15:30:54Z guillaume $
+% $Id: spm_hrf.m 3692 2010-01-21 21:43:31Z guillaume $
 
 
 % global parameter
 %-----------------------------------------------------------------------
-global defaults
 try
-    fMRI_T = defaults.stats.fmri.t;
+    fMRI_T = spm_get_defaults('stats.fmri.t');
 catch
     fMRI_T = 16;
 end

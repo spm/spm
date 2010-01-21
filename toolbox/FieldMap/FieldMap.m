@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 3016 2009-03-31 15:43:45Z chloe $
+% $Id: FieldMap.m 3692 2010-01-21 21:43:31Z guillaume $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -122,10 +122,6 @@ persistent ID            % Image display
 persistent IP            % Input and results
 persistent DGW           % Delete Graphics Window (if we created it)
 global st                % Global for spm_orthviews
-
-% SPM5 Update
-global defaults
-spm_defaults
 
 if nargin == 0
    Action = 'welcome';
@@ -2177,10 +2173,10 @@ case 'loadstructural'
       VF = varargin{3};
 
       % Define flags for coregistration...
-      IP.cflags.cost_fun = defaults.coreg.estimate.cost_fun;
-      IP.cflags.sep = defaults.coreg.estimate.sep;
-      IP.cflags.tol = defaults.coreg.estimate.tol;
-      IP.cflags.fwhm = defaults.coreg.estimate.fwhm; 
+      IP.cflags.cost_fun = spm_get_defaults('coreg.estimate.cost_fun');
+      IP.cflags.sep      = spm_get_defaults('coreg.estimate.sep');
+      IP.cflags.tol      = spm_get_defaults('coreg.estimate.tol');
+      IP.cflags.fwhm     = spm_get_defaults('coreg.estimate.fwhm'); 
       IP.cflags.graphics = 0;
 
       % Voxel sizes (mm)

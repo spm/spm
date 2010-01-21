@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm.m 3692 2010-01-21 21:43:31Z guillaume $
 
 
 %=======================================================================
@@ -295,9 +295,11 @@ switch lower(Action), case 'welcome'             %-Welcome splash screen
 %=======================================================================
 % spm('Welcome')
 spm_check_installation('basic');
-spm_defaults;
-global defaults
-if isfield(defaults,'modality'), spm(defaults.modality); return; end
+defaults = spm('GetGlobal','defaults');
+if isfield(defaults,'modality')
+    spm(defaults.modality);
+    return
+end
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
@@ -347,8 +349,8 @@ spm_select('prevdirs',[spm('Dir') filesep]);
 %-Draw SPM windows
 %-----------------------------------------------------------------------
 if ~spm('CmdLine')
-    Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
-    Finter = spm('CreateIntWin','off');                        fprintf('.');
+    Fmenu  = spm('CreateMenuWin','off');                   fprintf('.');
+    Finter = spm('CreateIntWin','off');                    fprintf('.');
 else
     Fmenu  = [];
     Finter = [];
@@ -416,38 +418,21 @@ else
 end
 
 %=======================================================================
-case 'defaults'                 %-Set SPM defaults (as global variables)
+case 'defaults'                  %-Set SPM defaults (as global variable)
 %=======================================================================
 % spm('defaults',Modality)
 %-----------------------------------------------------------------------
-global defaults
-if isempty(defaults), spm_defaults; end
-
-%-Sort out arguments
-%-----------------------------------------------------------------------
 if nargin<2, Modality=''; else Modality=varargin{2}; end
-Modality          = spm('CheckModality',Modality);
-defaults.modality = Modality;
-defaults.SWD      = spm('Dir');              % SPM directory
-defaults.TWD      = spm_platform('tempdir'); % Temp directory
+Modality = spm('CheckModality',Modality);
 
-%-Set Modality specific default (global variables)
+%-Re-initialise, load defaults (from spm_defaults.m) and store modality
 %-----------------------------------------------------------------------
-global UFp
-if strcmpi(defaults.modality,'pet')
-    UFp = defaults.stats.pet.ufp;        % Upper tail F-prob
-elseif strcmpi(defaults.modality,'fmri')
-    UFp = defaults.stats.fmri.ufp;       % Upper tail F-prob
-elseif strcmpi(defaults.modality,'eeg')
-    ;
-elseif strcmpi(defaults.modality,'unknown')
-else
-    error('Illegal Modality');
-end
+clear global defaults
+spm_get_defaults('modality',Modality);
 
-%-Addpath (temporary solution)
+%-Addpath modality-specific toolboxes
 %-----------------------------------------------------------------------
-if strcmpi(defaults.modality,'EEG') && ~isdeployed
+if strcmpi(Modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'external','fieldtrip'));
     addpath(fullfile(spm('Dir'),'external','fileio'));
     addpath(fullfile(spm('Dir'),'external','forwinv'));
@@ -459,6 +444,9 @@ if strcmpi(defaults.modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'toolbox', 'MEEGtools'));
 end
 
+%-Return defaults variable if asked
+%-----------------------------------------------------------------------
+if nargout, varargout = {spm_get_defaults}; end
 
 %=======================================================================
 case 'checkmodality'              %-Check & canonicalise modality string
@@ -467,9 +455,11 @@ case 'checkmodality'              %-Check & canonicalise modality string
 %-----------------------------------------------------------------------
 if nargin<2, Modality=''; else Modality=upper(varargin{2}); end
 if isempty(Modality)
-    global defaults
-    if isfield(defaults,'modality'), Modality = defaults.modality;
-    else Modality = 'UNKNOWN'; end
+    try
+        Modality = spm_get_defaults('modality');
+    catch
+        Modality = 'UNKNOWN';
+    end
 end
 if ischar(Modality)
     ModNum = find(ismember(Modalities,Modality));
@@ -607,9 +597,7 @@ case {'fontsize','fontsizes','fontscale'}                 %-Font scaling
 if nargin<2, FS=1:36; else FS=varargin{2}; end
 
 offset     = 1;
-try
-    %if ismac, offset = 1.4; end
-end
+%try, if ismac, offset = 1.4; end; end
 
 sf  = offset + 0.85*(min(spm('WinScale'))-1);
 
@@ -941,10 +929,10 @@ case {'cmdline'}                                %-SPM command line mode?
 %=======================================================================
 % CmdLine = spm('CmdLine',CmdLine)
 %-----------------------------------------------------------------------
-if nargin<2, CmdLine=[]; else CmdLine = varargin{2}; end
+if nargin<2, CmdLine=[]; else CmdLine=varargin{2}; end
 if isempty(CmdLine)
-    global defaults
-    if ~isempty(defaults) && isfield(defaults,'cmdline')
+    defaults = spm('getglobal','defaults');
+    if isfield(defaults,'cmdline')
         CmdLine = defaults.cmdline;
     else
         CmdLine = 0;
