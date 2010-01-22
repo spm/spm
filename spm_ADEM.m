@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_ADEM.m 3694 2010-01-22 14:16:51Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -218,10 +218,10 @@ Pu    = spm_cat(spm_diag({Px Pv}));
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));    % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
-ph.ic = inv(ph.c);                         % prior precision
+ph.ic = spm_inv(ph.c);                     % prior precision
  
 % priors on parameters (in reduced parameter space)
 %==========================================================================
@@ -249,7 +249,7 @@ Up    = spm_cat(spm_diag(qp.u));
 %--------------------------------------------------------------------------
 np    = sum(spm_vec(M.p));                  % number of model parameters
 pp.c  = spm_cat(pp.c);
-pp.ic = inv(pp.c);
+pp.ic = spm_inv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
@@ -537,7 +537,7 @@ for iE = 1:nE
     dFdp   = dFdp  - pp.ic*qp.e;
     dFdpp  = dFdpp - pp.ic;
     qp.ic  = qp.ic + pp.ic;
-    qp.c   = inv(qp.ic);
+    qp.c   = spm_inv(qp.ic);
  
  
     % E-step: update expectation (p)
@@ -595,7 +595,7 @@ for iE = 1:nE
  
         % conditional covariance of hyperparameters
         %------------------------------------------------------------------
-        qh.c  = -inv(dFdhh);
+        qh.c  = -spm_inv(dFdhh);
  
         % convergence (M-Step)
         %------------------------------------------------------------------
