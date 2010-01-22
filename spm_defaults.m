@@ -14,8 +14,15 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_defaults.m 3697 2010-01-22 17:07:18Z guillaume $
 
+try
+    d = dbstack;
+    if ~isdeployed && ~any(strcmpi({'spm','spm_get_defaults'},d(end).name))
+        fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
+            'Please use spm(''defaults'',modality) instead.\n']);
+    end
+end
 
 global defaults
 
@@ -37,11 +44,15 @@ defaults.ui.fs     = 14;
 % spm_flip_analyze_images.m
 defaults.images.format  = 'img';  % used for DICOM, ECAT and MINC import
 
+% DICOM Import defaults
+%=======================================================================
+defaults.dicom.root     = 'flat'; % Folder hierarchy
+
 % Stats defaults
 %=======================================================================
 defaults.stats.maxmem   = 2^26;
 defaults.stats.maxres   = 64;
-defaults.stats.fmri.ufp = 0.001;
+defaults.stats.fmri.ufp = 0.001;  % Upper tail F-probability
 defaults.stats.pet.ufp  = 0.05;
 defaults.stats.eeg.ufp  = 1;
 defaults.stats.topoFDR  = 1;
