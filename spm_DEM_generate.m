@@ -6,8 +6,8 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % M(i)     - HDM
 % U(n x N} - causes or N number of causes
 % P{i}     - model-parameters for level i (defaults to M.pE)
-% h{i}     - hyper-parameters for level i (defaults to 32 - no noise)
-% g{i}     - hyper-parameters for level i (defaults to 32 - no noise)
+% h{i}     - log-precisions   for level i (defaults to 32 - no noise)
+% g{i}     - log-precisions   for level i (defaults to 32 - no noise)
 %
 % generates
 % DEM.M    - hierarchical model (checked)
@@ -23,7 +23,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 1844 2008-06-20 20:14:05Z guillaume $
+% $Id: spm_DEM_generate.m 3695 2010-01-22 14:18:14Z karl $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------

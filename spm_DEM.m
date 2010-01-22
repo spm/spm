@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM.m 3695 2010-01-22 14:18:14Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -189,8 +189,8 @@ nh    = length(Q);
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
-Px    = kron(spm_DEM_R(n,1),xP);
-Pv    = kron(spm_DEM_R(d,1),sparse(nv,nv));
+Px    = kron(spm_DEM_R(n,0),xP);
+Pv    = kron(spm_DEM_R(d,0),sparse(nv,nv));
 Pu    = spm_cat(spm_diag({Px Pv}));
 Pu    = Pu + speye(nu,nu)*nu*eps;
  
@@ -227,7 +227,7 @@ nf    = np + nn;                            % number of free parameters
 ip    = [1:np];
 ib    = [1:nn] + np;
 pp.c  = spm_cat(pp.c);
-pp.ic = spm_pinv(pp.c);
+pp.ic = spm_inv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
@@ -325,14 +325,13 @@ for iN = 1:nN
  
         % [re-]set accumulators for E-Step
         %------------------------------------------------------------------
+        spm_logdet_qu_c = 0;
         dFdp  = zeros(nf,1);
         dFdpp = zeros(nf,nf);
         EE    = sparse(0);
         ECE   = sparse(0);
         qp.ic = sparse(0);
-        qu_c  = speye(1);
-        
-        
+       
         % [re-]set precisions using ReML hyperparameter estimates
         %------------------------------------------------------------------
         iS    = Qp;
@@ -371,9 +370,14 @@ for iN = 1:nN
                 
                 % derivatives of responses and inputs
                 %----------------------------------------------------------
-                qu.y(1:n) = spm_DEM_embed(Y,n,ts);
-                qu.u(1:d) = spm_DEM_embed(U,d,ts);
- 
+                try
+                    qu.y(1:n) = spm_DEM_embed(Y,n,ts,1,M(1).delays);
+                    qu.u(1:d) = spm_DEM_embed(U,d,ts);
+                catch
+                    qu.y(1:n) = spm_DEM_embed(Y,n,ts);
+                    qu.u(1:d) = spm_DEM_embed(U,d,ts);
+                end
+
                 % compute dEdb (derivatives of confounds)
                 %----------------------------------------------------------
                 b     = spm_DEM_embed(X,n,ts);
@@ -390,9 +394,9 @@ for iN = 1:nN
                 % conditional covariance [of states {u}]
                 %----------------------------------------------------------
                 qu.p   = dE.du'*iS*dE.du + Pu;
-                qu.c   = spm_inv(qu.p);
-                qu_c   = qu_c*qu.c;
-                                
+                qu.c   = inv(qu.p);
+                spm_logdet_qu_c = spm_logdet_qu_c + spm_logdet(qu.c);
+
                 % and conditional covariance [of parameters {P}]
                 %----------------------------------------------------------
                 dE.dP  = spm_cat({dE.dp dEdb});
@@ -409,7 +413,7 @@ for iN = 1:nN
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
-                        td     = {min(td{1} + 1,16)};
+                        td     = {min(td{1} + 1,+8)};
                         Fd     = L;
                         B.qu   = qu;
                         B.E    = E;
@@ -424,7 +428,7 @@ for iN = 1:nN
                         E      = B.E;
                         dE     = B.dE;
                         ECEp   = B.ECEp;
-                        td     = {min(td{1} - 1,0)};
+                        td     = {min(td{1} - 2,-4)};
                     end
                 end
  
@@ -475,11 +479,13 @@ for iN = 1:nN
                 dFduu = spm_cat({dVduu  dVduy  dVduc  ;
                                  []     dVdyy  []     ;
                                  []     []     dVdcc});
-                
-                
+                             
+                             
                 % update conditional modes of states
                 %==========================================================
-                du    = spm_dx(K*dFduu + D,K*dFdu + D*u,td);                
+                f     = K*dFdu  + D*u;
+                dfdu  = K*dFduu + D;
+                du    = spm_dx(dfdu,f,td);
                 q     = spm_unvec(u + du,q);
                 
                 % and save them
@@ -553,7 +559,7 @@ for iN = 1:nN
         if L > Fe || iN == 1
             
             Fe      = L;
-            te      = min(te + 1,8);
+            te      = min(te + 1,+8);
             B.dFdp  = dFdp;
             B.dFdpp = dFdpp;
             B.qp    = qp;
@@ -567,7 +573,7 @@ for iN = 1:nN
             dFdpp   = B.dFdpp;
             qp      = B.qp;
             mp      = B.mp;
-            te      = min(te - 1,0);
+            te      = min(te - 2,-4);
         end
  
         % E-step: update expectation (p)
@@ -646,7 +652,7 @@ for iN = 1:nN
     L   = - trace(iS*EE)/2  ...                % states (u)
           - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
           - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-          + spm_logdet(qu_c)/(2*nD)  ...       % entropy q(u)
+          + spm_logdet_qu_c /(2*nD)  ...       % entropy q(u)
           + spm_logdet(qp.c)/2  ...            % entropy q(p)
           + spm_logdet(qh.c)/2  ...            % entropy q(h)
           - spm_logdet(pp.c)/2  ...            % entropy - prior p
@@ -657,7 +663,7 @@ for iN = 1:nN
     
     % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if L > (Fm + 1e-2) || mp'*mp > TOL || mh'*mh > TOL
+    if L > Fm
 
  
         Fm    = L;
@@ -698,17 +704,20 @@ for iN = 1:nN
         figure(Fdem)
         spm_DEM_qU(QU)
         if np
-            subplot(nl,4,4*nl)
+            subplot(2*nl,2,4*nl)
             bar(full(Up*qp.e))
-            xlabel({'parameters';'{minus prior}'})
-            axis square, grid on
+            xlabel({'parameters {minus prior}'})
+        end
+        if nh
+            subplot(2*nl,4,8*nl - 4)
+            bar(full(qh.h))
+            title({'log-precision'})
         end
         if length(F) > 2
-            subplot(nl,4,4*nl - 1)
+            subplot(2*nl,4,8*nl - 5)
             plot(F - F(1))
-            xlabel('updates')
-            title('log-evidence')
-            axis square, grid on
+            title('updates')
+            xlabel('free-energy')
         end
         drawnow
  

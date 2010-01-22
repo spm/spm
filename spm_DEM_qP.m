@@ -10,7 +10,7 @@ function spm_DEM_qP(qP,pP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_qP.m 3695 2010-01-22 14:18:14Z karl $
 
 
 % time-series specification
@@ -20,13 +20,12 @@ g     = length(qP.P);                                  % depth of hierarchy
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
-ci     = spm_invNcdf(1 - 0.05);
+ci    = spm_invNcdf(1 - 0.05);
 
 % loop over levels
 %--------------------------------------------------------------------------
 Label = {};
 for i = 1:(g - 1)
-
 
     % get lablels
     %----------------------------------------------------------------------
@@ -40,41 +39,48 @@ for i = 1:(g - 1)
         end
     end
 
-
     % conditional expectations (with priors if specified)
     %----------------------------------------------------------------------
     qi     = spm_vec(qP.P{i});
-    dk     = 0;
-    try
-        qi = [qi spm_vec(pP.P{i})];
-        dk = -1/8;
-    end
-    c      = spm_vec(qP.V{i})*ci;
+    c      = sqrt(spm_vec(qP.V{i}))*ci;
     j      = find(c);
     qi     = qi(j);
     c      = c(j);
     label  = label(j);
     np     = length(qi);
+    try
+        pi = spm_vec(pP.P{i});
+        pi = pi(j);
+    end
+    
     if np
+        
+        % conditional means
+        %------------------------------------------------------------------
         subplot(g,1,i)
         bar(qi)
         title(sprintf('parameters - level %i',i));
-        grid on
         axis square
         set(gca,'XLim',[0 np + 1])
 
         % conditional variances
         %------------------------------------------------------------------
-        c     = spm_vec(qP.V{i})*ci;
         for k = 1:np
-            line([k k] + dk,[-1 1]*c(k) + qi(k),...
-                'LineWidth',4,'Color','r');
+            line([k k], [-1 1]*c(k) + qi(k),'LineWidth',4,'Color','r');
+        end
+
+        % prior or true means
+        %------------------------------------------------------------------
+        try
+        for k = 1:np
+            line([-1 1]/2 + k,[0 0] + pi(k),'LineWidth',4,'Color','b');
+        end
         end
 
         % labels
         %------------------------------------------------------------------
         for k = 1:length(label)
-            text(k + dk,qi(k),label{k},'FontSize',14,'Color','r');
+            text(k + 1/4,qi(k),label{k},'FontSize',12,'FontWeight','Bold','Color','g');
         end
         Label = {Label{:}, label{:}};
     end

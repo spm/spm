@@ -20,13 +20,13 @@ function [R,V,D] = spm_DEM_R(n,s,dt,form)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_R.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_DEM_R.m 3695 2010-01-22 14:18:14Z karl $
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------
 if ~n,         R = sparse(0,0); V = R; return, end
 if isempty(s), R = sparse(n,n); V = R; return, end
-if ~s,         s = exp(-16);                   end
+if ~s,         s = exp(-8);                    end
 
 
 
@@ -104,7 +104,7 @@ axis square
 title({'precision';'derivatives'})
 
 subplot(2,2,4)
-imagesc(t,t,inv(D*V*D'))
+imagesc(t,t,spm_inv(D*V*D'))
 axis square
 title({'precision';'time (secs)'})
 

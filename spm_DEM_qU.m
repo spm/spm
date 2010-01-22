@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_qU.m 3695 2010-01-22 14:18:14Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -50,8 +50,8 @@ s     = [];
 c     = [];
 try
     for i = 1:N
-        c = [c sqrt(diag(C{i}))];
-        s = [s sqrt(diag(S{i}))];
+        c = [c real(sqrt(diag(C{i})))];
+        s = [s real(sqrt(diag(S{i})))];
     end
 end
  
@@ -95,10 +95,12 @@ for i = 1:g
         subplot(g,2,2*i - 1)
         try
             plot(t,pV{i},':k','linewidth',1)
-        end, hold on
+        end
+        hold on
         try
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
-        end, hold off
+        end
+        hold off
         set(gca,'XLim',[t(1) t(end)])
         a   = axis;
  
@@ -126,12 +128,16 @@ for i = 1:g
             title('no causes','FontSize',16);
         else
             title('causal states','FontSize',16);
-            try, hold on
+            try
+                hold on
                 plot(t,pV{i},':k','linewidth',1)
-            end, hold off
-            try, hold on
+            end
+            hold off
+            try
+                hold on
                 plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0])
-            end, hold off
+            end
+            hold off
         end
         xlabel('time','FontSize',14)
         axis square
@@ -142,9 +148,11 @@ for i = 1:g
         try
  
             subplot(g,2,2*i)
-            try, hold on
+            try
+                hold on
                 plot(t,pX{i},':k','linewidth',1)
-            end, hold off
+            end
+            hold off
             plot(t,full(X{i}))
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
@@ -181,9 +189,11 @@ end
 if isfield(qU,'a')
     subplot(g,2,2*g)
     plot(t,qU.a{2});
-    try, hold on
+    try
+        hold on
         plot(t,pU.v{2},':b','Linewidth',2) 
-    end,hold off
+    end
+    hold off
     xlabel('time','Fontsize',14)
     title('perturbation and action','Fontsize',16)
     axis square

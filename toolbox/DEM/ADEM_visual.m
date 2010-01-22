@@ -12,13 +12,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: ADEM_visual.m 3695 2010-01-22 14:18:14Z karl $
  
  
 % recognition model (M)
 %==========================================================================
 clear
-M(1).E.s      = 1/4;                        % smoothness
+M(1).E.s      = 1/2;                        % smoothness
 M(1).E.n      = 6;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
  

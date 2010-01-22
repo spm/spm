@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_M_set.m 3695 2010-01-22 14:18:14Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -278,11 +278,11 @@ for i = 1:g
     
     % check hyperpriors (covariances)
     %----------------------------------------------------------------------
-    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
-    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
+    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE)); end
+    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE)); end
     
-    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE))*256; end
-    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE))*256; end
+    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE)); end
+    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE)); end
     
     % check Q and R (precision components)
     %======================================================================
@@ -291,18 +291,24 @@ for i = 1:g
     % check components and assume i.i.d if not specified
     %----------------------------------------------------------------------
     if length(M(i).Q) > length(M(i).hE)
-        M(i).hE = sparse(length(M(i).Q),1);
+        M(i).hE = sparse(length(M(i).Q),1) + M(i).hE(1);
     end
     if length(M(i).Q) < length(M(i).hE)
         M(i).Q  = {speye(M(i).l,M(i).l)};
         M(i).hE = M(i).hE(1);
     end
+    if length(M(i).hE) > length(M(i).hC)
+        M(i).hC = speye(length(M(i).Q))*M(i).hC(1);
+    end
     if length(M(i).R) > length(M(i).gE)
-        M(i).gE = sparse(length(M(i).R),1);
+        M(i).gE = sparse(length(M(i).R),1) + M(i).gE(1);
     end
     if length(M(i).R) < length(M(i).gE)
         M(i).R  = {speye(M(i).n,M(i).n)};
         M(i).gE = M(i).gE(1);
+    end
+    if length(M(i).gE) > length(M(i).gC)
+        M(i).gC = speye(length(M(i).R))*M(i).gC(1);
     end
     
     % check consistency and sizes (Q)
@@ -396,6 +402,13 @@ for i = 1:g
     if ~isscalar(M(i).sw), M(i).sw = M(1).E.s; end
 end
 
+% check on linear approximation scheme
+%==========================================================================
+try
+    M(1).E.linear;
+catch
+    M(1).E.linear = 0;
+end
 
 % checks on estimability
 %==========================================================================

@@ -10,7 +10,7 @@ function [varargout] = spm_DEM_set(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_set.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_set.m 3695 2010-01-22 14:18:14Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
@@ -104,7 +104,7 @@ end
 
 % unpack DEM if necessary
 % -------------------------------------------------------------------------
-if nargout == 4
+if nargout > 1
     varargout{1} = DEM.M;
     varargout{2} = DEM.Y;
     varargout{3} = DEM.U;

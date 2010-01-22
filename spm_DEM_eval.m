@@ -28,7 +28,7 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_eval.m 3695 2010-01-22 14:18:14Z karl $
  
  
 % get dimensions
@@ -40,12 +40,7 @@ nx    = sum(spm_vec(M.n));               % number of x (hidden states)
 np    = sum(spm_vec(M.p));               % number of p (parameters)
 ny    = M(1).l;                          % number of y (inputs)
 nc    = M(end).l;                        % number of c (prior causes)
- 
- 
-% order parameters (d = n = 1 for static models)
-%--------------------------------------------------------------------------
-d     = M(1).E.d + 1;                    % generalisation order of q(v)
-n     = M(1).E.n + 1;                    % embedding order     (n >= d)
+
  
 % evaluate functions at each hierarchical level
 %==========================================================================
@@ -65,22 +60,16 @@ end
 %==========================================================================
 persistent D
 try
-    if M(1).E.linear == 1
-        method = 'linear';
-    elseif M(1).E.linear == 2
-        method = 'bilinear';
-    else
-        method = 'full';
-    end
+    method = M(1).E.linear;
 catch
-    method = 'full';
+    method = 0;
 end
- 
-switch lower(method)
+
+switch method
     
-    % get derivatives at each iteration of D-step
+    % get derivatives at each iteration of D-step - full evaluation
     %----------------------------------------------------------------------
-    case{'full'}
+    case{0} 
         
         D     = spm_DEM_eval_diff(x,v,qp,M);
  
@@ -104,8 +93,9 @@ switch lower(method)
         dgdp  = D.dgdp;
         dfdp  = D.dfdp;
  
-            
-    case{'linear'}
+    % linear: assume equations are linear in x and v
+    %----------------------------------------------------------------------      
+    case{1}
         
         % get derivatives and store expansion point (states)
         %------------------------------------------------------------------
@@ -165,12 +155,109 @@ switch lower(method)
             dfdp  = D.dfdp;
             for p = 1:np
                 dgdp(:,p) = D.dgdp(:,p) + D.dgdxp{p}*dx + D.dgdvp{p}*dv;
-                dfdp(:,p) = D.dfdp(:,p) + D.dfdxp{p}*dx + D.dfdvp{p}*dv;
+                if nx
+                    dfdp(:,p) = D.dfdp(:,p) + D.dfdxp{p}*dx + D.dfdvp{p}*dv;
+                end
             end
  
         end
         
-    case{'bilinear'}
+    % bilinear: assume equations are linear in x and v and x*v
+    %----------------------------------------------------------------------   
+    case{2}
+        
+        % get derivatives and store expansion point (states)
+        %------------------------------------------------------------------
+        if isempty(D)
+ 
+            % get high-order derivatives
+            %--------------------------------------------------------------
+            [Dv D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2);
+            
+            for i = 1:nv, Dv{i} = spm_unvec(Dv{i},D); end
+            D.x   = x;
+            D.v   = v;
+            D.Dv  = Dv;
+           
+            % gradients w.r.t. states
+            %--------------------------------------------------------------
+            dedy  = D.dedy;
+            dedc  = D.dedc;
+            dfdy  = D.dfdy;
+            dfdc  = D.dfdc;
+            dgdx  = D.dgdx;
+            dgdv  = D.dgdv;
+            dfdv  = D.dfdv;
+            dfdx  = D.dfdx;
+            dgdxp = D.dgdxp;
+            dfdxp = D.dfdxp;
+            dgdvp = D.dgdvp;
+            dfdvp = D.dfdvp;
+            
+            % gradients w.r.t. parameters
+            %--------------------------------------------------------------
+            dgdp  = D.dgdp;
+            dfdp  = D.dfdp;
+            
+        % linear expansion for derivatives w.r.t. parameters
+        %------------------------------------------------------------------
+        else
+            
+            % gradients w.r.t. causes and data
+            %--------------------------------------------------------------
+            dedy  = D.dedy;
+            dedc  = D.dedc;
+            dfdy  = D.dfdy;
+            dfdc  = D.dfdc;
+                        
+            % states (relative to expansion point)
+            %--------------------------------------------------------------
+            dv    = spm_vec(qu.v{1}) - spm_vec(D.v);
+            
+            % gradients w.r.t. states
+            %--------------------------------------------------------------
+            dgdx  = D.dgdx;
+            dgdv  = D.dgdv;
+            dfdx  = D.dfdx;
+            dfdv  = D.dfdv;
+            for i = 1:nv; dgdx = dgdx + D.Dv{i}.dgdx*dv(i); end
+            for i = 1:nv; dgdv = dgdv + D.Dv{i}.dgdv*dv(i); end
+            for i = 1:nv; dfdx = dfdx + D.Dv{i}.dfdx*dv(i); end
+            for i = 1:nv; dfdv = dfdv + D.Dv{i}.dfdv*dv(i); end
+            
+            
+            % second-order derivatives
+            %--------------------------------------------------------------
+            dgdxp = D.dgdxp;
+            dgdvp = D.dgdvp;
+            dfdxp = D.dfdxp;
+            dfdvp = D.dfdvp;
+            for p = 1:np
+                for i = 1:nv; dgdxp{p} = dgdxp{p} + D.Dv{i}.dgdxp{p}*dv(i); end
+                for i = 1:nv; dgdvp{p} = dgdvp{p} + D.Dv{i}.dgdvp{p}*dv(i); end
+                for i = 1:nv; dfdxp{p} = dfdxp{p} + D.Dv{i}.dfdxp{p}*dv(i); end
+                for i = 1:nv; dfdvp{p} = dfdvp{p} + D.Dv{i}.dfdvp{p}*dv(i); end
+            end
+ 
+            
+            % gradients w.r.t. parameters
+            %--------------------------------------------------------------
+            dgdp  = D.dgdp;
+            dfdp  = D.dfdp;
+            for p = 1:np
+                Dgdxp     = (D.dgdxp{p} + dgdxp{p})/2;
+                Dgdvp     = (D.dgdvp{p} + dgdvp{p})/2;
+                Dfdxp     = (D.dfdxp{p} + dfdxp{p})/2;
+                Dfdvp     = (D.dfdvp{p} + dfdvp{p})/2;
+                dgdp(:,p) = dgdp(:,p) + Dgdvp*dv;
+                dfdp(:,p) = dfdp(:,p) + Dfdvp*dv;
+            end
+ 
+        end
+        
+    % nonlinear: assume equations are bilinear in x and v
+    %----------------------------------------------------------------------
+    case{3}
         
         % get derivatives and store expansion point (states)
         %------------------------------------------------------------------
@@ -272,13 +359,98 @@ switch lower(method)
             end
  
         end
+        
+    % repeated evaluation of first order derivatives (for Laplace scheme)
+    %----------------------------------------------------------------------      
+    case{4}
+        
+        % get derivatives and store expansion point (states)
+        %------------------------------------------------------------------
+        if isempty(D)
+            
+            D     = spm_DEM_eval_diff(x,v,qp,M);
+            D.x   = x;
+            D.v   = v;
+            
+            % gradients w.r.t. states
+            %--------------------------------------------------------------
+            dedy  = D.dedy;
+            dedc  = D.dedc;
+            dfdy  = D.dfdy;
+            dfdc  = D.dfdc;
+            dgdx  = D.dgdx;
+            dgdv  = D.dgdv;
+            dfdv  = D.dfdv;
+            dfdx  = D.dfdx;
+            
+            % gradients w.r.t. parameters (state-dependent)
+            %--------------------------------------------------------------
+            dgdxp = D.dgdxp;
+            dfdxp = D.dfdxp;
+            dgdvp = D.dgdvp;
+            dfdvp = D.dfdvp;
+        
+            % gradients w.r.t. parameters
+            %--------------------------------------------------------------
+            dgdp  = D.dgdp;
+            dfdp  = D.dfdp;
+            
+        % re-evaluate first-order derivatives
+        %------------------------------------------------------------------
+        else
  
+            % retain second-order gradients
+            %--------------------------------------------------------------
+            dgdxp = D.dgdxp;
+            dfdxp = D.dfdxp;
+            dgdvp = D.dgdvp;
+            dfdvp = D.dfdvp;
+            
+            % re-evaluate first-order gradients
+            %--------------------------------------------------------------
+            D     = spm_DEM_eval_diff(x,v,qp,M,0);
+            dedy  = D.dedy;
+            dedc  = D.dedc;
+            dfdy  = D.dfdy;
+            dfdc  = D.dfdc;
+            dgdx  = D.dgdx;
+            dgdv  = D.dgdv;
+            dfdv  = D.dfdv;
+            dfdx  = D.dfdx;
+            
+            % replace second-order gradients
+            %--------------------------------------------------------------
+            D.dgdxp = dgdxp;
+            D.dfdxp = dfdxp;
+            D.dgdvp = dgdvp;
+            D.dfdvp = dfdvp;
+            
+            % gradients w.r.t. parameters
+            %--------------------------------------------------------------
+            dx    = spm_vec(qu.x{1}) - spm_vec(x);
+            dv    = spm_vec(qu.v{1}) - spm_vec(v);
+            dgdp  = D.dgdp;
+            dfdp  = D.dfdp;
+            for p = 1:np
+                dgdp(:,p) = D.dgdp(:,p) + D.dgdxp{p}*dx + D.dgdvp{p}*dv;
+                if nx
+                    dfdp(:,p) = D.dfdp(:,p) + D.dfdxp{p}*dx + D.dfdvp{p}*dv;
+                end
+            end
+ 
+        end
+        
     otherwise
         disp('Unknown method')
  
 end
  
- 
+
+% order parameters (d = n = 1 for static models)
+%--------------------------------------------------------------------------
+d       = M(1).E.d + 1;                    % generalisation order of q(v)
+n       = M(1).E.n + 1;                    % embedding order     (n >= d)
+
 % Generalised prediction errors and derivatives
 %==========================================================================
 Ex      = cell(n,1);
@@ -314,11 +486,12 @@ E     = spm_vec({Ev,Ex});
  
 % Kronecker forms of derivatives for generalised motion
 %==========================================================================
+if nargout < 2, return, end
  
 % dE.dp (parameters)
 %--------------------------------------------------------------------------
-dgdp = {dgdp};
-dfdp = {dfdp};
+dgdp  = {dgdp};
+dfdp  = {dfdp};
 for i = 2:n
     dgdp{i,1} = dgdp{1};
     dfdp{i,1} = dfdp{1};
@@ -339,13 +512,6 @@ dgdv  = kron(spm_speye(n,d),dgdv);
 dfdv  = kron(spm_speye(n,d),dfdv);
 dfdx  = kron(spm_speye(n,n),dfdx) - kron(spm_speye(n,n,1),speye(nx,nx));
  
-for i = 1:np
-    dgdxp{i} = kron(spm_speye(n,n),dgdxp{i});
-    dfdxp{i} = kron(spm_speye(n,n),dfdxp{i});
-    dgdvp{i} = kron(spm_speye(n,d),dgdvp{i});
-    dfdvp{i} = kron(spm_speye(n,d),dfdvp{i});
-end
- 
 % 1st error derivatives (states)
 %--------------------------------------------------------------------------
 dE.dy =  spm_cat({dedy; dfdy});
@@ -354,10 +520,14 @@ dE.dp = -spm_cat({dgdp; dfdp});
 dE.du = -spm_cat({dgdx, dgdv  ;
                   dfdx, dfdv});
  
- 
-% 1st and 2nd error derivatives (parameters)
+              
+% bilinear derivatives
 %--------------------------------------------------------------------------
 for i = 1:np
+    dgdxp{i}  = kron(spm_speye(n,n),dgdxp{i});
+    dfdxp{i}  = kron(spm_speye(n,n),dfdxp{i});
+    dgdvp{i}  = kron(spm_speye(n,d),dgdvp{i});
+    dfdvp{i}  = kron(spm_speye(n,d),dfdvp{i});
     dE.dup{i} = -spm_cat({dgdxp{i}, dgdvp{i};
                           dfdxp{i}, dfdvp{i}});
 end
@@ -366,27 +536,3 @@ if np
 else
     dE.dpu    =  {};
 end
- 
-return
- 
-% Notes
-%==========================================================================
- 
-%             % use the opportunity to check this is not a linear system
-%             %------------------------------------------------------------
-%             G     = 0;
-%             for i = 1:length(D.Dx)
-%                 G = G + max(spm_vec(D.Dx{i}.dgdxp));
-%                 G = G + max(spm_vec(D.Dx{i}.dgdvp));
-%                 G = G + max(spm_vec(D.Dx{i}.dfdxp));
-%                 G = G + max(spm_vec(D.Dx{i}.dfdvp));
-%             end
-%             for i = 1:length(D.Dv)
-%                 G = G + max(spm_vec(D.Dv{i}.dgdxp));
-%                 G = G + max(spm_vec(D.Dv{i}.dgdvp));
-%                 G = G + max(spm_vec(D.Dv{i}.dfdxp));
-%                 G = G + max(spm_vec(D.Dv{i}.dfdvp));
-%             end
-%             if G < exp(-16)
-%                 D.linear = 1;
-%             end

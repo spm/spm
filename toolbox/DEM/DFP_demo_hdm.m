@@ -11,7 +11,7 @@ global dt
 
 % generative [likelihood] model 'HDM'
 %==========================================================================
-G(1).E.linear = 0;
+G(1).E.linear = 1;
 G(1).E.s      = 1/2;
 dt            = Y.dt;
 T             = 1:128;

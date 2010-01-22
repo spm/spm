@@ -148,7 +148,7 @@ for i = 1:8
     EP(:,i) = eP;
  
     QH(i) = DEM.qH.h{1}(1);
-    EH(i) = S(1);
+    EH(i) = -exp(S(1));
 end
  
 clf
