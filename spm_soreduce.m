@@ -1,22 +1,17 @@
-function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
-% reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P,D);
+function [M0,M1,M2,L1,L2] = spm_soreduce(M,P)
+% reduction of a fully nonlinear MIMO system to second-order form
+% FORMAT [M0,M1,M2,L1,L2] = spm_soreduce(M,P);
 %
 % M   - model specification structure
 % Required fields:
-%   M.f   - dx/dt    = f(x,u,P,M)                 {function string or m-file}
-%   M.g   - y(t)     = g(x,u,P,M)                 {function string or m-file}
-%   M.bi  - bilinear form [M0,M1,L1,L2] = bi(M,P) {function string or m-file}
-%   M.m   - m inputs
-%   M.n   - n states
-%   M.l   - l outputs
+%   M.f   - dx/dt    = f(x,u,P,M)        {function string or m-file}
+%   M.g   - y(t)     = g(x,u,P,M)        {function string or m-file}
 %   M.x   - (n x 1) = x(0) = expansion point: defaults to x = 0;
 %   M.u   - (m x 1) = u    = expansion point: defaults to u = 0;
 %
 % P   - model parameters
-% D   - delay matrix (default D = 1)
 %
-% A Bilinear approximation is returned where the states are
+% A second order approximation is returned where the states are
 %
 %        q(t) = [1; x(t) - x(0)]
 %
@@ -29,23 +24,20 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 %
 % evaluated at x(0) = x and u = 0
 %
-%       dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
-%        y(i) = L1(i,:)*q + q'*L2{i}*q/2;
+%       dq/dt = M0*q + 
+%               u(1)*M1{1}*q + u(2)*M1{2}*q + ....
+%               x(1)*M2{1}*q + x(2)*M2{2}*q + ....
+%        y(i) = L(i,:)*q + ...
 %
 %--------------------------------------------------------------------------
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_soreduce.m 3696 2010-01-22 14:22:31Z karl $
 
 
 % set up
 %==========================================================================
-try
-    Q;
-catch
-    Q = 1;
-end
 
 % create inline functions
 %--------------------------------------------------------------------------
@@ -58,6 +50,16 @@ catch
     funx = fcnchk(M.f,'x','u','P','M');
 end
 
+% add observer if not specified
+%--------------------------------------------------------------------------
+try
+    fung = fcnchk(M.g,'x','u','P','M');
+catch
+    M.g  = inline('spm_vec(x)','x','u','P','M');
+    M.l  = M.n;
+    fung = fcnchk(M.g,'x','u','P','M');
+end
+
 % expansion pointt
 %--------------------------------------------------------------------------
 x     = M.x;           
@@ -67,25 +69,19 @@ catch
     u = sparse(M.m,1);
 end
 
+
 % Partial derivatives for 1st order Bilinear operators
 %==========================================================================
 
 % f(x(0),0) and derivatives
 %--------------------------------------------------------------------------
-[dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
-[dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
-f0           = spm_vec(f0);
-
-% delay operator
-%--------------------------------------------------------------------------
-f0    = Q*f0;
-dfdx  = Q*dfdx;
-dfdu  = Q*dfdu;
-for i = length(dfdxu)
-    dfdxu{i} = Q*dfdxu{i};
-end
+[dfdxx dfdx f0] = spm_diff(funx,x,u,P,M,[1 1]);
+[dfdxu dfdx f0] = spm_diff(funx,x,u,P,M,[1 2]);
+dfdu  = spm_diff(funx,x,u,P,M,2);
 m     = length(dfdxu);          % m inputs
 n     = length(f0);             % n states
+
+
 
 % Bilinear operators
 %==========================================================================
@@ -102,34 +98,26 @@ for i = 1:m
                     (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});
 end
 
-if nargout < 3, return, end
-
-
-% Output operators
-%==========================================================================
-
-% add observer if not specified
+% Bilinear operator - M2 = dM0/dx
 %--------------------------------------------------------------------------
-try
-    fung = fcnchk(M.g,'x','u','P','M');
-catch
-    M.g  = inline('spm_vec(x)','x','u','P','M');
-    M.l  = M.n;
-    fung = fcnchk(M.g,'x','u','P','M');
+for i = 1:n
+    M2{i} = spm_cat({0,                                []        ;
+                    (dfdx(:,i) - dfdxx{i}*spm_vec(x)), dfdxx{i}});
 end
 
-% g(x(0),0)
-%--------------------------------------------------------------------------
-[dgdx g0] = spm_diff(fung,x,u,P,M,1);
-g0        = spm_vec(g0);
-l         = length(g0);
+if nargout < 4, return, end
+
 
 % Output matrices - L1
+%==========================================================================
+
+% l(x(0),0)
 %--------------------------------------------------------------------------
-L1    = spm_cat({(spm_vec(g0) - dgdx*spm_vec(x)), dgdx});
+[dgdx g0] = spm_diff(fung,x,u,P,M,1);
+L1    = spm_cat({(g0 - dgdx*spm_vec(x)), dgdx});
+l     = length(g0);
 
-
-if nargout < 4, return, end
+if nargout < 5, return, end
 
 % Output matrices - L2
 %--------------------------------------------------------------------------

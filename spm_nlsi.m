@@ -1,6 +1,6 @@
 function varargout = spm_nlsi(M,U,Y)
 % nonlinear system identification of a MIMO system
-% FORMAT [Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y)
+% FORMAT [Ep,Cp,Eh,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y)
 % FORMAT [K0,K1,K2,M0,M1,L1,L2]          = spm_nlsi(M)
 %
 % Model specification
@@ -34,7 +34,7 @@ function varargout = spm_nlsi(M,U,Y)
 %--------------------------------------------------------------------------
 % Ep    - (p x 1)           conditional expectation  E{P|y}
 % Cp    - (p x p)           conditional covariance   Cov{P|y}
-% Ce    - (v x v)           ReML estimate of         Cov{e}
+% Eh    - (v x v)           conditional log-precision
 %
 % System identification     - Volterra kernels
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 3134 2009-05-19 11:08:45Z guillaume $
+% $Id: spm_nlsi.m 3696 2010-01-22 14:22:31Z karl $
 
 % check integrator
 %--------------------------------------------------------------------------
@@ -105,9 +105,9 @@ if nargin == 3
 
     % Gauss-Newton/Bayesian/EM estimation
     %======================================================================
-    [Ep,Cp,Ce,F] = spm_nlsi_GN(M,U,Y);
+    [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
 
-    if nargout < 4, varargout = {Ep,Cp,Ce}; return, end
+    if nargout < 4, varargout = {Ep,Cp,Eh}; return, end
 
 else
     % Use prior expectation to expand around
@@ -168,7 +168,7 @@ end
 % output arguments
 %--------------------------------------------------------------------------
 if nargin == 3
-    varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F};
+    varargout = {Ep,Cp,Eh,K0,K1,K2,M0,M1,L1,L2,F};
 else
     varargout = {K0,K1,K2,M0,M1,L1,L2};
 end
@@ -189,11 +189,11 @@ return
 M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P','M');
 M.g  = inline('x','x','u','P','M');
 M.pE = [-1 .3;.5 -1];           % Prior expectation of parameters
-M.pC = speye(4,4);          % Prior covariance for parameters
-M.x  = zeros(2,1)           % intial state x(0)
-M.m  = 1;               % number of inputs
-M.n  = 2;               % number of states
-M.l  = 2;               % number of outputs
+M.pC = speye(4,4);              % Prior covariance for parameters
+M.x  = zeros(2,1)               % intial state x(0)
+M.m  = 1;                       % number of inputs
+M.n  = 2;                       % number of states
+M.l  = 2;                       % number of outputs
 
 % characterise M in terms of Volterra kernels and Bilinear matrices:
 %--------------------------------------------------------------------------
@@ -212,10 +212,10 @@ U.dt   = 1;
 % outputs
 %--------------------------------------------------------------------------
 Y.name = 'response';
-y      = spm_int(M.pE,M,U);
+y      = spm_int_D(M.pE,M,U);
 Y.y    = y + randn(size(y))/32;
 Y.dt   = U.dt*length(U.u)/length(Y.y);
 
 % estimate
 %--------------------------------------------------------------------------
-[Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
+[Ep,Cp,Eh,K0,K1,K2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);

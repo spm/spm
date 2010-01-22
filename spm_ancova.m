@@ -25,9 +25,13 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ancova.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_ancova.m 3696 2010-01-22 14:22:31Z karl $
 
-
+% assume V = I (i.i.d.) if empty
+%--------------------------------------------------------------------------
+if isempty(V)
+    V = speye(size(Y,1));
+end
 
 % create design matrix structure if necessary
 %--------------------------------------------------------------------------

@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 3569 2009-11-13 15:51:07Z guillaume $
+% $Id: spm_regions.m 3696 2010-01-22 14:22:31Z karl $
 
 if nargin < 4, xY = []; end
 
@@ -212,7 +212,7 @@ if ~noGraph
     spm_results_ui('Clear',Fgraph);
     figure(Fgraph);
     subplot(2,2,3)
-    spm_dcm_display(xY,[],[],[[1 0 0];[0 1 0]]',64)
+    spm_dcm_display(xY)
 
     % show dynamics
     %----------------------------------------------------------------------

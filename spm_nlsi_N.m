@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_nlsi_N.m 3696 2010-01-22 14:22:31Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -139,10 +139,9 @@ end
 %--------------------------------------------------------------------------
 if iscell(y)
     
-    ns = size(y{1},1);
-    
     % concatenate samples over cell, ensuring the same for predictions
     %----------------------------------------------------------------------
+    ns = size(y{1},1);
     y  = spm_cat(y(:));             
     IS = inline(['spm_cat(' IS '(P,M,U))'],'P','M','U');
     
@@ -372,7 +371,7 @@ for ip = 1:64
             
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------
-            dh    = spm_dx(dFdhh,dFdh,{4});
+            dh    = spm_dx(dFdhh,dFdh,{8});
             h     = h + dh;
  
             % convergence
@@ -388,7 +387,7 @@ for ip = 1:64
         %------------------------------------------------------------------
         dFdu  =  dgdu'*iS*ey   - iuC*eu;
         dFduu = -dgdu'*iS*dgdu - iuC;
-        
+
         % Conditional updates of confounds (u)
         %------------------------------------------------------------------
         du    = spm_dx(dFduu,dFdu,{4});
@@ -401,7 +400,7 @@ for ip = 1:64
  
         % Conditional updates of parameters (g)
         %------------------------------------------------------------------
-        dg    = spm_dx(dFdgg,dFdg,{4});
+        dg    = spm_dx(dFdgg,dFdg,{8});
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
  
         % convergence
@@ -413,15 +412,15 @@ for ip = 1:64
     
     % optimise objective function: F(p) = log-evidence - divergence
     %======================================================================
-    L(1) = - ey'*iS*ey/2;
-    L(2) = - ep'*ipC*ep/2;
-    L(3) = - eg'*igC*eg/2;
-    L(4) = - eu'*iuC*eu/2;
-    L(5) = - eh'*ihC*eh/2;
-    L(6) = - ns*nr*log(8*atan(1))/2;
-    L(7) = - nq*spm_logdet(S)/2;
-    L(8) = spm_logdet(ibC*Cb)/2;
-    L(9) = spm_logdet(ihC*Ch)/2;
+    L(1) = - ey'*iS*ey/2;            % accuracy
+    L(2) = - ep'*ipC*ep/2;           % complexity
+    L(3) = - eg'*igC*eg/2;           % complexity
+    L(4) = - eu'*iuC*eu/2;           % complexity
+    L(5) = - eh'*ihC*eh/2;           % complexity
+    L(6) = - ns*nr*log(8*atan(1))/2; % accuracy
+    L(7) = - nq*spm_logdet(S)/2;     % accuracy
+    L(8) = spm_logdet(ibC*Cb)/2;     % complexity
+    L(9) = spm_logdet(ihC*Ch)/2;     % complexity
     F    = sum(L);
     
     % record increases and reference log-evidence for reporting
@@ -435,7 +434,7 @@ for ip = 1:64
      
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F || ip < 3
+    if F > C.F
         
         % update gradients and curvature
         %------------------------------------------------------------------
@@ -444,12 +443,12 @@ for ip = 1:64
  
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1,4);
+        v     = min(v + 1/2,4);
         str   = 'EM(+)';
  
         % accept current estimates
         %------------------------------------------------------------------
-        C.Cb  = Cb;                               % conditional covaraince
+        C.Cb  = Cb;                               % conditional covariance
         C.Ep  = Ep;                               % and expectations
         C.Eg  = Eg;
         C.Eu  = Eu;
@@ -461,7 +460,7 @@ for ip = 1:64
  
         % reset expansion point
         %------------------------------------------------------------------
-        Cb    = C.Cb;                             % conditional covaraince
+        Cb    = C.Cb;                             % conditional covariance
         Ep    = C.Ep;                             % and expectations
         Eg    = C.Eg;
         Eu    = C.Eu;

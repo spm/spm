@@ -1,25 +1,30 @@
 function [varargout] = spm_diff(varargin)
 % matrix high-order numerical differentiation
-% FORMAT [dfdx] = spm_diff(f,x,...,n,[V])
+% FORMAT [dfdx] = spm_diff(f,x,...,n)
+% FORMAT [dfdx] = spm_diff(f,x,...,n,V)
+% FORMAT [dfdx] = spm_diff(f,x,...,n,'q')
 %
 % f      - [inline] function f(x{1},...)
 % x      - input argument[s]
 % n      - arguments to differentiate w.r.t.
-%
-% dfdx          - df/dx{i}                     ; n =  i
-% dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
 %
 % V      - cell array of matrices that allow for differentiation w.r.t.
 % to a linear transformation of the parameters: i.e., returns
 % 
 % df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
 %
+% q      - flag to preclude default concatenation of dfdx
+%
+% dfdx          - df/dx{i}                     ; n =  i
+% dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
+%
+%
 % - a cunning recursive routine
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_diff.m 2905 2009-03-20 13:00:15Z karl $
+% $Id: spm_diff.m 3696 2010-01-22 14:22:31Z karl $
  
 % create inline object
 %--------------------------------------------------------------------------
@@ -31,10 +36,17 @@ if iscell(varargin{end})
     x = varargin(2:(end - 2));
     n = varargin{end - 1};
     V = varargin{end};
+    q = 1;
 elseif isnumeric(varargin{end})
     x = varargin(2:(end - 1));
     n = varargin{end};
     V = cell(1,length(x));
+    q = 1;
+elseif ischar(varargin{end})
+    x = varargin(2:(end - 2));
+    n = varargin{end - 1};
+    V = cell(1,length(x));
+    q = 0;
 else
     error('improper call')
 end
@@ -74,7 +86,7 @@ if length(n) == 1
         J{i}  = spm_dfdx(fi,f0,dx);
     end
     
-    % return numeric array for first order derivatives
+    % return numeric array for first-order derivatives
     %======================================================================
  
     % vectorise f
@@ -94,7 +106,7 @@ if length(n) == 1
         
     % or differentiation of a vector
     %----------------------------------------------------------------------
-    if isvec(f0)
+    if isvec(f0) && q
         
         % concatenate into a matrix
         %------------------------------------------------------------------

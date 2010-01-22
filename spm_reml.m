@@ -35,7 +35,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3658 2010-01-04 12:32:42Z guillaume $
+% $Id: spm_reml.m 3696 2010-01-22 14:22:31Z karl $
  
  
 % check defaults
@@ -64,7 +64,7 @@ m     = length(Q);
 if isempty(X)
     X = sparse(n,0);
 else
-    X = spm_svd(X(q,:));
+    X = spm_svd(X(q,:),0);
 end
  
 % initialise h and specify hyperpriors
@@ -116,7 +116,7 @@ for k = 1:K
     iC     = spm_inv(C);
     iCX    = iC*X;
     if ~isempty(X)
-        Cq = inv(X'*iCX);
+        Cq = spm_inv(X'*iCX);
     else
         Cq = sparse(0);
     end
@@ -169,7 +169,15 @@ for k = 1:K
     else
         t = t + 1/4;
     end
-    dF    = pF;
+    
+    % revert to SPD checking, if near phase-transition
+    %----------------------------------------------------------------------
+    if abs(pF) > 1e6
+        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1,t - 2);
+        return
+    else
+        dF = pF;
+    end
     
     % Convergence (1% change in log-evidence)
     %======================================================================
@@ -192,7 +200,7 @@ end
 %==========================================================================
 if ~D
     if min(eig(V)) < 0
-        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1);
+        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1,2);
         return
     end
 end
