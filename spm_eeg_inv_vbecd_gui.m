@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3492 2009-10-21 13:52:31Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3698 2010-01-27 15:12:12Z gareth $
 
 %%
 % Load data, if necessary
@@ -414,7 +414,7 @@ for ii=1:length(ltr)
     P.handles.SPMdefaults.col = get(P.handles.hfig,'colormap');
     P.handles.SPMdefaults.renderer = get(P.handles.hfig,'renderer');
     set(P.handles.hfig,'userdata',P)
-    
+    dip_amp=[];
     for j=1:Niter,
      Pout(j) = spm_eeg_inv_vbecd(P);
      close(gcf);
