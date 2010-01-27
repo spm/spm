@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 2200 2008-09-26 10:09:45Z stefan $
+% $Id: spm_cfg_eeg_contrast.m 3700 2010-01-27 19:04:38Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -15,10 +15,28 @@ D.help = {'Select the EEG mat file.'};
 
 c = cfg_entry;
 c.tag = 'c';
-c.name = 'Contrast vector/matrix';
+c.name = 'Contrast coefficients';
 c.strtype = 'r';
-c.num = [inf inf];
-c.help = {'Enter each contrast vector in a row. Each row must have ''number of epochs'' entries.'};
+c.num = [1 inf];
+c.help = {'Enter the contrast vector.'};
+
+label = cfg_entry;
+label.tag = 'label';
+label.name = 'New condition label';
+label.strtype = 's';
+label.help = {'Enter the label for the condition derived by applying the contrast.'};
+
+contrast = cfg_branch;
+contrast.tag = 'contrast';
+contrast.name = 'Contrast';
+contrast.val = {c label};
+
+contrasts = cfg_repeat;
+contrasts.tag = 'contrasts';
+contrasts.name = 'Contrasts';
+contrasts.help = {'Each contrast defines a new condition in the output file.'};
+contrasts.values  = {contrast};
+contrasts.num     = [1 Inf];
 
 yes = cfg_const;
 yes.tag = 'yes';
@@ -27,7 +45,7 @@ yes.val = {1};
 
 no = cfg_const;
 no.tag = 'no';
-no.name = 'Don''t weight averager by repetition numbers';
+no.name = 'Don''t weight averages by repetition numbers';
 no.val = {1};
 
 WeightAve = cfg_choice;
@@ -41,7 +59,7 @@ WeightAve.help = {'This option will weight averages by the number of their occur
 S = cfg_exbranch;
 S.tag = 'eeg_contrast';
 S.name = 'M/EEG Contrast over epochs';
-S.val = {D c WeightAve};
+S.val = {D contrasts WeightAve};
 S.help = {'Computes contrasts over EEG/MEG epochs.'};
 S.prog = @eeg_contrast;
 S.vout = @vout_eeg_contrast;
@@ -50,7 +68,9 @@ S.modality = {'EEG'};
 function out = eeg_contrast(job)
 % construct the S struct
 S.D = job.D{1};
-S.c = job.c;
+S.c = cat(1, job.contrast(:).c);
+S.label = {job.contrast.label};
+
 if isfield(job.WeightAve, 'yes')
     S.WeightAve = 1;
 else

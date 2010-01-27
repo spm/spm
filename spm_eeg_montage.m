@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3382 2009-09-10 15:46:31Z vladimir $
+% $Id: spm_eeg_montage.m 3700 2010-01-27 19:04:38Z vladimir $
 
-SVNrev = '$Rev: 3382 $';
+SVNrev = '$Rev: 3700 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -285,6 +285,16 @@ if ~isempty(Dnew.meegchannels('MEG')) && ~isempty(Dnew.sensors('MEG'))
     S1.D = Dnew;
     
     Dnew = spm_eeg_prep(S1);
+end
+
+%-Transfer the properties of channels not involved in the montage
+%--------------------------------------------------------------------------
+if ~isempty(add) && strcmp(S.keepothers, 'yes')
+    old_add_ind = D.indchannel(add);
+    new_add_ind = Dnew.indchannel(add);
+    
+    Dnew = badchannels(Dnew, new_add_ind, badchannels(D, old_add_ind));
+    Dnew = chantype(Dnew, new_add_ind, chantype(D, old_add_ind));
 end
 
 [ok, Dnew] = check(Dnew, 'basic');
