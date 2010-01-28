@@ -19,9 +19,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson
-% $Id: spm_eeg_reref_eeg.m 3539 2009-11-05 22:40:56Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 3701 2010-01-28 13:01:40Z rik $
 
-SVNrev = '$Rev: 3539 $';
+SVNrev = '$Rev: 3701 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -71,18 +71,19 @@ elseif isnumeric(S.refchan)
     refchan = S.refchan;
 end
 
-if ~all(ismember(refchan, eegchan))
+refind = find(ismember(eegchan, refchan));
+
+if length(refind) ~= length(refchan)
     error('Not all S.refchan are valid indices for (non-bad) EEG channels')
 end
 
-tra = eye(D.nchannels);
-
-tra(eegchan,refchan) = tra(eegchan,refchan) - 1/length(refchan);
+tra           = eye(length(eegchan));
+tra(:,refind) = tra(:,refind) - 1/length(refchan);
 
 S1=[];
 S1.D = D;
-S1.montage.labelorg = D.chanlabels;
-S1.montage.labelnew = D.chanlabels;
+S1.montage.labelorg = D.chanlabels(eegchan);
+S1.montage.labelnew = D.chanlabels(eegchan);
 S1.montage.tra = tra;
 S1.keepothers = 'yes';
 S1.updatehistory = 0;
