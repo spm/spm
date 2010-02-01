@@ -16,25 +16,34 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 3694 2010-01-22 14:16:51Z karl $
+% $Id: spm_LAP_eval.m 3703 2010-02-01 20:47:44Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
 %--------------------------------------------------------------------------
-v          = spm_unvec(qu.v{1},{M(1 + 1:end).v});
-x          = spm_unvec(qu.x{1},{M(1:end - 1).x});
-v{end + 1} = [];
-x{end + 1} = [];
+N            = length(M);
+v            = cell(N,1);
+x            = cell(N,1);
+v(2:N)       = spm_unvec(qu.v{1},{M(1 + 1:end).v});
+x(1:(N - 1)) = spm_unvec(qu.x{1},{M(1:end - 1).x});
 
 
 % precisions
 %==========================================================================
-for i = 1:length(M)
+for i = 1:N
 
     % precision of causal and hidden states
     %----------------------------------------------------------------------
-    h{i,1} = feval(M(i).ph,x{i},v{i},qh.h{i},M(i));
-    g{i,1} = feval(M(i).pg,x{i},v{i},qh.g{i},M(i));
+    try
+        h{i,1} = feval(M(i).ph,x{i},v{i},qh.h{i},M(i));
+    catch
+        h{i,1} = sparse(M(i).l,1);
+    end
+    try
+        g{i,1} = feval(M(i).pg,x{i},v{i},qh.g{i},M(i));
+    catch
+        g{i,1} = sparse(M(i).n,1);
+    end
 
 end
 
@@ -62,7 +71,7 @@ switch method
     %----------------------------------------------------------------------
     case(1)
 
-        for i = 1:length(M)
+        for i = 1:N
 
             % precision of causal and hidden states
             %--------------------------------------------------------------
@@ -93,7 +102,7 @@ switch method
     %----------------------------------------------------------------------
     case(2)
 
-        for i = 1:length(M)
+        for i = 1:N
 
             % precision of causal states
             %--------------------------------------------------------------
@@ -129,7 +138,7 @@ switch method
     %----------------------------------------------------------------------
     case(3)
 
-        for i = 1:length(M)
+        for i = 1:N
 
             % precision of causal states
             %--------------------------------------------------------------

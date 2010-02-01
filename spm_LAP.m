@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3694 2010-01-22 14:16:51Z karl $
+% $Id: spm_LAP.m 3703 2010-02-01 20:47:44Z karl $
 
 
 % find or create a DEM figure
@@ -102,12 +102,12 @@ end
 %--------------------------------------------------------------------------
 for i  = 1:length(M)
     try
-        feval(M(i).ph,M(i).x,M(i).v,M(i),hE,M(i));
+        feval(M(i).ph,M(i).x,M(i).v,M(i).hE,M(i));
     catch
         M(i).ph = inline('spm_LAP_ph(x,v,h,M)','x','v','h','M');
     end
     try
-        feval(M(i).pg,M(i).x,M(i).v,M(i),gE,M(i));
+        feval(M(i).pg,M(i).x,M(i).v,M(i).gE,M(i));
     catch
         M(i).pg = inline('spm_LAP_pg(x,v,h,M)','x','v','h','M');
     end
@@ -147,7 +147,7 @@ pu.ic = spm_cat(spm_diag({Px Pv}));
 s     = M(1).E.s;
 sh    = log(s);
 sg    = log(s);
-sC    = speye(2,2)/16;
+sC    = speye(2,2)/32;
 ph.h  = spm_vec({M.hE M.gE sh sg});          % prior expectation of h,g
 ph.c  = spm_cat(spm_diag({M.hC M.gC sC}));   % prior covariances of h,g
 ph.ic = spm_pinv(ph.c);                      % prior precision of h,g
@@ -221,7 +221,7 @@ Du     = spm_cat(spm_diag({Dx,Dv}));
 Ip     = spm_speye(np,np);
 Ih     = spm_speye(nb,nb);
 qp.dp  = sparse(np,1);                   % conditional expectation of dp/dt
-qh.dp  = sparse(nb,1);                  % conditional expectation of dh/dt
+qh.dp  = sparse(nb,1);                   % conditional expectation of dh/dt
 
 
 % gradients of generalised weighted errors
@@ -230,13 +230,12 @@ dedh   = sparse(nh,ne);
 dedg   = sparse(ng,ne);
 dedv   = sparse(nv,ne);
 dedx   = sparse(nx,ne);
+dedhh  = sparse(nh,nh);
+dedgg  = sparse(ng,ng);
+dedss  = speye(2,2);
             
 % curvatures of Gibb's energy w.r.t. hyperparameters
 %--------------------------------------------------------------------------
-dedhh  = sparse(nh,nh);
-dedgg  = sparse(ng,ng);
-dEdup  = sparse(nu,np);
-
 dHdh   = sparse(nh,1);
 dHdg   = sparse(ng,1);
 dHdp   = sparse(np,1);
@@ -244,13 +243,14 @@ dHdu   = sparse(nu,1);
 
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
-if ~np && ~nb, nN = 1; end
-if ~nb, method = 0;    end
+if ~np && ~nh && ~ng, nN = 1; end
+if ~nh && ~ng, method    = 0; end
  
 % precision on parameter fluctuations
 %--------------------------------------------------------------------------
-kh  = ns;
-kp  = ns;
+kp  = ns*8;
+kh  = ns*4;
+
  
 % Iterate Lapalace scheme
 %==========================================================================
@@ -267,8 +267,8 @@ for iN = 1:nN
     
     % increase precision on parameter fluctuations
     %----------------------------------------------------------------------
-    kp = kp + 64;
-    kh = kh + 64;
+    kp = kp + ns*2;
+    kh = kh + ns*2;
 
  
     % D-Step: (nD D-Steps for each sample)
@@ -297,7 +297,7 @@ for iN = 1:nN
             % evaluate functions and derivatives
             %==============================================================
             
-            % prediction errors (E) and precision (p)
+            % prediction errors (E) and precision vectors (p)
             %--------------------------------------------------------------
             [E dE]  = spm_DEM_eval(M,qu,qp);
             [p dp]  = spm_LAP_eval(M,qu,qh);
@@ -387,11 +387,32 @@ for iN = 1:nN
             dEdh  = [dedh; dedg; dedsh; dedsg];
             dEdp  = dE.dp'*iS;
             dEdu  = dE.du'*iS;
-                 
             
-            % curvatures w.r.t. parameters and states
+                        % curvatures w.r.t. hyperparameters
             %--------------------------------------------------------------
-            for i = 1:np, dEdup(:,i) = dE.dup{i}'*iS*E; end
+            for i = 1:nh
+                for j = i:nh
+                    diS        = diag(dp.h.dh(:,i).*dp.h.dh(:,j).*exp(p.h));
+                    diS        = blkdiag(kron(Rh,diS),W);
+                    dedhh(i,j) = E'*diS*E;
+                    dedhh(j,i) = dedhh(i,j);
+                end
+            end            
+            for i = 1:ng
+                for j = i:ng
+                    diS        = diag(dp.g.dg(:,i).*dp.g.dg(:,j).*exp(p.g));
+                    diS        = blkdiag(V,kron(Rg,diS));
+                    dedgg(i,j) = E'*diS*E;
+                    dedgg(j,i) = dedgg(i,j);
+                end
+            end
+            
+            % combined curvature
+            %--------------------------------------------------------------
+            dSdhh = spm_cat({dedhh  []    [];
+                             []     dedgg [];
+                             []     []    dedss});
+                 
             
             % errors (from prior expectations) (NB pp.p = 0)
             %--------------------------------------------------------------
@@ -412,7 +433,7 @@ for iN = 1:nN
             dLduu = dEdu*dE.du + dSdu*dE.du*2 + pu.ic;
             dLdup = dEdu*dE.dp + dSdu*dE.dp;
             dLdpp = dEdp*dE.dp + pp.ic;
-            dLdhh = ph.ic;            
+            dLdhh = dSdhh/2    + ph.ic;            
             dLdhu = dEdh*dE.du;
             dLduy = dEdu*dE.dy;
             dLduc = dEdu*dE.dc;
@@ -427,10 +448,10 @@ for iN = 1:nN
             
             % precision and covariances
             %--------------------------------------------------------------                        
-            iC    = spm_cat({dLduu dLdup;
-                             dLdpu dLdpp});
+            iC     = spm_cat({dLduu dLdup;
+                              dLdpu dLdpp});
                 
-            C     = spm_inv(iC);
+            C      = spm_inv(iC);
             
             % derivatives of precision
             %--------------------------------------------------------------
@@ -461,17 +482,17 @@ for iN = 1:nN
                                     Lpub Lppb});
             end
             for i = 1:np
-                Luup   = dE.dup{i}'*iS*dE.du;
-                Lpup   = dE.dp'*iS*dE.dup{i};
-                Luup   = Luup + Luup';
+                Luup     = dE.dup{i}'*dEdu';
+                Lpup     = dEdp*dE.dup{i};
+                Luup     = Luup + Luup';
                 diCdp{i} = spm_cat({Luup Lpup';
                                     Lpup [] });
             end
-            
+
             % first-order derivatives of Entropy
             %==============================================================
-            dHdsh       = sum(sum(diCdsh.*C))/2;
-            dHdsg       = sum(sum(diCdsg.*C))/2;
+            dHdsh = sum(sum(diCdsh.*C))/2;
+            dHdsg = sum(sum(diCdsg.*C))/2;
             for i = 1:nh
                 dHdh(i) = sum(sum(diCdh{i}.*C))/2;
             end
@@ -501,12 +522,13 @@ for iN = 1:nN
                 Q(is).u.c = C([1:nv] + nx*n, [1:nv] + nx*n);
                 Q(is).p.c = C([1:np] + nu,   [1:np] + nu);
                 Q(is).h.c = inv(dLdhh);
+                Cu        = C(1:nu,1:nu);
 
                 % Free-energy (states)
                 %----------------------------------------------------------                
                 L(is) = ... 
                 - E'*iS*E/2      + spm_logdet(iS)/2    - n*ny*log(2*pi)/2 ...          
-                - Eu'*pu.ic*Eu/2 + spm_logdet(pu.ic)/2 - spm_logdet(dLduu)/2;
+                - Eu'*pu.ic*Eu/2 + spm_logdet(pu.ic)/2 + spm_logdet(Cu)/2;
                     
                 % Free-energy (states and parameters)
                 %----------------------------------------------------------
@@ -514,8 +536,7 @@ for iN = 1:nN
                         - Eu'*pu.ic*Eu/2   + spm_logdet(pu.ic)/2 ...
                         - Ep'*pp.ic*Ep/2   + spm_logdet(pp.ic)/2 ...
                         - Eh'*ph.ic*Eh/2   + spm_logdet(ph.ic)/2 ...
-                        - n*ny*log(2*pi)/2 + spm_logdet(C)/2;
-                    
+                        - n*ny*log(2*pi)/2 - spm_logdet(iC)/2 - spm_logdet(dLdhh)/2;
             end
  
             % update conditional moments
@@ -622,7 +643,7 @@ for iN = 1:nN
 
     % if F is increasing terminate
     %----------------------------------------------------------------------
-    if Fi < Fa && iN > 16
+    if Fi < Fa && iN > nN
         break
     else
         Fa    = Fi;

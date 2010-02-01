@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM.m 3703 2010-02-01 20:47:44Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -309,7 +309,7 @@ if ~nf && ~nh, nN = 1; end
  
 % Iterate DEM
 %==========================================================================
-Fm     = -Inf;
+Fi     = -Inf;
 for iN = 1:nN
     
     % get time and celar persistent variables in evaluation routines
@@ -613,8 +613,8 @@ for iN = 1:nN
         % 1st-order derivatives: dFdh = dF/dh
         %------------------------------------------------------------------
         for i = 1:nh
-            dPdh{i}        =  Q{i}*exp(qh.h(i));
-            dFdh(i,1)      = -trace(dPdh{i}*dS)/2;
+            dPdh{i}   = Q{i}*exp(qh.h(i));
+            dFdh(i,1) = -trace(dPdh{i}*dS)/2;
         end
  
         % 2nd-order derivatives: dFdhh
@@ -649,25 +649,35 @@ for iN = 1:nN
  
     % evaluate objective function (F)
     %======================================================================
-    L   = - trace(iS*EE)/2  ...                % states (u)
-          - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
-          - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-          + spm_logdet_qu_c /(2*nD)  ...       % entropy q(u)
-          + spm_logdet(qp.c)/2  ...            % entropy q(p)
-          + spm_logdet(qh.c)/2  ...            % entropy q(h)
-          - spm_logdet(pp.c)/2  ...            % entropy - prior p
-          - spm_logdet(ph.c)/2  ...            % entropy - prior h
-          + spm_logdet(iS)*nY/2 ...            % entropy - error
-          - n*ny*nY*log(2*pi)/2;
- 
+    Lu  = - trace(iS*EE)/2 - n*ny*log(2*pi)*nY/2 ... % states (u)
+          + spm_logdet(iS)*nY/2 ...                  % entropy - error
+          + spm_logdet_qu_c/(2*nD);                  % entropy q(u)
+          
+    Lp  = - trace(qp.e'*pp.ic*qp.e)/2  ...           % parameters (p)
+          - trace(qh.e'*ph.ic*qh.e)/2  ...           % hyperparameters (h)
+          + spm_logdet(qp.c)/2  ...                  % entropy q(p)
+          + spm_logdet(qh.c)/2  ...                  % entropy q(h)
+          - spm_logdet(pp.c)/2  ...                  % entropy - prior p
+          - spm_logdet(ph.c)/2;                      % entropy - prior h
+      
+    La  = - trace(qp.e'*pp.ic*qp.e)*nY/2  ...        % parameters (p)
+          - trace(qh.e'*ph.ic*qh.e)*nY/2  ...        % hyperparameters (h)
+          + spm_logdet(qp.c*nY)*nY/2 ...             % entropy q(p)
+          + spm_logdet(qh.c*nY)*nY/2 ...             % entropy q(h)
+          - spm_logdet(pp.c)*nY/2    ...             % entropy - prior p
+          - spm_logdet(ph.c)*nY/2;                   % entropy - prior h
+
+    Li  = Lu + Lp;                                   % free-energy
+    Ai  = Lu + La;                                   % free-action
     
     % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if L > Fm
+    if Li > Fi
 
  
-        Fm    = L;
-        F(iN) = Fm;
+        Fi    = Li;
+        F(iN) = Fi;
+        A(iN) = Ai;
  
         % save model-states (for each time point)
         %==================================================================
@@ -716,15 +726,15 @@ for iN = 1:nN
         if length(F) > 2
             subplot(2*nl,4,8*nl - 5)
             plot(F - F(1))
-            title('updates')
-            xlabel('free-energy')
+            xlabel('updates')
+            title('free-energy')
         end
         drawnow
  
         % report (EM-Steps)
         %------------------------------------------------------------------
         str{1} = sprintf('DEM: %i (%i:%i:%i)',iN,iD,iE,iM);
-        str{2} = sprintf('F:%.4e',full(Fm - F(1)));
+        str{2} = sprintf('F:%.4e',full(F(iN) - F(1)));
         str{3} = sprintf('p:%.2e',full(mp'*mp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));
         str{5} = sprintf('(%.2e sec)',full(toc));
@@ -772,3 +782,4 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
+DEM.S  = A;                   % [-ve] Free action

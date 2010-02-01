@@ -1,5 +1,5 @@
 function [DEM] = spm_DEM_generate(M,U,P,h,g)
-% Generates data for a HDM
+% Generates data for a Hierarchical Dynamic Model (HDM)
 % FORMAT [DEM] = spm_DEM_generate(M,N,P,h,g): N-samples using z
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
@@ -23,7 +23,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_generate.m 3703 2010-02-01 20:47:44Z karl $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
@@ -34,13 +34,14 @@ try
         N = size(U,2);
     else
         N = U;
+        U = sparse(M(end).l,N);
     end
 catch
     warndlg('Please specify model inputs U or number of samples')
     return
 end
  
-% initialise model-parameters if specified
+% initialize model-parameters if specified
 %--------------------------------------------------------------------------
 try, P; if ~iscell(P), P = {P}; end, catch, P = {M.pE}; end
 try, h; if ~iscell(h), h = {h}; end, catch, h = {}; end
@@ -73,36 +74,30 @@ for i = 1:m
     end
 end
  
-% create innovations
+% re-set M and create innovations
 %--------------------------------------------------------------------------
-M        = spm_DEM_M_set(M);
-[z w]    = spm_DEM_z(M,N);
-
-% and add exogenous input
+M     = spm_DEM_M_set(M);
+[z w] = spm_DEM_z(M,N);
+ 
+% place exogenous causes in cell array
 %--------------------------------------------------------------------------
-if ~isscalar(U)
-    try
-        z{end} = U + z{end};
-    catch
-        warndlg('input and model are inconsistent')
-    end
+for i = 1:m
+    u{i} = sparse(M(i).l,N);
 end
+u{m}  = U;
+ 
  
 % integrate HDM to obtain causal (v) and hidden states (x)
 %--------------------------------------------------------------------------
-[v,x]    = spm_DEM_int(M,z,w);
+[v,x,z,w] = spm_DEM_int(M,z,w,u);
  
 % Fill in DEM with response and its causes
 %--------------------------------------------------------------------------
-DEM.Y    = v{1};
-DEM.pU.v = v;
-DEM.pU.x = x;
-DEM.pU.z = z;
-DEM.pU.w = w;
-DEM.pP.P = {M.pE};
-DEM.pH.h = {M.hE};
-DEM.pH.g = {M.gE};
-
- 
-
-
+DEM.Y     = v{1};
+DEM.pU.v  = v;
+DEM.pU.x  = x;
+DEM.pU.z  = z;
+DEM.pU.w  = w;
+DEM.pP.P  = {M.pE};
+DEM.pH.h  = {M.hE};
+DEM.pH.g  = {M.gE};

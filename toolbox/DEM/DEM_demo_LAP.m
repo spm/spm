@@ -30,24 +30,24 @@ M(1).pC = pC;
 %--------------------------------------------------------------------------
 M(1).Q  = {speye(M(1).l,M(1).l)};
 M(1).R  = {speye(M(1).n,M(1).n)};
-M(1).hE = 2;
-M(1).gE = 2;
-M(1).hC = 8;
-M(1).gC = 8;
+M(1).hE = 4;
+M(1).gE = 4;
+M(1).hC = 1;
+M(1).gC = 1;
 M(1).V  = 0;
 M(1).W  = 0;
 
 % generate data and invert
 %==========================================================================
-M(1).E.nN = 16;                                % number of time steps
+M(1).E.nN = 24;                                % number of time steps
 M(1).E.nD = 1;                                 % number of time steps
-M(1).E.s  = 1/2;                               % smoothness
+M(1).E.s  = 1/4;                               % smoothness
 M(1).E.d  = 2;                                 % order
 M(1).E.n  = 4;                                 % order
  
 N         = 32;                                % length of data sequence
 U         = exp(-([1:N] - 12).^2/(2.^2));      % this is the Gaussian cause
-DEM       = spm_DEM_generate(M,U,{P},{8,16},{8});
+DEM       = spm_DEM_generate(M,U,{P},{8,16},{6});
 
 
 % invert
@@ -139,7 +139,11 @@ end, hold off
 % Log-evidence
 %--------------------------------------------------------------------------
 subplot(2,2,2)
-plot(1:length(LAP.F),LAP.F,1:length(DEM.F),DEM.F,'-.')
+nL   = length(LAP.F);
+nD   = length(DEM.F);
+plot(1:nL,LAP.S,1:nD,DEM.S)
 axis square
 legend('LAP','DEM')
 title('log-evidence ','FontSize',16)
+xlabel('iteration','FontSize',12)
+

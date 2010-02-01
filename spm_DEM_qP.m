@@ -10,20 +10,17 @@ function spm_DEM_qP(qP,pP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_qP.m 3703 2010-02-01 20:47:44Z karl $
 
-
-% time-series specification
-%--------------------------------------------------------------------------
-clf
-g     = length(qP.P);                                  % depth of hierarchy
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
+g     = length(qP.P);                                  % depth of hierarchy
 ci    = spm_invNcdf(1 - 0.05);
 
 % loop over levels
 %--------------------------------------------------------------------------
+clf
 Label = {};
 for i = 1:(g - 1)
 
@@ -46,21 +43,23 @@ for i = 1:(g - 1)
     j      = find(c);
     qi     = qi(j);
     c      = c(j);
-    label  = label(j);
-    np     = length(qi);
+    try
+        label = label(j);
+    end
     try
         pi = spm_vec(pP.P{i});
         pi = pi(j);
     end
-    
+    np     = length(qi);
     if np
         
         % conditional means
         %------------------------------------------------------------------
         subplot(g,1,i)
-        bar(qi)
-        title(sprintf('parameters - level %i',i));
+        bar(qi,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+        title(sprintf('parameters - level %i',i),'FontSize',16);
         axis square
+        box off
         set(gca,'XLim',[0 np + 1])
 
         % conditional variances
@@ -73,7 +72,7 @@ for i = 1:(g - 1)
         %------------------------------------------------------------------
         try
         for k = 1:np
-            line([-1 1]/2 + k,[0 0] + pi(k),'LineWidth',4,'Color','b');
+            line([-1 1]/2 + k,[0 0] + pi(k),'LineWidth',2,'Color','k');
         end
         end
 
@@ -108,10 +107,50 @@ end
 axis square
 
 
-% and correlations
-%--------------------------------------------------------------------------
+% plot evolution of hyperparameters if supplied
+%==========================================================================
 subplot(g,2,g + g)
+try
+    
+    % confidence interval and expectations
+    %----------------------------------------------------------------------
+    ns = length(qP.p);
+    t  = 1:ns;
+    for i = 1:ns
+        v(:,i) = sqrt(diag(qP.U*qP.c{i}*qP.U'));
+    end
+    c  = ci*v;
+    p  = qP.U*spm_cat(qP.p);
+    i  = find(any(v,2));
+    c  = c(i,:);
+    p  = p(i,:);
+    
+ 
+    % plot
+    %----------------------------------------------------------------------
+    hold on
+    np    = size(p,1);
+    for i = 1:np
+        fill([t fliplr(t)],[(p(i,:) + c(i,:)) fliplr(p(i,:) - c(i,:))],...
+            [1 1 1]*.8,'EdgeColor',[1 1 1]/2)
+        plot(t,p(i,:))
+    end
+    set(gca,'XLim',[1 ns])
+    title({'dynamics of parameters','(minus prior)'},'FontSize',16)
+    xlabel('time')
+    axis square
+    hold off
+ 
+catch
+    
+% or correlations
+%--------------------------------------------------------------------------
 imagesc(spm_cov2corr(qP.C(i,i)))
 title({'conditional correlations','among parameters'},'FontSize',16)
 axis square
 drawnow
+    
+end
+
+
+

@@ -1,33 +1,37 @@
-function [V,X] = spm_DEM_int(M,Z,W)
+function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 % Integrates/evaluates a hierarchical model given innovations z{i} and w{i}
-% FORMAT [V,X] = spm_DEM_int(M,Z);
+% FORMAT [V,X,Z,W] = spm_DEM_int(M,z,w,c);
 %
 % M{i}    - model structure
-% Z{i}    - innovations (causes)
-% W{i}    - innovations (states)
+% z{i}    - innovations (causes)
+% w{i}    - innovations (states)
+% c{i}    - exogenous causes
 %
 % V{i}    - causal states (V{1} = y = response)
 % X{i}    - hidden states
+% Z{i}    - fluctuations (causes)
+% W{i}    - fluctuations (states)
 %
 % The system is evaluated at the prior expectation of the parameters
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_int.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_int.m 3703 2010-02-01 20:47:44Z karl $
  
 % set model indices and missing fields
 %--------------------------------------------------------------------------
-M    = spm_DEM_M_set(M);
+M      = spm_DEM_M_set(M);
  
 % innovations
 %--------------------------------------------------------------------------
-try, Z = spm_cat(Z(:)); end
-try, W = spm_cat(W(:)); end
+try, z = spm_cat(z(:)); end
+try, w = spm_cat(w(:)); end
+try, c = spm_cat(c(:)); end
  
 % number of states and parameters
 %--------------------------------------------------------------------------
-nt   = size(Z,2);                        % number of time steps
+nt   = size(z,2);                        % number of time steps
 nl   = size(M,2);                        % number of levels
 nv   = sum(spm_vec(M.l));                % number of v (casual states)
 nx   = sum(spm_vec(M.n));                % number of x (hidden states)
@@ -39,25 +43,29 @@ n    = M(1).E.n + 1;                     % order of embedding
 nD   = M(1).E.nD;                        % number of iterations per sample
 td   = dt/nD;                            % integration time for D-Step
  
-% initialise cell arrays for derivatives z{i} = (d/dt)^i[z], ...
+% initialize cell arrays for derivatives z{i} = (d/dt)^i[z], ...
 %--------------------------------------------------------------------------
-v      = cell(n,1);
-x      = cell(n,1);
-z      = cell(n,1);
-w      = cell(n,1);
-[v{:}] = deal(sparse(nv,1));
-[x{:}] = deal(sparse(nx,1));
-[z{:}] = deal(sparse(nv,1));
-[w{:}] = deal(sparse(nx,1));
+u.v      = cell(n,1);
+u.x      = cell(n,1);
+u.z      = cell(n,1);
+u.w      = cell(n,1);
+[u.v{:}] = deal(sparse(nv,1));
+[u.x{:}] = deal(sparse(nx,1));
+[u.z{:}] = deal(sparse(nv,1));
+[u.w{:}] = deal(sparse(nx,1));
  
-% initialise with starting conditions
+% hyperparameters
 %--------------------------------------------------------------------------
-v{1}   = spm_vec({M.v});
-x{1}   = spm_vec({M.x});
-u.v    = v;
-u.x    = x;
-u.z    = z;
-u.w    = w;
+ph.h   = {M.hE};
+ph.g   = {M.gE};
+ 
+% initialize with starting conditions
+%--------------------------------------------------------------------------
+vi     = {M.v};
+xi     = {M.x};
+u.v{1} = spm_vec(vi);
+u.x{1} = spm_vec(xi);
+
  
 % derivatives for Jacobian of D-step
 %--------------------------------------------------------------------------
@@ -66,11 +74,13 @@ Dv    = kron(spm_speye(n,n,1),spm_speye(nv,nv,0));
 D     = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
 dfdw  = kron(eye(n,n),eye(nx,nx));
  
-% initialise conditional estimators of states to be saved (V and X)
+% initialize conditional estimators of states to be saved (V and X)
 %--------------------------------------------------------------------------
 for i = 1:nl
     V{i} = sparse(M(i).l,nt);
     X{i} = sparse(M(i).n,nt);
+    Z{i} = sparse(M(i).l,nt);
+    W{i} = sparse(M(i).n,nt);
 end
  
  
@@ -79,37 +89,57 @@ end
 for t  = 1:nt
     for iD = 1:nD
  
+        
+        % Get generalised motion of random fluctuations
+        %==================================================================
+        
         % sampling time
         %------------------------------------------------------------------
-        ts  = (t + (iD - 1)/nD)*dt;
- 
-        % derivatives of innovations
+        ts   = (t + (iD - 1)/nD)*dt;
+        
+        % evlaute state-dependent precision
         %------------------------------------------------------------------
-        u.z = spm_DEM_embed(Z,n,ts,dt);
-        u.w = spm_DEM_embed(W,n,ts,dt);
+        pu.x = xi(1:end - 1);
+        pu.v = vi(1 + 1:end);
+        p    = spm_LAP_eval(M,pu,ph);
+        Sz   = sparse(diag(exp(-p.h/2)));
+        Sw   = sparse(diag(exp(-p.g/2)));
+        
+        % derivatives of innovations (and exogenous input)
+        %------------------------------------------------------------------
+        u.z  = spm_DEM_embed(Sz*z + c,n,ts,dt);
+        u.w  = spm_DEM_embed(Sw*w,    n,ts,dt);
+        
  
-        % evaluate
+        % Evaluate and update states
+        %==================================================================
+        
+        % evaluate functions
         %------------------------------------------------------------------ 
         [u dg df] = spm_DEM_diff(M,u);
- 
-        % tensor products for Jabobian
+        
+        % tensor products for Jacobian
         %------------------------------------------------------------------
         dgdv = kron(spm_speye(n,n,1),dg.dv);
         dgdx = kron(spm_speye(n,n,1),dg.dx);
         dfdv = kron(spm_speye(n,n,0),df.dv);
         dfdx = kron(spm_speye(n,n,0),df.dx);
-
-        % Save realisation 
+ 
+        % Save realization 
         %==================================================================
-        vi     = spm_unvec(u.v{1},{M.v});
-        xi     = spm_unvec(u.x{1},{M.x});
+        vi   = spm_unvec(u.v{1},{M.v});
+        xi   = spm_unvec(u.x{1},{M.x});
+        zi   = spm_unvec(u.z{1},{M.v});
+        wi   = spm_unvec(u.w{1},{M.x});
         if iD == 1
             for i = 1:nl
                 if M(i).l, V{i}(:,t) = spm_vec(vi{i}); end
                 if M(i).n, X{i}(:,t) = spm_vec(xi{i}); end
-                end
+                if M(i).l, Z{i}(:,t) = spm_vec(zi{i}); end
+                if M(i).n, W{i}(:,t) = spm_vec(wi{i}); end
             end
-        end       
+        end     
+        
         
         % Jacobian for update
         %------------------------------------------------------------------

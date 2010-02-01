@@ -15,7 +15,7 @@ function spm_DEM_qH(qH,pH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qH.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_qH.m 3703 2010-02-01 20:47:44Z karl $
  
 % unpack conditional covariances
 %--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ h  = spm_vec(qH.h);
 c  = spm_vec(qH.V);
 c  = sqrt(c)*ci;
 subplot(2,2,1)
-bar(full(h),'c')
+bar(full(h),'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 title({'log-precision';'noise and causes'},'FontSize',16);
 axis square
 set(gca,'XLim',[0 length(c) + 1])
@@ -54,7 +54,7 @@ end
 try
     p     = spm_vec(pH.h);
     for i = 1:length(h)
-        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','b');
+        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',2,'Color','k');
     end
 end
 
@@ -65,7 +65,7 @@ h = spm_vec(qH.g);
 c = spm_vec(qH.W);
 c = sqrt(c)*spm_invNcdf(1 - 0.05);
 subplot(2,2,2)
-bar(full(h),'c')
+bar(full(h),'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 title({'log-precision';'states'},'FontSize',16);
 axis square
 set(gca,'XLim',[0 length(c) + 1])
@@ -81,7 +81,7 @@ end
 try
     p     = spm_vec(pH.g);
     for i = 1:length(h)
-        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','b');
+        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',2,'Color','k');
     end
 end
 
@@ -119,9 +119,10 @@ try
     % plot
     %----------------------------------------------------------------------
     hold on
-    for i = 1:size(h,1)
+    nh    = size(h,1);
+    for i = 1:nh
         fill([t fliplr(t)],[(h(i,:) + c(i,:)) fliplr(h(i,:) - c(i,:))],...
-            [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            [1 1 1]*.8,'EdgeColor',[1 1 1]/2)
         plot(t,h(i,:))
     end
     set(gca,'XLim',[1 ns])

@@ -6,11 +6,15 @@ function [z,w] = spm_DEM_z(M,N)
 %
 % z{i} - innovations for level i (N.B. z{end} corresponds to causes)
 % w{i} - innovations for level i (state noise)
+%
+% If there is no fixed or hyper parameterized precision, then unit noise is
+% created. It is assumed that this will be later modulated by state
+% dependent terms, specified by M.ph and M.pg in spm_DEM_int
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_DEM_z.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_z.m 3703 2010-02-01 20:47:44Z karl $
  
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -25,12 +29,13 @@ K  = C*K;
 %--------------------------------------------------------------------------
 for i = 1:length(M)
  
-    % causes
+    % causes: assume i.i.d. if precision (P) is zero
     %----------------------------------------------------------------------
     P     = M(i).V;
     for j = 1:length(M(i).Q)
         P = P + M(i).Q{j}*exp(M(i).hE(j));
     end
+    if ~norm(P,1); P = 1; end
     z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
     
     % states
@@ -40,12 +45,10 @@ for i = 1:length(M)
         P = P + M(i).R{j}*exp(M(i).gE(j));
     end
     if length(P)
+        if ~norm(P,1); P = 1; end
         w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
     else
         w{i} = sparse(0,0);
     end
     
 end
-
-
-

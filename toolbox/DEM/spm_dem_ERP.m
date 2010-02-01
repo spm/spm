@@ -1,6 +1,6 @@
-function [R] = spm_DEM_ERP(varargin)
+function [R] = spm_dem_ERP(varargin)
 % simulated electrophysiological response based on conditional estimates
-% FORMAT [R] = spm_DEM_ERP(qU,qU,...)
+% FORMAT [R] = spm_dem_ERP(qU,qU,...)
 % qU - conditional estimates of states
 % R  - summed response over peri-stimulus time
 %
@@ -26,22 +26,28 @@ for i = 1:N
     n  = length(U);
     for  j = 1:n
         
+        % PST
+        %------------------------------------------------------------------
+        T  = [1:length(U{j})]*8;
+        
         % ERPs
         %------------------------------------------------------------------
         subplot(n,2,2*(j - 1) + 1)
-        plot(mean(U{j},1),'Color',[1 1 1]*(1 - 1/i))
-        title(sprintf('LFPs: level %i',j))
+        plot(T,sum(U{j},1),'Color',[1 1 1]*(1 - .8/i)),hold on
+        plot(T,U{j},'r:')
+        title(sprintf('LFPs: level %i',j),'FontSize',16)
+        xlabel('pst (ms)')
         axis square
-        grid on
-        hold on
+
         
         % PSTH
         %------------------------------------------------------------------
         subplot(n,2,2*j)
         PSTH    = mean(exp(U{j}) + exp(-U{j}),1)/2;
         R{j}(i) = mean(PSTH);
-        plot(PSTH,'Color',[1 1 1]*(1 - 1/i),'LineWidth',3)
-        title(sprintf('PSTH: level %i',j))
+        plot(T,PSTH,'Color',[1 1 1]*(1 - .8/i),'LineWidth',1)
+        title(sprintf('PSTH: level %i',j),'FontSize',16)
+        xlabel('pst (ms)')
         axis square
         hold on
         

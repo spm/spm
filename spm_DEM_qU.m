@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_qU.m 3703 2010-02-01 20:47:44Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -66,6 +66,7 @@ for i = 1:g
         subplot(g,2,2*i - 1)
         t = 1:size(V{i},1);
         plot(t,full(E{i}),'r:',t,full(V{i}))
+        box off
  
  
         % conditional covariances
@@ -87,6 +88,7 @@ for i = 1:g
         grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
+        box off
  
     else
  
@@ -94,11 +96,11 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
-            plot(t,pV{i},':k','linewidth',1)
+            plot(t,pV{i},':k','linewidth',1),box off
         end
         hold on
         try
-            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
+            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i})),box off
         end
         hold off
         set(gca,'XLim',[t(1) t(end)])
@@ -114,7 +116,7 @@ for i = 1:g
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             try 
-                plot(t,pV{i},':k','linewidth',1)
+                plot(t,pV{i},':k','linewidth',1),box off
             end
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
@@ -130,12 +132,12 @@ for i = 1:g
             title('causal states','FontSize',16);
             try
                 hold on
-                plot(t,pV{i},':k','linewidth',1)
+                plot(t,pV{i},':k','linewidth',1),box off
             end
             hold off
             try
                 hold on
-                plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0])
+                plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0]),box off
             end
             hold off
         end
@@ -150,10 +152,10 @@ for i = 1:g
             subplot(g,2,2*i)
             try
                 hold on
-                plot(t,pX{i},':k','linewidth',1)
+                plot(t,pX{i},':k','linewidth',1),box off
             end
             hold off
-            plot(t,full(X{i}))
+            plot(t,full(X{i})),box off
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
             
@@ -165,9 +167,9 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,pX{i},':k','linewidth',1)
+                    plot(t,pX{i},':k','linewidth',1),box off
                 end
-                plot(t,full(X{i}))
+                plot(t,full(X{i})),box off
                 hold off
             end
                       
@@ -191,7 +193,7 @@ if isfield(qU,'a')
     plot(t,qU.a{2});
     try
         hold on
-        plot(t,pU.v{2},':b','Linewidth',2) 
+        plot(t,pU.v{2},':b','Linewidth',2),box off
     end
     hold off
     xlabel('time','Fontsize',14)

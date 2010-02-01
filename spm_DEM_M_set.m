@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_M_set.m 3703 2010-02-01 20:47:44Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -141,7 +141,8 @@ for i = 1:g
     % check size
     %----------------------------------------------------------------------
     if length(M(i).pC) ~= length(spm_vec(M(i).pE))
-        errordlg(sprintf('please check: M(%i).pC',i))
+        warndlg(sprintf('please check: M(%i).pC',i))
+        who,keyboard
     end
  
 end
@@ -188,11 +189,13 @@ for i = (g - 1):-1:1
     try
         f       = feval(M(i).f,x,v,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
-            errordlg(sprintf('please check: M(%i).f(x,v,P)',i));
+            warndlg(sprintf('please check: M(%i).f(x,v,P)',i));
+            who,keyboard
         end
  
     catch
-        errordlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
+        warndlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
+        who,keyboard
     end
     try M(i).fx = fcnchk(M(i).fx,'x','v','P'); end
     try M(i).fv = fcnchk(M(i).fv,'x','v','P'); end
@@ -214,7 +217,8 @@ for i = (g - 1):-1:1
         M(i).x = x;
  
     catch
-        errordlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
+        warndlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
+        who,keyboard
     end
     try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
     try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
@@ -229,7 +233,8 @@ for i = 1:g
         if size(M(i).xP) == [1 1];
             M(i).xP = speye(M(i).n,M(i).n)*M(i).xP;
         elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
-            errordlg(sprintf('please Check: M(%i).xP',i))
+            warndlg(sprintf('please Check: M(%i).xP',i))
+            who,keyboard
         end
     else
         for j = 1:g
@@ -252,6 +257,8 @@ try, M.V;  catch, M(1).V  = []; end
 try, M.W;  catch, M(1).W  = []; end
 try, M.hE; catch, M(1).hE = []; end
 try, M.gE; catch, M(1).gE = []; end
+try, M.ph; catch, M(1).ph = []; end
+try, M.pg; catch, M(1).pg = []; end
 
 % check hyperpriors hE - [log]hyper-parameters and components
 %--------------------------------------------------------------------------
@@ -315,7 +322,8 @@ for i = 1:g
     %----------------------------------------------------------------------
     for j = 1:length(M(i).Q)
         if length(M(i).Q{j}) ~= M(i).l
-            errordlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
+            warndlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
+            who,keyboard
         end
     end
     
@@ -323,7 +331,8 @@ for i = 1:g
     %----------------------------------------------------------------------
     for j = 1:length(M(i).R)
         if length(M(i).R{j}) ~= M(i).n
-            errordlg(sprintf('wrong size; M(%d).R{%d}',i,j))
+            warndlg(sprintf('wrong size; M(%d).R{%d}',i,j))
+            who,keyboard
         end
     end
     
@@ -336,7 +345,7 @@ for i = 1:g
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
         catch
-            if isempty(M(i).hE)
+            if isempty(M(i).hE) && isempty(M(i).ph)
                 M(i).V = speye(M(i).l,M(i).l);
             else
                 M(i).V = sparse(M(i).l,M(i).l);
@@ -351,7 +360,7 @@ for i = 1:g
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
         catch
-            if isempty(M(i).gE)
+            if isempty(M(i).gE) && isempty(M(i).pg)
                 M(i).W = speye(M(i).n,M(i).n);
             else
                 M(i).W = sparse(M(i).n,M(i).n);
@@ -393,6 +402,8 @@ try M(1).E.nN; catch,        M(1).E.nN = 16; end
  
 % checks on smoothness hyperparameter
 %==========================================================================
+try, M = rmfield(M,'sv'); end
+try, M = rmfield(M,'sw'); end
 for i = 1:g
     
     try, M(i).sv; catch, M(i).sv = M(1).E.s;   end
