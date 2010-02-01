@@ -15,55 +15,34 @@ function [evidence] = spm_dcm_evidence (DCM)
 %            All of the above are in units of NATS (not bits)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Will Penny
-% $Id: spm_dcm_evidence.m 1143 2008-02-07 19:33:33Z spm $
-
-
-v=DCM.v;
-
+% $Id: spm_dcm_evidence.m 3705 2010-02-01 20:51:28Z karl $
+ 
+ 
 % Only look at those parameters with non-zero prior covariance
-pCdiag=diag(DCM.M.pC);
-wsel=find(~(pCdiag==0));
-
-% Ensure residuals have been estimated correctly
-if length(isnan(DCM.R))>0,
-    % Assume that reason for incorrect R was zero columns in X0
-    
-    % 1. Remove zero columns from X0 if there are any 
-    X0=DCM.Y.X0;
-    ncol_X0=size(X0,2);
-    new_X0=[];
-    for col_X0=1:ncol_X0,
-        if ~(length(find(X0(:,col_X0)==0))==DCM.v)
-            new_X0=[new_X0 X0(:,col_X0)];
-        end
-    end
-    X0=new_X0;
-    
-    % 2. Recompute residuals
-    R     = DCM.Y.y - DCM.y;
-    R     = R - X0*inv(X0'*X0)*(X0'*R);
-    DCM.R = R;
-    
-    % Note DCM.R not saved to file
-end
-
+%--------------------------------------------------------------------------
+v      = DCM.v;                                   % number of samples
+n      = DCM.n;                                   % number of regions
+pCdiag = diag(DCM.M.pC);
+wsel   = find(pCdiag);
+ 
+ 
 % Look at costs of coding prediction errors by region
-n=size(DCM.A,1); 
-for i=1:n,
-    lambda_i=DCM.Ce(i*v,i*v);
-    evidence.region_cost(i)=-0.5*v*log(lambda_i);
-    evidence.region_cost(i)=evidence.region_cost(i)-0.5*DCM.R(:,i)'*(1/lambda_i)*eye(v)*DCM.R(:,i);
+%--------------------------------------------------------------------------
+for i = 1:n
+    try
+        lambda_i = DCM.Ce(i*v,i*v);     % old format
+    catch
+        lambda_i = DCM.Ce(i);           % new format
+    end
+    evidence.region_cost(i) = -0.5*v*log(lambda_i);
+    evidence.region_cost(i) = evidence.region_cost(i)-0.5*DCM.R(:,i)'*(1/lambda_i)*eye(v)*DCM.R(:,i);
 end
 
-evidence.aic_penalty=length(wsel);
-evidence.bic_penalty=0.5*length(wsel)*log(v);
-
-evidence.aic_overall=sum(evidence.region_cost)-evidence.aic_penalty;
-evidence.bic_overall=sum(evidence.region_cost)-evidence.bic_penalty;
-
-
-
-
-
+% results
+%--------------------------------------------------------------------------
+evidence.aic_penalty = length(wsel);
+evidence.bic_penalty = 0.5*length(wsel)*log(v);
+evidence.aic_overall = sum(evidence.region_cost)-evidence.aic_penalty;
+evidence.bic_overall = sum(evidence.region_cost)-evidence.bic_penalty;

@@ -1,31 +1,67 @@
-function [DCM] = spm_dcm_estimate(P)   
-% Estimate parameters of a DCM (bilinear or nonlinear) for fMRI data
-% FORMAT [DCM] = spm_dcm_estimate(DCM)   
+function [DCM] = spm_dcm_estimate(P)
+% Estimates parameters of a DCM (bilinear or nonlinear) for fMRI data
+% FORMAT [DCM] = spm_dcm_estimate(DCM)
+%   DCM - the DCM or its filename
 %
-% DCM  - the DCM or its filename
+% Expects
+%--------------------------------------------------------------------------
+% DCM.a;                             % switch on endogenous connections
+% DCM.b;                             % switch on bilinear modulations
+% DCM.c;                             % switch on exogenous connections
+% DCM.U;                             % exogenous inputs
+% DCM.Y;                             % responses
+% DCM.Y.X0;                          % confounds
+% DCM.n;                             % number of regions
+% DCM.v;                             % number of scans
+%
+% Options
+%--------------------------------------------------------------------------
+% DCM.options.two_state              % two regional populations (E and I)
+% DCM.options.stochastic             % fluctuations on hidden states
+% DCM.options.nonlinear              % interactions among hidden states
+%
+% Evaluates:
+%--------------------------------------------------------------------------
+% DCM.M                              % Model structure
+% DCM.Ep                             % Condition means (parameter structure)
+% DCM.Cp                             % Conditional covariances
+% DCM.Vp                             % Conditional variances
+% DCM.Pp                             % Conditional probabilities
+% DCM.H1                             % 1st order hemodynamic kernels
+% DCM.H2                             % 2nd order hemodynamic kernels
+% DCM.K1                             % 1st order neuronal kernels
+% DCM.K2                             % 2nd order neuronal kernels
+% DCM.R                              % residuals
+% DCM.y                              % predicted data
+% DCM.T                              % Threshold for Posterior inference
+% DCM.Ce                             % Error variance for each region
+% DCM.F                              % Free-energy bound on log evidence
+% DCM.ID                             % Data ID
+% DCM.AIC                            % Akaike Information criterion
+% DCM.BIC                            % Bayesian Information criterion
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Will Penny
-% $Id: spm_dcm_estimate.m 3177 2009-06-03 08:47:41Z vladimir $
-
+ 
+% Karl Friston
+% $Id: spm_dcm_estimate.m 3705 2010-02-01 20:51:28Z karl $
+ 
  
 % load DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
-    
+ 
     %-display model details
     %----------------------------------------------------------------------
     Finter = spm_figure('GetWin','Interactive');
     set(Finter,'name','Dynamic Causal Modeling')
-    
+ 
     %-get DCM
     %----------------------------------------------------------------------
     P = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
-    
     spm('Pointer','Watch')
     spm('FigName','Estimation in progress');
-    
+ 
 end
 if isstruct(P)
     DCM = P;
@@ -33,227 +69,257 @@ if isstruct(P)
 else
     load(P)
 end
-
-    
+ 
+% check options
+%==========================================================================
+try, DCM.options.two_state;  catch, DCM.options.two_state  = 0; end
+try, DCM.options.stochastic; catch, DCM.options.stochastic = 0; end
+try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0; end
+ 
 % unpack
 %--------------------------------------------------------------------------
-a  = DCM.a;                             % switch on endogenous connections
-b  = DCM.b;                             % switch on bilinear modulations
-c  = DCM.c;                             % switch on exogenous connections
-U  = DCM.U;                             % exogenous inpurs 
+U  = DCM.U;                             % exogenous inputs
 Y  = DCM.Y;                             % responses
-X0 = DCM.Y.X0;                          % confounds
-n  = DCM.n;
-v  = DCM.v;
-
-
-% adopt model specification M if it already exists 
+n  = DCM.n;                             % number of regions
+v  = DCM.v;                             % number of scans
+ 
+ 
+% check scaling of Y (enforcing a maximum change of 4%
 %--------------------------------------------------------------------------
-if isfield(DCM,'M') 
-    M = DCM.M;
+scale   = max(max((Y.y))) - min(min((Y.y)));
+scale   = 4/max(scale,4);
+Y.y     = Y.y*scale;
+Y.scale = scale;
+
+% normalise inputs
+%--------------------------------------------------------------------------
+U.u  = spm_detrend(U.u);
+ 
+% check DCM.d (for nonlinear DCMs)
+%--------------------------------------------------------------------------
+try
+    DCM.d;
+catch
+    DCM.d = zeros(n,n,0);
+    DCM.options.nonlinear = 0;
 end
-
-
-% check whether this is a nonlinear DCM
+ 
+% check confounds (add constant if necessary)
 %--------------------------------------------------------------------------
-if isfield(DCM,'d') && any(any(DCM.d(:)))
-    % nonlinear DCM
-    M.nlDCM = 1;
-    d       = DCM.d; % switch on nonlinear modulations
-    fprintf('\n\n%s %s\n','Nonlinear DCM:',P);
-    fprintf('%s\n\n','--------------------------------------------------------------------------------------');
-    fprintf('%s\n\n','Please note that this computation will be considerably slower than for a bilinear DCM.');
-    fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
-    fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
-    fprintf('%s\n','We found microtime bins of 0.2 s to give stable results; longer time bins may well still work, but you would need to check.');
-    fprintf('%s %1.3f seconds.\n\n','You are currently using microtimebins of',DCM.U.dt);
+if ~size(Y.X0,2), Y.X0 = ones(v,1); end
+ 
+ 
+% specify parameters for spm_int_D (ensuring updates every second or so)
+%--------------------------------------------------------------------------
+if DCM.options.nonlinear
+    M.IS     = 'spm_int_D';
+    M.nsteps = round(max(Y.dt,1));
+    M.states = 1:n;
 else
-    % bilinear DCM
-    M.nlDCM = 0;
+    M.IS  = 'spm_int';
 end
-
-
-% check integrator
+ 
+% priors
 %--------------------------------------------------------------------------
-if ~isfield(M,'IS')
-    if M.nlDCM
-        % nonlinear DCM
-        M.IS    = 'spm_int_B_nlDCM_fMRI';
-    else
-        % bilinear DCM
-        M.IS    = 'spm_int';
-    end
-end
-
-% prevent mismatch between DCM structure and integration scheme
-if M.nlDCM && (length(M.IS) == length('spm_int'))
-    fprintf('\n\n%s\n','WARNING: You are trying to run a nonlinear DCM with a bilinear integration scheme (spm_int).');
-    fprintf('%s\n\n','A nonlinear integration scheme (spm_int_B_nlDCM_fMRI) is used instead.');
-    M.IS    = 'spm_int_B_nlDCM_fMRI';
-end
-
-
-% check whether TE of acquisition has been defined 
-% (if not, default to 0.04 s)
-%--------------------------------------------------------------------------
-if ~isfield(DCM,'TE')
-    DCM.TE = 0.04;
+if DCM.options.two_state
+    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,'2s');
+    x       = sparse(n,6);
 else
-    if (DCM.TE < 0) || (DCM.TE > 0.1)
-        disp('spm_dcm_estimate: Extreme TE value found.')
-        disp('Please check and adjust DCM.TE - note this value must be in seconds!')
-        return
-    end
+    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);
+    x       = sparse(n,5);
 end
-TE = DCM.TE;
-
-
-% priors - expectations
-%--------------------------------------------------------------------------
-if ~M.nlDCM
-    % bilinear DCM
-    [pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
-else
-    % nonlinear DCM
-    [pE,pC,qE,qC] = spm_dcm_priors(a,b,c,d);
-end
-
-
-% complete model specification
-%--------------------------------------------------------------------------
-M.f     = 'spm_fx_dcm';
-M.g     = 'spm_gx_dcm';
-M.x     = sparse(n*5,1);
-M.pE    = pE;
-M.pC    = pC;
-M.m     = size(U.u,2);
-M.n     = size(M.x,1);
-M.l     = n;
-M.N     = 32;
-M.dt    = 16/M.N;
-M.ns    = size(Y.y,1);
-M.TE    = TE;
-
-
+ 
 % fMRI slice time sampling
 %--------------------------------------------------------------------------
 try, M.delays = DCM.delays; end
-
-
-% nonlinear system identification (nlsi)
+try, M.TE     = DCM.TE;     end
+ 
+ 
+% complete model specification
 %--------------------------------------------------------------------------
-[Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
-
-
-% Data ID
+M.f   = 'spm_fx_fmri';
+M.g   = 'spm_gx_fmri';
+M.x   = x;
+M.pE  = pE;
+M.pC  = pC;
+M.m   = size(U.u,2);
+M.n   = size(x(:),1);
+M.l   = size(x,1);
+M.N   = 32;
+M.dt  = 16/M.N;
+M.ns  = v;
+ 
+ 
+% nonlinear system identification (nlsi)
+%==========================================================================
+ 
+% nonlinear system identification (Variational EM) - deterministic DCM
+%--------------------------------------------------------------------------
+[Ep,Cp,Eh,F]  = spm_nlsi_GN(M,U,Y);
+ 
+% proceed to stochastic (initialising with determinidstic estimates)
+%--------------------------------------------------------------------------
+if DCM.options.stochastic
+    
+    
+    % specify bilinear approximation scheme for spm_DEM_eval
+    %----------------------------------------------------------------------
+    if size(pE.A,3), M.E.linear = 1; end   % linear model
+    if size(pE.B,3), M.E.linear = 2; end   % bilinear model
+    if size(pE.D,3), M.E.linear = 3; end   % nonlinear models
+ 
+    % Decimate U.u from micro-time
+    % ---------------------------------------------------------------------
+    u       = U.u;
+    y       = Y.y;
+    Dy      = spm_dctmtx(size(y,1),size(y,1));
+    Du      = spm_dctmtx(size(u,1),size(y,1));
+    Dy      = Dy*sqrt(size(y,1)/size(u,1));
+    u       = Dy*(Du'*u);
+ 
+    % DEM Structure: place model, data, input and confounds in DEM
+    % ---------------------------------------------------------------------
+    DEM.M   = M;
+    DEM.Y   = y';
+    DEM.U   = u';
+    DEM.X   = Y.X0';
+ 
+    % set inversion parameters
+    % ---------------------------------------------------------------------
+    DEM.M(1).E.s  = 1/8;        % smoothness of random fluctuations
+    DEM.M(1).E.d  = 2;          % embedding dimension 
+    DEM.M(1).E.n  = 4;          % embedding dimension
+    DEM.M(1).E.nN = 4;          % maximum number of DEM iterations
+ 
+    % adjust M.f (DEM works in time bins not seconds) and initialize M.P
+    % ---------------------------------------------------------------------
+    DEM.M(1).f  = inline([M.f '(x,v,P)*' num2str(Y.dt)],'x','v','P');
+    DEM.M(1).P  = Ep;
+    
+    % delays (DEM works in time bins not seconds)
+    % ---------------------------------------------------------------------
+    DEM.M(1).delays = M.delays/Y.dt;
+    
+    % Precision on hidden states
+    % ---------------------------------------------------------------------
+    DEM.M(1).xP = 32;
+ 
+    % Relax priors on parameters for spm_LAP (evidence accumulation scheme)
+    % ---------------------------------------------------------------------
+    DEM.M(1).pC = pC*v;
+    
+    
+    % Specify hyper-priors on precisions: level 1
+    % ---------------------------------------------------------------------
+    DEM.M(1).Q  = spm_Ce(ones(1,n));
+    DEM.M(1).hE = Eh;          % prior expectation of log precision (noise)
+    DEM.M(1).hC = 8;           % prior covariance  of log precision (noise)
+    DEM.M(1).gE = 6;           % prior expectation of log precision (state)
+    DEM.M(1).gC = 1;           % prior covariance  of log precision (state)
+ 
+    % and level 2
+    %----------------------------------------------------------------------
+    DEM.M(2).V  = 4;           % prior expectation of log precision (cause)
+ 
+ 
+    % Generalised filtering (under the Laplace assumption)
+    % =====================================================================
+    DEM    = spm_LAP(DEM);
+ 
+    % Save DEM estimates
+    %----------------------------------------------------------------------
+    DCM.qU = DEM.qU;
+    DCM.qP = DEM.qP;
+    DCM.qH = DEM.qH;
+    DCM.Fd = F;
+    
+    % unpack results
+    % ---------------------------------------------------------------------
+    F      = DEM.F(end);
+    Ep     = DEM.qP.P{1};
+    Cp     = DEM.qP.C;
+ 
+    % predicted responses (y) and residuals (R) from DEM
+    %--------------------------------------------------------------------------
+    y      = DEM.qU.v{1}';
+    R      = DEM.qU.z{1}';
+    R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
+    Ce     = exp(-DEM.qH.h{1});
+ 
+else
+ 
+    % predicted responses (y) and residuals (R) from EM
+    %--------------------------------------------------------------------------
+    y      = feval(M.IS,Ep,M,U);
+    R      = Y.y - y;
+    R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
+    Ce     = exp(-Eh);
+    
+end
+ 
+ 
+% Bilinear representation and first-order hemodynamic kernel
+%--------------------------------------------------------------------------
+[M0,M1,L1,L2] = spm_bireduce(M,Ep);
+[H0,H1] = spm_kernels(M0,M1,L1,L2,M.N,M.dt);
+ 
+% and neuronal kernels
+%--------------------------------------------------------------------------
+L       = sparse(1:n,[1:n] + 1,1,n,length(M0));
+[K0,K1] = spm_kernels(M0,M1,L,M.N,M.dt);
+ 
+ 
+% Bayesian inference and variance {threshold T = 0}
+%--------------------------------------------------------------------------
+T       = 0;
+sw      = warning('off','SPM:negativeVariance');
+Pp      = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
+Vp      = spm_unvec(diag(Cp),Ep);
+warning(sw);
+ 
+ 
+% Store parameter estimates
+%--------------------------------------------------------------------------
+DCM.M   = M;
+DCM.Y   = Y;
+DCM.U   = U;
+DCM.Ce  = Ce;
+DCM.Ep  = Ep;
+DCM.Cp  = Cp;
+DCM.Pp  = Pp;
+DCM.Vp  = Vp;
+DCM.H1  = H1;
+DCM.K1  = K1;
+DCM.R   = R;
+DCM.y   = y;
+DCM.T   = T;
+ 
+ 
+% Data ID and log-evidence
 %==========================================================================
 if isfield(M,'FS')
     try
-        ID  = spm_data_id(feval(M.FS,Y.y,M));
+        ID = spm_data_id(feval(M.FS,Y.y,M));
     catch
-        ID  = spm_data_id(feval(M.FS,Y.y));
+        ID = spm_data_id(feval(M.FS,Y.y));
     end
 else
-    ID  = spm_data_id(Y.y);
+    ID     = spm_data_id(Y.y);
 end
-
-
-% predicted responses and residuals
-%--------------------------------------------------------------------------
-y     = feval(M.IS,Ep,M,U);
-R     = Y.y - y;
-R     = R - X0*inv(X0'*X0)*(X0'*R);
-
-
-% neuronal kernels
-%--------------------------------------------------------------------------
-L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
-[K0,K1,K2] = spm_kernels(M0,M1,L,M.N,M.dt);
-
-
-% Bayesian inference and reshape {default threshold T = 0}
-%--------------------------------------------------------------------------
-T          = 0;
-sw = warning('off','SPM:negativeVariance'); % switch off NaN-related warning of spm_Ncdf
-pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
-warning(sw);
-if ~M.nlDCM
-    % bilinear DCM
-    [ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
-    [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
-else
-    % nonlinear DCM
-       % NB: order of parameter vector is: 
-       % bilinear neural params -> hemodynamic params -> nonlinear neural params
-    [ A  B  C  H  D] = spm_dcm_reshape(Ep,M.m,n,1);
-    [pA pB pC pH pD] = spm_dcm_reshape(pp,M.m,n,1);
-end
-
-
-% Also record variances - this helps Bayesian inference, e.g. across sessions
-%--------------------------------------------------------------------------
-vv         = diag(Cp);
-if ~M.nlDCM
-    % bilinear DCM
-    [vA vB vC]       = spm_dcm_reshape(vv,M.m,n,1);
-else
-    % nonlinear DCM
-    [vA vB vC vH vD] = spm_dcm_reshape(vv,M.m,n,1);
-end
-
-
-% Store parameter estimates
-%--------------------------------------------------------------------------
-DCM.M      = M;
-DCM.Y      = Y;
-DCM.U      = U;
-DCM.Ep     = Ep;
-DCM.Cp     = Cp;
-DCM.A      = A;
-DCM.B      = B;
-DCM.C      = C;
-DCM.pA     = pA;
-DCM.pB     = pB;
-DCM.pC     = pC;
-DCM.vA     = vA;
-DCM.vB     = vB;
-DCM.vC     = vC;
-DCM.H1     = H1;
-DCM.H2     = H2;
-DCM.K1     = K1;
-DCM.K2     = K2;
-DCM.R      = R;
-DCM.y      = y;
-DCM.T      = T;
-DCM.Ce     = Ce;
-if M.nlDCM
-    % nonlinear DCM
-    DCM.D      = D;
-    DCM.pD     = pD;
-    DCM.vD     = vD;
-end
-
-
+ 
 % Save approximations to model evidence: negative free energy, AIC, BIC
 %--------------------------------------------------------------------------
 evidence   = spm_dcm_evidence(DCM);
 DCM.F      = F;
-DCM.ID     = ID;        % data ID
+DCM.ID     = ID;
 DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;
-
-
+ 
 %-Save DCM
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
-    save(P,'-V6','DCM');
-else
-    save(P,'DCM');
-end
-
+save(P,'DCM','F','Ep','Cp');
+ 
 if ~nargin
     spm('Pointer','Arrow');
     spm('FigName','Done');
 end
-
-return

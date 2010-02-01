@@ -1,10 +1,11 @@
 function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,varargin)
 % Returns the priors for a hemodynamic dynamic causal model.
 % FORMAT:
-%    for bilinear DCM:  [pE,pC,qE,qC] = spm_dcm_priors(A,B,C) 
+%    for bi-linear DCM: [pE,pC,qE,qC] = spm_dcm_priors(A,B,C) 
 %    for nonlinear DCM: [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,D) 
 % INPUT:
 %    A,B,C,D - constraints on connections (1 - present, 0 - absent)
+%
 % OUTPUT:
 %    pE     - prior expectations (connections and hemodynamic)
 %    pC     - prior covariances  (connections and hemodynamic)
@@ -17,68 +18,35 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_priors.m 2661 2009-01-28 20:21:42Z karl $
+% $Id: spm_dcm_priors.m 3705 2010-02-01 20:51:28Z karl $
  
 
-% nonlinear DCM?
-%--------------------------------------------------------------------------
-if nargin > 3
-    nlDCM = 1;
-    D     = varargin{1};
-else
-    nlDCM = 0;
-end
 
 % number of regions
 %--------------------------------------------------------------------------
-n     = length(A);
- 
+n     = length(A);       % number of regions
+q     = 1/32;            % prior covariance, if A(i,j) = 1
+b     = 1;               % global decay rate (Hz)
 
-% CONNECTIVITY PRIORS
-%==========================================================================
-% covariances            pC = 1/((n - 1)*q)  - if A == 1
-%                        pC = 0                if A == 0
-%
-% where, for aij = aji = 1/(n - 1)  => max(eig(J(0))) = 0
-% and q is the Chi-squared threshold with n*(n - 1) df
- 
-% log(2)/b = half-life {b = self inhibition} - log-normal distribution
+% varargin (D for nonlinear coupling)
 %--------------------------------------------------------------------------
-p     = 1e-3;
-b     = 1;
-s     = spm_invNcdf(1 - p);
-q     = spm_invXcdf(1 - p,n*(n - 1));
-q     = n/((n - 1)*q);
+if nargin > 3, D = varargin{1}; else, D = zeros(n,n,0); end
  
-% intrinsic connections A {additional priors from eigenvalues}
+% prior covariances
 %--------------------------------------------------------------------------
 A     = A - diag(diag(A));
-pC    = diag([1/16; A(:)*q; B(:)*q; C(:)]);
-if ~nlDCM
-    % bilinear DCM
-    pC_D = [];
-else
-    % nonlinear DCM
-    pC_D  = diag(D(:)*1);
-end
+pC    = diag([1/16; A(:)*q; B(:)*q; C(:) D(:)*q]);
 
-% define prior expectations and combine with hemodynamic priors
+% prior expectations 
 %--------------------------------------------------------------------------
-A     = -speye(n,n);
-B     = B*0;
-C     = C*0;
-pE    = [log(b); A(:); B(:); C(:)];
-if ~nlDCM
-    % bilinear DCM
-    pE_D = [];
-else
-    % nonlinear DCM
-    D     = D*0;
-    pE_D  = [D(:)];
-end
+pE.b  =  log(b);
+pE.A  = -speye(n,n);
+pE.B  =  B*0;
+pE.C  =  C*0;
+pE.D  =  D*0;
 
 
-% HEMODYNAMIC PRIORS
+% and combine with hemodynamic priors
 %==========================================================================
 % P(1) - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(1) ~ 1sec
 % P(2) - auto-regulation  - d(ds/dt)/df)  2*pi*sqrt(1/P(2)) ~ 10 sec
@@ -87,15 +55,14 @@ end
 % P(5) - resting oxygen extraction  (E0)  ~ range 20 - 50%
 % P(6) - ratio: intra- to extravascular components of gradient echo signal:
 %        epsilon (prior mean = 1, log-normally distributed scaling factor)
-[qE,qC] = spm_hdm_priors(0);
 
+[qE,qC] = spm_hdm_priors(0);
 
 % combine connectivity and hemodynamic priors
 %==========================================================================
-qC      = kron(qC,eye(n,n));
-qE      = kron(qE,ones(n,1));
-pE      = [pE; qE; pE_D];
-pC      = blkdiag(pC,qC,pC_D);
-
+qC      = kron(qC,   eye(n,n));
+qE      = kron(qE', ones(n,1));
+pE.H    = qE;
+pC      = blkdiag(pC,qC);
 
 return

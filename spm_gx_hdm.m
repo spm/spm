@@ -14,7 +14,7 @@ function [y] = spm_gx_hdm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm.m 3666 2010-01-10 17:54:31Z klaas $
+% $Id: spm_gx_hdm.m 3705 2010-02-01 20:51:28Z karl $
 
 
 % biophysical constants for 1.5 T: 
@@ -28,7 +28,7 @@ catch
     TE = 0.04;
 end
 
-%resting venous volume
+% resting venous volume
 %--------------------------------------------------------------------------
 V0    = 100*0.04;                                
 

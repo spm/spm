@@ -1,9 +1,11 @@
-function [y] = spm_int(P,M,U)
+function [y] = spm_int_D(P,M,U)
 % integrates a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
-% FORMAT [y] = spm_int(P,M,U)
+% FORMAT [y] = spm_int_D(P,M,U)
 % P   - model parameters
 % M   - model structure
 %   M.delays - sampling delays (s); a vector with a delay for each output
+%   M.states - a vector of indices if M.x(:) to be used in updating df/dx
+%   M.nsteps - increase number of time steps by this number (default = 1)
 %
 % U   - input structure or matrix
 %
@@ -47,15 +49,15 @@ function [y] = spm_int(P,M,U)
 % This can be useful if input changes are sparse (e.g., boxcar functions).
 % It is used primarily for integrating EEG models
 %
-% spm_int: Fast integrator that uses a bilinear approximation to the
-% Jacobian evaluated using spm_bireduce. This routine will also allow for
+% spm_int_D: Fast integrator that uses a bilinear approximation to the
+% Jacobian evaluated using spm_soreduce. This routine will also allow for
 % sparse sampling of the solution and delays in observing outputs. It is
-% used primarily for integrating fMRI models (see also spm_int_D)
+% used primarily for integrating fMRI models
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_int_D.m 3705 2010-02-01 20:51:28Z karl $
  
  
 % convert U to U.u if necessary
@@ -78,7 +80,7 @@ end
  
 % number of times to sample (v) and number of microtime bins (u)
 %--------------------------------------------------------------------------
-u = size(U.u,1);
+u  = size(U.u,1);
 try
     v = M.ns;
 catch
@@ -96,8 +98,10 @@ end
  
 % Bilinear approximation (1st order)
 %--------------------------------------------------------------------------
-[M0,M1] = spm_bireduce(M,P);
-m       = length(M1);                     % m inputs
+[M0,M1,M2] = spm_soreduce(M,P);
+n          = length(M2);                     % n states
+m          = length(M1);                     % m inputs
+ 
  
 % delays
 %--------------------------------------------------------------------------
@@ -106,7 +110,22 @@ try
 catch
     D  = ones(l,1)*round(u/v);
 end
-
+ 
+% state-dependent effects to include during integration
+%--------------------------------------------------------------------------
+try
+    M2 = M2(M.states);
+    n  = length(M2);
+end
+ 
+% decrease integration time steps
+%--------------------------------------------------------------------------
+try
+    N  = max(M.nsteps,1);
+catch
+    N  = 1;
+end
+ 
  
 % Evaluation times (t) and indicator array for inputs (su) and output (sy)
 %==========================================================================
@@ -124,9 +143,14 @@ for j = 1:M.l
     sy(j,:) = sparse(1,i,[1:v],1,u);
 end
  
+% get (N) intervening times to evaluate
+%--------------------------------------------------------------------------
+i     = ceil([0:(v - 1)*N]*u/v/N) + D(1);
+sx    = sparse(1,i,1,1,u);
+ 
 % time in seconds
 %--------------------------------------------------------------------------
-t     = find(su | any(sy));
+t     = find(su | any(sy) | sx);
 su    = full(su(:,t));
 sy    = full(sy(:,t));
 dt    = [diff(t) 0]*U.dt;
@@ -135,16 +159,21 @@ dt    = [diff(t) 0]*U.dt;
 % Integrate
 %--------------------------------------------------------------------------
 J     = M0;
+U.u   = full(U.u);
 for i = 1:length(t)
  
     % input dependent changes in Jacobian
     %----------------------------------------------------------------------
-    if su(:,i)
-        u     = U.u(t(i),:);
-        J     = M0;
-        for j = 1:m
-            J = J + u(j)*M1{j};
-        end
+    u     = U.u(t(i),:);
+    J     = M0;
+    for j = 1:m
+        J = J + u(j)*M1{j};
+    end
+ 
+    % state dependent changes in Jacobian
+    %----------------------------------------------------------------------
+    for j = 1:n
+        J = J + (x(j + 1) - M.x(j))*M2{j};
     end
  
     % output sampled

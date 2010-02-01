@@ -23,21 +23,14 @@ function spm_dcm_ui(Action)
 %   DCM.a      - intrinsic connection matrix
 %   DCM.b      - input-dependent connection matrix
 %   DCM.c      - input connection matrix
-%   DCM.pA     - pA - posterior probabilities
-%   DCM.pB     - pB - posterior probabilities
-%   DCM.pC     - pC - posterior probabilities
-%   DCM.vA     - vA - variance of parameter estimates
-%   DCM.vB     - vB - variance of parameter estimates
-%   DCM.vC     - vC - variance of parameter estimates
+%   DCM.Pp     - posterior probabilities
+%   DCM.Vp     - variance of parameter estimates
 %   DCM.H1     - 1st order Volterra Kernels - hemodynamic
-%   DCM.H2     - 1st order Volterra Kernels - hemodynamic
-%   DCM.K1     - 1st order Volterra Kernels - neuronal
 %   DCM.K1     - 1st order Volterra Kernels - neuronal
 %   DCM.R      - residuals
 %   DCM.y      - predicted responses
 %   DCM.xY     - original response variable structures
 %   DCM.T      - threshold for inference based on posterior p.d.f
-%   DCM.Ce     - Estimated observation noise covariance
 %   DCM.v      - Number of scans
 %   DCM.n      - Number of regions
 %
@@ -72,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 3479 2009-10-19 10:10:55Z maria $
+% $Id: spm_dcm_ui.m 3705 2010-02-01 20:51:28Z karl $
 
 
 % Get figure handles

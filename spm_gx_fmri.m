@@ -1,6 +1,6 @@
-function [y] = spm_gx_dcm(x,u,P,M)
+function [y] = spm_gx_fmri(x,u,P,M)
 % Simulated BOLD response to input
-% FORMAT [y] = spm_gx_dcm(x,u,P,M)
+% FORMAT [y] = spm_gx_fmri(x,u,P,M)
 % y          - BOLD response (%)
 % x          - state vector     (see spm_fx_dcm)
 % P          - Parameter vector (see spm_fx_dcm)
@@ -15,7 +15,7 @@ function [y] = spm_gx_dcm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_dcm.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_gx_fmri.m 3705 2010-02-01 20:51:28Z karl $
  
  
 % Biophysical constants for 1.5T
@@ -25,33 +25,31 @@ function [y] = spm_gx_dcm(x,u,P,M)
 %--------------------------------------------------------------------------
 try, TE = M.TE; catch, TE = 0.04; end
  
-% resting venous volume
+% resting venous volume (%)
 %--------------------------------------------------------------------------
-V0  = 100*0.04;
+V0  = 8;
+
+% estimated region-specific ratios of intra- to extra-vascular signal 
+%--------------------------------------------------------------------------
+ep  = 1*exp(P.epsilon);
  
 % slope r0 of intravascular relaxation rate R_iv as a function of oxygen 
-% saturation Y:  R_iv = r0*[(1-Y)-(1-Y0)]
+% saturation S:  R_iv = r0*[(1 - S)-(1 - S0)] (Hz)
 %--------------------------------------------------------------------------
-r0  = 25;   % [Hz]
+r0  = 25;
  
-% frequency offset at the outer surface of magnetized vessels
+% frequency offset at the outer surface of magnetized vessels (Hz)
 %--------------------------------------------------------------------------
-nu0 = 40.3; % [Hz]
+nu0 = 40.3; 
  
-% estimated region-specific resting oxygen extraction fractions
+% resting oxygen extraction fraction
 %--------------------------------------------------------------------------
-E0  = P.H(:,5);
- 
-% estimated region-specific ratios of intra- to extra-vascular components of
-% the gradient echo signal (prior mean = 1, log-normally distributed 
-% scaling factor) 
-%--------------------------------------------------------------------------
-ep  = exp(P.H(:,6));
+E0  = 0.4;
  
 %-Coefficients in BOLD signal model
 %==========================================================================
-k1  = 4.3.*nu0.*E0.*TE;
-k2  = ep.*r0.*E0.*TE;
+k1  = 4.3*nu0*E0*TE;
+k2  = ep*r0*E0*TE;
 k3  = 1 - ep;
  
 %-Output equation of BOLD signal model

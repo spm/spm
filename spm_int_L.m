@@ -54,11 +54,11 @@ function [y] = spm_int_L(P,M,U)
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_int_L.m 3705 2010-02-01 20:51:28Z karl $
  
  
 % convert U to U.u if necessary
@@ -66,7 +66,7 @@ function [y] = spm_int_L(P,M,U)
 if ~isstruct(U), u.u = U; U = u;         end
 try, dt = U.dt;        catch, dt = 1;    end
 try, ns = size(U.u,1); catch, ns = M.ns; end
- 
+
  
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------

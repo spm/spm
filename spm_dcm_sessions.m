@@ -26,67 +26,54 @@ function [] = spm_dcm_sessions ()
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 1711 2008-05-22 11:09:13Z guillaume $
+% $Id: spm_dcm_sessions.m 3705 2010-02-01 20:51:28Z karl $
 
 
 Finter = spm_figure('GetWin','Interactive');
 Fgraph = spm_figure('GetWin','Graphics');
 
 num_models = spm_input('Apply contrast to how many DCM models ? ','+1','r',[],1);
-P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
+P      = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
 
 % Get contrast
-str     = 'contrast for';
-D       = spm_input(str,1,'b',{'A','B','C'});
+str    = 'contrast for';
+D      = spm_input(str,1,'b',{'A','B','C'});
 load(deblank(P(1,:)));
-con=spm_dcm_contrasts(deblank(P(1,:)),D);
+con    = spm_dcm_contrasts(deblank(P(1,:)),D);
 
 % Get threshold
-str = 'Threshold';
-DCM.T      = spm_input(str,1,'e',0,[1 1]);
-T=DCM.T;
+str   = 'Threshold';
+DCM.T = spm_input(str,1,'e',0,[1 1]);
+T     = DCM.T;
 
 % Get mean and variance of effect in each model
-con_error=0;
-for model=1:num_models,
+con_error = 0;
+for model = 1:num_models,
     load(deblank(P(model,:)));
-    drawnow;
-    
-    l     = DCM.M.l;
-    m     = DCM.M.m;
-    i       = find(con); 
-    switch D,
-    case 'A',
-        j = 1;
-    case 'B',
-        j = 1 + l*l;
-    case 'C',
-        j = 1 + l*l + l*l*m;
-    end
-    C       = sparse(i + j,1,con(i),length(DCM.Ep),1);
-    mean_con(model) = full(C')*full(DCM.Ep);
-    var_con(model) = full(C')*full(DCM.Cp)*full(C);   
+    mean_con(model) = full(con')*full(spm_vec(DCM.Ep));
+    var_con(model)  = full(con')*full(DCM.Cp)*full(con);   
     disp(sprintf('Model %d, Contrast Mean=%1.4f, Contrast Variance=%1.4f',model,mean_con(model),var_con(model)));
-    if var_con(model)==0
+    if var_con(model) == 0
         disp(sprintf('Error in spm_dcm_sessions: this contrast not valid for model %d',model));
         con_error=1;
     end
 end
 
+% Invalid contrast specified
+%--------------------------------------------------------------------------
 if con_error
-    % Invalid contrast specified
     return
 end
 
 %- Bayesian fixed effects analysis 
-%-----------------------------------------------------------
-precision_con=1./var_con;
-precision=sum(precision_con);
-v=1/precision;
+%--------------------------------------------------------------------------
+precision_con = 1./var_con;
+precision     = sum(precision_con);
+v   = 1/precision;
 c   = sum((precision_con.*mean_con)/precision);
-x    = c + [-32:32]*sqrt(v)*6/32;
-p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
-PP   = 1 - spm_Ncdf(T,c,v);
+x   = c + [-32:32]*sqrt(v)*6/32;
+p   = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
+PP  = 1 - spm_Ncdf(T,c,v);
 disp(' ');
 disp(sprintf('Bayesian Fixed Effect Mean = %1.4f', full(c)));
 disp(sprintf('Bayesian Fixed Effect Variance = %1.4f', full(v)));
@@ -96,7 +83,7 @@ subplot(2,1,1)
 plot(x,p,[1 1]*T,[0 max(p)],'-.');
 title({'Bayesian Fixed Effects: Posterior density of contrast',...
         sprintf('P(contrast > %0.2f) = %.1f%s',T,PP*100,'%')},...
-    'FontSize',12)
+       'FontSize',12)
 xlabel('contrast');
 ylabel('probability density');
 
@@ -109,12 +96,11 @@ hold off
 % Random effects analysis 
 % - assuming an inverse gamma prior on the variance
 % the posterior is a t-distribution 
-
+%--------------------------------------------------------------------------
 v    = std(mean_con)^2;
 c    = mean(mean_con);
 t    = (sqrt(num_models)*(c-T))/sqrt(v);
 x    = c + [-32:32]*sqrt(v)*6/32;
-% p    = 1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v));
 p    = spm_Tpdf((sqrt(num_models)*(x-c))/sqrt(v),num_models-1);
 PP   = spm_Tcdf(t,num_models-1);
 disp(' ');
@@ -125,7 +111,7 @@ subplot(2,1,2)
 plot(x,p,[1 1]*T,[0 max(p)],'-.');
 title({'Bayesian Random Effects: Posterior density of contrast',...
         sprintf('P(contrast > %0.2f) = %.1f%s',T,PP*100,'%')},...
-    'FontSize',12)
+       'FontSize',12)
 xlabel('contrast');
 ylabel('probability density');
 
@@ -137,8 +123,9 @@ hold off
 
 % Get Classical RFX p-value
 % Note: 1-p is equal to Bayesian RFX if T=0
-t=(sqrt(num_models)*c)/sqrt(v);
-p= 1 - spm_Tcdf(t,num_models-1);
+%--------------------------------------------------------------------------
+t  = (sqrt(num_models)*c)/sqrt(v);
+p  = 1 - spm_Tcdf(t,num_models - 1);
 disp(sprintf('Classical Random Effects p-value = %1.4f', p));
 disp('Note: 1-p is equal to Bayesian RFX if threshold is zero');
 spm_input('Thank you',1,'d');
