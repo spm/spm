@@ -9,29 +9,31 @@ function [x] = spm_expm(J,x)
 % comoutationally  expedient  approximation  that can handle sparse
 % matrices when dealing with the special case of expm(J)*x, where x
 % is a vector, in an efficient fashion
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 3649 2009-12-17 16:57:24Z guillaume $
+% $Id: spm_expm.m 3704 2010-02-01 20:50:18Z karl $
 
 
-% expm(J) use Pade approximation
-%---------------------------------------------------------------------------
-if nargin == 1
+
+if nargin == 1 || nargin == 2
+
+    % expm(J) use Pade approximation
+    %======================================================================
 
     % ensure norm is < 1/2 by scaling by power of 2
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     J     = full(J);
     I     = eye(size(J));
     [f,e] = log2(norm(J,'inf'));
-    s     = max(0,e+1);
+    s     = max(0,e + 1);
     J     = J/2^s;
-    X     = J; 
+    X     = J;
     c     = 1/2;
     E     = I + c*J;
     D     = I - c*J;
-    q     = 6;
+    q     = 4;
     p     = 1;
     for k = 2:q
         c   = c*(q - k + 1)/(k*(2*q - k + 1));
@@ -45,39 +47,59 @@ if nargin == 1
         end
         p = ~p;
     end
-    E = D\E;
+    E = D\E;  % E = inv(D)*E
 
-    % Undo scaling by repeated squaring
-    %-------------------------------------------------------------------
+    % Undo scaling by repeated squaring E = E^(2^s)
+    %----------------------------------------------------------------------
     for k = 1:s
         E = E*E;
     end
-    x     = E;
-    
+
+    % Multiply by x if necessary
+    %----------------------------------------------------------------------
+    if nargin > 1
+        x = E*x;
+    else
+        x = E;
+    end
+    return
+
+
+% Alternative evaluation of exp(J)*x for large matrices
+%==========================================================================
 else
 
     % compute y = expm(J)*x = (1 + J + J*J/2! + J*J*J/3!  + ...)*x
-    %-------------------------------------------------------------------
-    J     = full(J);
-    x     = full(x);
-    x0    = x;
+    %----------------------------------------------------------------------
     fx    = J*x;
-    j     = 1;
-
-    while norm(fx,1) > 1e-16
+    s     = 0;
+    for i = 2:64
 
         % accumulate high-order terms until convergence
         %-----------------------------------------------------------
-        j  = j + 1;
-        x  = x + fx;
-        fx = J*fx/j;
+        nx = norm(fx,1);
+        if ~nx
+            return
+        end
+        fx = fx/nx;
 
-        % revert to Pade approximation if numerical overflow
-        %-----------------------------------------------------------
-        if norm(x,1) > 1e16
-            %fprintf('Reverting to Pade approximation')
-            x = spm_expm(J)*x0;
+        % take care to accumulate scaling in log-space
+        %------------------------------------------------------------------
+        s(i,1) = s(i - 1) + log(nx) - log(i - 1);
+        x(:,i) = fx;
+        fx     = J*fx;
+
+        % add expansion terms if convergence
+        %------------------------------------------------------------------
+        if s(i) < -16
+            x   = x*exp(s);
             return
         end
     end
+
+    % If no convergence
+    %----------------------------------------------------------------------
+    disp('reverting to full pade')
+    x   = spm_expm(J)*x(:,1);
+
 end

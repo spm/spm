@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3689 2010-01-20 07:33:40Z volkmar $
+% $Id: spm_figure.m 3704 2010-02-01 20:50:18Z karl $
 
 
 %=======================================================================
@@ -260,25 +260,27 @@ F = spm_figure('FindWin',Tag);
 if isempty(F)
     if ischar(Tag)
         switch Tag
-            
-        case 'Graphics'
-            F = spm_figure('Create','Graphics','Graphics');
-        case 'DEM'
-            F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
-        case 'DFP'
-            F = spm_figure('Create','DFP','Variational filtering');
-        case 'FMIN'
-            F = spm_figure('Create','FMIN','Function minimisation');
-        case 'MFM'
-            F = spm_figure('Create','MFM','Mean-field and neural mass models');
-        case 'MVB'
-            F = spm_figure('Create','MVB','Multivariate Bayes');
-        case 'SI'
-            F = spm_figure('Create','SI','System Identification');
-        case 'PPI'
-            F = spm_figure('Create','PPI','Physio/Psycho-Physiologic Interaction');
-        case 'Interactive'
-            F = spm('CreateIntWin');
+
+            case 'Graphics'
+                F = spm_figure('Create','Graphics','Graphics');
+            case 'DEM'
+                F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
+            case 'DFP'
+                F = spm_figure('Create','DFP','Variational filtering');
+            case 'FMIN'
+                F = spm_figure('Create','FMIN','Function minimisation');
+            case 'MFM'
+                F = spm_figure('Create','MFM','Mean-field and neural mass models');
+            case 'MVB'
+                F = spm_figure('Create','MVB','Multivariate Bayes');
+            case 'SI'
+                F = spm_figure('Create','SI','System Identification');
+            case 'PPI'
+                F = spm_figure('Create','PPI','Physio/Psycho-Physiologic Interaction');
+            case 'Interactive'
+                F = spm('CreateIntWin');
+            otherwise
+                F = spm_figure('Create',Tag,Tag);
         end
     end
 else
@@ -319,7 +321,6 @@ if isempty(Tags)
     %-Reset figures callback functions
     zoom(F,'off');
     rotate3d(F,'off');
-    pan(F,'off');
     set(F,'KeyPressFcn','',...
         'WindowButtonDownFcn','',...
         'WindowButtonMotionFcn','',...
