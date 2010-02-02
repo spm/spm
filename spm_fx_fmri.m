@@ -33,7 +33,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_fx_fmri.m 3708 2010-02-02 20:15:31Z karl $
 
 
 % Neuronal motion
@@ -117,7 +117,7 @@ ff       = (1 - (1 - H(5)).^(1./x(:,3)))/H(5);
 
 % implement differential state equation y = dx/dt (hemodynamic)
 %--------------------------------------------------------------------------
-y(:,2)   = x(:,1)  - sd.*x(:,2) - H(2)*(x(:,3) - 1);
+y(:,2)   = x(:,1) - sd.*x(:,2) - H(2)*(x(:,3) - 1);
 y(:,3)   = x(:,2)./x(:,3);
 y(:,4)   = (x(:,3) - fv)./(tt.*x(:,4));
 y(:,5)   = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./(tt.*x(:,5));

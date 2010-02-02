@@ -25,7 +25,7 @@ function [pE,pC] = spm_dcm_fmri_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_fmri_priors.m 3708 2010-02-02 20:15:31Z karl $
 
 
 
@@ -56,27 +56,31 @@ if two_states
 
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A/8;
-    pC.B  =  B/8;
-    pC.C  =  C*8;
-    pC.D  =  D/8;
+    pC.A  =  A/4;
+    pC.B  =  B/4;
+    pC.C  =  C*4;
+    pC.D  =  D/4;
 
 else
 
-    % prior covariances
+    % enforce self-inhibition
     %----------------------------------------------------------------------
     A     =  A - diag(diag(A));
-    pC.A  =  A/32;
-    pC.B  =  B/32;
-    pC.C  =  C;
-    pC.D  =  D/32;
 
     % prior expectations
     %----------------------------------------------------------------------
-    pE.A  = -speye(n,n);
+    pE.A  = -eye(n,n);
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
+    
+    % prior covariances
+    %----------------------------------------------------------------------
+    pC.A  =  A*4;
+    pC.B  =  B*4;
+    pC.C  =  C*4;
+    pC.D  =  D*4;
+
 
 end
 
@@ -86,9 +90,9 @@ pE.transit = sparse(n,1);
 pE.decay   = sparse(n,1);
 pE.epsilon = sparse(1,1);
 
-pC.transit = sparse(n,1) + exp(-8);
-pC.decay   = sparse(n,1) + exp(-8);
-pC.epsilon = sparse(1,1) + exp(-8);
+pC.transit = sparse(n,1) + exp(-4);
+pC.decay   = sparse(n,1) + exp(-4);
+pC.epsilon = sparse(1,1) + exp(-4);
 
 pC         = diag(spm_vec(pC));
 

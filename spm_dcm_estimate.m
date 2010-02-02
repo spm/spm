@@ -44,7 +44,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_estimate.m 3708 2010-02-02 20:15:31Z karl $
  
  
 % load DCM structure
@@ -189,7 +189,7 @@ if DCM.options.stochastic
     DEM.M(1).E.s  = 1/8;        % smoothness of random fluctuations
     DEM.M(1).E.d  = 2;          % embedding dimension 
     DEM.M(1).E.n  = 4;          % embedding dimension
-    DEM.M(1).E.nN = 4;          % maximum number of DEM iterations
+    DEM.M(1).E.nN = 8;          % maximum number of DEM iterations
  
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
@@ -204,17 +204,13 @@ if DCM.options.stochastic
     % ---------------------------------------------------------------------
     DEM.M(1).xP = 32;
  
-    % Relax priors on parameters for spm_LAP (evidence accumulation scheme)
-    % ---------------------------------------------------------------------
-    DEM.M(1).pC = pC*v;
-    
     
     % Specify hyper-priors on precisions: level 1
     % ---------------------------------------------------------------------
     DEM.M(1).Q  = spm_Ce(ones(1,n));
     DEM.M(1).hE = Eh;          % prior expectation of log precision (noise)
     DEM.M(1).hC = 8;           % prior covariance  of log precision (noise)
-    DEM.M(1).gE = 6;           % prior expectation of log precision (state)
+    DEM.M(1).gE = 8;           % prior expectation of log precision (state)
     DEM.M(1).gC = 1;           % prior covariance  of log precision (state)
  
     % and level 2
