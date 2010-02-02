@@ -9,7 +9,9 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 3661 2010-01-05 17:00:47Z guillaume $
+% $Id: spm_logdet.m 3707 2010-02-02 19:01:59Z guillaume $
+
+sw    = warning('off','MATLAB:log:logOfZero');
 
 % assume diagonal form
 %--------------------------------------------------------------------------
@@ -22,14 +24,12 @@ H     = sum(log(diag(C)));
 
 % invoke det if non-diagonal
 %--------------------------------------------------------------------------
-sw    = warning('off','all');
 [i j] = find(C);
 if any(i ~= j)
       n = length(C);
       a = exp(H/n);
       H = H + log(det(C/a));           
 end
-warning(sw)
 
 % invoke svd is rank deficient
 %--------------------------------------------------------------------------
@@ -37,3 +37,5 @@ if ~isreal(H) || isinf(H)
     s  = svd(full(C));
     H  = sum(log(s(s > TOL & s < 1/TOL)));
 end
+
+warning(sw)
