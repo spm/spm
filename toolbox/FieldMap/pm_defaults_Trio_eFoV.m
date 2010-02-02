@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio_eFoV.m 2616 2009-01-19 16:49:42Z chloe $
+% $Id: pm_defaults_Trio_eFoV.m 3706 2010-02-02 12:21:08Z chloe $
 
 global pm_def
 
@@ -54,7 +54,7 @@ pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
 %=======================================================================
 pm_def.EPI_BASED_FIELDMAPS = 0;         % EPI=1, other=0.
 pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = -1; % +ve k-space = 1, -ve = -1.
-pm_def.TOTAL_EPI_READOUT_TIME = 36.0;   % Trio eFoV EPI RO time 
+pm_def.TOTAL_EPI_READOUT_TIME = 37.0;   % Trio eFoV EPI RO time 
 
 % Defaults for Unwarping.
 %=======================================================================
