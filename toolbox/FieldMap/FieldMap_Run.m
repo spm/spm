@@ -34,14 +34,13 @@ function vdm = Fieldmap_Run(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 3085 2009-04-24 20:09:58Z chloe $
+% $Id: FieldMap_Run.m 3710 2010-02-03 19:11:26Z guillaume $
 %_________________________________________________________________
 
 %
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------
-spm_defaults
 
 % Open the FieldMap control window with visibility off. This allows the
 % graphics display to work.

@@ -53,7 +53,7 @@ function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % chi-squared distribution and allow one to test the null hypothesis that
 % the mapping is D or more dimensional. This inference is shown as a bar
 % plot of p-values.  The first p-value is formally identical to that
-% obtained using Wilk's Lambda and tests for the significance of any
+% obtained using Wilks' Lambda and tests for the significance of any
 % mapping.
 % 
 % This routine uses the current contrast to define the subspace of interest
@@ -81,7 +81,7 @@ function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 3354 2009-09-03 15:25:12Z guillaume $
+% $Id: spm_cva.m 3710 2010-02-03 19:11:26Z guillaume $
  
 
 % get figure handles
@@ -218,7 +218,7 @@ W     = P*v;                          % canonical vectors  (design)
 w     = X*W;                          % canonical variates (design)
 C     = c*W;                          % canonical contrast (design)
  
-% inference on dimensionality - p(i) test of D >= i; Wilk's Lambda := p(1)
+% inference on dimensionality - p(i) test of D >= i; Wilks' Lambda := p(1)
 %--------------------------------------------------------------------------
 cval  = log(diag(d) + 1);
 for i = 1:h

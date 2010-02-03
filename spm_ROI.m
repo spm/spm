@@ -17,7 +17,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_ROI.m 3710 2010-02-03 19:11:26Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -31,7 +31,7 @@ if ~isfield(xY,'def')
     def        = {'sphere','box','cluster','mask'};
     if isfield(xY,'rej')
         if ~isfield(xY,'M')
-            xY.rej = {xY.rej 'cluster'};
+            xY.rej = {xY.rej{:} 'cluster'};
         end
     else
         if isfield(xY,'M')
