@@ -1590,3 +1590,4 @@ FFFE	E0DD	SequenceDelimitationItem	UN	1
 0029	1134	PMTFInformation4	CS	1
 0031	1009	NumberRawDataChannels	UL	1
 7fe1	1010	CSAData	OB	1
+0029	1140	SiemensMedcomHeader	SQ	1
