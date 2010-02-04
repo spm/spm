@@ -1,38 +1,36 @@
-function spm_dcm_bma_results (BMS,mod_in,drive_in,method)
+function spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 % Plot histograms from BMA for selected modulatory and driving input
-% FORMAT spm_dcm_bma_results (BMS,mod_in,drive_in,method)
+% FORMAT spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 %
 % Input:
-% BMS        - BMS.mat file 
+% BMS        - BMS.mat file
 % mod_in     - modulatory input
 % drive_in   - driving input
 % method     - inference method (FFX or RFX)
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3636 2009-12-11 14:31:26Z maria $
+% $Id: spm_dcm_bma_results.m 3711 2010-02-04 16:47:03Z guillaume $
 
-if nargin < 6
+if nargin < 4
     % function called without parameters (e.g. via GUI)
     %----------------------------------------------------------------------
     Finter = spm_figure('GetWin','Interactive');
     spm_clf(Finter);
     set(Finter,'name','Dynamic Causal Modeling');
-    
-    header      = get(Finter,'Name');
-    WS          = spm('WinScale');
-    fname       = spm_select([1 1],'^BMS.mat$','select BMS.mat file');
-    
+
+    fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
+
     mod_input   = spm_input('Select modulatory input ? ',1,'r',[],1);
     drive_input = spm_input('Select driving input ? ','+1','r',[],1);
-    method      = spm_input('Inference method','+1','b','FFX|RFX',['ffx';'rfx']);    
+    method      = spm_input('Inference method','+1','b','FFX|RFX',['ffx';'rfx']);
 else
     % use function arguments
     %----------------------------------------------------------------------
     mod_input   = mod_in;
     drive_input = drive_in;
-    fname       = BMS;   
+    fname       = BMS;
 end
 
 % load BMS file
@@ -45,42 +43,42 @@ nonLin = 0;
 if isfield(BMS.DCM,method)
     switch method
         case 'ffx'
-                if isempty(BMS.DCM.ffx.bma)
-                    error('No BMA analysis for FFX in BMS file!');
-                else
-                    Nsamp = BMS.DCM.ffx.bma.nsamp;
-                    amat  = BMS.DCM.ffx.bma.a;
-                    bmat  = BMS.DCM.ffx.bma.b;
-                    cmat  = BMS.DCM.ffx.bma.c;
-                    if isfield(BMS.DCM.ffx.bma,'d')
-                        dmat = BMS.DCM.ffx.bma.d;
-                        mod_reg = spm_input('Select modulating region ? ','+1','r',[],1);
-                        nonLin = 1;
-                    end
-                    
+            if isempty(BMS.DCM.ffx.bma)
+                error('No BMA analysis for FFX in BMS file!');
+            else
+                Nsamp = BMS.DCM.ffx.bma.nsamp;
+                amat  = BMS.DCM.ffx.bma.a;
+                bmat  = BMS.DCM.ffx.bma.b;
+                cmat  = BMS.DCM.ffx.bma.c;
+                if isfield(BMS.DCM.ffx.bma,'d')
+                    dmat = BMS.DCM.ffx.bma.d;
+                    mod_reg = spm_input('Select modulating region ? ','+1','r',[],1);
+                    nonLin = 1;
                 end
-                disp('Loading model space...')
-                load(BMS.DCM.ffx.data)
-                load(subj(1).sess(1).model(1).fname)
-            
+
+            end
+            disp('Loading model space...')
+            load(BMS.DCM.ffx.data)
+            load(subj(1).sess(1).model(1).fname)
+
         case 'rfx'
-                if isempty(BMS.DCM.rfx.bma)
-                    error('No BMA analysis for RFX in BMS file!');
-                else
-                    Nsamp = BMS.DCM.rfx.bma.nsamp;
-                    amat = BMS.DCM.rfx.bma.a;
-                    bmat = BMS.DCM.rfx.bma.b;
-                    cmat = BMS.DCM.rfx.bma.c;
-                    if isfield(BMS.DCM.rfx.bma,'d')
-                       dmat = BMS.DCM.rfx.bma.d;
-                       mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1);
-                       nonLin = 1;
-                    end
-                    
+            if isempty(BMS.DCM.rfx.bma)
+                error('No BMA analysis for RFX in BMS file!');
+            else
+                Nsamp = BMS.DCM.rfx.bma.nsamp;
+                amat = BMS.DCM.rfx.bma.a;
+                bmat = BMS.DCM.rfx.bma.b;
+                cmat = BMS.DCM.rfx.bma.c;
+                if isfield(BMS.DCM.rfx.bma,'d')
+                    dmat = BMS.DCM.rfx.bma.d;
+                    mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1);
+                    nonLin = 1;
                 end
-                disp('Loading model space...')
-                load(BMS.DCM.rfx.data)
-                load(subj(1).sess(1).model(1).fname)
+
+            end
+            disp('Loading model space...')
+            load(BMS.DCM.rfx.data)
+            load(subj(1).sess(1).model(1).fname)
     end
 else
     msgbox(sprintf('No %s analysis in current BMS.mat file!',method))
@@ -154,8 +152,7 @@ set(handles.hp,'backgroundcolor',[1 1 1])
 
 feval(@plot_a,F)
 
-end
-
+%==========================================================================
 function plot_a(F)
 
 try
@@ -190,8 +187,8 @@ for i=1:ud.n,
                 xlim([-amax amax])
             else
                 if amax < 0
-                   amin = min(ud.amat(i,j,:));
-                   xlim([amin amax])
+                    amin = min(ud.amat(i,j,:));
+                    xlim([amin amax])
                 else
                     xlim([-10 10])
                 end
@@ -203,9 +200,8 @@ for i=1:ud.n,
     end
 end
 
-end
-
-function plot_b()
+%==========================================================================
+function plot_b
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
@@ -234,8 +230,8 @@ for i=1:ud.n,
                 xlim([-bmax bmax])
             else
                 if bmax < 0
-                   bmin = min(ud.bmat(i,j,ud.mod_input,:));
-                   xlim([bmin bmax])
+                    bmin = min(ud.bmat(i,j,ud.mod_input,:));
+                    xlim([bmin bmax])
                 else
                     xlim([-10 10])
                 end
@@ -247,10 +243,8 @@ for i=1:ud.n,
     end
 end
 
-
-end
-
-function plot_c()
+%==========================================================================
+function plot_c
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
@@ -274,7 +268,7 @@ for j=1:ud.n,
         hist(ud.cmat(j,ud.drive_input,:),ud.bins,'r');
         cmax = max(ud.cmat(j,ud.drive_input,:));
         if cmax > 0
-           xlim([-cmax cmax])
+            xlim([-cmax cmax])
         else
             if cmax < 0
                 cmin = min(ud.cmat(j,ud.drive_input,:));
@@ -289,9 +283,8 @@ for j=1:ud.n,
     title(sprintf('%s ',ud.region(j).name));
 end
 
-end
-
-function plot_d()
+%==========================================================================
+function plot_d
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
@@ -320,8 +313,8 @@ for i=1:ud.n,
                 xlim([-bmax bmax])
             else
                 if bmax < 0
-                   bmin = min(ud.dmat(i,j,ud.mod_reg,:));
-                   xlim([bmin bmax])
+                    bmin = min(ud.dmat(i,j,ud.mod_reg,:));
+                    xlim([bmin bmax])
                 else
                     xlim([-10 10])
                 end
@@ -331,6 +324,4 @@ for i=1:ud.n,
             title(sprintf('%s to %s',ud.region(j).name,ud.region(i).name));
         end
     end
-end
-
 end
