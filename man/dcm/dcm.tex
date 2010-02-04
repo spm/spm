@@ -2,16 +2,16 @@
 
 
 \section{Theoretical background}
-Dynamic Causal Modelling (DCM) is a method for making inferences about neural processes that underlie measured time series, e.g. fMRI data.  The general idea is to estimate the parameters of a reasonably realistic neuronal system model such that the predicted blood oxygen level dependent (BOLD) signal, which results from converting the modeled neural dynamics into hemodynamic responses, corresponds as closely as possible to the observed BOLD time series.  This section gives a short introduction to the theoretical background of DCM for fMRI; details can be found in \cite{dcm}.  Note that DCMs can be formulated, in principle, for any measurement technique.  Depending on the spatio-temporal properties of a given measurement technique, one needs to define an adequate state equation and an observation model. See Fig~\ref{fig1} for a summary of the differences between DCM implementations for fMRI and Event-Related Potentials (ERPs).
+Dynamic Causal Modelling (DCM) is a method for making inferences about neural processes that underlie measured time series, e.g. fMRI data.  The general idea is to estimate the parameters of a reasonably realistic neuronal system model such that the predicted blood oxygen level dependent (BOLD) signal, which results from converting the modeled neural dynamics into hemodynamic responses, corresponds as closely as possible to the observed BOLD time series.  This section gives a short introduction to the theoretical background of DCM for fMRI; details can be found in \cite{dcm}.  Note that DCMs can be formulated, in principle, for any measurement technique.  Depending on the spatio-temporal properties of a given measurement technique, one needs to define an adequate state equation and an observation model. See Fig~\ref{dcm_fig1} for a summary of the differences between DCM implementations for fMRI and Event-Related Potentials (ERPs).
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=100mm]{dcm/Fig1}
-\caption{\em A schematic overview of the differences between between the DCM implementations for fMRI and ERPs (as measured by EEG or MEG).  Whereas the state equation of DCM for fMRI is bilinear and uses only a single state variable per region, that for ERPs is more complex and requires 8 state variables per region.  Moreover, DCM for ERPs models the delays of activity propagation between areas.  At the level of the observation model, DCM for fMRI is more complex than DCM for ERPs.  While the former uses a non-linear model of the hemodynamic response that contains a cascade of differential equations with five state variables per region, the latter uses a simple linear model for predicting observed scalp data.\label{fig1}}
+\caption{\em A schematic overview of the differences between between the DCM implementations for fMRI and ERPs (as measured by EEG or MEG).  Whereas the state equation of DCM for fMRI is bilinear and uses only a single state variable per region, that for ERPs is more complex and requires 8 state variables per region.  Moreover, DCM for ERPs models the delays of activity propagation between areas.  At the level of the observation model, DCM for fMRI is more complex than DCM for ERPs.  While the former uses a non-linear model of the hemodynamic response that contains a cascade of differential equations with five state variables per region, the latter uses a simple linear model for predicting observed scalp data.\label{dcm_fig1}}
 \end{center}
 \end{figure}
 
-As in state-space models, two distinct levels constitute a DCM (see Figure~\ref{fig2}).  The hidden level, which cannot be directly observed using fMRI, represents a simple model of neural dynamics in a system of $k$ coupled brain regions.  Each system element $i$ is represented by a single state variable $z_i$, and the dynamics of the system is described by the change of the neural state vector  over time.
+As in state-space models, two distinct levels constitute a DCM (see Figure~\ref{dcm_fig2}).  The hidden level, which cannot be directly observed using fMRI, represents a simple model of neural dynamics in a system of $k$ coupled brain regions.  Each system element $i$ is represented by a single state variable $z_i$, and the dynamics of the system is described by the change of the neural state vector  over time.
 
 The neural state variables do not correspond directly to any common neurophysiological measurement (such as spiking rates or local field potentials) but represent a summary index of neural population dynamics in the respective regions.  Importantly, DCM models how the neural dynamics are driven by external perturbations that result from experimentally controlled manipulations.  These perturbations are described by means of external inputs $u$ that enter the model in two different ways:  they can elicit responses through direct influences on specific regions (``driving'' inputs, e.g. evoked responses in early sensory areas) or they can change the strength of coupling among regions (``modulatory'' inputs, e.g. during learning or attention).
 
@@ -23,7 +23,7 @@ Overall, DCM models the temporal evolution of the neural state vector, i.e. , as
   .. \\
   \dot{z}_k \\  \end{array} \right] = \dot{z}= \frac{dz}{dt} = F(z,u,\theta^n)
 \end{equation}
-In this neural state equation, the state $z$ and the inputs $u$ are time-dependent whereas the parameters are time-invariant.  In DCM, $F$ has the bilinear form
+In this neural state equation, the state $z$ and the inputs $u$ are time-dependent whereas the parameters are time-invariant. In DCM, $F$ has the bilinear form
  \begin{equation}
 \dot{z}=Az+\sum_{j=1}^m u_j B_j z + Cu
 \end{equation}
@@ -38,7 +38,7 @@ These parameter matrices describe the nature of the three causal components whic
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=130mm]{dcm/Fig2}
-\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of ``external'' or ``driving'' inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the intrinsic connections.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning).\label{fig2}}
+\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of ``external'' or ``driving'' inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the intrinsic connections.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning).\label{dcm_fig2}}
 \end{center}
 \end{figure}
 
@@ -56,18 +56,18 @@ This formulation is the basis for estimating the neural and hemodynamic paramete
 
 Details of the parameter estimation scheme, which rests on a Fisher scoring gradient ascent scheme with Levenburg-Marquardt regularisation, embedded in an expectation maximization (EM) algorithm, can be found in the original DCM publication (Friston et al. 2003).  In brief, under Gaussian assumptions about the posterior distributions, this scheme returns the posterior expectations $\eta_{\theta | y}$ and posterior covariance  $C_{\theta | y}$ for the parameters as well as hyperparameters for the covariance of the observation noise, $C_e$.
 
-After fitting the model to measured BOLD data, the posterior distributions of the parameters can be used to test hypotheses about the size and nature of effects at the neural level.  Although inferences could be made about any of the parameters in the model, hypothesis testing usually concerns context-dependent changes in coupling (i.e. specific parameters from the $B$ matrices; see Fig.~\ref{fig6}).  As will be demonstrated below, at the single-subject level, these inferences concern the question of how certain one can be that a particular parameter or, more generally, a contrast of parameters, $c^T \eta_{\theta | y}$, exceeds a particular threshold  $\gamma$ (e.g. zero).
+After fitting the model to measured BOLD data, the posterior distributions of the parameters can be used to test hypotheses about the size and nature of effects at the neural level.  Although inferences could be made about any of the parameters in the model, hypothesis testing usually concerns context-dependent changes in coupling (i.e. specific parameters from the $B$ matrices; see Fig.~\ref{dcm_fig6}).  As will be demonstrated below, at the single-subject level, these inferences concern the question of how certain one can be that a particular parameter or, more generally, a contrast of parameters, $c^T \eta_{\theta | y}$, exceeds a particular threshold  $\gamma$ (e.g. zero).
 
 Under the assumptions of the Laplace approximation, this is easy to test ($\Phi_N$ denotes the cumulative normal distribution):
 \begin{equation}
 p(c^T \eta_{\theta | y} > \gamma) = \Phi_N \left(\frac{c^T \eta_{\theta | y} - \gamma}{c^T C_{\theta | y} c} \right)
 \end{equation}
 For example, for the special case $c^T \eta_{\theta | y} = \gamma$ the probability is $p(c^T \eta_{\theta | y} > \gamma)=0.5$, i.e. it is equally likely that the parameter is smaller or larger than the chosen threshold $\gamma$.
-We conclude this section on the theoretical foundations of DCM by noting that the parameters can be understood as rate constants (units: $1/s = Hz$) of neural population responses that have an exponential nature.  This is easily understood if one considers that the solution to a linear ordinary differential equation of the form $\dot{z}=Az$ is an exponential function (see Fig. ~\ref{fig3}).
+We conclude this section on the theoretical foundations of DCM by noting that the parameters can be understood as rate constants (units: $1/s = Hz$) of neural population responses that have an exponential nature.  This is easily understood if one considers that the solution to a linear ordinary differential equation of the form $\dot{z}=Az$ is an exponential function (see Fig. ~\ref{dcm_fig3}).
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=120mm]{dcm/Fig3}
-\caption{\em A short mathematical demonstration, using a simple linear first-order differential equation as an example, explaining why the coupling parameters in a DCM are inversely proportional to the half-life of the modelled neural responses and are therefore in units of 1/s = Hertz.\label{fig3}}
+\caption{\em A short mathematical demonstration, using a simple linear first-order differential equation as an example, explaining why the coupling parameters in a DCM are inversely proportional to the half-life of the modelled neural responses and are therefore in units of 1/s = Hertz.\label{dcm_fig3}}
 \end{center}
 \end{figure}
 
@@ -106,43 +106,106 @@ This results in a robust procedure for deciding between competing hypotheses rep
 
 \section{Practical example}
 
-The following example refers to the ``attention to visual motion'' data set available from the SPM web site\footnote{Attention to visual motion dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/attention/}}. This data set was obtained by Christian Buchel and is described in \cite{buchel97}.  Note that the data available from the web have been pre-processed using SPM99, therefore ensure \texttt{flip} is set to \texttt{1} in the \texttt{spm\_flip\_analyze\_images.m} file before proceeding further.
+The following example refers to the ``attention to visual motion'' data set available from the SPM web site\footnote{Attention to visual motion dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/attention/}}. This data set was obtained by Christian Buchel and is described in \cite{buchel97}.
+
+The archive contains the smoothed, spatially normalised, realigned, slice-time corrected images in the directory \texttt{functional}. The directory \texttt{structural} contains a spatially normalised structural image. All processing took place using SPM99, but the image files have been converted into NIfTI format.
 
 Making a DCM requires two ingredients: (i) a design matrix and (ii) the time series, stored in VOI files.  The regressors of the design matrix define the inputs for the DCM.  Note that this means that the design matrix that is optimal for a given DCM is often somewhat different than the one for the corresponding GLM. DCM does not require the design matrix to be part of an estimated model, however. It just needs to be defined.
 
 \subsection{Defining the GLM}
 The present experiment consisted of 4 conditions: (i) fixation (F), (ii) static (S, non-moving dots), (iii) no attention (N, moving dots but no attention required), (iv) attention (A). The GLM analyses by Christian showed that activity in area V5 was not only enhanced by moving stimuli, but also by attention to motion.  In the following, we will try to model this effect in V5, and explain it as a context-dependent modulation or ``enabling'' of V5 afferents, using a DCM. First, we need to set up the GLM analysis and extract our time series from the results. In this example, we want to use the same design matrix for GLM and DCM, therefore we recombine the above regressors to get the following three conditions:
 \begin{enumerate}
-\item{{\bf photic}: this comprises all conditions with visual input, i.e. S, N, and A.}
-\item{{\bf motion}: this includes all conditions with moving dots, i.e. N and A.}
-\item{{\bf attention}: this includes the attention-to-motion (A) condition only.}
+ \item \textbf{photic}: this comprises all conditions with visual input, i.e. S, N, and A.
+ \item \textbf{motion}: this includes all conditions with moving dots, i.e. N and A.
+ \item \textbf{attention}: this includes the attention-to-motion (A) condition only.
 \end{enumerate}
-Now we need to define and estimate the GLM. See chapters \ref{Chap:fmri_spec} and \ref{Chap:fmri_est} on how to do this. Here are the relevant details for this data set that you need to set up the GLM (this information can also be found online\footnote{\url{ftp://ftp.fil.ion.ucl.ac.uk/spm/data/attention/README_GLM_DCM.txt}}
-note this web site describes the analysis for SPM2).
+Now we need to define and estimate the GLM. This is not the main topic of this chapter so you should already be familiar with these procedures, see \ref{Chap:fmri_spec} and \ref{Chap:fmri_est} for more information. Here are the relevant details for this data set that you need to set up the GLM:
 \begin{itemize}
-\item{The onsets for the conditions can be found in the file factors.mat.  They are named phot (photic), mot (motion) and att (attention) and are defined in scans (not seconds!).  They are blocks of 10 TRs each.}
-\item{The TR is 3.22 seconds.}
-\item{There are 360 scans.}
+ \item The onsets for the conditions can be found in the file \texttt{factors.mat}. They are named \texttt{stat} (static), \texttt{natt} (no attention) and \texttt{att} (attention) and are defined in scans (not seconds). They are blocks of 10 TRs each.
+ \item The TR is 3.22 seconds.
+ \item There are 360 scans.
 \end{itemize}
+
+Let's specify a batch that will specify the model and estimate it.
+
+\begin{enumerate}
+ \item The analysis directory should include
+ \begin{enumerate}
+  \item A directory named \texttt{functional}, which includes the preprocessed fMRI volumes.
+  \item A directory named \texttt{structural}, which includes a normalised T1 structural volume
+  \item File \texttt{factors.mat}.
+  \item You will also need to make a new directory called \texttt{GLM} that will contain the analysis.
+ \end{enumerate}
+ \item In \matlab\ type
+\begin{verbatim}
+>> cd GLM
+>> spm fmri
+\end{verbatim}
+ \item From the main SPM window, click on the \textsc{Batch} button.
+ \item From the SPM menu at the top of the Batch Editor, select ``Stats $>$ fMRI model specification''.
+ \item Click \textsc{Directory} and choose the \texttt{GLM} directory that you made above.
+ \item \textsc{Units for design} [\textsc{scans}]
+ \item \textsc{Interscan interval} [3.22]
+ \item Click \textsc{Data \& Design}, Choose \textsc{New "Subject/Session"}
+ \item Click \textsc{Scans} and choose all the functional scans \texttt{snffM00587\_00xx.img}. There should be 360 \texttt{*.img} files.
+ \item Load the MAT-file containing the individual conditions in \matlab\ workspace:
+\begin{verbatim}
+>> load factors.mat
+\end{verbatim}
+You can look at the loaded variables by typing the variable names.
+(\texttt{stat} = stationary, \texttt{natt} = no attention, \texttt{att} = attention)
+\begin{verbatim}
+>> stat
+>> natt
+>> att
+\end{verbatim}
+ \item Create 3 \textsc{New: Condition} under \textsc{Conditions} so that:
+ \begin{itemize}
+  \item Condition 1: \textsc{Name} = \texttt{Photic}, \textsc{Onsets} = \texttt{[att natt stat]} and \textsc{Durations} = \texttt{10}.
+  \item Condition 2: \textsc{Name} = \texttt{Motion}, \textsc{Onsets} = \texttt{[att natt]} and \textsc{Durations} = \texttt{10}.
+  \item Condition 3: \textsc{Name} = \texttt{Attention}, \textsc{Onsets} = \texttt{att} and \textsc{Durations} = \texttt{10}.
+ \end{itemize}
+ \item From the SPM menu at the top of the Batch Editor, select ``Stats $>$ model estimation''.
+ \item For \textsc{Select SPM.mat}, click on the \textsc{Dependency} button and choose the proposed item (the output from the previous module).
+ \item You should now be able to press the \textsc{Run} green arrow at the top of the Batch Editor window. This will specify and estimate the GLM.
+\end{enumerate}
 
 \subsection{Extracting time series}
 
-Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). Because V5 shows both motion and attention effects, it is useful to mask the motion-contrast inclusively with the attention-contrast when extracting time series for V5. You should also compute the usual ``effects of interest'' F-contrast, this is needed for mean-correcting the extracted time series (see below). Here is a step-by-step example for extracting the V5 time series:
+Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). Because V5 shows both motion and attention effects, it is useful to mask the motion-contrast inclusively with the attention-contrast when extracting time series for V5. You should also compute the usual ``effects of interest'' F-contrast, this is needed for mean-correcting the extracted time series (see below).
+
 \begin{enumerate}
-\item{Press ``Results''.}
-\item{Select the \texttt{SPM.mat} file.}
-\item{Choose the t-contrast for the motion condition.}
-\item{Mask with other contrasts: Yes}
-\item{Choose the t-contrast for the attention condition.}
-\item{Mask inclusively and choose a threshold of $p \leq 0.05$ uncorrected.}
-\item{Select the local maximum of a blob that looks V5-ish, e.g. -45/-81/-9 (by overlaying the activations onto the normalised structural image you should be able to identify V5 more easily).}
-\item{Press the ``VOI'' button.}
-\item{Name of region: V5}
-\item{Adjust data for: effects of interest (this mean-corrects the time series)}
-\item{VOI definition: sphere}
-\item{VOI radius(mm): e.g. 8 mm}
+ \item From the main SPM window, click on the \textsc{Batch} button.
+ \item Add a module ``SPM $>$ Stats $>$ Contrast manager''.
+ \item For \textsc{Select SPM.mat}, enter the one that has been created in the previous step.
+ \item Under \textsc{Contrast Sessions}, choose one \textsc{New: F-contrast} and three \textsc{New: T-contrast} and enter
+ \begin{itemize}
+  \item F-contrast: \textsc{Name} = \texttt{Effects of interest}, \textsc{F contrast vector} = \texttt{eye(3)}.
+  \item T-contrast: \textsc{Name} = \texttt{Photic}, \textsc{T contrast vector} = \texttt{[1 0 0]}.
+  \item T-contrast: \textsc{Name} = \texttt{Motion}, \textsc{T contrast vector} = \texttt{[0 1 0]}.
+  \item T-contrast: \textsc{Name} = \texttt{Attention}, \textsc{T contrast vector} = \texttt{[0 0 1]}.
+ \end{itemize}
+ \item Press the \textsc{Run} green arrow at the top of the Batch Editor window. This will specify and estimate these 4 contrasts.
 \end{enumerate}
-SPM now computes the first principal component of the time series from all voxels included in the sphere.  The result is stored (together with the original time series) in a file named \verb!VOI_V5_1.mat! in the working directory.  You can now proceed to select time series for V1 (using the ``photic'' contrast) and SPC (using the ``attention'' contrast).  For this example, we selected -6/-84/-6 for V1 and -18/-57/66 for SPC.
+
+Here is now a step-by-step example for extracting the V5 time series:
+\begin{enumerate}
+ \item Press \textsc{Results}.
+ \item Select the \texttt{SPM.mat} file.
+ \item Choose the t-contrast for the \texttt{Motion} condition.
+ \item Mask with other contrasts: Yes
+ \item Choose the t-contrast for the \texttt{Attention} condition.
+ \item Mask inclusively and choose a threshold of $p \leq 0.05$ uncorrected.
+ \item Select the global maxima that looks V5-ish, e.g. \texttt{[-36 -87 -3]} (by overlaying the activations onto the normalised structural image you should be able to identify V5 more easily).
+ \item Press the \textsc{eigenvariate} button.
+ \item Name of region: \texttt{V5}
+ \item Adjust data for: \texttt{Effects of interest} (this effectively mean-corrects the time series)
+ \item VOI definition: \texttt{sphere}
+ \item VOI radius(mm): e.g. \texttt{8} mm
+\end{enumerate}
+SPM now computes the first principal component of the time series from all voxels included in the sphere. The result is stored (together with the original time series) in a file named \texttt{VOI\_V5\_1.mat} in the working directory (the ``1'' refers to session 1).
+
+You can now proceed to select time series for V1 (using the \textsc{Photic} contrast) with an \texttt{8} mm sphere centered on the global maxima (\texttt{[0 -93 18]}). Same thing with SPC (using the \textsc{attention} contrast with a $p \leq 0.001$ uncorrected threshold) and a sphere centered on the local maxima around \texttt{[-27 -84 36]}. This will create files \texttt{VOI\_V1\_1.mat} and \texttt{VOI\_SPC\_1.mat}.
 
 \subsection{Specifying and estimating the DCM}
 
@@ -155,83 +218,85 @@ Now we have defined the inputs (via the design matrix) and the time series, we a
 \end{figure}
 as follows:
 \begin{enumerate}
-\item{Press the \texttt{DCM} button.}
-\item{Choose ``specify''.}
-\item{Select the \texttt{SPM.mat} file you just created when specifying the GLM.}
-\item{Name for \verb!DCM_???.mat!:  e.g. \verb!mod_bwd! (for ``attentional modulation of backward connection'')}
-\item{Select all VOIs in order \verb!VOI_V1_1, VOI_V5_1, VOI_SPC_1!}
-\item{Include Photic: Yes}
-\item{Include Motion: Yes}
-\item{Include Attention: Yes}
-\item{Define the following intrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{fig4}.}
-\item{Specify Photic as a driving input into V1.  See Fig.~\ref{fig5}}
-\item{Specify Motion to modulate the connection from V1 to V5.  See Fig.~\ref{fig6}}
-\item{Specify Attention to modulate the connection from SPC to V5.  See Fig.~\ref{fig7}}
-\item{Say No for ``Nonlinear DCM?''}
-\item{Specify slice timings for each area. This is a new option described in \cite{sjk_dcm_slicetiming}. The default values are set to the last slice of the data, which was the default in the original DCM version. For sequential (as opposed to interleaved) data, this modelling option allows to use DCM in combination with any TR (slice timing differences). Here, we proceed with the default values.}
-\item{Enter \texttt{0.04} for ``Echo Time, TE[s]''.}
+\item Press the large \texttt{Dynamic Causal Modelling} button.
+\item Choose \textsc{specify}.
+\item Select the \texttt{SPM.mat} file you just created when specifying the GLM.
+\item Name for \texttt{DCM\_???.mat}:  e.g. \texttt{mod\_bwd} (for ``attentional modulation of backward connection'').
+\item Select all VOIs in order \texttt{VOI\_V1\_1}, \texttt{VOI\_V5\_1}, \texttt{VOI\_SPC\_1}.
+\item Include \texttt{Photic}: Yes
+\item Include \texttt{Motion}: Yes
+\item Include \texttt{Attention}: Yes
+\item Specify slice timings for each area. The default values are set to the last slice of the data, which was the default in the original DCM version. For sequential (as opposed to interleaved) data, this modelling option allows to use DCM in combination with any TR (slice timing differences) \cite{sjk_dcm_slicetiming}. Here, we proceed with the default values.
+\item Enter \texttt{0.04} for ``Echo Time, TE[s]''.
+\item Modulatory effects: \texttt{bilinear}
+\item States per region: \texttt{one}
+\item Stochastic effects: \texttt{no}
+\item Define the following intrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{dcm_fig4}.
+\item Specify Photic as a driving input into V1.  See Fig.~\ref{dcm_fig4}
+\item Specify Motion to modulate the connection from V1 to V5.  See Fig.~\ref{dcm_fig4}
+\item Specify Attention to modulate the connection from SPC to V5.  See Fig.~\ref{dcm_fig4}
 \end{enumerate}
-A polite ``Thank you'' completes the model specification process.
+A polite ``Thank you'' completes the model specification process. A file called \texttt{DCM\_mod\_bwd.mat} will have been generated.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{center}
 \includegraphics[width=70mm]{dcm/Fig4}
-\caption{\em Filled circles define the structure of the intrinsic connections $C$ such that eg. there are no connections from V1R to SPCR or from SPCR to V1R. See also Fig~\ref{bwd}.\label{fig4}}
-\end{center}
-\end{figure}
-\begin{figure}[ht]
-\begin{center}
 \includegraphics[width=70mm]{dcm/Fig5}
-\caption{\em The filled circle specifies that the input `phot' connects to region V1R. See also Fig~\ref{bwd}.\label{fig5}}
-\end{center}
-\end{figure}
-\begin{figure}[ht]
-\begin{center}
 \includegraphics[width=70mm]{dcm/Fig6}
-\caption{\em The filled circle indicates that the input variable `mot' can modulate the connection from V1R to V5R. This specifies a `modulatory' connection. See also Fig~\ref{bwd}.\label{fig6}}
-\end{center}
-\end{figure}
-\begin{figure}[ht]
-\begin{center}
 \includegraphics[width=70mm]{dcm/Fig7}
-\caption{\em The filled circle indicates that attention can modulate the connection from SPCR to V5R. See also Fig~\ref{bwd}.\label{fig7}}
+\caption{\em Specification of model depicted in Fig~\ref{bwd}. \textbf{Top left:} Filled circles define the structure of the intrinsic connections $A$ such that eg. there are no connections from V1 to SPC or from SPC to V1. \textbf{Top right:} The filled circle specifies that the input \texttt{Photic} connects to region V1. \textbf{Bottom left:} The filled circle indicates that the input \texttt{Motion} can modulate the connection from V1 to V5. This specifies a ``modulatory'' connection. \textbf{Bottom right:} The filled circle indicates that \texttt{Attention} can modulate the connection from SPC to V5. \label{dcm_fig4}}
 \end{center}
 \end{figure}
 
-You can now estimate the model parameters, either by pressing the DCM button again and choosing ``estimate'', or by typing \verb!spm_dcm_estimate('DCM_mod_bwd')! from the \matlab\ command line.  Once this is completed, you can review the results as follows:
-\begin{enumerate}
-\item{Press the DCM button.}
-\item{Choose ``review''.}
-\item{Select \verb!DCM_mod_bwd!}
-\item{Threshold: 0}
-\end{enumerate}
-Now you have multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the intrinsic connections (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
+You can now estimate the model parameters, either by pressing the DCM button again and choosing \textsc{estimate}, or by typing
+\begin{verbatim}
+>> spm_dcm_estimate('DCM_mod_bwd');
+\end{verbatim}
+from the \matlab\ command line.
 
-Also, you can use the ``Contrasts'' option to determine how confident you can be that a contrast of certain parameter estimates exceeds the threshold you chose in step 4.
-Of course, you can also explore the model results at the level of the \matlab\ command line by loading the model and inspecting the parameter estimates directly.  These can be found in \texttt{DCM.A} (intrinsic connections), \texttt{DCM.B} (modulatory inputs) and \texttt{DCM.C} (driving inputs).
-
-\subsection{Comparing models}
-
-Let us now specify an alternative model and compare it against the one that we defined and estimated above. The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model). For defining this model, you repeat all the steps from the above example, the only differences being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection. This DCM is shown schematically in Figure~\ref{fwd}.
-\begin{figure}[ht]
+\begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{dcm/dcm_mod_fwd}
 \caption{\em DCM with attentional modulation of forwards connection. Dotted lines denote modulatory connections.\label{fwd}}
 \end{center}
 \end{figure}
-Once you have estimated this new model, you can perform a Bayesian model comparison as follows:
-\begin{enumerate}
-\item{Press the ``DCM'' button.}
-\item{Choose ``compare''.}
-\item{Number of models to compare: 2}
-\item{Select the two models, e.g. in the order \verb!DCM_mod_bwd! and \verb!DCM_mod_fwd!.}
-\end{enumerate}
-
-The Graphics window, Fig.~\ref{fig8}, now shows a bar plot of the model evidence. You can see that our second model is better than the first one. 
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=100mm]{dcm/Fig8}
-\caption{\em Model 2 (shown in Fig~\ref{fwd}) is preferred to model 1 (shown in Fig~\ref{bwd}).\label{fig8}}
+\includegraphics[width=140mm]{dcm/Fig8}
+\caption{\em Plot of predicted and observed response, after convergence and conditional expectation of the parameters.\label{dcm_fig8}}
+\end{center}
+\end{figure}
+
+Once this is completed, you can review the results as follows:
+\begin{enumerate}
+\item Press the DCM button.
+\item Choose \textsc{review}.
+\item Select \texttt{DCM\_mod\_bwd.mat}
+\item Threshold: \texttt{0}
+\end{enumerate}
+Now you have multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the intrinsic connections (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
+
+Also, you can use the ``Contrasts'' option to determine how confident you can be that a contrast of certain parameter estimates exceeds the threshold you chose in step 4.
+Of course, you can also explore the model results at the level of the \matlab\ command line by loading the model and inspecting the parameter estimates directly. These can be found in \texttt{DCM.Ep.A} (intrinsic connections), \texttt{DCM.Ep.B} (modulatory inputs) and \texttt{DCM.Ep.C} (driving inputs).
+
+\subsection{Comparing models}
+
+Let us now specify an alternative model and compare it against the one that we defined and estimated above. The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model). For defining this model, you repeat all the steps from the above example, the only differences being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection. This DCM is shown schematically in Figure~\ref{fwd}.
+
+Once you have estimated this new model, you can perform a Bayesian model comparison as follows:
+\begin{enumerate}
+ \item Press the ``DCM'' button.
+ \item Choose \textsc{Compare}.
+ \item Number of models to compare: 2
+ \item Select the two models, e.g. in the order \texttt{DCM\_mod\_bwd.mat} and \texttt{DCM\_mod\_fwd.mat}.
+\end{enumerate}
+
+The Graphics window, Fig.~\ref{dcm_fig9}, now shows a bar plot of the model evidence. You can see that our second model is better than the first one.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=140mm]{dcm/Fig9}
+\caption{\em Model 2 (shown in Fig~\ref{fwd}) is preferred to model 1 (shown in Fig~\ref{bwd}).\label{dcm_fig9}}
 \end{center}
 \end{figure}
