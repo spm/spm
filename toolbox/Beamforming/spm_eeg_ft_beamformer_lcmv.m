@@ -8,7 +8,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3652 2009-12-18 18:54:43Z guillaume $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3713 2010-02-08 09:10:10Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -158,14 +158,16 @@ for m = 1:numel(D.inv{D.val}.forward)
     end
 end
 
- try
-     vol = D.inv{D.val}.forward.vol;
-     datareg = D.inv{D.val}.datareg;
- catch
-     D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
-     D = spm_eeg_inv_datareg_ui(D, D.val);
-     datareg = D.inv{D.val}.datareg;
- end
+
+% 
+%  try
+%      vol = D.inv{D.val}.forward.vol;
+%      datareg = D.inv{D.val}.datareg;
+%  catch
+%      D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
+%      D = spm_eeg_inv_datareg_ui(D, D.val);
+%      datareg = D.inv{D.val}.datareg;
+%  end
 
 % Return beamformer weights
 
@@ -444,7 +446,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         [u, s, v] = svd(real(projpower_vect));
         eta = u(:,1);
         lf  = lf * eta; %% now have got the lead field at this voxel, compute some contrast
-        weights=(lf'*cinv*lf)*lf'*cinv; %% 
+        weights=lf'*cinv/(lf'*cinv*lf); %% CORRECT WEIGHTS CALC
         
         if S.return_weights
             stats(fband).ctf_weights(i,:)=weights;
