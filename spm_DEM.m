@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM.m 3715 2010-02-08 13:57:26Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -394,7 +394,7 @@ for iN = 1:nN
                 % conditional covariance [of states {u}]
                 %----------------------------------------------------------
                 qu.p   = dE.du'*iS*dE.du + Pu;
-                qu.c   = inv(qu.p);
+                qu.c   = spm_inv(qu.p);
                 spm_logdet_qu_c = spm_logdet_qu_c + spm_logdet(qu.c);
 
                 % and conditional covariance [of parameters {P}]

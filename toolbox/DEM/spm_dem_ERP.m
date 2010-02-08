@@ -16,6 +16,7 @@ function [R] = spm_dem_ERP(varargin)
 %--------------------------------------------------------------------------
 clf
 N     = length(varargin);
+color = {'r','b','g','y','c','m'};
 for i = 1:N
     
     qU = varargin{i};
@@ -26,15 +27,16 @@ for i = 1:N
     n  = length(U);
     for  j = 1:n
         
-        % PST
+        % PST (assuming 8ms times bins)
         %------------------------------------------------------------------
-        T  = [1:length(U{j})]*8;
+        EEG = U{j};
+        T   = [1:length(EEG)]*32;
         
         % ERPs
         %------------------------------------------------------------------
         subplot(n,2,2*(j - 1) + 1)
-        plot(T,sum(U{j},1),'Color',[1 1 1]*(1 - .8/i)),hold on
-        plot(T,U{j},'r:')
+        plot(T,mean(EEG,1),'Color',color{i}),hold on
+        plot(T,EEG,':','Color',color{i})
         title(sprintf('LFPs: level %i',j),'FontSize',16)
         xlabel('pst (ms)')
         axis square
@@ -43,9 +45,9 @@ for i = 1:N
         % PSTH
         %------------------------------------------------------------------
         subplot(n,2,2*j)
-        PSTH    = mean(exp(U{j}) + exp(-U{j}),1)/2;
+        PSTH    = mean(exp(EEG) + exp(-EEG),1)/2;
         R{j}(i) = mean(PSTH);
-        plot(T,PSTH,'Color',[1 1 1]*(1 - .8/i),'LineWidth',1)
+        plot(T,PSTH,color{i},'LineWidth',1)
         title(sprintf('PSTH: level %i',j),'FontSize',16)
         xlabel('pst (ms)')
         axis square

@@ -1,6 +1,6 @@
 
-% Laplace scheme for dynamic updating of parameters
-%--------------------------------------------------------------------------
+% Notes for Laplace scheme and dynamic updating of parameters
+%==========================================================================
 n  = 128;                       % number of samples (time bins)
 P  = 4;                         % true parameter
 k  = n;                         % precision on fluctuations
@@ -58,11 +58,4 @@ xlabel('time (s)')
 title('Kernels','FontSize',16)
 legend('drive','trace')
 axis square
-
-
-
-
-
-
-
 

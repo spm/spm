@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_play_song.m 3715 2010-02-08 13:57:26Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ sf  = 2*64^2;                              % dispersion of frequencies
 % resample temporal modes
 %--------------------------------------------------------------------------
 for i = 1:Nm
-    V(i,:) = interp(v(i,:),R);
+    V(i,:) = spm_interp(v(i,:),R);
 end
             
 % create sonogram sound

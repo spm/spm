@@ -1,13 +1,23 @@
-% Triple estimation of states, parameters and hyperparameters:
-% This demo focuses estimating both the states and parameters to furnish a
-% complete system identification, given only the form of the system and its
-% responses to unknown input (c.f., DEM_demo_EM, which uses known inputs)
+% This demonstration compares Generalised filtering under the Laplace
+% assumption (spm_LAP) with variational filtering under the same fixed form
+% approximation (i.e. DEM). We use a simple linear convolution model to
+% illustrate the differences and similarities. The key difference between
+% the two schemes lies (in this example) lies in estimates of conditional
+% uncertainty. spm_LAP is must less over-confident because it eschews the
+% means-field approximation implicit in DEM. The demonstration addresses 
+% quadruple estimation of hidden states, exogenous input, parameters and 
+% log-precisions (and, for spm_LAP, log-smoothness)
+%__________________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: DEM_demo_LAP.m 3715 2010-02-08 13:57:26Z karl $
  
 % get basic convolution model
 %==========================================================================
 M       = spm_DEM_M('convolution model');
  
-% gradient functions for speed
+% gradient functions for speed (not implemented here)
 %--------------------------------------------------------------------------
 % M(1).fx = inline('P.f','x','v','P');
 % M(1).fv = inline('P.h','x','v','P');
@@ -36,7 +46,7 @@ M(1).hC = 1;
 M(1).gC = 1;
 M(1).V  = 0;
 M(1).W  = 0;
-
+ 
 % generate data and invert
 %==========================================================================
 M(1).E.nN = 24;                                % number of time steps
@@ -48,15 +58,17 @@ M(1).E.n  = 4;                                 % order
 N         = 32;                                % length of data sequence
 U         = exp(-([1:N] - 12).^2/(2.^2));      % this is the Gaussian cause
 DEM       = spm_DEM_generate(M,U,{P},{8,16},{6});
-
-
+ 
+ 
 % invert
 %==========================================================================
+spm_figure('GetWin','DEM');
 LAP       = spm_LAP(DEM);
 DEM       = spm_DEM(DEM);
  
 % Show results for DEM
 %==========================================================================
+spm_figure('GetWin','Figure 1: DEM - mean-field assumption');
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -83,7 +95,7 @@ end, hold off
  
 % Show results for LAP
 %==========================================================================
-spm_figure('GetWin','SI');
+spm_figure('GetWin','Figure 2: Generalised filtering (GF)');
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -99,7 +111,7 @@ tP    = tP(ip);
 subplot(2,2,4)
 bar([tP qP])
 axis square
-legend('true','LAP')
+legend('true','GF')
 title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(LAP.qP.C(ip,ip)));
@@ -109,7 +121,7 @@ end, hold off
  
 % Compare
 %==========================================================================
-spm_figure('GetWin','Laplace');
+spm_figure('GetWin','Figure 3: Comparison of DEM and GF');
  
 % hyperparameters
 %--------------------------------------------------------------------------
@@ -123,7 +135,7 @@ qh    = spm_vec({DEM.pH.h{1} DEM.pH.g{1}});
 subplot(2,2,1)
 bar([qh qL qD])
 axis square
-legend('true','LAP','DEM')
+legend('true','GF','DEM')
 title('log-precisions','FontSize',16)
  
 cq    = 1.64*sqrt(vL);
@@ -141,9 +153,8 @@ end, hold off
 subplot(2,2,2)
 nL   = length(LAP.F);
 nD   = length(DEM.F);
-plot(1:nL,LAP.S,1:nD,DEM.S)
+plot(1:nL,LAP.F,1:nD,DEM.F,1:nL,LAP.S,1:nD,DEM.S)
 axis square
-legend('LAP','DEM')
+legend('GF (F)','DEM (F)','GF (S)','DEM(S)')
 title('log-evidence ','FontSize',16)
 xlabel('iteration','FontSize',12)
-

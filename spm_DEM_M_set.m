@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM_M_set.m 3715 2010-02-08 13:57:26Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -228,19 +228,19 @@ end
     
 % priors on states
 %--------------------------------------------------------------------------
+try
+    M.xP;
+catch
+    M(1).xP = [];
+end
 for i = 1:g
-    if isfield(M(i),'xP')
-        if size(M(i).xP) == [1 1];
-            M(i).xP = speye(M(i).n,M(i).n)*M(i).xP;
-        elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
-            warndlg(sprintf('please Check: M(%i).xP',i))
-            who,keyboard
-        end
-    else
-        for j = 1:g
-            M(j).xP = sparse(M(j).n,M(j).n);
-        end
-        break
+    if size(M(i).xP) == [1 1];
+        M(i).xP = speye(M(i).n,M(i).n)*M(i).xP;
+    elseif isempty(M(i).xP)
+        M(i).xP = sparse(M(i).n,M(i).n);
+    elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
+        warndlg(sprintf('please Check: M(%i).xP',i))
+        who,keyboard
     end
 end
 

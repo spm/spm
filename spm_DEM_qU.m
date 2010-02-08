@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM_qU.m 3715 2010-02-08 13:57:26Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -50,8 +50,8 @@ s     = [];
 c     = [];
 try
     for i = 1:N
-        c = [c real(sqrt(diag(C{i})))];
-        s = [s real(sqrt(diag(S{i})))];
+        c = [c abs(sqrt(diag(C{i})))];
+        s = [s abs(sqrt(diag(S{i})))];
     end
 end
  
@@ -77,7 +77,7 @@ for i = 1:g
             y      = ci*c(j,:);
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
-                 [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+                 [1 1 1]*.8,'EdgeColor',[1 1 1]*.6)
             plot(t,full(E{i}),'r:',t,full(V{i}))
             hold off
         end
@@ -85,7 +85,6 @@ for i = 1:g
         % title and grid
         %------------------------------------------------------------------
         title('causal states','FontSize',16);
-        grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
         box off
@@ -114,7 +113,7 @@ for i = 1:g
             y      = ci*c(j,:);
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
-                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.6)
             try 
                 plot(t,pV{i},':k','linewidth',1),box off
             end
@@ -122,7 +121,7 @@ for i = 1:g
             hold off
         end
  
-        % title, action, grid and true causes (if available)
+        % title, action and true causes (if available)
         %------------------------------------------------------------------
         if i == 1
             title('prediction and error','FontSize',16);

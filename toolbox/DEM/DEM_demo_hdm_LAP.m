@@ -1,71 +1,94 @@
-% demo for Hemodynamic deconvolution: Validation of Laplace scheme
+% Demo for Hemodynamic deconvolution: Cross-validation of Laplace scheme
 %__________________________________________________________________________
+% This demonstration compares generalised filtering and DEM in the context 
+% of a nonlinear convolution model using empirical data. These are the data
+% used to illustrate hemodynamic deconvolution. We have deliberately made
+% the problem difficult here to highlight the ability of Generalised 
+% filtering to accumulate evidence to optimise in parameters and hyper-
+% parameters, which allows it to outperform DEM.
+%__________________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: DEM_demo_hdm_LAP.m 3715 2010-02-08 13:57:26Z karl $
 
 % set-up
-%==========================================================================
+%--------------------------------------------------------------------------
 clear
-spm_figure('GetWin','DEM');
-load HDM
-global dt
+DEMO = 0;
+
+if DEMO
+    
+    spm_figure('GetWin','DEM');
+    load HDM
+
+    % generative [likelihood] model 'HDM'
+    %======================================================================
+    dt      = Y.dt;
+    T       = 1:256;
+
+    % level 1
+    %----------------------------------------------------------------------
+    [pE pC] = spm_hdm_priors(3,1);
+    pC(6,6) = 0;
+    M(1).x  = [0 0 0 0]';
+    M(1).g  = 'spm_gx_hdm';
+    M(1).f  = 'spm_fx_hdm';
+    M(1).pE = pE;
+    M(1).pC = pC;
+    M(1).hE = 2;
+    M(1).hC = 1;
+    M(1).gE = 2;
+    M(1).gC = 1;
+
+    % level 2
+    %----------------------------------------------------------------------
+    M(2).v  = [0 0 0]';
+    M(2).V  = 1;
+
+    M(1).E.linear = 1;
+    M(1).E.n  = 4;
+    M(1).E.nD = 1;
+    M(1).E.nN = 16;
+    M(1).E.s  = 1/4;
+
+    % get causes (i.e. experimental inputs)
+    %----------------------------------------------------------------------
+    t     = fix(linspace(1,length(U.u),360));
+    U     = U.u(t(T),:)';
+
+    % Emprical data
+    %----------------------------------------------------------------------
+    DEM.M = M;
+    DEM.U = U;
+    DEM.Y = 1 + Y.y(T,:)'/4;
+
+    % DEM estimation
+    %======================================================================
+    LAP   = spm_LAP(DEM);
+    DEM   = spm_DEM(DEM);
+
+else % load pre-computed LAP and DEM structures
+
+    load LAP_HDM
+end
 
 
-% generative [likelihood] model 'HDM'
-%==========================================================================
-dt      = Y.dt;
-T       = 1:256;
 
-% level 1
-%--------------------------------------------------------------------------
-[pE pC] = spm_hdm_priors(3,1);
-pC(6,6) = 0;
-M(1).x  = [0 0 0 0]';
-M(1).g  = 'spm_gx_hdm';
-M(1).f  = 'spm_fx_hdm';
-M(1).pE = pE;
-M(1).pC = pC;
-M(1).hE = 2;
-M(1).hC = 1;
-M(1).gE = 2;
-M(1).gC = 1;
-
-% level 2
-%--------------------------------------------------------------------------
-M(2).v  = [0 0 0]';
-M(2).V  = 1;
-
-M(1).E.linear = 1;
-M(1).E.n  = 4;
-M(1).E.nD = 1;
-M(1).E.nN = 16;
-M(1).E.s  = 1/4;
-
-% get causes (i.e. experimental inputs)
-%--------------------------------------------------------------------------
-t  = fix(linspace(1,length(U.u),360));
-U  = U.u(t(T),:)';
-
-% Emprical data
-%--------------------------------------------------------------------------
-DEM.M  = M;
-DEM.U  = U;
-DEM.Y  = 1 + Y.y(T,:)'/4;
-
-% DEM estimation
-%==========================================================================
-LAP    = spm_LAP(DEM);
-DEM    = spm_DEM(DEM);
-
-
-
-% report states and parameter esimates
+% report states and parameter estimates
 %==========================================================================
 
 % DEM
 %--------------------------------------------------------------------------
-spm_figure('GetWin','DEM');
+spm_figure('GetWin','Figure 1: With mean-field approximation (DEM) ');
+
 spm_DEM_qU(DEM.qU)
 
+
+% Coupling parameters of interest
+%--------------------------------------------------------------------------
 subplot(2,2,4)
+
 qP    = DEM.qP.P{1}(7:end);
 bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 cq    = 1.64*sqrt(diag(DEM.qP.C(7:end,7:end)));
@@ -79,12 +102,16 @@ set(gca,'XTickLabel',{'vision','motion','attention'})
 title('parameters','Fontsize',16)
 
 
-% DEM
+% LAP
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Laplace');
+spm_figure('GetWin','Figure 2: Generalised filtering (Laplace) ');
+
 spm_DEM_qU(LAP.qU)
 
+% Coupling parameters of interest
+%--------------------------------------------------------------------------
 subplot(2,2,4)
+
 qP    = LAP.qP.P{1}(7:end);
 bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 cq    = 1.64*sqrt(diag(LAP.qP.C(7:end,7:end)));
@@ -100,8 +127,7 @@ title('parameters','Fontsize',16)
 
 % Log-evidence
 %--------------------------------------------------------------------------
-spm_figure('GetWin','SI');
-clf
+spm_figure('GetWin','Figure 3: log-evidence');
 
 subplot(2,1,1)
 nL   = length(LAP.F);
@@ -109,7 +135,7 @@ nD   = length(DEM.F);
 plot(1:nL,LAP.S,1:nD,DEM.S)
 axis square
 legend('LAP (S)','DEM(S)')
-title('log-evidence ','FontSize',16)
+title('log-evidence','FontSize',16)
 
 
 return
@@ -117,7 +143,10 @@ return
 
 % and a more detailed look
 %--------------------------------------------------------------------------
-t = 1:128;
+spm_figure('GetWin','Figure 4: Hemodynamics');
+
+
+t   = 1:128;
 subplot(2,1,1)
 hold on
 bar(full(LAP.U(2,t)*8),'FaceColor',[1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
@@ -144,8 +173,11 @@ title('neuronal causes','Fontsize',16)
 hold off
 
 
+return
 
-% Simulated respsones
+
+% Notes for simulating responses (to examine dependency on
+% hemodynamic parameters quantitatively)
 %==========================================================================
 
 % get causes (i.e. experimental inputs)
@@ -178,5 +210,4 @@ P  = [
 %--------------------------------------------------------------------------
 DEM    = spm_DEM_generate(M,U(:,1:T),{P},{4,8},{6});
 spm_DEM_qU(DEM.pU)
-
 

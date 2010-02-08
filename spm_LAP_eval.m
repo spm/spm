@@ -16,16 +16,16 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_LAP_eval.m 3715 2010-02-08 13:57:26Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
 %--------------------------------------------------------------------------
-N            = length(M);
-v            = cell(N,1);
-x            = cell(N,1);
-v(2:N)       = spm_unvec(qu.v{1},{M(1 + 1:end).v});
-x(1:(N - 1)) = spm_unvec(qu.x{1},{M(1:end - 1).x});
+N          = length(M);
+v          = cell(N,1);
+x          = cell(N,1);
+v(1 + 1:N) = spm_unvec(qu.v{1},{M(1 + 1:N).v});
+x(1:N - 1) = spm_unvec(qu.x{1},{M(1:N - 1).x});
 
 
 % precisions
@@ -57,115 +57,98 @@ if nargout < 2, return, end
 % gradients
 %==========================================================================
 
-% Determine which gradients to evaluate (default: all x,v and h)
+% assume predicions are a function of, and only of hyperparameters
 %--------------------------------------------------------------------------
 try
-    method = M(1).E.precision;
+    method = M(1).E.method;
 catch
-    method = 3;
+    method.h = 1;
+    method.g = 1;
+    method.x = 0;
+    method.v = 0;
 end
 
-switch method
 
-    % gradients w.r.t. h only (no state-dependent noise)
-    %----------------------------------------------------------------------
-    case(1)
+% number of variables
+%--------------------------------------------------------------------------
+nx      = numel(spm_vec(x));
+nv      = numel(spm_vec(v));
+nh      = size(p.h,1);
+ng      = size(p.g,1);
 
-        for i = 1:N
+dp.h.dh = sparse(nh,0);
+dp.g.dg = sparse(ng,0);
+dp.h.dx = sparse(nh,nx);
+dp.h.dv = sparse(nh,nv);
+dp.g.dx = sparse(ng,nx);
+dp.g.dv = sparse(ng,nv);
 
-            % precision of causal and hidden states
-            %--------------------------------------------------------------
-            dhdh{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),3);
-            dgdg{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),3);
-           
-        end
 
-        % Concatenate over hierarchical levels
-        %------------------------------------------------------------------
-        dp.h.dh = spm_cat(dhdh);
-        dp.g.dg = spm_cat(dgdg);
-        
-        % number of variables
-        %--------------------------------------------------------------------------
-        nx      = numel(spm_vec(x));
-        nv      = numel(spm_vec(v));
-        nh      = size(dp.h.dh,1);
-        ng      = size(dp.g.dg,1);
+% gradients w.r.t. h only (no state-dependent noise)
+%----------------------------------------------------------------------
+if method.h || method.g
 
-        dp.h.dx = sparse(nh,nx);
-        dp.h.dv = sparse(nh,nv);
-        dp.g.dx = sparse(ng,nx);
-        dp.g.dv = sparse(ng,nv);
+    for i = 1:N
 
-        
-    % gradients w.r.t. causal states v and h
-    %----------------------------------------------------------------------
-    case(2)
+        % precision of causal and hidden states
+        %--------------------------------------------------------------
+        dhdh{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),3);
+        dgdg{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),3);
 
-        for i = 1:N
+    end
 
-            % precision of causal states
-            %--------------------------------------------------------------
-            dhdv{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),2);
-            dhdh{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),3);
+    % Concatenate over hierarchical levels
+    %------------------------------------------------------------------
+    dp.h.dh = spm_cat(dhdh);
+    dp.g.dg = spm_cat(dgdg);
 
-            % precision of hidden states
-            %--------------------------------------------------------------
-            dgdv{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),2);
-            dgdg{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),3);
+end
 
-        end
 
-        % Concatenate over hierarchical levels
-        %------------------------------------------------------------------
-        dp.h.dv = spm_cat(dhdv);
-        dp.h.dh = spm_cat(dhdh);
-        dp.g.dv = spm_cat(dgdv);
-        dp.g.dg = spm_cat(dgdg);
-        
-        % number of variables
-        %--------------------------------------------------------------------------
-        nx      = numel(spm_vec(x));
-        nh      = size(dp.h.dh,1);
-        ng      = size(dp.g.dg,1);
+% gradients w.r.t. causal states
+%----------------------------------------------------------------------
+if method.v
 
-        dp.h.dx = sparse(nh,nx);
-        dp.g.dx = sparse(ng,nx);
+    for i = 1:N
 
-        
-        
-    % gradients w.r.t. hidden and causal states v, and h
-    %----------------------------------------------------------------------
-    case(3)
+        % precision of causal states
+        %--------------------------------------------------------------
+        dhdv{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),2);
 
-        for i = 1:N
+        % precision of hidden states
+        %--------------------------------------------------------------
+        dgdv{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),2);
 
-            % precision of causal states
-            %--------------------------------------------------------------
-            dhdx{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),1);
-            dhdv{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),2);
-            dhdh{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),3);
+    end
 
-            % precision of hidden states
-            %--------------------------------------------------------------
-            dgdx{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),1);
-            dgdv{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),2);
-            dgdg{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),3);
+    % Concatenate over hierarchical levels
+    %------------------------------------------------------------------
+    dp.h.dv = spm_cat(dhdv);
+    dp.g.dv = spm_cat(dgdv);
 
-        end
+end
 
-        % Concatenate over hierarchical levels
-        %------------------------------------------------------------------
-        dp.h.dx = spm_cat(dhdx);
-        dp.h.dv = spm_cat(dhdv);
-        dp.h.dh = spm_cat(dhdh);
-        dp.g.dx = spm_cat(dgdx);
-        dp.g.dv = spm_cat(dgdv);
-        dp.g.dg = spm_cat(dgdg);     
-        
-    otherwise
-        
-        disp('Unknown method - spm_LAP_eval')
+% gradients w.r.t. hidden states
+%----------------------------------------------------------------------
+if method.x
+
+    for i = 1:N
+
+        % precision of causal states
+        %--------------------------------------------------------------
+        dhdx{i,i} = spm_diff(M(i).ph,x{i},v{i},qh.h{i},M(i),1);
+
+        % precision of hidden states
+        %--------------------------------------------------------------
+        dgdx{i,i} = spm_diff(M(i).pg,x{i},v{i},qh.g{i},M(i),1);
+
+    end
+
+    % Concatenate over hierarchical levels
+    %------------------------------------------------------------------
+    dp.h.dx = spm_cat(dhdx);
+    dp.g.dx = spm_cat(dgdx);
+
 end
 
 

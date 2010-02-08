@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_LAP.m 3715 2010-02-08 13:57:26Z karl $
 
 
 % find or create a DEM figure
@@ -89,14 +89,34 @@ try nN = M(1).E.nN; catch nN = 16;  end
 %--------------------------------------------------------------------------
 M(1).E.linear = 4;
 
-% assume predicions are a function of[f] hyperparameters
+sP    = 256;
+
+% assume predicions are a function of, and only of hyperparameters
 %--------------------------------------------------------------------------
 try
-    method = M(1).E.precision;
+    method = M(1).E.method;
 catch
-    method = 1;
-    M(1).E.precision = method;
+    method.h = 1;
+    method.g = 1;
+    method.x = 0;
+    method.v = 0;
 end
+try method.h; catch, method.h = 0; end
+try method.g; catch, method.g = 0; end
+try method.x; catch, method.x = 0; end
+try method.v; catch, method.v = 0; end
+
+M(1).E.method = method;
+
+% precision of smoothness hyperparameters
+%--------------------------------------------------------------------------
+try
+    sP = M(1).E.sP;
+catch
+    sP        = 256;
+    M(1).E.sP = sP;
+end
+
 
 % additional checks for Laplace models (precision functions; ph and pg)
 %--------------------------------------------------------------------------
@@ -147,7 +167,7 @@ pu.ic = spm_cat(spm_diag({Px Pv}));
 s     = M(1).E.s;
 sh    = log(s);
 sg    = log(s);
-sC    = speye(2,2)/32;
+sC    = speye(2,2)/sP;
 ph.h  = spm_vec({M.hE M.gE sh sg});          % prior expectation of h,g
 ph.c  = spm_cat(spm_diag({M.hC M.gC sC}));   % prior covariances of h,g
 ph.ic = spm_pinv(ph.c);                      % prior precision of h,g
@@ -236,16 +256,23 @@ dedss  = speye(2,2);
             
 % curvatures of Gibb's energy w.r.t. hyperparameters
 %--------------------------------------------------------------------------
-dHdh   = sparse(nh,1);
-dHdg   = sparse(ng,1);
-dHdp   = sparse(np,1);
-dHdu   = sparse(nu,1);
+dHdh   = sparse(nh,  1);
+dHdg   = sparse(ng,  1);
+dHdp   = sparse(np,  1);
+dHdx   = sparse(nx*n,1);
+dHdv   = sparse(nv*d,1);
 
-% preclude unnecessary iterations
+
+
+% preclude unnecessary iterations and set switchs
 %--------------------------------------------------------------------------
 if ~np && ~nh && ~ng, nN = 1; end
-if ~nh && ~ng, method    = 0; end
- 
+mnh = nh*~~method.h;
+mng = ng*~~method.g;
+mnx = nx*~~method.x;
+mnv = nv*~~method.v;
+
+
 % precision on parameter fluctuations
 %--------------------------------------------------------------------------
 kp  = ns*8;
@@ -343,42 +370,36 @@ for iN = 1:nN
             dedsh   = E'*diSdsh;
             diSdsg  = blkdiag(V,kron(dRdg, iSg));
             dedsg   = E'*diSdsg;
-            
+
             % gradients w.r.t. hyperparameters
             %--------------------------------------------------------------
-            if method > 0
-                for i = 1:nh
-                    diS       = diag(dp.h.dh(:,i).*exp(p.h));
-                    diSdh{i}  = blkdiag(kron(Rh,diS),W);
-                    dedh(i,:) = E'*diSdh{i};                 
-                end
-                for i = 1:ng
-                    diS       = diag(dp.g.dg(:,i).*exp(p.g));
-                    diSdg{i}  = blkdiag(V,kron(Rg,diS));
-                    dedg(i,:) = E'*diSdg{i};
-                end
+            for i = 1:nh
+                diS       = diag(dp.h.dh(:,i).*exp(p.h));
+                diSdh{i}  = blkdiag(kron(Rh,diS),W);
+                dedh(i,:) = E'*diSdh{i};
+            end
+            for i = 1:ng
+                diS       = diag(dp.g.dg(:,i).*exp(p.g));
+                diSdg{i}  = blkdiag(V,kron(Rg,diS));
+                dedg(i,:) = E'*diSdg{i};
+            end
+
+            % gradients w.r.t. hidden states
+            %--------------------------------------------------------------
+            for i = 1:mnx
+                diV       = diag(dp.h.dx(:,i).*exp(p.h));
+                diW       = diag(dp.g.dx(:,i).*exp(p.g));
+                diSdx{i}  = blkdiag(kron(Rh,diV),kron(Rg,diW));
+                dedx(i,:) = E'*diSdx{i};
             end
             
             % gradients w.r.t. causal states
             %--------------------------------------------------------------
-            if method > 1
-                for i = 1:nv
-                    diV       = diag(dp.h.dv(:,i).*exp(p.h));
-                    diW       = diag(dp.g.dv(:,i).*exp(p.g));
-                    diSdv{i}  = blkdiag(kron(R,diV),kron(R,diW));
-                    dedv(i,:) = E'*diSdv{i};
-                end
-            end
-            
-            % gradients w.r.t. hidden states
-            %--------------------------------------------------------------
-            if method > 2
-                for i = 1:nx
-                    diV       = diag(dp.h.dx(:,i).*exp(p.h));
-                    diW       = diag(dp.g.dx(:,i).*exp(p.g));
-                    diSdx{i}  = blkdiag(kron(R,diV),kron(R,diW));
-                    dedx(i,:) = E'*diSdx{i};
-                end
+            for i = 1:mnv
+                diV       = diag(dp.h.dv(:,i).*exp(p.h));
+                diW       = diag(dp.g.dv(:,i).*exp(p.g));
+                diSdv{i}  = blkdiag(kron(Rh,diV),kron(Rg,diW));
+                dedv(i,:) = E'*diSdv{i};
             end
 
             dSdx  = kron(sparse(1,1,1,n,1),dedx);
@@ -388,7 +409,7 @@ for iN = 1:nN
             dEdp  = dE.dp'*iS;
             dEdu  = dE.du'*iS;
             
-                        % curvatures w.r.t. hyperparameters
+            % curvatures w.r.t. hyperparameters
             %--------------------------------------------------------------
             for i = 1:nh
                 for j = i:nh
@@ -420,7 +441,7 @@ for iN = 1:nN
             Ep    = spm_vec(qp.p);
             Eh    = spm_vec(qh.h,qh.g,qh.sh,qh.sg) - ph.h;
             
- 
+
             % first-order derivatives of Gibb's Energy
             %==============================================================
             dLdu  = dEdu*E + dSdu*E/2 - dDdu/2 + pu.ic*Eu;
@@ -430,10 +451,12 @@ for iN = 1:nN
  
             % and second-order derivatives of Gibb's Energy
             %--------------------------------------------------------------
-            dLduu = dEdu*dE.du + dSdu*dE.du*2 + pu.ic;
-            dLdup = dEdu*dE.dp + dSdu*dE.dp;
+            % dLduu = dEdu*dE.du + dSdu*dE.du + dE.du'*dSdu' + pu.ic;
+            % dLdup = dEdu*dE.dp + dSdu*dE.dp;
+            dLduu = dEdu*dE.du + pu.ic;
             dLdpp = dEdp*dE.dp + pp.ic;
-            dLdhh = dSdhh/2    + ph.ic;            
+            dLdhh = dSdhh/2    + ph.ic;
+            dLdup = dEdu*dE.dp;
             dLdhu = dEdh*dE.du;
             dLduy = dEdu*dE.dy;
             dLduc = dEdu*dE.dc;
@@ -453,7 +476,10 @@ for iN = 1:nN
                 
             C      = spm_inv(iC);
             
-            % derivatives of precision
+            % first-order derivatives of Entropy term
+            %==============================================================
+            
+            % log-smoothness
             %--------------------------------------------------------------
             Luub   = dE.du'*diSdsh*dE.du;
             Lpub   = dE.dp'*diSdsh*dE.du;
@@ -465,46 +491,65 @@ for iN = 1:nN
             Lpub   = dE.dp'*diSdsg*dE.du;
             Lppb   = dE.dp'*diSdsg*dE.dp;
             diCdsg = spm_cat({Luub Lpub';
-                              Lpub Lppb}); 
-                
-            for i = 1:nh
-                Luub   = dE.du'*diSdh{i}*dE.du;
-                Lpub   = dE.dp'*diSdh{i}*dE.du;
-                Lppb   = dE.dp'*diSdh{i}*dE.dp;
-                diCdh{i} = spm_cat({Luub Lpub';
-                                    Lpub Lppb});
-            end
-            for i = 1:ng
-                Luub   = dE.du'*diSdg{i}*dE.du;
-                Lpub   = dE.dp'*diSdg{i}*dE.du;
-                Lppb   = dE.dp'*diSdg{i}*dE.dp;
-                diCdg{i} = spm_cat({Luub Lpub';
-                                    Lpub Lppb});
-            end
-            for i = 1:np
-                Luup     = dE.dup{i}'*dEdu';
-                Lpup     = dEdp*dE.dup{i};
-                Luup     = Luup + Luup';
-                diCdp{i} = spm_cat({Luup Lpup';
-                                    Lpup [] });
-            end
-
-            % first-order derivatives of Entropy
-            %==============================================================
+                              Lpub Lppb});
+                          
             dHdsh = sum(sum(diCdsh.*C))/2;
             dHdsg = sum(sum(diCdsg.*C))/2;
+            
+            % log-precision
+            %--------------------------------------------------------------
             for i = 1:nh
-                dHdh(i) = sum(sum(diCdh{i}.*C))/2;
+                Luub    = dE.du'*diSdh{i}*dE.du;
+                Lpub    = dE.dp'*diSdh{i}*dE.du;
+                Lppb    = dE.dp'*diSdh{i}*dE.dp;
+                diCdh   = spm_cat({Luub Lpub';
+                                   Lpub Lppb});
+                dHdh(i) = sum(sum(diCdh.*C))/2;
             end
             for i = 1:ng
-                dHdg(i) = sum(sum(diCdg{i}.*C))/2;
+                Luub    = dE.du'*diSdg{i}*dE.du;
+                Lpub    = dE.dp'*diSdg{i}*dE.du;
+                Lppb    = dE.dp'*diSdg{i}*dE.dp;
+                diCdg   = spm_cat({Luub Lpub';
+                                   Lpub Lppb});
+                dHdg(i) = sum(sum(diCdg.*C))/2;
             end
+            
+            % parameters
+            %--------------------------------------------------------------
             for i = 1:np
-                dHdp(i) = sum(sum(diCdp{i}.*C))/2;
+                Luup    = dE.dup{i}'*dEdu';
+                Lpup    = dEdp*dE.dup{i};
+                Luup    = Luup + Luup';
+                diCdp   = spm_cat({Luup Lpup';
+                                   Lpup [] });
+                dHdp(i) = sum(sum(diCdp.*C))/2;
             end
-            dHdb  = [dHdh; dHdg; dHdsh; dHdsg];
 
- 
+%             % hidden and causal states
+%             %--------------------------------------------------------------
+%             for i = 1:mnx
+%                 Luux    = dE.du'*diSdx{i}*dE.du;
+%                 Lpux    = dE.dp'*diSdx{i}*dE.du;
+%                 Lppx    = dE.dp'*diSdx{i}*dE.dp;
+%                 diCdx   = spm_cat({Luux Lpux';
+%                                    Lpux Lppx});
+%                 dHdx(i) = sum(sum(diCdx.*C))/2;
+%                                 
+%             end
+%             for i = 1:mnv
+%                 Luuv    = dE.du'*diSdv{i}*dE.du;
+%                 Lpuv    = dE.dp'*diSdv{i}*dE.du;
+%                 Lppv    = dE.dp'*diSdv{i}*dE.dp;
+%                 diCdv   = spm_cat({Luuv Lpuv';
+%                                    Lpuv Lppv});
+%                 dHdv(i) = sum(sum(diCdv.*C))/2;
+%             end
+
+            dHdb  = [dHdh; dHdg; dHdsh; dHdsg];
+            dHdu  = [dHdx; dHdv];
+
+
             % save conditional moments (and prediction error) at Q{t}
             %==============================================================
             if iD == 1
@@ -692,31 +737,28 @@ for iN = 1:nN
     %----------------------------------------------------------------------
     figure(Fdem)
     spm_DEM_qU(qU)
-    
-    % determine graphs to plot
-    %----------------------------------------------------------------------
-    if np && nh
-        ap = subplot(2*nl,2,4*nl - 2);
-        ah = subplot(2*nl,2,4*nl);
-    elseif np
-        ap = subplot(nl,2,2*nl);
-    elseif nh
-        ah = subplot(nl,2,2*nl);
-    end
-    
+      
     % graphics (parameters and log-precisions)
     %----------------------------------------------------------------------
     if np
-        axes(ap)
+        subplot(2*nl,2,4*nl - 2)
         plot([1:ns],spm_cat(qP.p))
         set(gca,'XLim',[1 ns])
-        title('parameters','FontSize',16)
-    end
-    if nh
-        axes(ah)
+        title('parameters (modes)','FontSize',16)
+
+        subplot(2*nl,2,4*nl)
         plot([1:ns],spm_cat(qH.p))
         set(gca,'XLim',[1 ns])
+    else
+        
+        subplot(nl,2,2*nl)
+        plot([1:ns],spm_cat(qH.p))
+        set(gca,'XLim',[1 ns])
+    end
+    if nh || ng
         title('log-precision','FontSize',16)
+    else
+        title('log-smoothness','FontSize',16)
     end
     drawnow
  
