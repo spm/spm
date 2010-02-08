@@ -2,35 +2,26 @@ function spm_dcm_review(DCM)
 % Review an estimated DCM
 % FORMAT spm_dcm_review(DCM)
 %
-% DCM  - DCM filename
+% DCM    - DCM filename
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
-% Karl Friston
-% $Id: spm_dcm_review.m 3705 2010-02-01 20:51:28Z karl $
- 
-% Get figure handles
-%--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
 
- 
-% Get results
+% Karl Friston
+% $Id: spm_dcm_review.m 3717 2010-02-08 16:44:42Z guillaume $
+
+
+%-Get DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
     [DCM, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
     if ~sts, return; end
 end
 if ~isstruct(DCM)
-    P = DCM;
-    try
-        load(DCM);
-    catch
-        error('Cannot load DCM file "%s".',P);
-    end
+    load(DCM);
 end
- 
- 
-% Get model specification structure (see spm_nlsi)
+
+
+%-Get model specification structure (see spm_nlsi)
 %--------------------------------------------------------------------------
 try
     m  = DCM.M.m;                      % number of inputs
@@ -38,19 +29,21 @@ try
     l  = DCM.M.l;                      % number of regions (responses)
     U  = 0.9;                          % p-value threshold for display
 catch
-    error('This model has not been estimated yet.');
+    m  = size(DCM.U.u,2);
+    l  = DCM.n;
 end
- 
+
+
 % experimental input specific reports
 %--------------------------------------------------------------------------
 for i = 1:m
     str{i} = ['    effects of ' DCM.U.name{i}];
 end
- 
+
 % connectivity and kernels
 %--------------------------------------------------------------------------
 str{end + 1} = 'fixed connections';
- 
+
 if isfield(DCM,'averaged')
     str    = {str{:},'contrast of connections'};
 else
@@ -65,7 +58,7 @@ else
             'estimates of states',...
             'estimates of parameters',...
             'estimates of precisions'};
- 
+
         % region specific reports
         %------------------------------------------------------------------
         for i = 1:l
@@ -73,37 +66,50 @@ else
         end
     end
 end
- 
-%-get options
-%--------------------------------------------------------------------------
-region = spm_input('review',2,'m',str);
-option = str{region};
-figure(Fgraph);
-spm_figure('Clear',Fgraph);
 
-%-exponentiate coupling parameters if a two-state model
+str{end + 1} = 'quit';
+
+%-Get action
 %--------------------------------------------------------------------------
-if DCM.options.two_state
-    Ep.A = exp(DCM.Ep.A);
-    Ep.B = exp(DCM.Ep.B);
-    Ep.D = exp(DCM.Ep.D);
-    Ep.C = DCM.Ep.C;
-    disp('NB: The (A,B,D) parameters are scale parameters')
+if isfield(DCM,'M')
+    region = spm_input('review',1,'m',str);
+    action = str{region};
 else
-    Ep.A = DCM.Ep.A;
-    Ep.B = DCM.Ep.B;
-    Ep.D = DCM.Ep.D;
-    Ep.C = DCM.Ep.C;
+    str2   = str([m+3 m+4 end]);
+    region = spm_input('review',1,'m',str2);
+    action = str2{region};
 end
- 
-switch option
- 
- 
+
+%-Exponentiate coupling parameters if a two-state model
+%--------------------------------------------------------------------------
+try
+    if DCM.options.two_state
+        Ep.A = exp(DCM.Ep.A);
+        Ep.B = exp(DCM.Ep.B);
+        Ep.D = exp(DCM.Ep.D);
+        Ep.C = DCM.Ep.C;
+        disp('NB: The (A,B,D) parameters are scale parameters')
+    else
+        Ep.A = DCM.Ep.A;
+        Ep.B = DCM.Ep.B;
+        Ep.D = DCM.Ep.D;
+        Ep.C = DCM.Ep.C;
+    end
+end
+
+%-Set up Graphics window
+%--------------------------------------------------------------------------
+Fgraph = spm_figure('GetWin','Graphics');
+figure(Fgraph); spm_figure('Clear',Fgraph);
+
+switch action
+
+
     %======================================================================
     % Inputs
     %======================================================================
     case str(1:m)
- 
+
         %-input effects
         %------------------------------------------------------------------
         subplot(2,1,1)
@@ -113,9 +119,9 @@ switch option
         c(:,1)   = DCM.Pp.C(:,i);
         c(:,2)   =     Ep.C(:,i);
         spm_dcm_display(DCM.xY,b,c)
-        title(sprintf('%s P(coupling > %0.2f)',option,DCM.T),'FontSize',16)
- 
- 
+        title(sprintf('%s P(coupling > %0.2f)',action,DCM.T),'FontSize',16)
+
+
         %-direct effects - connections
         %------------------------------------------------------------------
         subplot(4,2,5)
@@ -123,8 +129,8 @@ switch option
         title('C - direct effects (Hz)','FontSize',14)
         set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
         axis square
-  
- 
+
+
         %-direct effects - probabilities
         %------------------------------------------------------------------
         subplot(4,2,6)
@@ -134,8 +140,8 @@ switch option
         set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
         ylabel(sprintf('P(C > %0.2f)',DCM.T))
         axis square
-  
- 
+
+
         %-modulatory effects - connections
         %------------------------------------------------------------------
         subplot(4,2,7)
@@ -144,8 +150,8 @@ switch option
         set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
         xlabel('target region')
         ylabel('strength (Hz)')
- 
-        
+
+
         %-modulatory effects - probabilities
         %------------------------------------------------------------------
         subplot(4,2,8)
@@ -156,13 +162,13 @@ switch option
         xlabel('target region')
         ylabel(sprintf('P(B > %0.2f)',DCM.T))
         legend(DCM.Y.name)
- 
- 
+
+
     %======================================================================
     % Fixed connections
     %======================================================================
-    case{'fixed connections'}
- 
+    case {'fixed connections'}
+
         % Intrinsic effects
         %------------------------------------------------------------------
         subplot(2,1,1)
@@ -170,8 +176,8 @@ switch option
         a(:,:,2) = Ep.A;
         spm_dcm_display(DCM.xY,a)
         title(sprintf('%s P(coupling > %0.2f)','fixed',DCM.T),'FontSize',16)
- 
-        
+
+
         % intrinsic interactions
         %------------------------------------------------------------------
         subplot(2,2,3)
@@ -181,8 +187,8 @@ switch option
         xlabel('target region')
         ylabel('strength (Hz)')
         legend(DCM.Y.name)
- 
-        
+
+
         % intrinsic interactions - probabilities
         %------------------------------------------------------------------
         subplot(2,2,4)
@@ -192,20 +198,20 @@ switch option
         set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
         xlabel('target region')
         ylabel(sprintf('P(A > %0.2f)',DCM.T))
-        
- 
+
+
     %======================================================================
     % Contrast
     %======================================================================
-    case{'contrast of connections'}
- 
+    case {'contrast of connections'}
+
         %-get contrast
         %------------------------------------------------------------------
         T    = spm_input('Threshold (Hz)',1,'r',0);
         D    = spm_input('contrast for',2,'b',{'A','B','C'});
         C    = spm_dcm_contrasts(DCM,D);
-                
- 
+
+
         %-posterior density and inference
         %------------------------------------------------------------------
         c    = C'*spm_vec(DCM.Ep);
@@ -215,7 +221,7 @@ switch option
         sw   = warning('off','SPM:negativeVariance');
         PP   = 1 - spm_Ncdf(T,c,v);
         warning(sw);
- 
+
         figure(Fgraph)
         subplot(2,1,1)
         plot(x,p,[1 1]*T,[0 max(p)],'-.');
@@ -223,13 +229,13 @@ switch option
         title(str,'FontSize',16)
         xlabel('contrast of parameter estimates')
         ylabel('probability density')
- 
+
         i    = find(x >= T);
         hold on
         fill([x(i) fliplr(x(i))],[i*0 fliplr(p(i))],[1 1 1]*.8)
         axis square, grid on
         hold off
- 
+
         %-contrast
         %------------------------------------------------------------------
         C  = spm_unvec(C,DCM.Ep);
@@ -239,14 +245,14 @@ switch option
         set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
         set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
         axis image
- 
+
         subplot(4,2,6)
         imagesc(C.C)
         title('contrast {C}','FontSize',12)
         set(gca,'XTick',[1:m],'XTickLabel',DCM.U.name)
         set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
         axis image
- 
+
         for i = 1:m
             subplot(4,m,i + 3*m)
             imagesc(C.B(:,:,i))
@@ -255,20 +261,20 @@ switch option
             set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
             axis image
         end
- 
- 
+
+
     %======================================================================
     % Location of regions
     %======================================================================
-    case{'location of regions'}
- 
+    case {'location of regions'}
+
         % transverse
         %------------------------------------------------------------------
         subplot(2,1,1)
         spm_dcm_display(DCM.xY);
         title('Regional locations','FontSize',16)
-        
-        
+
+
         % table
         %------------------------------------------------------------------
         subplot(2,1,2)
@@ -293,22 +299,22 @@ switch option
         end
         line([0 4],[y y])
         axis off square
- 
- 
+
+
     %======================================================================
     % Inputs
     %======================================================================
-    case{'inputs'}
- 
+    case {'inputs'}
+
         % priors
         %------------------------------------------------------------------
         x     = [1:length(DCM.U.u)]*DCM.U.dt;
         t     = [1:length(DCM.Y.y)]*DCM.Y.dt;
         for i = 1:m
-            
+
             subplot(m,1,i)
             plot(x,full(DCM.U.u(:,i)))
- 
+
             % posteriors (if stochastic DCM)
             %--------------------------------------------------------------
             if DCM.options.stochastic
@@ -316,7 +322,7 @@ switch option
                 plot(t,DCM.qU.v{2}(i,:),':')
                 hold off
             end
- 
+
             title(['Input - ' DCM.U.name{i}],'FontSize',16)
             ylabel('event density {Hz}')
             a = axis;
@@ -326,13 +332,13 @@ switch option
         if DCM.options.stochastic
             legend({'prior','posterior'})
         end
- 
- 
+
+
     %======================================================================
     % Outputs
     %======================================================================
-    case{'outputs'}
- 
+    case {'outputs'}
+
         % graph
         %------------------------------------------------------------------
         x  = [1:length(DCM.y)]*DCM.Y.dt;
@@ -343,19 +349,19 @@ switch option
         end
         xlabel('time {seconds}');
         legend('predicted', 'observed')
-        
-        
+
+
     %======================================================================
     % Kernels
     %======================================================================
-    case{'kernels'}
- 
+    case {'kernels'}
+
         % input effects
         %------------------------------------------------------------------
         x     = [1:DCM.M.N] * DCM.M.dt;
         d     = 2/DCM.M.dt;
         for i = 1:m
- 
+
             % input effects - neuronal
             %--------------------------------------------------------------
             y = DCM.K1(:,:,i);
@@ -370,7 +376,7 @@ switch option
                     'FontWeight','bold','FontSize',12,...
                     'HorizontalAlignment','Center')
             end
- 
+
             % input effects - hemodynamic
             %--------------------------------------------------------------
             y = DCM.K1(:,:,i);
@@ -386,83 +392,94 @@ switch option
                     'FontWeight','bold','FontSize',12,...
                     'HorizontalAlignment','Center')
             end
- 
+
         end
-        
+
     %======================================================================
     % DEM estimates (using standard format)
     %======================================================================
-    case{'estimates of states'}
-            spm_DEM_qU(DCM.qU)
- 
-    case{'estimates of parameters'}
-            spm_DEM_qP(DCM.qP)
- 
-    case{'estimates of precisions'}
-            spm_DEM_qH(DCM.qH)
-            
-    case{str{end - l + 1:end}}
+    case {'estimates of states'}
+        spm_DEM_qU(DCM.qU)
+
+    case {'estimates of parameters'}
+        spm_DEM_qP(DCM.qP)
+
+    case {'estimates of precisions'}
+        spm_DEM_qH(DCM.qH)
+
+    case {str{end-l:end-1}}
+
+        i = region + m - length(str);
+        t = [1:length(DCM.Y.y)]*DCM.Y.dt;
+
+
+        % hidden states - causes
+        %------------------------------------------------------------------
+        subplot(4,1,1)
+        j = find(DCM.c(i,:));
+        if isempty(j)
+            x = DCM.qU.v{2};
+        else
+            x = DCM.qU.v{2}(j,:);
+        end
+        plot(t,x)
+        title(['inputs or causes - ' DCM.Y.name{i}],'FontSize',16)
+
+
+        % hidden states - neuronal
+        %------------------------------------------------------------------
+        subplot(4,1,2)
+        j = DCM.M.x;
+        if DCM.options.two_state
+            j(i,[1 2 6]) = 1;
+        else
+            j(i,[1 2]) = 1;
+        end
+        j = find(j(:));
+        x = DCM.qU.x{1}(j,:);
+        plot(t,x)
+        title('hidden states - neuronal', 'FontSize',16)
+        if DCM.options.two_state
+            legend({'excitatory','signal','inhibitory'})
+        else
+            legend({'excitatory','signal'})
+        end
+
+
+        % hidden states - hemodynamic
+        %------------------------------------------------------------------
+        subplot(4,1,3)
+        j = DCM.M.x;
+        j(i,[3 4 5]) = 1;
+        j = find(j(:));
+        x = DCM.qU.x{1}(j,:);
+        plot(t,exp(x))
+        title('hidden states - hemodynamic', 'FontSize',16)
+        legend({'flow','volume','dHb'})
+
+
+        % response
+        %------------------------------------------------------------------
+        subplot(4,1,4)
+        y  = DCM.qU.v{1}(i,:);
+        x  = DCM.qU.v{1}(i,:) + DCM.qU.z{1}(i,:);
+        plot(t,x,t,y)
+        title('predicted BOLD signal', 'FontSize',16)
+        xlabel('time (seconds)')
+        legend({'observed','predicted'})
+
         
-            i = region + m - length(str);
-            t = [1:length(DCM.Y.y)]*DCM.Y.dt;
-            
-            
-            % hidden states - causes
-            %--------------------------------------------------------------
-            subplot(4,1,1)
-            j = find(DCM.c(i,:));
-            if isempty(j)
-                x = DCM.qU.v{2};
-            else
-                x = DCM.qU.v{2}(j,:);
-            end
-            plot(t,x)
-            title(['inputs or causes - ' DCM.Y.name{i}],'FontSize',16)
-            
-            
-            % hidden states - neuronal
-            %--------------------------------------------------------------
-            subplot(4,1,2)
-            j = DCM.M.x;
-            if DCM.options.two_state
-                j(i,[1 2 6]) = 1;
-            else
-                j(i,[1 2]) = 1;
-            end
-            j = find(j(:));
-            x = DCM.qU.x{1}(j,:);
-            plot(t,x)
-            title('hidden states - neuronal', 'FontSize',16)
-            if DCM.options.two_state
-                legend({'excitatory','signal','inhibitory'})
-            else
-                legend({'excitatory','signal'})
-            end
-            
- 
-            % hidden states - hemodynamic
-            %--------------------------------------------------------------
-            subplot(4,1,3)
-            j = DCM.M.x;
-            j(i,[3 4 5]) = 1;
-            j = find(j(:));
-            x = DCM.qU.x{1}(j,:);
-            plot(t,exp(x))
-            title('hidden states - hemodynamic', 'FontSize',16)
-            legend({'flow','volume','dHb'})
-            
-            
-            % response
-            %--------------------------------------------------------------
-            subplot(4,1,4)
-            y  = DCM.qU.v{1}(i,:);
-            x  = DCM.qU.v{1}(i,:) + DCM.qU.z{1}(i,:);
-            plot(t,x,t,y)
-            title('predicted BOLD signal', 'FontSize',16)
-            xlabel('time (seconds)')
-            legend({'observed','predicted'})
- 
-            
+    %======================================================================
+    % Quit
+    %======================================================================
+    case {'quit'}
+        return;
+        
+    %======================================================================
+    % Unknown action
+    %======================================================================
     otherwise
-        disp('unknown option')   
+        disp('unknown option')
 end
+
+spm_dcm_review(DCM);

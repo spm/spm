@@ -13,14 +13,14 @@ function [y] = spm_detrend(x,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_detrend.m 3717 2010-02-08 16:44:42Z guillaume $
 
 
 % defaults
 %--------------------------------------------------------------------------
 [m n] = size(x);
 if ~m || ~n
-    y = sparse(m,n);
+    y = [];
     return
 end
 if nargin == 1
@@ -38,9 +38,9 @@ end
 
 % polynomial adjustment
 %--------------------------------------------------------------------------
-G     = [];
+G     = zeros(m,p+1);
 for i = 0:p
     d = (1:m).^i;
-    G = [G d(:)];
+    G(:,i+1) = d(:);
 end
 y     = x - G*(pinv(full(G))*x);

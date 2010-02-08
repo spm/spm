@@ -67,12 +67,20 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_LAP.m 3717 2010-02-08 16:44:42Z guillaume $
 
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-Fdem = spm_figure('GetWin','DEM');
+try
+    DEM.M(1).nograph;
+catch
+    DEM.M(1).nograph = 0;
+end
+if ~DEM.M(1).nograph
+    Fdem = spm_figure('GetWin','DEM');
+end
+
 
 % check model, data and priors
 %==========================================================================

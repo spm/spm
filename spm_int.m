@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3716 2010-02-08 13:58:09Z karl $
+% $Id: spm_int.m 3717 2010-02-08 16:44:42Z guillaume $
  
  
 % convert U to U.u if necessary
@@ -135,6 +135,7 @@ dt    = [diff(t) 0]*U.dt;
 % Integrate
 %--------------------------------------------------------------------------
 J     = M0;
+U.u   = full(U.u);
 for i = 1:length(t)
  
     % input dependent changes in Jacobian

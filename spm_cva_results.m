@@ -29,13 +29,15 @@ function [CVA] = spm_cva_results(CVA)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva_results.m 2662 2009-01-28 20:23:11Z karl $
+% $Id: spm_cva_results.m 3717 2010-02-08 16:44:42Z guillaume $
  
 
 % get CVA if necessary
 %--------------------------------------------------------------------------
 if nargin<1
-    [file,pth] = uigetfile('CVA*.mat', 'Select CVA to display');
+    [file,sts] = spm_select(1,'mat',...
+        'Select CVA to display',[],[],'^CVA.*\.mat$');
+    if ~sts, CVA = []; return; end
     file = load(file);
     CVA  = file.CVA;
 end

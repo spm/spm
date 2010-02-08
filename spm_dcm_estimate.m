@@ -19,6 +19,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.two_state              % two regional populations (E and I)
 % DCM.options.stochastic             % fluctuations on hidden states
 % DCM.options.nonlinear              % interactions among hidden states
+% DCM.options.nograph                % graphical display
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -44,7 +45,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3708 2010-02-02 20:15:31Z karl $
+% $Id: spm_dcm_estimate.m 3717 2010-02-08 16:44:42Z guillaume $
  
  
 % load DCM structure
@@ -75,6 +76,8 @@ end
 try, DCM.options.two_state;  catch, DCM.options.two_state  = 0; end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0; end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0; end
+
+try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
  
 % unpack
 %--------------------------------------------------------------------------
@@ -157,7 +160,7 @@ M.ns  = v;
 %--------------------------------------------------------------------------
 [Ep,Cp,Eh,F]  = spm_nlsi_GN(M,U,Y);
  
-% proceed to stochastic (initialising with determinidstic estimates)
+% proceed to stochastic (initialising with deterministic estimates)
 %--------------------------------------------------------------------------
 if DCM.options.stochastic
     
@@ -236,7 +239,7 @@ if DCM.options.stochastic
     Cp     = DEM.qP.C;
  
     % predicted responses (y) and residuals (R) from DEM
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     y      = DEM.qU.v{1}';
     R      = DEM.qU.z{1}';
     R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
@@ -245,7 +248,7 @@ if DCM.options.stochastic
 else
  
     % predicted responses (y) and residuals (R) from EM
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     y      = feval(M.IS,Ep,M,U);
     R      = Y.y - y;
     R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
@@ -273,7 +276,8 @@ Pp      = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
 Vp      = spm_unvec(diag(Cp),Ep);
 warning(sw);
  
- 
+try, M = rmfield(M,'nograph'); end
+
 % Store parameter estimates
 %--------------------------------------------------------------------------
 DCM.M   = M;

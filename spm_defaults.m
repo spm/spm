@@ -14,11 +14,11 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3697 2010-01-22 17:07:18Z guillaume $
+% $Id: spm_defaults.m 3717 2010-02-08 16:44:42Z guillaume $
 
 try
     d = dbstack;
-    if ~isdeployed && ~any(strcmpi({'spm','spm_get_defaults'},d(end).name))
+    if ~isdeployed && isempty(intersect({'spm','spm_get_defaults'},{d.name}))
         fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
             'Please use spm(''defaults'',modality) instead.\n']);
     end
