@@ -9,7 +9,7 @@ function X = spm_inv(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_inv.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_inv.m 3716 2010-02-08 13:58:09Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -18,4 +18,5 @@ if isempty(A), X = sparse(n,m); return, end
  
 % inverse
 %--------------------------------------------------------------------------
-X   = inv(A + speye(m,n)*eps(norm(A,1)));
+TOL = eps(norm(A,1))*max(m,n);
+X   = inv(A + speye(m,n)*TOL);

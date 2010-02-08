@@ -16,15 +16,15 @@ function [hrf,p] = spm_hrf(RT,P)
 %
 % hrf  - hemodynamic response function
 % p    - parameters of the response function
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_hrf.m 3716 2010-02-08 13:58:09Z karl $
 
 
 % global parameter
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     fMRI_T = spm_get_defaults('stats.fmri.t');
 catch
@@ -32,14 +32,14 @@ catch
 end
 
 % default parameters
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 p   = [6 16 1 1 6 0 32];
 if nargin > 1
     p(1:length(P)) = P;
 end
 
 % modelled hemodynamic response function - {mixture of Gammas}
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dt  = RT/fMRI_T;
 u   = [0:(p(7)/dt)] - p(6)/dt;
 hrf = spm_Gpdf(u,p(1)/p(3),dt/p(3)) - spm_Gpdf(u,p(2)/p(4),dt/p(4))/p(5);

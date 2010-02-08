@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_int.m 3716 2010-02-08 13:58:09Z karl $
  
  
 % convert U to U.u if necessary
@@ -104,10 +104,10 @@ m       = length(M1);                     % m inputs
 try
     D  = round(M.delays/U.dt);
 catch
-    D  = ones(l,1)*round(u/v);
+    D  = ones(M.l,1)*round(u/v);
 end
 
- 
+
 % Evaluation times (t) and indicator array for inputs (su) and output (sy)
 %==========================================================================
  
