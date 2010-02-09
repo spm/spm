@@ -65,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_ui.m 3718 2010-02-09 17:46:52Z guillaume $
 
 
 % Get figure handles
@@ -81,7 +81,7 @@ spm('Pointer','Arrow');
 %--------------------------------------------------------------------------
 if ~nargin
     str       = 'Action: ';
-    Actions   = {'specify','estimate','review','compare','average (BPA)','average (BMA)','quit'};
+    Actions   = {'specify','estimate','review','compare','average','quit'};
     selected = spm_input(str,1,'m',Actions);
     Action   = Actions{selected};
 end
@@ -132,7 +132,7 @@ case 'review',
     
     spm_dcm_review;
 
-    
+
 %==========================================================================
 % Compare different models
 %==========================================================================
@@ -142,25 +142,25 @@ case 'compare',
     
     spm_jobman('Interactive','','spm.stats.bms.bms_dcm');
 
-    
+
 %==========================================================================
-% Average several models (Bayesian FFX)
+% Average
 %==========================================================================
-case 'average (bpa)',
+case 'average',
     
-    spm('FnBanner','spm_dcm_average');
+    if spm_input('Average',1,'b',{'BPA','BMA'},[1 0])
+        
+        spm('FnBanner','spm_dcm_average');
+        spm_dcm_average(1);      %  Average several models (Bayesian FFX)
+        
+    else
+        
+        spm('FnBanner','spm_dcm_bma_results');
+        spm_dcm_bma_results;     %  Average model parameters from BMS (BMA)
+        
+    end
     
-    spm_dcm_average(1);         % ERP: 0; fMRI: any value > 0
     
-%==========================================================================
-% Average model parameters from BMS (BMA)
-%==========================================================================
-case 'average (bma)',
-    
-    spm('FnBanner','spm_dcm_average');
-    
-    spm_dcm_bma_results;  
-   
 %==========================================================================
 % Quit DCM GUI
 %==========================================================================
