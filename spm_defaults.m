@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_defaults.m 3719 2010-02-10 12:15:46Z guillaume $
 
 try
     d = dbstack;
@@ -99,7 +99,7 @@ defaults.unwarp.estimate.basfcn   = [12 12];
 defaults.unwarp.estimate.regorder = 1;
 defaults.unwarp.estimate.regwgt   = 1e5;
 defaults.unwarp.estimate.foe      = [4 5];
-defaults.unwarp.estimate.soe      = 1;
+defaults.unwarp.estimate.soe      = [];
 defaults.unwarp.estimate.rem      = 1;
 defaults.unwarp.estimate.jm       = 0;
 defaults.unwarp.estimate.noi      = 5;

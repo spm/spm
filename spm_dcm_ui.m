@@ -65,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 3718 2010-02-09 17:46:52Z guillaume $
+% $Id: spm_dcm_ui.m 3719 2010-02-10 12:15:46Z guillaume $
 
 
 % Get figure handles
@@ -110,7 +110,8 @@ case 'estimate',
 
     %-select DCM models
     %----------------------------------------------------------------------
-    P = cellstr(spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat'));
+    [P, sts] = spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat');
+    if ~sts, return; else P = cellstr(P); end
 
     spm('Pointer','Watch');
     spm('FigName','Estimation in progress');

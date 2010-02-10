@@ -45,7 +45,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_dcm_estimate.m 3719 2010-02-10 12:15:46Z guillaume $
  
  
 % load DCM structure
@@ -59,7 +59,8 @@ if ~nargin
  
     %-get DCM
     %----------------------------------------------------------------------
-    P = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    [P, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    if ~sts, DCM = []; return; end
     spm('Pointer','Watch')
     spm('FigName','Estimation in progress');
  
