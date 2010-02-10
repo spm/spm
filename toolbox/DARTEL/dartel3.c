@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 3548 2009-11-09 21:25:10Z john $ */
+/* $Id: dartel3.c 3720 2010-02-10 18:26:58Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -789,6 +789,56 @@ static void exp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     mxFree((void *)t1);
 }
 
+static void smalldef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    int nd;
+    const  int *dm;
+    float *v, *t, *t1;
+    double sc = 1.0;
+
+    if (((nrhs != 1) && (nrhs != 2)) || (nlhs>2)) mexErrMsgTxt("Incorrect usage.");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and single");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    dm = mxGetDimensions(prhs[0]);
+    if (dm[3]!=3)
+        mexErrMsgTxt("4th dimension must be 3.");
+
+    if (nrhs>1)
+    {
+        if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[1]) > 1)
+            mexErrMsgTxt("Params must contain one element");
+        if (mxGetNumberOfElements(prhs[1]) >= 1) sc  = (float)(mxGetPr(prhs[1])[0]);
+    }
+
+    v       = (float *)mxGetPr(prhs[0]);
+
+    plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
+    t       = (float *)mxGetPr(plhs[0]);
+
+    if (nlhs < 2)
+    {
+        smalldef((int *)dm, sc, v, t);
+    }
+    else
+    {
+        float *J, *J1;
+         int dmj[5];
+        dmj[0]  = dm[0];
+        dmj[1]  = dm[1];
+        dmj[2]  = dm[2];
+        dmj[3]  = 3;
+        dmj[4]  = 3;
+        plhs[1] = mxCreateNumericArray(5,dmj, mxSINGLE_CLASS, mxREAL);
+        J       = (float *)mxGetPr(plhs[1]);
+        smalldef_jac1((int *)dm, sc, v, t, J);
+    }
+    mxFree((void *)t1);
+}
+
 static void det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     int nd;
@@ -890,6 +940,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             exp_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"smalldef"))
+        {
+            mxFree(fnc_str);
+            smalldef_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else if (!strcmp(fnc_str,"samp"))
         {

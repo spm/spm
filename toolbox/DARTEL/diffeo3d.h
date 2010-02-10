@@ -1,4 +1,4 @@
-/* $Id: diffeo3d.h 3032 2009-04-01 14:14:18Z guillaume $ */
+/* $Id: diffeo3d.h 3720 2010-02-10 18:26:58Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(int dm[], float *A, float *B, float *C);
 extern void composition_jacobian(int dm[],
@@ -7,7 +7,8 @@ extern void composition_jacobian(int dm[],
 extern void composition_jacdet(int dm[],
                                float *A, float * JA, float *B, float *JB,
                                float *C, float *JC);
-
+extern void smalldef(int dm[], double sc, float v[], float t[]);
+extern void smalldef_jac1(int dm[], double sc, float v[], float t[], float J[]);
 extern double samp(int dm[], float f[], double x, double y, double z);
 extern void sampn(int dm[], float f[], int n, int mm, double x, double y, double z, double v[]);
 extern void expdef(int dm[], int k, double sc, float v[],

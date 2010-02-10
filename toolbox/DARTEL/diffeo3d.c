@@ -1,4 +1,4 @@
-/* $Id: diffeo3d.c 3548 2009-11-09 21:25:10Z john $ */
+/* $Id: diffeo3d.c 3720 2010-02-10 18:26:58Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include <mex.h>
@@ -1106,7 +1106,7 @@ static int pow2(int k)
 /*
  * t0 = Id + v0*sc
  */
-static void smalldef(int dm[], double sc, float v0[], float t0[])
+void smalldef(int dm[], double sc, float v0[], float t0[])
 {
     int j0, j1, j2;
     int m = dm[0]*dm[1]*dm[2];
@@ -1213,6 +1213,246 @@ static void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[]
                 J0[o+6*m] = (v0[op1]-v0[om1])*sc2;
                 J0[o+7*m] = (v1[op1]-v1[om1])*sc2;
                 J0[o+8*m] = (v2[op1]-v2[om1])*sc2 + 1.0;
+            }
+        }
+    }
+}
+
+/* syms a[0] a[1] a[2] a[3] a[4] a[5] a[6] a[7] a[8]
+   syms b[0] b[1] b[2] b[3] b[4] b[5] b[6] b[7] b[8]
+   A = [a[0] a[1] a[2]; a[3] a[4] a[5]; a[6] a[7] a[8]].';
+   B = [b[0] b[1] b[2]; b[3] b[4] b[5]; b[6] b[7] b[8]].';
+   C = A*B;
+   C = C(:)
+
+   C = A\B;
+   C = C(:)
+*/
+float *sub33(float *a, float *b, float *c)
+{
+    int i;
+    for(i=0; i<9; i++)
+        c[i] = a[i] - b[i];
+    return(c);
+}
+
+float *add33(float *a, float *b, float *c)
+{
+    int i;
+    for(i=0; i<9; i++)
+        c[i] = a[i] + b[i];
+    return(c);
+}
+
+float *scale33(float *a, float s, float *b)
+{
+    int i;
+    for(i=0; i<9; i++)
+        b[i] = a[i]*s;
+    return(b);
+}
+
+float *eye33(float *a)
+{
+    a[0] = 1.0;
+    a[1] = 0.0;
+    a[2] = 0.0;
+    a[3] = 0.0;
+    a[4] = 1.0;
+    a[5] = 0.0;
+    a[6] = 0.0;
+    a[7] = 0.0;
+    a[8] = 1.0;
+    return(a);
+}
+
+float *mul33(float *a, float *b, float *c)
+{
+    c[0] = a[0]*b[0] + a[3]*b[1] + a[6]*b[2];
+    c[1] = a[1]*b[0] + a[4]*b[1] + a[7]*b[2];
+    c[2] = a[2]*b[0] + a[5]*b[1] + a[8]*b[2];
+    c[3] = a[0]*b[3] + a[3]*b[4] + a[6]*b[5];
+    c[4] = a[1]*b[3] + a[4]*b[4] + a[7]*b[5];
+    c[5] = a[2]*b[3] + a[5]*b[4] + a[8]*b[5];
+    c[6] = a[0]*b[6] + a[3]*b[7] + a[6]*b[8];
+    c[7] = a[1]*b[6] + a[4]*b[7] + a[7]*b[8];
+    c[8] = a[2]*b[6] + a[5]*b[7] + a[8]*b[8];
+    return(c);
+}
+
+float *div33(float *a, float *b, float *c)
+{
+    float d = a[0]*(a[4]*a[8] - a[5]*a[7]) + a[1]*(a[5]*a[6] - a[3]*a[8]) + a[2]*(a[3]*a[7] - a[4]*a[6]);
+    c[0] =   (a[3]*(a[7]*b[2] - a[8]*b[1]) + a[4]*(a[8]*b[0] - a[6]*b[2]) + a[5]*(a[6]*b[1] - a[7]*b[0]))/d;
+    c[1] =  -(a[0]*(a[7]*b[2] - a[8]*b[1]) + a[1]*(a[8]*b[0] - a[6]*b[2]) + a[2]*(a[6]*b[1] - a[7]*b[0]))/d;
+    c[2] =   (a[0]*(a[4]*b[2] - a[5]*b[1]) + a[1]*(a[5]*b[0] - a[3]*b[2]) + a[2]*(a[3]*b[1] - a[4]*b[0]))/d;
+    c[3] =   (a[3]*(a[7]*b[5] - a[8]*b[4]) + a[4]*(a[8]*b[3] - a[6]*b[5]) + a[5]*(a[6]*b[4] - a[7]*b[3]))/d;
+    c[4] =  -(a[0]*(a[7]*b[5] - a[8]*b[4]) + a[1]*(a[8]*b[3] - a[6]*b[5]) + a[2]*(a[6]*b[4] - a[7]*b[3]))/d;
+    c[5] =   (a[0]*(a[4]*b[5] - a[5]*b[4]) + a[1]*(a[5]*b[3] - a[3]*b[5]) + a[2]*(a[3]*b[4] - a[4]*b[3]))/d;
+    c[6] =   (a[3]*(a[7]*b[8] - a[8]*b[7]) + a[4]*(a[8]*b[6] - a[6]*b[8]) + a[5]*(a[6]*b[7] - a[7]*b[6]))/d;
+    c[7] =  -(a[0]*(a[7]*b[8] - a[8]*b[7]) + a[1]*(a[8]*b[6] - a[6]*b[8]) + a[2]*(a[6]*b[7] - a[7]*b[6]))/d;
+    c[8] =   (a[0]*(a[4]*b[8] - a[5]*b[7]) + a[1]*(a[5]*b[6] - a[3]*b[8]) + a[2]*(a[3]*b[7] - a[4]*b[6]))/d;
+    return(c);
+}
+
+void pade33(float *a, float *l)
+{
+    float u[9], v[9], num[9], den[9], a0[9], a2[9], a3[9];
+    
+    eye33(a0);
+    mul33(a,a,a2);
+    mul33(a2,a,a3);
+    scale33(a0,120.0,a0);
+    scale33(a2, 12.0,a2);
+    add33(a0,a2,u);
+    scale33(a,60.0,v);
+    add33(v,a3,v);
+    
+    add33(u,v,num);
+    sub33(u,v,den);
+    div33(den,num,l);
+}
+
+void pade22(float *a, float *l)
+{
+    float u[9], v[9], num[9], den[9], a0[9], a2[9];
+    
+    eye33(a0);
+    mul33(a,a,a2);
+    scale33(a0,12.0,a0);
+    add33(a0,a2,u);
+    scale33(a,6.0,v);
+    
+    add33(u,v,num);
+    sub33(u,v,den);
+    div33(den,num,l);
+}
+
+float norm1(float *a)
+{
+    float r, rm;
+    rm = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
+    r  = fabs(a[3]) + fabs(a[4]) + fabs(a[5]);
+    if (r>rm) rm = r;
+    r  = fabs(a[6]) + fabs(a[7]) + fabs(a[8]);
+    if (r>rm) rm = r;
+    return(rm);
+}
+
+float *assign33(float *a, float *b)
+{
+    int i;
+    for(i=0; i<9; i++)
+        b[i] = a[i];
+    return(b);
+}
+
+void expm33(float *a, float *l)
+{
+    /* See expm.m in MATLAB or http://mathworld.wolfram.com/PadeApproximant.html */
+    int K;
+    K = (int)ceil(log((double)(norm1(a)*2.3481))*1.44269504088896);
+    if (K>0)
+    {
+        float b[9];
+        float s = 1.0/pow2(K);
+        int i;
+        scale33(a,s,b);
+        pade33(b, l);
+        for(i=0; i<K; i++)
+        {
+            assign33(l,b);
+            mul33(b,b,l);
+        }
+    }
+    else
+        pade33(a, l);
+}
+
+void expm22(float *a, float *l)
+{
+    /* See expm.m in MATLAB or http://mathworld.wolfram.com/PadeApproximant.html */
+    int K;
+    K = (int)ceil(log((double)(norm1(a)*12.356))*1.44269504088896);
+    if (K>0)
+    {
+        float b[9];
+        float s = 1.0/pow2(K);
+        int i;
+        scale33(a,s,b);
+        pade22(b, l);
+        for(i=0; i<K; i++)
+        {
+            assign33(l,b);
+            mul33(b,b,l);
+        }
+    }
+    else
+        pade22(a, l);
+}
+
+/*
+ * t0 = Id + v0*sc
+ * J0 = Id + expm(D v0)
+ */
+void smalldef_jac1(int dm[], double sc, float v0[], float t0[], float J0[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    double sc2 = sc/2.0;
+    float *v1 = v0+m, *v2 = v1+m;
+    float A[9], E[9];
+
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        int j2m1, j2p1;
+        j2m1 = WRAP(j2-1,dm[2]);
+        j2p1 = WRAP(j2+1,dm[2]);
+
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            int j1m1, j1p1;
+            j1m1 = WRAP(j1-1,dm[1]);
+            j1p1 = WRAP(j1+1,dm[1]);
+
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                int o, om1, op1;
+                o         = j0+dm[0]*(j1+dm[1]*j2);
+                t0[o    ] = (j0+1) + v0[o]*sc;
+                t0[o+m  ] = (j1+1) + v1[o]*sc;
+                t0[o+m*2] = (j2+1) + v2[o]*sc;
+
+                om1  = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1  = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                A[0] = (v0[op1]-v0[om1])*sc2;
+                A[1] = (v1[op1]-v1[om1])*sc2;
+                A[2] = (v2[op1]-v2[om1])*sc2;
+
+                om1  = j0+dm[0]*(j1m1+dm[1]*j2);
+                op1  = j0+dm[0]*(j1p1+dm[1]*j2);
+                A[3] = (v0[op1]-v0[om1])*sc2;
+                A[4] = (v1[op1]-v1[om1])*sc2;
+                A[5] = (v2[op1]-v2[om1])*sc2;
+
+                om1  = j0+dm[0]*(j1+dm[1]*j2m1);
+                op1  = j0+dm[0]*(j1+dm[1]*j2p1);
+                A[6] = (v0[op1]-v0[om1])*sc2;
+                A[7] = (v1[op1]-v1[om1])*sc2;
+                A[8] = (v2[op1]-v2[om1])*sc2;
+
+                expm22(A, E);
+
+                J0[o    ] = E[0];
+                J0[o+  m] = E[1];
+                J0[o+2*m] = E[2];
+                J0[o+3*m] = E[3];
+                J0[o+4*m] = E[4];
+                J0[o+5*m] = E[5];
+                J0[o+6*m] = E[6];
+                J0[o+7*m] = E[7];
+                J0[o+8*m] = E[8];
+
             }
         }
     }
