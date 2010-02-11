@@ -17,25 +17,26 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3669 2010-01-11 11:17:20Z maria $
+% $Id: spm_run_bms_dcm.m 3721 2010-02-11 16:02:49Z maria $
 
 % input
 % -------------------------------------------------------------------------
 job     = varargin{1};
-fname   = 'BMS.mat';                 % Output filename
-fname   = fullfile(job.dir{1},fname);% Output filename (including directory)
-ld_f    = ~isempty(job.load_f{1});
-ld_msp  = ~isempty(job.model_sp{1});
-bma_do  = isfield(job.bma,'bma_yes');
-data_se = ~isempty(job.sess_dcm);
+
+fname   = 'BMS.mat';                     % Output filename
+fname   = fullfile(job.dir{1},fname);    % Output filename (inc. directory)
+ld_f    = ~isempty(job.load_f{1});       % Log-evidence file
+ld_msp  = ~isempty(job.model_sp{1});     % Model space file
+bma_do  = isfield(job.bma,'bma_yes');    % Compute BMA
+data_se = ~isempty(job.sess_dcm);        % DCM files
 
 
 % method
 % -------------------------------------------------------------------------
 if strcmp(job.method,'FFX');
-    method = 'FFX';
+    method = 'FFX';                      % Fixed-effects
 else
-    method = 'RFX';
+    method = 'RFX';                      % Random-effects                   
 end
 
 % check DCM.mat files and BMA
@@ -84,25 +85,26 @@ else
     end
 end
 
-F = [];
-N = {};
-nonLin = 0;
+% initialise 
+% -------------------------------------------------------------------------
+F      = [];                % Free energy
+N      = {};                % Models                               
 
 % prepare the data
 % -------------------------------------------------------------------------
 if  ld_f
-    data = job.load_f{1};
+    data      = job.load_f{1};
     load(data);
-    nm        = size(F,2);                               % No of Models
-    ns        = size(F,1);                               % No of Models
+    nm        = size(F,2);                                % No of Models
+    ns        = size(F,1);                                % No of Models
     N         = 1:nm;
-    subj      = [];
-    f_fname   = data;
-    fname_msp = [];
+    subj      = [];                                       % subj structure
+    f_fname   = data;                                     % LogE file name
+    fname_msp = [];                                       % Model space
 
 else
 
-    f_fname = [];
+    f_fname       = [];                                   % LogE file name
 
     % Verify dimensions of data and model space
     if ld_msp
@@ -154,24 +156,21 @@ else
 
                         % Load DCM (model)
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
-                        DCM = load(tmp);
+                        if ~job.verify_id
+                            DCM.DCM = load(tmp, 'F', 'Ep', 'Cp');
+                        else
+                            DCM     = load(tmp);
+                        end
 
                         % Free energy for sessions
                         F_sess  = [F_sess,DCM.DCM.F];
-
+                        
                         % Create model space
-                        subj(k).sess(h).model(j).fname      = tmp;
-                        subj(k).sess(h).model(j).F          = DCM.DCM.F;
-                        subj(k).sess(h).model(j).Ep         = DCM.DCM.Ep;
-                        subj(k).sess(h).model(j).Cp         = DCM.DCM.Cp;
-                        subj(k).sess(h).model(j).nonLin     = 0;
-                        
-                        if isfield(DCM.DCM,'D')
-                           subj(k).sess(h).model(j).nonLin  = 1;
-                           nonLin   = 1;
-                           nPnonLin = length(DCM.DCM.Ep);
-                        end
-                        
+                        subj(k).sess(h).model(j).fname = tmp;
+                        subj(k).sess(h).model(j).F     = DCM.DCM.F;
+                        subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
+                        subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
+                         
                     else
 
                         F_sess = [F_sess,subj(k).sess(h).model(j).F];
@@ -182,9 +181,12 @@ else
                     % re-compute the IDs rather than use the ones stored
                     % with the DCM.
                     if job.verify_id
-                        M = DCM.DCM.M;
+                        
+                        disp(sprintf('Identifying data: model %d', j));
+                       
+                        M   = DCM.DCM.M;
 
-                        if isfield(DCM.DCM, 'xY')
+                        if isfield(DCM, 'xY')
                             Y = DCM.DCM.xY;  % not fMRI
                         else
                             Y = DCM.DCM.Y;   % fMRI
@@ -336,33 +338,9 @@ if strcmp(method,'FFX');
         disp('FFX Bayesian model averaging ...');
         
         % bayesian model averaging
-        % ------------------------------------------------------------------
-        [theta, theta_sbj] = spm_dcm_bma(bma.post,bma.indx,subj,...
-                             bma.nsamp,bma.odds_ratio);
-
-       % reshape parameters
-       % ------------------------------------------------------------------
-       disp('Reshaping parameters ...');
-       for i = 1:bma.nsamp,
-           if (nonLin && size(theta,1)==nPnonLin)
-             [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
-             bma.d(:,:,:,i)  = D(:,:,:);
-           else           
-             [A,B,C]         = spm_dcm_reshape(theta(:,i),m,n,1);
-           end
-             bma.a(:,:,i)    = A(:,:);
-             bma.b(:,:,:,i)  = B(:,:,:);
-             bma.c(:,:,i)    = C(:,:);
-       end
-       bma.ma = mean(bma.a,3);
-       bma.mb = mean(bma.b,4);
-       bma.mc = mean(bma.c,3);
-       if (nonLin && size(theta,1)==nPnonLin)
-           bma.md = mean(bma.d,4);
-       end
-       bma.theta_sbj  = theta_sbj;
-       bma.mtheta_sbj = mean(theta_sbj,3);
-       bma.stheta_sbj = std(theta_sbj,0,3);
+        % -----------------------------------------------------------------
+        bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
+        
     else
 
         bma = [];
@@ -394,7 +372,7 @@ if strcmp(method,'FFX');
     out.files{1} = fname;
 
     % 2nd-level (random effects) BMS
-    % -------------------------------------------------------------------------
+    % ---------------------------------------------------------------------
 else
 
     disp('Computing RFX model/family posteriors...');
@@ -447,33 +425,7 @@ else
        disp('RFX Bayesian model averaging ...');
        % bayesian model averaging
        % ------------------------------------------------------------------    
-       [theta,theta_sbj] = spm_dcm_bma(bma.post,bma.indx,subj,...
-           bma.nsamp,bma.odds_ratio);
-       
-       % reshape parameters
-       % ------------------------------------------------------------------
-       disp('Reshaping parameters ...');
-       for i = 1:bma.nsamp,
-           if (nonLin && size(theta,1)==nPnonLin)
-             [A,B,C,H,D]     = spm_dcm_reshape(theta(:,i),m,n,1);
-             bma.d(:,:,:,i)  = D(:,:,:);
-           else           
-             [A,B,C]         = spm_dcm_reshape(theta(:,i),m,n,1);
-           end
-             bma.a(:,:,i)    = A(:,:);
-             bma.b(:,:,:,i)  = B(:,:,:);
-             bma.c(:,:,i)    = C(:,:);
-       end
-       bma.ma = mean(bma.a,3);
-       bma.mb = mean(bma.b,4);
-       bma.mc = mean(bma.c,3);
-       if (nonLin && size(theta,1)==nPnonLin)
-           bma.md = mean(bma.d,4);
-       end
-
-       bma.theta_sbj  = theta_sbj;
-       bma.mtheta_sbj = mean(theta_sbj,3);
-       bma.stheta_sbj = std(theta_sbj,0,3);
+       bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
 
     else
 

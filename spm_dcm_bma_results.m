@@ -11,7 +11,7 @@ function spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3711 2010-02-04 16:47:03Z guillaume $
+% $Id: spm_dcm_bma_results.m 3721 2010-02-11 16:02:49Z maria $
 
 if nargin < 4
     % function called without parameters (e.g. via GUI)
@@ -25,6 +25,7 @@ if nargin < 4
     mod_input   = spm_input('Select modulatory input ? ',1,'r',[],1);
     drive_input = spm_input('Select driving input ? ','+1','r',[],1);
     method      = spm_input('Inference method','+1','b','FFX|RFX',['ffx';'rfx']);
+    
 else
     % use function arguments
     %----------------------------------------------------------------------
@@ -37,7 +38,6 @@ end
 %--------------------------------------------------------------------------
 load(fname)
 
-nonLin = 0;
 % select method
 %--------------------------------------------------------------------------
 if isfield(BMS.DCM,method)
@@ -46,16 +46,11 @@ if isfield(BMS.DCM,method)
             if isempty(BMS.DCM.ffx.bma)
                 error('No BMA analysis for FFX in BMS file!');
             else
-                Nsamp = BMS.DCM.ffx.bma.nsamp;
-                amat  = BMS.DCM.ffx.bma.a;
-                bmat  = BMS.DCM.ffx.bma.b;
-                cmat  = BMS.DCM.ffx.bma.c;
-                if isfield(BMS.DCM.ffx.bma,'d')
-                    dmat = BMS.DCM.ffx.bma.d;
-                    mod_reg = spm_input('Select modulating region ? ','+1','r',[],1);
-                    nonLin = 1;
-                end
-
+                Nsamp   = BMS.DCM.ffx.bma.nsamp;
+                amat    = BMS.DCM.ffx.bma.a;
+                bmat    = BMS.DCM.ffx.bma.b;
+                cmat    = BMS.DCM.ffx.bma.c;
+                dmat    = BMS.DCM.ffx.bma.d;
             end
             disp('Loading model space...')
             load(BMS.DCM.ffx.data)
@@ -69,12 +64,7 @@ if isfield(BMS.DCM,method)
                 amat = BMS.DCM.rfx.bma.a;
                 bmat = BMS.DCM.rfx.bma.b;
                 cmat = BMS.DCM.rfx.bma.c;
-                if isfield(BMS.DCM.rfx.bma,'d')
-                    dmat = BMS.DCM.rfx.bma.d;
-                    mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1);
-                    nonLin = 1;
-                end
-
+                dmat = BMS.DCM.rfx.bma.d;
             end
             disp('Loading model space...')
             load(BMS.DCM.rfx.data)
@@ -107,7 +97,8 @@ else
     end
 end
 
-bins = Nsamp/100;
+bins   = Nsamp/100;
+nonLin = 0;
 
 % intrinsic connection density
 %--------------------------------------------------------------------------
@@ -118,10 +109,12 @@ FS = spm('FontSizes');
 usd.amat        = amat;
 usd.bmat        = bmat;
 usd.cmat        = cmat;
-if nonLin
-    usd.dmat    = dmat;
-    usd.mod_reg = drive_input;
+usd.dmat        = dmat;
+if ~isempty(usd.dmat)
+    nonLin      = 1;
+    mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1); 
 end
+usd.mod_reg     = drive_input;
 usd.region      = region;
 usd.n           = n;
 usd.m           = m;
@@ -142,6 +135,7 @@ else
     labels = {'a: int.','b: mod.','c: inp.'};
     callbacks = {@plot_a,@plot_b,@plot_c};
 end
+    
 
 [handles] = spm_uitab(F,labels,callbacks,'BMA_parameters',1);
 
@@ -307,8 +301,8 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.bmat(i,j,ud.mod_input,:),ud.bins,'r');
-            bmax = max(ud.dmat(i,j,ud.mod_input,:));
+            hist(ud.bmat(i,j,ud.mod_reg,:),ud.bins,'r');
+            bmax = max(ud.dmat(i,j,ud.mod_reg,:));
             if bmax > 0
                 xlim([-bmax bmax])
             else
