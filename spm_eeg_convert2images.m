@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3612 2009-12-03 23:45:55Z vladimir $
+% $Id: spm_eeg_convert2images.m 3722 2010-02-11 16:23:28Z vladimir $
 
-SVNrev = '$Rev: 3612 $';
+SVNrev = '$Rev: 3722 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -190,7 +190,7 @@ if strncmpi(D.transformtype, 'TF',2)
                         scale = 1;
                     end
                     
-                    N.dat(:, :) = scale*squeeze(mean(D(images.channels_of_interest, :, :, l), 1));
+                    N.dat(:, :) = scale*spm_squeeze(mean(D(images.channels_of_interest, :, :, l), 1), 1);
 
                 end
                 Pout{i} = char(Pout{i});
@@ -243,11 +243,11 @@ if strncmpi(D.transformtype, 'TF',2)
                 
                 if ~isempty(megchanind)
                     Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        1e30*squeeze(mean(D(megchanind, inds, tind(1):tind(end), :), 2));
+                        1e30*spm_squeeze(mean(D(megchanind, inds, tind(1):tind(end), :), 2), 2);
                 end
                 if ~isempty(nonmegchanind)
                     Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2));
+                        spm_squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2), 2);
                 end
                 
                 Dnew = timeonset(Dnew, tims(tind(1)));
@@ -255,11 +255,11 @@ if strncmpi(D.transformtype, 'TF',2)
                 Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
                 if ~isempty(megchanind)
                     Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        1e30*squeeze(mean(D(megchanind, inds, :, :), 2));
+                        1e30*spm_squeeze(mean(D(megchanind, inds, :, :), 2), 2);
                 end
                 if ~isempty(nonmegchanind)
                     Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        squeeze(mean(D(nonmegchanind, inds, :, :), 2));
+                        spm_squeeze(mean(D(nonmegchanind, inds, :, :), 2), 2);
                 end
             end
                         
