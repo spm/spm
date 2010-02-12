@@ -65,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 3719 2010-02-10 12:15:46Z guillaume $
+% $Id: spm_dcm_ui.m 3723 2010-02-12 15:15:18Z guillaume $
 
 
 % Get figure handles
@@ -152,7 +152,7 @@ case 'average',
     if spm_input('Average',1,'b',{'BPA','BMA'},[1 0])
         
         spm('FnBanner','spm_dcm_average');
-        spm_dcm_average(1);      %  Average several models (Bayesian FFX)
+        spm_dcm_average;         %  Average several models (Bayesian FFX)
         
     else
         

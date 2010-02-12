@@ -1,30 +1,32 @@
-function [Con] = spm_make_contrasts (k)
+function Con = spm_make_contrasts(k)
 % Make contrasts for one, two or three-way ANOVAs
-% FORMAT [Con] = spm_make_contrasts (k)
+% FORMAT Con = spm_make_contrasts(k)
 %
-% k    A vector where the ith entry is the number of levels of factor i
+% k        - vector where the ith entry is the number of levels of factor i
 %
-% This function computes contrasts for a generic k(1)-by-k(2)-by-k(3) design. 
-% It is assumed that the levels of the first factor 
-% change slowest. 
-% 
+% Con      - struct array with fields:
+% Con(c).c    - Contrast matrix
+%       .name - Name
+%
+% This function computes contrasts for a generic k(1)-by-k(2)-by-k(3) design.
+% It is assumed that the levels of the first factor change slowest.
+%
 % For one-way ANOVAs set k=L, where L is the number of
 % levels, for two-way ANOVAs set k=[L1 L2], for three way set k=[L1 L2 L3]
 %
 % This function generates (transposed) contrast matrices to test
 % average effect, main effect of each factor and interactions
+%__________________________________________________________________________
 %
-% Con(c).c      Contrast matrix
-%       .name   Name
-%_______________________________________________________________________
+% Reference:
+%
+% For details of Kronecker operations, see section 5 of
+%     http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_make_contrasts.m 3249 2009-07-03 16:43:55Z guillaume $
-    
-% See section 5 of 
-% http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
-% for details of kronecker operations
+% $Id: spm_make_contrasts.m 3723 2010-02-12 15:15:18Z guillaume $
 
 % Number of factors
 nf=length(k);

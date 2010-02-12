@@ -6,17 +6,17 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % R           - residual forming matrix
 % flags       - 'm' for implicit zero masking
 % Vo (output) - handle structure of output image volume after modifications
-%                 for writing
+%               for writing
 %
 % Note that spm_create_vol needs to be called external to this function -
-% the header is not created!
-%_______________________________________________________________________
+% the header is not created.
+%__________________________________________________________________________
 %
 % Residuals are computed as R*Y, where Y is the data vector read from
 % images mapped as Vi. The residual sum of squares image (mapped as Vo)
 % is written.
 %
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %
 % For a simple linear model Y = X*B * E, with design matrix X,
 % (unknown) parameter vector(s) B, and data matrix Y, the least squares
@@ -58,58 +58,58 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 %         R = (K - KX*inv(KX'*KX)*KX'*K)
 % or      R = (K - KX*pinv(KX)*K)              when using a pseudoinverse
 %
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %
 % This function can also be used when the b's are images. The residuals
 % are then e = Y - X*b, so let Vi refer to the vector of images and
 % parameter estimates ([Y;b]), and then R is ([eye(n),-X]), where n is
 % the number of Y images.
 %
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %
 % Don't forget to either apply any image scaling (grand mean or
 % proportional scaling global normalisation) to the image scalefactors,
 % or to combine the global scaling factors in the residual forming
 % matrix.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 3152 2009-05-27 10:54:49Z guillaume $
-
-
+% $Id: spm_resss.m 3723 2010-02-12 15:15:18Z guillaume $
 
 %-Argument checks
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<4, flags=''; end, if isempty(flags), flags='-'; end
 mask = any(flags=='m');
 if nargin<3, error('insufficient arguments'); end
-ni = size(R,2);                 %-ni = #images
-if ni~=prod(size(Vi)), error('incompatible dimensions'); end
-if Vo.dt(1)~=16, error('only float output images supported'), end
+ni   = size(R,2);                                   %-ni = #images
+if ni~=numel(Vi), error('incompatible dimensions'); end
+if Vo.dt(1)~=spm_type('float32')
+    error('only float output images supported');
+end
 
 %-Image dimension, orientation and voxel size checks
-%-----------------------------------------------------------------------
-[samef msg] = spm_vol_check(Vi, Vo);
-if ~samef, disp(char(msg)),error('Cannot use images'),end;
+%--------------------------------------------------------------------------
+spm_check_orientations([Vi Vo]);
 
-
-%=======================================================================
+%==========================================================================
 % - C O M P U T A T I O N
-%=======================================================================
-fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')       %-#
+%==========================================================================
+fprintf('%-14s%16s',['(',mfilename,')'],'...initialising');             %-#
 
-Y  = zeros([Vo.dim(1:2),ni]);               %-PlaneStack data
+Y  = zeros([Vo.dim(1:2),ni]);                       %-PlaneStack data
 
-im = logical(zeros(ni,1));
-for j=1:ni, im(j)=~spm_type(Vi(j).dt(1),'NaNrep'); end  %-Images without NaNrep
+im = false(ni,1);
+for j=1:ni
+    im(j)=~spm_type(Vi(j).dt(1),'NaNrep');          %-Images without NaNrep
+end
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
     fprintf('%s%16s',repmat(sprintf('\b'),1,16),...
-        sprintf('...plane %3d/%-3d',p,Vo.dim(3)))       %-#
+        sprintf('...plane %3d/%-3d',p,Vo.dim(3)))                       %-#
 
-    M = spm_matrix([0 0 p]);            %-Sampling matrix
+    M = spm_matrix([0 0 p]);                        %-Sampling matrix
 
     %-Read plane data
     for j=1:ni, Y(:,:,j) = spm_slice_vol(Vi(j),M,Vi(j).dim(1:2),0); end
@@ -117,13 +117,13 @@ for p=1:Vo.dim(3)
     %-Apply implicit zero mask for image types without a NaNrep
     if mask, Y(Y(:,:,im)==0)=NaN; end
 
-    e  = R*reshape(Y,prod(Vi(1).dim(1:2)),ni)'; %-residuals as DataMtx
-    ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));   %-ResSS plane
-    Vo = spm_write_plane(Vo,ss,p);          %-Write plane
+    e  = R*reshape(Y,prod(Vi(1).dim(1:2)),ni)';     %-residuals as DataMtx
+    ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));       %-ResSS plane
+    Vo = spm_write_plane(Vo,ss,p);                  %-Write plane
 end
 
 
 %-End
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_str_manip(Vo.fname,'t')))        %-#
+    sprintf('...written %s',spm_str_manip(Vo.fname,'t')))               %-#

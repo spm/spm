@@ -45,7 +45,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3719 2010-02-10 12:15:46Z guillaume $
+% $Id: spm_dcm_estimate.m 3723 2010-02-12 15:15:18Z guillaume $
  
  
 % load DCM structure
@@ -318,7 +318,11 @@ DCM.BIC    = evidence.bic_overall;
  
 %-Save DCM
 %--------------------------------------------------------------------------
-save(P,'DCM','F','Ep','Cp');
+if spm_matlab_version_chk('7') >= 0
+    save(P,'-V6','DCM','F','Ep','Cp');
+else
+    save(P,'DCM','F','Ep','Cp');
+end
  
 if ~nargin
     spm('Pointer','Arrow');

@@ -13,7 +13,7 @@ function [I,P,H,Hnames] = spm_set_factorial_design(fd)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Guillaume Flandin
-% $Id: spm_set_factorial_design.m 3685 2010-01-14 17:18:51Z guillaume $
+% $Id: spm_set_factorial_design.m 3723 2010-02-12 15:15:18Z guillaume $
 
 % Get number of factors, levels and cells
 %--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ I          = [I ones(size(I,1),4-size(I,2))];
 
 % Display some warnings
 %--------------------------------------------------------------------------
-if Ncells ~= Nfactors * Nlevels
+if Ncells ~= prod(Nlevels)
     disp('Some cell(s) are missing.');
 end
 if size(I,1) ~= size(unique(I,'rows'),1)
