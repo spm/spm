@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3722 2010-02-11 16:23:28Z vladimir $
+% $Id: spm_eeg_convert2images.m 3724 2010-02-16 12:16:57Z vladimir $
 
-SVNrev = '$Rev: 3722 $';
+SVNrev = '$Rev: 3724 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,9 +68,7 @@ if strncmpi(D.transformtype, 'TF',2)
     
     %-If it's clear what to average over, assign automatically
     %----------------------------------------------------------------------
-    if D.nchannels == 1
-        S.images.fmt = 'channels';
-    elseif D.nfrequencies == 1
+    if D.nfrequencies == 1
         S.images.fmt = 'frequency';
     end
     
