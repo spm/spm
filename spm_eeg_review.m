@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_eeg_review.m 3725 2010-02-16 12:26:24Z vladimir $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -260,10 +260,18 @@ if isfield(D.other,'inv') && ~isempty(D.other.inv)
             end
             labels{i} = [D.other.inv{isInv(i)}.comment{1}];
             callbacks{i} = ['spm_eeg_review_callbacks(''visu'',''inv'',',num2str(i),')'];
-            F(i) = D.other.inv{isInv(i)}.inverse.F;
-            pst = [pst;D.other.inv{isInv(i)}.inverse.pst(:)];
+            try
+                F(i) = D.other.inv{isInv(i)}.inverse.F;
+                pst = [pst;D.other.inv{isInv(i)}.inverse.pst(:)];
+            catch
+                continue
+            end
         end
-        pst = unique(pst);
+        if isempty(pst)
+            Ninv = 0;
+        else
+            pst = unique(pst);
+        end
     end
 else
     Ninv = 0;
