@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3439 2009-10-02 14:21:34Z john $
+% $Id: spm_dartel_norm_fun.m 3727 2010-02-16 17:42:53Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -84,12 +84,21 @@ end
 
 if isfield(job.data,'subj') || isfield(job.data,'subjs'),
     if do_aff
-        % Affine registration of DARTEL Template with MNI space.
-        %--------------------------------------------------------------------------
         [pth,nam,ext] = fileparts(Nt.dat.fname);
-        fprintf('** Affine registering "%s" with MNI space **\n', nam);
-        M = mat\Mmni*inv(spm_klaff(Nt,tpm))*inv(Mt);
-        mat_intent = 'MNI152';
+        if exist(fullfile(pth,[nam '_2mni.mat']))
+            load(fullfile(pth,[nam '_2mni.mat']),'mni');
+        else
+            % Affine registration of DARTEL Template with MNI space.
+            %--------------------------------------------------------------------------
+            fprintf('** Affine registering "%s" with MNI space **\n', nam);
+            clear mni
+            mni.affine = Mmni/spm_klaff(Nt,tpm);
+            mni.code   = 'MNI152';
+            save(fullfile(pth,[nam '_2mni.mat']),'mni');
+        end
+        M = mat\mni.affine/Mt;
+        %M = mat\Mmni*inv(spm_klaff(Nt,tpm))*inv(Mt);
+        mat_intent = mni.code;
     else
         M = mat\eye(4);
         mat_intent = 'Aligned';
