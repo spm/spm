@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3727 2010-02-16 17:42:53Z john $
+% $Id: spm_dartel_norm_fun.m 3728 2010-02-17 12:18:34Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -223,7 +223,7 @@ for m=1:numel(PI),
             dm  = [size(NI.dat),1,1,1,1];
             if ~all(dm(1:3)==odm) || ~all(M(:)==oM(:)),
                 % Generate new deformation (if needed)
-                y   = zeros(dm(1:3),'single');
+                y   = zeros([dm(1:3),3],'single');
                 for d=1:3,
                     yd = y0(:,:,:,d);
                     for x3=1:size(y,3),
