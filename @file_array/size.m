@@ -4,13 +4,14 @@ function d = size(a,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: size.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: size.m 3730 2010-02-17 13:24:26Z john $
 
 
 sa  = struct(a);
 nd  = 0;
 for i=1:numel(sa),
     nd = max(nd,numel(sa(i).dim));
+    nd = max(nd,max(find(sa(i).pos==1)));
 end
 nd = nd+1;
 
