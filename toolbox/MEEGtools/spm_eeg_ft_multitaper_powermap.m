@@ -22,10 +22,10 @@ function Dtf = spm_eeg_ft_multitaper_powermap(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_powermap.m 3612 2009-12-03 23:45:55Z vladimir $
+% $Id: spm_eeg_ft_multitaper_powermap.m 3729 2010-02-17 12:47:21Z vladimir $
  
 %%
-SVNrev = '$Rev: 3612 $';
+SVNrev = '$Rev: 3729 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -61,6 +61,10 @@ end
 
 %-Configure the spectral analysis
 %--------------------------------------------------------------------------
+if ~isfield(S, 'timewin')
+    S.timewin = spm_input('Time window (ms)', '+1', 'r', num2str(1000*[D.time(1) D.time(end)]), 2);
+end
+
 if ~isfield(S, 'freqwin')
     S.freqwin = spm_input('Frequency window (Hz)', '+1', 'r', '0 90', 2);
 end
@@ -78,6 +82,12 @@ data = D.ftraw;
 
 %-Run the Fieldtrip code
 %--------------------------------------------------------------------------
+cfg = [];
+cfg.latency = 1e-3*S.timewin;
+cfg.keeptrials = 'yes';
+
+data = ft_timelockanalysis(cfg, data);
+
 
 cfg = [];
 cfg.output ='pow';
