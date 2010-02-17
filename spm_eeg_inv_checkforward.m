@@ -1,11 +1,11 @@
 function spm_eeg_inv_checkforward(varargin)
 % checks forward model
-% FORMAT spm_eeg_inv_checkforward(D)
+% FORMAT spm_eeg_inv_checkforward(D, val , ind)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 3145 2009-05-25 16:00:43Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 3731 2010-02-17 14:45:18Z vladimir $
 
 % SPM data structure
 %==========================================================================
@@ -13,10 +13,14 @@ function spm_eeg_inv_checkforward(varargin)
 
 forward = D.inv{val}.forward;
 
-str = sprintf('%s|', forward(:).modality);
-str = str(1:(end-1));
-
-ind = spm_input('What to display?','+1', 'b',  str, 1:numel(forward), 1);    
+if nargin < 3
+    str = sprintf('%s|', forward(:).modality);
+    str = str(1:(end-1));
+    
+    ind = spm_input('What to display?','+1', 'b',  str, 1:numel(forward), 1);
+else
+    ind = varargin{3};
+end
 
 try
     vol = forward(ind).vol;

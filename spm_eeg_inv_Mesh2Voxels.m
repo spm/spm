@@ -23,10 +23,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Gaussian filter.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3648 2009-12-17 15:49:52Z guillaume $
- 
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3731 2010-02-17 14:45:18Z vladimir $
+
 % checks
 %--------------------------------------------------------------------------
 [D,val]  = spm_eeg_inv_check(varargin{:});
@@ -68,6 +68,11 @@ else
 end
 Vin      = spm_vol(sMRIfile);
 
+% Tag (to identify particular contrast settings)
+%--------------------------------------------------------------------------
+tag = fix(spm_data_id(rmfield(D.inv{val}.contrast, {'W', 'GW', 'JW'})));
+
+
 % Get mesh
 %--------------------------------------------------------------------------
 if space
@@ -89,28 +94,28 @@ ty       = ty(:);
 ti       = find(sum([tx ty]') <= 0.9);
 t        = [tx(ti) ty(ti)];
 np       = length(t);
- 
+
 % Map the template (square) triangle onto each face of the Cortical Mesh
 %--------------------------------------------------------------------------
 P1       = vert(face(:,1),:);
 P2       = vert(face(:,2),:);
 P3       = vert(face(:,3),:);
- 
+
 If       = speye(nf);
 alpha    = t(:,1);
 beta     = t(:,2);
 teta     = ones(np,1) - alpha - beta;
 clear t tx ty ti
- 
+
 DenseCortex = kron(If,alpha)*P2 + kron(If,beta)*P3 + kron(If,teta)*P1;
 clear P1 P2 P3
- 
+
 % Transform the sampling point coordinates from mm to voxels
 %--------------------------------------------------------------------------
 VoxelCoord = Vin.mat\[DenseCortex';ones(1,size(DenseCortex,1))];
 VoxelCoord = round(VoxelCoord(1:3,:)');
 clear DenseCortex
- 
+
 % Get Graph Laplacian for smoothing on the cortical surface
 %--------------------------------------------------------------------------
 A     = spm_eeg_inv_meshdist(vert,face,0);
@@ -124,93 +129,119 @@ GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 
 GW = D.inv{val}.contrast.GW;
 
-for c = 1:length(GW)   
+for c = 1:length(GW)
     
-    Contrast = GW{c};
+    CurrentCondition = GW{c};
     
-    % Scale to mean power (%)
-    %----------------------------------------------------------------------
-    Contrast = spm_vec(Contrast);
-    try
-        scale = D.inv{val}.contrast.scalefactor(c);
-    catch
-        scale    = 1/mean(Contrast);
-    end
+    bytrial = iscell(CurrentCondition);
     
-    Contrast = spm_unvec(Contrast*scale, GW{c});
-    D.inv{val}.contrast.scalefactor(c) = scale;
+    if ~bytrial
+        CurrentCondition  = {CurrentCondition};
+    end      
     
-    
-    % Smooth on the cortical surface
-    %----------------------------------------------------------------------
-    Contrast = sparse(D.inv{val}.inverse.Is,1,Contrast,nd,1);
-    for i = 1:32
-        Contrast = GL*Contrast;
-    end
-    
-    Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f.nii',NAME,val,c));
-    Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f.nii',NAME,val,c));
-    
-    Vout           = struct(...
-        'fname',     Outputfilename,...
-        'dim',       Vin.dim,...
-        'dt',        [spm_type('float32') spm_platform('bigend')],...
-        'mat',       Vin.mat,...
-        'pinfo',     [1 0 0]',...
-        'descrip',   '');
-    
-    InterpOp       = [teta alpha beta];
-    SPvalues       = zeros(nf*np,1);
-    RECimage       = zeros(Vout.dim);
- 
-    % And interpolate those values into voxels
-    %----------------------------------------------------------------------
-    for i = 1:nf
-        TextVal = Contrast(face(i,:));
-        if any(TextVal)
-            ValTemp        = InterpOp*TextVal;
-            SPvalues((i-1)*np+1:i*np) = sum(TextVal)*(ValTemp/sum(ValTemp));
-            Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
-            Val            = SPvalues( (i-1)*np+1 : i*np );
-            [UnVox,I,J]    = unique(Vox,'rows');
-            IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
-            K              = 1:length(J);
-            MatV           = zeros(max(J),length(J));
-            IndK           = sub2ind(size(MatV),J,K');
-            MatV(IndK)     = Val;
-            SV             = sum(MatV')';
-            RECimage(IndV) = RECimage(IndV) + SV;
+    for k = 1:numel(CurrentCondition)
+        % Scale to mean power (%)
+        %----------------------------------------------------------------------
+        Contrast = CurrentCondition{k};
+        
+        try
+            scale = D.inv{val}.contrast.scalefactor(c);
+            if iscell(scale)
+                scale = scale{1}(k);
+            end
+        catch
+            scale    = 1./mean(spm_vec(Contrast));
+        end                       
+        
+        Contrast = spm_unvec(spm_vec(Contrast)*scale, Contrast);
+        
+        if bytrial
+            D.inv{val}.contrast.scalefactor{c}(k) = scale;
+        else
+            D.inv{val}.contrast.scalefactor{c}(k) = scale;
+        end
+        
+        
+        % Smooth on the cortical surface
+        %----------------------------------------------------------------------
+        Contrast = full(sparse(D.inv{val}.inverse.Is,1,Contrast,nd,1));
+        for i = 1:32
+            Contrast = GL*Contrast;
+        end
+        
+        if bytrial
+            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f_%.0f_%.0f.nii',NAME,val,tag,c,k));
+            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f_%.0f_%.0f.nii',NAME,val,tag,c,k));
+        else
+            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f_%.0f.nii',NAME,val,tag,c));
+            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f_%.0f.nii',NAME,val,tag,c));
+        end
+        
+        Vout           = struct(...
+            'fname',     Outputfilename,...
+            'dim',       Vin.dim,...
+            'dt',        [spm_type('float32') spm_platform('bigend')],...
+            'mat',       Vin.mat,...
+            'pinfo',     [1 0 0]',...
+            'descrip',   '');
+        
+        InterpOp       = [teta alpha beta];
+        SPvalues       = zeros(nf*np,1);
+        RECimage       = zeros(Vout.dim);
+        
+        % And interpolate those values into voxels
+        %----------------------------------------------------------------------
+        for i = 1:nf
+            TextVal = Contrast(face(i,:));
+            if any(TextVal)
+                ValTemp        = InterpOp*TextVal;
+                SPvalues((i-1)*np+1:i*np) = sum(TextVal)*(ValTemp/sum(ValTemp));
+                Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
+                Val            = SPvalues( (i-1)*np+1 : i*np );
+                [UnVox,I,J]    = unique(Vox,'rows');
+                IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
+                K              = 1:length(J);
+                MatV           = zeros(max(J),length(J));
+                IndK           = sub2ind(size(MatV),J,K');
+                MatV(IndK)     = Val;
+                SV             = sum(MatV')';
+                RECimage(IndV) = RECimage(IndV) + SV;
+            end
+        end
+        
+        % Write (scaled) image
+        %----------------------------------------------------------------------
+        Vout      = spm_write_vol(Vout,RECimage);
+        
+        % Smoothing & Masking
+        %----------------------------------------------------------------------
+        spm_smooth(Vout,Outputsmoothed,smoothparam);
+        
+        RECimage   = spm_read_vols(spm_vol(Outputsmoothed));
+        vc         = Vout.mat\[vert';ones(1,size(vert,1))];
+        vc         = round(vc(1:3,:)');
+        msk        = zeros(Vout.dim);
+        IndV       = sub2ind(Vout.dim,vc(:,1),vc(:,2),vc(:,3));
+        msk(IndV)  = 1;
+        spm_smooth(msk,msk,8);
+        msk        = msk > max(msk(:))/8;
+        
+        Vout.fname = Outputsmoothed;
+        Vout       = rmfield(Vout,'pinfo');
+        Vout       = spm_write_vol(Vout,RECimage .* msk);
+        
+        str = 'Summary-statistic image written:\n %s\n %s (smoothed)\n';
+        fprintf(str,Outputfilename,Outputsmoothed);
+        
+        if bytrial
+            D.inv{val}.contrast.Vout{c}{k}  = Vout;
+            D.inv{val}.contrast.fname{c}{k} = Outputsmoothed;
+        else
+            D.inv{val}.contrast.Vout{c}  = Vout;
+            D.inv{val}.contrast.fname{c} = Outputsmoothed;
         end
     end
- 
-    % Write (scaled) image
-    %----------------------------------------------------------------------
-    Vout      = spm_write_vol(Vout,RECimage);
-    
-    % Smoothing & Masking
-    %----------------------------------------------------------------------
-    spm_smooth(Vout,Outputsmoothed,smoothparam);
-    
-    RECimage   = spm_read_vols(spm_vol(Outputsmoothed));
-    vc         = Vout.mat\[vert';ones(1,size(vert,1))];
-    vc         = round(vc(1:3,:)');
-    msk        = zeros(Vout.dim);
-    IndV       = sub2ind(Vout.dim,vc(:,1),vc(:,2),vc(:,3));
-    msk(IndV)  = 1;
-    spm_smooth(msk,msk,8);
-    msk        = msk > max(msk(:))/8;
-    
-    Vout.fname = Outputsmoothed;
-    Vout       = rmfield(Vout,'pinfo');
-    Vout       = spm_write_vol(Vout,RECimage .* msk);
-    
-    str = 'Summary-statistic image written:\n %s\n %s (smoothed)\n';
-    fprintf(str,Outputfilename,Outputsmoothed);                         %-#
-    D.inv{val}.contrast.Vout{c}  = Vout;
-    D.inv{val}.contrast.fname{c} = Outputsmoothed;   
- 
 end
- 
 % display
 %==========================================================================
 if Disp, spm_eeg_inv_image_display(D); end

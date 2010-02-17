@@ -2,15 +2,21 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Data registration user-interface routine
 % commands the EEG/MEG data co-registration within original sMRI space
 %
-% FORMAT D = spm_eeg_inv_datareg_ui(D,[val])
+% FORMAT D = spm_eeg_inv_datareg_ui(D,[val], [meegfid, newmrifid, useheadshape])
 % Input:
+% D         - M/EEG dataset
+%
+% meegfid   - M/EEG fiducials
+% mrifid    - MRI fiducials
+% useheadshape - use headshape points (1)
+%
 % Output:
 % D         - same data struct including the new required files and variables
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2819 2009-03-03 13:15:42Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 3731 2010-02-17 14:45:18Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -18,60 +24,68 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-try
-    D.inv{val}.mesh.template;
-catch
-    D.inv{val}.mesh.template = 0;
+if nargin>=3
+    meegfid = varargin{3};
+    interactive = 0;
+else
+    interactive = 1;
+    meegfid = D.fiducials;
+    meeglbl = meegfid.fid.label;
+    
+    if numel(meeglbl)> 3
+        [selection ok]= listdlg('ListString', meeglbl, 'SelectionMode', 'multiple',...
+            'InitialValue', spm_match_str(upper(meeglbl), upper(mrilbl)), ...
+            'Name', 'Select at least 3 fiducials', 'ListSize', [400 300]);
+        
+        if ~ok || length(selection) < 3
+            error('At least 3 M/EEG fiducials are required for coregistration');
+        end
+        
+        meegfid.fid.pnt   = meegfid.fid.pnt(selection, :);
+        meegfid.fid.label = meegfid.fid.label(selection);
+    end
 end
-
-meegfid = D.fiducials;
-mrifid = D.inv{val}.mesh.fid;
 
 meeglbl = meegfid.fid.label;
-mrilbl = mrifid.fid.label;
-
-newmrifid = mrifid;
-newmrifid.fid.pnt = [];
-newmrifid.fid.label = {};
-
-if numel(meeglbl)> 3
-    [selection ok]= listdlg('ListString', meeglbl, 'SelectionMode', 'multiple',...
-        'InitialValue', spm_match_str(upper(meeglbl), upper(mrilbl)), ...
-        'Name', 'Select at least 3 fiducials', 'ListSize', [400 300]);
-
-    if ~ok || length(selection) < 3
-        error('At least 3 M/EEG fiducials are required for coregistration');
-    end
-
-    meegfid.fid.pnt   = meegfid.fid.pnt(selection, :);
-    meegfid.fid.label = meegfid.fid.label(selection);
-    meeglbl = meeglbl(selection);
-end
 
 if numel(meeglbl)<3
     error('At least 3 M/EEG fiducials are required for coregistration');
 end
 
-if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
-   
+mrifid = D.inv{val}.mesh.fid;
+mrilbl = mrifid.fid.label;
 
+
+if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
     S =[];
     S.sourcefid = meegfid;
     S.targetfid = mrifid;
     
-    if D.inv{val}.mesh.template  
+    if D.inv{val}.mesh.template
         M1 = eye(4);
         S.targetfid.fid = S.sourcefid.fid;
-    else  
+        S.useheadshape = 0;
+    else
         M1 = [];
         S.sourcefid.fid.label{strmatch('spmnas', S.sourcefid.fid.label, 'exact')} = 'nas';
         S.sourcefid.fid.label{strmatch('spmlpa', S.sourcefid.fid.label, 'exact')} = 'lpa';
         S.sourcefid.fid.label{strmatch('spmrpa', S.sourcefid.fid.label, 'exact')} = 'rpa';
         S.targetfid.fid.pnt = S.targetfid.fid.pnt(1:3, :);
-        S.targetfid.fod.label = S.targetfid.fid.label(1:3, :);
+        S.targetfid.fid.label = S.targetfid.fid.label(1:3, :);
         S.useheadshape = 1;
-    end        
-else
+    end
+elseif nargin>=4
+    M1 = [];
+    S.sourcefid = meegfid;
+    S.targetfid = varargin{4};
+    
+    if nargin >= 5
+        S.useheadshape = varargin{5};
+    end
+else    
+    newmrifid = mrifid;
+    newmrifid.fid.pnt = [];
+    newmrifid.fid.label = {};    
     M1 = [];
     for i = 1:length(meeglbl)
         switch spm_input(['How to specify ' meeglbl{i} ' position?'] , 1, 'select|type|click|skip')
@@ -82,7 +96,7 @@ else
                 if ~ok
                     continue
                 end
-
+                
                 newmrifid.fid.pnt   = [newmrifid.fid.pnt; mrifid.fid.pnt(selection, :)];
             case 'type'
                 pnt = spm_input('Input MNI coordinates', '+1', 'r', '', 3);
@@ -110,22 +124,22 @@ else
         end
         newmrifid.fid.label = [newmrifid.fid.label  meeglbl{i}];
     end
-
+    
     if size(newmrifid.fid.label) < 3
         error('At least 3 M/EEG fiducials are required for coregistration');
     end
-
+    
     % register
     %==========================================================================
     S =[];
     S.sourcefid = meegfid;
-    S.targetfid = newmrifid; 
+    S.targetfid = newmrifid;    
+end
 
-    if ~isempty(S.sourcefid.pnt)
-        S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
-    else
-        S.useheadshape = 0;
-    end
+if ~isempty(S.sourcefid.pnt) && ~isfield(S, 'useheadshape')
+    S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
+else
+    S.useheadshape = 0;
 end
 
 ind = 1;
@@ -152,9 +166,9 @@ if ~isempty(D.sensors('MEG'))
     else
         S.template = 0;
     end
-
+    
     M1 = spm_eeg_inv_datareg(S);
-
+    
     D.inv{val}.datareg(ind).sensors = D.sensors('MEG');
     D.inv{val}.datareg(ind).fid_eeg = S.sourcefid;
     D.inv{val}.datareg(ind).fid_mri = forwinv_transform_headshape(inv(M1), S.targetfid);
@@ -165,6 +179,12 @@ end
 
 % check and display registration
 %--------------------------------------------------------------------------
-spm_eeg_inv_checkdatareg(D);
+if interactive
+    spm_eeg_inv_checkdatareg(D);
+else
+   for i = 1:numel(D.inv{val}.datareg)
+       spm_eeg_inv_checkdatareg(D, val, i);
+   end
+end
 
 

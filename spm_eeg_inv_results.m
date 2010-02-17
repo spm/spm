@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 3651 2009-12-18 16:53:52Z guillaume $
+% $Id: spm_eeg_inv_results.m 3731 2010-02-17 14:45:18Z vladimir $
 
 % SPM data structure
 %==========================================================================
@@ -104,40 +104,40 @@ catch
     trial = D.condlist;
 end
 for i = 1:length(J)
-
+    
     % induced or evoked
     %----------------------------------------------------------------------
     switch(type)
-
+        
         % energy of conditional mean
         %------------------------------------------------------------------
         case{'evoked'}
-
+            
             JW{i} = J{i}*TW(:,1);
             GW{i} = sum((J{i}*TW).^2,2) + qC;
-
-        % mean energy over trials
-        %------------------------------------------------------------------
+            
+            % mean energy over trials
+            %------------------------------------------------------------------
         case{'induced'}
-
+            
             JW{i} = sparse(0);
             JWWJ  = sparse(0);
-
+            
             c = D.pickconditions(trial{i});
-
+            
             % conditional expectation of contrast (J*W) and its energy
             %--------------------------------------------------------------
             Nt    = length(c);
             spm_progress_bar('Init',Nt,sprintf('condition %d',i),'trials');
             for j = 1:Nt
-                try
+                if ~strcmp(D.modality(1,1), 'Multimodal')
                     
                     % unimodal data
                     %------------------------------------------------------
                     Y     = D(Ic{1},It,c(j))*TTW;
                     Y     = U{1}*Y*scale;
                     
-                catch
+                else
                     
                     % multimodal data
                     %------------------------------------------------------
@@ -155,13 +155,50 @@ for i = 1:length(J)
                 spm_progress_bar('Set',j)
             end
             spm_progress_bar('Clear')
-
+            
             % conditional expectation of total energy (source space GW)
             %--------------------------------------------------------------
             JW{i} = JW{i}/Nt;
             GW{i} = JWWJ/Nt + qC;
+            
+        case 'trials'
+            JW{i} = {};
+            JWWJ  = {}; 
+            
+            c = D.pickconditions(trial{i});
+            
+            % conditional expectation of contrast (J*W) and its energy
+            %--------------------------------------------------------------
+            Nt    = length(c);
+            spm_progress_bar('Init',Nt,sprintf('condition %d',i),'trials');
+            for j = 1:Nt
+                if ~strcmp(D.modality(1,1), 'Multimodal')
+                    
+                    % unimodal data
+                    %------------------------------------------------------
+                    Y     = D(Ic{1},It,c(j))*TTW;
+                    Y     = U{1}*Y*scale;
+                    
+                else
+                    
+                    % multimodal data
+                    %------------------------------------------------------
+                    for k = 1:length(U)
+                        Y       = D(Ic{k},It,c(j))*TTW;
+                        UY{k,1} = U{k}*Y*scale(k);
+                    end
+                    Y = spm_cat(UY);
+                end
+                
+                MYW   = M*Y;
+                
+                JW{i}{j} = MYW(:,1);
+                GW{i}{j} = sum(MYW.^2,2) + qC;
+                spm_progress_bar('Set',j)
+            end
+            spm_progress_bar('Clear')            
     end
-
+    
 end
 
 

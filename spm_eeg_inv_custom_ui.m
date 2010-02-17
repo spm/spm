@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 3618 2009-12-08 16:05:15Z vladimir $
+% $Id: spm_eeg_inv_custom_ui.m 3731 2010-02-17 14:45:18Z vladimir $
  
 % defaults from D is specified
 %==========================================================================
@@ -44,7 +44,7 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     
     % Search strategy
     %--------------------------------------------------------------------------
-    type         = spm_input('Model inversion','+1','GS|ARD|COH|IID',{'GS','ARD','LOR','IID'},1);
+    type         = spm_input('Model inversion','+1','MSP|COH|IID',{'GS','LOR','IID'},1);
     inverse.type = type{1};
     
     % Time window of interest

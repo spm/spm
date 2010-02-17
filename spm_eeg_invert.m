@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3635 2009-12-11 12:56:18Z guillaume $
+% $Id: spm_eeg_invert.m 3731 2010-02-17 14:45:18Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -374,7 +374,7 @@ for i = 1:Nl
     try
         trial = D{i}.inv{D{i}.val}.inverse.trials;
     catch
-        trial = unique(D{i}.conditions);
+        trial = D{i}.condlist;
     end
     Nt(i) = length(trial);
     

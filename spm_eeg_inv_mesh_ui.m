@@ -1,10 +1,10 @@
 function D = spm_eeg_inv_mesh_ui(varargin)
 % Cortical Mesh user interface
-% FORMAT D = spm_eeg_inv_mesh_ui(D, val, template, Msize)
+% FORMAT D = spm_eeg_inv_mesh_ui(D, val, sMRI, Msize)
 % 
 % D        - input data struct (optional)
 % val      - 
-% template - 
+% sMRI     -  0 - use template (default), or string with image file name
 % Msize    - 
 % 
 % D        - same data struct including the meshing files and variables
@@ -16,9 +16,9 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_eeg_inv_mesh_ui.m 3731 2010-02-17 14:45:18Z vladimir $
 
-SVNrev = '$Rev: 2914 $';
+SVNrev = '$Rev: 3731 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,25 +45,29 @@ else
 end
 
 if nargin > 2
-    template = varargin{3};
+    sMRI = varargin{3};
 else
-    template = [];
+    sMRI = [];
 end
 
-if isempty(template)
+if isempty(sMRI)
     template = spm_input('Select head  model', '+1','template|individual', [1 0]);
+elseif ~ischar(sMRI)
+    template = sMRI; % for backward compatibility
+else
+    template = 1;
 end
 
 if template
     sMRI = [];
-else
+elseif ~ischar(sMRI)
     % get sMRI file name
     sMRI = spm_select([0 1],'image','Select subject''s structural MRI (Press Done if none)');
     if isempty(sMRI)
         error('No structural MRI selected.');
     end
 end
-    
+
 if nargin>3
     Msize = varargin{4};
 else

@@ -3,12 +3,12 @@ function spm_eeg_inv_checkdatareg(varargin)
 % quality check by eye.
 % Fiducials which were used for rigid registration are also displayed
 %
-% FORMAT spm_eeg_inv_checkdatareg(mesh, sensors)
+% FORMAT spm_eeg_inv_checkdatareg(D, val, ind)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 3388 2009-09-11 08:44:35Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 3731 2010-02-17 14:45:18Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -19,11 +19,13 @@ function spm_eeg_inv_checkdatareg(varargin)
 
 datareg = D.inv{val}.datareg;
 
-str = sprintf('%s|', datareg(:).modality);
-str = str(1:(end-1));
-
-ind = spm_input('What to display?','+1', 'b',  str, 1:numel(D.inv{val}.datareg), 1);    
-
+if nargin < 3
+    str = sprintf('%s|', datareg(:).modality);
+    str = str(1:(end-1));    
+    ind = spm_input('What to display?','+1', 'b',  str, 1:numel(D.inv{val}.datareg), 1);
+else
+    ind = varargin{3};
+end
 
 % --- Set up variables ---
 %==========================================================================

@@ -9,13 +9,14 @@ function [D] = spm_eeg_inv_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results_ui.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_inv_results_ui.m 3731 2010-02-17 14:45:18Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 try
-    woi = round(D.inv{val}.inverse.woi);
+    woi = D.inv{val}.inverse.woi;
+    woi = [ceil(min(woi)) floor(max(woi))];
 catch
     warndlg('Please invert this model first');
     return
@@ -24,8 +25,8 @@ end
 % get time window
 %--------------------------------------------------------------------------
 
-woi   = spm_input('Time window (ms)','+1','r',woi);
-D.inv{val}.contrast.woi = round([min(woi) max(woi)]);
+woi   = spm_input('Time window (ms)','+1','r', woi);
+D.inv{val}.contrast.woi = [ceil(min(woi)) floor(max(woi))];
 
 % get frequency window
 %--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ D.inv{val}.contrast.fboi = round([min(fboi) max(fboi)]);
 % induced or evoked? (not for fusion)
 %--------------------------------------------------------------------------
 if strcmp(D.type, 'single')
-    str  = {'evoked','induced'};
+    str  = {'evoked','induced','trials'};
     type = spm_input('Power','+1','b',str,[],1);
 else
     type = 'evoked';

@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_cfg.m 3731 2010-02-17 14:45:18Z vladimir $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -30,13 +30,21 @@ stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
 stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi};
 % ---------------------------------------------------------------------
+% meeg source reconstruction
+% ---------------------------------------------------------------------
+source        = cfg_choice;
+source.tag    = 'stats';
+source.name   = 'M/EEG source reconstruction';
+source.help   = {'M/EEG source reconstruction'};
+source.values = {spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_results};   
+% ---------------------------------------------------------------------
 % meeg Meeg
 % ---------------------------------------------------------------------
 meeg         = cfg_choice;
 meeg.tag     = 'meeg';
 meeg.name    = 'M/EEG';
 meeg.help    = {'M/EEG functions.'};
-meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_montage spm_cfg_eeg_epochs spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_average spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_tf_rescale spm_cfg_eeg_convert2images};
+meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_montage spm_cfg_eeg_epochs spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_average spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_tf_rescale spm_cfg_eeg_convert2images source};
 % ---------------------------------------------------------------------
 % util Util
 % ---------------------------------------------------------------------

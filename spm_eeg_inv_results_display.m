@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 2822 2009-03-04 10:39:53Z vladimir $
+% $Id: spm_eeg_inv_results_display.m 3731 2010-02-17 14:45:18Z vladimir $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -41,6 +41,10 @@ W    = model.contrast.W;
 JW   = model.contrast.JW{con};
 GW   = model.contrast.GW{con};
 
+if iscell(GW)
+    GW = GW{1};
+end
+
 % sqrt(energy) (G) = abs(JW) for single trials
 %--------------------------------------------------------------------------
 G    = sqrt(sparse(Is,1,GW,Nd,1));
@@ -64,7 +68,11 @@ spm_mip(G(j),vert(j,:)',6);
 axis image
 
 try
-    str = sprintf('Energy (%s)',model.contrast.type);
+    if strcmp(model.contrast.type, 'trials')
+        str = sprintf('Energy (%s)', 'first trial');
+    else
+        str = sprintf('Energy (%s)', model.contrast.type);
+    end
 catch
     str = 'Energy';
 end
