@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_DEM_M_set.m 3733 2010-02-18 17:43:18Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -124,23 +124,32 @@ end
 % check pC if user specified
 %--------------------------------------------------------------------------
 for i = 1:g
+    
+    % number of parameters
+    %----------------------------------------------------------------------
+    np  = length(spm_vec(M(i).pE));
  
     % Assume fixed parameters if not specified
     %----------------------------------------------------------------------
     if isempty(M(i).pC)
-        p       = length(spm_vec(M(i).pE));
-        M(i).pC = sparse(p,p);
+        M(i).pC = sparse(np,np);
     end
  
     % convert variances to covariances if necessary
     %----------------------------------------------------------------------
-    if length(M(i).pC) == 1
+    if isvector(M(i).pC)
         M(i).pC = sparse(diag(M(i).pC));
+    end
+    
+    % convert variance to covariances if necessary
+    %----------------------------------------------------------------------
+    if isscalar(M(i).pC)
+        M(i).pC = speye(np,np)*M(i).pC;
     end
  
     % check size
     %----------------------------------------------------------------------
-    if length(M(i).pC) ~= length(spm_vec(M(i).pE))
+    if length(M(i).pC) ~= np
         warndlg(sprintf('please check: M(%i).pC',i))
         who,keyboard
     end

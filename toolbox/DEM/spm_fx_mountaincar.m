@@ -26,7 +26,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_fx_mountaincar.m 3733 2010-02-18 17:43:18Z karl $
  
  
 % determine controlled forces (a)
@@ -69,7 +69,7 @@ if x(1) < 0                                  % gravity
     dHdx = 2*x(1) + 1;
 else
     xx   = x(1)^2;
-    dHdx = (1 + 5*xx)^(-1/2) - 5*xx/(1 + 5*xx)^(3/2) + (x(1)/2)^4;
+    dHdx = (5*xx + 1).^(-3/2) + (x(1)/2).^4;
 end
 f     = [x(2); a + v - dHdx - x(2)/8]*dt;
  
@@ -82,7 +82,7 @@ dx    = 1/64;
 x     = linspace(-2,2,1/dx);
 xx    = x.^2;
 dHdx  = (x < 0).*(2*x + 1);
-dHdx  = (x > 0).*(1./(1 + 5*xx).^(1/2) - 5*xx./(1 + 5*xx).^(3/2) + (x/2).^4) + dHdx;
+dHdx  = (x > 0).*((5*xx + 1).^(-3/2) + (x/2).^4) + dHdx;
 H     = cumsum(dHdx)*dx;
 H     = H - min(H);
  

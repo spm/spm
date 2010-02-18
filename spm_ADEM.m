@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3694 2010-01-22 14:16:51Z karl $
+% $Id: spm_ADEM.m 3733 2010-02-18 17:43:18Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -514,8 +514,8 @@ for iE = 1:nE
                 CJu(:,i)   = spm_vec(qu.c*dE.dup{i}'*iS);
                 dEdup(:,i) = spm_vec(dE.dup{i}');
             end
-            dWdp    = CJu'*spm_vec(dE.du');
-            dWdpp   = CJu'*dEdup;
+            dWdp  = CJu'*spm_vec(dE.du');
+            dWdpp = CJu'*dEdup;
 
             % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
             %--------------------------------------------------------------
@@ -527,8 +527,8 @@ for iE = 1:nE
  
         % and quantities for M-Step
         %------------------------------------------------------------------
-        EE    = E*E'+ EE;
-        ECE   = ECE + ECEu + ECEp;
+        EE  = E*E'+ EE;
+        ECE = ECE + ECEu + ECEp;
  
     end % sequence (nY)
  

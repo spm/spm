@@ -1,0 +1,33 @@
+function [f] = spm_mc_fx(x,v,P)
+% equations of motion for the mountain car problem using basis functions
+% problem
+% FORMAT [f] = spm_mc_fx(x,v,P)
+%
+% x     - hidden states
+% v     - exogenous inputs
+% P.x,k - parameters for gradient function:     G(x(1),P.p)
+% P.q   - parameters for cost or loss-function: C(x(1),P.q)
+%
+% returns f = dx/dt = f  = [x(2);
+%                           G - x(2)*C(x(1))]*dt;
+%
+% where C determines divergence of flow x(2) at any position x(1).
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_mc_fx_3.m 3333 2009-08-25 16:12:44Z karl $
+ 
+ 
+% gradient (G)
+%--------------------------------------------------------------------------
+G   = spm_mc_loss_G(x(1),P);
+ 
+% cost function (C)
+%--------------------------------------------------------------------------
+C   = spm_mc_loss_C(x(1),P);
+ 
+% flow
+%--------------------------------------------------------------------------
+dt  = 1/4;
+f   = [x(2); -G*exp(C) + x(2)*C]*dt;

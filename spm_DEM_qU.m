@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_DEM_qU.m 3733 2010-02-18 17:43:18Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -199,6 +199,7 @@ if isfield(qU,'a')
     title('perturbation and action','Fontsize',16)
     axis square
     set(gca,'XLim',[t(1) t(end)])
+    box off
 end
 hold off
 drawnow
