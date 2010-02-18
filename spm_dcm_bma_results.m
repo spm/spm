@@ -1,4 +1,4 @@
-function spm_dcm_bma_results(BMS,mod_in,drive_in,method)
+function spm_dcm_bma_results(BMS,mod_in,drive_in,method,mod_reg)
 % Plot histograms from BMA for selected modulatory and driving input
 % FORMAT spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 %
@@ -7,11 +7,12 @@ function spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 % mod_in     - modulatory input
 % drive_in   - driving input
 % method     - inference method (FFX or RFX)
+% mod_reg    - modulatory region
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3721 2010-02-11 16:02:49Z maria $
+% $Id: spm_dcm_bma_results.m 3732 2010-02-18 16:58:11Z christophe $
 
 if nargin < 4
     % function called without parameters (e.g. via GUI)
@@ -46,6 +47,7 @@ if isfield(BMS.DCM,method)
             if isempty(BMS.DCM.ffx.bma)
                 error('No BMA analysis for FFX in BMS file!');
             else
+
                 Nsamp   = BMS.DCM.ffx.bma.nsamp;
                 amat    = BMS.DCM.ffx.bma.a;
                 bmat    = BMS.DCM.ffx.bma.b;
@@ -75,6 +77,15 @@ else
     return
 end
 
+if ~isempty(dmat)
+    nonLin = 1;
+    if ~exist('mod_reg','var')
+        mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1); 
+    end
+else
+    nonLin = 0;
+end
+
 % number of regions, mod. inputs and names
 %--------------------------------------------------------------------------
 n  = size(amat,2);
@@ -85,6 +96,13 @@ mi = size(cmat,2);
 if mod_input > m || drive_input > mi
     error('Incorrect choice for driving or modulatory input!');
 end
+% check if mod. region is correct, if nonlinear
+if nonLin
+    if mod_reg > n
+        error('Incorrect choice for modulatory region!');
+    end
+end
+        
 
 if isfield(DCM.Y,'name')
     for i=1:n,
@@ -98,7 +116,6 @@ else
 end
 
 bins   = Nsamp/100;
-nonLin = 0;
 
 % intrinsic connection density
 %--------------------------------------------------------------------------
@@ -110,11 +127,10 @@ usd.amat        = amat;
 usd.bmat        = bmat;
 usd.cmat        = cmat;
 usd.dmat        = dmat;
-if ~isempty(usd.dmat)
-    nonLin      = 1;
-    mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1); 
+if nonLin
+    usd.mod_reg     = mod_reg;
 end
-usd.mod_reg     = drive_input;
+
 usd.region      = region;
 usd.n           = n;
 usd.m           = m;
@@ -176,16 +192,11 @@ for i=1:ud.n,
             axis off
         else
             hist(ud.amat(i,j,:),ud.bins,'r');
-            amax = max(ud.amat(i,j,:));
+            amax = max(abs(ud.amat(i,j,:)));
             if amax > 0
                 xlim([-amax amax])
             else
-                if amax < 0
-                    amin = min(ud.amat(i,j,:));
-                    xlim([amin amax])
-                else
-                    xlim([-10 10])
-                end
+                xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
@@ -219,16 +230,11 @@ for i=1:ud.n,
             axis off
         else
             hist(ud.bmat(i,j,ud.mod_input,:),ud.bins,'r');
-            bmax = max(ud.bmat(i,j,ud.mod_input,:));
+            bmax = max(abs(ud.bmat(i,j,ud.mod_input,:)));
             if bmax > 0
                 xlim([-bmax bmax])
             else
-                if bmax < 0
-                    bmin = min(ud.bmat(i,j,ud.mod_input,:));
-                    xlim([bmin bmax])
-                else
-                    xlim([-10 10])
-                end
+                xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
@@ -260,16 +266,11 @@ for j=1:ud.n,
         plot([0 0],[0 1],'k');
     else
         hist(ud.cmat(j,ud.drive_input,:),ud.bins,'r');
-        cmax = max(ud.cmat(j,ud.drive_input,:));
+        cmax = max(abs(ud.cmat(j,ud.drive_input,:)));
         if cmax > 0
             xlim([-cmax cmax])
         else
-            if cmax < 0
-                cmin = min(ud.cmat(j,ud.drive_input,:));
-                xlim([cmin cmax])
-            else
-                xlim([-10 10])
-            end
+            xlim([-10 10])
         end
     end
     set(gca,'YTickLabel',[]);
@@ -301,17 +302,12 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.bmat(i,j,ud.mod_reg,:),ud.bins,'r');
-            bmax = max(ud.dmat(i,j,ud.mod_reg,:));
-            if bmax > 0
-                xlim([-bmax bmax])
+            hist(ud.dmat(i,j,ud.mod_reg,:),ud.bins,'r');
+            dmax = max(abs(ud.dmat(i,j,ud.mod_reg,:)));
+            if dmax > 0
+                xlim([-dmax dmax])
             else
-                if bmax < 0
-                    bmin = min(ud.dmat(i,j,ud.mod_reg,:));
-                    xlim([bmin bmax])
-                else
-                    xlim([-10 10])
-                end
+                xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
             set(gca,'FontSize',12);
