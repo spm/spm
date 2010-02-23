@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3721 2010-02-11 16:02:49Z maria $
+% $Id: spm_dcm_bma.m 3734 2010-02-23 11:39:03Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -235,7 +235,8 @@ else
 end
 
 % Pre-allocate sample arrays
-Np        = nreg*nreg + nreg*nreg*min + nreg*min + nreg*nreg*nreg;
+Nr        = nreg*nreg;
+Np        = Nr + Nr*min + nreg*min + Nr*nreg;
 theta_all = zeros(Np,Nsub);
 nind      = 1;
 mind      = 1;
@@ -255,7 +256,7 @@ for i=1:Nsamp
         end
         
         nD   = size(params(n).model(m).Ep.D,3);
-        ndim = nreg*nreg + nreg*nreg*min + nreg*min + nD;
+        ndim = Nr + Nr*min + nreg*min + Nr*nD;
         
         if Np==ndim, nind=n; mind=m; end
         
