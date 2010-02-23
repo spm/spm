@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_imcalc.m 3736 2010-02-23 15:08:55Z guillaume $
 
 % ---------------------------------------------------------------------
 % input Input Images
@@ -163,6 +163,9 @@ if isempty(p)
     else
         p = job.outdir{1};
     end
+end
+if isempty(ext)
+    ext = ['.' spm_get_defaults('images.format')];
 end
 if isempty(strfind(ext,','))
     ext = [ext ',1'];
