@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 3465 2009-10-14 15:14:29Z guillaume $
+% $Id: spm_contrasts.m 3735 2010-02-23 12:01:14Z guillaume $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -263,6 +263,7 @@ for i = 1:length(Ic)
     end % (if isempty(xCon(ic)...)
     
 end % (for i = 1:length(Ic))
+spm('Pointer','Arrow')
 
 % place xCon back in SPM
 %--------------------------------------------------------------------------

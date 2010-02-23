@@ -181,12 +181,13 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_getSPM.m 3735 2010-02-23 12:01:14Z guillaume $
 
 
 %-GUI setup
 %--------------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
+spm('Pointer','Arrow')
 
 %-Select SPM.mat & note SPM results directory
 %--------------------------------------------------------------------------
