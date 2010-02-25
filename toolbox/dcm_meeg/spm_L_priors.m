@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 3737 2010-02-25 13:08:21Z vladimir $
+% $Id: spm_L_priors.m 3738 2010-02-25 13:19:07Z vladimir $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -142,12 +142,8 @@ switch type
             DD = zeros(n);
             for i = 1:n
                 [M, I] = min(D(i, :));
-                if M<V
-                    if length(I)>1
-                        warning(sprintf(['Could not uniquely determine the source symmetric to source %d. '...
-                            'Taking first of the candidates (source %d).'], i, I(1)));
-                    end
-                    DD(i, I(1)) = 1;
+                if M<V                   
+                    DD(i, I) = 1;
                 end
             end
             
