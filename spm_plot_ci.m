@@ -12,10 +12,10 @@ function spm_plot_ci(varargin)
 % s - string to specify plot type
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_plot_ci.m 3715 2010-02-08 13:57:26Z karl $
- 
+% $Id: spm_plot_ci.m 3739 2010-02-26 13:12:44Z karl $
+
 % unpack
 %--------------------------------------------------------------------------
 if nargin == 5
@@ -37,48 +37,70 @@ else
     E = varargin{1};
     C = varargin{2};
 end
- 
-if iscell(E)
-    E = spm_cat(E(:));
-end
-try, j; catch, j = 1:size(E,1); end
-try, t; catch, t = 1:size(E,2); end
-try, s; catch, s = '';          end
 
- 
+if iscell(E), E = spm_cat(E(:));       end
+if ~exist('j','var'), j = 1:size(E,1); end
+if ~exist('t','var'), t = 1:size(E,2); end
+if ~exist('s','var'), s = '';          end
+
+
 % order and length of sequence
 %--------------------------------------------------------------------------
 E     = E(j,:);
 [n N] = size(E);
- 
+
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 ci    = spm_invNcdf(1 - 0.05);
-try
+if iscell(C)
     for i = 1:N
         c(:,i) = ci*sqrt(diag(C{i}(j,j)));
     end
-catch
-    c = ci*sqrt(C(j,j));
+else
+    if isvector(C)
+        c = ci*sqrt(C(j));
+    else
+        C = diag(C);
+        c = ci*sqrt(C(j));
+    end
 end
 
- 
+
 % conditional covariances
 %--------------------------------------------------------------------------
 if N > 1
+    
+    % time-series plot
+    %======================================================================
     fill([t fliplr(t)],[full(E + c) fliplr(full(E - c))],...
         [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
     plot(t,E,s)
-else
+    
+elseif n == 2
     
     % plot in state-space
-    %--------------------------------------------------------------------
-    try,  C = C{1};  end
- 
+    %======================================================================    try,  C = C{1};  end
     [x y] = ellipsoid(E(1),E(2),0,c(1),c(2),0,32);
     fill(x',y',[1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)
- 
+    
+else
+    
+    % bar
+    %======================================================================
+    
+    % conditional means
+    %------------------------------------------------------------------
+    bar(E,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8), hold on
+    axis square
+    box off
+    set(gca,'XLim',[0 n + 1])
+    
+    % conditional variances
+    %------------------------------------------------------------------
+    for k = 1:n
+        line([k k], [-1 1]*c(k) + E(k),'LineWidth',4,'Color','r');
+    end
 end
 hold off
 drawnow

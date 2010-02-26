@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_LAP.m 3739 2010-02-26 13:12:44Z karl $
 
 
 % find or create a DEM figure
@@ -89,8 +89,8 @@ end
 
 % number of iterations
 %--------------------------------------------------------------------------
-try nD = M(1).E.nD; catch nD = 1;   end
-try nN = M(1).E.nN; catch nN = 16;  end
+try, nD = M(1).E.nD; catch, nD = 1;   end
+try, nN = M(1).E.nN; catch, nN = 16;  end
 
 
 % ensure integration scheme evaluates gradients at each time-step
@@ -270,13 +270,9 @@ dHdp   = sparse(np,  1);
 dHdx   = sparse(nx*n,1);
 dHdv   = sparse(nv*d,1);
 
-
-
 % preclude unnecessary iterations and set switchs
 %--------------------------------------------------------------------------
 if ~np && ~nh && ~ng, nN = 1; end
-mnh = nh*~~method.h;
-mng = ng*~~method.g;
 mnx = nx*~~method.x;
 mnv = nv*~~method.v;
 
@@ -474,7 +470,6 @@ for iN = 1:nN
             dLdhc = dEdh*dE.dc;
             dLdhp = dEdh*dE.dp;
             dLdpu = dLdup';
-            dLduh = dLdhu';
             dLdph = dLdhp';
             
             % precision and covariances
@@ -565,15 +560,16 @@ for iN = 1:nN
                 % save means
                 %----------------------------------------------------------
                 Q(is).e = E;
+                Q(is).E = iS*E;
                 Q(is).u = qu;
                 Q(is).p = qp;
                 Q(is).h = qh;
                                 
                 % and conditional covariances
                 %----------------------------------------------------------
-                Q(is).u.s = C([1:nx],[1:nx]);
-                Q(is).u.c = C([1:nv] + nx*n, [1:nv] + nx*n);
-                Q(is).p.c = C([1:np] + nu,   [1:np] + nu);
+                Q(is).u.s = C((1:nx),(1:nx));
+                Q(is).u.c = C((1:nv) + nx*n, (1:nv) + nx*n);
+                Q(is).p.c = C((1:np) + nu,   (1:np) + nu);
                 Q(is).h.c = inv(dLdhh);
                 Cu        = C(1:nu,1:nu);
 
@@ -696,7 +692,7 @@ for iN = 1:nN
 
     % if F is increasing terminate
     %----------------------------------------------------------------------
-    if Fi < Fa && iN > nN
+    if Fi < Fa && iN > 3
         break
     else
         Fa    = Fi;
@@ -714,14 +710,20 @@ for iN = 1:nN
         v     = spm_unvec(Q(t).u.v{1},v);
         x     = spm_unvec(Q(t).u.x{1},x);
         z     = spm_unvec(Q(t).e(1:(ny + nv)),{M.v});
-        w     = spm_unvec(Q(t).e([1:nx] + (ny + nv)*n),{M.x});
+        Z     = spm_unvec(Q(t).E(1:(ny + nv)),{M.v});
+        w     = spm_unvec(Q(t).e((1:nx) + (ny + nv)*n),{M.x});
+        X     = spm_unvec(Q(t).E((1:nx) + (ny + nv)*n),{M.x});
         for i = 1:(nl - 1)
             if M(i).m, qU.v{i + 1}(:,t) = spm_vec(v{i});  end
             if M(i).n, qU.x{i}(:,t)     = spm_vec(x{i});  end
             if M(i).n, qU.w{i}(:,t)     = spm_vec(w{i});  end
             if M(i).l, qU.z{i}(:,t)     = spm_vec(z{i});  end
+            if M(i).n, qU.W{i}(:,t)     = spm_vec(X{i});  end
+            if M(i).l, qU.Z{i}(:,t)     = spm_vec(Z{i});  end
         end
         if    M(nl).l, qU.z{nl}(:,t)    = spm_vec(z{nl}); end
+        if    M(nl).l, qU.Z{nl}(:,t)    = spm_vec(Z{nl}); end
+
         qU.v{1}(:,t)  = spm_vec(Q(t).u.y{1}) - spm_vec(z{1});
  
         % and conditional covariances
@@ -750,17 +752,17 @@ for iN = 1:nN
     %----------------------------------------------------------------------
     if np
         subplot(2*nl,2,4*nl - 2)
-        plot([1:ns],spm_cat(qP.p))
+        plot(1:ns,spm_cat(qP.p))
         set(gca,'XLim',[1 ns])
         title('parameters (modes)','FontSize',16)
 
         subplot(2*nl,2,4*nl)
-        plot([1:ns],spm_cat(qH.p))
+        plot(1:ns,spm_cat(qH.p))
         set(gca,'XLim',[1 ns])
     else
         
         subplot(nl,2,2*nl)
-        plot([1:ns],spm_cat(qH.p))
+        plot(1:ns,spm_cat(qH.p))
         set(gca,'XLim',[1 ns])
     end
     if nh || ng

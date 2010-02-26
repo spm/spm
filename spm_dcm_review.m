@@ -7,7 +7,7 @@ function spm_dcm_review(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_dcm_review.m 3739 2010-02-26 13:12:44Z karl $
 
 
 %-Get DCM structure
@@ -407,9 +407,9 @@ switch action
     case {'estimates of precisions'}
         spm_DEM_qH(DCM.qH)
 
-    case {str{end-l:end-1}}
+    case {str{end - l:end - 1}}
 
-        i = region + m - length(str);
+        i = region + m - length(str) + 1;
         t = [1:length(DCM.Y.y)]*DCM.Y.dt;
 
 

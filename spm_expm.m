@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 3704 2010-02-01 20:50:18Z karl $
+% $Id: spm_expm.m 3739 2010-02-26 13:12:44Z karl $
 
 
 
@@ -47,6 +47,7 @@ if nargin == 1 || nargin == 2
         end
         p = ~p;
     end
+    
     E = D\E;  % E = inv(D)*E
 
     % Undo scaling by repeated squaring E = E^(2^s)
