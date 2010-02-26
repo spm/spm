@@ -110,15 +110,16 @@ for i = 1:8
     F(i)        = DEM.F;          % record the free energy attained
 end
  
-% plot the simulated ERPs (see spm_DEM_ERP)
+% plot the simulated ERPs (see spm_dem_ERP)
 %--------------------------------------------------------------------------
-spm_figure
-R = spm_DEM_ERP(qU{:});
+spm_figure('GetWin','Figure 1');
+R = spm_dem_ERP(qU{:});
  
 % plot the mean responses, (over time bins) over repetitions and both
 % cortical levels
 %--------------------------------------------------------------------------
-spm_figure
+spm_figure('GetWin','Figure 2');
+
 subplot(3,1,1),bar(-F),      title('Free Energy'),axis square
 subplot(3,1,2),bar(R{1} - 1),title('Lower area'), axis square
 subplot(3,1,3),bar(R{2} - 1),title('Higher area'),axis square
@@ -127,7 +128,8 @@ xlabel('repetition')
 % plot the stimulus and the percept (i.e. prediction at the lowest level)
 % before and after learning (i.e., for the first and last presentation)
 %--------------------------------------------------------------------------
-spm_figure
+spm_figure('GetWin','Figure 3');
+
 Y = qU{1}.v{1} + qU{1}.z{1};
 subplot(3,1,1),imagesc(Y),title('Sensation'),               axis image
 subplot(3,1,2),imagesc(qU{1}.v{1}),  title('First percept'),axis image

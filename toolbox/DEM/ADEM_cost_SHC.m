@@ -40,9 +40,9 @@ A.q  = [1 2];            % indices of locations that increase x.q
  
 % level 1
 %--------------------------------------------------------------------------
-G(1).x.x = sparse(2,1);
-G(1).x.v = sparse(2,1);
-G(1).x.q = sparse(2,1);
+G(1).x.x = [0;0];
+G(1).x.v = [1;0];
+G(1).x.q = [1;1/2];
  
 G(1).f   = inline('spm_cost_SHC_fxa(x,v,a,P)','x','v','a','P');
 G(1).g   = inline('[x.x; x.v; x.q]','x','v','a','P');
@@ -62,18 +62,17 @@ G        = spm_ADEM_M_set(G);
  
 % level 1
 %--------------------------------------------------------------------------
-M(1).x.x = sparse(2,1);
-M(1).x.v = sparse(2,1);
-M(1).x.q = sparse(2,1);
-M(1).x.a = sparse(4,1);
+M(1).x.x = G(1).x.x;
+M(1).x.v = G(1).x.v;
+M(1).x.q = G(1).x.q;
+M(1).x.a = rand(4,1);
  
 M(1).f   = inline('spm_cost_SHC_fx(x,v,P)','x','v','P');
 M(1).g   = inline('[x.x; x.v; x.q]','x','v','P');
 M(1).pE  = speye(4,2);
  
-M(1).V   = exp(8);
-M(1).W   = diag(exp([[1 1 1 1]*4 [1 1 1 1 1 1]*4]));
-M(1).xP  = 1/8;
+M(1).V   = exp(6);
+M(1).W   = diag(exp([[1 1 1 1]*4 [1 1 1 1 1 1]*6]));
  
 % level 2 (no exogenous inputs in this simulation)
 %--------------------------------------------------------------------------
@@ -82,8 +81,8 @@ M(2).V   = exp(16);
  
 % Integrate: active inference
 %==========================================================================
-M(1).E.nE = 1;
-M(1).E.n  = 4;
+M(1).E.nE  = 1;
+M(1).E.n   = 4;
  
 N      = 128;
 DEM.U  = sparse(N,1);
@@ -103,83 +102,88 @@ end
  
 % overview
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1: Exploration and exploitation');
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.qU)
  
 subplot(2,2,3)
 spm_cost_SHC_path(DEM.pU,A)
- 
+
  
 % a closer look at physiology
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2: physiological states');
-clf
+spm_figure('GetWin','Figure 2'); clf
  
 subplot(2,1,1)
-t    = [1:N];
+t    = 1:N;
 plot(t,DEM.qU.x{1}(5:6,:)',t,t*0 + A.u,':'), hold on
-plot(t,DEM.qU.x{1}(7:10,:)','-.'), hold off
+plot(t,DEM.qU.x{1}(7:10,:)','-.'),           hold off
 xlabel('time','Fontsize',14)
 title('internal states','FontSize',16)
 axis square, box off, set(gca,'XLim',[1 N])
- 
-subplot(2,1,2)
-j = 1:N/2; plot(DEM.pU.x{1}(5,j),DEM.pU.x{1}(6,j),':'), hold on
-j = N/2:N; plot(DEM.pU.x{1}(5,j),DEM.pU.x{1}(6,j)),      hold on
-plot([A.u 1/2],[A.u A.u],'--r',[A.u A.u],[A.u 1/2],'--r'),   hold off
+
+subplot(2,2,3)
+plot(t,DEM.qU.x{1}(5:6,:)',t,t*0 + A.u,':')
 xlabel('time','Fontsize',14)
 title('physiological states','FontSize',16)
-axis square, box off, axis([-.1 .5 -.1 .5])
- 
- 
+axis square, box off
+
+subplot(2,2,4)
+plot(DEM.pU.x{1}(5,:),DEM.pU.x{1}(6,:)),               hold on
+plot([A.u 1],[A.u A.u],'--r',[A.u A.u],[A.u 1],'--r'), hold off
+xlabel('time','Fontsize',14)
+title('physiological states','FontSize',16)
+axis square, box off, axis([-.1 1.2 -.1 1.2])
+
+
 % look at the effect of precision on inference (cf Parkinson’s disease)
 %==========================================================================
- 
+
 % initialize states
 %--------------------------------------------------------------------------
-DEM.M(1).x = spm_unvec(DEM.qU.x{1}(:,end),DEM.M(1).x);
-DEM.G(1).x = spm_unvec(DEM.qU.x{1}(:,end),DEM.G(1).x);
- 
+DEM = spm_ADEM_update(DEM);
  
 % simulate exposure with different log-precisions on physical motion
 %--------------------------------------------------------------------------
-WP    = [4 3 2];
+WP    = [4 0 -4];
 if ~DEMO
     for i = 1:length(WP)
         DEM_P{i}        = DEM;
-        DEM_P{i}.M(1).W = diag(exp([[1 1 1 1]*WP(i) [1 1 1 1 1 1]*4]));
+        W               = [[1 1 1 1]*4 [1 1]*4 [1 1 1 1]*WP(i)];
+        DEM_P{i}.M(1).W = diag(exp(W));
         DEM_P{i}        = spm_ADEM(DEM_P{i});
     end
 end
- 
+
 % Graphics
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3: Simulated Parkinsonism');
-clf
+spm_figure('GetWin','Figure 3'); clf
  
 for i = 1:3
     
     % path
     %----------------------------------------------------------------------
+    spm_figure('GetWin','Figure 3');
     subplot(3,2,i*2 - 1)
     spm_cost_SHC_path(DEM_P{i}.pU,A)
     
     % and physiology
     %----------------------------------------------------------------------
     subplot(3,2,i*2)
-    plot(DEM_P{i}.pU.x{1}(5,:),DEM_P{i}.pU.x{1}(6,:)),     hold on
-    plot([A.u 1],[A.u A.u],'--r',[A.u A.u],[A.u 1],'--r'), hold off
+    plot(t,DEM_P{i}.qU.x{1}(5:6,:)',t,t*0 + A.u,':')
     xlabel('time','Fontsize',12)
     title(sprintf('%s (%1.0f)','physiological states',WP(i)),'FontSize',16)
-    axis square, box off, axis([-.1 .5 -.1 .5])
+    axis square, box off
+    drawnow
     
 end
- 
+
+
 % Learning (at different levels of precision on physiological motion)
 %==========================================================================
  
 % Switch attractor for second physiological state and log-precision levels
 %--------------------------------------------------------------------------
+spm_figure('GetWin','DEM'); clf
 A.q  = [1 3];
 WA   = [4 6 8];
 
@@ -189,33 +193,36 @@ if ~DEMO
  
         % Enable learning
         %------------------------------------------------------------------
+        A.u   = 0;
         DEM_L{i}         = DEM;
         DEM_L{i}.M(1).pC = exp(8);
-        DEM_L{i}.M(1).W  = diag(exp([[1 1 1 1]*4 [1 1 1 1 1 1]*WA(i)]));
+        W                = [[1 1 1 1]*4 [1 1]*WA(i) [1 1 1 1]*4];
+        DEM_L{i}.M(1).W  = diag(exp(W));
         DEM_L{i}         = spm_ADEM(DEM_L{i});
+        DEM_L{i}.qqP     = DEM_L{i}.qP;
  
         % replace prior with posterior and re-expose
         %------------------------------------------------------------------
-        DEM_L{i}.M(1).pE = DEM_L{i}.qP.P{1};
-        DEM_L{i}.M(1).x  = spm_unvec(DEM_L{i}.qU.x{1}(:,end),DEM.M(1).x);
-        DEM_L{i}.G(1).x  = spm_unvec(DEM_L{i}.qU.x{1}(:,end),DEM.G(1).x);
+        A.u   = 1/8;
+        DEM_L{i}         = spm_ADEM_update(DEM_L{i});
+        DEM_L{i}.M(1).pC = [];
         DEM_L{i}         = spm_ADEM(DEM_L{i});
  
     end
     
     % save DEM structures for future demonstrations
     %----------------------------------------------------------------------
-    save DEM_addiction DEM DEM_P DEM_L
+    save -v7 DEM_addiction DEM DEM_P DEM_L
     
 end
  
  
 % Grpahics - optimal learning
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4: Perceptual learning (normal)');
-clf
+spm_figure('GetWin','Figure 4'); clf
  
-spm_DEM_qP(DEM_L{1}.qP)
+spm_DEM_qP(DEM_L{1}.qqP)
+spm_figure('GetWin','Figure 4');
 subplot(2,2,3)
 spm_cost_SHC_path(DEM.pU,A)
 title('Before','Fontsize',16)
@@ -224,26 +231,10 @@ subplot(2,2,4)
 spm_cost_SHC_path(DEM_L{1}.pU,A)
 title('After','Fontsize',16)
  
-% Graphics - overconfident
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5: Perceptual learning (overconfident)');
-clf
- 
-spm_DEM_qP(DEM_L{3}.qP)
-subplot(2,2,3)
-spm_cost_SHC_path(DEM.pU,A)
-title('Before','Fontsize',16)
- 
-subplot(2,2,4)
-spm_cost_SHC_path(DEM_L{3}.pU,A)
-title('After','Fontsize',16)
- 
- 
  
 % Comparison of learning over levels of log-precisions (cf. Addiction)
 %==========================================================================
-spm_figure('GetWin','Figure 6: Perceptual learning (comparison)');
-clf
+spm_figure('GetWin','Figure 5'); clf
  
 for i = 1:3
     
@@ -256,10 +247,22 @@ for i = 1:3
     % and physiology
     %----------------------------------------------------------------------
     subplot(3,2,i*2)
-    plot(DEM_L{i}.pU.x{1}(5,:),DEM_L{i}.pU.x{1}(6,:)),     hold on
-    plot([A.u 1],[A.u A.u],'--r',[A.u A.u],[A.u 1],'--r'), hold off
+    spm_plot_ci(DEM_L{i}.qqP.P{1}(:),DEM_L{i}.qqP.C)
+    xlabel('parameter','FontSize',12)
+    title(sprintf('%s (%1.0f)','learning',WA(i)),'FontSize',16)
+    axis square, box off
+    
+end
+
+% and physiology
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 6'); clf
+for i = 1:3
+    
+    subplot(3,1,i)
+    plot(t,DEM_L{i}.pU.x{1}(5:6,:),t,t*0 + A.u,':')
     xlabel('time','FontSize',12)
     title(sprintf('%s (%1.0f)','physiological states',WA(i)),'FontSize',16)
-    axis square, box off, axis([-.1 .5 -.1 .5])
+    axis square, box off
     
 end

@@ -108,7 +108,7 @@ end
  
 % plot results
 %==========================================================================
-DEM.G(1).x = [0; -1/2];
+DEM.G(1).x = [0; 1/2];
 DEM.M(1).x = DEM.G(1).x;
 DEM        = spm_ADEM(DEM);
 
@@ -121,7 +121,7 @@ subplot(2,2,3)
 plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:)), hold on
 plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off
 xlabel('position','Fontsize',14)
-ylabel('velcitiy','Fontsize',14)
+ylabel('velocity','Fontsize',14)
 title('trajectories','Fontsize',16)
 axis([-1 1 -1 1]*2)
 axis square
@@ -166,10 +166,15 @@ DEM           = spm_ADEM(DEM);
 
 % loss-functions or priors
 %--------------------------------------------------------------------------
-C     = spm_mc_loss_C(x,DEM.M(1).pE);
-[i j] = min(C);
-T     = x(j);
+c   = spm_mc_loss_C(x,DEM.M(1).pE);
+C   = DEM.M(1).pE.p - DEM.M(1).pE.q*(1 - c);
 
+% for plotting
+%--------------------------------------------------------------------------
+[Sx Sy Sz]   = sphere;
+S{1}         = Sx/4 + 1;
+S{2}         = Sy/4 + 0;
+S{3}         = Sz/4 - 1;
 
 % inference
 %--------------------------------------------------------------------------
@@ -181,12 +186,14 @@ plot(DEM.U,':'), hold off
 % true and inferred position
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),T,0,'r.','Markersize',32), hold on
+% surf(S{1},S{2},S{3}), hold on
+plot(1,0,'c.','MarkerSize',64), hold on
+plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
 plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off
 xlabel('position','Fontsize',14)
-ylabel('velcitiy','Fontsize',14)
+ylabel('velocity','Fontsize',14)
 title('trajectories','Fontsize',16)
-axis([-1 1 -1 1]*2)
+axis([-1 1 -1 1]*2), shading interp
 axis square
  
 % cost-functions
@@ -199,61 +206,64 @@ title('priors (cost-function)','FontSize',16)
 axis square
 drawnow
  
-return
- 
- 
+
 % and a few more examples
 %--------------------------------------------------------------------------
 for i = 1:4
  
     % active inference
     %----------------------------------------------------------------------
-    DEM.G(1).x  = 2*rand(2,1) - 1;
+    DEM.G(1).x  = rand(2,1) - 1/2;
     DEM.M(1).x  = DEM.G(1).x;
     DEM         = spm_ADEM(DEM);
  
  
     % true and inferred position
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 2');
     subplot(2,2,1), hold on
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),'Color',[0.8 0.8 1])
-    xlabel('position','Fontsize',14)
-    ylabel('velcitiy','Fontsize',14)
-    title('trajectories','Fontsize',16)
-    axis([-1 1 -1 1]*2)
-    axis square
+
  
 end
  
+xlabel('position','Fontsize',14)
+ylabel('velocity','Fontsize',14)
+title('trajectories','Fontsize',16)
+axis([-1 1 -1 1]*2)
+axis square
  
 % illustrate different behaviours under different precisions
 %==========================================================================
  
 % high and low exploration - attractiveness
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); clf
-DEM.G(1).x = [0; 1/2];
+spm_figure('GetWin','Figure 3'); clf
+DEM.G(1).x = [0; -1/2];
 DEM.M(1).x = DEM.G(1).x;
  
-W     = [1 2 3 4];
+W     = [2 4 6 8];
 for i = 1:4
     
     % active inference
     %----------------------------------------------------------------------
     DEM.M(1).W = exp(W(i));
     DEM        = spm_ADEM(DEM);
- 
+    
     % true and inferred position
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 3');
     subplot(2,2,i)
-    plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),T,0,'r.','Markersize',32), hold on
+
+    % surf(S{1},S{2},S{3}), hold on
+    plot(1,0,'c.','MarkerSize',64), hold on
+    plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
     plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off
     xlabel('position','Fontsize',14)
-    ylabel('velcitiy','Fontsize',14)
-    title('trajectories','Fontsize',16)
-    axis([-1 1 -1 1]*2)
+    ylabel('velocity','Fontsize',14)
+    title(sprintf('%s (%i)','trajectories',W(i)),'Fontsize',16)
+    axis([-1 1 -1 1]*2), shading interp
     axis square
- 
+
 end
+

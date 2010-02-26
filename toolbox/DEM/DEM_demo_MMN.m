@@ -13,14 +13,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: DEM_demo_MMN.m 3740 2010-02-26 13:13:14Z karl $
  
-% figure
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
-clear; clf
-colormap('pink')
- 
+
 % level 1
 %--------------------------------------------------------------------------
 M(1).m  = 1;                                 % 1 input or cause
@@ -112,7 +107,7 @@ for i = 1:(n + 1)
     
     % gather trial specific parameters and precisions changes
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 1');
     subplot(n + 1,3,(i - 1)*3 + 3)
     
     dP{i} = spm_vec(DEM{i}.M(1).pE) - spm_vec(DEM{end}.M(1).pE);
@@ -120,6 +115,7 @@ for i = 1:(n + 1)
     qR{i} = spm_DEM_EEG(DEM{i},dt,[1 2],1);   % prediction error (LFP)
     qH(i) = DEM{i}.M(1).hE;                   % and precision
     drawnow
+    if i == 2, a = axis; end
  
     % plot recognition density and prediction
     %----------------------------------------------------------------------
@@ -134,11 +130,17 @@ for i = 1:(n + 1)
     axis square
     
 end
- 
+
+% scale axes and title
+%--------------------------------------------------------------------------
+for i = 1:(n + 1)
+    subplot(n + 1,3,(i - 1)*3 + 3)
+    axis(a);
+    axis square
+end
 subplot(n + 1,3,1),title('Hidden states','FontSize',16)
 subplot(n + 1,3,2),title('percept','FontSize',16)
 subplot(n + 1,3,3),title('prediction error','FontSize',16)
- 
     
 % Show song in DEM window
 %--------------------------------------------------------------------------
@@ -150,7 +152,7 @@ axis square
  
 % Repetition effects
 %==========================================================================
-spm_figure('GetWin','MFM'); 
+spm_figure('GetWin','Figure 2'); 
 t   = [1:N]*dt*1000;
  
 % Changes in Parameters
@@ -174,6 +176,7 @@ axis square
  
 % ERPs (precision weighted) prediction error
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); 
 for i = 1:n
     
     subplot(6,n,i + 2*n)
@@ -205,16 +208,6 @@ title('secondary level (MMN)','FontSize',16)
 xlabel('peristimulus time (ms)','FontSize',12)
 ylabel('Difference waveform','FontSize',12)
 axis square
- 
-spm_figure('GetWin','Graphics'); 
-for i = 1:(n + 1)
-    
-    % gather trial specific parameters and precisions changes
-    %----------------------------------------------------------------------
-    subplot(n + 1,3,(i - 1)*3 + 3)
-    axis(a);
-    axis square
-    
-end
+
 
 drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')

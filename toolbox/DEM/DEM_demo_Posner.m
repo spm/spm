@@ -20,7 +20,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: DEM_demo_Posner.m 3740 2010-02-26 13:13:14Z karl $
 clear
  
 
@@ -46,22 +46,23 @@ G(1).l  = N + 1;                       % output channels (stimuli)
 G(1).xP = 1/32;                        % prior precision on hidden state
  
  
-G(1).f  = inline('[1 -1 -2;-1 1 2]*v/4 - x/16','x','v','P');
+G(1).f  = inline('[1 -1 -2;-1 1 2]*v/4 - x/32','x','v','P');
 G(1).g  = inline('v','x','v','P');
-G(1).V  = exp(8);                      % error variances (noise)
+G(1).V  = exp(16);                     % error variances (noise)
 G(1).W  = exp(8);                      % error variances (states)
  
  
 % level 2; causes
 %--------------------------------------------------------------------------
 G(2).l  = N + 1;                       % output channels (locations)
-G(2).V  = exp(8);
+G(2).V  = exp(16);
  
  
 % state-dependent precision (attentional bias) in generative model (M):
 %--------------------------------------------------------------------------
 M       = G;
-M(1).ph = inline('[2 + [1 -1;-1 1]*x; 8]','x','v','h','M');
+M(1).ph = inline('[2 + [1 -1;-1 1]*x; 4]','x','v','h','M');
+M(1).W  = exp(4);                      % error variances (states)
 M(1).V  = [];
 M(2).V  = 0;
  
@@ -73,11 +74,12 @@ M(2).V  = 0;
  
 % create inputs and cue 
 %--------------------------------------------------------------------------
-T   = 32;                                   % length of data sequence
-dt  = 1000/T;                               % ms time bins; 1 sec trials
-pst = [1:T]*8;                              % peristimulus time (8 ms bins)
-TS  = spm_Npdf([1:T],2*T/3,T/4);            % this is the Gaussian target
+T   = 64;                                   % length of data sequence
+dt  = 640/T;                                % ms time bins; 512 ms trials
+pst = [1:T]*dt;                             % peristimulus time (ms bins)
+TS  = spm_Npdf([1:T + 1],2*T/3,T/8);        % this is the Gaussian target
 CS  = spm_Npdf([1:T],T/4,T/16);             % this is the Gaussian cue
+TS  = diff(TS);
 TS  = TS/max(TS);
 CS  = CS/max(CS);
 
@@ -124,7 +126,7 @@ spm_figure('GetWin','DEM');
 
 LAPV   = spm_LAP(LAPV);
 
-spm_figure('GetWin','Figure 1: Valid Cue');
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(LAPV.qU,LAPV.pU)
  
  
@@ -155,7 +157,7 @@ spm_figure('GetWin','DEM');
 
 LAPU   = spm_LAP(LAPU);
 
-spm_figure('GetWin','Figure 2: Inalid Cue');
+spm_figure('GetWin','Figure 2');
 spm_DEM_qU(LAPU.qU,LAPU.pU)
  
  
@@ -176,7 +178,7 @@ drawnow
  
 % Psychophysics - speed accuracy trade-off
 %==========================================================================
-spm_figure('GetWin','Figure 3: Psychophysics');
+spm_figure('GetWin','Figure 3');
 
 % valid trial - evaluate p(v > q,t|Y,M) using conditional density
 %--------------------------------------------------------------------------
@@ -210,7 +212,7 @@ subplot(2,1,1)
 plot(pst,100*PV,pst,100*PU,'-.',pst,TS*100,':')
 
 [m i] = max(PU);
-set(gca,'XLim',[pst(1) pst(i)])
+set(gca,'XLim',[pst(T/2) pst(i)])
 xlabel('peristimulus time (ms)','FontSize',12)
 ylabel('posterior confidence that target is present','FontSize',12)
 title({'speed-accuracy trade-off'},'FontSize',16)
@@ -227,7 +229,7 @@ spm_figure('GetWin','DEM');
 %--------------------------------------------------------------------------
 LAPB   = spm_LAP(LAPB);
 
-spm_figure('GetWin','Figure 4: Biased competition');
+spm_figure('GetWin','Figure 4');
 spm_DEM_qU(LAPB.qU,LAPB.pU)
  
  
@@ -250,7 +252,54 @@ drawnow
  
 % plot the simulated ERPs (see spm_DEM_ERP)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5: Electrophysiology');
-spm_dem_ERP(LAPU.qU,LAPV.qU);
+spm_figure('GetWin','Figure 5'); clf
+color = {'r','b'};
+qU    = {LAPU.qU,LAPV.qU};
+PST   = pst - T*dt/3;
+for i = 1:length(qU)
+    
+    
+    % loop over levels
+    %----------------------------------------------------------------------
+    for  j = 1:2
+        
+        % PST (assuming 32 ms times bins)
+        %------------------------------------------------------------------
+        try
+            EEG = qU{i}.Z{j}(1:2,:);
+        catch
+            EEG = qU{i}.z{j}(1:2,:);
+        end
+
+        % ERPs
+        %------------------------------------------------------------------
+        subplot(2,2,1)
+        plot(PST,EEG,'Color',color{i}),hold on
+    end
+    title('LFPs (Causal) Content','FontSize',16)
+    xlabel('pst (ms)')
+    axis square
+    set(gca,'XLim',[PST(1) PST(end)])
+    
+    % Hidden states
+    %------------------------------------------------------------------
+    j  = 1;
+    try
+        EEG = qU{i}.W{j}(2,:);
+    catch
+        EEG = qU{i}.w{j}(2,:);
+    end
+    
+    % ERPs
+    %------------------------------------------------------------------
+    subplot(2,2,2)
+    plot(PST,EEG,'Color',color{i}),hold on
+    title('LFPs (Hidden) Context','FontSize',16)
+    xlabel('pst (ms)')
+    axis square 
+    set(gca,'XLim',[PST(1) PST(end)])
+    
+end
+
 legend('invalid','valid')
 drawnow

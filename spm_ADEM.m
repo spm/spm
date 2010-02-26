@@ -37,6 +37,7 @@ function [DEM] = spm_ADEM(DEM)
 %   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
+%   M(i).xP = precision (states)
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i)
@@ -111,7 +112,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3733 2010-02-18 17:43:18Z karl $
+% $Id: spm_ADEM.m 3740 2010-02-26 13:13:14Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -140,8 +141,7 @@ s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
 %--------------------------------------------------------------------------
 nY   = size(C,2);                      % number of samples
 nl   = size(M,2);                      % number of levels
-nr   = sum(spm_vec(M.l));              % number of v (outputs)
-nv   = sum(spm_vec(M.m));              % number of v (casual states)
+nv   = sum(spm_vec(M.m));              % number of v (causal states)
 nx   = sum(spm_vec(M.n));              % number of x (hidden states)
 ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
@@ -149,14 +149,11 @@ nu   = nv*d + nx*n;                    % number of generalised states q(u)
  
 % number of states and parameters - generative model
 %--------------------------------------------------------------------------
-gl   = size(M,2);                      % number of levels
 gr   = sum(spm_vec(G.l));              % number of v (outputs)
 gv   = sum(spm_vec(G.m));              % number of v (causal states)
 ga   = sum(spm_vec(G.k));              % number of a (active states)
 gx   = sum(spm_vec(G.n));              % number of x (hidden states)
 gy   = G(1).l;                         % number of y (inputs)
-gc   = G(end).l;                       % number of c (prior causes)
-gu   = gv*n + gx*n;                    % number of generalised states q(u)
 na   = ga;
  
 % number of iterations
@@ -203,14 +200,12 @@ end
 Q0    = kron(iV,spm_cat(spm_diag({M.V})));
 R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
-Q0    = kron(iV,speye(nv));
-R0    = kron(iV,speye(nx));
-Qu    = blkdiag(Q0,R0);
 nh    = length(Q);                         % number of hyperparameters
  
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
-Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8));
+xP    = spm_cat(spm_diag({M.xP}));
+Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
 Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-8));
 Pu    = spm_cat(spm_diag({Px Pv}));
@@ -309,13 +304,11 @@ dVdc  = sparse(d*nc,1);
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
 dWdu  = sparse(nu,1);
-dWdp  = sparse(np,1);
 dWduu = sparse(nu,nu);
-dWdpp = sparse(np,np);
- 
+
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
-if ~(np + nh), nE = 1; end
+if ~np && ~nh, nE = 1; end
  
  
 % create innovations (and add causes)
@@ -474,7 +467,7 @@ for iE = 1:nE
         %------------------------------------------------------------------
         p     = {pu.v{1:n} pu.x{1:n} pu.z{1:n} pu.w{1:n}};
         q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:1}};
-        u     = {p{:} q{:}};  
+        u     = [p q];  
         
         % gradient
         %------------------------------------------------------------------

@@ -19,39 +19,64 @@ N     = length(varargin);
 color = {'r','b','g','y','c','m'};
 for i = 1:N
     
-    qU = varargin{i};
-    U  = qU.z;
     
     % loop over ERPs
     %----------------------------------------------------------------------
-    n  = length(U);
+    qU = varargin{i};
+    n  = length(qU.z);
     for  j = 1:n
         
         % PST (assuming 8ms times bins)
         %------------------------------------------------------------------
-        EEG = U{j};
-        T   = [1:length(EEG)]*32;
+        try
+            EEG = qU.Z{j};
+        catch
+            EEG = qU.z{j};
+        end
+        T   = (1:length(EEG))*32;
         
         % ERPs
         %------------------------------------------------------------------
         subplot(n,2,2*(j - 1) + 1)
         plot(T,mean(EEG,1),'Color',color{i}),hold on
         plot(T,EEG,':','Color',color{i})
-        title(sprintf('LFPs: level %i',j),'FontSize',16)
+        title(sprintf('LFPs (Causal): level %i',j),'FontSize',16)
         xlabel('pst (ms)')
         axis square
-
+        
         
         % PSTH
         %------------------------------------------------------------------
-        subplot(n,2,2*j)
         PSTH    = mean(exp(EEG) + exp(-EEG),1)/2;
         R{j}(i) = mean(PSTH);
-        plot(T,PSTH,color{i},'LineWidth',1)
-        title(sprintf('PSTH: level %i',j),'FontSize',16)
+        
+        %         subplot(n,2,2*j)
+        %         plot(T,PSTH,color{i},'LineWidth',1)
+        %         title(sprintf('PSTH: level %i',j),'FontSize',16)
+        %         xlabel('pst (ms)')
+        %         axis square
+        %         hold on
+        
+    end
+    for  j = 1:(n - 1)
+        
+        % PST (assuming 8ms times bins)
+        %------------------------------------------------------------------
+        try
+            EEG = qU.W{j};
+        catch
+            EEG = qU.w{j};
+        end
+        T   = (1:length(EEG))*32;
+        
+        % ERPs
+        %------------------------------------------------------------------
+        subplot(n,2,2*(j - 1) + 2)
+        plot(T,mean(EEG,1),'Color',color{i}),hold on
+        plot(T,EEG,':','Color',color{i})
+        title(sprintf('LFPs (Hidden): level %i',j),'FontSize',16)
         xlabel('pst (ms)')
         axis square
-        hold on
         
     end
     

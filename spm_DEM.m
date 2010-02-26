@@ -19,11 +19,11 @@ function [DEM] = spm_DEM(DEM)
 %   M(i).hC = prior covariances of h log-precision (cause noise)
 %   M(i).gE = prior expectation of g log-precision (state noise)
 %   M(i).gC = prior covariances of g log-precision (state noise)
-%   M(i).xP = precision (states)
 %   M(i).Q  = precision components (input noise)
 %   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
+%   M(i).xP = precision (states)
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i);
@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_DEM.m 3740 2010-02-26 13:13:14Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------

@@ -10,7 +10,7 @@ function spm_DEM_qP(qP,pP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM_qP.m 3740 2010-02-26 13:13:14Z karl $
 
 
 % unpack conditional covariances
@@ -143,12 +143,12 @@ try
  
 catch
     
-% or correlations
-%--------------------------------------------------------------------------
-imagesc(spm_cov2corr(qP.C(i,i)))
-title({'conditional correlations','among parameters'},'FontSize',16)
-axis square
-drawnow
+    % or correlations
+    %----------------------------------------------------------------------
+    imagesc(spm_cov2corr(qP.C(i,i)))
+    title({'conditional correlations','among parameters'},'FontSize',16)
+    axis square
+    drawnow
     
 end
 
