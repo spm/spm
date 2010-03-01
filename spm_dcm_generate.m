@@ -1,6 +1,6 @@
-function [] = spm_dcm_generate(syn_model,source_model,SNR)
+function spm_dcm_generate(syn_model,source_model,SNR)
 % Generate synthetic data from a DCM specification
-% FORMAT [] = spm_dcm_generate(syn_model,source_model,SNR)
+% FORMAT spm_dcm_generate(syn_model,source_model,SNR)
 % 
 % syn_model     Name of synthetic DCM file
 % source_model  Type of souce model specification (see spm_dcm_create)
@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_generate.m 3741 2010-03-01 15:35:30Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -43,30 +43,31 @@ m     = size(U.u,2);  % number of inputs
 %--------------------------------------------------------------------------
 eigval = eig(DCM.Ep.A);
 if max(eigval) >= 0
-    disp (['Modelled system is potentially unstable: Lyapunov exponent of combined connectivity matrix is ' num2str(max(eigval))]);
-    disp ('Check the output to ensure that values are in a normal range.')
+    fprintf('Modelled system is potentially unstable:\n');
+    fprintf('Lyapunov exponent of combined connectivity matrix is %f\n',max(eigval));
+    fprintf('Check the output to ensure that values are in a normal range.\n')
 end
 
 
 % check whether this is a nonlinear DCM
 %--------------------------------------------------------------------------
-try
-    DCM.d;
-    M.IS  = 'spm_int_B_nlDCM_fMRI';
-catch
+if ~isfield(DCM,'d') || isempty(DCM.d)
     DCM.d = zeros(n,n,0);
     M.IS  = 'spm_int';
+else
+    M.IS  = 'spm_int_D';
 end
+
 
 % priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_priors(DCM.a,DCM.b,DCM.c,DCM.d);
+[pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);
 
 
 % complete model specification
 %--------------------------------------------------------------------------
-M.f     = 'spm_fx_dcm';
-M.g     = 'spm_gx_dcm';
+M.f     = 'spm_fx_fmri';
+M.g     = 'spm_gx_fmri';
 M.x     = sparse(n,5);
 M.pE    = pE;
 M.pC    = pC;
@@ -83,14 +84,16 @@ M.ns    = v;
 try, M.delays = DCM.delays; end
 try, M.TE     = DCM.TE;     end
 
+
 % Integrate and compute hemodynamic response at v sample points
 %--------------------------------------------------------------------------
-y     = feval (M.IS,M.Ep,M,U);
+y      = feval(M.IS,DCM.Ep,M,U);
 
 
 % Compute required r: standard deviation of additive noise, for all areas
 %--------------------------------------------------------------------------
 r      = diag(std(y)/SNR);
+
 
 % Add noise
 %--------------------------------------------------------------------------
@@ -116,11 +119,12 @@ if spm_matlab_version_chk('7') >= 0
     save(syn_model, 'DCM', '-V6');
 else
     save(syn_model, 'DCM');
-end;
+end
+
 
 % Display the time series generated
 %--------------------------------------------------------------------------
-F     = spm_figure('CreateWin','Simulated BOLD time series');
+spm_figure('CreateWin','Simulated BOLD time series');
 t     = Y.dt*[1:1:v];
 for i = 1:n,
     subplot(n,1,i);
@@ -129,5 +133,3 @@ for i = 1:n,
     if i<n set(gca,'XTickLabel',[]); end
 end
 xlabel('secs');
-
-return
