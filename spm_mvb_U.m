@@ -1,7 +1,7 @@
 function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Constructs patterns U for Multivariate Bayesian inversion of a linear model
 % FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox)
-% Y      - date filature matrix
+% Y      - data-feature matrix
 % priors - 'null'      % no patterns
 %        - 'compact'   % reduced (ns/3); using SVD on local compact support
 %        - 'sparse'    % a pattern is a voxel
@@ -16,7 +16,7 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_mvb_U.m 3743 2010-03-02 18:59:21Z karl $
  
 % defaults
 %--------------------------------------------------------------------------

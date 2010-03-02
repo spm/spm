@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_lgainmat.m 3743 2010-03-02 18:59:21Z karl $
 
 
 % get gain or lead-feild matrix
@@ -39,26 +39,10 @@ end
 
 try
     fname = D.inv{val}.gainmat;
-    try
-        G = load(fname); % Absolute path
-    catch
-        try
-            G = load(fullfile(D.path, fname)); % Relative path
-        catch
-            [p f x] = fileparts(fname);
-            try
-                fname = fullfile(D.path, [f x]); % Try D's directory
-                G     = load(fname);
-            catch
-                try
-                    fname = fullfile(pwd, [f x]); % Try current directory
-                    G     = load(fname);
-                end
-            end
-        end
-    end
+    G = load(fullfile(D.path, fname)); % Relative path
+    
     label = G.label;
-    G = G.G;    
+    G = G.G;
     if numel(label) ~= size(G, 1) ||...
             ~all(ismember(channels, label))
         error('Gain matrix has an incorrect number of channels');
