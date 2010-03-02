@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_average
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 3258 2009-07-08 17:46:54Z vladimir $
+% $Id: spm_cfg_eeg_average.m 3742 2010-03-02 15:15:43Z vladimir $
 
-rev = '$Rev: 3258 $';
+rev = '$Rev: 3742 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -56,10 +56,19 @@ userobust.help = {'choose between using standard and robust averaging'};
 userobust.values = {standard, robust};
 userobust.val = {standard};
 
+plv = cfg_menu;
+plv.tag = 'plv';
+plv.name = 'Compute phase-locking value';
+plv.help = {'Compute phase-locking value rather than average the phase',...
+    'This option is only relevant for TF-phase datasets'};
+plv.labels = {'Yes', 'No'};
+plv.values = {true, false};
+plv.val = {false};
+
 S = cfg_exbranch;
 S.tag = 'eeg_average';
 S.name = 'M/EEG Averaging';
-S.val = {D, userobust};
+S.val = {D, userobust, plv};
 S.help = {'Average epoched EEG/MEG data.'};
 S.prog = @eeg_average;
 S.vout = @vout_eeg_average;
@@ -74,6 +83,8 @@ else
     S.robust = false;
 end
 S.review = false;
+
+S.circularise = job.plv;
 
 out.D = spm_eeg_average(S);
 out.Dfname = {out.D.fname};
