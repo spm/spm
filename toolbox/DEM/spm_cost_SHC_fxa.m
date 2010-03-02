@@ -21,18 +21,18 @@ function [f] = spm_cost_SHC_fxa(x,v,a,P)
  
 % location and radius of attractors A (only A.q attractors deliver reward)
 %--------------------------------------------------------------------------
-global A
+global A; X   = A.x(:,A.q);
  
 % physical flow
 %--------------------------------------------------------------------------
 f   = x;
 f.x = x.v;
-f.v = a - x.x/8 - x.v/4;
+f.v = a - x.x*2 - x.v*4;
  
 % physiological flow
 %--------------------------------------------------------------------------
-for i = 1:length(f.q)
-    f.q(i) = exp(-sum((x.x - A.x(:,A.q(i))).^2)/(2*A.d^2)) - x.q(i)/2;
+for i = 1:size(X,2)
+    f.q(i) = (norm(x.x - X(:,i)) < A.d) - x.q(i)/2;
 end
  
 % flow

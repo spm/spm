@@ -25,4 +25,4 @@ end
 for i = 1:n
     DEM.G(i).v  = spm_unvec(DEM.pU.v{i}(:,end),DEM.G(i).v);
 end
-DEM.G(n).a  = spm_unvec(DEM.qU.a{n}(:,end),DEM.G(n).a);
+DEM.G(n).a      = spm_unvec(DEM.qU.a{n}(:,end),DEM.G(n).a);

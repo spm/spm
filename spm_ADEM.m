@@ -112,7 +112,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3740 2010-02-26 13:13:14Z karl $
+% $Id: spm_ADEM.m 3744 2010-03-02 18:59:55Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -364,13 +364,13 @@ for iE = 1:nE
  
         % derivatives of responses and inputs
         %------------------------------------------------------------------
-        pu.z   = spm_DEM_embed(Z,n,iY);
-        pu.w   = spm_DEM_embed(W,n,iY);
-        qu.u   = spm_DEM_embed(U,n,iY);
+        pu.z = spm_DEM_embed(Z,n,iY);
+        pu.w = spm_DEM_embed(W,n,iY);
+        qu.u = spm_DEM_embed(U,n,iY);
         
         % pass action to pu.a
         %------------------------------------------------------------------
-        pu.a   = qu.a;
+        pu.a = qu.a;
  
         % evaluate generative model
         %------------------------------------------------------------------
@@ -641,22 +641,22 @@ for iE = 1:nE
             %--------------------------------------------------------------
             v     = spm_unvec(qU(t).v{1},{M(1 + 1:end).v});
             x     = spm_unvec(qU(t).x{1},{M(1:end - 1).x});
-            z     = spm_unvec(qE{t},{M.v});
+            z     = spm_unvec(qE{t}(1:(ny + nv)),{M.v});
+            w     = spm_unvec(qE{t}((1:nx) + (ny + nv)*n),{M.x});
             for i = 1:(nl - 1)
-                QU.v{i + 1}(:,t) = spm_vec(v{i});
-                try
-                    QU.x{i}(:,t) = spm_vec(x{i});
-                end
-                QU.z{i}(:,t)     = spm_vec(z{i});
+                if M(i).m, QU.v{i + 1}(:,t) = spm_vec(v{i}); end
+                if M(i).l, QU.z{i}(:,t)     = spm_vec(z{i}); end
+                if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end
+                if M(i).n, QU.w{i}(:,t)     = spm_vec(w{i}); end
             end
-            QU.v{1}(:,t)         = spm_vec(qU(t).y{1}) - spm_vec(z{1});
-            QU.z{nl}(:,t)        = spm_vec(z{nl});
+            QU.v{1}(:,t)  = spm_vec(qU(t).y{1}) - spm_vec(z{1});
+            QU.z{nl}(:,t) = spm_vec(z{nl});
  
             % and conditional covariances
             %--------------------------------------------------------------
-            i       = [1:nx];
+            i       = (1:nx);
             QU.S{t} = qC{t}(i,i);
-            i       = [1:nv] + nx*n;
+            i       = (1:nv) + nx*n;
             QU.C{t} = qC{t}(i,i);
         end
  

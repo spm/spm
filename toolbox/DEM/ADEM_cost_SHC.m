@@ -19,7 +19,7 @@
  
 % Karl Friston
 % $Id: $
-
+ 
  
 % switch for demo
 %--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ DEMO = 1;
 global A
 A.x  = [1 -1 -1  1;
         2 -2  2 -2];
-A.d  = 1/2;              % s.d. of Gaussian radial basis function
+A.d  = 1/4;              % s.d. of Gaussian radial basis function
 A.u  = 1/8;              % threshold to induce rapid decay of x.a
 A.q  = [1 2];            % indices of locations that increase x.q
  
@@ -65,14 +65,14 @@ G        = spm_ADEM_M_set(G);
 M(1).x.x = G(1).x.x;
 M(1).x.v = G(1).x.v;
 M(1).x.q = G(1).x.q;
-M(1).x.a = rand(4,1);
+M(1).x.a = randn(4,1)/8;
  
 M(1).f   = inline('spm_cost_SHC_fx(x,v,P)','x','v','P');
 M(1).g   = inline('[x.x; x.v; x.q]','x','v','P');
 M(1).pE  = speye(4,2);
  
-M(1).V   = exp(6);
-M(1).W   = diag(exp([[1 1 1 1]*4 [1 1 1 1 1 1]*6]));
+M(1).V   = exp(8);
+M(1).W   = diag(exp([[1 1 1 1]*4 [1 1]*6 [1 1 1 1]*4]));
  
 % level 2 (no exogenous inputs in this simulation)
 %--------------------------------------------------------------------------
@@ -107,7 +107,7 @@ spm_DEM_qU(DEM.qU)
  
 subplot(2,2,3)
 spm_cost_SHC_path(DEM.pU,A)
-
+ 
  
 % a closer look at physiology
 %--------------------------------------------------------------------------
@@ -120,44 +120,44 @@ plot(t,DEM.qU.x{1}(7:10,:)','-.'),           hold off
 xlabel('time','Fontsize',14)
 title('internal states','FontSize',16)
 axis square, box off, set(gca,'XLim',[1 N])
-
+ 
 subplot(2,2,3)
 plot(t,DEM.qU.x{1}(5:6,:)',t,t*0 + A.u,':')
 xlabel('time','Fontsize',14)
 title('physiological states','FontSize',16)
-axis square, box off
-
+axis square, box off, set(gca,'XLim',[1 N])
+ 
 subplot(2,2,4)
 plot(DEM.pU.x{1}(5,:),DEM.pU.x{1}(6,:)),               hold on
-plot([A.u 1],[A.u A.u],'--r',[A.u A.u],[A.u 1],'--r'), hold off
+plot([A.u 1],[A.u A.u],'-.r',[A.u A.u],[A.u 1],'-.r'), hold off
 xlabel('time','Fontsize',14)
 title('physiological states','FontSize',16)
 axis square, box off, axis([-.1 1.2 -.1 1.2])
-
-
+ 
+ 
+ 
 % look at the effect of precision on inference (cf Parkinson’s disease)
 %==========================================================================
-
+ 
 % initialize states
 %--------------------------------------------------------------------------
 DEM = spm_ADEM_update(DEM);
  
 % simulate exposure with different log-precisions on physical motion
 %--------------------------------------------------------------------------
-WP    = [4 0 -4];
+WP    = [4 2 0];
 if ~DEMO
     for i = 1:length(WP)
         DEM_P{i}        = DEM;
-        W               = [[1 1 1 1]*4 [1 1]*4 [1 1 1 1]*WP(i)];
+        W               = [[1 1 1 1]*WP(i) [1 1]*6 [1 1 1 1]*4];
         DEM_P{i}.M(1).W = diag(exp(W));
         DEM_P{i}        = spm_ADEM(DEM_P{i});
     end
 end
-
-% Graphics
+ 
+% Graphics - path and physiology
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
- 
 for i = 1:3
     
     % path
@@ -169,15 +169,40 @@ for i = 1:3
     % and physiology
     %----------------------------------------------------------------------
     subplot(3,2,i*2)
-    plot(t,DEM_P{i}.qU.x{1}(5:6,:)',t,t*0 + A.u,':')
+    plot(t,DEM_P{i}.pU.x{1}(5:6,:)',t,t*0 + A.u,':'), hold on
+    plot(t,sum(DEM_P{i}.pU.x{1}(1:2,:).^2)/8,'m:'),    hold off
     xlabel('time','Fontsize',12)
     title(sprintf('%s (%1.0f)','physiological states',WP(i)),'FontSize',16)
-    axis square, box off
+    axis square, box off, set(gca,'XLim',[1 N])
     drawnow
     
 end
-
-
+ 
+% Graphics - action and prediction error
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 4'); clf
+for i = 1:3
+    
+    % path
+    %----------------------------------------------------------------------
+    subplot(3,2,2*i - 1)
+    plot(t,DEM_P{i}.qU.a{2})
+    xlabel('time','FontSize',12)
+    title('action','FontSize',16)
+    axis square, box off, set(gca,'XLim',[1 N])
+    if i == 1; a = axis; end, axis(a)
+    
+    % and prediction error
+    %----------------------------------------------------------------------
+    subplot(3,2,2*i)
+    plot(t,DEM_P{i}.qU.z{1}(1:4,:))
+    xlabel('time','FontSize',12)
+    title('sensory error','FontSize',16)
+    axis square, box off, set(gca,'XLim',[1 N])
+    if i == 1; aa = axis; end, axis(aa)
+    drawnow
+end
+ 
 % Learning (at different levels of precision on physiological motion)
 %==========================================================================
  
@@ -185,84 +210,109 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','DEM'); clf
 A.q  = [1 3];
-WA   = [4 6 8];
-
+WA   = [4 8 12];
+ 
 if ~DEMO
     
     for i = 1:length(WA)
  
         % Enable learning
         %------------------------------------------------------------------
-        A.u   = 0;
+        A.u              = 0;
         DEM_L{i}         = DEM;
         DEM_L{i}.M(1).pC = exp(8);
         W                = [[1 1 1 1]*4 [1 1]*WA(i) [1 1 1 1]*4];
         DEM_L{i}.M(1).W  = diag(exp(W));
         DEM_L{i}         = spm_ADEM(DEM_L{i});
-        DEM_L{i}.qqP     = DEM_L{i}.qP;
+ 
  
         % replace prior with posterior and re-expose
         %------------------------------------------------------------------
-        A.u   = 1/8;
-        DEM_L{i}         = spm_ADEM_update(DEM_L{i});
-        DEM_L{i}.M(1).pC = [];
-        DEM_L{i}         = spm_ADEM(DEM_L{i});
+        A.u              = 1/8;
+        DEM_D{i}         = DEM_L{i};
+        DEM_D{i}.M(1).pE = DEM_D{i}.qP.P{1};
+        DEM_D{i}.M(1).pC = [];
+        DEM_D{i}         = spm_ADEM(DEM_D{i});
  
     end
     
     % save DEM structures for future demonstrations
     %----------------------------------------------------------------------
-    save -v7 DEM_addiction DEM DEM_P DEM_L
+    try
+        save -v7 DEM_addiction DEM DEM_P DEM_L DEM_D
+    catch
+        save DEM_addiction DEM DEM_P DEM_L DEM_D
+    end
     
 end
  
  
-% Grpahics - optimal learning
+% Graphics - optimal learning
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
+spm_figure('GetWin','Figure 5'); clf
+spm_DEM_qP(DEM_L{1}.qP)
  
-spm_DEM_qP(DEM_L{1}.qqP)
-spm_figure('GetWin','Figure 4');
+spm_figure('GetWin','Figure 5');
 subplot(2,2,3)
 spm_cost_SHC_path(DEM.pU,A)
 title('Before','Fontsize',16)
- 
 subplot(2,2,4)
-spm_cost_SHC_path(DEM_L{1}.pU,A)
+spm_cost_SHC_path(DEM_D{1}.pU,A)
 title('After','Fontsize',16)
+drawnow
  
  
 % Comparison of learning over levels of log-precisions (cf. Addiction)
 %==========================================================================
-spm_figure('GetWin','Figure 5'); clf
+spm_figure('GetWin','Figure 6'); clf
  
 for i = 1:3
     
     % path
     %----------------------------------------------------------------------
     subplot(3,2,i*2 - 1)
-    spm_cost_SHC_path(DEM_L{i}.pU,A)
+    spm_cost_SHC_path(DEM_D{i}.pU,A)
     title('After','FontSize',16)
     
     % and physiology
     %----------------------------------------------------------------------
     subplot(3,2,i*2)
-    spm_plot_ci(DEM_L{i}.qqP.P{1}(:),DEM_L{i}.qqP.C)
+    spm_plot_ci(DEM_L{i}.qP.P{1}(:),DEM_L{i}.qP.C)
     xlabel('parameter','FontSize',12)
     title(sprintf('%s (%1.0f)','learning',WA(i)),'FontSize',16)
     axis square, box off
     
 end
+drawnow
 
 % and physiology
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6'); clf
+spm_figure('GetWin','Figure 7'); clf
 for i = 1:3
-    
-    subplot(3,1,i)
-    plot(t,DEM_L{i}.pU.x{1}(5:6,:),t,t*0 + A.u,':')
+ 
+    % predicted motion of second physiological state
+    %----------------------------------------------------------------------
+    for j = 1:N
+        x    = DEM_L{i}.qU.x{1}(:,j);
+        f    = spm_cost_SHC_fx(spm_unvec(x,M(1).x),M(2).v,M(1).pE);
+        p(j) = DEM_L{i}.qU.w{1}(6,j) + f.q(2);
+        x    = DEM_L{i}.pU.x{1}(:,j);
+        f    = spm_cost_SHC_fxa(spm_unvec(x,G(1).x),M(2).v,G(2).a,G(1).pE);
+        q(j) = f.q(2);
+    end
+    subplot(3,2,2*i - 1)
+    plot(t,p,t,q,'b:')
     xlabel('time','FontSize',12)
-    title(sprintf('%s (%1.0f)','physiological states',WA(i)),'FontSize',16)
-    axis square, box off
-    
+    title(sprintf('%s (%1.0f)','predicted motion',WA(i)),'FontSize',16)
+    axis square, box off, set(gca,'XLim',[1 N])
+    if i == 1; a = axis; end, axis(a)
+ 
+    subplot(3,2,2*i)
+    plot(t,DEM_L{i}.qU.w{1}(6,:))
+    xlabel('time','FontSize',12)
+    title('prediction error','FontSize',16)
+    axis square, box off, set(gca,'XLim',[1 N])
+    if i == 1; aa = axis; end, axis(aa)
+ 
 end
+drawnow

@@ -19,27 +19,27 @@ function [f] = spm_cost_SHC_fx(x,v,P)
  
 % location and radius of attractors A
 %--------------------------------------------------------------------------
-global A;
+global A; X   = A.x;
  
 % gradient of Hamiltonian (G) is determined by the attractor state x.a
 %--------------------------------------------------------------------------
-f   = x;
-n   = length(x.a);
-G   = (x.x*ones(1,n) - A.x)*spm_softmax(x.a,2);
+[m,i] = max(x.a);
+G     = x.x - X(:,i);
  
 % motion of physical states
 %--------------------------------------------------------------------------
+f   = x;
 f.x = x.v;
 f.v = -G*8 - x.v*4;
  
 % motion of physiological states (using basis functions of position)
 %--------------------------------------------------------------------------
-for i = 1:n
-    b(i,1) = exp(-sum((x.x - A.x(:,i)).^2)/(2*A.d^2));
+for i = 1:size(X,2)
+    b(i,1) = norm(x.x - X(:,i)) < A.d;
 end
  
-f.q = P'*b - x.q;
-f.a = 1/2 + P*(x.q < A.u)*4 - b*8;
+f.q = P'*b - x.q/2;
+f.a = P*(x.q < A.u) - b*4 - sum(x.a);
  
 % flow
 %--------------------------------------------------------------------------
