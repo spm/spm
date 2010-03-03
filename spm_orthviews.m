@@ -113,7 +113,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 3639 2009-12-14 16:36:39Z guillaume $
+% $Id: spm_orthviews.m 3747 2010-03-03 17:15:09Z volkmar $
 
 
 
@@ -631,6 +631,9 @@ return;
 %_______________________________________________________________________
 function my_delete(arg1)
 global st
+% remove blobs (and colourbars, if any)
+rmblobs(arg1);
+% remove displayed axes
 for i=valid_handles(arg1),
     kids = get(st.fig,'Children');
     for j=1:3,
