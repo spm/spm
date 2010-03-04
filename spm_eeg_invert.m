@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3743 2010-03-02 18:59:21Z karl $
+% $Id: spm_eeg_invert.m 3748 2010-03-04 13:16:16Z vladimir $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -290,7 +290,7 @@ for m = 1:Nmod
     % Assume the eigenvectors of P comprise the 'average' lead field UL{m}  
     %----------------------------------------------------------------------  
     U     = spm_svd(P,0);
-    Nm(m) = min(min(Nc),Nmmax);
+    Nm(m) = min(min(Nc(:,m)),Nmmax);
     UL{m} = U(:,1:Nm(m))'*G';
  
     % Normalise lead-field
