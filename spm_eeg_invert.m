@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3748 2010-03-04 13:16:16Z vladimir $
+% $Id: spm_eeg_invert.m 3751 2010-03-04 20:21:08Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -144,7 +144,7 @@ inverse   = D{1}.inv{D{1}.val}.inverse;
 %--------------------------------------------------------------------------
 try, type = inverse.type;   catch, type = 'GS';     end
 try, s    = inverse.smooth; catch, s    = 0.6;      end
-try, Np   = inverse.Np;     catch, Np   = 512;      end
+try, Np   = inverse.Np;     catch, Np   = 256;      end
 try, Nm   = inverse.Nm;     catch, Nm   = 128;      end
 try, Nr   = inverse.Nr;     catch, Nr   = 16;       end
 try, xyz  = inverse.xyz;    catch, xyz  = [0 0 0];  end
@@ -265,26 +265,25 @@ end
 % Spatial projectors (adjusting for different Lead-fields)
 %==========================================================================
 
+fprintf('Optimising spatial modes ...\n')
 
 % define a reduced source space using the 'heat kernels' QG
 %--------------------------------------------------------------------------
 Is    = 1:Nd;
-Ng    = 1024;
+Ng    = 512;
 Ig    = ceil((1:Ng)*Nd/Ng);
-G     = QG(:,Ig);
+G     = spm_svd(QG(:,Ig),0);
 for m = 1:Nmod
     
     % Get average precision (P) in source-space over subjects
     %----------------------------------------------------------------------
     P   = zeros(Ng,Ng);
-    Pp  = speye(Ng,Ng);
     
-    % Assuming a SNR of 1/8 and the prior covariance on sources = G*G'
-    %---------------------------------------------------------------------- 
-    for i  = 1:Nl
-        L  = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}))*G;
-        Pe = speye(Nc(i),Nc(i))*8*Nc(i)/sum(sum(L.^2,2));
-        P  = P + L'*Pe*L + Pp;
+    % Assuming i.i.d. prior covariance on sources
+    %----------------------------------------------------------------------
+    for i = 1:Nl
+        L = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}))*G;
+        P = P + L'*L;
     end
     
     % Assume the eigenvectors of P comprise the 'average' lead field UL{m}  
@@ -301,7 +300,10 @@ for m = 1:Nmod
     %----------------------------------------------------------------------
     for i = 1:Nl
         L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        A{i,m} = UL{m}*pinv(full(L));
+        [U,E]  = spm_svd(L*L',exp(-16));
+        E      = diag(E);
+        L0     = eye(size(L,1))*E(end); 
+        A{i,m} = UL{m}*L'/(L*L' + L0);
     end
  
     % Report

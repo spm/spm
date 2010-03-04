@@ -16,7 +16,7 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 3743 2010-03-02 18:59:21Z karl $
+% $Id: spm_mvb_U.m 3751 2010-03-04 20:21:08Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ nv     = size(Y,2);                 % number of voxels
  
 % confounds
 %--------------------------------------------------------------------------
-if isempty(X0); X0 = sparse(ns,1); end
+if isempty(X0); X0 = zeros(ns,1); end
  
 % get U: X = Y*P + X0*Q + R
 %        P = U*E;           
