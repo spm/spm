@@ -5,7 +5,11 @@ function res = spm_eeg_specest_morlet(S, data, time)
 % S                     - input structure
 % fields of S:
 %    S.subsample   - factor by which to subsample the time axis (default - 1)
+%  either
 %    S.ncycles     - Morlet wavelet factor (default - 7)
+%  or
+%    S.timeres     - Fixed time window length in ms
+%
 %    S.frequencies - vector of frequencies (default - 0-48) at optimal frequency bins
 %                            
 % Output:
@@ -19,8 +23,8 @@ function res = spm_eeg_specest_morlet(S, data, time)
 %______________________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak
-% $Id: spm_eeg_specest_morlet.m 3742 2010-03-02 15:15:43Z vladimir $
+% Vladimir Litvak based on the code from Stefan Kiebel and Will Penny
+% $Id: spm_eeg_specest_morlet.m 3749 2010-03-04 13:17:17Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -45,11 +49,22 @@ if nargin == 0
     ncycles.help = {'Number of wavelet cycles (a.k.a. Morlet wavelet factor)',...
         'This parameter controls the time-frequency trade-off',...
         'Increasing it increases the frequency resolution at the expense of time resolution.'};
+        
+    timeres = cfg_entry;
+    timeres.tag = 'timeres';
+    timeres.name = 'Fixed time window length';
+    timeres.strtype = 'r';
+    timeres.num = [1 1];
+    timeres.val = {0};
+    timeres.help = {'Fixed time window for all frequencies.',...
+        'Specify time window length in ms.',...
+        'Default valued of 0 specifies variable time window length'};    
+    
     
     morlet = cfg_branch;
     morlet.tag = 'morlet';
     morlet.name = 'Morlet wavelet transform';
-    morlet.val = {ncycles, subsample};
+    morlet.val = {ncycles, timeres, subsample};
     
     res = morlet;
     
@@ -76,7 +91,11 @@ end
 
 %-Generate wavelets
 %--------------------------------------------------------------------------
-M = spm_eeg_morlet(S.ncycles, 1000*diff(time(1:2)), S.frequencies);
+if ~isfield(S, 'timeres') || (S.timeres == 0)
+    M = spm_eeg_morlet(S.ncycles, 1000*diff(time(1:2)), S.frequencies);
+else
+    M = spm_eeg_morlet(S.ncycles, 1000*diff(time(1:2)), S.frequencies, 1000./S.timeres);
+end
 
 %-Data dimensions
 %--------------------------------------------------------------------------
