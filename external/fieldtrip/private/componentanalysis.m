@@ -361,7 +361,7 @@ switch cfg.method
       [A, W] = fastica(dat, optarg{:});
       weights = W;
       sphere = eye(size(W,2));
-    catch ME
+    catch
       % give a hopefully instructive error message
       fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
         'from\n' ...
@@ -369,7 +369,7 @@ switch cfg.method
         'to\n' ...
         '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
       % forward original error
-      rethrow(ME);
+      rethrow(lasterror);
     end
 
   case 'runica'

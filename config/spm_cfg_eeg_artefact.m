@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 3258 2009-07-08 17:46:54Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 3750 2010-03-04 18:41:08Z guillaume $
 
-rev = '$Rev: 3258 $';
+rev = '$Rev: 3750 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -100,7 +100,7 @@ methodsrep.num     = [1 Inf];
 
 
 S = cfg_exbranch;
-S.tag = 'eeg_artefact';
+S.tag = 'artefact';
 S.name = 'M/EEG Artefact detection';
 S.val = {D, badchanthresh, methodsrep};
 S.help = {'Detect artefacts in epoched M/EEG data.'};

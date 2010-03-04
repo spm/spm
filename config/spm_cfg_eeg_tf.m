@@ -1,12 +1,12 @@
 function S = spm_cfg_eeg_tf
 % configuration file for M/EEG time-frequency analysis
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 3750 2010-03-04 18:41:08Z guillaume $
 
-rev = '$Rev: 3742 $';
+rev = '$Rev: 3750 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -110,7 +110,7 @@ for i = 1:numel(specest_funs)
 end
 
 S = cfg_exbranch;
-S.tag = 'eeg_tf';
+S.tag = 'tf_analysis';
 S.name = 'M/EEG Time-Frequency analysis';
 S.val = {D, channels, frequencies, timewin, method, phase};
 S.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
@@ -118,10 +118,10 @@ S.prog = @eeg_tf;
 S.vout = @vout_eeg_tf;
 S.modality = {'EEG'};
 
-
+%==========================================================================
 function out = eeg_tf(job)
-%construct the S struct
-S = [];
+% construct the S struct
+S   = [];
 S.D = job.D{1};
 
 S.channels = {};
@@ -144,7 +144,6 @@ S.settings = getfield(job.method, S.method);
 
 [Dtf, Dtph] = spm_eeg_tf(S);
 
-
 out.Dtf = Dtf;
 out.Dtfname = {Dtf.fname};
 
@@ -155,35 +154,29 @@ else
     out.Dtphname = {''};
 end
 
-
+%==========================================================================
 function dep = vout_eeg_tf(job)
-
-dep(1) = cfg_dep;
-dep(1).sname = 'M/EEG time-frequency power dataset';
-
+% return dependencies
+dep(1)            = cfg_dep;
+dep(1).sname      = 'M/EEG time-frequency power dataset';
 dep(1).src_output = substruct('.','Dtf');
 % this can be entered into any evaluated input
 dep(1).tgt_spec   = cfg_findspec({{'strtype','e'}});
-%
-dep(2) = cfg_dep;
-dep(2).sname = 'M/EEG time-frequency power dataset';
-% reference field "Dfname" from output
+
+dep(2)            = cfg_dep;
+dep(2).sname      = 'M/EEG time-frequency power dataset';
 dep(2).src_output = substruct('.','Dtfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 
-dep(3) = cfg_dep;
-dep(3).sname = 'M/EEG time-frequency phase dataset';
-
+dep(3)            = cfg_dep;
+dep(3).sname      = 'M/EEG time-frequency phase dataset';
 dep(3).src_output = substruct('.','Dtph');
 % this can be entered into any evaluated input
 dep(3).tgt_spec   = cfg_findspec({{'strtype','e'}});
-%
-dep(4) = cfg_dep;
-dep(4).sname = 'M/EEG time-frequency phase dataset';
-% reference field "Dfname" from output
+
+dep(4)            = cfg_dep;
+dep(4).sname      = 'M/EEG time-frequency phase dataset';
 dep(4).src_output = substruct('.','Dtphname');
 % this can be entered into any file selector
 dep(4).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

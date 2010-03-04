@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 3746 2010-03-02 20:01:42Z vladimir $
+% $Id: spm_cfg.m 3750 2010-03-04 18:41:08Z guillaume $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -32,18 +32,18 @@ stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cf
 % ---------------------------------------------------------------------
 % meeg preprocessing
 % ---------------------------------------------------------------------
-meegprep      = cfg_choice;
-meegprep.tag  = 'meegprep';
-meegprep.name = 'M/EEG Preprocessing';
-meegprep.help = {'M/EEG preprocessing'};
+meegprep        = cfg_choice;
+meegprep.tag    = 'preproc';
+meegprep.name   = 'M/EEG Preprocessing';
+meegprep.help   = {'M/EEG preprocessing.'};
 meegprep.values = {spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse}; 
 % ---------------------------------------------------------------------
 % meeg time-frequency
 % ---------------------------------------------------------------------
 meegtf        = cfg_choice;
-meegtf.tag  = 'meegtf';
-meegtf.name = 'M/EEG Time-frequency';
-meegtf.help = {'M/EEG time-frequency'};
+meegtf.tag    = 'tf';
+meegtf.name   = 'M/EEG Time-frequency';
+meegtf.help   = {'M/EEG time-frequency.'};
 meegtf.values = {spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale}; 
 % ---------------------------------------------------------------------
 % meeg source reconstruction
@@ -51,7 +51,7 @@ meegtf.values = {spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale};
 source        = cfg_choice;
 source.tag    = 'source';
 source.name   = 'M/EEG Source reconstruction';
-source.help   = {'M/EEG source reconstruction'};
+source.help   = {'M/EEG source reconstruction.'};
 source.values = {spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_results}; 
 % ---------------------------------------------------------------------
 % meeg Meeg
