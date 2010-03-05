@@ -13,7 +13,7 @@ function varargout = save(tree, filename)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin <guillaume@artefact.tk>
-% $Id: save.m 1460 2008-04-21 17:43:18Z guillaume $
+% $Id: save.m 3756 2010-03-05 18:43:37Z guillaume $
 
 error(nargchk(1,2,nargin));
 
@@ -26,7 +26,7 @@ if nargin == 1
 %- Output specified
 else
     %- Filename provided
-    if isstr(filename)
+    if ischar(filename)
         [fid, msg] = fopen(filename,'w');
         if fid==-1, error(msg); end
         if isempty(tree.filename), tree.filename = filename; end

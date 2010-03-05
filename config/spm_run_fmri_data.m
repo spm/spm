@@ -10,13 +10,13 @@ function out = spm_run_fmri_data(job)
 %_________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_data.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_run_fmri_data.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 spm('defaults','FMRI');
 
 original_dir = pwd;
-[p n e v] = fileparts(job.spmmat{1});
+[p n e v] = spm_fileparts(job.spmmat{1});
 my_cd(p);
 load(job.spmmat{1});
 

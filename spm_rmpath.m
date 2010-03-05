@@ -17,7 +17,7 @@ function varargout = spm_rmpath(d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman & Guillaume Flandin
-% $Id: spm_rmpath.m 2696 2009-02-05 20:29:48Z guillaume $ 
+% $Id: spm_rmpath.m 3756 2010-03-05 18:43:37Z guillaume $ 
 
 varargout = {};
 if ~nargin
@@ -27,7 +27,7 @@ if ~nargin
 end
 
 % Recursively remove directories in the MATLAB path
-p = strread(path,'%s','delimiter',pathsep);
+p = textscan(path,'%s','delimiter',pathsep); p = p{1};
 i = strmatch(d,p); P = p(i); p(i) = [];
 if ~nargin && ~isempty(P)
     fprintf('Removed %s paths starting from base path: "%s"\n',spm('ver','',1),d);

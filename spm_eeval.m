@@ -52,7 +52,7 @@ function [p,msg] = spm_eeval(str,Type,n,m)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_eeval.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeval.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 if nargin<4, m=[]; end
@@ -143,7 +143,7 @@ if isempty(i), varargout={[],'empty input'}; return, end
 msg = ''; i=i(:)';
 
 if ischar(i)
-    if i(1)=='0' & all(ismember(unique(i(:)),setstr(abs('0'):abs('9'))))
+    if i(1)=='0' & all(ismember(unique(i(:)),char(abs('0'):abs('9'))))
         %-Leading zeros in a digit list
         msg = sprintf('%s expanded',i);
         z = min(find([diff(i=='0'),1]));
@@ -157,7 +157,7 @@ end
 if ischar(i)
     %-Evaluation error from above: see if it's an 'abab' or 'a b a b' type:
     [c,null,i] = unique(lower(i(~isspace(i))));
-    if all(ismember(c,setstr(abs('a'):abs('z'))))
+    if all(ismember(c,char(abs('a'):abs('z'))))
         %-Map characters a-z to 1-26, but let 'r' be zero (rest)
         tmp = c-'a'+1; tmp(tmp=='r'-'a'+1)=0;
         i   = tmp(i);

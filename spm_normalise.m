@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_normalise.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -128,7 +128,7 @@ if ischar(VF), VF = spm_vol(VF); end;
 if ischar(VG), VG = spm_vol(VG); end;
 if nargin<3,
     if nargout==0,
-        [pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
+        [pth,nm,xt,vr] = spm_fileparts(deblank(VF(1).fname));
         matname        = fullfile(pth,[nm '_sn.mat']);
     else
         matname = '';

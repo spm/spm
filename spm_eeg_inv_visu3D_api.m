@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 3558 2009-11-11 20:23:05Z karl $
+% $Id: spm_eeg_inv_visu3D_api.m 3756 2010-03-05 18:43:37Z guillaume $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ elseif ischar(varargin{1})
             feval(varargin{:}); % FEVAL switchyard
         end
     catch
-        disp(lasterr);
+        disp(lasterror);
     end
 end
 

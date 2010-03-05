@@ -52,7 +52,7 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: pm_segment.m 1353 2008-04-10 10:34:22Z guillaume $
+% $Id: pm_segment.m 3756 2010-03-05 18:43:37Z guillaume $
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
@@ -620,7 +620,7 @@ function [g,w,c] = get_gwc(VF,BP,SP,CP,sums,wc)
 if wc,
     VC = VF;
     for j=1:length(VF),
-        [pth,nm,xt,vr] = fileparts(deblank(VF(j).fname));
+        [pth,nm,xt,vr] = spm_fileparts(deblank(VF(j).fname));
         VC(j).fname    = fullfile(pth,['m' nm xt vr]);
         VC(j).descrip  = 'Bias corrected image';
     end;

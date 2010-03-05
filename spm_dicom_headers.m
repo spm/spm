@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 3224 2009-06-25 17:28:21Z volkmar $
+% $Id: spm_dicom_headers.m 3756 2010-03-05 18:43:37Z guillaume $
 
 if nargin<2, essentials = false; end
 
@@ -143,22 +143,32 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                                 dat = deblank(dat);
                             case {'DS'},
                                 try
-                                    dat = strread(dat,'%f','delimiter','\\')';
+                                    dat = textscan(dat,'%f','delimiter','\\')';
+                                    dat = dat{1};
                                 catch
-                                    dat = strread(dat,'%f','delimiter','/')';
+                                    dat = textscan(dat,'%f','delimiter','/')';
+                                    dat = dat{1};
                                 end
                             case {'IS'},
-                                dat = strread(dat,'%d','delimiter','\\')';
+                                dat = textscan(dat,'%d','delimiter','\\')';
+                                dat = double(dat{1});
                             case {'DA'},
                                 dat     = strrep(dat,'.',' ');
-                                [y,m,d] = strread(dat,'%4d%2d%2d');
-                                dat     = datenum(y,m,d);
+                                dat     = textscan(dat,'%4d%2d%2d');
+                                [y,m,d] = deal(dat{:});
+                                dat     = datenum(double(y),double(m),double(d));
                             case {'TM'},
                                 if any(dat==':'),
-                                    [h,m,s] = strread(dat,'%d:%d:%f');
+                                    dat     = textscan(dat,'%d:%d:%f');
+                                    [h,m,s] = deal(dat{:});
+                                    h       = double(h);
+                                    m       = double(m);
                                 else
-                                    [h,m,s] = strread(dat,'%2d%2d%f');
-                                end;
+                                    dat     = textscan(dat,'%2d%2d%f');
+                                    [h,m,s] = deal(dat{:});
+                                    h       = double(h);
+                                    m       = double(m);
+                                end
                                 if isempty(h), h = 0; end;
                                 if isempty(m), m = 0; end;
                                 if isempty(s), s = 0; end;
@@ -356,28 +366,20 @@ try
     dict = load(P);
 catch
     fprintf('\nUnable to load the file "%s".\n', P);
-    if strcmp(computer,'PCWIN') || strcmp(computer,'PCWIN64'),
-        fprintf('This may  be because of the way that the .tar.gz files\n');
-        fprintf('were unpacked  when  the SPM software  was  installed.\n');
-        fprintf('If installing on a Windows platform, then the software\n');
-        fprintf('used  for  unpacking may  try to  be clever and insert\n');
-        fprintf('additional  unwanted control  characters.   If you use\n');
-        fprintf('WinZip,  then you  should  ensure  that TAR file smart\n');
-        fprintf('CR/LF conversion is disabled  (under the Miscellaneous\n');
-        fprintf('Configuration Options).\n\n');
-    end;
-    rethrow(lasterr);
+    rethrow(lasterror);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
 function dict = readdict_txt
-file = textread('spm_dicom_dict.txt','%s','delimiter','\n','whitespace','');
+fid  = fopen('spm_dicom_dict.txt','rt');
+file = textscan(fid,'%s','delimiter','\n','whitespace',''); file = file{1};
+fclose(fid);
 clear values
 i = 0;
 for i0=1:length(file),
-    words = strread(file{i0},'%s','delimiter','\t');
+    words = textscan(file{i0},'%s','delimiter','\t'); words = words{1};
     if length(words)>=5 && ~strcmp(words{1}(3:4),'xx'),
         grp = sscanf(words{1},'%x');
         ele = sscanf(words{2},'%x');

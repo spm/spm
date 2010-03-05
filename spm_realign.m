@@ -80,7 +80,7 @@ function P = spm_realign(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_realign.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 if nargin==0, return; end;
@@ -503,7 +503,7 @@ return;
 
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = fileparts(deblank(PI));
+[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________

@@ -21,7 +21,7 @@ function spm_ovhelper_3Dreg(cmd, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ovhelper_3Dreg.m 2536 2008-12-08 14:14:20Z volkmar $
+% $Id: spm_ovhelper_3Dreg.m 3756 2010-03-05 18:43:37Z guillaume $
 
 if ishandle(varargin{1})
   h = varargin{1};
@@ -74,7 +74,7 @@ try
 catch
   warning([mfilename ':XYZreg'],...
           'Unable to register to spm_orthviews display');
-  disp(lasterr);
+  disp(lasterror);
 end;    
 return;
 
@@ -123,6 +123,6 @@ try
 catch
   warning([mfilename ':XYZreg'],...
       'Unable to unregister');
-  disp(lasterr);
+  disp(lasterror);
 end;
 return;

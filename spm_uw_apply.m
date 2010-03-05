@@ -120,7 +120,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_uw_apply.m 3756 2010-03-05 18:43:37Z guillaume $
 
 tiny = 5e-2;
 
@@ -391,7 +391,7 @@ return;
 
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = fileparts(deblank(PI));
+[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________

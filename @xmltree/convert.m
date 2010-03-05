@@ -16,7 +16,7 @@ function s = convert(tree,uid)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin <guillaume@artefact.tk>
-% $Id: convert.m 1460 2008-04-21 17:43:18Z guillaume $
+% $Id: convert.m 3756 2010-03-05 18:43:37Z guillaume $
 
 % Exemple:
 % tree: <toto><titi>field1</titi><tutu>field2</tutu><titi>field3</titi></toto>
@@ -133,7 +133,7 @@ subs = varargin(1:end-1);
 for i = 1:length(varargin)-1
     if (isa(varargin{i}, 'cell'))
         types{i} = '{}';
-    elseif isstr(varargin{i})
+    elseif ischar(varargin{i})
         types{i} = '.';
         subs{i} = varargin{i}; %strrep(varargin{i},' ',''); % deblank field name
     else

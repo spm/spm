@@ -67,7 +67,7 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_preprocess.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: FieldMap_preprocess.m 3756 2010-03-05 18:43:37Z guillaume $
 %_______________________________________________________________________
 
  
@@ -142,7 +142,7 @@ if iscell(epi_dir)
       epi_all = strvcat(spm_select('List',epi_dir{sessnum},'^f.*\.nii$'),spm_select('List',epi_dir{sessnum},'^f.*\.img$'));
       epi_img{sessnum}=fullfile(epi_dir{sessnum},epi_all(1,:));
    end
-elseif isstr(epi_dir)
+elseif ischar(epi_dir)
    nsessions=1;
    sessnum=1;
    epi_all = strvcat(spm_select('List',epi_dir,'^f.*\.nii$'),spm_select('List',epi_dir,'^f.*\.img$'));
@@ -184,7 +184,7 @@ if pm_def.INPUT_DATA_FORMAT=='PM'
             phase=fullfile(fm_dir,fm_imgs(3,:));
          end
          scphase=FieldMap('Scale',phase);
-         fm_imgs=str2mat(scphase.fname,mag);
+         fm_imgs=char(scphase.fname,mag);
       end
    else
       msg=sprintf('Sorry. I cannot find the fieldmap files in %s',fm_dir);

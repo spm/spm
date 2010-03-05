@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3702 2010-01-29 15:59:13Z vladimir $
+% $Id: spm.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 %=======================================================================
@@ -1152,8 +1152,8 @@ v = SPM_VER;
 str = 'Can''t obtain SPM Revision information.';
 
 if isempty(SPM_VER) || (nargin > 0 && ReDo)
-    if isdeployed && ispc
-        % fake version (.m files compressed/pcoded/encrypted)
+    if isdeployed
+        % in deployed mode, M-files are encrypted
         v.Name    = 'Statistical Parametric Mapping';
         v.Version = '8';
         v.Release = 'SPM8';
@@ -1166,7 +1166,7 @@ if isempty(SPM_VER) || (nargin > 0 && ReDo)
             l1 = fgetl(fid); l2 = fgetl(fid);
             fclose(fid);
             l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
-            t = strread(l2,'%s','delimiter',' ');
+            t  = textscan(l2,'%s','delimiter',' '); t = t{1};
             v.Name = l1; v.Date = t{4};
             v.Version = t{2}; v.Release = t{3}(2:end-1);
         catch

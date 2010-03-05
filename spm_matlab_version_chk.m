@@ -56,7 +56,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_matlab_version_chk.m 3756 2010-03-05 18:43:37Z guillaume $
 
 % output variable
 %--------------------------------------------------------------------------
@@ -88,13 +88,7 @@ end
 
 % parse the input string into a cell array of strings
 %--------------------------------------------------------------------------
-try
-    vCHK           = textscan(chk,'%s %s %s %s','delimiter','.');
-catch
-    % version 6.5 does not have textscan function.
-    % This code will be deprecated eventually.
-    [ vCHK{1:4} ]  = strread(chk,'%s %s %s %s','delimiter','.');
-end
+vCHK = textscan(chk,'%s %s %s %s','delimiter','.');
 
 % find empty cells. These will be set to 0 in both cell arrays so that the
 % same revision fields are compared
@@ -117,12 +111,7 @@ end
 
 % parse the requested toolbox version string into a cell array of strings.
 %--------------------------------------------------------------------------
-try
-    vTBX           = textscan(tbxVer,'%s %s %s %s','delimiter','.');
-catch
-    % This code will be deprecated eventually.
-    [ vTBX{1:4} ]  = strread(tbxVer,'%s %s %s %s','delimiter','.');
-end
+vTBX = textscan(tbxVer,'%s %s %s %s','delimiter','.');
 
 % find empty cells. These will be removed from the cell array so that the
 % same revision fields are compared

@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3662 2010-01-05 17:58:31Z guillaume $
+% $Id: spm_check_installation.m 3756 2010-03-05 18:43:37Z guillaume $
 
 if isdeployed, return; end
 
@@ -56,7 +56,8 @@ d = spm('Dir');
 
 %-Check the search path
 %--------------------------------------------------------------------------
-if ~ismember(lower(d),lower(strread(path,'%s','delimiter',pathsep)))
+p = textscan(path,'%s','delimiter',pathsep); p = p{1};
+if ~ismember(lower(d),lower(p))
     error(sprintf([...
         'You do not appear to have the MATLAB search path set up\n'...
         'to include your SPM8 distribution. This means that you\n'...
@@ -175,7 +176,7 @@ try
     l1 = fgetl(fid); l2 = fgetl(fid);
     fclose(fid);
     l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
-    t  = strread(l2,'%s','delimiter',' ');
+    t  = textscan(l2,'%s','delimiter',' '); t = t{1};
     v.Name = l1; v.Date = t{4};
     v.Version = t{2}; v.Release = t{3}(2:end-1);
 catch
@@ -245,7 +246,7 @@ fprintf('OS: %s\n', platform);
 
 %-Detect Java
 %--------------------------------------------------------------------------
-fprintf('%s\n', char(strread(version('-java'),'%s',1,'delimiter','\n')));
+fprintf('%s\n', version('-java'));
 fprintf('Java support: ');
 level = {'jvm', 'awt', 'swing', 'desktop'};
 for i=1:numel(level)
@@ -512,7 +513,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3662 2010-01-05 17:58:31Z guillaume $ tag)
+%Extract Subversion properties ($Id: spm_check_installation.m 3756 2010-03-05 18:43:37Z guillaume $ tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 

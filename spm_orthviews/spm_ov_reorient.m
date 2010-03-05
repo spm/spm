@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 3625 2009-12-09 13:33:41Z volkmar $
+% $Id: spm_ov_reorient.m 3756 2010-03-05 18:43:37Z guillaume $
 
-rev = '$Revision: 3625 $';
+rev = '$Revision: 3756 $';
 
 global st;
 if isempty(st)
@@ -164,7 +164,7 @@ switch cmd
             return;
         end            
         if strcmpi(qu, 'add other images')
-            [p n e v] = fileparts(st.vols{volhandle}.fname);
+            [p n e v] = spm_fileparts(st.vols{volhandle}.fname);
             P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p));
             if isempty(P) || isempty(P{1})
                 disp('''Set origin to Xhairs'' cancelled.');
@@ -192,7 +192,7 @@ switch cmd
         % Interaction callbacks
 
     case 'apply'
-        [p n e v] = fileparts(st.vols{volhandle}.fname);
+        [p n e v] = spm_fileparts(st.vols{volhandle}.fname);
         P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, '', p));
         if ~isempty(P) && ~isempty(P{1})
             spm_progress_bar('Init', numel(P), 'Reorient', 'Images completed');

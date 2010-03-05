@@ -8,7 +8,7 @@ function [hdr,otherendian] = spm_read_hdr(fname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_read_hdr.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_read_hdr.m 3756 2010-03-05 18:43:37Z guillaume $
 
 
 fid         = fopen(fname,'r','native');
@@ -135,7 +135,7 @@ return;
 function out = mysetstr(in)
 tmp = find(in == 0);
 tmp = min([min(tmp) length(in)]);
-out = setstr([in(1:tmp)' zeros(1,length(in)-(tmp))])';
+out = char([in(1:tmp)' zeros(1,length(in)-(tmp))])';
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________

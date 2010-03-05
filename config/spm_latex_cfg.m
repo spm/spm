@@ -4,7 +4,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 1791 2008-06-05 13:50:14Z guillaume $
+% $Id: spm_latex_cfg.m 3756 2010-03-05 18:43:37Z guillaume $
 
 if ~nargin, c = spm_cfg; end
 if nargin && ischar(c), clean_latex_compile; return; end
@@ -181,7 +181,7 @@ function bibcstr = get_bib(bibdir)
 biblist = dir(fullfile(bibdir,'*.bib'));
 bibcstr={};
 for k = 1:numel(biblist)
-    [p n e v] = fileparts(biblist(k).name);
+    [p n e v] = spm_fileparts(biblist(k).name);
     bibcstr{k}  = fullfile(bibdir,n);
 end;
 
