@@ -92,11 +92,12 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3599 2009-11-26 14:08:07Z volkmar $
+% $Id: spm_jobman.m 3752 2010-03-05 12:54:50Z guillaume $
 
 
 if nargin==0
-    cfg_ui;
+    h = cfg_ui;
+    if nargout > 0, varargout = {h}; end
 else
     cmd = lower(varargin{1});
     if any(strcmp(cmd, {'serial','interactive','run','run_nogui'}))

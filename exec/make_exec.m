@@ -18,7 +18,7 @@ function make_exec
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: make_exec.m 3226 2009-06-25 18:13:11Z volkmar $ 
+% $Id: make_exec.m 3752 2010-03-05 12:54:50Z guillaume $ 
 
 %=======================================================================
 %-Files to include explicitly
@@ -130,8 +130,7 @@ for k = 1:numel(apps)
 end
 fclose(fid);
 
-%=======================================================================
-%-Compile
-%=======================================================================
-mcc('-m','-v','-o',['spm_'    computer],'exec_spm.m'   ,'spm_load.m', '-I',spm('Dir'),includefiles{:},cfgfiles{:})
-mcc('-m','-v','-o',['jobman_' computer],'exec_jobman.m','spm_load.m', '-I',spm('Dir'),includefiles{:},cfgfiles{:})
+%==========================================================================
+%-Compilation
+%==========================================================================
+mcc('-mv','-o',['spm_' computer],'exec_spm.m','-I',spm('Dir'),includefiles{:},cfgfiles{:})
