@@ -119,7 +119,7 @@ bias_opts.tag   = 'bias_opts';
 bias_opts.name  = 'Bias Correction Options';
 bias_opts.val   = {nits fwhm reg lmreg };
 bias_opts.help  = {'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
-                     'Before registering the images, an approximate bias correction is estimated for the moved image. This is based on minimising the difference between the images an a symmetric way. Prior to registering the images, they should be rigidly aligned together.  The bias correction is estimated once for these aligned images.'}';
+                   'Before registering the images, an approximate bias correction is estimated for the moved image. This is based on minimising the difference between the images an a symmetric way. Prior to registering the images, they should be rigidly aligned together.  The bias correction is estimated once for these aligned images.'}';
 % ---------------------------------------------------------------------
 % nits Iterations
 % ---------------------------------------------------------------------
@@ -157,4 +157,10 @@ hdw.name    = 'High-Dimensional Warping';
 hdw.val     = {data bias_opts warp_opts};
 hdw.help    = {'This toolbox is a Bayesian method for three dimensional registration of brain images/* \cite{ashburner00a} */. A finite element approach is used to obtain a maximum a posteriori (MAP) estimate of the deformation field at every voxel of a template volume.  The priors used by the MAP estimate penalize unlikely deformations and enforce a continuous one-to-one mapping.  The deformations are assumed to have some form of symmetry, in that priors describing the probability distribution of the deformations should be identical to those for the inverses (i.e., warping brain A to brain B should not be different probablistically from warping B to A).  A gradient descent algorithm is used to estimate the optimum deformations.'
                'Deformation fields are written with the same name as the moved image, but with "y_" prefixed on to the filename.  Jacobian determinant images are also written (prefixed by "jy_").'}';
-hdw.prog    = @spm_hdw;
+hdw.prog    = @spm_local_hdw;
+
+%======================================================================
+function spm_local_hdw(job)
+
+if ~isedeployed, addpath(fullfile(spm('Dir'),'toolbox','HDW')); end
+spm_hdw(job);
