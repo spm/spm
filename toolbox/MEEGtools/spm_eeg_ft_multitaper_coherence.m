@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 3435 2009-10-01 10:24:08Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 3761 2010-03-08 17:01:49Z vladimir $
 
 %%
-SVNrev = '$Rev: 3435 $';
+SVNrev = '$Rev: 3761 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -263,12 +263,22 @@ for j = 1:np
                 [Y, W] = spm_robust_average(permute(cat(4, squeeze(abs(freq.crsspctrm(w, crossind , :, :))),...
                     squeeze(freq.powspctrm(w, powind(1), :, :)), squeeze(freq.powspctrm(w, powind(2), :, :))), ...
                     [2 3 1 4]), 3, ks);
-                cross =abs(sum(squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1])).*squeeze(W(:, :, :, 1)), 3))./...
-                    squeeze(sum(W(:, :, :, 1), 3));
-                pow1 = sum(squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1])).*squeeze(W(:, :, :, 2)), 3)./...
-                    squeeze(sum(W(:, :, :, 2), 3));
-                pow2 = sum(squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1])).*squeeze(W(:, :, :, 3)), 3)./...
-                    squeeze(sum(W(:, :, :, 3), 3));
+                
+                cross = squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]));
+                WW =  squeeze(W(:, :, :, 1));
+                cross(WW == 0) = 0; % This is to get rid of NaNs because NaN*0 == NaN
+                cross = abs(sum(cross.*WW, 3))./squeeze(sum(WW, 3));
+                
+                pow1 = squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]));
+                WW = squeeze(W(:, :, :, 2));
+                pow1(WW == 0) = 0;
+                pow1 = sum(pow1.*WW, 3)./squeeze(sum(WW, 3));
+                
+                pow2 = squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]));
+                WW = squeeze(W(:, :, :, 3));
+                pow2(WW == 0) = 0;
+                pow2 = sum(pow2.*WW, 3)./squeeze(sum(WW, 3));
+                               
                 Dcoh(j, :, :, i) = shiftdim(cross./sqrt(pow1.*pow2), -1);
 
                 if savew
@@ -276,12 +286,22 @@ for j = 1:np
                         shiftdim(cat(2, W(:, :, :, 1), W(:, :, :, 2), W(:, :, :, 3)), -1);
                 end
             else
-                cross =abs(sum(squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1])).*squeeze(W(:, :, w, 1)), 3))./...
-                    squeeze(sum(W(:, :, w, 1), 3));
-                pow1 = sum(squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1])).*squeeze(W(:, :, w, 2)), 3)./...
-                    squeeze(sum(W(:, :, w, 2), 3));
-                pow2 = sum(squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1])).*squeeze(W(:, :, w, 3)), 3)./...
-                    squeeze(sum(W(:, :, w, 3), 3));
+                
+                cross = squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]));
+                WW =  squeeze(W(:, :, w, 1));
+                cross(WW == 0) = 0;
+                cross = abs(sum(cross.*WW, 3))./squeeze(sum(WW, 3));
+                
+                pow1 = squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]));
+                WW = squeeze(W(:, :, w, 2));
+                pow1(WW == 0) = 0;
+                pow1 = sum(pow1.*WW, 3)./squeeze(sum(WW, 3));
+                
+                pow2 = squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]));
+                WW = squeeze(W(:, :, w, 3));
+                pow2(WW == 0) = 0;
+                pow2 = sum(pow2.*WW, 3)./squeeze(sum(WW, 3));               
+                
                 Dcoh(j, :, :, i) = shiftdim(cross./sqrt(pow1.*pow2), -1);
             end
         end
