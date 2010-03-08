@@ -1,7 +1,10 @@
 function render = tbx_cfg_render
-% MATLABBATCH Configuration file for toolbox 'Rendering'
+% Configuration file for toolbox 'Rendering'
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-addpath(fullfile(spm('dir'),'toolbox','SRender'));
+% John Ashburner
+% $Id: tbx_cfg_render.m 3764 2010-03-08 20:18:10Z guillaume $
 
 % ---------------------------------------------------------------------
 % images Input Images
@@ -10,7 +13,7 @@ images         = cfg_files;
 images.tag     = 'images';
 images.name    = 'Input Images';
 images.help    = {'These are the images that are used by the calculator.  They are referred to as i1, i2, i3, etc in the order that they are specified.'};
-images.filter = 'image';
+images.filter  = 'image';
 images.ufilter = '.*';
 images.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -19,7 +22,6 @@ images.num     = [1 Inf];
 expression         = cfg_entry;
 expression.tag     = 'expression';
 expression.name    = 'Expression';
-%%
 expression.help    = {
                       'Example expressions (f):'
                       '    * Mean of six images (select six images)'
@@ -32,7 +34,6 @@ expression.help    = {
                       '    * Sum of n images'
                       '       f = ''i1 + i2 + i3 + i4 + i5 + ...'''
                       }';
-%%
 expression.strtype = 's';
 expression.num     = [2  Inf];
 expression.val     = {'i1'};
@@ -71,9 +72,10 @@ SExtract.tag     = 'SExtract';
 SExtract.name    = 'Surface Extraction';
 SExtract.val     = {images Surfaces };
 SExtract.help    = {'User-specified algebraic manipulations are performed on a set of images, with the result being used to generate a surface file. The user is prompted to supply images to work on and a number of expressions to evaluate, along with some thresholds. The expression should be a standard matlab expression, within which the images should be referred to as i1, i2, i3,... etc. An isosurface file is created from the results at the user-specified threshold.'};
-SExtract.prog = @spm_sextract;
+SExtract.prog = @spm_local_sextract;
 %SExtract.vfiles = @filessurf;
 SExtract.vout = @vout_sextract;
+
 % ---------------------------------------------------------------------
 % SurfaceFile Surface File
 % ---------------------------------------------------------------------
@@ -81,8 +83,8 @@ SurfaceFile         = cfg_files;
 SurfaceFile.tag     = 'SurfaceFile';
 SurfaceFile.name    = 'Surface File';
 SurfaceFile.help    = {'Filename of the surf_*.gii file containing the rendering information. This can be generated via the surface extraction routine in SPM. Normally, a surface is extracted from grey and white matter tissue class images, but it is also possible to threshold e.g. an spmT image so that activations can be displayed.'};
-SurfaceFile.filter = 'any';
-SurfaceFile.ufilter = '.*\.gii$';
+SurfaceFile.filter = 'mesh';
+SurfaceFile.ufilter = '.*';
 SurfaceFile.num     = [1 1];
 % ---------------------------------------------------------------------
 % Red Red
@@ -436,7 +438,7 @@ SRender.tag     = 'SRender';
 SRender.name    = 'Surface Rendering';
 SRender.val     = {Objects Lights };
 SRender.help    = {'This utility is for visualising surfaces.  Surfaces first need to be extracted and saved in surf_*.gii files using the surface extraction routine.'};
-SRender.prog = @spm_srender;
+SRender.prog = @spm_local_srender;
 % ---------------------------------------------------------------------
 % render Rendering
 % ---------------------------------------------------------------------
@@ -447,6 +449,17 @@ render.help    = {'This is a toolbox that provides a limited range of surface re
 render.values  = {SExtract SRender };
 %render.num     = [0 Inf];
 
+%======================================================================
+function spm_local_srender(job)
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end
+spm_srender(job);
+
+%======================================================================
+function spm_local_sextract(job)
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end
+spm_sextract(job);
+
+%======================================================================
 function dep = vout_sextract(job)
 dep = cfg_dep;
 for k=1:numel(job.surface),
@@ -456,4 +469,3 @@ for k=1:numel(job.surface),
 %   dep(k).tgt_spec   = cfg_findspec({{'filter','.*\.gii$'}});
     dep(k).tgt_spec   = cfg_findspec({{'filter','any'}});
 end
-

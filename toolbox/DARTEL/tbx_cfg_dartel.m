@@ -1,9 +1,12 @@
 function dartel = tbx_cfg_dartel
-% MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
+% Configuration file for toolbox 'DARTEL Tools'
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_dartel.m 3691 2010-01-20 17:08:30Z guillaume $
+% John Ashburner
+% $Id: tbx_cfg_dartel.m 3764 2010-03-08 20:18:10Z guillaume $
 
-addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
 % ---------------------------------------------------------------------
 % matnames Parameter Files

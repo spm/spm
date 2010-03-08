@@ -74,9 +74,9 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 3560 2009-11-12 10:02:32Z volkmar $
+% $Id: spm_select.m 3764 2010-03-08 20:18:10Z guillaume $
 
-if ~exist('cfg_getfile','file') && ~isdeployed
+if ~isdeployed && ~exist('cfg_getfile','file')
     addpath(fullfile(spm('dir'),'matlabbatch'));
 end;
 % cfg_getfile expects and returns cellstr arguments for multi-line strings

@@ -89,7 +89,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_nlsi.m 3764 2010-03-08 20:18:10Z guillaume $
 
 % check integrator
 %--------------------------------------------------------------------------
@@ -145,7 +145,7 @@ end
 
 % graphics
 %==========================================================================
-if length(dbstack) < 2
+if ~isdeployed && length(dbstack) < 2
 
     subplot(2,1,1)
     plot([1:N]*dt,K1(:,:,1))

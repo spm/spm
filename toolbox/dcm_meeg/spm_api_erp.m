@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_api_erp.m 3764 2010-03-08 20:18:10Z guillaume $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -595,7 +595,7 @@ switch DCM.options.spatial
  
     case{'LFP'}
           
-        addpath(fullfile(spm('Dir'),'toolbox','Neural_Models'));
+        if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Neural_Models')); end
         % for LFP
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);

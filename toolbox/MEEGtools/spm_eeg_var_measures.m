@@ -11,12 +11,14 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 3673 2010-01-12 17:49:34Z vladimir $
+% $Id: spm_eeg_var_measures.m 3764 2010-03-08 20:18:10Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
-addpath(fullfile(spm('Dir'),'toolbox','spectral'));
-addpath(fullfile(spm('Dir'),'toolbox','mixture'));
+if ~isdeployed
+    addpath(fullfile(spm('Dir'),'toolbox','spectral'));
+    addpath(fullfile(spm('Dir'),'toolbox','mixture'));
+end
 
 D = spm_eeg_load;
 
