@@ -1,20 +1,19 @@
 function mesh = spm_eeg_inv_mesh(sMRI, Msize)
 % Apply the inverse spatial deformation to the template mesh
 % to obtain the individual cortical mesh
-% save the individual .mat tesselation of the chosen size
+% save the individual GIFTI meshes
 %
-% FORMAT [fid, mesh] = spm_eeg_inv_meshing(filename, Msize)
+% FORMAT mesh = spm_eeg_inv_mesh(sMRI, Msize)
 % Input:
-% sMRI - name of the sMRI file
-% Msize - size of the mesh (1-3)
+%   sMRI - name of the sMRI file
+%   Msize - size of the mesh (1-3)
 % Output:
-% fid    - fiducials (head surface + points inverse normalized from the template)
-% mesh   - inverse - normalized canonical mesh
+%   mesh   - inverse - normalized canonical mesh
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh.m 2763 2009-02-19 14:50:58Z guillaume $
+% $Id: spm_eeg_inv_mesh.m 3760 2010-03-08 17:00:30Z vladimir $
 
 
 % SPM directory of canonical anatomy
@@ -109,14 +108,11 @@ mesh.tess_iskull  = filename;
 
 % datareg
 %--------------------------------------------------------------------------
+fid = fileio_read_headshape(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp'));
+
 mesh.fid = export(gifti(mesh.tess_scalp), 'ft');
 mesh.fid.unit     = 'mm';
-mesh.fid.fid      = struct('pnt', [  1  85 -41; ...
-                                   -83 -20 -65; ...
-                                    83 -20 -65; ...
-                                   -87 -11 -62; ...
-                                    87 -11 -62], ...
-                    'label', {{'nas'; 'lpa'; 'rpa'; 'FIL_CTF_L'; 'FIL_CTF_R'}});
+mesh.fid.fid      = fid.fid;
 
 if ~mesh.template
     fidpnt        = mesh.fid.fid;

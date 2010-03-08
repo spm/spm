@@ -5,7 +5,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 3760 2010-03-08 17:00:30Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -74,14 +74,16 @@ type.strtype = 'r';
 type.num = [1 3];
 type.help = {'Type the coordinates corresponding to the fiducial in the structural image.'};
 
-mesh = spm_eeg_inv_mesh;
+fid = fopen(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp') ,'rt');
+fidtable =textscan(fid ,'%s %f %f %f');
+fclose(fid);
 
 select = cfg_menu;
 select.tag = 'select';
 select.name = 'Select from a list';
 select.help = {'Select the corresponding fiducial point from a pre-specified list.'};
-select.labels = mesh.fid.fid.label';
-select.values = mesh.fid.fid.label';
+select.labels = fidtable{1}';
+select.values = fidtable{1}';
 
 specification = cfg_choice;
 specification.tag = 'specification';
