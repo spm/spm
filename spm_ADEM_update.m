@@ -5,7 +5,7 @@ function [DEM] = spm_ADEM_update(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:  $
+% $Id: spm_ADEM_update.m 3758 2010-03-08 11:47:24Z guillaume $
  
 % update states and action
 %--------------------------------------------------------------------------
