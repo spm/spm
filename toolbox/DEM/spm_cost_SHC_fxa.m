@@ -17,7 +17,7 @@ function [f] = spm_cost_SHC_fxa(x,v,a,P)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:  $
+% $Id: spm_cost_SHC_fxa.m 3757 2010-03-08 11:41:53Z guillaume $
  
 % location and radius of attractors A (only A.q attractors deliver reward)
 %--------------------------------------------------------------------------

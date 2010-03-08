@@ -11,7 +11,7 @@ function [y] = spm_softmax(x,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:$
+% $Id: spm_softmax.m 3757 2010-03-08 11:41:53Z guillaume $
  
 % apply
 %--------------------------------------------------------------------------

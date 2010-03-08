@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: $
+% $Id: ADEM_mountaincar_loss.m 3757 2010-03-08 11:41:53Z guillaume $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo

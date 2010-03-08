@@ -13,7 +13,7 @@ function [f] = spm_cost_SHC_fx(x,v,P)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: karl $
+% $Id: spm_cost_SHC_fx.m 3757 2010-03-08 11:41:53Z guillaume $
  
  
  

@@ -11,7 +11,7 @@ function [G] = spm_mc_loss_G(x,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mc_fx_3.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_mc_loss_G.m 3757 2010-03-08 11:41:53Z guillaume $
  
  
 % gradient (G) (quadratic potential = (x(1) - P.x)^2*P.k/2)

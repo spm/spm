@@ -18,7 +18,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: $
+% $Id: ADEM_cost_SHC.m 3757 2010-03-08 11:41:53Z guillaume $
  
  
 % switch for demo

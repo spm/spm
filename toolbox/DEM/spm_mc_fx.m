@@ -16,7 +16,7 @@ function [f] = spm_mc_fx(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mc_fx_3.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_mc_fx.m 3757 2010-03-08 11:41:53Z guillaume $
  
  
 % gradient (G)
