@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 3745 2010-03-02 19:56:01Z vladimir $
+% $Id: spm_MEEGtools.m 3767 2010-03-09 22:49:30Z vladimir $
 
 
 funlist = {
@@ -21,6 +21,7 @@ funlist = {
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
+    'Detrending and Hanning for ERPs', 'spm_eeg_erp_correction'
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'

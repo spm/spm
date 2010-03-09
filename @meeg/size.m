@@ -5,10 +5,10 @@ function res = size(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: size.m 3350 2009-09-03 13:19:20Z vladimir $
+% $Id: size.m 3767 2010-03-09 22:49:30Z vladimir $
 
 res = size(this.data.y, varargin{:});
 
-if ntrials(this) == 1
+if ntrials(this) == 1 && isempty(varargin)
     res = [res 1];
 end
