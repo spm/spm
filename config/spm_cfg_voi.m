@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 3718 2010-02-09 17:46:52Z guillaume $
+% $Id: spm_cfg_voi.m 3765 2010-03-09 19:03:57Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -24,9 +24,23 @@ spmmat.val     = {{''}};
 contrast         = cfg_entry;
 contrast.tag     = 'contrast';
 contrast.name    = 'Contrast';
-contrast.help    = {'Index of contrast'}';
+contrast.help    = {'Index of contrast. If more than one index is entered, a conjunction analysis is performed.'};
 contrast.strtype = 'e';
-contrast.num     = [1 1];
+contrast.num     = [1 Inf];
+
+% -------------------------------------------------------------------------
+% conjunction Conjunction Number
+% -------------------------------------------------------------------------
+conjunction         = cfg_entry;
+conjunction.tag     = 'conjunction';
+conjunction.name    = 'Conjunction number';
+conjunction.help    = {'Conjunction number. Unused if a simple contrast is entered.'
+    'For Conjunction Null, enter 1.'
+    'For Global Null, enter the number of selected contrasts.'
+    'For Intermediate, enter the number of selected contrasts minus the number of effects under the Null.'}';
+conjunction.strtype = 'e';
+conjunction.num     = [1 1];
+conjunction.val     = {1};
 
 % -------------------------------------------------------------------------
 % threshdesc Threshold type
@@ -107,7 +121,7 @@ generic.num     = [0 1];
 map         = cfg_branch;
 map.tag     = 'spm';
 map.name    = 'Thresholded SPM';
-map.val     = {spmmat contrast threshdesc thresh extent generic};
+map.val     = {spmmat contrast conjunction threshdesc thresh extent generic};
 map.help    = {'Thresholded SPM'}';
 
 % -------------------------------------------------------------------------

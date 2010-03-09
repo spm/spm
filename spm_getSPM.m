@@ -71,6 +71,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % .swd      - SPM working directory - directory containing current SPM.mat
 % .title    - title for comparison (string)
 % .Ic       - indices of contrasts (in SPM.xCon)
+% .n        - conjunction number <= number of contrasts
 % .Im       - indices of masking contrasts (in xCon)
 % .pm       - p-value for masking (uncorrected)
 % .Ex       - flag for exclusive or inclusive masking
@@ -181,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3735 2010-02-23 12:01:14Z guillaume $
+% $Id: spm_getSPM.m 3765 2010-03-09 19:03:57Z guillaume $
 
 
 %-GUI setup
@@ -304,17 +305,21 @@ nc        = length(Ic);  % Number of contrasts
 % Global Null      0         nc    |    #effects under alt  > u,  >= u+1
 %----------------------------------+---------------------------------------
 if (nc > 1)
-    if nc==2
-        But = 'Conjunction|Global';      Val=[1 nc];
-    else
-        But = 'Conj''n|Intermed|Global'; Val=[1 NaN nc];
-    end
-    n = spm_input('Null hyp. to assess?','+1','b',But,Val,1);
-    if isnan(n)
-        if nc==3,
-            n = nc - 1;
+    try
+        n = xSPM.n;
+    catch
+        if nc==2
+            But = 'Conjunction|Global';      Val=[1 nc];
         else
-            n = nc - spm_input('Effects under null ','0','n1','1',nc-1);
+            But = 'Conj''n|Intermed|Global'; Val=[1 NaN nc];
+        end
+        n = spm_input('Null hyp. to assess?','+1','b',But,Val,1);
+        if isnan(n)
+            if nc==3,
+                n = nc - 1;
+            else
+                n = nc - spm_input('Effects under null ','0','n1','1',nc-1);
+            end
         end
     end
 else

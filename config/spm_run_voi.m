@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 3531 2009-11-04 14:58:54Z guillaume $
+% $Id: spm_run_voi.m 3765 2010-03-09 19:03:57Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -151,6 +151,7 @@ end
 function [SPM, xSPM] = getSPM(s)
 xSPM.swd       = spm_str_manip(s.spmmat{1},'H');
 xSPM.Ic        = s.contrast;
+xSPM.n         = s.conjunction;
 xSPM.u         = s.thresh;
 xSPM.thresDesc = s.threshdesc;
 xSPM.k         = s.extent;
