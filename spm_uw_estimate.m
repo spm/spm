@@ -169,7 +169,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_uw_estimate.m 3770 2010-03-10 10:36:55Z chloe $
 
 if nargin < 1 | isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
@@ -899,9 +899,9 @@ end
 %
 if isfield(ds,'sfP') && ~isempty(ds.sfP)
    txyz = xyz * (ds.sfP.mat\ds.M)';
-   tmsk = (txyz(:,1)>=1 & txyz(:,1)<=P(1).dim(1) &...
-           txyz(:,2)>=1 & txyz(:,2)<=P(1).dim(2) &...
-           txyz(:,3)>=1 & txyz(:,3)<=P(1).dim(3));
+   tmsk = (txyz(:,1)>=1 & txyz(:,1)<=ds.sfP.dim(1) &...
+           txyz(:,2)>=1 & txyz(:,2)<=ds.sfP.dim(2) &...
+           txyz(:,3)>=1 & txyz(:,3)<=ds.sfP.dim(3));
    msk  = msk & tmsk;
 end
 msk = erode_msk(msk,dm);
