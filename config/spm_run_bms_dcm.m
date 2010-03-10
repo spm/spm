@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3721 2010-02-11 16:02:49Z maria $
+% $Id: spm_run_bms_dcm.m 3768 2010-03-10 07:37:48Z vladimir $
 
 % input
 % -------------------------------------------------------------------------
@@ -186,7 +186,7 @@ else
                        
                         M   = DCM.DCM.M;
 
-                        if isfield(DCM, 'xY')
+                        if isfield(DCM.DCM, 'xY')
                             Y = DCM.DCM.xY;  % not fMRI
                         else
                             Y = DCM.DCM.Y;   % fMRI
@@ -194,12 +194,12 @@ else
 
                         if isfield(M,'FS')
                             try
-                                ID(h,j)  = spm_data_id(feval(M.FS,Y.y,M));
+                                ID(j,h)  = spm_data_id(feval(M.FS,Y.y,M));
                             catch
-                                ID(h,j)  = spm_data_id(feval(M.FS,Y.y));
+                                ID(j,h)  = spm_data_id(feval(M.FS,Y.y));
                             end
                         else
-                            ID(h,j) = spm_data_id(Y.y);
+                            ID(j,h) = spm_data_id(Y.y);
                         end
 
                     end
