@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3768 2010-03-10 07:37:48Z vladimir $
+% $Id: spm_run_bms_dcm.m 3769 2010-03-10 07:49:54Z vladimir $
 
 % input
 % -------------------------------------------------------------------------
@@ -36,7 +36,7 @@ data_se = ~isempty(job.sess_dcm);        % DCM files
 if strcmp(job.method,'FFX');
     method = 'FFX';                      % Fixed-effects
 else
-    method = 'RFX';                      % Random-effects                   
+    method = 'RFX';                      % Random-effects
 end
 
 % check DCM.mat files and BMA
@@ -56,7 +56,7 @@ if bma_do
             error('Plase specify DCM.mat files to do BMA!')
         end
     end
-
+    
     n  = size(DCM.a,2);
     m  = size(DCM.c,2);
     mi = size(DCM.c,2);
@@ -65,7 +65,7 @@ if bma_do
     bma.a           = zeros(n,n,bma.nsamp);
     bma.b           = zeros(n,n,m,bma.nsamp);
     bma.c           = zeros(n,mi,bma.nsamp);
-
+    
     if isfield(job.bma.bma_yes,'bma_famwin')
         do_bma_famwin  = 1;
     else
@@ -76,19 +76,19 @@ if bma_do
         end
     end
 else
-    if ld_msp                
+    if ld_msp
         disp('Loading model space')
         load(job.model_sp{1});
-            if ~exist('subj','var')
-               error('Incorrect model space file! File must contain ''subj'' structure.')
-            end
+        if ~exist('subj','var')
+            error('Incorrect model space file! File must contain ''subj'' structure.')
+        end
     end
 end
 
-% initialise 
+% initialise
 % -------------------------------------------------------------------------
 F      = [];                % Free energy
-N      = {};                % Models                               
+N      = {};                % Models
 
 % prepare the data
 % -------------------------------------------------------------------------
@@ -101,11 +101,11 @@ if  ld_f
     subj      = [];                                       % subj structure
     f_fname   = data;                                     % LogE file name
     fname_msp = [];                                       % Model space
-
+    
 else
-
+    
     f_fname       = [];                                   % LogE file name
-
+    
     % Verify dimensions of data and model space
     if ld_msp
         ns        = length(subj);                         % No of Subjects
@@ -118,18 +118,18 @@ else
         nm        = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
         fname_msp = [job.dir{1} 'model_space.mat'];
     end
-
+    
     F       = zeros(ns,nm);
     N       = cell(nm);
-
+    
     % Check if No of models > 2
     if nm < 2
         msgbox('Please select more than one file')
         return
     end
-
+    
     for k=1:ns
-
+        
         % Verify dimensions of data and model space for current session
         if ld_msp
             nsess_now       = length(subj(k).sess);
@@ -139,29 +139,34 @@ else
             nsess_now       = size(job.sess_dcm{k},2);
             nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
         end
-
+        
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
-
+            
             ID = zeros(nsess, nm);
-
+            
             for j=1:nm
-
+                
                 F_sess      = [];
-
+                
                 for h = 1:nsess_now
-
+                    
                     if ~ld_msp
-
+                        
                         clear DCM
-
+                        
                         % Load DCM (model)
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
                         if ~job.verify_id
+                            warning off MATLAB:load:variableNotFound
                             DCM.DCM = load(tmp, 'F', 'Ep', 'Cp');
+                            warning on MATLAB:load:variableNotFound
+                            if ~isfield(DCM.DCM, 'F')
+                                DCM     = load(tmp);
+                            end
                         else
                             DCM     = load(tmp);
                         end
-
+                        
                         % Free energy for sessions
                         F_sess  = [F_sess,DCM.DCM.F];
                         
@@ -170,28 +175,28 @@ else
                         subj(k).sess(h).model(j).F     = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
                         subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
-                         
+                        
                     else
-
+                        
                         F_sess = [F_sess,subj(k).sess(h).model(j).F];
-
+                        
                     end
-
+                    
                     % Data ID verification. At least for now we'll
                     % re-compute the IDs rather than use the ones stored
                     % with the DCM.
                     if job.verify_id
                         
                         disp(sprintf('Identifying data: model %d', j));
-                       
+                        
                         M   = DCM.DCM.M;
-
+                        
                         if isfield(DCM.DCM, 'xY')
                             Y = DCM.DCM.xY;  % not fMRI
                         else
                             Y = DCM.DCM.Y;   % fMRI
                         end
-
+                        
                         if isfield(M,'FS')
                             try
                                 ID(j,h)  = spm_data_id(feval(M.FS,Y.y,M));
@@ -201,17 +206,17 @@ else
                         else
                             ID(j,h) = spm_data_id(Y.y);
                         end
-
+                        
                     end
                 end
-
+                
                 % Sum over sessions
                 F_mod       = sum(F_sess);
                 F(k,j)      = F_mod;
                 N{j}        = sprintf('model%d',j);
-
+                
             end
-
+            
             if job.verify_id
                 failind = find(max(abs(diff(ID))) > eps);
                 if ~isempty(failind)
@@ -225,9 +230,9 @@ else
             out.files{1} = [];
             msgbox('Error: the number of sessions/models should be the same for all subjects!')
             return
-
+            
         end
-
+        
     end
 end
 
@@ -241,18 +246,18 @@ sumF = sum(F,1);
 % family or model level
 % -------------------------------------------------------------------------
 if isfield(job.family_level,'family_file')
-
+    
     if ~isempty(job.family_level.family_file{1})
-
+        
         load(job.family_level.family_file{1});
         do_family    = 1;
         family.infer = method;
-
+        
         nfam    = size(family.names,2);
         npart   = length(unique(family.partition));
         maxpart = max(family.partition);
         m_indx  = 1:nm;
-
+        
         if nfam ~= npart || npart == 1 || maxpart > npart
             error('Invalid family file!')
             out.files{1} = [];
@@ -260,15 +265,15 @@ if isfield(job.family_level,'family_file')
     else
         do_family = 0;
     end
-
+    
 else
-
+    
     if isempty(job.family_level.family)
         do_family    = 0;
     else
         do_family    = 1;
         nfam         = size(job.family_level.family,2);
-
+        
         names_fam  = {};
         models_fam = [];
         m_indx     = [];
@@ -277,30 +282,30 @@ else
             m_indx       = [m_indx,job.family_level.family(f).family_models'];
             models_fam(job.family_level.family(f).family_models) = f;
         end
-
+        
         family.names     = names_fam;
         family.partition = models_fam;
-
+        
         npart   = length(unique(family.partition));
         maxpart = max(family.partition);
         nmodfam = length(m_indx);
-
+        
         if nfam ~= npart || npart == 1 || maxpart > npart || nmodfam > nm
             error('Invalid family!')
             out.files{1} = [];
             return
         end
-
+        
         family.infer     = method;
-
+        
     end
-
+    
 end
 
 % single subject BMS or 1st level( fixed effects) group BMS
 % -------------------------------------------------------------------------
 if strcmp(method,'FFX');
-
+    
     disp('Computing FFX model/family posteriors ...');
     if ~do_family
         family         = [];
@@ -310,7 +315,7 @@ if strcmp(method,'FFX');
         [family,model] = spm_compare_families (Ffam,family);
         P              = spm_api_bmc(sumF,N,[],[],family);
     end
-
+    
     if bma_do,
         if do_family
             if do_bma_famwin
@@ -334,7 +339,7 @@ if strcmp(method,'FFX');
             bma.post  = model.post;
             bma.indx = 1:nm;
         end
-
+        
         disp('FFX Bayesian model averaging ...');
         
         % bayesian model averaging
@@ -342,11 +347,11 @@ if strcmp(method,'FFX');
         bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
         
     else
-
+        
         bma = [];
-
+        
     end
-
+    
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'ffx')
@@ -361,20 +366,20 @@ if strcmp(method,'FFX');
     BMS.DCM.ffx.model   = model;
     BMS.DCM.ffx.family  = family;
     BMS.DCM.ffx.bma     = bma;
-
+    
     disp('Saving BMS.mat file...')
     if spm_matlab_version_chk('7') >= 0
         save(fname,'-V6','BMS');
     else
         save(fname,'BMS');
     end
-
+    
     out.files{1} = fname;
-
+    
     % 2nd-level (random effects) BMS
     % ---------------------------------------------------------------------
 else
-
+    
     disp('Computing RFX model/family posteriors...');
     if ~do_family
         [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
@@ -385,19 +390,19 @@ else
         model.xp    = xp;
         family      = [];
     else
-
+        
         Ffam           = F(:,sort(m_indx));
         [family,model] = spm_compare_families(Ffam,family);
-
+        
     end
-
+    
     % display the result
     if do_family
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp,family);
     else
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp);
     end
-
+    
     if bma_do,
         if do_family
             if do_bma_famwin
@@ -418,21 +423,21 @@ else
                 end
             end
         else
-               bma.post  = model.g_post;
-               bma.indx = 1:nm;
-        end 
-    
-       disp('RFX Bayesian model averaging ...');
-       % bayesian model averaging
-       % ------------------------------------------------------------------    
-       bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
-
+            bma.post  = model.g_post;
+            bma.indx = 1:nm;
+        end
+        
+        disp('RFX Bayesian model averaging ...');
+        % bayesian model averaging
+        % ------------------------------------------------------------------
+        bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
+        
     else
-
+        
         bma = [];
-
+        
     end
-
+    
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'rfx')
@@ -447,7 +452,7 @@ else
     BMS.DCM.rfx.model   = model;
     BMS.DCM.rfx.family  = family;
     BMS.DCM.rfx.bma     = bma;
-
+    
     disp('Saving BMS.mat file...')
     if spm_matlab_version_chk('7') >= 0
         save(fname,'-V6','BMS');
@@ -455,7 +460,7 @@ else
         save(fname,'BMS');
     end
     out.files{1}= fname;
-
+    
 end
 
 % Save model_space
