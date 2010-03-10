@@ -8,18 +8,17 @@ function D = spm_eeg_erp_correction(S)
 % (optional) fields of S:
 % S.D        - MEEG object or filename of M/EEG mat-file with epoched data
 % S.detrend  - detrending order (0 for no detrending)
-% S.hanning  - apply Hanning taper (true or false)
+% S.hanning  - apply Hanning window (true or false)
 %
 % Output:
 % D        - MEEG object (also written on disk)
-%
-%
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Melanie Boly
+% $Id: spm_eeg_erp_correction.m 3771 2010-03-10 11:41:11Z guillaume $
 
-SVNrev = '$Rev: 3767 $';
+SVNrev = '$Rev: 3771 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,7 +59,7 @@ end
 
 Ns = D.nsamples;
 
-% confounds - DCT:
+%-Confounds - DCT:
 %--------------------------------------------------------------------------
 if S.detrend == 0
     X0 = sparse(Ns, 1);
@@ -69,10 +68,10 @@ else
 end
 R      = speye(Ns) - X0*X0';
 
-% hanning
+%-Hanning
 %--------------------------------------------------------------------------
 if S.hanning
-    R  = R*diag(hanning(Ns))*R;
+    R  = R*diag(spm_hanning(Ns))*R;
 end
 
 Dnew = clone(D, ['C' D.fnamedat]);
@@ -84,7 +83,7 @@ else Ibar = [1:D.ntrials]; end
 
 spm('Pointer','Watch');
 
-% adjust data
+%-Adjust data
 %--------------------------------------------------------------------------
 for i = 1:D.ntrials
     Dnew(Dnew.meegchannels,:,i) = (R*spm_squeeze(D(D.meegchannels,:,i), 3)')';
