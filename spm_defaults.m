@@ -14,13 +14,17 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3719 2010-02-10 12:15:46Z guillaume $
+% $Id: spm_defaults.m 3772 2010-03-10 12:59:15Z guillaume $
 
+%-Prevent users from making direct calls to this function
+%-----------------------------------------------------------------------
 try
-    d = dbstack;
-    if ~isdeployed && isempty(intersect({'spm','spm_get_defaults'},{d.name}))
-        fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
-            'Please use spm(''defaults'',modality) instead.\n']);
+    if ~isdeployed
+        d = dbstack;
+        if isempty(intersect({'spm','spm_get_defaults'},{d.name}))
+            fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
+                'Please use spm(''defaults'',modality) instead.\n']);
+        end
     end
 end
 
@@ -35,7 +39,7 @@ defaults.cmdline  = 0;
 defaults.ui.print  = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.ps');
 defaults.ui.colour = [0.73 0.78 0.96];
 defaults.renderer  = 'zbuffer';
-defaults.ui.fs     = 14;
+defaults.ui.fs     = 14;  % unused
 
 % File format specific
 %=======================================================================

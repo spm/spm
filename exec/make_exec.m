@@ -1,28 +1,28 @@
 function make_exec
-% SPM can be compiled using Matlab 7.
+% Compile SPM as a standalone executable using the MATLAB compiler
+%   http://www.mathworks.com/products/compiler/
+%
 % This will generate a standalone program, which can be run
-% outside Matlab, and therefore does not use up a Matlab license.
-% The executable needs to be dynamically linked with runtime libraries
-% bundled with the Matlab package.  Before executing, ensure that your
-% LD_LIBRARY_PATH is set appropriately, so that $MATLAB/bin/$arch
-% is included. LD_LIBRARY_PATH or PATH should also contain the directory
-% containing the *.ctf files
-%
-% Software compiled with later MATLAB versions may need 
-% LD_LIBRARY_PATH=$MATLAB/bin/$arch:$MATLAB/sys/os/$arch
-%
-% Note that when compiling, it is important to be careful with your
-% startup.m file.  See the following link for more information:
-% http://www.mathworks.com/support/solutions/data/1-QXFMQ.html?1-QXFMQ
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% outside MATLAB, and therefore does not use up a MATLAB licence.
+% 
+% 
+%__________________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: make_exec.m 3752 2010-03-05 12:54:50Z guillaume $ 
+% $Id: make_exec.m 3772 2010-03-10 12:59:15Z guillaume $ 
 
-%=======================================================================
+%-Care of startup.m
+%--------------------------------------------------------------------------
+% see http://www.mathworks.com/support/solutions/data/1-QXFMQ.html?1-QXFMQ
+if exist('startup','file')
+    warning('A startup.m has been detected in %s.\n',...
+        fileparts(which('startup')));
+end
+
+%==========================================================================
 %-Files to include explicitly
-%=======================================================================
+%==========================================================================
 % Matlab compiler will include all files that are referenced explicitly
 % in the compiled code. If there is a file missing (e.g. data file,
 % (f)eval'ed file), add it to the 'includefiles' list with its full
@@ -35,26 +35,26 @@ function make_exec
 % effects during batch initialisation.
 
 %-List of files
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [includefiles includedirs] = cfg_getfile('FPList',spm('dir'),'.*');
 
 %-Clean up list of directories
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 includedirs = includedirs(~(strcmp(includedirs,fullfile(spm('dir'),'config'))| ...
                             strcmp(includedirs,fullfile(spm('dir'),'exec'))| ...
                             strcmp(includedirs,fullfile(spm('dir'),'matlabbatch'))));
 
 includefiles = [includefiles; includedirs];
 %-Add '-a' switch for each file to include
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 sw           = cell(size(includefiles));
 [sw{:}]      = deal('-a');
 tmp          = [sw includefiles]';
 includefiles = tmp(:);
 
-%=======================================================================
+%==========================================================================
 %-Configuration management
-%=======================================================================
+%==========================================================================
 % 1) locate all currently used batch configs
 % 2) copy them to fullfile(spm('dir'),'exec') with unique names
 % 3) create fullfile(spm('dir'),'exec','cfg_master.m') which calls the
@@ -62,7 +62,7 @@ includefiles = tmp(:);
 % compiled spm_jobman will execute this file and add the applications
 
 %-Locate batch configs and copy them
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 apps = which('cfg_mlbatch_appcfg','-all');
 cfgfiles = cell(1,2*numel(apps)+2);
 for k = 1:numel(apps)
@@ -72,7 +72,7 @@ for k = 1:numel(apps)
 end
 
 %-Create code for cfg_master.m
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cfgfiles{end-1} ='-a';
 cfgfiles{end}   = fullfile(spm('dir'),'exec','cfg_master.m');
 fid             = fopen(cfgfiles{end},'w');
@@ -133,4 +133,10 @@ fclose(fid);
 %==========================================================================
 %-Compilation
 %==========================================================================
-mcc('-mv','-o',['spm_' computer],'exec_spm.m','-I',spm('Dir'),includefiles{:},cfgfiles{:})
+mcc('-mvC','-o',['spm_' computer],'exec_spm.m','-N','-p',fullfile(matlabroot,'toolbox','signal'),'-I',spm('Dir'),includefiles{:},cfgfiles{:})
+
+%-Cleanup
+%--------------------------------------------------------------------------
+for i=2:2:numel(cfgfiles)
+    spm_unlink(cfgfiles{i});
+end

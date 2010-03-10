@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm.m 3772 2010-03-10 12:59:15Z guillaume $
 
 
 %=======================================================================
@@ -300,6 +300,12 @@ if isfield(defaults,'modality')
     spm(defaults.modality);
     return
 end
+if isdeployed
+    [v,r] = spm('Ver');
+    fprintf('SPM dir:  %s\n',spm('Dir'));
+    fprintf('CTF root: %s\n',ctfroot);
+    fprintf('SPM version: %s (%s)\n',v,r);
+end
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
@@ -450,6 +456,7 @@ end
 %-----------------------------------------------------------------------
 if nargout, varargout = {spm_get_defaults}; end
 
+
 %=======================================================================
 case 'checkmodality'              %-Check & canonicalise modality string
 %=======================================================================
@@ -459,8 +466,6 @@ if nargin<2, Modality=''; else Modality=upper(varargin{2}); end
 if isempty(Modality)
     try
         Modality = spm_get_defaults('modality');
-    catch
-        Modality = 'UNKNOWN';
     end
 end
 if ischar(Modality)
@@ -474,8 +479,13 @@ else
         Modality = Modalities{ModNum};
     end
 end
-
-if isempty(ModNum), error('Unknown Modality'), end
+if isempty(ModNum)
+    if isempty(Modality)
+        fprintf('Modality is not set: use spm(''defaults'',''MOD''); ');
+        fprintf('where MOD is one of PET, FMRI, EEG.\n');
+    end
+    error('Unknown Modality.');
+end
 varargout = {upper(Modality),ModNum};
 
 
@@ -792,13 +802,13 @@ if isempty(SPMdir)             %-Not found or full pathname given
 end
 SPMdir = fileparts(SPMdir);
 
-if isdeployed
-    ind = findstr(SPMdir,'_mcr')-1;
-    if ~isempty(ind)
-        % MATLAB 2008a/2009a doesn't need this
-        SPMdir = fileparts(SPMdir(1:ind(1)));
-    end
-end
+% if isdeployed
+%     ind = findstr(SPMdir,'_mcr')-1;
+%     if ~isempty(ind)
+%         % MATLAB 2008a/2009a doesn't need this
+%         SPMdir = fileparts(SPMdir(1:ind(1)));
+%     end
+% end
 varargout = {SPMdir};
 
 
@@ -823,16 +833,18 @@ v = spm_version(ReDo);
 if isempty(Mfile)
     varargout = {v.Release v.Version};
 else
-    fp  = fopen(Mfile,'rt');
-    if fp == -1, error('Can''t read %s.',Mfile); end
-    str = fread(fp,Inf,'*uchar');
-    fclose(fp);
-    str = char(str(:)');
-    r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
-        '(\S+Z) (?<author>\S+) \$'],'names','once');
-
-    if isempty(r)
-        r = struct('file',Mfile,'id','???','date','','author','');
+    unknown = struct('file',Mfile,'id','???','date','','author','');
+    if ~isdeployed
+        fp  = fopen(Mfile,'rt');
+        if fp == -1, error('Can''t read %s.',Mfile); end
+        str = fread(fp,Inf,'*uchar');
+        fclose(fp);
+        str = char(str(:)');
+        r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
+            '(\S+Z) (?<author>\S+) \$'],'names','once');
+        if isempty(r), r = unknown; end
+    else
+        r = unknown;
     end
     varargout = {r(1).id v.Release};
 end
@@ -1148,29 +1160,27 @@ function v = spm_version(ReDo)                    %-Retrieve SPM version
 %=======================================================================
 persistent SPM_VER;
 v = SPM_VER;
-
-str = 'Can''t obtain SPM Revision information.';
-
 if isempty(SPM_VER) || (nargin > 0 && ReDo)
-    if isdeployed
-        % in deployed mode, M-files are encrypted
-        v.Name    = 'Statistical Parametric Mapping';
-        v.Version = '8';
-        v.Release = 'SPM8';
-        v.Date    = date;
-    else        
-        v = struct('Name','','Version','','Release','','Date','');
-        try
-            fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
-            if fid == -1, error(str); end
-            l1 = fgetl(fid); l2 = fgetl(fid);
-            fclose(fid);
-            l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
-            t  = textscan(l2,'%s','delimiter',' '); t = t{1};
-            v.Name = l1; v.Date = t{4};
-            v.Version = t{2}; v.Release = t{3}(2:end-1);
-        catch
-            error(str);
+    v = struct('Name','','Version','','Release','','Date','');
+    try
+        fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
+        if fid == -1, error(str); end
+        l1 = fgetl(fid); l2 = fgetl(fid);
+        fclose(fid);
+        l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
+        t  = textscan(l2,'%s','delimiter',' '); t = t{1};
+        v.Name = l1; v.Date = t{4};
+        v.Version = t{2}; v.Release = t{3}(2:end-1);
+    catch
+        if isdeployed
+            % in deployed mode, M-files are encrypted
+            % (but first two lines of Contents.m should be preserved)
+            v.Name    = 'Statistical Parametric Mapping';
+            v.Version = '8';
+            v.Release = 'SPM8';
+            v.Date    = date;
+        else
+            error('Can''t obtain SPM Revision information.');
         end
     end
     SPM_VER = v;
