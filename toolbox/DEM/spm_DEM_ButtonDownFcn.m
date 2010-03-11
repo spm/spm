@@ -8,7 +8,7 @@ function spm_DEM_ButtonDownFcn
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 1861 2008-06-27 13:28:10Z karl $
+% $Id: spm_DEM_ButtonDownFcn.m 3774 2010-03-11 19:20:11Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -18,27 +18,34 @@ if isstruct(S{1})
     % play movie
     %----------------------------------------------------------------------
     movie(S{1},1,S{2});
-    return
     
-    % save avi file
-    %----------------------------------------------------------------------
-    [FILENAME, PATHNAME] = uiputfile('*.avi','movie file');
-    NAME = fullfile(PATHNAME,FILENAME);
-    movie2avi(S{1},NAME,'compression','none')
+    if strcmp(get(gcf,'SelectionType'),'normal')
+        return
+    else
+        % save avi file
+        %------------------------------------------------------------------
+        [FILENAME, PATHNAME] = uiputfile('*.avi','movie file');
+        NAME = fullfile(PATHNAME,FILENAME);
+        movie2avi(S{1},NAME,'compression','none')
+    end
     
 else
     
     % play sound
     %----------------------------------------------------------------------
     soundsc(S{1},S{2});
-    return
     
-    % save wav file
-    %----------------------------------------------------------------------
-    [FILENAME, PATHNAME] = uiputfile('*.wav','wave file');
-    NAME = fullfile(PATHNAME,FILENAME);
-    S{1} = S{1}/max(S{1}(:));
-    wavwrite(S{1},S{2},16,NAME)
+    if strcmp(get(gcf,'SelectionType'),'normal')
+        return
+    else
+        
+        % save wav file
+        %------------------------------------------------------------------
+        [FILENAME, PATHNAME] = uiputfile('*.wav','wave file');
+        NAME = fullfile(PATHNAME,FILENAME);
+        S{1} = S{1}/max(S{1}(:));
+        wavwrite(S{1},S{2},16,NAME)
+    end
 end
  
 
