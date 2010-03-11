@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3766 2010-03-09 21:08:48Z vladimir $
+% $Id: spm_eeg_invert.m 3776 2010-03-11 20:12:09Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -269,29 +269,42 @@ fprintf('Optimising spatial modes ...\n')
 
 % define a reduced source space using the 'heat kernels' QG
 %--------------------------------------------------------------------------
+if Nl > 1
+    Ng = 512;
+    Ig = ceil((1:Ng)*Nd/Ng);
+    G  = spm_svd(QG(:,Ig),0);
+end
 Is    = 1:Nd;
-Ng    = 512;
-Ig    = ceil((1:Ng)*Nd/Ng);
-G     = spm_svd(QG(:,Ig),0);
 for m = 1:Nmod
     
-    % Get average precision (P) in source-space over subjects
-    %----------------------------------------------------------------------
-    P   = zeros(Ng,Ng);
-    
-    % Assuming i.i.d. prior covariance on sources
-    %----------------------------------------------------------------------
-    for i = 1:Nl
-        L = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}))*G;
-        P = P + L'*L;
+    if Nl > 1
+        
+        % Get average precision (P) in source-space over subjects
+        %------------------------------------------------------------------
+        P   = zeros(Ng,Ng);
+        
+        % Assuming i.i.d. prior covariance on sources
+        %------------------------------------------------------------------
+        for i = 1:Nl
+            L = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}))*G;
+            P = P + L'*L;
+        end
+        
+        % Assume the eigenvectors of P are the 'average' lead field UL{m}
+        %------------------------------------------------------------------
+        [U E] = spm_svd(P,0);
+        U     = U*sqrt(E);
+        Nm(m) = min(min(Nc(:,m)),Nmmax);
+        UL{m} = U(:,1:Nm(m))'*G';
+        
+    else
+        % simply use singualr vectors
+        %------------------------------------------------------------------
+        L     = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
+        U     = spm_svd(L*L',0);
+        Nm(m) = min(min(Nc(:,m)),Nmmax);
+        UL{m} = U(:,1:Nm(m))'*L;
     end
-    
-    % Assume the eigenvectors of P comprise the 'average' lead field UL{m}  
-    %----------------------------------------------------------------------  
-    [U E] = spm_svd(P,0);
-    U     = U*sqrt(E);
-    Nm(m) = min(min(Nc(:,m)),Nmmax);
-    UL{m} = U(:,1:Nm(m))'*G';
  
     % Normalise lead-field
     %----------------------------------------------------------------------
@@ -306,7 +319,7 @@ for m = 1:Nmod
         L0     = eye(size(L,1))*E(end); 
         A{i,m} = UL{m}*L'/(L*L' + L0);
     end
- 
+
     % Report
     %----------------------------------------------------------------------
     fprintf('Using %d spatial modes for modality %s\n',Nm(m),modalities{m})

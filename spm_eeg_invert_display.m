@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 2822 2009-03-04 10:39:53Z vladimir $
+% $Id: spm_eeg_invert_display.m 3776 2010-03-11 20:12:09Z karl $
  
 % Number of dipoles to display
 %==========================================================================
@@ -151,7 +151,7 @@ for i = 1:length(model.inverse.J)
     %----------------------------------------------------------------------
     try
         qC  = model.inverse.qC(js).*diag(model.inverse.qV)';
-        ci  = 1.64*sqrt(qC);
+        ci  = 1.64*sqrt(abs(qC));
         plot(pst,Jt,pst,Jt + ci,':',pst,Jt - ci,':',...
             [PST PST],[-1 1]*maxJ,':',...
             'Color',Color)
