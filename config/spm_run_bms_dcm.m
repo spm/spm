@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3769 2010-03-10 07:49:54Z vladimir $
+% $Id: spm_run_bms_dcm.m 3773 2010-03-11 11:20:18Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -142,7 +142,7 @@ else
         
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
             
-            ID = zeros(nsess, nm);
+            ID = zeros(nm,nsess);
             
             for j=1:nm
                 
@@ -218,7 +218,7 @@ else
             end
             
             if job.verify_id
-                failind = find(max(abs(diff(ID))) > eps);
+                failind = find(max(abs(diff(ID)),[],1) > eps);
                 if ~isempty(failind)
                     out.files{1} = [];
                     msgbox(['Error: the models for subject ' num2str(k) ...
