@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 3777 2010-03-12 13:42:29Z john $
+% $Id: spm_dicom_convert.m 3778 2010-03-12 14:32:28Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -129,8 +129,8 @@ for i=1:length(hdr),
 
     analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 
-    vox    = [hdr{i}.PixelSpacing(:)' hdr{i}.SpacingBetweenSlices];
-    pos    = hdr{i}.ImagePositionPatient';
+    vox    = [hdr{i}.PixelSpacing(:); hdr{i}.SpacingBetweenSlices];
+    pos    = hdr{i}.ImagePositionPatient(:);
     orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
     orient(:,3) = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end;
