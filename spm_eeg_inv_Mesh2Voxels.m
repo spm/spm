@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3780 2010-03-15 17:15:00Z guillaume $
 
 % checks
 %--------------------------------------------------------------------------
@@ -118,7 +118,7 @@ clear DenseCortex
 
 % Get Graph Laplacian for smoothing on the cortical surface
 %--------------------------------------------------------------------------
-A     = spm_eeg_inv_meshdist(vert,face,0);
+A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
 GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 
 

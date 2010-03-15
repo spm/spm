@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3776 2010-03-11 20:12:09Z karl $
+% $Id: spm_eeg_invert.m 3780 2010-03-15 17:15:00Z guillaume $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -221,7 +221,7 @@ fprintf('Computing Green function from graph Laplacian:')
 Nd    = Nd(1);                                     % number of dipoles
 vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
 face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
-A     = spm_eeg_inv_meshdist(vert,face,0);
+A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
 GL    = A - spdiags(sum(A,2),0,Nd,Nd);
 GL    = GL*s/2;
 Qi    = speye(Nd,Nd);

@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 3765 2010-03-09 19:03:57Z guillaume $
+% $Id: spm_run_voi.m 3780 2010-03-15 17:15:00Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -40,7 +40,7 @@ voi     = roi_eval(voi,job.expression);
 
 %-Save VOI as image
 %--------------------------------------------------------------------------
-V = struct('fname', fullfile(swd, ['VOI_' job.name '.img']), ...
+V = struct('fname', fullfile(swd, ['VOI_' job.name '.' spm_get_defaults('images.format')]), ...
     'dim',     SPM.xVol.DIM', ...
     'dt',      [spm_type('uint8') spm_platform('bigend')], ...
     'mat',     SPM.xVol.M, ...
@@ -182,7 +182,7 @@ try
         job.roi{m}.spm.spmmat = job.spmmat;
     end
 catch
-    error('The SPM index does not correspond to a Tresholded SPM ROI.');
+    error('The SPM index does not correspond to a Thresholded SPM ROI.');
 end
 [mySPM, xSPM] = getSPM(job.roi{m}.spm);
 XYZ           = SPM.xVol.iM(1:3,:)*[xSPM.XYZmm;ones(1,size(xSPM.XYZmm,2))];
