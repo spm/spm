@@ -4,7 +4,7 @@ function hdw = tbx_cfg_hdw
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: tbx_cfg_hdw.m 3781 2010-03-15 17:33:06Z guillaume $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
