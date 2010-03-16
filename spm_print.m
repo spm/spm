@@ -4,7 +4,7 @@ function spm_print(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_print.m 3782 2010-03-16 18:33:32Z guillaume $
 
 % Run spm_print always as job to get configured print options
 if nargin == 0
@@ -41,7 +41,11 @@ try
     else
         fg = spm_figure('FindWin','Graphics');
     end
-    print(fg,opts{:});
+    if isdeployed
+        deployprint(fg,opts{:});
+    else
+        print(fg,opts{:});
+    end
     if isempty(strfind(nam1,filesep))
     fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
     else

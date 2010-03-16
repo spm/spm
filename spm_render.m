@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3289 2009-07-27 15:28:24Z guillaume $
+% $Id: spm_render.m 3782 2010-03-16 18:33:32Z guillaume $
 
-SVNrev = '$Rev: 3289 $';
+SVNrev = '$Rev: 3782 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -551,7 +551,11 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             set(get(h,'children'),'visible','off');
             %a = get(h,'children');
             %set(a,'Position',get(a,'Position').*[0 0 1 1]+[10 10 0 0]);       
-            print(h, '-dpng', '-opengl', fullfile(pathname, filename));
+            if isdeployed
+                deployprint(h, '-dpng', '-opengl', fullfile(pathname, filename));
+            else
+                print(h, '-dpng', '-opengl', fullfile(pathname, filename));
+            end
             close(h);
             set(getappdata(obj,'fig'),'renderer',r);
         case 3
