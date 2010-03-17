@@ -12,9 +12,9 @@ function newjobs = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: cfg_load_jobs.m 3785 2010-03-17 15:53:42Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 3785 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
@@ -39,18 +39,14 @@ for cf = 1:numel(filenames)
                 cfg_message('matlabbatch:initialise:mat','Load failed: ''%s''',filenames{cf});
             end;
         case '.m'
-            opwd = pwd;
-            cfg_validatejobname(nam, false);                
             try
-                if ~isempty(p)
-                    cd(p);
-                end;
-                clear(nam);
-                eval(nam);
+                fid = fopen(filenames{cf},'rt');
+                str = fread(fid,'*char');
+                fclose(fid);
+                eval(str);
             catch
                 cfg_message('matlabbatch:initialise:m','Eval failed: ''%s''',filenames{cf});
             end;
-            cd(opwd);
             if ~exist('matlabbatch','var')
                 cfg_message('matlabbatch:initialise:m','No matlabbatch job found in ''%s''', filenames{cf});
             end;
@@ -58,7 +54,7 @@ for cf = 1:numel(filenames)
             cfg_message('matlabbatch:initialise:unknown','Unknown extension: ''%s''', filenames{cf});
     end;
     if exist('matlabbatch','var')
-        newjobs = {newjobs{:} matlabbatch};
+        newjobs = [newjobs(:) {matlabbatch}];
         clear matlabbatch;
     end;
 end;

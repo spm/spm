@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3621 2009-12-09 08:11:17Z volkmar $
+% $Id: cfg_getfile.m 3785 2010-03-17 15:53:42Z volkmar $
 
 t = {};
 sts = false;
@@ -670,7 +670,7 @@ else
     sel = cellfun(@isempty, mch);
     npd = numel(pd);
     pd  = [pd(:);d(sel)];
-    mch = [mch{:} npd+(1:nnz(sel))];
+    mch = [mch{~sel} npd+(1:nnz(sel))];
     d = pd;
 end
 return;
@@ -1367,12 +1367,7 @@ case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,2}$',...
                             '.*\.IMG(,[0-9]*){0,2}$'};
 case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
 case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.txt','.*\.TXT'};
-case {'batch'},   code = 0; 
-    if isdeployed, 
-        ext = {'.*\.mat$','.*\.MAT$','.*\.xml$','.*\.XML$'};
-    else 
-        ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
-    end
+case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
 case {'dir'},     code =-1; ext = {'.*'};
 case {'extdir'},     code =-1; ext = {['.*' filesep '$']};
 otherwise,        code = 0; ext = {typ};

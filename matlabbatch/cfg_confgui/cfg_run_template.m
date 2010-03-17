@@ -44,9 +44,9 @@ function varargout = cfg_run_template(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_template.m 3355 2009-09-04 09:37:35Z volkmar $
+% $Id: cfg_run_template.m 3785 2010-03-17 15:53:42Z volkmar $
 
-rev = '$Rev: 3355 $'; %#ok
+rev = '$Rev: 3785 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
@@ -101,7 +101,7 @@ if ischar(defstr)
     tags = textscan(defstr,'%s', 'delimiter','.');
     subs = struct('type','.','subs',tags{1}');
     try
-        cdefval = subsref(local_def, subs);
+        cdefval = subsref(defs, subs);
     catch
         cdefval = [];
         cfg_message('defaults:noval', ...
