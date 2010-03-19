@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_dcm_ind_data.m 3790 2010-03-19 17:23:14Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -300,15 +300,12 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     u     = spm_svd(Y'*Y);
     u     = full(u(:,1)*sign(max(u(:,1))));
-    Y     = reshape(Y*u,Nb,Nr*Ng,Nf);
-
+    Y     = reshape(Y*u,Nb,Ng,Nr,Nf);
+ 
     % sum time-frequency response over moments and remove baseline
     %----------------------------------------------------------------------
     for j = 1:Nr
-        Yk    = zeros(Nb,Nf);
-        for k = 1:Ng
-            Yk = Yk + squeeze(Y(:,j + k - 1,:))/Nt;
-        end
+        Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
         Yz{i,j} = Yk - ones(Nb,1)*Yk(1,:);
     end
 end
