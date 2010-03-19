@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3752 2010-03-05 12:54:50Z guillaume $
+% $Id: spm_jobman.m 3787 2010-03-19 11:29:43Z volkmar $
 
 
 if nargin==0
@@ -148,9 +148,6 @@ else
             end
             cfg_get_defaults('cfg_util.genscript_run', @genscript_run);
             cfg_util('initcfg'); % This must be the first call to cfg_util
-            if isdeployed
-                cfg_master;
-            end
             if ~spm('cmdline')
                 f = cfg_ui('Visible','off'); % Create invisible batch ui
                 f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
