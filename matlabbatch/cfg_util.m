@@ -60,6 +60,12 @@ function varargout = cfg_util(cmd, varargin)
 %
 % Delete job with job_id from the job list. 
 %
+%  cfg_util('dumpcfg')
+%
+% Save current configuration to 'private/cfg_mlbatch.mat' in the
+% matlabbatch folder. This configuration will be used to run matlabbatch in
+% a compiled version of the application.
+%
 %  sts = cfg_util('filljob', job_id, input1, ..., inputN)
 %  sts = cfg_util('filljobui', job_id, ui_fcn, input1, ..., inputN)
 %
@@ -373,9 +379,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3785 2010-03-17 15:53:42Z volkmar $
+% $Id: cfg_util.m 3786 2010-03-19 11:29:01Z volkmar $
 
-rev = '$Rev: 3785 $';
+rev = '$Rev: 3786 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -436,6 +442,9 @@ switch lower(cmd),
                 jobs(varargin{1}).cjrun = [];
             end
         end
+    case 'dumpcfg',
+        p = fileparts(mfilename('fullpath'));
+        save(fullfile(p,'private','cfg_mlbatch.mat'),'c0');
     case 'filljob',
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)
@@ -592,7 +601,6 @@ switch lower(cmd),
         varargout{2} = val;
     case 'initcfg',
         [c0 jobs cjob] = local_initcfg;
-        local_initapps;
     case 'initdef',
         [cm id] = local_getcm(c0, varargin{1});
         cm = local_initdef(cm, varargin{2});
@@ -1214,47 +1222,54 @@ end
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function local_initapps
-% add application data
-appcfgs = which('cfg_mlbatch_appcfg','-all');
-cwd = pwd;
-dirs = cell(size(appcfgs));
-for k = 1:numel(appcfgs)
-    % cd into directory containing config file
-    [p n e v] = fileparts(appcfgs{k});
-    local_cd(p);
-    % try to work around MATLAB bug in symlink handling
-    % only add application if this directory has not been visited yet
-    dirs{k} = pwd;
-    if ~any(strcmp(dirs{k}, dirs(1:k-1)))
-        try
-            [cfg def] = feval('cfg_mlbatch_appcfg');
-            ests = true;
-        catch
-            ests = false;
-            estr = cfg_disp_error(lasterror);
-            cfg_message('matlabbatch:cfg_util:eval_appcfg', ...
-                        'Failed to load %s', which('cfg_mlbatch_appcfg'));
-            cfg_message('matlabbatch:cfg_util:eval_appcfg', '%s\n', estr{:});
-        end
-        if ests
-            cfg_util('addapp', cfg, def);
-        end
-    end
-end
-local_cd(cwd);
-%-----------------------------------------------------------------------
-
-%-----------------------------------------------------------------------
 function [c0, jobs, cjob] = local_initcfg
 % initial config
-c0   = cfg_mlbatch_root;
+if isdeployed
+    try
+        p = fileparts(mfilename('fullpath'));
+        tmp = load(fullfile(p,'private','cfg_mlbatch.mat'));
+        c0 = tmp.c0;
+    catch
+        c0 = cfg_mlbatch_root;
+    end
+else
+    c0   = cfg_mlbatch_root;
+    % add application data
+    appcfgs = which('cfg_mlbatch_appcfg','-all');
+    cwd = pwd;
+    dirs = cell(size(appcfgs));
+    for k = 1:numel(appcfgs)
+        % cd into directory containing config file
+        [p n e v] = fileparts(appcfgs{k});
+        local_cd(p);
+        % try to work around MATLAB bug in symlink handling
+        % only add application if this directory has not been visited yet
+        dirs{k} = pwd;
+        if ~any(strcmp(dirs{k}, dirs(1:k-1)))
+            try
+                [cfg def] = feval('cfg_mlbatch_appcfg');
+                ests = true;
+            catch
+                ests = false;
+                estr = cfg_disp_error(lasterror);
+                cfg_message('matlabbatch:cfg_util:eval_appcfg', ...
+                    'Failed to load %s', which('cfg_mlbatch_appcfg'));
+                cfg_message('matlabbatch:cfg_util:eval_appcfg', '%s\n', estr{:});
+            end
+            if ests
+                c0 = local_addapp(c0, [], cfg, def);
+            end
+        end
+    end
+    local_cd(cwd);
+end
 cjob = 1;
 jobs(cjob).cj        = c0;
 jobs(cjob).c0        = c0;
 jobs(cjob).cjid2subs = {};
 jobs(cjob).cjrun     = [];
 jobs(cjob).cjid2subsrun = {};
+
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

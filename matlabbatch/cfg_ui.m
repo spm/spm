@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3785 2010-03-17 15:53:42Z volkmar $
+% $Id: cfg_ui.m 3786 2010-03-19 11:29:01Z volkmar $
 
-rev = '$Rev: 3785 $'; %#ok
+rev = '$Rev: 3786 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1200,7 +1200,9 @@ try
     cfg_util('genscript', udmodlist.cjob, pth, [n e]);
     udmodlist.modified = false;
     set(handles.modlist,'userdata',udmodlist);
-    edit(fullfile(pth, [n e]));
+    if ~isdeployed
+        edit(fullfile(pth, [n e]));
+    end
 catch
     l = lasterror;
     errordlg(l.message,'Error generating job script', 'modal');
