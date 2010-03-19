@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3780 2010-03-15 17:15:00Z guillaume $
+% $Id: spm_eeg_invert.m 3791 2010-03-19 17:52:12Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -265,64 +265,54 @@ end
 % Spatial projectors (adjusting for different Lead-fields)
 %==========================================================================
 
-fprintf('Optimising spatial modes ...\n')
+fprintf('Optimising and aligning spatial modes ...\n')
 
-% define a reduced source space using the 'heat kernels' QG
+% Use recursive (regularised) least squares to find average lead-field
 %--------------------------------------------------------------------------
-if Nl > 1
-    Ng = 512;
-    Ig = ceil((1:Ng)*Nd/Ng);
-    G  = spm_svd(QG(:,Ig),0);
-end
 Is    = 1:Nd;
+
 for m = 1:Nmod
+     
+    % Initialise average lead-field with singular vectors of L{r}
+    %----------------------------------------------------------------------
+    [n r] = max(Nc(:,m));
+    L     = R{r,m}*spm_eeg_lgainmat(D{r},Is,D{r}.chanlabels(Ic{r,m}));
+    U     = spm_svd(L*L',0);
+    Nm(m) = min(min(Nc(:,m)),Nmmax);
+    UL{m} = U(:,1:Nm(m))'*L;
     
-    if Nl > 1
+    % Optimise alignment matrices A such that A{m}*L{m} = <A{m}*L{m}>m
+    %---------------------------------------------------------------------- 
+    for j = 1:8
         
-        % Get average precision (P) in source-space over subjects
+        % normalise lead-field
         %------------------------------------------------------------------
-        P   = zeros(Ng,Ng);
+        Lscale = sqrt(trace(UL{m}*UL{m}')/Nm(m));
+        UL{m}  = UL{m}/Lscale;
         
-        % Assuming i.i.d. prior covariance on sources
+        % spatial projectors A{i,m) for i = 1,...,Nl subjects
         %------------------------------------------------------------------
+        AL    = 0;
         for i = 1:Nl
-            L = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}))*G;
-            P = P + L'*L;
+            L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
+            L0     = eye(size(L,1))*norm(L,1)*exp(-16);
+            A{i,m} = UL{m}*L'/(L*L' + L0);
+            AL     = AL + A{i,m}*L;
         end
         
-        % Assume the eigenvectors of P are the 'average' lead field UL{m}
+        % re-compute average
         %------------------------------------------------------------------
-        [U E] = spm_svd(P,0);
-        U     = U*sqrt(E);
-        Nm(m) = min(min(Nc(:,m)),Nmmax);
-        UL{m} = U(:,1:Nm(m))'*G';
-        
-    else
-        % simply use singualr vectors
-        %------------------------------------------------------------------
-        L     = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        U     = spm_svd(L*L',0);
-        Nm(m) = min(min(Nc(:,m)),Nmmax);
-        UL{m} = U(:,1:Nm(m))'*L;
+        dUL   = norm(AL/Nl - UL{m},1)/norm(AL,1);
+        UL{m} = AL/Nl;
+        if dUL < 1e-2
+            break
+        end
     end
- 
-    % Normalise lead-field
-    %----------------------------------------------------------------------
-    UL{m} = UL{m}/sqrt(trace(UL{m}*UL{m}')/Nm(m));
- 
-    % Spatial projectors A{i,m) for i = 1,...,Nl subjects
-    %----------------------------------------------------------------------
-    for i = 1:Nl
-        L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        [U,E]  = spm_svd(L*L',exp(-16));
-        E      = diag(E);
-        L0     = eye(size(L,1))*E(end); 
-        A{i,m} = UL{m}*L'/(L*L' + L0);
-    end
-
+    
     % Report
     %----------------------------------------------------------------------
     fprintf('Using %d spatial modes for modality %s\n',Nm(m),modalities{m})
+    
 end
 
 
@@ -524,7 +514,8 @@ for i = 1:Nl
     end
     for m = 1:Nmod
         Q         = N;
-        Q{m,m}    = A{i,m}*QE{i,m}*A{i,m}';
+        AQeA      = A{i,m}*QE{i,m}*A{i,m}';
+        Q{m,m}    = AQeA/(trace(AQeA)/Nm(m));
         Qe{m}     = Qe{m}  + spm_cat(Q);
         AQe{1}    = AQe{1} + Qe{m};
     end
@@ -546,6 +537,7 @@ switch(type)
  
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
+        q0    = exp(-8);
         Qp    = {};
         LQpL  = {};
         Ip    = ceil([1:Np]*Ns/Np);
@@ -553,7 +545,7 @@ switch(type)
  
             % left hemisphere
             %--------------------------------------------------------------
-            q               = QG(:,Ip(i));
+            q               = QG(:,Ip(i)) + q0;
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
  
@@ -562,13 +554,13 @@ switch(type)
             [d j] = min(sum([vert(:,1) + vert(Ip(i),1), ...
                              vert(:,2) - vert(Ip(i),2), ...
                              vert(:,3) - vert(Ip(i),3)].^2,2));
-            q               = QG(:,j);
+            q               = QG(:,j) + q0;
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
  
             % bilateral
             %--------------------------------------------------------------
-            q               = QG(:,Ip(i)) + QG(:,j);
+            q               = QG(:,Ip(i)) + QG(:,j) + q0;
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
  
@@ -741,7 +733,8 @@ for i = 1:Nl
     end
     for m = 1:Nmod
         Q         = N;
-        Q{m,m}    = A{i,m}*QE{i,m}*A{i,m}';
+        AQeA      = A{i,m}*QE{i,m}*A{i,m}';
+        Q{m,m}    = AQeA/(trace(AQeA)/Nm(m));
         Qe{m}     = spm_cat(Q);
     end
     
@@ -753,15 +746,15 @@ for i = 1:Nl
  
     % re-do ReML
     %----------------------------------------------------------------------
-    [Cy,h,Ph,F] = spm_reml_sc(UYYU{i},[],Q,Nn(i));
+    [Cy,h,Ph,F] = spm_reml(UYYU{i},[],Q,Nn(i));
  
     % Data ID
-    %==========================================================================
+    %======================================================================
     ID  = spm_data_id(UYYU{i});
  
  
     % Covariance: sensor space - Ce and source space - L*Cp
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Cp    = sparse(0);
     LCp   = sparse(0);
     hp    = h([1:Np] + Ne);
@@ -772,14 +765,13 @@ for i = 1:Nl
  
     % MAP estimates of instantaneous sources
     %======================================================================
-    iC    = inv(Cy);
-    M     = LCp'*iC;
+    M     = LCp'/Cy;
  
     % conditional variance (leading diagonal)
     % Cq    = Cp - Cp*L'*iC*L*Cp;
     %----------------------------------------------------------------------
     Cq    = Cp - sum(LCp.*M')';
- 
+    
     % evaluate conditional expectation (of the sum over trials)
     %----------------------------------------------------------------------
     SSR   = 0;

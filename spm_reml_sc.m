@@ -21,7 +21,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Fa  - accuracy
 % Fc  - complexity (F = Fa - Fc)
 %
-% k   - number of iterations required
+% K   - maxmimum number of iterations (default 64)
 %
 % Performs a Fisher-Scoring ascent on F to find MAP variance parameter
 % estimates.  NB: uses weakly informative log-normal hyperpriors.
@@ -40,7 +40,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 3264 2009-07-10 14:01:31Z karl $
+% $Id: spm_reml_sc.m 3791 2010-03-19 17:52:12Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ for k = 1:K
     for i = as
         C = C + Q{i}*exp(h(i));
     end
-    iC    = inv(C + speye(n,n)/exp(32));
+    iC    = spm_inv(C);
  
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
@@ -201,11 +201,11 @@ if nargout > 3
  
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
     %----------------------------------------------------------------------
-    Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
+    Ft = trace(hP/Ph) - length(Ph) - length(Cq);
  
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
-    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph/hP)/2 - N*spm_logdet(Cq)/2;
  
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------

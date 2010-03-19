@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 3790 2010-03-19 17:23:14Z vladimir $
+% $Id: spm_dcm_ind_data.m 3791 2010-03-19 17:52:12Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -85,23 +85,21 @@ end
 
 if  ~isfield(DCM.xY, 'Ic')
     Ic        = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
-    DCM.xY.Ic       = Ic;
+    DCM.xY.Ic = Ic;
 end
-
-Ic = DCM.xY.Ic;
-
-Nc              = length(DCM.xY.Ic);
+Ic   = DCM.xY.Ic;
+Nc   = length(DCM.xY.Ic);
 
 % options
 %--------------------------------------------------------------------------
 try
-    Nm    = DCM.options.Nmodes;
+    Nm = DCM.options.Nmodes;
 catch
     errordlg('Please specify number of frequency modes');
     error('')
 end
 try
-    h     = DCM.options.h;
+    h  = DCM.options.h;
 catch
     errordlg('Please number of DCT components');
     error('')
@@ -153,7 +151,7 @@ try
     Is          = [1:Ns]';                   % indices - samples
     DCM.xY.pst  = DCM.xY.Time(It);           % PST
     DCM.xY.It   = It;                        % Indices of time bins
-    DCM.xY.dt   = DT/D.fsample;                 % sampling in seconds
+    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
     Nb          = length(It);                % number of bins
 
 catch
@@ -182,7 +180,7 @@ if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
 %--------------------------------------------------------------------------
 DCM.xY.Hz  = Hz1:HzD:Hz2;              % Frequencies
 DCM.xY.Nm  = Nm;                       % number of frequency modes
-dt         = 1000/D.fsample;            % sampling interval (ms)
+dt         = 1000/D.fsample;           % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 Nr         = size(DCM.C,1);            % number of sources
 Ne         = length(trial);            % number of ERPs
@@ -285,7 +283,7 @@ for i = 1:Ne;
 
     % Get data: log(spectral magnitude)
     %----------------------------------------------------------------------
-    Ny    = Nb*Nr*Ng;
+    Ny    = Nb*Ng*Nr;
     Y     = zeros(Ny*Nf,Nt);
     for j = 1:Nf
         f     = [1:Ny] + (j - 1)*Ny;
@@ -301,7 +299,7 @@ for i = 1:Ne;
     u     = spm_svd(Y'*Y);
     u     = full(u(:,1)*sign(max(u(:,1))));
     Y     = reshape(Y*u,Nb,Ng,Nr,Nf);
- 
+
     % sum time-frequency response over moments and remove baseline
     %----------------------------------------------------------------------
     for j = 1:Nr

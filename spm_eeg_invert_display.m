@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 3776 2010-03-11 20:12:09Z karl $
+% $Id: spm_eeg_invert_display.m 3791 2010-03-19 17:52:12Z karl $
  
 % Number of dipoles to display
 %==========================================================================
@@ -127,8 +127,8 @@ else
 end
 Jt    = J(js,:);                     % over time
 Js    = J(:,jt);                     % over sources
-PST   = fix(pst(jt));
-XYZ   = fix(vert(Is(js),:));
+PST   = round(pst(jt));
+XYZ   = round(vert(Is(js),:));
 Jmax  = abs(sparse(Is,1,Js,Nd,1));
  
 % plot responses over time

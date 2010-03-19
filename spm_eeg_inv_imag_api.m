@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 3679 2010-01-14 10:49:35Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 3791 2010-03-19 17:52:12Z karl $
 
 spm('Clear');
 
@@ -161,7 +161,7 @@ function new_Callback(hObject, eventdata, handles)
 D  = handles.D;
 if ~isfield(D,'inv')
     val   = 1;
-elseif ~length(D.inv)
+elseif isempty(D.inv)
     val   = 1;
 else
     val        = length(D.inv) + 1;

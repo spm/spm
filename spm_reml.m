@@ -35,7 +35,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_reml.m 3791 2010-03-19 17:52:12Z karl $
  
  
 % check defaults
@@ -93,7 +93,7 @@ for k = 1:K
     % positive [semi]-definite check
     %----------------------------------------------------------------------
     for i = 1:D
-        if min(eig(C)) < 0
+        if min(real(eig(full(C)))) < 0
 
             % increase regularisation and re-evaluate C
             %--------------------------------------------------------------
