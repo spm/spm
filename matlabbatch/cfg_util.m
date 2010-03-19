@@ -60,12 +60,6 @@ function varargout = cfg_util(cmd, varargin)
 %
 % Delete job with job_id from the job list. 
 %
-%  cfg_util('dumpcfg')
-%
-% Save current configuration to 'private/cfg_mlbatch.mat' in the
-% matlabbatch folder. This configuration will be used to run matlabbatch in
-% a compiled version of the application.
-%
 %  sts = cfg_util('filljob', job_id, input1, ..., inputN)
 %  sts = cfg_util('filljobui', job_id, ui_fcn, input1, ..., inputN)
 %
@@ -379,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3786 2010-03-19 11:29:01Z volkmar $
+% $Id: cfg_util.m 3788 2010-03-19 15:58:33Z volkmar $
 
-rev = '$Rev: 3786 $';
+rev = '$Rev: 3788 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -442,9 +436,23 @@ switch lower(cmd),
                 jobs(varargin{1}).cjrun = [];
             end
         end
-    case 'dumpcfg',
+    case 'dumpcfg'
+        %-Locate batch configs and copy them
+        apps = which('cfg_mlbatch_appcfg','-all');
+        appcfgs = cell(size(apps));
         p = fileparts(mfilename('fullpath'));
-        save(fullfile(p,'private','cfg_mlbatch.mat'),'c0');
+        for k = 1:numel(apps)
+            appcfgs{k}   = fullfile(p,'private',sprintf('cfg_mlbatch_appcfg_%d.m',k));
+            copyfile(apps{k}, appcfgs{k});
+        end
+        cmaster = fullfile(p, 'private', 'cfg_mlbatch_appcfg_master.m');
+        fid     = fopen(cmaster,'w');
+        fprintf(fid,'function cfg_mlbatch_appcfg_master\n');
+        for k = 1:numel(apps)
+            fprintf(fid,'[cfg, def] = cfg_mlbatch_appcfg_%d;\n', k);
+            fprintf(fid,'cfg_util(''addapp'', cfg, def);\n');
+        end
+        fclose(fid);
     case 'filljob',
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)
@@ -601,6 +609,7 @@ switch lower(cmd),
         varargout{2} = val;
     case 'initcfg',
         [c0 jobs cjob] = local_initcfg;
+        local_initapps;
     case 'initdef',
         [cm id] = local_getcm(c0, varargin{1});
         cm = local_initdef(cm, varargin{2});
@@ -1222,19 +1231,11 @@ end
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [c0, jobs, cjob] = local_initcfg
-% initial config
+function local_initapps
+% add application data
 if isdeployed
-    try
-        p = fileparts(mfilename('fullpath'));
-        tmp = load(fullfile(p,'private','cfg_mlbatch.mat'));
-        c0 = tmp.c0;
-    catch
-        c0 = cfg_mlbatch_root;
-    end
+    cfg_mlbatch_appcfg_master;
 else
-    c0   = cfg_mlbatch_root;
-    % add application data
     appcfgs = which('cfg_mlbatch_appcfg','-all');
     cwd = pwd;
     dirs = cell(size(appcfgs));
@@ -1257,19 +1258,24 @@ else
                 cfg_message('matlabbatch:cfg_util:eval_appcfg', '%s\n', estr{:});
             end
             if ests
-                c0 = local_addapp(c0, [], cfg, def);
+                cfg_util('addapp', cfg, def);
             end
         end
     end
     local_cd(cwd);
 end
+%-----------------------------------------------------------------------
+
+%-----------------------------------------------------------------------
+function [c0, jobs, cjob] = local_initcfg
+% initial config
+c0   = cfg_mlbatch_root;
 cjob = 1;
 jobs(cjob).cj        = c0;
 jobs(cjob).c0        = c0;
 jobs(cjob).cjid2subs = {};
 jobs(cjob).cjrun     = [];
 jobs(cjob).cjid2subsrun = {};
-
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

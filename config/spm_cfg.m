@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 3750 2010-03-04 18:41:08Z guillaume $
+% $Id: spm_cfg.m 3788 2010-03-19 15:58:33Z volkmar $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -85,7 +85,9 @@ tools.help    = {'Other tools', ...
                  ['See spm_cfg.m or MATLABBATCH documentation ' ...
                   'for information about the form of SPM''s configuration ' ...
                   'files.']};
-if ~isdeployed
+if isdeployed
+    tools.values = spm_cfg_static_tools;
+else
     %-Toolbox autodetection
     % In compiled mode, cfg_master will take care of this
     % Disable warnings when converting SPM5 toolboxes - set this to 'on' to
