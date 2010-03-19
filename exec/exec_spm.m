@@ -1,12 +1,15 @@
 function exec_spm(varargin)
-% A function to be compiled, which will run SPM.
+% A function to be compiled, which will run a standalone SPM.
 %
 % See http://www.mathworks.com/products/compiler/
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: exec_spm.m 3756 2010-03-05 18:43:37Z guillaume $ 
+% $Id: exec_spm.m 3789 2010-03-19 17:05:36Z guillaume $ 
+
+[v,r] = spm('Ver');
+fprintf('%s (%s): %s\n',v,r,spm('Dir'));
 
 if nargin && strcmpi(varargin{1},'run')
     spm('asciiwelcome');

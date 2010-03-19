@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3772 2010-03-10 12:59:15Z guillaume $
+% $Id: spm.m 3789 2010-03-19 17:05:36Z guillaume $
 
 
 %=======================================================================
@@ -299,12 +299,6 @@ defaults = spm('GetGlobal','defaults');
 if isfield(defaults,'modality')
     spm(defaults.modality);
     return
-end
-if isdeployed
-    [v,r] = spm('Ver');
-    fprintf('SPM dir:  %s\n',spm('Dir'));
-    fprintf('CTF root: %s\n',ctfroot);
-    fprintf('SPM version: %s (%s)\n',v,r);
 end
 
 %-Open startup window, set window defaults
