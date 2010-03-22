@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 3567 2009-11-13 14:55:48Z volkmar $
+% $Id: cfg_confgui.m 3794 2010-03-22 15:23:17Z volkmar $
 
-rev = '$Rev: 3567 $'; %#ok
+rev = '$Rev: 3794 $'; %#ok
 
 %% Declaration of fields
 
@@ -639,11 +639,13 @@ if varargin{1}.gencode_opts.gencode_o_mlb
         '%% Created at %s.\n\n'], ...
         out.c0.name, out.c0.name, n, datestr(now, 31));
 
-    fprintf(fid, '%% Get path to this file and add it to MATLAB path.\n');
-    fprintf(fid, ['%% If the configuration file is stored in another place, the ' ...
+    fprintf(fid, 'if ~isdeployed\n');
+    fprintf(fid, '    %% Get path to this file and add it to MATLAB path.\n');
+    fprintf(fid, ['    %% If the configuration file is stored in another place, the ' ...
         'path must be adjusted here.\n']);
-    fprintf(fid, 'p = fileparts(mfilename(''fullpath''));\n');
-    fprintf(fid, 'addpath(p);\n');
+    fprintf(fid, '    p = fileparts(mfilename(''fullpath''));\n');
+    fprintf(fid, '    addpath(p);\n');
+    fprintf(fid, 'end\n');
     fprintf(fid, '%% run configuration main & def function, return output\n');
     fprintf(fid, 'cfg = %s;\n', n);
     if varargin{1}.gencode_opts.gencode_o_def
