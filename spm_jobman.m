@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3787 2010-03-19 11:29:43Z volkmar $
+% $Id: spm_jobman.m 3793 2010-03-22 13:14:45Z volkmar $
 
 
 if nargin==0
@@ -354,46 +354,44 @@ for cf = 1:numel(filenames)
                 try
                     loadxml(filenames{cf},'matlabbatch');
                 catch
-                    warning('LoadXML failed: ''%s''',filenames{cf});
+                    warning('spm:spm_jobman:LoadFailed','LoadXML failed: ''%s''',filenames{cf});
                 end;
             end;
             spm('Pointer');
         case '.mat'
             try
                 S=load(filenames{cf});
-                jobs = S.jobs;
-            catch
-                try
+                if isfield(S,'matlabbatch')
                     matlabbatch = S.matlabbatch;
-                catch
-                    warning('Load failed: ''%s''',filenames{cf});
-                end;
+                elseif isfield(S,'jobs')
+                    jobs = S.jobs;
+                else
+                    warning('spm:spm_jobman:JobNotFound','No SPM5/SPM8 job found in ''%s''', filenames{cf});
+                end
+            catch
+                warning('spm:spm_jobman:LoadFailed','Load failed: ''%s''',filenames{cf});
             end;
         case '.m'
-            opwd = pwd;
             try
-                if ~isempty(p)
-                    cd(p);
-                end;
-                eval(nam);
+                fid = fopen(filenames{cf},'rt');
+                str = fread(fid,'*char');
+                fclose(fid);
+                eval(str);
             catch
-                warning('Eval failed: ''%s''',filenames{cf});
+                warning('spm:spm_jobman:LoadFailed','Load failed: ''%s''',filenames{cf});
             end;
-            cd(opwd);
             if ~(exist('jobs','var') || exist('matlabbatch','var'))
-                warning('No SPM5/SPM8 job found in ''%s''', filenames{cf});
+                warning('spm:spm_jobman:JobNotFound','No SPM5/SPM8 job found in ''%s''', filenames{cf});
             end;
         otherwise
             warning('Unknown extension: ''%s''', filenames{cf});
     end;
     if exist('jobs','var')
-        newjobs = {newjobs{:} jobs};
+        newjobs = [newjobs(:) {jobs}];
         clear jobs;
     elseif exist('matlabbatch','var')
-        newjobs = {newjobs{:} matlabbatch};
-        clear jobs;
-    else
-        newjobs = {newjobs{:} {}};
+        newjobs = [newjobs(:) {matlabbatch}];
+        clear matlabbatch;
     end;
 end;
 return;
