@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 3785 2010-03-17 15:53:42Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 3792 2010-03-22 13:11:36Z volkmar $
 
-rev = '$Rev: 3785 $'; %#ok
+rev = '$Rev: 3792 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
@@ -69,6 +69,9 @@ cfg_defaults.msgcfg(1).level       = 'error';
 cfg_defaults.msgcfg(2)             = cfg_defaults.msgdef;
 cfg_defaults.msgcfg(2).identifier  = 'matlabbatch:cfg_util:addapp:done';
 cfg_defaults.msgcfg(2).destination = 'none';
+cfg_defaults.msgcfg(3)             = cfg_defaults.msgdef;
+cfg_defaults.msgcfg(3).identifier  = 'matlabbatch:initialise:invalid';
+cfg_defaults.msgcfg(3).level       = 'error';
 
 cfg_defaults.msgtpl( 1)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl( 1).identifier  = '^matlabbatch:subsasgn';

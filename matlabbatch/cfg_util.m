@@ -373,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3788 2010-03-19 15:58:33Z volkmar $
+% $Id: cfg_util.m 3792 2010-03-22 13:11:36Z volkmar $
 
-rev = '$Rev: 3788 $';
+rev = '$Rev: 3792 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -620,8 +620,8 @@ switch lower(cmd),
         else
             cjob = numel(jobs)+1;
         end
-        jobs(cjob).c0 = c0;
         if nargin == 1
+            jobs(cjob).c0 = c0;
             jobs(cjob).cj = jobs(cjob).c0;
             jobs(cjob).cjid2subs = {};
             jobs(cjob).cjrun = [];
@@ -631,16 +631,27 @@ switch lower(cmd),
             return;
         elseif ischar(varargin{1}) || iscellstr(varargin{1})
             job = cfg_load_jobs(varargin{1});
-        elseif iscell(varargin{1}{1})
+        elseif iscell(varargin{1}) && iscell(varargin{1}{1})
             % try to initialise cell array of jobs
             job = varargin{1};
         else
             % try to initialise single job
             job{1} = varargin{1};
         end
-        [jobs(cjob) mod_job_idlist] = local_initjob(jobs(cjob), job);
-        varargout{1} = cjob;
-        varargout{2} = mod_job_idlist;
+        % job should be a cell array of job structures
+        isjob = true(size(job));
+        for k = 1:numel(job)
+            isjob(k) = iscell(job{k}) && all(cellfun('isclass', job{k}, 'struct'));
+        end
+        job = job(isjob);
+        if isempty(job)
+            cfg_message('matlabbatch:initialise:invalid','No valid job.');
+        else
+            jobs(cjob).c0 = c0;
+            [jobs(cjob) mod_job_idlist] = local_initjob(jobs(cjob), job);
+            varargout{1} = cjob;
+            varargout{2} = mod_job_idlist;
+        end
     case 'isitem_mod_id'
         varargout{1} = isempty(varargin{1}) || ...
             (isstruct(varargin{1}) && ...

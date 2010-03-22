@@ -20,9 +20,9 @@ function dep = subsasgn(dep, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn.m 3792 2010-03-22 13:11:36Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 3792 $'; %#ok
 
 %% One-level subscripts
 %--------------------------------------------------------------------------
@@ -61,7 +61,9 @@ if numel(subs) == 1
                                 end
                             end
                         case subs_fields(dep),
-                            if ~(isstruct(varargin{k}) && isfield(varargin{k},'type') && isfield(varargin{k},'subs'))
+                            if isempty(varargin{k})
+                                varargin{k} = struct('type',{}, 'subs',{});
+                            elseif ~(isstruct(varargin{k}) && isfield(varargin{k},'type') && isfield(varargin{k},'subs'))
                                 cfg_message('matlabbatch:subsasgn:subs', ['Value for field ''%s'' must be a struct with' ...
                                     ' fields ''type'' and ''subs''.'], subs(1).subs);
                                 ok = false;
