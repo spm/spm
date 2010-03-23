@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3786 2010-03-19 11:29:01Z volkmar $
+% $Id: cfg_ui.m 3795 2010-03-23 08:12:16Z volkmar $
 
-rev = '$Rev: 3786 $'; %#ok
+rev = '$Rev: 3795 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 08-Nov-2009 21:42:38
+% Last Modified by GUIDE v2.5 04-Mar-2010 16:09:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1046,7 +1046,7 @@ fs = cfg_get_defaults([mfilename '.lfont']);
 local_setfont(hObject, fs);
 
 % set ExpertEdit checkbox
-set(handles.MenuEditExpertEdit, ...
+set(handles.MenuViewExpertEdit, ...
     'checked',cfg_get_defaults([mfilename '.ExpertEdit']));
 
 % show job
@@ -1280,8 +1280,8 @@ function MenuEdit_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % --------------------------------------------------------------------
-function MenuEditUpdateView_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditUpdateView (see GCBO)
+function MenuViewUpdateView_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuViewUpdateView (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -1346,8 +1346,8 @@ function MenuEditValAddDep_Callback(hObject, eventdata, handles)
 local_valedit_AddDep(hObject);
 
 % --------------------------------------------------------------------
-function MenuEditExpertEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditExpertEdit (see GCBO)
+function MenuViewExpertEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuViewExpertEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -1570,15 +1570,15 @@ function valshowBtnCancel_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function MenuEditFontSize_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditFontSize (see GCBO)
+function MenuViewFontSize_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuViewFontSize (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 fs = uisetfont(cfg_get_defaults([mfilename '.lfont']));
 if isstruct(fs)
     local_setfont(hObject,fs);
-    MenuEditUpdateView_Callback(hObject, eventdata, handles);
+    MenuViewUpdateView_Callback(hObject, eventdata, handles);
 end;
 
 % --- Executes when cfg_ui is resized.
@@ -1588,7 +1588,7 @@ function cfg_ui_ResizeFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % this is just "Update View"
-MenuEditUpdateView_Callback(hObject, eventdata, handles);
+MenuViewUpdateView_Callback(hObject, eventdata, handles);
 
 % --------------------------------------------------------------------
 function local_setfont(obj,fs)
@@ -1643,3 +1643,30 @@ function CmValClearVal_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 local_valedit_ClearVal(hObject);
+
+
+% --------------------------------------------------------------------
+function MenuView_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuView (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function MenuViewShowCode_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuViewShowCode (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+udmodlist = get(handles.modlist, 'userdata');
+[un matlabbatch] = cfg_util('harvest', udmodlist.cjob);
+str = gencode(matlabbatch);
+fg  = findobj(0,'Type','figure','Tag',[mfilename 'ShowCode']);
+if isempty(fg)
+    fg   = figure('Menubar','none', 'Toolbar','none', 'Tag',[mfilename 'ShowCode'], 'Units','normalized', 'Name','Batch Code Browser', 'NumberTitle','off');
+    ctxt = uicontrol('Parent',fg, 'Style','listbox', 'Units','normalized', 'Position',[0 0 1 1], 'FontName','FixedWidth');
+else
+    figure(fg);
+    ctxt = get(fg,'children'); % no check whether ctxt is the right item
+end
+set(ctxt, 'Max',numel(str), 'String',str);

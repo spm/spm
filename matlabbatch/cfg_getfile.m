@@ -83,7 +83,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3785 2010-03-17 15:53:42Z volkmar $
+% $Id: cfg_getfile.m 3795 2010-03-23 08:12:16Z volkmar $
 
 t = {};
 sts = false;
@@ -947,8 +947,11 @@ return;
 
 %=======================================================================
 function [f,d] = listfiles(dr,filt)
-ob = gco;
-omsg = msg(ob,'Listing directory...');
+ob = sib(gco,'msg');
+domsg = ~isempty(ob);
+if domsg
+    omsg = msg(ob,'Listing directory...');
+end
 if nargin<2, filt = '';  end;
 if nargin<1, dr   = '.'; end;
 de      = dir(dr);
@@ -968,12 +971,16 @@ else
     f = {};
 end;
 
-msg(ob,['Filtering ' num2str(numel(f)) ' files...']);
+if domsg
+    msg(ob,['Filtering ' num2str(numel(f)) ' files...']);
+end
 f  = do_filter(f,filt.ext);
 f  = do_filter(f,filt.filt);
 ii = cell(1,numel(f));
 if filt.code==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
-    msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
+    if domsg
+        msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
+    end
     for i=1:numel(f),
         try
             ni = nifti(fullfile(dr,f{i}));
@@ -992,7 +999,9 @@ elseif filt.code==1 && (numel(filt.frames)==1 && filt.frames(1)==1),
     end;
 end;
 
-msg(ob,['Listing ' num2str(numel(f)) ' files...']);
+if domsg
+    msg(ob,['Listing ' num2str(numel(f)) ' files...']);
+end
 
 [f,ind] = sortrows(f(:));
 ii      = ii(ind);
@@ -1031,7 +1040,9 @@ elseif filt.code==-1,
 end;
 f        = f(:);
 d        = unique(d(:));
-msg(ob,omsg);
+if domsg
+    msg(ob,omsg);
+end
 return;
 %=======================================================================
 
