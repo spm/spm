@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_tf
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 3750 2010-03-04 18:41:08Z guillaume $
+% $Id: spm_cfg_eeg_tf.m 3798 2010-03-24 12:00:07Z vladimir $
 
-rev = '$Rev: 3750 $';
+rev = '$Rev: 3798 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -14,66 +14,6 @@ D.name = 'File Name';
 D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
-
-chanall = cfg_const;
-chanall.tag = 'type';
-chanall.name = 'All';
-chanall.val = {'all'};
-
-chan = cfg_entry;
-chan.tag = 'chan';
-chan.name = 'Custom channel';
-chan.strtype = 's';
-chan.num = [1 Inf];
-chan.help = {'Enter a single channel name.'};
-
-chanmeg = cfg_const;
-chanmeg.tag = 'type';
-chanmeg.name = 'MEG';
-chanmeg.val = {'MEG'};
-
-chanmegplanar = cfg_const;
-chanmegplanar.tag = 'type';
-chanmegplanar.name = 'MEGPLANAR';
-chanmegplanar.val = {'MEGPLANAR'};
-
-chaneeg = cfg_const;
-chaneeg.tag = 'type';
-chaneeg.name = 'EEG';
-chaneeg.val = {'EEG'};
-
-chaneog = cfg_const;
-chaneog.tag = 'type';
-chaneog.name = 'EOG';
-chaneog.val = {'EOG'};
-
-chanecg = cfg_const;
-chanecg.tag = 'type';
-chanecg.name = 'ECG';
-chanecg.val = {'ECG'};
-
-chanemg = cfg_const;
-chanemg.tag = 'type';
-chanemg.name = 'EMG';
-chanemg.val = {'EMG'};
-
-chanlfp = cfg_const;
-chanlfp.tag = 'type';
-chanlfp.name = 'LFP';
-chanlfp.val = {'LFP'};
-
-chanfile = cfg_files;
-chanfile.tag = 'file';
-chanfile.name = 'Channel file';
-chanfile.filter = 'mat';
-chanfile.num = [1 1];
-
-channels = cfg_repeat;
-channels.tag = 'channels';
-channels.name = 'Channel selection';
-channels.values = {chanall, chan, chanmeg, chanmegplanar, chaneeg, chaneog, chanecg, chanemg, chanlfp, chanfile};
-channels.num = [1 Inf];
-channels.val = {chanall};
 
 timewin = cfg_entry;
 timewin.tag = 'timewin';
@@ -112,7 +52,7 @@ end
 S = cfg_exbranch;
 S.tag = 'tf_analysis';
 S.name = 'M/EEG Time-Frequency analysis';
-S.val = {D, channels, frequencies, timewin, method, phase};
+S.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase};
 S.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
 S.prog = @eeg_tf;
 S.vout = @vout_eeg_tf;
@@ -124,16 +64,7 @@ function out = eeg_tf(job)
 S   = [];
 S.D = job.D{1};
 
-S.channels = {};
-for i = 1:numel(job.channels)
-    if isfield(job.channels{i}, 'type')
-        S.channels{i} = job.channels{i}.type;
-    elseif isfield(job.channels{i}, 'chan')
-        S.channels{i} = job.channels{i}.chan;
-    else
-        S.channels = [S.channels getfield(load(job.channels{i}.file{1}), 'label')];
-    end
-end
+S.channels = spm_cfg_eeg_channel_selector(job.channels);
 
 S.frequencies = job.frequencies;
 S.timewin = job.timewin;

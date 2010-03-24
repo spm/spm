@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 3384 2009-09-10 18:36:56Z vladimir $
+% $Id: spm_eeg_artefact.m 3798 2010-03-24 12:00:07Z vladimir $
 
-SVNrev = '$Rev: 3384 $';
+SVNrev = '$Rev: 3798 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -86,24 +86,7 @@ D = spm_eeg_copy(S1);
 bad = zeros(D.nchannels, D.ntrials);
 
 for i = 1:numel(S.methods)
-    if iscell(S.methods(i).channels)
-        chanind = indchannel(D, S.methods(i).channels);
-    else
-        switch upper(S.methods(i).channels)
-            case 'ALL'
-                chanind = 1:D.nchannels;
-            case 'EOG'
-                chanind = eogchannels(D);
-            case 'ECG'
-                chanind = ecgchannels(D);
-            case 'EMG'
-                chanind = emgchannels(D);
-            otherwise
-                chanind = meegchannels(D, S.methods(i).channels);
-        end
-    end
-
-    chanind = setdiff(chanind, D.badchannels);
+    chanind = setdiff(D.selectchannels(S.methods(i).channels), D.badchannels);
     
     if ~isempty(chanind)
         S1 =  S.methods(i).settings;

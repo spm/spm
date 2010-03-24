@@ -42,9 +42,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_eeg_tf.m 3798 2010-03-24 12:00:07Z vladimir $
 
-SVNrev = '$Rev: 3742 $';
+SVNrev = '$Rev: 3798 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -81,31 +81,7 @@ if ~isfield(S, 'channels')
     S.channels = 'all';
 end
 
-channels = S.channels;
-
-if ~iscell(channels)
-    channels = {channels};
-end
-
-chanind = [];
-for i = 1:numel(channels)
-    switch upper(channels{i})
-        case 'ALL'
-            chanind = [chanind 1:D.nchannels];
-        case 'EOG'
-            chanind = [chanind eogchannels(D)];
-        case 'ECG'
-            chanind = [chanind ecgchannels(D)];
-        case 'EMG'
-            chanind = [chanind emgchannels(D)];
-        case {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'REF', 'REFMAG', 'REFGRAD', 'LFP'}
-            chanind = [chanind meegchannels(D, upper(channels{i}))];
-        otherwise
-            chanind = [chanind indchannel(D, channels{i})];
-    end
-end
-
-chanind = unique(chanind);
+chanind = D.selectchannels(S.channels);
 
 if isempty(chanind)
     error('No channels selected.');
