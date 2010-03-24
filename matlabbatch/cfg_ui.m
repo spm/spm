@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3795 2010-03-23 08:12:16Z volkmar $
+% $Id: cfg_ui.m 3797 2010-03-24 08:29:17Z volkmar $
 
-rev = '$Rev: 3795 $'; %#ok
+rev = '$Rev: 3797 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1664,9 +1664,25 @@ str = gencode(matlabbatch);
 fg  = findobj(0,'Type','figure','Tag',[mfilename 'ShowCode']);
 if isempty(fg)
     fg   = figure('Menubar','none', 'Toolbar','none', 'Tag',[mfilename 'ShowCode'], 'Units','normalized', 'Name','Batch Code Browser', 'NumberTitle','off');
-    ctxt = uicontrol('Parent',fg, 'Style','listbox', 'Units','normalized', 'Position',[0 0 1 1], 'FontName','FixedWidth');
+    ctxt = uicontrol('Parent',fg, 'Style','listbox', 'Units','normalized', 'Position',[0 0 1 1], 'FontName','FixedWidth','Tag',[mfilename 'ShowCodeList']);
 else
     figure(fg);
-    ctxt = get(fg,'children'); % no check whether ctxt is the right item
+    ctxt = findobj(fg,'Tag',[mfilename 'ShowCodeList']); 
 end
-set(ctxt, 'Max',numel(str), 'String',str);
+um = uicontextmenu;
+um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
+um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
+um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
+set(ctxt, 'Max',numel(str), 'String',str, 'UIContextMenu',um);
+
+function ShowCode_Copy(ob, ev, ctxt)
+str = get(ctxt,'String');
+sel = get(ctxt,'Value');
+str = str(sel);
+clipboard('copy',sprintf('%s\n',str{:}));
+
+function ShowCode_SelAll(ob, ev, ctxt)
+set(ctxt,'Value', 1:numel(get(ctxt, 'String')));
+
+function ShowCode_UnSelAll(ob, ev, ctxt)
+set(ctxt,'Value', []);
