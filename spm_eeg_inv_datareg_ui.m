@@ -16,13 +16,16 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 3799 2010-03-24 16:51:49Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
 [Finter, Fgraph] = spm('FnUIsetup','MEEG/MRI coregistration', 0);
 
 [D,val] = spm_eeg_inv_check(varargin{:});
+
+mrifid = D.inv{val}.mesh.fid;
+mrilbl = mrifid.fid.label;
 
 if nargin>=3
     meegfid = varargin{3};
@@ -51,10 +54,6 @@ meeglbl = meegfid.fid.label;
 if numel(meeglbl)<3
     error('At least 3 M/EEG fiducials are required for coregistration');
 end
-
-mrifid = D.inv{val}.mesh.fid;
-mrilbl = mrifid.fid.label;
-
 
 if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
     S =[];
