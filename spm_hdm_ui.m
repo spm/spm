@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 3666 2010-01-10 17:54:31Z klaas $
+% $Id: spm_hdm_ui.m 3800 2010-03-24 18:40:18Z guillaume $
 
 
 % get figure handles
@@ -59,40 +59,35 @@ end
 
 % echo time (TE) of data acquisition
 %-------------------------------------------------------------------
-TE    = 0;
+TE    = 0.04;
 TE_ok = 0;
 while ~TE_ok
-    TE = spm_input('Echo time, TE [s]');
+    TE = spm_input('Echo time, TE [s]', '+1', 'r', TE);
     if ~TE | (TE < 0) | (TE > 0.1)
         str = { 'Extreme value for TE or TE undefined.',...
-                'Please re-enter TE (note this value must be in seconds!).'};
+                'Please re-enter TE (in seconds).'};
         spm_input(str,1,'bd','OK',[1],1);
     else
         TE_ok = 1;
     end
 end
     
-% system outputs
+%-System outputs
 %===========================================================================
-
-% enforce adjustment w.r.t. all effects
-%---------------------------------------------------------------------------
-xY     = struct(    'Ic'        ,1,...  
-            'name'      ,'HDM',...
-            'Sess'      ,s);
 
 % get region stucture
 %---------------------------------------------------------------------------
+xY     = struct('name', 'HDM', 'Sess', s);
 [y xY] = spm_regions(xSPM,SPM,hReg,xY);
 
-%-place response and confounds in response structure
+% place response and confounds in response structure
 %---------------------------------------------------------------------------
 y      = xY.u;
 Y.y    = y;
 Y.dt   = SPM.xY.RT;
 Y.X0   = xY.X0;
 
-% estimate
+%-Estimate
 %===========================================================================
 spm('Pointer','Watch')
 spm('FigName','Estimation in progress');
