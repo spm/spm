@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3341 2009-09-01 14:23:49Z vladimir $
+% $Id: spm_eeg_megheadloc.m 3801 2010-03-25 16:43:08Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -176,21 +176,27 @@ for f=1:numel(D)
             utmpdat = unique(tmpdat', 'rows')';
            
             if S.rejectwithin && ~tracking_lost
-                try
-                    pdist([0;1]);
-                    pdistworks = 1;
-                catch
-                    pdistworks = 0;
-                end
-                
-                if pdistworks
-                    dN=max(pdist(utmpdat(1:3, :)'));
-                    dL=max(pdist(utmpdat(4:6, :)'));
-                    dR=max(pdist(utmpdat(7:9, :)'));
+                if size(utmpdat, 2) == 1
+                    dN = 0;
+                    dL = 0;
+                    dR = 0;
                 else
-                    dN=max(slowpdist(utmpdat(1:3, :)'));
-                    dL=max(slowpdist(utmpdat(4:6, :)'));
-                    dR=max(slowpdist(utmpdat(7:9, :)'));
+                    try
+                        pdist([0;1]);
+                        pdistworks = 1;
+                    catch
+                        pdistworks = 0;
+                    end
+                    
+                    if pdistworks
+                        dN=max(pdist(utmpdat(1:3, :)'));
+                        dL=max(pdist(utmpdat(4:6, :)'));
+                        dR=max(pdist(utmpdat(7:9, :)'));
+                    else
+                        dN=max(slowpdist(utmpdat(1:3, :)'));
+                        dL=max(slowpdist(utmpdat(4:6, :)'));
+                        dR=max(slowpdist(utmpdat(7:9, :)'));
+                    end
                 end
             end
 
@@ -202,7 +208,7 @@ for f=1:numel(D)
                 dat     = [dat nan(9, 1)];
                 trlind = [trlind k];
                 fileind= [fileind f];
-            else                                
+            else
                 D{f} = reject(D{f}, k, 1);
             end
         end
@@ -267,11 +273,11 @@ disp(['Accepted ' num2str(length(trlind)) '/' num2str(Ntrls) ' trials.']);
 
 if S.rejectbetween && length(trlind)>1 && ~all(all(isnan(dat)))
     % If there was loss of tracking for just some of the trials, reject
-    % them and continue with the rest. 
+    % them and continue with the rest.
     nanind = find(any(isnan(dat)));
     if ~isempty(nanind)
         for i = length(nanind)
-            D{fileind(nanind)} = reject(D{fileind(nanind)}, trlind(nanind), 1);
+            D{fileind(nanind(i))} = reject(D{fileind(nanind(i))}, trlind(nanind(i)), 1);
         end
         dat(:, nanind) = [];
         trlind(nanind) = [];
