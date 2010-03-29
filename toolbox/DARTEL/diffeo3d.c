@@ -1,4 +1,4 @@
-/* $Id: diffeo3d.c 3720 2010-02-10 18:26:58Z john $ */
+/* $Id: diffeo3d.c 3802 2010-03-29 13:07:15Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include <mex.h>
@@ -1018,7 +1018,7 @@ void pushc_grads(int dm[], int m, float def[], float J[], float pf[], float po[]
             ij12 = j13*j32-j12*j33;
             ij13 = j12*j23-j13*j22;
             dj   = j11*ij11 + j21*ij12 + j31*ij13;
-            if (dj<0.01) dj = 0.01;
+            dj   = (dj*0.99+0.01);
             dj   = 1.0/dj;
 
             ij11*= dj;

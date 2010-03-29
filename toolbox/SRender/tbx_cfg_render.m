@@ -4,7 +4,7 @@ function render = tbx_cfg_render
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_render.m 3764 2010-03-08 20:18:10Z guillaume $
+% $Id: tbx_cfg_render.m 3802 2010-03-29 13:07:15Z john $
 
 % ---------------------------------------------------------------------
 % images Input Images
@@ -455,9 +455,9 @@ if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end
 spm_srender(job);
 
 %======================================================================
-function spm_local_sextract(job)
+function out=spm_local_sextract(job)
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end
-spm_sextract(job);
+out=spm_sextract(job);
 
 %======================================================================
 function dep = vout_sextract(job)
