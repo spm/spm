@@ -33,7 +33,7 @@ obj = fill_defaults(obj);
 
 % check if object can be painted
 if isempty(obj.img)
-  warning('No images, object cannot be painted')
+  warning('slover:noImages', 'No images, object cannot be painted')
   return
 end
 
@@ -77,7 +77,6 @@ end
 if params.refreshf
   % clear figure, axis store
   if params.clf, clf; end
-  axisd = [];
 
   % prevent print inversion problems
   set(figno,'InvertHardCopy','off');
@@ -121,8 +120,8 @@ if params.refreshf
     axlen = axlen(:, b);
   else
     % if xslices is specified, assume X is flush with X figure dimensions
-    panels([X:Y],1) = [obj.xslices; 0];
-    axlen([X:Y],1) = [asz(X)/panels(X); 0];
+    panels(X:Y,1) = [obj.xslices; 0];
+    axlen(X:Y,1) = [asz(X)/panels(X); 0];
   end
   
   % Axis dimensions are in pixels.  This prevents aspect ratio rescaling
@@ -139,6 +138,7 @@ if params.refreshf
   r=0;c=1;
   npanels = prod(panels);
   lastempty = npanels-cbars;
+  axisd = nan(1, npanels);
   for i = 1:npanels
     % panel userdata
     if i<=nslices
@@ -175,7 +175,7 @@ end
 
 % sort out labels
 if ischar(obj.labels)
-  do_labels = ~strcmp(lower(obj.labels), 'none');
+  do_labels = ~strcmpi(obj.labels, 'none');
 else
   do_labels = 1;
 end
@@ -183,9 +183,8 @@ if do_labels
   labels = obj.labels;
   if iscell(labels.format)
     if length(labels.format)~=vdims(Z)
-      error(...
-      sprintf('Oh dear, expecting %d labels, but found %d',...
-          vdims(Z), length(labels.contents)));
+      error('Oh dear, expecting %d labels, but found %d', ...
+          vdims(Z), length(labels.contents));
     end
   else
     % format string for mm from AC labelling
@@ -210,9 +209,9 @@ lrn = zeros(npimgs,3);
 cmaps = cell(npimgs);
 for i = 1:npimgs
   cmaps(i)={obj.img(pictimgs(i)).cmap};
-  lrnv = {obj.img(pictimgs(i)).outofrange{:}, obj.img(pictimgs(i)).nancol};
+  lrnv = [obj.img(pictimgs(i)).outofrange, obj.img(pictimgs(i)).nancol];
   for j = 1:length(lrnv)
-    if prod(size(lrnv{j}))==1
+    if numel(lrnv{j})==1
       lrn(i,j) = lrnv{j};
     else
       cmaps(i) = {[cmaps{i}; lrnv{j}(1:3)]};
@@ -263,34 +262,39 @@ for i = 1:nslices
     if any(any(isfinite(i1)))
       i1(i1<min(thisimg.range))=min(thisimg.range);
       i1(i1>max(thisimg.range))=max(thisimg.range);
+      if ~any(diff(i1(isfinite(i1)))), continue, end % skip empty planes
       if mars_struct('isthere', thisimg, 'linespec')
     linespec = thisimg.linespec;
       else
     linespec = 'w-';
       end
-      axes(axisd(i));
       set(axisd(i),'NextPlot','add');
       if mars_struct('isthere', thisimg, 'contours')
-    [c h] = contour(i1, thisimg.contours, linespec);
+    [c h] = contour(axisd(i), i1, thisimg.contours, linespec);
       else
-    [c h] = contour(i1, linespec);
+    [c h] = contour(axisd(i), i1, linespec);
       end
       if ~isempty(h)
     if ~mars_struct('isthere', thisimg, 'linespec') 
-      % need to reset colours
-      % assumes contour value is in line UserData 
-      % as seemed to be the case 
-      convals = get(h, 'UserData');
-      if ~iscell(convals),convals = {convals};end
+      % need to reset colours; contour assumes you just set the figure's
+      % colormap, but to overlay coloured contours on a greyscale image,
+      % one needs to have everything in truecolour, setting individual
+      % contour lines to their appropriate colour. 
+      % (updated for MATLAB 7 and above)
+      convals = get(h, 'LevelList');
       if ~isempty(convals)
-        [csdata badvals] = pr_scaletocmap(...
-        cat(1, convals{:}), ...
+        csdata = pr_scaletocmap(...
+        convals,...
         thisimg.range(1),...
         thisimg.range(2),...
         thisimg.cmap,...
         [1 size(thisimg.cmap,1) 1]);
         colvals = thisimg.cmap(csdata(:),:)*thisimg.prop;
-        set(h, {'Color'}, num2cell(colvals, 2));
+        for ch = get(h, 'Children')' % (NB: transpose needed to loop)
+            CData = get(ch, 'CData'); % (CData is constant with final NaN)
+            colval = colvals(convals == CData(1), :);
+            set(ch, 'EdgeColor', colval)
+        end
       end
     end
     if mars_struct('isthere', thisimg, 'linewidth')
@@ -338,7 +342,7 @@ for i = 1:cbars
       'Box', 'off',...
       'Position',[p(1)+pc(1)-cw/2,p(2)+pc(2)-ch/2,cw,ch]...
       );
-  ih = image('Parent', a,...
+  image('Parent', a,...
     'YData', axlims(idxs),...     
     'CData', reshape(cbari.cmap,[cml,1,3]));
 end % colourbars
@@ -353,7 +357,7 @@ return
 
 function i1 = sf_slice2panel(img, xyzmm, transform, vdims)
 % to voxel space of image
-vixyz = inv(transform*img.vol.mat)*xyzmm;
+vixyz = (transform*img.vol.mat) \ xyzmm;
 % raw data 
 if mars_struct('isthere', img.vol, 'imgdata')
   V = img.vol.imgdata;

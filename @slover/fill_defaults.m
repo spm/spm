@@ -50,17 +50,17 @@ if ~dead_f
 end
 
 % orientation; string or 4x4 matrix
-orientn = [];
 if ischar(obj.transform)
   orientn = find(strcmpi(obj.transform, {'axial', ... 
             'coronal', ...
             'sagittal', ...
             'saggital'}));
   if isempty(orientn)
-    error(sprintf('Unexpected orientation %s', obj.transform));
+    error('Unexpected orientation %s', obj.transform);
   end
   if orientn == 4
-    warning('Goofy spelling of sagittal, but we''ll let you off');
+    warning('fill_defaults:spelling', ...
+        'Goofy spelling of sagittal, but we''ll let you off');
   end
   ts = [0 0 0 0 0 0 1 1 1;...
       0 0 0 pi/2 0 0 1 -1 1;...
@@ -69,8 +69,8 @@ if ischar(obj.transform)
 end
 
 % default slice size, slice matrix depends on orientation
-if (isempty(obj.slicedef) | isempty(obj.slices)) ...
-      & ~isempty(obj.img)
+if (isempty(obj.slicedef) || isempty(obj.slices)) ...
+      && ~isempty(obj.img)
   % take image sizes from first image
   V = obj.img(1).vol;
   D = V.dim(1:3);
@@ -78,20 +78,20 @@ if (isempty(obj.slicedef) | isempty(obj.slices)) ...
   vcorners = [1 1 1; D(1) 1 1; 1 D(2) 1; D(1:2) 1; ...
           1 1 D(3); D(1) 1 D(3); 1 D(2:3) ; D(1:3)]';
   corners = T * [vcorners; ones(1,8)];
-  SC = sort(corners');
+  SC = sort(corners, 2);
   vxsz = sqrt(sum(T(1:3,1:3).^2));
   
   if isempty(obj.slicedef)
-    obj.slicedef = [SC(1,1) vxsz(1) SC(8,1);SC(1,2) vxsz(2) SC(8,2)];
+    obj.slicedef = [SC(1,1) vxsz(1) SC(1,8);SC(2,1) vxsz(2) SC(2,8)];
   end
   if isempty(obj.slices)
-    obj.slices = [SC(1,3):vxsz(3):SC(8,3)];
+    obj.slices = SC(3,1):vxsz(3):SC(3,8);
   end
 end
 
 % labels
 if ischar(obj.labels)
-  if ~strcmp(lower(obj.labels), 'none')
+  if ~strcmpi(obj.labels, 'none')
     error('If labels is string, should be ''none''');
   end
 else
@@ -113,80 +113,76 @@ end
 % set colour intensities as we go
 remcol = 1;
 for i = 1:length(obj.img)
-  img = obj.img(i);
-  if ~mars_struct('isthere', img, 'type')
+  if ~mars_struct('isthere', obj.img(i), 'type')
     % default is true colour, unless prop is Inf
-    img.type = 'truecolour';
-    if mars_struct('isthere', img, 'prop')
-      if img.prop == Inf
-    img.type = 'split';
-    img.prop = 1;
+    obj.img(i).type = 'truecolour';
+    if mars_struct('isthere', obj.img(i), 'prop')
+      if obj.img(i).prop == Inf
+    obj.img(i).type = 'split';
+    obj.img(i).prop = 1;
       end
     end
   end
-  if ~mars_struct('isthere', img, 'hold')
-    if ~mars_struct('isthere', img.vol, 'imgdata')
+  if ~mars_struct('isthere', obj.img(i), 'hold')
+    if ~mars_struct('isthere', obj.img(i).vol, 'imgdata')
       % normal file vol struct
-      img.hold = 1;
+      obj.img(i).hold = 1;
     else
       % 3d matrix vol struct
-      img.hold = 0;
+      obj.img(i).hold = 0;
     end
   end
-  if ~mars_struct('isthere', img, 'background')
-    img.background = NaN;
+  if ~mars_struct('isthere', obj.img(i), 'background')
+    obj.img(i).background = NaN;
   end
-  if ~mars_struct('isthere', img, 'prop')
+  if ~mars_struct('isthere', obj.img(i), 'prop')
     % default is true colour
-    if strcmpi(img.type, 'truecolour')
-      img.prop = remcol/(length(obj.img)-i+1);
-      remcol = remcol - img.prop;
+    if strcmpi(obj.img(i).type, 'truecolour')
+      obj.img(i).prop = remcol/(length(obj.img)-i+1);
+      remcol = remcol - obj.img(i).prop;
     else
-      img.prop = 1;
+      obj.img(i).prop = 1;
     end
   end
-  if ~mars_struct('isthere', img, 'range')
-    [mx mn] = pr_volmaxmin(img.vol);
-    img.range = [mn mx];
+  if ~mars_struct('isthere', obj.img(i), 'range')
+    [mx mn] = pr_volmaxmin(obj.img(i).vol);
+    obj.img(i).range = [mn mx];
   end
-  if ~mars_struct('isthere', img, 'cmap')
-    if strcmpi(img.type, 'split')
+  if ~mars_struct('isthere', obj.img(i), 'cmap')
+    if strcmpi(obj.img(i).type, 'split')
       if obj.range(1)<obj.range(2)
-    img.cmap = pr_getcmap('hot');
+    obj.img(i).cmap = pr_getcmap('hot');
       else
-    img.cmap = pr_getcmap('winter');
+    obj.img(i).cmap = pr_getcmap('winter');
       end
     else                  % true colour
-      img.cmap = gray;
+      obj.img(i).cmap = gray;
     end
   else % check cmap is OK
-    if ischar(img.cmap)
-      img.cmap = pr_getcmap(img.cmap);
+    if ischar(obj.img(i).cmap)
+      obj.img(i).cmap = pr_getcmap(obj.img(i).cmap);
     end
   end  
-  if ~mars_struct('isthere', img, 'outofrange')
+  if ~mars_struct('isthere', obj.img(i), 'outofrange')
     % this can be complex, and depends on split/true colour
-    if strcmpi(img.type, 'split')
-      if xor(img.range(1) < img.range(2), ...
-         img.range(2) < 0)
-    img.outofrange = {[0],size(img.cmap,1)};
+    if strcmpi(obj.img(i).type, 'split')
+      if xor(obj.img(i).range(1) < obj.img(i).range(2), ...
+         obj.img(i).range(2) < 0)
+    obj.img(i).outofrange = {0, size(obj.img(i).cmap,1)};
       else
-    obj.img(imgno).outofrange={[1], [0]};
+    obj.img(i).outofrange={1, 0};
       end
     else            % true colour
-      img.outofrange = {1,size(img.cmap,1)};
+      obj.img(i).outofrange = {1,size(obj.img(i).cmap,1)};
     end
   end
   for j=1:2
-    if isempty(img.outofrange{j})
-      img.outofrange(j) = {0};
+    if isempty(obj.img(i).outofrange{j})
+      obj.img(i).outofrange(j) = {0};
     end
   end
-  if ~mars_struct('isthere', img, 'nancol')
-    img.nancol = 0;
+  if ~mars_struct('isthere', obj.img(i), 'nancol')
+    obj.img(i).nancol = 0;
   end
-  imgs(i) = img;
 end
-obj.img = imgs;
 return
-  

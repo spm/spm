@@ -4,7 +4,7 @@ function display(obj)
 % $Id: display.m,v 1.1 2005/04/20 15:05:36 matthewbrett Exp $
   
 X = struct(obj);
-src = ['[slice overlay object]'];
+src = '[slice overlay object]';
 if isequal(get(0,'FormatSpacing'),'compact')
   disp([inputname(1) ' =']);
   disp(src);

@@ -216,7 +216,7 @@ end
 
 % Could these just be image vol structs?
 if isfield(params, 'fname')
-  for i = 1:prod(size(params))
+  for i = 1:numel(params)
     obj.img(i).vol = params(i);
   end
   params = obj;

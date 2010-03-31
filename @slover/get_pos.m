@@ -9,7 +9,7 @@ u = get(gca, 'UserData');
 if mars_struct('isthere', u, 'type')
   if strcmp(u.type, 'slice') % is slice panel
     mmpos = (pos(1,1:2)'-1).*obj.slicedef(:,2)+obj.slicedef(:,1);
-    mmpos = inv(obj.transform) * [mmpos; u.no; 1];
+    mmpos = obj.transform \ [mmpos; u.no; 1];
     mmpos = mmpos(1:3,1);
   end
 end

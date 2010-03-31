@@ -8,7 +8,7 @@ function obj = add_spm(obj)
   
 [XYZ Z M] = pr_get_spm_results;
 if isempty(XYZ)
-  warning('No SPM results to add');
+  warning('slover:noSPM', 'No SPM results to add');
   return
 end
 

@@ -38,9 +38,9 @@ set(H,'Units','normalized')
 
 %-Print
 %-----------------------------------------------------------------------
-err = 0;
-try, eval([printstr ' ' filename]), catch, err=1; end
-if err
+try
+    eval([printstr ' ' filename])
+catch
     errstr = lasterr;
     tmp = [find(abs(errstr)==10),length(errstr)+1];
     str = {errstr(1:tmp(1)-1)};
@@ -49,9 +49,9 @@ if err
             str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
         end
     end
-    str = {str{:},  '','- print command is:',['    ',printstr ' ' filename],...
+    str = [str,  '','- print command is:',['    ',printstr ' ' filename],...
             '','- current directory is:',['    ',pwd],...
-            '','            * nothing has been printed *'};
+            '','            * nothing has been printed *'];
     for i=1:length(str)
       disp(str{i});end
 end
