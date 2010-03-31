@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 3804 2010-03-31 16:16:21Z ged $
 
-rev = '$Rev: 2086 $';
+rev = '$Rev: 3804 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -114,12 +114,7 @@ rtm.def    = @(val)spm_get_defaults('unwarp.estimate.rtm', val{:});
 einterp         = cfg_menu;
 einterp.tag     = 'einterp';
 einterp.name    = 'Interpolation';
-einterp.help    = {
-                   'The method by which the images are sampled when being written in a different space. '
-                   '    Nearest Neighbour     - Fastest, but not normally recommended. '
-                   '    Bilinear Interpolation     - OK for PET, or realigned fMRI. '
-                   '    B-spline Interpolation/* \cite{thevenaz00a}*/     - Better quality (but slower) interpolation, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
-}';
+einterp.help    = {'The method by which the images are sampled when estimating the optimum transformation. Higher degree interpolation methods provide the better interpolation, but they are slower because they use more neighbouring voxels /* \cite{thevenaz00a,unser93a,unser93b}*/. '};
 einterp.labels = {
                   'Nearest neighbour'
                   'Trilinear'
@@ -140,10 +135,10 @@ ewrap.tag     = 'ewrap';
 ewrap.name    = 'Wrapping';
 ewrap.help    = {
                  'These are typically: '
-                 '    No wrapping - for images that have already '
-                 '                  been spatially transformed. '
-                 '    Wrap in  Y  - for (un-resliced) MRI where phase encoding '
-                 '                  is in the Y direction (voxel space).'
+                 ['* No wrapping - for images that have already been ' ...
+                 'spatially transformed.']
+                 ['* Wrap in Y  - for (un-resliced) MRI where phase ' ...
+                 'encoding is in the Y direction (voxel space).']
 }';
 ewrap.labels = {
                 'No wrap'
@@ -370,12 +365,7 @@ uwwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
 rinterp.name    = 'Interpolation';
-rinterp.help    = {
-                   'The method by which the images are sampled when being written in a different space. '
-                   '    Nearest Neighbour     - Fastest, but not normally recommended.'
-                   '    Bilinear Interpolation     - OK for PET, or realigned fMRI.     B-spline Interpolation/*\cite{thevenaz00a}*/'
-                   '    - Better quality (but slower) interpolation, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
-}';
+rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
 rinterp.labels = {
                   'Nearest neighbour'
                   'Trilinear'
@@ -395,9 +385,11 @@ wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
-                'These are typically: '
-                '    No wrapping - for PET or images that have already been spatially transformed. '
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
+                 'These are typically: '
+                 ['* No wrapping - for images that have already been ' ...
+                 'spatially transformed.']
+                 ['* Wrap in Y  - for (un-resliced) MRI where phase ' ...
+                 'encoding is in the Y direction (voxel space).']
 }';
 wrap.labels = {
                'No wrap'

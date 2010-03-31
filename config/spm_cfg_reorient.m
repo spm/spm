@@ -4,9 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 3130 2009-05-18 14:41:31Z volkmar $
+% $Id: spm_cfg_reorient.m 3804 2010-03-31 16:16:21Z ged $
 
-rev = '$Rev: 3130 $';
+rev = '$Rev: 3804 $';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -56,7 +56,7 @@ transprm.help    = {
                     ''
                     'Example: This will L-R flip the images (extra spaces are inserted between each group for illustration purposes).'
                     ''
-                    '   0 0 0   0 0 0   -1 0 0   0 0 0'
+                    '   0 0 0   0 0 0   -1 1 1   0 0 0'
                     ''
 }';
 transprm.strtype = 'e';

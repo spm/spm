@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 3577 2009-11-18 16:13:00Z volkmar $
+% $Id: spm_cfg_normalise.m 3804 2010-03-31 16:16:21Z ged $
 
-rev = '$Rev: 3577 $';
+rev = '$Rev: 3804 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -238,10 +238,20 @@ interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
 interp.help    = {
-                  'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
+                  ['The method by which the images are sampled when ' ...
+                  'being written in a different space. ' ...
+                  '(Note that Inf or NaN values are treated as zero, ' ...
+                  'rather than as missing data)']
+                  '    Nearest Neighbour:'
+                  '      - Fastest, but not normally recommended.'
+                  '    Bilinear Interpolation:'
+                  '      - OK for PET, realigned fMRI, or segmentations'
+                  '    B-spline Interpolation:'
+                  ['      - Better quality (but slower) interpolation' ...
+                  '/* \cite{thevenaz00a}*/, especially with higher ' ...
+                  'degree splines. Can produce values outside the ' ...
+                  'original range (e.g. small negative values from an ' ...
+                  'originally all positive image).']
 }';
 interp.labels = {
                  'Nearest neighbour'
@@ -263,8 +273,8 @@ wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
                 'These are typically:'
-                '    No wrapping: for PET or images that have already                   been spatially transformed. '
-                '    Wrap in  Y: for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space).'
+                '    No wrapping: for PET or images that have already been spatially transformed. '
+                '    Wrap in  Y: for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
 }';
 wrap.labels = {
                'No wrap'

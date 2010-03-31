@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 2342 2008-10-15 11:41:13Z volkmar $
+% $Id: spm_cfg_realign.m 3804 2010-03-31 16:16:21Z ged $
 
-rev = '$Rev: 2342 $';
+rev = '$Rev: 3804 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -196,7 +196,7 @@ which.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.help    = {'The method by which the images are sampled when being written in a different space.Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels. Fourier Interpolation/* \cite{eddy96,cox99}*/ is another option, but note that it is only implemented for purely rigid body transformations.  Voxel sizes must all be identical and isotropic.'};
+interp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels. Fourier Interpolation/* \cite{eddy96,cox99}*/ is another option, but note that it is only implemented for purely rigid body transformations.  Voxel sizes must all be identical and isotropic.'};
 interp.labels = {
                  'Nearest neighbour'
                  'Trilinear'

@@ -4,7 +4,7 @@ function dartel = tbx_cfg_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 3764 2010-03-08 20:18:10Z guillaume $
+% $Id: tbx_cfg_dartel.m 3804 2010-03-31 16:16:21Z ged $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -658,10 +658,20 @@ interp.tag     = 'interp';
 interp.name    = 'Interpolation';
 interp.val     = {1};
 interp.help    = {
-                  'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
+                  ['The method by which the images are sampled when ' ...
+                  'being written in a different space. ' ...
+                  '(Note that Inf or NaN values are treated as zero, ' ...
+                  'rather than as missing data)']
+                  '    Nearest Neighbour:'
+                  '      - Fastest, but not normally recommended.'
+                  '    Bilinear Interpolation:'
+                  '      - OK for PET, realigned fMRI, or segmentations'
+                  '    B-spline Interpolation:'
+                  ['      - Better quality (but slower) interpolation' ...
+                  '/* \cite{thevenaz00a}*/, especially with higher ' ...
+                  'degree splines. Can produce values outside the ' ...
+                  'original range (e.g. small negative values from an ' ...
+                  'originally all positive image).']
 }';
 interp.labels  = {
                  'Nearest neighbour'
@@ -767,30 +777,6 @@ K.labels  = {
             '512'
 }';
 K.values = {0 1 2 3 4 5 6 7 8 9};
-% ---------------------------------------------------------------------
-% interp Interpolation
-% ---------------------------------------------------------------------
-interp         = cfg_menu;
-interp.tag     = 'interp';
-interp.name    = 'Interpolation';
-interp.val{1} = double(1);
-interp.help    = {
-                  'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
-}';
-interp.labels = {
-                 'Nearest neighbour'
-                 'Trilinear'
-                 '2nd Degree B-spline'
-                 '3rd Degree B-Spline '
-                 '4th Degree B-Spline '
-                 '5th Degree B-Spline'
-                 '6th Degree B-Spline'
-                 '7th Degree B-Spline'
-}';
-interp.values  = {0 1 2 3 4 5 6 7};
 % ---------------------------------------------------------------------
 % crt_iwarped Create Inverse Warped
 % ---------------------------------------------------------------------
