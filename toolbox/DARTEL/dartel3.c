@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 3720 2010-02-10 18:26:58Z john $ */
+/* $Id: dartel3.c 3805 2010-04-01 15:34:54Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -793,7 +793,7 @@ static void smalldef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
 {
     int nd;
     const  int *dm;
-    float *v, *t, *t1;
+    float *v, *t;
     double sc = 1.0;
 
     if (((nrhs != 1) && (nrhs != 2)) || (nlhs>2)) mexErrMsgTxt("Incorrect usage.");
@@ -826,7 +826,7 @@ static void smalldef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     else
     {
         float *J, *J1;
-         int dmj[5];
+        int dmj[5];
         dmj[0]  = dm[0];
         dmj[1]  = dm[1];
         dmj[2]  = dm[2];
@@ -836,7 +836,6 @@ static void smalldef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
         J       = (float *)mxGetPr(plhs[1]);
         smalldef_jac1((int *)dm, sc, v, t, J);
     }
-    mxFree((void *)t1);
 }
 
 static void det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
