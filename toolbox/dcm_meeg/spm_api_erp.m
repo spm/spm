@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3764 2010-03-08 20:18:10Z guillaume $
+% $Id: spm_api_erp.m 3808 2010-04-06 19:44:13Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1197,8 +1197,7 @@ switch handles.DCM.options.analysis
         end
         
         set(handles.text20, 'String', 'modes');
-        set(handles.model,      'Enable','on');
-        set(handles.Spatial,    'Value', 1);
+        set(handles.model,      'Enable','on');              
         set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Spectral density');
         set(handles.onset,      'Enable','off');
@@ -1226,7 +1225,9 @@ switch handles.DCM.options.analysis
         
         set(handles.text20, 'String', 'modes');
         set(handles.model,      'Enable','off');
-        set(handles.Spatial,    'Value', 1);
+        if get(handles.Spatial, 'Value')>2
+            set(handles.Spatial, 'Value', 2);
+        end
         set(handles.Spatial,    'String',{'ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
         set(handles.Imaging,    'Enable','off' )
@@ -1250,7 +1251,9 @@ switch handles.DCM.options.analysis
         
         set(handles.text20, 'String', 'sub-trials');
         set(handles.model,   'Enable','off');
-        set(handles.Spatial, 'Value', 1);
+        if get(handles.Spatial, 'Value')>2
+            set(handles.Spatial, 'Value', 2);
+        end
         set(handles.Spatial, 'String',{'ECD','LFP'});
         set(handles.Wavelet, 'Enable','on','String','Hilbert transform');
         set(handles.Imaging, 'Enable','off' )
