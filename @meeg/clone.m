@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 3350 2009-09-03 13:19:20Z vladimir $
+% $Id: clone.m 3807 2010-04-06 19:29:08Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -33,8 +33,10 @@ if isempty(pth)
     pth = this.path;
 end
 newFileName = [fullfile(pth,fname),ext];
-% initialise new file_array
-d = file_array(newFileName, dim, dtype(this));
+% copy the file_array
+d = this.data.y; % 
+d.fname = newFileName;
+d.dim = dim; 
 
 % physically initialise file
 if length(dim) == 3
