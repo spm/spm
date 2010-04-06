@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_mvb_cvk.m 3806 2010-04-06 14:42:32Z ged $
  
  
 %-partition order
@@ -124,46 +124,8 @@ pc     = 100*sum(T)/length(T);
 R2     = corrcoef(pX,qX);
 R2     = 100*(R2(1,2)^2);
  
- 
-% plot validation
+% assign in base memory
 %--------------------------------------------------------------------------
-subplot(2,2,1)
-s      = 1:length(pX);
-plot(s,pX,s,qX,'-.')
-xlabel('sample')
-ylabel('response (adjusted)')
-title('cross-validation')
-axis square
- 
-subplot(2,2,2)
-plot(pX,qX,'.')
-xlabel('true')
-ylabel('predicted')
-title(sprintf('p-value (parametric) = %.5f',p))
-axis square
-abc = axis;
-hold on
-plot([max(abc([1 3])) min(abc([2 4]))],[max(abc([1 3])) min(abc([2 4]))],'k')
- 
-% plot feature weights
-%--------------------------------------------------------------------------
-subplot(2,2,3)
-imagesc(corrcoef(qE))
-colorbar
-caxis([0 1])
-xlabel('biparititon (k)')
-title({'correlations among';'k-fold feature weights'})
-axis square
- 
-subplot(2,2,4)
-spm_mip(prod(P,2),MVB.XYZ(1:3,:),MVB.VOX)
-title({[MVB.name ' (' MVB.contrast ')'];'prod( P(|weights| > 0) )'})
-axis square
- 
- 
-% display and assign in base memory
-%--------------------------------------------------------------------------
-fprintf('\np-value = %.4f; classification: %.1f%s; R-squared %.1f%s\n',p,pc,'%',R2,'%')
 MVB.p_value = p;
 MVB.percent = pc;
 MVB.R2      = R2;
@@ -173,3 +135,7 @@ MVB.cvk     = struct('qX',qX,'qE',qE,'P',P);
 %--------------------------------------------------------------------------
 save(MVB.name,'MVB')
 assignin('base','MVB',MVB)
+
+% display and plot validation
+%--------------------------------------------------------------------------
+spm_mvb_cvk_display(MVB)
