@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3793 2010-03-22 13:14:45Z volkmar $
+% $Id: spm_jobman.m 3811 2010-04-07 14:30:48Z volkmar $
 
 
 if nargin==0
@@ -387,10 +387,10 @@ for cf = 1:numel(filenames)
             warning('Unknown extension: ''%s''', filenames{cf});
     end;
     if exist('jobs','var')
-        newjobs = [newjobs(:) {jobs}];
+        newjobs = [newjobs(:); {jobs}];
         clear jobs;
     elseif exist('matlabbatch','var')
-        newjobs = [newjobs(:) {matlabbatch}];
+        newjobs = [newjobs(:); {matlabbatch}];
         clear matlabbatch;
     end;
 end;
