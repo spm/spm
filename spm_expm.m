@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 3739 2010-02-26 13:12:44Z karl $
+% $Id: spm_expm.m 3813 2010-04-07 19:21:49Z karl $
 
 
 
@@ -33,7 +33,7 @@ if nargin == 1 || nargin == 2
     c     = 1/2;
     E     = I + c*J;
     D     = I - c*J;
-    q     = 4;
+    q     = 6;
     p     = 1;
     for k = 2:q
         c   = c*(q - k + 1)/(k*(2*q - k + 1));

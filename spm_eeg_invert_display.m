@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 3791 2010-03-19 17:52:12Z karl $
+% $Id: spm_eeg_invert_display.m 3813 2010-04-07 19:21:49Z karl $
  
 % Number of dipoles to display
 %==========================================================================
@@ -45,17 +45,14 @@ end
 J      = model.inverse.J;
 T      = model.inverse.T;
 Is     = model.inverse.Is;
-Nd     = model.inverse.Nd;
 pst    = model.inverse.pst;
 R2     = model.inverse.R2;
+VE     = model.inverse.VE;
 F      = model.inverse.F;
-Ndip   = min(Ndip,length(Is));
- 
-try
-    VE = model.inverse.VE;
-catch
-    VE =1 ;
-end
+
+Nd     = length(Is);
+Ndip   = min(Ndip,Nd);
+
  
 % - project J onto pst
 %--------------------------------------------------------------------------
@@ -184,7 +181,7 @@ try
     PP = fix(100*(spm_Ncdf(Z)));
     title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
            sprintf('%i dipoles',length(i)), ...
-           sprintf('Percent variance explained %.2f (%.2f)',full(R2),full(R2*VE)), ...
+           sprintf('Percent variance explained %.2f (%.2f)',full(R2),full(VE)), ...
            sprintf('log-evidence = %.1f',full(F))})
 catch
     title({sprintf('Responses at %i dipoles',length(i)), ...

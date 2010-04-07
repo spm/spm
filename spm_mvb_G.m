@@ -38,7 +38,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 3337 2009-08-27 14:53:32Z karl $
+% $Id: spm_mvb_G.m 3813 2010-04-07 19:21:49Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -54,8 +54,7 @@ X0    = full(X0);
 R     = spm_svd(speye(size(X0,1)) - X0*pinv(X0));
 L     = R'*L;
 X     = R'*X;
-Nx    = size(X,1);
- 
+
 % random effects (and serial correlations)
 %--------------------------------------------------------------------------
 if iscell(V)
@@ -87,36 +86,31 @@ end
 % Covariance components (with the first error Qe{1} fixed)
 %--------------------------------------------------------------------------
 if size(L,2) > 0
-    Q = {Qe{1} Qe{:} LQpL{:}};
+    Q = [Qe LQpL];
 else
-    Q = {Qe{1} Qe{:}};
+    Q = Qe;
 end
 
-% Lower bound on noise Qe{1} relative to signal (of about 2%)  
+% ReML (with mildly informative hyperpriors) and a lower bound on error
 %--------------------------------------------------------------------------
-m     = length(Q);
-hE    = -32*ones(m,1);
-hC    = 256*speye(m,m);
-hE(1) = -4;
-hC(1) = 0;
- 
-% ReML
-%--------------------------------------------------------------------------
-[Cy,h,P,F,Fa,Fc] = spm_reml_sc(X*X',[],Q,size(X,2),hE,hC);
- 
-h(2)  = h(2) + h(1);
-h     = h(2:end);
+N          = size(X,2);
+YY         = X*X';
+Qe         = exp(-2)*trace(YY)*Q{1}/trace(Q{1})/N;
+hE         = -4;
+hC         = 16;
+[Cy,h,P,F] = spm_reml_sc(YY,[],Q,N,hE,hC,Qe);
+
 
 % prior covariance: source space
 %--------------------------------------------------------------------------
 Cp    = sparse(Nk,Nk);
 for i = 1:Np
-    Cp  = Cp + h(i + Ne)*Qp{i};
+    Cp = Cp + h(i + Ne)*Qp{i};
 end
  
 % MAP estimates of instantaneous sources
 %==========================================================================
-MAP   = Cp*L'*inv(Cy)*R';
+MAP   = Cp*L'/Cy*R';
 qE    = MAP*R*X;
  
  

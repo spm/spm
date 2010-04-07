@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
+function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % ReML estimation of covariance components from y*y' - proper components
-% FORMAT [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,[hE,hC,A,K]);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC,V]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -9,8 +9,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 %
 % hE  - hyperprior expectation in log-space [default = -32]
 % hC  - hyperprior covariance  in log-space [default = 256]
-% A   - proportional hyperpriors [default = 1, yes]
-% K   - number of iterations [default = 32]
+% V   - fixed covariance component
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -20,8 +19,6 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 %
 % Fa  - accuracy
 % Fc  - complexity (F = Fa - Fc)
-%
-% K   - maxmimum number of iterations (default 64)
 %
 % Performs a Fisher-Scoring ascent on F to find MAP variance parameter
 % estimates.  NB: uses weakly informative log-normal hyperpriors.
@@ -40,26 +37,19 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 3791 2010-03-19 17:52:12Z karl $
+% $Id: spm_reml_sc.m 3813 2010-04-07 19:21:49Z karl $
 
-% assume proportional hyperpriors not specified
-%--------------------------------------------------------------------------
-try, A; catch, A  = 1;  end
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
 try, N; catch, N  = 1;  end
- 
-% default number of iterations
-%--------------------------------------------------------------------------
-try, K; catch, K  = 64; end
- 
+try, V; catch, V  = 0;  end
+
 % initialise h
 %--------------------------------------------------------------------------
 n     = length(Q{1});
 m     = length(Q);
 h     = zeros(m,1);
-dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
  
@@ -69,32 +59,35 @@ if isempty(X)
     X = sparse(n,0);
     R = speye(n,n);
 else
-    X = orth(full(X));
+    X = spm_svd(X,0);
     R = speye(n,n) - X*X';
 end
- 
+
+% check fixed component
+%--------------------------------------------------------------------------
+if length(V) == 1
+    V = V*speye(n,n);
+end
+
  
 % initialise and specify hyperpriors
 %==========================================================================
 
 % scale Q and YY
 %--------------------------------------------------------------------------
-if A
-    sY = trace(R*YY)/N/n;
-    YY = YY/sY;
-    for i = 1:m
-        sh(i,1) = trace(R*Q{i})/n;
-        Q{i}    = Q{i}/sh(i);
-    end
-else
-    sY = 1;
-    sh = 1;
+sY = trace(R*YY)/(N*n);
+YY = YY/sY;
+V  = V/sY;
+for i = 1:m
+    sh(i,1) = trace(R*Q{i})/n;
+    Q{i}    = Q{i}/sh(i);
 end
+
 
 % hyperpriors
 %--------------------------------------------------------------------------
-try, hE = hE(:);                               catch, hE = -32;   end
-try, hP = inv(hC + speye(length(hC))/exp(16)); catch, hP = 1/256; end
+try, hE = hE(:);        catch, hE = -32;   end
+try, hP = spm_inv(hC);  catch, hP = 1/256; end
  
 % check sise
 %--------------------------------------------------------------------------
@@ -103,7 +96,7 @@ if length(hP) < m, hP = hP(1)*speye(m,m);  end
 
 % intialise h: so that sum(exp(h)) = 1
 %--------------------------------------------------------------------------
-if any(diag(hP) >  exp(16))
+if any(diag(hP) > exp(16))
     h = hE;
 end
  
@@ -111,12 +104,12 @@ end
 %--------------------------------------------------------------------------
 dF    = Inf;
 as    = 1:m;
-ds    = 1:m;
-for k = 1:K
+t     = 4;
+for k = 1:32
  
     % compute current estimate of covariance
     %----------------------------------------------------------------------
-    C     = sparse(n,n);
+    C     = V;
     for i = as
         C = C + Q{i}*exp(h(i));
     end
@@ -173,17 +166,23 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh(as,as),dFdh(as))*exp(-k/(K/2));
+    dh    = spm_dx(dFdhh(as,as),dFdh(as),{t});
     h(as) = h(as) + dh;
     
-    % Convergence (1% change in log-evidence)
-    %======================================================================
-    % bar(h);drawnow
+
+    % predicted change in F - increase regularisation if increasing
+    %----------------------------------------------------------------------
+    pF    = dFdh(as)'*dh;
+    if pF > dF
+        t = t - 1;
+    else
+        t = t + 1/8;
+    end
+    dF    = pF;
     
     % convergence
     %----------------------------------------------------------------------
-    dF    = dFdh(as)'*dh;
-    fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
+    fprintf('%s %-23d: %10s%e [%+3.2f]\n','  ReML Iteration',k,'...',full(dF),t);
     if dF < 1e-2
         break
     else
