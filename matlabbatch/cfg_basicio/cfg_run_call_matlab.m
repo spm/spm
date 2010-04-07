@@ -43,9 +43,9 @@ function varargout = cfg_run_call_matlab(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_call_matlab.m 3591 2009-11-23 10:19:57Z volkmar $
+% $Id: cfg_run_call_matlab.m 3810 2010-04-07 12:42:32Z volkmar $
 
-rev = '$Rev: 3591 $'; %#ok
+rev = '$Rev: 3810 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
@@ -78,7 +78,7 @@ if ischar(cmd)
                 dep(k)            = cfg_dep;
                 dep(k).sname      = sprintf('Call MATLAB: output %d - %s %s', k, char(fieldnames(job.outputs{k})), char(fieldnames(job.outputs{k}.(char(fieldnames(job.outputs{k}))))));
                 dep(k).src_output = substruct('.','outputs','{}',{k});
-                dep(k).tgt_spec   = cfg_findspec({{'strtype','e', char(fieldnames(job.outputs{k})), job.outputs{k}.(char(fieldnames(job.outputs{k})))}});
+                dep(k).tgt_spec   = cfg_findspec({{'strtype','e', char(fieldnames(job.outputs{k})), char(fieldnames(job.outputs{k}.(char(fieldnames(job.outputs{k})))))}});
             end
             varargout{1} = dep;
         case 'check'
