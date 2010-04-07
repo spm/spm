@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_int.m 3812 2010-04-07 16:52:05Z karl $
  
  
 % convert U to U.u if necessary
@@ -134,6 +134,7 @@ dt    = [diff(t) 0]*U.dt;
  
 % Integrate
 %--------------------------------------------------------------------------
+y     = zeros(M.l,v);
 J     = M0;
 U.u   = full(U.u);
 for i = 1:length(t)
@@ -161,6 +162,10 @@ for i = 1:length(t)
     % compute updated states x = expm(J*dt)*x;
     %----------------------------------------------------------------------
     x  = spm_expm(J*dt(i),x);
+    
+    % check for convergence
+    %----------------------------------------------------------------------
+    if norm(x,1) > 1e6, break, end
  
 end
 y      = real(y');

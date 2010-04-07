@@ -20,6 +20,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.stochastic             % fluctuations on hidden states
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
+% DCM.options.P                      % Starting estimates for parameters
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -45,7 +46,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3739 2010-02-26 13:12:44Z karl $
+% $Id: spm_dcm_estimate.m 3812 2010-04-07 16:52:05Z karl $
  
  
 % load DCM structure
@@ -79,6 +80,7 @@ try, DCM.options.stochastic; catch, DCM.options.stochastic = 0; end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0; end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
+try, M.P       = DCM.options.P ;end
  
 % unpack
 %--------------------------------------------------------------------------
@@ -120,7 +122,7 @@ if DCM.options.nonlinear
     M.nsteps = round(max(Y.dt,1));
     M.states = 1:n;
 else
-    M.IS  = 'spm_int';
+    M.IS     = 'spm_int';
 end
  
 % priors

@@ -25,7 +25,7 @@ function [pE,pC] = spm_dcm_fmri_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 3708 2010-02-02 20:15:31Z karl $
+% $Id: spm_dcm_fmri_priors.m 3812 2010-04-07 16:52:05Z karl $
 
 
 
@@ -65,22 +65,22 @@ else
 
     % enforce self-inhibition
     %----------------------------------------------------------------------
+    A     =  A > 0;
     A     =  A - diag(diag(A));
 
     % prior expectations
     %----------------------------------------------------------------------
-    pE.A  = -eye(n,n);
+    pE.A  =  A/64 - eye(n,n);
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A*4;
+    pC.A  =  A/4 + eye(n,n)/32;
     pC.B  =  B*4;
     pC.C  =  C*4;
     pC.D  =  D*4;
-
 
 end
 

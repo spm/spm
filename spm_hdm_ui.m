@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 3800 2010-03-24 18:40:18Z guillaume $
+% $Id: spm_hdm_ui.m 3812 2010-04-07 16:52:05Z karl $
 
 
 % get figure handles
@@ -40,7 +40,7 @@ Sess = SPM.Sess(s);
 spm_input('Input specification:...  ',1,'d');
 U.dt = Sess.U(1).dt;
 u    = length(Sess.U);
-if u == 1 & length(Sess.U(1).name) == 1
+if u == 1 && length(Sess.U(1).name) == 1
     U.name = Sess.U(1).name;
     U.u    = Sess.U(1).u(33:end,1);
 else
@@ -57,23 +57,30 @@ else
     end
 end
 
-% echo time (TE) of data acquisition
-%-------------------------------------------------------------------
+%-Echo time (TE) of data acquisition
+%--------------------------------------------------------------------------
 TE    = 0.04;
 TE_ok = 0;
 while ~TE_ok
     TE = spm_input('Echo time, TE [s]', '+1', 'r', TE);
-    if ~TE | (TE < 0) | (TE > 0.1)
+    if ~TE || (TE < 0) || (TE > 0.1)
         str = { 'Extreme value for TE or TE undefined.',...
-                'Please re-enter TE (in seconds).'};
-        spm_input(str,1,'bd','OK',[1],1);
+            'Please re-enter TE (in seconds!)'};
+        spm_input(str,'+1','bd','OK',[1],1);
     else
         TE_ok = 1;
     end
 end
+
     
 %-System outputs
 %===========================================================================
+
+% enforce adjustment w.r.t. all effects
+%---------------------------------------------------------------------------
+xY     = struct(    'Ic'        ,0,...  
+                    'name'      ,'HDM',...
+                    'Sess'      ,s);
 
 % get region stucture
 %---------------------------------------------------------------------------
@@ -126,8 +133,6 @@ m       = size(U.u,2);
 M.f     = 'spm_fx_hdm';
 M.g     = 'spm_gx_hdm';
 M.x     = [0 0 0 0]'; 
-% NB: resting value/expansion point of x(1) is -Inf in log space; this is
-% taken into account in spm_fx_hdm.
 M.pE    = pE;    
 M.pC    = pC;
 M.m     = m;
@@ -213,16 +218,16 @@ grid on
 subplot(3,2,4)
 plot(t,K1(:,:,j))
 axis square
-title({ '1st order kernel';...
-    'output: BOLD'},'FontSize',9)
+title({'1st order kernel';...
+       'output: BOLD'},'FontSize',9)
 ylabel('normalized flow signal')
 grid on
 
 subplot(3,2,6)
 imagesc(t,t,K2(:,:,1,j,j))
 axis square
-title({ '2nd order kernel';...
-    'output: BOLD'},'FontSize',9)
+title({'2nd order kernel';...
+       'output: BOLD'},'FontSize',9)
 xlabel({'time {seconds} for'; U.name{j}})
 grid on
 

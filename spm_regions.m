@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_regions.m 3812 2010-04-07 16:52:05Z karl $
 
 if nargin < 4, xY = []; end
 
@@ -68,7 +68,7 @@ try
     xyz    = xY.xyz;
 catch
     xyz    = spm_XYZreg('NearestXYZ',...
-              spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
+             spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
     xY.xyz = xyz;
 end
 
@@ -207,6 +207,7 @@ xY.s    = s;
 %-Display VOI weighting and eigenvariate
 %==========================================================================
 if ~noGraph
+    
     % show position
     %----------------------------------------------------------------------
     spm_results_ui('Clear',Fgraph);

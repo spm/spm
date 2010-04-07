@@ -43,7 +43,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %--------------------------------------------------------------------------
 % Ep  - (p x 1)         conditional expectation    E{P|y}
 % Cp  - (p x p)         conditional covariance     Cov{P|y}
-% Eh  - (q x 1)        conditional log-precisions E{h|y}
+% Eh  - (q x 1)         conditional log-precisions E{h|y}
 %
 % log evidence
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_nlsi_GN.m 3812 2010-04-07 16:52:05Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -231,8 +231,7 @@ ipC   = inv(spm_cat(spm_diag({pC,uC})));
 Eu    = spm_pinv(dfdu)*spm_vec(y);
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-Cp    = pC;
- 
+
  
 % EM
 %==========================================================================
@@ -265,15 +264,19 @@ for k = 1:64
     %======================================================================
     for m = 1:8
  
+        % check for stability
+        %------------------------------------------------------------------
+        if norm(J,'inf') > exp(32), break, end
+        
         % precision and conditional covariance
         %------------------------------------------------------------------
-        iS    = speye(nt,nt)*1e-8;
+        iS    = 0;
         for i = 1:nh
             iS = iS + Q{i}*exp(h(i));
         end
         S     = inv(iS);
         iS    = kron(speye(nq),iS);
-        Cp    = inv(J'*iS*J + ipC);
+        Cp    = spm_inv(J'*iS*J + ipC);
         
  
         % precision operators for M-Step
