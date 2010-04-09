@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3813 2010-04-07 19:21:49Z karl $
+% $Id: spm_eeg_invert.m 3814 2010-04-09 11:02:21Z vladimir $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -512,7 +512,7 @@ for i = 1:Nl
             % accumulate first & second-order responses
             %--------------------------------------------------------------
             Nn(i)       = Nn(i) + Nr(i);         % number of samples
-            Y           = spm_cat(MY)/Nk;        % contribution to ERP
+            Y           = spm_cat(MY(:))/Nk;     % contribution to ERP
             YY          = Y*Y';                  % and covariance
  
             % accumulate statistics (subject-specific)
