@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_conman.m 3815 2010-04-11 17:03:34Z ged $
 
 
 %=======================================================================
@@ -597,60 +597,60 @@ function varargout=spm_conman(varargin)
 %( then this is the action string, specifying the particular action     )
 %( function to take.                                                    )
 %
-% FORMAT [I,xCon] = spm_conman(xX,xCon,STATmode,n,Prompt,Mcstr,OK2chg)
+% FORMAT [I,xCon] = spm_conman(SPM,STATmode,n,Prompt,Mcstr,OK2chg)
 %
-% xX         - Design Matrix structure
-%            - (see spm_spm.m for structure)
-%            - fields used directly are:
-% .xKXs      - space structure of smoothed design matrix
-% .name    - cellstr of parameter names
+% SPM.xX        - Design Matrix structure
+%               - (see spm_spm.m for structure)
+%               - fields used directly are:
+%    .xKXs      - space structure of smoothed design matrix
+%    .name      - cellstr of parameter names
 %
-% xCon (in)  - Contrast definitions structure array
-%              (see spm_FcUtil.m for structure, rules & handling)
-%            - defaults to empty contrast structure
-%            - fields used directly are:
-% .name      - contrast name string
-% .STAT      - character describing statistic required: 'T' or 'F'
-% .c         - contrast weights (column) vector / matrix
+% SPM.xCon (in) - Contrast definitions structure array
+%                 (see spm_FcUtil.m for structure, rules & handling)
+%               - defaults to empty contrast structure
+%               - fields used directly are:
+%    .name      - contrast name string
+%    .STAT      - character describing statistic required: 'T' or 'F'
+%    .c         - contrast weights (column) vector / matrix
 %
-% STATmode   - string indicating STAT modes to allow contrast
-%              selection/definition for:
-%            - 'T' to limit to (1-dimensional) contrasts defined for SPM{t}
-%            - 'F' to limit to contrasts defined for SPM{F}
-%            - 'T|F' to allow either contrasts for SPM{t} or SPM{F}
-%              (both may be defined, but only one type may be selected)
-%            - 'T&F' to allow both contrasts for SPM{t} and SPM{F}
-%            - defaults to 'T|F'
+% STATmode      - string indicating STAT modes to allow contrast
+%                 selection/definition for:
+%               - 'T' to limit to contrasts defined for SPM{t}
+%               - 'F' to limit to contrasts defined for SPM{F}
+%               - 'T|F' to allow either contrasts for SPM{t} or SPM{F}
+%                 (both may be defined, but only one type may be selected)
+%               - 'T&F' to allow both contrasts for SPM{t} and SPM{F}
+%               - defaults to 'T|F'
 %
-% n          - Number of contrasts to select, Inf for unlimited
+% n             - Number of contrasts to select, Inf for unlimited
 %
-% Prompt     - Prompt string
+% Prompt        - Prompt string
 %
-% Mcstr      - string to describe multiple contrast selection
-%              E.g. ' for conjunction' will result in the status message
-%                   reading 'Selected 2 contrasts for conjunction' when
-%                   two contrasts are selected.
+% Mcstr         - string to describe multiple contrast selection
+%                 E.g. ' for conjunction' will result in the status message
+%                      reading 'Selected 2 contrasts for conjunction' when
+%                      two contrasts are selected.
 %
-% OK2chg     - logical, specifying whether the contrast structure can be
-%              changed. If false, then new contrasts cannot be defined, and
-%              existing contrasts cannot be renamed.
+% OK2chg        - logical, specifying whether the contrast structure can be
+%                 changed. If false, then new contrasts cannot be defined, and
+%                 existing contrasts cannot be renamed.
 %
-% I          - Index (or indices) of contrasts selected
+% I             - Index (or indices) of contrasts selected
 %
-% xCon (out) - Contrast definitions structure array (updated)
+% xCon (out)    - Contrast definitions structure array (updated)
 %
 %                           ----------------
 %
 % [F,cF] = spm_conman('Initialise',...
-%                              Vis,xX,xCon,STATmode,n,Prompt,Mcstr,OK2chg)
+%                              Vis,SPM,STATmode,n,Prompt,Mcstr,OK2chg)
 % Initialise ConMan GUI for contrast selection/definition
 % Vis        - Initialisation action:
 %              'close' - closes ConMan window
 %              'off'   - hides ConMan window
 %              'reset' - hides and resets ConMan window
 %              'on'    - initialises ConMan window using arguments given
-% xX         - design matrix structure
-% xCon       - contrast definitions structure array
+% SPM.xX     - design matrix structure
+% SPM.xCon   - contrast definitions structure array
 % STATmode   - string indicating STAT modes to allow contrast
 % n          - number of contrasts to select, Inf for unlimited
 % Prompt     - Prompt string
@@ -788,7 +788,7 @@ PJump    = 1;       %-Jumping of pointer to ConMan window
 
 if (nargin==0) | ~ischar(varargin{1})
     %=======================================================================
-    % [I,xCon] = spm_conman(xX,xCon,STATmode,n,Prompt,Mcstr,OK2chg)
+    % [I,xCon] = spm_conman(SPM,STATmode,n,Prompt,Mcstr,OK2chg)
 
     %-Condition arguments
     %-----------------------------------------------------------------------
@@ -873,7 +873,7 @@ end
 %=======================================================================
 switch lower(varargin{1}), case 'initialise'
     %=======================================================================
-    % [F,cF] = spm_conman('Initialise',Vis,xX,xCon,STATmode,n,Prompt,Mcstr,OK2chg)
+    % [F,cF] = spm_conman('Initialise',Vis,SPM,STATmode,n,Prompt,Mcstr,OK2chg)
 
     if nargin<2, Vis='on'; else, Vis=varargin{2}; end
 

@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_factorial_design.m 3815 2010-04-11 17:03:34Z ged $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -445,7 +445,7 @@ scans.num     = [1 Inf];
 imatrix         = cfg_entry;
 imatrix.tag     = 'imatrix';
 imatrix.name    = 'Factor matrix';
-imatrix.help    = {'Specify factor/level matrix as a nscan-by-4 matrix. Note that the first row of I is reserved for the internal replication factor and must not be used for experimental factors.'};
+imatrix.help    = {'Specify factor/level matrix as a nscan-by-4 matrix. Note that the first column of I is reserved for the internal replication factor and must not be used for experimental factors.'};
 imatrix.strtype = 'e';
 imatrix.num     = [Inf Inf];
 % ---------------------------------------------------------------------
