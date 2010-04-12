@@ -5,15 +5,15 @@ function D = spm_eeg_fuse(S)
 % S           - input structure (optional)
 % (optional) fields of S:
 %   S.D       - character array containing filenames of M/EEG mat-files
-% 
+%
 % D        - MEEG object (also written to disk, with a 'u' prefix)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 3540 2009-11-06 12:10:43Z guillaume $
+% $Id: spm_eeg_fuse.m 3817 2010-04-12 13:22:24Z vladimir $
 
-SVNrev = '$Rev: 3540 $';
+SVNrev = '$Rev: 3817 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -57,44 +57,44 @@ isTF   =  strncmpi(D{1}.transformtype,'TF',2); % TF and TFphase
 for i = 1:Nfiles
     if ~isequal(D{i}.transformtype, D{1}.transformtype)
         error(['The datasets do not contain the same kind of data.\n'...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
-
+    
     if D{1}.ntrials ~= D{i}.ntrials
         error(['Data don''t have the same number of trials.\n' ...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
     
     if ~isequal(D{1}.conditions, D{i}.conditions)
         error(['Data don''t have the same condition labels.\n' ...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
-
+    
     if D{1}.nsamples ~= D{i}.nsamples
         error(['Data don''t have the same number of time points.\n' ...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
-
+    
     if D{1}.fsample ~= D{i}.fsample
         error(['Data don''t have the same sampling rate.\n' ...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
-
+    
     if isTF &&  ~isequal(D{1}.frequencies, D{i}.frequencies)
         error(['Data don''t have the same frequencies.\n' ...
-               'There is a difference between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is a difference between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     end
-
+    
     if ~isempty(intersect(channels, D{i}.chanlabels))
         error(['Files to be fused should not have overlapping channel sets.\n' ...
-               'There is an overlap in channel sets between files\n\t%s\nand\n\t%s.'], ...
-               D{1}.fname, D{i}.fname);
+            'There is an overlap in channel sets between files\n\t%s\nand\n\t%s.'], ...
+            D{1}.fname, D{i}.fname);
     else
         channels = [channels, D{i}.chanlabels];
     end
@@ -124,34 +124,43 @@ end
 
 %-Write files
 %--------------------------------------------------------------------------
-spm_progress_bar('Init', Nchannels, 'Channels written');
-if Nchannels > 100, Ibar = floor(linspace(1, Nchannels,100));
-else Ibar = [1:Nchannels]; end
 
-k = 0;
-for i = 1:Nfiles    
-    rejected = Dout.reject | D{i}.reject;
-    if any(rejected)
-        Dout = reject(Dout, [], rejected);
-    end 
-    
-    % write channel-wise to avoid memory mapping error
-    for j = 1:D{i}.nchannels
-        k = k + 1;
+spm_progress_bar('Init', Dout.ntrials, 'Trials written');
+if Dout.ntrials > 100, Ibar = floor(linspace(1, Dout.ntrials, 100));
+else Ibar = [1:Dout.ntrials]; end
+
+for t = 1:Dout.ntrials
+    k = 1;
+    for i = 1:Nfiles
         if ~isTF
-            Dout(k, :, :) =  D{i}(j, :, :);
+            Dout(k:(k+D{i}.nchannels-1), :, t) =  D{i}(:, :, t);
         else
-            Dout(k, :, :, :) =  D{i}(j, :, :, :);
+            Dout(k:(k+D{i}.nchannels-1), :, :, t) =  D{i}(:, :, :, t);
         end
-        
-        Dout = chanlabels(Dout, k, chanlabels(D{i}, j));
-        Dout = chantype(Dout, k, chantype(D{i}, j));
-        Dout = badchannels(Dout, k, badchannels(D{i}, j));
-        Dout = units(Dout, k, units(D{i}, j));
-        Dout = coor2D(Dout, k, coor2D(D{i}, j));
-        
-        if ismember(k, Ibar), spm_progress_bar('Set', k); end
+    k = k + D{i}.nchannels;
     end
+    if ismember(t, Ibar), spm_progress_bar('Set', t); end
+end
+
+spm_progress_bar('Clear');
+
+% Update the header data separately to only do it once
+k = 1;
+rejected = Dout.reject;
+for i = 1:Nfiles
+    rejected = rejected | D{i}.reject;
+    
+    Dout = chanlabels(Dout, k:(k+D{i}.nchannels-1), chanlabels(D{i}));
+    Dout = chantype(Dout, k:(k+D{i}.nchannels-1), chantype(D{i}));
+    if ~isempty(badchannels(D{i}))
+        Dout = badchannels(Dout, k+badchannels(D{i})-1, 1);
+    end
+    Dout = units(Dout, k:(k+D{i}.nchannels-1), units(D{i}));
+    Dout = coor2D(Dout, k:(k+D{i}.nchannels-1), coor2D(D{i}));
+end
+
+if any(rejected)
+    Dout = reject(Dout, [], rejected);
 end
 
 %-Set sensor locations
@@ -174,7 +183,7 @@ if ismember('EEG', newmodalities) && isempty(Dout.sensors('EEG'))
     S1.task = 'defaulteegsens';
     S1.updatehistory = 0;
     Dout = spm_eeg_prep(S1);
-end         
+end
 
 %-Remove previous inversions.
 %--------------------------------------------------------------------------
