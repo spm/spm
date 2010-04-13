@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_grandmean
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 3531 2009-11-04 14:58:54Z guillaume $
+% $Id: spm_cfg_eeg_grandmean.m 3818 2010-04-13 14:36:31Z vladimir $
 
 % -------------------------------------------------------------------------
 % weighted Weighted average
@@ -40,7 +40,7 @@ Dout.help    = {'Choose filename'};
 % S Grandmean
 %--------------------------------------------------------------------------
 S            = cfg_exbranch;
-S.tag        = 'eeg_grandmean';
+S.tag        = 'grandmean';
 S.name       = 'M/EEG Grandmean';
 S.val        = {D Dout weighted};
 S.help       = {'Average multiple evoked responses'};

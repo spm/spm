@@ -5,7 +5,7 @@ function S = spm_cfg_eeg_convert2images
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 2843 2009-03-09 16:01:44Z guillaume $
+% $Id: spm_cfg_eeg_convert2images.m 3818 2010-04-13 14:36:31Z vladimir $
 
 Fname = cfg_files;
 Fname.tag = 'Fname';
@@ -40,7 +40,7 @@ Interpolate.val = {yes};
 Interpolate.help = {'Interpolate bad channels'};
 
 S = cfg_exbranch;
-S.tag = 'eeg_convert2images';
+S.tag = 'convert2images';
 S.name = 'M/EEG Convert2Images';
 S.val = {Fname n Interpolate};
 S.help = {'Convert SPM M/EEG data to voxel-based images, as a time-series of 2D images'};

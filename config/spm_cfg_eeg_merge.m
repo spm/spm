@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_merge
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 3188 2009-06-08 08:47:46Z vladimir $
+% $Id: spm_cfg_eeg_merge.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 3188 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -55,7 +55,7 @@ rules.help = {['Specify the rules for translating condition labels from ' ...
     'rules have precedence. Trials not matched by any of the rules will keep their original labels.']};
 
 S = cfg_exbranch;
-S.tag = 'eeg_merge';
+S.tag = 'merge';
 S.name = 'M/EEG Merging';
 S.val = {D, rules};
 S.help = {'Merge EEG/MEG data.'};

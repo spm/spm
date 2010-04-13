@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_tf
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 3798 $';
+rev = '$Rev: 3818 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -50,7 +50,7 @@ for i = 1:numel(specest_funs)
 end
 
 S = cfg_exbranch;
-S.tag = 'tf_analysis';
+S.tag = 'analysis';
 S.name = 'M/EEG Time-Frequency analysis';
 S.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase};
 S.help = {'Perform time-frequency analysis of epoched M/EEG data.'};

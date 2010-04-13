@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_downsample
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_cfg_eeg_downsample.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 2225 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -22,7 +22,7 @@ fsample_new.num = [1 1];
 fsample_new.help = {'Input the new sampling rate [Hz].'};
 
 S = cfg_exbranch;
-S.tag = 'eeg_downsample';
+S.tag = 'downsample';
 S.name = 'M/EEG Downsampling';
 S.val = {D fsample_new};
 S.help = {'Downsample EEG/MEG data.'};

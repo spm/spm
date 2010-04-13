@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 2200 2008-09-26 10:09:45Z stefan $
+% $Id: spm_cfg_eeg_filter.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 2200 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -43,7 +43,7 @@ flt.name = 'Filter';
 flt.val = {typ band PHz};
 
 S = cfg_exbranch;
-S.tag = 'eeg_filter';
+S.tag = 'filter';
 S.name = 'M/EEG Filter';
 S.val = {D flt};
 S.help = {'Low-pass filters EEG/MEG epoched data.'};

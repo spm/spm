@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_average
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_cfg_eeg_average.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 3742 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -66,7 +66,7 @@ plv.values = {true, false};
 plv.val = {false};
 
 S = cfg_exbranch;
-S.tag = 'eeg_average';
+S.tag = 'average';
 S.name = 'M/EEG Averaging';
 S.val = {D, userobust, plv};
 S.help = {'Average epoched EEG/MEG data.'};

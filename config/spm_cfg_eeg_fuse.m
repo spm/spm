@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_fuse
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_fuse.m 3447 2009-10-07 07:52:29Z vladimir $
+% $Id: spm_cfg_eeg_fuse.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 3447 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -16,7 +16,7 @@ D.help = {'Select the M/EEG mat files.'};
 
 
 S = cfg_exbranch;
-S.tag = 'eeg_fuse';
+S.tag = 'fuse';
 S.name = 'M/EEG Fusion';
 S.val = {D};
 S.help = {'Fuse EEG/MEG data.'};

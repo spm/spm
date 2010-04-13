@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_bc
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_bc.m 3250 2009-07-06 09:31:13Z vladimir $
+% $Id: spm_cfg_eeg_bc.m 3818 2010-04-13 14:36:31Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -30,7 +30,7 @@ time.num     = [1 2];
 % S
 %--------------------------------------------------------------------------
 S          = cfg_exbranch;
-S.tag      = 'eeg_bc';
+S.tag      = 'bc';
 S.name     = 'M/EEG Baseline correction';
 S.val      = {D, time};
 S.help     = {'Baseline correction of M/EEG time data'}';

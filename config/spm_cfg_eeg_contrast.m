@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 3700 2010-01-27 19:04:38Z vladimir $
+% $Id: spm_cfg_eeg_contrast.m 3818 2010-04-13 14:36:31Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -38,28 +38,19 @@ contrasts.help = {'Each contrast defines a new condition in the output file.'};
 contrasts.values  = {contrast};
 contrasts.num     = [1 Inf];
 
-yes = cfg_const;
-yes.tag = 'yes';
-yes.name = 'Weight average by repetition numbers';
-yes.val = {1};
-
-no = cfg_const;
-no.tag = 'no';
-no.name = 'Don''t weight averages by repetition numbers';
-no.val = {1};
-
-WeightAve = cfg_choice;
-WeightAve.tag = 'WeightAve';
-WeightAve.name = 'Weight averages';
-WeightAve.values = {yes,no};
-WeightAve.val = {yes};
-WeightAve.help = {'This option will weight averages by the number of their occurences in the data set. This is only important when there are multiple occurences of a trial type, e.g. in single trial data.'};
+weight = cfg_menu;
+weight.tag = 'weight';
+weight.name = 'Weight average by repetition numbers';
+weight.labels = {'yes', 'no'};
+weight.values = {1 , 0};
+weight.val = {1};
+weight.help = {'This option will weight averages by the number of their occurences in the data set. This is only important when there are multiple occurences of a trial type, e.g. in single trial data.'};
 
 
 S = cfg_exbranch;
-S.tag = 'eeg_contrast';
+S.tag = 'contrast';
 S.name = 'M/EEG Contrast over epochs';
-S.val = {D contrasts WeightAve};
+S.val = {D contrasts weight};
 S.help = {'Computes contrasts over EEG/MEG epochs.'};
 S.prog = @eeg_contrast;
 S.vout = @vout_eeg_contrast;
@@ -71,11 +62,7 @@ S.D = job.D{1};
 S.c = cat(1, job.contrast(:).c);
 S.label = {job.contrast.label};
 
-if isfield(job.WeightAve, 'yes')
-    S.WeightAve = 1;
-else
-    S.WeightAve = 0;
-end
+S.WeightAve = job.weight;
 
 out.D = spm_eeg_weight_epochs(S);
 out.Dfname = {out.D.fname};

@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 2867 2009-03-12 10:54:56Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 3818 2010-04-13 14:36:31Z vladimir $
 
-rev = '$Rev: 2867 $';
+rev = '$Rev: 3818 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -82,7 +82,7 @@ trlchoice.values = {epochinfo define};
 
 
 S = cfg_exbranch;
-S.tag = 'eeg_epochs';
+S.tag = 'epoch';
 S.name = 'M/EEG Epoching';
 S.val = {D trlchoice};
 S.help = {'Epoch continuous EEG/MEG data.'};
