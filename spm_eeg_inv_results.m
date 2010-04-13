@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_results.m 3819 2010-04-13 19:24:25Z karl $
 
 % SPM data structure
 %==========================================================================
@@ -162,6 +162,7 @@ for i = 1:length(J)
             GW{i} = JWWJ/Nt + qC;
             
         case 'trials'
+            
             JW{i} = {};
             JWWJ  = {}; 
             

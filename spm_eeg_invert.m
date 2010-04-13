@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3814 2010-04-09 11:02:21Z vladimir $
+% $Id: spm_eeg_invert.m 3819 2010-04-13 19:24:25Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -145,7 +145,6 @@ inverse   = D{1}.inv{D{1}.val}.inverse;
 try, type = inverse.type;   catch, type = 'GS';     end
 try, s    = inverse.smooth; catch, s    = 0.6;      end
 try, Np   = inverse.Np;     catch, Np   = 256;      end
-try, Nm   = inverse.Nm;     catch, Nm   = 128;      end
 try, Nr   = inverse.Nr;     catch, Nr   = 16;       end
 try, xyz  = inverse.xyz;    catch, xyz  = [0 0 0];  end
 try, rad  = inverse.rad;    catch, rad  = 128;      end
@@ -171,8 +170,7 @@ catch
     end
 end
 Nmod  = numel(modalities);                  % number of modalities
-Nmmax = Nm;                                 % max number of spatial modes
-Nrmax = Nr;                                 % max number of temporal modes
+Nmax  = Nr;                                 % max number of temporal modes
 
 
 % check lead fields and get number of dipoles (Nd) and channels (Nc)
@@ -238,11 +236,12 @@ fprintf(' - done\n')
  
 % check for (e.g., empty-room) sensor components (in Qe{1})
 %==========================================================================
+QE    = cell(Nl,Nmod);
 for i = 1:Nl
     for m = 1:Nmod
         try
-            Qe      = D{i}.inv{D{i}.val}.inverse.Qe{m};
-            QE{i,m} = Nc(i,m)*Qe/trace(Qe);
+            QE{i,m} = D{i}.inv{D{i}.val}.inverse.Qe{m};
+            QE{i,m} = Nc(i,m)*QE{i,m}/trace(QE{i,m});
             if length(QE{i,m}) ~= Nc(i,m)
                 errordlg('error component (modality %s; subject %d) does not match number of channels (%d)\n',modalities{m},i,Nc(i,m))
                 return
@@ -269,15 +268,13 @@ fprintf('Optimising and aligning spatial modes ...\n')
 % Use recursive (regularised) least squares to find average lead-field
 %--------------------------------------------------------------------------
 Is    = 1:Nd;
+UL    = cell(Nmod,1);
 for m = 1:Nmod
      
-    % Initialise average lead-field with singular vectors of L{1}
+    % Initialise average lead-field with L{1}
     %----------------------------------------------------------------------
-    L     = R{1,m}*spm_eeg_lgainmat(D{1},Is,D{1}.chanlabels(Ic{1,m}));
-    U     = spm_svd(L*L',exp(-16));
-    Nm(m) = min(size(U,2),Nmmax);
-    UL{m} = U(:,1:Nm(m))'*L;
-    
+    UL{m} = R{1,m}*spm_eeg_lgainmat(D{1},Is,D{1}.chanlabels(Ic{1,m}));
+    AA    = 1;
     
     % pre-compute regularised inverses (for speed)
     %----------------------------------------------------------------------
@@ -287,61 +284,63 @@ for m = 1:Nmod
     end
     
     % Optimise alignment matrices A such that A{m}*L{m} = <A{m}*L{m}>m
-    %---------------------------------------------------------------------- 
+    %----------------------------------------------------------------------
     for j = 1:8
         
-        % normalise lead-field
+        % eliminate redundant virtual channels
         %------------------------------------------------------------------
-        Lscale = sqrt(trace(UL{m}*UL{m}')/Nm(m));
-        UL{m}  = UL{m}/Lscale;
+        UL{m} = spm_sqrtm(spm_inv(AA))*UL{m};
+        
+        % eliminate low SNR spatial modes
+        %------------------------------------------------------------------
+        U     = spm_svd((UL{m}*UL{m}'),exp(-32));
+        UL{m} = U'*UL{m};
+        Nm(m) = size(UL{m},1);
+        
+        % normalise lead-field
+        %------------------------------------------------------------------    
+        Scale = sqrt(trace(UL{m}*UL{m}')/Nm(m));
+        UL{m} = UL{m}/Scale;
         
         % spatial projectors A{i,m) for i = 1,...,Nl subjects
         %------------------------------------------------------------------
         AL    = 0;
+        AA    = 0;
         for i = 1:Nl
             L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
             A{i,m} = UL{m}*L'*iL{i};
             AL     = AL + A{i,m}*L;
+            AA     = AA + A{i,m}*A{i,m}';
         end
         
-        % re-compute average
+        % re-compute average and test for convergence
         %------------------------------------------------------------------
         AL    = AL/Nl;
-        dUL   = norm(AL - UL{m},1)/norm(AL,'inf');
+        dUL   = norm(AL - UL{m},1)/norm(AL,1);
         UL{m} = AL;
-        if dUL < 1e-2
+        fprintf('Aligning - iteration: %i (%-2.3f)\n',j,dUL)
+        if dUL < 1e-3
             break
         end
+        
     end
-    
-    % eliminate redundant virtual channels
-    %----------------------------------------------------------------------
-    j     = 1:Nm(m);
-    for i = 1:Nl
-        E = sum(A{i,m}.^2,2);
-        j = j(:) & (E > max(E)*exp(-4));
-    end
-    j     = find(j);
-    for i = 1:Nl
-        A{i,m} = A{i,m}(j,:);
-    end
-    UL{m} = UL{m}(j,:);
-    Nm(m) = length(j);
 
     % Report
     %----------------------------------------------------------------------
     fprintf('Using %d spatial modes for modality %s\n',Nm(m),modalities{m})
     
-%     spm_figure('GetWin','Graphics')
-%     for i = 1:Nl
-%         subplot(Nl,2,(i - 1)*2 + 1)
-%         imagesc(A{i,m}*A{i,m}')
-%         subplot(Nl,2,(i - 1)*2 + 2)
-%         plot(sum(A{i,m}.^2,2))
-%     end
-%     drawnow
-%     pause
-%     disp('any key to continue')
+    spm_figure('GetWin','Lead fields');
+    for i = 1:Nl
+        
+        L  = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
+        subplot(Nl,3,(i - 1)*3 + 1)
+        imagesc(A{i,m}*A{i,m}'), axis square
+        subplot(Nl,3,(i - 1)*3 + 2)
+        plot(sum(A{i,m}.^2,2)),  axis square
+        subplot(Nl,3,(i - 1)*3 + 3)
+        plot(L'*A{i,m}'),        axis square
+    end
+    drawnow
 
 end
 
@@ -439,19 +438,23 @@ for i = 1:Nl
  
     % get temporal covariance (Y'*Y) to find temporal modes
     %======================================================================
+    MY    = cell(Nmod,1);                            % mean response
     YTY   = sparse(0);                               % accumulator
     for m = 1:Nmod                                   % loop over modalities
  
         % get (spatially aligned) data
         %------------------------------------------------------------------
+        N     = 0;
         YY    = 0;
         MY{m} = 0;
-        for j = 1:Nt(i)                              % pool over conditions
-            c = D{i}.pickconditions(trial{j});       % and trials
-            for k = 1:length(c)
+        for j = 1:Nt(i)                            % pool over conditions
+            c     = D{i}.pickconditions(trial{j}); % and trials
+            Nk    = length(c);
+            for k = 1:Nk
                 Y     = A{i,m}*D{i}(Ic{i,m},It{i},c(k));
                 MY{m} = MY{m} + Y;
                 YY    = YY + Y'*Y;
+                N     = N + Nb(i);
             end
         end
         
@@ -463,17 +466,17 @@ for i = 1:Nl
         % Scale data (to remove subject and modality scaling differences)
         %------------------------------------------------------------------
         scale(i,m) = sign(trace(MY{m}'*(UL{m}*UL{1}')*MY{1}));
-        scale(i,m) = scale(i,m)/sqrt(trace(YY)/(Nm(m)*Nb(i)*Nt(i)));
+        scale(i,m) = scale(i,m)/sqrt(trace(YY)/(Nm(m)*N));
         YTY        = YTY + YY*(scale(i,m)^2);
         
     end
  
     % temporal projector (at most Nrmax modes) S = T*V
     %======================================================================
-    [VT E] = spm_svd(YTY,exp(-4));               % get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));               % get temporal modes
     E      = diag(E)/trace(YTY);                 % normalise variance
-    Nr(i)  = min(length(E),Nrmax);               % number of temporal modes
-    V{i}   = VT(:,1:Nr(i));                      % temporal modes
+    Nr(i)  = min(length(E),Nmax);                % number of temporal modes
+    V{i}   = U(:,1:Nr(i));                       % temporal modes
     VE(i)  = sum(E(1:Nr(i)));                    % variance explained
  
     fprintf('Using %i temporal modes for subject %i, ',Nr(i),i)
@@ -482,8 +485,7 @@ for i = 1:Nl
     % projection and whitening
     %----------------------------------------------------------------------
     S{i}   = T*V{i};                             % temporal projector
-    qP     = inv(S{i}'*qV{i}*S{i});              % precision (mode)
-    Vq{i}  = S{i}*qP*S{i}';                      % precision (time)
+    Vq{i}  = S{i}*inv(S{i}'*qV{i}*S{i})*S{i}';   % temporal precision
  
  
     % get spatial covariance (Y*Y') for Gaussian process model.
@@ -506,13 +508,13 @@ for i = 1:Nl
             %--------------------------------------------------------------
             for m = 1:Nmod
                 Y       = D{i}(Ic{i,m},It{i},c(k))*S{i};
-                MY{m}   = A{i,m}*Y*scale(i,m);
+                MY{m}   = A{i,m}*Y*scale(i,m)/Nk;
             end
              
             % accumulate first & second-order responses
             %--------------------------------------------------------------
             Nn(i)       = Nn(i) + Nr(i);         % number of samples
-            Y           = spm_cat(MY(:))/Nk;     % contribution to ERP
+            Y           = spm_cat(MY);           % contribution to ERP
             YY          = Y*Y';                  % and covariance
  
             % accumulate statistics (subject-specific)
@@ -532,7 +534,7 @@ end
 % and concatenate for optimisation of spatial priors over subjects
 %--------------------------------------------------------------------------
 AY    = spm_cat(AY);                             % pooled response for MVB
-UL    = spm_cat(UL(:));                          % pooled lead fields
+UL    = spm_cat(UL);                             % pooled lead fields
 
  
 % generate sensor error components (Qe)
@@ -543,7 +545,8 @@ for m = 1:Nmod
 end
  
 % assuming equal noise over subjects (Qe{m}) and modalities AQ
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+N     = cell(Nmod,Nmod);
 for i = 1:Nl
     for m = 1:Nmod
         N{m,m} = sparse(Nm(m),Nm(m));
