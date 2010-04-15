@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3819 2010-04-13 19:24:25Z karl $
+% $Id: spm_eeg_invert.m 3820 2010-04-15 13:26:36Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -289,6 +289,7 @@ for m = 1:Nmod
         
         % eliminate redundant virtual channels
         %------------------------------------------------------------------
+        fprintf('Aligning - iteration: %i\n',j)
         UL{m} = spm_sqrtm(spm_inv(AA))*UL{m};
         
         % eliminate low SNR spatial modes
@@ -313,15 +314,10 @@ for m = 1:Nmod
             AA     = AA + A{i,m}*A{i,m}';
         end
         
-        % re-compute average and test for convergence
+        % re-compute average
         %------------------------------------------------------------------
-        AL    = AL/Nl;
-        dUL   = norm(AL - UL{m},1)/norm(AL,1);
-        UL{m} = AL;
-        fprintf('Aligning - iteration: %i (%-2.3f)\n',j,dUL)
-        if dUL < 1e-3
-            break
-        end
+        UL{m} = AL/Nl;
+        if Nl == 1, break, end
         
     end
 
