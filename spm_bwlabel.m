@@ -21,7 +21,7 @@ function varargout = spm_bwlabel(varargin)
 % NUM         : Number of connected components in L.
 %
 %
-% The implementation is not recursive (i.e. will no crash for
+% The implementation is not recursive (i.e. will not crash for
 % large connected components) and is losely based on
 % Thurfjell et al. 1992, A new three-dimensional connected
 % components labeling algorithm with simultaneous object
@@ -31,7 +31,7 @@ function varargout = spm_bwlabel(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_bwlabel.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_bwlabel.m 3822 2010-04-16 18:43:08Z karl $
 
 %-This is merely the help file for the compiled routine
 error('spm_bwlabel.c not compiled - see Makefile');

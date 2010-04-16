@@ -1,12 +1,14 @@
-function [N,Z,M,A] = spm_max(X,L)
+function [N,Z,M,A,XYZ] = spm_max(X,L)
 % Sizes, maxima and locations of local excursion sets
 % FORMAT [N Z M A] = spm_max(X,L)
 % X     - values of 3-D field
 % L     - locations [x y x]' {in voxels}
+%
 % N     - size of region {in voxels)
 % Z     - Z values of maxima
 % M     - location of maxima {in voxels}
 % A     - region number
+% XYZ   - cell array of voxel locations
 %__________________________________________________________________________
 %
 % spm_max characterizes a point list of voxel values (X) and their
@@ -20,7 +22,7 @@ function [N,Z,M,A] = spm_max(X,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_max.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_max.m 3822 2010-04-16 18:43:08Z karl $
 
 if isempty(L)
     N = []; Z = []; M = []; A = [];
@@ -46,7 +48,7 @@ vol(index) = 1;
 % Get size (in no. of voxels) for each connected component
 % ccs = connected component size
 %--------------------------------------------------------------------------
-ccs        = histc(cci(:),[0:max(cci(:))]+0.5);
+ccs        = histc(cci(:),[0:max(cci(:))] + 0.5);
 ccs        = ccs(1:end-1);
 
 % Get indices into L for voxels that are indeed local maxima (using an 18 
@@ -60,3 +62,13 @@ Z          = X(Lindex);
 mindex     = sub2ind(dim,L(1,Lindex)',L(2,Lindex)',L(3,Lindex)');
 A          = cci(mindex);
 N          = ccs(A);
+
+% Cell array of XYZ locations of voxels in each cluster
+%--------------------------------------------------------------------------
+if nargout > 4
+    xyz(:,index) = sparse(L);
+    cci   = sparse(cci(:));
+    for i = 1:max(A)
+        XYZ{i} = full(xyz(:,cci == i));
+    end
+end

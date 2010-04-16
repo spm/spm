@@ -50,7 +50,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 3627 2009-12-09 18:41:01Z guillaume $
+% $Id: spm_P_RF.m 3822 2010-04-16 18:43:08Z karl $
 
 
 % get expectations
@@ -58,20 +58,20 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 
 % get EC densities
 %--------------------------------------------------------------------------
-D       = find(R, 1, 'last' );
-R       = R(1:D);
-G       = sqrt(pi)./gamma(([1:D])/2);
-EC      = spm_ECdensity(STAT,Z,df);
-EC      = max(EC([1:D]), eps);
+D   = find(R,1,'last');
+R   = R(1:D);
+G   = sqrt(pi)./gamma(([1:D])/2);
+EC  = spm_ECdensity(STAT,Z,df);
+EC  = max(EC([1:D]),eps);
 
 % corrected p value
 %--------------------------------------------------------------------------
-P       = triu(toeplitz(EC'.*G))^n;
-P       = P(1,:);
-EM      = (R./G).*P;        % <maxima> over D dimensions
-Em      = sum(EM);          % <maxima>
-EN      = P(1)*R(D);        % <voxels>
-En      = EN/EM(D);         % En = EN/EM(D);
+P   = triu(toeplitz(EC'.*G))^n;
+P   = P(1,:);
+EM  = (R./G).*P;        % <maxima> over D dimensions
+Em  = sum(EM);          % <maxima>
+EN  = P(1)*R(D);        % <voxels>
+En  = EN/EM(D);         % En = EN/EM(D);
 
 % get P{n > k}
 %==========================================================================
@@ -79,8 +79,8 @@ En      = EN/EM(D);         % En = EN/EM(D);
 % assume a Gaussian form for P{n > k} ~ exp(-beta*k^(2/D))
 % Appropriate for SPM{Z} and high d.f. SPM{T}
 %--------------------------------------------------------------------------
-D        = D - 1;
-if     ~k || ~D
+D  = D - 1;
+if ~k || ~D
 
     p    = 1;
 
@@ -109,18 +109,6 @@ end
 % Poisson clumping heuristic {for multiple clusters}
 %==========================================================================
 P        = 1 - spm_Pcdf(c - 1,(Em + eps)*p);
-
-
-% set P and p = [] for non-implemented cases
-%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-if k > 0 && n > 1
-    P    = []; p = [];
-end
-if k > 0 && (STAT == 'X' || STAT == 'F')
-    P    = []; p = [];
-end
-%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
 
 %==========================================================================
@@ -187,10 +175,10 @@ elseif  STAT == 'F'
 
     EC(1,:) = 1 - spm_Fcdf(t,df);
     EC(2,:) = a^(1/2)*exp(gammaln((v+k-1)/2)-b)*2^(1/2)...
-        *(k*t/v).^(1/2*(k-1)).*(1+k*t/v).^(-1/2*(v+k-2));
+              *(k*t/v).^(1/2*(k-1)).*(1+k*t/v).^(-1/2*(v+k-2));
     EC(3,:) = a*exp(gammaln((v+k-2)/2)-b)*(k*t/v).^(1/2*(k-2))...
-            .*(1+k*t/v).^(-1/2*(v+k-2)).*((v-1)*k*t/v-(k-1));
+              .*(1+k*t/v).^(-1/2*(v+k-2)).*((v-1)*k*t/v-(k-1));
     EC(4,:) = a^(3/2)*exp(gammaln((v+k-3)/2)-b)...
-        *2^(-1/2)*(k*t/v).^(1/2*(k-3)).*(1+k*t/v).^(-1/2*(v+k-2))...
-            .*((v-1)*(v-2)*(k*t/v).^2-(2*v*k-v-k-1)*(k*t/v)+(k-1)*(k-2));
+              *2^(-1/2)*(k*t/v).^(1/2*(k-3)).*(1+k*t/v).^(-1/2*(v+k-2))...
+              .*((v-1)*(v-2)*(k*t/v).^2-(2*v*k-v-k-1)*(k*t/v)+(k-1)*(k-2));
 end

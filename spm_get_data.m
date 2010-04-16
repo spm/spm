@@ -3,7 +3,7 @@ function [Y] = spm_get_data(V,XYZ,check)
 % FORMAT [Y] = spm_get_data(V,XYZ);
 %
 % V     - [1 x n] struct array of file handles (or filename matrix)
-% XYZ   - [4 x m] or [3 x m]location matrix (voxel)
+% XYZ   - [4 x m] or [3 x m] location matrix (voxel)
 % check - check validity of input parameters [default: true]
 %
 % Y     - (n x m) double values
@@ -13,7 +13,7 @@ function [Y] = spm_get_data(V,XYZ,check)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_data.m 3297 2009-07-29 17:20:19Z guillaume $
+% $Id: spm_get_data.m 3822 2010-04-16 18:43:08Z karl $
 
 if nargin < 3, check = true; end
 

@@ -1,5 +1,5 @@
 function [SPM,xSPM] = spm_getSPM(varargin)
-% Compute a specified and thresholded SPM/PPM following parameter estimation
+% Compute a specified and thresholded SPM/PPM following estimation
 % FORMAT [SPM,xSPM] = spm_getSPM;
 % Query SPM in interactive mode.
 %
@@ -83,7 +83,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % contrasts, SPM images (spmT_????.{img,hdr}) are written, along with
 % contrast (con_????.{img,hdr}) images for SPM{T}'s, or Extra
 % Sum-of-Squares images (ess_????.{img,hdr}) for SPM{F}'s.
-% 
+%
 % The contrast images are the weighted sum of the parameter images,
 % where the weights are the contrast weights, and are uniquely
 % estimable since contrasts are checked for estimability by the
@@ -98,14 +98,14 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 %
 % spm_getSPM prompts for an SPM and applies thresholds {u & k}
 % to a point list of voxel values (specified with their locations {XYZ})
-% This allows the SPM be displayed and characterized in terms of regionally 
+% This allows the SPM be displayed and characterized in terms of regionally
 % significant effects by subsequent routines.
-% 
+%
 % For general linear model Y = XB + E with data Y, design matrix X,
 % parameter vector B, and (independent) errors E, a contrast c'B of the
 % parameters (with contrast weights c) is estimated by c'b, where b are
 % the parameter estimates given by b=pinv(X)*Y.
-% 
+%
 % Either single contrasts can be examined or conjunctions of different
 % contrasts. Contrasts are estimable linear combinations of the
 % parameters, and are specified using the SPM contrast manager
@@ -113,7 +113,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % that the contrast is zero (or zero vector in the case of
 % F-contrasts). See the help for the contrast manager [spm_conman.m]
 % for a further details on contrasts and contrast specification.
-% 
+%
 % A conjunction assesses the conjoint expression of multiple effects. The
 % conjunction SPM is the minimum of the component SPMs defined by the
 % multiple contrasts.  Inference on the minimum statistics can be
@@ -129,8 +129,8 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % alternative that k>0, that one or more effects are real.   A third
 % Intermediate approach, is to use a null hypothesis of no more than u
 % effects are real.  Rejecting the intermediate null that k<=u implies an
-% alternative that k>u, that more than u of the effects are real.  
-% 
+% alternative that k>u, that more than u of the effects are real.
+%
 % The Global and Intermediate nulls use results for minimum fields which
 % require the SPMs to be identically distributed and independent. Thus,
 % all component SPMs must be either SPM{t}'s, or SPM{F}'s with the same
@@ -141,7 +141,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % the data space implied by the null hypotheses defined by the contrasts
 % (c'pinv(X)). Furthermore, this assumes that the errors are
 % i.i.d. (i.e. the estimates are maximum likelihood or Gauss-Markov. This
-% is the default in spm_spm).  
+% is the default in spm_spm).
 %
 % To ensure approximate independence of the component SPMs in the case of
 % the global or intermediate null, non-orthogonal contrasts are serially
@@ -156,7 +156,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % do not survive an uncorrected p value (based on height) in one or
 % more further contrasts.  No account is taken of this masking in the
 % statistical inference pertaining to the masked contrast.
-% 
+%
 % The SPM is subject to thresholding on the basis of height (u) and the
 % number of voxels comprising its clusters {k}. The height threshold is
 % specified as above in terms of an [un]corrected p value or
@@ -175,14 +175,14 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % contrast exceeds a specified threshold.  This threshold is stored in
 % the xCon.eidf.  Subsequent plotting and tables will use the conditional
 % estimates and associated posterior or conditional probabilities.
-% 
+%
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3765 2010-03-09 19:03:57Z guillaume $
+% $Id: spm_getSPM.m 3822 2010-04-16 18:43:08Z karl $
 
 
 %-GUI setup
@@ -192,12 +192,12 @@ spm('Pointer','Arrow')
 
 %-Select SPM.mat & note SPM results directory
 %--------------------------------------------------------------------------
-if (nargin > 0) 
+if (nargin > 0)
     xSPM = varargin{1};
 end
 try
-   swd = xSPM.swd;
-   sts = 1;
+    swd = xSPM.swd;
+    sts = 1;
 catch
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     swd = spm_str_manip(spmmatfile,'H');
@@ -230,9 +230,9 @@ catch
     %-Check the model has been estimated
     %----------------------------------------------------------------------
     str = { 'This model has not been estimated.';...
-            'Would you like to estimate it now?'};
+        'Would you like to estimate it now?'};
     if spm_input(str,1,'bd','yes|no',[1,0],1)
-         SPM = spm_spm(SPM);
+        SPM = spm_spm(SPM);
     else
         SPM = []; xSPM = [];
         return
@@ -276,7 +276,7 @@ try
     Ic = xSPM.Ic;
 catch
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
-               '    Select contrasts...',' for conjunction',1);
+                           '    Select contrasts...',' for conjunction',1);
 end
 if isempty(xCon)
     % figure out whether new contrasts were defined, but not selected
@@ -297,9 +297,9 @@ nc        = length(Ic);  % Number of contrasts
 %-Allow user to extend the null hypothesis for conjunctions
 %
 % n: conjunction number
-% u: Null hyp is k<=u effects real; Alt hyp is k>u effects real 
+% u: Null hyp is k<=u effects real; Alt hyp is k>u effects real
 %    (NB Here u is from Friston et al 2004 paper, not statistic thresh).
-%                  u         n      
+%                  u         n
 % Conjunction Null nc-1      1     |    u = nc-n
 % Intermediate     1..nc-2   nc-u  |    #effects under null <= u
 % Global Null      0         nc    |    #effects under alt  > u,  >= u+1
@@ -315,7 +315,7 @@ if (nc > 1)
         end
         n = spm_input('Null hyp. to assess?','+1','b',But,Val,1);
         if isnan(n)
-            if nc==3,
+            if nc == 3,
                 n = nc - 1;
             else
                 n = nc - spm_input('Effects under null ','0','n1','1',nc-1);
@@ -330,61 +330,60 @@ end
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
 %--------------------------------------------------------------------------
-if nc>1 && n>1 && ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
-
+if nc > 1 && n > 1 && ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
+    
     OrthWarn = 0;
-
+    
     %-Successively orthogonalise
     %-NB: This loop is peculiarly controlled to account for the
     %     possibility that Ic may shrink if some contrasts disappear
     %     on orthogonalisation (i.e. if there are colinearities)
     %----------------------------------------------------------------------
-    i = 1; 
+    i = 1;
     while(i < nc), i = i + 1;
-    
+        
         %-Orthogonalise (subspace spanned by) contrast i w.r.t. previous
         %------------------------------------------------------------------
         oxCon = spm_FcUtil('|_',xCon(Ic(i)), xX.xKXs, xCon(Ic(1:i-1)));
-    
+        
         %-See if this orthogonalised contrast has already been entered
         % or is colinear with a previous one. Define a new contrast if
         % neither is the case.
         %------------------------------------------------------------------
         d     = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
-
+        
         if spm_FcUtil('0|[]',oxCon,xX.xKXs)
-
+            
             %-Contrast was colinear with a previous one - drop it
             %--------------------------------------------------------------
             Ic(i) = [];
             i     = i - 1;
-
+            
         elseif any(d)
-
+            
             %-Contrast unchanged or already defined - note index
             %--------------------------------------------------------------
             Ic(i) = min(d);
-
+            
         else
-
-            OrthWarn = OrthWarn + 1;
-
+            
             %-Define orthogonalised contrast as new contrast
             %--------------------------------------------------------------
+            OrthWarn = OrthWarn + 1;
             conlst     = sprintf('%d,',Ic(1:i-1));
             oxCon.name = sprintf('%s (orth. w.r.t {%s})', xCon(Ic(i)).name,...
-                                 conlst(1:end-1));
+                conlst(1:end-1));
             xCon  = [xCon, oxCon];
-            Ic(i) = length(xCon); 
+            Ic(i) = length(xCon);
         end
-
+        
     end % while...
     
     if OrthWarn
-      warning(sprintf(['Contrasts changed!  %d contrasts orthogonalized ',...
-              'to allow conjunction inf.'], OrthWarn))
+        warning(sprintf(['Contrasts changed!  %d contrasts orthogonalized ',...
+            'to allow conjunction inf.'], OrthWarn))
     end
-
+    
     SPM.xCon = xCon;
 end % if nc>1...
 SPM.xCon = xCon;
@@ -393,20 +392,20 @@ SPM.xCon = xCon;
 %--------------------------------------------------------------------------
 try
     Im = xSPM.Im;
-     if ~isempty(Im) 
+    if ~isempty(Im)
         maskCon = 1;
     else
         maskCon = 0;
-     end
+    end
 catch
     maskCon = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
 end
 if maskCon
     try
-         Im = xSPM.Im;
+        Im = xSPM.Im;
     catch
         [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
-                    'Select contrasts for masking...',' for masking',1);
+            'Select contrasts for masking...',' for masking',1);
     end
     
     %-Threshold for mask (uncorrected p-value)
@@ -452,7 +451,7 @@ else
 end
 if length(Im) == 1
     str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
-
+    
 elseif ~isempty(Im)
     str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
         sprintf(',%d',Im(2:end)),...
@@ -469,38 +468,48 @@ end
 
 
 %-Bayesian or classical Inference?
-%--------------------------------------------------------------------------
-if isfield(SPM,'PPM') 
+%==========================================================================
+if isfield(SPM,'PPM')
     
     % Make sure SPM.PPM.xCon field exists
+    %----------------------------------------------------------------------
     if ~isfield(SPM.PPM,'xCon')
         SPM.PPM.xCon = [];
     end
     
     % Set Bayesian con type
-    if length(SPM.PPM.xCon) < Ic 
-       SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
+    %----------------------------------------------------------------------
+    if length(SPM.PPM.xCon) < Ic
+        SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
     end
     
     % Make this one a Bayesian contrast - if first level
+    %----------------------------------------------------------------------
     if isfield(SPM.PPM,'VB')
         [xCon(Ic).STAT] = deal('P');
     end
     
     if all(strcmp([SPM.PPM.xCon(Ic).PSTAT],'T'))
+        
         % Simple contrast
+        %------------------------------------------------------------------
         str = 'Effect size threshold for PPM';
         
         if isfield(SPM.PPM,'VB') % 1st level Bayes
+            
             % For VB - set default effect size to zero
+            %--------------------------------------------------------------
             Gamma = 0;
             xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
             
         elseif nc == 1 && isempty(xCon(Ic).Vcon) % 2nd level Bayes
             % con image not yet written
+            %--------------------------------------------------------------
             if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
+                
                 %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
                 % The default is one conditional s.d. of the contrast
+                %----------------------------------------------------------
                 Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
                 xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
                 xCon(Ic).STAT = 'P';
@@ -508,6 +517,7 @@ if isfield(SPM,'PPM')
         end
     else
         % Compound contrast using Chi^2 statistic
+        %------------------------------------------------------------------
         if ~isfield(xCon(Ic),'eidf') || isempty(xCon(Ic).eidf)
             xCon(Ic).eidf = 0; % temporarily
         end
@@ -526,16 +536,16 @@ VspmSv   = cat(1,xCon(Ic).Vspm);
 %-Check conjunctions - Must be same STAT w/ same df
 %--------------------------------------------------------------------------
 if (nc > 1) && (any(diff(double(cat(1,xCon(Ic).STAT)))) || ...
-          any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
+        any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
     error('illegal conjunction: can only conjoin SPMs of same STAT & df');
 end
 
 
 %-Degrees of Freedom and STAT string describing marginal distribution
 %--------------------------------------------------------------------------
-df          = [xCon(Ic(1)).eidf xX.erdf];
-if nc>1
-    if n>1
+df     = [xCon(Ic(1)).eidf xX.erdf];
+if nc > 1
+    if n > 1
         str = sprintf('^{%d \\{Ha:k\\geq%d\\}}',nc,(nc-n)+1);
     else
         str = sprintf('^{%d \\{Ha:k=%d\\}}',nc,(nc-n)+1);
@@ -561,8 +571,8 @@ fprintf('\t%-32s: %30s','SPM computation','...initialising')            %-#
 
 %-Compute conjunction as minimum of SPMs
 %--------------------------------------------------------------------------
-Z         = Inf;
-for i     = Ic
+Z     = Inf;
+for i = Ic
     Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
 end
 
@@ -576,7 +586,7 @@ Zum   = Z;
 %--------------------------------------------------------------------------
 for i = Im
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')           %-#
-
+    
     Mask = spm_get_data(xCon(i).Vspm,XYZ);
     um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
     if Ex
@@ -608,17 +618,16 @@ try
 catch
     topoFDR = true;
 end
-    
+
 %-Height threshold - classical inference
 %--------------------------------------------------------------------------
 if STAT ~= 'P'
-
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...height threshold')  %-#
     
     %-Get height threshold
     %----------------------------------------------------------------------
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...height threshold')  %-#
     try
-       thresDesc = xSPM.thresDesc;
+        thresDesc = xSPM.thresDesc;
     catch
         if topoFDR
             str = 'FWE|none';
@@ -631,51 +640,50 @@ if STAT ~= 'P'
     switch thresDesc
         
         case 'FWE' % Family-wise false positive rate
-        %------------------------------------------------------------------
-        try
-            u = xSPM.u;
-        catch
-            u = spm_input('p value (FWE)','+0','r',0.05,1,[0,1]);
-        end
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-        u = spm_uc(u,df,STAT,R,n,S);
-
-
+            %--------------------------------------------------------------
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input('p value (FWE)','+0','r',0.05,1,[0,1]);
+            end
+            thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+            u = spm_uc(u,df,STAT,R,n,S);
+            
+            
         case 'FDR' % False discovery rate
-        %------------------------------------------------------------------
-        if topoFDR, 
-            fprintf('\n');                                              %-#
-            error('Change defaults.stats.topoFDR to use voxel FDR.'); 
-        end
-        try
-            u = xSPM.u;
-        catch
-            u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
-        end
-        thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-        u = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
-        
-        case 'none'  % No adjustment
-        % p for conjunctions is p of the conjunction SPM
-        %------------------------------------------------------------------
-        try
-            u = xSPM.u;
-        catch
-            u = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
-        end
-        if u <= 1
-            thresDesc = ['p<' num2str(u) ' (unc.)'];
-            u = spm_u(u^(1/n),df,STAT); 
-        else
-            thresDesc = [STAT '=' num2str(u) ];
-        end
-        
-
+            %--------------------------------------------------------------
+            if topoFDR,
+                fprintf('\n');                                          %-#
+                error('Change defaults.stats.topoFDR to use voxel FDR.');
+            end
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input('p value (FDR)','+0','r',0.05,1,[0,1]);
+            end
+            thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+            u = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
+            
+        case 'none'  % No adjustment: p for conjunctions is p of the conjunction SPM
+            %--------------------------------------------------------------
+            try
+                u = xSPM.u;
+            catch
+                u = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
+            end
+            if u <= 1
+                thresDesc = ['p<' num2str(u) ' (unc.)'];
+                u = spm_u(u^(1/n),df,STAT);
+            else
+                thresDesc = [STAT '=' num2str(u) ];
+            end
+            
+            
         otherwise
-        %------------------------------------------------------------------
-        fprintf('\n');                                                  %-#
-        error(sprintf('Unknown control method "%s".',thresDesc));
-
+            %--------------------------------------------------------------
+            fprintf('\n');                                              %-#
+            error(sprintf('Unknown control method "%s".',thresDesc));
+            
     end % switch thresDesc
     
     %-Compute p-values for topological and voxel-wise FDR (all search voxels)
@@ -694,33 +702,37 @@ if STAT ~= 'P'
                 Ps   = (1 - spm_Fcdf(Zum,df)).^n;
         end
         Ps = sort(Ps);
-        %uv = spm_uc_FDR(0.05,df,STAT,n,VspmSv,0);
     end
     
     %-Peak FDR
-    [up, Pp]     = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
-
+    %----------------------------------------------------------------------
+    [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
+    
     %-Cluster FDR
+    %----------------------------------------------------------------------
     if STAT == 'T' && n == 1
-        V2R      = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM>1));
-        [uc, Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
+        V2R        = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM > 1));
+        [uc,Pc,ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
     else
-        uc       = NaN;
-        ue       = NaN;
-        Pc       = [];
+        uc  = NaN;
+        ue  = NaN;
+        Pc  = [];
     end
-
+    
     %-Peak FWE
-    uu           = spm_uc(0.05,df,STAT,R,n,S);
+    %----------------------------------------------------------------------
+    uu      = spm_uc(0.05,df,STAT,R,n,S);
+    
     
 %-Height threshold - Bayesian inference
 %--------------------------------------------------------------------------
 elseif STAT == 'P'
-
+    
     u_default = 1 - 1/SPM.xVol.S;
-    u  = spm_input(['Posterior probability threshold for PPM'],'+0','r',u_default,1);
+    str       = 'Posterior probability threshold for PPM';
+    u         = spm_input(str,'+0','r',u_default,1);
     thresDesc = ['P>'  num2str(u) ' (PPM)'];
-
+    
 end % (if STAT)
 
 %-Calculate height threshold filtering
@@ -740,7 +752,7 @@ end
 %-Extent threshold (disallowed for conjunctions)
 %--------------------------------------------------------------------------
 if ~isempty(XYZ) && nc == 1
-
+    
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold')  %-#
     
     %-Get extent threshold [default = 0]
@@ -759,7 +771,7 @@ if ~isempty(XYZ) && nc == 1
         j = find(A == i);
         if length(j) >= k; Q = [Q j]; end
     end
-
+    
     % ...eliminate voxels
     %----------------------------------------------------------------------
     Z     = Z(:,Q);
@@ -768,11 +780,11 @@ if ~isempty(XYZ) && nc == 1
         fprintf('\n');                                                  %-#
         warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
     end
-
+    
 else
-
+    
     k = 0;
-
+    
 end % (if ~isempty(XYZ))
 
 %-For Bayesian inference provide (default) option to display contrast values
@@ -786,50 +798,50 @@ end
 %==========================================================================
 % - E N D
 %==========================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                  %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 spm('Pointer','Arrow')
 
 %-Assemble output structures of unfiltered data
 %==========================================================================
 xSPM   = struct( ...
-        'swd',      swd,...
-        'title',    titlestr,...
-        'Z',        Z,...
-        'n',        n,...
-        'STAT',     STAT,...
-        'df',       df,...
-        'STATstr',  STATstr,...
-        'Ic',       Ic,...
-        'Im',       Im,...
-        'pm',       pm,...
-        'Ex',       Ex,...
-        'u',        u,...
-        'k',        k,...
-        'XYZ',      XYZ,...
-        'XYZmm',    SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
-        'S',        SPM.xVol.S,...
-        'R',        SPM.xVol.R,...
-        'FWHM',     SPM.xVol.FWHM,...
-        'M',        SPM.xVol.M,...
-        'iM',       SPM.xVol.iM,...
-        'DIM',      SPM.xVol.DIM,...
-        'VOX',      VOX,...
-        'Vspm',     VspmSv,...
-        'thresDesc',thresDesc);
+            'swd',      swd,...
+            'title',    titlestr,...
+            'Z',        Z,...
+            'n',        n,...
+            'STAT',     STAT,...
+            'df',       df,...
+            'STATstr',  STATstr,...
+            'Ic',       Ic,...
+            'Im',       Im,...
+            'pm',       pm,...
+            'Ex',       Ex,...
+            'u',        u,...
+            'k',        k,...
+            'XYZ',      XYZ,...
+            'XYZmm',    SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
+            'S',        SPM.xVol.S,...
+            'R',        SPM.xVol.R,...
+            'FWHM',     SPM.xVol.FWHM,...
+            'M',        SPM.xVol.M,...
+            'iM',       SPM.xVol.iM,...
+            'DIM',      SPM.xVol.DIM,...
+            'VOX',      VOX,...
+            'Vspm',     VspmSv,...
+            'thresDesc',thresDesc);
 
 % RESELS per voxel (density) if it exists
 %--------------------------------------------------------------------------
-try, xSPM.VRpv = SPM.VRpv; end
+xSPM.VRpv = SPM.xVol.VRpv;
 try
-    xSPM.units = SPM.xVol.units; 
+    xSPM.units = SPM.xVol.units;
 catch
     try, xSPM.units = varargin{1}.units; end;
 end
 
 % p-values for topological and voxel-wise FDR
 %--------------------------------------------------------------------------
-try, xSPM.Ps    = Ps;             end  % voxel FDR
-try, xSPM.Pp    = Pp;             end  % peak FDR
+try, xSPM.Ps    = Ps;             end  % voxel   FDR
+try, xSPM.Pp    = Pp;             end  % peak    FDR
 try, xSPM.Pc    = Pc;             end  % cluster FDR
 
 % 0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc

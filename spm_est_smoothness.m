@@ -1,13 +1,14 @@
-function [fwhm,VRpv] = spm_est_smoothness(varargin)
+function [FWHM,VRpv,R] = spm_est_smoothness(varargin)
 % Estimation of smoothness based on [residual] images
-% FORMAT [fwhm,VRpv] = spm_est_smoothness(VResI,[VM,ndf]);
+% FORMAT [FWHM,VRpv,R] = spm_est_smoothness(VResI,[VM,ndf]);
 %
 % VResI - Filenames or mapped standardized residual images
 % VM    - Filename of mapped mask image
 % ndf   - A 2-vector, [n df], the original n & dof of the linear model
 %
-% fwhm  - estimated FWHM in all image directions
+% FWHM  - estimated FWHM in all image directions
 % VRpv  - handle of Resels per Voxel image
+% R     - vector of resel counts
 %_______________________________________________________________________
 %  
 % spm_est_smoothness returns a spatial smoothness estimator based on the
@@ -52,11 +53,11 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3643 2009-12-15 16:53:34Z guillaume $
+% $Id: spm_est_smoothness.m 3822 2010-04-16 18:43:08Z karl $
 
 
 %-Assign input arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin > 0, V   = varargin{1}; end
 if nargin > 1, VM  = varargin{2}; end
 if nargin > 2, ndf = varargin{3}; end
@@ -76,7 +77,7 @@ if length(ndf) ~= 2
 end
 
 %-Initialise
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isstruct(V)
     V     = spm_vol(V);
 end
@@ -90,7 +91,7 @@ n_full    = ndf(1);
 edf       = ndf(2);
 
 %-Initialise RESELS per voxel image
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VRpv  = struct('fname','RPV.img',...
             'dim',      VM.dim(1:3),...
             'dt',       [spm_type('float64') spm_platform('bigend')],...
@@ -101,15 +102,15 @@ VRpv  = spm_create_vol(VRpv);
 
 
 %-Dimensionality of image
-%-----------------------------------------------------------------------
-N     = 3 - sum(VM.dim(1:3) == 1);
-if N == 0
+%--------------------------------------------------------------------------
+D     = 3 - sum(VM.dim(1:3) == 1);
+if D == 0
     fwhm = [Inf Inf Inf];
     return
 end
 
 %-Find voxels within mask
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [x,y] = ndgrid(1:VM.dim(1), 1:VM.dim(2));
 I     = []; Ix = []; Iy = []; Iz = [];
 for i = 1:VM.dim(3)
@@ -122,20 +123,20 @@ for i = 1:VM.dim(3)
 end
 
 %-Compute variance of derivatives in all directions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 str   = 'Spatial non-sphericity (over scans)';
 fprintf('%-40s: %30s',str,'...estimating derivatives');              %-#
 spm_progress_bar('Init',100,'smoothness estimation','');
 
-v     = zeros(size(Ix,1),N);
+v     = zeros(size(Ix,1),D);
 ssq   = zeros(size(Ix,1),1);
 for i = 1:length(V) % for all residual images
     
     [d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
     
-    if N >= 1, v(:, 1) = v(:, 1) + dx.^2;  end
-    if N >= 2, v(:, 2) = v(:, 2) + dy.^2;  end
-    if N >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
+    if D >= 1, v(:, 1) = v(:, 1) + dx.^2;  end
+    if D >= 2, v(:, 2) = v(:, 2) + dy.^2;  end
+    if D >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
 
     ssq  = ssq + d.^2;
 
@@ -148,20 +149,20 @@ spm_progress_bar('Clear')
 %
 % The standard result uses normalised residuals e/sqrt(RSS) and
 %
-%    \hat\Lambda = grad(e/sqrt(RSS))' * grad(e/sqrt(RSS))
+%  \hat\Lambda = grad(e/sqrt(RSS))' * grad(e/sqrt(RSS))
 %
 % Note this function (for now) neglects the off diagonals of \Lambda.
 %
 % In terms of standardized residuals e/sqrt(RMS) this is
 %
-%    \hat\Lambda = (1/DF) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS))
+%  \hat\Lambda = (1/DF) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS))
 %
 % but both of these expressions assume that the RSS or RMS correspond to
 % the full set of residuals considered.  However, spm_spm only considers
 % upto MAXRES residual images.  To adapt, re-write the above as a scaled
 % average over n scans
 %
-%    \hat\Lambda = (n/DF) * ( (1/n) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS)) )
+%  \hat\Lambda = (n/DF) * ( (1/n) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS)) )
 %
 % I.e. the roughness estimate \hat\Lambda is an average of outer products
 % of standardized residuals (where the average is over scans), scaled by
@@ -173,49 +174,46 @@ spm_progress_bar('Clear')
 % See Hayasaka et al, p. 678, for more on estimating roughness with
 % standardized residuals (e/sqrt(RMS)) instead of normalised residuals
 % (e/sqrt(RSS)).
-%-----------------------------------------------------------------------
-v = v / length(V); % Average 
-
-v = v * (n_full/edf); % Scale
+%--------------------------------------------------------------------------
+v  = v/length(V);     % Average 
+v  = v*(n_full/edf);  % Scale
 
 
 %-Eliminate NaN / zero variance voxels
-%-----------------------------------------------------------------------
-I      = find(any(isnan(v),2) | ssq<sqrt(eps));
-v(I,:) = []; Ix(I) = []; Iy(I) = []; Iz(I) = [];
-
+%--------------------------------------------------------------------------
+i      = any(isnan(v),2) | ssq < sqrt(eps);
+v(i,:) = mean(v(~i));
 
 %-Write Resels Per Voxel image
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing resels/voxel image');%-#
 
-resel_img_3 = sqrt(v./(4*log(2)));
-resel_img   = prod(resel_img_3,2);
-for  i = 1:VM.dim(3)
-    d  = NaN(VM.dim(1:2));
-    I  = find(Iz == i);
+resel_xyz = sqrt(v./(4*log(2)));
+resel_img = prod(resel_xyz,2);
+for i = 1:VM.dim(3)
+    d = NaN(VM.dim(1:2));
+    I = find(Iz == i);
     if ~isempty(I)
         d(sub2ind(VM.dim(1:2), Ix(I), Iy(I))) = resel_img(I);
     end
     VRpv = spm_write_plane(VRpv, d, i);
 end
 
-%-Global equivalent FWHM
-%-----------------------------------------------------------------------
-resel    = mean(resel_img);
-resel_3  = mean(resel_img_3);
-FWHM     = 1 ./ resel_3;
+%-(unbiased) RESEL estimator and Global equivalent FWHM
+% where 1./FWHM = RESEL and prod(RESEL) = resel (resel density)
+%--------------------------------------------------------------------------
+resel = mean(resel_img);
+RESEL = mean(resel_xyz);
 
-%-Bias correction {prod(1/FWHM) = (unbiased) RESEL estimator}
-%-----------------------------------------------------------------------
-% Variable 'resel' is unbiased and is actual quantity that determines
-% RFT P-values (see spm_resels_vol and use of SPM.xVol.R), but only FWHM
-% gets returned from this function. Hence the following bias correction
-% ensures that prod(1./FWHM) equals resel. 
-FWHM     = FWHM / prod(FWHM)^(1/N) * (1/resel).^(1/N);
+RESEL = resel^(1/D)*(RESEL/prod(RESEL)^(1/D));
+FWHM  = full(sparse(1,1:D,1./RESEL,1,3));
 
-%-Carefully fill-in accounting for dimension
-fwhm     = [Inf Inf Inf];
-fwhm(1:length(FWHM)) = FWHM;
+%-resel counts for search volume (defined by mask)
+%--------------------------------------------------------------------------
+% R0   = spm_resels_vol(VM,[1 1 1])';
+% R    = R0.*(resel.^([0:3]/3));
+% OR 
+R      = spm_resels_vol(VM,FWHM)';
+
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#

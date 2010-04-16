@@ -284,9 +284,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3468 2009-10-15 18:59:38Z karl $
+% $Id: spm_spm.m 3822 2010-04-16 18:43:08Z karl $
  
-SVNid     = '$Rev: 3468 $';
+SVNid     = '$Rev: 3822 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -344,9 +344,9 @@ files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
          '^beta_.{4}\..{3}$','^con_.{4}\..{3}$','^ResI_.{4}\..{3}$',...
          '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
  
-for i=1:length(files)
+for i = 1:length(files)
     j = spm_select('List',SPM.swd,files{i});
-    for k=1:size(j,1)
+    for k = 1:size(j,1)
         spm_unlink(deblank(j(k,:)));
     end
 end
@@ -392,7 +392,7 @@ catch
     %-otherwise assume i.i.d.
     %----------------------------------------------------------------------
     xVi   = struct( 'form',  'i.i.d.',...
-        'V',     speye(nScan,nScan));
+                    'V',     speye(nScan,nScan));
 end
  
  
@@ -404,8 +404,8 @@ try
     V     = xVi.V;
     str   = 'parameter estimation';
  
- 
 catch
+    
     % otherwise invoke ReML selecting voxels under i.i.d assumptions
     %----------------------------------------------------------------------
     V     = speye(nScan,nScan);
@@ -419,15 +419,15 @@ try
     %----------------------------------------------------------------------
     W     = xX.W;
 catch
+    
     if isfield(xVi,'V')
  
         % otherwise make W a whitening filter W*W' = inv(V)
         %------------------------------------------------------------------
-        [u s] = spm_svd(xVi.V);
-        s     = spdiags(1./sqrt(diag(s)),0,length(s),length(s));
-        W     = u*s*u';
+        W     = spm_sqrtm(spm_inv(xVi.V));
         W     = W.*(abs(W) > 1e-6);
         xX.W  = sparse(W);
+        
     else
         % unless xVi.V has not been estimated - requiring 2 passes
         %------------------------------------------------------------------
@@ -447,6 +447,7 @@ erdf      = spm_SpUtil('trRV',xX.xKXs);                  % Working error df
 %-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
 %--------------------------------------------------------------------------
 if ~isfield(xVi,'V')
+    
     Fcname = 'effects of interest';
     iX0    = [SPM.xX.iB SPM.xX.iG];
     xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
@@ -471,9 +472,9 @@ end
 VY       = SPM.xY.VY;
 spm_check_orientations(VY);
  
+% check files exists and try pwd
+%--------------------------------------------------------------------------
 for i = 1:numel(VY)
-    % check files exists and try pwd
-    %----------------------------------------------------------------------
     if ~spm_existfile(VY(i).fname)
         [p,n,e]     = fileparts(VY(i).fname);
         VY(i).fname = [n,e];
@@ -520,6 +521,7 @@ if isfield(xX,'W')
         'mat',      M,...
         'pinfo',    [1 0 0]',...
         'descrip',  ''));
+    
     for i = 1:nBeta
         Vbeta(i).fname   = sprintf('beta_%04d.img',i);
         Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.name{i});
@@ -610,8 +612,12 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
         else
             str = sprintf('Planes %3d-%-3d/%-3d',z,CrPl(end),zdim);
         end
-        if z==1&&bch==1, str2=''; else str2=repmat(sprintf('\b'),1,72); end
-        fprintf('%s%-40s: %30s',str2,str,' ');                          %-#
+        if z == 1 && bch == 1
+            str2 = '';
+        else
+            str2 = repmat(sprintf('\b'),1,72); 
+        end
+        fprintf('%s%-40s: %30s',str2,str,' ');
  
         %-construct list of voxels in this block
         %------------------------------------------------------------------
@@ -706,7 +712,7 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
             end % (xVi,'V')
  
  
-            %-if we are saving the WLS parameters
+            %-if we are saving the WLS (ML) parameters
             %--------------------------------------------------------------
             if isfield(xX,'W')
  
@@ -755,7 +761,7 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
             Vbeta(i) = spm_write_plane(Vbeta(i), jj, CrPl);
         end
  
-        %-Write residual images
+        %-Write normalised residual images
         %------------------------------------------------------------------
         for i = 1:nSres
             if ~isempty(Q), jj(Q) = CrResI(i,:)./sqrt(CrResSS/erdf); end
@@ -903,8 +909,7 @@ try
     VRpv = SPM.xVol.VRpv;
     R    = SPM.xVol.R;
 catch
-    [FWHM,VRpv] = spm_est_smoothness(VResI,VM,[nScan erdf]);
-    R           = spm_resels_vol(VM,FWHM)';
+    [FWHM,VRpv,R] = spm_est_smoothness(VResI,VM,[nScan erdf]);
 end
  
 %-Delete the residuals images
