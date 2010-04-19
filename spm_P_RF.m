@@ -1,10 +1,10 @@
-function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
+function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Returns the [un]corrected P value using unifed EC theory
-% FORMAT [P p Em En EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
+% FORMAT [P p Ec Ek] = spm_P_RF(c,k,z,df,STAT,R,n)
 %
 % c     - cluster number 
 % k     - extent {RESELS}
-% Z     - height {minimum over n values}
+% z     - height {minimum over n values}
 % df    - [df{interest} df{error}]
 % STAT  - Statistical field
 %       'Z' - Gaussian field
@@ -14,20 +14,19 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % R     - RESEL Count {defining search volume}
 % n     - number of component SPMs in conjunction
 %
-% P     - corrected   P value  - P(n > kmax}
-% p     - uncorrected P value  - P(n > k}
-% Em    - expected total number of maxima {m}
-% En    - expected total number of resels per cluster {n}
-% EN    - expected total number of voxels {N}
+% P     - corrected   P value  - P(C >= c | K >= k}
+% p     - uncorrected P value
+% Ec    - expected number of clusters (maxima)
+% Ek    - expected number of resels per cluster
 %
 %__________________________________________________________________________
 %
 % spm_P_RF returns the probability of c or more clusters with more than
-% k voxels in volume process of R RESELS thresholded at u.  All p values
+% k resels in volume process of R RESELS thresholded at u.  All p values
 % can be considered special cases:
 %
-% spm_P_RF(1,0,Z,df,STAT,1,n) = uncorrected p value
-% spm_P_RF(1,0,Z,df,STAT,R,n) = corrected p value {based on height Z)
+% spm_P_RF(1,0,z,df,STAT,1,n) = uncorrected p value
+% spm_P_RF(1,0,z,df,STAT,R,n) = corrected p value {based on height z)
 % spm_P_RF(1,k,u,df,STAT,R,n) = corrected p value {based on extent k at u)
 % spm_P_RF(c,k,u,df,STAT,R,n) = corrected p value {based on number c at k and u)
 % spm_P_RF(c,0,u,df,STAT,R,n) = omnibus   p value {based on number c at u)
@@ -50,7 +49,7 @@ function [P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 3822 2010-04-16 18:43:08Z karl $
+% $Id: spm_P_RF.m 3824 2010-04-19 19:23:35Z karl $
 
 
 % get expectations
@@ -62,16 +61,16 @@ D   = find(R,1,'last');
 R   = R(1:D);
 G   = sqrt(pi)./gamma(([1:D])/2);
 EC  = spm_ECdensity(STAT,Z,df);
-EC  = max(EC([1:D]),eps);
+EC  = max(EC(1:D),eps);
 
 % corrected p value
 %--------------------------------------------------------------------------
 P   = triu(toeplitz(EC'.*G))^n;
 P   = P(1,:);
 EM  = (R./G).*P;        % <maxima> over D dimensions
-Em  = sum(EM);          % <maxima>
-EN  = P(1)*R(D);        % <voxels>
-En  = EN/EM(D);         % En = EN/EM(D);
+Ec  = sum(EM);          % <maxima>
+EN  = P(1)*R(D);        % <resels>
+Ek  = EN/EM(D);         % Ek = EN/EM(D);
 
 % get P{n > k}
 %==========================================================================
@@ -86,29 +85,29 @@ if ~k || ~D
 
 elseif STAT == 'Z'
 
-    beta = (gamma(D/2 + 1)/En)^(2/D);
+    beta = (gamma(D/2 + 1)/Ek)^(2/D);
     p    = exp(-beta*(k^(2/D)));
 
 elseif STAT == 'T'
 
-    beta = (gamma(D/2 + 1)/En)^(2/D);
+    beta = (gamma(D/2 + 1)/Ek)^(2/D);
     p    = exp(-beta*(k^(2/D)));
 
 elseif STAT == 'X'
 
-    beta = (gamma(D/2 + 1)/En)^(2/D);
+    beta = (gamma(D/2 + 1)/Ek)^(2/D);
     p    = exp(-beta*(k^(2/D)));
 
 elseif STAT == 'F'
 
-    beta = (gamma(D/2 + 1)/En)^(2/D);
+    beta = (gamma(D/2 + 1)/Ek)^(2/D);
     p    = exp(-beta*(k^(2/D)));
 
 end
 
 % Poisson clumping heuristic {for multiple clusters}
 %==========================================================================
-P        = 1 - spm_Pcdf(c - 1,(Em + eps)*p);
+P        = 1 - spm_Pcdf(c - 1,(Ec + eps)*p);
 
 
 %==========================================================================

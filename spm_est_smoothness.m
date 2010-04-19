@@ -10,7 +10,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % VRpv  - handle of Resels per Voxel image
 % R     - vector of resel counts
 %__________________________________________________________________________
-%  
+%
 % spm_est_smoothness returns a spatial smoothness estimator based on the
 % variances of the normalized spatial derivatives as described in K.
 % Worsley, (1996). Inputs are a mask image and a number of standardized
@@ -18,7 +18,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % is a global estimate of the smoothness expressed as the FWHM of an
 % equivalent Gaussian point spread function. An estimate of resels per
 % voxels (see spm_spm) is written as an image file ('RPV.img') to the
-% current directory. 
+% current directory.
 %
 % To improve the accuracy of the smoothness estimation the error degrees
 % of freedom can be supplied.  Since it is not assumed that all residual
@@ -26,24 +26,24 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % must be supplied as well.
 %
 % The mask image specifies voxels, used in smoothness estimation, by
-% assigning them non-zero values. The dimensions, voxel sizes, orientation 
+% assigning them non-zero values. The dimensions, voxel sizes, orientation
 % of all images must be the same. The dimensions of the images can be of
 % dimensions 0, 1, 2 and 3.
-% 
+%
 % Note that 1-dim images (lines) must exist in the 1st dimension and
 % 2-dim images (slices) in the first two dimensions. The estimated fwhm
 % for any non-existing dimension is infinity.
 %__________________________________________________________________________
-% 
+%
 % Refs:
-% 
+%
 % K.J. Worsley (1996). An unbiased estimator for the roughness of a
 % multivariate Gaussian random field. Technical Report, Department of
 % Mathematics and Statistics, McGill University
 %
 % S.J. Kiebel, J.B. Poline, K.J. Friston, A.P. Holmes, and K.J. Worsley.
-% Robust Smoothness Estimation in Statistical Parametric Maps Using 
-% Standardized Residuals from the General Linear Model. NeuroImage, 
+% Robust Smoothness Estimation in Statistical Parametric Maps Using
+% Standardized Residuals from the General Linear Model. NeuroImage,
 % 10:756-766, 1999.
 %
 % S. Hayasaka, K. Phan, I. Liberzon, K.J. Worsley, T.E .Nichols (2004).
@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3823 2010-04-19 18:16:39Z guillaume $
+% $Id: spm_est_smoothness.m 3824 2010-04-19 19:23:35Z karl $
 
 
 %-Assign input arguments
@@ -70,7 +70,7 @@ if nargin < 2
 end
 if nargin < 3, ndf = [NaN NaN]; end
 if length(ndf) ~= 2
-  error('ndf argument must be of length 2 ([n df])')
+    error('ndf argument must be of length 2 ([n df])')
 end
 
 %-Initialise
@@ -82,19 +82,19 @@ if ~isstruct(VM)
     VM = spm_vol(VM);
 end
 if any(isnan(ndf))
-  ndf  = [length(V) length(V)];  % Assume full df
+    ndf     = [length(V) length(V)];  % Assume full df
 end
 n_full = ndf(1);
 edf    = ndf(2);
 
 %-Initialise RESELS per voxel image
 %--------------------------------------------------------------------------
-VRpv   = struct('fname','RPV.img',...
-            'dim',      VM.dim(1:3),...
-            'dt',       [spm_type('float64') spm_platform('bigend')],...
-            'mat',      VM.mat,...
-            'pinfo',    [1 0 0]',...
-            'descrip',  'spm_spm: resels per voxel');
+VRpv  = struct( 'fname','RPV.img',...
+    'dim',      VM.dim(1:3),...
+    'dt',       [spm_type('float64') spm_platform('bigend')],...
+    'mat',      VM.mat,...
+    'pinfo',    [1 0 0]',...
+    'descrip',  'spm_spm: resels per voxel');
 VRpv   = spm_create_vol(VRpv);
 
 %-Dimensionality of image
@@ -112,37 +112,48 @@ d          = spm_read_vols(VM);
 [Ix,Iy,Iz] = ndgrid(1:VM.dim(1),1:VM.dim(2),1:VM.dim(3));
 Ix = Ix(d~=0); Iy = Iy(d~=0); Iz = Iz(d~=0);
 
-%-Compute variance of derivatives in all directions 
+%-Compute covariance of derivatives
 %--------------------------------------------------------------------------
 str   = 'Spatial non-sphericity (over scans)';
 fprintf('%-40s: %30s',str,'...estimating derivatives');                 %-#
 spm_progress_bar('Init',100,'smoothness estimation','');
 
-v     = zeros(size(Ix,1),D);
+L     = zeros(size(Ix,1),D,D);
 ssq   = zeros(size(Ix,1),1);
 for i = 1:length(V)
     
-    [d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
+    [d,dx,dy,dz] = spm_sample_vol(V(i),Ix,Iy,Iz,1);
     
-    if D >= 1, v(:, 1) = v(:, 1) + dx.^2;  end
-    if D >= 2, v(:, 2) = v(:, 2) + dy.^2;  end
-    if D >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
-
+    % sum of squares
+    %----------------------------------------------------------------------
     ssq  = ssq + d.^2;
-
+    
+    % coavraince of finite differences
+    %----------------------------------------------------------------------
+    if D >= 1
+        L(:,1,1) = L(:,1,1) + dx.*dx;
+    end
+    if D >= 2
+        L(:,1,2) = L(:,1,2) + dx.*dy;
+        L(:,2,2) = L(:,2,2) + dy.*dy;
+    end
+    if D >= 3
+        L(:,1,3) = L(:,1,3) + dx.*dz;
+        L(:,2,3) = L(:,2,3) + dy.*dz;
+        L(:,3,3) = L(:,3,3) + dz.*dz;
+    end
+    
     spm_progress_bar('Set',100*i/length(V));
-
+    
 end
 spm_progress_bar('Clear')
 
 %-Scale sum into an average (and account for DF)
-%
 % The standard result uses normalised residuals e/sqrt(RSS) and
 %
 %  \hat\Lambda = grad(e/sqrt(RSS))' * grad(e/sqrt(RSS))
 %
 % Note this function (for now) neglects the off diagonals of \Lambda.
-%
 % In terms of standardized residuals e/sqrt(RMS) this is
 %
 %  \hat\Lambda = (1/DF) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS))
@@ -156,30 +167,48 @@ spm_progress_bar('Clear')
 %
 % I.e. the roughness estimate \hat\Lambda is an average of outer products
 % of standardized residuals (where the average is over scans), scaled by
-% n/DF.
+% n/DF. Hence, we can use only a subset of scans simply by replacing this 
+% last average term with an average over the subset.
 %
-% Hence, we can use only a subset of scans simply by replacing this last
-% average term with an average over the subset.
-% 
 % See Hayasaka et al, p. 678, for more on estimating roughness with
 % standardized residuals (e/sqrt(RMS)) instead of normalised residuals
 % (e/sqrt(RSS)).
 %--------------------------------------------------------------------------
-v  = v/length(V);     % Average
-v  = v*(n_full/edf);  % Scale
+L  = L/length(V);     % Average
+L  = L*(n_full/edf);  % Scale
 
 
-%-Eliminate NaN / zero variance voxels
+%-Evaluate determinant (and xyz components for FWHM)
 %--------------------------------------------------------------------------
-i      = any(isnan(v),2) | ssq < sqrt(eps);
-v(i,:) = mean(v(~i));
+if D == 1
+    resel_xyz = L;
+    resel_img = L.*L;
+    resel_img = sqrt(resel_img/(4*log(2))^D);
+    resel_xyz = sqrt(resel_xyz/(4*log(2)));
+end
+if D == 2
+    resel_xyz = [L(:,1,1) L(:,2,2)];
+    resel_img = L(:,1,1).*L(:,2,2) - ......
+                L(:,1,2).*L(:,1,2);
+    resel_img = sqrt(resel_img/(4*log(2))^D);
+    resel_xyz = sqrt(resel_xyz/(4*log(2)));
+end
+if D == 3
+    resel_xyz = [L(:,1,1) L(:,2,2)  L(:,3,3)];
+    resel_img = L(:,1,1).*L(:,2,2).*L(:,3,3) + ...
+                L(:,1,2).*L(:,2,3).*L(:,1,3)*2 - ...
+                L(:,1,1).*L(:,2,3).*L(:,2,3) - ...
+                L(:,1,2).*L(:,1,2).*L(:,3,3) - ...
+                L(:,1,3).*L(:,2,2).*L(:,1,3);
+    resel_img = sqrt(resel_img/(4*log(2))^D);
+    resel_xyz = sqrt(resel_xyz/(4*log(2)));
+end    
+
 
 %-Write Resels Per Voxel image
 %--------------------------------------------------------------------------
 fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing resels/voxel image');%-#
 
-resel_xyz = sqrt(v./(4*log(2)));
-resel_img = prod(resel_xyz,2);
 for i = 1:VM.dim(3)
     d = NaN(VM.dim(1:2));
     I = find(Iz == i);
@@ -189,11 +218,13 @@ for i = 1:VM.dim(3)
     VRpv = spm_write_plane(VRpv, d, i);
 end
 
+
 %-(unbiased) RESEL estimator and Global equivalent FWHM
 % where 1./FWHM = RESEL and prod(RESEL) = resel (resel density)
 %--------------------------------------------------------------------------
-resel = mean(resel_img);
-RESEL = mean(resel_xyz);
+i     = isnan(ssq) | ssq < sqrt(eps);
+resel = mean(resel_img(~i,:));
+RESEL = mean(resel_xyz(~i,:));
 
 RESEL = resel^(1/D)*(RESEL/prod(RESEL)^(1/D));
 FWHM  = full(sparse(1,1:D,1./RESEL,1,3));
@@ -202,7 +233,7 @@ FWHM  = full(sparse(1,1:D,1./RESEL,1,3));
 %--------------------------------------------------------------------------
 % R0   = spm_resels_vol(VM,[1 1 1])';
 % R    = R0.*(resel.^([0:3]/3));
-% OR 
+% OR
 R      = spm_resels_vol(VM,FWHM)';
 
 

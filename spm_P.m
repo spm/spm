@@ -1,6 +1,6 @@
-function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
+function [P,p,Ec,Ek] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Returns the [un]corrected P value using unifed EC theory
-% FORMAT [P p Em En EN] = spm_P(c,k,Z,df,STAT,R,n,S)
+% FORMAT [P p Ec Ek] = spm_P(c,k,Z,df,STAT,R,n,S)
 %
 % c     - cluster number 
 % k     - extent {RESELS}
@@ -16,11 +16,10 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % n     - number of component SPMs in conjunction
 % S     - Voxel count
 %
-% P     - corrected   P value  - P(n > kmax}
-% p     - uncorrected P value  - P(n > k}
-% Em    - expected total number of maxima {m}
-% En    - expected total number of resels per cluster {n}
-% EN    - expected total number of voxels {N}
+% P     - corrected   P value - P(C >= c | K >= k}
+% p     - uncorrected P value
+% Ec    - expected total number of clusters
+% Ek    - expected total number of resels per cluster
 %
 %__________________________________________________________________________
 %
@@ -36,16 +35,16 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_P.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_P.m 3824 2010-04-19 19:23:35Z karl $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni
 %--------------------------------------------------------------------------
 global NOBONF; if ~isempty(NOBONF) && NOBONF, S = []; end
 
-if (nargin < 8), S = []; end
+if nargin < 8, S = []; end
 
-[P,p,Em,En,EN] = spm_P_RF(c,k,Z,df,STAT,R,n);
+[P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n);
 
 % Use lower Bonferroni P value (if possible)
 %==========================================================================

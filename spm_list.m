@@ -115,7 +115,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3823 2010-04-19 18:16:39Z guillaume $
+% $Id: spm_list.m 3824 2010-04-19 19:23:35Z karl $
 
 
 % satellite figure global variable
@@ -335,9 +335,9 @@ switch lower(varargin{1}), case 'list'                            %-List
     
     if STAT ~= 'P'
         %------------------------------------------------------------------
-        Pz              = spm_P(1,0,u,df,STAT,1,n,S);
-        Pu              = spm_P(1,0,u,df,STAT,R,n,S);
-        [P Pn Em En EN] = spm_P(1,k,u,df,STAT,R,n,S);
+        Pz           = spm_P(1,0,u,df,STAT,1,n,S);
+        Pu           = spm_P(1,0,u,df,STAT,R,n,S);
+        [P Pn Ec Ek] = spm_P(1,k,u,df,STAT,R,n,S);
         
         %-Footnote with SPM parameters
         %------------------------------------------------------------------
@@ -351,9 +351,9 @@ switch lower(varargin{1}), case 'list'                            %-List
             sprintf('Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)',...
             k/V2R,Pn,P);
         TabDat.ftr{3} = ...
-            sprintf('Expected voxels per cluster, <k> = %0.3f',En/V2R);
+            sprintf('Expected voxels per cluster, <k> = %0.3f',Ek/V2R);
         TabDat.ftr{4} = ...
-            sprintf('Expected number of clusters, <c> = %0.2f',Em*Pn);
+            sprintf('Expected number of clusters, <c> = %0.2f',Ec*Pn);
         if any(isnan(varargin{2}.uc))
             TabDat.ftr{5} = ...
             sprintf('FWEp: %0.3f, FDRp: %0.3f',varargin{2}.uc(1:2));
@@ -379,9 +379,9 @@ switch lower(varargin{1}), case 'list'                            %-List
         text(0.0,-2*dy,TabDat.ftr{2},...
             'UserData',[k/V2R,Pn,P],'ButtonDownFcn','get(gcbo,''UserData'')')
         text(0.0,-3*dy,TabDat.ftr{3},...
-            'UserData',En/V2R,'ButtonDownFcn','get(gcbo,''UserData'')')
+            'UserData',Ek/V2R,'ButtonDownFcn','get(gcbo,''UserData'')')
         text(0.0,-4*dy,TabDat.ftr{4},...
-            'UserData',Em*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
+            'UserData',Ec*Pn,'ButtonDownFcn','get(gcbo,''UserData'')')
         text(0.0,-5*dy,TabDat.ftr{5},...
             'UserData',varargin{2}.uc,'ButtonDownFcn','get(gcbo,''UserData'')')
         text(0.5,-1*dy,TabDat.ftr{6},...
@@ -435,6 +435,10 @@ switch lower(varargin{1}), case 'list'                            %-List
                 %----------------------------------------------------------
                 LKC  = spm_get_data(varargin{2}.VRpv,L{i});
                 LKC(isnan(LKC)) = 1/prod(FWHM);
+                
+                % replace NaNs with (whole brain) resel density (V2R)
+                %----------------------------------------------------------
+                LKC(isnan(LKC)) = V2R;
                 
                 % intrinic volume (with surface correction)
                 %----------------------------------------------------------
