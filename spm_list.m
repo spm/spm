@@ -115,7 +115,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3824 2010-04-19 19:23:35Z karl $
+% $Id: spm_list.m 3825 2010-04-20 14:09:13Z ged $
 
 
 % satellite figure global variable
@@ -434,7 +434,6 @@ switch lower(varargin{1}), case 'list'                            %-List
                 % get LKC for voxels in i-th region
                 %----------------------------------------------------------
                 LKC  = spm_get_data(varargin{2}.VRpv,L{i});
-                LKC(isnan(LKC)) = 1/prod(FWHM);
                 
                 % replace NaNs with (whole brain) resel density (V2R)
                 %----------------------------------------------------------
