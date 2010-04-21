@@ -115,7 +115,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3825 2010-04-20 14:09:13Z ged $
+% $Id: spm_list.m 3826 2010-04-21 18:36:44Z ged $
 
 
 % satellite figure global variable
@@ -435,15 +435,20 @@ switch lower(varargin{1}), case 'list'                            %-List
                 %----------------------------------------------------------
                 LKC  = spm_get_data(varargin{2}.VRpv,L{i});
                 
-                % replace NaNs with (whole brain) resel density (V2R)
+                % compute average of valid LKC measures for i-th region
                 %----------------------------------------------------------
-                LKC(isnan(LKC)) = V2R;
+                valid = ~isnan(LKC);
+                if any(valid)
+                    LKC = sum(LKC(valid)) / sum(valid); % (nanmean)
+                else
+                    LKC = V2R; % fall back to whole-brain resel density
+                end
                 
-                % intrinic volume (with surface correction)
+                % intrinsic volume (with surface correction)
                 %----------------------------------------------------------
                 IV   = spm_resels([1 1 1],L{i},'V');
                 IV   = IV*[1/2 2/3 2/3 1]';
-                K(i) = IV*mean(LKC);
+                K(i) = IV*LKC;
                 
             end
             K   = K(A);

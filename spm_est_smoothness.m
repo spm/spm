@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3824 2010-04-19 19:23:35Z karl $
+% $Id: spm_est_smoothness.m 3826 2010-04-21 18:36:44Z ged $
 
 
 %-Assign input arguments
@@ -128,7 +128,7 @@ for i = 1:length(V)
     %----------------------------------------------------------------------
     ssq  = ssq + d.^2;
     
-    % coavraince of finite differences
+    % covariance of finite differences
     %----------------------------------------------------------------------
     if D >= 1
         L(:,1,1) = L(:,1,1) + dx.*dx;
@@ -153,7 +153,6 @@ spm_progress_bar('Clear')
 %
 %  \hat\Lambda = grad(e/sqrt(RSS))' * grad(e/sqrt(RSS))
 %
-% Note this function (for now) neglects the off diagonals of \Lambda.
 % In terms of standardized residuals e/sqrt(RMS) this is
 %
 %  \hat\Lambda = (1/DF) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS))
@@ -204,6 +203,39 @@ if D == 3
     resel_xyz = sqrt(resel_xyz/(4*log(2)));
 end    
 
+%-Optional mask-weighted smoothing of RPV image
+%--------------------------------------------------------------------------
+try 
+    RPVsmooth = spm_get_defaults('stats.RPVsmooth'); % Gaussian FWHM in mm
+catch
+    RPVsmooth = 0;
+end
+if any(RPVsmooth) % RPVsmooth can be scalar or three-vector [sx sy sz]
+    voxmm = sqrt(sum(VM.mat(1:3,1:3).^2)); % (as in spm_smooth)
+    fwhm_vox = RPVsmooth ./ voxmm;
+    
+    % Convert resel_img at in-mask voxels to resel volume
+    mask = spm_read_vols(VM) > 0;
+    RPV = zeros(size(mask));
+    RPV(mask) = resel_img;
+    
+    % Remove invalid mask voxels, i.e. edge voxels with missing derivatives
+    smask = double(mask & isfinite(RPV)); % leaves mask for resel_img below
+    
+    % Smooth RPV volume (note that NaNs are treated as zeros in spm_smooth)
+    spm_smooth(RPV, RPV, fwhm_vox);
+    
+    % Smooth mask and decide how far to trust smoothing-based extrapolation
+    spm_smooth(smask, smask, fwhm_vox);
+    infer = smask > 1e-3; % require sum of voxel's in-mask weights > 1e-3
+    
+    % Normalise smoothed RPV by smoothed mask
+    RPV( infer) = RPV(infer) ./ smask(infer);
+    RPV(~infer) = nan; % spm_list handles remaining (unlikely) in-mask NaNs
+    
+    % Get data at in-mask voxels; smoothed resel_img conforms with original
+    resel_img = RPV(mask > 0);
+end
 
 %-Write Resels Per Voxel image
 %--------------------------------------------------------------------------
