@@ -3,9 +3,9 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 3829 2010-04-22 14:26:29Z spm $
+# $Id: Makefile 3830 2010-04-22 14:30:28Z guillaume $
 
-include spm8/src/Makefile.var
+include ../src/Makefile.var
 
 FIELDTRIPMEX =\
 	fieldtrip/fileio/private/mxDeserialize.$(SUF) fieldtrip/fileio/private/mxSerialize.$(SUF) \
