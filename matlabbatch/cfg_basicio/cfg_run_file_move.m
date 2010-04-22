@@ -11,9 +11,9 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 2035 2008-09-03 15:48:30Z volkmar $
+% $Id: cfg_run_file_move.m 3827 2010-04-22 06:59:05Z volkmar $
 
-rev = '$Rev: 2035 $'; %#ok
+rev = '$Rev: 3827 $'; %#ok
 
 action = fieldnames(job.action);
 action = action{1};
@@ -62,7 +62,7 @@ else
             end
         end
         if any(strcmp(action, {'copyren','moveren'}))
-            on = regexprep(n, patrep{1,:}, patrep{2,:});
+            on = regexprep(n, patrep(1,:), patrep(2,:));
             if job.action.(action).unique
                 on = sprintf('%s_%0*d', on, nw, k);
             end
