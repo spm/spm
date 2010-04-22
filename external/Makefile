@@ -3,37 +3,28 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 2990 2009-03-28 17:33:52Z guillaume $
+# $Id: Makefile 3829 2010-04-22 14:26:29Z spm $
 
-include ../src/Makefile.var
+include spm8/src/Makefile.var
 
 FIELDTRIPMEX =\
-	fieldtrip/@config/private/deepcopy.$(SUF) fieldtrip/@config/private/increment.$(SUF) \
-	fieldtrip/@config/private/reset.$(SUF) \
-	fieldtrip/@uint64/max.$(SUF) fieldtrip/@uint64/min.$(SUF) \
-	fieldtrip/@uint64/minus.$(SUF) fieldtrip/@uint64/plus.$(SUF) \
-	fieldtrip/@uint64/rdivide.$(SUF) fieldtrip/@uint64/times.$(SUF) \
-	fieldtrip/@uint64/abs.$(SUF) \
+	fieldtrip/fileio/private/mxDeserialize.$(SUF) fieldtrip/fileio/private/mxSerialize.$(SUF) \
+	fieldtrip/fileio/private/read_16bit.$(SUF) fieldtrip/fileio/private/read_24bit.$(SUF) \
+	fieldtrip/fileio/@uint64/max.$(SUF) fieldtrip/fileio/@uint64/min.$(SUF) \
+	fieldtrip/fileio/@uint64/minus.$(SUF) fieldtrip/fileio/@uint64/plus.$(SUF) \
+	fieldtrip/fileio/@uint64/rdivide.$(SUF) fieldtrip/fileio/@uint64/times.$(SUF) \
+	fieldtrip/fileio/@uint64/abs.$(SUF) \
+	\
+	fieldtrip/forward/private/lmoutr.$(SUF) fieldtrip/forward/private/meg_leadfield1.$(SUF) \
+	fieldtrip/forward/private/plgndr.$(SUF) fieldtrip/forward/private/ptriproj.$(SUF) \
+	fieldtrip/forward/private/solid_angle.$(SUF) \
+	\
 	fieldtrip/private/lmoutr.$(SUF) fieldtrip/private/ltrisect.$(SUF) \
-	fieldtrip/private/meg_leadfield1.$(SUF) fieldtrip/private/plgndr.$(SUF) \
-	fieldtrip/private/plinproj.$(SUF) fieldtrip/private/ptriproj.$(SUF) \
-	fieldtrip/private/read_24bit.$(SUF) fieldtrip/private/routlm.$(SUF) \
-	fieldtrip/private/solid_angle.$(SUF) fieldtrip/private/splint_gh.$(SUF) 
-
-FILEIOMEX =\
-	fileio/@uint64/max.$(SUF) fileio/@uint64/min.$(SUF) \
-	fileio/@uint64/minus.$(SUF) fileio/@uint64/plus.$(SUF) \
-	fileio/@uint64/rdivide.$(SUF) fileio/@uint64/times.$(SUF) \
-	fileio/@uint64/abs.$(SUF) \
-	fileio/private/read_24bit.$(SUF) \
-	fileio/private/mxSerialize.$(SUF) fileio/private/mxDeserialize.$(SUF) \
-	fileio/private/read_ctf_shm.$(SUF) fileio/private/write_ctf_shm.$(SUF) # Unix only
-
-FORWINVMEX =\
-	forwinv/private/lmoutr.$(SUF) forwinv/private/ltrisect.$(SUF) \
-	forwinv/private/meg_leadfield1.$(SUF) forwinv/private/plgndr.$(SUF) \
-	forwinv/private/plinproj.$(SUF) forwinv/private/ptriproj.$(SUF) \
-	forwinv/private/routlm.$(SUF) forwinv/private/solid_angle.$(SUF)
+	fieldtrip/private/plgndr.$(SUF) fieldtrip/private/plinproj.$(SUF) \
+	fieldtrip/private/ptriproj.$(SUF) fieldtrip/private/routlm.$(SUF) \
+	fieldtrip/private/solid_angle.$(SUF) fieldtrip/private/splint_gh.$(SUF) \
+	\
+	fieldtrip/fileio/private/read_ctf_shm.$(SUF) fieldtrip/fileio/private/write_ctf_shm.$(SUF) # Unix only
 
 BEMCP = bemcp
 
@@ -56,6 +47,25 @@ bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
 %.$(SUF) : %.c
 	$(MEX) $< -outdir $(shell dirname $<) $(MEXEND)
 
+fieldtrip/forward/private/lmoutr.$(SUF): fieldtrip/forward/private/lmoutr.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/ltrisect.$(SUF): fieldtrip/forward/private/ltrisect.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/plinproj.$(SUF): fieldtrip/forward/private/plinproj.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/ptriproj.$(SUF): fieldtrip/forward/private/ptriproj.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/routlm.$(SUF): fieldtrip/forward/private/routlm.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/solid_angle.$(SUF): fieldtrip/forward/private/solid_angle.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+
 fieldtrip/private/lmoutr.$(SUF): fieldtrip/private/lmoutr.c fieldtrip/private/geometry.c fieldtrip/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/private/geometry.c $(MEXEND)
 
@@ -73,22 +83,3 @@ fieldtrip/private/routlm.$(SUF): fieldtrip/private/routlm.c fieldtrip/private/ge
 
 fieldtrip/private/solid_angle.$(SUF): fieldtrip/private/solid_angle.c fieldtrip/private/geometry.c fieldtrip/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/private/geometry.c $(MEXEND)
-
-
-forwinv/private/lmoutr.$(SUF): forwinv/private/lmoutr.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)
-
-forwinv/private/ltrisect.$(SUF): forwinv/private/ltrisect.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)
-
-forwinv/private/plinproj.$(SUF): forwinv/private/plinproj.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)
-
-forwinv/private/ptriproj.$(SUF): forwinv/private/ptriproj.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)
-
-forwinv/private/routlm.$(SUF): forwinv/private/routlm.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)
-
-forwinv/private/solid_angle.$(SUF): forwinv/private/solid_angle.c forwinv/private/geometry.c forwinv/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) forwinv/private/geometry.c $(MEXEND)

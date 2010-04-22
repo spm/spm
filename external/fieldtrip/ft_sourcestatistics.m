@@ -1,0 +1,506 @@
+function [stat] = ft_sourcestatistics(cfg, varargin)
+
+% FT_SOURCESTATISTICS computes the probability for a given null-hypothesis using
+% a parametric statistical test or using a non-parametric randomization test.
+% 
+% Use as
+%   [stat] = ft_sourcestatistics(cfg, source1, source2, ...)
+% where the input data is the result from FT_SOURCEANALYSIS, FT_SOURCEDESCRIPTIVES
+% or FT_SOURCEGRANDAVERAGE.  The source structures should be spatially alligned
+% to each other and should have the same positions for the source grid.
+%
+% The configuration should contain the following option for data selection
+%   cfg.parameter  = string, describing the functional data to be processed, e.g. 'pow', 'nai' or 'coh'
+%
+% Furthermore, the configuration should contain:
+%   cfg.method       = different methods for calculating the probability of the null-hypothesis,
+%                    'montecarlo'    uses a non-parametric randomization test to get a Monte-Carlo estimate of the probability,
+%                    'analytic'      uses a parametric test that results in analytic probability,
+%                    'glm'           uses a general linear model approach,
+%                    'stats'         uses a parametric test from the Matlab statistics toolbox,
+%                    'parametric'    uses the Matlab statistics toolbox (very similar to 'stats'),
+%                    'randomization' uses randomization of the data prior to source reconstruction,
+%                    'randcluster'   uses randomization of the data prior to source reconstruction 
+%                                    in combination with spatial clusters.
+%
+% You can restrict the statistical analysis to regions of interest (ROIs)
+% or to the average value inside ROIs using the following options:
+%   cfg.atlas        = filename of the atlas
+%   cfg.roi          = string or cell of strings, region(s) of interest from anatomical atlas
+%   cfg.avgoverroi   = 'yes' or 'no' (default = 'no')
+%   cfg.hemisphere   = 'left', 'right', 'both', 'combined', specifying this is
+%                      required when averaging over regions
+%   cfg.inputcoord   = 'mni' or 'tal', the coordinate system in which your source 
+%                      reconstruction is expressed
+%
+% The other cfg options depend on the method that you select. You
+% should read the help of the respective subfunction STATISTICS_XXX
+% for the corresponding configuration options and for a detailed
+% explanation of each method.
+%
+%
+% See also FT_SOURCEANALYSIS, FT_SOURCEDESCRIPTIVES, FT_SOURCEGRANDAVERAGE
+
+% Undocumented local options:
+%   cfg.statistic
+
+% Copyright (C) 2005-2008, Robert Oostenveld
+%
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $
+
+fieldtripdefs
+
+% this wrapper should be compatible with the already existing statistical
+% functions that only work for source input data
+
+if ~isfield(cfg, 'implementation'), cfg.implementation = 'old'; end
+
+if strcmp(cfg.implementation, 'old'),
+  
+  %--------------------------------
+  % use the original implementation
+
+  % check if the input data is valid for this function
+  for i=1:length(varargin)
+    if isfield(cfg, 'roi') && ~isempty(cfg.roi)
+      varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
+    else
+      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+    end
+  end
+  
+  if isfield(cfg, 'method')
+    % call the appropriate subfunction
+    if (strcmp(cfg.method, 'zero-baseline') || ...
+        strcmp(cfg.method, 'nai')           || ...
+        strcmp(cfg.method, 'pseudo-t')      || ...
+        strcmp(cfg.method, 'difference')    || ...
+        strcmp(cfg.method, 'anova1')        || ...
+        strcmp(cfg.method, 'kruskalwallis'))
+      % these are all statistical methods that are implemented in the old SOURCESTATISTICS_PARAMETRIC subfunction
+      cfg.statistic = cfg.method;
+      cfg.method    = 'parametric';
+    elseif strcmp(cfg.method, 'randomization')
+      cfg.method = 'randomization';
+    elseif strcmp(cfg.method, 'randcluster')
+      cfg.method = 'randcluster';
+    end
+  end
+  
+  if strcmp(cfg.method, 'parametric')
+    % use the source-specific statistical subfunction
+    stat = sourcestatistics_parametric(cfg, varargin{:});
+  elseif strcmp(cfg.method, 'randomization')
+    % use the source-specific statistical subfunction
+    stat = sourcestatistics_randomization(cfg, varargin{:});
+  elseif strcmp(cfg.method, 'randcluster')
+    % use the source-specific statistical subfunction
+    stat = sourcestatistics_randcluster(cfg, varargin{:});
+  else
+    [status,output] = system('whoami');
+    if isempty(strfind(output,'jan')),
+      % use the data-indepentend statistical wrapper function
+      % this will collect the data and subsequently call STATISTICS_XXX
+      [stat, cfg] = statistics_wrapper(cfg, varargin{:});
+    else
+      [stat, cfg] = statistics_wrapperJM(cfg, varargin{:});
+    end
+  end
+  
+  % add version information to the configuration
+  try
+    % get the full name of the function
+    cfg.version.name = mfilename('fullpath');
+  catch
+    % required for compatibility with Matlab versions prior to release 13 (6.5)
+    [st, i] = dbstack;
+    cfg.version.name = st(i);
+  end
+  cfg.version.id = '$Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $';
+  
+  % remember the configuration of the input data
+  cfg.previous = [];
+  for i=1:length(varargin)
+    if isfield(varargin{i}, 'cfg')
+      cfg.previous{i} = varargin{i}.cfg;
+    else
+      cfg.previous{i} = [];
+    end
+  end
+  
+  % remember the exact configuration details
+  stat.cfg = cfg;
+
+elseif strcmp(cfg.implementation, 'new')
+  
+  %---------------------------
+  % use the new implementation
+  
+  % check if the input data is valid for this function
+  for i=1:length(varargin)
+    if isfield(cfg, 'roi') && ~isempty(cfg.roi)
+      varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
+    else
+      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+    end
+  end
+  
+  if isfield(cfg, 'method')
+    % call the appropriate subfunction
+    if (strcmp(cfg.method, 'zero-baseline') || ...
+        strcmp(cfg.method, 'nai')           || ...
+        strcmp(cfg.method, 'pseudo-t')      || ...
+        strcmp(cfg.method, 'difference')    || ...
+        strcmp(cfg.method, 'anova1')        || ...
+        strcmp(cfg.method, 'kruskalwallis'))
+      % these are all statistical methods that are implemented in the old SOURCESTATISTICS_PARAMETRIC subfunction
+      cfg.statistic = cfg.method;
+      cfg.method    = 'parametric';
+    elseif strcmp(cfg.method, 'randomization')
+      cfg.method = 'randomization';
+    elseif strcmp(cfg.method, 'randcluster')
+      cfg.method = 'randcluster';
+    end
+  end
+
+  if ismember('cfg.method', {'parametric' 'randomization' 'randcluster'}),
+    % FIXME only supported for old-style source representation
+    for i = 1:numel(varargin)
+      varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'old');
+    end
+    
+    if exist(['statistics_',cfg.method]),
+      statmethod = str2func(['statistics_' cfg.method]);
+    else
+      error(sprintf('could not find the corresponding function for cfg.method="%s"\n', cfg.method));
+    end
+    stat = statmethod(cfg, varargin{:});
+
+  else
+    
+    % convert representation of input data to new style
+    for i = 1:numel(varargin)
+      varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'new');
+    end
+
+    % check the input configuration
+    cfg = checkconfig(cfg, 'renamed',     {'approach',   'method'});
+    cfg = checkconfig(cfg, 'required',    {'method', 'parameter'});
+    cfg = checkconfig(cfg, 'forbidden',   {'transform'});
+
+    % set the defaults
+    if ~isfield(cfg, 'channel'),     cfg.channel = 'all';            end
+    if ~isfield(cfg, 'latency'),     cfg.latency = 'all';            end
+    if ~isfield(cfg, 'frequency'),   cfg.frequency = 'all';          end
+    if ~isfield(cfg, 'roi'),         cfg.roi = [];                   end
+    if ~isfield(cfg, 'avgoverchan'), cfg.avgoverchan = 'no';         end
+    if ~isfield(cfg, 'avgovertime'), cfg.avgovertime = 'no';         end
+    if ~isfield(cfg, 'avgoverfreq'), cfg.avgoverfreq = 'no';         end
+    if ~isfield(cfg, 'avgoverroi'),  cfg.avgoverroi = 'no';          end
+
+    % test that all source inputs have the same dimensions and are spatially aligned
+    for i=2:length(varargin)
+      if isfield(varargin{1}, 'dim') && (numel(varargin{i}.dim)~=length(varargin{1}.dim) || ~all(varargin{i}.dim==varargin{1}.dim))
+        error('dimensions of the source reconstructions do not match, use VOLUMENORMALISE first');
+      end
+      if isfield(varargin{1}, 'pos') && (numel(varargin{i}.pos(:))~=numel(varargin{1}.pos(:)) || ~all(varargin{i}.pos(:)==varargin{1}.pos(:)))
+        error('grid locations of the source reconstructions do not match, use VOLUMENORMALISE first');
+      end
+    end 
+  
+    Nsource = length(varargin);
+    Nvoxel  = length(varargin{1}.inside) + length(varargin{1}.outside);
+
+    %FIXME selectdata should be used for the subselection
+    %FIXME selectdata has to be adjusted to work with new style source data
+    %if isfield(varargin{1}, 'freq') && ~strcmp(cfg.frequency, 'all'),
+    %  for i=1:length(varargin)
+    %    varargin{i} = selectdata(varargin{i}, 'foilim', cfg.frequency, ...
+    %                             'avgoverfreq', cfg.avgoverfreq);
+    %  end
+    %end
+
+    % this part contains the functionality of the old statistics_wrapper
+    % with source data in the input
+    if ~isempty(cfg.roi)
+      if ischar(cfg.roi)
+        cfg.roi = {cfg.roi};
+      end
+      % the source representation should specify the position of each voxel in MNI coordinates
+      x = varargin{1}.pos(:,1);  % this is from left (negative) to right (positive)
+      % determine the mask to restrict the subsequent analysis
+      % process each of the ROIs, and optionally also left and/or right seperately
+      roimask  = {};
+      roilabel = {};
+      for i=1:length(cfg.roi)
+        tmpcfg.roi = cfg.roi{i};
+        tmpcfg.inputcoord = cfg.inputcoord;
+        tmpcfg.atlas = cfg.atlas;
+        tmp = ft_volumelookup(tmpcfg, varargin{1});
+        if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
+          % no reason to deal with seperated left/right hemispheres
+          cfg.hemisphere = 'combined';
+        end
+
+        if     strcmp(cfg.hemisphere, 'left')
+          tmp(x>=0)    = 0;  % exclude the right hemisphere
+          roimask{end+1}  = tmp;
+          roilabel{end+1} = ['Left '  cfg.roi{i}];
+
+        elseif strcmp(cfg.hemisphere, 'right')
+          tmp(x<=0)    = 0;  % exclude the right hemisphere
+          roimask{end+1}  = tmp;
+          roilabel{end+1} = ['Right ' cfg.roi{i}];
+
+        elseif strcmp(cfg.hemisphere, 'both')
+          % deal seperately with the voxels on the left and right side of the brain
+          tmpL = tmp; tmpL(x>=0) = 0;  % exclude the right hemisphere
+          tmpR = tmp; tmpR(x<=0) = 0;  % exclude the left hemisphere
+          roimask{end+1}  = tmpL;
+          roimask{end+1}  = tmpR;
+          roilabel{end+1} = ['Left '  cfg.roi{i}];
+          roilabel{end+1} = ['Right ' cfg.roi{i}];
+          clear tmpL tmpR
+
+        elseif strcmp(cfg.hemisphere, 'combined')
+          % all voxels of the ROI can be combined
+          roimask{end+1}  = tmp;
+          roilabel{end+1} = cfg.roi{i};
+
+        else
+          error('incorrect specification of cfg.hemisphere');
+        end
+        clear tmp
+      end % for each roi
+      
+      % note that avgoverroi=yes is implemented differently at a later stage
+      % avgoverroi=no is implemented using the inside/outside mask
+      if strcmp(cfg.avgoverroi, 'no')
+        for i=2:length(roimask)
+          % combine them all in the first mask
+          roimask{1} = roimask{1} | roimask{i};
+        end
+        roimask = roimask{1};  % only keep the combined mask
+        % the source representation should have an inside and outside vector containing indices
+        sel = find(~roimask);
+        varargin{1}.inside  = setdiff(varargin{1}.inside, sel);
+        varargin{1}.outside = union(varargin{1}.outside, sel);
+        clear roimask roilabel
+      end % if avgoverroi=no
+    end % if ~isempty cfg.roi
+
+    % get the required source level data  
+    [dat, cfg] = getfunctional(cfg, varargin{:});
+    
+    % note that avgoverroi=no is implemented differently at an earlier stage
+    if strcmp(cfg.avgoverroi, 'yes')
+      tmp = zeros(length(roimask), size(dat,2));
+      for i=1:length(roimask)
+        % the data only reflects those points that are inside the brain,
+        % the atlas-based mask reflects points inside and outside the brain
+        roi = roimask{i}(varargin{1}.inside);
+        tmp(i,:) = mean(dat(roi,:), 1);
+      end
+      % replace the original data with the average over each ROI
+      dat = tmp;
+      clear tmp roi roimask
+      % remember the ROIs
+      cfg.dimord = 'roi';
+    end
+  end
+
+  %get the design from the information in the cfg and data
+  if ~isfield(cfg, 'design'),
+    cfg.design = data.design;
+    cfg        = prepare_design(cfg);
+  end
+  
+  if size(cfg.design, 2)~=size(dat, 2)
+    cfg.design = transpose(cfg.design);
+  end
+  
+  % determine the function handle to the intermediate-level statistics function
+  if exist(['statistics_' cfg.method])
+    statmethod = str2func(['statistics_' cfg.method]);
+  else
+    error(sprintf('could not find the corresponding function for cfg.method="%s"\n', cfg.method));
+  end
+  fprintf('using "%s" for the statistical testing\n', func2str(statmethod));
+  
+  % check that the design completely describes the data
+  if size(dat,2) ~= size(cfg.design,2)
+    error('the size of the design matrix does not match the number of observations in the data');
+  end
+  
+  % determine the number of output arguments
+  try
+    % the nargout function in Matlab 6.5 and older does not work on function handles
+    num = nargout(statmethod);
+  catch
+    num = 1;
+  end
+  
+  % perform the statistical test 
+  if strcmp(func2str(statmethod),'statistics_montecarlo') 
+    % because statistics_montecarlo (or to be precise, clusterstat)
+    % requires to know whether it is getting source data, 
+    % the following (ugly) work around is necessary                                             
+    if num>1
+      [stat, cfg] = statmethod(cfg, dat, cfg.design, 'issource', 1);
+    else
+      [stat] = statmethod(cfg, dat, cfg.design, 'issource', 1);
+    end
+  else
+    if num>1
+      [stat, cfg] = statmethod(cfg, dat, cfg.design);
+    else
+      [stat] = statmethod(cfg, dat, cfg.design);
+    end
+  end
+  
+  if isstruct(stat)
+    % the statistical output contains multiple elements, e.g. F-value, beta-weights and probability
+    statfield = fieldnames(stat);
+  else
+    % only the probability was returned as a single matrix, reformat into a structure
+    dum = stat; stat = []; % this prevents a Matlab warning that appears from release 7.0.4 onwards
+    stat.prob = dum;
+    statfield = fieldnames(stat);
+  end
+  
+  % add descriptive information to the output and rehape into the input format
+  if isempty(cfg.roi) || strcmp(cfg.avgoverroi, 'no')
+    % remember the definition of the volume, assume that they are identical for all input arguments
+    try, stat.dim       = varargin{1}.dim;        end
+    try, stat.xgrid     = varargin{1}.xgrid;      end
+    try, stat.ygrid     = varargin{1}.ygrid;      end
+    try, stat.zgrid     = varargin{1}.zgrid;      end
+    try, stat.inside    = varargin{1}.inside;     end
+    try, stat.outside   = varargin{1}.outside;    end
+    try, stat.pos       = varargin{1}.pos;        end
+    try, stat.transform = varargin{1}.transform;  end
+  else
+    stat.inside  = 1:length(roilabel);
+    stat.outside = [];
+    stat.label   = roilabel(:);
+  end
+  
+  for i=1:length(statfield)
+    tmp = getsubfield(stat, statfield{i});
+    if isfield(varargin{1}, 'inside') && numel(tmp)==length(varargin{1}.inside)
+      % the statistic was only computed on voxels that are inside the brain
+      % sort the inside and outside voxels back into their original place
+      if islogical(tmp)
+        tmp(varargin{1}.inside)  = tmp;
+        tmp(varargin{1}.outside) = false;
+      else
+        tmp(varargin{1}.inside)  = tmp;
+        tmp(varargin{1}.outside) = nan;
+      end
+    end
+    if numel(tmp)==prod(varargin{1}.dim)
+      % reshape the statistical volumes into the original format
+      stat = setsubfield(stat, statfield{i}, reshape(tmp, varargin{1}.dim));
+    end
+  end
+  
+  % add version information to the configuration
+  try
+    % get the full name of the function
+    cfg.version.name = mfilename('fullpath');
+  catch
+    % required for compatibility with Matlab versions prior to release 13 (6.5)
+    [st, i] = dbstack;
+    cfg.version.name = st(i);
+  end
+  cfg.version.id = '$Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $';
+  
+  % remember the configuration of the input data
+  cfg.previous = [];
+  for i=1:length(varargin)
+    if isfield(varargin{i}, 'cfg')
+      cfg.previous{i} = varargin{i}.cfg;
+    else
+      cfg.previous{i} = [];
+    end
+  end
+  
+  % remember the exact configuration details
+  stat.cfg = cfg;
+
+else
+  error('cfg.implementation can be only old or new');
+end
+
+%-----------------------------------------------------
+%subfunction to extract functional data from the input
+%and convert it into a 2D representation
+function [dat, cfg] = getfunctional(cfg, varargin)
+
+Nsource = numel(varargin);
+Nvox    = size(varargin{1}.pos, 1);
+inside  = varargin{1}.inside;
+Ninside = numel(inside);
+
+dimord = varargin{1}.([cfg.parameter,'dimord']);
+dimtok = tokenize(dimord, '_');
+
+%check whether there are single observations/subjects in the data
+rptdim = ~cellfun(@isempty, strfind(dimtok, 'rpt')) | ~cellfun(@isempty, strfind(dimtok, 'subj'));
+hasrpt = sum(rptdim);
+
+if hasrpt && Nsource>1,
+  error('only a single input with multiple observations or multiple inputs with a single observation are supported');
+end
+
+if hasrpt,
+  if iscell(varargin{1}.(cfg.parameter))
+    tmp = cell2mat(varargin{1}.(cfg.parameter)(inside,:,:,:,:));
+  else
+    tmp = varargin{1}.(cfg.parameter)(inside,:,:,:,:);
+  end
+  
+  if numel(rptdim)==1,
+    rptdim = [rptdim 0];
+  end
+  tmp = permute(tmp, [find(rptdim==0) find(rptdim==1)]);
+
+  %reshape the data
+  siz = size(tmp);
+  dat = reshape(tmp, [prod(siz(1:end-1)) siz(end)]);
+
+else
+  
+  for k = 1:Nsource
+    %check for cell-array representation in the input data
+    %FIXME this assumes positions to be in the first dimension always
+    if iscell(varargin{1}.(cfg.parameter))
+      tmp = cell2mat(varargin{k}.(cfg.parameter)(inside,:,:,:,:));
+    else
+      tmp = varargin{k}.(cfg.parameter)(inside,:,:,:,:);
+    end
+
+    %allocate memory    
+    if k==1, dat = zeros(numel(tmp), Nsource); end
+
+    %reshape the data
+    dat(:,k) = tmp(:);
+  end
+end
+cfg.dimord = 'voxel';
