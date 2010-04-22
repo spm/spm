@@ -18,7 +18,7 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 3222 2009-06-25 14:09:48Z gareth $
+% $Id: spm_eeg_inv_vbecd_getLF.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 %%% now does rank reduction (to 2) for non eeg data
@@ -35,11 +35,11 @@ for i = 1:length(s)/3
   
     
     % mean correction of LF, only for EEG data.
-    if forwinv_senstype(sens, 'eeg')
-       [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
+    if ft_senstype(sens, 'eeg')
+       [tmp] = ft_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
-       [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
+       [tmp] = ft_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
         tmp=tmp.*MEGSCALE;
     end
     gm = [gm tmp];
@@ -66,11 +66,11 @@ if all(step > 0) && nargout == 3,
             if ceil(j/3) == i 
 
                 % mean correction of LF, only for EEG data.
-                if forwinv_senstype(sens, 'eeg')
-                    [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
+                if ft_senstype(sens, 'eeg')
+                    [tmp] = ft_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
                     tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
                 else  % MEG
-                   [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
+                   [tmp] = ft_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol,'reducerank',MEGRANK);
                     tmp=tmp.*MEGSCALE;
                 end
                 dtmp = [dtmp tmp];

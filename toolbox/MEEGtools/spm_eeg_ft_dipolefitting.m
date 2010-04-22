@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 3390 2009-09-11 10:58:17Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 3833 2010-04-22 14:49:48Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -51,7 +51,7 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
         vol  = D.inv{D.val}.forward(m).vol;
         if isa(vol, 'char')
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         datareg  = D.inv{D.val}.datareg(m);
     end
@@ -63,12 +63,12 @@ M1 = datareg.toMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 M1(1:3,1:3) =U*V';
 
-vol = forwinv_transform_vol(M1, vol);
-sens = forwinv_transform_sens(M1, sens);
+vol = ft_transform_vol(M1, vol);
+sens = ft_transform_sens(M1, sens);
 
 chanind = setdiff(meegchannels(D, modality), D.badchannels);
 
-%[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+%[vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
 
 %% ============ Select the data and convert to Fieldtrip struct

@@ -35,7 +35,7 @@ for d = 1:numel(datasets)
         
         % adjust trigger latency (see the multimodal chapter)
         % here any other manipulation with the trl can be added
-        hdr = fileio_read_header(cfg.dataset);
+        hdr = ft_read_header(cfg.dataset);
         cfg.trl(:,1:2) = cfg.trl(:,1:2) + round(25*hdr.Fs/1000);
         
         cfg.channel = 'MEG';
@@ -66,8 +66,8 @@ D = spm_eeg_ft2spm(data, ['ft_' spm_str_manip(datasets{1}, 'r')]);
 %% Posp-processing of converted data
 
 % Read sensors and fiducials from the first dataset
-D = sensors(D, 'MEG', forwinv_convert_units(fileio_read_sens(fullfile(root, datasets{1})), 'mm'));
-D = fiducials(D, forwinv_convert_units(fileio_read_headshape(fullfile(root, datasets{1})), 'mm'));
+D = sensors(D, 'MEG', ft_convert_units(ft_read_sens(fullfile(root, datasets{1})), 'mm'));
+D = fiducials(D, ft_convert_units(ft_read_headshape(fullfile(root, datasets{1})), 'mm'));
 
 %% Set condition labels using the previously stored numbers of trials
 condtrials = cumsum([1 condtrials]);

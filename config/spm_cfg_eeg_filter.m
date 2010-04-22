@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 3833 2010-04-22 14:49:48Z vladimir $
 
-rev = '$Rev: 3818 $';
+rev = '$Rev: 3833 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -17,8 +17,8 @@ D.help = {'Select the EEG mat file.'};
 typ = cfg_menu;
 typ.tag = 'type';
 typ.name = 'Filter type';
-typ.labels = {'Butterworth'};
-typ.values = {'butterworth'};
+typ.labels = {'Butterworth', 'FIR'};
+typ.values = {'butterworth', 'fir'};
 typ.val = {'butterworth'};
 typ.help = {'Select the filter type.'};
 
@@ -37,10 +37,26 @@ PHz.strtype = 'r';
 PHz.num = [1 inf];
 PHz.help = {'Enter the filter cutoff'};
 
+dir = cfg_menu;
+dir.tag = 'dir';
+dir.name = 'Filter direction';
+dir.labels = {'Zero phase', 'Forward', 'Backward'};
+dir.values = {'twopass', 'onepass', 'onepass-reverse'};
+dir.val = {'twopass'};
+dir.help = {'Select the filter direction.'};
+
+order = cfg_entry;
+order.tag = 'order';
+order.name = 'Filter order';
+order.val = {[]};
+order.strtype = 'n';
+order.num = [0 1];
+order.help = {'Enter the filter order (leave empty for default)'};
+
 flt = cfg_branch;
 flt.tag = 'filter';
 flt.name = 'Filter';
-flt.val = {typ band PHz};
+flt.val = {typ band PHz dir order};
 
 S = cfg_exbranch;
 S.tag = 'filter';

@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3698 2010-01-27 15:12:12Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3833 2010-04-22 14:49:48Z vladimir $
 
 %%
 % Load data, if necessary
@@ -82,7 +82,7 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
         if strncmp(P.modality, D.inv{val}.forward(m).modality, 3)
             P.forward.vol  = D.inv{val}.forward(m).vol;
             if ischar(P.forward.vol)
-                P.forward.vol = fileio_read_vol(P.forward.vol);
+                P.forward.vol = ft_read_vol(P.forward.vol);
             end
             P.forward.sens = D.inv{val}.datareg(m).sensors;
             % Channels to use
@@ -97,8 +97,8 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
           %   disp('Undoing transformation to Tal space !');
           %   M1=eye(4)
              
-            P.forward.sens = forwinv_transform_sens(M1, P.forward.sens);
-            P.forward.vol = forwinv_transform_vol(M1, P.forward.vol);
+            P.forward.sens = ft_transform_sens(M1, P.forward.sens);
+            P.forward.vol = ft_transform_vol(M1, P.forward.vol);
             
         end
     end
@@ -111,7 +111,7 @@ else
 end
 
  
-[P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
+[P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 
 if ~isfield(P.forward.sens,'prj')
@@ -254,7 +254,7 @@ while adding_dips
             str = 'Location prior';
             while 1
                 s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
-                outside = ~forwinv_inside_vol(s0',P.forward.vol);
+                outside = ~ft_inside_vol(s0',P.forward.vol);
                 str2='Prior location variance (mm2)';
                 diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
               
@@ -308,7 +308,7 @@ while adding_dips
                 str2='Prior location variance (mm2)';
                 tmp_diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
               
-                outside = ~forwinv_inside_vol(tmp_s0',P.forward.vol);
+                outside = ~ft_inside_vol(tmp_s0',P.forward.vol);
                 if all(~outside), break, end
                 str = 'Prior location must be inside head';
             end

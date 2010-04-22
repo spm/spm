@@ -35,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 3653 2009-12-23 20:06:48Z karl $
+% $Id: spm_dcm_erp_dipfit.m 3833 2010-04-22 14:49:48Z vladimir $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -133,10 +133,10 @@ end
 %--------------------------------------------------------------------------
 if save_vol_sens
     if ischar(DCM.M.dipfit.vol)
-        DCM.M.dipfit.vol = fileio_read_vol(DCM.M.dipfit.vol);
+        DCM.M.dipfit.vol = ft_read_vol(DCM.M.dipfit.vol);
     end
 
-    [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(DCM.M.dipfit.vol, ...
+    [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = ft_prepare_vol_sens(DCM.M.dipfit.vol, ...
         DCM.M.dipfit.datareg.sensors, 'channel', D.chanlabels(DCM.xY.Ic));
 end
 

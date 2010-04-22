@@ -13,7 +13,7 @@ function mesh = spm_eeg_inv_mesh(sMRI, Msize)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh.m 3760 2010-03-08 17:00:30Z vladimir $
+% $Id: spm_eeg_inv_mesh.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 % SPM directory of canonical anatomy
@@ -108,7 +108,7 @@ mesh.tess_iskull  = filename;
 
 % datareg
 %--------------------------------------------------------------------------
-fid = fileio_read_headshape(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp'));
+fid = ft_read_headshape(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp'));
 
 mesh.fid = export(gifti(mesh.tess_scalp), 'ft');
 mesh.fid.unit     = 'mm';

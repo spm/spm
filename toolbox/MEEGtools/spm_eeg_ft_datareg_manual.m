@@ -10,7 +10,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 3183 2009-06-04 15:16:41Z vladimir $
+% $Id: spm_eeg_ft_datareg_manual.m 3833 2010-04-22 14:49:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -38,8 +38,8 @@ end
 usepolhemus = spm_input('Use polhemus?', 1, 'yes|no', [1, 0]);
 
 if usepolhemus
-    meegfid = fileio_read_headshape(spm_select(1, '\.*', 'Select polhemus file'));
-    meegfid = forwinv_convert_units(meegfid, 'mm');
+    meegfid = ft_read_headshape(spm_select(1, '\.*', 'Select polhemus file'));
+    meegfid = ft_convert_units(meegfid, 'mm');
 else
     meegfid = D.fiducials;
 end
@@ -120,7 +120,7 @@ if numel(meeglbl)>=3
             M1 = inv(M) * M1;
         case 'align2'
             M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');
-            tempfid = forwinv_transform_headshape(M1, meegfid);
+            tempfid = ft_transform_headshape(M1, meegfid);
             tempfid.fid.pnt(:, 2) = tempfid.fid.pnt(:, 2)- tempfid.fid.pnt(1, 2)+ newmrifid.fid.pnt(1, 2);
             tempfid.fid.pnt(:, 3) = tempfid.fid.pnt(:, 3)- mean(tempfid.fid.pnt(2:3, 3))+ mean(newmrifid.fid.pnt(2:3, 3));
             M1 = spm_eeg_inv_rigidreg(tempfid.fid.pnt', meegfid.fid.pnt');
@@ -134,7 +134,7 @@ if numel(meeglbl)>=3
             S.useheadshape = ~isempty(S.sourcefid.pnt);
             M1 = spm_eeg_inv_datareg(S);
     end    
-    meegfid = forwinv_transform_headshape(M1, meegfid);
+    meegfid = ft_transform_headshape(M1, meegfid);
 end
 %%
 cfg = [];
@@ -142,7 +142,7 @@ cfg.individual.headshape = meegfid;
 cfg.template.headshape = newmrifid;
 cfg = ft_interactiverealign(cfg);
 
-meegfid = forwinv_transform_headshape(cfg.m, meegfid);
+meegfid = ft_transform_headshape(cfg.m, meegfid);
 
 M1 = cfg.m * M1;
 
@@ -159,7 +159,7 @@ ind = 1;
 D.inv{val}.datareg = struct([]);
 
 if ~isempty(D.sensors('EEG'))
-    D.inv{val}.datareg(ind).sensors = forwinv_transform_sens(M1, D.sensors('EEG'));
+    D.inv{val}.datareg(ind).sensors = ft_transform_sens(M1, D.sensors('EEG'));
     D.inv{val}.datareg(ind).fid_eeg = D.inv{val}.datareg(ind).sensors;
     D.inv{val}.datareg(ind).fid_mri = newmrifid;
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine;
@@ -170,8 +170,8 @@ end
 
 if ~isempty(D.sensors('MEG'))
     D.inv{val}.datareg(ind).sensors = D.sensors('MEG');
-    D.inv{val}.datareg(ind).fid_eeg = forwinv_transform_headshape(inv(M1), meegfid);
-    D.inv{val}.datareg(ind).fid_mri = forwinv_transform_headshape(inv(M1), newmrifid);
+    D.inv{val}.datareg(ind).fid_eeg = ft_transform_headshape(inv(M1), meegfid);
+    D.inv{val}.datareg(ind).fid_mri = ft_transform_headshape(inv(M1), newmrifid);
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine*M1;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
     D.inv{val}.datareg(ind).modality = 'MEG';

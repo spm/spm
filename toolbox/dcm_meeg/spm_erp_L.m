@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_erp_L.m 3833 2010-04-22 14:49:48Z vladimir $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -58,7 +58,7 @@ switch type
         %----------------------------------------------------------
         LastLpos = P.Lpos;
         for i  = Id
-            Lf = forwinv_compute_leadfield(transform_points(M.dipfit.datareg.fromMNI, P.Lpos(:,i)'), M.dipfit.sens, M.dipfit.vol);
+            Lf = ft_compute_leadfield(transform_points(M.dipfit.datareg.fromMNI, P.Lpos(:,i)'), M.dipfit.sens, M.dipfit.vol);
             LastL(:,:,i) = Lf;
         end
         G     = spm_cond_units(LastL);

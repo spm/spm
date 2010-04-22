@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3432 2009-09-29 23:37:45Z vladimir $
+% $Id: spm_eeg_convert.m 3833 2010-04-22 14:49:48Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -69,7 +69,7 @@ end
 
 %--------- Read and check header
 
-hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
+hdr = ft_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
 
 if isfield(hdr, 'label')
     [unique_label junk ind]=unique(hdr.label);
@@ -91,13 +91,13 @@ end
 %--------- Read and prepare events
 
 try
-    event = fileio_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
+    event = ft_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
 
     if ~isempty(strmatch('UPPT001', hdr.label))
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
+        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -109,7 +109,7 @@ try
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
+        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -360,14 +360,14 @@ else Ibar = [1:ntrial]; end
 offset = 1;
 for i = 1:ntrial
     if readbytrials
-        dat = fileio_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
+        dat = ft_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
             'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
     else
-        dat = fileio_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
+        dat = ft_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
             'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
     end
 
-    % Sometimes fileio_read_data returns sparse output
+    % Sometimes ft_read_data returns sparse output
     dat = full(dat);
 
     if S.continuous
@@ -394,13 +394,13 @@ spm_progress_bar('Clear');
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
-    D.sensors.meg = forwinv_convert_units(hdr.grad, 'mm');
+    D.sensors.meg = ft_convert_units(hdr.grad, 'mm');
 end
 if isfield(hdr, 'elec')
-    D.sensors.eeg = forwinv_convert_units(hdr.elec, 'mm');
+    D.sensors.eeg = ft_convert_units(hdr.elec, 'mm');
 else
     try
-        D.sensors.eeg = forwinv_convert_units(fileio_read_sens(S.dataset, 'fileformat', S.inputformat), 'mm');
+        D.sensors.eeg = ft_convert_units(ft_read_sens(S.dataset, 'fileformat', S.inputformat), 'mm');
         % It might be that read_sens will return the grad for MEG datasets
         if isfield(D.sensors.eeg, 'ori')
             D.sensors.eeg = [];
@@ -411,7 +411,7 @@ else
 end
 
 try
-    D.fiducials = forwinv_convert_units(fileio_read_headshape(S.dataset, 'fileformat', S.inputformat), 'mm');
+    D.fiducials = ft_convert_units(ft_read_headshape(S.dataset, 'fileformat', S.inputformat), 'mm');
 catch
     warning('Could not obtain fiducials automatically.');
 end
@@ -432,7 +432,7 @@ if isfield(hdr, 'orig')
     % Uses fileio function to get the information about channel types stored in
     % the original header. This is now mainly useful for Neuromag support but might
     % have other functions in the future.
-    origchantypes = fileio_chantype(hdr);
+    origchantypes = ft_chantype(hdr);
     [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
     origchantypes = origchantypes(sel2);
     if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)

@@ -12,7 +12,7 @@ function Sout = spm_eeg_compatibility(S, caller)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_compatibility.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_eeg_compatibility.m 3833 2010-04-22 14:49:48Z vladimir $
 
 switch caller
     case 'spm_eeg_tf'
@@ -23,33 +23,40 @@ switch caller
             
             Sout = [];
             
-            Sout.D = S.D; 
+            Sout.D = S.D;
             
-            Sout.frequencies = S.tf.frequencies;                       
+            Sout.frequencies = S.tf.frequencies;
             Sout.channels    = D.chanlabels(S.tf.channels);
-           
+            
             if isfield(S.tf, 'pow')
-                warning('''pow'' option is deprecated'); 
+                warning('''pow'' option is deprecated');
             end
             
             if isfield(S.tf, 'collchans')
-                warning('''collchans'' option is deprecated'); 
-            end          
+                warning('''collchans'' option is deprecated');
+            end
             
             Sout.timewin = [-Inf Inf];
             Sout.phase   = S.tf.phase;
             Sout.method  = 'morlet';
-
+            
             Sout.settings.subsample   = 1;
             Sout.settings.ncycles     = S.tf.Mfactor;
         else
             Sout = S;
         end
+    case 'spm_eeg_filter'
+        Sout = S;
+        if isfield(S, 'filter') && isfield(S.filter, 'para')
+            if ~isempty(S.filter.para)
+                warning('The ''filter.para'' for spm_eeg_filter field is deprecated.');
+            end
+            Sout.filter = rmfield(S.filter, 'para');
+        end
     otherwise
         Sout = S;
 end
-            
-            
-            
-            
-            
+
+
+
+

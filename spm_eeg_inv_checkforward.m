@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 3833 2010-04-22 14:49:48Z vladimir $
 
 % SPM data structure
 %==========================================================================
@@ -42,7 +42,7 @@ if isempty(chanind)
 end
 
 if ischar(vol)
-    vol = fileio_read_vol(vol);
+    vol = ft_read_vol(vol);
 end
 
 %--------------------------------------------------------------------------

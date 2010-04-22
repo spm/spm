@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3484 2009-10-19 10:17:40Z vladimir $
+% $Id: spm_eeg_prep.m 3833 2010-04-22 14:49:48Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -57,7 +57,7 @@ switch lower(S.task)
         
         D = chantype(D, ind, 'Other');
         
-        type = fileio_chantype(D.chanlabels);
+        type = ft_chantype(D.chanlabels);
         
         % If there is useful information in the original types it
         % overwrites the default assignment
@@ -168,7 +168,7 @@ switch lower(S.task)
             case 'locfile'
                 label = chanlabels(D, D.meegchannels('EEG'));
                 
-                elec = fileio_read_sens(S.sensfile);
+                elec = ft_read_sens(S.sensfile);
                 
                 % Remove headshape points
                 hspind = strmatch('headshape', elec.label);
@@ -186,7 +186,7 @@ switch lower(S.task)
                     end
                 end
                 
-                shape = fileio_read_headshape(S.sensfile);
+                shape = ft_read_headshape(S.sensfile);
                 
                 % In case electrode file is used for fiducials, the
                 % electrodes can be used as headshape
@@ -197,13 +197,13 @@ switch lower(S.task)
                 
         end
         
-        elec = forwinv_convert_units(elec, 'mm');
-        shape= forwinv_convert_units(shape, 'mm');
+        elec = ft_convert_units(elec, 'mm');
+        shape= ft_convert_units(shape, 'mm');
         
         if isequal(D.modality(1, 0), 'Multimodal')
             if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
                 M1 = coreg(D.fiducials, shape, S.regfid);
-                elec = forwinv_transform_sens(M1, elec);
+                elec = ft_transform_sens(M1, elec);
             else
                 error(['MEG fiducials matched to EEG fiducials are required '...
                     'to add EEG sensors to a multimodal dataset.']);
@@ -221,7 +221,7 @@ switch lower(S.task)
         template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
         template_sfp = {template_sfp.name};
         
-        ind = strmatch([forwinv_senstype(D.chanlabels(D.meegchannels('EEG'))) '.sfp'], template_sfp, 'exact');
+        ind = strmatch([ft_senstype(D.chanlabels(D.meegchannels('EEG'))) '.sfp'], template_sfp, 'exact');
         
         if ~isempty(ind)            
             fid = D.fiducials;
@@ -261,7 +261,7 @@ switch lower(S.task)
                 S1.updatehistory = 0;
                 D = spm_eeg_prep(S1);
             else                
-                elec = fileio_read_sens(fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind}));
+                elec = ft_read_sens(fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind}));
                 
                 [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(elec.label));
                 
@@ -303,7 +303,7 @@ switch lower(S.task)
                 
                 if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
                     M1 = coreg(D.fiducials, fid, S.regfid);
-                    D = sensors(D, 'EEG', forwinv_transform_sens(M1, D.sensors('EEG')));
+                    D = sensors(D, 'EEG', ft_transform_sens(M1, D.sensors('EEG')));
                 else
                     D = fiducials(D, fid);
                 end
@@ -323,14 +323,14 @@ switch lower(S.task)
             if isempty(sens)
                 error('The montage cannod be applied - no EEG sensors specified');
             end
-            sens = forwinv_apply_montage(sens, montage, 'keepunused', 'no');
+            sens = ft_apply_montage(sens, montage, 'keepunused', 'no');
             D = sensors(D, 'EEG', sens);
         elseif ~isempty(intersect(meglabel, montage.labelnew))
             sens = sensors(D, 'MEG');
             if isempty(sens)
                 error('The montage cannod be applied - no MEG sensors specified');
             end
-            sens = forwinv_apply_montage(sens, montage, 'keepunused', 'no');
+            sens = ft_apply_montage(sens, montage, 'keepunused', 'no');
             D = sensors(D, 'MEG', sens);
         else
             error('The montage cannot be applied to the sensors');
@@ -365,7 +365,7 @@ switch lower(S.task)
                     shape.pnt = [];
                 end
             otherwise
-                shape = fileio_read_headshape(S.headshapefile);
+                shape = ft_read_headshape(S.headshapefile);
                 
                 % In case electrode file is used for fiducials, the
                 % electrodes can be used as headshape
@@ -375,13 +375,13 @@ switch lower(S.task)
                 end
         end
         
-        shape = forwinv_convert_units(shape, 'mm');
+        shape = ft_convert_units(shape, 'mm');
         
         fid = D.fiducials;
         
         if ~isempty(fid) && isfield(S, 'regfid') && ~isempty(S.regfid)
             M1 = coreg(fid, shape, S.regfid);
-            shape = forwinv_transform_headshape(M1, shape);
+            shape = ft_transform_headshape(M1, shape);
         end
         
         D = fiducials(D, shape);

@@ -10,7 +10,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3652 2009-12-18 18:54:43Z guillaume $
+% $Id: spm_eeg_ft_beamformer_gui.m 3833 2010-04-22 14:49:48Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -68,7 +68,7 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
         vol  = D.inv{D.val}.forward(m).vol;
         if isa(vol, 'char')
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         datareg  = D.inv{D.val}.datareg(m);
     end

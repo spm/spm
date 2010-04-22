@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 3120 2009-05-13 13:01:03Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 3833 2010-04-22 14:49:48Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -90,7 +90,7 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
         vol  = D.inv{D.val}.forward(m).vol;
         if isa(vol, 'char')
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         datareg  = D.inv{D.val}.datareg(m);
     end
@@ -102,12 +102,12 @@ M1 = datareg.toMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 M1(1:3,1:3) =U*V';
 
-vol = forwinv_transform_vol(M1, vol);
-sens = forwinv_transform_sens(M1, sens);
+vol = ft_transform_vol(M1, vol);
+sens = ft_transform_sens(M1, sens);
 
 chanind = setdiff(meegchannels(D, modality), badchannels(D));
 
-[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+[vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
 %% ============ Compute lead fields for the dipoles
 
@@ -121,7 +121,7 @@ else Ibar = [1:nvert]; end
 Gxyz = zeros(length(chanind), 3*nvert);
 for i = 1:nvert
 
-    Gxyz(:, (3*i- 2):(3*i))  = forwinv_compute_leadfield(pnt(i, :), sens, vol, 'reducerank', reducerank);
+    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(pnt(i, :), sens, vol, 'reducerank', reducerank);
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;

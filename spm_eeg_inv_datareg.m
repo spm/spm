@@ -33,7 +33,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 2320 2008-10-09 10:01:22Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
@@ -43,13 +43,13 @@ end
 if ~isfield(S, 'targetfid')
     error('Target fiducials are missing');
 else
-    targetfid = forwinv_convert_units(S.targetfid, 'mm');
+    targetfid = ft_convert_units(S.targetfid, 'mm');
 end
 
 if ~isfield(S, 'sourcefid')
     error('Source are missing');
 else
-    sourcefid = forwinv_convert_units(S.sourcefid, 'mm');
+    sourcefid = ft_convert_units(S.sourcefid, 'mm');
     [sel1, sel2] = spm_match_str(targetfid.fid.label, sourcefid.fid.label);
     sourcefid.fid.pnt = sourcefid.fid.pnt(sel2, :);
     sourcefid.fid.label = sourcefid.fid.label(sel2);
@@ -67,7 +67,7 @@ end
 %--------------------------------------------------------------------------
 M1 = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-sourcefid = forwinv_transform_headshape(M1, sourcefid);
+sourcefid = ft_transform_headshape(M1, sourcefid);
 
 if S.template
 
@@ -81,7 +81,7 @@ if S.template
         M       = pinv(sourcefid.fid.pnt(:))*targetfid.fid.pnt(:);
         M       = sparse(1:4,1:4,[M M M 1]);
 
-        sourcefid = forwinv_transform_headshape(M, sourcefid);
+        sourcefid = ft_transform_headshape(M, sourcefid);
 
         M1      = M*M1;
 
@@ -89,7 +89,7 @@ if S.template
         %----------------------------------------------------------------------
         M       = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-        sourcefid = forwinv_transform_headshape(M, sourcefid);
+        sourcefid = ft_transform_headshape(M, sourcefid);
 
         M1      = M*M1;
   
@@ -136,6 +136,6 @@ if  ~isempty(sourcefid.pnt) && S.useheadshape
 
     % transform headshape and eeg fiducials
     %----------------------------------------------------------------------
-    sourcefid = forwinv_transform_headshape(M, sourcefid);
+    sourcefid = ft_transform_headshape(M, sourcefid);
     M1        = M*M1;
 end

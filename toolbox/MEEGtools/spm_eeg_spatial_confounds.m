@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 3429 2009-09-29 09:41:36Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
-SVNrev = '$Rev: 3429 $';
+SVNrev = '$Rev: 3833 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -88,7 +88,7 @@ switch upper(S.method)
             
             vol  = D.inv{D.val}.forward(m).vol;
             if isa(vol, 'char')
-                vol = fileio_read_vol(vol);
+                vol = ft_read_vol(vol);
             end
             datareg  = D.inv{D.val}.datareg(m);
             
@@ -98,8 +98,8 @@ switch upper(S.method)
             [U, L, V] = svd(M1(1:3, 1:3));
             M1(1:3,1:3) =U*V';
             
-            vol = forwinv_transform_vol(M1, vol);
-            sens = forwinv_transform_sens(M1, sens);
+            vol = ft_transform_vol(M1, vol);
+            sens = ft_transform_sens(M1, sens);
             
             chanind = setdiff(meegchannels(D, modalities{k}), badchannels(D));
             
@@ -107,7 +107,7 @@ switch upper(S.method)
                 continue;
             end
             
-            [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+            [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
             
             
             if strncmp(modalities{k}, 'MEG', 3)
@@ -116,7 +116,7 @@ switch upper(S.method)
                 reducerank = 3;
             end
             
-            L  = forwinv_compute_leadfield(eyes.vertices, sens, vol, 'reducerank', reducerank);
+            L  = ft_compute_leadfield(eyes.vertices, sens, vol, 'reducerank', reducerank);
             
             [sel1, sel2] = spm_match_str(sconf.label, D.chanlabels(chanind));
             

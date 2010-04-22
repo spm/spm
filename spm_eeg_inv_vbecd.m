@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 3704 2010-02-01 20:50:18Z karl $
+% $Id: spm_eeg_inv_vbecd.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 
@@ -75,7 +75,7 @@ while outsideflag==1, %% don't use sources which end up outside the head
         mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); %
         for i=1:3:length(mu_s), %% check each dipole is inside the head
             pos     = mu_s(i:i+2);
-            outside = outside+ ~forwinv_inside_vol(pos',P.forward.vol);
+            outside = outside+ ~ft_inside_vol(pos',P.forward.vol);
         end;
     end;
 

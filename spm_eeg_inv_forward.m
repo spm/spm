@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 3161 2009-05-29 12:20:50Z vladimir $
+% $Id: spm_eeg_inv_forward.m 3833 2010-04-22 14:49:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -106,7 +106,7 @@ for i = 1:nvol
             vol = [];
             vol.bnd = export(gifti(mesh.tess_iskull), 'ft');
             vol.type = 'nolte';
-            vol = forwinv_convert_units(vol, 'mm');
+            vol = ft_convert_units(vol, 'mm');
             modality = 'MEG';
         otherwise
             error('Unsupported volume model type');

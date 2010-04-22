@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3699 2010-01-27 19:03:50Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3833 2010-04-22 14:49:48Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -74,7 +74,7 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
         vol  = D.inv{D.val}.forward(m).vol;
         if isa(vol, 'char')
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         datareg  = D.inv{D.val}.datareg(m);
     end
@@ -91,8 +91,8 @@ M1 = datareg.toMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 M1(1:3,1:3) =U*V';
 
-vol = forwinv_transform_vol(M1, vol);
-sens = forwinv_transform_sens(M1, sens);
+vol = ft_transform_vol(M1, vol);
+sens = ft_transform_sens(M1, sens);
 
 
 %% ============ Select the data and convert to Fieldtrip struct

@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3801 2010-03-25 16:43:08Z vladimir $
+% $Id: spm_eeg_megheadloc.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -67,7 +67,7 @@ if ~isa(D, 'meeg')
     try
         for i = 1:size(D, 1)
             F{i} = spm_eeg_load(deblank(D(i, :)));
-            if ~forwinv_senstype(chanlabels(F{i}), 'ctf')
+            if ~ft_senstype(chanlabels(F{i}), 'ctf')
                 warning('Head localization is not supported for this data')
                 iswork =0;
             end
@@ -392,7 +392,7 @@ if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trli
 
     grad = sensors(D{1}, 'MEG');
 
-    newgrad = forwinv_transform_sens(M*inv(M1), grad);
+    newgrad = ft_transform_sens(M*inv(M1), grad);
 
     if S.toplot
         figure(pntfig);
@@ -419,7 +419,7 @@ if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trli
         axis equal off
     end
 
-    newfid = forwinv_transform_headshape(M*inv(M1), fiducials(D{1}));
+    newfid = ft_transform_headshape(M*inv(M1), fiducials(D{1}));
 
     for f = 1:numel(D)
         D{f} = sensors(D{f}, 'MEG', newgrad);

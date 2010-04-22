@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 3601 2009-11-27 18:20:31Z vladimir $
+% $Id: spm_eeg_prep_ui.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ spm('Pointer','Arrow');
 %==========================================================================
 function CreateMenu
     
-SVNrev = '$Rev: 3601 $';
+SVNrev = '$Rev: 3833 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -408,7 +408,7 @@ if strcmp(D.modality(1, 0), 'Multimodal')
                 error('At least 3 labeled fiducials are necessary');
             end
         else
-            shape = fileio_read_headshape(S.sensfile);
+            shape = ft_read_headshape(S.sensfile);
             lblshape = shape.fid.label;
         end
 
@@ -465,7 +465,7 @@ S.task = 'headshape';
 if ~sts, return, end
 S.source = 'convert';
 
-shape = fileio_read_headshape(S.headshapefile);
+shape = ft_read_headshape(S.headshapefile);
 lblshape = shape.fid.label;
 
 fid = fiducials(S.D);
@@ -675,7 +675,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
         IsMEG = 'on';
     end
 
-    if forwinv_senstype(D.chanlabels, 'neuromag') &&...
+    if ft_senstype(D.chanlabels, 'neuromag') &&...
             isfield(D, 'origchantypes')
         IsNeuromag = 'on';
     end
@@ -702,7 +702,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
 
     template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
     template_sfp = {template_sfp.name};
-    ind = strmatch([forwinv_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
+    ind = strmatch([ft_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
 
     if ~isempty(ind)
         HasDefaultLocs = 'on';

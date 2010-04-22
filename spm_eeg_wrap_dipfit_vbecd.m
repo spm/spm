@@ -13,7 +13,7 @@ function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3372 2009-09-08 14:33:45Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3833 2010-04-22 14:49:48Z vladimir $
 
 x=U.u; %% input , unused
 
@@ -42,15 +42,15 @@ for i=1:Ndips,
     mom=allmom(i,:);
     
     % mean correction of LF, only for EEG data.
-    if forwinv_senstype(sens, 'eeg')
-       [tmp] = forwinv_compute_leadfield(pos, sens, vol);
+    if ft_senstype(sens, 'eeg')
+       [tmp] = ft_compute_leadfield(pos, sens, vol);
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
-       [tmp] = forwinv_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
+       [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
     end
     gmn=tmp;       
     y=y+gmn*mom';
-    outside = outside+ ~forwinv_inside_vol(pos,vol);
+    outside = outside+ ~ft_inside_vol(pos,vol);
 end; % for i
 
 

@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3652 2009-12-18 18:54:43Z guillaume $
+% $Id: spm_eeg_ft_beamformer_source.m 3833 2010-04-22 14:49:48Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -148,7 +148,7 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
         vol  = D.inv{D.val}.forward(m).vol;
         if isa(vol, 'char')
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         datareg  = D.inv{D.val}.datareg(m);
     end
@@ -165,12 +165,12 @@ M1 = datareg.toMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 M1(1:3,1:3) =U*V';
 
-vol = forwinv_transform_vol(M1, vol);
-sens = forwinv_transform_sens(M1, sens);
+vol = ft_transform_vol(M1, vol);
+sens = ft_transform_sens(M1, sens);
 
 channel = D.chanlabels(setdiff(meegchannels(D, modality), D.badchannels));
 
-[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', channel);
+[vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', channel);
 
 %%
 spm('Pointer', 'Watch');drawnow;
@@ -233,7 +233,7 @@ cfg = [];
 cfg.inwardshift = -30;
 cfg.vol = vol;
 cfg.grad = sens;
-cfg.grid = ft_source2grid(source1);
+cfg.grid = source2grid(source1);
 cfg.channel = modality;
 cfg.lambda =  S.lambda;
 cfg.rawtrial = 'yes';

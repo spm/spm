@@ -15,9 +15,9 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 2866 2009-03-11 21:56:29Z guillaume $
+% $Id: spm_eeg_channelselection.m 3833 2010-04-22 14:49:48Z vladimir $
 
-SVNrev = '$Rev: 2866 $';
+SVNrev = '$Rev: 3833 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ catch
     S.inputformat = [];
 end
 
-hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
+hdr = ft_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
 
 if strcmp(S.channels, 'file')
     if ~isfield(S, 'chanfile')

@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 3819 2010-04-13 19:24:25Z karl $
+% $Id: spm_eeg_lgainmat.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
 % get gain or lead-feild matrix
@@ -65,7 +65,7 @@ catch
         vol  = forward(ind).vol;
         
         if ischar(vol)
-            vol = fileio_read_vol(vol);
+            vol = ft_read_vol(vol);
         end
         
         sens = D.inv{val}.datareg(ind).sensors;
@@ -73,7 +73,7 @@ catch
 
         % Forward computation
         %--------------------------------------------------------------------------
-        [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', forward(ind).channels);
+        [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', forward(ind).channels);
         nvert = size(vert, 1);
 
         spm('Pointer', 'Watch');drawnow;
@@ -84,7 +84,7 @@ catch
         Gxyz = zeros(length(forward(ind).channels), 3*nvert);
         for i = 1:nvert
 
-            Gxyz(:, (3*i- 2):(3*i))  = forwinv_compute_leadfield(vert(i, :), sens, vol);
+            Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
 
             if ismember(i, Ibar)
                 spm_progress_bar('Set', i); drawnow;

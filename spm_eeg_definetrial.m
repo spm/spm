@@ -24,10 +24,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 3647 2009-12-16 18:55:59Z rik $
+% $Id: spm_eeg_definetrial.m 3833 2010-04-22 14:49:48Z vladimir $
 
 
-SVNrev = '$Rev: 3647 $';
+SVNrev = '$Rev: 3833 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -47,16 +47,16 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
     end
     
-    hdr = fileio_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
+    hdr = ft_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
     S.fsample = hdr.Fs;
     
-    event = fileio_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
+    event = ft_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
 
     if ~isempty(strmatch('UPPT001', hdr.label))
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
+        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
             event = cat(1, event(:), fil_ctf_events(:));
@@ -68,7 +68,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         % This is s somewhat ugly fix to the specific problem with event
         % coding in FIL CTF. It can also be useful for other CTF systems where the
         % pulses in the event channel go downwards.
-        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
+        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
             event = cat(1, event(:), fil_ctf_events(:));
