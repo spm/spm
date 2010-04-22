@@ -87,7 +87,7 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_headmodelplot.m 955 2010-04-22 15:21:44Z vlalit $
 
 fieldtripdefs
 
@@ -125,7 +125,7 @@ if ~isfield(cfg, 'plotbnd'),          cfg.plotbnd = 'no';            end
 if ~isfield(cfg, 'plotfiducial'),     cfg.plotfiducial = 'no';       end
 
 % extract/read the gradiometer and volume conductor
-[vol, sens, cfg] = ft_prepare_headmodel(cfg, data);
+[vol, sens, cfg] = prepare_headmodel(cfg, data);
 
 if strcmp(cfg.plotgrid, 'yes')
   if isfield(cfg.grid, 'pos')

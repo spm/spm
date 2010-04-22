@@ -25,7 +25,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: channelposition.m 955 2010-04-22 15:21:44Z vlalit $
 
 if isfield(sens, 'balance') && isfield(sens.balance, 'current') && ~strcmp(sens.balance.current, 'none')
   fnames = setdiff(fieldnames(sens.balance), 'current');
@@ -44,7 +44,7 @@ end
 switch ft_senstype(sens)
   case {'ctf151', 'ctf275' 'bti148', 'bti248', 'chieti153', 'yokogawa160'}
     % remove the non-MEG channels altogether
-    sel = chantype(sens, 'meg');
+    sel = ft_chantype(sens, 'meg');
     sens.label = sens.label(sel);
     sens.tra   = sens.tra(sel,:);
 
