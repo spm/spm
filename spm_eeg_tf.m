@@ -42,9 +42,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: spm_eeg_tf.m 3842 2010-04-27 15:09:48Z vladimir $
 
-SVNrev = '$Rev: 3798 $';
+SVNrev = '$Rev: 3842 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
 else Ibar = 1:D.ntrials; end
 
 for k = 1:D.ntrials
-    trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind, timeind, k), D.time);
+    trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind, timeind, k), D.time(timeind));
     
     if k == 1
         
