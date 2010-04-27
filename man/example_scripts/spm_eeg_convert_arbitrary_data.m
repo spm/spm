@@ -18,7 +18,12 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_convert_arbitrary_data.m 3809 2010-04-07 10:38:14Z vladimir $
+% $Id: spm_eeg_convert_arbitrary_data.m 3841 2010-04-27 14:18:53Z vladimir $
+
+
+% Initialize SPM
+%--------------------------------------------------------------------------
+spm('defaults','EEG');
 
 % Some details about the data
 %--------------------------------------------------------------------------
