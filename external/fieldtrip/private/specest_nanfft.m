@@ -21,7 +21,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %
 %
 %
-% See also SPECEST_MTMFFT, SPECEST_MTMCONVOL, SPECEST_TFR, SPECEST_HILBERT
+% See also SPECEST_MTMFFT, SPECEST_TFR, SPECEST_HILBERT, SPECEST_MTMWELCH, SPECEST_MTMCONVOL, SPECEST_MVAR, SPECEST_WLTCONVOL
 
 
 
@@ -43,7 +43,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: specest_nanfft.m 976 2010-04-27 13:06:18Z roevdmei $
 
 % get the optional arguments
 basis     = keyval('basis',     varargin);

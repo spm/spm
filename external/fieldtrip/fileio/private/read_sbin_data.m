@@ -34,7 +34,7 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_data.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_sbin_data.m 956 2010-04-23 03:23:20Z josdie $
 
 fh=fopen([filename],'r');
 if fh==-1
@@ -75,18 +75,21 @@ switch precision
     case 2
         trialLength=2*hdr.nSamples*(hdr.nChans+Nevents)+6;
         dataType='int16';
+        dataLength=2;
     case 4
         trialLength=4*hdr.nSamples*(hdr.nChans+Nevents)+6;
         dataType='single';
+        dataLength=4;
     case 6
         trialLength=8*hdr.nSamples*(hdr.nChans+Nevents)+6;
         dataType='double';
+        dataLength=8;
 end
 
 if unsegmented
     %interpret begtrial and endtrial as sample indices
     fseek(fh, 36+Nevents*4, 'bof'); %skip over header
-    fseek(fh, ((begtrial-1)*(hdr.nChans+Nevents)*2), 'cof'); %skip previous trials
+    fseek(fh, ((begtrial-1)*(hdr.nChans+Nevents)*dataLength), 'cof'); %skip previous trials
     nSamples  = endtrial-begtrial+1;
     trialData = fread(fh, [hdr.nChans+Nevents, nSamples],dataType,endian);
 else
