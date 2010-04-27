@@ -6,7 +6,7 @@ function D = spm_eeg_filter(S)
 % (optional) fields of S:
 %   S.D       - MEEG object or filename of M/EEG mat-file
 %   S.filter  - struct with the following fields:
-%      type      - optional filter type, can be
+%      type       - optional filter type, can be
 %                    'but' Butterworth IIR filter (default)
 %                    'fir' FIR filter using Matlab fir1 function
 %      order      - filter order (default - 5 for Butterworth)
@@ -17,21 +17,14 @@ function D = spm_eeg_filter(S)
 %                   'onepass-reverse' reverse filter only, i.e. backward in time
 %                   'twopass'         zero-phase forward and reverse filter
 %                
-%
 % D           - MEEG object (also written to disk)
-%__________________________________________________________________________
-%
-% This function filters M/EEG data and requires the signal processing 
-% toolbox from The MathWorks:
-%               http://www.mathworks.com/products/signal/
-% (function butter.m)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_filter.m 3844 2010-04-27 16:03:14Z guillaume $
 
-SVNrev = '$Rev: 3833 $';
+SVNrev = '$Rev: 3844 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -131,7 +124,7 @@ Fs = D.fsample;
 
 if strcmp(D.type, 'continuous')
 
-    % continouous data
+    % continuous data
     spm_progress_bar('Init', nchannels(D), 'Channels filtered'); drawnow;
     if nchannels(D) > 100, Ibar = floor(linspace(1, nchannels(D),100));
     else Ibar = [1:nchannels(D)]; end
@@ -208,12 +201,10 @@ save(D);
 spm('FigName','M/EEG filter: done'); spm('Pointer', 'Arrow');
 
 
-%-Helper function to choose the right ft_preproc function and make the code
-% of the main function cleaner
-%--------------------------------------------------------------------------
+%==========================================================================
 function dat = spm_eeg_preproc_filter(filter, dat, Fs)
 
-Fp   = filter.PHz;
+Fp  = filter.PHz;
 
 if isequal(filter.type, 'fir')
     type = 'fir';
@@ -221,8 +212,8 @@ else
     type = 'but';
 end
 
-N    = filter.order;
-dir  = filter.dir;
+N   = filter.order;
+dir = filter.dir;
 
 switch filter.band
     case 'low'
@@ -234,6 +225,3 @@ switch filter.band
     case 'stop'
         dat = ft_preproc_bandstopfilter(dat,Fs,Fp,N,type,dir);
 end
-
-
-
