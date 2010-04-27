@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3808 2010-04-06 19:44:13Z vladimir $
+% $Id: spm_api_erp.m 3846 2010-04-27 17:25:13Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -751,7 +751,7 @@ if ~l, C = {}; DCM.C = {}; end
 %--------------------------------------------------------------------------
 try, if size(DCM.A{1},1) ~= n, DCM = rmfield(DCM,'A'); end, end
 try, if size(DCM.B{1},1) ~= n, DCM = rmfield(DCM,'B'); end, end
-try, if size(DCM.B,1)    ~= m, DCM = rmfield(DCM,'B'); end, end
+try, if numel(DCM.B)     ~= m, DCM = rmfield(DCM,'B'); end, end
 try, if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end, end
 try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
 
