@@ -63,7 +63,7 @@ function [cfg] = ft_spikedownsample(cfg)
 %   cfg.preproc.hilbert       = 'no' or 'yes'
 %   cfg.preproc.rectify       = 'no' or 'yes'
 
-% Copyright (C) 2005-2009, Robert Oostenveld
+% Copyright (C) 2005-2010, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -81,7 +81,7 @@ function [cfg] = ft_spikedownsample(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedownsample.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_spikedownsample.m 986 2010-04-28 09:17:57Z marvin $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -283,5 +283,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikedownsample.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_spikedownsample.m 986 2010-04-28 09:17:57Z marvin $';
 

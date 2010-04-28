@@ -51,7 +51,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 949 2010-04-21 18:09:23Z roboos $
+% $Id: ft_connectivityanalysis.m 994 2010-04-28 14:44:24Z jansch $
 
 fieldtripdefs
 
@@ -73,8 +73,8 @@ if ~isfield(cfg, 'partchannel'), cfg.partchannel = '';  end
 if ~isfield(cfg, 'conditional'), cfg.conditional = [];  end
 if ~isfield(cfg, 'blockindx'),   cfg.blockindx   = {};  end
 
-hasjack = (isfield(data, 'method') && strcmp(data.method, 'jackknife')) || strcmp(data.dimord(1:6), 'rptjck');
-hasrpt  = ~isempty(strfind(data.dimord, 'rpt'));
+hasjack = (isfield(data, 'method') && strcmp(data.method, 'jackknife')) || (isfield(data, 'dimord') && strcmp(data.dimord(1:6), 'rptjck'));
+hasrpt  = (isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'rpt'))) || (isfield(data, 'avg') && isfield(data.avg, 'mom')); %FIXME old-fashioned pcc data
 dojack  = strcmp(cfg.jackknife, 'yes');
 normrpt = 0; % default, has to be overruled e.g. in plv, because of single replicate normalisation
 normpow = 1; % default, has to be overruled e.g. in csd, 
@@ -569,7 +569,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_connectivityanalysis.m 949 2010-04-21 18:09:23Z roboos $';
+cfg.version.id = '$Id: ft_connectivityanalysis.m 994 2010-04-28 14:44:24Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
@@ -1004,16 +1004,16 @@ elseif iscell(powindx)
       H2 = reshape(H(k,:,:,jj), [nchan nchan])*invP2;
       num1 = abs(det(Sj(indx1,indx1))); % numerical round off leads to tiny imaginary components
       num2 = abs(det(Sj(indx2,indx2))); % numerical round off leads to tiny imaginary components
-      %denom1 = abs(det(H1(indx1,indx1)*Zj(indx1,indx1)*H1(indx1,indx1)'));
-      %denom2 = abs(det(H2(indx2,indx2)*Zj(indx2,indx2)*H2(indx2,indx2)'));
-      rH1 = real(H1(indx1,indx1));
-      rH2 = real(H2(indx2,indx2));
-      iH1 = imag(H1(indx1,indx1));
-      iH2 = imag(H2(indx2,indx2));
-      h1 = rH1*Zj(indx1,indx1)*rH1' + iH1*Zj(indx1,indx1)*iH1';
-      h2 = rH2*Zj(indx2,indx2)*rH2' + iH2*Zj(indx2,indx2)*iH2';
-      denom1 = det(h1);
-      denom2 = det(h2);      
+      denom1 = abs(det(H1(indx1,indx1)*Zj(indx1,indx1)*H1(indx1,indx1)'));
+      denom2 = abs(det(H2(indx2,indx2)*Zj(indx2,indx2)*H2(indx2,indx2)'));
+      %rH1 = real(H1(indx1,indx1));
+      %rH2 = real(H2(indx2,indx2));
+      %iH1 = imag(H1(indx1,indx1));
+      %iH2 = imag(H2(indx2,indx2));
+      %h1 = rH1*Zj(indx1,indx1)*rH1' + iH1*Zj(indx1,indx1)*iH1';
+      %h2 = rH2*Zj(indx2,indx2)*rH2' + iH2*Zj(indx2,indx2)*iH2';
+      %denom1 = det(h1);
+      %denom2 = det(h2);      
 
       outsum(2,1,jj) = log( num1./denom1 )    + outsum(2,1,jj);
       outsum(1,2,jj) = log( num2./denom2 )    + outsum(1,2,jj);

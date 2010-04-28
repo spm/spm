@@ -41,7 +41,7 @@ function [dat] = read_neuralynx_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_ds.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_neuralynx_ds.m 988 2010-04-28 12:18:00Z roevdmei $
 
 needhdr = (nargin==1);
 needdat = (nargin>=2);
@@ -57,11 +57,11 @@ if needhdr
 
   ftype = zeros(length(fname), 1);
   for i=1:length(fname)
-    if     filetype(fname{i}, 'neuralynx_ncs')
+    if     ft_filetype(fname{i}, 'neuralynx_ncs')
       ftype(i) = 1;
-    elseif filetype(fname{i}, 'neuralynx_nse')
+    elseif ft_filetype(fname{i}, 'neuralynx_nse')
       ftype(i) = 2;
-    elseif filetype(fname{i}, 'neuralynx_nts')
+    elseif ft_filetype(fname{i}, 'neuralynx_nts')
       ftype(i) = 3;
     end
   end
@@ -194,7 +194,7 @@ else
   for i=1:nchan
     thischan = chanindx(i);
     thisfile = hdr.filename{thischan};
-    switch filetype(thisfile)
+    switch ft_filetype(thisfile)
     case 'neuralynx_ncs'
       % determine the records that contain the sample numbers of the requested segment
       begrecord  = ceil(begsample/512);
@@ -222,7 +222,7 @@ else
       sample = sample(sample>=begsample & sample<=endsample) - begsample + 1;
       dat(i,sample) = dat(i,sample) + 1;
 
-    end % switch filetype
+    end % switch ft_filetype
   end % for nchan
 end % reading data
 
