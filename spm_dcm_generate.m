@@ -1,4 +1,4 @@
-function spm_dcm_generate(syn_model,source_model,SNR)
+function varargout = spm_dcm_generate(syn_model,source_model,SNR)
 % Generate synthetic data from a DCM specification
 % FORMAT spm_dcm_generate(syn_model,source_model,SNR)
 % 
@@ -15,7 +15,7 @@ function spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 3741 2010-03-01 15:35:30Z guillaume $
+% $Id: spm_dcm_generate.m 3852 2010-04-29 13:14:21Z christophe $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -121,6 +121,9 @@ else
     save(syn_model, 'DCM');
 end
 
+if nargout==1
+    varargout{1} = DCM;
+end
 
 % Display the time series generated
 %--------------------------------------------------------------------------

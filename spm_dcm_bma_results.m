@@ -1,43 +1,36 @@
-function spm_dcm_bma_results(BMS,mod_in,drive_in,method,mod_reg)
+function spm_dcm_bma_results(BMS,method)
 % Plot histograms from BMA for selected modulatory and driving input
 % FORMAT spm_dcm_bma_results(BMS,mod_in,drive_in,method)
 %
 % Input:
 % BMS        - BMS.mat file
-% mod_in     - modulatory input
-% drive_in   - driving input
 % method     - inference method (FFX or RFX)
-% mod_reg    - modulatory region
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3732 2010-02-18 16:58:11Z christophe $
+% $Id: spm_dcm_bma_results.m 3852 2010-04-29 13:14:21Z christophe $
 
-if nargin < 4
-    % function called without parameters (e.g. via GUI)
-    %----------------------------------------------------------------------
-    Finter = spm_figure('GetWin','Interactive');
-    spm_clf(Finter);
-    set(Finter,'name','Dynamic Causal Modeling');
-
+if nargin < 1
     fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
-
-    mod_input   = spm_input('Select modulatory input ? ',1,'r',[],1);
-    drive_input = spm_input('Select driving input ? ','+1','r',[],1);
-    method      = spm_input('Inference method','+1','b','FFX|RFX',['ffx';'rfx']);
-    
 else
-    % use function arguments
-    %----------------------------------------------------------------------
-    mod_input   = mod_in;
-    drive_input = drive_in;
-    fname       = BMS;
+    fname = BMS;
 end
-
 % load BMS file
 %--------------------------------------------------------------------------
 load(fname)
+
+% Check BMS/BMA method used
+%--------------------------------------------------------------------------
+if nargin < 2
+    ff = fieldnames(BMS.DCM);
+    Nff = numel(ff);
+    if Nff==2
+        method = spm_input('Inference method','+1','b','FFX|RFX',['ffx';'rfx']);
+    else % pick the one available if only one method
+        method = char(ff);
+    end
+end
 
 % select method
 %--------------------------------------------------------------------------
@@ -77,32 +70,47 @@ else
     return
 end
 
+% number of regions, mod. inputs and names
+%--------------------------------------------------------------------------
+n  = size(amat,2); % #region
+m  = size(bmat,3); % #drv/mod inputs
+mi = size(cmat,2);
+
+% Look for modulatory inputs
+mod_input = [];
+for ii=1:m
+    % look for bits of B not full of zeros
+    tmp = any(bmat(:,:,ii,:));
+    if sum(tmp)
+        mod_input = [mod_input ii];
+    end
+end
+% Look for effective driving inputs
+drive_input = [];
+for ii=1:m
+    % look for bits of not full of zeros
+    tmp = any(cmat(:,ii,:));
+    if sum(tmp)
+        drive_input = [drive_input ii];
+    end
+end
+
+% Non linear model ? If so find the driving regions
 if ~isempty(dmat)
     nonLin = 1;
-    if ~exist('mod_reg','var')
-        mod_reg   = spm_input('Select modulating region ? ','+1','r',[],1); 
+    Nreg = size(dmat,3);
+    mod_reg = [];
+    for ii=1:n
+        % look for bits of D not full of zeros
+        tmp = any(dmat(:,:,ii,:));
+        if sum(tmp)
+            mod_reg = [mod_reg ii];
+        end
     end
 else
     nonLin = 0;
+    mod_reg = [];
 end
-
-% number of regions, mod. inputs and names
-%--------------------------------------------------------------------------
-n  = size(amat,2);
-m  = size(bmat,3);
-mi = size(cmat,2);
-
-% check if input is correct
-if mod_input > m || drive_input > mi
-    error('Incorrect choice for driving or modulatory input!');
-end
-% check if mod. region is correct, if nonlinear
-if nonLin
-    if mod_reg > n
-        error('Incorrect choice for modulatory region!');
-    end
-end
-        
 
 if isfield(DCM.Y,'name')
     for i=1:n,
@@ -127,9 +135,6 @@ usd.amat        = amat;
 usd.bmat        = bmat;
 usd.cmat        = cmat;
 usd.dmat        = dmat;
-if nonLin
-    usd.mod_reg     = mod_reg;
-end
 
 usd.region      = region;
 usd.n           = n;
@@ -138,20 +143,32 @@ usd.ni          = mi;
 usd.FS          = FS;
 usd.drive_input = drive_input;
 usd.mod_input   = mod_input;
+if nonLin
+    usd.mod_reg     = mod_reg;
+end
 usd.bins        = bins;
 usd.Nsamp       = Nsamp;
 
 set(F,'userdata',usd);
 clf(F);
 
-if nonLin
-    labels = {'a: int.','b: mod.','c: inp.', 'd: non.'};
-    callbacks = {@plot_a,@plot_b,@plot_c,@plot_d};
-else
-    labels = {'a: int.','b: mod.','c: inp.'};
-    callbacks = {@plot_a,@plot_b,@plot_c};
+labels = {'a: int.'};
+callbacks = {@plot_a};
+for ii = mod_input
+    labels{end+1} = ['b: mod. i#',num2str(ii)];
+    callbacks{end+1} = @plot_b;
 end
-    
+for ii = drive_input
+    labels{end+1} = ['c: drv. i#',num2str(ii)];
+    callbacks{end+1} = @plot_c;
+end
+
+if nonLin
+    for ii = mod_reg
+        labels{end+1} = ['d: mod. r#',num2str(ii)];
+        callbacks{end+1} = @plot_d;
+    end
+end   
 
 [handles] = spm_uitab(F,labels,callbacks,'BMA_parameters',1);
 
@@ -192,10 +209,10 @@ for i=1:ud.n,
             axis off
         else
             hist(ud.amat(i,j,:),ud.bins,'r');
-            amax = max(abs(ud.amat(i,j,:)));
+            amax = max(abs(ud.amat(i,j,:)))*1.05; % enlarge scale by 5%
             if amax > 0
                 xlim([-amax amax])
-            else
+            else % case where parameter is constrained to be 0.
                 xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
@@ -216,7 +233,14 @@ if ~isempty(hc)
     delete(hc)
 end
 
-titlewin = 'BMA: modulatory connections (b)';
+% spot the bmod input index from the fig name
+ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+it = strmatch('bold',get(ht,'Fontweight'));
+t_str = get(ht(it),'string');
+b_ind = str2num(t_str(strfind(t_str,'#')+1:end));
+i_mod = find(ud.mod_input==b_ind);
+
+titlewin = ['BMA: modulatory connections (b',num2str(b_ind),')'];
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
@@ -229,11 +253,11 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.bmat(i,j,ud.mod_input,:),ud.bins,'r');
-            bmax = max(abs(ud.bmat(i,j,ud.mod_input,:)));
+            hist(ud.bmat(i,j,ud.mod_input(i_mod),:),ud.bins,'r');
+            bmax = max(abs(ud.bmat(i,j,ud.mod_input(i_mod),:)))*1.05; % enlarge scale by 5%
             if bmax > 0
                 xlim([-bmax bmax])
-            else
+            else % case where parameter is constrained to be 0.
                 xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
@@ -254,7 +278,14 @@ if ~isempty(hc)
     delete(hc)
 end
 
-titlewin = 'BMA: input connections (c)';
+% spot the c_drv input index from the fig name
+ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+it = strmatch('bold',get(ht,'Fontweight'));
+t_str = get(ht(it),'string');
+c_ind = str2num(t_str(strfind(t_str,'#')+1:end));
+i_drv = find(ud.drive_input==c_ind);
+
+titlewin = ['BMA: input connections (c',num2str(c_ind),')'];
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
@@ -262,14 +293,14 @@ text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
 
 for j=1:ud.n,
     subplot(1,ud.n,j);
-    if length(find(ud.cmat(j,ud.drive_input,:)==0))==ud.Nsamp
+    if length(find(ud.cmat(j,ud.drive_input(i_drv),:)==0))==ud.Nsamp
         plot([0 0],[0 1],'k');
     else
-        hist(ud.cmat(j,ud.drive_input,:),ud.bins,'r');
-        cmax = max(abs(ud.cmat(j,ud.drive_input,:)));
+        hist(ud.cmat(j,ud.drive_input(i_drv),:),ud.bins,'r');
+        cmax = max(abs(ud.cmat(j,ud.drive_input(i_drv),:)))*1.05; % enlarge scale by 5%
         if cmax > 0
             xlim([-cmax cmax])
-        else
+        else % case where parameter is constrained to be 0.
             xlim([-10 10])
         end
     end
@@ -289,7 +320,14 @@ if ~isempty(hc)
     delete(hc)
 end
 
-titlewin = 'BMA: non-linear connections (d)';
+% spot the d_reg input index from the fig name
+ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+it = strmatch('bold',get(ht,'Fontweight'));
+t_str = get(ht(it),'string');
+d_ind = str2num(t_str(strfind(t_str,'#')+1:end));
+i_mreg = find(ud.mod_reg==d_ind);
+
+titlewin = ['BMA: non-linear connections (d',num2str(d_ind),')'];
 hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
@@ -302,11 +340,11 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.dmat(i,j,ud.mod_reg,:),ud.bins,'r');
-            dmax = max(abs(ud.dmat(i,j,ud.mod_reg,:)));
+            hist(ud.dmat(i,j,ud.mod_reg(i_mreg),:),ud.bins,'r');
+            dmax = max(abs(ud.dmat(i,j,ud.mod_reg(i_mreg),:)))*1.05; % enlarge scale by 5%
             if dmax > 0
                 xlim([-dmax dmax])
-            else
+            else % case where parameter is constrained to be 0.
                 xlim([-10 10])
             end
             set(gca,'YTickLabel',[]);
