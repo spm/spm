@@ -15,9 +15,9 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3636 2009-12-11 14:31:26Z maria $
+% $Id: spm_api_bmc.m 3853 2010-04-29 14:54:43Z christophe $
 
-if isempty(xp)
+if ~exist('xp','var') | isempty(xp)
     inf_method = 'FFX';
 else
     inf_method = 'RFX';

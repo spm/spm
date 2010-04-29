@@ -9,7 +9,7 @@ function spm_dcm_bma_results(BMS,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3852 2010-04-29 13:14:21Z christophe $
+% $Id: spm_dcm_bma_results.m 3853 2010-04-29 14:54:43Z christophe $
 
 if nargin < 1
     fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
@@ -80,8 +80,8 @@ mi = size(cmat,2);
 mod_input = [];
 for ii=1:m
     % look for bits of B not full of zeros
-    tmp = any(bmat(:,:,ii,:));
-    if sum(tmp)
+    tmp = squeeze(bmat(:,:,ii,:));
+    if any(tmp(:))
         mod_input = [mod_input ii];
     end
 end
@@ -98,12 +98,11 @@ end
 % Non linear model ? If so find the driving regions
 if ~isempty(dmat)
     nonLin = 1;
-    Nreg = size(dmat,3);
     mod_reg = [];
     for ii=1:n
         % look for bits of D not full of zeros
-        tmp = any(dmat(:,:,ii,:));
-        if sum(tmp)
+        tmp = squeeze(dmat(:,:,ii,:));
+        if any(tmp(:))
             mod_reg = [mod_reg ii];
         end
     end
@@ -234,7 +233,7 @@ if ~isempty(hc)
 end
 
 % spot the bmod input index from the fig name
-ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
 it = strmatch('bold',get(ht,'Fontweight'));
 t_str = get(ht(it),'string');
 b_ind = str2num(t_str(strfind(t_str,'#')+1:end));
@@ -279,7 +278,7 @@ if ~isempty(hc)
 end
 
 % spot the c_drv input index from the fig name
-ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
 it = strmatch('bold',get(ht,'Fontweight'));
 t_str = get(ht(it),'string');
 c_ind = str2num(t_str(strfind(t_str,'#')+1:end));
@@ -321,7 +320,7 @@ if ~isempty(hc)
 end
 
 % spot the d_reg input index from the fig name
-ht = intersect(findobj('style','pushbutton'),get(1,'children'));
+ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
 it = strmatch('bold',get(ht,'Fontweight'));
 t_str = get(ht(it),'string');
 d_ind = str2num(t_str(strfind(t_str,'#')+1:end));
