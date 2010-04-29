@@ -10,7 +10,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_beamformer_gui.m 3851 2010-04-29 12:17:05Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -64,24 +64,24 @@ end
 
 
 
-for m = 1:numel(D.inv{D.val}.forward)
-    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
-        vol  = D.inv{D.val}.forward(m).vol;
-        if isa(vol, 'char')
-            vol = ft_read_vol(vol);
-        end
-        datareg  = D.inv{D.val}.datareg(m);
+[ok, D] = check(D, 'sensfid');
+
+if ~ok
+    if check(D, 'basic')
+        errordlg(['The requested file is not ready for source reconstruction.'...
+            'Use prep to specify sensors and fiducials.']);
+    else
+        errordlg('The meeg file is corrupt or incomplete');
     end
+    return
 end
 
- try
-     vol = D.inv{D.val}.forward.vol;
-     datareg = D.inv{D.val}.datareg;
- catch
-     D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
-     D = spm_eeg_inv_datareg_ui(D, D.val);
-     datareg = D.inv{D.val}.datareg;
- end
+
+ if ~isfield(D,'inv')
+     errordlg('Need to set up a forward model before you start');
+     return;
+ end;
+
 
 
 clb = D.condlist;
