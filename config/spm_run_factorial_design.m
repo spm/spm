@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 3685 2010-01-14 17:18:51Z guillaume $
+% $Id: spm_run_factorial_design.m 3855 2010-04-30 10:34:33Z will $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -411,6 +411,69 @@ switch char(fieldnames(job.des))
             job.cov(end).iCFI  = 1;
         end
 
+    %-ANOVA
+    %======================================================================
+    case 'anova',
+        
+        DesName = 'ANOVA';
+        
+        job.des.anova.fact.name='Groups';
+        
+        % Automatically number cells 1 to levels, so user does'nt have to
+        levels=length(job.des.anova.icell);
+        job.des.anova.fact.levels=levels;
+        for i=1:levels,
+            job.des.anova.icell(i).levels=i;
+        end
+        [I,P,H,Hnames] = spm_set_factorial_design(job.des.anova);
+
+        
+        % Names and levels
+        SPM.factor(1).name     = 'Groups';
+        SPM.factor(1).levels   = levels;
+        
+        % Ancova options
+        SPM.factor(1).gmsca    = job.des.anova.gmsca;
+        SPM.factor(1).ancova   = job.des.anova.ancova;
+        
+        % Nonsphericity options
+        SPM.factor(1).variance = job.des.anova.variance;
+        SPM.factor(1).dept     = job.des.anova.dept;
+        
+    %-ANOVA: within-subject
+    %======================================================================
+    case 'anovaw',
+        
+        DesName = 'ANOVA - within subject';
+        
+        anovaw=job.des.anovaw;
+        anovaw.fac(1).name='Subject';
+        anovaw.fac(1).dept=0;
+        anovaw.fac(1).variance=0;
+        anovaw.fac(1).gmsca=0;
+        anovaw.fac(1).ancova=0;
+        
+        anovaw.fac(2).name='Groups';
+        anovaw.fac(2).dept=job.des.anovaw.dept;
+        anovaw.fac(2).variance=job.des.anovaw.variance;
+        anovaw.fac(2).gmsca=job.des.anovaw.gmsca;
+        anovaw.fac(2).ancova=job.des.anovaw.ancova;
+        
+        anovaw.fsuball.fsubject=anovaw.fsubject;
+        
+        % Main effect of subject and group
+        anovaw.maininters{1}.fmain.fnum=1;
+        anovaw.maininters{2}.fmain.fnum=2;
+        
+        [I,P] = spm_within_subject_design (anovaw,job.cov);
+            
+        [H,Hnames] = spm_set_flexible_design (anovaw,I);
+        
+        for i=1:2,
+            SPM.factor(i)=anovaw.fac(i);
+        end
+        SPM.factor(1).levels   = length(job.des.anovaw.fsubject);
+        
     %-Full Factorial Design
     %======================================================================
     case 'fd',
@@ -433,162 +496,38 @@ switch char(fieldnames(job.des))
             SPM.factor(i).variance = job.des.fd.fact(i).variance;
             SPM.factor(i).dept     = job.des.fd.fact(i).dept;
         end
-
+        
     %-Flexible factorial design
     %======================================================================
     case 'fblock',
         
         DesName = 'Flexible factorial';
-
+        
         if isfield(job.des.fblock.fsuball,'fsubject')
-            nsub=length(job.des.fblock.fsuball.fsubject);
-            % Specify design subject-by-subject
-            P=[];I=[];
-            subj=[];
-            for s=1:nsub,
-                P  = [P; job.des.fblock.fsuball.fsubject(s).scans];
-                ns = length(job.des.fblock.fsuball.fsubject(s).scans);
-                cc = job.des.fblock.fsuball.fsubject(s).conds;
-
-                [ccr,ccc] = size(cc);
-                if ~(ccr==ns) && ~(ccc==ns)
-                    disp(sprintf('Error for subject %d: conditions not specified for each scan',s));
-                    return
-                elseif ~(ccr==ccc) && (ccc==ns)
-                    %warning('spm:transposingConditions',['Condition matrix ',...
-                    %    'appears to be transposed. Transposing back to fix.\n',...
-                    %    'Alert developers if it is not actually transposed.'])
-                    cc=cc';
-                end
-                subj=[subj;s*ones(ns,1)];
-                % get real replications within each subject cell
-                [unused cci  ccj] = unique(cc,'rows');
-                repl = zeros(ns, 1);
-                for k=1:max(ccj)
-                    repl(ccj==k) = 1:sum(ccj==k);
-                end;
-                I = [I; [repl cc]];
-            end
-
+            % Data has been entered subject by subject
             nf=length(job.des.fblock.fac);
-            subject_factor=0;
-            for i=1:nf,
-                if strcmpi(job.des.fblock.fac(i).name,'repl')
-                    % Copy `replications' column to create explicit `replications' factor
-                    nI=I(:,1:i);
-                    nI=[nI,I(:,1)];
-                    nI=[nI,I(:,i+1:end)];
-                    I=nI;
-                end
-                if strcmpi(job.des.fblock.fac(i).name,'subject')
-                    % Create explicit `subject' factor
-                    nI=I(:,1:i);
-                    nI=[nI,subj];
-                    nI=[nI,I(:,i+1:end)];
-                    I=nI;
-                    subject_factor=1;
-                end
-
-            end
-
-            % Re-order scans conditions and covariates into standard format
-            % This is to ensure compatibility with how variance components are created
-            if subject_factor
-                U=unique(I(:,2:nf+1),'rows');
-                Un=length(U);
-                Uc=zeros(Un,1);
-                r=1;rj=[];
-                for k=1:Un,
-                    for j=1:size(I,1),
-                        match=sum(I(j,2:nf+1)==U(k,:))==nf;
-                        if match
-                            Uc(k)=Uc(k)+1;
-                            Ir(r,:)=[Uc(k),I(j,2:end)];
-                            r=r+1;
-                            rj=[rj;j];
-                        end
-                    end
-                end
-                P=P(rj); % -scans
-                I=Ir;    % -conditions
-                for k=1:numel(job.cov) % -covariates
-                    job.cov(k).c = job.cov(k).c(rj);
-                end;
-            end
-
-        else % specify all scans and factor matrix
+            [I,P] = spm_within_subject_design (job.des.fblock,job.cov);
+        else
+            % Specify all scans and factor matrix
             [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
             if ~(nc==4)
                 disp('Error: factor matrix must have four columns');
                 return
             end
             I=job.des.fblock.fsuball.specall.imatrix;
-
+            % Pad out factorial matrix to cover the four canonical factors
+            [ns,nI]=size(I);
+            if nI < 4
+                I = [I, ones(ns,4-nI)];
+            end
             % Get number of factors
             nf=length(job.des.fblock.fac);
-            %        nf=0;
-            %        for i=1:4,
-            %            if length(unique(I(:,i)))>1
-            %                nf=nf+1;
-            %            end
-            %        end
-
             P=job.des.fblock.fsuball.specall.scans;
+            
         end
 
-        % Pad out factorial matrix to cover the four canonical factors
-        [ns,nI]=size(I);
-        if nI < 4
-            I = [I, ones(ns,4-nI)];
-        end
-
-        % Sort main effects and interactions
-        fmain = struct('fnum',{});
-        inter = struct('fnums',{});
-        for k=1:numel(job.des.fblock.maininters)
-            if isfield(job.des.fblock.maininters{k},'fmain')
-                fmain(end+1)=job.des.fblock.maininters{k}.fmain;
-            elseif isfield(job.des.fblock.maininters{k},'inter')
-                inter(end+1)=job.des.fblock.maininters{k}.inter;
-            end;
-        end;
-
-        % Create main effects
-        H=[];Hnames=[];
-        nmain=length(fmain);
-        for f=1:nmain,
-            fcol=fmain(f).fnum;
-            fname=job.des.fblock.fac(fcol).name;
-
-            % Augment H partition - explicit factor numbers are 1 lower than in I matrix
-            [Hf,Hfnames]=spm_DesMtx(I(:,fcol+1),'-',fname);
-            H=[H,Hf];
-            Hnames=[Hnames;Hfnames];
-        end
-
-        % Create interactions
-        ni=length(inter);
-        for i=1:ni,
-            % Get the two factors for this interaction
-            fnums=inter(i).fnums;
-            f1=fnums(1);f2=fnums(2);
-
-            % Names
-            iname{1}=job.des.fblock.fac(f1).name;
-            iname{2}=job.des.fblock.fac(f2).name;
-
-            % Augment H partition - explicit factor numbers are 1 lower than in I matrix
-            Isub=[I(:,f1+1),I(:,f2+1)];
-            [Hf,Hfnames]=spm_DesMtx(Isub,'-',iname);
-            H=[H,Hf];
-            Hnames=[Hnames;Hfnames];
-
-        end
-
-        if nmain==0 && ni==0
-            error('You have not specified any main effects or interactions');
-        end
-
+        [H,Hnames] = spm_set_flexible_design (job.des.fblock,I);
+        
         for i=1:nf
             % Names and levels
             SPM.factor(i).name     = job.des.fblock.fac(i).name;

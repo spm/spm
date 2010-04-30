@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3815 2010-04-11 17:03:34Z ged $
+% $Id: spm_cfg_factorial_design.m 3855 2010-04-30 10:34:33Z will $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -76,6 +76,26 @@ dept.labels  = {
 }';
 dept.values  = {0 1};
 dept.val     = {0};
+% ---------------------------------------------------------------------
+% deptn Independence (default is 'No')
+% ---------------------------------------------------------------------
+deptn         = cfg_menu;
+deptn.tag     = 'dept';
+deptn.name    = 'Independence';
+deptn.help    = {
+                'By default, the measurements are assumed to be dependent between levels. '
+                ''
+                'If you change this option to allow for dependencies, this will violate the assumption of sphericity. It would therefore be an example of non-sphericity. One such example would be where you had repeated measurements from the same subjects - it may then be the case that, over subjects, measure 1 is correlated to measure 2. '
+                ''
+                'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
+                ''
+}';
+deptn.labels  = {
+               'Yes'
+               'No'
+}';
+deptn.values  = {0 1};
+deptn.val     = {1};
 
 % ---------------------------------------------------------------------
 % variance Variance
@@ -331,6 +351,14 @@ icell.name    = 'Cell';
 icell.val     = {levels scans };
 icell.help    = {'Enter data for a cell in your design'};
 % ---------------------------------------------------------------------
+% scell Cell
+% ---------------------------------------------------------------------
+scell         = cfg_branch;
+scell.tag     = 'icell';
+scell.name    = 'Cell';
+scell.val     = {scans };
+scell.help    = {'Enter data for a cell in your design'};
+% ---------------------------------------------------------------------
 % generic Specify cells
 % ---------------------------------------------------------------------
 generic1         = cfg_repeat;
@@ -342,6 +370,28 @@ generic1.help    = {
 }';
 generic1.values  = {icell };
 generic1.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% generic Specify cells
+% ---------------------------------------------------------------------
+generic2         = cfg_repeat;
+generic2.tag     = 'generic';
+generic2.name    = 'Specify cells';
+generic2.help    = {
+                    'Enter the scans a cell at a time'
+                    ''
+}';
+generic2.values  = {scell };
+generic2.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% anova ANOVA 
+% ---------------------------------------------------------------------
+anova         = cfg_branch;
+anova.tag     = 'anova';
+anova.name    = 'ANOVA';
+anova.val     = {generic2 dept variance gmsca ancova};
+anova.help    = {
+              'One-way Analysis of Variance (ANOVA)'
+}';
 % ---------------------------------------------------------------------
 % fd Full factorial
 % ---------------------------------------------------------------------
@@ -515,6 +565,16 @@ maininters.help    = {''};
 maininters.values  = {fmain inter };
 maininters.num     = [1 Inf];
 % ---------------------------------------------------------------------
+% anovaw ANOVA within subject
+% ---------------------------------------------------------------------
+anovaw         = cfg_branch;
+anovaw.tag     = 'anovaw';
+anovaw.name    = 'ANOVA - within subject';
+anovaw.val     = {generic1 deptn variance gmsca ancova};
+anovaw.help    = {
+              'One-way Analysis of Variance (ANOVA) - within subject'
+}';
+% ---------------------------------------------------------------------
 % fblock Flexible factorial
 % ---------------------------------------------------------------------
 fblock         = cfg_branch;
@@ -541,7 +601,7 @@ des.tag     = 'des';
 des.name    = 'Design';
 des.val     = {t1 };
 des.help    = {''};
-des.values  = {t1 t2 pt mreg fd fblock };
+des.values  = {t1 t2 pt mreg anova anovaw fd fblock };
 % ---------------------------------------------------------------------
 % c Vector
 % ---------------------------------------------------------------------
