@@ -6,6 +6,8 @@ function D = spm_eeg_detect_eyeblinks(S)
 % (optional) fields of S:
 %          .stdthresh  - threshold to reject things that look like
 %                         eye-blinks but probably aren't (default: 3)
+%          .overwrite  - 1 - replace previous eybelink events (default)
+%                        0 - append
 % Output:
 % D                 - MEEG object with added eyeblink events(also
 %                     written on disk)
@@ -13,9 +15,9 @@ function D = spm_eeg_detect_eyeblinks(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_detect_eyeblinks.m 3848 2010-04-28 11:46:02Z vladimir $
+% $Id: spm_eeg_detect_eyeblinks.m 3858 2010-04-30 20:56:20Z vladimir $
 
-SVNrev = '$Rev: 3848 $';
+SVNrev = '$Rev: 3858 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -72,6 +74,10 @@ try
     stdthresh = S.stdthresh;
 catch
     stdthresh = 3;
+end
+
+if ~isfield(S, 'overwrite')
+    S.overwrite = spm_input('Overwrite previous?','+1','yes|no',[1 0], 1);
 end
 
 %% get EOG data
@@ -148,6 +154,17 @@ if ~isempty(spikes)
         
         if iscell(ev)
             ev = ev{1};
+        end
+        
+        
+        if ~isempty(ev) && S.overwrite
+            ind1 = strmatch('artefact', {ev.type}, 'exact');
+            if ~isempty(ind1)
+                ind2 = strmatch('eyeblink', {ev(ind1).value}, 'exact');
+                if ~isempty(ind2)
+                    ev(ind1(ind2)) = [];
+                end
+            end
         end
         
         Nevents = numel(ev);
