@@ -36,7 +36,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 3072 2009-04-21 15:17:09Z will $
+% $Id: spm_mix.m 3857 2010-04-30 13:11:03Z will $
 
 % This code implements the algorithm in:
 %
@@ -156,9 +156,10 @@ for loops=1:max_loops,
         for n=1:N,
             gamma(s,n)=tilde_pi(s)*tilde_gamma(s)^0.5;
             dy=(y(n,:)-state(s).m);
-            gamma(s,n)=gamma(s,n)*exp(-0.5*dy*state(s).bar_gamma*dy')*exp(-d/(2*state(s).beta));
+            gamma(s,n)=gamma(s,n)*(exp(-0.5*dy*state(s).bar_gamma*dy')+eps)*exp(-d/(2*state(s).beta));
         end
     end
+    
     gamma_n=sum(gamma);
     for s=1:m,
         if mean(gamma_n) > eps
@@ -174,6 +175,7 @@ for loops=1:max_loops,
         pi_bar(s)=mean(gamma(s,:))+eps;
         N_bar(s)=N*pi_bar(s)+eps;
         bar_mu(s,:)=(1/N_bar(s))*sum(gamma(s,:)'*ones(1,d).*y);
+        
     end
     
     % get weighted means and covariances
@@ -184,6 +186,10 @@ for loops=1:max_loops,
             state(s).bar_sigma=state(s).bar_sigma+gamma(s,n).*(dy'*dy);
         end
         state(s).bar_sigma=(state(s).bar_sigma)/N_bar(s);
+        
+        if isnan(state(s).bar_sigma)
+            state(s).bar_sigma
+        end
     end
     
     % Now compute the free energy 
@@ -222,13 +228,7 @@ for loops=1:max_loops,
     oldlik=lik;
     lik=fm;
     if (loops>1)
-        if (oldlik-lik)/abs(lik) > tol
-            disp('Evidence Violation');
-            disp('This is a numerical problem sometimes encountered');
-            disp('for high-dimensional data');
-            disp('Try changing the prior B_0 to a more suitable value.');
-            break;
-        elseif abs((lik-oldlik)/lik) < tol
+        if abs((lik-oldlik)/lik) < tol
             break;
         end
     end;
