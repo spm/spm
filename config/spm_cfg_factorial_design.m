@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3855 2010-04-30 10:34:33Z will $
+% $Id: spm_cfg_factorial_design.m 3860 2010-05-04 15:59:25Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -387,7 +387,7 @@ generic2.num     = [1 Inf];
 % ---------------------------------------------------------------------
 anova         = cfg_branch;
 anova.tag     = 'anova';
-anova.name    = 'ANOVA';
+anova.name    = 'One-way ANOVA';
 anova.val     = {generic2 dept variance gmsca ancova};
 anova.help    = {
               'One-way Analysis of Variance (ANOVA)'
@@ -569,7 +569,7 @@ maininters.num     = [1 Inf];
 % ---------------------------------------------------------------------
 anovaw         = cfg_branch;
 anovaw.tag     = 'anovaw';
-anovaw.name    = 'ANOVA - within subject';
+anovaw.name    = 'One-way ANOVA - within subject';
 anovaw.val     = {generic1 deptn variance gmsca ancova};
 anovaw.help    = {
               'One-way Analysis of Variance (ANOVA) - within subject'

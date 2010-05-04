@@ -1,6 +1,6 @@
-function [I,P,H,Hnames] = spm_set_factorial_design(fd)
+function [I,P,H,Hnames] = spm_design_factorial(fd)
 % Extract factorial matrix, file list and H partition of design matrix
-% FORMAT [I,P,H,Hnames] = spm_set_factorial_design(fd)
+% FORMAT [I,P,H,Hnames] = spm_design_factorial(fd)
 %
 % fd       - structure defined in spm_cfg_factorial_design
 %            with fields fact and icell
@@ -13,7 +13,7 @@ function [I,P,H,Hnames] = spm_set_factorial_design(fd)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Guillaume Flandin
-% $Id: spm_set_factorial_design.m 3723 2010-02-12 15:15:18Z guillaume $
+% $Id: spm_design_factorial.m 3860 2010-05-04 15:59:25Z guillaume $
 
 % Get number of factors, levels and cells
 %--------------------------------------------------------------------------

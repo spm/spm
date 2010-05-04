@@ -1,6 +1,6 @@
-function [I,P] = spm_within_subject_design (fblock,cov)
+function [I,P,cov] = spm_design_within_subject(fblock,cov)
 % Set up within-subject design when specified subject by subject
-% FORMAT [I,P] = spm_within_subject_design (fblock,cov)
+% FORMAT [I,P,cov] = spm_design_within_subject(fblock,cov)
 %
 % fblock   - Part of job structure containing within-subject design info
 % cov      - Part of job structure containing covariate info
@@ -11,7 +11,7 @@ function [I,P] = spm_within_subject_design (fblock,cov)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_within_subject_design.m 3855 2010-04-30 10:34:33Z will $
+% $Id: spm_design_within_subject.m 3860 2010-05-04 15:59:25Z guillaume $
 
 nsub=length(fblock.fsuball.fsubject);
 % Specify design subject-by-subject

@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 3855 2010-04-30 10:34:33Z will $
+% $Id: spm_run_factorial_design.m 3860 2010-05-04 15:59:25Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -425,7 +425,7 @@ switch char(fieldnames(job.des))
         for i=1:levels,
             job.des.anova.icell(i).levels=i;
         end
-        [I,P,H,Hnames] = spm_set_factorial_design(job.des.anova);
+        [I,P,H,Hnames] = spm_design_factorial(job.des.anova);
 
         
         % Names and levels
@@ -465,9 +465,9 @@ switch char(fieldnames(job.des))
         anovaw.maininters{1}.fmain.fnum=1;
         anovaw.maininters{2}.fmain.fnum=2;
         
-        [I,P] = spm_within_subject_design (anovaw,job.cov);
+        [I,P,job.cov] = spm_design_within_subject(anovaw,job.cov);
             
-        [H,Hnames] = spm_set_flexible_design (anovaw,I);
+        [H,Hnames] = spm_design_flexible(anovaw,I);
         
         for i=1:2,
             SPM.factor(i)=anovaw.fac(i);
@@ -480,7 +480,7 @@ switch char(fieldnames(job.des))
         
         DesName = 'Full factorial';
 
-        [I,P,H,Hnames] = spm_set_factorial_design(job.des.fd);
+        [I,P,H,Hnames] = spm_design_factorial(job.des.fd);
 
         Nfactors = length(job.des.fd.fact);
         for i=1:Nfactors
@@ -506,7 +506,7 @@ switch char(fieldnames(job.des))
         if isfield(job.des.fblock.fsuball,'fsubject')
             % Data has been entered subject by subject
             nf=length(job.des.fblock.fac);
-            [I,P] = spm_within_subject_design (job.des.fblock,job.cov);
+            [I,P,job.cov] = spm_design_within_subject(job.des.fblock,job.cov);
         else
             % Specify all scans and factor matrix
             [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
@@ -526,7 +526,7 @@ switch char(fieldnames(job.des))
             
         end
 
-        [H,Hnames] = spm_set_flexible_design (job.des.fblock,I);
+        [H,Hnames] = spm_design_flexible(job.des.fblock,I);
         
         for i=1:nf
             % Names and levels
