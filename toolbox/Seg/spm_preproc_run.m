@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 3585 2009-11-19 16:24:22Z john $
+% $Id: spm_preproc_run.m 3859 2010-05-04 13:43:41Z john $
 
 if nargin==1,
     varargout{:} = run_job(job);
@@ -130,7 +130,7 @@ for iter=1:nit,
          for k=1:K,
              SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*alpha + eps;
          end
-save SS.mat SS
+         %save SS.mat SS
          s = sum(SS,4);
          for k=1:K,
              tmp        = SS(:,:,:,k)./s;
