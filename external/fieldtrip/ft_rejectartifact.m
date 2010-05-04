@@ -68,7 +68,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_rejectartifact.m 1035 2010-05-04 14:48:41Z timeng $
 
 fieldtripdefs
 
@@ -234,7 +234,7 @@ end
 
 % make header, needed only for sampling frequency
 if nargin ==1
-    hdr = ft_read_header(cfg.headerfile);
+    hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 elseif nargin ==2
     hdr = fetch_header(data);
 end
@@ -385,7 +385,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectartifact.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_rejectartifact.m 1035 2010-05-04 14:48:41Z timeng $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

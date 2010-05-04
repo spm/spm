@@ -50,7 +50,7 @@ function [data] = checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: checkdata.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: checkdata.m 1028 2010-05-04 10:47:38Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -148,7 +148,7 @@ end % give feedback
 
 if isfreq || istimelock || iscomp || issource || isvolume
   % ensure consistency between the dimord string and the axes that describe the data dimensions
-  data = fixdimord(data);
+  data = fixdimord(data, strcmp(sourcerepresentation, 'new'));
 end
 
 if istimelock
@@ -167,6 +167,16 @@ if issource && isvolume
   if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
   if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
   issource = false;
+end
+
+if issource || isvolume
+  % these don't contain a dimord in the old representation
+  % but in the frequency domain case they could 
+  % contain a .frequency field rather than a .freq field
+  if isfield(data, 'frequency'), 
+    data.freq = data.frequency;
+    data      = rmfield(data, 'frequency');
+  end
 end
 
 if ~isempty(dtype)
@@ -473,14 +483,16 @@ if issource || isvolume,
       data = rmfield(data, 'trial');
     end
   end
-
+  
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the source reconstructed parameters
   if issource && prod(data.dim)==size(data.pos,1)
     dim = [prod(data.dim) 1];
+  elseif issource && any(~cellfun('isempty',strfind(fieldnames(data), 'dimord')))
+    dim = [size(data.pos,1) 1]; %sparsely represented source structure new style
   elseif isfield(data, 'dim'),
     dim = [data.dim 1];
-  else
+  elseif isfield(data, 'dimord'),
     %HACK
     dimtok = tokenize(data.dimord, '_');
     for i=1:length(dimtok)
@@ -504,7 +516,7 @@ if issource || isvolume,
     end
     if numel(dim)==1, dim(1,2) = 1; end;
   end
-
+  
   % these fields should not be reshaped
   exclude = {'cfg' 'fwhm' 'leadfield' 'q' 'rough'};
   if ~strcmp(inside, 'logical')
@@ -604,7 +616,7 @@ if issource && ~isempty(sourcerepresentation)
   data = fixsource(data, 'type', sourcerepresentation);
 end
 
-if issource && ~isempty(haspow)
+if issource && ~strcmp(haspow, 'no')
  data = fixsource(data, 'type', sourcerepresentation, 'haspow', haspow);
 end 
 

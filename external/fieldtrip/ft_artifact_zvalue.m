@@ -82,13 +82,14 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_artifact_zvalue.m 1035 2010-05-04 14:48:41Z timeng $
 
 fieldtripdefs
 
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                   cfg.artfctdef                    = [];       end
 if ~isfield(cfg.artfctdef,'zvalue'),            cfg.artfctdef.zvalue             = [];       end
+if ~isfield(cfg, 'headerformat'),               cfg.headerformat                 = [];       end
 
 % for backward compatibility
 if isfield(cfg.artfctdef.zvalue,'sgn')
@@ -118,7 +119,7 @@ if nargin > 1
 elseif nargin == 1
   % only cfg given
   isfetch = 0;
-  hdr = ft_read_header(cfg.headerfile);
+  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat); 
 end
 
 % set default cfg.continuous
@@ -354,6 +355,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 1035 2010-05-04 14:48:41Z timeng $';
 
 

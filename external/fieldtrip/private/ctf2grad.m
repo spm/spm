@@ -29,7 +29,7 @@ function [grad] = ctf2grad(hdr, dewar);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: ctf2grad.m 1002 2010-04-29 23:41:39Z marlal $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -178,6 +178,17 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
     grad.balance.G3BR = montage;
   end
 
+  if isfield(hdr.BalanceCoefs, 'G3AR')
+    meglabel          = label(hdr.BalanceCoefs.G3AR.MEGlist);
+    reflabel          = label(hdr.BalanceCoefs.G3AR.Refindex);
+    nmeg              = length(meglabel);
+    nref              = length(reflabel);
+    montage.labelorg  = cat(1, meglabel, reflabel);
+    montage.labelnew  = cat(1, meglabel, reflabel);
+    montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G3AR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+    grad.balance.G3AR = montage;
+  end
+
   if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
     grad.balance.current = 'none';
   elseif all([hdr.res4.senres(selMEG).grad_order_no]==1)
@@ -186,6 +197,8 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
     grad.balance.current = 'G2BR';
   elseif all([hdr.res4.senres(selMEG).grad_order_no]==3)
     grad.balance.current = 'G3BR';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==13)
+    grad.balance.current = 'G3AR';
   else
     warning('cannot determine balancing of CTF gradiometers');
     grad = rmfield(grad, 'balance');

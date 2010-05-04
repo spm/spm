@@ -46,7 +46,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_write_data.m 1034 2010-05-04 13:58:12Z stekla $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -138,6 +138,31 @@ switch dataformat
       packet.nsamples  = 0;
       packet.nevents   = 0;
       packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+      if isfield(hdr,'label') && iscell(hdr.label)
+		packet.channel_names = hdr.label;
+      end
+      if isfield(hdr,'siemensap')
+        if isa(hdr.siemensap, 'uint8')
+		  packet.siemensap = hdr.siemensap;
+        else
+		  try
+		    packet.siemensap = matlab2sap(hdr.siemensap);
+		  catch
+		    warning 'Ignoring field "siemensap"';
+		  end	
+		end
+	  end
+	  if isfield(hdr,'nifti_1')
+	    if isa(hdr.nifti_1, 'uint8')
+		  packet.nifti_1 = hdr.nifti_1;
+		else
+          try
+            packet.nifti_1 = decode_nifti1(hdr.nifti_1);
+		  catch
+		    warning 'Ignoring field "nifti_1"';
+          end
+		end
+      end		
       
       % try to put_hdr and initialize if necessary
       try

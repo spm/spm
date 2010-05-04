@@ -1,4 +1,4 @@
-function [cfg, artifact] = ft_artifact_ecg(cfg, data)
+edit function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 
 % FT_ARTIFACT_ECG performs a peak-detection on the ECG-channel. The
 % heart activity can be seen in the MEG data as an MCG artifact and
@@ -44,7 +44,7 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_artifact_ecg.m 1035 2010-05-04 14:48:41Z timeng $
 
 fieldtripdefs
 
@@ -64,6 +64,7 @@ if ~isfield(cfg.artfctdef.ecg,'inspect'),cfg.artfctdef.ecg.inspect   = {'MLT' 'M
 if ~isfield(cfg.artfctdef.ecg,'pretim'), cfg.artfctdef.ecg.pretim    = 0.05;          end
 if ~isfield(cfg.artfctdef.ecg,'psttim'), cfg.artfctdef.ecg.psttim    = 0.3;           end
 if ~isfield(cfg.artfctdef.ecg,'mindist'), cfg.artfctdef.ecg.mindist  = 0.5;           end
+if ~isfield(cfg, 'headerformat'),         cfg.headerformat           = [];            end
 
 % for backward compatibility
 if isfield(cfg.artfctdef.ecg,'sgn')
@@ -78,7 +79,7 @@ end
 if nargin == 1,
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-  hdr = ft_read_header(cfg.headerfile);
+  hdr = ft_read_header(cfg.headerfile,'headerformat', cfg.headerformat);
   trl = cfg.trl;
 elseif nargin == 2,
   cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
@@ -307,4 +308,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_ecg.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_artifact_ecg.m 1035 2010-05-04 14:48:41Z timeng $';

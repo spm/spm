@@ -41,7 +41,7 @@ function stat = statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_crossvalidate.m 983 2010-04-27 15:08:13Z marvger $
+% $Id: statistics_crossvalidate.m 996 2010-04-28 19:48:40Z marvger $
 
 fieldtripdefs
 
@@ -103,7 +103,7 @@ else
 end
 
 % perform everything ;o)
-cv.validate(dat,design);
+cv = cv.validate(dat,design);
 
 % the statistic of interest
 res = cv.evaluate('metric',cfg.metric);

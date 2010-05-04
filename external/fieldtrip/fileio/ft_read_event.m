@@ -9,6 +9,8 @@ function [event] = ft_read_event(filename, varargin)
 %   [event] = ft_read_event(filename, ...)
 %
 % Additional options should be specified in key-value pairs and can be
+%   'dataformat'    string
+%   'headerformat'  string
 %   'eventformat'   string
 %   'header'        structure, see FT_READ_HEADER
 %   'detectflank'   string, can be 'up', 'down' or 'both' (default = 'up')
@@ -77,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_event.m 998 2010-04-29 14:43:22Z roboos $
 
 persistent sock           % for fcdc_tcp
 

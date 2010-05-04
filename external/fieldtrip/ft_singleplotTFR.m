@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_singleplotTFR.m 997 2010-04-29 08:15:18Z roevdmei $
 
 fieldtripdefs
 
@@ -345,6 +345,14 @@ function select_topoplotTFR(range, cfg, varargin)
 cfg.comment = 'auto';
 cfg.xlim = range(1:2);
 cfg.ylim = range(3:4);
+% compatibility fix for new ft_topoplotER/TFR cfg options
+if isfield(cfg,'showlabels') && strcmp(cfg.showlabels,'yes')
+  cfg = rmfield(cfg,'showlabels');
+  cfg.marker = 'labels';
+elseif isfield(cfg,'showlabels') && strcmp(cfg.showlabels,'no')
+  cfg = rmfield(cfg,'showlabels');
+  cfg.marker = 'on';
+end
 fprintf('selected cfg.xlim = [%f %f]\n', cfg.xlim(1), cfg.xlim(2));
 fprintf('selected cfg.ylim = [%f %f]\n', cfg.ylim(1), cfg.ylim(2));
 p = get(gcf, 'Position');

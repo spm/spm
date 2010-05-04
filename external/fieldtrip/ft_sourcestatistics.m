@@ -62,7 +62,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $
 
 fieldtripdefs
 
@@ -113,14 +113,7 @@ if strcmp(cfg.implementation, 'old'),
     % use the source-specific statistical subfunction
     stat = sourcestatistics_randcluster(cfg, varargin{:});
   else
-    [status,output] = system('whoami');
-    if isempty(strfind(output,'jan')),
-      % use the data-indepentend statistical wrapper function
-      % this will collect the data and subsequently call STATISTICS_XXX
-      [stat, cfg] = statistics_wrapper(cfg, varargin{:});
-    else
-      [stat, cfg] = statistics_wrapperJM(cfg, varargin{:});
-    end
+    [stat, cfg] = statistics_wrapper(cfg, varargin{:});
   end
   
   % add version information to the configuration
@@ -132,7 +125,7 @@ if strcmp(cfg.implementation, 'old'),
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -151,13 +144,21 @@ elseif strcmp(cfg.implementation, 'new')
   
   %---------------------------
   % use the new implementation
-  
+  issource = datatype(varargin{1}, 'source');
+  isvolume = datatype(varargin{1}, 'volume'); 
+ 
   % check if the input data is valid for this function
   for i=1:length(varargin)
     if isfield(cfg, 'roi') && ~isempty(cfg.roi)
+      % FIXME implement roi-based statistics for the new implementation
+      % (code is copied over from the old implementation but not yet tested
+      error('roi based sourcestatistics is not yet implemented for the new implementation');
       varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
     else
-      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index', 'sourcerepresentation', 'new');
+      if strcmp(cfg.parameter, 'pow') && ~isfield(varargin{i}, 'pow'),
+        varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'new', 'haspow', 'yes');
+      end
     end
   end
   
@@ -304,7 +305,7 @@ elseif strcmp(cfg.implementation, 'new')
         clear roimask roilabel
       end % if avgoverroi=no
     end % if ~isempty cfg.roi
-
+    
     % get the required source level data  
     [dat, cfg] = getfunctional(cfg, varargin{:});
     
@@ -400,26 +401,78 @@ elseif strcmp(cfg.implementation, 'new')
     stat.outside = [];
     stat.label   = roilabel(:);
   end
-  
-  for i=1:length(statfield)
-    tmp = getsubfield(stat, statfield{i});
-    if isfield(varargin{1}, 'inside') && numel(tmp)==length(varargin{1}.inside)
-      % the statistic was only computed on voxels that are inside the brain
-      % sort the inside and outside voxels back into their original place
-      if islogical(tmp)
-        tmp(varargin{1}.inside)  = tmp;
-        tmp(varargin{1}.outside) = false;
-      else
-        tmp(varargin{1}.inside)  = tmp;
-        tmp(varargin{1}.outside) = nan;
-      end
+    
+  % additional descriptive fields
+  hasfreq = strcmp(cfg.avgoverfreq, 'no') && isfield(varargin{1},'freq');
+  hastime = strcmp(cfg.avgovertime, 'no') && isfield(varargin{1},'time');
+  stat.dimord = 'pos_';
+
+  if hasfreq, 
+    stat.dimord = [stat.dimord, 'freq_']; 
+    stat.freq   = varargin{1}.freq;
+    nfreq       = numel(varargin{1}.freq);
+  else
+    nfreq       = 1;
+  end
+  if hastime,
+    stat.dimord = [stat.dimord, 'time_'];
+    stat.time   = varargin{1}.time;
+    ntime       = numel(varargin{1}.time);
+  else
+    ntime       = 1;
+  end
+  stat.dimord = stat.dimord(1:end-1);
+
+  if issource, 
+    if hasfreq,
+       newdim = [size(stat.pos,1) nfreq ntime];
+    else
+       newdim = [size(stat.pos,1) ntime];
     end
-    if numel(tmp)==prod(varargin{1}.dim)
-      % reshape the statistical volumes into the original format
-      stat = setsubfield(stat, statfield{i}, reshape(tmp, varargin{1}.dim));
+  elseif isvolume,
+    if hasfreq,
+      newdim = [stat.dim nfreq ntime];
+    else
+      newdim = [stat.dim ntime];
     end
   end
   
+  for i=1:length(statfield)
+    tmp   = getsubfield(stat, statfield{i});
+    tmp2  = [];
+    ntmp  = numel(tmp);
+    if hasfreq, 
+      tmpdim = [ntmp/(nfreq*ntime) nfreq ntime];
+    else
+      tmpdim = [ntmp/ntime ntime];
+    end
+    if isfield(varargin{1}, 'inside') && numel(tmp)==nfreq*ntime*length(varargin{1}.inside)
+      % the statistic was only computed on voxels that are inside the brain
+      % sort the inside and outside voxels back into their original place
+      if islogical(tmp)
+        if hasfreq,
+          tmp2 = logical(zeros(prod(varargin{1}.dim),nfreq,ntime));
+          tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/(nfreq*ntime) nfreq ntime]);
+        else
+          tmp2 = logical(zeros(prod(varargin{1}.dim),nfreq,ntime));
+          tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/ntime ntime]);
+        end
+      else
+        if hasfreq,
+          tmp2 = zeros(prod(varargin{1}.dim),nfreq,ntime)+nan;
+          tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/(nfreq*ntime) nfreq ntime]);
+        else
+          tmp2 = zeros(prod(varargin{1}.dim),nfreq,ntime)+nan;
+          tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/ntime ntime]);
+        end
+      end
+    end
+    if numel(tmp2)==prod(newdim)
+      % reshape the statistical volumes into the original format
+      stat = setsubfield(stat, statfield{i}, reshape(tmp2, newdim));
+    end
+  end
+
   % add version information to the configuration
   try
     % get the full name of the function
@@ -429,7 +482,7 @@ elseif strcmp(cfg.implementation, 'new')
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 948 2010-04-21 18:02:21Z roboos $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -453,6 +506,7 @@ end
 %and convert it into a 2D representation
 function [dat, cfg] = getfunctional(cfg, varargin)
 
+%FIXME think of how this generalizes to volumetric data (boolean inside etc)
 Nsource = numel(varargin);
 Nvox    = size(varargin{1}.pos, 1);
 inside  = varargin{1}.inside;
@@ -460,6 +514,20 @@ Ninside = numel(inside);
 
 dimord = varargin{1}.([cfg.parameter,'dimord']);
 dimtok = tokenize(dimord, '_');
+
+%check whether the requested parameter is represented as cell-array
+x1 = strfind(dimord, '{');
+x2 = strfind(dimord, '}');
+if ~isempty(x1) && ~isempty(x2)
+  cellparam = 1;
+  cellsiz   = size(varargin{1}.(cfg.parameter));
+  %this only explicitly keeps the first singleton dimension
+  %the last to be removed
+  cellsiz(find(cellsiz(2:end)==1)+1) = [];
+  cellsiz(cellsiz==Nvox)             = Ninside;
+else
+  cellparam = 0;
+end
 
 %check whether there are single observations/subjects in the data
 rptdim = ~cellfun(@isempty, strfind(dimtok, 'rpt')) | ~cellfun(@isempty, strfind(dimtok, 'subj'));
@@ -470,8 +538,14 @@ if hasrpt && Nsource>1,
 end
 
 if hasrpt,
-  if iscell(varargin{1}.(cfg.parameter))
-    tmp = cell2mat(varargin{1}.(cfg.parameter)(inside,:,:,:,:));
+  if cellparam,
+    tmpsiz  = [cellsiz size(varargin{1}.(cfg.parameter){inside(1)})];
+    tmp     = zeros(tmpsiz);
+    %FIXME what about volumetric data?
+    for k = 1:Ninside
+      tmp(k,:,:,:,:,:) = varargin{1}.(cfg.parameter){inside(k)};
+    end
+    %tmp    = cell2mat(varargin{1}.(cfg.parameter)(inside,:,:,:,:));
   else
     tmp = varargin{1}.(cfg.parameter)(inside,:,:,:,:);
   end
@@ -479,18 +553,20 @@ if hasrpt,
   if numel(rptdim)==1,
     rptdim = [rptdim 0];
   end
+  %put the repetition dimension to the last dimension
   tmp = permute(tmp, [find(rptdim==0) find(rptdim==1)]);
 
-  %reshape the data
+  %reshape the data to 2D
   siz = size(tmp);
   dat = reshape(tmp, [prod(siz(1:end-1)) siz(end)]);
-
+  
 else
   
   for k = 1:Nsource
     %check for cell-array representation in the input data
     %FIXME this assumes positions to be in the first dimension always
-    if iscell(varargin{1}.(cfg.parameter))
+    %FIXME what about volumetric dadta
+    if cellparam
       tmp = cell2mat(varargin{k}.(cfg.parameter)(inside,:,:,:,:));
     else
       tmp = varargin{k}.(cfg.parameter)(inside,:,:,:,:);
@@ -500,7 +576,11 @@ else
     if k==1, dat = zeros(numel(tmp), Nsource); end
 
     %reshape the data
+    siz      = size(tmp);
     dat(:,k) = tmp(:);
   end
 end
-cfg.dimord = 'voxel';
+cfg.dim     = varargin{1}.dim;
+cfg.inside  = varargin{1}.inside; %FIXME take the intersection between all inputs
+cfg.dimord  = 'voxel';
+cfg.origdim = [cfg.dim siz(2:end-1)];

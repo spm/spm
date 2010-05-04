@@ -27,7 +27,7 @@ function [cfg, artifact] = ft_artifact_file(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_file.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_artifact_file.m 1035 2010-05-04 14:48:41Z timeng $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -35,7 +35,7 @@ cfg = checkconfig(cfg, 'trackconfig', 'on');
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile'});
-  hdr = ft_read_header(cfg.headerfile);
+  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
   if ft_filetype(cfg.rejectfile, 'eep_rej')
     artifact = read_eep_rej(cfg.rejectfile);
   elseif ft_filetype(cfg.rejectfile, 'brainvision_marker')
@@ -69,4 +69,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_file.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_artifact_file.m 1035 2010-05-04 14:48:41Z timeng $';

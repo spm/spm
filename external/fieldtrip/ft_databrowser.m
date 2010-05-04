@@ -61,7 +61,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_databrowser.m 1031 2010-05-04 12:25:39Z timeng $
 
 fieldtripdefs
 
@@ -88,7 +88,7 @@ if ~isfield(cfg, 'selectmode'),      cfg.selectmode = 'mark';         end
 if ~isfield(cfg, 'viewmode'),        cfg.viewmode = 'butterfly';      end % butterfly, vertical, component, settings
 if ~isfield(cfg, 'blocksize'),       cfg.blocksize = 1;               end % only for segmenting continuous data, i.e. one long trial
 if ~isfield(cfg, 'preproc'),         cfg.preproc = [];                end % see preproc for options
-if ~isfield(cfg, 'eventfile'),       cfg.eventfile = [];              end
+if ~isfield(cfg, 'event'),           cfg.event = [];                  end
 if ~isfield(cfg, 'selfun'),          cfg.selfun = 'browse_multiplotER'; end
 if ~isfield(cfg, 'selcfg'),          cfg.selcfg = [];                 end
 if ~isfield(cfg, 'colorgroups'),     cfg.colorgroups = 'sequential';  end
@@ -128,8 +128,8 @@ else
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
   
   % read the events
-  if ~isempty(cfg.eventfile)
-    event = ft_read_event(cfg.eventfile);
+  if ~isempty(cfg.event)
+    event = ft_read_event(cfg.dataset);
   else
     event = [];
   end
@@ -390,7 +390,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_databrowser.m 1031 2010-05-04 12:25:39Z timeng $';
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
 

@@ -34,7 +34,7 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterstat.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: clusterstat.m 1014 2010-05-03 13:30:24Z roevdmei $
 
 % set the defaults
 if ~isfield(cfg,'orderedstats'),   cfg.orderedstats = 'no';    end
@@ -490,7 +490,14 @@ function channeighbstructmat = makechanneighbstructmat(cfg);
 % MAKECHANNEIGHBSTRUCTMAT makes the makes the matrix containing the channel
 % neighbourhood structure.
 
-nchan=length(cfg.channel);
+% because clusterstat has no access to the actual data (containing data.label), this workaround is required
+% cfg.neighbours is cleared here because it is not done where avgoverchan is effectuated (it should actually be changed there)
+if strcmp(cfg.avgoverchan, 'no')
+  nchan=length(cfg.channel);
+elseif strcmp(cfg.avgoverchan, 'yes')
+  nchan = 1;
+  cfg.neighbours = [];
+end
 channeighbstructmat = false(nchan,nchan);
 for chan=1:length(cfg.neighbours)
     [seld] = match_str(cfg.channel, cfg.neighbours{chan}.label);

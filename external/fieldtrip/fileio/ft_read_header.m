@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_header.m 1030 2010-05-04 12:23:19Z stekla $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -448,6 +448,16 @@ switch headerformat
     catch
       warning('cannot read balancing coefficients for G3BR');
     end
+    try
+      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3AR', 'T');
+      orig.BalanceCoefs.G3AR.alphaMEG  = alphaMEG;
+      orig.BalanceCoefs.G3AR.MEGlist   = MEGlist;
+      orig.BalanceCoefs.G3AR.Refindex  = Refindex;
+    catch
+      % May not want a warning here if these are not commonly used.
+      % Already get a (fprintf) warning from getCTFBalanceCoefs.m
+      % warning('cannot read balancing coefficients for G3AR');
+    end
     % add a gradiometer structure for forward and inverse modelling
     try
       hdr.grad = ctf2grad(orig);
@@ -696,19 +706,26 @@ switch headerformat
     hdr.nSamples    = orig.nsamples;
     hdr.nSamplesPre = 0; % since continuous
     hdr.nTrials     = 1; % since continuous
-    hdr.label       = cell(1,hdr.nChans);
-    if isempty(fakechannelwarning) || ~fakechannelwarning
-      % give this warning only once
-      warning('creating fake channel names');
-      fakechannelwarning = true;
-    end
-    hdr.label = cell(hdr.nChans,1);
-    if hdr.nChans < 2000  % it takes 3.6s to attach 140000 labels to fMRI data...
-      for i=1:hdr.nChans
-        hdr.label{i} = sprintf('%d', i);
-      end
-      % this should be a column vector
-      hdr.label = hdr.label(:);
+	if isfield(orig, 'nifti_1') 
+		hdr.nifti_1 = decode_nifti1(orig.nifti_1); 
+	end
+	if isfield(orig, 'siemensap') && exist('sap2matlab')==3 % only run this if MEX file is present
+		hdr.siemensap = sap2matlab(orig.siemensap); 
+	end
+	if isfield(orig, 'channel_names')
+		hdr.label = orig.channel_names;
+	else
+		if isempty(fakechannelwarning) || ~fakechannelwarning
+			% give this warning only once
+			warning('creating fake channel names');
+			fakechannelwarning = true;
+		end
+		hdr.label = cell(hdr.nChans,1);
+		if hdr.nChans < 2000 % don't do this for fMRI etc.
+			for i=1:hdr.nChans
+				hdr.label{i} = sprintf('%d', i);
+			end
+		end
     end
     % remember the original header details
     hdr.orig = orig;
