@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_inv_vbecd.m 3863 2010-05-05 11:45:40Z gareth $
 
 
 
@@ -53,7 +53,7 @@ end
 % MEG means same threshold and exit criteria)
 %--------------------------------------------------------------------------
 y    = P.y;
-sc_y = 10000/std(y);
+sc_y = 1/std(y);
 y    = y*sc_y;
 Y.y  = y;
 U.u  = 1;
@@ -82,14 +82,24 @@ while outsideflag==1, %% don't use sources which end up outside the head
     % get lead fields
     %----------------------------------------------------------------------
     M.pE  = [mu_s;mu_w];            % prior parameter estimate
+  
+    
+    
     M.pC  = blkdiag(S_s0,S_w0);     % prior covariance estimate
+    M.hE=P.priors.hE;
+    
+    M.hC=P.priors.hC;
+    
+    
     M.IS  = 'spm_eeg_wrap_dipfit_vbecd';
     startguess=M.pE;
     M.Setup =P;             % pass volume conductor and sensor locations on
     M.sc_y =sc_y;           % pass on scaling factor
-
+   
+  
+    
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
-    [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
+        [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
     P.Ep = Ep;
     P.Cp = Cp;
     P.S  = S;
