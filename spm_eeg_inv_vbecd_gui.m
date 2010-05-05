@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 3862 2010-05-05 11:44:51Z gareth $
 
 %%
 % Load data, if necessary
@@ -368,8 +368,13 @@ while adding_dips
     end
 end
 
- str2='Number of iterations';
- Niter = spm_input(str2, 1+tr_q+dip_q+2+1,'e',10)';
+str2='Data SNR (amp)';
+ SNRamp = spm_input(str2, 1+tr_q+dip_q+2+1,'e',5)';
+ hE=log(SNRamp^2); %% expected log precision of data
+ hC=0.0000001; % Have to tie the expected precision down for the moment (nlsi_gn can become unstable)
+ 
+str2='Number of iterations';
+ Niter = spm_input(str2, 1+tr_q+dip_q+2+2,'e',10)';
               
 %%
 % Get all the priors together and build structure to pass to inv_becd 
@@ -378,7 +383,7 @@ end
 
 priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
                 'mu_s0',cat(1,dip_pr(:).mu_s0), ...
-                'S_w0',blkdiag(dip_pr(:).S_w0),'S_s0',blkdiag(dip_pr(:).S_s0));
+                'S_w0',blkdiag(dip_pr(:).S_w0),'S_s0',blkdiag(dip_pr(:).S_s0),'hE',hE,'hC',hC);
                 
             
 P.priors = priors;
