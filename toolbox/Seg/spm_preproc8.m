@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 3687 2010-01-19 14:37:56Z john $
+% $Id: spm_preproc8.m 3864 2010-05-05 17:21:20Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -439,8 +439,8 @@ for iter=1:20,
             for n=1:N,
                 x = (1:K)';
                 for k1=1:Kb,
-                    mom0 = sum(chan(n).hist(:,k1));
-                    mom1 = sum(chan(n).hist(:,k1).*x);
+                    mom0 = sum(chan(n).hist(:,k1)) + eps;
+                    mom1 = sum(chan(n).hist(:,k1).*x) + eps;
                     chan(n).lam(k1) = sum(chan(n).hist(:,k1).*(x-mom1./mom0).^2+1)/(mom0+1)+1;
                 end
              end

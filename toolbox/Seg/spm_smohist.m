@@ -17,7 +17,7 @@ function [sig0,alph] = spm_smohist(t0,lam)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smohist.m 2231 2008-09-29 15:01:05Z guillaume $
+% $Id: spm_smohist.m 3864 2010-05-05 17:21:20Z john $
 
 sig0 = zeros(size(t0));
 n  = size(t0,1);
@@ -25,7 +25,7 @@ if nargin<2,
     lam = zeros(size(t0,2),1);
     x   = (1:n)';
     for k=1:size(t0,2),
-        t  = t0(:,k);
+        t  = t0(:,k)+eps;
         mu = sum(t.*x)./sum(t);
         vr = sum(t.*(x-mu).^2)/sum(t);
         lam(k) = vr;
@@ -44,7 +44,7 @@ G0          = G0'*G0;
 constr      = log(realmax)-1;
 
 for k=1:size(t0,2),
-    t   = t0(:,k) + 2*sum(t0(:,k))/realmax;
+    t   = t0(:,k) + 2*sum(t0(:,k))/realmax + eps;
     G   = G0*lam(k);
     am  = alph(:,k);
     sig = exp(am);
