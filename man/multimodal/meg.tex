@@ -118,19 +118,19 @@ You can move the slider left and right to see the development of the M170 over t
 
 \subsection{Time-Frequency Analysis}
 
-SPM uses Morlet wavelets to perform time-frequency analyses.
+SPM can use several methods for time-frequency decomposition. We will use Morlet wavelets for our analyses.
 
-Select the \textsc{time-frequency} option under the ``Other'' pull-down menu, and select the \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. SPM will then prompt you for the frequencies you wish to analyse, for which you can type [5:40] (Hz). Change the default Morlet wavelet order (N) from 7 to 5. This factor effectively trades off frequency vs time resolution, with a lower order giving higher temporal resolution. You will then be prompted to select channels from a list. Select ``MLT34'' and press ``OK''\footnote{You can of course obtain time-frequency plots for every channel, but it will take much longer (and result in a large file).}. Answer ``yes'' to ``Compute phase?''.
+Select the \textsc{time-frequency} option under the ``Other'' pull-down menu. SPM batch tool with time-frequency configuration options will apear. Double-click on ``File name'' and select the \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. Then click on ``Channel selection'' and in the box below click on ``Delete: All(1)'' and then on ``New: Custom channel''. Double-click on ``Custom channel'' and enter ``MLT34''.\footnote{You can of course obtain time-frequency plots for every channel, but it will take much longer (and result in a large file).} Double-click on ``Frequencies of interest'' and type [5:40] (Hz). Click on ``Spectral estimation'' and select ``Morlet wavelet transform''. Change the number of wavelet cycles from 7 to 5. This factor effectively trades off frequency vs time resolution, with a lower order giving higher temporal resolution. Select ``yes'' for ``Save phase?''.
 
-This will produce two new datasets, \texttt{tf1\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D.\{mat,dat\}} and  \texttt{tf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.\{mat,dat\}}. The former contains the power at each frequency, time and channel; the latter contains the corresponding phase angles.
+This will produce two new datasets, \texttt{tf\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D.\{mat,dat\}} and  \texttt{tph\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.\{mat,dat\}}. The former contains the power at each frequency, time and channel; the latter contains the corresponding phase angles.
 
 Here we will not baseline correc the time-frequency data because for frequencies as low as 5Hz, one would need a longer pre-stimulus baseline, to avoid edge-effects\footnote{For example, for 5Hz, one would need at least N/2 x 1000ms/5, where N is the order of the Morlet wavelets (i.e, number of cycles per Gaussian window), e.g, 600ms for a 6th-order wavelet.}. Later, we will compare two trial-types directly, and hence any pre-stimulus differences will become apparent. 
 
-Press the \textsc{Averaging} button and select the \texttt{tf1\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. You can use straight (or robust if you prefer) averaging to compute the average time-frequency representation. A new file will be created in the MEG directory called \texttt{mtf1\_cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.\{mat,dat\}}. Note that you can use the reviewing tool to review the time-frequency datasets.
+Press the \textsc{Averaging} button and select the \texttt{tf\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. You can use straight (or robust if you prefer) averaging to compute the average time-frequency representation. A new file will be created in the MEG directory called \texttt{mtf\_cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.\{mat,dat\}}. Note that you can use the reviewing tool to review the time-frequency datasets.
 
 This contains the power spectrum averaged over all trials, and will include both ``evoked'' and ``induced'' power. Induced power is (high-frequency) power that is not phase-locked to the stimulus onset, which is therefore removed when averaging the amplitude of responses across trials (i.e, would be absent from a time-frequency analysis of the \texttt{mcdbespm8\_SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file).
 
-The power spectra for each trial-type can be displayed using the usual Display button and selecting the \texttt{mtf1\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D.mat} file. This will produce a plot of power as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. If you use the ``trial'' slider to switch between trial(types) 1 and 2, you will see the greater power around 150ms and 10Hz for faces than scrambled faces (click on the magnifying glass icon and on the single channel to get scales for the axes, as in Figure~\ref{multimodal:fig:13}). This corresponds to the M170 again.
+The power spectra for each trial-type can be displayed using the usual Display button and selecting the \texttt{mtf\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D.mat} file. This will produce a plot of power as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. If you use the ``trial'' slider to switch between trial(types) 1 and 2, you will see the greater power around 150ms and 10Hz for faces than scrambled faces (click on the magnifying glass icon and on the single channel to get scales for the axes, as in Figure~\ref{multimodal:fig:13}). This corresponds to the M170 again.
 
 \begin{figure}
 \begin{center}
@@ -142,16 +142,16 @@ The power spectra for each trial-type can be displayed using the usual Display b
 
 We can also look at evidence of phase-locking of ongoing oscillatory activity by averaging the phase angle information. We compute the vector mean (by converting the angles to vectors in Argand space), which yelds  complex numbers. We can generate two kinds of images from these numbers. The first is an image of the angles, which shows the mean phase of the oscillation (relative to the trial onset) at each time point. The second is an image of the absolute values (also called ``Phase-Locking Value'', PLV) which lie between 0 for no phase-locking across trials and 1 for perfect phase-locking.
 
-Press the \textsc{Averaging} button and select the \texttt{tf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. This time you will be prompted for either ``angle'' or ``abs(PLV)'' average, for which you should select ``abs(PLV)''. The \matlab\ window will echo:
+Press the \textsc{Averaging} button and select the \texttt{tph\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. This time you will be prompted for either ``angle'' or ``abs(PLV)'' average, for which you should select ``abs(PLV)''. The \matlab\ window will echo:
 
 \begin{verbatim}
-  mtf2_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat: Number of replications per contrast:
+  mtph_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat: Number of replications per contrast:
   average faces: 168 trials, average scrambled: 168 trials
 \end{verbatim}
 
-and a new file will be created in the MEG directory called \texttt{mtf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}.
+and a new file will be created in the MEG directory called \texttt{mtph\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}.
 
-If you now display the file \texttt{mtf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file, you will see PLV as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. Again, if you use the ``trial'' slider to switch between trial(types) 1 and 2, you will see greater phase-locking around for faces than scrambled faces at lower frequencies, as in Figure~\ref{multimodal:fig:14}. Together with the above power analysis, these data suggest that the M170 includes an increase both in power and in phase-locking of ongoing oscillatory activity in the alpha range (Henson et al, 2005b).
+If you now display the file \texttt{mtph\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file, you will see PLV as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. Again, if you use the ``trial'' slider to switch between trial(types) 1 and 2, you will see greater phase-locking around for faces than scrambled faces at lower frequencies, as in Figure~\ref{multimodal:fig:14}. Together with the above power analysis, these data suggest that the M170 includes an increase both in power and in phase-locking of ongoing oscillatory activity in the alpha range (Henson et al, 2005b).
 
 \begin{figure}
 \begin{center}
@@ -165,9 +165,9 @@ If you now display the file \texttt{mtf2\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-exa
 
 Analogous to Section~\ref{multimodal:eeg:3DSPM}, we can also use Random Field Theory to correct for multiple statistical comparisons across the 2-dimensional time-frequency space.
 
-Select \textsc{Convert to images} in the ``Other'' pulldown menu, and select the \texttt{tf1\_cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. Usually you would be asked whether you want to average over channels or frequencies. In this case there is only one channel in this dataset, so the ``channels'' option will be selected automatically.
+Select \textsc{Convert to images} in the ``Other'' pulldown menu, and select the \texttt{tf\_cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat} file. Usually you would be asked whether you want to average over channels or frequencies. In this case there is only one channel in this dataset, so the ``channels'' option will be selected automatically.
 
-This will create 2D time-frequency images for each trial of the two types with dimensions $36\times 161\times 1$, as for the example shown in Figure~\ref{multimodal:fig:15}. These images can be found in the subdirectories \texttt{1ROI\_TF\_\-trialtype\_\-faces} and \texttt{1ROI\_TF\_\-trialtype\_\-scrambled} of the new directory created \texttt{tf1\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D}, and examined by pressing ``Display: images'' on the main SPM window.
+This will create 2D time-frequency images for each trial of the two types with dimensions $36\times 161\times 1$, as for the example shown in Figure~\ref{multimodal:fig:15}. These images can be found in the subdirectories \texttt{1ROI\_TF\_\-trialtype\_\-faces} and \texttt{1ROI\_TF\_\-trialtype\_\-scrambled} of the new directory created \texttt{tf\_\-cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_3D}, and examined by pressing ``Display: images'' on the main SPM window.
 
 \begin{figure}
 \begin{center}

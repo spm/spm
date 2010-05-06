@@ -1,6 +1,6 @@
 function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
-% Plugin for spm_eeg_tf implementing spectral estimation using Hilbert transform
-% FORMAT res = spm_eeg_specest_hilbert(S, data, time)
+% Plugin for spm_eeg_tf implementing spectral estimation using Fieldtrip's freqanalysis_mtmconvol
+% FORMAT res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 %
 % S                     - input structure
 % fields of S:
@@ -26,7 +26,7 @@ function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_ft_mtmconvol.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_eeg_specest_ft_mtmconvol.m 3866 2010-05-06 13:29:58Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
