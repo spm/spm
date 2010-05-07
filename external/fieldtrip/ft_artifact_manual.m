@@ -57,7 +57,7 @@ function [cfg, artifact] = ft_artifact_manual(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_manual.m 1035 2010-05-04 14:48:41Z timeng $
+% $Id: ft_artifact_manual.m 1038 2010-05-05 15:48:52Z timeng $
 
 fieldtripdefs
 
@@ -66,7 +66,7 @@ cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
 cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
-% set default parameters if necessary.
+% set default rejection parameters if necessary.
 if ~isfield(cfg, 'artfctdef'),                          cfg.artfctdef                            = [];       end
 if ~isfield(cfg.artfctdef,'manual'),                    cfg.artfctdef.manual                     = [];       end
 if ~isfield(cfg.artfctdef.manual,'zscale'),             cfg.artfctdef.manual.zscale              = 100;      end
@@ -77,6 +77,7 @@ if ~isfield(cfg.artfctdef.manual,'posttrialtime'),      cfg.artfctdef.manual.pos
 if ~isfield(cfg.artfctdef.manual,'timeaxrelative'),     cfg.artfctdef.manual.timeaxrelative      = 'yes';    end
 if ~isfield(cfg.artfctdef.manual,'maxnumberofchannels'),cfg.artfctdef.manual.maxnumberofchannels = 20;       end
 if ~isfield(cfg, 'headerformat'),                       cfg.headerformat                         = [];       end
+if ~isfield(cfg, 'dataformat'),                         cfg.dataformat                           = [];       end
 
 % for backward compatibility
 if isfield(cfg.artfctdef.manual,'sgn')
@@ -117,7 +118,7 @@ if ~isfield(cfg, 'continuous')
     end
 end
 
-show=ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', hdr.nTrials*hdr.nSamples, 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
+show=ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', hdr.nTrials*hdr.nSamples, 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
 show=show';
 
 N=length(show);
@@ -292,7 +293,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_manual.m 1035 2010-05-04 14:48:41Z timeng $';
+cfg.version.id = '$Id: ft_artifact_manual.m 1038 2010-05-05 15:48:52Z timeng $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start that implement the gui callbacks

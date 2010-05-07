@@ -76,7 +76,7 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedetection.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_spikedetection.m 1043 2010-05-06 10:27:19Z timeng $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -87,6 +87,8 @@ if ~isfield(cfg, 'output'),             cfg.output = [];              end
 if ~isfield(cfg, 'channel'),            cfg.channel = 'all';          end
 if ~isfield(cfg, 'channelprefix'),      cfg.channelprefix = [];       end
 if ~isfield(cfg, 'latency'),            cfg.latency = [0 inf];        end
+if ~isfield(cfg, 'dataformat'),         cfg.dataformat = [];          end
+if ~isfield(cfg, 'headerformat'),       cfg.headerformat = [];        end
 % set the specific defaults
 if ~isfield(cfg, 'method'),             cfg.method = 'zthresh';       end
 if ~isfield(cfg, 'adjustselection'),    cfg.adjustselection = 'yes';  end
@@ -122,7 +124,7 @@ if ~status
 end
 
 % read the header of the completete dataset
-hdr = ft_read_header(cfg.dataset);
+hdr = ft_read_header(cfg.dataset, 'headerformat', cfg.headerformat);
 cfg.channel = ft_channelselection(cfg.channel, hdr.label);
 chansel = match_str(hdr.label, cfg.channel);
 
@@ -204,7 +206,7 @@ for i=chansel(:)'
       org = zeros(1,sum(numsample));
       for j=1:numsegment
         fprintf('reading channel %s, latency from %f to %f\n', hdr.label{i}, cfg.latency(j,1), cfg.latency(j,2));
-        buf = ft_read_data(cfg.dataset, 'header', hdr, 'begsample', begsample(j), 'endsample', endsample(j), 'chanindx', i);
+        buf = ft_read_data(cfg.dataset, 'header', hdr, 'begsample', begsample(j), 'endsample', endsample(j), 'chanindx', i, 'dataformat', cfg.dataformat);
         if j==1
           begsegment = 1;
           endsegment = numsample(j);
@@ -474,4 +476,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikedetection.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_spikedetection.m 1043 2010-05-06 10:27:19Z timeng $';

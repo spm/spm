@@ -40,7 +40,7 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 1035 2010-05-04 14:48:41Z timeng $
+% $Id: ft_artifact_clip.m 1038 2010-05-05 15:48:52Z timeng $
 
 fieldtripdefs
 
@@ -57,6 +57,7 @@ if ~isfield(cfg.artfctdef.clip,'thresh'),   cfg.artfctdef.clip.thresh   = 0.010;
 if ~isfield(cfg.artfctdef.clip,'pretim'),   cfg.artfctdef.clip.pretim   = 0.000;           end;
 if ~isfield(cfg.artfctdef.clip,'psttim'),   cfg.artfctdef.clip.psttim   = 0.000;           end;
 if ~isfield(cfg, 'headerformat'),           cfg.headerformat            = [];              end;
+if ~isfield(cfg, 'dataformat'),             cfg.dataformat              = [];              end;
 
 % for backward compatibility
 if isfield(cfg.artfctdef.clip,'sgn')
@@ -103,7 +104,7 @@ for trlop=1:ntrl
   if isfetch
     dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
   else
-    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
+    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
   end
   % apply filtering etc to the data
   datflt = preproc(dat, label, hdr.Fs, artfctdef, cfg.trl(trlop,3));
@@ -160,4 +161,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_clip.m 1035 2010-05-04 14:48:41Z timeng $';
+cfg.version.id = '$Id: ft_artifact_clip.m 1038 2010-05-05 15:48:52Z timeng $';

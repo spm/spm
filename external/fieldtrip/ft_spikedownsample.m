@@ -81,7 +81,7 @@ function [cfg] = ft_spikedownsample(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedownsample.m 986 2010-04-28 09:17:57Z marvin $
+% $Id: ft_spikedownsample.m 1049 2010-05-07 09:47:57Z jansch $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -92,6 +92,8 @@ if ~isfield(cfg, 'output'),             cfg.output = [];                  end
 if ~isfield(cfg, 'channel'),            cfg.channel = 'all';              end
 if ~isfield(cfg, 'channelprefix'),      cfg.channelprefix = [];           end
 if ~isfield(cfg, 'latency'),            cfg.latency = [0 inf];            end
+if ~isfield(cfg, 'headerformat'),       cfg.headerformat = [];            end 
+if ~isfield(cfg, 'dataformat'),         cfg.dataformat = [];              end
 % set the specific defaults
 if ~isfield(cfg, 'fsample'),            cfg.fsample = 1000;               end
 %if ~isfield(cfg, 'method'),            cfg.method = [];                  end
@@ -118,7 +120,7 @@ if ~status
 end
 
 % read the header of the completete dataset
-hdr = ft_read_header(cfg.dataset);
+hdr = ft_read_header(cfg.dataset, 'headerformat', cfg.headerformat);
 cfg.channel = ft_channelselection(cfg.channel, hdr.label);
 chansel = match_str(hdr.label, cfg.channel);
 
@@ -283,5 +285,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikedownsample.m 986 2010-04-28 09:17:57Z marvin $';
+cfg.version.id   = '$Id: ft_spikedownsample.m 1049 2010-05-07 09:47:57Z jansch $';
 

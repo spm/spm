@@ -41,7 +41,7 @@ function [cfg] = ft_spikesplitting(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesplitting.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_spikesplitting.m 1043 2010-05-06 10:27:19Z timeng $
 
 fieldtripdefs
 
@@ -53,6 +53,7 @@ if ~isfield(cfg, 'feedback'),         cfg.feedback = 'textbar';         end
 if ~isfield(cfg, 'output'),           cfg.output = [];                  end % see below
 if ~isfield(cfg, 'format'),           cfg.format = 'int32';             end
 if ~isfield(cfg, 'downscale'),        cfg.downscale = 0;                end
+if ~isfield(cfg, 'headerformat'),     cfg.headerformat = [];            end 
 
 if isempty(cfg.output)
   % set smart defaults for the output
@@ -67,7 +68,7 @@ end
 fprintf('writing to output directory ''%s''\n', cfg.output);
 
 % read the header of the completete dataset
-hdr = ft_read_header(cfg.dataset);
+hdr = ft_read_header(cfg.dataset, 'headerformat', cfg.headerformat);
 
 if isfield(hdr, 'orig') && isfield(hdr.orig, 'Header')
   [p, f, x]  = fileparts(cfg.output);
@@ -262,5 +263,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikesplitting.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_spikesplitting.m 1043 2010-05-06 10:27:19Z timeng $';
 

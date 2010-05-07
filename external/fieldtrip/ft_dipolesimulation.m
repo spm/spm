@@ -74,7 +74,7 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_dipolesimulation.m 1046 2010-05-06 14:13:29Z vlalit $
 
 fieldtripdefs
 
@@ -225,7 +225,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_dipolesimulation.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_dipolesimulation.m 1046 2010-05-06 14:13:29Z vlalit $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

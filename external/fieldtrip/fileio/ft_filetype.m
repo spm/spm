@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_filetype.m 1042 2010-05-06 10:09:15Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -199,7 +199,7 @@ elseif filetype_check_extension(filename, '.meg4') && filetype_check_header(file
   type = 'ctf_meg4';
   manufacturer = 'CTF';
   content = 'MEG/EEG';
-elseif filetype_check_extension(filename, '.mrk') && filetype_check_header(filename, 'PATH OF DATASET:')
+elseif strcmp(f, 'MarkerFile') && filetype_check_extension(filename, '.mrk') && filetype_check_header(filename, 'PATH OF DATASET:')
   type = 'ctf_mrk';
   manufacturer = 'CTF';
   content = 'marker file';
