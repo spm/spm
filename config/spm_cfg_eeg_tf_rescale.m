@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 3874 2010-05-07 15:54:13Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -107,7 +107,7 @@ S.tf.method    = fieldnames(job.method);
 S.tf.method    = S.tf.method{1};
 switch lower(S.tf.method)
     case {'logr','diff', 'rel'}
-        S.tf.Sbaseline = job.method.(S.tf.method).Sbaseline;
+        S.tf.Sbaseline = 1e-3*job.method.(S.tf.method).Sbaseline;
     case {'log', 'sqrt'}
 end
 
