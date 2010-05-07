@@ -13,7 +13,7 @@ function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3873 2010-05-07 15:04:44Z gareth $
 
 x=U.u; %% input , unused
 
@@ -47,6 +47,11 @@ for i=1:Ndips,
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
        [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
+       if strcmp(vol.type,'nolte'),
+           %% this is a temp fix to make up for scaling changes in nolte
+           %% model
+            tmp=tmp.*1e-10;
+            end;
     end
     gmn=tmp;       
     y=y+gmn*mom';
