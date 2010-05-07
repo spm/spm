@@ -15,14 +15,14 @@ function spm_DEM_qH(qH,pH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qH.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM_qH.m 3878 2010-05-07 19:53:54Z karl $
  
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 try, qH = qH.qH; end
 try, pH = pH.pH; end
-clf
- 
+
+
 % [Re]ML estimates - h
 %==========================================================================
 ci = spm_invNcdf(1 - 0.05);
@@ -54,7 +54,7 @@ end
 try
     p     = spm_vec(pH.h);
     for i = 1:length(h)
-        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',2,'Color','k');
+        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','k');
     end
 end
 
@@ -81,7 +81,7 @@ end
 try
     p     = spm_vec(pH.g);
     for i = 1:length(h)
-        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',2,'Color','k');
+        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','k');
     end
 end
 

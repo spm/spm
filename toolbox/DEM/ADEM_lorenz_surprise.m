@@ -1,12 +1,13 @@
-% This demo computes the loss-function (negative reward) for a Lorenz
-% system; to show reward can be computed easily from value (expected 
-% reward)
+% This demo computes the cost-function (negative reward) for a Lorenz
+% system; to show cost can be computed easily from value (negative 
+% surprise or sojourn time). However, value is not a Lyapunov function
+% because the flow is not curl-free (i.e., is not irrotational).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_surprise.m 3655 2009-12-23 20:15:34Z karl $
-
+% $Id: ADEM_lorenz_surprise.m 3878 2010-05-07 19:53:54Z karl $
+ 
 clear
 DEMO     = 0;                          % switch for demo
 LOR      = 1;                          % Lorenz vs a linear system
@@ -30,7 +31,7 @@ else
     x0  = [-16; 16; 0];
     W   = diag([32; 32; exp(8)]);
 end
-
+ 
 % P(1): Prandtl number
 % P(2): 8/3
 % P(3): Rayleigh number
@@ -53,14 +54,15 @@ G       = spm_DEM_M_set(G);
  
 % space
 %--------------------------------------------------------------------------
+N        = 66;
 if LOR
-    x{1}    = linspace(-32,32,64);
-    x{2}    = linspace(-32,32,64);
-    x{3}    = linspace(  4,64,64);
+    x{1} = linspace(-32,32,N);
+    x{2} = linspace(-32,32,N);
+    x{3} = linspace(  4,64,N);
 else
-    x{1}    = linspace(-8,8,64);
-    x{2}    = linspace(-8,8,64);
-    x{3}    = linspace(-1,1,3);
+    x{1} = linspace(-8,8,N);
+    x{2} = linspace(-8,8,N);
+    x{3} = linspace(-1,1,3);
 end
  
 % equilibrium density (q0), loss (L) and value (V) functions
@@ -70,12 +72,12 @@ if DEMO
     % Fokker-Planck operator and equilibrium density
     %----------------------------------------------------------------------
     [M0,q0] = spm_fp(G,x);
-
+ 
     % loss-function and negative surprise (value)
     %----------------------------------------------------------------------
-    L    = -spm_unvec(spm_vec(log(q0))'*M0,q0);
     V    = log(q0);
-
+    L    = spm_unvec(spm_vec(V)'*M0,q0);
+ 
     % trim
     %----------------------------------------------------------------------
     q0   = q0(2:end - 1,2:end - 1,2:end - 1);
@@ -84,18 +86,17 @@ if DEMO
     x{1} = x{1}(2:end - 1);
     x{2} = x{2}(2:end - 1);
     x{3} = x{3}(2:end - 1);
-
+ 
     if LOR
         save DEM_lorenz_suprise q0 L V x
     end
 else
     load DEM_lorenz_suprise
 end
-
-
+ 
+ 
 % axes and trajectory
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); clf
 if LOR
     z = 24;
 else
@@ -104,7 +105,8 @@ end
 i    = 3;
 j    = 1:3;
 j(i) = [];
-U.u  = sparse(1024,G(1).m);
+T    = 1024;
+U.u  = sparse(T,G(1).m);
 t    = spm_int_J(G(1).pE,G,U);
  
 % surprise
@@ -115,7 +117,7 @@ imagesc(x{j(2)},x{j(1)},V(:,:,z))
 hold on, plot(t(:,j(2)),t(:,j(1)),'r'), hold off
 axis(a)
 axis square xy
-title('surprise','Fontsize',16)
+title('value','Fontsize',16)
  
 % cost function
 %--------------------------------------------------------------------------
@@ -124,7 +126,7 @@ imagesc(x{j(2)},x{j(1)},L(:,:,z))
 hold on, plot(t(:,j(2)),t(:,j(1)),'r'), hold off
 axis(a)
 axis square xy
-title('loss','Fontsize',16)
+title('cost','Fontsize',16)
  
 % equilibrium density
 %--------------------------------------------------------------------------
@@ -142,3 +144,22 @@ plot(t(:,j(2)),t(:,j(1)),'k')
 axis(a)
 axis square xy
 title('trajectory','Fontsize',16)
+ 
+% evaluate V(t)
+%--------------------------------------------------------------------------
+for i = 1:T
+    [q ii] = min(abs(t(i,1) - x{1}));
+    [q ij] = min(abs(t(i,2) - x{2}));
+    [q ik] = min(abs(t(i,3) - x{3}));
+    v(i)   = V(ii,ij,ik);
+end
+ 
+% and plot
+%--------------------------------------------------------------------------
+maxV = max(V(:));
+subplot(3,1,3)
+plot(v,'k'), hold on
+plot([1 T],[maxV maxV],'r:'), hold off
+title('value','Fontsize',16)
+set(gca,'XLim',[1 T]);
+box off

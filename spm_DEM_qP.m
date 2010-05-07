@@ -2,15 +2,15 @@ function spm_DEM_qP(qP,pP)
 % reports on conditional estimates of parameters
 % FORMAT spm_DEM_qP(qP,pP)
 %
-% qP.P    - conditional expectations
+% qP.P   - conditional expectations
 % qP.V   - conditional variance
 %
-% pP      - optional priors
+% pP     - optional priors
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 3740 2010-02-26 13:13:14Z karl $
+% $Id: spm_DEM_qP.m 3878 2010-05-07 19:53:54Z karl $
 
 
 % unpack conditional covariances
@@ -20,9 +20,12 @@ ci    = spm_invNcdf(1 - 0.05);
 
 % loop over levels
 %--------------------------------------------------------------------------
-clf
 Label = {};
-for i = 1:(g - 1)
+for i = 1:g
+    
+    % check for last level
+    %----------------------------------------------------------------------
+    if isempty(qP.P{i}), break, end
 
     % get lablels
     %----------------------------------------------------------------------
@@ -53,9 +56,12 @@ for i = 1:(g - 1)
     np     = length(qi);
     if np
         
+        % use current axes if P = P{1}
+        %------------------------------------------------------------------
+        if g > 1, subplot(g,1,i), end
+                
         % conditional means
         %------------------------------------------------------------------
-        subplot(g,1,i)
         bar(qi,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
         title(sprintf('parameters - level %i',i),'FontSize',16);
         axis square
@@ -72,7 +78,7 @@ for i = 1:(g - 1)
         %------------------------------------------------------------------
         try
         for k = 1:np
-            line([-1 1]/2 + k,[0 0] + pi(k),'LineWidth',2,'Color','k');
+            line([-1 1]/2 + k,[0 0] + pi(k),'LineWidth',4,'Color','k');
         end
         end
 
@@ -87,10 +93,14 @@ end
 
 % conditional (or prior) covariance 
 %--------------------------------------------------------------------------
-if length(qP.C) == 1;
+try
+    if length(qP.C) == 1;
+        return
+    else
+        i  = find(diag(qP.C));
+    end
+catch
     return
-else
-    i  = find(diag(qP.C));
 end
 
 subplot(g,2,g + g - 1)

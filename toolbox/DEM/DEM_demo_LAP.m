@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: DEM_demo_LAP.m 3878 2010-05-07 19:53:54Z karl $
  
 % get basic convolution model
 %==========================================================================
@@ -42,8 +42,8 @@ M(1).Q  = {speye(M(1).l,M(1).l)};
 M(1).R  = {speye(M(1).n,M(1).n)};
 M(1).hE = 4;
 M(1).gE = 4;
-M(1).hC = 1;
-M(1).gC = 1;
+M(1).hC = 1/2;
+M(1).gC = 1/2;
 M(1).V  = 0;
 M(1).W  = 0;
  

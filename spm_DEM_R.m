@@ -1,10 +1,9 @@
-function [R,V,D] = spm_DEM_R(n,s,dt,form)
+function [R,V,D] = spm_DEM_R(n,s,form)
 % returns the precision of the temporal derivatives of a Gaussian process
-% FORMAT [R,V,D] = spm_DEM_R(n,s,dt,form)
+% FORMAT [R,V,D] = spm_DEM_R(n,s,form)
 %__________________________________________________________________________
 % n    - truncation order
 % s    - temporal smoothness - s.d. of kernel {bins}
-% dt   - bin interval (seconds) [default 1]
 % form - 'Gaussian', '1/f' [default: 'Gaussian']
 %
 %                         e[:] <- E*e(0)
@@ -20,7 +19,7 @@ function [R,V,D] = spm_DEM_R(n,s,dt,form)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_R.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_R.m 3878 2010-05-07 19:53:54Z karl $
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------
@@ -53,7 +52,7 @@ switch form
 end
 
 
-% create coavraince matrix in generlised coordinates
+% create covariance matrix in generalised coordinates
 %==========================================================================
 V     = [];
 for i = 1:n;
@@ -63,7 +62,7 @@ end
 
 % and precision - R
 %--------------------------------------------------------------------------
-sw = warning('off','MATLAB:nearlySingularMatrix');
+sw    = warning('off','MATLAB:nearlySingularMatrix');
 R     = inv(V);
 warning(sw);
 
@@ -73,9 +72,9 @@ if nargout, return, end
 
 % Inverse embedding operator (D): c.f., a Taylor expansion Y(t) <- D*y[:]
 %--------------------------------------------------------------------------
-try, dt; catch, dt = 1; end
-
+dt    = 1;
 x     = fix((n + 1)/2);
+t     = ([1:n] - x)*dt;
 for i = 1:n
     for j = 1:n
         D(i,j) = ((i - x)*dt)^(j - 1)/prod(1:(j - 1));
@@ -84,26 +83,12 @@ end
 
 % graphics
 %==========================================================================
-
-% embedding operator: y[:] <- E*Y(t): Graphics
-%--------------------------------------------------------------------------
-t     = ([1:n] - x)*dt;
 subplot(2,2,1)
-imagesc(V)
-axis square
-title({'covariance';'derivatives'})
-
-subplot(2,2,2)
-imagesc(t,t,D*V*D')
-axis square
-title({'covariance';'time (secs)'})
-
-subplot(2,2,3)
 imagesc(R)
 axis square
 title({'precision';'derivatives'})
 
-subplot(2,2,4)
+subplot(2,2,2)
 imagesc(t,t,spm_inv(D*V*D'))
 axis square
 title({'precision';'time (secs)'})

@@ -53,8 +53,8 @@ function [DEM] = spm_DFP(DEM)
 % F         = log evidence = marginal likelihood = negative free energy
 %__________________________________________________________________________
 %
-% spm_DEM implements a variational Bayes (VB) scheme under the Laplace
-% approximation to the conditional densities of states (u), parameters (p)
+% spm_DFP implements a variational Bayes (VB) scheme under the Laplace
+% approximation to the conditional densities of the model's, parameters (p)
 % and hyperparameters (h) of any analytic nonlinear hierarchical dynamic
 % model, with additive Gaussian innovations.  It comprises three
 % variational steps (D,E and M) that update the conditional moments of u, p
@@ -67,20 +67,17 @@ function [DEM] = spm_DFP(DEM)
 % where qu.u corresponds to the conditional expectation of hidden states x 
 % and causal states v and so on.  L is the ln p(y,u,p,h|M) under the model 
 % M. The conditional covariances obtain analytically from the curvature of 
-%L with respect to u, p and h.
+% L with respect to u, p and h.
 %
-% The D-step is embedded in the E-step because q(u) changes with each
-% sequential observation.  The dynamical model is transformed into a static
-% model using temporal derivatives at each time point.  Continuity of the
-% conditional trajectories q(u,t) is assured by a continuous ascent of F(t)
-% in generlised co-ordinates.  This means DEM can deconvolve online and can
-% represents an alternative to Kalman filtering or alternative Bayesian 
-% update procedures.
+% The D-step is implemented with variational filtering, which does not
+% assume a fixed form for the conditional density; it uses the sample
+% density of an ensemble of particles that drift up free-energy gradients
+% and 'explore' the local curvature though (Wiener) perturbations.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DFP.m 3878 2010-05-07 19:53:54Z karl $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------

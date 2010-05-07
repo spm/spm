@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3740 2010-02-26 13:13:14Z karl $
+% $Id: spm_DEM.m 3878 2010-05-07 19:53:54Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -672,7 +672,7 @@ for iN = 1:nN
     
     % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if Li > Fi
+    if Li > Fi || iN < 3
 
  
         Fi    = Li;

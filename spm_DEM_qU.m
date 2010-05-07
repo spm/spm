@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3733 2010-02-18 17:43:18Z karl $
+% $Id: spm_DEM_qU.m 3878 2010-05-07 19:53:54Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ for i = 1:g
  
         % title and grid
         %------------------------------------------------------------------
-        title('causal states','FontSize',16);
+        title('hidden causes','FontSize',16);
         axis square
         set(gca,'XLim',[t(1) t(end)])
         box off
@@ -128,7 +128,7 @@ for i = 1:g
         elseif ~size(V{i},1)
             title('no causes','FontSize',16);
         else
-            title('causal states','FontSize',16);
+            title('hidden causes','FontSize',16);
             try
                 hold on
                 plot(t,pV{i},':k','linewidth',1),box off

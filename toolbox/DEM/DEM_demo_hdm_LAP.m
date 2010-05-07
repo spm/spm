@@ -5,22 +5,26 @@
 % used to illustrate hemodynamic deconvolution. We have deliberately made
 % the problem difficult here to highlight the ability of Generalised 
 % filtering to accumulate evidence to optimise in parameters and hyper-
-% parameters, which allows it to outperform DEM.
+% parameters, which allows it to outperform DEM (although neither scheme 
+% finds visual motion effects with 90% confidence)
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: DEM_demo_hdm_LAP.m 3878 2010-05-07 19:53:54Z karl $
 
 % set-up
 %--------------------------------------------------------------------------
 clear
-DEMO = 0;
+DEMO = 1;
 
 if DEMO
     
     spm_figure('GetWin','DEM');
     load HDM
+    
+    % level 1
+    %----------------------------------------------------------------------
 
     % generative [likelihood] model 'HDM'
     %======================================================================
@@ -30,26 +34,26 @@ if DEMO
     % level 1
     %----------------------------------------------------------------------
     [pE pC] = spm_hdm_priors(3,1);
-    pC(6,6) = 0;
+    P       = pE;
+    P(7:9)  = 1/8;
     M(1).x  = [0 0 0 0]';
     M(1).g  = 'spm_gx_hdm';
     M(1).f  = 'spm_fx_hdm';
     M(1).pE = pE;
     M(1).pC = pC;
-    M(1).hE = 2;
-    M(1).hC = 1;
-    M(1).gE = 2;
-    M(1).gC = 1;
+    M(1).gE = 7;
+    M(1).gC = 1/2;
+    M(1).V  = exp(4);
 
     % level 2
     %----------------------------------------------------------------------
     M(2).v  = [0 0 0]';
-    M(2).V  = 1;
+    M(2).V  = exp(4);
 
     M(1).E.linear = 1;
     M(1).E.n  = 4;
     M(1).E.nD = 1;
-    M(1).E.nN = 16;
+    M(1).E.nN = 8;
     M(1).E.s  = 1/4;
 
     % get causes (i.e. experimental inputs)
@@ -61,12 +65,14 @@ if DEMO
     %----------------------------------------------------------------------
     DEM.M = M;
     DEM.U = U;
-    DEM.Y = 1 + Y.y(T,:)'/4;
+    DEM.Y = 1/2 + Y.y(T,:)'/8;
 
     % DEM estimation
     %======================================================================
     LAP   = spm_LAP(DEM);
     DEM   = spm_DEM(DEM);
+    
+    save LAP_HDM LAP DEM
 
 else % load pre-computed LAP and DEM structures
 
@@ -77,6 +83,29 @@ end
 
 % report states and parameter estimates
 %==========================================================================
+
+% LAP
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2: Generalised filtering (Laplace) ');
+
+spm_DEM_qU(LAP.qU)
+
+% Coupling parameters of interest
+%--------------------------------------------------------------------------
+subplot(2,2,4)
+
+qP    = LAP.qP.P{1}(7:end);
+bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+cq    = 1.64*sqrt(diag(LAP.qP.C(7:end,7:end)));
+hold on
+for i = 1:length(qP)
+    plot([i i], qP(i) + [-1 1]*cq(i),'LineWidth',8,'color','r')
+end
+hold off
+axis square
+set(gca,'XTickLabel',{'vision','motion','attention'})
+title('parameters','Fontsize',16)
+a   = axis;
 
 % DEM
 %--------------------------------------------------------------------------
@@ -100,29 +129,7 @@ hold off
 axis square
 set(gca,'XTickLabel',{'vision','motion','attention'})
 title('parameters','Fontsize',16)
-
-
-% LAP
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2: Generalised filtering (Laplace) ');
-
-spm_DEM_qU(LAP.qU)
-
-% Coupling parameters of interest
-%--------------------------------------------------------------------------
-subplot(2,2,4)
-
-qP    = LAP.qP.P{1}(7:end);
-bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
-cq    = 1.64*sqrt(diag(LAP.qP.C(7:end,7:end)));
-hold on
-for i = 1:length(qP)
-    plot([i i], qP(i) + [-1 1]*cq(i),'LineWidth',8,'color','r')
-end
-hold off
-axis square
-set(gca,'XTickLabel',{'vision','motion','attention'})
-title('parameters','Fontsize',16)
+axis(a)
 
 
 % Log-evidence
@@ -132,9 +139,9 @@ spm_figure('GetWin','Figure 3: log-evidence');
 subplot(2,1,1)
 nL   = length(LAP.F);
 nD   = length(DEM.F);
-plot(1:nL,LAP.S,1:nD,DEM.S)
+plot(1:nL,LAP.F,1:nD,DEM.F)
 axis square
-legend('LAP (S)','DEM(S)')
+legend('LAP (F)','DEM(F)')
 title('log-evidence','FontSize',16)
 
 
