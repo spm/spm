@@ -2,8 +2,8 @@
 
 \section{Introduction}
 
-These examples illustrate multisubject ``random effects'' analyses or ``second-level'' models of fMRI data \cite{will_hbf2_rfx}\footnote{This chapter has been largely cannibalised from an earlier document, available from \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/spm2_face_rfx.doc}, which describes how to analyse this data using SPM2. That document additionally describes the analysis of differential effects, which we have omitted here.}. 
-The examples consist of three basic types of 2nd-level model
+These examples illustrate multisubject ``random effects'' analyses or ``second-level'' models of fMRI data \cite{will_hbf2_rfx}\footnote{This chapter has been largely cannibalised from an earlier document, available from \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/spm2_face_rfx.doc}, which describes how to analyse this data using SPM2. That document additionally describes the analysis of differential effects, which we have omitted here.}.
+The examples consist of three basic types of 2nd-level model:
 \begin{enumerate}
 \item \textbf{M2c:} Using contrast images for the canonical HRF only. This uses a single observation (contrast image) per subject only and data are analysed using a ``One-sample t-test''.
 \item \textbf{M2i:} Using contrast images from an ``informed'' basis set, consisting of the canonical HRF and its two partial derivatives with respect to time (onset latency) and dispersion. This uses 3 observations (contrast images) per subject and data are analysed using a ``One-way ANOVA'' with 3 levels.
@@ -14,7 +14,7 @@ The examples consist of three basic types of 2nd-level model
 
 The data come from the ``implicit'' condition of the Henson et al. study \cite{rnah_face_rep}. Although the 1st-level design matrices (and therefore resulting contrast images) used do not correspond exactly to those used in that study.
 
-It is also the same study from which one subject is used to illustrate a single-subject fixed effects analysis (see earlier Chapter in this manual).
+It is also the same study from which one subject is used to illustrate a single-subject fixed effects analysis (see chapter \ref{Chap:data:faces} in this manual).
 
 Unlike the single-subject fixed effects example dataset, only two event-types were modelled: famous and nonfamous faces (initial and repeated presentations were collapsed together, as were correct and incorrect responses). Briefly, greyscale photographs of 52 famous and 52 nonfamous face were presented for 0.5s for fame judgment task (one of two right finger key presses). The minimal SOA (SOAmin) was 4.5s, with all faces randomly intermixed together with a further 52 null events (ie 2/3 probability of a face every SOAmin).
 
@@ -26,16 +26,22 @@ Original images were continuous EPI (TE=40ms,TR=2s) 24 descending slices (64$\ti
 
 In both first-level models (\textbf{M1i} and \textbf{M1f}), the contrast images (\texttt{con*.img}'s) come from session-specific contrasts within a large (multisession) 1st-level Fixed Effects design matrix, with one session per subject. (Note that the resulting \texttt{con*.img}'s could equally well have been produced from 12 separate 1st-level models, one per subject.)
 
-For each type of model, the main effect of faces versus baseline (eg, a [0.5 ... 0.5] contrast for each basis function, or \texttt{kron(eye(Nf),[0.5 0.5])} more generally) was examined.
+For each type of model, the main effect of faces versus baseline (eg, a [0.5 ... 0.5] contrast for each basis function, or \texttt{kron([0.5 0.5],eye(Nf))} more generally) was examined.
 
 The 12 (subjects) \texttt{con*.img}s from the 1st-level model using the canonical HRF (\textbf{M1c}) are in the zipped file
-\newline \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_can.zip}.
+\begin{itemize}
+\item \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_can.zip}
+\end{itemize}
 
 The 12 (subjects) x 3 (basis functions) \texttt{con*.img}s from the 1st-level model using the informed basis (\textbf{M1i}) set are in the zipped file
-\newline \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_informed.zip}.
+\begin{itemize}
+\item \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_informed.zip}
+\end{itemize}
 
-The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) \texttt{con*.img}s from the 1st-level model using the FIR basis (\textbf{M1f}) set are in the zipped file 
-\newline \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_fir.zip}.
+The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) \texttt{con*.img}s from the 1st-level model using the FIR basis (\textbf{M1f}) set are in the zipped file
+\begin{itemize}
+\item \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rfx/cons_fir.zip}
+\end{itemize}
 
 Each contrast-type is examined in a separate SPM analysis. This chapter just describes analysis of the main effect of faces versus baseline.
 To analyse the data, first create a new directory \texttt{DIR} eg. \texttt{c:$\backslash$data$\backslash$face\_group}, in which to place the results of your analysis. Then create 3 subdirectories (i) \texttt{Canonical}, (ii) \texttt{Informed}, and (iii) \texttt{FIR}. 
@@ -54,10 +60,10 @@ For the main effect versus baseline, these happen to correspond to the contrast 
 These images comprise the data for \texttt{M2c}, which is simply a ``One-sample t-test''. This can be implemented as follows.
 \begin{itemize}
 \item Start up \matlab\ and type \texttt{spm fmri} at the prompt
-\item Press the `Specify 2nd-level' button. This will open the batch editor.
+\item Press the ``Specify 2nd-level'' button. This will open the batch editor.
 \item In the ``Design'', ``One-sample t-test'' option, select ``Scans''.
 \item Choose ``Select Files'' and use the SPM file selector to choose contrast images 6 to 17.
-\item Highlight ``Directory'', ``Select files'' and select the  subdirectory ``canonical'', to place the design matrix in.
+\item Highlight ``Directory'', ``Select files'' and select the  subdirectory \texttt{canonical}, to place the design matrix in.
 \item Save the job file as eg. \texttt{DIR/canonical.mat}.
 \item Press the \texttt{Run} button (green arrow).
 \end{itemize}
@@ -65,7 +71,7 @@ These images comprise the data for \texttt{M2c}, which is simply a ``One-sample 
 SPM will then show you the design matrix shown in Figure~\ref{t1}. This is simply a single column of 1's which will appear as a white box on a white background. This design is encoded in the \texttt{SPM.mat} file that is written to the output directory.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{faces_group/t1}
+\includegraphics[width=140mm]{faces_group/t1}
 \caption{\em \textbf{Design matrix for canonical responses}. This corresponds to a one-sample t-test. \label{t1}}
 \end{center}
 \end{figure}
@@ -88,7 +94,7 @@ SPM will now estimate the parameters, that is, the size of the population effect
 SPM will now display the thresholded F-statistic image. This shows voxels that are significantly active (correcting for multiple comparisons across all voxels) in the population from which the subjects were drawn. They include bilateral posterior fusiform, SMA, and, at a more liberal threshold, left motor cortex). 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{faces_group/f1_res}
+\includegraphics[width=140mm]{faces_group/f1_res}
 \caption{\em Main population effect of faces vs baseline, as characterised using the Canonical HRF. \label{f1_res}}
 \end{center}
 \end{figure}
@@ -132,7 +138,7 @@ These images comprise the data for \texttt{M2c}, which is simply a ``One-way ANO
 SPM will then show you the design matrix shown in Figure~\ref{informed_design}. This design is encoded in the \texttt{SPM.mat} file that is written to the output directory.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{faces_group/informed_design}
+\includegraphics[width=140mm]{faces_group/informed_design}
 \caption{\em \textbf{Design matrix for informed basis set.} This corresponds to a one-way ANOVA with three levels (but no constant term, since we want to test whether the basis functions are different from zero, not whether they are different from each other). \label{informed_design}}
 \end{center}
 \end{figure}
