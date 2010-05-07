@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3850 2010-04-29 12:16:40Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3868 2010-05-07 08:42:11Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -610,7 +610,9 @@ end; % if
             spm_check_registration(sMRI)
             prop=0.4;
             colourmap=jetmap;
-            spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,maxt,mint)
+            spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,maxt,mint);
+            disp('Press any key to continue');
+            pause;
         end; % if preview
         outvol.fname= fullfile(D.path, dirname, ['spmNdiff_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr '.nii']);
         
