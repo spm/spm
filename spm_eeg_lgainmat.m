@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_lgainmat.m 3877 2010-05-07 19:49:35Z karl $
 
 
 % get gain or lead-feild matrix
@@ -42,7 +42,7 @@ try
     G = load(fullfile(D.path, fname)); % Relative path
     
     label = G.label;
-    G = G.G;
+    G     = G.G;
     if numel(label) ~= size(G, 1) ||...
             ~all(ismember(channels, label))
         error('Gain matrix has an incorrect number of channels');

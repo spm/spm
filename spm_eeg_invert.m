@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3820 2010-04-15 13:26:36Z karl $
+% $Id: spm_eeg_invert.m 3877 2010-05-07 19:49:35Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -280,7 +280,7 @@ for m = 1:Nmod
     %----------------------------------------------------------------------
     for i = 1:Nl
         L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        iL{i}  = spm_inv(L*L');
+        iL{i}  = spm_inv(L*L' + speye(Nc(i))*norm(L,'inf')*exp(-16));
     end
     
     % Optimise alignment matrices A such that A{m}*L{m} = <A{m}*L{m}>m
@@ -294,7 +294,7 @@ for m = 1:Nmod
         
         % eliminate low SNR spatial modes
         %------------------------------------------------------------------
-        U     = spm_svd((UL{m}*UL{m}'),exp(-32));
+        U     = spm_svd((UL{m}*UL{m}'),exp(-16));
         UL{m} = U'*UL{m};
         Nm(m) = size(UL{m},1);
         
@@ -328,13 +328,15 @@ for m = 1:Nmod
     spm_figure('GetWin','Lead fields');
     for i = 1:Nl
         
-        L  = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        subplot(Nl,3,(i - 1)*3 + 1)
+        L  = R{i,m}*spm_eeg_lgainmat(D{i},Is(1:8:end),D{i}.chanlabels(Ic{i,m}));
+        subplot(Nl,4,(i - 1)*4 + 1)
         imagesc(A{i,m}*A{i,m}'), axis square
-        subplot(Nl,3,(i - 1)*3 + 2)
+        subplot(Nl,4,(i - 1)*4 + 2)
+        imagesc(A{i,m}'*A{i,m}), axis square
+        subplot(Nl,4,(i - 1)*4 + 3)
         plot(sum(A{i,m}.^2,2)),  axis square
-        subplot(Nl,3,(i - 1)*3 + 3)
-        plot(L'*A{i,m}'),        axis square
+        subplot(Nl,4,(i - 1)*4 + 4)
+        plot(L'*A{i,m}'),        axis square tight
     end
     drawnow
 
