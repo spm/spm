@@ -1,4 +1,4 @@
-function [p, f, t] = spm_mmtspec (x,Fs,freqs,timeres)
+function [p, f, t] = spm_mmtspec (x,Fs, freqs,timeres, timestep, NW)
 % Moving multitaper based spectrogram
 % FORMAT [p, f, t] = spm_mmtspec (x,Fs,freqs,timeres)
 %
@@ -19,25 +19,37 @@ function [p, f, t] = spm_mmtspec (x,Fs,freqs,timeres)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Partha Mitra, Ken Harris and Will Penny
-% $Id: spm_mmtspec.m 3875 2010-05-07 17:17:46Z will $
+% $Id: spm_mmtspec.m 3876 2010-05-07 18:51:03Z vladimir $
 
 nChannels = size(x, 2);
 nSamples = size(x,1);
 
-if (nargin<4 | isempty(timeres)) 
+if (nargin<4 || isempty(timeres)) 
     C=16;
 else
     C=round(nSamples/(Fs*timeres));
 end
 
+if (nargin<5 || isempty(timestep))
+    percent_overlap=0.05;
+else
+    percent_overlap= 1-timestep/timeres;
+end
+
+if (nargin<6 || isempty(NW))
+   NW=3;
+end
+
+if length(unique(diff(freqs))) > 1
+    error('Varying frequency resolution is not supported.');
+end
+
 df=freqs(2)-freqs(1);
 nFFT=round(Fs/df);
 
-percent_overlap=0.05;
-WinLength=round(nSamples/(1+(1-percent_overlap)*C));
-nOverlap=ceil(percent_overlap*WinLength);  % 5% overlap
+WinLength=round(nSamples/C);
+nOverlap=ceil(percent_overlap*WinLength); 
 
-NW=3;
 nTapers = 2*NW -1; 
 
 % Now do some computations that are common to all spectrogram functions
@@ -96,35 +108,29 @@ for j=1:nFFTChunks
     
     if WinLength<nFFT,
         % Zero pad sample to attain desired freq resolution
-        Segment=[Segment;zeros(nFFT-WinLength,1)];
+        Segment=[Segment;zeros(nFFT-WinLength, nChannels)];
     end
     
 	SegmentsArray = permute(repmat(Segment, [1 1 nTapers]), [1 3 2]);
 	TaperedSegments = TaperingArray .* SegmentsArray;
 						
-	fftOut = fft(TaperedSegments,nFFT);
+	fftOut = fft(TaperedSegments, nFFT);
 	Periodogram(:,:,:,j) = fftOut(select,:,:); %fft(TaperedSegments,nFFT);
 end	
 	
 % Now make cross-products of them to fill cross-spectrum matrix
 for Ch1 = 1:nChannels
-	for Ch2 = Ch1:nChannels % don't compute cross-spectra twice
 		Temp1 = reshape(Periodogram(:,:,Ch1,:), [nFreqBins,nTapers,nFFTChunks]);
-		Temp2 = reshape(Periodogram(:,:,Ch2,:), [nFreqBins,nTapers,nFFTChunks]);
+		Temp2 = Temp1;
 		Temp2 = conj(Temp2);
 		Temp3 = Temp1 .* Temp2;
 		eJ=sum(Temp3, 2);
-        p(:,:, Ch1, Ch2)= eJ/nTapers;
-		
-		% for off-diagonal elements copy into bottom half of matrix
-		if (Ch1 ~= Ch2)
-            p(:,:, Ch2, Ch1) = conj(eJ) / nTapers;
-		end
-	end
+        p(: ,:, Ch1) = eJ/nTapers;
 end
 
-% Remove frequencies outside user-specified range
-ind=find(f>=freqs(1) & f <=freqs(end));
+% Remove frequencies outside user-specified range (0.1 to correct for small
+% numerical differences)
+ind=find(f>=(freqs(1)-0.1) & f <=(freqs(end)+0.1));
 f=f(ind);
-p=p(ind,:);
+p= p(ind,:, :);
 

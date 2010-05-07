@@ -11,9 +11,9 @@ function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 %    S.frequencies - vector of frequencies
 %    S.timeres     - time resolution in ms (length of the sliding time-window)
 %    S.timestep    - time step (in ms) to slide the time-window by.
-%                         
+%
 % Output:
-%  res - 
+%  res -
 %   If no input is provided the plugin returns a cfg branch for itself
 %
 %   If input is provided:
@@ -26,14 +26,14 @@ function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_ft_mtmconvol.m 3866 2010-05-06 13:29:58Z vladimir $
+% $Id: spm_eeg_specest_ft_mtmconvol.m 3876 2010-05-07 18:51:03Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
 % Any parameters can be specified and they are then passed to the plugin
 % when it's called.
 %--------------------------------------------------------------------------
-if nargin == 0 
+if nargin == 0
     timeres = cfg_entry;
     timeres.tag = 'timeres';
     timeres.name = 'Time resolution';
@@ -114,7 +114,7 @@ elseif length(S.freqres) == length(S.frequencies)
 else
     error('Frequency resolution should be either a scalar or a vector the same length as the number of frequencies.')
 end
-   
+
 %-Data dimensions
 %--------------------------------------------------------------------------
 Nchannels = size(data, 1);
@@ -155,16 +155,24 @@ cfg.tapsmofrq   = freqres;
 
 cfg.toi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
 
+if ismember(cfg.taper, {'dpss', 'sine'}) && ~(all(cfg.tapsmofrq==cfg.tapsmofrq(1)) && all(cfg.t_ftimwin==cfg.t_ftimwin(1)))
+    cfg.output ='pow';
+end
+
 freq = ft_freqanalysis(cfg, ftraw);
 
 res = [];
 res.freq = freq.freq;
 res.time = freq.time;
 
-if ndims(freq.fourierspctrm) == 4 && size(freq.fourierspctrm, 1)>1
-    res.pow = spm_squeeze(mean(freq.fourierspctrm.*conj(freq.fourierspctrm), 1), 1);
-elseif ndims(freq.fourierspctrm) == 4
-    res.fourier = spm_squeeze(freq.fourierspctrm, 1);
+if isfield(freq, 'fourierspctrm')
+    if ndims(freq.fourierspctrm) == 4 && size(freq.fourierspctrm, 1)>1
+        res.pow = spm_squeeze(mean(freq.fourierspctrm.*conj(freq.fourierspctrm), 1), 1);
+    elseif ndims(freq.fourierspctrm) == 4
+        res.fourier = spm_squeeze(freq.fourierspctrm, 1);
+    else
+        res.fourier = freq.fourierspctrm;
+    end
 else
-    res.fourier = freq.fourierspctrm;
+    res.pow = freq.powspctrm;
 end
