@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 3881 2010-05-07 21:02:57Z vladimir $
 
-rev = '$Rev: 3798 $';
+rev = '$Rev: 3881 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -73,7 +73,7 @@ for i = 1:numel(job.methods)
 end
     
 out.D = spm_eeg_artefact(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_artefact(job)
 % Output is always in field "D", no matter how job is structured

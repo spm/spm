@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 3881 2010-05-07 21:02:57Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -234,7 +234,7 @@ S = rmfield(S, 'save');
 S = rmfield(S, 'review');
 
 out.D = spm_eeg_convert(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_convert(job)
 % Output is always in field "D", no matter how job is structured

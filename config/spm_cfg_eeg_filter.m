@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 3881 2010-05-07 21:02:57Z vladimir $
 
-rev = '$Rev: 3833 $';
+rev = '$Rev: 3881 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -73,7 +73,7 @@ S.D = job.D{1};
 S.filter = job.filter;
 
 out.D = spm_eeg_filter(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_filter(job)
 % Output is always in field "D", no matter how job is structured

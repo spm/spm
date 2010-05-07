@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_average
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_average.m 3881 2010-05-07 21:02:57Z vladimir $
 
-rev = '$Rev: 3818 $';
+rev = '$Rev: 3881 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -87,7 +87,7 @@ S.review = false;
 S.circularise = job.plv;
 
 out.D = spm_eeg_average(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_average(job)
 % Output is always in field "D", no matter how job is structured

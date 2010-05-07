@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_grandmean
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_grandmean.m 3881 2010-05-07 21:02:57Z vladimir $
 
 % -------------------------------------------------------------------------
 % weighted Weighted average
@@ -56,7 +56,7 @@ S.Dout = job.Dout;
 S.weighted = job.weighted;
 
 out.D = spm_eeg_grandmean(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 %==========================================================================
 function dep = vout_eeg_grandmean(job)

@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_contrast.m 3881 2010-05-07 21:02:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -65,7 +65,7 @@ S.label = {job.contrast.label};
 S.WeightAve = job.weight;
 
 out.D = spm_eeg_weight_epochs(S);
-out.Dfname = {out.D.fname};
+out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_contrast(job)
 % Output is always in field "D", no matter how job is structured
