@@ -1,40 +1,49 @@
-function [p, f, t] = spm_mmtspec (x,Fs,WinLength,nOverlap,NW)
+function [p, f, t] = spm_mmtspec (x,Fs,freqs,timeres)
 % Moving multitaper based spectrogram
-% FORMAT [p, f, t] = spm_mmtspec (x,Fs,WinLength,nOverlap,NW)
+% FORMAT [p, f, t] = spm_mmtspec (x,Fs,freqs,timeres)
 %
 % x         input time series
-% Fs        sampling frequency 
-% WinLength length of moving window (default is 256)
-% nOverlap  overlap between successive windows (default is 250)
-% NW        time bandwidth parameter (e.g. 3 or 4), default 3
+% Fs        sampling frequency of input time series
+% freqs     desired vector of frequencies for spectrogram eg. [6:1:30]
+% timeres   desired time resolution for spectrogram, default T/16
+%           where T is duration of x
 %
 % p         p(f, t) is estimate of power at freq f and time t
+% 
+% Time series is split into a series of overlapping windows with 5% overlap. 
+% Desired frequency resolution is attained by zero padding 
+% as/if necessary. The taper approach is applied to each padded sample.
 % 
 % Plot spectrogram using imagesc(t,f,p); axis xy
 %___________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
-% Partha Mitra and Ken Harris
-% $Id: spm_mmtspec.m 3821 2010-04-15 14:26:34Z will $
+% Partha Mitra, Ken Harris and Will Penny
+% $Id: spm_mmtspec.m 3875 2010-05-07 17:17:46Z will $
 
-if (nargin<3 | isempty(WinLength)) WinLength = 256;  end;
-if (nargin<4 | isempty(nOverlap)) nOverlap = 250; end;
-if (nargin<5 | isempty(NW)) NW = 3; end;
+nChannels = size(x, 2);
+nSamples = size(x,1);
 
-nFFT=WinLength;
+if (nargin<4 | isempty(timeres)) 
+    C=16;
+else
+    C=round(nSamples/(Fs*timeres));
+end
 
-WinLength=round(WinLength);
-nOverlap=round(nOverlap);
+df=freqs(2)-freqs(1);
+nFFT=round(Fs/df);
 
-Detrend = ''; 
+percent_overlap=0.05;
+WinLength=round(nSamples/(1+(1-percent_overlap)*C));
+nOverlap=ceil(percent_overlap*WinLength);  % 5% overlap
+
+NW=3;
 nTapers = 2*NW -1; 
 
 % Now do some computations that are common to all spectrogram functions
 
 winstep = WinLength - nOverlap;
 
-nChannels = size(x, 2);
-nSamples = size(x,1);
 
 % check for column vector input
 if nSamples == 1 
@@ -76,16 +85,20 @@ Temp3 = complex(zeros(nFFT, nTapers, nFFTChunks));
 eJ = complex(zeros(nFFT, nFFTChunks));
 
 % calculate Slepian sequences.  
-Tapers=spm_dpss(WinLength,NW);
+%Tapers=spm_dpss(WinLength,NW);
+Tapers=spm_dpss(max(nFFT,WinLength),NW);
 Tapers=Tapers(:,1:nTapers);
 
 % Vectorized alogrithm for computing tapered periodogram with FFT 
 TaperingArray = repmat(Tapers, [1 1 nChannels]);
 for j=1:nFFTChunks
 	Segment = x((j-1)*winstep+[1:WinLength], :);
-	if (~isempty(Detrend))
-		Segment = detrend(Segment, Detrend);
-	end;
+    
+    if WinLength<nFFT,
+        % Zero pad sample to attain desired freq resolution
+        Segment=[Segment;zeros(nFFT-WinLength,1)];
+    end
+    
 	SegmentsArray = permute(repmat(Segment, [1 1 nTapers]), [1 3 2]);
 	TaperedSegments = TaperingArray .* SegmentsArray;
 						
@@ -110,5 +123,8 @@ for Ch1 = 1:nChannels
 	end
 end
 
-
+% Remove frequencies outside user-specified range
+ind=find(f>=freqs(1) & f <=freqs(end));
+f=f(ind);
+p=p(ind,:);
 
