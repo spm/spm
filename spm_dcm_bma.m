@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3734 2010-02-23 11:39:03Z maria $
+% $Id: spm_dcm_bma.m 3872 2010-05-07 14:12:19Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -78,8 +78,9 @@ if rfx
             
             sel     = post_indx(post_ind{i}(kk));
             
-            params(i).model(kk).Ep = subj(i).sess(1).model(sel).Ep;
-            params(i).model(kk).Cp = full(subj(i).sess(1).model(sel).Cp);
+            params(i).model(kk).Ep  = subj(i).sess(1).model(sel).Ep;
+            params(i).model(kk).vEp = spm_vec(params(i).model(kk).Ep);
+            params(i).model(kk).Cp  = full(subj(i).sess(1).model(sel).Cp);
               
             % Average sessions
             if Nses > 1
@@ -127,10 +128,12 @@ if rfx
                     weighted_Ep = weighted_Ep + miCp(:,:,s)*mEp(:,s);
                 end
                 Ep(wsel)    = Cp(wsel,wsel)*weighted_Ep;
+                vEp         = Ep;
                 Ep          = spm_unvec(Ep,pE);
                 
-                params(i).model(kk).Ep = Ep;
-                params(i).model(kk).Cp = Cp;
+                params(i).model(kk).Ep  = Ep;
+                params(i).model(kk).vEp = vEp;
+                params(i).model(kk).Cp  = Cp;
             
             end
             
@@ -169,6 +172,7 @@ else
             sel = post_indx(post_ind(kk));
             
             params(n).model(kk).Ep = subj(n).sess(1).model(sel).Ep;
+            params(n).model(kk).vEp = spm_vec(params(n).model(kk).Ep);
             params(n).model(kk).Cp = full(subj(n).sess(1).model(sel).Cp);
             
             if Nses > 1
@@ -217,10 +221,12 @@ else
                     weighted_Ep = weighted_Ep + miCp(:,:,s)*mEp(:,s);
                 end
                 Ep(wsel)    = Cp(wsel,wsel)*weighted_Ep;
+                vEp         = Ep;
                 Ep          = spm_unvec(Ep,pE);
                 
-                params(n).model(kk).Ep = Ep;
-                params(n).model(kk).Cp = Cp;
+                params(n).model(kk).Ep  = Ep;
+                params(n).model(kk).vEp = vEp;
+                params(n).model(kk).Cp  = Cp;
                 
             end
             
@@ -261,7 +267,7 @@ for i=1:Nsamp
         if Np==ndim, nind=n; mind=m; end
         
         mu                  = zeros(Np,1);
-        mu_tmp              = spm_vec(params(n).model(m).Ep);
+        mu_tmp              = params(n).model(m).vEp;
         mu(1:ndim,1)        = mu_tmp(1:ndim,1);
        
         dsig                = zeros(Np,1);
@@ -284,21 +290,17 @@ for i=1:Nsamp
         theta_sbj(:,i)   = theta_all;
     end
     
-    % unvec parameters
-    % ---------------------------------------------------------------------
-    Etmp.A = params(nind).model(mind).Ep.A;
-    Etmp.B = params(nind).model(mind).Ep.B;
-    Etmp.C = params(nind).model(mind).Ep.C;
-    Etmp.D = params(nind).model(mind).Ep.D;
-    
-    Ep = spm_unvec(theta(:,i),Etmp);
-    
-    bma.a(:,:,i)    = Ep.A(:,:);
-    bma.b(:,:,:,i)  = Ep.B(:,:,:);
-    bma.c(:,:,i)    = Ep.C(:,:);
-    bma.d(:,:,:,i)  = Ep.D(:,:,:);
-    
 end
+
+Etmp.A = zeros(nreg,nreg,Nsamp);
+Etmp.B = zeros(nreg,nreg,min,Nsamp);
+Etmp.C = zeros(nreg,min,Nsamp);
+Etmp.D = zeros(nreg,nreg,nreg,Nsamp);
+
+bma.a  = spm_unvec(theta(1:Nr,:),Etmp.A);
+bma.b  = spm_unvec(theta(Nr+1:Nr+Nr*min,:),Etmp.B);
+bma.c  = spm_unvec(theta(Nr+Nr*min+1:Nr+Nr*min+nreg*min,:),Etmp.C);
+bma.d  = spm_unvec(theta(Nr+Nr*min+nreg*min+1:Np,:),Etmp.D);
 
 % storing parameters
 % -------------------------------------------------------------------------
