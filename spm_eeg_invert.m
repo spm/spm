@@ -119,7 +119,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 3880 2010-05-07 20:26:29Z vladimir $
+% $Id: spm_eeg_invert.m 3882 2010-05-08 15:09:11Z vladimir $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -835,7 +835,7 @@ for i = 1:Nl
     % accuracy; signal to noise (over sources)
     %======================================================================
     R2   = 100*(SST - SSR)/SST;
-    fprintf('Percent variance explained %.2f (%.2f)\n',R2,R2*VE(i))
+    fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE(i)));
  
     % Save results (for first modality)
     %======================================================================
