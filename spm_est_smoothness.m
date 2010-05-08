@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3839 2010-04-22 19:19:23Z guillaume $
+% $Id: spm_est_smoothness.m 3883 2010-05-08 15:38:49Z vladimir $
 
 
 %-Assign input arguments
@@ -262,6 +262,7 @@ RESEL = mean(resel_xyz(~i,:));
 RESEL = resel^(1/D)*(RESEL/prod(RESEL)^(1/D));
 FWHM  = full(sparse(1,1:D,1./RESEL,1,3));
 
+FWHM(~FWHM) = 1;
 %-resel counts for search volume (defined by mask)
 %--------------------------------------------------------------------------
 % R0   = spm_resels_vol(VM,[1 1 1])';
