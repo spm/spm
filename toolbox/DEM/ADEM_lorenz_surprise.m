@@ -6,9 +6,14 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_surprise.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: ADEM_lorenz_surprise.m 3884 2010-05-11 19:43:53Z karl $
  
+
+% dynamics and parameters
+%-------------------------------------------------------------------------
+spm_figure('GetWin','Cost and surprise');
 clear
+
 DEMO     = 0;                          % switch for demo
 LOR      = 1;                          % Lorenz vs a linear system
  
