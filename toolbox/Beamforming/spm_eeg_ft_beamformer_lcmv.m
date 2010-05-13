@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3868 2010-05-07 08:42:11Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3887 2010-05-13 14:33:27Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -433,7 +433,7 @@ end; % for i
   
   lambda = (S.regpc/100) * sum(allsvd)/size(covtrial,1); %% scale lambda relative mean eigenvalue
   disp(sprintf('regularisation =%3.2f percent',S.regpc));
-  cinv=inv(covtrial+eye(size(covtrial,1))*lambda); %% get inverse 
+  cinv=pinv(covtrial+eye(size(covtrial,1))*lambda); %% get inverse 
   
       
 
