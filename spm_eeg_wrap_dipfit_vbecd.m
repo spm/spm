@@ -7,13 +7,13 @@ function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 % P contains a list of the free parameters (assuming all position
 %   parameters come first (in triplets) followed by all moment paameters
 %   (also in triplets)
-% U is unused 
+% U is unused
 % At the moment this removes the mean level from EEG data
-% and reduces the rank of the MEG leadfield 2 dimensions. 
+% and reduces the rank of the MEG leadfield 2 dimensions.
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
-% 
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3873 2010-05-07 15:04:44Z gareth $
+%
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3885 2010-05-13 09:59:11Z vladimir $
 
 x=U.u; %% input , unused
 
@@ -43,17 +43,17 @@ for i=1:Ndips,
     
     % mean correction of LF, only for EEG data.
     if ft_senstype(sens, 'eeg')
-       [tmp] = ft_compute_leadfield(pos, sens, vol);
+        [tmp] = ft_compute_leadfield(pos, sens, vol);
         tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
-       [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
-       if strcmp(vol.type,'nolte'),
-           %% this is a temp fix to make up for scaling changes in nolte
-           %% model
+        [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
+        if isfield(vol, 'type') && strcmp(vol.type,'nolte'),
+            %% this is a temp fix to make up for scaling changes in nolte
+            %% model
             tmp=tmp.*1e-10;
-            end;
+        end;
     end
-    gmn=tmp;       
+    gmn=tmp;
     y=y+gmn*mom';
     outside = outside+ ~ft_inside_vol(pos,vol);
 end; % for i
@@ -62,7 +62,7 @@ end; % for i
 y=y*M.sc_y; %% scale data appropriately
 if outside
     y=y.^2;
-    end;  % penalise sources outside head
+end;  % penalise sources outside head
 
 
 
