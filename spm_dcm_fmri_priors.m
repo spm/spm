@@ -25,7 +25,7 @@ function [pE,pC] = spm_dcm_fmri_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_dcm_fmri_priors.m 3888 2010-05-15 18:49:56Z karl $
 
 
 
@@ -77,7 +77,7 @@ else
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A/4 + eye(n,n)/32;
+    pC.A  =  A/4 + eye(n,n)/16;
     pC.B  =  B*4;
     pC.C  =  C*4;
     pC.D  =  D*4;

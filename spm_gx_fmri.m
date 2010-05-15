@@ -15,7 +15,7 @@ function [y] = spm_gx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_gx_fmri.m 3888 2010-05-15 18:49:56Z karl $
  
  
 % Biophysical constants for 1.5T
@@ -27,7 +27,7 @@ try, TE = M.TE; catch, TE = 0.04; end
  
 % resting venous volume (%)
 %--------------------------------------------------------------------------
-V0  = 8;
+V0  = 4;
 
 % estimated region-specific ratios of intra- to extra-vascular signal 
 %--------------------------------------------------------------------------

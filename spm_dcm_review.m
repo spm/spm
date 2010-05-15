@@ -1,17 +1,30 @@
-function spm_dcm_review(DCM)
+function spm_dcm_review(DCM,action)
 % Review an estimated DCM
-% FORMAT spm_dcm_review(DCM)
+% FORMAT spm_dcm_review(DCM,action)
 %
 % DCM    - DCM filename
+%
+% action -
+% 'fixed connections'
+% ['    effects of ' DCM.U.name{i}];
+% 'contrast of connections'
+% 'location of regions'
+% 'inputs'
+% 'outputs'
+% 'kernels'
+% 'estimates of states'
+% 'estimates of parameters'
+% 'estimates of precisions'
+% ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 3739 2010-02-26 13:12:44Z karl $
+% $Id: spm_dcm_review.m 3888 2010-05-15 18:49:56Z karl $
 
 
 %-Get DCM structure
-%--------------------------------------------------------------------------
+%==========================================================================
 if ~nargin
     [DCM, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
     if ~sts, return; end
@@ -35,30 +48,30 @@ end
 
 
 % experimental input specific reports
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------
 for i = 1:m
     str{i} = ['    effects of ' DCM.U.name{i}];
 end
 
 % connectivity and kernels
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------
 str{end + 1} = 'fixed connections';
 
 if isfield(DCM,'averaged')
     str    = {str{:},'contrast of connections'};
 else
     str    = {str{:} ,...
-        'contrast of connections',...
-        'location of regions',...
-        'inputs',...
-        'outputs',...
-        'kernels'};
+            'contrast of connections',...
+            'location of regions',...
+            'inputs',...
+            'outputs',...
+            'kernels'};
     if isfield(DCM,'qP')
         str = {str{:} ,...
             'estimates of states',...
             'estimates of parameters',...
             'estimates of precisions'};
-
+        
         % region specific reports
         %------------------------------------------------------------------
         for i = 1:l
@@ -66,19 +79,24 @@ else
         end
     end
 end
-
 str{end + 1} = 'quit';
 
 %-Get action
-%--------------------------------------------------------------------------
-if isfield(DCM,'M')
-    region = spm_input('review',1,'m',str);
-    action = str{region};
-else
-    str2   = str([m+3 m+4 end]);
-    region = spm_input('review',1,'m',str2);
-    action = str2{region};
+%==========================================================================
+try
+    action;
+catch
+    
+    %-Get action
+    %----------------------------------------------------------------------
+    if isfield(DCM,'M')
+        action = str{spm_input('review',1,'m',str)};
+    else
+        str2   = str([m+3 m+4 end]);
+        action = str2{spm_input('review',1,'m',str2)};
+    end
 end
+
 
 %-Exponentiate coupling parameters if a two-state model
 %--------------------------------------------------------------------------
@@ -99,8 +117,10 @@ end
 
 %-Set up Graphics window
 %--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
-figure(Fgraph); spm_figure('Clear',Fgraph);
+if nargin < 2
+    Fgraph = spm_figure('GetWin','Graphics');
+    figure(Fgraph); spm_figure('Clear',Fgraph);
+end
 
 switch action
 
@@ -113,7 +133,7 @@ switch action
         %-input effects
         %------------------------------------------------------------------
         subplot(2,1,1)
-        i        = region;
+        i        = find(strcmp(action,str));
         b(:,:,1) = DCM.Pp.B(:,:,i);
         b(:,:,2) =     Ep.B(:,:,i);
         c(:,1)   = DCM.Pp.C(:,i);
@@ -308,8 +328,8 @@ switch action
 
         % priors
         %------------------------------------------------------------------
-        x     = [1:length(DCM.U.u)]*DCM.U.dt;
-        t     = [1:length(DCM.Y.y)]*DCM.Y.dt;
+        x     = (1:length(DCM.U.u))*DCM.U.dt;
+        t     = (1:length(DCM.Y.y))*DCM.Y.dt;
         for i = 1:m
 
             subplot(m,1,i)
@@ -358,7 +378,7 @@ switch action
 
         % input effects
         %------------------------------------------------------------------
-        x     = [1:DCM.M.N] * DCM.M.dt;
+        x     = (1:DCM.M.N)*DCM.M.dt;
         d     = 2/DCM.M.dt;
         for i = 1:m
 
@@ -408,8 +428,11 @@ switch action
         spm_DEM_qH(DCM.qH)
 
     case {str{end - l:end - 1}}
-
-        i = region + m - length(str) + 1;
+        
+        
+        % get region
+        %------------------------------------------------------------------
+        i = find(strcmp(action,str)) + m - length(str) + 1;
         t = [1:length(DCM.Y.y)]*DCM.Y.dt;
 
 
@@ -482,4 +505,8 @@ switch action
         disp('unknown option')
 end
 
-spm_dcm_review(DCM);
+% retutn to menu
+%--------------------------------------------------------------------------
+if nargin < 2
+    spm_dcm_review(DCM);
+end

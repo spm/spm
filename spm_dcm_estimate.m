@@ -21,6 +21,9 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
 % DCM.options.P                      % Starting estimates for parameters
+% DCM.options.W                      % noise log-precicion (hidden-states)
+% DCM.options.V                      % noise log-precicion (hidden-causes)
+% DCM.options.s                      % smoothness of random fluctuations
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -46,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_dcm_estimate.m 3888 2010-05-15 18:49:56Z karl $
  
  
 % load DCM structure
@@ -75,9 +78,14 @@ end
  
 % check options
 %==========================================================================
-try, DCM.options.two_state;  catch, DCM.options.two_state  = 0; end
-try, DCM.options.stochastic; catch, DCM.options.stochastic = 0; end
-try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0; end
+try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
+try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
+try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
+try, DCM.options.form;       catch, DCM.options.form  = 'Gaussian'; end
+try, DCM.options.W;          catch, DCM.options.W = 9;              end
+try, DCM.options.V;          catch, DCM.options.V = 4;              end
+try, DCM.options.s;          catch, DCM.options.s = 1/4;            end
+
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
 try, M.P       = DCM.options.P ;end
@@ -161,7 +169,7 @@ M.ns  = v;
  
 % nonlinear system identification (Variational EM) - deterministic DCM
 %--------------------------------------------------------------------------
-[Ep,Cp,Eh,F]  = spm_nlsi_GN(M,U,Y);
+[Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
  
 % proceed to stochastic (initialising with deterministic estimates)
 %--------------------------------------------------------------------------
@@ -192,42 +200,48 @@ if DCM.options.stochastic
  
     % set inversion parameters
     % ---------------------------------------------------------------------
-    DEM.M(1).E.s  = 1/8;        % smoothness of random fluctuations
-    DEM.M(1).E.d  = 2;          % embedding dimension 
-    DEM.M(1).E.n  = 4;          % embedding dimension
-    DEM.M(1).E.nN = 16;         % maximum number of DEM iterations
+    form    = DCM.options.form;
+    s       = DCM.options.s;
+    DEM.M(1).E.form  = form;       % form of random fluctuations
+    DEM.M(1).E.s     = s;          % smoothness of random fluctuations
+    DEM.M(1).E.d     = 2;          % embedding dimension 
+    DEM.M(1).E.n     = 4;          % embedding dimension
+    DEM.M(1).E.nN    = 8;          % maximum number of DEM iterations
+
  
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
     DEM.M(1).f  = inline([M.f '(x,v,P)*' num2str(Y.dt)],'x','v','P');
     DEM.M(1).P  = Ep;
+    DEM.M(1).pC = pC;
     
     % delays (DEM works in time bins not seconds)
     % ---------------------------------------------------------------------
     DEM.M(1).delays = M.delays/Y.dt;
     
-    % Precision on hidden states
+    % Precision on hidden states (s.d. of about 10%)
     % ---------------------------------------------------------------------
-    DEM.M(1).xP = 32;
- 
+    DEM.M(1).xP = 128;
     
-    % Specify hyper-priors on precisions: level 1
+    % Specify hyper-priors on precisions
     % ---------------------------------------------------------------------
     DEM.M(1).Q  = spm_Ce(ones(1,n));
-    DEM.M(1).hE = Eh;          % prior expectation of log precision (noise)
-    DEM.M(1).hC = 1;           % prior covariance  of log precision (noise)
-    DEM.M(1).gE = 8;           % prior expectation of log precision (state)
-    DEM.M(1).gC = 1/8;         % prior covariance  of log precision (state)
- 
-    % and level 2
-    %----------------------------------------------------------------------
-    DEM.M(2).V  = 4;           % prior expectation of log precision (cause)
- 
- 
+    DEM.M(1).hE = Eh + 1;      % prior expectation of log-precision (noise)
+    DEM.M(1).hC = 1/8;         % prior covariance  of log-precision (noise)
+
+    DEM.M(1).W  = exp(DCM.options.W);      % fixed precision (hidden-state)
+    DEM.M(2).V  = exp(DCM.options.V);      % fixed precision (hidden-cause)
+    
+    
     % Generalised filtering (under the Laplace assumption)
     % =====================================================================
-    DEM    = spm_LAP(DEM);
- 
+    if DCM.options.stochastic == 1
+        
+            DEM  = spm_LAP(DEM);           % no mean-field assumption
+    else
+            DEM  = spm_DEM(DEM);           % mean-field assumption (DEM)
+    end
+    
     % Save DEM estimates
     %----------------------------------------------------------------------
     DCM.qU = DEM.qU;

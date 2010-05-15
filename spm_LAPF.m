@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_LAPF.m 3888 2010-05-15 18:49:56Z karl $
 
 
 % find or create a DEM figure
@@ -425,6 +425,8 @@ for iN = 1:nN
  
             % and second-order derivatives of Gibb's Energy
             %--------------------------------------------------------------
+            % dLduu = dEdu*dE.du + dSdu*dE.du + dE.du'*dSdu' + pu.ic;
+            % dLdup = dEdu*dE.dp + dSdu*dE.dp;
             dLduu = dEdu*dE.du + pu.ic;
             dLdpp = dEdp*dE.dp + pp.ic;
             dLdhh = dSdhh/2    + ph.ic;
@@ -436,8 +438,9 @@ for iN = 1:nN
             dLdpc = dEdp*dE.dc;
             dLdhy = dEdh*dE.dy;
             dLdhc = dEdh*dE.dc;
+            dLdhp = dEdh*dE.dp;
             dLdpu = dLdup';
-
+            dLdph = dLdhp';
             
             % precision and covariances
             %--------------------------------------------------------------                        
@@ -478,6 +481,26 @@ for iN = 1:nN
                                    Lpup [] });
                 dHdp(i) = sum(sum(diCdp.*C))/2;
             end
+
+%             % hidden and causal states
+%             %--------------------------------------------------------------
+%             for i = 1:mnx
+%                 Luux    = dE.du'*diSdx{i}*dE.du;
+%                 Lpux    = dE.dp'*diSdx{i}*dE.du;
+%                 Lppx    = dE.dp'*diSdx{i}*dE.dp;
+%                 diCdx   = spm_cat({Luux Lpux';
+%                                    Lpux Lppx});
+%                 dHdx(i) = sum(sum(diCdx.*C))/2;
+%                                 
+%             end
+%             for i = 1:mnv
+%                 Luuv    = dE.du'*diSdv{i}*dE.du;
+%                 Lpuv    = dE.dp'*diSdv{i}*dE.du;
+%                 Lppv    = dE.dp'*diSdv{i}*dE.dp;
+%                 diCdv   = spm_cat({Luuv Lpuv';
+%                                    Lpuv Lppv});
+%                 dHdv(i) = sum(sum(diCdv.*C))/2;
+%             end
 
             dHdb  = [dHdh; dHdg];
             dHdu  = [dHdx; dHdv];
@@ -535,22 +558,26 @@ for iN = 1:nN
             %--------------------------------------------------------------
             [Vp Sp] = spm_svd(dLdPP,0);
             [Vh Sh] = spm_svd(dLdHH,0);
-            Sp      = diag(1./(diag(Sp)));
-            Sh      = diag(1./(diag(Sh)));
+            Sp      = diag(1./(diag(sqrt(Sp))));
+            Sh      = diag(1./(diag(sqrt(Sh))));
             
             dLdp  = Sp*Vp'*dLdp;
             dHdp  = Sp*Vp'*dHdp;
             dLdpy = Sp*Vp'*dLdpy;
             dLdpu = Sp*Vp'*dLdpu;
             dLdpc = Sp*Vp'*dLdpc;
-
+            dLdph = Sp*Vp'*dLdph;
+            dLdpp = Sp*Vp'*dLdpp*Vp;
+            dLdhp =        dLdhp*Vp;
+            
             dLdh  = Sh*Vh'*dLdh;
             dHdb  = Sh*Vh'*dHdb;
             dLdhy = Sh*Vh'*dLdhy;
             dLdhu = Sh*Vh'*dLdhu;
             dLdhc = Sh*Vh'*dLdhc;
- 
-
+            dLdhp = Sh*Vh'*dLdhp;
+            dLdhh = Sh*Vh'*dLdhh*Vh;
+            dLdph =        dLdph*Vh;
             
             % assemble conditional means
             %--------------------------------------------------------------
@@ -580,13 +607,13 @@ for iN = 1:nN
  
             % and Jacobian
             %--------------------------------------------------------------
-            dfdq  = spm_cat({Dy      []       []     []   []   []   [];
-                            -dLduy  Du-dLduu -dLduc  []   []   []   [];
-                             []      []       Dc     []   []   []   [];
-                             []      []       []     []   []   Ip   [];
-                             []      []       []     []   []   []   Ih;
-                            -dLdpy  -dLdpu   -dLdpc -Ip   []  -Kp   [];
-                            -dLdhy  -dLdhu   -dLdhc  []  -Ih   []  -Kh});
+            dfdq  = spm_cat({Dy      []       []     []     []     []   [];
+                            -dLduy  Du-dLduu -dLduc  []     []     []   [];
+                             []      []       Dc     []     []     []   [];
+                             []      []       []     []     []     Ip   [];
+                             []      []       []     []     []     []   Ih;
+                            -dLdpy  -dLdpu   -dLdpc -dLdpp -dLdph -Kp   [];
+                            -dLdhy  -dLdhu   -dLdhc -dLdhp -dLdhh  []  -Kh});
  
  
             % update conditional modes of states
@@ -811,6 +838,63 @@ DEM.F  = F;                   % [-ve] Free energy
 DEM.S  = S;                   % [-ve] Free action
 
 return
+
+
+
+% Notes (check on curvature)
+%==========================================================================
+
+
+                % analytic form
+                %----------------------------------------------------------
+                iC = spm_cat({dLduu dLdup dLduh;
+                              dLdpu dLdpp dLdph;
+                              dLdhu dLdhp dLdhh});
+                          
+
+                % numerical approximations
+                %----------------------------------------------------------
+                qq.x  = qu.x(1:n);
+                qq.v  = qu.v(1:d);
+                qq.p  = qp.p;
+                qq.h  = qh.h;
+                qq.g  = qh.g;
+
+                dLdqq = spm_diff('spm_LAP_F',qq,qu,qp,qh,pu,pp,ph,M,[1 1]);
+                dLdqq = spm_cat(dLdqq');
+                
+                subplot(2,2,1);imagesc(dLdqq);     axis square
+                subplot(2,2,2);imagesc(iC);        axis square
+                subplot(2,2,3);imagesc(dLdqq - iC);axis square
+                subplot(2,2,4);plot(iC,':k');hold on;
+                plot(dLdqq - iC,'r');hold off; axis square
+                drawnow
+                
+% Notes (descent on parameters
+%==========================================================================
+I     = eye(length(dLdpp));
+k     = kp;
+Luu   = dLdpp;
+J     = spm_cat({[]    I;
+               -Luu -k*I});
+[u s] = eig(full(J));
+max(diag(s))
+
+[uj sj] = eig(full(dLdpp));
+Luu     = min(diag(sj));
+% Luu     = max(diag(sj));
+k       = kp;
+
+ss(1) = -(k + sqrt(k^2 - 4*Luu))/2;
+ss(2) = -(k - sqrt(k^2 - 4*Luu))/2;
+max(ss)
+
+
+k    = (1:128);
+s    = -(k - sqrt(k.^2 - 4*Luu))/2;
+
+plot(k,-1./real(s))
+
 
 
 

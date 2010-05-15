@@ -33,12 +33,13 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 3739 2010-02-26 13:12:44Z karl $
+% $Id: spm_fx_fmri.m 3888 2010-05-15 18:49:56Z karl $
 
 
 % Neuronal motion
 %==========================================================================
 P.B   = full(P.B);                       % bi-linear parameters
+P.C   = P.C/16;                          % exogenous parameters
 P.D   = full(P.D);                       % nonlinear parameters
 
 % excitatory connections
@@ -94,6 +95,7 @@ end
 %          of the gradient echo signal
 %--------------------------------------------------------------------------
 H        = [0.65 0.41 2.00 0.32 0.34];
+H        = [0.64 0.32 2.00 0.32 0.32];
 
 
 % exponentiation of hemodynamic state variables
