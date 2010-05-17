@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 3830 2010-04-22 14:30:28Z guillaume $
+# $Id: Makefile 3890 2010-05-17 11:17:19Z guillaume $
 
 include ../src/Makefile.var
 
@@ -18,6 +18,8 @@ FIELDTRIPMEX =\
 	fieldtrip/forward/private/lmoutr.$(SUF) fieldtrip/forward/private/meg_leadfield1.$(SUF) \
 	fieldtrip/forward/private/plgndr.$(SUF) fieldtrip/forward/private/ptriproj.$(SUF) \
 	fieldtrip/forward/private/solid_angle.$(SUF) \
+	\
+	fieldtrip/inverse/private/solid_angle.$(SUF) \
 	\
 	fieldtrip/private/lmoutr.$(SUF) fieldtrip/private/ltrisect.$(SUF) \
 	fieldtrip/private/plgndr.$(SUF) fieldtrip/private/plinproj.$(SUF) \
