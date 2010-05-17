@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3854 2010-04-29 16:42:23Z vladimir $
+% $Id: spm_eeg_montage.m 3891 2010-05-17 11:33:30Z vladimir $
 
-SVNrev = '$Rev: 3854 $';
+SVNrev = '$Rev: 3891 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -224,10 +224,10 @@ for i = 1:length(sensortypes)
         selempty  = find(all(sensmontage.tra == 0, 2));
         sensmontage.tra(selempty, :) = [];
         sensmontage.labelnew(selempty) = [];
-        sens = apply_montage(sens, sensmontage, 'keepunused', S.keepothers);
+        sens = ft_apply_montage(sens, sensmontage, 'keepunused', S.keepothers);
         
         if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-            balance = apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', S.keepothers);
+            balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', S.keepothers);
         else
             balance = sensmontage;
         end
