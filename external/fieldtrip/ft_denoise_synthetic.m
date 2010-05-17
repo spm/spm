@@ -30,7 +30,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_denoise_synthetic.m 1058 2010-05-09 11:21:10Z roboos $
 
 fieldtripdefs
 
@@ -69,8 +69,8 @@ if ~strcmp(current, 'none')
     error('unknown balancing for input data');
   end
   fprintf('converting from "%s" to "none"\n', current);
-  data.grad = apply_montage(data.grad, current_montage, 'keepunused', 'yes', 'inverse', 'yes');
-  data      = apply_montage(data     , current_montage, 'keepunused', 'yes', 'inverse', 'yes');
+  data.grad = ft_apply_montage(data.grad, current_montage, 'keepunused', 'yes', 'inverse', 'yes');
+  data      = ft_apply_montage(data     , current_montage, 'keepunused', 'yes', 'inverse', 'yes');
   data.grad.balance.current = 'none';
 end % if
 
@@ -82,8 +82,8 @@ if ~strcmp(desired, 'none')
     error('unknown balancing for input data');
   end
   fprintf('converting from "none" to "%s"\n', desired);
-  data.grad = apply_montage(data.grad, desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
-  data      = apply_montage(data     , desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
+  data.grad = ft_apply_montage(data.grad, desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
+  data      = ft_apply_montage(data     , desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
   data.grad.balance.current = desired;
 end % if
 
@@ -107,7 +107,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_denoise_synthetic.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 1058 2010-05-09 11:21:10Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

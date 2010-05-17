@@ -45,7 +45,7 @@ function hdr = read_yokogawa_header(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_header.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_yokogawa_header.m 1059 2010-05-09 11:32:55Z roboos $
 
 % FIXED
 %  txt -> m
@@ -141,7 +141,7 @@ end
 
 % construct a cell-array with labels of each channel
 for i=1:hdr.nChans
-% this should be consistent with the predefined list in senslabel,
+% this should be consistent with the predefined list in ft_senslabel,
 % with yokogawa2grad and with ft_channelselection
   if     hdr.orig.channel_info(i, 2) == handles.NullChannel
     prefix = '';

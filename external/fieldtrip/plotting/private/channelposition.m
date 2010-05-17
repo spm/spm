@@ -25,7 +25,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 955 2010-04-22 15:21:44Z vlalit $
+% $Id: channelposition.m 1058 2010-05-09 11:21:10Z roboos $
 
 if isfield(sens, 'balance') && isfield(sens.balance, 'current') && ~strcmp(sens.balance.current, 'none')
   fnames = setdiff(fieldnames(sens.balance), 'current');
@@ -34,7 +34,7 @@ if isfield(sens, 'balance') && isfield(sens.balance, 'current') && ~strcmp(sens.
   if length(indx)==1,
     %  undo the synthetic gradient balancing
     fprintf('undoing the %s balancing\n', sens.balance.current);
-    sens = apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes');
+    sens = ft_apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes');
     sens.balance.current = 'none';
   else
     warning('cannot undo %s balancing\n', sens.balance.current);

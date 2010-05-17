@@ -79,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 998 2010-04-29 14:43:22Z roboos $
+% $Id: ft_read_event.m 1066 2010-05-13 11:01:05Z vlalit $
 
 persistent sock           % for fcdc_tcp
 
@@ -129,17 +129,22 @@ if isempty(detectflank)
   detectflank = 'up';
 end
 
-switch eventformat
-  case 'brainvision_vhdr'
+if strcmp(eventformat, 'brainvision_eeg')
+    [p, f, e] = fileparts(filename);
+    filename = fullfile(p, [f '.vhdr']);
+    eventformat = 'brainvision_vhdr';
+end
+
+if strcmp(eventformat, 'brainvision_vhdr')
     % read the headerfile belonging to the dataset and try to determine the corresponding markerfile
     eventformat = 'brainvision_vmrk';
     hdr = read_brainvision_vhdr(filename);
     % replace the filename with the filename of the markerfile
     if ~isfield(hdr, 'MarkerFile') || isempty(hdr.MarkerFile)
-      filename = [];
+        filename = [];
     else
-      [p, f, e] = fileparts(filename);
-      filename = fullfile(p, hdr.MarkerFile);
+        [p, f, e] = fileparts(filename);
+        filename = fullfile(p, hdr.MarkerFile);
     end
 end
 

@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_data.m 1076 2010-05-17 10:43:45Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -288,7 +288,7 @@ if strcmp(dataformat, 'bci2000_dat')
   % caching for BCI2000 is handled in the main section and in read_header
 else
   % implement the caching in a data-format independent way
-  if cache && isempty(cachedata)
+  if cache && (isempty(cachedata) || ~isequal(cachedata.label,hdr.label(chanindx)))
     % create a new FieldTrip raw data structure that will hold the data
     cachedata.label = hdr.label(chanindx);
     cachedata.fsample = hdr.Fs;

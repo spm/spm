@@ -33,7 +33,7 @@ function [grad] = bti2grad(hdr, balanceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bti2grad.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: bti2grad.m 1058 2010-05-09 11:21:10Z roboos $
 
 % for backward compatibility issues FIXME check whether anyone actually uses this code
 if isfield(hdr, 'Meg_pos'),
@@ -198,9 +198,9 @@ elseif isfield(hdr, 'config'),
     
     if balanceflag,
       fprintf('applying digital weights in the gradiometer balancing matrix\n');
-      grad.balance      = balance;
+      grad.balance         = balance;
       grad.balance.current = weights.position;
-      grad              = apply_montage(grad, getfield(grad.balance, grad.balance.current));
+      grad                 = ft_apply_montage(grad, getfield(grad.balance, grad.balance.current));
     else
       fprintf('not applying digital weights in the gradiometer balancing matrix\n');
     end

@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_headshape.m 1059 2010-05-09 11:32:55Z roboos $
 
 % test whether the file exists
 if ~exist(filename)
@@ -229,7 +229,7 @@ switch fileformat
             % and treat those as fiducials
             try
                 elec = ft_read_sens(filename);
-                if ~senstype(elec, 'eeg')
+                if ~ft_senstype(elec, 'eeg')
                     error('headshape information can not be read from MEG gradiometer file');
                 else
                     shape.fid.pnt   = elec.pnt;
@@ -244,7 +244,7 @@ switch fileformat
             % and treat the skin surface as headshape
             try
                 vol = ft_read_vol(filename);
-                if ~voltype(vol, 'bem')
+                if ~ft_voltype(vol, 'bem')
                     error('skin surface can only be extracted from boundary element model');
                 else
                     if ~isfield(vol, 'skin')

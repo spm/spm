@@ -40,7 +40,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_rejectcomponent.m 1058 2010-05-09 11:21:10Z roboos $
 
 fieldtripdefs
 
@@ -127,11 +127,11 @@ montage          = [];
 montage.tra      = tra;
 montage.labelorg = labelorg;
 montage.labelnew = labelnew;
-data             = apply_montage(data, montage, 'keepunused', keepunused);
+data             = ft_apply_montage(data, montage, 'keepunused', keepunused);
 if isfield(data, 'grad'),
   data.grad.balance.component = montage;
   data.grad.balance.current   = 'component';
-  data.grad = apply_montage(data.grad, montage, 'keepunused', 'yes');
+  data.grad = ft_apply_montage(data.grad, montage, 'keepunused', 'yes');
 else
   warning('the gradiometer description does not match the data anymore');
 end
@@ -148,7 +148,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectcomponent.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 1058 2010-05-09 11:21:10Z roboos $';
 if nargin==2,
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end

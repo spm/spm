@@ -1,14 +1,20 @@
-function [inside, outside] = find_inside_vol(pos, vol);
+function [r] = issubfield(s, f)
 
-% FIND_INSIDE_VOL locates dipole locations inside/outside the source
-% compartment of a volume conductor model.
-% 
-% [inside, outside] = find_inside_vol(pos, vol)
+% ISSUBFIELD tests for the presence of a field in a structure just like the standard
+% Matlab ISFIELD function, except that you can also specify nested fields
+% using a '.' in the fieldname. The nesting can be arbitrary deep.
 %
-% This function is obsolete and its use in other functions should be replaced 
-% by inside_vol
+% Use as
+%   f = issubfield(s, 'fieldname')
+% or as
+%   f = issubfield(s, 'fieldname.subfieldname')
+%
+% This function returns true if the field is present and false if the field
+% is not present.
+%
+% See also ISFIELD, GETSUBFIELD, SETSUBFIELD
 
-% Copyright (C) 2003-2007, Robert Oostenveld
+% Copyright (C) 2005, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -26,10 +32,11 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 1074 2010-05-17 07:52:16Z roboos $
+% $Id: issubfield.m 951 2010-04-21 18:24:01Z roboos $
 
-
-inside  = ft_inside_vol(pos, vol);
-% replace boolean vector with indexing vectors
-outside = find(~inside);
-inside  = find(inside);
+try
+  getsubfield(s, f);    % if this works, then the subfield must be present  
+  r = true;
+catch
+  r = false;                % apparently the subfield is not present
+end

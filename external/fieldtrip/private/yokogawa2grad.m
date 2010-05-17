@@ -24,7 +24,7 @@ function grad = yokogawa2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: yokogawa2grad.m 1059 2010-05-09 11:32:55Z roboos $
 
 
 if isfield(hdr, 'orig')
@@ -86,7 +86,7 @@ grad.tra = repmat(diag(ones(1,size(grad.pnt,1)/2),0),1,2);
 grad.tra = sparse(grad.tra);
 
 % the gradiometer labels should be consistent with the channel labels in
-% read_yokogawa_header, the predefined list of channel names in senslabel
+% read_yokogawa_header, the predefined list of channel names in ft_senslabel
 % and with ft_channelselection
 label = cell(size(isgrad));
 for i=1:length(label)

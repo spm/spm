@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: preproc.m 1058 2010-05-09 11:21:10Z roboos $
 
 if nargin<5 || isempty(offset)
   offset = 0;
@@ -240,7 +240,7 @@ if ~strcmp(cfg.montage, 'no') && ~isempty(cfg.montage)
   % this is an alternative approach for rereferencing, with arbitrary complex linear combinations of channels
   tmp.trial = {dat};
   tmp.label = label;
-  tmp = apply_montage(tmp, cfg.montage);
+  tmp = ft_apply_montage(tmp, cfg.montage);
   dat = tmp.trial{1};
   label = tmp.label;
   clear tmp

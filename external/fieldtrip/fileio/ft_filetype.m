@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1042 2010-05-06 10:09:15Z roboos $
+% $Id: ft_filetype.m 1066 2010-05-13 11:01:05Z vlalit $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -444,8 +444,7 @@ elseif filetype_check_extension(filename, '.vabs')
   type = 'brainvision_vabs';
   manufacturer = 'BrainProducts';
   content = 'Brain Vison Analyzer macro';
-elseif filetype_check_extension(filename, '.eeg')
-  % FIXME, can also be Neuroscan epoched EEG data
+elseif (filetype_check_extension(filename, '.eeg') || filetype_check_extension(filename, '.dat')) && exist(fullfile(p, [f '.vhdr']), 'file')
   type = 'brainvision_eeg';
   manufacturer = 'BrainProducts';
   content = 'continuous EEG data';

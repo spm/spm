@@ -44,7 +44,7 @@ function [data] = selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: selectdata.m 1032 2010-05-04 12:48:32Z jansch $
+% $Id: selectdata.m 1055 2010-05-07 13:02:40Z jansch $
 
 % check the input data and options
 isdata  = find(cellfun(@isstruct,varargin));
@@ -352,13 +352,25 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % determine the subselection in the data
-if selectrpt && ~israw,
+if selectrpt && ~israw
   if islogical(selrpt),
     selrpt = find(selrpt);
   end
-
-  dimtok = tokenize(data.dimord, '_');
-  if strcmp(dimtok{1}, 'rpttap'),
+  
+  if ~issource
+    rpttapflag = ~isempty(strfind(data.dimord, 'rpttap')); 
+    rptflag    = ~isempty(strfind(data.dimord, 'rpt')) && ~rpttapflag; 
+  else
+    fn    = fieldnames(data);
+    selfn = find(~cellfun('isempty', strfind(fn, 'dimord')));
+    fn    = fn(selfn);
+    for k = 1:numel(fn)
+      rpttapflag(k,1) = ~isempty(strfind(data.(fn{k}), 'rpttap'));
+      rptflag(k,1)    = ~isempty(strfind(data.(fn{k}), 'rpt')) && ~rpttapflag(k,1);
+    end
+  end    
+  
+  if any(rpttapflag),
     %account for the tapers
     sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
     begtapcnt = sumtapcnt(1:end-1)+1;

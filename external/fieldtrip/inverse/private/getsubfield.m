@@ -1,14 +1,17 @@
-function [inside, outside] = find_inside_vol(pos, vol);
+function [s] = getsubfield(s, f);
 
-% FIND_INSIDE_VOL locates dipole locations inside/outside the source
-% compartment of a volume conductor model.
-% 
-% [inside, outside] = find_inside_vol(pos, vol)
+% GETSUBFIELD returns a field from a structure just like the standard
+% Matlab GETFIELD function, except that you can also specify nested fields
+% using a '.' in the fieldname. The nesting can be arbitrary deep.
 %
-% This function is obsolete and its use in other functions should be replaced 
-% by inside_vol
+% Use as
+%   f = getsubfield(s, 'fieldname')
+% or as
+%   f = getsubfield(s, 'fieldname.subfieldname')
+%
+% See also GETFIELD, ISSUBFIELD, SETSUBFIELD
 
-% Copyright (C) 2003-2007, Robert Oostenveld
+% Copyright (C) 2005, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -26,10 +29,17 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 1074 2010-05-17 07:52:16Z roboos $
+% $Id: getsubfield.m 951 2010-04-21 18:24:01Z roboos $
 
+if ~isstr(f)
+  error('incorrect input argument for fieldname');
+end
 
-inside  = ft_inside_vol(pos, vol);
-% replace boolean vector with indexing vectors
-outside = find(~inside);
-inside  = find(inside);
+t = {};
+while (1)
+  [t{end+1}, f] = strtok(f, '.');
+  if isempty(f)
+    break
+  end
+end
+s = getfield(s, t{:});

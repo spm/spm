@@ -7,9 +7,9 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 % forward computation and source reconstruction of the data.
 %
 % Use as
-%   [sens]    = apply_montage(sens,     montage,  ...)
-%   [data]    = apply_montage(data,     montage,  ...)
-%   [montage] = apply_montage(montage1, montage2, ...)
+%   [sens]    = ft_apply_montage(sens,     montage,  ...)
+%   [data]    = ft_apply_montage(data,     montage,  ...)
+%   [montage] = ft_apply_montage(montage1, montage2, ...)
 % where the input is a FieldTrip sensor definition as obtained from FT_READ_SENS
 % or a FieldTrip raw data structure as obtained from FT_PREPROCESSING.
 %
@@ -46,7 +46,7 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: apply_montage.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: ft_apply_montage.m 1057 2010-05-09 11:15:45Z roboos $
 
 % get optional input arguments
 keepunused    = keyval('keepunused',    varargin{:}); if isempty(keepunused),    keepunused    = 'no';  end

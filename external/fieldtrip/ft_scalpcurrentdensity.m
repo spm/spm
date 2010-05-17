@@ -66,7 +66,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_scalpcurrentdensity.m 1058 2010-05-09 11:21:10Z roboos $
 
 fieldtripdefs
 
@@ -147,8 +147,8 @@ elseif strcmp(cfg.method, 'finite')
   montage.labelorg = data.label;
   montage.labelnew = data.label;
   % apply the montage to the data, also update the electrode definition
-  scd = apply_montage(data, montage);
-  elec = apply_montage(elec, montage);
+  scd  = ft_apply_montage(data, montage);
+  elec = ft_apply_montage(elec, montage);
 
 elseif strcmp(cfg.method, 'hjorth')
   % the Hjorth filter requires a specification of the neighbours
@@ -178,8 +178,8 @@ elseif strcmp(cfg.method, 'hjorth')
   montage.labelorg = labelorg;
   montage.labelnew = labelnew;
   % apply the montage to the data, also update the electrode definition
-  scd = apply_montage(data, montage);
-  elec = apply_montage(elec, montage);
+  scd  = ft_apply_montage(data, montage);
+  elec = ft_apply_montage(elec, montage);
 
 else
   error('unknown method for SCD computation');
@@ -216,7 +216,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1058 2010-05-09 11:21:10Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

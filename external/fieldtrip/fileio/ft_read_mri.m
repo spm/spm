@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 954 2010-04-22 07:11:17Z jansch $
+% $Id: ft_read_mri.m 1063 2010-05-12 15:26:56Z marlal $
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
@@ -55,6 +55,11 @@ if ft_filetype(filename, 'ctf_mri')
 elseif ft_filetype(filename, 'ctf_mri4')
   [img, hdr] = read_ctf_mri4(filename);
   transform = hdr.transformMRI2Head;
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif ft_filetype(filename, 'ctf_svl')
+  [img, hdr] = read_ctf_svl(filename);
+  transform = hdr.transform;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ft_filetype(filename, 'asa_mri')

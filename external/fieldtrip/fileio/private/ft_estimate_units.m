@@ -1,14 +1,19 @@
-function [inside, outside] = find_inside_vol(pos, vol);
+function unit = ft_estimate_units(size)
 
-% FIND_INSIDE_VOL locates dipole locations inside/outside the source
-% compartment of a volume conductor model.
-% 
-% [inside, outside] = find_inside_vol(pos, vol)
+% FT_ESTIMATE_UNITS tries to determine the units of a geometrical object by
+% looking at its size and by relating this to the size of the human
+% brain.
 %
-% This function is obsolete and its use in other functions should be replaced 
-% by inside_vol
+% Use as
+%   unit = ft_estimate_units(size)
+%
+% This function will return one of the following strings
+%   'm'
+%   'dm'
+%   'cm'
+%   'mm'
 
-% Copyright (C) 2003-2007, Robert Oostenveld
+% Copyright (C) 2009, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -26,10 +31,20 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 1074 2010-05-17 07:52:16Z roboos $
+% $Id: ft_estimate_units.m 946 2010-04-21 17:51:16Z roboos $
 
+% do some magic based on the size
+unit = {'m', 'dm', 'cm', 'mm'};
+indx = round(log10(size)+2-0.2);
 
-inside  = ft_inside_vol(pos, vol);
-% replace boolean vector with indexing vectors
-outside = find(~inside);
-inside  = find(inside);
+if indx>length(unit)
+  indx = length(unit);
+  warning('assuming that the units are "%s"', unit{indx});
+end
+
+if indx<1
+  indx = 1;
+  warning('assuming that the units are "%s"', unit{indx});
+end
+
+unit = unit{indx};

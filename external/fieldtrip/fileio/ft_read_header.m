@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1030 2010-05-04 12:23:19Z stekla $
+% $Id: ft_read_header.m 1065 2010-05-13 10:50:16Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -902,7 +902,8 @@ switch headerformat
     if iscontinuous
       raw = fiff_setup_read_raw(filename);
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
-      hdr.nSamplesPre = -raw.first_samp;                    % represented as negative number in fif file
+      hdr.nSamplesPre = raw.first_samp;                     % this should be kept without a negative sign,
+							    % otherwise conflicts will occur in read_data
       hdr.nTrials     = 1;
       orig.raw        = raw; % keep all the details
 
