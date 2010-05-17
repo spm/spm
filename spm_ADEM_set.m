@@ -4,13 +4,13 @@ function [DEM] = spm_ADEM_set(DEM)
 %
 % DEM.G  - generative model
 % DEM.M  - recognition model
-% DEM.C  - causes
-% DEM.U  - explanatory variables, inputs or prior expectation of causes
+% DEM.C  - exogenous causes
+% DEM.U  - prior expectation of causes
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_set.m 2521 2008-12-02 19:49:39Z karl $
+% $Id: spm_ADEM_set.m 3893 2010-05-17 18:28:52Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
@@ -30,7 +30,7 @@ end
 try
     N     = length(DEM.C);
 catch
-    errordlg('please specify causes')
+    errordlg('please specify causes (e.g., sparse(1,N)')
 end
 try
     DEM.class;
@@ -38,6 +38,11 @@ catch
     DEM.class = 'active';
 end
  
+% Default priors
+% -------------------------------------------------------------------------
+if ~isfield(DEM,'U')
+    DEM.U = sparse(DEM.M(end).l,N);
+end
 
 % transpose causes and confounds, if specified in conventional fashion
 %--------------------------------------------------------------------------
@@ -45,39 +50,25 @@ try, if size(DEM.U,2) < N, DEM.U = DEM.U';    end, end
 try, if size(DEM.C,2) < N, DEM.C = DEM.C';    end, end
 
 
-% ensure model and data dimensions check
+% ensure model and input dimensions check
 % -------------------------------------------------------------------------
-if DEM.G(1).l ~= DEM.M(1).l
-    errordlg('models are incompatible in terms of data')
-end
 if size(DEM.C,1) ~= DEM.G(end).l
-    errordlg('DEM.G and causes (C) are incompatible')
+    errordlg('model (G) and causes (C) are incompatible')
 end
-
-% Default priors and confounds
-% -------------------------------------------------------------------------
-n  = DEM.M(end).l;
-if ~isfield(DEM,'U')
-    DEM.U = sparse(n,N);
+if size(DEM.U,1) ~= DEM.M(end).l
+    errordlg('model (M) and priors (U) are incompatible')
 end
-
-
 
 % check prior expectation of causes (at level n) and confounds
 %--------------------------------------------------------------------------
-if ~nnz(DEM.U), DEM.U = sparse(n,N); end
-if ~nnz(DEM.C), DEM.C = sparse(n,N); end
+if ~nnz(DEM.U), DEM.U = sparse(DEM.M(end).l,N); end
+if ~nnz(DEM.C), DEM.C = sparse(DEM.G(end).l,N); end
  
-% ensure inputs and cause dimensions check
-% -------------------------------------------------------------------------
-if size(DEM.U,1) ~= DEM.M(end).l
-    errordlg('DEM.M and priors (U) are incompatible')
-end
- 
+
 % ensure causes and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.U,2) < N
-    errordlg('priors and data have different lengths')
+    errordlg('priors (U) and causes (C) have different lengths')
 end
 
 % check length of time-series

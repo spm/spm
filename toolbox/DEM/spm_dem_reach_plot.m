@@ -7,7 +7,7 @@ function [f]= spm_dem_reach_plot(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_reach_plot.m 3058 2009-04-09 18:17:53Z karl $
+% $Id: spm_dem_reach_plot.m 3893 2010-05-17 18:28:52Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------
@@ -23,14 +23,13 @@ J{2} = J{1} + J{2};
 % plot
 %--------------------------------------------------------------------------
 hold on
-
+g     = [1 1 1]*.8;
 for i = 1:N
     c = [1 .8 .7]*(1 - 0.2*i/N);
     plot([0 J{1}(1,i)],[0 J{1}(2,i)],'color',c)
     plot([J{1}(1,i) J{2}(1,i)],[J{1}(2,i) J{2}(2,i)],'color',c)
 end
-plot(J{2}(1,:),J{2}(2,:),'k')
-plot(J{1}(1,:),J{1}(2,:),'k')
+plot(J{2}(1,:),J{2}(2,:),'LineWidth',2,'color',c)
 plot(J{2}(1,1),J{2}(2,1),'.r','MarkerSize',32)
 plot(J{2}(1,end),J{2}(2,end),'.g','MarkerSize',32)
 plot(T(1),T(2),'.r','MarkerSize',32)

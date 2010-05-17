@@ -3,13 +3,17 @@ function [J] = spm_dem_reach_x2J(x)
 % FORMAT [J] = spm_dem_reach_x2J(x)
 %
 % x    - hidden states (joint angles)
+% x    - hidden states
+%   x(1) - joint angle
+%   x(2) - joint angle
+%
 % J1   - position of 1st joint
-% J2   - position of 2nd joint (relative to first
+% J2   - position of 2nd joint (relative to first)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_reach_x2J.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_dem_reach_x2J.m 3893 2010-05-17 18:28:52Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------

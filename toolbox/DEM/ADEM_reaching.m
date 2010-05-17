@@ -6,14 +6,27 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_reaching.m 3058 2009-04-09 18:17:53Z karl $
- 
+% $Id: ADEM_reaching.m 3893 2010-05-17 18:28:52Z karl $
+
+% hidden causes and states
+%==========================================================================
+% x    - hidden states
+%   x(1) - joint angle
+%   x(2) - joint angle
+%   x(3) - angular velocity
+%   x(4) - angular velocity
+% v    - causal states
+%   v(1) - target location (x)
+%   v(2) - target location (y)
+%   v(3) - force (cue strength)
+%--------------------------------------------------------------------------
+
 clear
  
 % Recognition model (linear for expediency)
 %==========================================================================
 M(1).E.s      = 1/2;                          % smoothness
-M(1).E.n      = 6;                            % order of 
+M(1).E.n      = 4;                            % order of 
 M(1).E.d      = 2;                            % generalised motion
  
 % level 1: Displacement dynamics and mapping to sensory/proprioception
@@ -52,9 +65,9 @@ G(2).V  = exp(16);
 %==========================================================================
 N       = 64;                                 % length of data sequence
 C       = sparse(3,N);
-C(1,:)  = C(1,:) + .6;
-C(2,:)  = C(2,:) + .6;
-C(3,:)  = exp(-([1:N] - 32).^2/(8.^2));       % this is the prior cause
+C(1,:)  = C(1,:) + .6;                        % desired x
+C(2,:)  = C(2,:) + .6;                        % desired y
+C(3,:)  = exp(-([1:N] - 32).^2/(8.^2));       % cue strength
  
 M(2).v  = C(:,1);
  

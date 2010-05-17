@@ -1,4 +1,4 @@
-function [f]= spm_fx_adem_reach(x,v,a,P)
+function [f]= spm_fx_adem_write(x,v,a,P)
 % returns the flow for a two-joint arm (with action)
 % FORMAT [f]= spm_fx_adem_reach(x,v,a,P)
 %
@@ -7,14 +7,14 @@ function [f]= spm_fx_adem_reach(x,v,a,P)
 %   x(2) - joint angle
 %   x(3) - angular velocity
 %   x(4) - angular velocity
-% v    - cue locations and strength
+% v    - exogenous forces (x,y)
 % a    - action (forces) (x,y)
 % P    - parameters
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_reach.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: spm_fx_adem_write.m 3893 2010-05-17 18:28:52Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------
@@ -25,5 +25,5 @@ k    = [2  1]*4;                                 % viscosity
 %==========================================================================
 f    = [x(3);
         x(4);
-      (-k(1)*x(3) + a(1) - (x(1) - pi/2)/4)/m(1);
-      (-k(2)*x(4) + a(2) - (x(2) - pi/2)/4)/m(2)];
+      (-k(1)*x(3) + a(1) + v(1) - (x(1) - pi/2)/4)/m(1);
+      (-k(2)*x(4) + a(2) + v(2) - (x(2) - pi/2)/4)/m(2)];
