@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3780 2010-03-15 17:15:00Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3894 2010-05-19 09:07:51Z rik $
 
 % checks
 %--------------------------------------------------------------------------
@@ -37,6 +37,14 @@ try
     Disp = D.inv{val}.contrast.display;
 catch
     Disp = 0;
+end
+
+% If user wants RMS rather than power (MS)
+%--------------------------------------------------------------------------
+try
+    logflag = D.inv{val}.contrast.takelog;
+catch
+    logflag = 0;
 end
 
 % MNI [1] or native [0] output image space
@@ -143,6 +151,10 @@ for c = 1:length(GW)
         % Scale to mean power (%)
         %----------------------------------------------------------------------
         Contrast = CurrentCondition{k};
+       
+        if logflag
+            Contrast = log(Contrast+eps);
+        end
         
         try
             scale = D.inv{val}.contrast.scalefactor(c);
@@ -158,7 +170,7 @@ for c = 1:length(GW)
         if bytrial
             D.inv{val}.contrast.scalefactor{c}(k) = scale;
         else
-            D.inv{val}.contrast.scalefactor{c}(k) = scale;
+            D.inv{val}.contrast.scalefactor(k) = scale;
         end
         
         

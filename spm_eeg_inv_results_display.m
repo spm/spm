@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_results_display.m 3894 2010-05-19 09:07:51Z rik $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -24,7 +24,7 @@ model = D.inv{D.val};
 
 con   = min(con,length(model.inverse.J));
 try
-    disp(model.contrast);
+    model.contrast;
 catch
     warndlg('please specify a [time-frequency] contrast')
     return
