@@ -28,9 +28,9 @@ function D = spm_eeg_weight_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 3209 2009-06-17 11:07:47Z vladimir $
+% $Id: spm_eeg_weight_epochs.m 3895 2010-05-20 11:43:57Z vladimir $
 
-SVNrev = '$Rev: 3209 $';
+SVNrev = '$Rev: 3895 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,6 +68,11 @@ end
 
 c          = S.c;
 Ncontrasts = size(c, 1);
+
+% Pad with zeros as in the contrast manager
+if size(c, 2) < D.ntrials
+    c = [c zeros(Ncontrasts, D.ntrials - size(c, 2))];
+end
 
 if ~isempty(D.repl)
     try
