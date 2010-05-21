@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3894 2010-05-19 09:07:51Z rik $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3898 2010-05-21 15:44:07Z vladimir $
 
 % checks
 %--------------------------------------------------------------------------
@@ -78,8 +78,7 @@ Vin      = spm_vol(sMRIfile);
 
 % Tag (to identify particular contrast settings)
 %--------------------------------------------------------------------------
-tag = fix(spm_data_id(rmfield(D.inv{val}.contrast, {'W', 'GW', 'JW'})));
-
+tag = ['t' sprintf('%d_', D.inv{val}.contrast.woi) 'f' sprintf('%d_', D.inv{val}.contrast.fboi)];
 
 % Get mesh
 %--------------------------------------------------------------------------
@@ -182,11 +181,11 @@ for c = 1:length(GW)
         end
         
         if bytrial
-            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f_%.0f_%.0f.nii',NAME,val,tag,c,k));
-            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f_%.0f_%.0f.nii',NAME,val,tag,c,k));
+            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%s_%.0f%.0f.nii',NAME,val,tag,c,k));
+            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%s_%.0f%.0f.nii',NAME,val,tag,c,k));
         else
-            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f_%.0f.nii',NAME,val,tag,c));
-            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f_%.0f.nii',NAME,val,tag,c));
+            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%s%.0f.nii',NAME,val,tag,c));
+            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%s%.0f.nii',NAME,val,tag,c));
         end
         
         Vout           = struct(...
