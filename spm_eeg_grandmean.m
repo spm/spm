@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 3532 2009-11-04 16:57:51Z vladimir $
+% $Id: spm_eeg_grandmean.m 3897 2010-05-21 15:06:50Z vladimir $
 
-SVNrev = '$Rev: 3532 $';
+SVNrev = '$Rev: 3897 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -312,7 +312,7 @@ spm_progress_bar('Clear');
 
 %-Save Grand Mean to disk
 %--------------------------------------------------------------------------
-Do = type(Do, 'grandmean');
+Do = type(Do, 'evoked');
 
 bads = find(~any(w'));
 if ~isempty(bads)
