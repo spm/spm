@@ -30,14 +30,9 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_volumedownsample.m 1098 2010-05-19 14:31:57Z jansch $
 
 fieldtripdefs
-
-% check if SPM2 is in path and if not add
-if ~hastoolbox('SPM8', 0, 1); % No need to add SPM2 when SPM8 is available
-    hastoolbox('SPM2',1);
-end
 
 %% checkdata see below!!! %%
 
@@ -45,10 +40,18 @@ end
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'unused',  {'voxelcoord'});
 
+if ~isfield(cfg, 'spmversion'), cfg.spmversion = 'spm8'; end
 if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
 if ~isfield(cfg, 'keepinside'), cfg.keepinside = 'yes'; end
 if ~isfield(cfg, 'parameter'),  cfg.parameter = 'all';  end
 if ~isfield(cfg, 'smooth'),     cfg.smooth = 'no';      end
+
+% check if the required spm is in your path:
+if strcmpi(cfg.spmversion, 'spm2'),
+  hastoolbox('SPM2',1);
+elseif strcmpi(cfg.spmversion, 'spm8'),
+  hastoolbox('SPM8',1);
+end
 
 if strcmp(cfg.keepinside, 'yes')
   % add inside to the list of parameters
@@ -132,7 +135,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumedownsample.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_volumedownsample.m 1098 2010-05-19 14:31:57Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

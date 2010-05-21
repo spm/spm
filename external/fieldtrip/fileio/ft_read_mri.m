@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 1063 2010-05-12 15:26:56Z marlal $
+% $Id: ft_read_mri.m 1108 2010-05-20 07:43:30Z jansch $
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
@@ -68,7 +68,7 @@ elseif ft_filetype(filename, 'asa_mri')
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ft_filetype(filename, 'minc')
-  if ~hasspm
+  if ~(hasspm2 || hasspm5)
     error('the SPM2 or SPM5 toolbox is required to read *.mnc files');
   end
   % use the functions from SPM

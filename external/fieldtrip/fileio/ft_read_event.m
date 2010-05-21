@@ -79,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 1066 2010-05-13 11:01:05Z vlalit $
+% $Id: ft_read_event.m 1082 2010-05-17 20:23:21Z roboos $
 
 persistent sock           % for fcdc_tcp
 
@@ -340,6 +340,12 @@ switch eventformat
       event(end+1).type   = 'Battery_ok';
       event(end  ).sample = i;
     end
+    
+  case {'biosig', 'gdf'}
+    % FIXME it would be nice to figure out how sopen/sread return events
+    % for all possible fileformats that can be processed with biosig
+    warning('BIOSIG does not have a consistent event representation, skipping events')
+    event = [];
 
   case 'brainvision_vmrk'
     fid=fopen(filename,'rt');
@@ -1255,7 +1261,7 @@ switch eventformat
     end
 
   otherwise
-    error('unsupported event format');
+    error('unsupported event format (%s)', eventformat);
 end
 
 if ~isempty(event)

@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1065 2010-05-13 10:50:16Z vlalit $
+% $Id: ft_read_header.m 1116 2010-05-20 08:38:57Z tilsan $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -324,7 +324,7 @@ switch headerformat
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
 
-  case 'biosig'
+  case {'biosig' 'gdf'}
     % use the biosig toolbox if available
     hastoolbox('BIOSIG', 1);
     hdr = read_biosig_header(filename);
@@ -744,7 +744,7 @@ switch headerformat
       hdr.label = mxDeserialize(hdr.label);
     end
 
-  case  'itab_raw'
+  case 'itab_raw'
     % check the presence of the required low-level toolbox
     hastoolbox('lc-libs', 1);
     header_info = lcReadHeader(filename);
@@ -1211,7 +1211,7 @@ switch headerformat
     % the above code is not complete
     error('not yet implemented');
 
-  case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
+  case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'yokogawa_mrk'}
     % chek that the required low-level toolbox is available
     hastoolbox('yokogawa', 1);
     hdr = read_yokogawa_header(filename);
@@ -1238,7 +1238,7 @@ switch headerformat
     if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
       hdr = read_biosig_header(filename);
     else
-      error('unsupported header format');
+      error('unsupported header format (%s)', headerformat);
     end
 end
 

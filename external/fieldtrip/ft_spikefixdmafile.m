@@ -1,4 +1,4 @@
-edit function ft_spikefixdmafile(cfg)
+function ft_spikefixdmafile(cfg)
 
 % FT_SPIKEFIXDMAFILE fixes the problem in DMA files due to stopping
 % and restarting the acquisition. It takes one Neuralynx DMA file and
@@ -32,7 +32,7 @@ edit function ft_spikefixdmafile(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikefixdmafile.m 1043 2010-05-06 10:27:19Z timeng $
+% $Id: ft_spikefixdmafile.m 1102 2010-05-19 15:33:23Z roboos $
 
 fieldtripdefs
 

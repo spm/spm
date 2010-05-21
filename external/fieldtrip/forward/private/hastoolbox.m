@@ -25,7 +25,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hastoolbox.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: hastoolbox.m 1111 2010-05-20 08:30:20Z tilsan $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -136,7 +136,7 @@ switch toolbox
   case 'EEPROBE'
     status  = (exist('read_eep_avr') && exist('read_eep_cnt'));
   case 'YOKOGAWA'
-    status  = (exist('GetMeg160ChannelInfoM') && exist('GetMeg160ContinuousRawDataM'));
+    status  = hasyokogawa('16bitBeta6');
   case 'BEOWULF'
     status = (exist('evalwulf') && exist('evalwulf') && exist('evalwulf'));
   case 'MENTAT'

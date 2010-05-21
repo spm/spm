@@ -32,7 +32,11 @@ function [dat] = read_yokogawa_data(filename, hdr, begsample, endsample, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_data.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_yokogawa_data.m 1113 2010-05-20 08:35:15Z tilsan $
+
+if ~hasyokogawa('16bitBeta6')
+    error('cannot determine whether Yokogawa toolbox is present');
+end
 
 % hdr = read_yokogawa_header(filename);
 hdr = hdr.orig; % use the original Yokogawa header, not the FieldTrip header
@@ -143,7 +147,7 @@ if ~isempty(axialgradiometer_index_tmp)
     tmp_ch_no = channum(axialgradiometer_index, 1);
     tmp_data = dat(axialgradiometer_index, 1:sample_length);
     tmp_offset = calib(axialgradiometer_index, 3) * ones(1,sample_length);
-    ad_range = 5/2048;
+    ad_range = 5/2^(hdr.ad_bit-1);
     tmp_data = ( tmp_data * ad_range - tmp_offset );
     clear tmp_offset;
     tmp_gain = calib(axialgradiometer_index, 2) * ones(1,sample_length);
@@ -179,7 +183,7 @@ if ~isempty(plannergradiometer_index_tmp)
     tmp_ch_no = channum(plannergradiometer_index, 1);
     tmp_data = dat(plannergradiometer_index, 1:sample_length);
     tmp_offset = calib(plannergradiometer_index, 3) * ones(1,sample_length);
-    ad_range = 5/2048;
+    ad_range = 5/2^(hdr.ad_bit-1);
     tmp_data = ( tmp_data * ad_range - tmp_offset );
     clear tmp_offset;
     tmp_gain = calib(plannergradiometer_index, 2) * ones(1,sample_length);
@@ -210,7 +214,7 @@ if ~isempty(eegchannel_index_tmp)
     % B = ADValue * VoltRange / ADRange
     tmp_ch_no = channum(eegchannel_index, 1);
     tmp_data = dat(eegchannel_index, 1:sample_length);
-    ad_range = 5/2048;
+    ad_range = 5/2^(hdr.ad_bit-1);
     tmp_data = tmp_data * ad_range;
     dat(eegchannel_index, 1:sample_length) = tmp_data;
 
@@ -229,7 +233,7 @@ if ~isempty(nullchannel_index_tmp)
     % B = ADValue * VoltRange / ADRange
     tmp_ch_no = channum(nullchannel_index, 1);
     tmp_data = dat(nullchannel_index, 1:sample_length);
-    ad_range = 5/2048;
+    ad_range = 5/2^(hdr.ad_bit-1);
     tmp_data = tmp_data * ad_range;
     dat(nullchannel_index, 1:sample_length) = tmp_data;
 

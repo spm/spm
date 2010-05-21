@@ -76,7 +76,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: ft_senstype.m 1117 2010-05-20 08:41:07Z tilsan $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -206,9 +206,9 @@ else
       type = 'itab153';
     elseif (mean(ismember(ft_senslabel('itab153_planar'), sens.label)) > 0.8)
       type = 'itab153_planar';
-    elseif (mean(ismember(ft_senslabel('yokogawa160'),    sens.label)) > 0.8)
+    elseif (mean(ismember(ft_senslabel('yokogawa160'),    sens.label)) > 0.4)
       type = 'yokogawa160';
-    elseif (mean(ismember(ft_senslabel('yokogawa160_planar'), sens.label)) > 0.8)
+    elseif (mean(ismember(ft_senslabel('yokogawa160_planar'), sens.label)) > 0.4)
       type = 'yokogawa160_planar';
     elseif (mean(ismember(ft_senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';
@@ -278,9 +278,9 @@ else
       type = 'itab153';
     elseif (mean(ismember(ft_senslabel('itab153_planar'), sens.label)) > 0.8)
       type = 'itab153_planar';
-    elseif (mean(ismember(ft_senslabel('yokogawa160'),    sens.label)) > 0.8)
+    elseif (mean(ismember(ft_senslabel('yokogawa160'),    sens.label)) > 0.4)
       type = 'yokogawa160';
-    elseif (mean(ismember(ft_senslabel('yokogawa160_planar'), sens.label)) > 0.8)
+    elseif (mean(ismember(ft_senslabel('yokogawa160_planar'), sens.label)) > 0.4)
       type = 'yokogawa160_planar';
     elseif (mean(ismember(ft_senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';

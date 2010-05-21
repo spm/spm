@@ -19,7 +19,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 % specify
 %   cfg.dataset      = string with the filename
 %   cfg.trl          = Nx3 matrix with the trial definition, see FT_DEFINETRIAL
-%   cfg.padding      = length to which the trials are padded for filtering
+%   cfg.padding      = length to which the trials are padded for filtering (default = 0)
 %   cfg.continuous   = 'yes' or 'no' whether the file contains continuous data
 %                      (default is determined automatic)
 %
@@ -39,38 +39,38 @@ function [dataout] = ft_preprocessing(cfg, data)
 %                      see FT_CHANNELSELECTION for details
 %
 % The preprocessing options for the selected channels are specified with
-%   cfg.lpfilter      = 'no' or 'yes'  lowpass filter
-%   cfg.hpfilter      = 'no' or 'yes'  highpass filter
-%   cfg.bpfilter      = 'no' or 'yes'  bandpass filter
-%   cfg.bsfilter      = 'no' or 'yes'  bandstop filter
-%   cfg.dftfilter     = 'no' or 'yes'  line noise removal using discrete fourier transform
-%   cfg.medianfilter  = 'no' or 'yes'  jump preserving median filter
+%   cfg.lpfilter      = 'no' or 'yes'  lowpass filter (default = 'no')
+%   cfg.hpfilter      = 'no' or 'yes'  highpass filter (default = 'no')
+%   cfg.bpfilter      = 'no' or 'yes'  bandpass filter (default = 'no')
+%   cfg.bsfilter      = 'no' or 'yes'  bandstop filter (default = 'no')
+%   cfg.dftfilter     = 'no' or 'yes'  line noise removal using discrete fourier transform (default = 'no')
+%   cfg.medianfilter  = 'no' or 'yes'  jump preserving median filter (default = 'no')
 %   cfg.lpfreq        = lowpass  frequency in Hz
 %   cfg.hpfreq        = highpass frequency in Hz
 %   cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %   cfg.bsfreq        = bandstop frequency range, specified as [low high] in Hz
-%   cfg.dftfreq       = line noise frequencies for DFT filter, default [50 100 150] Hz
-%   cfg.lpfiltord     = lowpass  filter order
-%   cfg.hpfiltord     = highpass filter order
-%   cfg.bpfiltord     = bandpass filter order
-%   cfg.bsfiltord     = bandstop filter order
-%   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.bpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.bsfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.lpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
-%   cfg.hpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
-%   cfg.bpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
-%   cfg.bsfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
-%   cfg.medianfiltord = length of median filter
-%   cfg.blc           = 'no' or 'yes', whether to apply baseline correction
-%   cfg.blcwindow     = [begin end] in seconds, the default is the complete trial
-%   cfg.detrend       = 'no' or 'yes', this is done on the complete trial
-%   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial
+%   cfg.dftfreq       = line noise frequencies in Hz for DFT filter (default = [50 100 150])
+%   cfg.lpfiltord     = lowpass  filter order (default = 6)
+%   cfg.hpfiltord     = highpass filter order (default = 6)
+%   cfg.bpfiltord     = bandpass filter order (default = 4)
+%   cfg.bsfiltord     = bandstop filter order (default = 4)
+%   cfg.lpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
+%   cfg.hpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
+%   cfg.bpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
+%   cfg.bsfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
+%   cfg.lpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
+%   cfg.hpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
+%   cfg.bpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
+%   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
+%   cfg.medianfiltord = length of median filter (default = 9)
+%   cfg.blc           = 'no' or 'yes', whether to apply baseline correction (default = 'no')
+%   cfg.blcwindow     = [begin end] in seconds, the default is the complete trial (default = 'all')
+%   cfg.detrend       = 'no' or 'yes', this is done on the complete trial (default = 'no')
+%   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial (default = 'no')
 %   cfg.polyorder     = polynome order (default = 2)
-%   cfg.derivative    = 'no' (default) or 'yes', computes the first order derivative of the data
+%   cfg.derivative    = 'no' or 'yes', computes the first order derivative of the data (default = 'no')
 %   cfg.hilbert       = 'no', 'abs', 'complex', 'real', 'imag', 'absreal', 'absimag' or 'angle' (default = 'no')
-%   cfg.rectify       = 'no' or 'yes'
+%   cfg.rectify       = 'no' or 'yes' (default = 'no')
 %   cfg.precision     = 'single' or 'double' (default = 'double')
 %
 % Preprocessing options that you should only use for EEG data are
@@ -90,6 +90,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 % See also FT_DEFINETRIAL, FT_REDEFINETRIAL, FT_APPENDDATA, FT_APPENDSPIKE
 
 % Undocumented local options:
+% cfg.paddir = direction of padding, 'left'/'right'/'both' (default = 'both')
 % cfg.artfctdef
 % cfg.removemcg
 % cfg.inputfile
@@ -153,7 +154,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_preprocessing.m 1092 2010-05-19 07:28:03Z jansch $
 
 fieldtripdefs
 
@@ -177,6 +178,7 @@ end
 
 if ~isfield(cfg, 'precision'),    cfg.precision = 'double';     end
 if ~isfield(cfg, 'padding'),      cfg.padding = 0;              end % padding is only done when filtering
+if ~isfield(cfg, 'paddir'),       cfg.paddir  = 'both';         end
 if ~isfield(cfg, 'headerformat'), cfg.headerformat = [];        end % is passed to low-level function, empty implies autodetection
 if ~isfield(cfg, 'dataformat'),   cfg.dataformat = [];          end % is passed to low-level function, empty implies autodetection
 
@@ -220,8 +222,7 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    fprintf('reading input data from "%s"\n', cfg.inputfile);
-    load(cfg.inputfile, 'data');
+    data = loadvar(cfg.inputfile, 'data');
     hasdata = true;
   end
 end
@@ -425,9 +426,21 @@ else
         begpadding = 0;
         endpadding = 0;
       else
-        % begpadding+nsamples+endpadding = total length of raw data that will be read
-        begpadding = ceil((padding-nsamples)/2);
-        endpadding = floor((padding-nsamples)/2);
+        switch cfg.paddir
+        case 'both'
+          % begpadding+nsamples+endpadding = total length of raw data that will be read
+          begpadding = ceil((padding-nsamples)/2);
+          endpadding = floor((padding-nsamples)/2);
+        case 'left'
+          begpadding = padding-nsamples;
+          endpadding = 0;
+        case 'right'
+          begpadding = 0;
+          endpadding = padding-nsamples;
+        otherwise
+          error('unsupported requested direction of padding');
+        end
+        
         begsample  = cfg.trl(i,1) - begpadding;
         endsample  = cfg.trl(i,2) + endpadding;
         if begsample<1
@@ -505,7 +518,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_preprocessing.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_preprocessing.m 1092 2010-05-19 07:28:03Z jansch $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data
@@ -517,9 +530,5 @@ dataout.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  fprintf('writing output data to "%s"\n', cfg.outputfile);
-  data = dataout; % use the variable name "data" in the output file
-  save(cfg.outputfile, 'data');
+  savevar(cfg.outputfile, 'data', dataout); % use the variable name "data" in the output file
 end
-
-

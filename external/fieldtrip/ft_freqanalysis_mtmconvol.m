@@ -31,6 +31,7 @@ function [freq] = ft_freqanalysis_mtmconvol(cfg, data);
 %                    plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
 %   cfg.toi        = vector 1 x numtoi, the times on which the analysis windows
 %                    should be centered (in seconds)
+%   cfg.trials     = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.keeptrials = 'yes' or 'no', return individual trials or average (default = 'no')
 %   cfg.keeptapers = 'yes' or 'no', return individual tapers or average (default = 'no')
 %   cfg.pad        = number or 'maxperlen', length in seconds to which the data can be padded out (default = 'maxperlen')
@@ -74,7 +75,7 @@ function [freq] = ft_freqanalysis_mtmconvol(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mtmconvol.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_freqanalysis_mtmconvol.m 1085 2010-05-18 11:18:43Z sashae $
 
 fieldtripdefs
 
@@ -459,7 +460,7 @@ catch
     [st, i1] = dbstack;
     cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: ft_freqanalysis_mtmconvol.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_freqanalysis_mtmconvol.m 1085 2010-05-18 11:18:43Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

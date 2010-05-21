@@ -44,7 +44,7 @@ function [data] = selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: selectdata.m 1055 2010-05-07 13:02:40Z jansch $
+% $Id: selectdata.m 1131 2010-05-20 13:39:09Z jansch $
 
 % check the input data and options
 isdata  = find(cellfun(@isstruct,varargin));
@@ -137,7 +137,7 @@ if length(data)>1 && ~israw,
   %if issource || isvolume,
   %  param = parameterselection(param, data{1}); % FIXME check consistency across input data of presence of specific parameters
   %else
-    param = {param};
+  if ~iscell(param), param = {param}; end
   %end
   if issource || isvolume
     if numel(param)>1,

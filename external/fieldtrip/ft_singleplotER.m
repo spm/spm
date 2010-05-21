@@ -67,7 +67,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_singleplotER.m 1132 2010-05-21 09:20:27Z andbas $
 
 fieldtripdefs
 
@@ -250,7 +250,12 @@ for k=2:nargin
   end
 
   % Average across selected channels:
-  P = squeeze(mean(P(chansel,:), 1));
+  if length(size(P)) > 2 %chan_chan_indexing
+    refchan = match_str(varargin{k-1}.label,cfg.cohrefchannel);
+    P = squeeze(mean(P(refchan,chansel,:),2));
+  else
+    P = squeeze(mean(P(chansel,:), 1));
+  end
   
   % select mask
   if ~isempty(cfg.maskparameter) %&& masking

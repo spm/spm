@@ -45,11 +45,15 @@ function hdr = read_yokogawa_header(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_header.m 1059 2010-05-09 11:32:55Z roboos $
+% $Id: read_yokogawa_header.m 1112 2010-05-20 08:33:18Z tilsan $
 
 % FIXED
 %  txt -> m
 %  fopen iee-le
+
+if ~hasyokogawa('16bitBeta6')
+    error('cannot determine whether Yokogawa toolbox is present');
+end
 
 handles = definehandles;
 fid = fopen(filename, 'rb', 'ieee-le');
@@ -61,6 +65,7 @@ channel_info    = GetMeg160ChannelInfoM(fid);
 calib_info      = GetMeg160CalibInfoM(fid);
 amp_gain        = GetMeg160AmpGainM(fid);
 acq_type        = GetMeg160DataAcqTypeM(fid);
+ad_bit          = GetMeg160ADbitInfoM(fid);
 
 % these depend on the data type
 sample_rate        = [];

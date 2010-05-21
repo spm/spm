@@ -15,6 +15,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                       see FT_CHANNELSELECTION for details
 %   cfg.downsample    = ratio for downsampling, which occurs after convolution (default = 1)
+%   cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.keeptrials    = 'yes' or 'no', return individual trials or average (default = 'no')
 %
 % See also FT_FREQANALYSIS
@@ -41,7 +42,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_freqanalysis_tfr.m 1085 2010-05-18 11:18:43Z sashae $
 
 fieldtripdefs
 
@@ -184,7 +185,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqanalysis_tfr.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_freqanalysis_tfr.m 1085 2010-05-18 11:18:43Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

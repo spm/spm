@@ -33,7 +33,7 @@ function [dat, baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_baselinecorrect.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_baselinecorrect.m 1122 2010-05-20 12:12:32Z marvger $
 
 % determine the size of the data
 [Nchans, Nsamples] = size(dat);
@@ -54,8 +54,9 @@ baseline = mean(dat(:,begsample:endsample), 2);
 %  dat(chan,:) = dat(chan,:) - baseline(chan);
 % end
 
-for sample=1:Nsamples
-  dat(:,sample) = dat(:,sample) - baseline;
-end
+% for sample=1:Nsamples
+%   dat(:,sample) = dat(:,sample) - baseline;
+% end
 
-
+% it is even faster to do this
+dat = bsxfun(@minus,dat,baseline);

@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1066 2010-05-13 11:01:05Z vlalit $
+% $Id: ft_filetype.m 1115 2010-05-20 08:37:26Z tilsan $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -265,6 +265,10 @@ elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filen
   type = 'yokogawa_raw';
   manufacturer = 'Yokogawa';
   content = 'evoked/trialbased MEG data';
+elseif filetype_check_extension(filename, '.mrk') && filetype_check_header(filename,  char([0 0 0 0])) % FIXME, this detection should possibly be improved
+  type = 'yokogawa_mrk';
+  manufacturer = 'Yokogawa';
+  content = 'headcoil locations';
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, char([0 0 0 0])) % FIXME, this detection should possibly be improved
   type = 'yokogawa_mri';
   manufacturer = 'Yokogawa';
@@ -818,6 +822,10 @@ elseif filetype_check_extension(filename, '.edf')
   type = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.gdf') && filetype_check_header(filename, 'GDF')
+  type = 'gdf';
+  manufacturer = 'BIOSIG - Alois Schloegl';
+  content = 'biosignals';
 elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && exist([filename(1:(end-4)) '.dat'], 'file') && numel(whos('-file', filename))==1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
   type = 'spmeeg_mat';
   manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';

@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 1044 2010-05-06 12:16:57Z vlalit $
+% $Id: ft_prepare_layout.m 1118 2010-05-20 08:42:20Z tilsan $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -699,7 +699,9 @@ if isempty(rz)
             'bti248_planar', 'yokogawa160', 'yokogawa160_planar', 'magnetometer', 'meg'}
       rz = 90;
     case {'neuromag122', 'neuromag306'}
-      rz = 0;
+      rz = 0; 
+    case {'yokogawa160','yokogawa160_planar'}
+      rz = 90;
     case 'electrode'
       rz = 90;
     otherwise

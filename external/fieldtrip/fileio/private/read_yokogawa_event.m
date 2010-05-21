@@ -28,7 +28,11 @@ function [event] = read_yokogawa_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_event.m 958 2010-04-23 08:31:53Z roboos $
+% $Id: read_yokogawa_event.m 1114 2010-05-20 08:36:03Z tilsan $
+
+if ~hasyokogawa('16bitBeta6')
+    error('cannot determine whether Yokogawa toolbox is present');
+end
 
 % get the options
 trigindx = keyval('trigindx', varargin); % default is based on chantype helper function

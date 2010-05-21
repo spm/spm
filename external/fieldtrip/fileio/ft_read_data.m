@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 1076 2010-05-17 10:43:45Z roboos $
+% $Id: ft_read_data.m 1082 2010-05-17 20:23:21Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -433,7 +433,7 @@ switch dataformat
     % close the file between seperate read operations
     fclose(orig.Head.FILE.FID);
 
-  case {'biosig'}
+  case {'biosig', 'gdf'}
     % use the biosig toolbox if available
     hastoolbox('BIOSIG', 1);
     dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
@@ -901,7 +901,7 @@ switch dataformat
     if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
       dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
     else
-      error('unsupported data format');
+      error('unsupported data format (%s)', dataformat);
     end
 
 end

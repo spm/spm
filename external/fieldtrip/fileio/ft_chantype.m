@@ -7,8 +7,8 @@ function type = ft_chantype(input, desired)
 %   type = ft_chantype(sens)
 %   type = ft_chantype(label)
 % or as
-%   type = ft_chantype(hdr, desired)
-%   type = ft_chantype(sens, desired)
+%   type = ft_chantype(hdr,   desired)
+%   type = ft_chantype(sens,  desired)
 %   type = ft_chantype(label, desired)
 
 % Copyright (C) 2008, Robert Oostenveld
@@ -29,7 +29,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 1059 2010-05-09 11:32:55Z roboos $
+% $Id: ft_chantype.m 1104 2010-05-19 15:55:48Z roboos $
 
 % determine the type of input
 

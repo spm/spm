@@ -64,7 +64,7 @@ function [channel] = ft_channelselection(channel, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_channelselection.m 1119 2010-05-20 08:44:17Z tilsan $
 
 fieldtripdefs
 
@@ -155,7 +155,12 @@ switch ft_senstype(datachannel)
   case {'yokogawa', 'yokogawa160', 'yokogawa160_planar'}
     % all Yokogawa axial gradiometer channels start with AG
     labelmeg = datachannel(strncmp('AG', datachannel, length('AG')));
-    
+    % all Yokogawa (hardware) planar gradiometer channels start with PG
+    if any( strncmp('PG', datachannel, length('PG')) ) 
+           megind = logical( strncmp('PG', datachannel, length('PG')) + strncmp('AG', datachannel, length('AG')));
+           labelmeg = datachannel(megind);
+    end
+  
   case {'ctf', 'ctf275', 'ctf151', 'ctf275_planar', 'ctf151_planar'}
     % all CTF MEG channels start with "M"
     % all CTF reference channels start with B, G, P, Q or R
