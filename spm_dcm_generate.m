@@ -15,7 +15,7 @@ function varargout = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 3852 2010-04-29 13:14:21Z christophe $
+% $Id: spm_dcm_generate.m 3899 2010-05-25 15:36:40Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -127,7 +127,7 @@ end
 
 % Display the time series generated
 %--------------------------------------------------------------------------
-spm_figure('CreateWin','Simulated BOLD time series');
+spm_figure('Create','Graphics','Simulated BOLD time series');
 t     = Y.dt*[1:1:v];
 for i = 1:n,
     subplot(n,1,i);

@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 3853 2010-04-29 14:54:43Z christophe $
+% $Id: spm_api_bmc.m 3899 2010-05-25 15:36:40Z guillaume $
 
 if ~exist('xp','var') | isempty(xp)
     inf_method = 'FFX';
@@ -31,8 +31,8 @@ end
 
 nm = length(N);
 
-Fgraph  = spm_figure('GetWin','Graphics','BMS: results');
-clf(Fgraph);
+Fgraph  = spm_figure('GetWin','Graphics');
+spm_clf(Fgraph);
 
 switch inf_method
 
@@ -81,7 +81,7 @@ switch inf_method
             
             %-Display results - families
             %--------------------------------------------------------------
-            F  = spm_figure('CreateWin','Graphics','BMS: results');
+            F  = spm_figure('Create','Graphics','BMS: results');
             figure(F);
             
             Nfam = length(family.post);
@@ -119,6 +119,7 @@ switch inf_method
     %======================================================================
     case ('RFX')
 
+        figure(Fgraph);
 
         %-Display results
         %------------------------------------------------------------------
@@ -148,11 +149,11 @@ switch inf_method
             
             %-Display results - families
             %--------------------------------------------------------------
-            F  = spm_figure('CreateWin','Graphics','BMS: results');
+            F  = spm_figure('Create','Graphics','BMS: results');
             figure(F);
             
             %-Display results - families
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(2,1,1)
             Nfam = length(family.exp_r);
             bar(1:Nfam,family.exp_r)
@@ -176,8 +177,5 @@ switch inf_method
             
             out = [];
             
-        end
-        
+        end        
 end
-
-

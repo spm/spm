@@ -115,12 +115,8 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3826 2010-04-21 18:36:44Z ged $
+% $Id: spm_list.m 3899 2010-05-25 15:36:40Z guillaume $
 
-
-% satellite figure global variable
-%--------------------------------------------------------------------------
-global SatWindow
 
 % Choose between voxel-wise and topological FDR
 %--------------------------------------------------------------------------
@@ -131,7 +127,7 @@ catch
 end
 
 %==========================================================================
-switch lower(varargin{1}), case 'list'                            %-List
+switch lower(varargin{1}), case 'list'                               %-List
 %==========================================================================
 % FORMAT TabDat = spm_list('list',SPM,hReg)
 
@@ -196,7 +192,7 @@ switch lower(varargin{1}), case 'list'                            %-List
         try, QPc = sort(QPc(:)); end  % Needed for cluster FDR
     end
 
-    %-get number and separation for maxima to be reported
+    %-Get number and separation for maxima to be reported
     %----------------------------------------------------------------------
     if length(varargin) > 3
         Num    = varargin{4};         % number of maxima per cluster
@@ -211,27 +207,26 @@ switch lower(varargin{1}), case 'list'                            %-List
         Title  = 'p-values adjusted for search volume';
     end
 
+    %-Table header & footer
+    %======================================================================
+
     %-Setup graphics panel
     %----------------------------------------------------------------------
     spm('Pointer','Watch')
-    if SatWindow
-        Fgraph = SatWindow;
+    Fgraph = spm_figure('FindWin','Satellite');
+    if Fgraph
         figure(Fgraph);
+        ht = 0.85; bot = 0.14;
     else
         Fgraph = spm_figure('GetWin','Graphics');
+        ht = 0.4; bot = 0.1;
     end
     spm_results_ui('Clear',Fgraph)
     FS    = spm('FontSizes');           %-Scaled font sizes
     PF    = spm_platform('fonts');      %-Font names (for this platform)
-
-
-    %-Table header & footer
-    %======================================================================
-
+    
     %-Table axes & Title
     %----------------------------------------------------------------------
-    if SatWindow, ht = 0.85; bot = 0.14; else ht = 0.4; bot = 0.1; end
-
     if STAT == 'P'
         Title = 'Posterior Probabilities';
     end
@@ -240,6 +235,7 @@ switch lower(varargin{1}), case 'list'                            %-List
                  'DefaultTextFontSize',FS(8),...
                  'DefaultTextInterpreter','Tex',...
                  'DefaultTextVerticalAlignment','Baseline',...
+                 'Tag','SPMList',...
                  'Units','points',...
                  'Visible','off');
 
@@ -280,8 +276,8 @@ switch lower(varargin{1}), case 'list'                            %-List
     text(0.92,y - dy/2,[units{:}],'Fontsize',FS(8));
 
 
-    %-Headers for text table...
-    %-----------------------------------------------------------------------
+    %-Headers for text table
+    %----------------------------------------------------------------------
     TabDat.tit = Title;
     TabDat.hdr = {...
         'set',      'p';...
@@ -413,8 +409,7 @@ switch lower(varargin{1}), case 'list'                            %-List
         return
     end
 
-    % Includes Darren Gitelman's code for working around
-    % spm_max for conjunctions with negative thresholds
+    %-Workaround in spm_max for conjunctions with negative thresholds
     %----------------------------------------------------------------------
     minz          = abs(min(min(varargin{2}.Z)));
     zscores       = 1 + minz + varargin{2}.Z;
@@ -431,20 +426,20 @@ switch lower(varargin{1}), case 'list'                            %-List
             K     = zeros(c,1);
             for i = 1:c
                 
-                % get LKC for voxels in i-th region
+                %-Get LKC for voxels in i-th region
                 %----------------------------------------------------------
                 LKC  = spm_get_data(varargin{2}.VRpv,L{i});
                 
-                % compute average of valid LKC measures for i-th region
+                %-Compute average of valid LKC measures for i-th region
                 %----------------------------------------------------------
                 valid = ~isnan(LKC);
                 if any(valid)
-                    LKC = sum(LKC(valid)) / sum(valid); % (nanmean)
+                    LKC = sum(LKC(valid)) / sum(valid);
                 else
                     LKC = V2R; % fall back to whole-brain resel density
                 end
                 
-                % intrinsic volume (with surface correction)
+                %-Intrinsic volume (with surface correction)
                 %----------------------------------------------------------
                 IV   = spm_resels([1 1 1],L{i},'V');
                 IV   = IV*[1/2 2/3 2/3 1]';
@@ -500,12 +495,10 @@ switch lower(varargin{1}), case 'list'                            %-List
     HlistXYZ = [];
     while numel(find(isfinite(Z)))
 
-        % Paginate if necessary
+        %-Paginate if necessary
         %------------------------------------------------------------------
         if y < min(Num + 1,3)*dy
 
-            % added Fgraph term to paginate on Satellite window
-            %--------------------------------------------------------------
             h     = text(0.5,-5*dy,...
                 sprintf('Page %d',spm_figure('#page',Fgraph)),...
                         'FontName',PF.helvetica,'FontAngle','Italic',...
@@ -745,7 +738,6 @@ switch lower(varargin{1}), case 'list'                            %-List
 
 
     %-Number and register last page (if paginated)
-    %-Changed to use Fgraph for numbering
     %----------------------------------------------------------------------
     if spm_figure('#page',Fgraph)>1
         h = text(0.5,-5*dy,sprintf('Page %d/%d',spm_figure('#page',Fgraph)*[1,1]),...
@@ -804,7 +796,7 @@ switch lower(varargin{1}), case 'list'                            %-List
         if nargin < 3,  hReg = []; else hReg = varargin{3}; end
         SPM    = varargin{2};
 
-        %-get number and separation for maxima to be reported
+        %-Get number and separation for maxima to be reported
         %------------------------------------------------------------------
         if length(varargin) > 3
 
@@ -815,8 +807,7 @@ switch lower(varargin{1}), case 'list'                            %-List
             Dis    = 4;
         end
 
-
-        %-if there are suprathreshold voxels, filter out all but current cluster
+        %-If there are suprathreshold voxels, filter out all but current cluster
         %------------------------------------------------------------------
         if ~isempty(SPM.Z)
 
@@ -881,10 +872,10 @@ switch lower(varargin{1}), case 'list'                            %-List
 
 
 
-        %==================================================================
+    %======================================================================
     case 'setcoords'                                   %-Co-ordinate change
-        %==================================================================
-        % FORMAT spm_list('SetCoords',xyz,hAx,hReg)
+    %======================================================================
+    % FORMAT spm_list('SetCoords',xyz,hAx,hReg)
         if nargin<3, error('Insufficient arguments'), end
         hAx      = varargin{3};
         xyz      = varargin{2};
@@ -904,11 +895,12 @@ switch lower(varargin{1}), case 'list'                            %-List
             set(HlistXYZ(i),'Color','r')
         end
 
-        %==================================================================
+    %======================================================================
     otherwise                                       %-Unknown action string
-        %==================================================================
+    %======================================================================
         error('Unknown action string')
 end
+
 %==========================================================================
 function export2excel(obj,evd,h)
 TabDat     = get(get(obj,'Parent'),'UserData');
@@ -920,4 +912,4 @@ d(:,end+1) = d(:,end);
 d(3:end,end-2:end) = xyz;
 tmpfile    = [tempname '.xls'];
 xlswrite(tmpfile, d);
-fprintf('Saved in %s\n',tmpfile);
+winopen(tmpfile);

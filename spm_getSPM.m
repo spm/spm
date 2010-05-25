@@ -52,14 +52,14 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % .c     - Contrast weights (column vector contrasts)
 % .X0    - Reduced design matrix data (spans design space under Ho)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
-%          (Matrix in SPM99b)  Extract using X0 = spm_FcUtil('X0',...
+%          Extract using X0 = spm_FcUtil('X0',...
 % .iX0   - Indicates how contrast was specified:
 %          If by columns for reduced design matrix then iX0 contains the
 %          column indices. Otherwise, it's a string containing the
 %          spm_FcUtil 'Set' action: Usually one of {'c','c+','X0'}
 % .X1o   - Remaining design space data (X1o is orthogonal to X0)
 %          Stored as coordinates in the orthogonal basis of xX.X from spm_sp
-%          (Matrix in SPM99b)  Extract using X1o = spm_FcUtil('X1o',...
+%          Extract using X1o = spm_FcUtil('X1o',...
 % .eidf  - Effective interest degrees of freedom (numerator df)
 %        - Or effect-size threshold for Posterior probability
 % .Vcon  - Name of contrast (for 'T's) or ESS (for 'F's) image
@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3886 2010-05-13 14:08:35Z guillaume $
+% $Id: spm_getSPM.m 3899 2010-05-25 15:36:40Z guillaume $
 
 
 %-GUI setup
@@ -192,7 +192,7 @@ spm('Pointer','Arrow')
 
 %-Select SPM.mat & note SPM results directory
 %--------------------------------------------------------------------------
-if (nargin > 0)
+if nargin
     xSPM = varargin{1};
 end
 try
@@ -201,7 +201,7 @@ try
 catch
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     swd = spm_str_manip(spmmatfile,'H');
-end;
+end
 if ~sts, SPM = []; xSPM = []; return; end
 
 %-Preliminaries...
@@ -247,23 +247,12 @@ M    = SPM.xVol.M(1:3,1:3);         %-voxels to mm matrix
 VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
 
 % check the data and other files have valid filenames
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
 try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
 try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
 try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
 try, SPM.VM        = spm_check_filename(SPM.VM);        end
-
-%-Contrast definitions
-%==========================================================================
-
-%-Load contrast definitions (if available)
-%--------------------------------------------------------------------------
-try
-    xCon = SPM.xCon;
-catch
-    xCon = {};
-end
 
 
 %==========================================================================
@@ -272,6 +261,8 @@ end
 
 %-Get contrasts
 %--------------------------------------------------------------------------
+try, xCon = SPM.xCon; catch, xCon = {}; end
+
 try
     Ic = xSPM.Ic;
 catch
@@ -304,7 +295,7 @@ nc        = length(Ic);  % Number of contrasts
 % Intermediate     1..nc-2   nc-u  |    #effects under null <= u
 % Global Null      0         nc    |    #effects under alt  > u,  >= u+1
 %----------------------------------+---------------------------------------
-if (nc > 1)
+if nc > 1
     try
         n = xSPM.n;
     catch
@@ -325,7 +316,6 @@ if (nc > 1)
 else
     n = 1;
 end
-
 
 %-Enforce orthogonality of multiple contrasts for conjunction
 % (Orthogonality within subspace spanned by contrasts)
@@ -835,7 +825,7 @@ try, xSPM.VRpv = SPM.xVol.VRpv; end
 try
     xSPM.units = SPM.xVol.units;
 catch
-    try, xSPM.units = varargin{1}.units; end;
+    try, xSPM.units = varargin{1}.units; end
 end
 
 % p-values for topological and voxel-wise FDR

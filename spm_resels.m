@@ -25,7 +25,7 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Matthew Brett
-% $Id: spm_resels.m 3838 2010-04-22 18:36:39Z guillaume $
+% $Id: spm_resels.m 3899 2010-05-25 15:36:40Z guillaume $
 
 
 % Dimensionality
@@ -85,7 +85,11 @@ case 'L'                                                             % Line
 
 case 'V'                                                           % Voxels
     %----------------------------------------------------------------------
-    R     = spm_Pec_resels(L,FWHM);
+    %R     = spm_Pec_resels(L,FWHM);
+    V     = zeros(max(L,[],2)');
+    LL    = mat2cell(L,ones(1,size(L,1)),size(L,2));
+    V(sub2ind(size(V),LL{:})) = 1;
+    R     = spm_resels_vol(V,FWHM)';
 
 case 'I'                                                            % Image
     %----------------------------------------------------------------------
