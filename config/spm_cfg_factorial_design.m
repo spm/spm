@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3860 2010-05-04 15:59:25Z guillaume $
+% $Id: spm_cfg_factorial_design.m 3900 2010-05-25 16:17:13Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -608,7 +608,10 @@ des.values  = {t1 t2 pt mreg anova anovaw fd fblock };
 c         = cfg_entry;
 c.tag     = 'c';
 c.name    = 'Vector';
-c.help    = {'Vector of covariate values'};
+c.help    = {
+             'Vector of covariate values.'
+             'Enter the covariate values ''''per subject'''' (i.e. all for subject 1, then all for subject 2, etc). Importantly, the ordering of the cells of a factorial design has to be the same for all subjects in order to be consistent with the ordering of the covariate values.'
+}';
 c.strtype = 'e';
 c.num     = [Inf 1];
 % ---------------------------------------------------------------------

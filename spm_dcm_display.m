@@ -12,12 +12,11 @@ function spm_dcm_display(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_display.m 3900 2010-05-25 16:17:13Z guillaume $
  
  
 % input arguments
 %--------------------------------------------------------------------------
-Fgraph  = spm_figure('GetWin','Graphics');
 n       = length(varargin);
  
 % get dimensions
@@ -25,6 +24,13 @@ n       = length(varargin);
 if n < 1; xY = [];  else,   xY = varargin{1};    end
 if n < 2; a  = [];  else,   a  = varargin{2};    end
 if n < 3; c  = [];  else,   c  = varargin{3};    end
+if n < 4
+    Fgraph  = spm_figure('GetWin','Graphics');
+    ha = gca;
+else
+    ha = varargin{4};
+    Fgraph = get(ha,'parent');
+end
 
 % graphics parameters
 %--------------------------------------------------------------------------
@@ -86,10 +92,10 @@ t1      = (64 - 16) + 16*t1/max(t1(:));
  
 % Watermark and regions
 %--------------------------------------------------------------------------
-str     = get(get(gca,'Title'),'String');
-image(rot90(reshape(t1,length(i),length(j))))
-axis image off
-title(str)
+str     = get(get(ha,'Title'),'String');
+image(rot90(reshape(t1,length(i),length(j))),'parent',ha)
+axis(ha,'image','off')
+title(ha,str)
  
  
 % Connections

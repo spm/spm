@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 3782 2010-03-16 18:33:32Z guillaume $
+% $Id: spm_render.m 3900 2010-05-25 16:17:13Z guillaume $
 
-SVNrev = '$Rev: 3782 $';
+SVNrev = '$Rev: 3900 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -199,12 +199,16 @@ for j=1:length(dat),
 
         % Calculate 'depth' of values
         %------------------------------------------------------------------
-        dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
-        z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
+        if ~isempty(d2)
+            dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
+            z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
-        if ~isfinite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
-        else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end
-
+            if ~isfinite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
+            else, msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end
+        else
+            msk = [];
+        end
+        
         if ~isempty(msk),
 
             % Generate an image of the integral of the blob values.
