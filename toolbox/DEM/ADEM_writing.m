@@ -9,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_writing.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: ADEM_writing.m 3901 2010-05-27 16:14:36Z karl $
 
 
 % hidden causes and states
@@ -29,15 +29,10 @@
 %   v(1) - not used
 %
 %--------------------------------------------------------------------------
-
-clear
+clear DEM
 
 % parameters (locations) of trajectory
 %--------------------------------------------------------------------------
-P    = [1 .5  1 .5;
-        1  1 .5 .5];
-
-
 P = [1.0  1.0;
      1.1  1.2;
      1.0  0.4;
@@ -47,9 +42,7 @@ P = [1.0  1.0;
      0.9  0.8;
      1.3  1.0]';
 n = size(P,2);
-     
-    
-    
+
 
 % Recognition model (linear for expediency)
 %==========================================================================

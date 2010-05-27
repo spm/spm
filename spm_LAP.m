@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_LAP.m 3901 2010-05-27 16:14:36Z karl $
 
 
 % find or create a DEM figure
@@ -527,8 +527,8 @@ for iN = 1:nN
                 dLdPP = dLdPP*(1 - 1/ns) + dLdpp/ns;
                 dLdHH = dLdHH*(1 - 1/ns) + dLdhh/ns;
             catch
-                dLdPP = dLdpp;
-                dLdHH = dLdhh;
+                dLdPP = dLdpp*16;
+                dLdHH = dLdhh*16;
             end
 
             % rotate and scale gradient (and curvatures)

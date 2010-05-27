@@ -18,7 +18,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: ADEM_learning.m 3901 2010-05-27 16:14:36Z karl $
  
  
 % generative model
@@ -168,14 +168,8 @@ if DEMO
     DEM           = spm_ADEM(DEM);
     save mountaincar_model G DEM
 end
- 
 load mountaincar_model
-spm_figure('GetWin','DEM');
 
-spm_DEM_qP(DEM.qP,DEM.pP)
-spm_DEM_qU(DEM.qU)
- 
- 
  
 % replace priors with learned conditional expectation
 %--------------------------------------------------------------------------
@@ -248,7 +242,7 @@ ylabel('velocity','Fontsize',12)
 title('learnt','Fontsize',16)
 
 
-spm_figure('GetWin','FMIN');
+spm_figure('GetWin','Movie');
 clf, subplot(3,1,2)
 drawnow
 spm_mountaincar_movie(DEM)

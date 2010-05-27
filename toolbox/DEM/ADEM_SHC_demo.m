@@ -1,9 +1,12 @@
-% This demo ...
+% This demo illustrates the use of Lotka-Volterra form SHCs (Stable
+% heteroclinic channel) to prescribe active sampling (inference). In this
+% example each (unstable) fixed point in the SHC attracts the agent to
+% points on the circumference of a circle.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 3113 2009-05-11 15:25:13Z karl $
+% $Id: ADEM_SHC_demo.m 3901 2010-05-27 16:14:36Z karl $
  
 % generative process
 %==========================================================================                        % switch for demo
@@ -32,24 +35,19 @@ G       = spm_ADEM_M_set(G);
 fx      = inline('spm_lotka_volterra(x,v,P)','x','v','P');
 gx      = inline('spm_gx_SHC(x,v,P)','x','v','P');
 gx      = inline('x.v','x','v','P');
-
-% positions associated with each states (on unit circle)
+ 
+% positions associated with each state (on unit circle)
 %--------------------------------------------------------------------------
 nx        = 8;
 P.g(1,:)  = cos(2*pi*([1:nx]' - 1)/nx);
 P.g(2,:)  = sin(2*pi*([1:nx]' - 1)/nx);
-
+ 
 % parameters of succession
 %--------------------------------------------------------------------------
-R         = randn(nx,nx);
-R         = (R - R')/8 - (1 - speye(nx));
- 
-P.f       =  spm_speye(nx,nx, 1)*1 - spm_speye(nx,nx,-1)*1;
-P.f(nx,1) =  1;
-P.f(1,nx) = -1;
+P.f       =  spm_speye(nx,nx,-1) - spm_speye(nx,nx,+1);
+P.f(nx,1) = -1;
+P.f(1,nx) = +1;
 P.f       =  P.f/2 - 1 + speye(nx);
-P.k       = 1;
- 
  
 % level 1
 %--------------------------------------------------------------------------

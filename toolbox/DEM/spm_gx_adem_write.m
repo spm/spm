@@ -24,7 +24,7 @@ function [g]= spm_gx_adem_write(x,v,a,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_adem_write.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: spm_gx_adem_write.m 3901 2010-05-27 16:14:36Z karl $
 
 % evaluate positions
 %--------------------------------------------------------------------------
@@ -32,5 +32,5 @@ J  = spm_dem_reach_x2J(x);
 
 % stretch (angular) and visual (positional) information about motor plant
 %==========================================================================
-g  = [x(1:2); J{1} + J{2}];
+g  = [x; J{1}; J{1} + J{2}];
 

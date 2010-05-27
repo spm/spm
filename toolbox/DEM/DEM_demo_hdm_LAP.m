@@ -5,13 +5,13 @@
 % used to illustrate hemodynamic deconvolution. We have deliberately made
 % the problem difficult here to highlight the ability of Generalised 
 % filtering to accumulate evidence to optimise in parameters and hyper-
-% parameters, which allows it to outperform DEM (although neither scheme 
-% finds visual motion effects with 90% confidence)
+% parameters, which allows it to outperform DEM (although it does not 
+% find visual motion effects with 90% confidence)
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: DEM_demo_hdm_LAP.m 3901 2010-05-27 16:14:36Z karl $
 
 % set-up
 %--------------------------------------------------------------------------

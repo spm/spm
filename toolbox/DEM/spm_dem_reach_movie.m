@@ -7,7 +7,7 @@ function spm_dem_reach_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem_reach_movie.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: spm_dem_reach_movie.m 3901 2010-05-27 16:14:36Z karl $
 
 
 % evaluate positions (target)
@@ -48,7 +48,7 @@ for i = 1:N
     try
         plot(T(1),T(2),'.','MarkerSize',32,'color',[C(i) (1 - C(i)) 0])
     catch
-        x  = J{2}(1,1:i) + ([1:i] - i)/64;
+        x  = J{2}(1,1:i) + ([1:i] - i)/N;
         y  = J{2}(2,1:i);
         plot(x,y,'color',[1 1 1]*.8,'Linewidth',4)
     end

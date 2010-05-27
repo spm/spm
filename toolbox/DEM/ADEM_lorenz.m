@@ -142,9 +142,14 @@ if DEMO
     
     save DEM_lorenz G DEM
 else
+    try
     load DEM_lorenz
+    catch
+        disp({'sorry; the previously prepared .mat file is not compatible';
+              'with your version of matlab - run this routine with DEMO = 1'})
+        return
+    end
 end
-
 
 spm_figure('GetWin','DEM');
 spm_DEM_qP(DEM.qP,DEM.pP)

@@ -14,22 +14,28 @@ function [f]= spm_fx_dem_write(x,v,P)
 %
 % v    - hidden states
 %   v(1) - not used
-% P    - parameters
+% P    - parameters (locations of point attratcors in state-space)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_write.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: spm_fx_dem_write.m 3901 2010-05-27 16:14:36Z karl $
 
 
 % diameter of radial basis function (for autovitiation)
 %--------------------------------------------------------------------------
 d  = 1/8;
+n  = length(x.a);
 
-% joint location
+% location in state-space
 %--------------------------------------------------------------------------
 J  = spm_dem_reach_x2J(x.x);
 X  = J{1} + J{2};
+
+% transition matrix
+%--------------------------------------------------------------------------
+T  = spm_speye(n,n,-1)/16 - spm_speye(n,n,0);
+
 
 % motion of physical states
 %==========================================================================
@@ -37,13 +43,12 @@ X  = J{1} + J{2};
 % desired location (P(:,i)) is determined by the attractor state x.a
 %--------------------------------------------------------------------------
 [m,i]  = max(x.a);
-f.x    = spm_fx_dem_reach(x.x,P(:,i),P);
- 
+f.x    = spm_fx_dem_reach(x.x,[P(:,i); 1],P);
+
 % motion of attractor states (using basis functions of position)
 %==========================================================================
-b      = zeros(size(x.a));
-b(i,1) = norm(X - P(:,i)) < d;
-f.a    = (-b*4 - sum(x.a))/8;
+T      = T(:,i)*(norm(X - P(:,i)) < d);
+f.a    = (T*6 - sum(x.a))/4;
  
 
 

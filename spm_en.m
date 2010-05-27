@@ -1,7 +1,8 @@
-function [X] = spm_en(X)
+function [X] = spm_en(X,p)
 % Euclidean normalization
-% FORMAT [X] = spm_en(X);
+% FORMAT [X] = spm_en(X,[p]);
 % X   - matrix
+% p   - optional polynomial detrend [default = []]
 %__________________________________________________________________________
 %
 % spm_en performs a Euclidean normalization setting the column-wise sum of
@@ -10,7 +11,14 @@ function [X] = spm_en(X)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_en.m 3113 2009-05-11 15:25:13Z karl $
+% $Id: spm_en.m 3901 2010-05-27 16:14:36Z karl $
+
+
+% detrend
+%--------------------------------------------------------------------------
+if nargin > 1
+    X = spm_detrend(X,p);
+end
 
 % Euclidean normalization
 %--------------------------------------------------------------------------

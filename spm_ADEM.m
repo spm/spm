@@ -112,7 +112,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3744 2010-03-02 18:59:55Z karl $
+% $Id: spm_ADEM.m 3901 2010-05-27 16:14:36Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -296,6 +296,15 @@ Dv    = kron(spm_speye(n,n,1),spm_speye(gr,gr,0));
 Dp    = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
 dfdw  = kron(speye(n,n),speye(gx,gx));
 dydv  = kron(speye(n,n),speye(gy,gr));
+
+% reistiction matrix, mapping prediction errors to action
+%--------------------------------------------------------------------------
+try
+    Ra = M(1).Ra;
+catch
+    Ra = 1:ny;
+end
+Ra    = kron(speye(n,n),sparse(Ra,Ra,1,ny,ny));
  
 % and null blocks
 %--------------------------------------------------------------------------
@@ -438,7 +447,9 @@ for iE = 1:nE
             dyda = dyda + dydx*Dfdx*dfda;
         end
         
-        dE.da = dE.dy*dyda;
+        % dE/da with restriction
+        %------------------------------------------------------------------
+        dE.da = dE.dy*Ra*dyda;
         dE.dv = dE.dy*dydv;
         
         % first-order derivatives
