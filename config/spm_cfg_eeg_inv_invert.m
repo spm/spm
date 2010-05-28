@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 3892 2010-05-17 16:15:44Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 3903 2010-05-28 09:39:13Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -56,8 +56,8 @@ invtype = cfg_menu;
 invtype.tag = 'invtype';
 invtype.name = 'Inversion type';
 invtype.help = {'Select the desired inversion type'};
-invtype.labels = {'MSP (GS)', 'ARD', 'COH', 'IID'};
-invtype.values = {'GS', 'ARD', 'LOR', 'IID'};
+invtype.labels = {'GS', 'ARD', 'MSP (GS+ARD)' 'COH', 'IID'};
+invtype.values = {'GS', 'ARD', 'MSP', 'LOR', 'IID'};
 invtype.val = {'GS'};
 
 woi = cfg_entry;
@@ -218,8 +218,15 @@ for i = 1:numel(job.D)
     
     D{i}.con = 1;
     
-    if ~isfield(D{i}.inv{D{i}.val}, 'forward')
+    if ~isfield(D{i}, 'inv')
         error(sprintf('Forward model is missing for subject %d', i));
+    elseif  numel(D{i}.inv)<D{i}.val || ~isfield(D{i}.inv{D{i}.val}, 'forward')
+        if D{i}.val>1 && isfield(D{i}.inv{D{i}.val-1}, 'forward')
+            D{i}.inv{D{i}.val} = D{i}.inv{D{i}.val-1};
+            warning(sprintf('Duplicating the last forward model for subject %d', i));
+        else
+            error(sprintf('Forward model is missing for subject %d', i));
+        end
     end
     
     D{i}.inv{D{i}.val}.inverse = inverse;
