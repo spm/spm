@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3883 2010-05-08 15:38:49Z vladimir $
+% $Id: spm_est_smoothness.m 3911 2010-06-01 15:25:08Z guillaume $
 
 
 %-Assign input arguments
@@ -206,14 +206,9 @@ end
 
 %-Optional mask-weighted smoothing of RPV image
 %--------------------------------------------------------------------------
-try 
-    RPVsmooth = spm_get_defaults('stats.RPVsmooth'); % Gaussian FWHM in mm
-catch
-    RPVsmooth = 0;
-end
-if any(RPVsmooth) % RPVsmooth can be scalar or three-vector [sx sy sz]
-    voxmm = sqrt(sum(VM.mat(1:3,1:3).^2)); % (as in spm_smooth)
-    fwhm_vox = RPVsmooth ./ voxmm;
+fwhm_vox = 0;
+if any(fwhm_vox)
+    if length(fwhm_vox) == 1, fwhm_vox = fwhm_vox([1 1 1]);  end
     
     % Convert resel_img at in-mask voxels to resel volume
     mask = spm_read_vols(VM) > 0;
@@ -232,7 +227,7 @@ if any(RPVsmooth) % RPVsmooth can be scalar or three-vector [sx sy sz]
     
     % Normalise smoothed RPV by smoothed mask
     RPV( infer) = RPV(infer) ./ smask(infer);
-    RPV(~infer) = nan; % spm_list handles remaining (unlikely) in-mask NaNs
+    RPV(~infer) = NaN; % spm_list handles remaining (unlikely) in-mask NaNs
     
     % Get data at in-mask voxels; smoothed resel_img conforms with original
     resel_img = RPV(mask > 0);

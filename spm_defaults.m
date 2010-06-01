@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3826 2010-04-21 18:36:44Z ged $
+% $Id: spm_defaults.m 3911 2010-06-01 15:25:08Z guillaume $
 
 %-Prevent users from making direct calls to this function
 %-----------------------------------------------------------------------
@@ -60,7 +60,6 @@ defaults.stats.fmri.ufp  = 0.001;  % Upper tail F-probability
 defaults.stats.pet.ufp   = 0.05;
 defaults.stats.eeg.ufp   = 1;
 defaults.stats.topoFDR   = 1;
-defaults.stats.RPVsmooth = 0; % Gaussian FWHM in mm for smoothing RPV image
 
 % Mask defaults
 %=======================================================================
