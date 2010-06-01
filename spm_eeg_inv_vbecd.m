@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 3863 2010-05-05 11:45:40Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 3906 2010-06-01 10:48:32Z gareth $
 
 
 
@@ -52,6 +52,7 @@ end
 % rescale data to fit into minimisation routine (same magnitude for EEG and
 % MEG means same threshold and exit criteria)
 %--------------------------------------------------------------------------
+
 y    = P.y;
 sc_y = 1/std(y);
 y    = y*sc_y;
@@ -96,7 +97,7 @@ while outsideflag==1, %% don't use sources which end up outside the head
     M.Setup =P;             % pass volume conductor and sensor locations on
     M.sc_y =sc_y;           % pass on scaling factor
    
-  
+  %% startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
         [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
@@ -106,6 +107,7 @@ while outsideflag==1, %% don't use sources which end up outside the head
     P.F  = F;
     [P.ypost,outsideflag]=spm_eeg_wrap_dipfit_vbecd(P.Ep,M,U);
     P.ypost = P.ypost./sc_y; %%  scale it back
+    
     if outsideflag
         disp('running again, one or more dipoles outside head.');
     end;
