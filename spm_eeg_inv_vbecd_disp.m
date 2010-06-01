@@ -12,7 +12,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_eeg_inv_vbecd_disp.m 3907 2010-06-01 10:50:02Z gareth $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
@@ -72,7 +72,9 @@ if ~isfield(sdip,'exitflag')
 end
 
 try
+    error('crap');
     Pimg = spm_vol(D.inv{ind}.mesh.sMRI);
+    
 catch
     Pimg = spm_vol(fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii'));
 end
@@ -217,11 +219,11 @@ if size(i_seed,2)==1, i_seed=i_seed'; end
 
 % Display business
 %--------------------------------------------------------------------------
-loc_mm = sdip.loc{i_seed(1)}(:,i_dip);
+loc_mm = sdip.mniloc{i_seed(1)}(:,i_dip);
 if length(i_seed)>1
 %     unit = ones(1,sdip.n_dip);
     for ii = i_seed(2:end)
-        loc_mm = loc_mm + sdip.loc{ii}(:,i_dip);
+        loc_mm = loc_mm + sdip.mniloc{ii}(:,i_dip);
     end
     loc_mm = loc_mm/length(i_seed);
 end
@@ -274,7 +276,7 @@ if isempty(pi_dip)
         ic = mod(ind-1,Ncolors)+1;
         im = fix(ind/Ncolors)+1;
 
-        loc_pl = sdip.loc{tabl_seed_dip(ii,1)}(:,tabl_seed_dip(ii,2));
+        loc_pl = sdip.mniloc{tabl_seed_dip(ii,1)}(:,tabl_seed_dip(ii,2));
         js = sdip.j{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,sdip.Mtb);
         vloc = sdip.cov_loc{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,tabl_seed_dip(ii,2)*3+l3);
         dip_h(:,ii) = add1dip(loc_pl,js/Mn_j*20,vloc, ...
@@ -292,7 +294,7 @@ else
         for jj=1:sdip.n_dip
             im = mod(jj-1,Nmarker)+1;
             
-            loc_pl = sdip.loc{tabl_seed_dip(ii,1)}(:,jj);
+            loc_pl = sdip.mniloc{tabl_seed_dip(ii,1)}(:,jj);
             js = sdip.j{tabl_seed_dip(ii,1)}(jj*3+l3,sdip.Mtb);
             vloc = sdip.cov_loc{tabl_seed_dip(ii,1)}(jj*3+l3,jj*3+l3);
             js_m = js_m+js;
