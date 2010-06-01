@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3897 2010-05-21 15:06:50Z vladimir $
+% $Id: checkmeeg.m 3909 2010-06-01 13:42:06Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -190,14 +190,14 @@ else
         meegstruct.data.datatype = 'float32-le';
     end
 
-    if ~isfield(meegstruct.data, 'scale')
+    if ~isfield(meegstruct.data, 'scale') || any(size(meegstruct.data.scale)~= [Nchannels, 1, Ntrials])
         if strcmp(meegstruct.data.datatype, 'float32-le') || ...
                 strcmp(meegstruct.data.datatype, 'float64-le')
-            disp('checkmeeg: data scale missing, assigning default');
+            disp('checkmeeg: data scale missing or incorrect, assigning default');
             meegstruct.data.scale = ones(Nchannels, 1, Ntrials);
         else
             % Jump out if datascale missing and not in float format
-            disp('checkmeeg: data scale missing');
+            disp('checkmeeg: data scale missing or incorrect');
             return
         end
     end
