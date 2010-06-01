@@ -8,7 +8,7 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT F = spm_figure('Create',Tag,Name,Visible)
 % FORMAT F = spm_figure('FindWin',Tag)
-% FORMAT F = spm_figure('GetWin',Tag)
+% FORMAT F = spm_figure('getWin',Tag)
 % FORMAT spm_figure('Clear',F,Tags)
 % FORMAT spm_figure('Print',F)
 % FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
@@ -54,7 +54,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3899 2010-05-25 15:36:40Z guillaume $
+% $Id: spm_figure.m 3910 2010-06-01 14:58:20Z guillaume $
 
 
 %==========================================================================
@@ -82,7 +82,7 @@ function varargout=spm_figure(varargin)
 %   - Defaults to 'Graphics'
 % F - (Output) Figure number (if found) or empty (if not).
 %
-% FORMAT F = spm_figure('GetWin',Tag)
+% FORMAT F = spm_figure('getWin',Tag)
 % Like spm_figure('FindWin',Tag), except that if no such 'Tag'ged figure
 % is found and 'Tag' is recognized, one is created. Further, the "got" 
 % window is made current.
@@ -192,7 +192,7 @@ if isempty(F)
 elseif ischar(F)
     % Finds Graphics window with 'Tag' string - delete multiples
     Tag=F;
-    F = findobj(get(0,'Children'),'Flat','Tag',Tag);
+    F = myfindobj(myget(0,'Children'),'Flat','Tag',Tag);
     if length(F) > 1
         % Multiple Graphics windows - close all but most recent
         close(F(2:end))
@@ -200,14 +200,14 @@ elseif ischar(F)
     end
 else
     % F is supposed to be a figure number - check it
-    if ~any(F==get(0,'Children')), F=[]; end
+    if ~any(F==myget(0,'Children')), F=[]; end
 end
 varargout = {F};
 
 %==========================================================================
 case 'getwin'
 %==========================================================================
-% F=spm_figure('GetWin',Tag)
+% F=spm_figure('getWin',Tag)
 %-Like spm_figure('FindWin',Tag), except that if no such 'Tag'ged figure
 % is found and 'Tag' is recognized, one is created.
 
@@ -251,8 +251,8 @@ case 'parentfig'
 % F=spm_figure('ParentFig',h)
 
 if nargin<2, error('No object specified'), else h=varargin{2}; end
-F = get(h(1),'Parent');
-while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
+F = myget(h(1),'Parent');
+while ~strcmp(myget(F,'Type'),'figure'), F=myget(F,'Parent'); end
 varargout = {F};
 
 %==========================================================================
@@ -262,15 +262,15 @@ case 'clear'
 
 %-Sort out arguments
 if nargin<3, Tags=[]; else Tags=varargin{3}; end
-if nargin<2, F=get(0,'CurrentFigure'); else F=varargin{2}; end
+if nargin<2, F=myget(0,'CurrentFigure'); else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Clear figure
 if isempty(Tags)
     %-Clear figure of objects with 'HandleVisibility' 'on'
-    pos = get(F,'Position');
-    delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
+    pos = myget(F,'Position');
+    delete(myfindobj(myget(F,'Children'),'flat','HandleVisibility','on'));
     drawnow
     set(F,'Position',pos);
     %-Reset figures callback functions
@@ -281,16 +281,16 @@ if isempty(Tags)
         'WindowButtonMotionFcn','',...
         'WindowButtonUpFcn','')
     %-If this is the 'Interactive' window, reset name & UserData
-    if strcmp(get(F,'Tag'),'Interactive')
+    if strcmp(myget(F,'Tag'),'Interactive')
         set(F,'Name','','UserData',[]), end
 else
     %-Clear specified objects from figure
     if ischar(Tags); Tags=cellstr(Tags); end
     if any(strcmp(Tags(:),'!all'))
-        delete(get(F,'Children'))
+        delete(myget(F,'Children'))
     else
         for tag = Tags(:)'
-        delete(findobj(get(F,'Children'),'flat','Tag',tag{:}));
+        delete(myfindobj(myget(F,'Children'),'flat','Tag',tag{:}));
         end
     end 
 end
@@ -309,23 +309,23 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
 if ~isempty(F), F = spm_figure('FindWin',F); end
-if  isempty(F), F = get(0,'CurrentFigure'); end
+if  isempty(F), F = myget(0,'CurrentFigure'); end
 if  isempty(F), return, end
 
 %-Note current figure, & switch to figure to print
-cF = get(0,'CurrentFigure');
+cF = myget(0,'CurrentFigure');
 set(0,'CurrentFigure',F)
 
 %-See if window has paging controls
-hNextPage = findobj(F,'Tag','NextPage');
-hPrevPage = findobj(F,'Tag','PrevPage');
-hPageNo   = findobj(F,'Tag','PageNo');
+hNextPage = myfindobj(F,'Tag','NextPage');
+hPrevPage = myfindobj(F,'Tag','PrevPage');
+hPageNo   = myfindobj(F,'Tag','PageNo');
 iPaged    = ~isempty(hNextPage);
 
 %-Temporarily change all units to normalized prior to printing
-H  = findobj(get(F,'Children'),'flat','Type','axes');
+H  = myfindobj(myget(F,'Children'),'flat','Type','axes');
 if ~isempty(H)
-    un = cellstr(get(H,'Units'));
+    un = cellstr(myget(H,'Units'));
     set(H,'Units','normalized');
 end
 
@@ -333,8 +333,8 @@ end
 if ~iPaged
     spm_print(fname)
 else
-    hPg    = get(hNextPage,'UserData');
-    Cpage  = get(hPageNo,  'UserData');
+    hPg    = myget(hNextPage,'UserData');
+    Cpage  = myget(hPageNo,  'UserData');
     nPages = size(hPg,1);
 
     set([hNextPage,hPrevPage,hPageNo],'Visible','off')
@@ -362,7 +362,7 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
 F=spm_figure('FindWin',F);
-if isempty(F), F = get(0,'CurrentFigure'); end
+if isempty(F), F = myget(0,'CurrentFigure'); end
 if isempty(F), return, end
 
 [fn, pn, fi] = uiputfile({'*.ps','PostScript file (*.ps)'},'Print to File');
@@ -382,18 +382,18 @@ else h=varargin{2}(:)'; end
 %-Work out which figure we're in
 F = spm_figure('ParentFig',h(1));
 
-hNextPage = findobj(F,'Tag','NextPage');
-hPrevPage = findobj(F,'Tag','PrevPage');
-hPageNo   = findobj(F,'Tag','PageNo');
+hNextPage = myfindobj(F,'Tag','NextPage');
+hPrevPage = myfindobj(F,'Tag','PrevPage');
+hPageNo   = myfindobj(F,'Tag','PageNo');
 
 %-Create pagination widgets if required
 %--------------------------------------------------------------------------
 if isempty(hNextPage)
     WS = spm('WinScale');
     FS = spm('FontSizes');
-    SatFig = findobj('Tag','Satellite');
+    SatFig = myfindobj('Tag','Satellite');
     if ~isempty(SatFig)
-        SatFigPos    = get(SatFig,'Position');
+        SatFigPos    = myget(SatFig,'Position');
         hNextPagePos = [SatFigPos(3)-25 15 15 15];
         hPrevPagePos = [SatFigPos(3)-40 15 15 15];
         hPageNo      = [SatFigPos(3)-40  5 30 10];
@@ -435,9 +435,9 @@ end
 %-Add handles for this page to UserData of hNextPage
 %-Make handles for this page invisible if PageNo>1
 %--------------------------------------------------------------------------
-mVis    = strcmp('on',get(h,'Visible'));
-mHit    = strcmp('on',get(h,'HitTest'));
-hPg     = get(hNextPage,'UserData');
+mVis    = strcmp('on',myget(h,'Visible'));
+mHit    = strcmp('on',myget(h,'HitTest'));
+hPg     = myget(hNextPage,'UserData');
 if isempty(hPg)
     hPg = {h(mVis), h(~mVis), h(mHit), h(~mHit)};
 else
@@ -460,12 +460,12 @@ if nargin<2, move=1; else move=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
-hNextPage = findobj(F,'Tag','NextPage');
-hPrevPage = findobj(F,'Tag','PrevPage');
-hPageNo   = findobj(F,'Tag','PageNo');
+hNextPage = myfindobj(F,'Tag','NextPage');
+hPrevPage = myfindobj(F,'Tag','PrevPage');
+hPageNo   = myfindobj(F,'Tag','PageNo');
 if isempty(hNextPage), return, end
-hPg       = get(hNextPage,'UserData');
-Cpage     = get(hPageNo,  'UserData');
+hPg       = myget(hNextPage,'UserData');
+Cpage     = myget(hPageNo,  'UserData');
 nPages    = size(hPg,1);
 
 %-Sort out new page number
@@ -480,7 +480,7 @@ set(hPg{Npage,3},'HitTest','on');
 set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
 
 for k = 1:length(hPg{Npage,1})
-    if strcmp(get(hPg{Npage,1}(k),'Type'),'axes')
+    if strcmp(myget(hPg{Npage,1}(k),'Type'),'axes')
         axes(hPg{Npage,1}(k));
     end
 end
@@ -500,9 +500,9 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
-hNextPage = findobj(F,'Tag','NextPage');
-hPrevPage = findobj(F,'Tag','PrevPage');
-hPageNo   = findobj(F,'Tag','PageNo');
+hNextPage = myfindobj(F,'Tag','NextPage');
+hPrevPage = myfindobj(F,'Tag','PrevPage');
+hPageNo   = myfindobj(F,'Tag','PageNo');
 
 delete([hNextPage hPrevPage hPageNo])
 
@@ -515,11 +515,11 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
-hNextPage = findobj(F,'Tag','NextPage');
+hNextPage = myfindobj(F,'Tag','NextPage');
 if isempty(hNextPage)
     n = 1;
 else
-    n = size(get(hNextPage,'UserData'),1)+1;
+    n = size(myget(hNextPage,'UserData'),1)+1;
 end
 varargout = {n};
 
@@ -532,8 +532,8 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), error('No Graphics window'), end
 
-hPageNo   = findobj(F,'Tag','PageNo');
-Cpage     = get(hPageNo,  'UserData');
+hPageNo   = myfindobj(F,'Tag','PageNo');
+Cpage     = myget(hPageNo,  'UserData');
 
 varargout = {Cpage};
 
@@ -546,21 +546,21 @@ if nargin<6, HVis='on'; else HVis='off'; end
 if nargin<5, Angle=-45; else Angle=varargin{5}; end
 if nargin<4 || isempty(varargin{4}), Tag = 'WaterMark'; else Tag=varargin{4}; end
 if nargin<3 || isempty(varargin{3}), str = 'SPM';       else str=varargin{3}; end
-if nargin<2, if any(get(0,'Children')), F=gcf; else F=''; end
+if nargin<2, if any(myget(0,'Children')), F=gcf; else F=''; end
 else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Specify watermark color from background colour
-Colour = get(F,'Color');
+Colour = myget(F,'Color');
 %-Only mess with grayscale backgrounds
 if ~all(Colour==Colour(1)), return, end
 %-Work out colour - lighter unless grey value > 0.9
 Colour = Colour+(2*(Colour(1)<0.9)-1)*0.02;
 
-cF = get(0,'CurrentFigure');
+cF = myget(0,'CurrentFigure');
 set(0,'CurrentFigure',F)
-Units=get(F,'Units');
+Units=myget(F,'Units');
 set(F,'Units','normalized');
 h = axes('Position',[0.45,0.5,0.1,0.1],...
     'Units','normalized',...
@@ -628,7 +628,7 @@ F    = figure(...
     'Toolbar','none');
 if ~isempty(Name)
     set(F,'Name',sprintf('%s%s: %s',spm('ver'),...
-        spm('GetUser',' (%s)'),Name),'NumberTitle','off')
+        spm('getUser',' (%s)'),Name),'NumberTitle','off')
 end
 set(F,'Visible',Visible)
 varargout = {F};
@@ -638,15 +638,15 @@ varargout = {F};
 %==========================================================================
 % spm_figure('CreateBar',F)
 
-if nargin<2, if any(get(0,'Children')), F=gcf; else F=''; end
+if nargin<2, if any(myget(0,'Children')), F=gcf; else F=''; end
 else F=varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Help Menu
-t0 = findobj(get(F,'Children'),'Flat','Label','&Help');
+t0 = myfindobj(myget(F,'Children'),'Flat','Label','&Help');
 if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
-set(findobj(t0,'Position',1),'Separator','on');
+set(myfindobj(t0,'Position',1),'Separator','on');
 uimenu(t0,'Position',1,...
     'Label','SPM web',...
     'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
@@ -705,7 +705,7 @@ case 'figcontextmenu'
 % h = spm_figure('FigContextMenu',F)
 
 if nargin<2
-    F = get(0,'CurrentFigure');
+    F = myget(0,'CurrentFigure');
     if isempty(F), error('no figure'), end
 else
     F = spm_figure('FindWin',varargin{2});
@@ -765,7 +765,7 @@ return;
 %==========================================================================
 function myisresults(obj,evd)
 %==========================================================================
-hr = findobj(obj,'Label','&Results Table');
+hr = myfindobj(obj,'Label','&Results Table');
 try
     evalin('base','xSPM;');
     set(hr,'Enable','on');
@@ -827,69 +827,69 @@ end
 function myduplfig(obj,evd)
 %==========================================================================
 F = spm_figure('ParentFig',obj);
-h = findobj('-regexp','Tag','^Duplicata');
+h = myfindobj('-regexp','Tag','^Duplicata');
 if ~isempty(h)
-    name = char(get(h,'Tag')); name = name(:,length('Duplicata ')+1:end);
+    name = char(myget(h,'Tag')); name = name(:,length('Duplicata ')+1:end);
     s = max(str2num(name))+1;
 else
     s = 1;
 end
 str = ['Duplicata ' num2str(s)];
 G = spm_figure('Create',str,str);
-c = get(F,'children');
-[i, j] = setdiff(c,findobj(c,'flat','type','uimenu'));
+c = myget(F,'children');
+[i, j] = setdiff(c,myfindobj(c,'flat','type','uimenu'));
 copyobj(c(sort(j)),G);
-set(G,'Colormap',get(F,'Colormap'));
+set(G,'Colormap',myget(F,'Colormap'));
 
 %- Re-Register the MIP
 hMIPax     = spm_mip_ui('FindMIPax',G);
 if ~isempty(hMIPax)
-    ud         = get(hMIPax,'UserData');
-    ud.hMIPxyz = findobj(G,'Tag','hMIPxyz');
-    ud.hXr(1)  = findobj(G,'Tag','hX1r');
-    ud.hXr(2)  = findobj(G,'Tag','hX2r');
-    ud.hXr(3)  = findobj(G,'Tag','hX3r');
+    ud         = myget(hMIPax,'UserData');
+    ud.hMIPxyz = myfindobj(G,'Tag','hMIPxyz');
+    ud.hXr(1)  = myfindobj(G,'Tag','hX1r');
+    ud.hXr(2)  = myfindobj(G,'Tag','hX2r');
+    ud.hXr(3)  = myfindobj(G,'Tag','hX3r');
     set(hMIPax,'UserData',ud);
     spm_XYZreg('XReg',spm_XYZreg('FindReg','Interactive'),hMIPax,'spm_mip_ui');
 end
 
 %- Re-Register the Results Table
-hAx = findobj(G,'Type','axes','Tag','SPMList');
+hAx = myfindobj(G,'Type','axes','Tag','SPMList');
 if ~isempty(hAx)
-    ud = get(hAx,'UserData');
-    ud.HlistXYZ = findobj(G,'Tag','ListXYZ');
+    ud = myget(hAx,'UserData');
+    ud.HlistXYZ = myfindobj(G,'Tag','ListXYZ');
     set(hAx,'UserData',ud);
     spm_XYZreg('XReg',spm_XYZreg('FindReg','Interactive'),hAx,'spm_list');
-    hNextPage = findobj(G,'Tag','NextPage'); delete(hNextPage);
+    hNextPage = myfindobj(G,'Tag','NextPage'); delete(hNextPage);
 end
 
 %==========================================================================
-function H = findobj(varargin)
+function H = myfindobj(varargin)
 %==========================================================================
-shh = builtin('get',0,'showhiddenhandles');
+shh = get(0,'showhiddenhandles');
 set(0,'showhiddenhandles','on');
-H   = builtin('findobj',varargin{:});
+H   = findobj(varargin{:});
 set(0,'showhiddenhandles',shh);
 
 %==========================================================================
-function V = get(varargin)
+function V = myget(varargin)
 %==========================================================================
-shh = builtin('get',0,'showhiddenhandles');
-set(0,'showhiddenhandles','on');
-V   = builtin('get',varargin{:});
-set(0,'showhiddenhandles',shh);
+%shh = get(0,'showhiddenhandles');
+%set(0,'showhiddenhandles','on');
+V   = get(varargin{:});
+%set(0,'showhiddenhandles',shh);
 
 %==========================================================================
 function copy_menu(F,G)
 %==========================================================================
-handles = findobj(get(F,'Children'),'Flat','Type','uimenu','Visible','on');
+handles = myfindobj(myget(F,'Children'),'Flat','Type','uimenu','Visible','on');
 if isempty(handles), return; end;
 for F1=handles(:)'
-    if ~ismember(get(F1,'Label'),{'&Window' '&Desktop'})
-        G1 = uimenu(G,'Label',get(F1,'Label'),...
-            'CallBack',get(F1,'CallBack'),...
-            'Position',get(F1,'Position'),...
-            'Separator',get(F1,'Separator'));
+    if ~ismember(myget(F1,'Label'),{'&Window' '&Desktop'})
+        G1 = uimenu(G,'Label',myget(F1,'Label'),...
+            'CallBack',myget(F1,'CallBack'),...
+            'Position',myget(F1,'Position'),...
+            'Separator',myget(F1,'Separator'));
         copy_menu(F1,G1);
     end
 end

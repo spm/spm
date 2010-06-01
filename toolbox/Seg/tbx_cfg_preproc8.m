@@ -4,7 +4,9 @@ function preproc8 = tbx_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_preproc8.m 3764 2010-03-08 20:18:10Z guillaume $
+% $Id: tbx_cfg_preproc8.m 3910 2010-06-01 14:58:20Z guillaume $
+
+if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
 % ---------------------------------------------------------------------
 % vols Volumes
@@ -348,7 +350,6 @@ preproc8.vout = @vout;
 
 %======================================================================
 function varargout = spm_local_preproc_run(job)
-if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 varargout{:} = spm_preproc_run(job);
 
 %======================================================================
