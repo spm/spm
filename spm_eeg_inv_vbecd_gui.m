@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3862 2010-05-05 11:44:51Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3905 2010-06-01 10:46:53Z gareth $
 
 %%
 % Load data, if necessary
@@ -96,9 +96,10 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
             end
           %   disp('Undoing transformation to Tal space !');
           %   M1=eye(4)
-             
+            mniaff2mni=inv(M1)*D.inv{val}.datareg.toMNI; %% AFFine MNI to MNI (go back to CTF space and from there to MNI)
             P.forward.sens = ft_transform_sens(M1, P.forward.sens);
             P.forward.vol = ft_transform_vol(M1, P.forward.vol);
+            P.M1 = M1;
             
         end
     end
@@ -254,14 +255,17 @@ while adding_dips
             str = 'Location prior';
             while 1
                 s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
-                outside = ~ft_inside_vol(s0',P.forward.vol);
+                affs0=pinv(mniaff2mni)*[s0; 0];
+                affs0=affs0(1:3); % convert back to affine mni
+                outside = ~ft_inside_vol(affs0',P.forward.vol);
+                
                 str2='Prior location variance (mm2)';
                 diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
               
                 if all(~outside), break, end
                     str = 'Prior location must be inside head';
                   end
-            dip_pr(dip_q).mu_s0 = s0;    
+            dip_pr(dip_q).mu_s0 = affs0;    
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(3,1);
@@ -440,7 +444,13 @@ for ii=1:length(ltr)
     % Get the results out.
     inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
-    inverse.loc{ii} = reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
+    mniaffloc=reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
+    inverse.loc{ii} = mniaffloc;
+    
+%    inverse.mniloc{ii} = 
+    
+    mniloc=[mniaffloc; zeros(1,size(mniaffloc,2))]'*mniaff2mni; %% actual MNI location (with scaling)
+    inverse.mniloc{ii}=mniloc(:,1:3)';
     inverse.j{ii} = P.post_mu_w; % dipole(s) orient/ampl, in 1 column
     inverse.cov_loc{ii} = P.post_S_s; % cov matrix of source location
     inverse.cov_j{ii} = P.post_S_w; % cov matrix of source orient/ampl
@@ -454,6 +464,7 @@ for ii=1:length(ltr)
     displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,Pout(maxind).post_mu_w,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,Pout(maxind).post_S_w,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind);
   % 
 end
+
 D.inv{val}.inverse = inverse;
 
 %%
