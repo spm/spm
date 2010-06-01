@@ -13,7 +13,7 @@ function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 3885 2010-05-13 09:59:11Z vladimir $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 3908 2010-06-01 11:06:53Z gareth $
 
 x=U.u; %% input , unused
 
@@ -39,7 +39,7 @@ outside=0;
 for i=1:Ndips,
     
     pos=allpos(i,:);
-    mom=allmom(i,:);
+    mom=allmom(i,:)./1000; %% SCALE BACK FROM SIMILAR UNITS TO LOCATION;
     
     % mean correction of LF, only for EEG data.
     if ft_senstype(sens, 'eeg')
