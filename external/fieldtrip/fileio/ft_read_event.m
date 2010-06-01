@@ -79,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 1082 2010-05-17 20:23:21Z roboos $
+% $Id: ft_read_event.m 1134 2010-05-22 21:11:18Z vlalit $
 
 persistent sock           % for fcdc_tcp
 
@@ -129,7 +129,7 @@ if isempty(detectflank)
   detectflank = 'up';
 end
 
-if strcmp(eventformat, 'brainvision_eeg')
+if ismember(eventformat, {'brainvision_eeg', 'brainvision_dat'})
     [p, f, e] = fileparts(filename);
     filename = fullfile(p, [f '.vhdr']);
     eventformat = 'brainvision_vhdr';

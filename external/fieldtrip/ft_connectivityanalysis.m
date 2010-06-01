@@ -51,7 +51,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 1048 2010-05-07 09:12:03Z jansch $
+% $Id: ft_connectivityanalysis.m 1150 2010-05-27 15:27:43Z sashae $
 
 fieldtripdefs
 
@@ -227,7 +227,7 @@ if ~isempty(cfg.partchannel)
     allchannel = ft_channelselection(cfg.channel, data.label);
     pchanindx  = match_str(allchannel,cfg.partchannel);
     kchanindx  = setdiff(1:numel(allchannel), pchanindx);
-    keep       = allchannel(kchanindx);
+    keepchn    = allchannel(kchanindx);
 
     cfg.pchanindx   = pchanindx;
     cfg.allchanindx = kchanindx;
@@ -235,10 +235,10 @@ if ~isempty(cfg.partchannel)
     for k = 1:numel(cfg.partchannel)
       partstr = [partstr,'-',cfg.partchannel{k}];
     end
-    for k = 1:numel(keep)
-      keep{k} = [keep{k},'\',partstr(2:end)];
+    for k = 1:numel(keepchn)
+      keepchn{k} = [keepchn{k},'\',partstr(2:end)];
     end
-    data.label      = keep; % update labels to remove the partialed channels
+    data.label      = keepchn; % update labels to remove the partialed channels
     % FIXME consider keeping track of which channels have been partialised      
 else
     cfg.pchanindx   = [];
@@ -510,29 +510,29 @@ if ~isempty(powindx),
   switch dtype
   case {'freq' 'freqmvar'}
     if isfield(data, 'labelcmb') && ~isstruct(powindx),
-      keep   = powindx(:,1) ~= powindx(:,2);
-      datout = datout(keep,:,:,:,:);
+      keepchn = powindx(:,1) ~= powindx(:,2);
+      datout  = datout(keepchn,:,:,:,:);
       if ~isempty(varout),
-        varout = varout(keep,:,:,:,:);
+        varout = varout(keepchn,:,:,:,:);
       end
-      data.labelcmb = data.labelcmb(keep,:);
+      data.labelcmb = data.labelcmb(keepchn,:);
     end
   case 'source'
-    nvox   = size(unique(data.pos(:,1:3),'rows'),1);
-    ncmb   = size(data.pos,1)/nvox-1;
-    remove = (powindx(:,1) == powindx(:,2)) & ([1:size(powindx,1)]' > nvox*ncmb);
-    keep   = ~remove;
+    nvox    = size(unique(data.pos(:,1:3),'rows'),1);
+    ncmb    = size(data.pos,1)/nvox-1;
+    remove  = (powindx(:,1) == powindx(:,2)) & ([1:size(powindx,1)]' > nvox*ncmb);
+    keepchn = ~remove;
     
-    datout = datout(keep,:,:,:,:);
+    datout = datout(keepchn,:,:,:,:);
     if ~isempty(varout),
-      varout = varout(keep,:,:,:,:);
+      varout = varout(keepchn,:,:,:,:);
     end
     inside = logical(zeros(1,size(data.pos,1)));
     inside(data.inside) = true;
-    inside = inside(keep);
+    inside = inside(keepchn);
     data.inside  = find(inside)';
     data.outside = find(inside==0)';
-    data.pos     = data.pos(keep,:);
+    data.pos     = data.pos(keepchn,:);
   end
 end
 
@@ -584,7 +584,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_connectivityanalysis.m 1048 2010-05-07 09:12:03Z jansch $';
+cfg.version.id = '$Id: ft_connectivityanalysis.m 1150 2010-05-27 15:27:43Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
