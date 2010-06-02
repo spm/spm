@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 3764 2010-03-08 20:18:10Z guillaume $
+% $Id: spm_eeg_var_measures.m 3914 2010-06-02 15:32:58Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -103,7 +103,10 @@ cfg.foilim     = [0 100]; % Frequency range
 cfg.tapsmofrq = 1; % Frequency resolution
 %
 inp = ft_freqanalysis(cfg, data);
-coh = ft_freqdescriptives([], inp);
+
+cfg1 = [];
+cfg1.method = 'coh';
+coh = ft_connectivityanalysis(cfg1, inp);
 %%
 % Defines how trials are shifted for shift-predictors
 shift=[2:Ntrials 1];
@@ -116,7 +119,7 @@ for c=1:length(data.label)
     sdata.trial(:,c,:)=data.trial(shift,c,:);
     cfg.channelcmb = {data.label{c}, 'all'};
     inp = ft_freqanalysis(cfg, sdata);
-    sscoh = ft_freqdescriptives([], inp);
+    sscoh = ft_connectivityanalysis(cfg1, inp);
     for i=1:size(sscoh.labelcmb, 1)
         ind=[intersect(strmatch(sscoh.labelcmb(i,1),scoh.labelcmb(:,1),'exact'), ...
             strmatch(sscoh.labelcmb(i,2),scoh.labelcmb(:,2),'exact'))...
