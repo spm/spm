@@ -9,7 +9,7 @@ function out = spm_run_smooth(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_smooth.m 3534 2009-11-05 12:34:21Z guillaume $
+% $Id: spm_run_smooth.m 3915 2010-06-02 17:09:10Z guillaume $
 
 job       = varargin{1};
 out.files = cell(size(job.data));
@@ -19,15 +19,18 @@ for i = 1:numel(job.data)
     out.files{i}      = fullfile(pth,[job.prefix nam ext num]);
     spm_smooth(job.data{i},out.files{i},job.fwhm,job.dtype);
     if job.im
-        vi = spm_read_vols(spm_vol(job.data{i}),1);
-        v  = spm_vol(out.files{i});
-        vo = spm_read_vols(v);
-        if spm_type(v.dt(1),'nanrep')
-            vo(isnan(vi)) = NaN;
-        else
-            vo(isnan(vi)) = 0;
+        vi = spm_vol(job.data{i});
+        vo = spm_vol(out.files{i});
+        for j=1:numel(vi)
+            vvi = spm_read_vols(vi(j),1);
+            vvo = spm_read_vols(vo(j));
+            if spm_type(vo(j).dt(1),'nanrep')
+                vvo(isnan(vvi)) = NaN;
+            else
+                vvo(isnan(vvi)) = 0;
+            end
+            spm_write_vol(vo(j),vvo);
         end
-        spm_write_vol(v,vo);
     end
     spm_progress_bar('Set',i);
 end
