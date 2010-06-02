@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_check_installation.m 3913 2010-06-02 15:25:23Z guillaume $
 
 if isdeployed, return; end
 
@@ -140,6 +140,7 @@ function check_full
 
 %-Say Hello
 %--------------------------------------------------------------------------
+fprintf('\n');
 disp( ' ___  ____  __  __                                           ' );
 disp( '/ __)(  _ \(  \/  )                                          ' );
 disp( '\__ \ )___/ )    (   Statistical Parametric Mapping          ' );
@@ -513,7 +514,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3756 2010-03-05 18:43:37Z guillaume $ tag)
+%Extract Subversion properties ($Id: spm_check_installation.m 3913 2010-06-02 15:25:23Z guillaume $ tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
