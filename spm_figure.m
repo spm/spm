@@ -54,7 +54,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3913 2010-06-02 15:25:23Z guillaume $
+% $Id: spm_figure.m 3916 2010-06-03 11:12:34Z guillaume $
 
 
 %==========================================================================
@@ -644,32 +644,34 @@ F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Help Menu
-t0 = findall(allchild(F),'Flat','Label','&Help');
+t0 = findall(allchild(F),'Flat','Label','&Help'); delete(allchild(t0));
 if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
-set(findall(t0,'Position',1),'Separator','on');
-uimenu(t0,'Position',1,...
-    'Label','SPM Web Site',...
+pos = get(t0,'Position');
+uimenu(t0,'Label','SPM Help','CallBack','spm_help');
+uimenu(t0,'Label','SPM Web Site',...
     'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
-uimenu(t0,'Position',2,...
-    'Label','SPM Wikibooks',...
+uimenu(t0,'Label','SPM WikiBook',...
     'CallBack','web(''http://en.wikibooks.org/wiki/SPM'');');
-uimenu(t0,'Position',3,...
-    'Label','SPM Manual (PDF)',...
-    'CallBack','open(fullfile(spm(''dir''),''man'',''manual.pdf''));');
+uimenu(t0,'Label','SPM Manual (PDF)',...
+    'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
+
+%-Check Menu
 if ~isdeployed
-    uimenu(t0,'Position',4,...
-        'Label','SPM Check Installation',...
+    uimenu(t0,'Separator','on','Label','SPM Check Installation',...
         'CallBack','spm_check_installation(''full'')');
-    uimenu(t0,'Position',5,...
-        'Label','SPM Check for Updates',...
+    uimenu(t0,'Label','SPM Check for Updates',...
         'CallBack','spm_update;');
 end
-uimenu(t0,'Position',6,...
-    'Label','SPM Help',...
-    'CallBack','spm_help');
+
+%- About Menu
+[v,r] = spm('Ver');
+uimenu(t0,'Separator','on','Label',['&About ' v ' (r' r ')'],...
+    'CallBack','spm_help(''spm.man'')');
+uimenu(t0,'Label','&About MATLAB',...
+    'CallBack','helpmenufcn(gcbf,''HelpAbout'')');
 
 %-Figure Menu
-t0=uimenu(F,  'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myisresults);
+t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myisresults);
 
 %-Colour Menu
 t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off');
@@ -687,14 +689,18 @@ uimenu(t2,    'Label','Invert',    'CallBack','spm_figure(''ColorMap'',''invert'
 uimenu(t2,    'Label','Brighten',  'CallBack','spm_figure(''ColorMap'',''brighten'')');
 uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'')');
 
+%-Show All Figures
+uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
+    'Separator','on', 'CallBack','spm(''Show'');');
+
 %-Copy Figure
 uimenu(t0, 'Label','&Copy Figure', 'HandleVisibility','off',...
-    'Separator','on', 'CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
+    'CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
 
 %-Print Menu
 t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off');
 uimenu(t1,    'Label','&Default File', 'HandleVisibility','off', ...
-    'CallBack','spm_figure(''Print'',gcbf)');
+    'CallBack','spm_figure(''Print'',gcf)');
 uimenu(t1,    'Label','&Specify File...', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''PrintTo'',spm_figure(''FindWin'',''Graphics''))');
 

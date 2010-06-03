@@ -118,7 +118,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 2272 2008-09-30 21:21:24Z guillaume $
+% $Id: spm_help.m 3916 2010-06-03 11:12:34Z guillaume $
 
 
 %=======================================================================
@@ -265,7 +265,7 @@ uicontrol(Fhelp,'Style','Frame',...
 %-----------------------------------------------------------------------
 Fmenu  = spm_figure('Findwin','Menu');
 C      = get(Fmenu,'Children');
-modality = spm('CheckModality');
+if ~isempty(Fmenu), modality = spm('CheckModality'); end
 for i = length(C):-1:1
     units = get(C(i),'Units');
     funits = get(C(i),'FontUnits');

@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm.m 3916 2010-06-03 11:12:34Z guillaume $
 
 
 %=======================================================================
@@ -716,9 +716,8 @@ case 'show'                   %-Bring visible MATLAB windows to the fore
 cF = get(0,'CurrentFigure');
 Fs = get(0,'Children');
 Fs = findobj(Fs,'flat','Visible','on');
-for F=Fs', figure(F), end
-set(0,'CurrentFigure',cF)
-spm('FnBanner','GUI show');
+for F=Fs(:)', figure(F), end
+try, figure(cF), set(0,'CurrentFigure',cF); end
 varargout={Fs};
 
 

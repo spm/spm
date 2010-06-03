@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3811 2010-04-07 14:30:48Z volkmar $
+% $Id: spm_jobman.m 3916 2010-06-03 11:12:34Z guillaume $
 
 
 if nargin==0
@@ -435,9 +435,7 @@ end
 function pulldown
 fg = spm_figure('findwin','Graphics');
 if isempty(fg), return; end;
-set(0,'ShowHiddenHandles','on');
-delete(findobj(fg,'tag','jobs'));
-set(0,'ShowHiddenHandles','off');
+delete(findall(fg,'tag','jobs'));
 f0 = uimenu(fg,'Label','TASKS', ...
             'HandleVisibility','off', 'tag','jobs');
 f1 = uimenu(f0,'Label','BATCH', 'Callback',@cfg_ui, ...
