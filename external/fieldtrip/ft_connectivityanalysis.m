@@ -51,7 +51,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 1150 2010-05-27 15:27:43Z sashae $
+% $Id: ft_connectivityanalysis.m 1176 2010-06-01 11:17:30Z jansch $
 
 fieldtripdefs
 
@@ -176,15 +176,17 @@ if isfield(data, 'label') && ~isempty(cfg.channelcmb),
 end
 
 % check whether the required inparam is present in the data
-if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'crsspctrm') && isfield(data, 'powspctrm')),
+if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'crsspctrm')),
     switch dtype
     case 'freq'
         if strcmp(inparam, 'crsspctrm') 
-            if ~isfield(data, 'powspctrm')
+            if isfield(data, 'fourierspctrm')
                 [data, powindx, hasrpt] = univariate2bivariate(data, 'fourierspctrm', 'crsspctrm', dtype, 0, cfg.channelcmb);
             elseif strcmp(inparam, 'crsspctrm') && isfield(data, 'powspctrm')
                 % if input data is old-fashioned, i.e. contains powandcsd
                 [data, powindx, hasrpt] = univariate2bivariate(data, 'powandcsd', 'crsspctrm', dtype, 0, cfg.channelcmb);
+            else
+                powindx = labelcmb2indx(data.labelcmb);
             end
         elseif strcmp(inparam, 'powcovspctrm')
             if isfield(data, 'powspctrm'),
@@ -204,7 +206,7 @@ if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'cr
     otherwise
     end
       
-else
+else 
     powindx = [];
 end
 
@@ -584,7 +586,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_connectivityanalysis.m 1150 2010-05-27 15:27:43Z sashae $';
+cfg.version.id = '$Id: ft_connectivityanalysis.m 1176 2010-06-01 11:17:30Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

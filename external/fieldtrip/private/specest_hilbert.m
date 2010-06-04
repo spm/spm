@@ -30,7 +30,7 @@ function [spectrum,freqoi,timeoi] = specest_hilbert(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Rev: 977 $
+% $Rev: 1180 $
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'freqoi','timeoi','width','filttype','filtorder','filtdir'});
@@ -62,8 +62,9 @@ nfreq = length(freqoi);
 
 
 % Set timeboi and timeoi
+offset = round(time(1)*fsample);
 if isnumeric(timeoi) % if input is a vector
-  timeboi  = round(timeoi .* fsample) + 1;
+  timeboi  = round(timeoi .* fsample - offset) + 1;
   ntimeboi = length(timeboi);
   timeoi   = round(timeoi .* fsample) ./ fsample;
 elseif strcmp(timeoi,'all') % if input was 'all'

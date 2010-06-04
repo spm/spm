@@ -1,4 +1,4 @@
-function [freq] = ft_freqbaseline(cfg, freq);
+function [freq] = ft_freqbaseline(cfg, freq)
 
 % FT_FREQBASELINE performs baseline normalization for time-frequency data
 %
@@ -9,7 +9,7 @@ function [freq] = ft_freqbaseline(cfg, freq);
 %   cfg.baseline     = [begin end] (default = 'no')
 %   cfg.baselinetype = 'absolute' 'relchange' 'relative' (default = 'absolute')
 %
-% See also FT_FREQANALYSIS, FT_TIMELOCKBASELINE
+% See also FT_FREQANALYSIS, FT_TIMELOCKBASELINE, FT_FREQCOMPARISON
 
 % Copyright (C) 2004-2006, Marcel Bastiaansen
 % Copyright (C) 2005-2006, Robert Oostenveld
@@ -30,7 +30,7 @@ function [freq] = ft_freqbaseline(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_freqbaseline.m 1192 2010-06-02 19:32:39Z arjsto $
 
 fieldtripdefs
 
@@ -132,7 +132,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqbaseline.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_freqbaseline.m 1192 2010-06-02 19:32:39Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
 % remember the exact configuration details in the output 

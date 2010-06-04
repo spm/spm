@@ -50,7 +50,7 @@ function [cfg, data] = prepare_timefreq_data(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_timefreq_data.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: prepare_timefreq_data.m 1189 2010-06-02 15:34:31Z vlalit $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),              cfg.channel = 'all';                     end
@@ -120,7 +120,7 @@ end
 
 for c=1:Nvarargin
   % match the channel selection with this dataset
-  cfg.channel = channelselection(cfg.channel, remember{c}.label);
+  cfg.channel = ft_channelselection(cfg.channel, remember{c}.label);
 
   % match the selected latency with this dataset
   if isempty(findstr(remember{c}.dimord, 'time')) || all(isnan(remember{c}.time))
@@ -445,7 +445,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: prepare_timefreq_data.m 952 2010-04-21 18:29:51Z roboos $';
+cfg.version.id = '$Id: prepare_timefreq_data.m 1189 2010-06-02 15:34:31Z vlalit $';
 
 cfg.previous = [];
 % remember the configuration details from the input data
