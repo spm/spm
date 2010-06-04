@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 3765 2010-03-09 19:03:57Z guillaume $
+% $Id: spm_cfg_voi.m 3919 2010-06-04 16:45:16Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -65,17 +65,6 @@ thresh.num     = [1 1];
 thresh.val     = {0.001};
 
 % -------------------------------------------------------------------------
-% threshm Threshold
-% -------------------------------------------------------------------------
-threshm         = cfg_entry;
-threshm.tag     = 'thresh';
-threshm.name    = 'Uncorrected mask p-value';
-threshm.help    = {''};
-threshm.strtype = 'e';
-threshm.num     = [1 1];
-threshm.val     = {0.05};
-
-% -------------------------------------------------------------------------
 % extent Extent (voxels)
 % -------------------------------------------------------------------------
 extent         = cfg_entry;
@@ -85,6 +74,27 @@ extent.help    = {''};
 extent.strtype = 'e';
 extent.num     = [1 1];
 extent.val     = {0};
+
+% -------------------------------------------------------------------------
+% contrast Contrast
+% -------------------------------------------------------------------------
+contrastm         = cfg_entry;
+contrastm.tag     = 'contrast';
+contrastm.name    = 'Contrast';
+contrastm.help    = {'Indices of contrast(s).'};
+contrastm.strtype = 'e';
+contrastm.num     = [1 Inf];
+
+% -------------------------------------------------------------------------
+% threshm Threshold
+% -------------------------------------------------------------------------
+threshm         = cfg_entry;
+threshm.tag     = 'thresh';
+threshm.name    = 'Uncorrected mask p-value';
+threshm.help    = {''};
+threshm.strtype = 'e';
+threshm.num     = [1 1];
+threshm.val     = {0.05};
 
 % -------------------------------------------------------------------------
 % mtype Nature of mask
@@ -102,7 +112,7 @@ mtype.values  = {0 1};
 mask         = cfg_branch;
 mask.tag     = 'mask';
 mask.name    = 'Mask definition';
-mask.val     = {contrast threshm mtype};
+mask.val     = {contrastm threshm mtype};
 mask.help    = {''};
 
 % -------------------------------------------------------------------------

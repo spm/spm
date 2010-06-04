@@ -10,6 +10,7 @@ function varargout=spm_figure(varargin)
 % FORMAT F = spm_figure('FindWin',Tag)
 % FORMAT F = spm_figure('GetWin',Tag)
 % FORMAT spm_figure('Clear',F,Tags)
+% FORMAT spm_figure('Close',F)
 % FORMAT spm_figure('Print',F)
 % FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 %
@@ -54,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3916 2010-06-03 11:12:34Z guillaume $
+% $Id: spm_figure.m 3919 2010-06-04 16:45:16Z guillaume $
 
 
 %==========================================================================
@@ -89,12 +90,6 @@ function varargout=spm_figure(varargin)
 % Tag   - Figure 'Tag' to get, defaults to 'Graphics'
 % F - Figure number (if found/created) or empty (if not).
 %
-% FORMAT F = spm_figure('ParentFig',h)
-% Finds window containing the object whose handle is specified
-% h - Handle of object whose parent figure is required
-%   - If a vector, then first object handle is used
-% F - Number or parent figure
-%
 % FORMAT spm_figure('Clear',F,Tags)
 % Clears figure, leaving ToolBar (& other objects with invisible handles)
 % Optional third argument specifies 'Tag's of objects to delete.
@@ -105,6 +100,11 @@ function varargout=spm_figure(varargin)
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
+% FORMAT spm_figure('Close',F)
+% Closes figures (deletion without confirmation)
+% Also closes the docking container if empty.
+% F - 'Tag' string or figure number of figure to clear, defaults to gcf
+% 
 % FORMAT spm_figure('Print',F)
 % F - [Optional] Figure to print. ('Tag' or figure number)
 %     Defaults to figure 'Tag'ed as 'Graphics'.
@@ -250,9 +250,9 @@ case 'parentfig'
 %==========================================================================
 % F=spm_figure('ParentFig',h)
 
+warning('spm_figure(''ParentFig'',h) is deprecated. Use ANCESTOR instead.');
 if nargin<2, error('No object specified'), else h=varargin{2}; end
-F = get(h(1),'Parent');
-while ~strcmp(get(F,'Type'),'figure'), F=get(F,'Parent'); end
+F = ancestor(h,'figure');
 varargout = {F};
 
 %==========================================================================
@@ -267,12 +267,13 @@ F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Clear figure
+isdocked = strcmp(get(F,'WindowStyle'),'docked');
 if isempty(Tags)
     %-Clear figure of objects with 'HandleVisibility' 'on'
     pos = get(F,'Position');
     delete(findall(allchild(F),'flat','HandleVisibility','on'));
     drawnow
-    set(F,'Position',pos);
+    if ~isdocked, set(F,'Position',pos); end
     %-Reset figures callback functions
     zoom(F,'off');
     rotate3d(F,'off');
@@ -295,7 +296,34 @@ else
     end 
 end
 set(F,'Pointer','Arrow')
-movegui(F);
+if ~isdocked, movegui(F); end
+
+%==========================================================================
+case 'close'
+%==========================================================================
+% spm_figure('Close',F)
+
+%-Sort out arguments
+if nargin < 2, F = gcf; else F = varargin{2}; end
+F = spm_figure('FindWin',F);
+if isempty(F), return, end
+
+%-Detect if SPM windows are in docked mode
+hMenu = spm_figure('FindWin','Menu');
+isdocked = strcmp(get(hMenu,'WindowStyle'),'docked');
+
+%-Close figures (and deleted without confirmation)
+delete(F);
+
+%-If in docked mode and closing SPM, close the container as well
+if isdocked && ismember(hMenu,F)
+    try
+        desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+        group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
+        hContainer = desktop.getGroupContainer(group);
+    	hContainer.getTopLevelAncestor.hide;
+    end
+end
 
 %==========================================================================
 case 'print'
@@ -380,7 +408,7 @@ if nargin<2 || isempty(varargin{2}), error('No handles to paginate')
 else h=varargin{2}(:)'; end
 
 %-Work out which figure we're in
-F = spm_figure('ParentFig',h(1));
+F = ancestor(h(1),'figure');
 
 hNextPage = findall(F,'Tag','NextPage');
 hPrevPage = findall(F,'Tag','PrevPage');
@@ -633,6 +661,16 @@ end
 set(F,'Visible',Visible)
 varargout = {F};
 
+isdocked = strcmp(get(spm_figure('FindWin','Menu'),'WindowStyle'),'docked');
+if isdocked
+    try
+        desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+        group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
+        set(getJFrame(F),'GroupName',group);
+        set(F,'WindowStyle','docked');
+    end
+end
+
 %==========================================================================
  case 'createbar'
 %==========================================================================
@@ -648,12 +686,15 @@ t0 = findall(allchild(F),'Flat','Label','&Help'); delete(allchild(t0));
 if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
 pos = get(t0,'Position');
 uimenu(t0,'Label','SPM Help','CallBack','spm_help');
-uimenu(t0,'Label','SPM Web Site',...
-    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
-uimenu(t0,'Label','SPM WikiBook',...
-    'CallBack','web(''http://en.wikibooks.org/wiki/SPM'');');
 uimenu(t0,'Label','SPM Manual (PDF)',...
     'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
+t1=uimenu(t0,'Label','SPM &Web Resources');
+uimenu(t1,'Label','SPM Web &Site',...
+    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
+uimenu(t1,'Label','SPM &WikiBook',...
+    'CallBack','web(''http://en.wikibooks.org/wiki/SPM'');');
+uimenu(t1,'Separator','on','Label','SPM &Extensions',...
+    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/ext/'');');
 
 %-Check Menu
 if ~isdeployed
@@ -673,29 +714,17 @@ uimenu(t0,'Label','&About MATLAB',...
 %-Figure Menu
 t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myisresults);
 
-%-Colour Menu
-t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off');
-t2=uimenu(t1, 'Label','Colormap');
-uimenu(t2,    'Label','Gray',      'CallBack','spm_figure(''ColorMap'',''gray'')');
-uimenu(t2,    'Label','Hot',       'CallBack','spm_figure(''ColorMap'',''hot'')');
-uimenu(t2,    'Label','Pink',      'CallBack','spm_figure(''ColorMap'',''pink'')');
-uimenu(t2,    'Label','Jet',       'CallBack','spm_figure(''ColorMap'',''jet'')');
-uimenu(t2,    'Label','Gray-Hot',  'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
-uimenu(t2,    'Label','Gray-Cool', 'CallBack','spm_figure(''ColorMap'',''gray-cool'')');
-uimenu(t2,    'Label','Gray-Pink', 'CallBack','spm_figure(''ColorMap'',''gray-pink'')');
-uimenu(t2,    'Label','Gray-Jet',  'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
-t2=uimenu(t1, 'Label','Effects');
-uimenu(t2,    'Label','Invert',    'CallBack','spm_figure(''ColorMap'',''invert'')');
-uimenu(t2,    'Label','Brighten',  'CallBack','spm_figure(''ColorMap'',''brighten'')');
-uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'')');
-
 %-Show All Figures
 uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
-    'Separator','on', 'CallBack','spm(''Show'');');
+    'CallBack','spm(''Show'');');
+
+%-Dock SPM Figures
+uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
+    'CallBack',@mydockspm);
 
 %-Copy Figure
 uimenu(t0, 'Label','&Copy Figure', 'HandleVisibility','off',...
-    'CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
+    'Separator','on','CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
 
 %-Print Menu
 t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off');
@@ -711,6 +740,22 @@ uimenu(t0,    'Label','C&lear Figure', 'HandleVisibility','off', ...
 %-Duplicate Menu
 uimenu(t0,    'Label','&Duplicate Figure', 'HandleVisibility','off', ...
     'Visible','off', 'CallBack',@myduplfig);
+
+%-Colour Menu
+t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off','Separator','on');
+t2=uimenu(t1, 'Label','Colormap');
+uimenu(t2,    'Label','Gray',      'CallBack','spm_figure(''ColorMap'',''gray'')');
+uimenu(t2,    'Label','Hot',       'CallBack','spm_figure(''ColorMap'',''hot'')');
+uimenu(t2,    'Label','Pink',      'CallBack','spm_figure(''ColorMap'',''pink'')');
+uimenu(t2,    'Label','Jet',       'CallBack','spm_figure(''ColorMap'',''jet'')');
+uimenu(t2,    'Label','Gray-Hot',  'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
+uimenu(t2,    'Label','Gray-Cool', 'CallBack','spm_figure(''ColorMap'',''gray-cool'')');
+uimenu(t2,    'Label','Gray-Pink', 'CallBack','spm_figure(''ColorMap'',''gray-pink'')');
+uimenu(t2,    'Label','Gray-Jet',  'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
+t2=uimenu(t1, 'Label','Effects');
+uimenu(t2,    'Label','Invert',    'CallBack','spm_figure(''ColorMap'',''invert'')');
+uimenu(t2,    'Label','Brighten',  'CallBack','spm_figure(''ColorMap'',''brighten'')');
+uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'')');
 
 %-Satellite Table
 uimenu(t0,    'Label','&Results Table', 'HandleVisibility','off', ...
@@ -846,7 +891,7 @@ end
 %==========================================================================
 function myduplfig(obj,evd)
 %==========================================================================
-F = spm_figure('ParentFig',obj);
+F = ancestor(obj,'figure');
 h = findall('-regexp','Tag','^Duplicata');
 if ~isempty(h)
     name = char(get(h,'Tag')); name = name(:,length('Duplicata ')+1:end);
@@ -884,6 +929,30 @@ if ~isempty(hAx)
 end
 
 %==========================================================================
+function mydockspm(obj,evd)
+%==========================================================================
+% Largely inspired by setFigDockGroup from Yair Altman
+% http://www.mathworks.com/matlabcentral/fileexchange/16650
+hMenu = spm_figure('FindWin','Menu');
+hInt  = spm_figure('FindWin','Interactive');
+hGra  = spm_figure('FindWin','Graphics');
+h     = [hMenu hInt hGra];
+group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
+try
+    desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+    if ~ismember(group,cell(desktop.getGroupTitles))
+        desktop.addGroup(group);
+    end
+    for i=1:length(h)
+        set(getJFrame(h(i)),'GroupName',group);
+    end
+    hContainer = desktop.getGroupContainer(group);
+    set(hContainer,'userdata',group);
+end
+set(h,'WindowStyle','docked');
+try, desktop.setGroupDocked(group,false); end
+
+%==========================================================================
 function copy_menu(F,G)
 %==========================================================================
 handles = findall(allchild(F),'Flat','Type','uimenu','Visible','on');
@@ -896,4 +965,29 @@ for F1=handles(:)'
             'Separator',get(F1,'Separator'));
         copy_menu(F1,G1);
     end
+end
+
+%==========================================================================
+function jframe = getJFrame(h)
+%==========================================================================
+warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+hhFig    = handle(h);
+jframe   = [];
+maxTries = 16;
+while maxTries > 0
+    try
+        jframe = get(hhFig,'javaframe');
+        if ~isempty(jframe)
+            break;
+        else
+            maxTries = maxTries - 1;
+            drawnow; pause(0.1);
+        end
+    catch
+        maxTries = maxTries - 1;
+        drawnow; pause(0.1);
+    end
+end
+if isempty(jframe)
+    error('Cannot retrieve the java frame from handle.');
 end

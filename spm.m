@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3916 2010-06-03 11:12:34Z guillaume $
+% $Id: spm.m 3919 2010-06-04 16:45:16Z guillaume $
 
 
 %=======================================================================
@@ -335,7 +335,7 @@ try, feature('JavaFigures',0); end
 local_clc;
 spm('AsciiWelcome');                    fprintf('\n\nInitialising SPM');
 Modality = upper(Action);                                  fprintf('.');
-delete(get(0,'Children'));                                 fprintf('.');
+spm_figure('close',allchild(0));                           fprintf('.');
 
 %-Load startup global defaults
 %-----------------------------------------------------------------------
@@ -931,7 +931,7 @@ end
 
 
 %=======================================================================
-case {'cmdline'}                                %-SPM command line mode?
+case 'cmdline'                                  %-SPM command line mode?
 %=======================================================================
 % CmdLine = spm('CmdLine',CmdLine)
 %-----------------------------------------------------------------------
@@ -1125,7 +1125,7 @@ case 'quit'                                      %-Quit SPM and clean up
 %=======================================================================
 % spm('Quit')
 %-----------------------------------------------------------------------
-delete(get(0,'Children'));
+spm_figure('close',allchild(0));
 local_clc;
 fprintf('Bye for now...\n\n');
 

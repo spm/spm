@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3899 2010-05-25 15:36:40Z guillaume $
+% $Id: spm_results_ui.m 3919 2010-06-04 16:45:16Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 3899 $'; 
+SVNid = '$Rev: 3919 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1143,7 +1143,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         %-Check for existing MultiPlanar toolbox
         hMP  = get(hBmp,'UserData');
         if ishandle(hMP)
-            figure(spm_figure('ParentFig',hMP))
+            figure(ancestor(hMP,'figure'));
             varargout = {hMP};
             return
         end
