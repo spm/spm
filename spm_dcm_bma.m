@@ -10,7 +10,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
 %           all models used in average)
 %
-% theta     [Np x Nsamp] posterior density matrix. Parameter vector is of 
+% Ep        [Np x Nsamp] posterior density matrix. Parameter vector is of 
 %           dimension Np and there are Nsamp samples
 % Nocc      Number of models in Occam's window
 %
@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3872 2010-05-07 14:12:19Z maria $
+% $Id: spm_dcm_bma.m 3917 2010-06-04 10:55:00Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -40,7 +40,7 @@ load(subj(1).sess(1).model(1).fname);
 nreg = DCM.n;
 min  = DCM.M.m;
 
-theta  = [];
+Ep  = [];
 [Ni M] = size(post);
 
 if Ni > 1 
@@ -243,9 +243,23 @@ end
 % Pre-allocate sample arrays
 Nr        = nreg*nreg;
 Np        = Nr + Nr*min + nreg*min + Nr*nreg;
-theta_all = zeros(Np,Nsub);
+Ep_all    = zeros(Np,Nsub);
 nind      = 1;
 mind      = 1;
+
+Etmp.As = zeros(nreg,nreg);
+Etmp.Bs = zeros(nreg,nreg,min);
+Etmp.Cs = zeros(nreg,min);
+Etmp.Ds = zeros(nreg,nreg,nreg);
+
+Etmp.A  = zeros(nreg,nreg,Nsamp);
+Etmp.B  = zeros(nreg,nreg,min,Nsamp);
+Etmp.C  = zeros(nreg,min,Nsamp);
+Etmp.D  = zeros(nreg,nreg,nreg,Nsamp);
+
+dima = Nr;
+dimb = Nr+Nr*min;
+dimc = Nr+Nr*min+nreg*min;
 
 disp('')
 disp('Averaging models in Occams window...')
@@ -269,7 +283,7 @@ for i=1:Nsamp
         mu                  = zeros(Np,1);
         mu_tmp              = params(n).model(m).vEp;
         mu(1:ndim,1)        = mu_tmp(1:ndim,1);
-       
+        
         dsig                = zeros(Np,1);
         dsig(1:ndim,1)      = params(n).model(m).dCp(1:ndim,1);
         
@@ -277,44 +291,29 @@ for i=1:Nsamp
         vsig(1:ndim,1:ndim) = params(n).model(m).vCp(1:ndim,1:ndim);
         
         tmp                 = spm_normrnd(mu,{dsig,vsig},1);
-        theta_all(:,n)      = tmp(:);
+        Ep_all(:,n)         = tmp(:);
+        
+        bma.as(:,:,n,i)     = spm_unvec(Ep_all(1:dima,n),Etmp.As);
+        bma.bs(:,:,:,n,i)   = spm_unvec(Ep_all(dima+1:dimb,n),Etmp.Bs);
+        bma.cs(:,:,n,i)     = spm_unvec(Ep_all(dimb+1:dimc,n),Etmp.Cs);
+        bma.ds(:,:,:,n,i)   = spm_unvec(Ep_all(dimc+1:Np,n),Etmp.Ds);
         
     end
     
     % Average over subjects
-    if Nsub>1
-        theta(:,i)       = mean(theta_all,2);
-        theta_sbj(:,:,i) = theta_all;
-    else
-        theta(:,i)       = theta_all;
-        theta_sbj(:,i)   = theta_all;
-    end
+    Ep(:,i)       = mean(Ep_all,2);
     
 end
 
-Etmp.A = zeros(nreg,nreg,Nsamp);
-Etmp.B = zeros(nreg,nreg,min,Nsamp);
-Etmp.C = zeros(nreg,min,Nsamp);
-Etmp.D = zeros(nreg,nreg,nreg,Nsamp);
-
-bma.a  = spm_unvec(theta(1:Nr,:),Etmp.A);
-bma.b  = spm_unvec(theta(Nr+1:Nr+Nr*min,:),Etmp.B);
-bma.c  = spm_unvec(theta(Nr+Nr*min+1:Nr+Nr*min+nreg*min,:),Etmp.C);
-bma.d  = spm_unvec(theta(Nr+Nr*min+nreg*min+1:Np,:),Etmp.D);
+bma.a  = spm_unvec(Ep(1:dima,:),Etmp.A);
+bma.b  = spm_unvec(Ep(dima+1:dimb,:),Etmp.B);
+bma.c  = spm_unvec(Ep(dimb+1:dimc,:),Etmp.C);
+bma.d  = spm_unvec(Ep(dimc+1:Np,:),Etmp.D);
 
 % storing parameters
 % -------------------------------------------------------------------------
-bma.ma         = mean(bma.a,3);
-bma.mb         = mean(bma.b,4);
-bma.mc         = mean(bma.c,3);
-bma.md         = mean(bma.d,4);
-
-bma.theta      = theta;
-bma.theta_sbj  = theta_sbj;
-bma.mtheta_sbj = mean(theta_sbj,3);
-bma.stheta_sbj = std(theta_sbj,0,3);
-
-bma.nsamp      = Nsamp;
-bma.oddsr      = oddsr;
-bma.Nocc       = Nocc;
-bma.Mocc       = post_ind;
+bma.Ep    = Ep;
+bma.nsamp = Nsamp;
+bma.oddsr = oddsr;
+bma.Nocc  = Nocc;
+bma.Mocc  = post_ind;
