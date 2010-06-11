@@ -12,15 +12,15 @@ function dep = cfg_vout_file_fplist(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_file_fplist.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_vout_file_fplist.m 3921 2010-06-11 12:09:57Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3921 $'; %#ok
 
 dep(1)            = cfg_dep;
 dep(1).sname      = 'Selected Files';
 dep(1).src_output = substruct('.','files');
-dep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+dep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}}); % This will display for both file and dir inputs. There is no notion of "no directories" in matching.
 dep(2)            = cfg_dep;
 dep(2).sname      = 'Subdirectories';
 dep(2).src_output = substruct('.','dirs');
-dep(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+dep(2).tgt_spec   = cfg_findspec({{'filter','dir','strtype','e'}});

@@ -5,7 +5,7 @@ function cfg_basicio_def = cfg_cfg_basicio_def
 % menu items and provides a full documentation of all fields that may
 % be present in a job variable for this application.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2009-11-20 18:04:58.
+% Created at 2010-06-11 13:56:06.
 cfg_basicio_def.file_move.files = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.moveto = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.copyto = '<UNDEFINED>';
@@ -49,6 +49,28 @@ cfg_basicio_def.subsrefvar.input = '<UNDEFINED>';
 cfg_basicio_def.subsrefvar.subsreference.subsfield = '<UNDEFINED>';
 cfg_basicio_def.subsrefvar.subsreference.subsindc = {'<UNDEFINED>'};
 cfg_basicio_def.subsrefvar.subsreference.subsinda = {'<UNDEFINED>'};
+cfg_basicio_def.subsrefvar.tgt_spec.s{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.s{1}.value = 's';
+cfg_basicio_def.subsrefvar.tgt_spec.n{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.n{1}.value = 'n';
+cfg_basicio_def.subsrefvar.tgt_spec.w{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.w{1}.value = 'w';
+cfg_basicio_def.subsrefvar.tgt_spec.i{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.i{1}.value = 'i';
+cfg_basicio_def.subsrefvar.tgt_spec.r{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.r{1}.value = 'r';
+cfg_basicio_def.subsrefvar.tgt_spec.f{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.f{1}.value = 'f';
+cfg_basicio_def.subsrefvar.tgt_spec.e{1}.name = 'strtype';
+cfg_basicio_def.subsrefvar.tgt_spec.e{1}.value = 'e';
+cfg_basicio_def.subsrefvar.tgt_spec.nifti{1}.name = 'filter';
+cfg_basicio_def.subsrefvar.tgt_spec.nifti{1}.value = 'image';
+cfg_basicio_def.subsrefvar.tgt_spec.mat{1}.name = 'filter';
+cfg_basicio_def.subsrefvar.tgt_spec.mat{1}.value = 'mat';
+cfg_basicio_def.subsrefvar.tgt_spec.any{1}.name = 'filter';
+cfg_basicio_def.subsrefvar.tgt_spec.any{1}.value = 'any';
+cfg_basicio_def.subsrefvar.tgt_spec.dir{1}.name = 'filter';
+cfg_basicio_def.subsrefvar.tgt_spec.dir{1}.value = 'dir';
 cfg_basicio_def.cfg_assignin.name = '<UNDEFINED>';
 cfg_basicio_def.cfg_assignin.output = '<UNDEFINED>';
 cfg_basicio_def.runjobs.jobs = '<UNDEFINED>';

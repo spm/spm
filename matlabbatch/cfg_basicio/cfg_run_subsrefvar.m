@@ -44,9 +44,9 @@ function varargout = cfg_run_subsrefvar(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_subsrefvar.m 3591 2009-11-23 10:19:57Z volkmar $
+% $Id: cfg_run_subsrefvar.m 3921 2010-06-11 12:09:57Z volkmar $
 
-rev = '$Rev: 3591 $'; %#ok
+rev = '$Rev: 3921 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
@@ -80,7 +80,12 @@ if ischar(cmd)
             dep = cfg_dep;
             dep.sname      = 'Referenced part of variable';
             dep.src_output = substruct('.','output');
-            dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
+            if isequal(job.tgt_spec,'<UNKNOWN>')
+                dep.tgt_spec = cfg_findspec({{'strtype','e'}});
+            else
+                fn = fieldnames(job.tgt_spec);
+                dep.tgt_spec = job.tgt_spec.(fn{1});
+            end
             varargout{1} = dep;
         case 'check'
             if ischar(varargin{1})

@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2009-11-20 18:04:58.
+% Created at 2010-06-11 13:56:06.
 % ---------------------------------------------------------------------
 % files Files to move/copy/delete
 % ---------------------------------------------------------------------
@@ -642,7 +642,7 @@ input.tag     = 'input';
 input.name    = 'Input variable';
 input.help    = {'Enter the input variable.'};
 input.strtype = 'e';
-input.num     = [1  1];
+input.num     = [Inf  Inf];
 % ---------------------------------------------------------------------
 % subsfield Field reference
 % ---------------------------------------------------------------------
@@ -703,12 +703,108 @@ subsreference.values  = {subsfield subsindc subsinda };
 subsreference.num     = [1 Inf];
 subsreference.forcestruct = true;
 % ---------------------------------------------------------------------
+% s String
+% ---------------------------------------------------------------------
+s         = cfg_const;
+s.tag     = 's';
+s.name    = 'String';
+s.val{1}{1}.name = 'strtype';
+s.val{1}{1}.value = 's';
+% ---------------------------------------------------------------------
+% n Natural Number
+% ---------------------------------------------------------------------
+n         = cfg_const;
+n.tag     = 'n';
+n.name    = 'Natural Number';
+n.val{1}{1}.name = 'strtype';
+n.val{1}{1}.value = 'n';
+% ---------------------------------------------------------------------
+% w Whole Number
+% ---------------------------------------------------------------------
+w         = cfg_const;
+w.tag     = 'w';
+w.name    = 'Whole Number';
+w.val{1}{1}.name = 'strtype';
+w.val{1}{1}.value = 'w';
+% ---------------------------------------------------------------------
+% i Integer
+% ---------------------------------------------------------------------
+i         = cfg_const;
+i.tag     = 'i';
+i.name    = 'Integer';
+i.val{1}{1}.name = 'strtype';
+i.val{1}{1}.value = 'i';
+% ---------------------------------------------------------------------
+% r Real Number
+% ---------------------------------------------------------------------
+r         = cfg_const;
+r.tag     = 'r';
+r.name    = 'Real Number';
+r.val{1}{1}.name = 'strtype';
+r.val{1}{1}.value = 'r';
+% ---------------------------------------------------------------------
+% f Function Handle
+% ---------------------------------------------------------------------
+f         = cfg_const;
+f.tag     = 'f';
+f.name    = 'Function Handle';
+f.val{1}{1}.name = 'strtype';
+f.val{1}{1}.value = 'f';
+% ---------------------------------------------------------------------
+% e Other Variable
+% ---------------------------------------------------------------------
+e         = cfg_const;
+e.tag     = 'e';
+e.name    = 'Other Variable';
+e.val{1}{1}.name = 'strtype';
+e.val{1}{1}.value = 'e';
+% ---------------------------------------------------------------------
+% nifti NIfTI Image File(s)
+% ---------------------------------------------------------------------
+nifti         = cfg_const;
+nifti.tag     = 'nifti';
+nifti.name    = 'NIfTI Image File(s)';
+nifti.val{1}{1}.name = 'filter';
+nifti.val{1}{1}.value = 'image';
+% ---------------------------------------------------------------------
+% mat .mat File(s)
+% ---------------------------------------------------------------------
+mat         = cfg_const;
+mat.tag     = 'mat';
+mat.name    = '.mat File(s)';
+mat.val{1}{1}.name = 'filter';
+mat.val{1}{1}.value = 'mat';
+% ---------------------------------------------------------------------
+% any Any File(s)
+% ---------------------------------------------------------------------
+any         = cfg_const;
+any.tag     = 'any';
+any.name    = 'Any File(s)';
+any.val{1}{1}.name = 'filter';
+any.val{1}{1}.value = 'any';
+% ---------------------------------------------------------------------
+% dir Directories
+% ---------------------------------------------------------------------
+dir         = cfg_const;
+dir.tag     = 'dir';
+dir.name    = 'Directories';
+dir.val{1}{1}.name = 'filter';
+dir.val{1}{1}.value = 'dir';
+% ---------------------------------------------------------------------
+% tgt_spec Type of referenced Variable
+% ---------------------------------------------------------------------
+tgt_spec         = cfg_choice;
+tgt_spec.tag     = 'tgt_spec';
+tgt_spec.name    = 'Type of referenced Variable';
+tgt_spec.help    = {'This setting determines where the contents of the variable will be available as a dependency.'};
+tgt_spec.values  = {s n w i r f e nifti mat any dir };
+% ---------------------------------------------------------------------
 % subsrefvar Access part of MATLAB variable
 % ---------------------------------------------------------------------
 subsrefvar         = cfg_exbranch;
 subsrefvar.tag     = 'subsrefvar';
 subsrefvar.name    = 'Access part of MATLAB variable';
-subsrefvar.val     = {input subsreference };
+subsrefvar.val     = {input subsreference tgt_spec };
 subsrefvar.prog = @(job)cfg_run_subsrefvar('run',job);
 subsrefvar.vout = @(job)cfg_run_subsrefvar('vout',job);
 % ---------------------------------------------------------------------
