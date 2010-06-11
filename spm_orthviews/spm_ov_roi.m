@@ -87,14 +87,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 2672 2009-01-30 13:32:08Z volkmar $
+% $Id: spm_ov_roi.m 3920 2010-06-11 12:08:13Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when using the 'alpha' property
 % to overlay blobs onto images. 
 
-rev = '$Revision: 2672 $';
+rev = '$Revision: 3920 $';
 
 global st;
 if isempty(st)
@@ -115,6 +115,7 @@ update_roi = false;
 
 switch cmd
     case 'init'
+        % spm_ov_roi('init', volhandle, Vroi, loadasroi, xyz)
         spm('pointer','watch');
         Vroi = spm_vol(varargin{3});
         switch varargin{4} % loadasroi
@@ -186,6 +187,10 @@ switch cmd
             st.vols{volhandle}.blobs{st.vols{volhandle}.roi.hframe}.max=1.3;
         end;
         update_roi=1;
+        obj = findobj(0, 'Tag',  sprintf('ROI_1_%d', volhandle));
+        set(obj, 'Visible', 'on');
+        obj = findobj(0, 'Tag',  sprintf('ROI_0_%d', volhandle));
+        set(obj, 'Visible', 'off');
         
     case 'edit'
         switch st.vols{volhandle}.roi.tool
@@ -201,6 +206,9 @@ switch cmd
                                    sel(2,:)<=st.vols{volhandle}.roi.Vroi.dim(2) & ...
                                    sel(3,:)<=st.vols{volhandle}.roi.Vroi.dim(3)));
                 update_roi = 1;
+                
+            case 'connect'
+                spm_ov_roi('connect', volhandle)
                 
             case 'poly'
                 
@@ -521,12 +529,12 @@ switch cmd
         item7_1b = uimenu(item7, 'Label', 'Polygon tool', 'Callback', ...
                           sprintf('%s(''context_edit'', %d,''poly'');', mfilename, volhandle), ...
                           'Tag',sprintf('ROI_EDIT_%d', volhandle));
+        item7_1c = uimenu(item7, 'Label', 'Connected cluster', 'Callback', ...
+                          sprintf('%s(''context_edit'', %d,''connect'');', mfilename, volhandle), ...
+                          'Tag',sprintf('ROI_EDIT_%d', volhandle));
         item8 = uimenu(item0, 'Label', 'Threshold', 'Callback', ...
                        sprintf('%s(''context_thresh'', %d);', mfilename, volhandle), ...
                        'Visible','off', 'Tag',sprintf('ROI_1_%d', volhandle));
-        item9 = uimenu(item0, 'Label', 'Connected cluster', 'Callback', ...
-                       sprintf('%s(''connect'', %d);', mfilename, volhandle), ...
-                       'Visible','off', 'Tag', sprintf('ROI_1_%d', volhandle));
         item10 = uimenu(item0, 'Label', 'Cleanup clusters', 'Callback', ...
                         sprintf('%s(''cleanup'', %d);', mfilename, volhandle), ...
                         'Visible','off', 'Tag',sprintf('ROI_1_%d', volhandle));
@@ -577,12 +585,8 @@ switch cmd
                 xyz = xSPM.XYZ;
                 imfname = SPM.Vbeta(1).fname;
         end;
-        feval('spm_ov_roi','init',volhandle,imfname,loadasroi,xyz);
-        obj = findobj(0, 'Tag',  sprintf('ROI_1_%d', volhandle));
-        set(obj, 'Visible', 'on');
-        obj = findobj(0, 'Tag',  sprintf('ROI_0_%d', volhandle));
-        set(obj, 'Visible', 'off');
         spm_input('!DeleteInputObj',Finter);
+        feval('spm_ov_roi','init',volhandle,imfname,loadasroi,xyz);
         return;
         
     case 'context_selection'
