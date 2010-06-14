@@ -1,4 +1,4 @@
-\chapter{Bayesian Model Inference \label{Chap:bms}}
+\chapter{Bayesian Model Inference \label{Chap:dcm_bms}}
 
 This chapter describes the use of SPM's Bayesian Model Inference capabilities.
 For a fuller background on this topic see \cite{dcm_families}.
@@ -15,7 +15,7 @@ subset of connections in the model. These are the forward and backward connectio
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{bms/Slide1.JPG}
+\includegraphics[width=100mm]{bms/Slide1.png}
 \caption{All DCMs were fully connected ie. there were endogenous connections between all three regions (dotted lines) (i)  left posterior temporal sulcus (region P), (ii) left anterior superior temporal sulcus (region A) and (iii) pars orbitalis of the inferior frontal gyrus (region F). Auditory input enters region P. The sixteen models differ in their modulatory connectivity (solid lines) \label{dcms}}
 \end{center}
 \end{figure}
@@ -23,7 +23,7 @@ subset of connections in the model. These are the forward and backward connectio
 \section{Data}
 
 An archive containing 16 DCMs for each of 12 subjects can be downloaded from the 
-SPM web page. This archive is called \verb!dcm-base-files.zip!. When you extract the data onto your computer a number of subdirectories will be created - one for each of the 12 subjects. The 16 DCMs for each subject are then available in these subject-specific directories. You can load one of these into SPM and examine the information contained therein. 
+SPM web page. This archive is called \verb!dcm_bms.zip!. When you extract the data onto your computer a number of subdirectories will be created - one for each of the 12 subjects. The 16 DCMs for each subject are then available in these subject-specific directories. You can load one of these into SPM and examine the information contained therein. 
 
 These DCM files contain the usual information eg. the original time series from each region of interest are available in
 \verb!DCM.xY(1)! for region 1, wherein \verb!DCM.xY(1).name='PSTS_6'! indicates this is the posterior temporal region. The estimated parameter values are available in \verb!DCM.Ep!. You should note that these DCMs were specified and estimated using SPM revision 3894 (from May 2010) and that these DCM structures 
@@ -46,7 +46,7 @@ This will produce the figure~\ref{ffx_model}, showing that model 6 is the best m
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{bms/Slide2.JPG}
+\includegraphics[width=150mm]{bms/Slide2.png}
 \caption{Fixed effects model inference\label{ffx_model}}
 \end{center}
 \end{figure}
@@ -55,7 +55,7 @@ We can now go back and load the \verb!ffx_all_models.mat! job in the batch edito
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{bms/Slide3.JPG}
+\includegraphics[width=150mm]{bms/Slide3.png}
 \caption{Random effects model inference\label{rfx_model}}
 \end{center}
 \end{figure}
@@ -70,7 +70,7 @@ To look at the BMA results, go to the Menu window and press the Dynamic Causal M
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{bms/Slide4.JPG}
+\includegraphics[width=150mm]{bms/Slide4.png}
 \caption{Bayesian model averaging over all 16 models\label{bma}}
 \end{center}
 \end{figure}
@@ -89,14 +89,14 @@ figure~\ref{rfx_family}.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{bms/Slide5.JPG}
+\includegraphics[width=150mm]{bms/Slide5.png}
 \caption{FFX family inference\label{family}}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=150mm]{bms/Slide6.JPG}
+\includegraphics[width=150mm]{bms/Slide6.png}
 \caption{RFX family inference\label{rfx_family}}
 \end{center}
 \end{figure}
