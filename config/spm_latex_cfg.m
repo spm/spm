@@ -4,7 +4,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_latex_cfg.m 3926 2010-06-14 16:44:58Z guillaume $
 
 if ~nargin, c = spm_cfg; end
 if nargin && ischar(c), clean_latex_compile; return; end
@@ -83,7 +83,11 @@ function part(c,fp)
 return;
 
 function sts = chapter(c)
-fp = fopen([c.tag '.tex'],'w');
+bn = c.tag;
+if strcmp(bn,'preproc') && ~isempty(strfind(c.name,'EEG'))
+    bn = ['MEEG_' bn]; % fix for name clash with other 'preproc'
+end
+fp = fopen([bn '.tex'],'w');
 if fp==-1, sts = false; return; end;
 
 fprintf(fp,'\\chapter{%s  \\label{Chap:%s}}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name),c.tag);
