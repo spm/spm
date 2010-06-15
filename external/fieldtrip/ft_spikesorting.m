@@ -39,7 +39,7 @@ function [spike] = ft_spikesorting(cfg, spike);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesorting.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_spikesorting.m 1227 2010-06-11 13:50:12Z timeng $
 
 fieldtripdefs
 
@@ -47,6 +47,8 @@ fieldtripdefs
 if ~isfield(cfg, 'feedback'),       cfg.feedback = 'textbar';    end
 if ~isfield(cfg, 'method'),         cfg.method = 'ward';         end
 if ~isfield(cfg, 'channel'),        cfg.channel = 'all';         end
+if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];          end
+if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];         end
 
 if isequal(cfg.method, 'ward')
   if ~isfield(cfg, 'ward'),           cfg.ward          = [];       end
@@ -59,6 +61,18 @@ end
 if isequal(cfg.method, 'kmeans')
   if ~isfield(cfg, 'kmeans'),         cfg.kmeans        = [];       end
   if ~isfield(cfg.kmeans, 'aantal'),  cfg.kmeans.aantal = 10;       end
+end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
 end
 
 % select the channels
@@ -115,11 +129,16 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spikesorting.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_spikesorting.m 1227 2010-06-11 13:50:12Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous    = spike.cfg;     end
 % remember the configuration
 spike.cfg = cfg;
+
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', spike); % use the variable name "data" in the output file
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that computes the distance between all spike waveforms

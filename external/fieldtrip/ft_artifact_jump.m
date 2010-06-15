@@ -1,15 +1,15 @@
 function [cfg, artifact] = ft_artifact_jump(cfg,data)
 
-% FT_ARTIFACT_JUMP reads the data segments of interest from file and identifies 
+% FT_ARTIFACT_JUMP reads the data segments of interest from file and identifies
 % SQUID jump artifacts.
 %
 % Use as
 %   [cfg, artifact] = ft_artifact_jump(cfg)
-%   required configuration options: 
+%   required configuration options:
 %   cfg.dataset or both cfg.headerfile and cfg.datafile
 % or
 %   [cfg, artifact] = ft_artifact_jump(cfg, data)
-%   forbidden configuration options: 
+%   forbidden configuration options:
 %   cfg.dataset, cfg.headerfile and cfg.datafile
 %
 % In both cases the configuration should also contain:
@@ -38,6 +38,7 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 
 % Undocumented local options:
 % cfg.method
+% cfg.inputfile = one can specifiy preanalysed saved data as input
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
@@ -57,7 +58,7 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_jump.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_artifact_jump.m 1212 2010-06-09 10:29:43Z timeng $
 
 fieldtripdefs
 
@@ -70,6 +71,7 @@ cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 if ~isfield(cfg,'artfctdef'),                      cfg.artfctdef                 = [];              end
 if ~isfield(cfg.artfctdef,'jump'),                 cfg.artfctdef.jump            = [];              end
 if ~isfield(cfg.artfctdef.jump,'method'),          cfg.artfctdef.jump.method     = 'zvalue';        end
+if ~isfield(cfg, 'inputfile'),                     cfg.inputfile                 = [];              end
 
 % for backward compatibility
 if isfield(cfg.artfctdef.jump,'sgn')
@@ -126,15 +128,27 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
   if isfield(cfg, 'dataformat'),   tmpcfg.dataformat       = cfg.dataformat;    end
   if isfield(cfg, 'headerformat'), tmpcfg.headerformat     = cfg.headerformat;  end
   % call the zvalue artifact detection function
-  if nargin ==1
+  
+  hasdata = (nargin>1);
+  if ~isempty(cfg.inputfile)
+    % the input data should be read from file
+    if hasdata
+      error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+    else
+      data = loadvar(cfg.inputfile, 'data');
+      hasdata = true;
+    end
+  end
+  
+  if hasdata
+    cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+    [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg, data);
+  else
     cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-    cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});  
+    cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
     tmpcfg.datafile    = cfg.datafile;
     tmpcfg.headerfile  = cfg.headerfile;
     [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg);
-  elseif nargin ==2
-    cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
-    [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg, data);
   end
   cfg.artfctdef.jump = tmpcfg.artfctdef.zvalue;
 else
@@ -142,4 +156,4 @@ else
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');

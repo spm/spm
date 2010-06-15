@@ -28,7 +28,11 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.topolabel    = Nx1 cell-array with the channel labels
 %
 % See also FASTICA, RUNICA, SVD, JADER, VARIMAX, DSS, CCA
-
+%
+% Undocumented local options:
+%   cfg.inputfile        = one can specifiy preanalysed saved data as input
+%   cfg.outputfile       = one can specify output as file to save to disk
+%
 % NOTE parafac is also implemented, but that does not fit into the
 % structure of 2D decompositions very well. Probably I should implement it
 % in a separate function for N-D decompositions
@@ -51,15 +55,12 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_componentanalysis.m 1208 2010-06-08 15:38:39Z timeng $
 
 fieldtripdefs
 
 % set a timer to determine how long this function takes
 tic;
-
-% check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -71,6 +72,23 @@ if ~isfield(cfg, 'blc'),           cfg.blc     = 'yes';        end
 if ~isfield(cfg, 'trials'),        cfg.trials  = 'all';        end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';        end
 if ~isfield(cfg, 'numcomponent'),  cfg.numcomponent = 'all';   end
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
+if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
+
+% check if the input data is valid for this function
+data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % select channels, has to be done prior to handling of previous (un)mixing matrix
 cfg.channel = ft_channelselection(cfg.channel, data.label);
@@ -375,6 +393,8 @@ for k = 1:size(comp.topo,2)
 end
 comp.topolabel = data.label(:);
 
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
@@ -387,10 +407,15 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_componentanalysis.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 1208 2010-06-08 15:38:39Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
 comp.cfg = cfg;
 
 fprintf('total time in componentanalysis %.1f seconds\n', toc);
+
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', comp); % use the variable name "data" in the output file
+end

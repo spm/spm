@@ -1,4 +1,4 @@
-edit function [cfg, artifact] = ft_artifact_ecg(cfg, data)
+function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 
 % FT_ARTIFACT_ECG performs a peak-detection on the ECG-channel. The
 % heart activity can be seen in the MEG data as an MCG artifact and
@@ -44,7 +44,7 @@ edit function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 1038 2010-05-05 15:48:52Z timeng $
+% $Id: ft_artifact_ecg.m 1202 2010-06-08 10:11:30Z timeng $
 
 fieldtripdefs
 
@@ -309,4 +309,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_ecg.m 1038 2010-05-05 15:48:52Z timeng $';
+cfg.version.id = '$Id: ft_artifact_ecg.m 1202 2010-06-08 10:11:30Z timeng $';

@@ -87,16 +87,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_timelockanalysis.m 1197 2010-06-08 07:48:54Z timeng $
 
 fieldtripdefs
-
-% check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
 
 % set the defaults
 if ~isfield(cfg, 'channel'),            cfg.channel = 'all';                     end
@@ -108,6 +101,26 @@ if ~isfield(cfg, 'blcovariance'),       cfg.blcovariance = 'no';                
 if ~isfield(cfg, 'removemean'),         cfg.removemean = 'yes';                  end
 if ~isfield(cfg, 'vartrllength'),       cfg.vartrllength = 0;                    end
 if ~isfield(cfg, 'feedback'),           cfg.feedback = 'text';                   end
+if ~isfield(cfg, 'inputfile'),          cfg.inputfile = [];                      end
+if ~isfield(cfg, 'outputfile'),         cfg.outputfile = [];                     end
+
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
+
+% check if the input data is valid for this function
+data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
+
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
 
 % convert average to raw data for convenience, the output will be an average again
 % the purpose of this is to allow for repeated baseline correction, filtering and other preproc options that timelockanalysis supports
@@ -477,6 +490,8 @@ if isfield(data, 'elec')
   timelock.elec = data.elec;
 end
 
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
@@ -489,9 +504,14 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockanalysis.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 1197 2010-06-08 07:48:54Z timeng $';
+
 % remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
+try cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
 timelock.cfg = cfg;
 
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', timelock); % use the variable name "data" in the output file
+end

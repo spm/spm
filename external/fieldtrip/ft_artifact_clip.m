@@ -10,7 +10,7 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %   cfg.dataset or both cfg.headerfile and cfg.datafile
 % or
 %   [cfg, artifact] = ft_artifact_clip(cfg, data)
-%   forbidden configuration options: 
+%   forbidden configuration options:
 %   cfg.dataset, cfg.headerfile and cfg.datafile
 %
 % In both cases the configuration should also contain:
@@ -19,8 +19,11 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %   cfg.artfctdef.clip.psttim   = 0.000;  post-artifact rejection-interval in seconds
 %   cfg.artfctdef.clip.thresh   = 0.010;  minimum duration in seconds of a datasegment with consecutive identical samples to be considered as 'clipped'
 %   cfg.continuous              = 'yes' or 'no' whether the file contains continuous data
-%   
+%
 % See also FT_REJECTARTIFACT
+
+% Undocumented local options:
+%   cfg.inputfile        = one can specifiy preanalysed saved data as input
 
 % Copyright (C) 2005, Robert Oostenveld
 %
@@ -40,7 +43,7 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 1038 2010-05-05 15:48:52Z timeng $
+% $Id: ft_artifact_clip.m 1212 2010-06-09 10:29:43Z timeng $
 
 fieldtripdefs
 
@@ -58,6 +61,7 @@ if ~isfield(cfg.artfctdef.clip,'pretim'),   cfg.artfctdef.clip.pretim   = 0.000;
 if ~isfield(cfg.artfctdef.clip,'psttim'),   cfg.artfctdef.clip.psttim   = 0.000;           end;
 if ~isfield(cfg, 'headerformat'),           cfg.headerformat            = [];              end;
 if ~isfield(cfg, 'dataformat'),             cfg.dataformat              = [];              end;
+if ~isfield(cfg, 'inputfile'),              cfg.inputfile               = [];              end;
 
 % for backward compatibility
 if isfield(cfg.artfctdef.clip,'sgn')
@@ -68,25 +72,36 @@ end
 % start with an empty artifact list
 artifact = [];
 
-% read the header
-if nargin == 1
-  isfetch = 0;
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
+
+if hasdata
+  % read the header
+  % isfetch = 1;
+  cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+  hdr = fetch_header(data);
+else
+  %   isfetch = 0;
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
-elseif nargin == 2
-  isfetch = 1;
-  cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
-  hdr = fetch_header(data);
 end
 
 % set default cfg.continuous
 if ~isfield(cfg, 'continuous')
-    if hdr.nTrials==1
-      cfg.continuous = 'yes';
-    else
-      cfg.continuous = 'no';
-    end
+  if hdr.nTrials==1
+    cfg.continuous = 'yes';
+  else
+    cfg.continuous = 'no';
+  end
 end
 
 % find the channel labels present in the data and their indices
@@ -101,7 +116,7 @@ nsgn = length(sgnindx);
 for trlop=1:ntrl
   fprintf('searching for clipping artifacts in trial %d\n', trlop);
   % read the data of this trial
-  if isfetch
+  if hasdata
     dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
   else
     dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
@@ -112,7 +127,7 @@ for trlop=1:ntrl
   identical = (datflt(:,1:(end-1)) == datflt(:,2:end));
   % ensure that the number of samples does not change
   identical = [identical zeros(nsgn,1)];
-
+  
   % determine the number of consecutively identical samples
   clip = zeros(size(dat));
   for sgnlop=1:length(sgnindx)
@@ -124,11 +139,11 @@ for trlop=1:ntrl
   end
   % collapse over cannels
   clip = max(clip,[],1);
-
+  
   % detect whether there are intervals in which the number of consecutive
   % identical samples is larger than the threshold
   thresh = (clip>=artfctdef.thresh*hdr.Fs);
-
+  
   % remember the thresholded parts as artifacts
   artup = find(diff([0 thresh])== 1) + cfg.trl(trlop,1) - 1;
   artdw = find(diff([thresh 0])==-1) + cfg.trl(trlop,1) - 1;
@@ -150,7 +165,7 @@ cfg.artfctdef.clip.trl      = cfg.trl;
 cfg.artfctdef.clip.artifact = artifact;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -161,4 +176,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_clip.m 1038 2010-05-05 15:48:52Z timeng $';
+cfg.version.id = '$Id: ft_artifact_clip.m 1212 2010-06-09 10:29:43Z timeng $';
+

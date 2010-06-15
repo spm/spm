@@ -57,6 +57,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 % cfg.sel50p      = 'no' (default) or 'yes'
 % cfg.lbex        = 'no' (default) or a number that corresponds with the radius
 % cfg.mollify     = 'no' (default) or a number that corresponds with the FWHM
+% cfg.inputfile        = one can specifiy preanalysed saved data as input
 
 % This function depends on FT_PREPARE_DIPOLE_GRID which has the following options:
 % cfg.grid.xgrid (default set in FT_PREPARE_DIPOLE_GRID: cfg.grid.xgrid = 'auto'), documented
@@ -101,16 +102,12 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_prepare_leadfield.m 1214 2010-06-09 15:17:36Z timeng $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-if nargin<2
-  data = [];
-end
 
 % set the defaults
 if ~isfield(cfg, 'normalize'),        cfg.normalize  = 'no';          end
@@ -120,7 +117,25 @@ if ~isfield(cfg, 'sel50p'),           cfg.sel50p     = 'no';          end
 if ~isfield(cfg, 'feedback'),         cfg.feedback   = 'text';        end
 if ~isfield(cfg, 'mollify'),          cfg.mollify    = 'no';          end
 if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
+if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];            end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
+
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
+
+if ~hasdata
+  data = [];
+else
+  return
+end
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
@@ -199,7 +214,6 @@ if ~strcmp(cfg.lbex, 'no')
   grid = lbex(cfg, grid);
 end
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % get the output cfg
@@ -214,7 +228,8 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_prepare_leadfield.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 1214 2010-06-09 15:17:36Z timeng $';
+
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

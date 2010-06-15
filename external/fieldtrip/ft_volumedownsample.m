@@ -11,6 +11,10 @@ function [down] = ft_volumedownsample(cfg, source);
 %   cfg.smooth     = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
 %
 % This function is used by FT_SOUREINTERPOLATE, FT_SOURCEREAD and FT_SOURCENORMALIZE.
+%
+% Undocumented local options:
+%   cfg.inputfile        = one can specifiy preanalysed saved data as input
+%   cfg.outputfile       = one can specify output as file to save to disk
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -30,7 +34,7 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 1098 2010-05-19 14:31:57Z jansch $
+% $Id: ft_volumedownsample.m 1204 2010-06-08 12:21:08Z timeng $
 
 fieldtripdefs
 
@@ -45,6 +49,20 @@ if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
 if ~isfield(cfg, 'keepinside'), cfg.keepinside = 'yes'; end
 if ~isfield(cfg, 'parameter'),  cfg.parameter = 'all';  end
 if ~isfield(cfg, 'smooth'),     cfg.smooth = 'no';      end
+if ~isfield(cfg, 'inputfile'),  cfg.inputfile  = [];    end
+if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];    end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    source = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
 
 % check if the required spm is in your path:
 if strcmpi(cfg.spmversion, 'spm2'),
@@ -100,7 +118,7 @@ if ~strcmp(cfg.smooth, 'no'),
       fprintf('not smoothing %s\n', cfg.parameter{j});
     elseif strcmp(cfg.parameter{j}, 'anatomy')
       fprintf('not smoothing %s\n', cfg.parameter{j});
-    else 
+    else
       fprintf('smoothing %s with a kernel of %d voxels\n', cfg.parameter{j}, cfg.smooth);
       tmp = double(getsubfield(source, cfg.parameter{j}));
       spm_smooth(tmp, tmp, cfg.smooth);
@@ -123,8 +141,12 @@ else
   end
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -135,8 +157,13 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumedownsample.m 1098 2010-05-19 14:31:57Z jansch $';
+cfg.version.id = '$Id: ft_volumedownsample.m 1204 2010-06-08 12:21:08Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
-% remember the exact configuration details in the output 
+% remember the exact configuration details in the output
 down.cfg = cfg;
+
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', down); % use the variable name "data" in the output file
+end
