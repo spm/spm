@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3773 2010-03-11 11:20:18Z maria $
+% $Id: spm_run_bms_dcm.m 3929 2010-06-16 13:54:09Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -60,11 +60,8 @@ if bma_do
     n  = size(DCM.a,2);
     m  = size(DCM.c,2);
     mi = size(DCM.c,2);
-    bma.nsamp       = 1e4;
-    bma.odds_ratio  = 1/20;
-    bma.a           = zeros(n,n,bma.nsamp);
-    bma.b           = zeros(n,n,m,bma.nsamp);
-    bma.c           = zeros(n,mi,bma.nsamp);
+    nsamp       = 1e4;
+    odds_ratio  = 1/20;
     
     if isfield(job.bma.bma_yes,'bma_famwin')
         do_bma_famwin  = 1;
@@ -320,31 +317,31 @@ if strcmp(method,'FFX');
         if do_family
             if do_bma_famwin
                 [fam_max,fam_max_i]  = max(family.post);
-                bma.indx  = find(family.partition==fam_max_i);
-                bma.post  = model.post(bma.indx);
+                indx  = find(family.partition==fam_max_i);
+                post  = model.post(indx);
             else
                 if do_bma_all
-                    bma.post = model.post;
-                    bma.indx = 1:nm;
+                    post = model.post;
+                    indx = 1:nm;
                 else
                     if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0
-                        bma.indx  = find(family.partition==bma_fam);
-                        bma.post  = model.post(bma.indx);
+                        indx  = find(family.partition==bma_fam);
+                        post  = model.post(indx);
                     else
                         error('Incorrect family for BMA!');
                     end
                 end
             end
         else
-            bma.post  = model.post;
-            bma.indx = 1:nm;
+            post  = model.post;
+            indx = 1:nm;
         end
         
         disp('FFX Bayesian model averaging ...');
         
         % bayesian model averaging
         % -----------------------------------------------------------------
-        bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
+        bma = spm_dcm_bma(post,indx,subj,nsamp,odds_ratio);
         
     else
         
@@ -407,30 +404,30 @@ else
         if do_family
             if do_bma_famwin
                 [fam_max,fam_max_i]  = max(family.exp_r);
-                bma.indx = find(family.partition==fam_max_i);
-                bma.post  = model.g_post(:,bma.indx);
+                indx = find(family.partition==fam_max_i);
+                post  = model.g_post(:,indx);
             else
                 if do_bma_all
-                    bma.post = model.g_post;
-                    bma.indx = 1:nm;
+                    post = model.g_post;
+                    indx = 1:nm;
                 else
                     if bma_fam <= nfam && bma_fam > 0 && rem(bma_fam,1) == 0
-                        bma.indx = find(family.partition==bma_fam);
-                        bma.post = model.g_post(:,bma.indx);
+                        indx = find(family.partition==bma_fam);
+                        post = model.g_post(:,indx);
                     else
                         error('Incorrect family for BMA!');
                     end
                 end
             end
         else
-            bma.post  = model.g_post;
-            bma.indx = 1:nm;
+            post  = model.g_post;
+            indx = 1:nm;
         end
         
         disp('RFX Bayesian model averaging ...');
         % bayesian model averaging
         % ------------------------------------------------------------------
-        bma = spm_dcm_bma(bma.post,bma.indx,subj,bma.nsamp,bma.odds_ratio);
+        bma = spm_dcm_bma(post,indx,subj,nsamp,odds_ratio);
         
     else
         
