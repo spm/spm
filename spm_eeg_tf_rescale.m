@@ -9,6 +9,8 @@ function [D] = spm_eeg_tf_rescale(S)
 %     S.tf.method      - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt'
 %     S.tf.Sbaseline   - 2-element vector: start and stop of baseline 
 %                        (need to specify this for LogR and Diff)
+%     S.tf.Db          - MEEG object or filename of M/EEG mat-file to use
+%                        for the baseline (if different from the input dataset).
 % 
 % D                    - MEEG object with rescaled power data (also
 %                        written to disk with prefix r)
@@ -21,9 +23,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3722 2010-02-11 16:23:28Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3931 2010-06-16 15:28:54Z vladimir $
 
-SVNrev = '$Rev: 3722 $';
+SVNrev = '$Rev: 3931 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -58,13 +60,32 @@ switch lower(S.tf.method)
     case {'logr','diff', 'rel'}
         try
             S.tf.Sbaseline;
-        catch
+        catch            
+            if spm_input('Baseline dataset','+1','b',{'Same|Different'},[0 1],0)
+                [Db, sts] = spm_select(1, 'mat', 'Select baseline M/EEG mat file');
+                if ~sts, return; end
+                S.tf.Db = Db;
+            else
+                S.tf.Db = [];
+            end
+            
             tmp_base = spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
             S.tf.Sbaseline = tmp_base/1000;
         end
+        
+        if isfield(S.tf, 'Db') && ~isempty(S.tf.Db)
+            Db = spm_eeg_load(S.tf.Db);
+        else
+            Db = Din;
+        end
+        
+        if any(abs(Din.frequencies-Db.frequencies)>0.1) || ~isequal(Db.chanlabels, Din.chanlabels) || Db.ntrials~=Din.ntrials
+            error('The input dataset and the baseline dataset should have the same frequencies, channels and trial numbers');
+        end        
+       
         for c=1:D.ntrials
             inds=find(tims>=S.tf.Sbaseline(1) & tims<=S.tf.Sbaseline(2));
-            x=spm_squeeze(Din(:,:,:,c), 4);
+            x=spm_squeeze(Db(:,:,:,c), 4);
             xbase=mean(x(:,:,inds),3);
             switch lower(S.tf.method)
                 case 'logr'

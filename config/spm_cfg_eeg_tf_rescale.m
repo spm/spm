@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 3874 2010-05-07 15:54:13Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 3931 2010-06-16 15:28:54Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -17,6 +17,17 @@ D.num    = [1 1];
 D.help   = {'Select the M/EEG mat file.'};
 
 %--------------------------------------------------------------------------
+% Db
+%--------------------------------------------------------------------------
+Db        = cfg_files;
+Db.tag    = 'Db';
+Db.name   = 'External baseline dataset';
+Db.filter = 'mat';
+Db.num    = [0 1];
+Db.val    = {[]};
+Db.help   = {'Select the baseline M/EEG mat file. Leave empty to use the input dataset'};
+
+%--------------------------------------------------------------------------
 % Sbaseline
 %--------------------------------------------------------------------------
 Sbaseline         = cfg_entry;
@@ -27,12 +38,21 @@ Sbaseline.strtype = 'e';
 Sbaseline.num     = [1 2];
 
 %--------------------------------------------------------------------------
+% baseline
+%--------------------------------------------------------------------------
+baseline         = cfg_branch;
+baseline.tag     = 'baseline';
+baseline.name    = 'Baseline';
+baseline.help    = {'Baseline parameters.'};
+baseline.val     = {Sbaseline, Db};
+
+%--------------------------------------------------------------------------
 % method_logr
 %--------------------------------------------------------------------------
 method_logr      = cfg_branch;
 method_logr.tag  = 'LogR';
 method_logr.name = 'Log Ratio';
-method_logr.val  = {Sbaseline};
+method_logr.val  = {baseline};
 method_logr.help = {'Log Ratio.'};
 
 %--------------------------------------------------------------------------
@@ -41,7 +61,7 @@ method_logr.help = {'Log Ratio.'};
 method_diff      = cfg_branch;
 method_diff.tag  = 'Diff';
 method_diff.name = 'Difference';
-method_diff.val  = {Sbaseline};
+method_diff.val  = {baseline};
 method_diff.help = {'Difference.'};
 
 %--------------------------------------------------------------------------
@@ -50,7 +70,7 @@ method_diff.help = {'Difference.'};
 method_rel       = cfg_branch;
 method_rel.tag   = 'Rel';
 method_rel.name  = 'Relative';
-method_rel.val   = {Sbaseline};
+method_rel.val   = {baseline};
 method_rel.help  = {'Relative.'};
 
 %--------------------------------------------------------------------------
@@ -107,7 +127,10 @@ S.tf.method    = fieldnames(job.method);
 S.tf.method    = S.tf.method{1};
 switch lower(S.tf.method)
     case {'logr','diff', 'rel'}
-        S.tf.Sbaseline = 1e-3*job.method.(S.tf.method).Sbaseline;
+        S.tf.Sbaseline = 1e-3*job.method.(S.tf.method).baseline.Sbaseline;
+        if ~(isempty(job.method.(S.tf.method).baseline.Db) || isequal(job.method.(S.tf.method).baseline.Db, {''}))
+            S.tf.Db = job.method.(S.tf.method).baseline.Db{1};
+        end
     case {'log', 'sqrt'}
 end
 
