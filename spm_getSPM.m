@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3899 2010-05-25 15:36:40Z guillaume $
+% $Id: spm_getSPM.m 3928 2010-06-16 12:09:22Z guillaume $
 
 
 %-GUI setup
@@ -378,19 +378,18 @@ if nc > 1 && n > 1 && ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 end % if nc>1...
 SPM.xCon = xCon;
 
-%-Get contrasts for masking
+%-Apply masking
 %--------------------------------------------------------------------------
 try
-    Im = xSPM.Im;
-    if ~isempty(Im)
-        maskCon = 1;
-    else
-        maskCon = 0;
-    end
+    Mask = ~isempty(xSPM.Im) * (isnumeric(xSPM.Im) + 2*iscellstr(xSPM.Im));
 catch
-    maskCon = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
+    % Mask = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
+    Mask = spm_input('apply masking','+1','b','none|contrast|image',[0,1,2],1);
 end
-if maskCon
+if Mask == 1
+    
+    %-Get contrasts for masking
+    %----------------------------------------------------------------------
     try
         Im = xSPM.Im;
     catch
@@ -411,8 +410,29 @@ if maskCon
     try
         Ex = xSPM.Ex;
     catch
-        Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
+        Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1],1);
     end
+    
+elseif Mask == 2
+    
+    %-Get mask images
+    %----------------------------------------------------------------------
+    try
+        Im = xSPM.Im;
+    catch
+        Im = cellstr(spm_select([1 Inf],'image','Select mask image(s)'));
+    end
+    
+    %-Inclusive or exclusive masking
+    %----------------------------------------------------------------------
+    try
+        Ex = xSPM.Ex;
+    catch
+        Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1],1);
+    end
+    
+    pm = [];
+    
 else
     Im = [];
     pm = [];
@@ -439,13 +459,22 @@ if Ex
 else
     mstr = 'masked [incl.] by';
 end
-if length(Im) == 1
-    str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
-    
-elseif ~isempty(Im)
-    str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
-        sprintf(',%d',Im(2:end)),...
-        sprintf('} at p=%g)',pm)];
+if isnumeric(Im)
+    if length(Im) == 1
+        str = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
+    elseif ~isempty(Im)
+        str = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
+            sprintf(',%d',Im(2:end)),...
+            sprintf('} at p=%g)',pm)];
+    end
+elseif iscellstr(Im) && numel(Im) > 0
+    [pf,nf,ef] = spm_fileparts(Im{1});
+    str  = sprintf('%s (%s %s',str,mstr,[nf ef]);
+    for i=2:numel(Im)
+        [pf,nf,ef] = spm_fileparts(Im{i});
+        str =[str sprintf(', %s',[nf ef])];
+    end
+    str = [str ')'];
 end
 try
     titlestr = xSPM.title;
@@ -453,7 +482,7 @@ try
         titlestr = str;
     end
 catch
-    titlestr     = spm_input('title for comparison','+1','s',str);
+    titlestr = spm_input('title for comparison','+1','s',str);
 end
 
 
@@ -518,7 +547,11 @@ end
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
 SPM.xCon = xCon;
-SPM      = spm_contrasts(SPM, unique([Ic, Im, IcAdd]));
+if isnumeric(Im)
+    SPM  = spm_contrasts(SPM, unique([Ic, Im, IcAdd]));
+else
+    SPM  = spm_contrasts(SPM, unique([Ic, IcAdd]));
+end
 xCon     = SPM.xCon;
 STAT     = xCon(Ic(1)).STAT;
 VspmSv   = cat(1,xCon(Ic).Vspm);
@@ -574,21 +607,28 @@ Zum   = Z;
 
 %-Compute mask and eliminate masked voxels
 %--------------------------------------------------------------------------
-for i = Im
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')           %-#
+for i = 1:numel(Im)
     
-    Mask = spm_get_data(xCon(i).Vspm,XYZ);
-    um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
-    if Ex
-        Q = Mask <= um;
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')           %-#
+    if isnumeric(Im)
+        Mask = spm_get_data(xCon(Im(i)).Vspm,XYZ);
+        um   = spm_u(pm,[xCon(Im(i)).eidf,xX.erdf],xCon(Im(i)).STAT);
+        if Ex
+            Q = Mask <= um;
+        else
+            Q = Mask >  um;
+        end
     else
-        Q = Mask >  um;
+        v = spm_vol(Im{i});
+        Mask = spm_get_data(v,v.mat\SPM.xVol.M*[XYZ; ones(1,size(XYZ,2))]);
+        Q = Mask ~= 0 & ~isnan(Mask);
+        if Ex, Q = ~Q; end
     end
     XYZ   = XYZ(:,Q);
     Z     = Z(Q);
     if isempty(Q)
         fprintf('\n')                                                   %-#
-        warning(sprintf('No voxels survive masking at p=%4.2f',pm));
+        warning('No voxels survive masking');
         break
     end
 end
@@ -802,7 +842,7 @@ xSPM   = struct( ...
             'df',       df,...
             'STATstr',  STATstr,...
             'Ic',       Ic,...
-            'Im',       Im,...
+            'Im',       {Im},...
             'pm',       pm,...
             'Ex',       Ex,...
             'u',        u,...
@@ -819,7 +859,7 @@ xSPM   = struct( ...
             'Vspm',     VspmSv,...
             'thresDesc',thresDesc);
 
-% RESELS per voxel (density) if it exists
+%-RESELS per voxel (density) if it exists
 %--------------------------------------------------------------------------
 try, xSPM.VRpv = SPM.xVol.VRpv; end
 try
@@ -828,12 +868,12 @@ catch
     try, xSPM.units = varargin{1}.units; end
 end
 
-% p-values for topological and voxel-wise FDR
+%-p-values for topological and voxel-wise FDR
 %--------------------------------------------------------------------------
 try, xSPM.Ps    = Ps;             end  % voxel   FDR
 try, xSPM.Pp    = Pp;             end  % peak    FDR
 try, xSPM.Pc    = Pc;             end  % cluster FDR
 
-% 0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
+%-0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
 %--------------------------------------------------------------------------
 try, xSPM.uc    = [uu up ue uc];  end

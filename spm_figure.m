@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3919 2010-06-04 16:45:16Z guillaume $
+% $Id: spm_figure.m 3928 2010-06-16 12:09:22Z guillaume $
 
 
 %==========================================================================
@@ -701,13 +701,12 @@ if ~isdeployed
     uimenu(t0,'Separator','on','Label','SPM Check Installation',...
         'CallBack','spm_check_installation(''full'')');
     uimenu(t0,'Label','SPM Check for Updates',...
-        'CallBack','spm_update;');
+        'CallBack','spm(''alert"'',evalc(''spm_update''),''SPM Update'');');
 end
 
 %- About Menu
-[v,r] = spm('Ver');
-uimenu(t0,'Separator','on','Label',['&About ' v ' (r' r ')'],...
-    'CallBack','spm_help(''spm.man'')');
+uimenu(t0,'Separator','on','Label',['&About ' spm('Ver')],...
+    'CallBack',@spm_about);
 uimenu(t0,'Label','&About MATLAB',...
     'CallBack','helpmenufcn(gcbf,''HelpAbout'')');
 
@@ -722,24 +721,22 @@ uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
 uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
     'CallBack',@mydockspm);
 
-%-Copy Figure
-uimenu(t0, 'Label','&Copy Figure', 'HandleVisibility','off',...
-    'Separator','on','CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
-
 %-Print Menu
-t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off');
+t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off','Separator','on');
 uimenu(t1,    'Label','&Default File', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''Print'',gcf)');
 uimenu(t1,    'Label','&Specify File...', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''PrintTo'',spm_figure(''FindWin'',''Graphics''))');
 
+%-Copy Figure
+if ispc
+    uimenu(t0, 'Label','&Copy Figure', 'HandleVisibility','off',...
+       'CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
+end
+
 %-Clear Menu
 uimenu(t0,    'Label','C&lear Figure', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''Clear'',gcbf)');
-
-%-Duplicate Menu
-uimenu(t0,    'Label','&Duplicate Figure', 'HandleVisibility','off', ...
-    'Visible','off', 'CallBack',@myduplfig);
 
 %-Colour Menu
 t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off','Separator','on');
@@ -828,7 +825,7 @@ return;
 
 
 %==========================================================================
-function myisresults(obj,evd)
+function myisresults(obj,evt)
 %==========================================================================
 hr = findall(obj,'Label','&Results Table');
 try
@@ -845,7 +842,7 @@ else
 end
 
 %==========================================================================
-function mysatfig(obj,evd)
+function mysatfig(obj,evt)
 %==========================================================================
 SatWindow = spm_figure('FindWin','Satellite');
 if ~isempty(SatWindow)
@@ -889,47 +886,7 @@ else
 end
 
 %==========================================================================
-function myduplfig(obj,evd)
-%==========================================================================
-F = ancestor(obj,'figure');
-h = findall('-regexp','Tag','^Duplicata');
-if ~isempty(h)
-    name = char(get(h,'Tag')); name = name(:,length('Duplicata ')+1:end);
-    s = max(str2num(name))+1;
-else
-    s = 1;
-end
-str = ['Duplicata ' num2str(s)];
-G = spm_figure('Create',str,str);
-c = allchild(F);
-[i, j] = setdiff(c,findall(c,'flat','type','uimenu'));
-copyobj(c(sort(j)),G);
-set(G,'Colormap',get(F,'Colormap'));
-
-%- Re-Register the MIP
-hMIPax     = spm_mip_ui('FindMIPax',G);
-if ~isempty(hMIPax)
-    ud         = get(hMIPax,'UserData');
-    ud.hMIPxyz = findall(G,'Tag','hMIPxyz');
-    ud.hXr(1)  = findall(G,'Tag','hX1r');
-    ud.hXr(2)  = findall(G,'Tag','hX2r');
-    ud.hXr(3)  = findall(G,'Tag','hX3r');
-    set(hMIPax,'UserData',ud);
-    spm_XYZreg('XReg',spm_XYZreg('FindReg','Interactive'),hMIPax,'spm_mip_ui');
-end
-
-%- Re-Register the Results Table
-hAx = findall(G,'Type','axes','Tag','SPMList');
-if ~isempty(hAx)
-    ud = get(hAx,'UserData');
-    ud.HlistXYZ = findall(G,'Tag','ListXYZ');
-    set(hAx,'UserData',ud);
-    spm_XYZreg('XReg',spm_XYZreg('FindReg','Interactive'),hAx,'spm_list');
-    hNextPage = findall(G,'Tag','NextPage'); delete(hNextPage);
-end
-
-%==========================================================================
-function mydockspm(obj,evd)
+function mydockspm(obj,evt)
 %==========================================================================
 % Largely inspired by setFigDockGroup from Yair Altman
 % http://www.mathworks.com/matlabcentral/fileexchange/16650
@@ -950,7 +907,7 @@ try
     set(hContainer,'userdata',group);
 end
 set(h,'WindowStyle','docked');
-try, desktop.setGroupDocked(group,false); end
+try, pause(0.5), desktop.setGroupDocked(group,false); end
 
 %==========================================================================
 function copy_menu(F,G)
@@ -991,3 +948,127 @@ end
 if isempty(jframe)
     error('Cannot retrieve the java frame from handle.');
 end
+
+%==========================================================================
+function spm_about(obj,evt)
+%==========================================================================
+[v,r] = spm('Ver');
+h = figure('MenuBar','none',...
+           'NumberTitle','off',...
+           'Name',['About ' v],...
+           'Resize','off',...
+           'Toolbar','none',...
+           'Tag','AboutSPM',...
+           'WindowStyle','Modal',...
+           'Color',[0 0 0],...
+           'Visible','off',...
+           'DoubleBuffer','on');
+pos = get(h,'Position');
+pos([3 4]) = [300 400];
+set(h,'Position',pos);
+set(h,'Visible','on');
+
+a = axes('Parent',h, 'Units','pixels', 'Position',[50 201 200 200],...
+	'Visible','off');
+IMG = imread(fullfile(spm('Dir'),'man','images','spm8.png'));
+image(IMG,'Parent',a); set(a,'Visible','off');
+
+a = axes('Parent',h,'Units','pixels','Position',[0 0 300 400],...
+	'Visible','off','Tag','textcont');
+text(0.5,0.45,'Statistical Parametric Mapping','Parent',a,...
+    'HorizontalAlignment','center','Color',[1 1 1],'FontWeight','Bold');
+text(0.5,0.40,[v ' (v' r ')'],'Parent',a,'HorizontalAlignment','center',...
+    'Color',[1 1 1]);
+text(0.5,0.30,'Wellcome Trust Centre for Neuroimaging','Parent',a,...
+    'HorizontalAlignment','center','Color',[1 1 1],'FontWeight','Bold');
+text(0.5,0.25,['Copyright (C) 1991,1994-2003, 2005-' datestr(now,'yyyy')],...
+    'Parent',a,'HorizontalAlignment','center','Color',[1 1 1]);
+text(0.5,0.20,'http://www.fil.ion.ucl.ac.uk/spm/','Parent',a,...
+    'HorizontalAlignment','center','Color',[1 1 1],...
+    'ButtonDownFcn','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
+
+uicontrol('Style','pushbutton','String','Credits','Position',[40 25 60 25],...
+    'Callback',@myscroll,'BusyAction','Cancel');
+uicontrol('Style','pushbutton','String','OK','Position',[200 25 60 25],...
+    'Callback','close(gcf)','BusyAction','Cancel');
+
+%==========================================================================
+function myscroll(obj,evt)
+%==========================================================================
+ax = findobj(gcf,'Tag','textcont');
+cla(ax);
+authors = spm_authors;
+x = 0.2;
+h = [];
+for i=1:numel(authors)
+    h(i) = text(0.5,x,authors{i},'Parent',ax,...
+        'HorizontalAlignment','center','Color',col(x));
+    if any(authors{i} == '*')
+        set(h(i),'String',strrep(authors{i},'*',''),'FontWeight','Bold');
+    end
+    x = x - 0.05;
+end
+pause(0.5);
+try
+    for j=1:fix((0.5-(0.2-numel(authors)*0.05))/0.01)
+        for i=1:numel(h)
+            p  = get(h(i),'Position');
+            p2 = p(2)+0.01;
+            set(h(i),'Position',[p(1) p2 p(3)],'Color',col(p2));
+            if p2 > 0.5, set(h(i),'Visible','off'); end
+        end
+        pause(0.1)
+    end
+end
+
+%==========================================================================
+function c = col(x)
+%==========================================================================
+if x < 0.4 && x > 0.3
+    c = [1 1 1];
+elseif x <= 0.3
+    c = [1 1 1] - 6*abs(0.3-x);
+else
+    c = [1 1 1] - 6*abs(0.4-x);
+end
+c(c<0) = 0; c(c>1) = 1;
+
+%==========================================================================
+function authors = spm_authors
+%==========================================================================
+authors = {...
+'*SPM8*'
+'John Ashburner'
+'Gareth Barnes'
+'Chun-Chuan Chen'
+'Justin Chumbley'
+'Jean Daunizeau'
+'Guillaume Flandin'
+'Karl Friston'
+'Darren Gitelman'
+'Volkmar Glauche'
+'Lee Harrison'
+'Rik Henson'
+'Chloe Hutton'
+'Maria Joao Rosa'
+'Stefan Kiebel'
+'James Kilner'
+'Vladimir Litvak'
+'Rosalyn Moran'
+'Tom Nichols'
+'Robert Oostenveld'
+'Will Penny'
+'Christophe Phillips'
+'Klaas Enno Stephan'
+''
+'*Previous versions*'
+'Matthew Brett'
+'Christian Buechel'
+'Jon Heather'
+'Andrew Holmes'
+'Jeremie Mattout'
+'Jean-Baptiste Poline'
+'Keith Worsley'
+''
+'*Thanks to the SPM community*'
+};

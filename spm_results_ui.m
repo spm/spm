@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3919 2010-06-04 16:45:16Z guillaume $
+% $Id: spm_results_ui.m 3928 2010-06-16 12:09:22Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 3919 $'; 
+SVNid = '$Rev: 3928 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -349,7 +349,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'UserData',struct('Ic',i),...
             'Callback',{@mychgcon,xSPM});
         if any(xSPM.Ic == i)
-            set(hC2,'ForegroundColor',[0 0 1]);
+            set(hC2,'ForegroundColor',[0 0 1],'Checked','on');
         end
     end
     hC1 = uimenu(hC,'Label','Previous Contrast',...
@@ -1175,7 +1175,7 @@ switch lower(Action), case 'setup'                         %-Set up results
 end
 
 %==========================================================================
-function mychgcon(obj,evd,xSPM)
+function mychgcon(obj,evt,xSPM)
 %==========================================================================
 xSPM2.swd   = xSPM.swd;
 try, xSPM2.units = xSPM.units; end

@@ -4,9 +4,9 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 3135 2009-05-19 14:49:42Z guillaume $
+% $Id: spm_cfg_st.m 3928 2010-06-16 12:09:22Z guillaume $
 
-rev = '$Rev: 3135 $';
+rev = '$Rev: 3928 $';
 % ---------------------------------------------------------------------
 % scans Session
 % ---------------------------------------------------------------------
@@ -104,7 +104,6 @@ st.tag     = 'st';
 st.name    = 'Slice Timing';
 st.val     = {generic nslices tr ta so refslice prefix };
 st.help    = {
-              'Note that this option is likely to be removed in future.  The authors of SPM do not generally suggest that this correction should be used, but the option is still retained for the few people who like to use it.'
               'Correct differences in image acquisition time between slices. Slice-time corrected files are prepended with an ''a''.'
               ''
               'Note: The sliceorder arg that specifies slice acquisition order is a vector of N numbers, where N is the number of slices per volume. Each number refers to the position of a slice within the image file. The order of numbers within the vector is the temporal order in which those slices were acquired. To check the order of slices within an image file, use the SPM Display option and move the cross-hairs to a voxel co-ordinate of z=1.  This corresponds to a point in the first slice of the volume.'
@@ -118,7 +117,9 @@ st.help    = {
               'This correction assumes that the data are band-limited (i.e. there is no meaningful information present in the data at a frequency higher than that of the Nyquist). This assumption is support by the study of Josephs et al (1997, NeuroImage) that obtained event-related data at an effective TR of 166 msecs. No physio-logical signal change was present at frequencies higher than our typical Nyquist (0.25 HZ).'
               ''
               'Written by Darren Gitelman at Northwestern U., 1998.  Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and Eric Zarahn at U. Penn.'
-}';
+              ''
+              'Note that this option is likely to be removed in future.  The authors of SPM do not generally suggest that this correction should be used, but the option is still retained for the few people who like to use it.'
+              }';
 st.prog = @spm_run_st;
 st.vout = @vout;
 st.modality = {'FMRI'};
