@@ -1,13 +1,14 @@
 function spm_print(job)
-% Print the graphics window
+% Print the Graphics window
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 3782 2010-03-16 18:33:32Z guillaume $
+% $Id: spm_print.m 3933 2010-06-17 14:19:08Z guillaume $
 
-% Run spm_print always as job to get configured print options
-if nargin == 0
+%-Run spm_print through the Batch System to get configured print options
+%==========================================================================
+if ~nargin
     spm_jobman('serial','','spm.util.print','');
     return;
 elseif ischar(job)
@@ -15,42 +16,60 @@ elseif ischar(job)
     return;
 end
 
-
+%-Print the Graphics window
+%==========================================================================
 try
-    mon = {'Jan','Feb','Mar','Apr','May','Jun',...
-            'Jul','Aug','Sep','Oct','Nov','Dec'};
-    t   = clock;
-    nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d',t(3))];
-
+    %-Get output filename
+    %----------------------------------------------------------------------
     if isempty(job.fname)
+        nam = ['spm_' datestr(now,'yyyymmmdd')];
         if job.opts.append
             nam1 = fullfile(pwd,[nam job.opts.ext]);
         else
-            nam1 = sprintf('%s_%3d',nam,1);
-            for i=1:100000
+            nam1=''; i=1;
+            while isempty(nam1)
                 nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,job.opts.ext));
-                if ~exist(nam1,'file'), break; end;
+                if ~exist(nam1,'file'), break; else nam1='';i=i+1; end;
             end
         end
     else
         nam1 = job.fname;
     end
+    
+    %-Get print options
+    %----------------------------------------------------------------------
     opts = {nam1,'-noui','-painters',job.opts.opt{:}};
-    if strcmp(get(gcf,'Tag'),'Help'),
+    
+    %-Get figure handle
+    %----------------------------------------------------------------------
+    if strcmp(get(gcf,'Tag'),'Help')
         fg = gcf;
     else
         fg = spm_figure('FindWin','Graphics');
     end
+    if isempty(fg)
+        fprintf('\nGraphics window not found: nothing has been printed.\n');
+        return;
+    end
+    
+    %-Print
+    %----------------------------------------------------------------------
     if isdeployed
         deployprint(fg,opts{:});
     else
         print(fg,opts{:});
     end
+    
+    %-Report
+    %----------------------------------------------------------------------
     if isempty(strfind(nam1,filesep))
-    fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
+        fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
     else
-    fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
+        fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
     end
+    
+%-Report errors
+%==========================================================================
 catch
     errstr = lasterror;
     errstr = errstr.message;
