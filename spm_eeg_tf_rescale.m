@@ -23,9 +23,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3931 2010-06-16 15:28:54Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3935 2010-06-17 16:00:11Z vladimir $
 
-SVNrev = '$Rev: 3931 $';
+SVNrev = '$Rev: 3935 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -79,13 +79,18 @@ switch lower(S.tf.method)
             Db = Din;
         end
         
-        if any(abs(Din.frequencies-Db.frequencies)>0.1) || ~isequal(Db.chanlabels, Din.chanlabels) || Db.ntrials~=Din.ntrials
+        if any(abs(Din.frequencies-Db.frequencies)>0.1) || ~isequal(Db.chanlabels, Din.chanlabels) ||...
+                (Db.ntrials>1 && (Db.ntrials~=Din.ntrials))
             error('The input dataset and the baseline dataset should have the same frequencies, channels and trial numbers');
         end        
        
         for c=1:D.ntrials
             inds=find(tims>=S.tf.Sbaseline(1) & tims<=S.tf.Sbaseline(2));
-            x=spm_squeeze(Db(:,:,:,c), 4);
+            if Db.ntrials > 1
+                x=spm_squeeze(Db(:,:,:,c), 4);
+            else
+                x=spm_squeeze(Db(:,:,:,1), 4);
+            end
             xbase=mean(x(:,:,inds),3);
             switch lower(S.tf.method)
                 case 'logr'
