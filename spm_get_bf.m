@@ -28,7 +28,7 @@ function [xBF] = spm_get_bf(xBF)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_get_bf.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_get_bf.m 3934 2010-06-17 14:58:25Z guillaume $
  
  
 % length of time bin
@@ -126,7 +126,7 @@ otherwise
  
     % add time derivative
     %----------------------------------------------------------------------
-    if findstr(xBF.name,'time')
+    if strfind(xBF.name,'time')
  
         dp     = 1;
         p(6)   = p(6) + dp;
@@ -136,7 +136,7 @@ otherwise
  
         % add dispersion derivative
         %------------------------------------------------------------------
-        if findstr(xBF.name,'dispersion')
+        if strfind(xBF.name,'dispersion')
  
             dp    = 0.01;
             p(3)  = p(3) + dp;

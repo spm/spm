@@ -7,7 +7,7 @@ function V = spm_check_filename(V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_check_filename.m 2976 2009-03-26 22:07:06Z guillaume $
+% $Id: spm_check_filename.m 3934 2010-06-17 14:58:25Z guillaume $
 
 if isdeployed, return; end
 
@@ -70,7 +70,7 @@ for i = 1:length(V)
     try
         % get relative path (directory and filename) and find in children
         %------------------------------------------------------------------
-        j     = findstr(V(i).fname,filesep);
+        j     = strfind(V(i).fname,filesep);
         fname = which(fname(j(end - 1):end));
         if ~isempty(fname)
             V(i).fname = fname;

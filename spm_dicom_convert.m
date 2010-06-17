@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 3779 2010-03-12 15:38:49Z john $
+% $Id: spm_dicom_convert.m 3934 2010-06-17 14:58:25Z guillaume $
 
 
 if nargin<2, opts     = 'all'; end
@@ -1062,7 +1062,7 @@ function suc = mkdir_rec(str)
 % works on full pathnames only
 opwd=pwd;
 if str(end) ~= filesep, str = [str filesep];end;
-pos = findstr(str,filesep);
+pos = strfind(str,filesep);
 suc = zeros(1,length(pos));
 for g=2:length(pos)
     if ~exist(str(1:pos(g)-1),'dir'),
@@ -1097,8 +1097,8 @@ else
     X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
 end
 
-ascstart = findstr(X,'### ASCCONV BEGIN ###');
-ascend = findstr(X,'### ASCCONV END ###');
+ascstart = strfind(X,'### ASCCONV BEGIN ###');
+ascend = strfind(X,'### ASCCONV END ###');
 
 if ~isempty(ascstart) && ~isempty(ascend)
     tokens = textscan(char(X((ascstart+22):(ascend-1))),'%s', ...

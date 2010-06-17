@@ -23,7 +23,7 @@ function list = find(varargin)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin <guillaume@artefact.tk>
-% $Id: find.m 1460 2008-04-21 17:43:18Z guillaume $
+% $Id: find.m 3934 2010-06-17 14:58:25Z guillaume $
 
 % TODO:
 %   - clean up subroutines
@@ -105,7 +105,7 @@ end
 %=======================================================================
 function list = sub_pathfinder(tree,pth)
     %- Search for the delimiter '/' in the path
-    i = findstr(pth,'/');
+    i = strfind(pth,'/');
     %- Begin search by root
     list = root(tree);
     %- Walk through the tree

@@ -250,7 +250,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 1157 2008-02-19 11:34:58Z guillaume $
+% $Id: spm_DesMtx.m 3934 2010-06-17 14:58:25Z guillaume $
 
 
 
@@ -674,11 +674,11 @@ while(Carg <= nargin)
         rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-    elseif size(rX,2)>1 & max([1,findstr(rPnames(1,:),'_{')]) < ...
+    elseif size(rX,2)>1 & max([1,strfind(rPnames(1,:),'_{')]) < ...
                     max([0,find(rPnames(1,:)=='}')])
     %-Factor, interaction of factors, or FxC: find the rest...
     %===============================================================
-        c1 = max(findstr(rPnames(1,:),'_{'));
+        c1 = max(strfind(rPnames(1,:),'_{'));
         d  = any(diff(abs(rPnames(:,1:c1+1))),2)...
             | ~any(rPnames(2:end,c1+2:end)=='}',2);
         t  = min(find([d;1]));
@@ -716,7 +716,7 @@ case {'Fnames','fnames'}     %-Turn parameter names into valid filenames
 % Fnames = spm_DesMtx('FNames',Pnames)
 if nargin<2, varargout={''}; return, end
 Fnames = varargin{2};
-for i=1:prod(size(Fnames))
+for i=1:numel(Fnames)
     str = Fnames{i};
     str(str==',')='x';          %-',' to 'x'
     str(str=='*')='-';          %-'*' to '-'

@@ -1,10 +1,10 @@
 function spm_latex_cfg(c)
 % Convert a job configuration tree into a series of LaTeX documents
-%____________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 3926 2010-06-14 16:44:58Z guillaume $
+% $Id: spm_latex_cfg.m 3934 2010-06-17 14:58:25Z guillaume $
 
 if ~nargin, c = spm_cfg; end
 if nargin && ischar(c), clean_latex_compile; return; end
@@ -57,6 +57,7 @@ fprintf(fp,'\\end{document}\n\n');
 fclose(fp);
 return;
 
+%==========================================================================
 function part(c,fp)
 % this is always false, and each cfg_item has a tag
 %if isstruct(c) && isfield(c,'tag'),
@@ -82,6 +83,7 @@ function part(c,fp)
 %end;
 return;
 
+%==========================================================================
 function sts = chapter(c)
 bn = c.tag;
 if strcmp(bn,'preproc') && ~isempty(strfind(c.name,'EEG'))
@@ -107,6 +109,7 @@ fclose(fp);
 sts = true;
 return;
 
+%==========================================================================
 function section(c,fp,lev)
 if nargin<3, lev = 1; end;
 sec = {'section','subsection','subsubsection','paragraph','subparagraph','textbf','textsc','textsl','textit'};
@@ -128,6 +131,7 @@ else
 end;
 return;
 
+%==========================================================================
 function write_help(hlp,fp)
 if isa(hlp, 'cfg_item'),
     if ~isempty(hlp.help),
@@ -146,9 +150,10 @@ str = texify(hlp);
 fprintf(fp,'%s\n\n',str);
 return;
 
+%==========================================================================
 function str = texify(str0)
-st1  = findstr(str0,'/*');
-en1  = findstr(str0,'*/');
+st1  = strfind(str0,'/*');
+en1  = strfind(str0,'*/');
 st = [];
 en = [];
 for i=1:numel(st1),
@@ -169,6 +174,7 @@ end;
 str = [str clean_latex(str0(pen:numel(str0)))];
 return;
 
+%==========================================================================
 function str = clean_latex(str)
 str  = strrep(str,'$','\$');
 str  = strrep(str,'&','\&');
@@ -181,14 +187,16 @@ str  = strrep(str,'>','$>$');
 str  = strrep(str,'<','$<$');
 return;
 
+%==========================================================================
 function bibcstr = get_bib(bibdir)
 biblist = dir(fullfile(bibdir,'*.bib'));
 bibcstr={};
 for k = 1:numel(biblist)
     [p n e v] = spm_fileparts(biblist(k).name);
     bibcstr{k}  = fullfile(bibdir,n);
-end;
+end
 
+%==========================================================================
 function clean_latex_compile
 p = fullfile(spm('Dir'),'man');
 [f, d] = spm_select('FPlist',p,'.*\.aux$');

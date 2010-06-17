@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_dicom_headers.m 3934 2010-06-17 14:58:25Z guillaume $
 
 if nargin<2, essentials = false; end
 
@@ -538,7 +538,7 @@ return;
 %_______________________________________________________________________
 function str_out = uscore_subst(str_in)
 str_out = str_in;
-pos = findstr(str_in,'+AF8-');
+pos = strfind(str_in,'+AF8-');
 if ~isempty(pos),
     str_out(pos) = '_';
     str_out(repmat(pos,4,1)+repmat((1:4)',1,numel(pos))) = [];

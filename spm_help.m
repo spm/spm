@@ -118,7 +118,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 3933 2010-06-17 14:19:08Z guillaume $
+% $Id: spm_help.m 3934 2010-06-17 14:58:25Z guillaume $
 
 
 %=======================================================================
@@ -665,7 +665,7 @@ set(HD.hPrevTopics,'String',PrevTopics,'Value',1)
 %-----------------------------------------------------------------------
 RefdTopics = cellstr(get(HD.hRefdTopics,'String'));
 RefdTopics = {RefdTopics{1};Topic}; %-Add current topic at top of references
-q     = findstr(S,'spm_');      %-Find 'spm_' strings
+q     = strfind(S,'spm_');      %-Find 'spm_' strings
 for i = 1:length(q)
     d = (0:31) + q(i);          %-32 is max "spm_*" length considered
     Q = S(d(d <= length(S)));       %-string (len<=32) starting "spm_"
@@ -727,7 +727,7 @@ if isempty(S)
         fclose(fid);
     end
 end
-q     = min([length(S),findstr(S,char([10 10]))]);  % find empty lines
+q     = min([length(S),strfind(S,char([10 10]))]);  % find empty lines
 q     = find(S(1:q(1)) == 10);              % find line breaks
 
 figure(Fhelp)

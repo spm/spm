@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3919 2010-06-04 16:45:16Z guillaume $
+% $Id: spm.m 3934 2010-06-17 14:58:25Z guillaume $
 
 
 %=======================================================================
@@ -795,7 +795,7 @@ end
 SPMdir = fileparts(SPMdir);
 
 % if isdeployed
-%     ind = findstr(SPMdir,'_mcr')-1;
+%     ind = strfind(SPMdir,'_mcr')-1;
 %     if ~isempty(ind)
 %         % MATLAB 2008a/2009a doesn't need this
 %         SPMdir = fileparts(SPMdir(1:ind(1)));
@@ -901,9 +901,9 @@ if nargin < 2, xTB = spm('TBs'); else xTB = varargin{2}; end
 if i > 0
     %-Addpath (& report)
     %-------------------------------------------------------------------
-    if isempty(findstr(xTB(i).dir,path))
+    if isempty(strfind(path,xTB(i).dir))
         if ~isdeployed, addpath(xTB(i).dir,'-begin'); end
-        spm('alert"',{'Toolbox directory prepended to Matlab path:',...
+        spm('alert"',{'Toolbox directory prepended to MATLAB path:',...
             xTB(i).dir},...
             [xTB(i).name,' toolbox'],1);
     end

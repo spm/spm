@@ -56,7 +56,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_matlab_version_chk.m 3934 2010-06-17 14:58:25Z guillaume $
 
 % output variable
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ end
 
 % If too many fields in input then error
 %-------------------------------------------------------
-if numel(findstr(chk,'.')) > 3
+if numel(strfind(chk,'.')) > 3
     error('Input string has too many fields. Only major.minor.release.build fields are supported.');
 end
 
