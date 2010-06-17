@@ -85,7 +85,9 @@ SPM will create the family level inference plot shown in figure~\ref{family}.
 This gives a 90\% posterior probability to models with the P to F connection.
 
 We will now repeat the analysis but with RFX inference. You should see a result similar to that shown in
-figure~\ref{rfx_family}. 
+figure~\ref{rfx_family}.
+
+The group mean DCM parameters can be easily obtained from the MATLAB command window by loading the \verb!BMS.mat! file and then typing: \verb!mean_a=mean(BMS.DCM.ffx.bma.a,3)!. For the b, c and d parameters use the same code: \verb!mean_b=mean(...b,4)!, \verb!mean_c=mean(...c,3)! and \verb!mean_d=mean(...d,4)!. The subject specific mean DCM parameters can be obtained as follows: \verb!mean_as=mean(...as,4)!, \verb!mean_bs=mean(...bs,5)!, \verb!mean_cs=mean(...cs,4)! and\newline \verb!mean_ds=mean(...ds,5)!. For random-effects change \verb!ffx! to \verb!rfx!. 
 
 \begin{figure}
 \begin{center}
@@ -174,26 +176,21 @@ Random-effects (different from fixed-effects):\\
 \begin{tabular}{ l l l }
 \bf{bma} & & \\
 & \bf{.nsamp} &	 number of samples used to average parameters (default = 10000). \\
-& \bf{.odds\_ratio} & posterior odds ratio, $\pi_{OCC}$, (number of models in Occam’s window, \\
+& \bf{.oddsr} & posterior odds ratio, $\pi_{OCC}$, (number of models in Occam’s window, \\
 & & default = 0). \\
 & \bf{.Nocc} & number of models in Occam's window. \\
 & \bf{.Mocc} & index of models in Occam's window, [1 $\times$ nm]. \\  
 & \bf{.indx} & index of models in Occam's window (different for each subject in RFX),\\
 & &  [1 $\times$ nm]. \\
-& \bf{.theta} & samples from the parameter posterior density, $p(\theta|Y)$, [np $\times$ nsamp]; \\
-& \bf{.theta\_sbj} & samples from the parameter posterior density, $p(\theta|Y)$, for each subject,\\
-& &  [np $\times$ nsub $\times$ nsamp]; \\
-& \bf{.mtheta\_sbj} & mean parameters for each subject, [np $\times$ nsub]; \\
-& \bf{.stheta\_sbj} & standard deviation of the parameters for each subject [np $\times$ nsub]; \\
 & \bf{.a} & samples from posterior density over DCM.a parameters [dima $\times$ nsamp]. \\
 & \bf{.b} & samples from posterior density over DCM.b parameters [dimb $\times$ nsamp]. \\
 & \bf{.c} & samples from posterior density over DCM.c parameters [dimc $\times$ nsamp]. \\
 & \bf{.d} & samples from posterior density over DCM.d parameters [dimd $\times$ nsamp]. \\
-& \bf{.post} & model posterior probabilities for each subject, $p(m|Y)$, [nsub $\times$ nm]. \\
-& \bf{.ma}	 & mean DCM.a parameters, [dima]. \\
-& \bf{.mb}	 & mean DCM.b parameters, [dimb]. \\	
-& \bf{.mc}	& mean DCM.c parameters, [dimc]. \\
-& \bf{.md}	& mean DCM.d parameters, [dimd]. 
+& \bf{.as} & same as bma.a but for each subject [dima $\times$ nsub $\times$ nsamp]. \\
+& \bf{.bs} & same as bma.b but for each subject [dimb $\times$ nsub $\times$ nsamp]. \\
+& \bf{.cs} & same as bma.c but for each subject [dimc $\times$ nsub $\times$ nsamp]. \\
+& \bf{.ds} & same as bma.d but for each subject [dimd $\times$ nsub $\times$ nsamp]. \\
+& \bf{.Ep} & samples from posterior density over parameters (vector) [np $\times$ nsamp]. \\
 \end{tabular}\\\\
 
 Random-effects - same variables as in fixed-effects.
