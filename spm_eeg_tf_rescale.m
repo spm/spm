@@ -23,9 +23,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 3935 2010-06-17 16:00:11Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 3938 2010-06-18 15:03:28Z vladimir $
 
-SVNrev = '$Rev: 3935 $';
+SVNrev = '$Rev: 3938 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -86,12 +86,13 @@ switch lower(S.tf.method)
        
         for c=1:D.ntrials
             inds=find(tims>=S.tf.Sbaseline(1) & tims<=S.tf.Sbaseline(2));
+            x=spm_squeeze(Din(:,:,:,c), 4);
             if Db.ntrials > 1
-                x=spm_squeeze(Db(:,:,:,c), 4);
+                xbase=spm_squeeze(Db(:,:,:,c), 4);
             else
-                x=spm_squeeze(Db(:,:,:,1), 4);
+                xbase=spm_squeeze(Db(:,:,:,1), 4);
             end
-            xbase=mean(x(:,:,inds),3);
+            xbase=mean(xbase(:,:,inds),3);
             switch lower(S.tf.method)
                 case 'logr'
                     x=log10(x);
