@@ -11,9 +11,9 @@ function D = spm_eeg_fuse(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 3817 2010-04-12 13:22:24Z vladimir $
+% $Id: spm_eeg_fuse.m 3937 2010-06-18 14:41:43Z vladimir $
 
-SVNrev = '$Rev: 3817 $';
+SVNrev = '$Rev: 3937 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -157,6 +157,8 @@ for i = 1:Nfiles
     end
     Dout = units(Dout, k:(k+D{i}.nchannels-1), units(D{i}));
     Dout = coor2D(Dout, k:(k+D{i}.nchannels-1), coor2D(D{i}));
+    
+    k = k + D{i}.nchannels;
 end
 
 if any(rejected)
