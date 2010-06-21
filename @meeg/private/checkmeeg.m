@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3936 2010-06-18 08:43:34Z christophe $
+% $Id: checkmeeg.m 3940 2010-06-21 12:51:19Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -191,22 +191,7 @@ else
     end
     if ~isfield(meegstruct.data, 'datatype')
         disp('checkmeeg: data type missing, assigning default');
-        meegstruct.data.datatype = 'float32-le';
-    end
-    
-    if ~isfield(meegstruct.data, 'scale') || ...
-            (Ntrials>1 && ndims(meegstruct.data.scale)~=3) || ...
-            (Ntrials>1 && any(size(meegstruct.data.scale)~=[Nchannels, 1, Ntrials])) || ...
-            (Ntrials==1 && any(size(meegstruct.data.scale)~=[Nchannels, 1]))
-        if strcmp(meegstruct.data.datatype, 'float32-le') || ...
-                strcmp(meegstruct.data.datatype, 'float64-le')
-            disp('checkmeeg: data scale missing or incorrect, assigning default');
-            meegstruct.data.scale = ones(Nchannels, 1, Ntrials);
-        else
-            % Jump out if datascale missing and not in float format
-            disp('checkmeeg: data scale missing or incorrect');
-            return
-        end
+        meegstruct.data.datatype = 'float32';
     end
     
     if ~isfield(meegstruct.data, 'y')
@@ -218,13 +203,14 @@ else
             % Try reading data, i.e. check if it's a "good" filearray
             meegstruct.data.y(1, 1, 1);
         catch
-            % save original scale, just in case
+            % save original file_array scale, just in case
             sav_sc = meegstruct.data.y.scl_slope;
             meegstruct.data.y = [];
         end
     end
     
-    if ~isa(meegstruct.data.y, 'file_array') || isempty(fileparts(meegstruct.data.y.fname)) ...
+    if ~isa(meegstruct.data.y, 'file_array') ...
+            || isempty(fileparts(meegstruct.data.y.fname)) ...
             || ~exist(meegstruct.data.y.fname, 'file')
         if isfield(meegstruct, 'path')
             filepath = meegstruct.path;
@@ -232,10 +218,6 @@ else
             filepath = pwd;
         end
         switch(meegstruct.transform.ID)
-            % note: scale no longer used, must insure data is in some float
-            % format
-            % still re-introduce the scaling if it is available, allowing
-            % the use of copied (raw) integer data files
             case 'time'
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
                     [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
@@ -252,7 +234,7 @@ else
             otherwise
                 error('Unknown transform type');
         end
-        % and restore original scale, if available (exist) & useful (~=[])
+        % and restore original file_array scale, if available (exist) & useful (~=[])
         if exist('sav_sc','var') && ~isempty(sav_sc)
             meegstruct.data.y.scl_slope = sav_sc;
         end

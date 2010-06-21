@@ -22,7 +22,6 @@ function D = meeg(varargin)
 %   Subfields of .data
 %       .y - reference to the data file_array
 %       .fnamedat - name of the .dat file
-%       .scale - scaling coefficients for file_array
 %       .datatype - type of the data for file_array
 %
 %
@@ -102,7 +101,7 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 2209 2008-09-26 18:58:41Z karl $
+% $Id: meeg.m 3940 2010-06-21 12:51:19Z christophe $
 
 if nargin == 1
     if isstruct(varargin{1})
