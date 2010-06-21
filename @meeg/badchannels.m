@@ -5,7 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 3930 2010-06-16 14:20:11Z vladimir $
+% $Id: badchannels.m 3942 2010-06-21 14:03:28Z vladimir $
 
 
 if length(varargin) == 2
@@ -15,14 +15,16 @@ if length(varargin) == 2
     end
 end
 
-if length(varargin) >= 1
+if numel(varargin) >= 1    
+    if ~(varargin{1} >= 1 & varargin{1} <= nchannels(this))
+        error('Channel number of out range.');
+    end
+end
+
+if numel(varargin) >= 2
     ubad = unique(varargin{2});
     if isempty(ubad) | ~all(ismember(ubad, [0 1]))
         error('Illegal bad flags (should be 0 or 1)');
-    end
-    
-    if ~(varargin{1} >= 1 & varargin{1} <= nchannels(this))
-        error('Channel number of out range.');
     end
 end
 
