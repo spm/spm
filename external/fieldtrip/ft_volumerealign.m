@@ -38,10 +38,10 @@ function [mri] = ft_volumerealign(cfg, mri);
 %
 %
 % See also READ_MRI, FT_ELECTRODEREALIGN
-% 
+%
 % Undocumented local options:
-% cfg.inputfile
-% cfg.outputfile
+%   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%   cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2006-2009, Robert Oostenveld
 %
@@ -61,7 +61,7 @@ function [mri] = ft_volumerealign(cfg, mri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 1199 2010-06-08 08:17:32Z timeng $
+% $Id: ft_volumerealign.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -72,8 +72,8 @@ cfg = checkconfig(cfg, 'trackconfig', 'on');
 if ~isfield(cfg, 'fiducial'),  cfg.fiducial = [];         end
 if ~isfield(cfg, 'parameter'), cfg.parameter = 'anatomy'; end
 if ~isfield(cfg, 'clim'),      cfg.clim      = [];        end
-if ~isfield(cfg, 'inputfile'),          cfg.inputfile = [];                      end
-if ~isfield(cfg, 'outputfile'),         cfg.outputfile = [];                     end
+if ~isfield(cfg, 'inputfile'), cfg.inputfile = [];        end
+if ~isfield(cfg, 'outputfile'),cfg.outputfile = [];       end
 
 hasdata = (nargin>1);
 if ~isempty(cfg.inputfile)
@@ -82,7 +82,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     mri = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -196,11 +195,11 @@ switch cfg.method
         fprintf('rpa = undefined\n');
       end
     end % while true
-
+    
     cfg.fiducial.nas = nas;
     cfg.fiducial.lpa = lpa;
     cfg.fiducial.rpa = rpa;
-
+    
   otherwise
     error('unsupported method');
 end
@@ -233,7 +232,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumerealign.m 1199 2010-06-08 08:17:32Z timeng $';
+cfg.version.id = '$Id: ft_volumerealign.m 1258 2010-06-22 08:33:48Z timeng $';
 
 % remember the configuration
 mri.cfg = cfg;

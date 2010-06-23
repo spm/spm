@@ -48,7 +48,7 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 1207 2010-06-08 15:09:00Z timeng $
+% $Id: ft_sourceinterpolate.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -80,7 +80,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     anatomical = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -230,6 +229,10 @@ if ~any(strcmp(cfg.parameter, 'anatomy'))
   interp.anatomy   = anatomical.anatomy;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -242,13 +245,19 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourceinterpolate.m 1207 2010-06-08 15:09:00Z timeng $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 1258 2010-06-22 08:33:48Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end
 try, cfg.previous{2} = anatomical.cfg; end
 % remember the exact configuration details in the output
 interp.cfg = cfg;
+
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', interp); % use the variable name "data" in the output file
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION this function computes the location of all voxels in head

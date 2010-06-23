@@ -124,7 +124,7 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 1219 2010-06-10 12:16:32Z timeng $
+% $Id: ft_rejectvisual.m 1247 2010-06-17 12:07:18Z timeng $
 
 fieldtripdefs
 
@@ -152,7 +152,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -368,12 +367,11 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectvisual.m 1219 2010-06-10 12:16:32Z timeng $';
+cfg.version.id = '$Id: ft_rejectvisual.m 1247 2010-06-17 12:07:18Z timeng $';
 
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
-end
+% remember the configuration details of the input data
+try, cfg.previous = data.cfg; end
+
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

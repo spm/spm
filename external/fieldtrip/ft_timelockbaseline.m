@@ -36,7 +36,7 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 1219 2010-06-10 12:16:32Z timeng $
+% $Id: ft_timelockbaseline.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -55,7 +55,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     timelock = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -147,6 +146,10 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
   
 end % ~strcmp(cfg.baseline, 'no')
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -159,12 +162,11 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockbaseline.m 1219 2010-06-10 12:16:32Z timeng $';
+cfg.version.id = '$Id: ft_timelockbaseline.m 1258 2010-06-22 08:33:48Z timeng $';
 
-if hasdata && isfield(timelock, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = timelock.cfg;
-end
+% remember the configuration details of the input data
+try, cfg.previous = timelock.cfg; end
+
 % remember the exact configuration details in the output
 timelock.cfg = cfg;
 

@@ -74,7 +74,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 1214 2010-06-09 15:17:36Z timeng $
+% $Id: ft_mvaranalysis.m 1247 2010-06-17 12:07:18Z timeng $
 
 % set default configurations
 if ~isfield(cfg, 'toolbox'),    cfg.toolbox    = 'biosig';       end
@@ -113,7 +113,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -335,14 +334,10 @@ mvardata.coeffs   = coeffs;
 mvardata.noisecov = noisecov;
 mvardata.dof      = dof;
 
-cfg.outputfile;
+% remember the configuration details of the input data
+try, cfg.previous = data.cfg; end
 
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
-end
-
-mvardata.cfg     = cfg; 
+mvardata.cfg     = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

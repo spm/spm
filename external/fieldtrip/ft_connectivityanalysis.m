@@ -51,7 +51,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 1176 2010-06-01 11:17:30Z jansch $
+% $Id: ft_connectivityanalysis.m 1250 2010-06-18 09:29:44Z jansch $
 
 fieldtripdefs
 
@@ -176,7 +176,7 @@ if isfield(data, 'label') && ~isempty(cfg.channelcmb),
 end
 
 % check whether the required inparam is present in the data
-if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'crsspctrm')),
+if ~isfield(data, inparam) || (~strcmp(dtype, 'freqmvar') && strcmp(inparam, 'crsspctrm') && isfield(data, 'crsspctrm')),
     switch dtype
     case 'freq'
         if strcmp(inparam, 'crsspctrm') 
@@ -586,7 +586,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_connectivityanalysis.m 1176 2010-06-01 11:17:30Z jansch $';
+cfg.version.id = '$Id: ft_connectivityanalysis.m 1250 2010-06-18 09:29:44Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

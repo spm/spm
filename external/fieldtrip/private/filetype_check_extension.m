@@ -21,7 +21,17 @@ function [val] = filetype_check_extension(filename, ext)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filetype_check_extension.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: filetype_check_extension.m 1238 2010-06-16 16:03:32Z roboos $
+
+% these are for remembering the type on subsequent calls with the same input arguments
+persistent previous_argin previous_argout
+
+current_argin = {filename, ext};
+if isequal(current_argin, previous_argin)
+  % don't do the detection again, but return the previous value from cache
+  val = previous_argout;
+  return
+end
 
 if iscell(filename)
   % compare the extension of multiple files
@@ -32,10 +42,16 @@ if iscell(filename)
 else
   % compare the extension of a single file
   if numel(filename)<numel(ext)
-    val = 0;
+    val = false;
   else
     val = strcmpi(filename((end-length(ext)+1):end), ext);
   end
 end
-return
 
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout  = val;
+previous_argin  = current_argin;
+previous_argout = current_argout;
+
+return % main()

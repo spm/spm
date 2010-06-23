@@ -38,8 +38,8 @@ function [source] = ft_sourcedescriptives(cfg, source)
 % See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS
 %
 % Undocumented local options:
-% cfg.inputfile
-% cfg.outputfile
+%   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%   cfg.outputfile = one can specify output as file to save to disk
 %
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
@@ -59,7 +59,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 1220 2010-06-10 13:02:11Z timeng $
+% $Id: ft_sourcedescriptives.m 1247 2010-06-17 12:07:18Z timeng $
 
 fieldtripdefs
 
@@ -90,7 +90,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -860,7 +859,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourcedescriptives.m 1220 2010-06-10 13:02:11Z timeng $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 1247 2010-06-17 12:07:18Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

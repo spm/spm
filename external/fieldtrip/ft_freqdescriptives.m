@@ -1,14 +1,15 @@
 function [output] = ft_freqdescriptives(cfg, freq)
 
-% FT_FREQDESCRIPTIVES computes descriptive univariate statistics of 
-% the frequency or time-frequency decomposition of the EEG/MEG signal, 
+% FT_FREQDESCRIPTIVES computes descriptive univariate statistics of
+% the frequency or time-frequency decomposition of the EEG/MEG signal,
 % thus the powerspectrum and its standard error.
 %
 % Use as
 %   [freq] = ft_freqdescriptives(cfg, freq)
+%   [freq] = ft_freqdescriptives(cfg, freqmvar)
 %
 % The data in freq should be organised in a structure as obtained from
-% from the FT_FREQANALYSIS function. The output structure is comparable
+% from the FT_FREQANALYSIS or FT_MVARANALYSIS function. The output structure is comparable
 % to the input structure and can be used in most functions that require
 % a freq input.
 %
@@ -25,7 +26,7 @@ function [output] = ft_freqdescriptives(cfg, freq)
 % A variance estimate can only be computed if results from trials and/or
 % tapers have been kept.
 %
-% Descriptive statistics of bivariate metrics is not computed by this function anymore. To this end you 
+% Descriptive statistics of bivariate metrics is not computed by this function anymore. To this end you
 % should use FT_CONNECTIVITYANALYSIS.
 %
 % See also FT_FREQANALYSIS, FT_FREQSTATISTICS, FT_FREQBASELINE, FT_CONNECTIVITYANALYSIS
@@ -35,6 +36,8 @@ function [output] = ft_freqdescriptives(cfg, freq)
 % cfg.latency
 % cfg.previous
 % cfg.version
+% cfg.inputfile  = one can specifiy preanalysed saved data as input
+% cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 % Copyright (C) 2010, Jan-Mathijs Schoffelen, F.C. Donders Centre
@@ -55,12 +58,13 @@ function [output] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqdescriptives.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_freqdescriptives.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
-% check if the input data is valid for this function
-freq = checkdata(freq, 'datatype', {'freq', 'freqmvar'}, 'feedback', 'yes');
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
 
 % throw warnings for the deprecated options
 cfg = checkconfig(cfg, 'deprecated', 'biascorrect');
@@ -73,14 +77,6 @@ cfg = checkconfig(cfg, 'deprecated', 'keepfourier');
 cfg = checkconfig(cfg, 'deprecated', 'partchan');
 cfg = checkconfig(cfg, 'deprecated', 'pseudovalue');
 
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
-
-% determine some specific details of the input data
-hasrpt   = ~isempty(strfind(freq.dimord, 'rpt')) || ~isempty(strfind(freq.dimord, 'subj'));
-hastim   = ~isempty(strfind(freq.dimord, 'time'));
-
 % set the defaults
 if ~isfield(cfg, 'feedback'),    cfg.feedback      = 'textbar'; end
 if ~isfield(cfg, 'jackknife'),   cfg.jackknife     = 'no';      end
@@ -90,6 +86,26 @@ if ~isfield(cfg, 'channel'),     cfg.channel       = 'all';     end
 if ~isfield(cfg, 'foilim'),      cfg.foilim        = 'all';     end
 if ~isfield(cfg, 'toilim'),      cfg.toilim        = 'all';     end
 if ~isfield(cfg, 'keeptrials'),  cfg.keeptrials    = 'no';      end
+if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
+if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    freq = loadvar(cfg.inputfile, 'data');
+  end
+end
+
+% check if the input data is valid for this function
+freq = checkdata(freq, 'datatype', {'freq', 'freqmvar'}, 'feedback', 'yes');
+
+% determine some specific details of the input data
+hasrpt   = ~isempty(strfind(freq.dimord, 'rpt')) || ~isempty(strfind(freq.dimord, 'subj'));
+hastim   = ~isempty(strfind(freq.dimord, 'time'));
 
 varflg   = strcmp(cfg.variance,  'yes');
 jckflg   = strcmp(cfg.jackknife, 'yes');
@@ -131,9 +147,9 @@ if varflg,
     tmp(~isfinite(tmp)) = 0;
     outsum = outsum + tmp;
     outssq = outssq + tmp.^2;
-  end 
+  end
   progress('close');
-
+  
   if jckflg,
     bias = (n-1).^2;
   else,
@@ -176,6 +192,10 @@ try, output.cumsumcnt = freq.cumsumcnt; end;
 output.powspctrm      = powspctrm;
 try, output.powspctrmsem = powspctrmsem; end;
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -188,8 +208,14 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqdescriptives.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_freqdescriptives.m 1258 2010-06-22 08:33:48Z timeng $';
+
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details
 output.cfg = cfg;
+
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', output); % use the variable name "data" in the output file
+end

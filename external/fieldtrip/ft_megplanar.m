@@ -81,7 +81,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 1204 2010-06-08 12:21:08Z timeng $
+% $Id: ft_megplanar.m 1261 2010-06-22 15:09:23Z roboos $
 
 fieldtripdefs
 
@@ -99,7 +99,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -108,7 +107,7 @@ israw  = datatype(data, 'raw');
 istlck = datatype(data, 'timelock');  % this will be temporary converted into raw
 
 % check if the input data is valid for this function
-data  = checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248'});
+data  = checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153'});
 
 if istlck
   % the timelocked data has just been converted to a raw representation
@@ -123,7 +122,16 @@ end
 % set the default configuration
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';             end
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';              end
-if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4;           end
+% use a smart default for the distance
+if ~isfield(cfg, 'neighbourdist'),
+  if     isfield(data.grad, 'unit') && strcmp(data.grad.unit, 'cm')
+    cfg.neighbourdist = 4;
+  elseif isfield(data.grad, 'unit') && strcmp(data.grad.unit, 'mm')
+    cfg.neighbourdist = 40;
+  else
+    % don't provide a default in case the dimensions of the sensor array are unknown
+  end
+end
 if ~isfield(cfg, 'planarmethod'),  cfg.planarmethod = 'sincos';     end
 if strcmp(cfg.planarmethod, 'sourceproject')
   if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end % empty will result in the vol being used
@@ -268,6 +276,8 @@ if istlck
   israw  = false;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
 
 % get the output cfg
@@ -282,7 +292,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_megplanar.m 1204 2010-06-08 12:21:08Z timeng $';
+cfg.version.id   = '$Id: ft_megplanar.m 1261 2010-06-22 15:09:23Z roboos $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

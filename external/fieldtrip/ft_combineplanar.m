@@ -45,7 +45,7 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 1207 2010-06-08 15:09:00Z timeng $
+% $Id: ft_combineplanar.m 1261 2010-06-22 15:09:23Z roboos $
 
 fieldtripdefs
 
@@ -66,12 +66,11 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar'});
+data = checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar'});
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'forbidden', {'combinegrad'});
@@ -250,6 +249,8 @@ end % which datatype
 try, data = rmfield(data, 'crsspctrm');   end
 try, data = rmfield(data, 'labelcmb');    end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
 
 % get the output cfg
@@ -264,12 +265,10 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: ft_combineplanar.m 1207 2010-06-08 15:09:00Z timeng $';
+cfg.version.id  = '$Id: ft_combineplanar.m 1261 2010-06-22 15:09:23Z roboos $';
 % remember the configuration details of the input data
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
-end
+try, cfg.previous = data.cfg; end
+
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

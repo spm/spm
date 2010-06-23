@@ -130,7 +130,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 1187 2010-06-02 13:18:44Z andbas $
+% $Id: ft_topoplotER.m 1253 2010-06-21 12:56:33Z roboos $
 
 fieldtripdefs
 
@@ -614,7 +614,7 @@ if strcmp(cfg.style,'fill');        style = 'isofill';     end
 
 % Draw plot
 if ~strcmp(cfg.style,'blank')
-  ft_plot_topo(chanX,chanY,datavector,'interpmethod',cfg.interpolation,...
+  plot_topo(chanX,chanY,datavector,'interpmethod',cfg.interpolation,...
                                    'interplim',interplimits,...
                                    'gridscale',cfg.gridscale,...
                                    'outline',lay.outline,...

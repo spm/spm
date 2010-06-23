@@ -79,7 +79,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 1207 2010-06-08 15:09:00Z timeng $
+% $Id: ft_volumesegment.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -129,7 +129,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     mri = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -355,7 +354,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: ft_volumesegment.m 1207 2010-06-08 15:09:00Z timeng $';
+cfg.version.id = '$Id: ft_volumesegment.m 1258 2010-06-22 08:33:48Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous = mri.cfg; end
 % remember the exact configuration details in the output 

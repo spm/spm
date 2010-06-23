@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1133 2010-05-22 20:47:15Z vlalit $
+% $Id: ft_filetype.m 1261 2010-06-22 15:09:23Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -682,6 +682,11 @@ elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filen
   type = 'itab_raw';
   manufacturer = 'Chieti ITAB';
   content = 'MEG data, including sensor positions';
+  % known Chieti ITAB file types
+elseif filetype_check_extension(filename, '.raw.mhd')
+  type = 'itab_mhd';
+  manufacturer = 'Chieti ITAB';
+  content = 'MEG header data, including sensor positions';
 
   % known Nexstim file types
 elseif filetype_check_extension(filename, '.nxe')

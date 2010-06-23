@@ -184,7 +184,7 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 1227 2010-06-11 13:50:12Z timeng $
+% $Id: ft_sourceanalysis.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -205,7 +205,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -1000,6 +999,10 @@ if (strcmp(cfg.jackknife, 'yes') || strcmp(cfg.bootstrap, 'yes') || strcmp(cfg.p
   source.trial  = dip;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -1012,7 +1015,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourceanalysis.m 1227 2010-06-11 13:50:12Z timeng $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 1258 2010-06-22 08:33:48Z timeng $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

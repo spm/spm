@@ -36,6 +36,8 @@ function [freq] =ft_freqanalysis(cfg, data, flag);
 % cfg.labelcmb
 % cfg.sgn
 % cfg.sgncmb
+% cfg.inputfile  = one can specifiy preanalysed saved data as input
+% cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2003-2006, F.C. Donders Centre, Pascal Fries
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
@@ -56,15 +58,30 @@ function [freq] =ft_freqanalysis(cfg, data, flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 1169 2010-05-31 12:47:22Z roevdmei $
+% $Id: ft_freqanalysis.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
 %allow for both the new and old implementation to be changed with a flag
 %input
 
+% defaults for optional input/ouputfile
+if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
+if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+  end
+end
+
 if nargin < 3
-    flag = 0;
+  flag = 0;
 end
 
 % check if the input data is valid for this function
@@ -96,15 +113,15 @@ if ~flag
   % HERE THE OLD IMPLEMENTATION STARTS
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   [freq] = feval(sprintf('ft_freqanalysis_%s',lower(cfg.method)), cfg, data);
-
+  
 else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % HERE THE NEW IMPLEMENTATION STARTS
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   % do the bookkeeping that is required for the input data
   % chansel = ...;
-
+  
   % do the bookkeeping that is required for the computation
   %offset    = data.offset;
   
@@ -114,12 +131,12 @@ else
   if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
   if ~isfield(cfg, 'foi'),     cfg.foi = [];       end
   if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
-      error('you must specify a smoothing parameter with taper = dpss'); 
-  end  
+    error('you must specify a smoothing parameter with taper = dpss');
+  end
   
   ntrials = size(data.trial,2);
   trllength = zeros(1, ntrials);
-
+  
   for trllop=1:ntrials
     trllength(trllop) = size(data.trial{trllop}, 2);
   end
@@ -135,9 +152,9 @@ else
       error('the specified padding is too short');
     end
   end
-
+  
   % these don't change over trials
-  options = {'pad', cfg.padding, 'taper', cfg.taper, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq}; 
+  options = {'pad', cfg.padding, 'taper', cfg.taper, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq};
   
   % do the bookkeeping that is required for the output data
   freq  = [];
@@ -169,11 +186,11 @@ else
     end
     
   end % for ntrials
- 
+  
   
   % set output variables
   freq.label = data.label;
-    
+  
   % now get the output in the correct format
   if strcmp(cfg.output, 'pow')
     freq.dimord = 'rpt_chan_freq';
@@ -181,7 +198,7 @@ else
     freq.powspctrm = 2 .* (fourierspctrm .* conj(fourierspctrm)) ./ numsmp; % cf Numercial Receipes 13.4.9
     freq.powspctrm = reshape(freq.powspctrm, size(freq.powspctrm,1)*size(freq.powspctrm,2),size(freq.powspctrm,3),size(freq.powspctrm,4));
   elseif strcmp(cfg.output, 'fourier')
-    freq.dimord = 'rpt_chan_freq'; 
+    freq.dimord = 'rpt_chan_freq';
     freq.freq = foi;
     freq.fourierspctrm = (fourierspctrm) .* sqrt(2 ./ numsmp); % cf Numercial Receipes 13.4.9
     freq.fourierspctrm = reshape(freq.fourierspctrm, size(freq.fourierspctrm,1)*size(freq.fourierspctrm,2),size(freq.fourierspctrm,3),size(freq.fourierspctrm,4));
@@ -194,9 +211,12 @@ else
     freq = fixcsd(freq, 'full', []);
   else
     error('output is not recognized',cfg.output);
-  end  
+  end
   
-
+  % accessing this field here is needed for the configuration tracking
+  % by accessing it once, it will not be removed from the output cfg
+  cfg.outputfile;
+  
   % get the output cfg
   cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
   
@@ -209,7 +229,7 @@ else
     [st, i1] = dbstack;
     cfg.version.name = st(i1);
   end
-  cfg.version.id = '$Id: ft_freqanalysis.m 1169 2010-05-31 12:47:22Z roevdmei $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 1258 2010-06-22 08:33:48Z timeng $';
   % remember the configuration details of the input data
   try, cfg.previous = data.cfg; end
   % remember the exact configuration details in the output
@@ -217,7 +237,10 @@ else
   
 end % if old or new implementation
 
-
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', freq); % use the variable name "data" in the output file
+end
 
 
 

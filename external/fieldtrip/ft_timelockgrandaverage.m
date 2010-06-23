@@ -17,6 +17,10 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %  cfg.normalizevar   = 'N' or 'N-1' (default = 'N-1')
 %
 % See also FT_TIMELOCKANALYSIS, FT_TIMELOCKSTATISTICS
+%
+% Undocumented local options:
+%   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%   cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2003-2006, Jens Schwarzbach
 %
@@ -36,11 +40,26 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_timelockgrandaverage.m 1263 2010-06-23 15:40:37Z timeng $
 
 fieldtripdefs
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
+
+% set the defaults
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
+if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
+
+hasdata = nargin>2;
+if ~isempty(cfg.inputfile) % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    for i=1:numel(cfg.inputfile)
+      varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
+    end
+  end
+end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -150,8 +169,10 @@ else
   grandavg.dimord = 'chan_time';
 end
 
+cfg.outputfile;
+
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -162,7 +183,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockgrandaverage.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_timelockgrandaverage.m 1263 2010-06-23 15:40:37Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)
@@ -171,3 +192,7 @@ end
 % remember the exact configuration details in the output
 grandavg.cfg = cfg;
 
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', grandavg); % use the variable name "data" in the output file
+end

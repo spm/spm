@@ -57,7 +57,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 1204 2010-06-08 12:21:08Z timeng $
+% $Id: ft_volumenormalise.m 1263 2010-06-23 15:40:37Z timeng $
 
 fieldtripdefs
 
@@ -172,6 +172,7 @@ tmpcfg            = [];
 tmpcfg.downsample = cfg.downsample;
 tmpcfg.parameter  = cfg.parameter;
 tmpcfg.smooth     = cfg.smooth;
+tmpcfg.outputfile = cfg.outputfile;
 interp = ft_volumedownsample(tmpcfg, interp);
 
 if isempty(source_coordinates)
@@ -325,7 +326,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumenormalise.m 1204 2010-06-08 12:21:08Z timeng $';
+cfg.version.id = '$Id: ft_volumenormalise.m 1263 2010-06-23 15:40:37Z timeng $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

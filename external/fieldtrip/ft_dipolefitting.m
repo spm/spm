@@ -140,7 +140,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 1214 2010-06-09 15:17:36Z timeng $
+% $Id: ft_dipolefitting.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -165,7 +165,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -556,6 +555,10 @@ if isfield(data, 'elec')
   source.elec = data.elec;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -568,12 +571,11 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_dipolefitting.m 1214 2010-06-09 15:17:36Z timeng $';
+cfg.version.id = '$Id: ft_dipolefitting.m 1258 2010-06-22 08:33:48Z timeng $';
 
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
-end
+% remember the configuration details of the input data
+try, cfg.previous = data.cfg; end
+
 % remember the exact configuration details in the output
 source.cfg = cfg;
 

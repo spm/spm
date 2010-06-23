@@ -23,8 +23,8 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 % See also FT_COMPONENTANALYSIS, FT_PREFPROCESSING
 %
 % Undocumented local options:
-% cfg.inputfile
-% cfg.outputfile
+%   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%   cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2005-2009, Robert Oostenveld
 % 
@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 1198 2010-06-08 08:01:51Z timeng $
+% $Id: ft_rejectcomponent.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -162,7 +162,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectcomponent.m 1198 2010-06-08 08:01:51Z timeng $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 1258 2010-06-22 08:33:48Z timeng $';
 if nargin==2 || nargin < 2 
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end

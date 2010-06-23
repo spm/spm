@@ -38,7 +38,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 % cfg.feedback
 % cfg.normalizecov
 % cfg.preproc
-%
+% cfg.inputfile  = one can specifiy preanalysed saved data as input
+% cfg.outputfile = one can specify output as file to save to disk
+
 % This function depends on PREPROC which has the following options:
 % cfg.absdiff
 % cfg.blc
@@ -87,7 +89,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 1197 2010-06-08 07:48:54Z timeng $
+% $Id: ft_timelockanalysis.m 1258 2010-06-22 08:33:48Z timeng $
 
 fieldtripdefs
 
@@ -111,7 +113,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -490,6 +491,8 @@ if isfield(data, 'elec')
   timelock.elec = data.elec;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
 
 % get the output cfg
@@ -504,7 +507,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockanalysis.m 1197 2010-06-08 07:48:54Z timeng $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 1258 2010-06-22 08:33:48Z timeng $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

@@ -34,7 +34,7 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 1204 2010-06-08 12:21:08Z timeng $
+% $Id: ft_volumedownsample.m 1259 2010-06-22 08:44:46Z jansch $
 
 fieldtripdefs
 
@@ -60,15 +60,7 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     source = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
-end
-
-% check if the required spm is in your path:
-if strcmpi(cfg.spmversion, 'spm2'),
-  hastoolbox('SPM2',1);
-elseif strcmpi(cfg.spmversion, 'spm8'),
-  hastoolbox('SPM8',1);
 end
 
 if strcmp(cfg.keepinside, 'yes')
@@ -113,6 +105,13 @@ down = grid2transform(down);
 
 % smooth functional parameters, excluding anatomy and inside
 if ~strcmp(cfg.smooth, 'no'),
+  % check if the required spm is in your path:
+  if strcmpi(cfg.spmversion, 'spm2'),
+    hastoolbox('SPM2',1);
+  elseif strcmpi(cfg.spmversion, 'spm8'),
+    hastoolbox('SPM8',1);
+  end
+
   for j = 1:length(cfg.parameter)
     if strcmp(cfg.parameter{j}, 'inside')
       fprintf('not smoothing %s\n', cfg.parameter{j});
@@ -157,7 +156,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumedownsample.m 1204 2010-06-08 12:21:08Z timeng $';
+cfg.version.id = '$Id: ft_volumedownsample.m 1259 2010-06-22 08:44:46Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

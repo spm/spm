@@ -60,7 +60,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 1226 2010-06-11 10:10:00Z timeng $
+% $Id: ft_redefinetrial.m 1247 2010-06-17 12:07:18Z timeng $
 
 fieldtripdefs
 
@@ -84,7 +84,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -268,14 +267,12 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_redefinetrial.m 1226 2010-06-11 10:10:00Z timeng $';
+cfg.version.id = '$Id: ft_redefinetrial.m 1247 2010-06-17 12:07:18Z timeng $';
 
 % remember the configuration details of the input data
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  try, cfg.previous = data.cfg; end
-  try, cfg.previous = dataold.cfg; end % in case of ~isempty(cfg.trl)
-end
+try, cfg.previous = data.cfg; end
+try, cfg.previous = dataold.cfg; end % in case of ~isempty(cfg.trl)
+
 % remember the exact configuration details in the output
 data.cfg = cfg;
 % the output data should be saved to a MATLAB file

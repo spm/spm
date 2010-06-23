@@ -27,7 +27,7 @@ function [planar] = planarchannelset(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: planarchannelset.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: planarchannelset.m 1261 2010-06-22 15:09:23Z roboos $
 
 switch lower(senstype(data))
   case 'ctf151_planar'
@@ -763,6 +763,14 @@ switch lower(senstype(data))
       planar{k,1} = ['A',num2str(k),'_dH'];
       planar{k,2} = ['A',num2str(k),'_dV'];
       planar{k,3} = ['A',num2str(k)];
+    end
+    
+  case 'itab153_planar'
+    planar = cell(153,3);
+    for k = 1:153
+      planar{k,1} = sprintf('MAG_%03d_dH', k-1);
+      planar{k,2} = sprintf('MAG_%03d_dV', k-1);
+      planar{k,3} = sprintf('MAG_%03d',    k-1);
     end
 
   otherwise

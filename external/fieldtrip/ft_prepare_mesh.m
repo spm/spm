@@ -46,7 +46,7 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 1214 2010-06-09 15:17:36Z timeng $
+% $Id: ft_prepare_mesh.m 1263 2010-06-23 15:40:37Z timeng $
 
 cfg = checkconfig(cfg, 'forbidden', 'numcompartments');
 
@@ -71,7 +71,6 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     mri = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
 end
 
@@ -97,6 +96,7 @@ end
 if basedonseg || basedonmri
   % optionally downsample the anatomical MRI and/or the tissue segmentation
   tmpcfg = [];
+  tmpcfg.outputfile = cfg.outputfile;
   tmpcfg.downsample = cfg.downsample;
   mri = ft_volumedownsample(tmpcfg, mri);
 end
