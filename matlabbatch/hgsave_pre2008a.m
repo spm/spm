@@ -57,15 +57,15 @@ function outfile = hgsave_pre2008a(figname,doreplace)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: hgsave_pre2008a.m 3567 2009-11-13 14:55:48Z volkmar $
+% $Id: hgsave_pre2008a.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 3567 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
  
 hvar = load(figname,'-mat');
 hstr = gencode(hvar);
-[p fign e v] = fileparts(figname);
+[p fign e] = fileparts(figname);
 % save new figure under <figname>_R14SP3
-nfigname = fullfile(p, sprintf('%s_R14SP3%s%s', fign, e, v));
+nfigname = fullfile(p, sprintf('%s_R14SP3%s%s', fign, e));
 % This regexp filters out automatically created/convertible code
 if doreplace
     re  = sprintf('^([^=]*)= @\\(hObject,eventdata\\)%s\\(([^,]*),hObject,eventdata,guidata\\(hObject\\)\\)',fign);

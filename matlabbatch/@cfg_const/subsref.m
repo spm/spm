@@ -23,9 +23,9 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: subsref.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 persistent local_mysubs_fields;
 persistent par_class;
@@ -38,7 +38,7 @@ if ~iscell(local_mysubs_fields)
             par_class = 'cfg_branch';
             pf1 = subs_fields(item.cfg_branch);
             pf2 = subs_fields(cfg_item);
-            par_fields = {pf1{:} pf2{:}};
+            par_fields = [pf1(:); pf2(:)]';
         case 'cfg_item',
             par_class = '';
             par_fields = {};

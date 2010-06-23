@@ -10,11 +10,11 @@ function fn = fieldnames(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: fieldnames.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: fieldnames.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 fn1 = fieldnames(item.cfg_item);
 fn2 = mysubs_fields;
 
-fn = {fn1{:} fn2{:}};
+fn = [fn1(:); fn2(:)]';

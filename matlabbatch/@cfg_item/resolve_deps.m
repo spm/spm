@@ -18,9 +18,9 @@ function [val, sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 2349 2008-10-17 10:36:17Z volkmar $
+% $Id: resolve_deps.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2349 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 val1 = cell(size(item.val{1}));
 for k = 1:numel(item.val{1})
@@ -85,8 +85,8 @@ if sts
     val = val{1};
 else
     dstr = disp_deps(item, val1);
-    dstr = {'Dependencies resolved, but not suitable for this item.', ...
-        dstr{:}};
+    dstr = [{'Dependencies resolved, but not suitable for this item.'}, ...
+        dstr(:)'];
     cfg_message('matlabbatch:subsasgn:val',...
         '%s\n', dstr{:});
     return;

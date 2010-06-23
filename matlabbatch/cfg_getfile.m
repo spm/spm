@@ -57,7 +57,9 @@ function [t,sts] = cfg_getfile(varargin)
 % dirs     - subdirectories of 'direc'
 % FORMAT [files,dirs]=cfg_getfile('ExtList',direc,filt,frames)
 % As above, but for selecting frames of 4D NIfTI files
-% frames   - vector of frames to select (defaults to 1, if not specified)
+% frames   - vector of frames to select (defaults to 1, if not
+%            specified). If the frame number is Inf, all frames for the
+%            matching images are listed. 
 % FORMAT [files,dirs]=cfg_getfile('FPList',direc,filt)
 % FORMAT [files,dirs]=cfg_getfile('ExtFPList',direc,filt,frames)
 % As above, but returns files with full paths (i.e. prefixes direc to each)
@@ -83,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3795 2010-03-23 08:12:16Z volkmar $
+% $Id: cfg_getfile.m 3944 2010-06-23 08:53:40Z volkmar $
 
 t = {};
 sts = false;
@@ -123,8 +125,8 @@ if nargin > 0 && ischar(varargin{1})
             else
                 % only filter filenames, not paths
                 for k = 1:numel(t)
-                    [p n e v] = fileparts(t{k});
-                    t1{k} = [n e v];
+                    [p n e] = fileparts(t{k});
+                    t1{k} = [n e];
                 end
             end
             [t1,sts1] = do_filter(t1,filt.ext);
@@ -786,7 +788,7 @@ if ~(strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'))
 else
     dr    = [dr filesep];
 end;
-dr(findstr([filesep filesep],dr)) = [];
+dr(strfind(dr,[filesep filesep])) = [];
 [f,d] = listfiles(dr,getfilt(lb));
 if isempty(d),
     dr    = get(lb,'UserData');
@@ -989,10 +991,14 @@ if filt.code==1 && (numel(filt.frames)~=1 || filt.frames(1)~=1),
         catch
             d4 = 1;
         end;
-        msk = false(size(filt.frames));
-        for j=1:numel(msk), msk(j) = any(d4==filt.frames(j)); end;
-        ii{i} = filt.frames(msk);
-    end;
+        if all(isfinite(filt.frames))
+            msk = false(size(filt.frames));
+            for j=1:numel(msk), msk(j) = any(d4==filt.frames(j)); end;
+            ii{i} = filt.frames(msk);
+        else
+            ii{i} = d4;
+        end;
+    end
 elseif filt.code==1 && (numel(filt.frames)==1 && filt.frames(1)==1),
     for i=1:numel(f),
         ii{i} = 1;
@@ -1250,8 +1256,8 @@ if ~isequal(str, dstr)
 end
 filt = getfilt(ob);
 if filt.code >= 0 % filter files, but not dirs
-    [p n e v] = cellfun(@fileparts, str, 'uniformoutput',false);
-    fstr = strcat(n, e, v);
+    [p n e] = cellfun(@fileparts, str, 'uniformoutput',false);
+    fstr = strcat(n, e);
     [fstr1 fsel] = do_filter(fstr, filt.ext);
     str = str(fsel);
 end

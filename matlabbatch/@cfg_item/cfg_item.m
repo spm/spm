@@ -78,9 +78,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_item.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -118,7 +118,7 @@ switch nargin
         item.name  = varargin{1};
         item.tag   = varargin{2};
         item.check = varargin{3};
-    case 3
+    case 4
         item.name  = varargin{1};
         item.tag   = varargin{2};
         item.check = varargin{3};

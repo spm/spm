@@ -10,9 +10,9 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 2085 2008-09-12 10:26:59Z volkmar $
+% $Id: showdoc.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2085 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 str = showmydoc(item, indent);
 str{end+1} = '';
@@ -20,6 +20,6 @@ str{end+1} = '';
 citems = subsref(item, substruct('.','values'));
 for k = 1:numel(citems)
     str1 = showdoc(citems{k}, sprintf('%s%d.', indent, k));
-    str = {str{:} str1{:}};
+    str = [str(:); str1(:)]';
     str{end+1} = '';
 end;

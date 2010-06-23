@@ -29,7 +29,7 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 2131 2008-09-22 06:04:53Z volkmar $
+% $Id: cfg_justify.m 3944 2010-06-23 08:53:40Z volkmar $
 
 out = {};
 
@@ -61,11 +61,11 @@ for i=2:nargin,
     if iscell(varargin{i}),
         for j=1:numel(varargin{i}),
             para = justify_paragraph(TempObj,spext,swidth,varargin{i}{j});
-            out  = {out{:},para{:}};
+            out  = [out(:);para(:)]';
         end
     else
         para = justify_paragraph(TempObj,spext,swidth,varargin{i});
-        out = {out{:},para{:}};
+        out  = [out(:);para(:)]';
     end
 end
 if ishandle(TempObj)
@@ -76,8 +76,8 @@ if numel(txt)>1 && txt(1)=='%',
     txt = txt(2:end);
 end;
 %txt = regexprep(txt,'/\*([^(/\*)]*)\*/','');
-st1  = findstr(txt,'/*');
-en1  = findstr(txt,'*/');
+st1  = strfind(txt,'/*');
+en1  = strfind(txt,'*/');
 st = [];
 en = [];
 for i=1:numel(st1),

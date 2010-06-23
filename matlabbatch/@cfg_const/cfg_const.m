@@ -46,9 +46,9 @@ function item = cfg_const(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_const.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_const.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -59,7 +59,7 @@ if nargin == 1
         % assume input is a struct to be converted back into a class
         % return with error if this does not work
         if numel(fieldnames(varargin{1})) == numel(fn)+2 && ...
-                all(isfield(varargin{1}, {fn{:} 'cfg_item' 'cfg_leaf'}))
+                all(isfield(varargin{1}, [fn(:)' {'cfg_item' 'cfg_leaf'}]))
             gitem = varargin{1}.cfg_item;
             sitem = rmfield(varargin{1},{'cfg_item', 'cfg_leaf'});
             item  = class(sitem, myclass, gitem, cfg_leaf);

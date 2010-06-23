@@ -51,9 +51,9 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 2085 2008-09-12 10:26:59Z volkmar $
+% $Id: list.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2085 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};
@@ -105,7 +105,7 @@ if (isempty(tropts.stopspec) || ~match(item, tropts.stopspec)) && (tropts.cnt < 
         if nargin > 3
             [id1 stop1 val1] = list(citems{k}, spec, tropts, fn);
             for l = 1:numel(fn)
-                val{l} = {val{l}{:} val1{l}{:}};
+                val{l} = [val{l}(:); val1{l}(:)]';
             end;
         else
             [id1 stop1] = list(citems{k}, spec, tropts);
@@ -113,7 +113,7 @@ if (isempty(tropts.stopspec) || ~match(item, tropts.stopspec)) && (tropts.cnt < 
         if ~isempty(id1)
             idsubs(2).subs = {k};
             for l = 1:numel(id1)
-                id = {id{:} [idsubs id1{l}]};
+                id = [id(:); {[idsubs id1{l}]}]';
             end;
             stop = [stop stop1];
             tropts.cnt = tropts.cnt + numel(id1);

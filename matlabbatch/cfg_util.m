@@ -373,9 +373,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 3792 2010-03-22 13:11:36Z volkmar $
+% $Id: cfg_util.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 3792 $';
+rev = '$Rev: 3944 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -818,7 +818,7 @@ switch lower(cmd),
             cfg_message('matlabbatch:cfg_util:savejob:nojob', ...
                     'Nothing to save for job #%d', cjob);
         else
-            [p n e v] = fileparts(varargin{2});
+            [p n e] = fileparts(varargin{2});
             switch lower(e)
                 case '.mat',
                     save(varargin{2},'matlabbatch','-v6');
@@ -1100,7 +1100,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
     tropts(1).clvl = 1;
     tropts(1).mlvl = Inf;
     tropts(1).cnt  = 1;
-    [p funcname e v] = fileparts(fname);
+    [p funcname e] = fileparts(fname);
     [cstr tag] = gencode_item(c0, '', {}, [funcname '_'], tropts);
     funcname = [funcname '_' tag];
     fname = fullfile(p, [funcname '.m']);
@@ -1121,7 +1121,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
     fclose(fid);
 else
     % generate root level code
-    [p funcname e v] = fileparts(fname);
+    [p funcname e] = fileparts(fname);
     [cstr tag] = gencode_item(c0, 'jobs', {}, [funcname '_'], tropts);
     fname = fullfile(p, [funcname '.m']);
     if nargin < 4 || isempty(preamble) || ~iscellstr(preamble)
@@ -1252,7 +1252,7 @@ else
     dirs = cell(size(appcfgs));
     for k = 1:numel(appcfgs)
         % cd into directory containing config file
-        [p n e v] = fileparts(appcfgs{k});
+        [p n e] = fileparts(appcfgs{k});
         local_cd(p);
         % try to work around MATLAB bug in symlink handling
         % only add application if this directory has not been visited yet
@@ -1296,7 +1296,7 @@ if nargin > 1
     if subsasgn_check_funhandle(defspec)
         opwd = pwd;
         if ischar(defspec)
-            [p fn e v] = fileparts(defspec);
+            [p fn e] = fileparts(defspec);
             local_cd(p);
             defspec = fn;
         end

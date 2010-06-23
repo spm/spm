@@ -42,9 +42,9 @@ function varargout = cfg_message(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_message.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: cfg_message.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 if nargin < 1 || isempty(varargin{1})
     return;
@@ -132,8 +132,8 @@ if any(strcmpi(varargin{1}, {'on', 'off', 'none', 'stdout', 'stderr', ...
         end
         cfg_get_defaults('msgtpl',msgtpl);
     end
-    varargout{1} = {oldmsgprops{:} oldtplprops{:}};
-    varargout{2} = {mchmsgids{:} mchtplids{:}};
+    varargout{1} = [oldmsgprops(:); oldtplprops(:)]';
+    varargout{2} = [mchmsgids(:); mchtplids(:)]';
 else
     % Issue message
     if isstruct(varargin{1})

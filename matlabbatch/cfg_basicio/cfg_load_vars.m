@@ -22,9 +22,9 @@ function varargout = cfg_load_vars(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_vars.m 2787 2009-02-25 08:02:53Z volkmar $
+% $Id: cfg_load_vars.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2787 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
@@ -35,6 +35,7 @@ if ischar(cmd)
             if isfield(job.loadvars,'allvars')
                 out{1} = var;
             else
+                out = cell(size(job.loadvars.varname));
                 for k = 1:numel(job.loadvars.varname)
                     try
                         out{k} = var.(job.loadvars.varname{k});

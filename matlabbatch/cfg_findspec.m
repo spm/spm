@@ -29,14 +29,15 @@ function spec = cfg_findspec(cellspec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_findspec.m 2131 2008-09-22 06:04:53Z volkmar $
+% $Id: cfg_findspec.m 3944 2010-06-23 08:53:40Z volkmar $
 
-rev = '$Rev: 2131 $'; %#ok
+rev = '$Rev: 3944 $'; %#ok
 
 if nargin == 0 || isempty(cellspec)
     spec = {};
     return;
 end;
+spec = cell(size(cellspec));
 for k = 1:numel(cellspec)
     spec{k} = struct('name',{}, 'value',{});
     for l = 1:2:numel(cellspec{k})
