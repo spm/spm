@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 3949 2010-06-25 14:33:57Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -310,7 +310,7 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan) ||...
     cfg1 = [];
     cfg1.sourceunits   = 'mm';  
     cfg1.parameter = 'pow';
-    cfg.downsample = 1;
+    cfg1.downsample = 1;
     sourceint = ft_sourceinterpolate(cfg1, csource, sMRI);
     %%
     
