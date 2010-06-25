@@ -44,41 +44,29 @@ function varargout = cfg_run_subsrefvar(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_subsrefvar.m 3921 2010-06-11 12:09:57Z volkmar $
+% $Id: cfg_run_subsrefvar.m 3948 2010-06-25 09:48:03Z volkmar $
 
-rev = '$Rev: 3921 $'; %#ok
+rev = '$Rev: 3948 $'; %#ok
 
 if ischar(cmd)
     switch lower(cmd)
         case 'run'
             job = local_getjob(varargin{1});
             % do computation, return results in variable out
-            for k = 1:numel(job.subsreference)
-                switch char(fieldnames(job.subsreference{k}))
-                    case 'subsfield'                        
-                        subs(k).type = '.';
-                        subs(k).subs = job.subsreference{k}.subsfield;
-                    case 'subsinda'
-                        subs(k).type = '()';
-                        subs(k).subs = job.subsreference{k}.subsinda;
-                    case 'subsindc'
-                        subs(k).type = '{}';
-                        subs(k).subs = job.subsreference{k}.subsindc;
-                        if any(cellfun(@(x)(isequal(x,':')||numel(x)>1), ...
-                                job.subsreference{k}.subsindc))
-                            cfg_message('cfg_basicio:subsrefvar', ...
-                                'Trying to access multiple cell elements - only returning first one.');
-                        end
-                end
-            end
+            subs = local_getsubs(job, true);
             out.output = subsref(job.input, subs);
             if nargout > 0
                 varargout{1} = out;
             end
         case 'vout'
             job = local_getjob(varargin{1});
+            subscode = char(gencode_substruct(local_getsubs(job, false)));
             dep = cfg_dep;
-            dep.sname      = 'Referenced part of variable';
+            if isempty(subscode)
+                dep.sname = 'Referenced part of variable';
+            else
+                dep.sname = sprintf('val%s', subscode);
+            end
             dep.src_output = substruct('.','output');
             if isequal(job.tgt_spec,'<UNKNOWN>')
                 dep.tgt_spec = cfg_findspec({{'strtype','e'}});
@@ -121,6 +109,30 @@ if ischar(cmd)
 else
     cfg_message('ischar:cmd', 'Cmd must be a string.');
 end
+
+function subs = local_getsubs(job, cwarn)
+% generate subscript structure
+% generate warning for cell references if requested
+subs = struct('type',{},'subs',{});
+for k = 1:numel(job.subsreference)
+    switch char(fieldnames(job.subsreference{k}))
+        case 'subsfield'
+            subs(k).type = '.';
+            subs(k).subs = job.subsreference{k}.subsfield;
+        case 'subsinda'
+            subs(k).type = '()';
+            subs(k).subs = job.subsreference{k}.subsinda;
+        case 'subsindc'
+            subs(k).type = '{}';
+            subs(k).subs = job.subsreference{k}.subsindc;
+            if cwarn && any(cellfun(@(x)(isequal(x,':')||numel(x)>1), ...
+                    job.subsreference{k}.subsindc))
+                cfg_message('cfg_basicio:subsrefvar', ...
+                    'Trying to access multiple cell elements - only returning first one.');
+            end
+    end
+end
+
 
 function varargout = local_defs(defstr, defval)
 persistent defs;
