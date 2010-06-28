@@ -1,7 +1,5 @@
 function spm_defaults
 % Sets the defaults which are used by SPM
-%
-% FORMAT spm_defaults
 %_______________________________________________________________________
 %
 % This file is intended to be customised for the site.
@@ -9,21 +7,29 @@ function spm_defaults
 % matlab subdirectories. If ~/matlab is ahead of the SPM directory
 % in the MATLABPATH, then the users own personal defaults are used.
 %
+% This function should not be called directly in any script or function
+% (apart from SPM internals).
+% To load the defaults, use spm('Defaults',modality).
+% To get/set the defaults, use spm_get_defaults.
+%
 % Care must be taken when modifying this file.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 3911 2010-06-01 15:25:08Z guillaume $
+% 
+% $Id: spm_defaults.m 3953 2010-06-28 16:58:48Z guillaume $
 
 %-Prevent users from making direct calls to this function
 %-----------------------------------------------------------------------
+persistent runonce
 try
-    if ~isdeployed
+    if ~isdeployed && isempty(runonce)
         d = dbstack;
         if isempty(intersect({'spm','spm_get_defaults'},{d.name}))
             fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
-                'Please use spm(''defaults'',modality) instead.\n']);
+                'Please use spm(''Defaults'',modality) ' ...
+                'or spm_get_defaults instead.\n']);
+            runonce = 1;
         end
     end
 end
@@ -54,16 +60,17 @@ defaults.dicom.root     = 'flat'; % Folder hierarchy
 
 % Stats defaults
 %=======================================================================
-defaults.stats.maxmem    = 2^26;
-defaults.stats.maxres    = 64;
-defaults.stats.fmri.ufp  = 0.001;  % Upper tail F-probability
-defaults.stats.pet.ufp   = 0.05;
-defaults.stats.eeg.ufp   = 1;
-defaults.stats.topoFDR   = 1;
+defaults.stats.maxmem      = 2^26;
+defaults.stats.maxres      = 64;
+defaults.stats.fmri.ufp    = 0.001;  % Upper tail F-probability
+defaults.stats.pet.ufp     = 0.05;
+defaults.stats.eeg.ufp     = 1;
+defaults.stats.topoFDR     = 1;
+defaults.stats.rft.nonstat = 0;
 
 % Mask defaults
 %=======================================================================
-defaults.mask.thresh    = 0.8;
+defaults.mask.thresh       = 0.8;
 
 % fMRI design defaults
 %=======================================================================

@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3950 2010-06-28 10:44:02Z guillaume $
+% $Id: spm_figure.m 3953 2010-06-28 16:58:48Z guillaume $
 
 
 %==========================================================================
@@ -321,7 +321,7 @@ if isdocked && ismember(hMenu,F)
         desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
         group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
         hContainer = desktop.getGroupContainer(group);
-    	hContainer.getTopLevelAncestor.hide;
+        hContainer.getTopLevelAncestor.hide;
     end
 end
 
@@ -970,12 +970,12 @@ set(h,'Position',pos);
 set(h,'Visible','on');
 
 a = axes('Parent',h, 'Units','pixels', 'Position',[50 201 200 200],...
-	'Visible','off');
+    'Visible','off');
 IMG = imread(fullfile(spm('Dir'),'man','images','spm8.png'));
 image(IMG,'Parent',a); set(a,'Visible','off');
 
 a = axes('Parent',h,'Units','pixels','Position',[0 0 300 400],...
-	'Visible','off','Tag','textcont');
+    'Visible','off','Tag','textcont');
 text(0.5,0.45,'Statistical Parametric Mapping','Parent',a,...
     'HorizontalAlignment','center','Color',[1 1 1],'FontWeight','Bold');
 text(0.5,0.40,[v ' (v' r ')'],'Parent',a,'HorizontalAlignment','center',...

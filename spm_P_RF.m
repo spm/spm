@@ -49,7 +49,7 @@ function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 3824 2010-04-19 19:23:35Z karl $
+% $Id: spm_P_RF.m 3953 2010-06-28 16:58:48Z guillaume $
 
 
 % get expectations
@@ -108,6 +108,17 @@ end
 % Poisson clumping heuristic {for multiple clusters}
 %==========================================================================
 P        = 1 - spm_Pcdf(c - 1,(Ec + eps)*p);
+
+
+% set P and p = [] for non-implemented cases
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+if k > 0 && n > 1
+	P    = []; p = [];
+end
+if k > 0 && (STAT == 'X' || STAT == 'F')
+	P    = []; p = [];
+end
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 %==========================================================================

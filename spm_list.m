@@ -115,7 +115,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 3899 2010-05-25 15:36:40Z guillaume $
+% $Id: spm_list.m 3953 2010-06-28 16:58:48Z guillaume $
 
 
 % Choose between voxel-wise and topological FDR
@@ -420,7 +420,11 @@ switch lower(varargin{1}), case 'list'                               %-List
     %-Convert cluster sizes from voxels (N) to resels (K)
     %----------------------------------------------------------------------
     c       = max(A);                                  %-Number of clusters
-    NONSTAT = 1;
+    try
+        NONSTAT = spm_get_defaults('stats.rft.nonstat');
+    catch
+        NONSTAT = 0;
+    end
     if STAT ~= 'P'
         if NONSTAT
             K     = zeros(c,1);
