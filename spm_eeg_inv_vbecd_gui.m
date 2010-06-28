@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3905 2010-06-01 10:46:53Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 3951 2010-06-28 15:09:36Z gareth $
 
 %%
 % Load data, if necessary
@@ -90,16 +90,16 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
             
             
             M1 = D.inv{val}.datareg.toMNI;
-            if ~isequal(P.modality,'EEG')
-                [U, L, V] = svd(M1(1:3, 1:3));
-                M1(1:3,1:3) =U*V';
-            end
-          %   disp('Undoing transformation to Tal space !');
-          %   M1=eye(4)
-            mniaff2mni=inv(M1)*D.inv{val}.datareg.toMNI; %% AFFine MNI to MNI (go back to CTF space and from there to MNI)
-            P.forward.sens = ft_transform_sens(M1, P.forward.sens);
-            P.forward.vol = ft_transform_vol(M1, P.forward.vol);
-            P.M1 = M1;
+            
+            [U, L, V] = svd(M1(1:3, 1:3));
+            orM1(1:3,1:3) =U*V'; %% for switching orientation between meg and mni space
+          
+            % disp('Undoing transformation to Tal space !');
+         
+            %disp('Fixing sphere centre !');
+            %P.forward.vol.o=[0 0 28]; P.forward.vol.r=100;
+            mnivol = ft_transform_vol(M1, P.forward.vol); %% used for inside head calculation
+            
             
         end
     end
@@ -254,18 +254,20 @@ while adding_dips
             % informative location prior
             str = 'Location prior';
             while 1
-                s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
-                affs0=pinv(mniaff2mni)*[s0; 0];
-                affs0=affs0(1:3); % convert back to affine mni
-                outside = ~ft_inside_vol(affs0',P.forward.vol);
+                s0mni = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                
+                outside = ~ft_inside_vol(s0mni',mnivol);
+                s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
+                s0=s0(1:3);
                 
                 str2='Prior location variance (mm2)';
-                diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+                diags_s0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+                diags_s0=(orM1*sqrt(diags_s0_mni)).^2;
               
                 if all(~outside), break, end
                     str = 'Prior location must be inside head';
                   end
-            dip_pr(dip_q).mu_s0 = affs0;    
+            dip_pr(dip_q).mu_s0 = s0;    
         else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(3,1);
@@ -279,11 +281,12 @@ while adding_dips
                     'Informative|Non-info',[1,0],2);
         if wpr_q
             % informative moment prior
-            w0= spm_input('Moment prior', ...
+            w0_mni= spm_input('Moment prior', ...
                                         1+tr_q+dip_q+spr_q+3,'e',[0 0 0])';
             str2='Prior moment variance (nAm2)';
-            diags_w0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priormomvardefault)';
-            dip_pr(dip_q).mu_w0 =w0;
+            diags_w0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priormomvardefault)';
+            dip_pr(dip_q).mu_w0 =orM1*w0_mni;
+            diags_w0=(orM1*sqrt(diags_w0_mni)).^2;
              
         else
             % no location  prior
@@ -306,37 +309,46 @@ while adding_dips
                     'Informative|Non-info',[1,0],2);
         if spr_q
             % informative location prior
-            str = 'Location prior (right only)';
+             str = 'Location prior (one side only)';
             while 1
-                tmp_s0 = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                s0mni = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
+                syms0mni=s0mni;
+                syms0mni(1)=-syms0mni(1);
+                outside = ~ft_inside_vol(s0mni',mnivol);
+                s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
+                
+                s0sym=D.inv{val}.datareg.fromMNI*[syms0mni' 1]';
+                
+                
                 str2='Prior location variance (mm2)';
-                tmp_diags_s0 = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+                tmp_diags_s0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
+                tmp_diags_s0_mni= [tmp_diags_s0_mni ; tmp_diags_s0_mni ];
               
-                outside = ~ft_inside_vol(tmp_s0',P.forward.vol);
                 if all(~outside), break, end
-                str = 'Prior location must be inside head';
-            end
-            tmp_s0 = [tmp_s0 ; tmp_s0] ; tmp_s0(4) = -tmp_s0(4);
-            tmp_diags_s0 = [tmp_diags_s0 ; tmp_diags_s0] ; 
+                    str = 'Prior location must be inside head';
+                  end
             
-            dip_pr(dip_q).mu_s0 = tmp_s0 ;
-           
-        else
+            dip_pr(dip_q).mu_s0 = [s0(1:3);s0sym(1:3)];    
+        else                   
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(6,1);
             tmp_diags_s0 = [nopriorlocvardefault';nopriorlocvardefault'];
         end %% end of if informative prior
         %% setting up a covariance matrix where there is covariance between
         %% the x parameters negatively coupled, y,z positively.
-         dip_pr(dip_q).S_s0 = eye(length(tmp_diags_s0)).*repmat(tmp_diags_s0,1,length(tmp_diags_s0));
-         dip_pr(dip_q).S_s0(4,1)=-dip_pr(dip_q).S_s0(4,4); % reflect in x
-         dip_pr(dip_q).S_s0(5,2)=dip_pr(dip_q).S_s0(5,5); % maintain y and z 
-         dip_pr(dip_q).S_s0(6,3)=dip_pr(dip_q).S_s0(6,6);
+         mni_dip_pr(dip_q).S_s0 = eye(length(tmp_diags_s0_mni)).*repmat(tmp_diags_s0_mni,1,length(tmp_diags_s0_mni));
+         mni_dip_pr(dip_q).S_s0(4,1)=-mni_dip_pr(dip_q).S_s0(4,4); % reflect in x
+         mni_dip_pr(dip_q).S_s0(5,2)=mni_dip_pr(dip_q).S_s0(5,5); % maintain y and z 
+         mni_dip_pr(dip_q).S_s0(6,3)=mni_dip_pr(dip_q).S_s0(6,6);
          
-         dip_pr(dip_q).S_s0(1,4)=dip_pr(dip_q).S_s0(4,1);
-         dip_pr(dip_q).S_s0(2,5)=dip_pr(dip_q).S_s0(5,2);
-         dip_pr(dip_q).S_s0(3,6)=dip_pr(dip_q).S_s0(6,3);
-            
+         mni_dip_pr(dip_q).S_s0(1,4)=mni_dip_pr(dip_q).S_s0(4,1);
+         mni_dip_pr(dip_q).S_s0(2,5)=mni_dip_pr(dip_q).S_s0(5,2);
+         mni_dip_pr(dip_q).S_s0(3,6)=mni_dip_pr(dip_q).S_s0(6,3);
+         %% transform to MEG space   
+         
+         dip_pr(dip_q).S_s0(:,1:3)=mni_dip_pr(dip_q).S_s0(:,1:3)*orM1; %% NEED TO LOOK AT THIS
+         dip_pr(dip_q).S_s0(:,4:6)=mni_dip_pr(dip_q).S_s0(:,4:6)*orM1;
+         
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
                                            'Informative|Non-info',[1,0],2);
@@ -358,14 +370,16 @@ while adding_dips
         end
         %dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
         %% couple all orientations, except x, positively or leave for now...
-                dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
-            dip_pr(dip_q).S_w0(4,1)=-dip_pr(dip_q).S_w0(4,4); %
-            dip_pr(dip_q).S_w0(5,2)=dip_pr(dip_q).S_w0(5,5); %
-            dip_pr(dip_q).S_w0(6,3)=dip_pr(dip_q).S_w0(6,6); %
-            dip_pr(dip_q).S_w0(1,4)=-dip_pr(dip_q).S_w0(4,1); %
-            dip_pr(dip_q).S_w0(2,5)=dip_pr(dip_q).S_w0(5,2); %
-            dip_pr(dip_q).S_w0(3,6)=dip_pr(dip_q).S_w0(6,3); %
-        
+                mni_dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
+            mni_dip_pr(dip_q).S_w0(4,1)=-mni_dip_pr(dip_q).S_w0(4,4); %
+            mni_dip_pr(dip_q).S_w0(5,2)=mni_dip_pr(dip_q).S_w0(5,5); %
+            mni_dip_pr(dip_q).S_w0(6,3)=mni_dip_pr(dip_q).S_w0(6,6); %
+            mni_dip_pr(dip_q).S_w0(1,4)=-mni_dip_pr(dip_q).S_w0(4,1); %
+            mni_dip_pr(dip_q).S_w0(2,5)=mni_dip_pr(dip_q).S_w0(5,2); %
+            mni_dip_pr(dip_q).S_w0(3,6)=mni_dip_pr(dip_q).S_w0(6,3); %
+          dip_pr(dip_q).S_w0(:,1:3)=mni_dip_pr(dip_q).S_w0(:,1:3)*orM1;
+         dip_pr(dip_q).S_w0(:,4:6)=mni_dip_pr(dip_q).S_w0(:,4:6)*orM1;
+         
         
         
         dip_c = dip_c+2;
@@ -433,8 +447,15 @@ for ii=1:length(ltr)
      dip_mom=reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3);
      dip_amp(j,:)=sqrt(dot(dip_mom,dip_mom));
     % display
-     displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,Pout(j).post_mu_w,Pout(j).post_mu_s,Pout(j).post_S_s,Pout(j).post_S_w,P,j,[],Pout(j).F,Pout(j).ypost,[]);
- 
+     megloc=reshape(Pout(j).post_mu_s,3,length(Pout(j).post_mu_s)/3); % loc of dip (3 x n_dip)
+     mniloc=D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
+     megmom=reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3); % moments of dip (3 x n_dip)
+     megposvar=reshape(diag(Pout(j).post_S_s),3,length(Pout(j).post_mu_s)/3); %% estimate of positional uncertainty in three principal axes
+     mnimom=orM1*megmom; %% convert moments into mni coordinates through a rotation (no scaling or translation)
+     mniposvar=(orM1*sqrt(megposvar)).^2; %% convert pos variance into approx mni space by switching axes
+     
+     displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,mnimom,mniloc(1:3,:),mniposvar,P,j,[],Pout(j).F,Pout(j).ypost,[]);
+     
     end; % for  j
     allF=[Pout.F];
     [maxFvals,maxind]=max(allF);
@@ -444,14 +465,17 @@ for ii=1:length(ltr)
     % Get the results out.
     inverse.pst = tb*1e3;
     inverse.F(ii) = P.F; % free energy
-    mniaffloc=reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
-    inverse.loc{ii} = mniaffloc;
     
-%    inverse.mniloc{ii} = 
+     megloc=reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
+     mniloc=D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
+     inverse.mniloc{ii}=mniloc(1:3,:);
+    inverse.loc{ii} = megloc;
     
-    mniloc=[mniaffloc; zeros(1,size(mniaffloc,2))]'*mniaff2mni; %% actual MNI location (with scaling)
-    inverse.mniloc{ii}=mniloc(:,1:3)';
-    inverse.j{ii} = P.post_mu_w; % dipole(s) orient/ampl, in 1 column
+    
+    
+    
+    inverse.j{ii} = P.post_mu_w; % dipole(s) orient/ampl, in 1 column in meg space
+    inverse.jmni{ii} = orM1*P.post_mu_w; % dipole(s) orient/ampl in mni space
     inverse.cov_loc{ii} = P.post_S_s; % cov matrix of source location
     inverse.cov_j{ii} = P.post_S_w; % cov matrix of source orient/ampl
     inverse.exitflag(ii) = 1; % Converged (1) or not (0)
@@ -461,7 +485,16 @@ for ii=1:length(ltr)
     
     
     spm_clf(P.handles.hfig)
-    displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,Pout(maxind).post_mu_w,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,Pout(maxind).post_S_w,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind);
+     
+     megmom=reshape(Pout(maxind).post_mu_w,3,length(Pout(maxind).post_mu_w)/3); % moments of dip (3 x n_dip)
+     megposvar=reshape(diag(Pout(maxind).post_S_s),3,length(Pout(maxind).post_mu_s)/3); %% estimate of positional uncertainty in three principal axes
+     mnimom=orM1*megmom; %% convert moments into mni coordinates through a rotation (no scaling or translation)
+     mniposvar=(orM1*sqrt(megposvar)).^2; %% convert pos variance into approx mni space by switching axes
+     
+     
+     displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,mnimom,mniloc(1:3,:),mniposvar,P,j,[],Pout(j).F,Pout(j).ypost,maxind);
+     
+    %displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,mniloc,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind,D);
   % 
 end
 
@@ -479,7 +512,8 @@ return
 
 
 
-function [P] = displayVBupdate2(y,pov_iter,F_iter,maxit,dipamp_iter,mu_w,mu_s,S_s,S_w,P,it,flag,F,yHat,maxind)
+function [P] = displayVBupdate2(y,pov_iter,F_iter,maxit,dipamp_iter,mu_w,mu_s,diagS_s,P,it,flag,F,yHat,maxind)
+
 
 %% yHat is estimate of y based on dipole position
 if ~exist('flag','var')
@@ -511,12 +545,18 @@ if isempty(flag) || isequal(flag,'ecd')
     end
     w = reshape(mu_w,3,[]);
     s = reshape(mu_s, 3, []);
-    [out] = spm_eeg_displayECD(...
-        s,w,reshape(diag(S_s),3,[]),[],opt);
+%     mesh.faces=D.inv{D.val}.forward.mesh.face; %% in ctf space
+%     mesh.vertices=D.inv{D.val}.forward.mesh.vert; %% in ctf space
+%     [out] = spm_eeg_displayECD_ctf(...
+%         s,w,reshape(diag(S_s),3,[]),[],mesh,opt);
+       [out] = spm_eeg_displayECD(...
+         s,w,diagS_s,[],opt);
+    
         P.handles.hp = out.handles.hp;
         P.handles.hq = out.handles.hq;
         P.handles.hs = out.handles.hs;
         P.handles.ht = out.handles.ht;
+     
 end
 
 % plot data and predicted data

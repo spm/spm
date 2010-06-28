@@ -12,7 +12,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 3907 2010-06-01 10:50:02Z gareth $
+% $Id: spm_eeg_inv_vbecd_disp.m 3951 2010-06-28 15:09:36Z gareth $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
@@ -247,7 +247,7 @@ Mn_j = -1;
 l3 = -2:0;
 for ii = 1:length(i_seed)
     for jj = 1:sdip.n_dip
-        Mn_j = max([Mn_j sqrt(sum(sdip.j{ii}(jj*3+l3,sdip.Mtb).^2))]);
+        Mn_j = max([Mn_j sqrt(sum(sdip.jmni{ii}(jj*3+l3,sdip.Mtb).^2))]);
     end
 end
 st.vols{1}.sdip.tabl_seed_dip = tabl_seed_dip;
@@ -277,7 +277,7 @@ if isempty(pi_dip)
         im = fix(ind/Ncolors)+1;
 
         loc_pl = sdip.mniloc{tabl_seed_dip(ii,1)}(:,tabl_seed_dip(ii,2));
-        js = sdip.j{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,sdip.Mtb);
+        js = sdip.jmni{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,sdip.Mtb);
         vloc = sdip.cov_loc{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,tabl_seed_dip(ii,2)*3+l3);
         dip_h(:,ii) = add1dip(loc_pl,js/Mn_j*20,vloc, ...
                             marker{im},colors{ic},st.vols{1}.ax,Fig,st.bb);
@@ -295,7 +295,7 @@ else
             im = mod(jj-1,Nmarker)+1;
             
             loc_pl = sdip.mniloc{tabl_seed_dip(ii,1)}(:,jj);
-            js = sdip.j{tabl_seed_dip(ii,1)}(jj*3+l3,sdip.Mtb);
+            js = sdip.jmni{tabl_seed_dip(ii,1)}(jj*3+l3,sdip.Mtb);
             vloc = sdip.cov_loc{tabl_seed_dip(ii,1)}(jj*3+l3,jj*3+l3);
             js_m = js_m+js;
             dip_h(:,ii+(jj-1)*pi_dip(1)) = ...
