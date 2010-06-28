@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3887 2010-05-13 14:33:27Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3952 2010-06-28 15:10:08Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -127,7 +127,11 @@ end
 
 modality = spm_eeg_modality_ui(D, 1, 1);
 
- channel_labels = D.chanlabels(strmatch(modality, D.chantype))';
+chanind=strmatch(modality, D.chantype);
+chanind = setdiff(chanind,D.badchannels);
+ channel_labels = D.chanlabels(chanind)';
+ %chan_ind = setdiff(D.meegchannels('MEG'),D.badchannels)  
+
 
  if ~isfield(D,'inv')
      errordlg('Need to set up a forward model before you start');
