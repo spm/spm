@@ -1,10 +1,12 @@
 function [strout,R2] = spm_str_manip(strin,options)
 % miscellaneous string manipulation options
 % FORMAT string_out = spm_str_manip(string_in,options)
-% string_in  - input string, string matrix, or cell array of strings
-% string_out - output sring, string matrix, or cell array of strings
-% options    - a string of options flags
-%_______________________________________________________________________
+% string_in    - input string, string matrix, or cell array of strings
+% options      - a string of options flags, see below
+
+% string_out   - output string, string matrix, or cell array of strings
+% R2           - extra output for 'c' and 'C' options
+%__________________________________________________________________________
 % Each of the options is performed from left to right.
 % The options are:
 %       'r'              - remove trailing suffix
@@ -13,8 +15,8 @@ function [strout,R2] = spm_str_manip(strin,options)
 %       'e'              - remove everything except the suffix
 %       'h'              - remove trailing pathname component
 %       'H'              - always remove trailing pathname component
-%                          (returns '.' for straight filenames like 'test.img' )
-%                          (wheras 'h' option mimics csh & returns 'test.img'  )
+%                          (returns '.' for straight filenames like 'test.img')
+%                          (wheras 'h' option mimics csh & returns 'test.img' )
 %       't'              - remove leading pathname component
 %       ['f' num2str(n)] - remove all except first n characters
 %       ['l' num2str(n)] - remove all except last n characters
@@ -28,6 +30,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %                          produce '../dir2/file.img'.
 %       'v'              - delete non valid filename characters
 %                          Valid are '.a..zA..Z01..9_-: ' & filesep
+%       'x'              - escape TeX special characters
 %       'p'              - canonicalise pathname (see spm_select('CPath',strin))
 %       'c'              - remove leading components common to all strings
 %                          returns leading component as a second output argument
@@ -39,11 +42,11 @@ function [strout,R2] = spm_str_manip(strin,options)
 %                            .e - end string (E.g. '.img')
 %       'd'              - deblank - this is always done!
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_str_manip.m 3950 2010-06-28 10:44:02Z guillaume $
 
 
 if nargin<2, options=''; end
@@ -59,11 +62,11 @@ while (~isempty(options))
     o = 2;
 
     % Read in optional numeric argument c
-    %---------------------------------------------------------------
+    %======================================================================
     opt = options(2:length(options));
     c = 0;
-    if (~isempty(opt)), b = opt(1); else, b = '-'; end
-    while(b >= '0'+0 & b <= '9'+0)
+    if (~isempty(opt)), b = opt(1); else b = '-'; end
+    while (b >= '0'+0 && b <= '9'+0)
         c = c * 10 + opt(1)-'0';
         opt = opt(2:length(opt));
         if (isempty(opt))
@@ -76,18 +79,21 @@ while (~isempty(options))
 
 
     %-Process option - string by string processing options
-    %---------------------------------------------------------------
-    for i=1:prod(size(strout))
+    %======================================================================
+    for i=1:numel(strout)
         str = deblank(strout{i});
 
         switch options(1)       
-        case 'r'    % Remove a trailing suffix of the form `.xxx',
-                % leaving the basename.
+        case 'r'
+        %-Remove a trailing suffix of the form `.xxx', leaving the basename
+        %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             d2 = max([find(str == '.') 0]);
             if (d2>d1), str = str(1:(d2-1)); end
 
-        case 'e'    % Remove all but the suffix.
+        case 'e'
+        %-Remove all but the suffix
+        %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             d2 = max([find(str == '.') 0]);
             if (d2>d1)
@@ -96,15 +102,17 @@ while (~isempty(options))
                 str = '';
             end
 
-        case 'h'    % Remove a trailing pathname component,
-                % leaving the head.
+        case 'h'
+        %-Remove a trailing pathname component, leaving the head
+        %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             if (d1>0)
                 str = str(1:(d1-1));
             end
 
-        case 'H'    % Remove a trailing pathname component,
-                % leaving the head.
+        case 'H'
+        %-Remove a trailing pathname component, leaving the head
+        %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             if (d1>0)
                 str = str(1:(d1-1));
@@ -112,27 +120,36 @@ while (~isempty(options))
                 str = '.';
             end
 
-        case 't'    % Remove all leading  pathname  components,
-                % leaving the tail.
+        case 't'
+        %-Remove all leading  pathname  components, leaving the tail
+        %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             if (d1>0)
                 str = str((d1+1):length(str));
             end
 
-        case 'f'    % First few characters
+        case 'f'
+        %-First few characters
+        %------------------------------------------------------------------
             str = str(1:min([length(str) c]));
 
-        case 'l'    % Last few characters
+        case 'l'
+        %-Last few characters
+        %------------------------------------------------------------------
             l = length(str);
             str = str(l-min([length(str) c])+1:l);
 
-        case 'k'    % Last few characters
+        case 'k'
+        %-Last few characters, prefixed with '..'
+        %------------------------------------------------------------------
             l = length(str);
             if (l>c)
                 str = ['..' str(l-c+2:l)];
             end
 
-        case 'a'    % Last few characters
+        case 'a'
+        %-Last few characters
+        %------------------------------------------------------------------
             m1   = find(str == sep);
             l    = length(str);
             if (c < l)
@@ -144,61 +161,77 @@ while (~isempty(options))
                 end
             end
 
-        case 's'    % Strip off '.img', '.hdr' or '.mat' suffixes
+        case 's'
+        %-Strip off '.img', '.hdr', '.nii' or '.mat' suffixes
+        %------------------------------------------------------------------
             l = length(str);
             if (l > 4)
-                if (strcmp(str((l-3):l),'.img') | ...
-                    strcmp(str((l-3):l),'.hdr') | ...
-                    strcmp(str((l-3):l),'.nii') | ...
-                    strcmp(str((l-3):l),'.mat'))
+                if ismember(str((l-3):l),{'.img','.hdr','.nii','.mat'})
                     str = spm_str_manip(str, 'r');
                 end
             end
 
         case 'v'
-            tmp = find(...
-                ( str>='a' & str<='z' ) | ...
-                ( str>='A' & str<='Z' ) | ...
-                ( str>='0' & str<='9' ) | ...
-                  str==',' | ...
-                  str=='-' | str=='_'   | ...
-                  str=='.' | str==' '   | ...
-                  str=='(' | str==')'   | ...
-                  str==sep | str==':');
+        %-Delete non valid filename characters
+        %------------------------------------------------------------------
+            tmp = ( str>='a' & str<='z' ) | ...
+                  ( str>='A' & str<='Z' ) | ...
+                  ( str>='0' & str<='9' ) | ...
+                    str==','              | ...
+                    str=='-' | str=='_'   | ...
+                    str=='.' | str==' '   | ...
+                    str=='(' | str==')'   | ...
+                    str==sep | str==':'   ;
             str = str(tmp);
 
+        case 'x'
+        %-Escape TeX special characters
+        %------------------------------------------------------------------
+            str    = strrep(str,'\','\\');
+            str    = strrep(str,'^','\^'); str   = strrep(str,'_','\_');
+            str    = strrep(str,'{','\{'); str   = strrep(str,'}','\}');
+        
         case 'p'
+        %-Canonicalise pathname
+        %------------------------------------------------------------------
             str = strvcat(spm_select('CPath',cellstr(str)));
 
         case {'c','C','d'}
-            %-Allow these options (implemented below)
+        %-Allow these options (implemented below)
+        %------------------------------------------------------------------
+            
         otherwise
+        %------------------------------------------------------------------    
             warning(['ignoring unrecognised option: ',options(1)])
 
-        end % (case)
+        end
 
         strout{i} = str;
     end
         
     %-Process option - all strings options
-    %---------------------------------------------------------------
-    if options(1)=='c'  % Remove common path components
+    %======================================================================
+    if options(1)=='c'
+    %-Remove common path components
+    %----------------------------------------------------------------------
         if length(strout)>1
             tmp    = size(strout);
             strout = char(strout(:));
             msk    = diff(strout+0)~=0;
-            d1     = min(find(sum(msk,1)));
+            d1     = find(sum(msk,1), 1 );
             d1     = max([find(strout(1,1:d1) == sep) 0]);
             R2     = strout(1,1:d1);
             strout = reshape(cellstr(strout(:,d1+1:end)),tmp);
         end
     
-    elseif options(1)=='C'  %-Common path components
+    elseif options(1)=='C'
+    %-Common path components
+    %----------------------------------------------------------------------
         if length(strout)>1
             tmp  = size(strout);
             str  = char(strout);
             msk  = diff(str+0)~=0;
-            d1   = min(find(sum(msk,1)));
+            d1   = find(sum(msk,1), 1 );
             if isempty(d1)
                 R2.s = str(1,:);
                 R2.e = '';
@@ -210,7 +243,7 @@ while (~isempty(options))
                 for i=1:length(str), str{i}=fliplr(str{i}); end
                 str  = char(str);
                 msk  = diff(str+0)~=0;
-                d1   = max([1,min(find(sum(msk,1)))]);
+                d1   = max([1,find(sum(msk,1), 1 )]);
                 R2.e = fliplr(str(1,1:d1-1));
                 str  = cellstr(str(:,d1:end));
                 for i=1:length(str), str{i}=fliplr(str{i}); end
@@ -222,7 +255,9 @@ while (~isempty(options))
         end
         bSStrOut = 1;
 
-    elseif options(1)=='d'  % Deblanking is always done by cellstr above
+    elseif options(1)=='d'
+    % Deblanking is always done by cellstr above
+    %----------------------------------------------------------------------
         % strout = deblank(strout);
     end
 

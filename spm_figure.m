@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3928 2010-06-16 12:09:22Z guillaume $
+% $Id: spm_figure.m 3950 2010-06-28 10:44:02Z guillaume $
 
 
 %==========================================================================
@@ -682,7 +682,8 @@ F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Help Menu
-t0 = findall(allchild(F),'Flat','Label','&Help'); delete(allchild(t0));
+t0 = findall(allchild(F),'Flat','Label','&Help'); 
+delete(allchild(t0)); set(t0,'Callback','');
 if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
 pos = get(t0,'Position');
 uimenu(t0,'Label','SPM Help','CallBack','spm_help');

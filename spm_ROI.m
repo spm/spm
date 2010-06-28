@@ -10,6 +10,9 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 %
 % FORMAT [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xm] locations of voxels {mm}
+%          If an image filename, an spm_vol structure or a NIfTI object is
+%          given instead, XYZmm will be set to all voxels within the field
+%          of view of that image.
 %
 % XYZmm  - [3xn] filtered locations of voxels {mm} (m>=n) within VOI xY
 % j      - [1xn] indices of input locations XYZmm within VOI xY
@@ -17,7 +20,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 3710 2010-02-03 19:11:26Z guillaume $
+% $Id: spm_ROI.m 3950 2010-06-28 10:44:02Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -84,9 +87,7 @@ switch lower(xY.def)
             xY.spec = spm_vol(xY.spec);
         end
     end
-    str    = strrep(spm_str_manip(xY.spec.fname,'a30'),'\','\\');
-    str    = strrep(str,'^','\^'); str   = strrep(str,'_','\_');
-    str    = strrep(str,'{','\{'); str   = strrep(str,'}','\}');
+    str    = spm_str_manip(xY.spec.fname,'a30x');
     xY.str = sprintf('image mask: %s',str); 
         
     case 'cluster'
@@ -102,6 +103,10 @@ switch lower(xY.def)
     xY.spec = [];
     xY.str  = sprintf('cluster (seed voxel: %0.1f %0.1f %0.1f)',xY.xyz);
     
+    case 'all'
+    %----------------------------------------------------------------------
+    xY.str  = 'all';
+    
     otherwise
     %----------------------------------------------------------------------
     error('Unknown VOI type.');
@@ -112,6 +117,27 @@ if nargin < 2, return; end
 
 %-'Estimate' ROI
 %==========================================================================
+
+%-Argument check
+%--------------------------------------------------------------------------
+if ischar(XYZmm) && isempty(XYZmm)
+    XYZmm = spm_select(1,'image','Specify Image');
+end
+if ischar(XYZmm), XYZmm = spm_vol(XYZmm); end
+if isa(XYZmm,'nifti')
+    XYZmm    = struct('dim',size(XYZmm.dat), 'mat',XYZmm.mat);
+end
+if isstruct(XYZmm) % spm_vol
+    [R,C,P]  = ndgrid(1:XYZmm.dim(1),1:XYZmm.dim(2),1:XYZmm.dim(3));
+    RCP      = [R(:)';C(:)';P(:)'];
+    clear R C P
+    RCP(4,:) = 1;
+    XYZmm    = XYZmm.mat(1:3,:)*RCP;    
+end
+if isempty(XYZmm), XYZmm = zeros(3,0); end
+
+%-Filter location of voxels
+%--------------------------------------------------------------------------
 Q          = ones(1,size(XYZmm,2));
 
 switch lower(xY.def)
@@ -135,6 +161,14 @@ switch lower(xY.def)
     XYZ    = round(xY.M \ [XYZmm; Q]);
     A      = spm_clusters(XYZ);
     j      = find(A == A(i));
+    
+    case 'all'
+    %----------------------------------------------------------------------
+    j      = 1:size(XYZmm,2);
+    
+    otherwise
+    %----------------------------------------------------------------------
+    error('Unknown VOI type.');
     
 end
 
