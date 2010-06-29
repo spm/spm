@@ -19,6 +19,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%                     The data should be provided in a cell array
 %   cfg.outputfile = one can specify output as file to save to disk
 
 % FIXME averaging coherence is not possible if inputs contain different amounts of data (i.e. chan/freq/time)
@@ -41,7 +42,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 1263 2010-06-23 15:40:37Z timeng $
+% $Id: ft_freqgrandaverage.m 1303 2010-06-29 15:42:37Z timeng $
 
 fieldtripdefs
 
@@ -51,7 +52,7 @@ cfg = checkconfig(cfg, 'trackconfig', 'on');
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
 
-hasdata = nargin>2;
+hasdata = nargin>1;
 if ~isempty(cfg.inputfile) % the input data should be read from file
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
@@ -262,7 +263,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqgrandaverage.m 1263 2010-06-23 15:40:37Z timeng $';
+cfg.version.id = '$Id: ft_freqgrandaverage.m 1303 2010-06-29 15:42:37Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

@@ -102,7 +102,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 1214 2010-06-09 15:17:36Z timeng $
+% $Id: ft_prepare_leadfield.m 1285 2010-06-29 11:34:13Z jansch $
 
 fieldtripdefs
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -127,14 +127,9 @@ if ~isempty(cfg.inputfile)
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
   end
-end
-
-if ~hasdata
-  data = [];
 else
-  return
+  data = [];
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
@@ -228,7 +223,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_prepare_leadfield.m 1214 2010-06-09 15:17:36Z timeng $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 1285 2010-06-29 11:34:13Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

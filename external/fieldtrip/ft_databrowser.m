@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1226 2010-06-11 10:10:00Z timeng $
+% $Id: ft_databrowser.m 1286 2010-06-29 13:59:40Z roboos $
 
 fieldtripdefs
 
@@ -156,7 +156,8 @@ else
   % read the header
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
   
-  % read the events
+% FIXME how is this supposed to work?
+% read the events
   if ~isempty(cfg.event)
     event = ft_read_event(cfg.dataset);
   else
@@ -425,7 +426,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1226 2010-06-11 10:10:00Z timeng $';
+cfg.version.id = '$Id: ft_databrowser.m 1286 2010-06-29 13:59:40Z roboos $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')

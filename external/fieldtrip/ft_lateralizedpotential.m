@@ -57,9 +57,23 @@ function lrp = ft_lateralizedpotential(cfg, avgL, avgR);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_lateralizedpotential.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_lateralizedpotential.m 1264 2010-06-24 11:40:55Z timeng $
 
 fieldtripdefs
+
+% set the defaults
+if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
+if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
+
+hasdata = nargin>1;
+if ~isempty(cfg.inputfile) % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    avgL=loadvar(cfg.inputfile{1}, 'data'); % read first element as avgL from array inputfile
+    avgR=loadvar(cfg.inputfile{2}, 'data'); % read second element as avgR from array inputfile
+  end
+end
 
 if ~isfield(cfg, 'channelcmb'), 
   cfg.channelcmb = {
@@ -111,7 +125,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_lateralizedpotential.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_lateralizedpotential.m 1264 2010-06-24 11:40:55Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = avgL.cfg; end
@@ -119,3 +133,7 @@ try, cfg.previous{2} = avgR.cfg; end
 % remember the exact configuration details in the output 
 lrp.cfg = cfg;
 
+% the output data should be saved to a MATLAB file
+if ~isempty(cfg.outputfile)
+  savevar(cfg.outputfile, 'data', lrp); % use the variable name "data" in the output file
+end

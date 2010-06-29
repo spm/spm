@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 1093 2010-05-19 07:59:12Z roboos $
+% $Id: ft_electroderealign.m 1287 2010-06-29 14:00:42Z roboos $
 
 fieldtripdefs
 
@@ -310,10 +310,10 @@ elseif strcmp(cfg.method, 'fiducial')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % try to determine the fiducials automatically if not specified
-  option1 = {'nasion' 'left' 'right'};
-  option2 = {'nasion' 'lpa' 'rpa'};
-  option3 = {'nz' 'lpa' 'rpa'};
   if ~isfield(cfg, 'fiducial')
+    option1 = {'nasion' 'left' 'right'};
+    option2 = {'nasion' 'lpa' 'rpa'};
+    option3 = {'nz' 'lpa' 'rpa'};
     if length(match_str(elec.label, option1))==3
       cfg.fiducial = option1;
     elseif length(match_str(elec.label, option2))==3
@@ -346,6 +346,10 @@ elseif strcmp(cfg.method, 'fiducial')
   elec_nas = elec.pnt(nas_indx,:);
   elec_lpa = elec.pnt(lpa_indx,:);
   elec_rpa = elec.pnt(rpa_indx,:);
+
+  % FIXME change the flow in the remainder
+  % if one or more template electrode sets are specified, then align to the average of those 
+  % if no template is specified, then align so that the fiducials are along the axis
 
   % find the matching fiducials in the template and average them
   templ_nas = [];
@@ -484,7 +488,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_electroderealign.m 1093 2010-05-19 07:59:12Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 1287 2010-06-29 14:00:42Z roboos $';
 
 % remember the configuration
 norm.cfg = cfg;

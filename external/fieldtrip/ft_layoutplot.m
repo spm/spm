@@ -64,7 +64,7 @@ function ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_layoutplot.m 1303 2010-06-29 15:42:37Z timeng $
 
 fieldtripdefs
 
@@ -72,7 +72,22 @@ fieldtripdefs
 % basic check/initialization of input arguments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if (nargin<1) || (nargin>2), error('incorrect number of input arguments'); end;
-if (nargin<2), data = []; end;
+
+% defaults for input
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+  end
+  elseif (nargin<2), 
+    data = [];
+end
 
 if ~isstruct(cfg) && ~isempty(cfg), error('argument cfg must be a structure'); end;
 

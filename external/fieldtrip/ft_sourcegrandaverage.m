@@ -37,6 +37,7 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %   cfg.c1                 = list with subjects belonging to condition 1 (or A)
 %   cfg.c2                 = list with subjects belonging to condition 2 (or B)
 %   cfg.inputfile          = one can specifiy preanalysed saved data as input
+%                             The data should be provided in a cell array
 %   cfg.outputfile         = one can specify output as file to save to disk
 
 
@@ -58,7 +59,7 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 1263 2010-06-23 15:40:37Z timeng $
+% $Id: ft_sourcegrandaverage.m 1273 2010-06-25 15:40:16Z timeng $
 
 fieldtripdefs
 
@@ -272,7 +273,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourcegrandaverage.m 1263 2010-06-23 15:40:37Z timeng $';
+cfg.version.id = '$Id: ft_sourcegrandaverage.m 1273 2010-06-25 15:40:16Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Nsubject

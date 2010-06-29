@@ -38,7 +38,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_channelrepair.m 1286 2010-06-29 13:59:40Z roboos $
 
 fieldtripdefs
 
@@ -136,6 +136,10 @@ else
   interp.grad  = sens;
 end
 
+% accessing this field here is needed for the configuration tracking
+% by accessing it once, it will not be removed from the output cfg
+cfg.outputfile;
+
 % get the output cfg
 cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
@@ -148,7 +152,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_channelrepair.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id   = '$Id: ft_channelrepair.m 1286 2010-06-29 13:59:40Z roboos $';
 % remember the configuration details of the input data
 
 % remember the configuration details of the input data

@@ -4,7 +4,7 @@ function ft_movieplotER(cfg, timelock)
 % time-locked average.
 %
 % Use as
-%   FT_movieplotER(cfg, timelock)
+%   ft_movieplotER(cfg, timelock)
 % where the input data is from FT_TIMELOCKANALYSIS and the configuration
 % can contain
 %   cfg.samperframe  = number, samples per fram (default = 1)
@@ -44,13 +44,7 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 985 2010-04-28 08:52:08Z jansch $
-
-% Checkdata
-timelock = checkdata(timelock, 'datatype', 'timelock');
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
+% $Id: ft_movieplotER.m 1303 2010-06-29 15:42:37Z timeng $
 
 % Defaults
 if ~isfield(cfg, 'xlim'),          cfg.xlim = 'maxmin';           end
@@ -58,6 +52,24 @@ if ~isfield(cfg, 'zlim'),          cfg.zlim = 'maxmin';           end
 if ~isfield(cfg, 'samperframe'),   cfg.samperframe = 1;           end
 if ~isfield(cfg, 'framespersec'),  cfg.framespersec = 5;          end
 if ~isfield(cfg, 'framesfile'),    cfg.framesfile = 'no';         end
+if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];            end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    timelock = loadvar(cfg.inputfile, 'data');
+  end
+end
+
+% Checkdata
+timelock = checkdata(timelock, 'datatype', 'timelock');
+
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 
 % Read or create the layout that will be used for plotting:
 lay = ft_prepare_layout(cfg, timelock);

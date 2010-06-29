@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: ft_prepare_vol_sens.m 1292 2010-06-29 14:16:12Z roboos $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -156,29 +156,22 @@ elseif ismeg
 
       % the initial multisphere volume conductor has a single sphere per
       % channel, whereas it should have a sphere for each coil
-      if size(vol.r,1)==size(sens.pnt,1)
+      if size(vol.r,1)==size(sens.pnt,1) && ~isfield(vol, 'label')
         % it appears that each coil already has a sphere, which suggests
         % that the volume conductor already has been prepared to match the
         % sensor array
-        if ~isfield(vol, 'label')
-          % this is ok, since coils should not have labels
+        return
+      elseif size(vol.r,1)==size(sens.pnt,1) && isfield(vol, 'label')
+        if ~isequal(vol.label(:), sens.label(:))
+          % if only the order is different, it would be possible to reorder them
+          error('the coils in the volume conduction model do not correspond to the sensor array');
         else
-          % hmm, this only works if there is a one-to-one match between
-          % coils in the sensor array and coils in the volme conductor
-          if ~isequal(vol.label(:), sens.label(:))
-            % the problem here is that each channel can have multiple coils
-            % in case of a gradiometer arrangement. The consequence is that
-            % the coil label is not unique, because the bottom and top
-            % coil will have the same label. That causes problems with the
-            % channel selection.
-            error('the coils in the volume conduction model do not correspond to the sensor array');
-          else
-            % the coil-specific spheres in the volume conductor should not have a label
-            % because the label is already specified for the coils in the
-            % sensor array
-            vol = rmfield(vol, 'label');
-          end
+          % the coil-specific spheres in the volume conductor should not have a label
+          % because the label is already specified for the coils in the
+          % sensor array
+          vol = rmfield(vol, 'label');
         end
+        return
       end
 
       % select the desired channels from the multisphere volume conductor

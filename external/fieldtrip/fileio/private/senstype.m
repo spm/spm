@@ -76,7 +76,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 1117 2010-05-20 08:41:07Z tilsan $
+% $Id: ft_senstype.m 1290 2010-06-29 14:10:50Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -170,6 +170,10 @@ if isfield(input, 'type')
 elseif issubfield(input, 'orig.FileHeader') &&  issubfield(input, 'orig.VarHeader')
   % this is a complete header that was read from a Plexon *.nex file using read_plexon_nex
   type = 'plexon';
+
+elseif issubfield(input, 'orig.stname')
+  % this is a complete header that was read from an ITAB dataset
+  type = 'itab';
 
 elseif issubfield(input, 'orig.sys_name')
   % this is a complete header that was read from a Yokogawa dataset
@@ -335,7 +339,7 @@ if ~isempty(desired)
     case 'yokogawa'
       type = any(strcmp(type, {'yokogawa160' 'yokogawa160_planar'}));
     case 'itab'
-      type = any(strcmp(type, {'itab153' 'itab153_planar'}));
+      type = any(strcmp(type, {'itab' 'itab153' 'itab153_planar'}));
     case 'meg_axial'
       % note that neuromag306 is mixed planar and axial
       type = any(strcmp(type, {'magnetometer' 'neuromag306' 'ctf151' 'ctf275' 'bti148' 'bti248' 'yokogawa160'}));

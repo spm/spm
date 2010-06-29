@@ -1,4 +1,3 @@
-ls
 function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 
 % FT_PREPARE_LOCALSPHERES creates a MEG volume conductor model with a sphere
@@ -58,7 +57,7 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 1204 2010-06-08 12:21:08Z timeng $
+% $Id: ft_prepare_localspheres.m 1301 2010-06-29 14:48:42Z vlalit $
 
 fieldtripdefs
 
