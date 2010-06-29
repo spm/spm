@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3917 2010-06-04 10:55:00Z maria $
+% $Id: spm_dcm_bma.m 3955 2010-06-29 17:26:29Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -37,8 +37,13 @@ Nses = length(subj(1).sess);
 
 % Number of regions
 load(subj(1).sess(1).model(1).fname);
-nreg = DCM.n;
-min  = DCM.M.m;
+if isfield(DCM,'a')
+    dcm_fmri = 1;
+    nreg = DCM.n;
+    min  = DCM.M.m;
+else
+    dcm_fmri = 0;
+end
 
 Ep  = [];
 [Ni M] = size(post);
@@ -171,9 +176,9 @@ else
             
             sel = post_indx(post_ind(kk));
             
-            params(n).model(kk).Ep = subj(n).sess(1).model(sel).Ep;
+            params(n).model(kk).Ep  = subj(n).sess(1).model(sel).Ep;
             params(n).model(kk).vEp = spm_vec(params(n).model(kk).Ep);
-            params(n).model(kk).Cp = full(subj(n).sess(1).model(sel).Cp);
+            params(n).model(kk).Cp  = full(subj(n).sess(1).model(sel).Cp);
             
             if Nses > 1
                 
@@ -241,25 +246,30 @@ else
 end
 
 % Pre-allocate sample arrays
-Nr        = nreg*nreg;
-Np        = Nr + Nr*min + nreg*min + Nr*nreg;
-Ep_all    = zeros(Np,Nsub);
-nind      = 1;
-mind      = 1;
+Np = length(params(1).model(1).vEp);
 
-Etmp.As = zeros(nreg,nreg);
-Etmp.Bs = zeros(nreg,nreg,min);
-Etmp.Cs = zeros(nreg,min);
-Etmp.Ds = zeros(nreg,nreg,nreg);
-
-Etmp.A  = zeros(nreg,nreg,Nsamp);
-Etmp.B  = zeros(nreg,nreg,min,Nsamp);
-Etmp.C  = zeros(nreg,min,Nsamp);
-Etmp.D  = zeros(nreg,nreg,nreg,Nsamp);
-
-dima = Nr;
-dimb = Nr+Nr*min;
-dimc = Nr+Nr*min+nreg*min;
+% get dimensions of a b c d parameters
+if dcm_fmri
+    
+    Nr      = nreg*nreg;
+    dimd    = size(params(1).model(1).Ep.D,3);
+    Np      = Nr + Nr*min + nreg*min + Nr*dimd;
+    
+    Etmp.As = zeros(nreg,nreg);
+    Etmp.Bs = zeros(nreg,nreg,min);
+    Etmp.Cs = zeros(nreg,min);
+    Etmp.Ds = zeros(nreg,nreg,dimd);
+    
+    Etmp.A  = zeros(nreg,nreg,Nsamp);
+    Etmp.B  = zeros(nreg,nreg,min,Nsamp);
+    Etmp.C  = zeros(nreg,min,Nsamp);
+    Etmp.D  = zeros(nreg,nreg,dimd,Nsamp);
+    
+    dima    = Nr;
+    dimb    = Nr+Nr*min;
+    dimc    = Nr+Nr*min+nreg*min;
+    
+end
 
 disp('')
 disp('Averaging models in Occams window...')
@@ -275,44 +285,43 @@ for i=1:Nsamp
             m = spm_multrnd(renorm(n).post,1);
         end
         
-        nD   = size(params(n).model(m).Ep.D,3);
-        ndim = Nr + Nr*min + nreg*min + Nr*nD;
+        mu                    = params(n).model(m).vEp;
+        dsig                  = params(n).model(m).dCp(:,1);
+        vsig(:,:)             = params(n).model(m).vCp(:,:);
         
-        if Np==ndim, nind=n; mind=m; end
+        tmp                   = spm_normrnd(mu,{dsig,vsig},1);
+        Ep_all(:,n)           = tmp(:);
         
-        mu                  = zeros(Np,1);
-        mu_tmp              = params(n).model(m).vEp;
-        mu(1:ndim,1)        = mu_tmp(1:ndim,1);
-        
-        dsig                = zeros(Np,1);
-        dsig(1:ndim,1)      = params(n).model(m).dCp(1:ndim,1);
-        
-        vsig                = zeros(Np,Np);
-        vsig(1:ndim,1:ndim) = params(n).model(m).vCp(1:ndim,1:ndim);
-        
-        tmp                 = spm_normrnd(mu,{dsig,vsig},1);
-        Ep_all(:,n)         = tmp(:);
-        
-        bma.as(:,:,n,i)     = spm_unvec(Ep_all(1:dima,n),Etmp.As);
-        bma.bs(:,:,:,n,i)   = spm_unvec(Ep_all(dima+1:dimb,n),Etmp.Bs);
-        bma.cs(:,:,n,i)     = spm_unvec(Ep_all(dimb+1:dimc,n),Etmp.Cs);
-        bma.ds(:,:,:,n,i)   = spm_unvec(Ep_all(dimc+1:Np,n),Etmp.Ds);
+        % get a b c d parameters for fmri
+        if dcm_fmri
+            bma.as(:,:,n,i)   = spm_unvec(Ep_all(1:dima,n),Etmp.As);
+            bma.bs(:,:,:,n,i) = spm_unvec(Ep_all(dima+1:dimb,n),Etmp.Bs);
+            bma.cs(:,:,n,i)   = spm_unvec(Ep_all(dimb+1:dimc,n),Etmp.Cs);
+            bma.ds(:,:,:,n,i) = spm_unvec(Ep_all(dimc+1:Np,n),Etmp.Ds);
+        end
         
     end
     
     % Average over subjects
-    Ep(:,i)       = mean(Ep_all,2);
+    Ep(:,i) = mean(Ep_all,2);
     
 end
 
-bma.a  = spm_unvec(Ep(1:dima,:),Etmp.A);
-bma.b  = spm_unvec(Ep(dima+1:dimb,:),Etmp.B);
-bma.c  = spm_unvec(Ep(dimb+1:dimc,:),Etmp.C);
-bma.d  = spm_unvec(Ep(dimc+1:Np,:),Etmp.D);
+% save parameters a b c d for fmri
+if dcm_fmri
+    bma.a  = spm_unvec(Ep(1:dima,:),Etmp.A);
+    bma.b  = spm_unvec(Ep(dima+1:dimb,:),Etmp.B);
+    bma.c  = spm_unvec(Ep(dimb+1:dimc,:),Etmp.C);
+    bma.d  = spm_unvec(Ep(dimc+1:Np,:),Etmp.D);
+    bma.Ep = Ep;
+else    
+    Ep_eeg = mean(Ep,2);
+    Ep_eeg = spm_unvec(Ep_eeg,params(1).model(1).Ep);
+    bma.Ep = Ep_eeg;
+end
 
 % storing parameters
 % -------------------------------------------------------------------------
-bma.Ep    = Ep;
 bma.nsamp = Nsamp;
 bma.oddsr = oddsr;
 bma.Nocc  = Nocc;

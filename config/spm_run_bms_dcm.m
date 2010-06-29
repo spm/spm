@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3929 2010-06-16 13:54:09Z maria $
+% $Id: spm_run_bms_dcm.m 3955 2010-06-29 17:26:29Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -57,9 +57,6 @@ if bma_do
         end
     end
     
-    n  = size(DCM.a,2);
-    m  = size(DCM.c,2);
-    mi = size(DCM.c,2);
     nsamp       = 1e4;
     odds_ratio  = 1/20;
     
