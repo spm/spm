@@ -89,11 +89,11 @@ figure~\ref{rfx_family}.
 
 \subsection{Summary Statistics and Group Analyses}
 
-The group mean DCM parameters can be easily obtained from the \matlab\ command window by loading the \verb!BMS.mat! file and then typing: \verb!mean_a=mean(BMS.DCM.ffx.bma.a,3)!. For the b, c and d parameters use the same code: \verb!mean_b=mean(...b,4)!, \verb!mean_c=mean(...c,3)! and \verb!mean_d=mean(...d,4)!. 
+The group mean DCM parameters can be easily obtained from the \matlab\ command window by loading the \verb!BMS.mat! file and then typing: \verb!BMS.DCM.ffx.bma.Ep!.
 
-The subject specific mean DCM parameters can be obtained as follows: \verb!mean_as=mean(...as,4)!, \verb!mean_bs=mean(...bs,5)!, \verb!mean_cs=mean(...cs,4)! and\newline \verb!mean_ds=mean(...ds,5)!. For random-effects change \verb!ffx! to \verb!rfx!. 
+The subject specific mean DCM parameters can be obtained as follows: \verb!BMS.DCM.ffx.bma.Eps(n)!, where $n$ is the subject number. For random-effects change \verb!ffx! to \verb!rfx!. 
 
-If we are interested in the modulatory connection from region 1 to region 3 (that is modulated by the second input), then the mean value of this for Subject 10 is given by \verb!mean_bs(3,1,2,10)! (which should be 0.7475). The mean connection values for all subjects can be gotten with the \matlab\ syntax \verb!squeeze(mean_bs(3,1,2,:))!.
+If we are interested in the modulatory connection from region 1 to region 3 (that is modulated by the second input), then the mean value of this for Subject 10 is given by\newline \verb!BMS.DCM.ffx.bma.Eps(10).B(3,1,2)! (which should be 0.7475). The mean connection values for all subjects (12) can be gotten with the \matlab\ syntax \newline \verb!for i=1:12, b(i) = BMS.DCM.ffx.bma.Eps(i).B(3,1,2); end!.
 
 These subject specific mean parameters can then act as summary statistics for a standard group analysis. For example to look for significant differences between eg. a control group and a patient group in a modulatory parameter one would implement a two-sample t-test on data from the appropriate entries in the \verb!mean_bs! matrices. Similarly, if one has 3 groups one would use a 3-level ANOVA.
 
@@ -194,10 +194,6 @@ Random-effects (different from fixed-effects):\\
 & \bf{.b} & samples from posterior density over DCM.b parameters [dimb $\times$ nsamp]. \\
 & \bf{.c} & samples from posterior density over DCM.c parameters [dimc $\times$ nsamp]. \\
 & \bf{.d} & samples from posterior density over DCM.d parameters [dimd $\times$ nsamp]. \\
-& \bf{.as} & same as bma.a but for each subject [dima $\times$ nsub $\times$ nsamp]. \\
-& \bf{.bs} & same as bma.b but for each subject [dimb $\times$ nsub $\times$ nsamp]. \\
-& \bf{.cs} & same as bma.c but for each subject [dimc $\times$ nsub $\times$ nsamp]. \\
-& \bf{.ds} & same as bma.d but for each subject [dimd $\times$ nsub $\times$ nsamp]. \\
 & \bf{.Ep} & mean DCM parameters (struct.). \\
 & \bf{.Eps} & mean DCM parameters per subject (struct.). \\
 \end{tabular}\\\\
