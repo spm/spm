@@ -131,17 +131,14 @@ function [SPM] = spm_spm(SPM)
 % model contains the appropriate variance components from lower levels.
 % See spm_RandFX.man for further details and below.
 %
-% Under the additional assumption that the standardised residual images
+% Under the additional assumption that the standardised error fields
 % are non-stationary standard Gaussian random fields, results from
 % Random field theory can be applied to estimate the significance
 % statistic images (SPM's) adjusting p values for the multiple tests
 % at all voxels in the search volume. The parameters required for
 % this random field correction are the volume, and Lambda, the covariance
-% matrix of partial derivatives of the standardised error fields.
-%
-% spm_est_smoothness estimates the variances of the partial derivatives
-% in the axis directions (the diagonal of Lambda). The covariances (off
-% diagonal elements of Lambda) are assumed to be zero.
+% matrix of partial derivatives of the standardised error fields, estimated
+% by spm_est_smoothness.
 %
 %                           ----------------
 %
@@ -284,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3822 2010-04-16 18:43:08Z karl $
+% $Id: spm_spm.m 3960 2010-06-30 17:41:24Z ged $
  
-SVNid     = '$Rev: 3822 $';
+SVNid     = '$Rev: 3960 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -598,7 +595,7 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
     CrPl    = z:min(z+nbz-1,zdim);       %-plane list
     zords   = CrPl(:)*ones(1,xdim*ydim); %-plane Z coordinates
     CrBl    = [];                        %-parameter estimates
-    CrResI  = [];                        %-normalized residuals
+    CrResI  = [];                        %-residuals
     CrResSS = [];                        %-residual sum of squares
     Q       = [];                        %-in mask indices for this plane
  
@@ -761,7 +758,7 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
             Vbeta(i) = spm_write_plane(Vbeta(i), jj, CrPl);
         end
  
-        %-Write normalised residual images
+        %-Write standardised residual images
         %------------------------------------------------------------------
         for i = 1:nSres
             if ~isempty(Q), jj(Q) = CrResI(i,:)./sqrt(CrResSS/erdf); end

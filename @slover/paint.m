@@ -292,7 +292,7 @@ for i = 1:nslices
         colvals = thisimg.cmap(csdata(:),:)*thisimg.prop;
         for ch = get(h, 'Children')' % (NB: transpose needed to loop)
             CData = get(ch, 'CData'); % (CData is constant with final NaN)
-            colval = colvals(convals == CData(1), :);
+            colval = colvals(find(convals == CData(1), 1), :);
             set(ch, 'EdgeColor', colval)
         end
       end

@@ -46,14 +46,14 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Standardized Residuals from the General Linear Model. NeuroImage,
 % 10:756-766, 1999.
 %
-% S. Hayasaka, K. Phan, I. Liberzon, K.J. Worsley, T.E .Nichols (2004).
+% S. Hayasaka, K. Phan, I. Liberzon, K.J. Worsley, T.E. Nichols (2004).
 % Nonstationary cluster-size inference with random field and permutation
 % methods. NeuroImage, 22:676-687, 2004.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3911 2010-06-01 15:25:08Z guillaume $
+% $Id: spm_est_smoothness.m 3960 2010-06-30 17:41:24Z ged $
 
 
 %-Assign input arguments
@@ -171,7 +171,9 @@ spm_progress_bar('Clear')
 %
 % See Hayasaka et al, p. 678, for more on estimating roughness with
 % standardized residuals (e/sqrt(RMS)) instead of normalised residuals
-% (e/sqrt(RSS)).
+% (e/sqrt(RSS)). Note that the names arise from the fact that
+% sqrt(RSS) = sqrt(r'*r) is norm(r), while sqrt(RMS) = sqrt(r'*r/edf)
+% is the unbiased (ReML) estimate of the standard deviation.
 %--------------------------------------------------------------------------
 L  = L/length(V);     % Average
 L  = L*(n_full/edf);  % Scale
@@ -181,16 +183,12 @@ L  = L*(n_full/edf);  % Scale
 %--------------------------------------------------------------------------
 if D == 1
     resel_xyz = L;
-    resel_img = L.*L;
-    resel_img = sqrt(resel_img/(4*log(2))^D);
-    resel_xyz = sqrt(resel_xyz/(4*log(2)));
+    resel_img = L;
 end
 if D == 2
     resel_xyz = [L(:,1,1) L(:,2,2)];
     resel_img = L(:,1,1).*L(:,2,2) - ......
                 L(:,1,2).*L(:,1,2);
-    resel_img = sqrt(resel_img/(4*log(2))^D);
-    resel_xyz = sqrt(resel_xyz/(4*log(2)));
 end
 if D == 3
     resel_xyz = [L(:,1,1) L(:,2,2)  L(:,3,3)];
@@ -199,10 +197,12 @@ if D == 3
                 L(:,1,1).*L(:,2,3).*L(:,2,3) - ...
                 L(:,1,2).*L(:,1,2).*L(:,3,3) - ...
                 L(:,1,3).*L(:,2,2).*L(:,1,3);
-    resel_img(resel_img<0) = 0;
-    resel_img = sqrt(resel_img/(4*log(2))^D);
-    resel_xyz = sqrt(resel_xyz/(4*log(2)));
 end    
+resel_img(resel_img<0) = 0;
+% Convert det(Lambda) and diag(Lambda) to units of resels
+resel_img = sqrt(resel_img/(4*log(2))^D);
+resel_xyz = sqrt(resel_xyz/(4*log(2)));
+
 
 %-Optional mask-weighted smoothing of RPV image
 %--------------------------------------------------------------------------
@@ -230,7 +230,7 @@ if any(fwhm_vox)
     RPV(~infer) = NaN; % spm_list handles remaining (unlikely) in-mask NaNs
     
     % Get data at in-mask voxels; smoothed resel_img conforms with original
-    resel_img = RPV(mask > 0);
+    resel_img = RPV(mask);
 end
 
 %-Write Resels Per Voxel image
@@ -248,16 +248,17 @@ end
 
 
 %-(unbiased) RESEL estimator and Global equivalent FWHM
-% where 1./FWHM = RESEL and prod(RESEL) = resel (resel density)
+% where we desire FWHM with components proportional to 1./mean(resel_xyz),
+% but scaled so prod(1./FWHM) agrees with (the unbiased) mean(resel_img).
 %--------------------------------------------------------------------------
 i     = isnan(ssq) | ssq < sqrt(eps);
-resel = mean(resel_img(~i,:));
-RESEL = mean(resel_xyz(~i,:));
+resel_img = mean(resel_img(~i,:));
+resel_xyz = mean(resel_xyz(~i,:));
 
-RESEL = resel^(1/D)*(RESEL/prod(RESEL)^(1/D));
+RESEL = resel_img^(1/D)*(resel_xyz/prod(resel_xyz)^(1/D));
 FWHM  = full(sparse(1,1:D,1./RESEL,1,3));
-
 FWHM(~FWHM) = 1;
+
 %-resel counts for search volume (defined by mask)
 %--------------------------------------------------------------------------
 % R0   = spm_resels_vol(VM,[1 1 1])';

@@ -2,7 +2,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Region of Interest specification
 % FORMAT xY = spm_ROI(xY)
 % xY     - VOI structure
-%    xY.def      - VOI definition [sphere, box, mask, cluster, ...]
+%    xY.def      - VOI definition [sphere, box, mask, cluster, all]
 %    xY.rej      - cell array of disabled VOI definition options
 %    xY.xyz      - centre of VOI {mm}
 %    xY.spec     - VOI definition parameters
@@ -11,8 +11,8 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % FORMAT [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xm] locations of voxels {mm}
 %          If an image filename, an spm_vol structure or a NIfTI object is
-%          given instead, XYZmm will be set to all voxels within the field
-%          of view of that image.
+%          given instead, XYZmm will be initialised to all voxels within
+%          the field of view of that image.
 %
 % XYZmm  - [3xn] filtered locations of voxels {mm} (m>=n) within VOI xY
 % j      - [1xn] indices of input locations XYZmm within VOI xY
@@ -20,7 +20,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 3950 2010-06-28 10:44:02Z guillaume $
+% $Id: spm_ROI.m 3960 2010-06-30 17:41:24Z ged $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');

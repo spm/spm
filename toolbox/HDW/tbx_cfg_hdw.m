@@ -4,7 +4,7 @@ function hdw = tbx_cfg_hdw
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_hdw.m 3781 2010-03-15 17:33:06Z guillaume $
+% $Id: tbx_cfg_hdw.m 3960 2010-06-30 17:41:24Z ged $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
@@ -162,5 +162,5 @@ hdw.prog    = @spm_local_hdw;
 %======================================================================
 function spm_local_hdw(job)
 
-if ~isedeployed, addpath(fullfile(spm('Dir'),'toolbox','HDW')); end
+if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','HDW')); end
 spm_hdw(job);
