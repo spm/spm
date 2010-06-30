@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3955 2010-06-29 17:26:29Z maria $
+% $Id: spm_dcm_bma.m 3957 2010-06-30 15:37:47Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -271,6 +271,7 @@ if dcm_fmri
     
 end
 
+clear Ep
 disp('')
 disp('Averaging models in Occams window...')
 for i=1:Nsamp
@@ -303,21 +304,25 @@ for i=1:Nsamp
     end
     
     % Average over subjects
-    Ep(:,i) = mean(Ep_all,2);
+    Ep(:,i)       = mean(Ep_all,2);
+    Ep_sbj(:,n,i) = Ep_all(:,n);
     
 end
 
 % save parameters a b c d for fmri
+Ep_avg    = mean(Ep,2);
+Ep_avg    = spm_unvec(Ep_avg,params(1).model(1).Ep);
+bma.Ep    = Ep_avg;
+Ep_avgsbj = mean(Ep_sbj,3);
+for is=1:Nsub
+    bma.Eps(is)=spm_unvec(Ep_avgsbj(:,is),params(1).model(1).Ep);
+end
+
 if dcm_fmri
     bma.a  = spm_unvec(Ep(1:dima,:),Etmp.A);
     bma.b  = spm_unvec(Ep(dima+1:dimb,:),Etmp.B);
     bma.c  = spm_unvec(Ep(dimb+1:dimc,:),Etmp.C);
     bma.d  = spm_unvec(Ep(dimc+1:Np,:),Etmp.D);
-    bma.Ep = Ep;
-else    
-    Ep_eeg = mean(Ep,2);
-    Ep_eeg = spm_unvec(Ep_eeg,params(1).model(1).Ep);
-    bma.Ep = Ep_eeg;
 end
 
 % storing parameters
