@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 3418 2009-09-25 11:06:39Z guillaume $
+% $Id: subsref.m 3958 2010-06-30 16:24:46Z guillaume $
 
 
 if isempty(subs), return; end
@@ -156,7 +156,11 @@ ind = sub2ind(sobj.dim,indx2{:});
 dt  = datatypes;
 dt  = dt([dt.code]==sobj.dtype);
 sz  = dt.size;
-mem = 400*1024*1024; % in bytes, has to be a multiple of 16 (max([dt.size]))
+try
+    mem = spm('Memory'); % in bytes, has to be a multiple of 16 (max([dt.size]))
+catch
+    mem = 200 * 1024 * 1024;
+end
 s   = ceil(prod(sobj.dim) * sz / mem);
 
 % Assign indices to partitions

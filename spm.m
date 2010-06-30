@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3947 2010-06-24 17:22:29Z guillaume $
+% $Id: spm.m 3958 2010-06-30 16:24:46Z guillaume $
 
 
 %=======================================================================
@@ -994,17 +994,11 @@ case 'memory'
 %=======================================================================
 % m = spm('Memory')
 %-----------------------------------------------------------------------
-maxmemdef = 200*1024*1024; % 200 MB for all other platforms
-if ispc
-    try
-        evalc('m=feature(''memstats'');');
-    catch
-        m = maxmemdef;
-    end
-else
-    m     = maxmemdef;
-end
+maxmemdef = 200*1024*1024; % 200 MB
+%m = spm_get_defaults('stats.maxmem');
+m = maxmemdef;
 varargout = {m};
+
 
 %=======================================================================
 case 'pointer'                 %-Set mouse pointer in all MATLAB windows
@@ -1013,8 +1007,6 @@ case 'pointer'                 %-Set mouse pointer in all MATLAB windows
 %-----------------------------------------------------------------------
 if nargin<2, Pointer='Arrow'; else  Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',Pointer)
-
-
 
 
 %=======================================================================

@@ -65,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 3723 2010-02-12 15:15:18Z guillaume $
+% $Id: spm_dcm_ui.m 3958 2010-06-30 16:24:46Z guillaume $
 
 
 % Get figure handles
@@ -76,6 +76,9 @@ spm_clf(Finter);
 set(Finter,'Name','Dynamic Causal Modelling');
 spm('Pointer','Arrow');
 
+% Temporary welcome message
+%--------------------------------------------------------------------------
+disp('Please refer to this version as DCM10 in papers and publications.');
 
 % Options, using pull-down menu
 %--------------------------------------------------------------------------

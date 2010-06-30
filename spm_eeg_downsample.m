@@ -17,9 +17,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 3693 2010-01-21 21:59:16Z guillaume $
+% $Id: spm_eeg_downsample.m 3958 2010-06-30 16:24:46Z guillaume $
 
-SVNrev = '$Rev: 3693 $';
+SVNrev = '$Rev: 3958 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ if strcmp(D.type, 'continuous')
     
     % work on blocks of channels
     % determine block size, dependent on memory
-    memsz  = 2/3*spm('Memory');
+    memsz  = spm('Memory');
     datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
     blknum = ceil(datasz/memsz);
     blksz  = ceil(nchannels(D)/blknum);
