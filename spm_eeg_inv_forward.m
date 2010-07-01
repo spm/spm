@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_inv_forward.m 3965 2010-07-01 17:16:17Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -84,6 +84,22 @@ for i = 1:nvol
                 spm('Pointer', 'Arrow');drawnow;
             end
             vol = volfile;
+            modality = 'EEG';
+        case 'OpenMEEG BEM'           
+            vol = [];
+            vol.cond   = [0.3300 0.0041 0.3300];
+            vol.source = 1; % index of source compartment
+            vol.skin   = 3; % index of skin surface
+            % brain
+            vol.bnd(1) = export(gifti(D.inv{val}.mesh.tess_iskull), 'ft');
+            % skull
+            vol.bnd(2) = export(gifti(D.inv{val}.mesh.tess_oskull), 'ft');
+            % skin
+            vol.bnd(3) = export(gifti(D.inv{val}.mesh.tess_scalp),  'ft');
+
+            cfg = [];
+            cfg.method = 'openmeeg';
+            vol = ft_prepare_bemmodel(cfg, vol);
             modality = 'EEG';
         case 'Single Sphere'
             cfg                        = [];
