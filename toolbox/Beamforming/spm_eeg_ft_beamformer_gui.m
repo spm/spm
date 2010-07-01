@@ -10,7 +10,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3851 2010-04-29 12:17:05Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 3964 2010-07-01 11:18:21Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -146,13 +146,32 @@ contrast_str=sprintf('%s',deblank(contrast_str));
 
 Nconditions=numel(S.timewindows);
 
+type1ind=find(trialtypes==1);
+type2ind=find(trialtypes==2);
+
+if 2*abs((length(type1ind)-length(type2ind)))./(length(type1ind)+length(type2ind))>0.1,
+
+    balance = spm_input('trial numbers diffe (>10%). Randomly resample ?','+1', 'yes|no', [1, 0]);
+    minlen=min(length(type1ind),length(type2ind));
+    m1=randperm(length(type1ind));
+    type1ind=sort(type1ind(m1(1:minlen)));
+    m1=randperm(length(type2ind));
+    type2ind=sort(type2ind(m1(1:minlen)));
+    disp(sprintf('Now both conditions have %d trials',minlen));
+end;
+
+    
+    
 
 %% Set up design matrix for a t test
 S.design.X=size(latencies,1);
-S.design.X(find(trialtypes==1),1)=1;
-S.design.X(find(trialtypes==2),1)=-1;
+S.design.X(type1ind,1)=1;
+S.design.X(type2ind,2)=-1;
+S.design.X(:,3)=1;
+
+
  
- contrast=[1];
+ contrast=[1 -1 0];
       S.design.contrast=contrast;
       S.design.Xwindowduration=duration/1000; %% in seconds 
       S.design.Xtrials=triallist'; % correspond to the trials 

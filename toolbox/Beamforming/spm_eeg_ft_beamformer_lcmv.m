@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3952 2010-06-28 15:10:08Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3964 2010-07-01 11:18:21Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -198,8 +198,8 @@ end
 % sens = ft_transform_sens(M1, sens);
 
 
-X=S.design.X;
-c=S.design.contrast; %% c is contrast eg [ 0 1 -1] compare columns 2,3 of X
+Xdesign  =S.design.X;
+c=S.design.contrast'; %% c is contrast eg [ 0 1 -1] compare columns 2,3 of X
 
 
     
@@ -208,9 +208,9 @@ try S.design.X(:,1)-S.design.Xtrials-S.design.Xstartlatencies;
     error('Design windows missepcified');
 end;
 
-X0  = X - X*c*pinv(c); 
-Xdesign   = full(X*c);
-X0  = spm_svd(X0); %% X0 is null space i.e. everything that is happening in other columns of X
+%X0  = X - X*c*pinv(c); 
+
+%X0  = spm_svd(X0); %% X0 is null space i.e. everything that is happening in other columns of X
 
 
 outfilenames='';
@@ -272,6 +272,9 @@ end;
 allfftwindow=repmat(fftwindow,1,Nchans);
 NumUniquePts = ceil((Nsamples+1)/2); %% data is real so fft is symmetric
 
+if NumUniquePts<=2,
+    error('Need to have more than 2 samples of data');
+end;
 fftnewdata=zeros(Ntrials,NumUniquePts,Nchans);
 allepochdata=zeros(Ntrials,Nchans,Nsamples); %% for loading in data quickly
 
@@ -371,7 +374,7 @@ if ~isempty(S.maskgrid),
 
 
 
-
+    
 %% Now have all lead fields and all data
 %% Now do actual beamforming
 %% decide on the covariance matrix we need
@@ -427,6 +430,7 @@ end; % for i
   disp(sprintf('largest/smallest eigenvalue=%3.2f',allsvd(1)/allsvd(end)));
   disp(sprintf('\nFrequency resolution %3.2fHz',mean(diff(fHz))));
   noise = allsvd(end); %% use smallest eigenvalue
+  noise_id=eye(size(covtrial)).*noise;
   redNfeatures=Nfeatures;
   
     
@@ -457,7 +461,8 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         end;
     end;
       
-  
+ dfe=Ntrials-rank(Xdesign);  % df test
+ 
     for i=1:length(maskedgrid_inside_ind), %% 81
         lf=cell2mat(grid.leadfield(grid.inside(maskedgrid_inside_ind(i))));
         
@@ -497,22 +502,40 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
        %% Now permute the rows of X if necessary
         for iter=1:S.Niter,
         
+%             
+             X=Xdesign(randind(iter,:),:); %% randind(1,:)=1, i.e. unpermuted
+%             cond1_ind=find(X(:,1)>0);
+%             cond2_ind=find(X(:,1)<=0);
+%             nx=length(cond1_ind);
+%             ny=length(cond2_ind);
+%             dfe = nx + ny - 2;
+%             xba_epochs=Yfull(cond1_ind,:)*tfiltervect; %% for univariate tfiltervect is all ones (i.e. sum)
+%             yba_epochs=Yfull(cond2_ind,:)*tfiltervect; %%
+%             pdiff=mean(xba_epochs)-mean(yba_epochs);
+%             s2x=var(xba_epochs);
+%             s2y=var(yba_epochs);
+%             sPooled = sqrt(((nx-1) .* s2x + (ny-1) .* s2y) ./ dfe);
+%             se = sPooled .* sqrt(1./nx + 1./ny);
+%             tstat(maskedgrid_inside_ind(i),iter) = pdiff ./ se; %
+%             normdiff(maskedgrid_inside_ind(i),iter)=pdiff/(weights*noise_id*weights');
+%             
             
-            X=Xdesign(randind(iter,:),:); %% randind(1,:)=1, i.e. unpermuted
-            cond1_ind=find(X(:,1)>0);
-            cond2_ind=find(X(:,1)<=0);
-            nx=length(cond1_ind);
-            ny=length(cond2_ind);
-            dfe = nx + ny - 2;
-            xba_epochs=Yfull(cond1_ind,:)*tfiltervect; %% for univariate tfiltervect is all ones (i.e. sum)
-            yba_epochs=Yfull(cond2_ind,:)*tfiltervect; %%
-            pdiff=mean(xba_epochs)-mean(yba_epochs);
-            s2x=var(xba_epochs);
-            s2y=var(yba_epochs);
-            sPooled = sqrt(((nx-1) .* s2x + (ny-1) .* s2y) ./ dfe);
-            se = sPooled .* sqrt(1./nx + 1./ny);
-            tstat(maskedgrid_inside_ind(i),iter) = pdiff ./ se; %
-            normdiff(maskedgrid_inside_ind(i),iter)=pdiff/(weights*weights');
+            % Contrast
+            
+             
+             Yvals=mean(Yfull')';
+
+             B  = pinv(X)*Yvals;
+
+% t statistic and significance test
+            RSS   = sum((Yvals - X*B).^2);
+            MRSS  = RSS / dfe;
+            SE    = sqrt(MRSS*(c*pinv(X'*X)*c'));
+            
+            tstat(maskedgrid_inside_ind(i),iter)=c*B./SE;
+            normdiff(maskedgrid_inside_ind(i),iter)=c*B/(weights*noise_id*weights'); %% maybe a factor missing here
+
+    
         end; % for Niter
         
          
@@ -559,7 +582,14 @@ end; % if
     csource.pow_tstat(csource.outside)=0;
     csource.pos = spm_eeg_inv_transform_points(D.inv{D.val}.datareg.toMNI, csource.pos);
     
-    csource.normdiff(csource.inside) =normdiff(:,TrueIter);
+    zeromean_images=0; %% leave this off for now.
+    if zeromean_images==1,
+        imgmean=mean(normdiff(:,TrueIter));
+        imgstd=mean(normdiff(:,TrueIter));
+        disp(sprintf('Removing mean value %3.2f from normdiff image (std=%3.2f)!',imgmean,imgstd));
+        normdiff(:,TrueIter)=normdiff(:,TrueIter)-imgmean;
+        end;
+     csource.normdiff(csource.inside) =normdiff(:,TrueIter);
     csource.normdiff(csource.outside)=0;
     
     
