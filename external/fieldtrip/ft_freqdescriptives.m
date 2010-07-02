@@ -1,3 +1,4 @@
+
 function [output] = ft_freqdescriptives(cfg, freq)
 
 % FT_FREQDESCRIPTIVES computes descriptive univariate statistics of
@@ -58,7 +59,7 @@ function [output] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqdescriptives.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_freqdescriptives.m 1311 2010-06-30 12:17:57Z timeng $
 
 fieldtripdefs
 
@@ -86,8 +87,8 @@ if ~isfield(cfg, 'channel'),     cfg.channel       = 'all';     end
 if ~isfield(cfg, 'foilim'),      cfg.foilim        = 'all';     end
 if ~isfield(cfg, 'toilim'),      cfg.toilim        = 'all';     end
 if ~isfield(cfg, 'keeptrials'),  cfg.keeptrials    = 'no';      end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
+if ~isfield(cfg, 'inputfile'),   cfg.inputfile     = [];        end
+if ~isfield(cfg, 'outputfile'),  cfg.outputfile    = [];        end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -208,7 +209,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqdescriptives.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_freqdescriptives.m 1311 2010-06-30 12:17:57Z timeng $';
 
 try, cfg.previous = freq.cfg; end
 

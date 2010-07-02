@@ -26,10 +26,10 @@ function [dat] = fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_data.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: fetch_data.m 1328 2010-07-01 12:39:39Z jansch $
     
 % check whether input is data
-data = checkdata(data, 'datatype', 'raw');
+data = checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
     
 % get the options
 hdr           = keyval('header',        varargin);
@@ -41,7 +41,6 @@ if isempty(hdr)
   hdr = fetch_header(data);
 end
     
-    
 if isempty(begsample) || isempty(endsample)
   error('begsample and endsample must be specified');
 end
@@ -51,7 +50,11 @@ if isempty(chanindx)
 end
 
 % get trial definition according to original data file
-trl    = findcfg(data.cfg, 'trl');
+if isfield(data, 'trialdef')
+  trl    = data.trialdef;
+else
+  error('data does not contain a consistent trial definition, fetching data is not possible');
+end
 trlnum = length(data.trial);
 
 if trlnum>1,
@@ -158,3 +161,4 @@ else
   % fetch the data
   dat = data.trial{1}(chanindx,begindx:endindx);  
 end
+

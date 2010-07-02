@@ -50,15 +50,15 @@ function [data] = ft_appenddata(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 1273 2010-06-25 15:40:16Z timeng $
+% $Id: ft_appenddata.m 1311 2010-06-30 12:17:57Z timeng $
 
 fieldtripdefs
 
 % set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
+if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
 
-hasdata = nargin>2;
+hasdata = nargin>1;
 if ~isempty(cfg.inputfile) % the input data should be read from file
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
@@ -76,7 +76,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no');
+  varargin{i} = checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hastrialdef', 'yes');
 end
 
 % determine the dimensions of the data
@@ -84,13 +84,15 @@ Nchan  = zeros(1,Ndata);
 Ntrial = zeros(1,Ndata);
 label  = {};
 for i=1:Ndata
-  Nchan(i) = length(varargin{i}.label);
+  Nchan(i)  = length(varargin{i}.label);
   Ntrial(i) = length(varargin{i}.trial);
   fprintf('input dataset %d, %d channels, %d trials\n', i, Nchan(i), Ntrial(i));
   label = cat(1, label(:), varargin{i}.label(:));
 end
 
-% try to locate the trial definition (trl) in the nested configuration
+% try to locate the trial definition (trl) in the nested configuration and
+% check whether the input data contains trialinfo
+hastrialinfo = 0;
 for i=1:Ndata
   if isfield(varargin{i}, 'cfg')
     trl{i} = findcfg(varargin{i}.cfg, 'trl');
@@ -101,7 +103,9 @@ for i=1:Ndata
     % a trial definition is expected in each continuous data set
     warning(sprintf('could not locate the trial definition ''trl'' in data structure %d', i));
   end
+  hastrialinfo = isfield(varargin{i}, 'trialinfo') + hastrialinfo;
 end
+hastrialinfo = hastrialinfo==Ndata;
 
 % check the consistency of the labels across the input-structures
 [alllabel, indx1, indx2] = unique(label, 'first');
@@ -115,14 +119,14 @@ order    = zeros(length(alllabel),Ndata);
 %  end
 %end
 
-%replace the nested for-loops with something faster
+% replace the nested for-loops with something faster
 for j=1:Ndata
   tmplabel = varargin{j}.label;
   [ix,iy]  = match_str(alllabel, tmplabel);
   order(ix,j) = iy;
 end
 
-%check consistency of sensor positions across inputs
+% check consistency of sensor positions across inputs
 haselec = isfield(varargin{1}, 'elec');
 hasgrad = isfield(varargin{1}, 'grad');
 removesens = 0;
@@ -138,6 +142,17 @@ if haselec || hasgrad,
       end
     end
   end
+end
+
+% check whether the data are obtained from the same datafile
+origfile1      = findcfg(varargin{1}.cfg, 'datafile');
+removetrialdef = 0;
+for j=2:Ndata
+    if ~strcmp(origfile1, findcfg(varargin{j}.cfg, 'datafile')),
+        removetrialdef = 1;
+        warning('input data comes from different datafiles');
+        break;
+    end
 end
 
 catlabel   = all(sum(order~=0,2)==1);
@@ -161,18 +176,27 @@ if shuflabel,
   end
 end
 
+% FIXME create the output from scratch and don't use the first varargin
+% (both for cattrial and catlabel
 if cattrial && catlabel
   error('cannot determine how the data should be concatenated');
-  %FIXME think whether this can ever happen
+  % FIXME think whether this can ever happen
+  
 elseif cattrial
   % concatenate the trials
   fprintf('concatenating the trials over all datasets\n');
   data = varargin{1};
   data.trial  = {};
   data.time   = {};
+  data.trialdef = [];
+  if hastrialinfo, data.trialinfo = []; end;
   for i=1:Ndata
-    data.trial  = cat(2, data.trial,  varargin{i}.trial(:)');
-    data.time   = cat(2, data.time,   varargin{i}.time(:)');
+    data.trial    = cat(2, data.trial,  varargin{i}.trial(:)');
+    data.time     = cat(2, data.time,   varargin{i}.time(:)');
+    data.trialdef = cat(1, data.trialdef, varargin{i}.trialdef);
+    if hastrialinfo, data.trialinfo = cat(1, data.trialinfo, varargin{i}.trialinfo); end;
+    % FIXME is not entirely robust if the different inputs have different
+    % number of columns in trialinfo
   end
   % also concatenate the trial specification
   cfg.trl = cat(1, trl{:});
@@ -230,6 +254,12 @@ if removesens
   if hasgrad, data = rmfield(data, 'grad'); end
 end
 
+if removetrialdef
+    fprintf('removing trial definition from output\n');
+    data            = rmfield(data, 'trialdef');
+    cfg.trl(:, 1:2) = nan;
+end
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -239,7 +269,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appenddata.m 1273 2010-06-25 15:40:16Z timeng $';
+cfg.version.id = '$Id: ft_appenddata.m 1311 2010-06-30 12:17:57Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

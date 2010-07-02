@@ -154,7 +154,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 1268 2010-06-25 12:18:28Z jansch $
+% $Id: ft_preprocessing.m 1313 2010-06-30 14:04:00Z jansch $
 
 fieldtripdefs
 
@@ -272,9 +272,13 @@ if hasdata
   if isfield(data, 'fsample'),  dataout.fsample = data.fsample;     end
   if isfield(data, 'grad'),     dataout.grad    = data.grad;        end
   if isfield(data, 'elec'),     dataout.elec    = data.elec;        end
-
+  if isfield(data, 'trialdef'),  dataout.trialdef  = data.trialdef;  end
+  if isfield(data, 'trialinfo'), dataout.trialinfo = data.trialinfo; end
+  
   progress('init', cfg.feedback, 'preprocessing');
   ntrl = length(data.trial);
+  dataout.trial = cell(1, ntrl);
+  dataout.time  = cell(1, ntrl);
   for i=1:ntrl
     progress(i/ntrl, 'preprocessing trial %d from %d\n', i, ntrl);
     % do the preprocessing on the selected channels
@@ -491,6 +495,10 @@ else
     dataout.time               = time;                 % vector with the timeaxis for each individual trial
     dataout.trial              = cutdat;
     dataout.fsample            = hdr.Fs;
+    dataout.trialdef           = cfg.trl(:,1:2);
+    if size(cfg.trl,2) > 3
+        dataout.trialinfo      = cfg.trl(:,4:end);
+    end
     if isfield(hdr, 'grad')
       dataout.grad             = hdr.grad;             % gradiometer system in head coordinates
     end
@@ -515,7 +523,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_preprocessing.m 1268 2010-06-25 12:18:28Z jansch $';
+cfg.version.id   = '$Id: ft_preprocessing.m 1313 2010-06-30 14:04:00Z jansch $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

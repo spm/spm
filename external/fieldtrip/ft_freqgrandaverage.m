@@ -42,14 +42,14 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 1303 2010-06-29 15:42:37Z timeng $
+% $Id: ft_freqgrandaverage.m 1311 2010-06-30 12:17:57Z timeng $
 
 fieldtripdefs
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];         end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
 
 hasdata = nargin>1;
@@ -263,7 +263,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqgrandaverage.m 1303 2010-06-29 15:42:37Z timeng $';
+cfg.version.id = '$Id: ft_freqgrandaverage.m 1311 2010-06-30 12:17:57Z timeng $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

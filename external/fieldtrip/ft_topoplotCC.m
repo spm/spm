@@ -28,6 +28,10 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    cfg.arrowlength  = amount by which the length is reduced (default = 0.8)
 %
 % See also FT_PREPARE_LAYOUT, FT_MULTIPLOTCC
+%
+% Undocumented local options:
+%   cfg.inputfile  = one can specifiy preanalysed saved data as input
+%                     The data should be provided in a cell array
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -45,9 +49,10 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_topoplotCC.m 1310 2010-06-30 10:49:28Z timeng $
 
 fieldtripdefs
+
 
 % check if the input data is valid for this function
 freq = checkdata(freq, 'cmbrepresentation', 'sparse');

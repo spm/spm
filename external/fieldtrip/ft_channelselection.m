@@ -64,9 +64,13 @@ function [channel] = ft_channelselection(channel, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 1170 2010-05-31 13:06:07Z ingnie $
+% $Id: ft_channelselection.m 1315 2010-06-30 19:13:57Z roboos $
 
 fieldtripdefs
+
+if length(datachannel)~=length(unique(datachannel))
+  error('data with non-unique channel names is not supported');
+end
 
 if any(size(channel) == 0)
   % there is nothing to do if it is empty

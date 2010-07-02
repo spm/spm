@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1261 2010-06-22 15:09:23Z roboos $
+% $Id: ft_read_header.m 1330 2010-07-01 15:54:34Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1238,6 +1238,19 @@ switch headerformat
     end
 end
 
+if length(hdr.label)~=length(unique(hdr.label))
+  % all channels must have unique names
+  warning('all channels must have unique labels, creating unique labels');
+  for i=1:hdr.nChans
+    sel = find(strcmp(hdr.label{i}, hdr.label));
+    if length(sel)>1
+      for j=1:length(sel)
+        hdr.label{sel(j)} = sprintf('%s-%d', hdr.label{sel(j)}, j);
+      end
+    end
+  end
+end
+  
 % ensure that these are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up
 hdr.Fs          = double(hdr.Fs);

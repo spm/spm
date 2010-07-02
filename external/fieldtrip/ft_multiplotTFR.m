@@ -68,6 +68,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % cfg.layoutname
 % cfg.xparam
 % cfg.zparam
+% cfg.inputfile  = one can specifiy preanalysed saved data as input
+%                  The data should be provided in a cell array
+
 %
 % This function depends on FT_FREQBASELINE which has the following options:
 % cfg.baseline, documented
@@ -91,13 +94,27 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_multiplotTFR.m 1310 2010-06-30 10:49:28Z timeng $
 
 fieldtripdefs
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 clf
+
+% set default for inputfile
+if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];                end
+
+% load optional given inputfile as data
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+  end
+end
 
 % for backward compatibility with old data structures
 data = checkdata(data);

@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1286 2010-06-29 13:59:40Z roboos $
+% $Id: ft_databrowser.m 1329 2010-07-01 15:53:27Z roboos $
 
 fieldtripdefs
 
@@ -107,7 +107,6 @@ lines_color = [0.75 0 0;0 0 1;0 1 0;0.44 0.19 0.63;0 0.13 0.38;0.5 0.5 0.5;1 0.7
 
 % set the defaults
 if ~isfield(cfg, 'channel'),         cfg.channel = 'all';             end
-if ~isfield(cfg, 'continuous'),      cfg.continuous = 'no';           end % only for reading from file
 if ~isfield(cfg, 'zscale'),          cfg.zscale = 'auto';             end
 if ~isfield(cfg, 'artfctdef'),       cfg.artfctdef = struct;          end
 if ~isfield(cfg, 'selectfeature'),   cfg.selectfeature = 'visual';    end % string or cell-array
@@ -426,7 +425,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1286 2010-06-29 13:59:40Z roboos $';
+cfg.version.id = '$Id: ft_databrowser.m 1329 2010-07-01 15:53:27Z roboos $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')
