@@ -194,8 +194,10 @@ Random-effects (different from fixed-effects):\\
 & \bf{.b} & samples from posterior density over DCM.b parameters [dimb $\times$ nsamp]. \\
 & \bf{.c} & samples from posterior density over DCM.c parameters [dimc $\times$ nsamp]. \\
 & \bf{.d} & samples from posterior density over DCM.d parameters [dimd $\times$ nsamp]. \\
-& \bf{.Ep} & mean DCM parameters (struct.). \\
-& \bf{.Eps} & mean DCM parameters per subject (struct.). \\
+& \bf{.mEp} & mean DCM parameters [1 $\times$ 1 struct]. \\
+& \bf{.sEp} & standard deviation of DCM parameters [1 $\times$ 1 struct]. \\
+& \bf{.mEps} & mean DCM parameters per subject [1 $\times$ nsub struct]. \\
+& \bf{.sEps} & standard deviation DCM parameters per subject [1 $\times$ nsub struct]. \\
 \end{tabular}\\\\
 
 Random-effects - same variables as in fixed-effects.
