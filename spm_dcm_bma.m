@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_dcm_bma.m 3959 2010-06-30 17:22:43Z maria $
+% $Id: spm_dcm_bma.m 3966 2010-07-02 11:54:42Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -296,14 +296,20 @@ for i=1:Nsamp
         
 end
 
-% save parameters a b c d for fmri
-Ep_avg    = mean(Ep,2);
-Ep_avg    = spm_unvec(Ep_avg,params(1).model(1).Ep);
-bma.Ep    = Ep_avg;
-Ep_avgsbj = mean(Ep_sbj,3);
+% save mean parameters
+Ep_avg     = mean(Ep,2);
+Ep_std     = std(Ep,0,2);
+Ep_avg     = spm_unvec(Ep_avg,params(1).model(1).Ep);
+Ep_std     = spm_unvec(Ep_std,params(1).model(1).Ep);
+bma.mEp    = Ep_avg;
+bma.sEp    = Ep_std;
+
+Ep_avgsbj  = mean(Ep_sbj,3);
+Ep_stdsbj  = std(Ep_sbj,0,3);
 
 for is=1:Nsub
-    bma.Eps(is)=spm_unvec(Ep_avgsbj(:,is),params(1).model(1).Ep);
+    bma.mEps(is)=spm_unvec(Ep_avgsbj(:,is),params(1).model(1).Ep);
+    bma.sEps(is)=spm_unvec(Ep_stdsbj(:,is),params(1).model(1).Ep);
 end
 
 if dcm_fmri
