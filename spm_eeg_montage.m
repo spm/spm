@@ -31,9 +31,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 3891 2010-05-17 11:33:30Z vladimir $
+% $Id: spm_eeg_montage.m 3970 2010-07-05 17:26:16Z vladimir $
 
-SVNrev = '$Rev: 3891 $';
+SVNrev = '$Rev: 3970 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,6 +51,10 @@ catch
 end
 
 D = spm_eeg_load(D);
+
+if strncmp(D.transformtype, 'TF', 2)
+    error('Montage cannot be applied to time-frequency data');
+end
 
 %-Get size of blocks used internally to split large continuous files
 %--------------------------------------------------------------------------
