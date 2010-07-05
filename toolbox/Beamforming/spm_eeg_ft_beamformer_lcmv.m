@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 3964 2010-07-01 11:18:21Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 3969 2010-07-05 09:26:46Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -199,7 +199,7 @@ end
 
 
 Xdesign  =S.design.X;
-c=S.design.contrast'; %% c is contrast eg [ 0 1 -1] compare columns 2,3 of X
+c=S.design.contrast; %% c is contrast eg [ 0 1 -1] compare columns 2,3 of X
 
 
     
