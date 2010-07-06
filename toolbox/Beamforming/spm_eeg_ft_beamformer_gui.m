@@ -10,7 +10,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3964 2010-07-01 11:18:21Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 3971 2010-07-06 09:53:38Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -166,7 +166,7 @@ end;
 %% Set up design matrix for a t test
 S.design.X=size(latencies,1);
 S.design.X(type1ind,1)=1;
-S.design.X(type2ind,2)=-1;
+S.design.X(type2ind,2)=1;
 S.design.X(:,3)=1;
 
 
