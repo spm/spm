@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3940 2010-06-21 12:51:19Z christophe $
+% $Id: checkmeeg.m 3973 2010-07-07 22:53:24Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -285,11 +285,18 @@ if ~isfield(meegstruct, 'type') ||...
     end
 end
 
+try
+    [pdat, fdat] = fileparts(meegstruct.data.y.fname);
+catch
+    fdat = 'spm8';
+end
+
 if ~isfield(meegstruct, 'fname')
-    try
-        [p, f] = fileparts(meegstruct.data.y.fname);
-    catch
-        f = 'spm8';
+    meegstruct.fname = [fdat '.mat'];
+else
+    [p, f] = fileparts(meegstruct.fname);
+    if isempty(f)
+        f = fdat;
     end
     meegstruct.fname = [f '.mat'];
 end

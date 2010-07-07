@@ -10,7 +10,7 @@ function D = spm_eeg_convert(S)
 %                        already epoched or a trial definition file).
 % S.timewindow     - [start end] in sec. Boundaries for a sub-segment of
 %                     continuous data [default: all]
-% S.outfile        - name base for the output files [default - same as input]
+% S.outfile        - output file name (default 'spm8_' + input)
 % S.channels       - 'all' - convert all channels
 %                    or cell array of labels
 % S.usetrials      - 1 - take the trials as defined in the data [default]
@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_convert.m 3973 2010-07-07 22:53:24Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -339,13 +339,24 @@ else % Read by trials
 end
 
 %--------- Prepare for reading the data
-D.data.fnamedat = [S.outfile '.dat'];
+
+[outpath, outfile] = fileparts(S.outfile);
+if isempty(outpath)
+    outpath = pwd;
+end
+if isempty(outfile)
+    outfile = 'spm8';
+end
+
+D.path = outpath;
+D.fname = [outfile '.mat'];
+D.data.fnamedat = [outfile '.dat'];
 D.data.datatype = S.datatype;
 
 if S.continuous
-    datafile = file_array(D.data.fnamedat, [nchan nsampl], S.datatype);
+    datafile = file_array(fullfile(D.path, D.data.fnamedat), [nchan nsampl], S.datatype);
 else
-    datafile = file_array(D.data.fnamedat, [nchan nsampl ntrial], S.datatype);
+    datafile = file_array(fullfile(D.path, D.data.fnamedat), [nchan nsampl ntrial], S.datatype);
 end
 
 % physically initialise file
@@ -417,8 +428,6 @@ catch
 end
 
 %--------- Create meeg object
-D.fname = [S.outfile '.mat'];
-
 D = meeg(D);
 
 % history
