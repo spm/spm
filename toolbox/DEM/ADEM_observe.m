@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: ADEM_observe.m 3977 2010-07-08 14:14:35Z karl $
  
  
 % hidden causes and states
@@ -169,11 +169,57 @@ title('observation','FontSize',16)
 xlabel('time')
 ylabel('cross-correlation')
 axis square tight
- 
+
+
+
+% coherence analysis
+%==========================================================================
+spm_figure('GetWin','Figure 4')
+
+T  = 16;
+xe = DEM.qU.w{1}(5:end,T:end);      % prediction error on attractor states
+ve = DEM.qU.z{1}(4:8,T:end);        % prediction error on visual states
+qx = full(sum(xe));                 % synthetic LFP
+qv = full(sum(ve));                 % synthetic LFP
+px = DEM.pU.v{1}(1,T:end);          % peripheral (plant motion)
+
+% coherence analysis
+%--------------------------------------------------------------------------
+qx = spm_detrend(qx',2);
+px = spm_detrend(px',2);
+
+[Cqp,Hz] = mscohere(qx,px,64,48,[],1/0.008);
+[Cxv,Hz] = mscohere(qx,qv,64,48,[],1/0.008);
+
+
+subplot(2,1,1)
+plot(t(T:end),xe,'r',t(T:end),ve,'b');  hold on
+plot(t(T:end),px/8,'g','LineWidth',4); hold off
+title('central and peripheral responses','FontSize',16)
+xlabel('time (ms)')
+ylabel('activity (au)')
+axis tight
+
+subplot(2,2,3)
+plot(Hz,Cqp)
+title('central-peripheral coherence','FontSize',16)
+xlabel('frequency (Hz)')
+ylabel('coherence')
+axis square
+axis([0 32 0 1])
+
+subplot(2,2,4)
+plot(Hz,Cxv)
+title('central-central coherence','FontSize',16)
+xlabel('frequency (Hz)')
+ylabel('coherence')
+axis square
+axis([0 32 0 1])
+
  
 % functional correlates
 %==========================================================================
-spm_figure('GetWin','Figure 4');
+spm_figure('GetWin','Figure 5');
  
 % under action
 %--------------------------------------------------------------------------
@@ -231,7 +277,7 @@ axis square ij
  
 % Correlations between action and observation responses
 %==========================================================================
-spm_figure('GetWin','Figure 5');
+spm_figure('GetWin','Figure 6');
  
 qx =  DEM.qU.x{1};
 px = ADEM.qU.x{1};
@@ -274,7 +320,7 @@ axis square tight
  
 % simulate omission
 %--------------------------------------------------------------------------
-T          = 128;
+T          = 132;
 C          = DEM.qU.a{2};
 C(:,T:end) = -C(:,T:end);
 NDEM       = ADEM;
@@ -284,33 +330,53 @@ NDEM       = spm_ADEM(NDEM);
  
 % Graphics 
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6');
+spm_figure('GetWin','Figure 7');
 t   = ([1:N] - T)*8;
 i   = find(t > -256 & t < 512);
  
-subplot(2,2,1)
+subplot(3,2,1)
 spm_dem_reach_movie(ADEM)
 title('observation','FontSize',16)
  
-subplot(2,2,2)
+subplot(3,2,2)
 spm_dem_reach_movie(NDEM)
 title('violation','FontSize',16)
  
-subplot(2,2,4)
+
+% Proprioceptive prediction error 
+%--------------------------------------------------------------------------
+subplot(3,2,4)
 plot(t(i),NDEM.qU.z{1}(1:4,i)'), hold on
 plot(t(i),ADEM.qU.z{1}(1:4,i)',':'), hold off
-title('violation','FontSize',16)
+title('proprioceptive error','FontSize',16)
 xlabel('time')
 ylabel('prediction error')
 axis square
 a = axis;
  
-subplot(2,2,3)
+subplot(3,2,3)
 plot(t(i),ADEM.qU.z{1}(1:4,i)')
-title('observation','FontSize',16)
+title('proprioceptive error','FontSize',16)
 xlabel('time')
 ylabel('prediction error')
 axis square
 axis(a);
  
-legend({'position (x)','position (y)','velocity (x)','velocity (y)'})
+% Hidden state prediction error 
+%--------------------------------------------------------------------------
+subplot(3,2,6)
+plot(t(i),NDEM.qU.w{1}(:,i)'), hold on
+plot(t(i),ADEM.qU.w{1}(:,i)',':'), hold off
+title('error on hidden states','FontSize',16)
+xlabel('time')
+ylabel('prediction error')
+axis square
+a = axis;
+ 
+subplot(3,2,5)
+plot(t(i),ADEM.qU.w{1}(:,i)')
+title('error on hidden states','FontSize',16)
+xlabel('time')
+ylabel('prediction error')
+axis square
+axis(a);

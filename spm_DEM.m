@@ -79,7 +79,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_DEM.m 3977 2010-07-08 14:14:35Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -210,7 +210,7 @@ for i = 1:(nl - 1)
  
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
-    qp.u{i}   = spm_svd(M(i).pC);                    % basis for parameters
+    qp.u{i}   = spm_svd(M(i).pC,exp(-32));           % basis for parameters
     M(i).p    = size(qp.u{i},2);                     % number of qp.p
     qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance

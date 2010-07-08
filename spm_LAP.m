@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: spm_LAP.m 3977 2010-07-08 14:14:35Z karl $
 
 
 % find or create a DEM figure
@@ -192,7 +192,7 @@ for i = 1:(nl - 1)
  
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
-    qp.u{i}   = spm_svd(M(i).pC);                    % basis for parameters
+    qp.u{i}   = spm_svd(M(i).pC,exp(-32));           % basis for parameters
     M(i).p    = size(qp.u{i},2);                     % number of qp.p
     qp.p{i}   = sparse(M(i).p,1);                    % initial deviates
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
@@ -246,10 +246,6 @@ Ih     = spm_speye(nb,nb);
 qp.dp  = sparse(np,1);                   % conditional expectation of dp/dt
 qh.dp  = sparse(nb,1);                   % conditional expectation of dh/dt
 
-% precision of fluctuations on parameters of hyperparameters
-%--------------------------------------------------------------------------  
-Kp     = ns*Ip;
-Kh     = ns*Ih;
 
 % gradients of generalised weighted errors
 %--------------------------------------------------------------------------
@@ -274,6 +270,16 @@ if ~np && ~nh && ~ng, nN = 1; end
 mnx = nx*~~method.x;
 mnv = nv*~~method.v;
 
+
+% preclude very precise states from entering free-energy
+%--------------------------------------------------------------------------
+[p dp] = spm_LAP_eval(M,qu,qh);
+ih     = p.h < 16;
+ig     = p.g < 16;
+iv     = kron(ones(d,1),ih([1:nv] + ny));
+ix     = kron(ones(n,1),ig);
+iu     = logical([ix; iv]);
+iup    = logical([iu; ones(np,1)]);
 
 % Iterate Lapalace scheme
 %==========================================================================
@@ -324,11 +330,14 @@ for iN = 1:nN
             % gradients of log(det(iS)) dDd...
             %==============================================================
             
-            % get precision matrices
+            % get precision matrices (iSS is conditioned)
             %--------------------------------------------------------------
             iSh     = diag(exp(p.h));
             iSg     = diag(exp(p.g));
             iS      = blkdiag(kron(Rh,iSh),kron(Rg,iSg));
+            iSh     = diag(exp(p.h).*ih);
+            iSg     = diag(exp(p.g).*ig);
+            iSS     = blkdiag(kron(Rh,iSh),kron(Rg,iSg));
             
             
             % gradients of trace(diag(p)) = sum(p); p = precision vector
@@ -445,6 +454,7 @@ for iN = 1:nN
                              dLdpu dLdpp});
             
             C     = spm_inv(iC);
+            iC    = iC(iup,iup);
             
             % first-order derivatives of Entropy term
             %==============================================================
@@ -501,31 +511,56 @@ for iN = 1:nN
                 Q(is).u.c = C((1:nv) + nx*n, (1:nv) + nx*n);
                 Q(is).p.c = C((1:np) + nu,   (1:np) + nu);
                 Q(is).h.c = spm_inv(dLdhh);
-                Cu        = C(1:nu,1:nu);
+                Cu        = C(iu,iu);
+                
+                
+                % Free-energy (components)
+                %----------------------------------------------------------
+%                 Fc(is,1)  = - E'*iSS*E/2;
+%                 Fc(is,2)  = spm_logdet(iSS)/2;
+%                 Fc(is,3)  = - Eu'*pu.ic*Eu/2;
+%                 Fc(is,4)  = spm_logdet(pp.ic)/2;
+%                 Fc(is,5)  = - Ep'*pp.ic*Ep/2;
+%                 Fc(is,6)  = spm_logdet(pp.ic)/2;
+%                 Fc(is,7)  = - Eh'*ph.ic*Eh/2;
+%                 Fc(is,8)  = spm_logdet(ph.ic)/2;
+%                 Fc(is,9)  = - spm_logdet(iC)/2;
+%                 Fc(is,10) = - spm_logdet(dLdhh)/2;
+                
 
-                % Free-energy (states)
-                %----------------------------------------------------------                
-                L(is) = ... 
-                - E'*iS*E/2      + spm_logdet(iS)/2    - n*ny*log(2*pi)/2 ...          
-                - Eu'*pu.ic*Eu/2 + spm_logdet(pu.ic)/2 + spm_logdet(Cu)/2;
+                % Free-energy
+                %----------------------------------------------------------
+                L(is) = - E'*iSS*E/2       + spm_logdet(iSS)/2   ...          
+                        - Eu'*pu.ic*Eu/2   + spm_logdet(pu.ic)/2 ...
+                        - n*ny*log(2*pi)/2;
                     
                 % Free-energy (states and parameters)
                 %----------------------------------------------------------
-                A(is) = - E'*iS*E/2        + spm_logdet(iS)/2    ...
-                        - Eu'*pu.ic*Eu/2   + spm_logdet(pu.ic)/2 ...
+                A(is) = L(is)                                    ...
                         - Ep'*pp.ic*Ep/2   + spm_logdet(pp.ic)/2 ...
                         - Eh'*ph.ic*Eh/2   + spm_logdet(ph.ic)/2 ...
-                        - n*ny*log(2*pi)/2 - spm_logdet(iC)/2 - spm_logdet(dLdhh)/2;
+                        - spm_logdet(iC)/2 - spm_logdet(dLdhh)/2;
+                    
+                % Free-energy (states)
+                %----------------------------------------------------------                
+                L(is) = L(is) + spm_logdet(Cu)/2;
+                
             end
  
             % update conditional moments
             %==============================================================
             
+            % precision of fluctuations on parameters of hyperparameters
+            %--------------------------------------------------------------
+            Kp     = ns*Ip;
+            Kh     = ns*Ih*2;
+            
             % uopdate curvatures of [hyper]paramters
             %--------------------------------------------------------------
+            nk     = 128;
             try
-                dLdPP = dLdPP*(1 - 1/ns) + dLdpp/ns;
-                dLdHH = dLdHH*(1 - 1/ns) + dLdhh/ns;
+                dLdPP = dLdPP*(1 - 1/nk) + dLdpp/nk;
+                dLdHH = dLdHH*(1 - 1/nk) + dLdhh/nk;
             catch
                 dLdPP = dLdpp*16;
                 dLdHH = dLdhh*16;
@@ -554,14 +589,15 @@ for iN = 1:nN
             
             % assemble conditional means
             %--------------------------------------------------------------
+            q_p   = spm_unvec(Vp'*spm_vec(qp.p),qp.p);
+            q_b   = spm_unvec(Vh'*spm_vec({qh.h qh.g}),{qh.h qh.g});
             q{1}  = qu.y(1:n);
             q{2}  = qu.x(1:n);
             q{3}  = qu.v(1:d);
             q{4}  = qu.u(1:d);
-            q{5}  = spm_unvec(Vp'*spm_vec(qp.p),qp.p);
-            qb    = spm_unvec(Vh'*spm_vec({qh.h qh.g}),{qh.h qh.g});
-            q{6}  = qb{1};
-            q{7}  = qb{2};
+            q{5}  = q_p;
+            q{6}  = q_b{1};
+            q{7}  = q_b{2};
             q{8}  = Vp'*qp.dp;
             q{9}  = Vh'*qh.dp;
             
@@ -596,12 +632,13 @@ for iN = 1:nN
             
             % unpack conditional means
             %--------------------------------------------------------------
+            q_p       = spm_unvec(Vp*spm_vec(q{5}),qp.p);
+            q_b       = spm_unvec(Vh*spm_vec(q{6:7}),{qh.h qh.g});
             qu.x(1:n) = q{2};
             qu.v(1:d) = q{3};
-            qp.p      = spm_unvec(Vp*spm_vec(q{5}),qp.p);
-            qb        = spm_unvec(Vh*spm_vec(q{6:7}),{qh.h qh.g});
-            qh.h      = qb{1};
-            qh.g      = qb{2};
+            qp.p      = q_p;
+            qh.h      = q_b{1};
+            qh.g      = q_b{2};
             qp.dp     = Vp*q{8};
             qh.dp     = Vh*q{9};
 
@@ -644,11 +681,12 @@ for iN = 1:nN
     Fi  = sum(L) ...
           - Ep'*pp.ic*Ep/2 + spm_logdet(pp.ic)/2 - spm_logdet(Pp)/2 ...
           - Eh'*ph.ic*Eh/2 + spm_logdet(ph.ic)/2 - spm_logdet(Ph)/2;
-
+      
+    try, disp(full(sum(Fc))), end
 
     % if F is increasing terminate
     %----------------------------------------------------------------------
-    if Fi < Fa && iN > 4
+    if Fi < Fa && iN > 2
         break
     else
         Fa    = Fi;

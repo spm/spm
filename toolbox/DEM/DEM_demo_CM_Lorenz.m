@@ -10,6 +10,8 @@
 % formation) and can be accessed using a generative model that tries to
 % explain observed motion in terms of a few hidden states (i.e. order
 % parameters) that implicitly enslave random fluctuations.
+%
+% THIS DEMO IS UNDER CONSTRUCTION
  
  
 % non-hierarchical non-linear generative model (dynamic & chaotic)
@@ -47,17 +49,17 @@ V.B{3} = [ 0  0  1;
            0  0  1;
            0  0  1];
 V.C    = {};
-pE     = spm_unvec(0*spm_vec(P),P);
+pE     = spm_unvec(spm_vec(P)/2,P);
 pC     = diag(spm_vec(V));
  
 % level 1
 %--------------------------------------------------------------------------
-M(1).f  = inline('spm_fx_poly(x,v,P)/16','x','v','P');
+M(1).f  = inline('spm_fx_poly(x,v,P)/32','x','v','P');
 M(1).g  = inline('x','x','v','P');
 M(1).x  = x;
 M(1).pE = P;
 M(1).V  = exp(8);
-M(1).W  = exp(16);
+M(1).W  = exp(8);
  
 % level 2
 %--------------------------------------------------------------------------
@@ -69,7 +71,7 @@ M(2).V  = exp(16);
  
 % create innovations & add causes
 %--------------------------------------------------------------------------
-N       = 64;
+N       = 128;
 U       = sparse(1,N);
 DEM     = spm_DEM_generate(M,U);
 spm_DEM_qU(DEM.pU)
@@ -78,11 +80,9 @@ spm_DEM_qU(DEM.pU)
 % DEM estimation
 %==========================================================================
 DEM.M(1).E.n  = 4;
-DEM.M(1).E.s  = 1/2;
+DEM.M(1).E.s  = 1/8;
 DEM.M(1).pE   = pE;
 DEM.M(1).pC   = pC*exp(0);
- 
-DEM           = spm_LAP(DEM);
 DEM           = spm_DEM(DEM);
  
 M(1).pE = DEM.qP.P{1};

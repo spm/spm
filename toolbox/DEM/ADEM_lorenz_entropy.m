@@ -6,16 +6,18 @@
 % predict them and act to oppose the random effect. The result is that it 
 % is more robust to random forces and therefore exhibits states with lower 
 % entropy.
+%
+% THIS ROUTINE IS NOT RUN IN DEMO MODE AND WILL TAKE A CONSIDEABLE TIME.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: ADEM_lorenz_entropy.m 3977 2010-07-08 14:14:35Z karl $
  
 % generative process (environment)
 %==========================================================================
 clear
-DEMO     = 0;
+DEMO     = 1;
 G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
