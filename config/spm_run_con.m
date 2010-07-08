@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 3083 2009-04-24 16:43:05Z volkmar $
+% $Id: spm_run_con.m 3975 2010-07-08 11:31:35Z guillaume $
 
 
 wd  = pwd;
@@ -29,15 +29,20 @@ end
 
 % Load SPM.mat file
 %-----------------------------------------------------------------------
-tmp=load(job.spmmat{:});
-SPM=tmp.SPM;
+load(job.spmmat{:},'SPM');
+
+try
+    SPM.xVol.XYZ;
+catch
+    error('This model has not been estimated.');
+end
 
 if ~strcmp(pth,SPM.swd)
     warning(['Path to SPM.mat: %s\n and SPM.swd: %s\n differ, using current ' ...
              'SPM.mat location as new working directory.'], pth, ...
             SPM.swd);
     SPM.swd = pth;
-end;
+end
 
 if job.delete && isfield(SPM,'xCon')
     for k=1:numel(SPM.xCon)

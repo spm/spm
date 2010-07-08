@@ -5,12 +5,12 @@ function save(this,filename,encoding)
 % filename  - name of GIfTI file that will be created
 % encoding  - optional argument to specify encoding format, among
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary,
-%             Collada (.dae)
+%             Collada (.dae), IDTF (.idtf).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 3556 2009-11-11 18:20:34Z guillaume $
+% $Id: save.m 3975 2010-07-08 11:31:35Z guillaume $
 
 error(nargchk(1,3,nargin));
 
@@ -22,6 +22,9 @@ if nargin == 1
 else
     if nargin == 3 && strcmpi(encoding,'collada')
         ext = '.dae';
+    end
+    if nargin == 3 && strcmpi(encoding,'idtf')
+        ext = '.idtf';
     end
     [p,f,e] = fileparts(filename);
     if ~ismember(lower(e),{ext})
@@ -45,6 +48,8 @@ switch ext
         fid = save_gii(fid,this,encoding);
     case '.dae'
         fid = save_dae(fid,this);
+    case '.idtf'
+        fid = save_idtf(fid,this);
     otherwise
         error('Unknown file format.');
 end
@@ -379,3 +384,148 @@ fprintf(fid,'%s</scene>\n',o(1));
 % End of XML
 %--------------------------------------------------------------------------
 fprintf(fid,'</COLLADA>\n');
+
+%==========================================================================
+% function fid = save_idtf(fid,this)
+%==========================================================================
+function fid = save_idtf(fid,this)
+
+o = inline('blanks(x*3)');
+
+s = struct(this);
+
+% Compute normals
+%--------------------------------------------------------------------------
+if ~isfield(s,'normals')
+    try
+        s.normals = spm_mesh_normals(...
+            struct('vertices',s.vertices,'faces',s.faces),true);
+    catch
+        s.normals = [];
+    end
+end
+
+% Split the mesh into connected components
+%--------------------------------------------------------------------------
+try
+    C = spm_mesh_label(s.faces);
+    d = [];
+    try
+        if size(s.cdata,2) == 1 && (any(s.cdata>1) || any(s.cdata<0))
+            mi = min(s.cdata); ma = max(s.cdata);
+            s.cdata = (s.cdata-mi)/ (ma-mi);
+        else
+        end
+    end
+    for i=1:numel(unique(C))
+        d(i).faces    = s.faces(C==i,:);
+        u             = unique(d(i).faces);
+        d(i).vertices = s.vertices(u,:);
+        d(i).normals  = s.normals(u,:);
+        a             = 1:max(d(i).faces(:));
+        a(u)          = 1:size(d(i).vertices,1);
+        %a = sparse(1,double(u),1:1:size(d(i).vertices,1));
+        d(i).faces    = a(d(i).faces);
+        d(i).mat      = s.mat;
+        try
+            d(i).cdata = s.cdata(u,:);
+            if size(d(i).cdata,2) == 1
+                d(i).cdata = repmat(d(i).cdata,1,3);
+            end
+        end
+    end
+    s = d;
+end
+
+% FILE_HEADER
+%--------------------------------------------------------------------------
+fprintf(fid,'FILE_FORMAT "IDTF"\n');
+fprintf(fid,'FORMAT_VERSION 100\n\n');
+
+% NODES
+%--------------------------------------------------------------------------
+for i=1:numel(s)
+    fprintf(fid,'NODE "MODEL" {\n');
+    fprintf(fid,'%sNODE_NAME "%s"\n',o(1),sprintf('Mesh%04d',i));
+    fprintf(fid,'%sPARENT_LIST {\n',o(1));
+    fprintf(fid,'%sPARENT_COUNT %d\n',o(2),1);
+    fprintf(fid,'%sPARENT %d {\n',o(2),0);
+    fprintf(fid,'%sPARENT_NAME "%s"\n',o(3),'<NULL>');
+    fprintf(fid,'%sPARENT_TM {\n',o(3));
+    I = s(i).mat; % eye(4);
+    for j=1:size(I,2)
+        fprintf(fid,'%s',o(4)); fprintf(fid,'%f ',I(:,j)'); fprintf(fid,'\n');
+    end
+    fprintf(fid,'%s}\n',o(3));
+    fprintf(fid,'%s}\n',o(2));
+    fprintf(fid,'%s}\n',o(1));
+    fprintf(fid,'%sRESOURCE_NAME "%s"\n',o(1),sprintf('Mesh%04d',i));
+    %fprintf(fid,'%sMODEL_VISIBILITY "BOTH"\n',o(1));
+    fprintf(fid,'}\n\n');
+end
+
+% NODE_RESOURCES
+%--------------------------------------------------------------------------
+for i=1:numel(s)
+    fprintf(fid,'RESOURCE_LIST "MODEL" {\n');
+    fprintf(fid,'%sRESOURCE_COUNT %d\n',o(1),1);
+    fprintf(fid,'%sRESOURCE %d {\n',o(1),0);
+    fprintf(fid,'%sRESOURCE_NAME "%s"\n',o(2),sprintf('Mesh%04d',i));
+    fprintf(fid,'%sMODEL_TYPE "MESH"\n',o(2));
+    fprintf(fid,'%sMESH {\n',o(2));
+    fprintf(fid,'%sFACE_COUNT %d\n',o(3),size(s(i).faces,1));
+    fprintf(fid,'%sMODEL_POSITION_COUNT %d\n',o(3),size(s(i).vertices,1));
+    fprintf(fid,'%sMODEL_NORMAL_COUNT %d\n',o(3),size(s(i).normals,1));
+    if ~isfield(s(i),'cdata') || isempty(s(i).cdata)
+        c = 0;
+    else
+        c = size(s(i).cdata,1);
+    end
+    fprintf(fid,'%sMODEL_DIFFUSE_COLOR_COUNT %d\n',o(3),c);
+    fprintf(fid,'%sMODEL_SPECULAR_COLOR_COUNT %d\n',o(3),0);
+    fprintf(fid,'%sMODEL_TEXTURE_COORD_COUNT %d\n',o(3),0);
+    fprintf(fid,'%sMODEL_BONE_COUNT %d\n',o(3),0);
+    fprintf(fid,'%sMODEL_SHADING_COUNT %d\n',o(3),1);
+    fprintf(fid,'%sMODEL_SHADING_DESCRIPTION_LIST {\n',o(3));
+    fprintf(fid,'%sSHADING_DESCRIPTION %d {\n',o(4),0);
+    fprintf(fid,'%sTEXTURE_LAYER_COUNT %d\n',o(5),0);
+    fprintf(fid,'%sSHADER_ID %d\n',o(5),0);
+    fprintf(fid,'%s}\n',o(4));
+    fprintf(fid,'%s}\n',o(3));
+    
+    fprintf(fid,'%sMESH_FACE_POSITION_LIST {\n',o(3));
+    fprintf(fid,'%d %d %d\n',s(i).faces'-1);
+    fprintf(fid,'%s}\n',o(3));
+    
+    fprintf(fid,'%sMESH_FACE_NORMAL_LIST {\n',o(3));
+    fprintf(fid,'%d %d %d\n',s(i).faces'-1);
+    fprintf(fid,'%s}\n',o(3));
+    
+    fprintf(fid,'%sMESH_FACE_SHADING_LIST {\n',o(3));
+    fprintf(fid,'%d\n',zeros(size(s(i).faces,1),1));
+    fprintf(fid,'%s}\n',o(3));
+    
+    if c
+        fprintf(fid,'%sMESH_FACE_DIFFUSE_COLOR_LIST {\n',o(3));
+        fprintf(fid,'%d %d %d\n',s(i).faces'-1);
+        fprintf(fid,'%s}\n',o(3));
+    end
+    
+    fprintf(fid,'%sMODEL_POSITION_LIST {\n',o(3));
+    fprintf(fid,'%f %f %f\n',s(i).vertices');
+    fprintf(fid,'%s}\n',o(3));
+    
+    fprintf(fid,'%sMODEL_NORMAL_LIST {\n',o(3));
+    fprintf(fid,'%f %f %f\n',s(i).normals');
+    fprintf(fid,'%s}\n',o(3));
+    
+    if c
+        fprintf(fid,'%sMODEL_DIFFUSE_COLOR_LIST {\n',o(3));
+        fprintf(fid,'%f %f %f\n',s(i).cdata');
+        fprintf(fid,'%s}\n',o(3));
+    end
+        
+    fprintf(fid,'%s}\n',o(2));
+    fprintf(fid,'%s}\n',o(1));
+    fprintf(fid,'}\n');
+end
