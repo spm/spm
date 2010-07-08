@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 3894 2010-05-19 09:07:51Z rik $
+% $Id: spm_eeg_inv_results_display.m 3976 2010-07-08 14:12:31Z karl $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -21,10 +21,8 @@ if con == 0
 end
 
 model = D.inv{D.val};
-
-con   = min(con,length(model.inverse.J));
 try
-    model.contrast;
+    con   = min(con,length(model.contrast.GW));
 catch
     warndlg('please specify a [time-frequency] contrast')
     return
@@ -32,15 +30,21 @@ end
 
 % inversion parameters
 %--------------------------------------------------------------------------
-Is   = model.inverse.Is;                          % Indices of ARD vertices
-pst  = model.inverse.pst;                         % preistimulus tim (ms)
-Nd   = model.inverse.Nd;                          % number of mesh dipoles
-Ndip = min(Ndip,length(Is));
+Is    = model.inverse.Is;                         % Indices of ARD vertices
+pst   = model.inverse.pst;                        % preistimulus tim (ms)
+Nd    = model.inverse.Nd;                         % number of mesh dipoles
+Ndip  = min(Ndip,length(Is));
 
-W    = model.contrast.W;
-JW   = model.contrast.JW{con};
-GW   = model.contrast.GW{con};
+try
+    W = model.contrast.W{con};
+catch
+    W = model.contrast.W;
+end
+JW    = model.contrast.JW{con};
+GW    = model.contrast.GW{con};
 
+% just display the first trial (for trial-specific contrasts)
+%--------------------------------------------------------------------------
 if iscell(GW)
     GW = GW{1};
 end

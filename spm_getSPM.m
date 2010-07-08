@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3928 2010-06-16 12:09:22Z guillaume $
+% $Id: spm_getSPM.m 3976 2010-07-08 14:12:31Z karl $
 
 
 %-GUI setup
@@ -224,13 +224,13 @@ cd(SPM.swd);
 %-Check the model has been estimated
 %--------------------------------------------------------------------------
 try
-    XYZ  = SPM.xVol.XYZ;
+    SPM.xVol.XYZ;
 catch
     
     %-Check the model has been estimated
     %----------------------------------------------------------------------
     str = { 'This model has not been estimated.';...
-        'Would you like to estimate it now?'};
+            'Would you like to estimate it now?'};
     if spm_input(str,1,'bd','yes|no',[1,0],1)
         SPM = spm_spm(SPM);
     else
@@ -264,7 +264,7 @@ try, SPM.VM        = spm_check_filename(SPM.VM);        end
 try, xCon = SPM.xCon; catch, xCon = {}; end
 
 try
-    Ic = xSPM.Ic;
+    Ic        = xSPM.Ic;
 catch
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
                            '    Select contrasts...',' for conjunction',1);
@@ -359,19 +359,18 @@ if nc > 1 && n > 1 && ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
             
             %-Define orthogonalised contrast as new contrast
             %--------------------------------------------------------------
-            OrthWarn = OrthWarn + 1;
+            OrthWarn   = OrthWarn + 1;
             conlst     = sprintf('%d,',Ic(1:i-1));
             oxCon.name = sprintf('%s (orth. w.r.t {%s})', xCon(Ic(i)).name,...
-                conlst(1:end-1));
-            xCon  = [xCon, oxCon];
-            Ic(i) = length(xCon);
+                                  conlst(1:end-1));
+            xCon       = [xCon, oxCon];
+            Ic(i)      = length(xCon);
         end
         
     end % while...
     
     if OrthWarn
-        warning(sprintf(['Contrasts changed!  %d contrasts orthogonalized ',...
-            'to allow conjunction inf.'], OrthWarn))
+        warning('SPM:ConChange','%d contrasts orthogonalized',OrthWarn)
     end
     
     SPM.xCon = xCon;
@@ -543,6 +542,21 @@ if isfield(SPM,'PPM')
     end
 end
 
+%-threshold for non-central t-tests
+%==========================================================================
+if xCon(Ic(1)).STAT == 'T'
+    
+    % disallow user specification at present
+    %----------------------------------------------------------------------
+    xCon(Ic).ncp = spm_input('non-central threshold','+1','r',0,1,[0,1]);
+    
+    % and enforce a small value
+    %----------------------------------------------------------------------
+    xCon(Ic).ncp = exp(-8);
+    
+else
+    xCon(Ic).ncp = 0;
+end
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
@@ -559,7 +573,7 @@ VspmSv   = cat(1,xCon(Ic).Vspm);
 %-Check conjunctions - Must be same STAT w/ same df
 %--------------------------------------------------------------------------
 if (nc > 1) && (any(diff(double(cat(1,xCon(Ic).STAT)))) || ...
-        any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
+                any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
     error('illegal conjunction: can only conjoin SPMs of same STAT & df');
 end
 
@@ -628,7 +642,7 @@ for i = 1:numel(Im)
     Z     = Z(Q);
     if isempty(Q)
         fprintf('\n')                                                   %-#
-        warning('No voxels survive masking');
+        warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
         break
     end
 end
@@ -684,7 +698,7 @@ if STAT ~= 'P'
             %--------------------------------------------------------------
             if topoFDR,
                 fprintf('\n');                                          %-#
-                error('Change defaults.stats.topoFDR to use voxel FDR.');
+                error('Change defaults.stats.topoFDR to use voxel FDR');
             end
             try
                 u = xSPM.u;
@@ -712,24 +726,23 @@ if STAT ~= 'P'
         otherwise
             %--------------------------------------------------------------
             fprintf('\n');                                              %-#
-            error(sprintf('Unknown control method "%s".',thresDesc));
+            error('Unknown control method "%s".',thresDesc);
             
     end % switch thresDesc
     
     %-Compute p-values for topological and voxel-wise FDR (all search voxels)
     %----------------------------------------------------------------------
     if ~topoFDR
-        %-Voxel-wise FDR
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...for voxelFDR')  %-#
         switch STAT
             case 'Z'
-                Ps   = (1-spm_Ncdf(Zum)).^n;
+                Ps = (1-spm_Ncdf(Zum)).^n;
             case 'T'
-                Ps   = (1 - spm_Tcdf(Zum,df(2))).^n;
+                Ps = (1 - spm_Tcdf(Zum,df(2))).^n;
             case 'X'
-                Ps   = (1-spm_Xcdf(Zum,df(2))).^n;
+                Ps = (1-spm_Xcdf(Zum,df(2))).^n;
             case 'F'
-                Ps   = (1 - spm_Fcdf(Zum,df)).^n;
+                Ps = (1 - spm_Fcdf(Zum,df)).^n;
         end
         Ps = sort(Ps);
     end
@@ -775,7 +788,7 @@ Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
-    warning(sprintf('No voxels survive height threshold u=%0.2g',u))
+    warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
 end
 
 
@@ -808,7 +821,7 @@ if ~isempty(XYZ) && nc == 1
     XYZ   = XYZ(:,Q);
     if isempty(Q)
         fprintf('\n');                                                  %-#
-        warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
+        warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
     end
     
 else

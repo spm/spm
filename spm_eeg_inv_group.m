@@ -28,9 +28,9 @@ function spm_eeg_inv_group(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 3743 2010-03-02 18:59:21Z karl $
+% $Id: spm_eeg_inv_group.m 3976 2010-07-08 14:12:31Z karl $
  
-SVNrev = '$Rev: 3743 $';
+SVNrev = '$Rev: 3976 $';
  
 %-Startup
 %--------------------------------------------------------------------------
@@ -62,6 +62,11 @@ for i = 1:Ns
     D{i}                 = spm_eeg_load(deblank(S(i,:)));
     D{i}.val             = 1;
     D{i}.inv{1}.method   = 'Imaging';
+    
+    % clear redundant models
+    %----------------------------------------------------------------------
+    [p fname] = fileparts(D{i}.fname);
+    D{i} = fname(D{i},fname);
     
     % clear redundant models
     %----------------------------------------------------------------------

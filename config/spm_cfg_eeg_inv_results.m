@@ -5,7 +5,7 @@ function results = spm_cfg_eeg_inv_results
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_results.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_cfg_eeg_inv_results.m 3976 2010-07-08 14:12:31Z karl $
 
 D = cfg_files;
 D.tag = 'D';
@@ -25,7 +25,7 @@ woi = cfg_entry;
 woi.tag = 'woi';
 woi.name = 'Time window of interest';
 woi.strtype = 'r';
-woi.num = [1 2];
+woi.num = [Inf 2];
 woi.val = {[-Inf Inf]};
 woi.help = {'Time window to average over (ms)'};
 
@@ -88,7 +88,7 @@ for i = 1:numel(job.D)
         error(sprintf('Imaging source reconstruction is missing for subject %d', i));
     end
     
-    contrast.woi = fix([max(min(job.woi), D.inv{D.val}.inverse.woi(1)) min(max(job.woi), D.inv{D.val}.inverse.woi(2))]);
+    contrast.woi = fix(sort(job.woi,2));
     
     D.inv{D.val}.contrast = contrast;
     

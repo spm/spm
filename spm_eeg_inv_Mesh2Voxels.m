@@ -4,12 +4,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Input:
 % D        - input data struct (optional)
 %
-%     D.inv{val}.contrast.smooth  = smoothing in mm [8]
 %     D.inv{val}.contrast.display = display (spm_image) flag [0]
 %
 % Output:
 % D        - data struct including the new files and parameters and
-%     D.inv{val}.contrast.scalefactor;
 %
 %--------------------------------------------------------------------------
 % Non-linear interpolation of a Mesh contrast into MNI Voxel space
@@ -25,93 +23,73 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3898 2010-05-21 15:44:07Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3976 2010-07-08 14:12:31Z karl $
 
 % checks
 %--------------------------------------------------------------------------
 [D,val]  = spm_eeg_inv_check(varargin{:});
 
-% display flag
+% Switches
 %--------------------------------------------------------------------------
-try
-    Disp = D.inv{val}.contrast.display;
-catch
-    Disp = 0;
-end
+try, Disp   = D.inv{val}.contrast.display;   catch, Disp   = 0;  end
+try, space  = D.inv{val}.contrast.space;     catch, space  = 1;  end
+try, smooth = D.inv{val}.contrast.smoothing; catch, smooth = 16; end
 
-% If user wants RMS rather than power (MS)
-%--------------------------------------------------------------------------
-try
-    logflag = D.inv{val}.contrast.takelog;
-catch
-    logflag = 0;
-end
-
-% MNI [1] or native [0] output image space
-%--------------------------------------------------------------------------
-try
-    space = D.inv{val}.contrast.space;
-catch
-    space = 1; % MNI
-    %space = spm_input('Image space','+1','b',{'Native|MNI'},[0 1],1);
-    %D.inv{val}.contrast.space = space;
-end
 
 % smoothing FWHM (mm)
 %--------------------------------------------------------------------------
 fprintf('writing and smoothing image - please wait\n');                 %-#
-try
-    smoothparam = D.inv{val}.contrast.smooth;
-catch
-    smoothparam = 8;
-    D.inv{val}.contrast.smooth = smoothparam;
-end
 
-% Get volume
+% Get volume (MNI [1] or native [0] output image space)
 %--------------------------------------------------------------------------
 if space
     sMRIfile = fullfile(spm('dir'),'templates','T2.nii');
 else
     sMRIfile = D.inv{val}.mesh.sMRI;
 end
-Vin      = spm_vol(sMRIfile);
+Vin   = spm_vol(sMRIfile);
 
 % Tag (to identify particular contrast settings)
 %--------------------------------------------------------------------------
-tag = ['t' sprintf('%d_', D.inv{val}.contrast.woi) 'f' sprintf('%d_', D.inv{val}.contrast.fboi)];
+woi   = D.inv{val}.contrast.woi;
+foi   = D.inv{val}.contrast.fboi;
+Nw    = size(woi,1);
+for i = 1:Nw
+    tag{i} = ['t' sprintf('%d_', woi(i,:)) 'f' sprintf('%d_', foi)];
+end
 
 % Get mesh
 %--------------------------------------------------------------------------
 if space
-    m    = D.inv{val}.mesh.tess_mni;
+    m = D.inv{val}.mesh.tess_mni;
 else
-    m    = export(gifti(D.inv{val}.mesh.tess_ctx),'spm');
+    m = export(gifti(D.inv{val}.mesh.tess_ctx),'spm');
 end
-vert     = m.vert;
-face     = m.face;
-nd       = D.inv{val}.inverse.Nd;
-nv       = size(vert,1);
-nf       = size(face,1);
+vert  = m.vert;
+face  = m.face;
+nd    = D.inv{val}.inverse.Nd;
+nv    = size(vert,1);
+nf    = size(face,1);
 
 % Compute a densely sampled triangular mask
 %--------------------------------------------------------------------------
-[tx, ty] = meshgrid(0.05:0.1:0.95, 0.05:0.1:0.95);
-tx       = tx(:);
-ty       = ty(:);
-ti       = find(sum([tx ty]') <= 0.9);
-t        = [tx(ti) ty(ti)];
-np       = length(t);
+[tx ty] = meshgrid(0.05:0.1:0.95, 0.05:0.1:0.95);
+tx    = tx(:);
+ty    = ty(:);
+ti    = find(sum([tx ty],2) <= 0.9);
+t     = [tx(ti) ty(ti)];
+np    = length(t);
 
 % Map the template (square) triangle onto each face of the Cortical Mesh
 %--------------------------------------------------------------------------
-P1       = vert(face(:,1),:);
-P2       = vert(face(:,2),:);
-P3       = vert(face(:,3),:);
+P1    = vert(face(:,1),:);
+P2    = vert(face(:,2),:);
+P3    = vert(face(:,3),:);
 
-If       = speye(nf);
-alpha    = t(:,1);
-beta     = t(:,2);
-teta     = ones(np,1) - alpha - beta;
+If    = speye(nf);
+alpha = t(:,1);
+beta  = t(:,2);
+teta  = ones(np,1) - alpha - beta;
 clear t tx ty ti
 
 DenseCortex = kron(If,alpha)*P2 + kron(If,beta)*P3 + kron(If,teta)*P1;
@@ -129,130 +107,97 @@ A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
 GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 
 
-% Interpolate the values in each vertex to compute the values at each
-% sampling point of the triangles (cycle over conditions)
+% normalize and embed in 3-space
 %==========================================================================
 [PTH,NAME,EXT] = fileparts(D.fname);
 
-GW = D.inv{val}.contrast.GW;
 
+% accumulate mean of log-contrasts (over trials)
+%--------------------------------------------------------------------------
+GW    = D.inv{val}.contrast.GW;
 for c = 1:length(GW)
     
-    CurrentCondition = GW{c};
+    % Smooth on the cortical surface
+    %----------------------------------------------------------------------
+    ssq{c} = full(sparse(D.inv{val}.inverse.Is,1,GW{c},nd,1));
+    for i = 1:smooth
+       ssq{c} = GL*ssq{c};
+    end 
     
-    bytrial = iscell(CurrentCondition);
+    % compute (truncated) moment
+    %----------------------------------------------------------------------
+    lss        = log(ssq{c} + eps);
+    i          = lss > (max(lss) - log(32));
+    meanlss(c) = mean(lss(i));
     
-    if ~bytrial
-        CurrentCondition  = {CurrentCondition};
-    end      
+end
+
+scale = exp(mean(meanlss));
+for c = 1:length(GW)
     
-    for k = 1:numel(CurrentCondition)
-        % Scale to mean power (%)
-        %----------------------------------------------------------------------
-        Contrast = CurrentCondition{k};
-       
-        if logflag
-            Contrast = log(Contrast+eps);
-        end
-        
-        try
-            scale = D.inv{val}.contrast.scalefactor(c);
-            if iscell(scale)
-                scale = scale{1}(k);
-            end
-        catch
-            scale    = 1./mean(spm_vec(Contrast));
-        end                       
-        
-        Contrast = spm_unvec(spm_vec(Contrast)*scale, Contrast);
-        
-        if bytrial
-            D.inv{val}.contrast.scalefactor{c}(k) = scale;
-        else
-            D.inv{val}.contrast.scalefactor(k) = scale;
-        end
-        
-        
-        % Smooth on the cortical surface
-        %----------------------------------------------------------------------
-        Contrast = full(sparse(D.inv{val}.inverse.Is,1,Contrast,nd,1));
-        for i = 1:32
-            Contrast = GL*Contrast;
-        end
-        
-        if bytrial
-            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%s_%.0f%.0f.nii',NAME,val,tag,c,k));
-            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%s_%.0f%.0f.nii',NAME,val,tag,c,k));
-        else
-            Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%s%.0f.nii',NAME,val,tag,c));
-            Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%s%.0f.nii',NAME,val,tag,c));
-        end
-        
-        Vout           = struct(...
-            'fname',     Outputfilename,...
-            'dim',       Vin.dim,...
-            'dt',        [spm_type('float32') spm_platform('bigend')],...
-            'mat',       Vin.mat,...
-            'pinfo',     [1 0 0]',...
-            'descrip',   '');
-        
-        InterpOp       = [teta alpha beta];
-        SPvalues       = zeros(nf*np,1);
-        RECimage       = zeros(Vout.dim);
-        
-        % And interpolate those values into voxels
-        %----------------------------------------------------------------------
-        for i = 1:nf
-            TextVal = Contrast(face(i,:));
-            if any(TextVal)
-                ValTemp        = InterpOp*TextVal;
-                SPvalues((i-1)*np+1:i*np) = sum(TextVal)*(ValTemp/sum(ValTemp));
-                Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
-                Val            = SPvalues( (i-1)*np+1 : i*np );
-                [UnVox,I,J]    = unique(Vox,'rows');
-                IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
-                K              = 1:length(J);
-                MatV           = zeros(max(J),length(J));
-                IndK           = sub2ind(size(MatV),J,K');
-                MatV(IndK)     = Val;
-                SV             = sum(MatV')';
-                RECimage(IndV) = RECimage(IndV) + SV;
-            end
-        end
-        
-        % Write (scaled) image
-        %----------------------------------------------------------------------
-        Vout      = spm_write_vol(Vout,RECimage);
-        
-        % Smoothing & Masking
-        %----------------------------------------------------------------------
-        spm_smooth(Vout,Outputsmoothed,smoothparam);
-        
-        RECimage   = spm_read_vols(spm_vol(Outputsmoothed));
-        vc         = Vout.mat\[vert';ones(1,size(vert,1))];
-        vc         = round(vc(1:3,:)');
-        msk        = zeros(Vout.dim);
-        IndV       = sub2ind(Vout.dim,vc(:,1),vc(:,2),vc(:,3));
-        msk(IndV)  = 1;
-        spm_smooth(msk,msk,8);
-        msk        = msk > max(msk(:))/8;
-        
-        Vout.fname = Outputsmoothed;
-        Vout       = rmfield(Vout,'pinfo');
-        Vout       = spm_write_vol(Vout,RECimage .* msk);
-        
-        str = 'Summary-statistic image written:\n %s\n %s (smoothed)\n';
-        fprintf(str,Outputfilename,Outputsmoothed);
-        
-        if bytrial
-            D.inv{val}.contrast.Vout{c}{k}  = Vout;
-            D.inv{val}.contrast.fname{c}{k} = Outputsmoothed;
-        else
-            D.inv{val}.contrast.Vout{c}  = Vout;
-            D.inv{val}.contrast.fname{c} = Outputsmoothed;
+    % Normalise
+    %----------------------------------------------------------------------
+    Contrast   = ssq{c}/scale;
+    
+    
+    % Initialise image
+    %----------------------------------------------------------------------
+    str       = tag{mod(c - 1,Nw) + 1};
+    con       = ceil(c/Nw);
+    fname     = fullfile(D.path,sprintf('%s_%.0f_%s%.0f.nii',NAME,val,str,con));
+    Vout           = struct(...
+        'fname',     fname,...
+        'dim',       Vin.dim,...
+        'dt',        [spm_type('float32') spm_platform('bigend')],...
+        'mat',       Vin.mat,...
+        'pinfo',     [1 0 0]',...
+        'descrip',   '');
+    
+    InterpOp  = [teta alpha beta];
+    SPvalues  = zeros(nf*np,1);
+    RECimage  = zeros(Vout.dim);
+    
+    
+    % And interpolate those values into voxels
+    %----------------------------------------------------------------------
+    for i = 1:nf
+        TextVal = Contrast(face(i,:));
+        if any(TextVal)
+            ValTemp        = InterpOp*TextVal;
+            SPvalues((i-1)*np+1:i*np) = sum(TextVal)*(ValTemp/sum(ValTemp));
+            Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
+            Val            = SPvalues( (i-1)*np+1 : i*np );
+            [UnVox,I,J]    = unique(Vox,'rows');
+            IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
+            K              = 1:length(J);
+            MatV           = zeros(max(J),length(J));
+            IndK           = sub2ind(size(MatV),J,K');
+            MatV(IndK)     = Val;
+            SV             = sum(MatV,2);
+            RECimage(IndV) = RECimage(IndV) + SV;
         end
     end
+    
+    % 3D smoothing and thresholding
+    %----------------------------------------------------------------------
+    spm_smooth(RECimage,RECimage,1);
+    RECimage = RECimage.*(RECimage > exp(-8));
+    
+    % Write (smoothed and scaled) image
+    %----------------------------------------------------------------------
+    Vout  = spm_write_vol(Vout,RECimage);
+    
+  
+    % save and report
+    %----------------------------------------------------------------------
+    str = 'Summary-statistic image written:\n %s\n';
+    fprintf(str,fname);
+    
+    D.inv{val}.contrast.Vout{c}  = Vout;
+    D.inv{val}.contrast.fname{c} = fname;
+    
 end
+
 % display
 %==========================================================================
 if Disp, spm_eeg_inv_image_display(D); end
