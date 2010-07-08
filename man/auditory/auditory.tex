@@ -401,12 +401,33 @@ For the ``Render'' option we first created a rendering for this subject. This wa
 \item Saving the results using the default options (Rendering and Surface).
 \end{itemize}
 
-SPM plots the rendered anatomical image in the graphics window and saves it as \texttt{render\_wc1sM00223\_002.mat}. The surface image is saved as \texttt{surf\_wc1sM00223\_002.mat}).
+SPM plots the rendered anatomical image in the graphics window and saves it as \texttt{render\_\-wc1sM00223\_\-002.mat}. The surface image is saved as \texttt{surf\_wc1sM00223\_002.mat}).
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{auditory/render}
 \caption{\emph{Render.} \label{aud_render} }
+\end{center}
+\end{figure}
+
+It is also possible to project and display the results on a surface mesh, we are going to use here one of the canonical mesh distributed with SPM (in MNI space). Press ``Overlays'' and choose ``Render'', then go in the \texttt{canonical} folder of your SPM installation and select file \texttt{cortex\_20484.gii} (this is a surface mesh stored using the GIfTI format) and you will obtain a figure similar to \ref{aud_render2}.
+
+\begin{figure}
+\begin{center}
+\includemovie[
+	poster,
+	toolbar,
+    label=Render,
+    text=Render (Acrobat Reader required),
+    3Droo=300,
+    3Dcoo=0 -22.5 17.5,
+    3Dc2c=1 0 0,
+    3Daac=30,
+    3Droll=0,
+    3Dlights=Day,
+    3Dbg=0 0 0,
+]{\linewidth}{100mm}{auditory/render.u3d}
+\caption{\emph{3D Rendering using canonical mesh.} \label{aud_render2}}
 \end{center}
 \end{figure}
 

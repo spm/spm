@@ -2,62 +2,59 @@
 
 \section{Theoretical background}
 
-Psychophysiological interactions (PPI) and the related technique of physiophysiological interactions \((\Phi\)PI) are based on extensions to statistical models of factorial designs. 
+Psychophysiological interactions (PPI) and the related technique of physiophysiological interactions \((\Phi\)PI) are based on extensions to statistical models of factorial designs. Table 1 illustrates a classic \(2 \times 2\) factorial design. 
 
-%Table 1 illustrates a classic \(2 \times 2\) factorial design. 
+\begin{table}[h]
+\makeatletter
+\long\def\@makecaption#1#2{%
+\vskip\abovecaptionskip
+\sbox\@tempboxa{#1. #2}%
+\ifdim \wd\@tempboxa >\hsize
+#1. #2\par
+\else
+\global \@minipagefalse
+\hb@xt@\hsize{\box\@tempboxa\hfil}%
+\fi
+\vskip\belowcaptionskip}
+\makeatother
 
-%\begin{table}[h]
-% Code to left justify a short table caption. From http://etd.circa.ufl.edu/LaTeXFAQ.pdf
-%\makeatletter
-%\long\def\@makecaption#1#2{%
-%\vskip\abovecaptionskip
-%\sbox\@tempboxa{#1. #2}%
-%\ifdim \wd\@tempboxa >\hsize
-%#1. #2\par
-%\else
-%\global \@minipagefalse
-%\hb@xt@\hsize{\box\@tempboxa\hfil}%
-%\fi
-%\vskip\belowcaptionskip}
-%\makeatother
+\caption{2 x 2 factorial design in Table format}
+\begin{tabular}{p{10pt}p{11pt}p{53pt}|p{58pt}}
+\parbox{10pt}{\raggedright 
+} & \parbox{11pt}{\raggedright 
 
-%\caption{2 x 2 factorial design in Table format}
-%\begin{tabular}{p{10pt}p{11pt}p{53pt}|p{58pt}}
-%\parbox{10pt}{\raggedright 
-%} & \parbox{11pt}{\raggedright 
+} & \multicolumn{2}{c}{\parbox{111pt}{\centering \textsf{Factor A} }} \\
+\parbox{10pt}{\raggedright 
+} & \parbox{11pt}{\raggedright 
 
-%} & \multicolumn{2}{c}{\parbox{111pt}{\centering \textsf{Factor A} }} \\
-%\parbox{10pt}{\raggedright 
-%} & \parbox{11pt}{\raggedright 
+} & \parbox{53pt}{\centering 
+\textsf{Level 1}
+} & \parbox{58pt}{\centering 
+\textsf{Level 2}
+} \\
+\cline{3-4} 
+\parbox{10pt}{\centering \multirow{2}{*}{
+\rotatebox{90}{\mbox{\textsf{Factor B}}}
+}} & \parbox{11pt}{\centering 
+\rotatebox{90}{\mbox{\textsf{ Level 1 }}}
+} & \parbox{53pt}{\centering 
+\textsf{A$_{1}$/B$_{1}$}
+} & \parbox{58pt}{\centering 
+\textsf{A$_{2}$/B$_{1}$}
+} \\
+\cline{3-4} 
+ & \parbox{11pt}{\centering 
+\rotatebox{90}{\mbox{\textsf{ Level 2 }}}
+} & \parbox{53pt}{\centering 
+\textsf{A$_{1}$/B$_{2}$}
+} & \parbox{58pt}{\centering 
+\textsf{A$_{2}$/B$_{2}$}
+} \\
+\cline{3-4}
+\end{tabular}
+\end{table}
 
-%} & \parbox{53pt}{\centering 
-%\textsf{Level 1}
-%} & \parbox{58pt}{\centering 
-%\textsf{Level 2}
-%} \\
-%\cline{3-4} 
-%\parbox{10pt}{\centering \multirow{2}{*}{
-%\rotatebox{90}{\mbox{\textsf{Factor B}}}
-%}} & \parbox{11pt}{\centering 
-%\rotatebox{90}{\mbox{\textsf{ Level 1 }}}
-%} & \parbox{53pt}{\centering 
-%\textsf{A$_{1}$/B$_{1}$}
-%} & \parbox{58pt}{\centering 
-%\textsf{A$_{2}$/B$_{1}$}
-%} \\
-%\cline{3-4} 
-% & \parbox{11pt}{\centering 
-%\rotatebox{90}{\mbox{\textsf{ Level 2 }}}
-%} & \parbox{53pt}{\centering 
-%\textsf{A$_{1}$/B$_{2}$}
-%} & \parbox{58pt}{\centering 
-%\textsf{A$_{2}$/B$_{2}$}
-%} \\
-%\cline{3-4}
-%\end{tabular}
-%\end{table}
-
-The equation for a classic $2 \times 2$ factorial design is given by \ref{eq:ppi1}.
+The equation for factorial design is given by \ref{eq:ppi1}.
 
 \begin{equation}
 	\mbox{$y=(A_{2}-A_{1})\beta_{1}+(B_{2}-B_{1})\beta_2+(A_{2}-A_{1})(B_{2}-B_{1})\beta_{3}+G\beta_{4} +\epsilon\quad$}
