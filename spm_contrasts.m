@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_contrasts.m 3980 2010-07-08 15:55:37Z karl $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -160,7 +160,7 @@ for i = 1:length(Ic)
     
     %-Write inference SPM/PPM
     %======================================================================
-    if isempty(xCon(ic).Vspm) || xCon(ic).STAT == 'P' || xCon(ic).ncp
+    if isempty(xCon(ic).Vspm) || xCon(ic).STAT == 'P'
         
         % As PPM effect size threshold, gamma, or ncp may have changed
         % always update PPM and SPM{ncT} file
@@ -172,22 +172,11 @@ for i = 1:length(Ic)
             
             case 'T'                                 %-Compute SPM{t} image
                 %----------------------------------------------------------
-                
-                % noncentral t-test
-                %----------------------------------------------------------
-                try
-                    ncp = xCon(ic).ncp;
-                    if isempty(ncp), ncp = 0; end
-                catch
-                    ncp = 0;
-                end
-                
-                % contrast and t-test
-                %----------------------------------------------------------
                 cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-                l     = spm_get_data(VHp,XYZ);
+                ncp   = max(cB)*exp(-8);             % small non-centrality 
+                l     = spm_get_data(VHp,XYZ);       % and hyper paramters
                 VcB   = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
-                Z     = (cB - ncp*max(cB))./sqrt(l*VcB);
+                Z     = (cB - ncp)./sqrt(l*VcB);
                 str   = sprintf('[%.1f]',SPM.xX.erdf);
                 
                 

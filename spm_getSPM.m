@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_getSPM.m 3980 2010-07-08 15:55:37Z karl $
 
 
 %-GUI setup
@@ -542,21 +542,6 @@ if isfield(SPM,'PPM')
     end
 end
 
-%-threshold for non-central t-tests
-%==========================================================================
-if xCon(Ic(1)).STAT == 'T'
-    
-    % disallow user specification at present
-    %----------------------------------------------------------------------
-    xCon(Ic).ncp = spm_input('non-central threshold','+1','r',0,1,[0,1]);
-    
-    % and enforce a small value
-    %----------------------------------------------------------------------
-    xCon(Ic).ncp = exp(-8);
-    
-else
-    xCon(Ic).ncp = 0;
-end
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
