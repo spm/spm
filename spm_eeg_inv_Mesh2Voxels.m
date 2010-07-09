@@ -23,7 +23,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3983 2010-07-09 13:56:01Z vladimir $
 
 % checks
 %--------------------------------------------------------------------------
@@ -114,26 +114,52 @@ GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 
 % accumulate mean of log-contrasts (over trials)
 %--------------------------------------------------------------------------
-GW    = D.inv{val}.contrast.GW;
+GW      = D.inv{val}.contrast.GW;
+
+bytrial = iscell(GW{1});
+
+Ne = [];
+if bytrial
+    for c = 1:numel(GW)
+        Ne(c) = numel(GW{c});
+    end
+else
+    Ne = ones(1, numel(GW));
+end
+
+k  = 1;
+iw = [];
+ie = [];
 for c = 1:length(GW)
+    if bytrial
+        cGW = GW{c};
+    else
+        cGW = GW(c);
+    end
     
-    % Smooth on the cortical surface
-    %----------------------------------------------------------------------
-    ssq{c} = full(sparse(D.inv{val}.inverse.Is,1,GW{c},nd,1));
-    for i = 1:smooth
-       ssq{c} = GL*ssq{c};
-    end 
-    
-    % compute (truncated) moment
-    %----------------------------------------------------------------------
-    lss        = log(ssq{c} + eps);
-    i          = lss > (max(lss) - log(32));
-    meanlss(c) = mean(lss(i));
-    
+    for t = 1:Ne(c)
+        % Smooth on the cortical surface
+        %----------------------------------------------------------------------
+        ssq{k} = full(sparse(D.inv{val}.inverse.Is,1,cGW{t},nd,1));
+        for i = 1:smooth
+            ssq{k} = GL*ssq{k};
+        end
+        
+        % compute (truncated) moment
+        %----------------------------------------------------------------------
+        lss        = log(ssq{k} + eps);
+        i          = lss > (max(lss) - log(32));
+        meanlss(k) = mean(lss(i));
+        
+        iw(k) = c;
+        ie(k) = t;
+        
+        k = k+1;
+    end
 end
 
 scale = exp(mean(meanlss));
-for c = 1:length(GW)
+for c = 1:numel(ssq)
     
     % Normalise
     %----------------------------------------------------------------------
@@ -142,9 +168,13 @@ for c = 1:length(GW)
     
     % Initialise image
     %----------------------------------------------------------------------
-    str       = tag{mod(c - 1,Nw) + 1};
-    con       = ceil(c/Nw);
-    fname     = fullfile(D.path,sprintf('%s_%.0f_%s%.0f.nii',NAME,val,str,con));
+    con       = mod(iw(c) - 1,Nw) + 1;
+    str       = tag{ceil(iw(c)/Nw)};    
+    if bytrial
+        fname     = fullfile(D.path,sprintf('%s_%.0f_%s%.0f_%.0f.nii',NAME,val,str,con, ie(c)));
+    else
+        fname     = fullfile(D.path,sprintf('%s_%.0f_%s%.0f.nii',NAME,val,str,con));
+    end
     Vout           = struct(...
         'fname',     fname,...
         'dim',       Vin.dim,...
@@ -187,7 +217,7 @@ for c = 1:length(GW)
     %----------------------------------------------------------------------
     Vout  = spm_write_vol(Vout,RECimage);
     
-  
+    
     % save and report
     %----------------------------------------------------------------------
     str = 'Summary-statistic image written:\n %s\n';
