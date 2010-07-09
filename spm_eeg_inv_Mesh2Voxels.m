@@ -23,7 +23,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3983 2010-07-09 13:56:01Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3984 2010-07-09 14:07:52Z vladimir $
 
 % checks
 %--------------------------------------------------------------------------
@@ -127,6 +127,8 @@ else
     Ne = ones(1, numel(GW));
 end
 
+Nj = numel(GW)/Nw;
+
 k  = 1;
 iw = [];
 ie = [];
@@ -168,8 +170,8 @@ for c = 1:numel(ssq)
     
     % Initialise image
     %----------------------------------------------------------------------
-    con       = mod(iw(c) - 1,Nw) + 1;
-    str       = tag{ceil(iw(c)/Nw)};    
+    con       = mod(iw(c) - 1, Nj) + 1;
+    str       = tag{ceil(iw(c)/Nj)};    
     if bytrial
         fname     = fullfile(D.path,sprintf('%s_%.0f_%s%.0f_%.0f.nii',NAME,val,str,con, ie(c)));
     else
