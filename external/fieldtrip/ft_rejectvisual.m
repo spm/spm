@@ -124,7 +124,7 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_rejectvisual.m 1369 2010-07-07 12:52:18Z jansch $
 
 fieldtripdefs
 
@@ -156,7 +156,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
 
 % for backward compatibility
 cfg = checkconfig(cfg, 'renamedval',  {'metric',  'absmax',  'maxabs'});
@@ -313,6 +313,8 @@ end
 % remove the selected trials from the data
 data.time  = data.time(trlsel);
 data.trial = data.trial(trlsel);
+if isfield(data, 'trialinfo'), data.trialinfo = data.trialinfo(trlsel,:); end;
+if isfield(data, 'trialdef'),  data.trialdef  = data.trialdef(trlsel,:);  end;
 
 % remove the offset vector if present (only applies to datasets that have been preprocessed a long time ago)
 if isfield(data, 'offset')
@@ -367,7 +369,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectvisual.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id = '$Id: ft_rejectvisual.m 1369 2010-07-07 12:52:18Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

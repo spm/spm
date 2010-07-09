@@ -36,7 +36,7 @@ function [file] = read_ctf_ascii(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_ascii.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ctf_ascii.m 1362 2010-07-06 09:04:24Z roboos $
 
 fid = fopen(filename, 'r');
 if fid==-1
@@ -59,7 +59,9 @@ while ischar(line)
       value(1) = ' ';           % remove the :
       value  = strtrim(value);
       item   = strtrim(item);
-      warning off
+
+      % turn warnings off
+      ws = warning('off');
       
       % the item name should be a real string, otherwise I cannot put it into the structure
       if strcmp(sprintf('%d', str2num(deblank(item))), deblank(item))
@@ -75,7 +77,9 @@ while ischar(line)
         % the value appears to be a number or a list of numbers
         eval(sprintf('file.%s.%s = [ %s ];', line, item, value));
       end
-      warning on
+
+      % revert to previous warning state
+      warning(ws);
     end
     subline = cleanline(fgetl(fid));    % read the first item
   end

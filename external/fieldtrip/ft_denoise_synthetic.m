@@ -11,7 +11,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %                  type to which the data should be changed
 %   cfg.trials   = 'all' or a selection given as a 1xN vector (default = 'all')
 %
-% See also FT_PREPROCESSING, FT_DENOISE_SNS, FT_DENOISE_TSR, DENOISE_PCA
+% See also FT_PREPROCESSING, FT_DENOISE_SNS, FT_DENOISE_TSR, FT_DENOISE_PCA
 %
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
@@ -35,7 +35,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_denoise_synthetic.m 1381 2010-07-08 14:44:20Z jansch $
 
 fieldtripdefs
 
@@ -100,8 +100,8 @@ if ~strcmp(desired, 'none')
     error('unknown balancing for input data');
   end
   fprintf('converting from "none" to "%s"\n', desired);
-  data.grad = ft_apply_montage(data.grad, desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
-  data      = ft_apply_montage(data     , desired_montage, 'keepunused', 'yes', 'inverse', 'yes');
+  data.grad = ft_apply_montage(data.grad, desired_montage, 'keepunused', 'yes');
+  data      = ft_apply_montage(data     , desired_montage, 'keepunused', 'yes');
   data.grad.balance.current = desired;
 end % if
 
@@ -125,7 +125,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_denoise_synthetic.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 1381 2010-07-08 14:44:20Z jansch $';
 
   % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

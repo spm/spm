@@ -46,7 +46,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 1034 2010-05-04 13:58:12Z stekla $
+% $Id: ft_write_data.m 1371 2010-07-07 15:20:50Z stekla $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -163,6 +163,13 @@ switch dataformat
           end
 		end
       end		
+	  if isfield(hdr,'ctf_res4')
+	    if isa(hdr.ctf_res4, 'uint8')
+		  packet.ctf_res4 = hdr.ctf_res4;
+		else
+          warning 'Ignoring non-uint8 field "ctf_res4"';
+		end
+      end		  
       
       % try to put_hdr and initialize if necessary
       try

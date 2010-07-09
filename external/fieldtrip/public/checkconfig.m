@@ -59,7 +59,7 @@ function [cfg] = checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: checkconfig.m 1291 2010-06-29 14:14:20Z roboos $
+% $Id: checkconfig.m 1357 2010-07-06 08:33:38Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -140,9 +140,9 @@ if ~isempty(renamedval) && isfield(cfg, renamedval{1})
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('use cfg.%s=%s instead of cfg.%s=%s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+      warning(sprintf('use cfg.%s=''%s'' instead of cfg.%s=''%s''', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
     elseif pedantic
-      error(sprintf('use cfg.%s=%s instead of cfg.%s=%s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+      error(sprintf('use cfg.%s=''%s'' instead of cfg.%s=''%s''', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
     end
   end
 end

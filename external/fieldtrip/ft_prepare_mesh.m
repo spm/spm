@@ -46,7 +46,7 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 1263 2010-06-23 15:40:37Z timeng $
+% $Id: ft_prepare_mesh.m 1368 2010-07-07 12:12:49Z jansch $
 
 cfg = checkconfig(cfg, 'forbidden', 'numcompartments');
 
@@ -64,7 +64,6 @@ end
 
 % load optional given inputfile like already segmented volume 
 hasdata = (nargin>1);
-
 if ~isempty(cfg.inputfile)
   % the input data should be read from file
   if hasdata
@@ -72,25 +71,24 @@ if ~isempty(cfg.inputfile)
   else
     mri = loadvar(cfg.inputfile, 'data');
   end
+else
+  mri = [];
 end
 
-if hasdata
-  
-  if ~isfield(cfg,'headshape') || isempty(cfg.headshape)
-    basedonseg        = isfield(mri, 'transform') && any(isfield(mri, {'seg', 'csf', 'white', 'gray'}));
-    basedonmri        = isfield(mri, 'transform') && ~basedonseg;
-    basedonvol        = isfield(mri, 'bnd');
-    basedonsphere     = isfield(mri,'r') && isfield(mri,'o');
-    basedonheadshape  = 0;
-  elseif isfield(cfg,'headshape') && ~isempty(cfg.headshape)
-    basedonseg        = 0;
-    basedonmri        = 0;
-    basedonvol        = 0;
-    basedonsphere     = 0;
-    basedonheadshape  = 1;
-  else
-    error('inconsistent configuration, cfg.headshape should not be used in combination with an mri input')
-  end
+if ~isfield(cfg,'headshape') || isempty(cfg.headshape)
+  basedonseg        = isfield(mri, 'transform') && any(isfield(mri, {'seg', 'csf', 'white', 'gray'}));
+  basedonmri        = isfield(mri, 'transform') && ~basedonseg;
+  basedonvol        = isfield(mri, 'bnd');
+  basedonsphere     = isfield(mri,'r') && isfield(mri,'o');
+  basedonheadshape  = 0;
+elseif isfield(cfg,'headshape') && ~isempty(cfg.headshape)
+  basedonseg        = 0;
+  basedonmri        = 0;
+  basedonvol        = 0;
+  basedonsphere     = 0;
+  basedonheadshape  = 1;
+else
+  error('inconsistent configuration, cfg.headshape should not be used in combination with an mri input')
 end
 
 if basedonseg || basedonmri

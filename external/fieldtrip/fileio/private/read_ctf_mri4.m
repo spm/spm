@@ -24,7 +24,7 @@ function [mri, hdr, cpersist] = read_ctf_mri4(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri4.m 1064 2010-05-12 16:19:17Z marlal $
+% $Id: read_ctf_mri4.m 1362 2010-07-06 09:04:24Z roboos $
 
 fid = fopen(filename,'rb', 'ieee-be');
 
@@ -34,7 +34,8 @@ end
 
 [cpersist] = read_cpersist(fid);
 
-warning off
+% turn warnings off
+ws = warning('off');
 
 % general header information
 hdr.identifierString        = get_value(cpersist, '_CTFMRI_VERSION');      % CTF_MRI_FORMAT VER 4.1
@@ -96,7 +97,9 @@ hdr.headOrigin_coronal = hmOrigin(2);
 hdr.headOrigin_axial = hmOrigin(3);
 
 %fread(fid,204,'char'); % unused, padding to 1028 bytes
-warning on
+
+% revert to previous warning state
+warning(ws);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % READ THE IMAGE DATA

@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1330 2010-07-01 15:54:34Z roboos $
+% $Id: ft_read_header.m 1384 2010-07-09 06:59:40Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -420,6 +420,7 @@ switch headerformat
       hdr.label{i} = strtok(hdr.label{i}, '-');
     end
     % read the balance coefficients, these are used to compute the synthetic gradients
+    coeftype = cellstr(char(orig.res4.scrr(:).coefType));
     try
       [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'NONE', 'T');
       orig.BalanceCoefs.none.alphaMEG  = alphaMEG;
@@ -428,39 +429,47 @@ switch headerformat
     catch
       warning('cannot read balancing coefficients for NONE');
     end
-    try
-      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
-      orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
-      orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
-      orig.BalanceCoefs.G1BR.Refindex  = Refindex;
-    catch
-      warning('cannot read balancing coefficients for G1BR');
+    if ~cellfun(@isempty,strfind(coeftype, 'G1BR'))
+      try
+        [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
+        orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
+        orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
+        orig.BalanceCoefs.G1BR.Refindex  = Refindex;
+      catch
+        warning('cannot read balancing coefficients for G1BR');
+      end
     end
-    try
-      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
-      orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
-      orig.BalanceCoefs.G2BR.MEGlist   = MEGlist;
-      orig.BalanceCoefs.G2BR.Refindex  = Refindex;
-    catch
-      warning('cannot read balancing coefficients for G2BR');
+    if ~cellfun(@isempty,strfind(coeftype, 'G2BR'))
+      try
+        [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
+        orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
+        orig.BalanceCoefs.G2BR.MEGlist   = MEGlist;
+        orig.BalanceCoefs.G2BR.Refindex  = Refindex;
+      catch
+        warning('cannot read balancing coefficients for G2BR');
+      end
     end
-    try
-      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
-      orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
-      orig.BalanceCoefs.G3BR.MEGlist   = MEGlist;
-      orig.BalanceCoefs.G3BR.Refindex  = Refindex;
-    catch
-      warning('cannot read balancing coefficients for G3BR');
+    if ~cellfun(@isempty,strfind(coeftype, 'G3BR'))
+      try
+        [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
+        orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
+        orig.BalanceCoefs.G3BR.MEGlist   = MEGlist;
+        orig.BalanceCoefs.G3BR.Refindex  = Refindex;
+      catch
+        warning('cannot read balancing coefficients for G3BR');
+      end
     end
-    try
-      [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3AR', 'T');
-      orig.BalanceCoefs.G3AR.alphaMEG  = alphaMEG;
-      orig.BalanceCoefs.G3AR.MEGlist   = MEGlist;
-      orig.BalanceCoefs.G3AR.Refindex  = Refindex;
-    catch
-      % May not want a warning here if these are not commonly used.
-      % Already get a (fprintf) warning from getCTFBalanceCoefs.m
-      % warning('cannot read balancing coefficients for G3AR');
+    if ~cellfun(@isempty,strfind(coeftype, 'G1AR'))
+      try
+        [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3AR', 'T');
+        orig.BalanceCoefs.G3AR.alphaMEG  = alphaMEG;
+        orig.BalanceCoefs.G3AR.MEGlist   = MEGlist;
+        orig.BalanceCoefs.G3AR.Refindex  = Refindex;
+      catch
+        % May not want a warning here if these are not commonly used.
+        % Already get a (fprintf) warning from getCTFBalanceCoefs.m
+        % warning('cannot read balancing coefficients for G3AR');
+      end
     end
     % add a gradiometer structure for forward and inverse modelling
     try
@@ -710,29 +719,57 @@ switch headerformat
     hdr.nSamples    = orig.nsamples;
     hdr.nSamplesPre = 0; % since continuous
     hdr.nTrials     = 1; % since continuous
+	hdr.orig        = []; % add chunks if present
+	
+	% add the contents of attached .res4 file to the .orig field similar to offline data
+	if isfield(orig, 'ctf_res4')
+		tmp_name = tempname;
+		F = fopen(tmp_name, 'wb');
+		fwrite(F, orig.ctf_res4, 'uint8');
+		fclose(F);
+		R4F = read_ctf_res4(tmp_name);
+		delete(tmp_name);
+		% copy over the labels
+		hdr.label = R4F.label;
+		% copy over the 'original' header
+		hdr.orig = R4F;
+		% add the raw chunk as well
+		hdr.orig.ctf_res4 = orig.ctf_res4;
+	end
+	
+	% add the contents of attached NIFTI-1 chunk after decoding to Matlab structure
     if isfield(orig, 'nifti_1')
       hdr.nifti_1 = decode_nifti1(orig.nifti_1);
+	  % add the raw chunk as well
+	  hdr.orig.nifti_1 = orig.nifti_1;
     end
+	
+	% add the contents of attached SiemensAP chunk after decoding to Matlab structure
     if isfield(orig, 'siemensap') && exist('sap2matlab')==3 % only run this if MEX file is present
       hdr.siemensap = sap2matlab(orig.siemensap);
+	  % add the raw chunk as well
+	  hdr.orig.siemensap = orig.siemensap;
     end
-    if isfield(orig, 'channel_names')
-      hdr.label = orig.channel_names;
-    else
-      if isempty(fakechannelwarning) || ~fakechannelwarning
-        % give this warning only once
-        warning('creating fake channel names');
-        fakechannelwarning = true;
-      end
-      hdr.label = cell(hdr.nChans,1);
-      if hdr.nChans < 2000 % don't do this for fMRI etc.
-        for i=1:hdr.nChans
-          hdr.label{i} = sprintf('%d', i);
+	
+	if ~isfield(hdr, 'label')
+      % prevent overwriting the labels that we might have gotten from a RES4 chunk
+      if isfield(orig, 'channel_names')
+        hdr.label = orig.channel_names;
+      else
+        if isempty(fakechannelwarning) || ~fakechannelwarning
+          % give this warning only once
+          warning('creating fake channel names');
+          fakechannelwarning = true;
+        end
+        hdr.label = cell(hdr.nChans,1);
+        if hdr.nChans < 2000 % don't do this for fMRI etc.
+          for i=1:hdr.nChans
+            hdr.label{i} = sprintf('%d', i);
+          end
         end
       end
     end
-    % remember the original header details
-    hdr.orig = orig;
+	hdr.orig.bufsize = orig.bufsize;
 
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header

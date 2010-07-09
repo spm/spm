@@ -30,7 +30,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hastoolbox.m 1342 2010-07-02 15:34:07Z roboos $
+% $Id: hastoolbox.m 1345 2010-07-04 10:47:16Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -89,8 +89,9 @@ url = {
   'BEMCP'      'contact Christophe Phillips'
   'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg'
   'PRTOOLS'    'see http://www.prtools.org'
-  'LC-LIBS'    'contact Stefania Della Penna'
+  'ITAB'       'contact Stefania Della Penna'
   'BSMART'     'see http://www.brain-smart.org'
+  'PEER'       'see http://fieldtrip.fcdonders.nl/development/peer'
   };
 
 if nargin<2
@@ -188,10 +189,12 @@ switch toolbox
     status  = (exist('plot_topo', 'file') && exist('plot_mesh', 'file') && exist('plot_matrix', 'file'));
   case 'PRTOOLS'
     status  = (exist('prversion', 'file') && exist('dataset', 'file') && exist('svc', 'file'));
-  case 'LC-LIBS'
+  case 'ITAB'
     status  = (exist('lcReadHeader', 'file') && exist('lcReadData', 'file'));
   case 'BSMART' 
     status  = exist('bsmart'); 
+  case 'PEER' 
+    status  = exist('peerslave', 'file') && exist('peermaster', 'file');
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

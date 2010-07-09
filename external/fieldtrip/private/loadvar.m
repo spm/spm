@@ -4,9 +4,13 @@ function value = loadvar(filename, varname)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: loadvar.m 1083 2010-05-18 09:27:10Z roboos $
+% $Id: loadvar.m 1358 2010-07-06 08:34:26Z roboos $
 
-fprintf('reading ''%s'' from file ''%s''\n', varname, filename);
+if nargin<2
+  fprintf('reading variable from file ''%s''\n', filename);
+else
+  fprintf('reading ''%s'' from file ''%s''\n', varname, filename);
+end
 
 var = whos('-file', filename);
 

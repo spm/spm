@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1329 2010-07-01 15:53:27Z roboos $
+% $Id: ft_databrowser.m 1380 2010-07-08 12:16:21Z jansch $
 
 fieldtripdefs
 
@@ -90,7 +90,7 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes');
+  data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
   if ~isfield(cfg, 'continuous') && length(data.trial) == 1
     cfg.continuous = 'yes';
   end
@@ -143,7 +143,11 @@ if hasdata
   Nchans  = length(chansel);
   
   % this is how the input data is segmented
-  trlorg = findcfg(data.cfg, 'trl');
+  if isfield(data, 'trialdef'),
+    trlorg = [data.trialdef data.offset(:)];
+  else
+    trlorg = [];
+  end
   Ntrials = size(trlorg, 1);
   
   if strcmp(cfg.viewmode, 'component')
@@ -425,7 +429,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1329 2010-07-01 15:53:27Z roboos $';
+cfg.version.id = '$Id: ft_databrowser.m 1380 2010-07-08 12:16:21Z jansch $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')

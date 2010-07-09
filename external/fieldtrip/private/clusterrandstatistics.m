@@ -191,10 +191,10 @@ function [clusrand] = clusterrandstatistics(cfg,data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterrandstatistics.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: clusterrandstatistics.m 1362 2010-07-06 09:04:24Z roboos $
 
 % Turn divideByZero warnings off.
-warning off;
+ws = warning('off', 'MATLAB:divideByZero');
 
 fprintf('Running the statistics engine.\n');
 
@@ -1233,6 +1233,5 @@ end;
 clusrand.cfg  = cfg;            % remember the configuration details
 
 % Turn warnings on.
-warning on;
-
+warning(ws);
 
