@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1384 2010-07-09 06:59:40Z jansch $
+% $Id: ft_read_header.m 1396 2010-07-12 13:18:31Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -429,7 +429,7 @@ switch headerformat
     catch
       warning('cannot read balancing coefficients for NONE');
     end
-    if ~cellfun(@isempty,strfind(coeftype, 'G1BR'))
+    if any(~cellfun(@isempty,strfind(coeftype, 'G1BR')))
       try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
         orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
@@ -439,7 +439,7 @@ switch headerformat
         warning('cannot read balancing coefficients for G1BR');
       end
     end
-    if ~cellfun(@isempty,strfind(coeftype, 'G2BR'))
+    if any(~cellfun(@isempty,strfind(coeftype, 'G2BR')))
       try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
         orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
@@ -449,7 +449,7 @@ switch headerformat
         warning('cannot read balancing coefficients for G2BR');
       end
     end
-    if ~cellfun(@isempty,strfind(coeftype, 'G3BR'))
+    if any(~cellfun(@isempty,strfind(coeftype, 'G3BR')))
       try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
         orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
@@ -459,7 +459,7 @@ switch headerformat
         warning('cannot read balancing coefficients for G3BR');
       end
     end
-    if ~cellfun(@isempty,strfind(coeftype, 'G1AR'))
+    if any(~cellfun(@isempty,strfind(coeftype, 'G1AR')))
       try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3AR', 'T');
         orig.BalanceCoefs.G3AR.alphaMEG  = alphaMEG;
@@ -935,7 +935,7 @@ switch headerformat
     if iscontinuous
       raw = fiff_setup_read_raw(filename);
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
-      hdr.nSamplesPre = raw.first_samp;                     % this should be kept without a negative sign,
+      hdr.nSamplesPre = 0;
       % otherwise conflicts will occur in read_data
       hdr.nTrials     = 1;
       orig.raw        = raw; % keep all the details

@@ -89,7 +89,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_timelockanalysis.m 1386 2010-07-09 11:29:38Z jansch $
 
 fieldtripdefs
 
@@ -117,7 +117,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
+data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -131,10 +131,6 @@ data = data2raw(data);
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
   data = selectdata(data, 'rpt', cfg.trials);  
-  if isfield(data, 'cfg') % try to locate the trl in the nested configuration
-    cfg.trlold = findcfg(data.cfg, 'trlold');
-    cfg.trl    = findcfg(data.cfg, 'trl');
-  end
 end
 
 ntrial = length(data.trial);
@@ -490,6 +486,11 @@ if isfield(data, 'elec')
   % copy the electrode array along
   timelock.elec = data.elec;
 end
+if isfield(data, 'trialinfo') && strcmp(cfg.keeptrials, 'yes')
+  % copy the trialinfo into the output
+  % but not the trialdef
+  timelock.trialinfo = data.trialinfo;
+end
 
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
@@ -507,7 +508,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockanalysis.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 1386 2010-07-09 11:29:38Z jansch $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

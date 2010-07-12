@@ -26,7 +26,7 @@ function [val, remaining] = keyval(key, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: keyval.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: keyval.m 1394 2010-07-10 21:02:48Z roboos $
 
 if length(varargin)==1 && iscell(varargin{1})
   varargin = varargin{1};
@@ -40,7 +40,13 @@ end
 keys = varargin(1:2:end);
 vals = varargin(2:2:end);
 
-if ~all(cellfun(@ischar, keys))
+% the following is faster than cellfun(@isstr, keys)
+valid = false(size(keys));
+for i=1:numel(keys)
+  valid = ischar(keys{i});
+end
+
+if ~all(valid)
   error('optional input arguments should come in key-value pairs, the optional input argument %d is invalid (should be a string)', i);
 end
 
