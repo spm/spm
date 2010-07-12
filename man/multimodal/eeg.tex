@@ -252,12 +252,10 @@ Press the ``Window'' button in the reconstruction window, enter ``150 200'' as t
 
 Then press ``Image'', ``12'' for the smoothing kernel, and SPM will write 3D NIfTI images corresponding to the above contrast for each condition:
 \begin{verbatim}
-    w_wmaceMdspm8_faces_run1_1_1.nii
-    w_wmaceMdspm8_faces_run1_1_2.nii
-    sw_wmaceMdspm8_faces_run1_1_1.nii
-    sw_wmaceMdspm8_faces_run1_1_2.nii
+    wmaceMdspm8_faces_run1_1_t150_200_f_1.nii
+    wmaceMdspm8_faces_run1_1_t150_200_f_2.nii
 \end{verbatim}
-Note that the first two images are unsmoothed (but normalised); the latter two are the result of smoothing the former two by a 12mm isotropic Gaussian kernel. The last number in the file name refers to the condition number; the penultimate number refers to the reconstruction number (i.e. the number in red in the reconstruction window, i.e, \texttt{D.val}, here 1). The reconstruction number will increase if you create a new inversion by pressing ``new''.
+The last number in the file name refers to the condition number; the number following the dataset name refers to the reconstruction number (i.e. the number in red in the reconstruction window, i.e, \texttt{D.val}, here 1). The reconstruction number will increase if you create a new inversion by pressing ``new''.
 
 The smoothed results for Condition 1 (i.e, the differential evoked response for faces vs scrambled faces) will also be displayed in the Graphics window, see Figure~\ref{multimodal:fig:eegrecon} (after moving the cursor to the right posterior hotspot), together with the normalised structural. Note that the solution image is in MNI (normalised) space, because the use of a canonical mesh provides us with a mapping between the cortex mesh in native space and the corresponding MNI space.
 

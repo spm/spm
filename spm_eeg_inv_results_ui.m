@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results_ui.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_eeg_inv_results_ui.m 3987 2010-07-12 17:01:04Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ end
 
 % get time window
 %--------------------------------------------------------------------------
-woi   = spm_input('Time window(s) (ms)','+1','r', woi);
+woi   = spm_input('Time window(s) (ms)','+1','r', woi, [Inf, 2]);
 D.inv{val}.contrast.woi = sort([ceil(woi(:,1)) floor(woi(:,2))],2);
 
 % get frequency window
