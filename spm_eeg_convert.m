@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3973 2010-07-07 22:53:24Z vladimir $
+% $Id: spm_eeg_convert.m 3986 2010-07-12 16:04:56Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -191,11 +191,6 @@ if S.continuous
         event = rmfield(event, {'offset', 'sample'});
         event = select_events(event, ...
             [S.timewindow(1)-S.eventpadding S.timewindow(2)+S.eventpadding]);
-        if hdr.nSamplesPre>0
-            for i = 1:numel(event)
-                event(i).time = event(i).time - (hdr.nSamplesPre+1)./hdr.Fs;
-            end
-        end
     end
 
     D.trials.label = S.conditionlabel{1};
@@ -218,7 +213,7 @@ if S.continuous
 
     readbytrials = 0;
 
-    D.timeOnset = (-hdr.nSamplesPre+trl(1,1)-1)./hdr.Fs;
+    D.timeOnset = (trl(1,1)-1)./hdr.Fs;
     D.Nsamples = nsampl;
 else % Read by trials
     if ~S.usetrials
