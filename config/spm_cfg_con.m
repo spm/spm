@@ -3,9 +3,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_con.m 3993 2010-07-13 11:59:32Z volkmar $
 
-rev = '$Rev: 3691 $';
+rev = '$Rev: 3993 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -43,19 +43,23 @@ sessrep.name    = 'Replicate over sessions';
 sessrep.val = {'none'};
 sessrep.help    = {
                    'If there are multiple sessions with identical conditions, one might want to specify contrasts which are identical over sessions. This can be done automatically based on the contrast spec for one session.'
-                   'Contrasts can be either replicated (thus testing average effects over sessions) or created per session. In both cases, zero padding up to the length of each session and the block effects is done automatically.'
+                   'Contrasts can be either replicated (thus testing average effects over sessions) or created per session. In both cases, zero padding up to the length of each session and the block effects is done automatically. In addition, weights of replicated contrasts can be scaled by the number of sessions. This allows to use the same contrast manager batch for fMRI analyses with a variable number of sessions. The scaled contrasts can then be compared in a 2nd level model without a need for further adjustment of effect sizes.'
 }';
 sessrep.labels = {
                   'Don''t replicate'
                   'Replicate'
+                  'Replicate&Scale'
                   'Create per session'
-                  'Both'
+                  'Both: Replicate + Create per session'
+                  'Both: Replicate&Scale + Create per session'
 }';
 sessrep.values = {
                   'none'
                   'repl'
+                  'replsc'
                   'sess'
                   'both'
+                  'bothsc'
 }';
 % ---------------------------------------------------------------------
 % tcon T-contrast
