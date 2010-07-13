@@ -23,7 +23,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 3984 2010-07-09 14:07:52Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 3996 2010-07-13 22:20:40Z vladimir $
 
 % checks
 %--------------------------------------------------------------------------
@@ -33,7 +33,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 %--------------------------------------------------------------------------
 try, Disp   = D.inv{val}.contrast.display;   catch, Disp   = 0;  end
 try, space  = D.inv{val}.contrast.space;     catch, space  = 1;  end
-try, smooth = D.inv{val}.contrast.smoothing; catch, smooth = 16; end
+try, smooth = D.inv{val}.contrast.smoothing; catch, smooth = 8; end
 
 
 % smoothing FWHM (mm)
