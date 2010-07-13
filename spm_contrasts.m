@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 3980 2010-07-08 15:55:37Z karl $
+% $Id: spm_contrasts.m 3995 2010-07-13 17:19:49Z karl $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -162,8 +162,7 @@ for i = 1:length(Ic)
     %======================================================================
     if isempty(xCon(ic).Vspm) || xCon(ic).STAT == 'P'
         
-        % As PPM effect size threshold, gamma, or ncp may have changed
-        % always update PPM and SPM{ncT} file
+        % Always update PPM as size threshold, gamma, may have changed
         %------------------------------------------------------------------
         fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,ic),...
             '...computing');                                            %-#
@@ -173,10 +172,10 @@ for i = 1:length(Ic)
             case 'T'                                 %-Compute SPM{t} image
                 %----------------------------------------------------------
                 cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-                ncp   = max(cB)*exp(-8);             % small non-centrality 
-                l     = spm_get_data(VHp,XYZ);       % and hyper paramters
-                VcB   = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
-                Z     = (cB - ncp)./sqrt(l*VcB);
+                l     = spm_get_data(VHp,XYZ);       % get hyperparamters
+                Vc    = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
+                SE    = sqrt(l*Vc);                  % and standard error
+                Z     = cB./(SE + exp(-8)*max(SE));
                 str   = sprintf('[%.1f]',SPM.xX.erdf);
                 
                 

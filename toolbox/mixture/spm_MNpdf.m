@@ -11,14 +11,13 @@ function [y] = spm_MNpdf (m, C, x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_MNpdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_MNpdf.m 3995 2010-07-13 17:19:49Z karl $
 
-ic = inv(C);
+ic     = inv(C);
 [n, d] = size(x);
 
-m = reshape(m, 1, d);    % Ensure that mu is a row vector
-x = x - ones(n, 1)*m;
+x    = x - ones(n, 1)*m(:)';
 fact = sum(((x*ic).*x), 2);
 
-y = exp(-0.5*fact);
-y = y./sqrt((2*pi)^d*det(C));
+y    = exp(-0.5*fact);
+y    = y./sqrt((2*pi)^d*det(C));
