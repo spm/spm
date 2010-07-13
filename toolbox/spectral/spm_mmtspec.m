@@ -19,7 +19,7 @@ function [p, f, t] = spm_mmtspec (x,Fs, freqs,timeres, timestep, NW)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Partha Mitra, Ken Harris and Will Penny
-% $Id: spm_mmtspec.m 3876 2010-05-07 18:51:03Z vladimir $
+% $Id: spm_mmtspec.m 3994 2010-07-13 15:53:30Z guillaume $
 
 nChannels = size(x, 2);
 nSamples = size(x,1);
@@ -59,9 +59,9 @@ winstep = WinLength - nOverlap;
 
 % check for column vector input
 if nSamples == 1 
-	x = x';
-	nSamples = size(x,1);
-	nChannels = 1;
+    x = x';
+    nSamples = size(x,1);
+    nChannels = 1;
 end;
 
 if nSamples < WinLength
@@ -76,14 +76,14 @@ t = winstep*(0:(nFFTChunks-1))'/Fs;
 
 % set up f and t arrays
 if ~any(any(imag(x)))    % x purely real
-	if rem(nFFT,2),    % nfft odd
-		select = [1:(nFFT+1)/2];
-	else
-		select = [1:nFFT/2+1];
-	end
-	nFreqBins = length(select);
+    if rem(nFFT,2),    % nfft odd
+        select = [1:(nFFT+1)/2];
+    else
+        select = [1:nFFT/2+1];
+    end
+    nFreqBins = length(select);
 else
-	select = 1:nFFT;
+    select = 1:nFFT;
 end
 f = (select - 1)'*Fs/nFFT;
 
@@ -104,27 +104,27 @@ Tapers=Tapers(:,1:nTapers);
 % Vectorized alogrithm for computing tapered periodogram with FFT 
 TaperingArray = repmat(Tapers, [1 1 nChannels]);
 for j=1:nFFTChunks
-	Segment = x((j-1)*winstep+[1:WinLength], :);
+    Segment = x((j-1)*winstep+[1:WinLength], :);
     
     if WinLength<nFFT,
         % Zero pad sample to attain desired freq resolution
         Segment=[Segment;zeros(nFFT-WinLength, nChannels)];
     end
     
-	SegmentsArray = permute(repmat(Segment, [1 1 nTapers]), [1 3 2]);
-	TaperedSegments = TaperingArray .* SegmentsArray;
-						
-	fftOut = fft(TaperedSegments, nFFT);
-	Periodogram(:,:,:,j) = fftOut(select,:,:); %fft(TaperedSegments,nFFT);
-end	
-	
+    SegmentsArray = permute(repmat(Segment, [1 1 nTapers]), [1 3 2]);
+    TaperedSegments = TaperingArray .* SegmentsArray;
+                        
+    fftOut = fft(TaperedSegments, nFFT);
+    Periodogram(:,:,:,j) = fftOut(select,:,:); %fft(TaperedSegments,nFFT);
+end 
+    
 % Now make cross-products of them to fill cross-spectrum matrix
 for Ch1 = 1:nChannels
-		Temp1 = reshape(Periodogram(:,:,Ch1,:), [nFreqBins,nTapers,nFFTChunks]);
-		Temp2 = Temp1;
-		Temp2 = conj(Temp2);
-		Temp3 = Temp1 .* Temp2;
-		eJ=sum(Temp3, 2);
+        Temp1 = reshape(Periodogram(:,:,Ch1,:), [nFreqBins,nTapers,nFFTChunks]);
+        Temp2 = Temp1;
+        Temp2 = conj(Temp2);
+        Temp3 = Temp1 .* Temp2;
+        eJ=sum(Temp3, 2);
         p(: ,:, Ch1) = eJ/nTapers;
 end
 
