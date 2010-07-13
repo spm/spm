@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 3934 2010-06-17 14:58:25Z guillaume $
+% $Id: spm_dicom_headers.m 3992 2010-07-13 11:57:17Z volkmar $
 
 if nargin<2, essentials = false; end
 
@@ -102,7 +102,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                 ret.StartOfCSAData = ftell(fp);
                 ret.SizeOfCSAData = tag.length;
                 fseek(fp,tag.length,'cof');
-            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1110','Private_0029_1210','Private_0029_1220'},
+            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1110','Private_0029_1120','Private_0029_1210','Private_0029_1220'},
                 dat  = decode_csa(fp,tag.length);
                 ret.(tag.name) = dat;
             case {'TransferSyntaxUID'},
