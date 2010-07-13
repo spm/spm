@@ -10,7 +10,7 @@ function [C, N] = spm_mesh_clusters(M,T)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_clusters.m 3989 2010-07-12 18:39:16Z guillaume $
+% $Id: spm_mesh_clusters.m 3991 2010-07-13 11:01:17Z guillaume $
 
 
 %-Input parameters
@@ -29,26 +29,14 @@ B(i)    = 1:length(i);
 F       = B(F);
 F(any(isnan(F),2),:) = [];
 
-%-Compute its adjacency matrix
+%-Label connected components
 %--------------------------------------------------------------------------
-A       = spm_mesh_adjacency(F);
-A       = A + speye(size(A));
-
-%-Extract connected components using Dulmage-Mendelsohn decomposition
-%--------------------------------------------------------------------------
-[p,q,r] = dmperm(A);
-
-CC      = T(i);
-for j=1:length(r)-1
-    CC(p(r(j):r(j+1)-1)) = j;
-end
-
+[CC,N]  = spm_mesh_label(F, 'vertices');
 C       = NaN(numel(T),1);
 C(i)    = CC;
 
 %-Sort connected component labels according to their size
 %--------------------------------------------------------------------------
-N       = diff(r);
-[N,ni]  = sort(N(:),1,'descend');
+[N,ni]  = sort(N(:), 1, 'descend');
 [ni,ni] = sort(ni);
 C(i)    = ni(C(i));
