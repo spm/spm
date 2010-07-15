@@ -1,6 +1,6 @@
-function [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
+function [] = spm_mix_plot2d (mix,area,nContLines,LineType,min_p,max_p)
 % Plot component density contours for 2D mixture model
-% FORMAT [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
+% FORMAT [] = spm_mix_plot2d (mix,area,nContLines,LineType,min_p,max_p)
 %
 % mix           Mixture model data structure
 % area          [xmin,xmax,ymin,ymax]
@@ -11,7 +11,7 @@ function [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix_plot.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mix_plot2d.m 3997 2010-07-15 12:38:24Z ged $
 
 if nargin < 2 | isempty(area), area=[0 10 0 10]; end
 if nargin < 3 | isempty(nContLines), nContLines=10; end

@@ -20,7 +20,7 @@ for i=1:m_model,
    plot(vbmix.state(i).m(1),vbmix.state(i).m(2),'rx');
 end
 hold on
-spm_mix_plot(vbmix,[-2 12 -2 12],1,'r',0.4,0.5);
+spm_mix_plot2d(vbmix,[-2 12 -2 12],1,'r',0.4,0.5);
 set(gca,'FontSize',18);
 
 
