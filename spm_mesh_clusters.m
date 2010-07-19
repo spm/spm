@@ -1,16 +1,16 @@
 function [C, N] = spm_mesh_clusters(M,T)
-% Label connected components of a surface mesh texture
+% Label connected components of surface mesh data
 % FORMAT [C, N] = spm_mesh_clusters(M,T)
 % M        - a [mx3] faces array or a patch structure
-% T        - a [nx1] texture vector (using NaN)
+% T        - a [nx1] data vector (using NaNs or logicals), n = #vertices
 %
-% C        - a [nx1] vector of cluster index
+% C        - a [nx1] vector of cluster indices
 % N        - a [px1] size of connected components {in vertices}
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_clusters.m 3991 2010-07-13 11:01:17Z guillaume $
+% $Id: spm_mesh_clusters.m 4003 2010-07-19 18:22:38Z guillaume $
 
 
 %-Input parameters
@@ -21,10 +21,14 @@ else
     F   = M.faces;
 end
 
-%-Compute a reduced mesh corresponding to the texture
+%-Compute a reduced mesh corresponding to the data
 %--------------------------------------------------------------------------
 B       = NaN(size(T));
-i       = find(~isnan(T));
+if islogical(T)
+    i   = find(T);
+else
+    i   = find(~isnan(T));
+end
 B(i)    = 1:length(i);
 F       = B(F);
 F(any(isnan(F),2),:) = [];
