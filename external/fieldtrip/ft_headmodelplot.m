@@ -89,7 +89,7 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 1303 2010-06-29 15:42:37Z timeng $
+% $Id: ft_headmodelplot.m 1427 2010-07-19 11:44:01Z vlalit $
 
 fieldtripdefs
 
@@ -218,7 +218,7 @@ if iseeg
   end % plotgrid
   
   if strcmp(cfg.plotsensors, 'yes')
-    plot_sens(sens, 'style', 'g*');
+    ft_plot_sens(sens, 'style', 'g*');
   end % plotsensors
   
   if strcmp(cfg.plotheadsurface, 'yes')  && ~isempty(vol)
@@ -328,7 +328,7 @@ elseif ismeg
   end % plotgrid
   
   if strcmp(cfg.plotsensors, 'yes')
-    plot_sens(sens, 'style', 'g*');
+    ft_plot_sens(sens, 'style', 'g*');
   end % plotsensors
   
   if strcmp(cfg.plotcoil, 'yes')

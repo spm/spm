@@ -51,7 +51,7 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_prepare_concentricspheres.m 1428 2010-07-19 11:57:28Z vlalit $
 
 fieldtripdefs
 
@@ -123,13 +123,13 @@ for i = 1:numel(headshape)
     bndtmp = [];
     bndtmp.pnt = headshape(end-i+1).pnt;
     bndtmp.tri = headshape(end-i+1).tri;
-    plot_mesh(bndtmp,'facecolor','none')
+    ft_plot_mesh(bndtmp,'facecolor','none')
 
     % plot the sphere surface
     bndtmp = [];
     bndtmp.pnt = sphere_pnt*vol.r(i) + repmat(single_o, size(sphere_pnt, 1), 1);
     bndtmp.tri = sphere_tri;
-    plot_mesh(bndtmp,'edgecolor',colors{mod(i, numel(colors)) + 1},'facecolor','none');
+    ft_plot_mesh(bndtmp,'edgecolor',colors{mod(i, numel(colors)) + 1},'facecolor','none');
   end
 end
 

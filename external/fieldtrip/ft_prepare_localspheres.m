@@ -57,7 +57,7 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 1301 2010-06-29 14:48:42Z vlalit $
+% $Id: ft_prepare_localspheres.m 1427 2010-07-19 11:44:01Z vlalit $
 
 fieldtripdefs
 
@@ -118,8 +118,8 @@ end
 % plot all channels and headshape points
 if strcmp(cfg.feedback, 'yes')
   cla
-  plot_sens(grad);
-  plot_mesh(headshape, 'vertexcolor', 'g', 'facecolor', 'none', 'edgecolor', 'none');
+  ft_plot_sens(grad);
+  ft_plot_mesh(headshape, 'vertexcolor', 'g', 'facecolor', 'none', 'edgecolor', 'none');
   drawnow
 end
 
@@ -179,7 +179,7 @@ for chan=1:Nchan
   dist = sqrt(sum((headshape.pnt-repmat(thispnt,Nshape,1)).^2, 2));
   shapesel = find(dist<cfg.radius);
   if strcmp(cfg.feedback, 'yes')
-    plot_mesh(headshape.pnt(shapesel,:), 'vertexcolor', 'g');
+    ft_plot_mesh(headshape.pnt(shapesel,:), 'vertexcolor', 'g');
     drawnow
   end
   

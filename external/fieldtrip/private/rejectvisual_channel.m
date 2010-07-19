@@ -20,12 +20,12 @@ function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rejectvisual_channel.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: rejectvisual_channel.m 1427 2010-07-19 11:44:01Z vlalit $
 
 % determine the initial selection of trials and channels
 nchan = length(data.label);
 ntrl  = length(data.trial);
-cfg.channel = channelselection(cfg.channel, data.label);
+cfg.channel = ft_channelselection(cfg.channel, data.label);
 trlsel  = logical(ones(1,ntrl));
 chansel = logical(zeros(1,nchan));
 chansel(match_str(data.label, cfg.channel)) = 1;

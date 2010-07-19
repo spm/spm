@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1380 2010-07-08 12:16:21Z jansch $
+% $Id: ft_databrowser.m 1427 2010-07-19 11:44:01Z vlalit $
 
 fieldtripdefs
 
@@ -316,9 +316,9 @@ end
 
 h = figure;
 set(h, 'KeyPressFcn',           @keyboard_cb);
-set(h, 'WindowButtonDownFcn',   {@select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonDownFcn'});
-set(h, 'WindowButtonUpFcn',     {@select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonUpFcn'});
-set(h, 'WindowButtonMotionFcn', {@select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonMotionFcn'});
+set(h, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonDownFcn'});
+set(h, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonUpFcn'});
+set(h, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonMotionFcn'});
 
 % opt represents the global data/settings, it should contain
 % - the original data, epoched or continuous
@@ -429,7 +429,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1380 2010-07-08 12:16:21Z jansch $';
+cfg.version.id = '$Id: ft_databrowser.m 1427 2010-07-19 11:44:01Z vlalit $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')
