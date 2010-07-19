@@ -36,7 +36,7 @@ function [selected] = select_point3d(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select_point3d.m 950 2010-04-21 18:12:58Z roboos $
+% $Id: ft_select_point3d.m 1413 2010-07-15 14:40:26Z crimic $
 
 % get optional input arguments
 nearest  = keyval('nearest', varargin); if isempty(nearest), nearest = true; end

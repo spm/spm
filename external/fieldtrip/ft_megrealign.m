@@ -100,7 +100,7 @@ function [interp] = ft_megrealign(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_megrealign.m 1401 2010-07-12 18:52:40Z jansch $
 
 fieldtripdefs
 
@@ -130,7 +130,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'yes');
+data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});
@@ -147,10 +147,6 @@ cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
   data = selectdata(data, 'rpt', cfg.trials);
-  if isfield(data, 'cfg') % try to locate the trl in the nested configuration
-    cfg.trlold = findcfg(data.cfg, 'trlold');
-    cfg.trl    = findcfg(data.cfg, 'trl');
-  end
 end
 
 Ntrials = length(data.trial);
@@ -487,13 +483,23 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_megrealign.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id   = '$Id: ft_megrealign.m 1401 2010-07-12 18:52:40Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 interp.cfg = cfg;
+
+% copy the trial specific information into the output
+if isfield(data, 'trialinfo')
+  interp.trialinfo = data.trialinfo;
+end
+
+% copy the trialdef field as well
+if isfield(data, 'trialdef')
+  interp.trialdef = data.trialdef;
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

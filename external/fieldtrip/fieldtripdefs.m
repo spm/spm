@@ -24,7 +24,7 @@ function fieldtripdefs
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtripdefs.m 1342 2010-07-02 15:34:07Z roboos $
+% $Id: fieldtripdefs.m 1419 2010-07-16 07:04:14Z roboos $
 
 % set the global defaults, the checkconfig function will copy these into the local configurations
 global ft_default
@@ -104,6 +104,12 @@ end
 try
   % this contains intermediate-level plotting functions, e.g. multiplots and 3-d objects
   hastoolbox('plotting', 1, 1);
+  hastoolbox('plotting/compat', 1, 1);
+end
+
+try 
+  % this contains the functions to compute connecitivy metrics
+  hastoolbox('connectivity', 1,1);
 end
 
 try

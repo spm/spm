@@ -25,7 +25,7 @@ function [grad,elec] = mne2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: mne2grad.m 1412 2010-07-15 10:46:19Z vlalit $
 
 grad = [];
 
@@ -101,11 +101,11 @@ for n=1:orig.nchan
     t=orig.chs(n).coil_trans;
     grad.pnt(kCoil,:)=100*(t(1:3,4)-0.008*t(1:3,1)); % multiply with 100 to get cm
     grad.ori(kCoil,:)=t(1:3,3);
-    grad.tra(k,kCoil)=1;
+    grad.tra(k,kCoil)= -1;
     kCoil=kCoil+1;
     grad.pnt(kCoil,:)=100*(t(1:3,4)+0.008*t(1:3,1));
     grad.ori(kCoil,:)=t(1:3,3);
-    grad.tra(k,kCoil)=-1;
+    grad.tra(k,kCoil)=1;
     kCoil=kCoil+1;
     grad.label{k}=deblank(orig.ch_names{n});
     k=k+1;

@@ -21,7 +21,7 @@ function uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: uilayout.m 950 2010-04-21 18:12:58Z roboos $
+% $Id: ft_uilayout.m 1415 2010-07-15 15:26:27Z crimic $
 
 % these are used to make a selection of uicontrol elements
 tag    = keyval('tag', varargin{:});

@@ -79,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 1300 2010-06-29 14:38:51Z roboos $
+% $Id: ft_read_event.m 1424 2010-07-19 02:21:44Z josdie $
 
 persistent sock           % for fcdc_tcp
 
@@ -163,14 +163,7 @@ switch eventformat
     if isempty(hdr)
       hdr = ft_read_header(filename);
     end
-    % add the trials to the event structure
-    for i=1:hdr.nTrials
-      event(end+1).type     = 'trial';
-      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
-      event(end  ).value    = [];
-      event(end  ).offset   = -hdr.nSamplesPre;
-      event(end  ).duration = hdr.nSamples;
-    end
+
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && strcmp(hdr.orig.config_data.site_name, 'Glasgow'),
@@ -451,15 +444,6 @@ switch eventformat
       event   = appendevent(event, trigger);
     end
 
-    % make an event for each trial as defined in the header
-    for i=1:hdr.nTrials
-      event(end+1).type     = 'trial';
-      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
-      event(end  ).offset   = -hdr.nSamplesPre;
-      event(end  ).duration =  hdr.nSamples;
-      event(end  ).value    =  [];
-    end
-
     % read the classification file and make an event for each classified trial
     [condNumbers,condLabels] = read_ctf_cls(classfile);
     if ~isempty(condNumbers)
@@ -506,9 +490,15 @@ switch eventformat
     event = read_shm_event(filename, varargin{:});
 
   case 'eeglab_set'
+    if isempty(hdr)
+       hdr = ft_read_header(filename);
+    end
     event = read_eeglabevent(filename, 'header', hdr);
 
   case 'spmeeg_mat'
+    if isempty(hdr)
+       hdr = ft_read_header(filename);
+    end
     event = read_spmeeg_event(filename, 'header', hdr);
 
   case 'eep_avr'
@@ -621,7 +611,7 @@ switch eventformat
             event(eventCount).sample   = min(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))) +(segment-1)*hdr.nSamples;
             event(eventCount).offset   = -hdr.nSamplesPre;
             event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
-            if event(eventCount).duration == 0
+            if event(eventCount).duration ~= hdr.nSamples 
               event(eventCount).type     = 'trigger';
             else
               event(eventCount).type     = 'trial';
@@ -632,18 +622,20 @@ switch eventformat
       end
     end
 
-    for segment=1:hdr.nTrials  % cell information
-      eventCount=eventCount+1;
-      event(eventCount).type     = 'trial';
-      event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-      event(eventCount).offset   = -hdr.nSamplesPre;
-      event(eventCount).duration =  hdr.nSamples;
-      if unsegmented,
-        event(eventCount).value    = [];
-      else
-        event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
-      end
-    end
+    if sum(strcmp('trial',{event.type})) ~= hdr.nTrials
+        for segment=1:hdr.nTrials  % cell information
+            eventCount=eventCount+1;
+            event(eventCount).type     = 'trial';
+            event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+            event(eventCount).offset   = -hdr.nSamplesPre;
+            event(eventCount).duration =  hdr.nSamples;
+            if unsegmented,
+                event(eventCount).value    = [];
+            else
+                event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+            end
+        end
+    end;
 
   case 'eyelink_asc'
     if isempty(hdr)
@@ -910,17 +902,6 @@ switch eventformat
         % read the trigger channel and do flank detection
         trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 1);
         event   = appendevent(event, trigger);
-      end
-
-      if hdr.nTrials>1
-        % make an event for each trial as defined in the header
-        for i=1:hdr.nTrials
-          event(end+1).type     = 'trial';
-          event(end  ).sample   = (i-1)*hdr.nSamples + 1;
-          event(end  ).offset   = -hdr.nSamplesPre;
-          event(end  ).duration =  hdr.nSamples;
-          event(end  ).value    =  [];
-        end
       end
 
     elseif isaverage
@@ -1243,6 +1224,18 @@ switch eventformat
 
   otherwise
     error('unsupported event format (%s)', eventformat);
+end
+
+if ~isempty(hdr) && hdr.nTrials>1 && (isempty(event) || ~any(strcmp({event.type}, 'trial')))
+  % the data suggests multiple trials and trial events have not yet been defined
+  % make an event for each trial according to the file header
+  for i=1:hdr.nTrials
+    event(end+1).type     = 'trial';
+    event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+    event(end  ).offset   = -hdr.nSamplesPre;
+    event(end  ).duration =  hdr.nSamples;
+    event(end  ).value    =  [];
+  end
 end
 
 if ~isempty(event)

@@ -124,7 +124,7 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 1387 2010-07-09 11:49:03Z jansch $
+% $Id: ft_rejectvisual.m 1399 2010-07-12 16:11:43Z jansch $
 
 fieldtripdefs
 
@@ -156,7 +156,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', hasoffset', 'yes');
+data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
 
 % for backward compatibility
 cfg = checkconfig(cfg, 'renamedval',  {'metric',  'absmax',  'maxabs'});
@@ -284,12 +284,10 @@ if ~isempty(trl)
   % updating the trl and creating a trlold makes it compatible with FT_REJECTARTIFACT
   cfg.artifact = trl(~trlsel,1:2);
   cfg.trl      = trl( trlsel,:);
-  cfg.trlold   = trlold;
 else
   % since sample numbers are unknown, it is not possible to remember them here
   cfg.artifact = [];
   cfg.trl      = [];
-  cfg.trlold   = [];
 end
 
 % show the user which trials are removed
@@ -363,7 +361,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectvisual.m 1387 2010-07-09 11:49:03Z jansch $';
+cfg.version.id = '$Id: ft_rejectvisual.m 1399 2010-07-12 16:11:43Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

@@ -30,7 +30,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hastoolbox.m 1345 2010-07-04 10:47:16Z roboos $
+% $Id: hastoolbox.m 1411 2010-07-14 11:00:12Z jansch $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -195,6 +195,8 @@ switch toolbox
     status  = exist('bsmart'); 
   case 'PEER' 
     status  = exist('peerslave', 'file') && exist('peermaster', 'file');
+  case 'CONNECTIVITY'
+    status  = exist('ft_connectivity_corr', 'file') && exist('ft_connectivity_granger', 'file');
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

@@ -27,7 +27,7 @@ function grad = fif2grad(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fif2grad.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: fif2grad.m 1412 2010-07-15 10:46:19Z vlalit $
 
 % this try-catch construct ensures that missing gradiometer information is
 % handeled in a "graceful" way
@@ -54,11 +54,11 @@ try
       elseif (TY(k) == 1), %planar gradiometer
          grad.pnt(kCoil,:)=100*(t{k}(1:3,4)-0.008*t{k}(1:3,1)); % multiply with 100 to get cm
          grad.ori(kCoil,:)=t{k}(1:3,3);
-         grad.tra(k,kCoil)=1;
+         grad.tra(k,kCoil)= -1;
          kCoil=kCoil+1;
          grad.pnt(kCoil,:)=100*(t{k}(1:3,4)+0.008*t{k}(1:3,1));
          grad.ori(kCoil,:)=t{k}(1:3,3);
-         grad.tra(k,kCoil)=-1;
+         grad.tra(k,kCoil)= 1;
          kCoil=kCoil+1;
          grad.label{k}=deblank(s(k,:));
       else

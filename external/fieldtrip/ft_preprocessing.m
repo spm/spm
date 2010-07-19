@@ -89,6 +89,19 @@ function [dataout] = ft_preprocessing(cfg, data)
 %
 % See also FT_DEFINETRIAL, FT_REDEFINETRIAL, FT_APPENDDATA, FT_APPENDSPIKE
 
+% Guidelines for use in an analysis pipeline: after FT_PREPROCESSING you
+% will have raw data represented as a single continuous segment or as
+% multiple data segments that often correspond to trials in an experiment.
+% This usually serves as input for one of the following functions:
+%   FT_TIMELOCKANALYSIS  to compute event-related fields or potentials
+%   FT_FREQANALYSIS      to compute the frequency or time-frequency representation
+%   FT_PREPROCESSING     if you want to apply additional temporal filters, baseline correct, rereference or apply an EEG montage
+%   FT_APPENDDATA        if you have preprocessed seperate conditions or datasets and want to combine them
+%   FT_REDEFINETRIAL     if you want to cut the data segments into smaller pieces or want to change the time axes
+%   FT_DATABROWSER       to inspect the data and check for artefacts
+%   FT_REJECTVISUAL      to inspect the data and remove trials that contain artefacts
+%   FT_COMPONENTANALYSIS if you want to use ICA to remove artifacts
+
 % Undocumented local options:
 % cfg.paddir = direction of padding, 'left'/'right'/'both' (default = 'both')
 % cfg.artfctdef
@@ -154,9 +167,20 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 1313 2010-06-30 14:04:00Z jansch $
+% $Id: ft_preprocessing.m 1423 2010-07-18 12:34:47Z roboos $
 
 fieldtripdefs
+
+if nargin==0
+  help(mfilename);
+  return
+elseif nargin==1 && isequal(cfg, 'help')
+  help(mfilename);
+  return
+elseif nargin==1 && isequal(cfg, 'guidelines')
+  guidelines(mfilename);
+  return
+end
 
 cfg = checkconfig(cfg, 'trackconfig', 'on');
 
@@ -523,7 +547,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_preprocessing.m 1313 2010-06-30 14:04:00Z jansch $';
+cfg.version.id   = '$Id: ft_preprocessing.m 1423 2010-07-18 12:34:47Z roboos $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

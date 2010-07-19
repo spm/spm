@@ -18,4 +18,4 @@ function select_contour
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select_contour.m 995 2010-04-28 15:15:34Z guifla $
+% $Id: ft_select_contour.m 1417 2010-07-15 15:33:01Z crimic $

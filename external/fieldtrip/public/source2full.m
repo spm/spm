@@ -29,7 +29,7 @@ function [source] = source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: source2full.m 1040 2010-05-06 08:14:49Z jansch $
+% $Id: source2full.m 1402 2010-07-12 19:41:58Z roboos $
 
 fieldtripdefs
 
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2full.m 1040 2010-05-06 08:14:49Z jansch $';
+cfg.version.id = '$Id: source2full.m 1402 2010-07-12 19:41:58Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

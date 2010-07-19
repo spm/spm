@@ -46,7 +46,7 @@ function plot_slice(data,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: plot_slice.m 950 2010-04-21 18:12:58Z roboos $
+% $Id: ft_plot_slice.m 1413 2010-07-15 14:40:26Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 
