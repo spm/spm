@@ -10,7 +10,7 @@ function D = spm_eeg_ft_artefact_visual(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 3384 2009-09-10 18:36:56Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 4001 2010-07-19 12:23:23Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 
@@ -43,7 +43,7 @@ trlind = find(~reject(D));
 
 data.trial = data.trial(trlind);
 data.time  = data.time(trlind);
-data.cfg.trl(:, 4) = 1:length(trlind);
+data.trialinfo = [1:length(trlind)]';
 
 cfg=[];
 
@@ -73,7 +73,7 @@ data = ft_rejectvisual(cfg, data);
 % Figure out based on the output of FT function what trials and channels to
 % reject
 trlsel = ones(1, length(trlind));
-trlsel(data.cfg.trl(:, 4)) = 0;
+trlsel(data.trialinfo (:, 1)) = 0;
 
 D = reject(D, trlind, trlsel);
 
