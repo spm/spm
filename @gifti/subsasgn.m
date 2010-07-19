@@ -4,16 +4,16 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 3556 2009-11-11 18:20:34Z guillaume $
+% $Id: subsasgn.m 3999 2010-07-19 10:54:18Z guillaume $
 
 switch subs(1).type
     case '.'
-        if ~ismember(subs(1).subs, {'vertices' 'faces' 'normals' 'cdata','mat'})
+        if ~ismember(subs(1).subs, {'vertices' 'faces' 'normals' 'cdata','mat','private'})
             error('Reference to non-existent field ''%s''.',subs(1).subs);
         else
             % TODO % handle cases when length(subs) > 1
             [i,n] = isintent(this,subs(1).subs);
-            if isempty(i)
+            if isempty(i) && ~strcmp(subs(1).subs,'private')
                 n = length(this.data) + 1;
                 % TODO % Initialise data field appropriately
                 this.data{n}.metadata = struct([]);
@@ -54,6 +54,8 @@ switch subs(1).type
                         this.data{n}.space(1).MatrixData = A;
                     end
                 end
+            elseif strcmp(subs(1).subs,'private')
+                this = builtin('subsasgn',this,subs(2:end),A);
             else
                 if strcmp(subs(1).subs,'faces')
                     if length(subs) > 1

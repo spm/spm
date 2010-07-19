@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 3975 2010-07-08 11:31:35Z guillaume $
+% $Id: save.m 3999 2010-07-19 10:54:18Z guillaume $
 
 error(nargchk(1,3,nargin));
 
@@ -110,12 +110,12 @@ for i=1:length(this.data)
         case {'ASCII', 'Base64Binary','GZipBase64Binary' }
         case 'ExternalFileBinary'
             extfilename = this.data{i}.attributes.ExternalFileName;
-            [p,f] = fileparts(filename);
             if isempty(extfilename)
+                [p,f] = fileparts(fopen(fid));
                 extfilename = [f '.dat'];
             end
             [p,f,e] = fileparts(extfilename);
-            this.data{i}.attributes.ExternalFileName   = fullfile(fileparts(filename),[f e]);
+            this.data{i}.attributes.ExternalFileName   = fullfile(fileparts(fopen(fid)),[f e]);
             this.data{i}.attributes.ExternalFileOffset = num2str(def.offset);
         otherwise
             error('[GIFTI] Unknown data encoding: %s.',this.data{i}.attributes.Encoding);
@@ -128,7 +128,7 @@ fprintf(fid,'<?xml version="1.0" encoding="UTF-8"?>\n');
 fprintf(fid,'<!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">\n');
 fprintf(fid,'<GIFTI Version="1.0"  NumberOfDataArrays="%d">\n',numel(this.data));
 
-o = inline('blanks(x*3)');
+o = @(x) blanks(x*3);
 
 % MetaData
 %--------------------------------------------------------------------------

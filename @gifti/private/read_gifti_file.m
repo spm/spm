@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: read_gifti_file.m 3999 2010-07-19 10:54:18Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -23,8 +23,8 @@ if ~strcmp(get(t,root(t),'name'),'GIFTI')
     error('[GIFTI] %s is not a GIFTI 1.0 file.', filename);
 end
 attr = cell2mat(attributes(t,'get',root(t)));
-attr = cell2struct({attr.val},{attr.key},2);
-if ~isempty(setxor(fieldnames(attr),{'Version','NumberOfDataArrays'}))
+attr = cell2struct({attr.val},strrep({attr.key},':','_'),2);
+if ~all(ismember({'Version','NumberOfDataArrays'},fieldnames(attr)))
     error('[GIFTI] Missing mandatory attributes for GIFTI root element.');
 end
 if str2double(attr.Version) ~= 1

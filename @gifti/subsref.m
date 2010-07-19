@@ -4,7 +4,7 @@ function varargout = subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsref.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: subsref.m 3999 2010-07-19 10:54:18Z guillaume $
 
 if length(this) > 1
     warning('Not implemented.');
@@ -26,7 +26,16 @@ switch subs(1).type
             if strcmp(subs(1).subs,'mat')
                 varargout{1} = this.data{j}.space.MatrixData;
             else
-                varargout{1} = this.data{j}.data;
+                if length(j) == 1
+                    varargout{1} = this.data{j}.data;
+                else
+                    a = [this.data{j}];
+                    try
+                        varargout{1} = [a.data];
+                    catch
+                        error('Data arrays are of different sizes.');
+                    end
+                end
             end
         end
         if strcmp(subs(1).subs,'faces')

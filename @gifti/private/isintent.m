@@ -9,7 +9,7 @@ function [a, b] = isintent(this,intent)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: isintent.m 3556 2009-11-11 18:20:34Z guillaume $
+% $Id: isintent.m 3999 2010-07-19 10:54:18Z guillaume $
 
 a = [];
 b = [];
@@ -51,11 +51,11 @@ for i=1:length(this(1).data)
             fprintf('Intent %s is ignored.\n',this.data{i}.attributes.Intent);
     end
 end
-[d,i] = unique(a);
+[d,i] = unique(a,'first');
 if length(d) < length(a)
-    warning('Several fields match intent type. Using first.');
+    %warning('Several fields match intent type. Using first.');
     a = a(i);
-    b = b(i);
+    %b = b(i);
 end
 
 function c = cdata
