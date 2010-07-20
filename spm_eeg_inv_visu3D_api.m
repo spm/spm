@@ -10,12 +10,12 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_eeg_inv_visu3D_api.m 4004 2010-07-20 15:45:39Z vladimir $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
 if nargin == 0 || nargin == 1  % LAUNCH GUI
-
+    
     
     % open new api
     %----------------------------------------------------------------------
@@ -29,11 +29,11 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
     % load D if possible and try to open
     %----------------------------------------------------------------------
     try
-         handles.D = spm_eeg_inv_check(varargin{1});
-         set(handles.DataFile,'String',handles.D.fname)
-         spm_eeg_inv_visu3D_api_OpeningFcn(fig, [], handles)
+        handles.D = spm_eeg_inv_check(varargin{1});
+        set(handles.DataFile,'String',handles.D.fname)
+        spm_eeg_inv_visu3D_api_OpeningFcn(fig, [], handles)
     end
-
+    
     % return figure handle if necessary
     %----------------------------------------------------------------------
     if nargout > 0
@@ -41,7 +41,7 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
     end
     
 elseif ischar(varargin{1})
-
+    
     try
         if (nargout)
             [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
@@ -129,18 +129,18 @@ try
     handles.pst       = D.inv{val}.inverse.pst(Ts);
     handles.srcs_data = J;
     handles.Nmax      = max(abs(J(:)));
-
+    
     % sensor data
     %----------------------------------------------------------------------
     A                 = pinv(full(spm_cat(spm_diag(U))));
     handles.sens_data = A*Y*T(Ts,:)';
     handles.pred_data = A*L*J(Is,:);
-
+    
 catch
     warndlg({'Please invert your model';'inverse solution not valid'});
     return
 end
-    
+
 % case 'windowed response' or contrast'
 %--------------------------------------------------------------------------
 try
@@ -288,7 +288,7 @@ if isfield(handles,'fig1')
         % case 1: response (J)
         %------------------------------------------------------------------
         case 1
-            TS = fix(get(handles.slider_time,'Value'));            
+            TS = fix(get(handles.slider_time,'Value'));
             if A
                 srcs_disp = abs(handles.srcs_data(:,TS));
             else
@@ -306,28 +306,28 @@ if isfield(handles,'fig1')
                 handles.Vmin = min(srcs_disp);
                 handles.Vmax = max(srcs_disp);
             end
-
             
-        % case 2: Windowed response (JW)
-        %------------------------------------------------------------------
+            
+            % case 2: Windowed response (JW)
+            %------------------------------------------------------------------
         case 2
-                handles.Vmin = min(handles.srcs_data_w);
-                handles.Vmax = max(handles.srcs_data_w);
-                srcs_disp    = handles.srcs_data_w;
-
-        % case 3: Evoked power  (JWWJ)
-        %------------------------------------------------------------------
+            handles.Vmin = min(handles.srcs_data_w);
+            handles.Vmax = max(handles.srcs_data_w);
+            srcs_disp    = handles.srcs_data_w;
+            
+            % case 3: Evoked power  (JWWJ)
+            %------------------------------------------------------------------
         case 3
-                handles.Vmin = min(handles.srcs_data_ev);
-                handles.Vmax = max(handles.srcs_data_ev);
-                srcs_disp    = handles.srcs_data_ev;
-
-        % case 4: Induced power  (JWWJ)
-        %------------------------------------------------------------------
+            handles.Vmin = min(handles.srcs_data_ev);
+            handles.Vmax = max(handles.srcs_data_ev);
+            srcs_disp    = handles.srcs_data_ev;
+            
+            % case 4: Induced power  (JWWJ)
+            %------------------------------------------------------------------
         case 4
-                handles.Vmin = min(handles.srcs_data_ind);
-                handles.Vmax = max(handles.srcs_data_ind);
-                srcs_disp    = handles.srcs_data_ind;
+            handles.Vmin = min(handles.srcs_data_ind);
+            handles.Vmax = max(handles.srcs_data_ind);
+            srcs_disp    = handles.srcs_data_ind;
     end
     set(handles.fig1,'FaceVertexCData',full(srcs_disp));
     set(handles.sources_axes,'CLim',[handles.Vmin handles.Vmax]);
@@ -352,34 +352,34 @@ ic        = 1:length(handles.sens_coord);
 % topography
 %--------------------------------------------------------------------------
 if TypOfDisp == 1
-
+    
     % responses at one pst
     %----------------------------------------------------------------------
     if ActToDisp == 1
-
+        
         TS = fix(get(handles.slider_time,'Value'));
         sens_disp = handles.sens_data(ic,TS);
         pred_disp = handles.pred_data(ic,TS);
         
-    % contrast
-    %----------------------------------------------------------------------
+        % contrast
+        %----------------------------------------------------------------------
     elseif ActToDisp == 2
         
         sens_disp = handles.sens_data_w;
         pred_disp = handles.pred_data_w;
-
-    % power
-    %----------------------------------------------------------------------
+        
+        % power
+        %----------------------------------------------------------------------
     elseif ActToDisp == 3
         sens_disp = handles.sens_data_ev;
         pred_disp = handles.pred_data_ev;
     end
-
+    
     axes(handles.sensors_axes);
     disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(sens_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
     imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
     axis image xy off
-
+    
     % add sensor locations
     %----------------------------------------------------------------------
     try, delete(handles.sensor_loc); end
@@ -387,16 +387,16 @@ if TypOfDisp == 1
     handles.sensor_loc = plot(handles.sensors_axes,...
         handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
     hold(handles.sensors_axes, 'off');
-
+    
     axes(handles.pred_axes);
     disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(pred_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
     imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
     axis image xy off;
-
+    
     checkbox_sensloc_Callback(hObject, [], handles);
     
-% time series
-%--------------------------------------------------------------------------
+    % time series
+    %--------------------------------------------------------------------------
 elseif TypOfDisp == 2
     axes(handles.sensors_axes)
     daspect('auto')
@@ -612,7 +612,7 @@ try
     filename = fullfile(handles.D.path,'SensorMovie');
     movie2avi(M,filename,'compression','Indeo3','FPS',24)
 end
-       
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TYPE OF SENSOR LEVEL DISPLAY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -675,10 +675,10 @@ if get(handles.checkbox_absv,'Value') || get(handles.Activity,'Value') == 3
     i       = [ones(Low,1); [1:Hig]'*N/Hig];
     NewMap  = NewMap(fix(i),:);
     
-% signed values
-%--------------------------------------------------------------------------
+    % signed values
+    %--------------------------------------------------------------------------
 else
-
+    
     UpTh    =     get(handles.slider_srcs_up,  'Value');
     DoTh    = 1 - get(handles.slider_srcs_down,'Value');
     N       = length(NewMap)/2;
@@ -686,7 +686,7 @@ else
     Hig     = fix(N - N*UpTh);
     i       = [[1:Low]'*N/Low; ones(N + N - Hig - Low,1)*N; [1:Hig]'*N/Hig + N];
     NewMap  = NewMap(fix(i),:);
-
+    
 end
 colormap(NewMap);
 drawnow
@@ -722,25 +722,20 @@ end
 set(handles.con,'String',sprintf('condition %d',handles.D.con),'Value',0);
 spm_eeg_inv_visu3D_api_OpeningFcn(hObject, eventdata, handles)
 
-        
+
 % --- Executes on button press in VDE.
 %--------------------------------------------------------------------------
 function Velec_Callback(hObject, eventdata, handles)
 axes(handles.sources_axes);
 try
     vde = getCursorInfo(handles.location);
+    spm_eeg_invert_display(handles.D,vde.Position)
+    datacursormode(handles.fig, 'off');
 catch
     vde = [];
+    handles.location = datacursormode(handles.fig, 'on');
+    set(handles.location,'Enable','on','DisplayStyle','datatip','SnapToDataVertex','on', 'UpdateFcn', {@CursorUpdate_Callback, handles});
 end
-if isempty(vde)
-    handles.location = datacursormode(handles.fig);
-    set(handles.location,'Enable','on','DisplayStyle','datatip','SnapToDataVertex','on');
-    waitforbuttonpress
-    datacursormode off
-end
-vde = getCursorInfo(handles.location);
-spm_eeg_invert_display(handles.D,vde.Position)
-guidata(hObject,handles);
 
 
 % --- Executes on button press in Rot.
@@ -749,3 +744,8 @@ function Rot_Callback(hObject, eventdata, handles)
 rotate3d(handles.sources_axes)
 return
 
+
+function text = CursorUpdate_Callback(hObject, eventdata, handles)
+pos = get(eventdata,'Position');
+text = num2str(pos);
+spm_eeg_invert_display(handles.D, get(eventdata, 'Position'));
