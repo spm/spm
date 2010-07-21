@@ -12,7 +12,7 @@ function spm_update(update)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 4008 2010-07-21 12:57:02Z guillaume $
+% $Id: spm_update.m 4009 2010-07-21 13:36:20Z guillaume $
 
 url = 'ftp://ftp.fil.ion.ucl.ac.uk/spm/spm8_updates/';
 
@@ -38,7 +38,7 @@ catch
     error('SPM cannot be found in MATLAB path.');
 end
 if ~strcmp(v,'SPM8'), error('Your SPM version is %s and not SPM8',v); end
-rs = [3042 3164 3408 3684 4009];
+rs = [3042 3164 3408 3684 4010];
 if isnan(r), r = rs(1); end 
 if floor(r) == 8
     try
