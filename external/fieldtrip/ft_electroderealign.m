@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 1287 2010-06-29 14:00:42Z roboos $
+% $Id: ft_electroderealign.m 1431 2010-07-20 07:47:55Z roboos $
 
 fieldtripdefs
 
@@ -452,8 +452,8 @@ elseif strcmp(cfg.method, 'manual')
   % open a figure
   fig = figure;
   rotate3d on
-  plot_mesh(headshape, 'edgecolor', 'k')
-  xyz = select_point3d(headshape, 'multiple', true);
+  ft_plot_mesh(headshape, 'edgecolor', 'k')
+  xyz = ft_select_point3d(headshape, 'multiple', true);
   orig.pnt = xyz;
   for i=1:size(orig.pnt,1)
     orig.label{i,1} = 'unknown';
@@ -488,7 +488,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_electroderealign.m 1287 2010-06-29 14:00:42Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 1431 2010-07-20 07:47:55Z roboos $';
 
 % remember the configuration
 norm.cfg = cfg;

@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 997 2010-04-29 08:15:18Z roevdmei $
+% $Id: ft_singleplotTFR.m 1431 2010-07-20 07:47:55Z roboos $
 
 fieldtripdefs
 
@@ -143,7 +143,7 @@ if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(data, 'labelcmb'))
     h = clf;
     lay = ft_prepare_layout(cfg, data);
     cfg.layout = lay;
-    plot_lay(lay, 'box', false);
+    ft_plot_lay(lay, 'box', false);
     title('Select the reference channel by clicking on it...');
     % add the channel information to the figure
     info       = guidata(h);
@@ -151,7 +151,7 @@ if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(data, 'labelcmb'))
     info.y     = lay.pos(:,2);
     info.label = lay.label;
     guidata(h, info);
-    set(gcf, 'WindowButtonUpFcn', {@select_channel, 'callback', {@select_singleplotTFR, cfg, data}});
+    set(gcf, 'WindowButtonUpFcn', {@ft_select_channel, 'callback', {@select_singleplotTFR, cfg, data}});
     return
   end
 
@@ -263,18 +263,18 @@ end;
 if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
   mask = ~isnan(TFR);
   mask = double(mask);
-  plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
 elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
   mask = ~isnan(TFR);
   mask = mask .* mdata;
   mask = double(mask);
-  plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
 elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
   mask = mdata;
   mask = double(mask);
-  plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
 else
-  plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip')
+  ft_plot_matrix(data.(cfg.xparam)(xidc),data.(cfg.yparam)(yidc), TFR, 'clim',[zmin,zmax],'tag','cip')
 end
 hold on
 axis xy;
@@ -287,9 +287,9 @@ end
 
 % Make the figure interactive:
 if strcmp(cfg.interactive, 'yes')
-  set(gcf, 'WindowButtonUpFcn',     {@select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonUpFcn'});
-  set(gcf, 'WindowButtonDownFcn',   {@select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonDownFcn'});
-  set(gcf, 'WindowButtonMotionFcn', {@select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonMotionFcn'});
+  set(gcf, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonUpFcn'});
+  set(gcf, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonDownFcn'});
+  set(gcf, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR, cfg, data}, 'event', 'WindowButtonMotionFcn'});
 end
 
 % Create title text containing channel name(s) and channel number(s):
@@ -328,7 +328,7 @@ for i=2:length(cells)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION which is called by select_channel in case cfg.cohrefchannel='gui'
+% SUBFUNCTION which is called by ft_select_channel in case cfg.cohrefchannel='gui'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_singleplotTFR(label, cfg, varargin)
 cfg.cohrefchannel = label;

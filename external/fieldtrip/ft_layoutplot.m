@@ -64,7 +64,7 @@ function ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 1303 2010-06-29 15:42:37Z timeng $
+% $Id: ft_layoutplot.m 1430 2010-07-20 07:41:41Z roboos $
 
 fieldtripdefs
 
@@ -136,7 +136,7 @@ if isfield(cfg, 'image') && ~isempty(cfg.image)
   axis xy
 end
 
-plot_lay(lay, 'point', true, 'box', true, 'label', true, 'mask', true, 'outline', true);
+ft_plot_lay(lay, 'point', true, 'box', true, 'label', true, 'mask', true, 'outline', true);
 
 % the following code can be used to verify a bipolar montage, given the
 % layout of the monopolar channels 

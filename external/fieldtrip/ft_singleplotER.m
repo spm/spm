@@ -67,7 +67,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 1427 2010-07-19 11:44:01Z vlalit $
+% $Id: ft_singleplotER.m 1431 2010-07-20 07:47:55Z roboos $
 
 fieldtripdefs
 
@@ -334,7 +334,7 @@ for i=2:length(cells)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION which is called by select_channel in case cfg.cohrefchannel='gui'
+% SUBFUNCTION which is called by ft_select_channel in case cfg.cohrefchannel='gui'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_singleplotER(label, cfg, varargin)
 cfg.cohrefchannel = label;

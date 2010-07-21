@@ -134,7 +134,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 1427 2010-07-19 11:44:01Z vlalit $
+% $Id: ft_topoplotER.m 1430 2010-07-20 07:41:41Z roboos $
 
 fieldtripdefs
 
@@ -623,7 +623,7 @@ end
 
 % Draw topoplot
 hold on
-% Set plot_topo specific options
+% Set ft_plot_topo specific options
 if strcmp(cfg.interplimits,'head'),  interplimits = 'mask';
 else interplimits = cfg.interplimits; end
 if strcmp(cfg.style,'both');        style = 'surfiso';     end

@@ -46,7 +46,7 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 1368 2010-07-07 12:12:49Z jansch $
+% $Id: ft_prepare_mesh.m 1432 2010-07-21 08:20:46Z jansch $
 
 cfg = checkconfig(cfg, 'forbidden', 'numcompartments');
 
@@ -64,14 +64,14 @@ end
 
 % load optional given inputfile like already segmented volume 
 hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
+if      hasdata && ~isempty(cfg.inputfile)
+  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+elseif  hasdata &&  isempty(cfg.inputfile)
+  % this is ok
+elseif ~hasdata && ~isempty(cfg.inputfile)
   % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    mri = loadvar(cfg.inputfile, 'data');
-  end
-else
+  mri = loadvar(cfg.inputfile, 'data');
+elseif ~hasdata &&  isempty(cfg.inputfile)
   mri = [];
 end
 
