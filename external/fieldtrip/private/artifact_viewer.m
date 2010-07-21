@@ -22,13 +22,13 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: artifact_viewer.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: artifact_viewer.m 1434 2010-07-21 11:44:43Z jansch $
 
 dat.cfg     = cfg;
 dat.artcfg  = artcfg;
 if nargin == 5
   % no data is given
-  dat.hdr          = read_fcdc_header(cfg.headerfile);
+  dat.hdr          = ft_read_header(cfg.headerfile);
 elseif nargin == 6
   % data is given
   dat.hdr          = fetch_header(inputdata); % used name inputdata iso data, because data is already used later in this function

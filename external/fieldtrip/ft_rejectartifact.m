@@ -70,7 +70,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 1212 2010-06-09 10:29:43Z timeng $
+% $Id: ft_rejectartifact.m 1436 2010-07-21 11:46:40Z jansch $
 
 fieldtripdefs
 
@@ -183,7 +183,15 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  trl = findcfg(data.cfg, 'trl');
+  data = checkdata(data, 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  if isfield(data, 'trialdef')
+    trl = [data.trialdef data.offset(:)];
+    if isfield(data, 'trialinfo')
+      trl(:, 3+(1:size(data.trialinfo,2))) = data.trialinfo;
+    end
+  else
+    trl = [];
+  end
 elseif isfield(cfg, 'trl')
   trl = cfg.trl;
 end
@@ -248,7 +256,11 @@ end
 
 % make header, needed only for sampling frequency
 if nargin ==1
-  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  if isfield(cfg, 'headerformat')
+    hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  else
+    hdr = ft_read_header(cfg.headerfile);
+  end
 elseif nargin ==2
   hdr = fetch_header(data);
 end
@@ -399,7 +411,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectartifact.m 1212 2010-06-09 10:29:43Z timeng $';
+cfg.version.id = '$Id: ft_rejectartifact.m 1436 2010-07-21 11:46:40Z jansch $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;
@@ -419,6 +431,9 @@ if hasdata
   data       = ft_redefinetrial(tmpcfg,data);
   % remember the configuration details, this overwrites the stored configuration of redefinetrial
   data.cfg = cfg;
+  if isfield(data, 'offset')
+    data = rmfield(data, 'offset');
+  end
   % return the data instead of the cfg
   cfg = data;
 else

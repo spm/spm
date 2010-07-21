@@ -38,7 +38,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 1286 2010-06-29 13:59:40Z roboos $
+% $Id: ft_channelrepair.m 1437 2010-07-21 11:53:51Z jansch $
 
 fieldtripdefs
 
@@ -68,11 +68,6 @@ data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
   data = selectdata(data, 'rpt', cfg.trials);
-  % update the trial definition (trl)
-  if isfield(data, 'cfg') % try to locate the trl in the nested configuration
-    cfg.trl    = findcfg(data.cfg, 'trl');
-    cfg.trlold = findcfg(data.cfg, 'trlold');
-  end
 end
 
 % determine the type of data
@@ -136,6 +131,13 @@ else
   interp.grad  = sens;
 end
 
+if isfield(data, 'trialdef')
+  interp.trialdef = data.trialdef;
+end
+if isfield(data, 'trialinfo')
+  interp.trialinfo = data.trialinfo;
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -152,7 +154,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_channelrepair.m 1286 2010-06-29 13:59:40Z roboos $';
+cfg.version.id   = '$Id: ft_channelrepair.m 1437 2010-07-21 11:53:51Z jansch $';
 % remember the configuration details of the input data
 
 % remember the configuration details of the input data

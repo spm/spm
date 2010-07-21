@@ -70,7 +70,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_scalpcurrentdensity.m 1437 2010-07-21 11:53:51Z jansch $
 
 fieldtripdefs
 
@@ -99,10 +99,6 @@ data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'no');
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
   data = selectdata(data, 'rpt', cfg.trials);
-  if isfield(data, 'cfg') % try to locate the trl in the nested configuration
-    cfg.trlold = findcfg(data.cfg, 'trlold');
-    cfg.trl    = findcfg(data.cfg, 'trl');
-  end
 end
 
 % get the electrode positions
@@ -223,6 +219,12 @@ scd.elec    = elec;
 scd.time    = data.time;
 scd.label   = data.label;
 scd.fsample = data.fsample;
+if isfield(data, 'trialdef')
+  scd.trialdef = data.trialdef;
+end
+if isfield(data, 'trialinfo')
+  scd.trialinfo = data.trialinfo;
+end
 
 % store the configuration of this function call, including that of the previous function call
 try
@@ -233,7 +235,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1437 2010-07-21 11:53:51Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

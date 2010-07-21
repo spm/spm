@@ -60,7 +60,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 1325 2010-07-01 12:18:36Z jansch $
+% $Id: ft_redefinetrial.m 1435 2010-07-21 11:45:18Z jansch $
 
 fieldtripdefs
 
@@ -244,6 +244,7 @@ elseif ~isempty(cfg.trl)
   
   % make new data structure
   trl = cfg.trl;
+  remove = 0;
   for iTrl=1:length(trl(:,1))
     begsample = trl(iTrl,1);
     endsample = trl(iTrl,2);
@@ -251,6 +252,14 @@ elseif ~isempty(cfg.trl)
     trllength        = endsample - begsample + 1;
     data.trial{iTrl} = fetch_data(dataold, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'docheck', 0);
     data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
+    
+    % ensure correct handling of trialinfo
+    iTrlorig = find(dataold.trialdef(:,1)>=begsample & dataold.trialdef(:,2)<=endsample);
+    if numel(iTrlorig)==1 && isfield(dataold, 'trialinfo'),
+      data.trialinfo(iTrl,:) = dataold.trialinfo(iTrlorig,:);
+    elseif isfield(dataold, 'trialinfo'),
+      remove = 1;
+    end
   end
   data.hdr       = hdr;
   data.label     = dataold.label;
@@ -261,8 +270,8 @@ elseif ~isempty(cfg.trl)
   if isfield(dataold, 'elec')
     data.elec      = dataold.elec;
   end
-  if isfield(dataold, 'trialinfo')
-    data.trialinfo = dataold.trialinfo;
+  if remove
+    data = rmfield(data, 'trialinfo');
   end
   if isfield(dataold, 'trialdef')
     % adjust the trial definition
@@ -305,7 +314,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_redefinetrial.m 1325 2010-07-01 12:18:36Z jansch $';
+cfg.version.id = '$Id: ft_redefinetrial.m 1435 2010-07-21 11:45:18Z jansch $';
 
 % remember the configuration details of the input data
 if ~isempty(cfg.trl)
