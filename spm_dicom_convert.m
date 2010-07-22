@@ -17,7 +17,9 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 %            'date_time'  - Place files under ./<StudyDate-StudyTime>
 %            'patid'      - Place files under ./<PatID>
 %            'patid_date' - Place files under ./<PatID-StudyDate>
-%            'name'       - Place files under ./<PatName>
+%            'patname'    - Place files under ./<PatName>
+%            'series'     - Place files in series folders, without
+%                           creating patient folders
 % format - output format
 %          'img' Two file (hdr+img) NIfTI format [default]
 %          'nii' Single file NIfTI format
@@ -31,7 +33,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 3934 2010-06-17 14:58:25Z guillaume $
+% $Id: spm_dicom_convert.m 4012 2010-07-22 12:45:53Z volkmar $
 
 
 if nargin<2, opts     = 'all'; end
@@ -1016,7 +1018,7 @@ h = sprintf('%02d', floor(hdr.StudyTime/3600));
 studydate = sprintf('%s_%s-%s', datestr(hdr.StudyDate,'yyyy-mm-dd'), ...
     h,m);
 switch root_dir
-    case 'date_time',
+    case {'date_time','series'}
     id = studydate;
     case {'patid', 'patid_date', 'patname'},
     id = strip_unwanted(hdr.PatientID);
@@ -1035,6 +1037,8 @@ switch root_dir
     case 'patname',
         dname = fullfile(pwd, strip_unwanted(hdr.PatientsName), ...
             id, protname);
+    case 'series',
+        dname = fullfile(pwd, protname);
     otherwise
         error('unknown file root specification');
 end;

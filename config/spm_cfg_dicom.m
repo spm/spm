@@ -3,7 +3,7 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 3697 2010-01-22 17:07:18Z guillaume $
+% $Id: spm_cfg_dicom.m 4012 2010-07-22 12:45:53Z volkmar $
 
 % ---------------------------------------------------------------------
 % data DICOM files
@@ -29,15 +29,17 @@ root.help    = {'Choose root directory of converted file tree. The options are:'
                 ''
                 '* Output directory: ./<PatientName>: Convert into the output directory, starting with a PatientName subdirectory.'
                 '* No directory hierarchy: Convert all files into the output directory, without sequence/series subdirectories'}';
-root.labels  = {'Output directory: ./<StudyDate-StudyTime>'
-                'Output directory: ./<PatientID>'
-                'Output directory: ./<PatientID>/<StudyDate-StudyTime>'
-                'Output directory: ./<PatientName>'
+root.labels  = {'Output directory: ./<StudyDate-StudyTime>/<ProtocolName>'
+                'Output directory: ./<PatientID>/<ProtocolName>'
+                'Output directory: ./<PatientID>/<StudyDate-StudyTime>/<ProtocolName>'
+                'Output directory: ./<PatientName>/<ProtocolName>'
+                'Output directory: ./<ProtocolName>'
                 'No directory hierarchy'}';
 root.values  = {'date_time'
                 'patid'
                 'patid_date'
                 'patname'
+                'series'
                 'flat'}';
 root.def     = @(val)spm_get_defaults('dicom.root', val{:});
 % ---------------------------------------------------------------------
