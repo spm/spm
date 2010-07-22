@@ -58,8 +58,8 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Ser B.  57:289-300.
 %
 % Benjamini & Yekutieli (2001), "The Control of the false discovery rate
-% in multiple testing under dependency". To appear, Annals of Statistics.
-% Available at http://www.math.tau.ac.il/~benja 
+% in multiple testing under dependency". Annals of Statistics, 
+% 29(4):1165-1188.
 %
 % Yekutieli & Benjamini (1999). "Resampling-based false discovery rate
 % controlling multiple test procedures for correlated test
@@ -68,7 +68,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_P_FDR.m 3982 2010-07-09 13:36:53Z guillaume $
+% $Id: spm_P_FDR.m 4013 2010-07-22 17:12:45Z guillaume $
 
 
 %-Set Benjamini & Yeuketeli cV for independence/PosRegDep case

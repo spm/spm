@@ -49,19 +49,19 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_dcm_estimate.m 4013 2010-07-22 17:12:45Z guillaume $
  
  
-% load DCM structure
+%-Load DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
  
-    %-display model details
+    %-Display model details
     %----------------------------------------------------------------------
     Finter = spm_figure('GetWin','Interactive');
-    set(Finter,'name','Dynamic Causal Modeling')
+    set(Finter,'name','Dynamic Causal Modelling')
  
-    %-get DCM
+    %-Get DCM
     %----------------------------------------------------------------------
     [P, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
     if ~sts, DCM = []; return; end
@@ -69,12 +69,7 @@ if ~nargin
     spm('FigName','Estimation in progress');
  
 end
-if isstruct(P)
-    DCM = P;
-    P   = ['DCM-' date];
-else
-    load(P)
-end
+if ~isstruct(P), load(P); end
  
 % check options
 %==========================================================================
@@ -334,12 +329,14 @@ DCM.BIC    = evidence.bic_overall;
  
 %-Save DCM
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
-    save(P,'-V6','DCM','F','Ep','Cp');
-else
-    save(P,'DCM','F','Ep','Cp');
+if ~isstruct(P)
+    if spm_matlab_version_chk('7') >= 0
+        save(P,'-V6','DCM','F','Ep','Cp');
+    else
+        save(P,'DCM','F','Ep','Cp');
+    end
 end
- 
+
 if ~nargin
     spm('Pointer','Arrow');
     spm('FigName','Done');

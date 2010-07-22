@@ -8,7 +8,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 %           Or a [3 x m] matrix of voxel coordinates {mm}
 % fhandle - function handle to be applied on image data within VOI
 %           Must transform a [1 x m] array into a [1 x p] array
-%           Default is Identity (returns raw data, vectorised intro rows)
+%           Default is Identity (returns raw data, vectorised into rows)
 %
 % Y       - [n x p] data summary
 % xY      - (updated) VOI structure
@@ -16,7 +16,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 3960 2010-06-30 17:41:24Z ged $
+% $Id: spm_summarise.m 4013 2010-07-22 17:12:45Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------

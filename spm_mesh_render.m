@@ -20,7 +20,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4003 2010-07-19 18:22:38Z guillaume $
+% $Id: spm_mesh_render.m 4013 2010-07-22 17:12:45Z guillaume $
 
 
 %-Input parameters
@@ -154,6 +154,7 @@ switch lower(action)
         uimenu(c4, 'Label','Go to X-Y view (bottom)', 'Callback', {@myView, H, [-180 -90]});
         uimenu(c4, 'Label','Go to X-Z view (front)',  'Callback', {@myView, H, [-180 0]});
         uimenu(c4, 'Label','Go to X-Z view (back)',   'Callback', {@myView, H, [0 0]});
+        uimenu(c4, 'Label','Colourbar', 'Separator','on', 'Callback', {@myColourbar, H});
         
         c5 = uimenu(cmenu, 'Label','Transparency');
         uimenu(c5, 'Label','0%',  'Checked','on',  'Callback', {@myTransparency, H});
@@ -184,7 +185,7 @@ switch lower(action)
         
     %-AddColourBar
     %======================================================================
-    case 'addcolourbar'
+    case {'addcolourbar','addcolorbar'}
         if isempty(varargin), varargin{1} = gca; end
         H = getHandles(varargin{1});
         d = getappdata(H.patch,'data');
@@ -321,6 +322,21 @@ axis(H.axis,'image');
 camlight(H.light);
 
 %==========================================================================
+function myColourbar(obj,evt,H)
+if strcmpi(get(obj,'Checked'),'off')
+    spm_mesh_render('AddColourbar',H);
+    set(obj,'Checked','on');
+else
+    H = getHandles(H.axis);
+    if isfield(H,'colourbar')
+        if ishandle(H.colourbar), colorbar(H.colourbar,'off'); end
+        H = rmfield(H,'colourbar');
+    end
+    setappdata(H.axis,'handles',H);
+    set(obj,'Checked','off');
+end
+
+%==========================================================================
 function mySynchroniseViews(obj,evt,H,varargin)
 P = findobj('Tag','SPMMeshRender','Type','Patch');
 v = get(H.axis,'cameraposition');
@@ -420,8 +436,13 @@ set(ancestor(obj,'figure'),'Renderer',renderer);
 
 %==========================================================================
 function myOverlay(obj,evt,H)
-[P, sts] = spm_select(1,'image','Select image to overlay');
+[P, sts] = spm_select(1,'\.img|\.gii|\.mat','Select file to overlay');
 if ~sts, return; end
+[p,n,e]  = fileparts(P);
+if strcmpi(e,'.gii')
+    g    = gifti(P);
+    P    = double(g.cdata);
+end
 spm_mesh_render('AddOverlay',H,P);
 
 %==========================================================================
@@ -442,10 +463,17 @@ end
 if isstruct(v) && isfield(v,'FWHM') %-xSPM structure
     v = struct('XYZ',v.XYZ, 't',v.Z, 'mat',v.M, 'dim',v.DIM);
 end
+if isa(v,'gifti'), v = v.cdata; end
 if isempty(v)
     v = zeros(size(curv))';
 elseif ischar(v) || iscellstr(v) || isstruct(v)
     v = spm_mesh_project(H.patch,v);
+elseif isnumeric(v)
+    if size(v,2) == 1
+        v = v';
+    end
+else
+    error('Unknown data type.');
 end
 
 setappdata(H.patch,'data',v);
