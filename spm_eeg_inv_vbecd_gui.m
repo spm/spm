@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 3951 2010-06-28 15:09:36Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4011 2010-07-22 10:46:59Z gareth $
 
 %%
 % Load data, if necessary
@@ -467,6 +467,8 @@ for ii=1:length(ltr)
     inverse.F(ii) = P.F; % free energy
     
      megloc=reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
+     meg_w=reshape(P.post_mu_w,3,length(P.post_mu_w)/3); % moments of dip (3 x n_dip)
+     mni_w=orM1*meg_w; %% orientation in mni space
      mniloc=D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
      inverse.mniloc{ii}=mniloc(1:3,:);
     inverse.loc{ii} = megloc;
@@ -475,7 +477,7 @@ for ii=1:length(ltr)
     
     
     inverse.j{ii} = P.post_mu_w; % dipole(s) orient/ampl, in 1 column in meg space
-    inverse.jmni{ii} = orM1*P.post_mu_w; % dipole(s) orient/ampl in mni space
+    inverse.jmni{ii} = reshape(mni_w,1,prod(size(mni_w)))'; % dipole(s) orient/ampl in mni space
     inverse.cov_loc{ii} = P.post_S_s; % cov matrix of source location
     inverse.cov_j{ii} = P.post_S_w; % cov matrix of source orient/ampl
     inverse.exitflag(ii) = 1; % Converged (1) or not (0)
