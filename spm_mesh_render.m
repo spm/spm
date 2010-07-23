@@ -20,7 +20,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_mesh_render.m 4014 2010-07-23 11:55:49Z guillaume $
 
 
 %-Input parameters
@@ -154,7 +154,8 @@ switch lower(action)
         uimenu(c4, 'Label','Go to X-Y view (bottom)', 'Callback', {@myView, H, [-180 -90]});
         uimenu(c4, 'Label','Go to X-Z view (front)',  'Callback', {@myView, H, [-180 0]});
         uimenu(c4, 'Label','Go to X-Z view (back)',   'Callback', {@myView, H, [0 0]});
-        uimenu(c4, 'Label','Colourbar', 'Separator','on', 'Callback', {@myColourbar, H});
+        
+        uimenu(cmenu, 'Label','Colourbar', 'Callback', {@myColourbar, H});
         
         c5 = uimenu(cmenu, 'Label','Transparency');
         uimenu(c5, 'Label','0%',  'Checked','on',  'Callback', {@myTransparency, H});
@@ -194,9 +195,16 @@ switch lower(action)
         if isempty(col), col = hot(256); end
         H.colourbar = colorbar('peer',H.axis);
         c(1:size(col,1),1,1:size(col,2)) = col;
-        set(get(H.colourbar,'child'),'CData',c);
-        set(get(H.colourbar,'child'),'YData',[min(d) max(d)]);
-        set(H.colourbar,'YLim',[min(d) max(d)]);
+        if size(d,1) > 1
+            set(get(H.colourbar,'child'),'CData',c(1:size(d,1),:,:));
+            set(get(H.colourbar,'child'),'YData',[1 size(d,1)]);
+            set(H.colourbar,'YLim',[1 size(d,1)]);
+            set(H.colourbar,'YTickLabel',[]);
+        else
+            set(get(H.colourbar,'child'),'CData',c);
+            set(get(H.colourbar,'child'),'YData',[min(d) max(d)]);
+            set(H.colourbar,'YLim',[min(d) max(d)]);
+        end
         set(H.colourbar,'Tag','');
         set(get(H.colourbar,'child'),'Tag','');
         setappdata(H.axis,'handles',H);
@@ -205,7 +213,7 @@ switch lower(action)
     %======================================================================
     otherwise
         try
-            spm_mesh_render('Disp',action,varargin{:});
+            H = spm_mesh_render('Disp',action,varargin{:});
         catch
             error('Unknown action.');
         end
@@ -329,7 +337,7 @@ if strcmpi(get(obj,'Checked'),'off')
 else
     H = getHandles(H.axis);
     if isfield(H,'colourbar')
-        if ishandle(H.colourbar), colorbar(H.colourbar,'off'); end
+        if ishandle(H.colourbar), delete(H.colourbar); end
         H = rmfield(H,'colourbar');
     end
     setappdata(H.axis,'handles',H);
@@ -400,15 +408,35 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
     end
     switch filterindex
         case 1
-            save(gifti(H.patch),fullfile(pathname, filename));
+            G = gifti(H.patch);
+            [p,n,e] = fileparts(filename);
+            [p,n,e] = fileparts(n);
+            switch lower(e)
+                case '.func'
+                    save(gifti(getappdata(H.patch,'data')),...
+                        fullfile(pathname, filename));
+                case '.surf'
+                    save(gifti(struct('vertices',G.vertices,'faces',G.faces)),...
+                        fullfile(pathname, filename));
+                case '.rgba'
+                    save(gifti(G.cdata),fullfile(pathname, filename));
+                otherwise
+                    save(G,fullfile(pathname, filename));
+            end
         case 2
-            u = get(H.axis,'units');
+            u  = get(H.axis,'units');
             set(H.axis,'units','pixels');
-            p = get(H.axis,'Position');
-            r = get(getappdata(obj,'fig'),'Renderer');
+            p  = get(H.axis,'Position');
+            r  = get(H.figure,'Renderer');
+            hc = findobj(H.figure,'Tag','SPMMeshRenderBackground');
+            if isempty(hc)
+                c = get(H.figure,'Color');
+            else
+                c = get(hc,'Color');
+            end
             h = figure('Position',p+[0 0 10 10], ...
                 'InvertHardcopy','off', ...
-                'Color',get(H.figure,'Color'), ...
+                'Color',c, ...
                 'Renderer',r);
             copyobj(H.axis,h);
             set(H.axis,'units',u);
@@ -436,13 +464,8 @@ set(ancestor(obj,'figure'),'Renderer',renderer);
 
 %==========================================================================
 function myOverlay(obj,evt,H)
-[P, sts] = spm_select(1,'\.img|\.gii|\.mat','Select file to overlay');
+[P, sts] = spm_select(1,'\.img|\.nii|\.gii|\.mat','Select file to overlay');
 if ~sts, return; end
-[p,n,e]  = fileparts(P);
-if strcmpi(e,'.gii')
-    g    = gifti(P);
-    P    = double(g.cdata);
-end
 spm_mesh_render('AddOverlay',H,P);
 
 %==========================================================================
@@ -460,9 +483,7 @@ end
     
 %-Project data onto surface mesh
 %--------------------------------------------------------------------------
-if isstruct(v) && isfield(v,'FWHM') %-xSPM structure
-    v = struct('XYZ',v.XYZ, 't',v.Z, 'mat',v.M, 'dim',v.DIM);
-end
+if ischar(v), try, spm_vol(v); catch v = gifti(v); end; end
 if isa(v,'gifti'), v = v.cdata; end
 if isempty(v)
     v = zeros(size(curv))';

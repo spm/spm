@@ -15,11 +15,11 @@ function P = spm_mesh_project(M, dat, method, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_project.m 3409 2009-09-18 15:40:25Z guillaume $
+% $Id: spm_mesh_project.m 4014 2010-07-23 11:55:49Z guillaume $
 
 if ishandle(M)
     V = get(M,'Vertices');
-elseif isstruct(M)
+elseif isstruct(M) || isa(M,'gifti')
     V = M.vertices;
 else
     V = M;
@@ -40,7 +40,12 @@ for i=1:numel(dat)
     elseif isfield(dat,'dat')
         Y      = dat(i).dat;
         mat    = dat(i).mat;
-    else
+    elseif isfield(dat,'FWHM') %-xSPM structure
+        Y      = zeros(dat(i).DIM(1:3)');
+        OFF    = dat(i).XYZ(1,:) + dat(i).DIM(1)*(dat(i).XYZ(2,:)-1 + dat(i).DIM(2)*(dat(i).XYZ(3,:)-1));
+        Y(OFF) = dat(i).Z .* (dat(i).Z > 0);
+        mat    = dat(i).M;
+    else %- spm_render structure
         Y      = zeros(dat(i).dim(1:3)');
         OFF    = dat(i).XYZ(1,:) + dat(i).dim(1)*(dat(i).XYZ(2,:)-1 + dat(i).dim(2)*(dat(i).XYZ(3,:)-1));
         Y(OFF) = dat(i).t .* (dat(i).t > 0);
