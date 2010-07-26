@@ -1,4 +1,4 @@
-/* $Id: optimizer3d.c 2644 2009-01-23 13:01:50Z john $ */
+/* $Id: optimizer3d.c 4016 2010-07-26 13:12:40Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -151,22 +151,20 @@ static void relax_le_noa(int dm[], float b[], double s[], int nit, float u[])
         printf("%dx%dx%d (%g,%g,%g): ", dm[0],dm[1],dm[2], regx,regy,regz);
 #   endif
 
-    for(it=0; it<2*nit; it++)
+    for(it=0; it<8*nit; it++)
     {
-        int k, kstart;
+        int k;
         /* double ss = 0.0; */
-        kstart = it%2;
-        for(k=0; k<dm[2]; k++)
+        for(k=it&1; k<dm[2]; k+=2)
         {
-            int j, jstart, km1, kp1;
+            int j, km1, kp1;
             km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
             kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
-            jstart = (kstart==(k%2));
-            for(j=0; j<dm[1]; j++)
+            for(j=(it>>1)&1; j<dm[1]; j+=2)
             {
                 float *pux, *puy, *puz, *pbx, *pby, *pbz;
-                int i, istart, jm1,jp1;
+                int i, jm1,jp1;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
                 puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -178,8 +176,7 @@ static void relax_le_noa(int dm[], float b[], double s[], int nit, float u[])
                 jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
                 jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
-                istart = (jstart==(j%2));
-                for(i=istart; i<dm[0]; i+=2)
+                for(i=(it>>2)&1; i<dm[0]; i+=2)
                 {
                     int im1,ip1;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
@@ -448,22 +445,20 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
         printf("%dx%dx%d (%g,%g,%g): ", dm[0],dm[1],dm[2], regx,regy,regz);
 #   endif
 
-    for(it=0; it<2*nit; it++)
+    for(it=0; it<8*nit; it++)
     {
-        int k, kstart;
+        int k;
         /* double ss = 0.0; */
-        kstart = it%2;
-        for(k=0; k<dm[2]; k++)
+        for(k=it&1; k<dm[2]; k+=2)
         {
-            int j, jstart, km1, kp1;
+            int j, km1, kp1;
             km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
             kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
-            jstart = (kstart==(k%2));
-            for(j=0; j<dm[1]; j++)
+            for(j=(it>>1)&1; j<dm[1]; j+=2)
             {
                 float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
-                int i, istart, jm1,jp1;
+                int i, jm1,jp1;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
                 puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -481,8 +476,7 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
                 jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
                 jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
-                istart = (jstart==(j%2));
-                for(i=istart; i<dm[0]; i+=2)
+                for(i=(it>>2)&1; i<dm[0]; i+=2)
                 {
                     int im1,ip1;
                     double sux, suy, suz, axx, ayy, azz, axy, axz, ayz, idt;
