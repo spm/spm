@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 3958 2010-06-30 16:24:46Z guillaume $
+% $Id: spm.m 4017 2010-07-26 17:14:31Z guillaume $
 
 
 %=======================================================================
@@ -793,15 +793,7 @@ if isempty(SPMdir)             %-Not found or full pathname given
         error(['Can''t find ',Mfile,' on MATLABPATH']);
     end
 end
-SPMdir = fileparts(SPMdir);
-
-% if isdeployed
-%     ind = strfind(SPMdir,'_mcr')-1;
-%     if ~isempty(ind)
-%         % MATLAB 2008a/2009a doesn't need this
-%         SPMdir = fileparts(SPMdir(1:ind(1)));
-%     end
-% end
+SPMdir    = fileparts(SPMdir);
 varargout = {SPMdir};
 
 
@@ -1148,7 +1140,14 @@ v = SPM_VER;
 if isempty(SPM_VER) || (nargin > 0 && ReDo)
     v = struct('Name','','Version','','Release','','Date','');
     try
-        fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
+        if isdeployed
+            % in deployed mode, M-files are encrypted
+            % (even if first two lines of Contents.m "should" be preserved)
+            vfile = fullfile(spm('Dir'),'Contents.txt');
+        else
+            vfile = fullfile(spm('Dir'),'Contents.m');
+        end
+        fid = fopen(vfile,'rt');
         if fid == -1, error(str); end
         l1 = fgetl(fid); l2 = fgetl(fid);
         fclose(fid);
@@ -1157,16 +1156,7 @@ if isempty(SPM_VER) || (nargin > 0 && ReDo)
         v.Name = l1; v.Date = t{4};
         v.Version = t{2}; v.Release = t{3}(2:end-1);
     catch
-        if isdeployed
-            % in deployed mode, M-files are encrypted
-            % (but first two lines of Contents.m should be preserved)
-            v.Name    = 'Statistical Parametric Mapping';
-            v.Version = '8';
-            v.Release = 'SPM8';
-            v.Date    = date;
-        else
-            error('Can''t obtain SPM Revision information.');
-        end
+        error('Can''t obtain SPM Revision information.');
     end
     SPM_VER = v;
 end

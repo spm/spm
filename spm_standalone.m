@@ -1,4 +1,4 @@
-function exec_spm(varargin)
+function spm_standalone(varargin)
 % A function to be compiled, which will run a standalone SPM.
 %
 % See http://www.mathworks.com/products/compiler/
@@ -6,7 +6,7 @@ function exec_spm(varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: exec_spm.m 3789 2010-03-19 17:05:36Z guillaume $ 
+% $Id: spm_standalone.m 4017 2010-07-26 17:14:31Z guillaume $ 
 
 [v,r] = spm('Ver');
 fprintf('%s (%s): %s\n',v,r,spm('Dir'));

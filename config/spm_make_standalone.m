@@ -1,4 +1,4 @@
-function make_exec(outdir)
+function spm_make_standalone(outdir)
 % Compile SPM as a standalone executable using the MATLAB compiler
 %   http://www.mathworks.com/products/compiler/
 %
@@ -9,7 +9,7 @@ function make_exec(outdir)
 %   spm8_wxx.exe <modality>
 %   spm8_wxx.exe run <batch.m(at)>
 %
-% On Linux:
+% On Linux/Mac:
 %   ./run_spm8.sh <MCRroot> <modality>
 %   ./run_spm8.sh <MCRroot> run <batch.m(at)>
 %
@@ -19,7 +19,7 @@ function make_exec(outdir)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: make_exec.m 3789 2010-03-19 17:05:36Z guillaume $
+% $Id: spm_make_standalone.m 4017 2010-07-26 17:14:31Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ if exist('startup','file')
         fileparts(which('startup')));
 end
 
-if ~nargin, outdir = fullfile(spm('dir'),'exec'); end
+if ~nargin, outdir = fullfile(spm('dir'),'..','spm_exec'); mkdir(outdir); end
 
 %==========================================================================
 %-Static listing of SPM toolboxes
@@ -89,9 +89,16 @@ fclose(fid);
 cfg_util('dumpcfg');
 
 %==========================================================================
+%-Duplicate Contents.m in Contents.txt for use in spm('Ver')
+%==========================================================================
+sts = copyfile(fullfile(spm('Dir'),'Contents.m'),...
+               fullfile(spm('Dir'),'Contents.txt'));
+if ~sts, warning('Copy of Contents.m failed.'); end
+
+%==========================================================================
 %-Compilation
 %==========================================================================
-mcc('-m', '-C', '-v', '-o',lower(spm('Ver')), 'exec_spm.m',...
+mcc('-m', '-C', '-v', '-o',lower(spm('Ver')), 'spm_standalone.m',...
     '-d',outdir,...
     '-N','-p',fullfile(matlabroot,'toolbox','signal'),...
     '-a',spm('Dir'))
