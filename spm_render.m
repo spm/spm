@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_render.m 4018 2010-07-27 18:22:42Z guillaume $
 
-SVNrev = '$Rev: 4013 $';
+SVNrev = '$Rev: 4018 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -333,7 +333,7 @@ ax = axes(...
     'Visible',  'off');
 
 H = spm_mesh_render('Disp',rend,struct('parent',ax));
-spm_mesh_render('AddOverlay',H,dat,col);
+spm_mesh_render('Overlay',H,dat,col);
 
 try
     setAllowAxesRotate(H.rotate3d, setxor(findobj(Fgraph,'Type','axes'),ax), false);

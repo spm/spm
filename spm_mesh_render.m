@@ -1,26 +1,36 @@
 function varargout = spm_mesh_render(action,varargin)
 % Display a surface mesh & various utilities
-% FORMAT H = spm_mesh_render('Disp',M)
+% FORMAT H = spm_mesh_render('Disp',M,'PropertyName',propertyvalue)
 % M        - a GIfTI filename/object or patch structure
 % H        - structure containing handles of various objects
+% Opens a new figure unless a 'parent' Property is provided with an axis
+% handle.
 %
 % FORMAT H = spm_mesh_render(M)
 % Shortcut to previous call format
 %
 % FORMAT H = spm_mesh_render('ContextMenu',AX)
-% AX       - axis handle or structure given by spm_mesh_render('Disp',...)
+% AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
 %
-% FORMAT H = spm_mesh_render('AddOverlay',AX,P)
+% FORMAT H = spm_mesh_render('Overlay',AX,P)
 % AX       - axis handle or structure given by spm_mesh_render('Disp',...)
 % P        - data to be overlayed on mesh (see spm_mesh_project)
 %
-% FORMAT H = spm_mesh_render('AddColourBar',AX)
-% AX       - axis handle or structure given by spm_mesh_render('Disp',...)
+% FORMAT H = spm_mesh_render('ColourBar',AX,MODE)
+% AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
+% MODE     - {['on'],'off'}
+%
+% FORMAT H = spm_mesh_render('ColourMap',AX,MAP)
+% AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
+% MAP      - a colour map matrix
+%
+% FORMAT MAP = spm_mesh_render('ColourMap',AX)
+% Retrieves the current colourmap
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4014 2010-07-23 11:55:49Z guillaume $
+% $Id: spm_mesh_render.m 4018 2010-07-27 18:22:42Z guillaume $
 
 
 %-Input parameters
@@ -126,7 +136,7 @@ switch lower(action)
         H = getHandles(varargin{1});
         if ~isempty(get(H.patch,'UIContextMenu')), return; end
         
-        cmenu = uicontextmenu('Callback',{@myMenuCallback});
+        cmenu = uicontextmenu('Callback',{@myMenuCallback, H});
         
         c1 = uimenu(cmenu, 'Label','Inflate', 'Interruptible','off', ...
             'Callback',{@myInflate, H});
@@ -164,6 +174,8 @@ switch lower(action)
         uimenu(c5, 'Label','60%', 'Checked','off', 'Callback', {@myTransparency, H});
         uimenu(c5, 'Label','80%', 'Checked','off', 'Callback', {@myTransparency, H});
         
+        uimenu(cmenu, 'Label','Data Cursor', 'Callback', {@myDataCursor, H});
+        
         c6 = uimenu(cmenu, 'Label','Background Color');
         uimenu(c6, 'Label','White',     'Callback', {@myBackgroundColor, H, [1 1 1]});
         uimenu(c6, 'Label','Black',     'Callback', {@myBackgroundColor, H, [0 0 0]});
@@ -172,28 +184,42 @@ switch lower(action)
         c7 = uimenu(cmenu, 'Label','Save As...', 'Separator', 'on', ...
             'Callback', {@mySave, H});
         
+        set(H.rotate3d,'enable','off');
         try, set(H.rotate3d,'uicontextmenu',cmenu); end
         try, set(H.patch,   'uicontextmenu',cmenu); end
+        set(H.rotate3d,'enable','on');
         
-    %-AddOverlay
+    %-Overlay
     %======================================================================
-    case 'addoverlay'
+    case 'overlay'
         if isempty(varargin), varargin{1} = gca; end
         H = getHandles(varargin{1});
         if nargin < 3, varargin{2} = []; end
-        if nargin < 4, varargin{3} = []; end
-        updateTexture(H,varargin{2},varargin{3});
+        updateTexture(H,varargin{2:end});
         
-    %-AddColourBar
+    %-ColourBar
     %======================================================================
-    case {'addcolourbar','addcolorbar'}
+    case {'colourbar', 'colorbar'}
         if isempty(varargin), varargin{1} = gca; end
-        H = getHandles(varargin{1});
-        d = getappdata(H.patch,'data');
+        if length(varargin) == 1, varargin{2} = 'on'; end
+        H   = getHandles(varargin{1});
+        d   = getappdata(H.patch,'data');
         col = getappdata(H.patch,'colourmap');
-        if isempty(d) || ~any(d(:)), return; end
+        if strcmpi(varargin{2},'off')
+            if isfield(H,'colourbar') && ishandle(H.colourbar)
+                delete(H.colourbar);
+                H = rmfield(H,'colourbar');
+                setappdata(H.axis,'handles',H);
+            end
+            return;
+        end
+        if isempty(d) || ~any(d(:)), varargout = {H}; return; end
         if isempty(col), col = hot(256); end
-        H.colourbar = colorbar('peer',H.axis);
+        if ~isfield(H,'colourbar') || ~ishandle(H.colourbar)
+            H.colourbar = colorbar('peer',H.axis);
+            set(H.colourbar,'Tag','');
+            set(get(H.colourbar,'Children'),'Tag','');
+        end
         c(1:size(col,1),1,1:size(col,2)) = col;
         if size(d,1) > 1
             set(get(H.colourbar,'child'),'CData',c(1:size(d,1),:,:));
@@ -205,10 +231,22 @@ switch lower(action)
             set(get(H.colourbar,'child'),'YData',[min(d) max(d)]);
             set(H.colourbar,'YLim',[min(d) max(d)]);
         end
-        set(H.colourbar,'Tag','');
-        set(get(H.colourbar,'child'),'Tag','');
         setappdata(H.axis,'handles',H);
         
+    %-ColourMap
+    %======================================================================
+    case {'colourmap', 'colormap'}
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        if length(varargin) == 1
+            varargout = { getappdata(H.patch,'colourmap') };
+            return;
+        else
+            setappdata(H.patch,'colourmap',varargin{2});
+            d = getappdata(H.patch,'data');
+            updateTexture(H,d);
+        end
+    
     %-Otherwise...
     %======================================================================
     otherwise
@@ -241,8 +279,10 @@ end
 
 %==========================================================================
 function H = getHandles(H)
+if ~nargin || isempty(H), H = gca; end
 if ishandle(H) && ~isappdata(H,'handles')
-    H.axis     = H;
+    a = H; clear H;
+    H.axis     = a;
     H.figure   = ancestor(H.axis,'figure');
     H.patch    = findobj(H.axis,'type','patch');
     H.light    = findobj(H.axis,'type','light');
@@ -251,8 +291,39 @@ if ishandle(H) && ~isappdata(H,'handles')
 elseif ishandle(H)
     H = getappdata(H,'handles');
 else
-    %H = H;
+    H = getappdata(H.axis,'handles');
 end
+
+%==========================================================================
+function myMenuCallback(obj,evt,H)
+H = getHandles(H);
+
+h = findobj(obj,'Label','Rotate');
+if strcmpi(get(H.rotate3d,'Enable'),'on')
+    set(h,'Checked','on');
+else
+    set(h,'Checked','off');
+end
+
+if numel(findobj('Tag','SPMMeshRender','Type','Patch')) > 1
+    h = findobj(obj,'Tag','SynchroMenu');
+    set(h,'Visible','on');
+end
+
+h = findobj(obj,'Label','Colourbar');
+d = getappdata(H.patch,'data');
+if isempty(d) || ~any(d(:)), set(h,'Enable','off'); else set(h,'Enable','on'); end
+if isfield(H,'colourbar')
+    if ishandle(H.colourbar)
+        set(h,'Checked','on');
+    else
+        H = rmfield(H,'colourbar');
+        set(h,'Checked','off');
+    end
+else
+    set(h,'Checked','off');
+end
+setappdata(H.axis,'handles',H);
 
 %==========================================================================
 function myPostCallback(obj,evt,H)
@@ -263,15 +334,6 @@ else
     for i=1:numel(P)
         H = getappdata(ancestor(P(i),'axes'),'handles');
         camlight(H.light);
-    end
-end
-    
-%==========================================================================
-function myMenuCallback(obj,evt)
-if numel(findobj('Tag','SPMMeshRender','Type','Patch')) > 1
-    h = findobj(obj,'Tag','SynchroMenu');
-    if ~isempty(h)
-        set(h,'Visible','on');
     end
 end
 
@@ -331,21 +393,11 @@ camlight(H.light);
 
 %==========================================================================
 function myColourbar(obj,evt,H)
-if strcmpi(get(obj,'Checked'),'off')
-    spm_mesh_render('AddColourbar',H);
-    set(obj,'Checked','on');
-else
-    H = getHandles(H.axis);
-    if isfield(H,'colourbar')
-        if ishandle(H.colourbar), delete(H.colourbar); end
-        H = rmfield(H,'colourbar');
-    end
-    setappdata(H.axis,'handles',H);
-    set(obj,'Checked','off');
-end
+y = {'on','off'}; toggle = @(x) y{1+strcmpi(x,'on')};
+spm_mesh_render('Colourbar',H,toggle(get(obj,'Checked')));
 
 %==========================================================================
-function mySynchroniseViews(obj,evt,H,varargin)
+function mySynchroniseViews(obj,evt,H)
 P = findobj('Tag','SPMMeshRender','Type','Patch');
 v = get(H.axis,'cameraposition');
 for i=1:numel(P)
@@ -361,6 +413,24 @@ t = 1 - sscanf(get(obj,'Label'),'%d%%') / 100;
 set(H.patch,'FaceAlpha',t);
 set(get(get(obj,'parent'),'children'),'Checked','off');
 set(obj,'Checked','on');
+
+%==========================================================================
+function myDataCursor(obj,evt,H)
+dcm_obj = datacursormode(H.figure);
+set(dcm_obj, 'Enable','on', 'SnapToDataVertex','on', ...
+    'DisplayStyle','Window', 'Updatefcn',{@myDataCursorUpdate, H});
+
+%==========================================================================
+function txt = myDataCursorUpdate(obj,evt,H)
+pos = get(evt,'Position');
+txt = {['X: ',num2str(pos(1))],...
+	   ['Y: ',num2str(pos(2))],...
+       ['Z: ',num2str(pos(3))]};
+d = getappdata(H.patch,'data');
+if ~isempty(d) && any(d(:))
+    i = ismember(get(H.patch,'vertices'),pos,'rows');
+    if any(i), txt = {txt{:} ['T: ',num2str(d(i))]}; end
+end
 
 %==========================================================================
 function myBackgroundColor(obj,evt,H,varargin)
@@ -466,12 +536,15 @@ set(ancestor(obj,'figure'),'Renderer',renderer);
 function myOverlay(obj,evt,H)
 [P, sts] = spm_select(1,'\.img|\.nii|\.gii|\.mat','Select file to overlay');
 if ~sts, return; end
-spm_mesh_render('AddOverlay',H,P);
+spm_mesh_render('Overlay',H,P);
 
 %==========================================================================
 function C = updateTexture(H,v,col)
 
-if nargin <3 || isempty(col), col = hot(256); end
+%-Get colourmap
+%--------------------------------------------------------------------------
+if nargin<3, col = getappdata(H.patch,'colourmap'); end
+if isempty(col), col = hot(256); end
 setappdata(H.patch,'colourmap',col);
 
 %-Get curvature
@@ -483,7 +556,18 @@ end
     
 %-Project data onto surface mesh
 %--------------------------------------------------------------------------
-if ischar(v), try, spm_vol(v); catch v = gifti(v); end; end
+if nargin < 2, v = []; end
+if ischar(v)
+    [p,n,e] = fileparts(v);
+    if strcmp([n e],'SPM.mat')
+        swd = pwd;
+        spm_figure('GetWin','Interactive');
+        [SPM,v] = spm_getSPM(struct('swd',p));
+        cd(swd);
+    else
+        try, spm_vol(v); catch, v = gifti(v); end;
+    end
+end
 if isa(v,'gifti'), v = v.cdata; end
 if isempty(v)
     v = zeros(size(curv))';
@@ -505,7 +589,8 @@ C = zeros(size(v,2),3);
 if any(v(:))
     if size(col,1)>3
         if size(v,1) == 1
-            C = squeeze(ind2rgb(floor(v(:)/max(v(:))*size(col,1)),col));
+            mi = min(v(:)); ma = max(v(:));
+            C = squeeze(ind2rgb(floor(((v(:)-mi)/(ma-mi))*size(col,1)),col));
         else
             C = v; v = v';
         end
@@ -520,10 +605,8 @@ C = repmat(~any(v,1),3,1)' .* curv + repmat(any(v,1),3,1)' .* C;
 
 set(H.patch, 'FaceVertexCData',C, 'FaceColor','interp');
 
-% if isfield(M,'cdata') && ~isempty(M.cdata)
-%     if any(size(M.cdata)==1), M.cdata = M.cdata(:); end
-%     if size(M.cdata,1)==3,    M.cdata = M.cdata';   end
-%     set(H.patch, 'FaceVertexCData',M.cdata, 'FaceColor','interp');
-% else
-%     set(H.patch, 'FaceVertexCData',curv, 'FaceColor','interp');
-% end
+%-Update the colourbar
+%--------------------------------------------------------------------------
+if isfield(H,'colourbar')
+    spm_mesh_render('Colourbar',H);
+end
