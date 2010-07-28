@@ -8,7 +8,7 @@ function [x] = spm_hilbert(xr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_hilbert.m 2908 2009-03-20 14:54:03Z will $
+% $Id: spm_hilbert.m 4024 2010-07-28 18:43:19Z guillaume $
 
 if ~isreal(xr)
   xr = real(xr);
