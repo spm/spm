@@ -19,15 +19,13 @@ function [p, f, t] = spm_mmtspec (x,Fs, freqs,timeres, timestep, NW)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Partha Mitra, Ken Harris and Will Penny
-% $Id: spm_mmtspec.m 3994 2010-07-13 15:53:30Z guillaume $
+% $Id: spm_mmtspec.m 4021 2010-07-28 12:43:16Z vladimir $
 
 nChannels = size(x, 2);
 nSamples = size(x,1);
 
 if (nargin<4 || isempty(timeres)) 
-    C=16;
-else
-    C=round(nSamples/(Fs*timeres));
+    timeres = nSamples/(16*Fs);
 end
 
 if (nargin<5 || isempty(timestep))
@@ -47,7 +45,7 @@ end
 df=freqs(2)-freqs(1);
 nFFT=round(Fs/df);
 
-WinLength=round(nSamples/C);
+WinLength=round(Fs*timeres);
 nOverlap=ceil(percent_overlap*WinLength); 
 
 nTapers = 2*NW -1; 

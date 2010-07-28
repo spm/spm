@@ -4,10 +4,8 @@ function res = spm_eeg_specest_mtmspec(S, data, time)
 %
 % S                     - input structure
 % fields of S:
-%    S.taper       - taper to use ('hanning', 'rectwin', 'dpss', 'sine' or
-%                    other possible inputs of 'window'
-%    S.freqres     - frequency resolutions (plus-minus for each frequency, can
-%                    be a vector with a value per frequency)
+%    S.bandwidth   - time bandwidth parameter determining the degree of
+%                    spectral smoothing (typically 3 or 4).
 %    S.frequencies - vector of frequencies
 %    S.timeres     - time resolution in ms (length of the sliding time-window)
 %    S.timestep    - time step (in ms) to slide the time-window by.
@@ -26,7 +24,7 @@ function res = spm_eeg_specest_mtmspec(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_mtmspec.m 3876 2010-05-07 18:51:03Z vladimir $
+% $Id: spm_eeg_specest_mtmspec.m 4021 2010-07-28 12:43:16Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf

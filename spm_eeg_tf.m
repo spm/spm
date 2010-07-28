@@ -42,9 +42,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 3842 2010-04-27 15:09:48Z vladimir $
+% $Id: spm_eeg_tf.m 4021 2010-07-28 12:43:16Z vladimir $
 
-SVNrev = '$Rev: 3842 $';
+SVNrev = '$Rev: 4021 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ if isempty(chanind)
     error('No channels selected.');
 end
 
-if ~isfield(S, 'frequencies')
+if ~isfield(S, 'frequencies') || isempty(S.frequencies)
     S.frequencies = 1:48;
 end
 
