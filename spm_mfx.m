@@ -71,9 +71,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 3665 2010-01-08 13:07:41Z guillaume $
+% $Id: spm_mfx.m 4023 2010-07-28 18:41:36Z guillaume $
 
-SVNid = '$Rev: 3665 $';
+SVNid = '$Rev: 4023 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -90,7 +90,14 @@ try
 catch
     error('This model has not been estimated.');
 end
-    
+
+%-Change to SPM.swd
+%--------------------------------------------------------------------------
+try
+    cd(swd);
+end
+ 
+
 %-Check this is a repeated measures design
 %--------------------------------------------------------------------------
 n     = length(SPM.Sess);            % number of sessions
@@ -256,9 +263,9 @@ S.xVol    = SPM.xVol;
 %-Change to SPM.swd/mfx and save analysis parameters in SPM.mat file
 %--------------------------------------------------------------------------
 SPM       = S;
-[st, me]  = mkdir('mfx');
+SPM.swd   = fullfile(swd,'mfx');
+[st, me]  = mkdir(SPM.swd);
 if st
-    SPM.swd = fullfile(swd,'mfx');
     if spm_matlab_version_chk('7') >= 0,
         save(fullfile(SPM.swd,'SPM'), 'SPM', '-V6');
     else
