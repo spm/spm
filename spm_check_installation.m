@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 3913 2010-06-02 15:25:23Z guillaume $
+% $Id: spm_check_installation.m 4019 2010-07-28 11:29:29Z guillaume $
 
 if isdeployed, return; end
 
@@ -72,7 +72,7 @@ end
 
 %-Ensure that the original release - as well as the updates - was installed
 %--------------------------------------------------------------------------
-if ~exist(fullfile(d,'spm_Npdf.m'),'file') % File that should not have changed
+if ~exist(fullfile(d,'@nifti','nifti.m'),'file') % File that should not have changed
     if isunix
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
@@ -80,14 +80,12 @@ if ~exist(fullfile(d,'spm_Npdf.m'),'file') % File that should not have changed
             'and the updates installed on top of this. Unix commands\n'...
             'to do this are:\n'...
             '   unzip spm8.zip\n'...
-            '   unzip -o spm8_updates_r????.zip -d spm8\n'...
-            'You may need help from your local network administrator.']));
+            '   unzip -o spm8_updates_r????.zip -d spm8']));
     else
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'The original spm8.zip distribution should be installed\n'...
-            'and the updates installed on top of this. If in doubt,\n'...
-            'consult your local network administrator.']));
+            'and the updates installed on top of this.']));
     end
 end
 
@@ -190,8 +188,8 @@ fprintf('SPM version is %s (%s, %s)\n', ...
 %-Detect SPM toolboxes
 %--------------------------------------------------------------------------
 officials = {'Beamforming', 'DARTEL', 'dcm_meeg', 'DEM', 'FieldMap', ...
-    'HDW', 'MEEGtools', 'mixture', 'Neural_Models', 'Seg', 'spectral', ...
-    'SRender'};
+    'HDW', 'MEEGtools', 'mixture', 'Neural_Models', 'Seg', 'Shoot', ...
+    'spectral', 'SRender'};
 dd = dir(fullfile(SPMdir,'toolbox'));
 dd = {dd([dd.isdir]).name};
 dd(strmatch('.',dd)) = [];
@@ -514,7 +512,7 @@ end
 % FUNCTION extract_info
 %==========================================================================
 function svnprops = extract_info(f)
-%Extract Subversion properties ($Id: spm_check_installation.m 3913 2010-06-02 15:25:23Z guillaume $ tag)
+%Extract Subversion properties (Id tag)
 
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
