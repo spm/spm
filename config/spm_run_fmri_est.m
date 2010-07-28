@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_run_fmri_est.m 4022 2010-07-28 12:50:20Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ if isfield(job.method,'Classical')
             for r=1:size(Fcon,1)
                 con       = Fcon(r,:);
                 str       = cons(i).name;
-                if ~isempty(strmatch('Interaction',str))
+                if strncmp('Interaction',str,11)
                     name  = ['Positive ',str,'_',int2str(r)];
                 else
                     sp1   = find(isspace(str), 1);

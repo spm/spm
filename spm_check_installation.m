@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4019 2010-07-28 11:29:29Z guillaume $
+% $Id: spm_check_installation.m 4022 2010-07-28 12:50:20Z guillaume $
 
 if isdeployed, return; end
 
@@ -192,7 +192,7 @@ officials = {'Beamforming', 'DARTEL', 'dcm_meeg', 'DEM', 'FieldMap', ...
     'spectral', 'SRender'};
 dd = dir(fullfile(SPMdir,'toolbox'));
 dd = {dd([dd.isdir]).name};
-dd(strmatch('.',dd)) = [];
+dd(strncmp('.',dd,1)) = [];
 dd = setdiff(dd,officials);
 fprintf('SPM toolboxes:');
 for i=1:length(dd)
@@ -489,7 +489,7 @@ for i=1:length(f)
             dispw = true;
             fprintf('File %s appears %d times in your MATLAB path:\n',f{i},numel(w));
             for j=1:numel(w)
-                if j==1 && isempty(strmatch(d,w{1}))
+                if j==1 && ~strncmp(d,w{1},length(d))
                     fprintf('  %s (SHADOWING)\n',w{1});
                 else
                     fprintf('  %s\n',w{j});
@@ -503,7 +503,7 @@ if ~dispw, fprintf('%s',repmat(sprintf('\b'),1,70)); end
 %-Recursively extract subdirectories
 %--------------------------------------------------------------------------
 dd = {dd([dd.isdir]).name};
-dd(strmatch('.',dd)) = [];
+dd(strncmp('.',dd,1)) = [];
 for i=1:length(dd)
     l = generate_listing(d,fullfile(r,dd{i}),l);
 end
@@ -531,8 +531,8 @@ else
     svnprops.id   = str2num(r(1).id);
     svnprops.date = r(1).date;
     [p,name,ext]  = fileparts(f);
-    if ~strmatch(svnprops.file,[name ext],'exact')
-        warning('SVN Id for %s does not match filename.',f);
+    if ~strcmp(svnprops.file,[name ext])
+        %fprintf('\n'); warning('SVN Id for %s does not match filename.',f);
     end
 end
 if numel(r) > 1

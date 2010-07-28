@@ -12,7 +12,7 @@ function hdr1 = spm_dicom_essentials(hdr0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_essentials.m 2268 2008-09-30 21:15:32Z guillaume $
+% $Id: spm_dicom_essentials.m 4022 2010-07-28 12:50:20Z guillaume $
 
 used_fields = {...
     'AcquisitionDate',...
@@ -61,13 +61,13 @@ used_fields = {...
     'VROfPixelData'};
 
 fnames = fieldnames(hdr0);
-for i=1:numel(used_fields),
-    if any(strmatch(used_fields{i},fnames,'exact')),
+for i=1:numel(used_fields)
+    if ismember(used_fields{i},fnames)
        hdr1.(used_fields{i}) = hdr0.(used_fields{i});
     end
 end
 
-if isfield(hdr1,'Private_0029_1210'),
+if isfield(hdr1,'Private_0029_1210')
     Private_0029_1210_fields = {...
         'Columns',...
         'Rows',...
@@ -80,7 +80,7 @@ if isfield(hdr1,'Private_0029_1210'),
                        Private_0029_1210_fields);
 end
  
-if isfield(hdr1,'CSAImageHeaderInfo'), 
+if isfield(hdr1,'CSAImageHeaderInfo')
     CSAImageHeaderInfo_fields = {...
         'SliceNormalVector',...
         'NumberOfImagesInMosaic',...
@@ -91,7 +91,7 @@ if isfield(hdr1,'CSAImageHeaderInfo'),
                        CSAImageHeaderInfo_fields);
 end
 
-if isfield(hdr1,'CSASeriesHeaderInfo'),    
+if isfield(hdr1,'CSASeriesHeaderInfo')
     CSASeriesHeaderInfo_fields = {};
     hdr1.CSASeriesHeaderInfo = ...
         getfields(hdr1.CSASeriesHeaderInfo,...
@@ -102,7 +102,7 @@ end
 function str1 = getfields(str0,names)
 str1 = [];
 for i=1:numel(names)
-    for j=1:numel(str0),
+    for j=1:numel(str0)
         if strcmp(str0(j).name,names{i})
             str1 = [str1,str0(j)];
         end

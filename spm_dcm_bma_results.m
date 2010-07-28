@@ -9,7 +9,7 @@ function spm_dcm_bma_results(BMS,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 3853 2010-04-29 14:54:43Z christophe $
+% $Id: spm_dcm_bma_results.m 4022 2010-07-28 12:50:20Z guillaume $
 
 if nargin < 1
     fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
@@ -234,8 +234,8 @@ end
 
 % spot the bmod input index from the fig name
 ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
-it = strmatch('bold',get(ht,'Fontweight'));
-t_str = get(ht(it),'string');
+ht = findobj(ht,'flat','Fontweight','bold');
+t_str = get(ht,'string');
 b_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_mod = find(ud.mod_input==b_ind);
 
@@ -279,8 +279,8 @@ end
 
 % spot the c_drv input index from the fig name
 ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
-it = strmatch('bold',get(ht,'Fontweight'));
-t_str = get(ht(it),'string');
+ht = findobj(ht,'flat','Fontweight','bold');
+t_str = get(ht,'string');
 c_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_drv = find(ud.drive_input==c_ind);
 
@@ -321,8 +321,8 @@ end
 
 % spot the d_reg input index from the fig name
 ht = intersect(findobj('style','pushbutton'),get(hf,'children'));
-it = strmatch('bold',get(ht,'Fontweight'));
-t_str = get(ht(it),'string');
+ht = findobj(ht,'flat','Fontweight','bold');
+t_str = get(ht,'string');
 d_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_mreg = find(ud.mod_reg==d_ind);
 
