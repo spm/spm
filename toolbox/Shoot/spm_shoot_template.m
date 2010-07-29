@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot_template.m 4026 2010-07-29 13:45:50Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;

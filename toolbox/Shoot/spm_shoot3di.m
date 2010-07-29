@@ -58,7 +58,7 @@ function varargout = spm_shoot3di(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot3di.m 4026 2010-07-29 13:45:50Z john $
 
 args0 = [8 4 4];
 if nargin<3,

@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot_blur.m 4026 2010-07-29 13:45:50Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 12;                            end; % Maximum no. iterations

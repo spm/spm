@@ -10,7 +10,7 @@ function d = spm_shoot_defaults
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot_defaults.m 4026 2010-07-29 13:45:50Z john $
 
 
 %_______________________________________________________________________

@@ -20,7 +20,7 @@ function [u0,ll1, ll2] = spm_shoot_update(g,f,u0,phi,dt,prm,int_args, bs_args,sc
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot_update.m 4026 2010-07-29 13:45:50Z john $
 
 if nargin<9, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);

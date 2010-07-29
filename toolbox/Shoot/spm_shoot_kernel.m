@@ -18,7 +18,7 @@ function out = spm_shoot_kernel(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot_kernel.m 4026 2010-07-29 13:45:50Z john $
 
 defs   = spm_shoot_defaults;
 rparam = defs.rparam;
