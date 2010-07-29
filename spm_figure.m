@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 3953 2010-06-28 16:58:48Z guillaume $
+% $Id: spm_figure.m 4025 2010-07-29 11:10:15Z guillaume $
 
 
 %==========================================================================
@@ -998,7 +998,10 @@ function myscroll(obj,evt)
 %==========================================================================
 ax = findobj(gcf,'Tag','textcont');
 cla(ax);
-authors = spm_authors;
+[current, previous] = spm_authors;
+authors = {'*SPM8*' current{:} '' ...
+           '*Previous versions*' previous{:} '' ...
+           '*Thanks to the SPM community*'};
 x = 0.2;
 h = [];
 for i=1:numel(authors)
@@ -1033,43 +1036,3 @@ else
     c = [1 1 1] - 6*abs(0.4-x);
 end
 c(c<0) = 0; c(c>1) = 1;
-
-%==========================================================================
-function authors = spm_authors
-%==========================================================================
-authors = {...
-'*SPM8*'
-'John Ashburner'
-'Gareth Barnes'
-'Chun-Chuan Chen'
-'Justin Chumbley'
-'Jean Daunizeau'
-'Guillaume Flandin'
-'Karl Friston'
-'Darren Gitelman'
-'Volkmar Glauche'
-'Lee Harrison'
-'Rik Henson'
-'Chloe Hutton'
-'Maria Joao Rosa'
-'Stefan Kiebel'
-'James Kilner'
-'Vladimir Litvak'
-'Rosalyn Moran'
-'Tom Nichols'
-'Robert Oostenveld'
-'Will Penny'
-'Christophe Phillips'
-'Klaas Enno Stephan'
-''
-'*Previous versions*'
-'Matthew Brett'
-'Christian Buechel'
-'Jon Heather'
-'Andrew Holmes'
-'Jeremie Mattout'
-'Jean-Baptiste Poline'
-'Keith Worsley'
-''
-'*Thanks to the SPM community*'
-};

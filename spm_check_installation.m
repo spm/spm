@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4022 2010-07-28 12:50:20Z guillaume $
+% $Id: spm_check_installation.m 4025 2010-07-29 11:10:15Z guillaume $
 
 if isdeployed, return; end
 
@@ -532,7 +532,7 @@ else
     svnprops.date = r(1).date;
     [p,name,ext]  = fileparts(f);
     if ~strcmp(svnprops.file,[name ext])
-        %fprintf('\n'); warning('SVN Id for %s does not match filename.',f);
+        fprintf('\nSVN Id does not match filename for file:\n  %s\n',f);
     end
 end
 if numel(r) > 1
