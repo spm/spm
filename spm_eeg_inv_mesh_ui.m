@@ -16,9 +16,9 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 4027 2010-07-31 12:49:19Z vladimir $
 
-SVNrev = '$Rev: 3731 $';
+SVNrev = '$Rev: 4027 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ if isempty(sMRI)
 elseif ~ischar(sMRI)
     template = sMRI; % for backward compatibility
 else
-    template = 1;
+    template = 0;
 end
 
 if template
