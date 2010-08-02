@@ -11,7 +11,7 @@ function out = spm_defs(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 3755 2010-03-05 14:14:36Z volkmar $
+% $Id: spm_defs.m 4030 2010-08-02 11:41:26Z guillaume $
 
 [Def,mat] = get_comp(job.comp);
 [dpath ipath] = get_paths(job);
@@ -301,7 +301,7 @@ if isempty(ofname), fname = {}; return; end;
 
 fname = {fullfile(odir,['y_' ofname '.nii'])};
 dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 3];
-dtype = 'FLOAT32-LE';
+dtype = 'FLOAT32';
 off   = 0;
 scale = 1;
 inter = 0;

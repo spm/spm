@@ -8,7 +8,7 @@ function spm_hdw(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_hdw.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_hdw.m 4030 2010-08-02 11:41:26Z guillaume $
 
 for i=1:numel(job.data),
     run_warping(job.data(i).mov{1},job.data(i).ref{1},job.warp_opts,job.bias_opts);
@@ -227,7 +227,7 @@ function save_def(Def,mat,fname)
 % Save a deformation field as an image
 
 dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 3];
-dtype = 'FLOAT32-BE';
+dtype = 'FLOAT32';
 off   = 0;
 scale = 1;
 inter = 0;

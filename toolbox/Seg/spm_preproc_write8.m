@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 3172 2009-06-02 11:40:42Z john $
+% $Id: spm_preproc_write8.m 4030 2010-08-02 11:41:26Z guillaume $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -321,7 +321,7 @@ if any(tc(:,3)),
         if tc(k1,3),
             N      = nifti;
             N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, '.nii']),...
-                                d1,'uint8-be',0,1/255,0);
+                                d1,'uint8',0,1/255,0);
             N.mat  = M1;
             N.mat0 = M1;
             N.descrip = ['Warped tissue class ' num2str(k1)];
@@ -338,7 +338,7 @@ if df(2),
     y         = spm_invert_def(y,M1,d1,M0,[1 0]);
     N         = nifti;
     N.dat     = file_array(fullfile(pth,['y_', nam1, '.nii']),...
-                           [d1,1,3],'float32-be',0,1,0);
+                           [d1,1,3],'float32',0,1,0);
     N.mat     = M1;
     N.mat0    = M1;
     N.descrip = 'Deformation';
