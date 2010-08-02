@@ -124,7 +124,7 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 1399 2010-07-12 16:11:43Z jansch $
+% $Id: ft_rejectvisual.m 1439 2010-07-21 12:51:36Z jansch $
 
 fieldtripdefs
 
@@ -270,8 +270,8 @@ fprintf('%d channels marked as GOOD, %d channels marked as BAD\n', sum(chansel),
 
 % trl is not specified in the function call, but the data is given ->
 % try to locate the trial definition (trl) in the nested configuration
-if isfield(data, 'trialdef')
-   trl  = [data.trialdef data.offset(:)];
+if isfield(data, 'sampleinfo')
+   trl  = [data.sampleinfo data.offset(:)];
 else
   % a trial definition is expected in each continuous data set
   trl  = [];
@@ -306,7 +306,7 @@ end
 data.time  = data.time(trlsel);
 data.trial = data.trial(trlsel);
 if isfield(data, 'trialinfo'), data.trialinfo = data.trialinfo(trlsel,:); end;
-if isfield(data, 'trialdef'),  data.trialdef  = data.trialdef(trlsel,:);  end;
+if isfield(data, 'sampleinfo'),  data.sampleinfo  = data.sampleinfo(trlsel,:);  end;
 
 % remove the offset vector if present (only applies to datasets that have been preprocessed a long time ago)
 if isfield(data, 'offset')
@@ -361,7 +361,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectvisual.m 1399 2010-07-12 16:11:43Z jansch $';
+cfg.version.id = '$Id: ft_rejectvisual.m 1439 2010-07-21 12:51:36Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

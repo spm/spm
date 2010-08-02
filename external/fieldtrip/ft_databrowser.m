@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1430 2010-07-20 07:41:41Z roboos $
+% $Id: ft_databrowser.m 1477 2010-07-29 12:48:30Z crimic $
 
 fieldtripdefs
 
@@ -128,7 +128,7 @@ if ischar(cfg.selectfeature)
   % ensure that it is a cell array
   cfg.selectfeature = {cfg.selectfeature};
 end
-
+ 
 % get some initial parameters from the data
 if hasdata
   % fetch the header
@@ -143,12 +143,24 @@ if hasdata
   Nchans  = length(chansel);
   
   % this is how the input data is segmented
-  if isfield(data, 'trialdef'),
-    trlorg = [data.trialdef data.offset(:)];
+  trlorg = [];
+  
+  if isfield(data, 'sampleinfo')
+    if ~isempty(data.sampleinfo)
+      trlorg = [data.sampleinfo data.offset(:)];
+    else
+      error('sampleinfo field is empty!');
+    end
   else
+    Ntrials  = numel(data.trial);
+    Nsamples = numel(data.time{1});
     trlorg = [];
+    cfg = checkcfg(Ntrials,Nsamples,hdr,cfg);
+    trlorg = cfg.trl;
+    data.sampleinfo = trlorg;
   end
   Ntrials = size(trlorg, 1);
+  
   
   if strcmp(cfg.viewmode, 'component')
     % read or create the layout that will be used for the topoplots
@@ -166,38 +178,13 @@ else
   else
     event = [];
   end
-  
-  % this option relates to reading over trial boundaries in a pseudo-continuous dataset
-  if ~isfield(cfg, 'continuous')
-    if hdr.nTrials==1
-      cfg.continuous = 'yes';
-    else
-      cfg.continuous = 'no';
-    end
-  end
-  
-  if ~isfield(cfg, 'trl')
-    % treat the data as continuous if possible, otherwise define all trials as indicated in the header
-    if strcmp(cfg.continuous, 'yes')
-      trl = zeros(1, 3);
-      trl(1,1) = 1;
-      trl(1,2) = hdr.nSamples*hdr.nTrials;
-      trl(1,3) = 0;
-    else
-      trl = zeros(hdr.nTrials, 3);
-      for i=1:hdr.nTrials
-        trl(i,1) = (i-1)*hdr.nSamples + 1;
-        trl(i,2) = (i  )*hdr.nSamples    ;
-        trl(i,3) = -hdr.nSamplesPre;
-      end
-    end
-    cfg.trl = trl;
-  end
-  
+    
   cfg.channel = ft_channelselection(cfg.channel, hdr.label);
   chansel = match_str(hdr.label, cfg.channel);
   fsample = hdr.Fs;
   Nchans  = length(chansel);
+  
+  cfg = checkcfg(hdr.nTrials,hdr.nSamples,hdr,cfg);
   
   % this is how the data from file should be segmented
   trlorg = cfg.trl;
@@ -429,7 +416,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1430 2010-07-20 07:41:41Z roboos $';
+cfg.version.id = '$Id: ft_databrowser.m 1477 2010-07-29 12:48:30Z crimic $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')
@@ -1059,4 +1046,34 @@ end % switch viewmode
 fprintf('done\n');
 
 guidata(h, opt);
+end
+
+
+function cfg = checkcfg(Ntrials,Nsamples,hdr,cfg)
+  % this option relates to reading over trial boundaries in a pseudo-continuous dataset
+  if ~isfield(cfg, 'continuous')
+    if Ntrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
+  end
+  
+  if ~isfield(cfg, 'trl')
+    % treat the data as continuous if possible, otherwise define all trials as indicated in the header
+    if strcmp(cfg.continuous, 'yes')
+      trl = zeros(1, 3);
+      trl(1,1) = 1;
+      trl(1,2) = Nsamples*Ntrials;
+      trl(1,3) = 0;
+    else
+      trl = zeros(Ntrials, 3);
+      for i=1:Ntrials
+        trl(i,1) = (i-1)*Nsamples + 1;
+        trl(i,2) = (i  )*Nsamples    ;
+        trl(i,3) = -hdr.nSamplesPre;
+      end
+    end
+    cfg.trl = trl;
+  end
 end

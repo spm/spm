@@ -35,6 +35,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %                     can be selected by holding down the SHIFT key.
 % cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
 % cfg.linestyle     = linestyle/marker type, see options of the matlab PLOT function (default = '-')
+%                     can be a single style for all datasets, or a cell-array containing one style for each dataset
 % cfg.linewidth     = linewidth in points (default = 0.5)
 % cfg.graphcolor    = color(s) used for plotting the dataset(s) (default = 'brgkywrgbkywrgbkywrgbkyw')
 %                     alternatively, colors can be specified as Nx3 matrix of RGB values
@@ -67,7 +68,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 1431 2010-07-20 07:47:55Z roboos $
+% $Id: ft_singleplotER.m 1485 2010-07-30 09:18:55Z jansch $
 
 fieldtripdefs
 
@@ -99,6 +100,23 @@ if ischar(cfg.graphcolor)
 elseif isnumeric(cfg.graphcolor)
   GRAPHCOLOR = [0 0 0; cfg.graphcolor];
 end
+
+% check for linestyle being a cell-array, check it's length, and lengthen it if does not have enough styles in it
+if ischar(cfg.linestyle)
+  cfg.linestyle = {cfg.linestyle};
+end
+if (nargin-1) > 1
+  if (length(cfg.linestyle) < (nargin-1)) && (length(cfg.linestyle) > 1)
+    error('either specify cfg.linestyle as a cell-array with one cell for each dataset, or only specify one linestyle')
+  elseif (length(cfg.linestyle) < (nargin-1)) && (length(cfg.linestyle) == 1)
+    tmpstyle = cfg.linestyle{1};
+    cfg.linestyle = cell(nargin-1,1);
+    for idataset = 1:(nargin-1)
+      cfg.linestyle{idataset} = tmpstyle;
+    end
+  end
+end
+
 
 % Set x/y/zparam defaults according to varargin{1}.dimord value:
 if strcmp(varargin{1}.dimord, 'chan_time')
@@ -153,9 +171,14 @@ end
 % Old style coherence plotting with cohtargetchannel is no longer supported:
 cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
+% Check for unconverted coherence spectrum data or any other bivariate metric:
+dimtok  = tokenize(varargin{1}.dimord, '_');
+selchan = strmatch('chan', dimtok);
+isfull  = length(selchan)>1;
 for k=1:length(varargin)
   % Check for unconverted coherence spectrum data:
-  if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(varargin{k}, 'labelcmb'))
+  if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(varargin{k}, 'labelcmb')) || ...
+     (isfull && isfield(varargin{k}, cfg.zparam)), 
     % A reference channel is required:
     if ~isfield(cfg,'cohrefchannel'),
       error('no reference channel specified');
@@ -178,14 +201,20 @@ for k=1:length(varargin)
       return
     end
 
-    % Convert 2-dimensional channel matrix to a single dimension:
-    sel1                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,2));
-    sel2                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,1));
-    fprintf('selected %d channels for coherence\n', length(sel1)+length(sel2));
-    varargin{k}.cohspctrm = varargin{k}.cohspctrm([sel1;sel2],:,:);
-    varargin{k}.label     = [varargin{k}.labelcmb(sel1,1);varargin{k}.labelcmb(sel2,2)];
-    varargin{k}.labelcmb  = varargin{k}.labelcmb([sel1;sel2],:);
-    varargin{k}           = rmfield(varargin{k}, 'labelcmb');
+    if ~isfull,
+      % only works explicitly with coherence FIXME
+      % Convert 2-dimensional channel matrix to a single dimension:
+      sel1                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,2));
+      sel2                  = strmatch(cfg.cohrefchannel, varargin{k}.labelcmb(:,1));
+      fprintf('selected %d channels for coherence\n', length(sel1)+length(sel2));
+      varargin{k}.cohspctrm = varargin{k}.cohspctrm([sel1;sel2],:,:);
+      varargin{k}.label     = [varargin{k}.labelcmb(sel1,1);varargin{k}.labelcmb(sel2,2)];
+      varargin{k}.labelcmb  = varargin{k}.labelcmb([sel1;sel2],:);
+      varargin{k}           = rmfield(varargin{k}, 'labelcmb');
+    else
+      % general solution will be dealt with below
+      % FIXME don't know if all still works
+    end
   end
 
   % Apply baseline correction:
@@ -289,7 +318,7 @@ for k=2:nargin
   if ischar(GRAPHCOLOR);        color = GRAPHCOLOR(k);
   elseif isnumeric(GRAPHCOLOR); color = GRAPHCOLOR(k,:);
   end
-  ft_plot_vector(varargin{k-1}.(cfg.xparam), P, 'style', cfg.linestyle, 'color', color, 'highlight', M, 'highlightstyle', cfg.maskstyle, 'linewidth', cfg.linewidth);  
+  ft_plot_vector(varargin{k-1}.(cfg.xparam), P, 'style', cfg.linestyle{k-1}, 'color', color, 'highlight', M, 'highlightstyle', cfg.maskstyle, 'linewidth', cfg.linewidth);  
 end
 
 % Set xlim and ylim:

@@ -167,7 +167,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 1423 2010-07-18 12:34:47Z roboos $
+% $Id: ft_preprocessing.m 1446 2010-07-22 15:13:17Z jansch $
 
 fieldtripdefs
 
@@ -264,7 +264,7 @@ if hasdata
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % the input data must be raw
-  data = checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes');
+  data = checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes', 'hastrialdef', 'yes');
 
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
@@ -279,10 +279,6 @@ if hasdata
   % select trials of interest
   if ~strcmp(cfg.trials, 'all')
     data = selectdata(data, 'rpt', cfg.trials);
-    if isfield(data, 'cfg'),
-      cfg.trl    = findcfg(data.cfg, 'trl');
-      cfg.trlold = findcfg(data.cfg, 'trlold');
-    end
   end
 
   % translate the channel groups (like 'all' and 'MEG') into real labels
@@ -296,7 +292,7 @@ if hasdata
   if isfield(data, 'fsample'),  dataout.fsample = data.fsample;     end
   if isfield(data, 'grad'),     dataout.grad    = data.grad;        end
   if isfield(data, 'elec'),     dataout.elec    = data.elec;        end
-  if isfield(data, 'trialdef'),  dataout.trialdef  = data.trialdef;  end
+  if isfield(data, 'sampleinfo'),  dataout.sampleinfo  = data.sampleinfo;  end
   if isfield(data, 'trialinfo'), dataout.trialinfo = data.trialinfo; end
   
   progress('init', cfg.feedback, 'preprocessing');
@@ -519,7 +515,7 @@ else
     dataout.time               = time;                 % vector with the timeaxis for each individual trial
     dataout.trial              = cutdat;
     dataout.fsample            = hdr.Fs;
-    dataout.trialdef           = cfg.trl(:,1:2);
+    dataout.sampleinfo         = cfg.trl(:,1:2);
     if size(cfg.trl,2) > 3
         dataout.trialinfo      = cfg.trl(:,4:end);
     end
@@ -547,7 +543,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_preprocessing.m 1423 2010-07-18 12:34:47Z roboos $';
+cfg.version.id   = '$Id: ft_preprocessing.m 1446 2010-07-22 15:13:17Z jansch $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

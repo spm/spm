@@ -24,7 +24,7 @@ function [mri, hdr, cpersist] = read_ctf_mri4(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri4.m 1362 2010-07-06 09:04:24Z roboos $
+% $Id: read_ctf_mri4.m 1443 2010-07-22 07:03:17Z jansch $
 
 fid = fopen(filename,'rb', 'ieee-be');
 
@@ -160,7 +160,7 @@ hdr.fiducial.mri.rpa = [hdr.HeadModel.RightEar_Sag hdr.HeadModel.RightEar_Cor hd
 % along the left-right direction.
 % This may have been done only for visualization?  It can probably be
 % "turned off" without problem.
-if true
+if false
   mri = flipdim(mri, 1);
   flip = [-1 0 0 hdr.imageSize+1
            0 1 0 0

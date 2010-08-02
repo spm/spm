@@ -81,7 +81,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 1401 2010-07-12 18:52:40Z jansch $
+% $Id: ft_megplanar.m 1439 2010-07-21 12:51:36Z jansch $
 
 fieldtripdefs
 
@@ -287,7 +287,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_megplanar.m 1401 2010-07-12 18:52:40Z jansch $';
+cfg.version.id   = '$Id: ft_megplanar.m 1439 2010-07-21 12:51:36Z jansch $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
@@ -300,9 +300,9 @@ if isfield(data, 'trialinfo')
   interp.trialinfo = data.trialinfo;
 end
 
-% copy the trialdef field as well
-if isfield(data, 'trialdef')
-  interp.trialdef = data.trialdef;
+% copy the sampleinfo field as well
+if isfield(data, 'sampleinfo')
+  interp.sampleinfo = data.sampleinfo;
 end
 
 % the output data should be saved to a MATLAB file

@@ -50,7 +50,7 @@ function [data] = ft_appenddata(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 1311 2010-06-30 12:17:57Z timeng $
+% $Id: ft_appenddata.m 1489 2010-07-30 16:16:49Z crimic $
 
 fieldtripdefs
 
@@ -107,6 +107,21 @@ for i=1:Ndata
 end
 hastrialinfo = hastrialinfo==Ndata;
 
+hassampleinfo = 0;
+for i=1:Ndata
+  if isfield(varargin{i}, 'sampleinfo')
+     sampleinfo{i} = varargin{i}.sampleinfo;
+  else
+     sampleinfo{i} = [];
+  end
+  if isempty(sampleinfo{i})
+    % a sample definition is expected in each data set
+    warning(sprintf('no ''sampleinfo'' field in data structure %d', i));
+  end
+  hassampleinfo = isfield(varargin{i}, 'sampleinfo') + hassampleinfo;
+end
+hassampleinfo = hassampleinfo==Ndata;
+
 % check the consistency of the labels across the input-structures
 [alllabel, indx1, indx2] = unique(label, 'first');
 order    = zeros(length(alllabel),Ndata);
@@ -146,10 +161,10 @@ end
 
 % check whether the data are obtained from the same datafile
 origfile1      = findcfg(varargin{1}.cfg, 'datafile');
-removetrialdef = 0;
+removesampleinfo = 0;
 for j=2:Ndata
     if ~strcmp(origfile1, findcfg(varargin{j}.cfg, 'datafile')),
-        removetrialdef = 1;
+        removesampleinfo = 1;
         warning('input data comes from different datafiles');
         break;
     end
@@ -188,12 +203,20 @@ elseif cattrial
   data = varargin{1};
   data.trial  = {};
   data.time   = {};
-  data.trialdef = [];
+  data.sampleinfo = [];
   if hastrialinfo, data.trialinfo = []; end;
   for i=1:Ndata
     data.trial    = cat(2, data.trial,  varargin{i}.trial(:)');
     data.time     = cat(2, data.time,   varargin{i}.time(:)');
-    data.trialdef = cat(1, data.trialdef, varargin{i}.trialdef);
+    % check if all datasets to merge have the sampleinfo field
+    if hassampleinfo
+      data.sampleinfo = cat(1, data.sampleinfo, varargin{i}.sampleinfo);
+    else
+      if isempty(sampleinfo{i})
+        varargin{i}.sampleinfo = [];
+      end
+      data.sampleinfo = cat(1, data.sampleinfo, varargin{i}.sampleinfo);
+    end
     if hastrialinfo, data.trialinfo = cat(1, data.trialinfo, varargin{i}.trialinfo); end;
     % FIXME is not entirely robust if the different inputs have different
     % number of columns in trialinfo
@@ -254,9 +277,9 @@ if removesens
   if hasgrad, data = rmfield(data, 'grad'); end
 end
 
-if removetrialdef
+if removesampleinfo
     fprintf('removing trial definition from output\n');
-    data            = rmfield(data, 'trialdef');
+    data            = rmfield(data, 'sampleinfo');
     cfg.trl(:, 1:2) = nan;
 end
 
@@ -269,7 +292,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appenddata.m 1311 2010-06-30 12:17:57Z timeng $';
+cfg.version.id = '$Id: ft_appenddata.m 1489 2010-07-30 16:16:49Z crimic $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

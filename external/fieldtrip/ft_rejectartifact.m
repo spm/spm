@@ -70,7 +70,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 1436 2010-07-21 11:46:40Z jansch $
+% $Id: ft_rejectartifact.m 1452 2010-07-26 07:43:23Z jansch $
 
 fieldtripdefs
 
@@ -184,8 +184,8 @@ end
 
 if hasdata
   data = checkdata(data, 'hastrialdef', 'yes', 'hasoffset', 'yes');
-  if isfield(data, 'trialdef')
-    trl = [data.trialdef data.offset(:)];
+  if isfield(data, 'sampleinfo')
+    trl = [data.sampleinfo data.offset(:)];
     if isfield(data, 'trialinfo')
       trl(:, 3+(1:size(data.trialinfo,2))) = data.trialinfo;
     end
@@ -214,7 +214,11 @@ cfg.artfctdef.type = cfg.artfctdef.type(:)';
 for type=1:length(cfg.artfctdef.type)
   fprintf('evaluating artifact_%s\n', cfg.artfctdef.type{type});
   % each call to artifact_xxx adds cfg.artfctdef.xxx.artifact
-  cfg = feval(sprintf('artifact_%s', cfg.artfctdef.type{type}), cfg);
+  if hasdata
+    cfg = feval(sprintf('artifact_%s', cfg.artfctdef.type{type}), cfg, data);
+  else
+    cfg = feval(sprintf('artifact_%s', cfg.artfctdef.type{type}), cfg);
+  end
 end
 
 % collect the artifacts that have been detected from cfg.artfctdef.xxx.artifact
@@ -411,7 +415,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectartifact.m 1436 2010-07-21 11:46:40Z jansch $';
+cfg.version.id = '$Id: ft_rejectartifact.m 1452 2010-07-26 07:43:23Z jansch $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

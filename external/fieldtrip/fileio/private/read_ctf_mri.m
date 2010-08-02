@@ -26,7 +26,7 @@ function [mri, hdr] = read_ctf_mri(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri.m 1064 2010-05-12 16:19:17Z marlal $
+% $Id: read_ctf_mri.m 1443 2010-07-22 07:03:17Z jansch $
 
 % Some versions require specifying latin1 (ISO-8859-1) character encoding.
 fid = fopen(filename, 'rb', 'ieee-be', 'ISO-8859-1');
@@ -169,7 +169,7 @@ hdr.fiducial.mri.rpa = [hdr.HeadModel.RightEar_Sag hdr.HeadModel.RightEar_Cor hd
 % along the left-right direction.
 % This may have been done only for visualization?  It can probably be
 % "turned off" without problem.
-if true
+if false
   mri = flipdim(mri, 1);
   flip = [-1 0 0 hdr.imageSize+1
            0 1 0 0

@@ -26,7 +26,7 @@ function [dat] = fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_data.m 1328 2010-07-01 12:39:39Z jansch $
+% $Id: fetch_data.m 1440 2010-07-21 12:52:25Z jansch $
     
 % check whether input is data
 data = checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
@@ -50,8 +50,8 @@ if isempty(chanindx)
 end
 
 % get trial definition according to original data file
-if isfield(data, 'trialdef')
-  trl    = data.trialdef;
+if isfield(data, 'sampleinfo')
+  trl    = data.sampleinfo;
 else
   error('data does not contain a consistent trial definition, fetching data is not possible');
 end

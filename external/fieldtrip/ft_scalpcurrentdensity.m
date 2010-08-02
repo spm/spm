@@ -70,7 +70,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 1437 2010-07-21 11:53:51Z jansch $
+% $Id: ft_scalpcurrentdensity.m 1439 2010-07-21 12:51:36Z jansch $
 
 fieldtripdefs
 
@@ -219,8 +219,8 @@ scd.elec    = elec;
 scd.time    = data.time;
 scd.label   = data.label;
 scd.fsample = data.fsample;
-if isfield(data, 'trialdef')
-  scd.trialdef = data.trialdef;
+if isfield(data, 'sampleinfo')
+  scd.sampleinfo = data.sampleinfo;
 end
 if isfield(data, 'trialinfo')
   scd.trialinfo = data.trialinfo;
@@ -235,7 +235,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1437 2010-07-21 11:53:51Z jansch $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1439 2010-07-21 12:51:36Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

@@ -38,7 +38,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 1437 2010-07-21 11:53:51Z jansch $
+% $Id: ft_channelrepair.m 1439 2010-07-21 12:51:36Z jansch $
 
 fieldtripdefs
 
@@ -131,8 +131,8 @@ else
   interp.grad  = sens;
 end
 
-if isfield(data, 'trialdef')
-  interp.trialdef = data.trialdef;
+if isfield(data, 'sampleinfo')
+  interp.sampleinfo = data.sampleinfo;
 end
 if isfield(data, 'trialinfo')
   interp.trialinfo = data.trialinfo;
@@ -154,7 +154,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_channelrepair.m 1437 2010-07-21 11:53:51Z jansch $';
+cfg.version.id   = '$Id: ft_channelrepair.m 1439 2010-07-21 12:51:36Z jansch $';
 % remember the configuration details of the input data
 
 % remember the configuration details of the input data

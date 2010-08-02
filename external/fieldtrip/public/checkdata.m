@@ -50,7 +50,7 @@ function [data] = checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: checkdata.m 1028 2010-05-04 10:47:38Z jansch $
+% $Id: checkdata.m 1440 2010-07-21 12:52:25Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -627,6 +627,12 @@ if isfield(data, 'grad')
   end
 end
 
+% This is necessary to ensure backward compatibility for data processed and stored in July 2010. 
+% We decided to change the field trialdef into sampleinfo.
+if isfield(data, 'trialdef')
+  data.sampleinfo = data.trialdef;
+  data = rmfield(data, 'trialdef');
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner

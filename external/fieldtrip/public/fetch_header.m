@@ -26,7 +26,7 @@ function [hdr] = fetch_header(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_header.m 1328 2010-07-01 12:39:39Z jansch $
+% $Id: fetch_header.m 1440 2010-07-21 12:52:25Z jansch $
 
 % check whether input is data
 data = checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
@@ -38,8 +38,8 @@ for trllop=1:trlnum
 end
 
 % try to get trial definition according to original data file
-if isfield(data, 'trialdef')
-  trl = data.trialdef;
+if isfield(data, 'sampleinfo')
+  trl = data.sampleinfo;
 else
   trl = [1 sum(trllen)];
 end

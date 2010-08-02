@@ -173,6 +173,7 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
   for k = 1:ntim
     for m = 1:nfrq
       for p = 1:nrpt
+        %FIXME speed this up in the case that all trials have equal number of tapers
         indx   = (sumtapcnt(p)+1):sumtapcnt(p+1);
         tmpdat = transpose(data.fourierspctrm(indx,:,m,k));
         crsspctrm(p,:,:,m,k) = (tmpdat*tmpdat')./data.cumtapcnt(p);
@@ -192,10 +193,35 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
   if nrpt>1,
     data.dimord = ['rpt_',data.dimord];
   end   
-
+  
+  % remove first singleton dimension
   if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
 
-end % from fourier to the requested bivariate representation
+elseif strcmp(current, 'fourier') && strcmp(desired, 'fullfast'),
+
+  dimtok = tokenize(data.dimord, '_');
+  nrpt = size(data.fourierspctrm, 1);    
+  nchn = numel(data.label);    
+  nfrq = numel(data.freq);  
+  if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time); else ntim = 1; end
+  
+  data.fourierspctrm = reshape(data.fourierspctrm, [nrpt nchn nfrq*ntim]);
+  data.fourierspctrm(~isfinite(data.fourierspctrm)) = 0;
+  crsspctrm = complex(zeros(nchn,nchn,nfrq*ntim));
+  for k = 1:nfrq*ntim
+    tmp = transpose(data.fourierspctrm(:,:,k));
+    n   = sum(tmp~=0,2);
+    crsspctrm(:,:,k) = tmp*tmp'./n(:,ones(1,size(tmp,2)));
+  end
+  data           = rmfield(data, 'fourierspctrm');
+  data.crsspctrm = reshape(crsspctrm, [nchn nchn nfrq ntim]);
+  if isfield(data, 'time'),
+    data.dimord = 'chan_chan_freq_time';
+  else
+    data.dimord = 'chan_chan_freq';
+  end
+
+end % convert to the requested bivariate representation
 
 % from one bivariate representation to another
 if isequal(current, desired)
@@ -211,7 +237,25 @@ elseif strcmp(current, 'full') && strcmp(desired, 'sparsewithpow')
   error('not yet implemented');
 elseif strcmp(current, 'sparse') && strcmp(desired, 'sparsewithpow')
   % convert back to crsspctrm/powspctrm representation: useful for plotting functions etc
-  error(  'not yet implemented');
+  indx     = labelcmb2indx(data.labelcmb);
+  autoindx = indx(indx(:,1)==indx(:,2), 1);
+  cmbindx  = setdiff([1:size(indx,1)]', autoindx);
+  
+  if strcmp(data.dimord(1:3), 'rpt')
+    data.powspctrm = data.crsspctrm(:, autoindx, :, :);
+    data.crsspctrm = data.crsspctrm(:, cmbindx,  :, :);
+  else
+    data.powspctrm = data.crsspctrm(autoindx, :, :);
+    data.crsspctrm = data.crsspctrm(cmbindx,  :, :);
+  end 
+  data.label    = data.labelcmb(autoindx,1);
+  data.labelcmb = data.labelcmb(cmbindx, :);
+  
+  if isempty(cmbindx)
+    data = rmfield(data, 'crsspctrm');
+    data = rmfield(data, 'labelcmb');
+  end
+  
 elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
   dimtok = tokenize(data.dimord, '_');
   if ~isempty(strmatch('rpt',   dimtok)), nrpt=numel(data.cumtapcnt); else nrpt = 1; end
@@ -346,6 +390,74 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
 
   if nrpt>1,
     data.dimord = ['rpt_',data.dimord];
+  end
+
+elseif strcmp(current, 'sparse') && strcmp(desired, 'fullfast')
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('rpt',   dimtok)), nrpt=numel(data.cumtapcnt); else nrpt = 1; end
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=numel(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time);      else ntim = 1; end
+  
+  if ~isfield(data, 'label')
+    data.label = unique(data.labelcmb(:));
+  end
+
+  nchan     = length(data.label);
+  ncmb      = size(data.labelcmb,1);
+  cmbindx   = zeros(nchan,nchan);
+
+  for k = 1:size(data.labelcmb,1)
+    ch1 = find(strcmp(data.label, data.labelcmb(k,1)));
+    ch2 = find(strcmp(data.label, data.labelcmb(k,2)));
+    if ~isempty(ch1) && ~isempty(ch2),
+      cmbindx(ch1,ch2) = k;
+    end
+  end
+
+  complete = all(cmbindx(:)~=0);
+
+  fn = fieldnames(data);
+  for ii=1:numel(fn)
+    if numel(data.(fn{ii})) == nrpt*ncmb*nfrq*ntim;
+      if nrpt==1,
+        data.(fn{ii}) = reshape(data.(fn{ii}), [nrpt ncmb nfrq ntim]);
+      end
+
+      tmpall = nan(nchan,nchan,nfrq,ntim);
+
+      for k = 1:ntim
+        for m = 1:nfrq
+          tmpdat = nan(nchan,nchan);
+          indx   = find(cmbindx);
+          if ~complete
+            % this realizes the missing combinations to be represented as the
+            % conjugate of the corresponding combination across the diagonal
+            tmpdat(indx) = reshape(nanmean(data.(fn{ii})(:,cmbindx(indx),m,k)),[numel(indx) 1]);
+            tmpdat       = ctranspose(tmpdat);
+          end
+          tmpdat(indx)    = reshape(nanmean(data.(fn{ii})(:,cmbindx(indx),m,k)),[numel(indx) 1]);
+          tmpall(:,:,m,k) = tmpdat;
+        end % for m
+      end % for k
+
+      % replace the data in the old representation with the new representation
+      if nrpt>1,
+        data.(fn{ii}) = tmpall;
+      else
+        data.(fn{ii}) = reshape(tmpall, [nchan nchan nfrq ntim]);
+      end
+    end % if numel
+  end % for ii
+
+  % remove obsolete fields
+  try, data      = rmfield(data, 'powspctrm');  end
+  try, data      = rmfield(data, 'labelcmb');   end
+  try, data      = rmfield(data, 'dof');        end
+
+  if ntim>1,
+    data.dimord = 'chan_chan_freq_time';
+  else
+    data.dimord = 'chan_chan_freq';
   end
 
 elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
