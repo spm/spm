@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4011 2010-07-22 10:46:59Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4031 2010-08-02 15:02:21Z gareth $
 
 %%
 % Load data, if necessary
@@ -262,19 +262,25 @@ while adding_dips
                 
                 str2='Prior location variance (mm2)';
                 diags_s0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
-                diags_s0=(orM1*sqrt(diags_s0_mni)).^2;
+                  
+          
+                S_s0_ctf=orM1*diag(diags_s0_mni)*orM1'; %% transform covariance
+            
+                
+                %% need to leave diags(S0) free
               
                 if all(~outside), break, end
                     str = 'Prior location must be inside head';
                   end
             dip_pr(dip_q).mu_s0 = s0;    
-        else
+           else
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(3,1);
-            diags_s0= nopriorlocvardefault';
-        end
-        %% prior cov matrix for single dipole location (i.e. no crosstalk)
-        dip_pr(dip_q).S_s0=eye(length(diags_s0)).*repmat(diags_s0,1,length(diags_s0)); 
+            diags_s0_mni= nopriorlocvardefault';
+            S_s0_ctf=diag(diags_s0_mni);
+            end
+        
+        dip_pr(dip_q).S_s0=S_s0_ctf; %
         
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
@@ -286,16 +292,17 @@ while adding_dips
             str2='Prior moment variance (nAm2)';
             diags_w0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priormomvardefault)';
             dip_pr(dip_q).mu_w0 =orM1*w0_mni;
-            diags_w0=(orM1*sqrt(diags_w0_mni)).^2;
+            S_w0_ctf=orM1*w0_mni*orM1';
+            
              
         else
             % no location  prior
             dip_pr(dip_q).mu_w0 = zeros(3,1);
-            diags_w0= nopriormomvardefault';
+            S_w0_ctf= diag(nopriormomvardefault);
         end
         %% set up covariance matrix for orientation with no crosstalk terms (for single
         %% dip)
-        dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
+        dip_pr(dip_q).S_w0=S_w0_ctf;
         dip_c = dip_c+1;
     else
     % add a pair of symmetric dipoles to the model
@@ -323,6 +330,7 @@ while adding_dips
                 str2='Prior location variance (mm2)';
                 tmp_diags_s0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priorlocvardefault)';
                 tmp_diags_s0_mni= [tmp_diags_s0_mni ; tmp_diags_s0_mni ];
+                
               
                 if all(~outside), break, end
                     str = 'Prior location must be inside head';
@@ -333,6 +341,7 @@ while adding_dips
             % no location  prior
             dip_pr(dip_q).mu_s0 = zeros(6,1);
             tmp_diags_s0 = [nopriorlocvardefault';nopriorlocvardefault'];
+            tmp_diags_s0_mni=[nopriorlocvardefault';nopriorlocvardefault'];
         end %% end of if informative prior
         %% setting up a covariance matrix where there is covariance between
         %% the x parameters negatively coupled, y,z positively.
@@ -346,8 +355,8 @@ while adding_dips
          mni_dip_pr(dip_q).S_s0(3,6)=mni_dip_pr(dip_q).S_s0(6,3);
          %% transform to MEG space   
          
-         dip_pr(dip_q).S_s0(:,1:3)=mni_dip_pr(dip_q).S_s0(:,1:3)*orM1; %% NEED TO LOOK AT THIS
-         dip_pr(dip_q).S_s0(:,4:6)=mni_dip_pr(dip_q).S_s0(:,4:6)*orM1;
+         dip_pr(dip_q).S_s0(:,1:3)=orM1*mni_dip_pr(dip_q).S_s0(:,1:3)*orM1'; %% NEED TO LOOK AT THIS
+         dip_pr(dip_q).S_s0(:,4:6)=orM1*mni_dip_pr(dip_q).S_s0(:,4:6)*orM1';
          
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
@@ -377,8 +386,8 @@ while adding_dips
             mni_dip_pr(dip_q).S_w0(1,4)=-mni_dip_pr(dip_q).S_w0(4,1); %
             mni_dip_pr(dip_q).S_w0(2,5)=mni_dip_pr(dip_q).S_w0(5,2); %
             mni_dip_pr(dip_q).S_w0(3,6)=mni_dip_pr(dip_q).S_w0(6,3); %
-          dip_pr(dip_q).S_w0(:,1:3)=mni_dip_pr(dip_q).S_w0(:,1:3)*orM1;
-         dip_pr(dip_q).S_w0(:,4:6)=mni_dip_pr(dip_q).S_w0(:,4:6)*orM1;
+          dip_pr(dip_q).S_w0(:,1:3)=orM1*mni_dip_pr(dip_q).S_w0(:,1:3)*orM1';
+         dip_pr(dip_q).S_w0(:,4:6)=orM1*mni_dip_pr(dip_q).S_w0(:,4:6)*orM1';
          
         
         
@@ -489,10 +498,17 @@ for ii=1:length(ltr)
     spm_clf(P.handles.hfig)
      
      megmom=reshape(Pout(maxind).post_mu_w,3,length(Pout(maxind).post_mu_w)/3); % moments of dip (3 x n_dip)
-     megposvar=reshape(diag(Pout(maxind).post_S_s),3,length(Pout(maxind).post_mu_s)/3); %% estimate of positional uncertainty in three principal axes
+     %megposvar=reshape(diag(Pout(maxind).post_S_s),3,length(Pout(maxind).post_mu_s)/3); %% estimate of positional uncertainty in three principal axes
      mnimom=orM1*megmom; %% convert moments into mni coordinates through a rotation (no scaling or translation)
-     mniposvar=(orM1*sqrt(megposvar)).^2; %% convert pos variance into approx mni space by switching axes
      
+     
+     longorM1=zeros(size(Pout(maxind).post_S_s,1));
+     for k1=1:length(Pout(maxind).post_S_s)/3;
+        longorM1((k1-1)*3+1:k1*3,(k1-1)*3+1:k1*3)=orM1;
+     end; % for k1
+     S0_mni=longorM1*Pout(maxind).post_S_s*longorM1';
+     mniposvar=diag(S0_mni); %% convert pos variance into approx mni space by switching axes
+     mniposvar=reshape(mniposvar,3,length(Pout(maxind).post_S_s)/3);
      
      displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,mnimom,mniloc(1:3,:),mniposvar,P,j,[],Pout(j).F,Pout(j).ypost,maxind);
      
