@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_input.m 4028 2010-08-02 07:10:01Z volkmar $
 
 
 %=======================================================================
@@ -774,7 +774,7 @@ else                                             %-Use GUI to get answer
         'BackgroundColor',COLOUR,...
         'HorizontalAlignment','Right',...
         'Position',PRec);
-
+    if TTips, set(hPrmpt,'ToolTipString',[strN,Prompt,strM]); end
 
 
     %-Default button surrounding edit widget (if a DefStr given)
@@ -1022,7 +1022,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 
     elseif strcmp(lower(Type),'bd')
 
-        if nLabels>3, error('at most 3 labels for GUI ''db'' type'), end
+        if nLabels>3, error('at most 3 labels for GUI ''bd'' type'), end
 
         tmp = cellstr(Labels);
         if DefItem
@@ -1054,6 +1054,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
             'BackgroundColor',COLOUR,...
             'HorizontalAlignment','Right',...
             'Position',PRec);
+        if TTips, set(hPrmpt,'ToolTipString',Prompt); end
     
         if nLabels==1
             %-Only one choice - auto-pick
@@ -1089,7 +1090,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
                 end
                 h = uicontrol(Finter,'Style','Pushbutton',...
                     'String',deblank(Labels(i,:)),...
-                    'ToolTipString',str,...
+                    'ToolTipString',sprintf('%s\n%s',deblank(Labels(i,:)),str),...
                     'Tag',Tag,...
                     'Max',hPrmpt,...
                     'UserData',i,...
@@ -1263,6 +1264,7 @@ else
         'BackgroundColor',COLOUR,...
         'HorizontalAlignment','Right',...
         'Position',PRec);
+    if TTips, set(hPrmpt,'ToolTipString',[Prompt,strM]); end
 
     %-Draw buttons & entry widget, & process response
     dX = RRec(3)*(2/3)/nLabels;
@@ -1278,7 +1280,7 @@ else
         h = uicontrol(Finter,'Style','Pushbutton',...
             'String',deblank(Labels(i,:)),...
             'Max',hPrmpt,...
-            'ToolTipString',str,...
+            'ToolTipString',sprintf('%s\n%s',deblank(Labels(i,:)),str),...
             'Tag',Tag,...
             'UserData',i,...
             'BackgroundColor',COLOUR,...
@@ -1448,9 +1450,14 @@ case 'm'                                             %-Process menu type
                 'UserData',DefItem,...
                 'CallBack',cb,...
                 'Position',QRec);
-            if TTips, set(hPopUp,'ToolTipString',['select with ',...
+            if TTips,
+                cLabs  = cellstr(Labels);
+                cInd   = num2cell(1:nLabels);
+                scLabs = [cInd; cLabs'];
+                scLabs = sprintf('%d: %s\n',scLabs{:});
+                set(hPopUp,'ToolTipString',sprintf(['select with ',...
                 'mouse or type option number (1-',...
-                num2str(nLabels),') & press return']), end
+                num2str(nLabels),') & press return\n%s'],scLabs)), end
     
             %-Figure ContextMenu for shortcuts
             hM = spm_input('!InptConMen',Finter,[hPopUp,H]);
@@ -2288,7 +2295,7 @@ end
 
 function str = sf_SzStr(n,l)
 %=======================================================================
-%-Size info string constuction
+%-Size info string construction
 if nargin<2, l=0; else, l=1; end
 if nargin<1, error('insufficient arguments'), end
 if isempty(n), n=NaN; end
