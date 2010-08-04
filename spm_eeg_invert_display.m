@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 3813 2010-04-07 19:21:49Z karl $
+% $Id: spm_eeg_invert_display.m 4032 2010-08-04 10:15:35Z vladimir $
  
 % Number of dipoles to display
 %==========================================================================
@@ -49,9 +49,9 @@ pst    = model.inverse.pst;
 R2     = model.inverse.R2;
 VE     = model.inverse.VE;
 F      = model.inverse.F;
+Nd     = model.inverse.Nd;
 
-Nd     = length(Is);
-Ndip   = min(Ndip,Nd);
+Ndip   = min(Ndip,length(Is));
 
  
 % - project J onto pst
