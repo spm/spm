@@ -85,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_getfile.m 4033 2010-08-04 15:53:35Z volkmar $
 
 t = {};
 sts = false;
@@ -255,9 +255,8 @@ fg = findobj(0,'Tag',mfilename);
 if ~isempty(fg)
     delete(fg);
 end
-% create temporary figure to work out position etc.
-% seems to be necessary 
-fgtmp = figure('IntegerHandle','off',...
+% create figure
+fg = figure('IntegerHandle','off',...
     'Tag',mfilename,...
     'Name',mesg,...
     'NumberTitle','off',...
@@ -267,30 +266,8 @@ fgtmp = figure('IntegerHandle','off',...
     'DefaultUicontrolInterruptible','on',...
     'Visible','off');
     
-Rect = get(fgtmp,'Position');
-delete(fgtmp);
-%S0 = spm('WinSize','0',1);
-S0   = get(0,'MonitorPosition');
-if size(S0,1) > 1 % Multiple Monitors
-    %-Use Monitor containing the Pointer
-    pl = get(0,'PointerLocation');
-    w  = find(pl(1)>=S0(:,1) & pl(1)<S0(:,1)+S0(:,3)-1 &...
-            pl(2)>=S0(:,2) & pl(2)<S0(:,2)+S0(:,4));
-    if numel(w)~=1, w = 1; end
-    S0 = S0(w,:);
-end
-Rect(1) = S0(1) + (S0(3) - Rect(3))/2;
-Rect(2) = S0(2) + (S0(4) - Rect(4))/2;
-% create final figure
-fg = figure('IntegerHandle','off',...
-    'Tag',mfilename,...
-    'Name',mesg,...
-    'NumberTitle','off',...
-    'Units','Pixels',...
-    'MenuBar','none',...
-    'DefaultTextInterpreter','none',...
-    'DefaultUicontrolInterruptible','on',...
-    'Position',Rect);
+cfg_onscreen(fg);
+set(fg,'Visible','on');
 
 sellines = min([max([n(2) numel(already)]), 4]);
 [pselp pcntp pfdp pdirp] = panelpositions(fg, sellines+1);

@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_ui.m 4033 2010-08-04 15:53:35Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 4033 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -282,6 +282,8 @@ else
     % set cjob, if supplied
     udmodlist = local_init_udmodlist;
     udmodlist(1).cjob = cjob;
+    % move figure onscreen
+    cfg_onscreen(obj);
     set(obj,'Visible','on');
 end;
 [id str sts dep sout] = cfg_util('showjob',cjob);
@@ -1029,6 +1031,9 @@ function cfg_ui_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to cfg_ui (see VARARGIN)
+
+% move figure onscreen
+cfg_onscreen(hObject);
 
 % Add configuration specific menu items
 local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
