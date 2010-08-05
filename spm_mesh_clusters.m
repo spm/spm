@@ -10,37 +10,29 @@ function [C, N] = spm_mesh_clusters(M,T)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_clusters.m 4003 2010-07-19 18:22:38Z guillaume $
+% $Id: spm_mesh_clusters.m 4035 2010-08-05 18:54:32Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
-if isnumeric(M)
-    F   = M;
-else
-    F   = M.faces;
+if ~islogical(T)
+    T   = ~isnan(T);
 end
 
 %-Compute a reduced mesh corresponding to the data
 %--------------------------------------------------------------------------
-B       = NaN(size(T));
-if islogical(T)
-    i   = find(T);
-else
-    i   = find(~isnan(T));
-end
-B(i)    = 1:length(i);
-F       = B(F);
-F(any(isnan(F),2),:) = [];
+F       = spm_mesh_split(M, T);
 
 %-Label connected components
 %--------------------------------------------------------------------------
+% will it find two connected vertices that do not form a triangle?
+% -> maybe use spm_mesh_neighbours
 [CC,N]  = spm_mesh_label(F, 'vertices');
 C       = NaN(numel(T),1);
-C(i)    = CC;
+C(T)    = CC;
 
 %-Sort connected component labels according to their size
 %--------------------------------------------------------------------------
 [N,ni]  = sort(N(:), 1, 'descend');
 [ni,ni] = sort(ni);
-C(i)    = ni(C(i));
+C(T)    = ni(C(T));

@@ -7,7 +7,7 @@ function varargout = spm_mesh_render(action,varargin)
 % handle.
 %
 % FORMAT H = spm_mesh_render(M)
-% Shortcut to previous call format
+% Shortcut to previous call format.
 %
 % FORMAT H = spm_mesh_render('ContextMenu',AX)
 % AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
@@ -25,12 +25,17 @@ function varargout = spm_mesh_render(action,varargin)
 % MAP      - a colour map matrix
 %
 % FORMAT MAP = spm_mesh_render('ColourMap',AX)
-% Retrieves the current colourmap
+% Retrieves the current colourmap.
+%
+% FORMAT spm_mesh_render('Register',AX,hReg)
+% AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
+% hReg     - Handle of HandleGraphics object to build registry in.
+% See spm_XYZreg for more information.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4018 2010-07-27 18:22:42Z guillaume $
+% $Id: spm_mesh_render.m 4035 2010-08-05 18:54:32Z guillaume $
 
 
 %-Input parameters
@@ -84,6 +89,7 @@ switch lower(action)
             'AmbientStrength',  0.1,...
             'DiffuseStrength',  0.7,...
             'SpecularExponent', 10,...
+            'Clipping',         'off',...
             'DeleteFcn',        {@myDeleteFcn, renderer},...
             'Visible',          'off',...
             'Tag',              'SPMMeshRender',...
@@ -138,56 +144,71 @@ switch lower(action)
         
         cmenu = uicontextmenu('Callback',{@myMenuCallback, H});
         
-        c1 = uimenu(cmenu, 'Label','Inflate', 'Interruptible','off', ...
+        uimenu(cmenu, 'Label','Inflate', 'Interruptible','off', ...
             'Callback',{@myInflate, H});
         
-        c1 = uimenu(cmenu, 'Label','Overlay...', 'Interruptible','off', ...
+        uimenu(cmenu, 'Label','Overlay...', 'Interruptible','off', ...
             'Callback',{@myOverlay, H});
         
-        c2 = uimenu(cmenu, 'Label', 'Connected Components', 'Interruptible','off');
-        C=getappdata(H.patch,'cclabel');
+        uimenu(cmenu, 'Label','Image Sections...', 'Interruptible','off', ...
+            'Callback',{@myImageSections, H});
+        
+        c = uimenu(cmenu, 'Label', 'Connected Components', 'Interruptible','off');
+        C = getappdata(H.patch,'cclabel');
         for i=1:length(unique(C))
-            uimenu(c2, 'Label',sprintf('Component %d',i), 'Checked','on', ...
+            uimenu(c, 'Label',sprintf('Component %d',i), 'Checked','on', ...
                 'Callback',{@myCCLabel, H});
         end
         
-        c3 = uimenu(cmenu, 'Label','Rotate', 'Checked','on', 'Separator','on', ...
+        uimenu(cmenu, 'Label','Rotate', 'Checked','on', 'Separator','on', ...
             'Callback',{@mySwitchRotate, H});
         
-        c3 = uimenu(cmenu, 'Label','Synchronise Views', 'Visible','off', ...
+        uimenu(cmenu, 'Label','Synchronise Views', 'Visible','off', ...
             'Checked','off', 'Tag','SynchroMenu', 'Callback',{@mySynchroniseViews, H});
         
-        c4 = uimenu(cmenu, 'Label','View');
-        uimenu(c4, 'Label','Go to Y-Z view (right)',  'Callback', {@myView, H, [90 0]});
-        uimenu(c4, 'Label','Go to Y-Z view (left)',   'Callback', {@myView, H, [-90 0]});
-        uimenu(c4, 'Label','Go to X-Y view (top)',    'Callback', {@myView, H, [0 90]});
-        uimenu(c4, 'Label','Go to X-Y view (bottom)', 'Callback', {@myView, H, [-180 -90]});
-        uimenu(c4, 'Label','Go to X-Z view (front)',  'Callback', {@myView, H, [-180 0]});
-        uimenu(c4, 'Label','Go to X-Z view (back)',   'Callback', {@myView, H, [0 0]});
+        c = uimenu(cmenu, 'Label','View');
+        uimenu(c, 'Label','Go to Y-Z view (right)',  'Callback', {@myView, H, [90 0]});
+        uimenu(c, 'Label','Go to Y-Z view (left)',   'Callback', {@myView, H, [-90 0]});
+        uimenu(c, 'Label','Go to X-Y view (top)',    'Callback', {@myView, H, [0 90]});
+        uimenu(c, 'Label','Go to X-Y view (bottom)', 'Callback', {@myView, H, [-180 -90]});
+        uimenu(c, 'Label','Go to X-Z view (front)',  'Callback', {@myView, H, [-180 0]});
+        uimenu(c, 'Label','Go to X-Z view (back)',   'Callback', {@myView, H, [0 0]});
         
-        uimenu(cmenu, 'Label','Colourbar', 'Callback', {@myColourbar, H});
+        uimenu(cmenu, 'Label','Colorbar', 'Callback', {@myColourbar, H});
         
-        c5 = uimenu(cmenu, 'Label','Transparency');
-        uimenu(c5, 'Label','0%',  'Checked','on',  'Callback', {@myTransparency, H});
-        uimenu(c5, 'Label','20%', 'Checked','off', 'Callback', {@myTransparency, H});
-        uimenu(c5, 'Label','40%', 'Checked','off', 'Callback', {@myTransparency, H});
-        uimenu(c5, 'Label','60%', 'Checked','off', 'Callback', {@myTransparency, H});
-        uimenu(c5, 'Label','80%', 'Checked','off', 'Callback', {@myTransparency, H});
+        c = uimenu(cmenu, 'Label','Colormap');
+        clrmp = {'hot' 'jet' 'gray' 'hsv' 'bone' 'copper' 'pink' 'white' ...
+            'flag' 'lines' 'colorcube' 'prism' 'cool' 'autumn' ...
+             'spring' 'winter' 'summer'};
+        for i=1:numel(clrmp)
+            uimenu(c, 'Label', clrmp{i}, 'Callback', {@myColourmap, H});
+        end
+        
+        c = uimenu(cmenu, 'Label','Transparency');
+        uimenu(c, 'Label','0%',  'Checked','on',  'Callback', {@myTransparency, H});
+        uimenu(c, 'Label','20%', 'Checked','off', 'Callback', {@myTransparency, H});
+        uimenu(c, 'Label','40%', 'Checked','off', 'Callback', {@myTransparency, H});
+        uimenu(c, 'Label','60%', 'Checked','off', 'Callback', {@myTransparency, H});
+        uimenu(c, 'Label','80%', 'Checked','off', 'Callback', {@myTransparency, H});
         
         uimenu(cmenu, 'Label','Data Cursor', 'Callback', {@myDataCursor, H});
         
-        c6 = uimenu(cmenu, 'Label','Background Color');
-        uimenu(c6, 'Label','White',     'Callback', {@myBackgroundColor, H, [1 1 1]});
-        uimenu(c6, 'Label','Black',     'Callback', {@myBackgroundColor, H, [0 0 0]});
-        uimenu(c6, 'Label','Custom...', 'Callback', {@myBackgroundColor, H, []});
+        c = uimenu(cmenu, 'Label','Background Color');
+        uimenu(c, 'Label','White',     'Callback', {@myBackgroundColor, H, [1 1 1]});
+        uimenu(c, 'Label','Black',     'Callback', {@myBackgroundColor, H, [0 0 0]});
+        uimenu(c, 'Label','Custom...', 'Callback', {@myBackgroundColor, H, []});
         
-        c7 = uimenu(cmenu, 'Label','Save As...', 'Separator', 'on', ...
+        uimenu(cmenu, 'Label','Save As...', 'Separator', 'on', ...
             'Callback', {@mySave, H});
         
         set(H.rotate3d,'enable','off');
         try, set(H.rotate3d,'uicontextmenu',cmenu); end
         try, set(H.patch,   'uicontextmenu',cmenu); end
         set(H.rotate3d,'enable','on');
+        
+        dcm_obj = datacursormode(H.figure);
+        set(dcm_obj, 'Enable','off', 'SnapToDataVertex','on', ...
+            'DisplayStyle','Window', 'Updatefcn',{@myDataCursorUpdate, H});
         
     %-Overlay
     %======================================================================
@@ -197,6 +218,14 @@ switch lower(action)
         if nargin < 3, varargin{2} = []; end
         updateTexture(H,varargin{2:end});
         
+    %-Slices
+    %======================================================================
+    case 'slices'
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        if nargin < 3, varargin{2} = []; end
+        renderSlices(H,varargin{2:end});
+    
     %-ColourBar
     %======================================================================
     case {'colourbar', 'colorbar'}
@@ -228,8 +257,10 @@ switch lower(action)
             set(H.colourbar,'YTickLabel',[]);
         else
             set(get(H.colourbar,'child'),'CData',c);
-            set(get(H.colourbar,'child'),'YData',[min(d) max(d)]);
-            set(H.colourbar,'YLim',[min(d) max(d)]);
+            clim = getappdata(H.patch,'clim');
+            if isempty(clim), clim = [false min(d) max(d)]; end
+            set(get(H.colourbar,'child'),'YData',clim(2:3));
+            set(H.colourbar,'YLim',clim(2:3));
         end
         setappdata(H.axis,'handles',H);
         
@@ -247,6 +278,37 @@ switch lower(action)
             updateTexture(H,d);
         end
     
+    %-CLim
+    %======================================================================
+    case 'clim'
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        if length(varargin) == 1
+            c = getappdata(H.patch,'clim');
+            if ~isempty(c), c = c(2:3); end
+            varargout = { c };
+            return;
+        else
+            if isempty(varargin{2}) || any(~isfinite(varargin{2}))
+                setappdata(H.patch,'clim',[false NaN NaN]);
+            else
+                setappdata(H.patch,'clim',[true varargin{2}]);
+            end
+            d = getappdata(H.patch,'data');
+            updateTexture(H,d);
+        end
+        
+    %-Register
+    %======================================================================
+    case 'register'
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        hReg = varargin{2};
+        xyz  = spm_XYZreg('GetCoords',hReg);
+        hs   = myCrossBar('Create',H,xyz);
+        set(hs,'UserData',hReg);
+        spm_XYZreg('Add2Reg',hReg,hs,@myCrossBar);
+        
     %-Otherwise...
     %======================================================================
     otherwise
@@ -310,7 +372,7 @@ if numel(findobj('Tag','SPMMeshRender','Type','Patch')) > 1
     set(h,'Visible','on');
 end
 
-h = findobj(obj,'Label','Colourbar');
+h = findobj(obj,'Label','Colorbar');
 d = getappdata(H.patch,'data');
 if isempty(d) || ~any(d(:)), set(h,'Enable','off'); else set(h,'Enable','on'); end
 if isfield(H,'colourbar')
@@ -335,6 +397,37 @@ else
         H = getappdata(ancestor(P(i),'axes'),'handles');
         camlight(H.light);
     end
+end
+
+%==========================================================================
+function varargout = myCrossBar(varargin)
+
+switch lower(varargin{1})
+
+    case 'create'
+    %----------------------------------------------------------------------
+    % hMe = myCrossBar('Create',H,xyz)
+    H  = varargin{2};
+    xyz = varargin{3};
+    hold(H.axis,'on');
+    hs = plot3(xyz(1),xyz(2),xyz(3),'Marker','+','MarkerSize',40,...
+        'parent',H.axis,'Color',[1 1 1],'Tag','CrossBar','ButtonDownFcn',{});
+    varargout = {hs};
+    
+    case 'setcoords'
+    %----------------------------------------------------------------------
+    % [xyz,d] = myCrossBar('SetCoords',xyz,hMe)
+    hMe  = varargin{3};
+    xyz  = varargin{2};
+    set(hMe,'XData',xyz(1));
+    set(hMe,'YData',xyz(2));
+    set(hMe,'ZData',xyz(3));
+    varargout = {xyz,[]};
+    
+    otherwise
+    %----------------------------------------------------------------------
+    error('Unknown action string')
+
 end
 
 %==========================================================================
@@ -376,6 +469,13 @@ else
 end
 
 %==========================================================================
+function myTransparency(obj,evt,H)
+t = 1 - sscanf(get(obj,'Label'),'%d%%') / 100;
+set(H.patch,'FaceAlpha',t);
+set(get(get(obj,'parent'),'children'),'Checked','off');
+set(obj,'Checked','on');
+
+%==========================================================================
 function mySwitchRotate(obj,evt,H)
 if strcmpi(get(H.rotate3d,'enable'),'on')
     set(H.rotate3d,'enable','off');
@@ -397,6 +497,10 @@ y = {'on','off'}; toggle = @(x) y{1+strcmpi(x,'on')};
 spm_mesh_render('Colourbar',H,toggle(get(obj,'Checked')));
 
 %==========================================================================
+function myColourmap(obj,evt,H)
+spm_mesh_render('Colourmap',H,feval(get(obj,'Label'),256));
+
+%==========================================================================
 function mySynchroniseViews(obj,evt,H)
 P = findobj('Tag','SPMMeshRender','Type','Patch');
 v = get(H.axis,'cameraposition');
@@ -406,13 +510,6 @@ for i=1:numel(P)
     axis(H.axis,'image');
     camlight(H.light);
 end
-
-%==========================================================================
-function myTransparency(obj,evt,H)
-t = 1 - sscanf(get(obj,'Label'),'%d%%') / 100;
-set(H.patch,'FaceAlpha',t);
-set(get(get(obj,'parent'),'children'),'Checked','off');
-set(obj,'Checked','on');
 
 %==========================================================================
 function myDataCursor(obj,evt,H)
@@ -426,10 +523,17 @@ pos = get(evt,'Position');
 txt = {['X: ',num2str(pos(1))],...
 	   ['Y: ',num2str(pos(2))],...
        ['Z: ',num2str(pos(3))]};
+i = ismember(get(H.patch,'vertices'),pos,'rows');
+txt = {['Node: ' num2str(find(i))] txt{:}};
 d = getappdata(H.patch,'data');
 if ~isempty(d) && any(d(:))
-    i = ismember(get(H.patch,'vertices'),pos,'rows');
     if any(i), txt = {txt{:} ['T: ',num2str(d(i))]}; end
+end
+hMe = findobj(H.axis,'Tag','CrossBar');
+if ~isempty(hMe)
+    ws = warning('off');
+    spm_XYZreg('SetCoords',pos,get(hMe,'UserData'));
+    warning(ws);
 end
 
 %==========================================================================
@@ -539,6 +643,33 @@ if ~sts, return; end
 spm_mesh_render('Overlay',H,P);
 
 %==========================================================================
+function myImageSections(obj,evt,H)
+[P, sts] = spm_select(1,'image','Select image to render');
+if ~sts, return; end
+renderSlices(H,P);
+
+%==========================================================================
+function renderSlices(H,P,pls)
+if nargin <3
+    pls = 0.05:0.2:0.9;
+end
+N   = nifti(P);
+d   = size(N.dat);
+pls = round(pls.*d(3));
+hold(H.axis,'on');
+for i=1:numel(pls)
+    [x,y,z] = ndgrid(1:d(1),1:d(2),pls(i));
+    f  = N.dat(:,:,pls(i));
+    x1 = N.mat(1,1)*x + N.mat(1,2)*y + N.mat(1,3)*z + N.mat(1,4);
+    y1 = N.mat(2,1)*x + N.mat(2,2)*y + N.mat(2,3)*z + N.mat(2,4);
+    z1 = N.mat(3,1)*x + N.mat(3,2)*y + N.mat(3,3)*z + N.mat(3,4);
+    surf(x1,y1,z1, repmat(f,[1 1 3]), 'EdgeColor','none', ...
+        'Clipping','off', 'Parent',H.axis);
+end
+hold(H.axis,'off');
+axis(H.axis,'image');
+
+%==========================================================================
 function C = updateTexture(H,v,col)
 
 %-Get colourmap
@@ -573,23 +704,27 @@ if isempty(v)
     v = zeros(size(curv))';
 elseif ischar(v) || iscellstr(v) || isstruct(v)
     v = spm_mesh_project(H.patch,v);
-elseif isnumeric(v)
+elseif isnumeric(v) || islogical(v)
     if size(v,2) == 1
         v = v';
     end
 else
     error('Unknown data type.');
 end
+v(isinf(v)) = NaN;
 
 setappdata(H.patch,'data',v);
 
-%-Build texture by merging curvature and data
+%-Create RGB representation of data according to colourmap
 %--------------------------------------------------------------------------
 C = zeros(size(v,2),3);
+clim = getappdata(H.patch, 'clim');
+if isempty(clim), clim = [false NaN NaN]; end
+mi = clim(2); ma = clim(3);
 if any(v(:))
     if size(col,1)>3
         if size(v,1) == 1
-            mi = min(v(:)); ma = max(v(:));
+            if ~clim(1), mi = min(v(:)); ma = max(v(:)); end
             C = squeeze(ind2rgb(floor(((v(:)-mi)/(ma-mi))*size(col,1)),col));
         else
             C = v; v = v';
@@ -600,7 +735,12 @@ if any(v(:))
             C = C + v(i,:)'/m * col(i,:);
         end
     end
+else
 end
+setappdata(H.patch, 'clim', [false mi ma]);
+
+%-Build texture by merging curvature and data
+%--------------------------------------------------------------------------
 C = repmat(~any(v,1),3,1)' .* curv + repmat(any(v,1),3,1)' .* C;
 
 set(H.patch, 'FaceVertexCData',C, 'FaceColor','interp');

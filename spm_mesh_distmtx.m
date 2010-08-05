@@ -11,7 +11,7 @@ function D = spm_mesh_distmtx(M,order)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_distmtx.m 3409 2009-09-18 15:40:25Z guillaume $
+% $Id: spm_mesh_distmtx.m 4035 2010-08-05 18:54:32Z guillaume $
 
 if nargin < 2, order = 1; end
 
@@ -26,7 +26,12 @@ end
 
 %-First order distance matrix
 %--------------------------------------------------------------------------
-M.faces = double(M.faces);
+if isstruct(M) && ~isa(M.faces,'double')
+    M.faces = double(M.faces);
+elseif isa(M,'gifti')
+    M = export(M,'patch');
+    M.faces = double(M.faces);
+end
 d = M.vertices(M.faces(:,[1 2 3]),:) - M.vertices(M.faces(:,[2 3 1]),:);
 
 D = sparse([M.faces(:,1); M.faces(:,2); M.faces(:,3)], ...
