@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft2spm.m 4038 2010-08-10 10:39:00Z vladimir $
 
 isTF = 0;
 
@@ -136,6 +136,20 @@ end
 D.data.y = datafile;
 
 D = meeg(D);
+
+if  isfield(ftdata, 'hdr')
+    % Uses fileio function to get the information about channel types stored in
+    % the original header. This is now mainly useful for Neuromag support but might
+    % have other functions in the future.
+    origchantypes = ft_chantype(ftdata.hdr);
+    [sel1, sel2] = spm_match_str(D.chanlabels, ftdata.hdr.label);
+    origchantypes = origchantypes(sel2);
+    if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)
+        D.origchantypes = struct([]);
+        D.origchantypes(1).label = ftdata.hdr.label(sel2);
+        D.origchantypes(1).type = origchantypes;
+    end
+end
 
 % Set channel types to default
 S1 = [];
