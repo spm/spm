@@ -5,18 +5,19 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 3942 2010-06-21 14:03:28Z vladimir $
+% $Id: badchannels.m 4039 2010-08-20 10:54:46Z vladimir $
 
 
-if length(varargin) == 2
+
+if length(varargin) == 2 && ~isempty(varargin{1})
     % make sure that the two inputs for set are the same length
     if ~(length(varargin{2}) == 1 | (length(varargin{1}) == length(varargin{2})))
         error('Use either same vector length or scalar for value');
     end
 end
 
-if numel(varargin) >= 1    
-    if ~(varargin{1} >= 1 & varargin{1} <= nchannels(this))
+if numel(varargin) >= 1  && ~isempty(varargin{1})  
+    if ~(varargin{1} >= 1 && varargin{1} <= nchannels(this))
         error('Channel number of out range.');
     end
 end
