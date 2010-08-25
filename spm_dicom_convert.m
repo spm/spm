@@ -33,7 +33,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4012 2010-07-22 12:45:53Z volkmar $
+% $Id: spm_dicom_convert.m 4044 2010-08-25 14:03:48Z volkmar $
 
 
 if nargin<2, opts     = 'all'; end
@@ -637,18 +637,38 @@ patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
 shift_vx         = [eye(4,3) [.5; .5; 0; 1]];
 
 orient           = reshape(get_numaris4_numval(privdat,...
-    'ImageOrientationPatient'),[3 2]);
-try
-    ps(1) = get_numaris4_numval(privdat,...
-        'VoiReadoutFoV');
-    ps(2) = get_numaris4_numval(privdat,...
-        'VoiPhaseFoV');
-catch
-    ps  = get_numaris4_numval(privdat,'PixelSpacing');
+                                               'ImageOrientationPatient'),[3 2]);
+ps               = get_numaris4_numval(privdat,'PixelSpacing');
+if nc*nr == 1
+    % Single Voxel Spectroscopy (based on the following information from SIEMENS)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % NOTE: Internally the position vector of the CSI matrix shows to the outer border
+    % of the first voxel. Therefore the position vector has to be corrected.
+    % (Note: The convention of Siemens spectroscopy raw data is in contrast to the
+    %  DICOM standard where the position vector points to the center of the first voxel.)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % SIEMENS decides which definition to use based on the contents of the
+    % 'PixelSpacing' internal header field. If it has non-zero values,
+    % assume DICOM convention. If any value is zero, assume SIEMENS
+    % internal convention for this direction.
+    % Note that in SIEMENS code, there is a shift when PixelSpacing is
+    % zero. Here, the shift seems to be necessary when PixelSpacing is
+    % non-zero. This may indicate more fundamental problems with
+    % orientation decoding.
+    if ps(1) == 0 % row
+        ps(1) = get_numaris4_numval(privdat,...
+                                    'VoiPhaseFoV');
+        shift_vx(1,4) = 0;
+    end
+    if ps(2) == 0 % col
+        ps(2) = get_numaris4_numval(privdat,...
+                                    'VoiReadoutFoV');
+        shift_vx(2,4) = 0;
+    end
 end
 pos = get_numaris4_numval(privdat,'ImagePositionPatient');
-
-R  = [orient*diag(ps); 0 0];
+% for some reason, pixel spacing needs to be swapped
+R  = [orient*diag(ps([2 1])); 0 0];
 x1 = [1;1;1;1];
 y1 = [pos; 1];
 
@@ -673,7 +693,6 @@ else
     y2 = [orient*[0;0;z];0];
 end
 dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
-warning('Don''t know exactly what positions in spectroscopy files should be - just guessing!')
 mat              = patient_to_tal*dicom_to_patient*shift_vx*analyze_to_dicom;
 
 % Possibly useful information
@@ -744,7 +763,7 @@ for i=1:length(hdr),
    %    % No documentation about this private field is yet available.
    %    disp('Cant yet convert Phillips Intera DICOM.');
    %    guff = {guff{:},hdr{i}};
-    elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1210')),
+    elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1110')||isfield(hdr{i},'Private_0029_1210')),
         disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
         guff = [guff(:)',hdr(i)];
     elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
