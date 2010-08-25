@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 3890 2010-05-17 11:17:19Z guillaume $
+# $Id: Makefile 4043 2010-08-25 13:03:34Z guillaume $
 
 include ../src/Makefile.var
 
@@ -52,20 +52,15 @@ bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
 fieldtrip/forward/private/lmoutr.$(SUF): fieldtrip/forward/private/lmoutr.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
 
-fieldtrip/forward/private/ltrisect.$(SUF): fieldtrip/forward/private/ltrisect.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
-
-fieldtrip/forward/private/plinproj.$(SUF): fieldtrip/forward/private/plinproj.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
-
 fieldtrip/forward/private/ptriproj.$(SUF): fieldtrip/forward/private/ptriproj.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
-	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
-
-fieldtrip/forward/private/routlm.$(SUF): fieldtrip/forward/private/routlm.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
 
 fieldtrip/forward/private/solid_angle.$(SUF): fieldtrip/forward/private/solid_angle.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+
+fieldtrip/inverse/private/solid_angle.$(SUF): fieldtrip/inverse/private/solid_angle.c fieldtrip/inverse/private/geometry.c fieldtrip/inverse/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/inverse/private/geometry.c $(MEXEND)
 
 
 fieldtrip/private/lmoutr.$(SUF): fieldtrip/private/lmoutr.c fieldtrip/private/geometry.c fieldtrip/private/geometry.h
