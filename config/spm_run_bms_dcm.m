@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 3955 2010-06-29 17:26:29Z maria $
+% $Id: spm_run_bms_dcm.m 4042 2010-08-25 11:18:59Z christophe $
 
 % input
 % -------------------------------------------------------------------------
@@ -110,7 +110,7 @@ else
         ns        = size(job.sess_dcm,2);                 % No of Subjects
         nsess     = size(job.sess_dcm{1},2);              % No of sessions
         nm        = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
-        fname_msp = [job.dir{1} 'model_space.mat'];
+        fname_msp = fullfile(job.dir{1},'model_space.mat');
     end
     
     F       = zeros(ns,nm);
@@ -169,6 +169,7 @@ else
                         subj(k).sess(h).model(j).F     = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
                         subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
+                        subj(k).sess(h).model(j).nonLin= DCM.DCM.options.nonlinear;
                         
                     else
                         

@@ -3,7 +3,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % FORMAT string_out = spm_str_manip(string_in,options)
 % string_in    - input string, string matrix, or cell array of strings
 % options      - a string of options flags, see below
-
+%
 % string_out   - output string, string matrix, or cell array of strings
 % R2           - extra output for 'c' and 'C' options
 %__________________________________________________________________________
@@ -46,7 +46,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 3950 2010-06-28 10:44:02Z guillaume $
+% $Id: spm_str_manip.m 4042 2010-08-25 11:18:59Z christophe $
 
 
 if nargin<2, options=''; end

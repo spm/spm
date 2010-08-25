@@ -1,16 +1,16 @@
 function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
-% Model-independent samples from DCM posterior  
+% Model-independent samples from DCM posterior
 % FORMAT bma = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
 %
 % post      [Ni x M] vector of posterior model probabilities
-%           If Ni>1 then inference is based on subject-specific RFX posterior 
+%           If Ni>1 then inference is based on subject-specific RFX posterior
 % post_indx models to use in BMA (position of models in subj sctructure)
 % subj      subj(n).sess(s).model(m).fname: DCM filename
 % Nsamp     Number of samples (default = 1e3)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
 %           all models used in average)
 %
-% Ep        [Np x Nsamp] posterior density matrix. Parameter vector is of 
+% Ep        [Np x Nsamp] posterior density matrix. Parameter vector is of
 %           dimension Np and there are Nsamp samples
 % Nocc      Number of models in Occam's window
 %
@@ -22,8 +22,8 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_dcm_bma.m 3966 2010-07-02 11:54:42Z maria $
+% Will Penny
+% $Id: spm_dcm_bma.m 4042 2010-08-25 11:18:59Z christophe $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -48,59 +48,59 @@ end
 Ep  = [];
 [Ni M] = size(post);
 
-if Ni > 1 
+if Ni > 1
     rfx = 1;
 else
     rfx = 0;
 end
 
 if rfx
-    
+
     for i = 1:Ni,
-        
+
         mp          = max(post(i,:));
         post_ind{i} = find(post(i,:)>mp*oddsr);
         Nocc(i)     = length(post_ind{i});
         disp(' ');
         disp(sprintf('Subject %d has %d models in Occams window',i,Nocc(i)));
-        
+
         if Nocc(i) == 0,
             return;
         end
-        
+
         for occ = 1:Nocc(i),
             m = post_ind{i}(occ);
             disp(sprintf('Model %d, <p(m|Y>=%1.2f',m,post(i,m)));
         end
-        
+
         % Renormalise post prob to Occam group
         renorm(i).post = post(i,post_ind{i});
         sp             = sum(renorm(i).post,2);
         renorm(i).post = renorm(i).post./(sp*ones(1,Nocc(i)));
-        
+
         % Load DCM posteriors for models in Occam's window
         for kk = 1:Nocc(i),
-            
+
             sel     = post_indx(post_ind{i}(kk));
-            
+
             params(i).model(kk).Ep  = subj(i).sess(1).model(sel).Ep;
             params(i).model(kk).vEp = spm_vec(params(i).model(kk).Ep);
             params(i).model(kk).Cp  = full(subj(i).sess(1).model(sel).Cp);
-              
+
             % Average sessions
             if Nses > 1
-                
+
                 clear miCp mEp
                 disp('Averaging sessions...')
-                
-                for ss = 1:Nses 
-                    
+
+                for ss = 1:Nses
+
                     % Only parameters with non-zero prior variance
                     %------------------------------------------------------
                     sess_model.Cp = full(subj(i).sess(ss).model(sel).Cp);
                     pCdiag        = diag(full(sess_model.Cp));
                     wsel          = find(pCdiag);
-                    
+
                     if ss == 1
                         wsel_first = wsel;
                     else
@@ -113,20 +113,20 @@ if rfx
                             return
                         end
                     end
- 
+
                     % Get posterior precision matrix and mean
                     %------------------------------------------------------
                     Cp           = sess_model.Cp;
                     Ep           = spm_vec(subj(i).sess(ss).model(sel).Ep);
                     miCp(:,:,ss) = inv(full(Cp(wsel,wsel)));
                     mEp(:,ss)    = full(Ep(wsel));
- 
+
                 end
-                
+
                 % Average models using Bayesian fixed-effects analysis
                 %==========================================================
                 Cp(wsel,wsel) = inv(sum(miCp,3));
-                
+
                 pE            = subj(i).sess(ss).model(sel).Ep;
                 weighted_Ep   = 0;
                 for s = 1:Nses
@@ -135,65 +135,88 @@ if rfx
                 Ep(wsel)    = Cp(wsel,wsel)*weighted_Ep;
                 vEp         = Ep;
                 Ep          = spm_unvec(Ep,pE);
-                
+
                 params(i).model(kk).Ep  = Ep;
                 params(i).model(kk).vEp = vEp;
                 params(i).model(kk).Cp  = Cp;
-            
+
             end
-            
+
+            % ensuring the parameter matrix accounts for D in bilinear model
+            Ep = params(i).model(kk).Ep;
+            if isfield(Ep,'D')
+                N_par = length(params(i).model(kk).vEp);
+                [mD,nD,pD] = size(Ep.D);
+                if ~pD % -> add zeros where needed in D, vEp and Cp.
+                    % put zeros in Ep/vEp
+                    Ep.D = zeros(nreg,nreg,nreg);
+                    N_D = nreg^3;
+                    vEp = spm_vec(Ep);
+                    N_last = 1+nreg*2; % transit, decay and exp parameter
+                    i_last = N_par-N_last+1;
+                    % put zeros in Cp
+                    tmp = full(params(i).model(kk).Cp);
+                    tmp = [tmp(1:i_last-1,:); zeros(N_D,N_par); tmp(i_last:end,:)];
+                    Cp = [tmp(:,1:i_last-1) zeros(N_par+N_D,N_D) tmp(:,i_last:end)];
+                    % save stuff back in place
+                    params(i).model(kk).Ep  = Ep;
+                    params(i).model(kk).vEp = vEp;
+                    params(i).model(kk).Cp  = Cp;
+                end
+            end
+
             [evec, eval] = eig(params(i).model(kk).Cp);
             deig         = diag(eval);
-            
+
             params(i).model(kk).dCp = deig;
             params(i).model(kk).vCp = evec;
-            
+
         end
     end
-else
+else % Use an FFX
     % Find models in Occam's window
     mp       = max(post);
     post_ind = find(post>mp*oddsr);
     Nocc     = length(post_ind);
     disp(' ');
     disp(sprintf('%d models in Occams window',Nocc));
-    
+
     if Nocc == 0, return; end
-    
+
     for occ = 1:Nocc,
         m = post_ind(occ);
         disp(sprintf('Model %d, p(m|Y)=%1.2f',m,post(m)));
     end
-    
+
     % Renormalise post prob to Occam group
     post=post(post_ind);
     post=post/sum(post);
-    
+
     % Load DCM posteriors for models in Occam's window
     for n=1:Nsub,
-        
+
         for kk=1:Nocc,
-            
+
             sel = post_indx(post_ind(kk));
-            
+
             params(n).model(kk).Ep  = subj(n).sess(1).model(sel).Ep;
             params(n).model(kk).vEp = spm_vec(params(n).model(kk).Ep);
             params(n).model(kk).Cp  = full(subj(n).sess(1).model(sel).Cp);
-            
+
             if Nses > 1
-                
+
                 clear miCp mEp
                 disp('Averaging sessions...')
-                
+
                 % Average sessions
                 for ss = 1:Nses
-                    
+
                     % Only parameters with non-zero prior variance
                     %------------------------------------------------------
                     sess_model.Cp = full(subj(n).sess(ss).model(sel).Cp);
                     pCdiag        = diag(full(sess_model.Cp));
                     wsel          = find(pCdiag);
-                    
+
                     if ss == 1
                         wsel_first = wsel;
                     else
@@ -206,20 +229,20 @@ else
                             return
                         end
                     end
-                    
+
                     % Get posterior precision matrix and mean
                     %------------------------------------------------------
                     Cp           = sess_model.Cp;
                     Ep           = spm_vec(subj(n).sess(ss).model(sel).Ep);
                     miCp(:,:,ss) = inv(full(Cp(wsel,wsel)));
                     mEp(:,ss)    = full(Ep(wsel));
-                    
+
                 end
-                
+
                 % Average models using Bayesian fixed-effects analysis
                 %==========================================================
                 Cp(wsel,wsel) = inv(sum(miCp,3));
-                
+
                 pE            = subj(n).sess(ss).model(sel).Ep;
                 weighted_Ep   = 0;
                 for s = 1:Nses
@@ -228,21 +251,21 @@ else
                 Ep(wsel)    = Cp(wsel,wsel)*weighted_Ep;
                 vEp         = Ep;
                 Ep          = spm_unvec(Ep,pE);
-                
+
                 params(n).model(kk).Ep  = Ep;
                 params(n).model(kk).vEp = vEp;
                 params(n).model(kk).Cp  = Cp;
-                
+
             end
-            
+
             [evec, eval] = eig(params(n).model(kk).Cp);
             deig         = diag(eval);
-            
+
             params(n).model(kk).dCp = deig;
             params(n).model(kk).vCp = evec;
         end
     end
-    
+
 end
 
 % Pre-allocate sample arrays
@@ -250,20 +273,20 @@ Np = length(params(1).model(1).vEp);
 
 % get dimensions of a b c d parameters
 if dcm_fmri
-    
+
     Nr      = nreg*nreg;
     dimd    = size(params(1).model(1).Ep.D,3);
     Np      = Nr + Nr*min + nreg*min + Nr*dimd;
-    
+
     Etmp.A  = zeros(nreg,nreg,Nsamp);
     Etmp.B  = zeros(nreg,nreg,min,Nsamp);
     Etmp.C  = zeros(nreg,min,Nsamp);
     Etmp.D  = zeros(nreg,nreg,dimd,Nsamp);
-    
+
     dima    = Nr;
     dimb    = Nr+Nr*min;
     dimc    = Nr+Nr*min+nreg*min;
-    
+
 end
 
 clear Ep
@@ -276,24 +299,24 @@ for i=1:Nsamp
     end
     % Pick parameters from model for each subject
     for n=1:Nsub
-        
+
         if rfx
             m = spm_multrnd(renorm(n).post,1);
         end
-        
+
         mu                    = params(n).model(m).vEp;
         dsig                  = params(n).model(m).dCp(:,1);
         vsig(:,:)             = params(n).model(m).vCp(:,:);
-        
+
         tmp                   = spm_normrnd(mu,{dsig,vsig},1);
         Ep_all(:,n)           = tmp(:);
         Ep_sbj(:,n,i)         = Ep_all(:,n);
-                   
+
     end
-    
+
     % Average over subjects
     Ep(:,i)       = mean(Ep_all,2);
-        
+
 end
 
 % save mean parameters

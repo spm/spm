@@ -78,7 +78,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_nlsi_GN.m 4042 2010-08-25 11:18:59Z christophe $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -267,17 +267,26 @@ for k = 1:64
         % check for stability
         %------------------------------------------------------------------
         if norm(J,'inf') > exp(32), break, end
-        
+        clear S
         % precision and conditional covariance
         %------------------------------------------------------------------
-        iS    = 0;
+        if nh
+            iS    = zeros(size(Q{1}));
+        else
+            iS    = 0;
+        end
         for i = 1:nh
             iS = iS + Q{i}*exp(h(i));
         end
         S     = inv(iS);
+        if any(isnan(S(:))) % | rcond(full(S))<1e-15, 
+            break, 
+        end
         iS    = kron(speye(nq),iS);
         Cp    = spm_inv(J'*iS*J + ipC);
-        
+        if any(isnan(Cp(:))) | rcond(full(Cp))<1e-15, 
+            break, 
+        end
  
         % precision operators for M-Step
         %------------------------------------------------------------------

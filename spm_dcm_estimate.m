@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_dcm_estimate.m 4042 2010-08-25 11:18:59Z christophe $
  
  
 %-Load DCM structure
@@ -69,7 +69,12 @@ if ~nargin
     spm('FigName','Estimation in progress');
  
 end
-if ~isstruct(P), load(P); end
+if isstruct(P)
+    DCM = P;
+    P   = ['DCM-' date];
+else
+    load(P)
+end
  
 % check options
 %==========================================================================
@@ -102,7 +107,7 @@ Y.scale = scale;
 
 % normalise inputs
 %--------------------------------------------------------------------------
-U.u  = spm_detrend(U.u);
+U.u  = spm_detrend(U.u); % No detrending as suggested by Karl? -> comment the line
  
 % check DCM.d (for nonlinear DCMs)
 %--------------------------------------------------------------------------
