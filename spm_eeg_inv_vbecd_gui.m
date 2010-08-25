@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4031 2010-08-02 15:02:21Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4041 2010-08-25 09:49:22Z gareth $
 
 %%
 % Load data, if necessary
@@ -221,7 +221,7 @@ clear dip_pr
 
 priorlocvardefault=[100, 100, 100]; %% location variance default in mm
 nopriorlocvardefault=[80*80, 80*80, 80*80];
-nopriormomvardefault=[10, 10, 10]; %% moment variance in nAM
+nopriormomvardefault=[10, 10, 10]*100; %% moment variance in nAM
 priormomvardefault=[1, 1, 1]; %% 
 
 
@@ -395,10 +395,12 @@ while adding_dips
     end
 end
 
-str2='Data SNR (amp)';
- SNRamp = spm_input(str2, 1+tr_q+dip_q+2+1,'e',5)';
+%str2='Data SNR (amp)';
+% SNRamp = spm_input(str2, 1+tr_q+dip_q+2+1,'e',5)';
+SNRamp=3;
  hE=log(SNRamp^2); %% expected log precision of data
- hC=0.0000001; % Have to tie the expected precision down for the moment (nlsi_gn can become unstable)
+ hC=1; % variability of the above precision
+ 
  
 str2='Number of iterations';
  Niter = spm_input(str2, 1+tr_q+dip_q+2+2,'e',10)';
