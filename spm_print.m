@@ -19,7 +19,7 @@ function spm_print(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 4046 2010-08-26 15:12:57Z volkmar $
+% $Id: spm_print.m 4050 2010-08-26 18:09:18Z guillaume $
 
 %-Run spm_print through the Batch System to get configured print options
 %==========================================================================
@@ -68,9 +68,8 @@ try
                 strcmpi(get(job.fig.fighandle,'type'),'figure')
             fg = job.fig.fighandle;
         elseif ~isfinite(job.fig.fighandle)
-            if strcmp(get(gcf,'Tag'),'Help')
-                fg = gcf;
-            else
+            fg = get(0,'CurrentFigure');
+            if ~strcmp(get(fg,'Tag'),'Help')
                 fg = spm_figure('FindWin','Graphics');
             end
         else

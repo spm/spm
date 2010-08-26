@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_coreg.m 4050 2010-08-26 18:09:18Z guillaume $
 
 
 if nargin>=4,
@@ -85,6 +85,7 @@ end;
 
 def_flags = struct('sep',[4 2],'params',[0 0 0  0 0 0], 'cost_fun','nmi','fwhm',[7 7],...
     'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
+def_flags.graphics = ~spm('CmdLine');
 if nargin < 3,
     flags = def_flags;
 else
