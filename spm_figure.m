@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4025 2010-07-29 11:10:15Z guillaume $
+% $Id: spm_figure.m 4047 2010-08-26 16:02:25Z guillaume $
 
 
 %==========================================================================
@@ -359,25 +359,26 @@ end
 
 %-Print
 if ~iPaged
-    spm_print(fname)
+    spm_print(fname,F);
 else
     hPg    = get(hNextPage,'UserData');
     Cpage  = get(hPageNo,  'UserData');
     nPages = size(hPg,1);
 
-    set([hNextPage,hPrevPage,hPageNo],'Visible','off')
+    set([hNextPage,hPrevPage,hPageNo],'Visible','off');
     if Cpage~=1
-        set(hPg{Cpage,1},'Visible','off'), end
+        set(hPg{Cpage,1},'Visible','off');
+    end
     for p = 1:nPages
         set(hPg{p,1},'Visible','on');
-        spm_print(fname);
-        set(hPg{p,1},'Visible','off')
+        spm_print(fname,F);
+        set(hPg{p,1},'Visible','off');
     end
-    set(hPg{Cpage,1},'Visible','on')
-    set([hNextPage,hPrevPage,hPageNo],'Visible','on')
+    set(hPg{Cpage,1},'Visible','on');
+    set([hNextPage,hPrevPage,hPageNo],'Visible','on');
 end
-if ~isempty(H), set(H,{'Units'},un); end;
-set(0,'CurrentFigure',cF)
+if ~isempty(H), set(H,{'Units'},un); end
+set(0,'CurrentFigure',cF);
 
 %==========================================================================
 case 'printto'
