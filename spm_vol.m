@@ -1,5 +1,5 @@
 function V = spm_vol(P)
-% Get header information etc for images.
+% Get header information for images.
 % FORMAT V = spm_vol(P)
 % P - a matrix of filenames.
 % V - a vector of structures containing image volume information.
@@ -30,63 +30,57 @@ function V = spm_vol(P)
 % Note that spm_vol can also be applied to the filename(s) of 4-dim
 % volumes. In that case, the elements of V will point to a series of 3-dim
 % images.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 2237 2008-09-29 17:39:53Z guillaume $
+% $Id: spm_vol.m 4045 2010-08-26 15:10:46Z guillaume $
 
-if nargin==0,
-    V   = struct('fname', {},...
-                 'dim',   {},...
-                 'dt',    {},...
-                 'pinfo', {},...
-                 'mat',   {},...
-                 'n',     {},...
-                 'descrip', {},...
-                 'private',{});
+if ~nargin
+    V = struct('fname',   {},...
+               'dim',     {},...
+               'dt',      {},...
+               'pinfo',   {},...
+               'mat',     {},...
+               'n',       {},...
+               'descrip', {},...
+               'private', {});
     return;
-end;
+end
 
-% If is already a vol structure then just return;
-if isstruct(P), V = P; return; end;
+% If is already a vol structure then just return
+if isstruct(P), V = P; return; end
 
 V = subfunc2(P);
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
 function V = subfunc2(P)
-if iscell(P),
+if iscell(P)
     V = cell(size(P));
-    for j=1:numel(P),
-        if iscell(P{j}),
+    for j=1:numel(P)
+        if iscell(P{j})
             V{j} = subfunc2(P{j});
         else
             V{j} = subfunc1(P{j});
-        end;
-    end;
+        end
+    end
 else
     V = subfunc1(P);
-end;
-return;
-%_______________________________________________________________________
+end
 
-%_______________________________________________________________________
+%==========================================================================
 function V = subfunc1(P)
-if isempty(P),
-    V = [];
-    return;
-end;
-
+if isempty(P), V = []; return; end
 counter = 0;
-for i=1:size(P,1),
+for i=1:size(P,1)
     v = subfunc(P(i,:));
     [V(counter+1:counter+size(v, 2),1).fname] = deal('');
-    [V(counter+1:counter+size(v, 2),1).mat] = deal([0 0 0 0]);
-    [V(counter+1:counter+size(v, 2),1).mat] = deal(eye(4));
-    [V(counter+1:counter+size(v, 2),1).mat] = deal([1 0 0]');
-    if isempty(v),
+    [V(counter+1:counter+size(v, 2),1).dim]   = deal([0 0 0 0]);
+    [V(counter+1:counter+size(v, 2),1).mat]   = deal(eye(4));
+    [V(counter+1:counter+size(v, 2),1).pinfo] = deal([1 0 0]');
+    [V(counter+1:counter+size(v, 2),1).dt]    = deal([0 0]);
+    if isempty(v)
         hread_error_message(P(i,:));
         error(['Can''t get volume information for ''' P(i,:) '''']);
     end
@@ -98,45 +92,36 @@ for i=1:size(P,1),
     counter = counter + size(v,2);
 end
 
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
+%==========================================================================
 function V = subfunc(p)
 [pth,nam,ext,n1] = spm_fileparts(deblank(p));
 p = fullfile(pth,[nam ext]);
 n = str2num(n1);
-if ~spm_existfile(p),
-    %existance_error_message(p);
+if ~spm_existfile(p)
     error('File "%s" does not exist.', p);
 end
-switch ext,
-    case {'.nii','.NII'},
+switch ext
+    case {'.nii','.NII'}
         % Do nothing
 
-    case {'.img','.IMG'},
-        if ~spm_existfile(fullfile(pth,[nam '.hdr'])) && ~spm_existfile(fullfile(pth,[nam '.HDR'])),
-            %existance_error_message(fullfile(pth,[nam '.hdr'])),
+    case {'.img','.IMG'}
+        if ~spm_existfile(fullfile(pth,[nam '.hdr'])) && ...
+           ~spm_existfile(fullfile(pth,[nam '.HDR']))
             error('File "%s" does not exist.', fullfile(pth,[nam '.hdr']));
         end
 
-    case {'.hdr','.HDR'},
+    case {'.hdr','.HDR'}
         ext = '.img';
         p   = fullfile(pth,[nam ext]);
-        if ~spm_existfile(p),
-            %existance_error_message(p),
+        if ~spm_existfile(p)
             error('File "%s" does not exist.', p);
         end
 
-    otherwise,
+    otherwise
         error('File "%s" is not of a recognised type.', p);
 end
 
-if isempty(n),
-    V = spm_vol_nifti(p);
-else
-    V = spm_vol_nifti(p,n);
-end;
+V = spm_vol_nifti(p,n);
     
 if isempty(n) && length(V.private.dat.dim) > 3
     V0(1) = V;
@@ -145,11 +130,10 @@ if isempty(n) && length(V.private.dat.dim) > 3
     end
     V = V0;
 end
-if ~isempty(V), return; end;
+if ~isempty(V), return; end
 return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+%==========================================================================
 function hread_error_message(q)
 str = {...
     'Error reading information on:',...
@@ -158,15 +142,3 @@ str = {...
     'Please check that it is in the correct format.'};
 spm('alert*',str,mfilename,sqrt(-1));
 return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function existance_error_message(q)
-str = {...
-        'Unable to find file:',...
-        ['        ',spm_str_manip(q,'k40d')],...
-        ' ',...
-        'Please check that it exists.'};
-spm('alert*',str,mfilename,sqrt(-1));
-return;
-
