@@ -4,7 +4,7 @@ function cfg_print = spm_cfg_print
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_print.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_print.m 4046 2010-08-26 15:12:57Z volkmar $
  
 % ---------------------------------------------------------------------
 % print Printing
@@ -113,19 +113,41 @@ opts.values{18}.append = logical(false);
 opts.values{18}.ext = '.tif';
 opts.def = @(val)spm_get_defaults('ui.print', val{:});
 
-fname = cfg_entry;
-fname.tag  = 'fname';
-fname.name = 'Print Filename';
+fname         = cfg_entry;
+fname.tag     = 'fname';
+fname.name    = 'Print Filename';
 fname.strtype = 's';
-fname.val  = {}; % explicitly unset this val
-fname.help = {['Filename to print to. If this is set as a default - even ' ...
-               'if it is set to an empty string - spm_print(''fname'') ' ...
-               'will not print to file ''fname'', but to the standard SPM ' ...
-               'print file.']};
+fname.val     = {}; % explicitly unset this val
+fname.help    = {['Filename to print to. If this is set as a default - even ' ...
+                  'if it is set to an empty string - spm_print(''fname'') ' ...
+                  'will not print to file ''fname'', but to the standard SPM ' ...
+                  'print file.']};
 
-cfg_print = cfg_exbranch;
-cfg_print.tag = 'print';
+figname         = cfg_entry;
+figname.tag     = 'figname';
+figname.name    = 'Figure Name';
+figname.strtype = 's';
+figname.val     = {'Graphics'};
+figname.help    = {['Figure to print. The figure will be determined by ' ...
+                    'calling spm_figure(''FindWin'', ...).']};
+
+fighandle         = cfg_entry;
+fighandle.tag     = 'fighandle';
+fighandle.name    = 'Figure Handle';
+fighandle.strtype = 'r';
+fighandle.val     = {}; % explicitly unset this val 
+fighandle.help    = {['Figure to print. The value entered here must be a ' ...
+                    'figure handle. If it is a non-finite value (Inf/NaN), ' ...
+                    'the SPM Graphics/Help window is printed.']};
+
+fig        = cfg_choice;
+fig.tag    = 'fig';
+fig.name   = 'Figure to print';
+fig.values = {figname, fighandle};
+
+cfg_print      = cfg_exbranch;
+cfg_print.tag  = 'print';
 cfg_print.name = 'Print';
-cfg_print.val = {fname, opts};
+cfg_print.val  = {fname, fig, opts};
 cfg_print.prog = @spm_print;
 cfg_print.help = {'Print the Graphics/Help window.'};

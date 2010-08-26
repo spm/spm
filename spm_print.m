@@ -1,23 +1,44 @@
-function spm_print(job)
+function spm_print(varargin)
 % Print the Graphics window
+% FORMAT spm_print
+% Print the default window to the default output file.
+% FORMAT spm_print(filename)
+% Print the default window to the specified output file.
+% FORMAT spm_print('',figurename)
+% Print the window with the specified name to the default output file.
+% FORMAT spm_print(filename,figurename)
+% Print the window with the specified name to the specified output file.
+% FORMAT spm_print('',figurehandle)
+% Print the figure with the specified handle to the default output file.
+% FORMAT spm_print(filename,figurehandle)
+% Print the figure with the specified handle to the specified output file.
+% FORMAT spm_print(job)
+% Run a batch print job, print the specified window to the specified
+% output file.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 3933 2010-06-17 14:19:08Z guillaume $
+% $Id: spm_print.m 4046 2010-08-26 15:12:57Z volkmar $
 
 %-Run spm_print through the Batch System to get configured print options
 %==========================================================================
 if ~nargin
-    spm_jobman('serial','','spm.util.print','');
+    spm_jobman('serial','','spm.util.print','',{2},NaN);
     return;
-elseif ischar(job)
-    spm_jobman('serial','','spm.util.print',job);
+elseif ischar(varargin{1})
+    if nargin == 1
+        spm_jobman('serial','','spm.util.print',varargin{1},{2},NaN);
+    else
+        spm_jobman('serial','','spm.util.print',varargin{1},{2}, ...
+                   varargin{2});
+    end
     return;
 end
 
 %-Print the Graphics window
 %==========================================================================
+job = varargin{1};
 try
     %-Get output filename
     %----------------------------------------------------------------------
@@ -42,13 +63,24 @@ try
     
     %-Get figure handle
     %----------------------------------------------------------------------
-    if strcmp(get(gcf,'Tag'),'Help')
-        fg = gcf;
+    if isfield(job.fig,'fighandle')
+        if ishandle(job.fig.fighandle) && ...
+                strcmpi(get(job.fig.fighandle,'type'),'figure')
+            fg = job.fig.fighandle;
+        elseif ~isfinite(job.fig.fighandle)
+            if strcmp(get(gcf,'Tag'),'Help')
+                fg = gcf;
+            else
+                fg = spm_figure('FindWin','Graphics');
+            end
+        else
+            fg = [];
+        end
     else
-        fg = spm_figure('FindWin','Graphics');
+        fg = spm_figure('FindWin',job.fig.figname);
     end
     if isempty(fg)
-        fprintf('\nGraphics window not found: nothing has been printed.\n');
+        fprintf('\nFigure not found: nothing has been printed.\n');
         return;
     end
     
@@ -63,9 +95,9 @@ try
     %-Report
     %----------------------------------------------------------------------
     if isempty(strfind(nam1,filesep))
-        fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
+        fprintf('\nPrinting to\n%s%s%s\n',pwd,filesep,nam1);
     else
-        fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
+        fprintf('\nPrinting to\n%s\n',nam1);
     end
     
 %-Report errors
