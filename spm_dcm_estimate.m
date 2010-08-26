@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4042 2010-08-25 11:18:59Z christophe $
+% $Id: spm_dcm_estimate.m 4049 2010-08-26 16:33:23Z guillaume $
  
  
 %-Load DCM structure
@@ -69,12 +69,7 @@ if ~nargin
     spm('FigName','Estimation in progress');
  
 end
-if isstruct(P)
-    DCM = P;
-    P   = ['DCM-' date];
-else
-    load(P)
-end
+if ~isstruct(P), load(P); end
  
 % check options
 %==========================================================================
