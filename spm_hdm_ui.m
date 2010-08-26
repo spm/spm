@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_hdm_ui.m 4048 2010-08-26 16:29:36Z guillaume $
 
 
 % get figure handles
@@ -209,7 +209,7 @@ axis square
 title({['1st order kernels for ' U.name{j}];...
        'state variables'},'FontSize',9)
 ylabel('normalized values')
-legend('s','f','q','v',0);
+legend('s','f','v','q',0);
 grid on
 
 
