@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: DEM_demo_LAP.m 4055 2010-08-27 19:28:13Z karl $
  
 % get basic convolution model
 %==========================================================================
@@ -36,24 +36,22 @@ pC      = sparse(ip,ip,32,np,np);
 M(1).pE = pE;
 M(1).pC = pC;
  
-% free hyperparameters
+% free hyperparameters+
 %--------------------------------------------------------------------------
 M(1).Q  = {speye(M(1).l,M(1).l)};
 M(1).R  = {speye(M(1).n,M(1).n)};
-M(1).hE = 4;
-M(1).gE = 4;
-M(1).hC = 1/2;
-M(1).gC = 1/2;
-M(1).V  = 0;
-M(1).W  = 0;
+M(1).hE = 6;
+M(1).gE = 6;
+M(1).hC = 1/4;
+M(1).gC = 1/4;
  
 % generate data and invert
 %==========================================================================
 M(1).E.nN = 24;                                % number of time steps
 M(1).E.nD = 1;                                 % number of time steps
-M(1).E.s  = 1/4;                               % smoothness
+M(1).E.s  = 1;                                 % smoothness
 M(1).E.d  = 2;                                 % order
-M(1).E.n  = 4;                                 % order
+M(1).E.n  = 6;                                 % order
  
 N         = 32;                                % length of data sequence
 U         = exp(-([1:N] - 12).^2/(2.^2));      % this is the Gaussian cause
