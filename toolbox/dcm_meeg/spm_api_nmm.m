@@ -141,8 +141,9 @@ M.x   = x;
 M.f   = f;
 M.m   = size(M.pE.C,2);
 M.g   = {};
+M.ons = 32*ones(M.m,1);
 
-try, M.ons; catch M.ons = 32; end
+    
  
 % Volterra Kernels
 %==========================================================================

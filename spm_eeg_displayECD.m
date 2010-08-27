@@ -20,19 +20,22 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 3682 2010-01-14 15:38:48Z guillaume $
+% $Id: spm_eeg_displayECD.m 4054 2010-08-27 19:27:09Z karl $
 
-hfig = [];
+
+% checks and defaults
+%--------------------------------------------------------------------------
+hfig       = [];
 ParentAxes = [];
-tag = '';
-query = [];
-handles = [];
-try, options; catch, options=[];end
-try, hfig = options.hfig;end
-try, tag = options.tag;end
-try, ParentAxes  = options.ParentAxes;end
-try, query = options.query;end
-try, handles = options.handles; end
+query      = [];
+handles    = [];
+tag        = '';
+try, options; catch, options = [];      end
+try, hfig        = options.hfig;        end
+try, tag         = options.tag;         end
+try, ParentAxes  = options.ParentAxes;  end
+try, query       = options.query;       end
+try, handles     = options.handles;     end
 try
     figure(hfig);
 catch
@@ -40,10 +43,21 @@ catch
     spm_figure('Clear',hfig);
     ParentAxes = axes('parent',hfig);
 end
+try
+    markersize = options.markersize;
+catch
+    markersize = 20;
+end
+try
+    meshsurf = options.meshsurf;
+catch
+    meshsurf = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
+end
 
-try, Pos{1}; catch, Pos={Pos};end
-try, Orient{1}; catch, Orient={Orient};end
-try, Var{1}; catch, Var = {Var};end
+if isscalar(Var), Var = Pos*0 + Var^2;   end
+try, Pos{1};    catch, Pos = {Pos};      end
+try, Orient{1}; catch, Orient = {Orient};end
+try, Var{1};    catch, Var = {Var};      end
 
 ndip = size(Pos{1},2);
 if ~exist('Names','var') || isempty(Names)
@@ -52,24 +66,20 @@ if ~exist('Names','var') || isempty(Names)
     end
 end
 
+
 col = ['b','g','r','c','m','y','k','w'];
 tmp = ceil(ndip./numel(col));
 col = repmat(col,1,tmp);
+pa  = get(ParentAxes,'position');
 
 if ndip > 0
     
     if isempty(query)
-        m = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
         opt.hfig = hfig;
         opt.ParentAxes = ParentAxes;
         opt.visible = 'off';
-        try
-            pa = get(ParentAxes,'position');
-            pos2 = [pa(1),pa(2)+0.25*pa(4),0.03,0.5*pa(4)];
-        catch
-            pos2 = [0.1,0.55,0.03,0.4];
-        end
-        [out] = spm_eeg_render(m,opt);
+        pos2 = [pa(1),pa(2)+0.25*pa(4),0.03,0.5*pa(4)];
+        out  = spm_eeg_render(meshsurf,opt);
         handles.mesh = out.handles.p;
         handles.BUTTONS.transp = out.handles.transp;
         handles.hfig = out.handles.fi;
@@ -79,7 +89,7 @@ if ndip > 0
             'visible','on')
         set(handles.BUTTONS.transp,...
             'value',0.1,...
-           'position',pos2,...
+            'position',pos2,...
             'visible','on')
     end
     
@@ -95,33 +105,35 @@ if ndip > 0
                 handles.hp(j,i) = plot3(handles.ParentAxes,...
                     Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
                     [col(i),'.'],...
-                    'markerSize',20,...
+                    'markerSize',markersize,...
                     'visible','off');
             end
-            no = sqrt(sum(Orient{j}(:,i).^2));
-            if no > 0
-                Oi = 1e1.*Orient{j}(:,i)./no;
-            else
-                Oi = 1e-5*ones(3,1);
-            end
             try
-                set(handles.hq(j,i),...
-                    'xdata',Pos{j}(1,i),...
-                    'ydata',Pos{j}(2,i),...
-                    'zdata',Pos{j}(3,i),...
-                    'udata',Oi(1),...
-                    'vdata',Oi(2),...
-                    'wdata',Oi(3))
-            catch
-                handles.hq(j,i) = quiver3(handles.ParentAxes,...
-                    Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
-                    Oi(1),Oi(2),Oi(3),col(i),...
-                    'lineWidth',2,'visible','off');
-            end
-            if isequal(query,'add')
-                set(handles.hq(j,i),...
-                    'LineStyle','--',...
-                    'lineWidth',1)
+                no = sqrt(sum(Orient{j}(:,i).^2));
+                if no > 0
+                    Oi = 1e1.*Orient{j}(:,i)./no;
+                else
+                    Oi = 1e-5*ones(3,1);
+                end
+                try
+                    set(handles.hq(j,i),...
+                        'xdata',Pos{j}(1,i),...
+                        'ydata',Pos{j}(2,i),...
+                        'zdata',Pos{j}(3,i),...
+                        'udata',Oi(1),...
+                        'vdata',Oi(2),...
+                        'wdata',Oi(3))
+                catch
+                    handles.hq(j,i) = quiver3(handles.ParentAxes,...
+                        Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
+                        Oi(1),Oi(2),Oi(3),col(i),...
+                        'lineWidth',2,'visible','off');
+                end
+                if isequal(query,'add')
+                    set(handles.hq(j,i),...
+                        'LineStyle','--',...
+                        'lineWidth',1)
+                end
             end
             [x,y,z]= ellipsoid(Pos{j}(1,i),Pos{j}(2,i),Pos{j}(3,i),...
                 1.*sqrt(Var{j}(1,i)),1.*sqrt(Var{j}(2,i)),1.*sqrt(Var{j}(1,i)),20);

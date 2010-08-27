@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 3846 2010-04-27 17:25:13Z vladimir $
+% $Id: spm_api_erp.m 4054 2010-08-27 19:27:09Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1292,7 +1292,7 @@ switch handles.DCM.options.analysis
  
         % and display
         %------------------------------------------------------------------
-        spm_dcm_ssr_results(handles.DCM,'Data');
+        spm_dcm_ssr_results(handles.DCM,'spectral data');
  
  
     case{'IND'}

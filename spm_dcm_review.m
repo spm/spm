@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_dcm_review.m 4054 2010-08-27 19:27:09Z karl $
 
 
 %-Get DCM structure
@@ -50,12 +50,12 @@ end
 % experimental input specific reports
 %----------------------------------------------------------------------
 for i = 1:m
-    str{i} = ['    effects of ' DCM.U.name{i}];
+    inputstr{i} = ['    effects of ' DCM.U.name{i}];
 end
 
 % connectivity and kernels
 %----------------------------------------------------------------------
-str{end + 1} = 'fixed connections';
+str = [inputstr,{'fixed connections'}];
 
 if isfield(DCM,'averaged')
     str    = {str{:},'contrast of connections'};
@@ -75,11 +75,18 @@ else
         % region specific reports
         %------------------------------------------------------------------
         for i = 1:l
-            str{end + 1} = ['   hidden states: ' DCM.Y.name{i}];
+            hiddenstr{i} = ['   hidden states: ' DCM.Y.name{i}];
         end
+        str = [str,hiddenstr];
+    else
+        hiddenstr = {};
     end
 end
-str{end + 1} = 'quit';
+
+if ~isfield(DCM,'M')
+    str = {'location of regions','inputs','outputs'};
+end
+str = [str,{'quit'}];
 
 %-Get action
 %==========================================================================
@@ -89,12 +96,8 @@ catch
     
     %-Get action
     %----------------------------------------------------------------------
-    if isfield(DCM,'M')
-        action = str{spm_input('review',1,'m',str)};
-    else
-        str2   = str([m+3 m+4 end]);
-        action = str2{spm_input('review',1,'m',str2)};
-    end
+    action = str{spm_input('review',1,'m',str)};
+
 end
 
 
@@ -117,10 +120,9 @@ end
 
 %-Set up Graphics window
 %--------------------------------------------------------------------------
-if nargin < 2
-    Fgraph = spm_figure('GetWin','Graphics');
-    figure(Fgraph); spm_figure('Clear',Fgraph);
-end
+Fgraph = spm_figure('GetWin','Graphics');
+spm_figure('Clear',Fgraph);
+set(Fgraph,'Renderer','zbuffer')
 
 switch action
 
@@ -128,7 +130,7 @@ switch action
     %======================================================================
     % Inputs
     %======================================================================
-    case str(1:m)
+    case inputstr
 
         %-input effects
         %------------------------------------------------------------------
@@ -291,9 +293,8 @@ switch action
         % transverse
         %------------------------------------------------------------------
         subplot(2,1,1)
-        spm_dcm_display(DCM.xY);
+        spm_dcm_graph(DCM.xY);
         title('Regional locations','FontSize',16)
-
 
         % table
         %------------------------------------------------------------------
@@ -337,19 +338,18 @@ switch action
 
             % posteriors (if stochastic DCM)
             %--------------------------------------------------------------
-            if DCM.options.stochastic
+            try
                 hold on
                 plot(t,DCM.qU.v{2}(i,:),':')
-                hold off
+                
             end
-
+            hold off
             title(['Input - ' DCM.U.name{i}],'FontSize',16)
             ylabel('event density {Hz}')
-            a = axis;
-            axis([0 max(x) (a(3) - 1/8) (a(4) + 1/8)]);
+            spm_axis tight
         end
         xlabel('time {seconds}')
-        if DCM.options.stochastic
+        if DCM.options.stochastic && isfield(DCM,'M')
             legend({'prior','posterior'})
         end
 
@@ -361,14 +361,20 @@ switch action
 
         % graph
         %------------------------------------------------------------------
-        x  = [1:length(DCM.y)]*DCM.Y.dt;
+        x     = [1:DCM.v]*DCM.Y.dt;
         for i = 1:l
             subplot(l,1,i);
-            plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),':');
-            title([DCM.Y.name{i} ': responses and predictions' ],'FontSize',16);
+            try
+                plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),':');
+                title([DCM.Y.name{i} ': responses and predictions' ],'FontSize',16);
+                xlabel('time {seconds}');
+                legend('predicted', 'observed')
+            catch
+                plot(x,DCM.Y.y(:,i));
+                title([DCM.Y.name{i} ': responses' ],'FontSize',16);
+                xlabel('time {seconds}');
+            end
         end
-        xlabel('time {seconds}');
-        legend('predicted', 'observed')
 
 
     %======================================================================
@@ -427,12 +433,12 @@ switch action
     case {'estimates of precisions'}
         spm_DEM_qH(DCM.qH)
 
-    case {str{end - l:end - 1}}
+    case hiddenstr
         
         
         % get region
         %------------------------------------------------------------------
-        i = find(strcmp(action,str)) + m - length(str) + 1;
+        i = find(strcmp(action,str)) - find(strcmp('estimates of precisions',str));
         t = [1:length(DCM.Y.y)]*DCM.Y.dt;
 
 
