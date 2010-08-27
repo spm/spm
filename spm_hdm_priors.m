@@ -24,7 +24,7 @@ function [pE,pC] = spm_hdm_priors(m,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_priors.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_hdm_priors.m 4052 2010-08-27 19:22:44Z karl $
 
 
 
@@ -53,7 +53,7 @@ e     = [2.1225    1.2006    0.3519    0.0039    0.0012];
 %---------------------------------------------------------------------------
 i     = (h + 1):5;
 e(i)  = 0;
-pC    = v*diag(e)*v';
+pC    = v*diag(e)*v'/32;
 
 % append scaling parameter for epsilon: prior variance = 1/32,
 %---------------------------------------------------------------------------

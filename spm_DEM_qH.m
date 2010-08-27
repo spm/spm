@@ -15,13 +15,12 @@ function spm_DEM_qH(qH,pH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qH.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_DEM_qH.m 4052 2010-08-27 19:22:44Z karl $
  
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 try, qH = qH.qH; end
 try, pH = pH.pH; end
-
 
 % [Re]ML estimates - h
 %==========================================================================
@@ -64,35 +63,39 @@ end
 h = spm_vec(qH.g);
 c = spm_vec(qH.W);
 c = sqrt(c)*spm_invNcdf(1 - 0.05);
-subplot(2,2,2)
-bar(full(h),'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
-title({'log-precision';'states'},'FontSize',16);
-axis square
-set(gca,'XLim',[0 length(c) + 1])
- 
-% conditional covariances
-%--------------------------------------------------------------------------
-for i = 1:length(c)
-    line([i i],[-1 1]*c(i) + h(i),'LineWidth',4,'Color','r');
+if h
+    subplot(2,2,2)
+    bar(full(h),'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+    title({'log-precision';'states'},'FontSize',16);
+    axis square
+    set(gca,'XLim',[0 length(c) + 1])
+    
+    % conditional covariances
+    %----------------------------------------------------------------------
+    for i = 1:length(c)
+        line([i i],[-1 1]*c(i) + h(i),'LineWidth',4,'Color','r');
+    end
+    
+    % prior or true means
+    %----------------------------------------------------------------------
+    try
+        p     = spm_vec(pH.g);
+        for i = 1:length(h)
+            line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','k');
+        end
+    end
+    
+    glabel = {};
+    for i = 1:length(qH.h)
+        for j = 1:length(qH.h{i})
+            glabel{end + 1} = sprintf('g:level %i',i);
+        end
+    end
+    set(gca,'XTickLabel',glabel)
+else
+    glabel = {};
 end
 
-% prior or true means
-%--------------------------------------------------------------------------
-try
-    p     = spm_vec(pH.g);
-    for i = 1:length(h)
-        line([-1 1]/2 + i,[0 0] + p(i),'LineWidth',4,'Color','k');
-    end
-end
-
-glabel = {};
-for i = 1:length(qH.h)
-    for j = 1:length(qH.h{i})
-        glabel{end + 1} = sprintf('g:level %i',i);
-    end
-end
-set(gca,'XTickLabel',glabel)
- 
 % conditional covariance and correlations
 %--------------------------------------------------------------------------
 subplot(2,2,3)

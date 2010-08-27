@@ -1,8 +1,7 @@
-function [y] = spm_fx_fmri(x,u,P,M)
-% state equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
+function [y] = spm_fx_fmri_linear(x,u,P,M)
+% state equation for a dynamic model of fMRI (linear version)
 % responses
-% FORMAT [y] = spm_fx_fmri(x,u,P,M)
-
+% FORMAT [y] = spm_fx_fmri_linear(x,u,P,M)
 % x      - state vector
 %   x(:,1) - excitatory neuronal activity             ue
 %   x(:,2) - vascular signal                          s
@@ -33,7 +32,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_fx_fmri_linear.m 4052 2010-08-27 19:22:44Z karl $
 
 
 % Neuronal motion
@@ -94,34 +93,30 @@ end
 %   H(6) - ratio of intra- to extra-vascular components   (epsilon)
 %          of the gradient echo signal
 %--------------------------------------------------------------------------
-H        = [0.65 0.41 2.00 0.32 0.34];
-H        = [0.64 0.32 2.00 0.32 0.32];
-
-% exponentiation of hemodynamic state variables
-%--------------------------------------------------------------------------
-x(:,3:5) = exp(x(:,3:5));
+H      = [0.65 0.41 2.00 0.32 0.34];
+H      = [0.64 0.32 2.00 0.32 0.32];
 
 % signal decay
 %--------------------------------------------------------------------------
-sd       = H(1)*exp(P.decay);
+sd     = H(1)*exp(P.decay);
 
 % transit time
 %--------------------------------------------------------------------------
-tt       = H(3)*exp(P.transit);
+tt     = H(3)*exp(P.transit);
 
 % Fout = f(v) - outflow
 %--------------------------------------------------------------------------
-fv       = x(:,4).^(1/H(4));
+fv     = 1 + x(:,4)/H(4);
 
-% e = f(f) - oxygen extraction
+
+% e = f(f) - oxygen extraction x rCBF
 %--------------------------------------------------------------------------
-ff       = (1 - (1 - H(5)).^(1./x(:,3)))/H(5);
-
+ff     = (1 - log(H(5))).*x(:,3);
 
 % implement differential state equation y = dx/dt (hemodynamic)
 %--------------------------------------------------------------------------
-y(:,2)   = x(:,1) - sd.*x(:,2) - H(2)*(x(:,3) - 1);
-y(:,3)   = x(:,2)./x(:,3);
-y(:,4)   = (x(:,3) - fv)./(tt.*x(:,4));
-y(:,5)   = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./(tt.*x(:,5));
-y        = y(:);
+y(:,2) = x(:,1) - sd.*x(:,2) - H(2)*x(:,3);
+y(:,3) = x(:,2);
+y(:,4) = (1  + x(:,3) - fv)./tt;
+y(:,5) = (ff - x(:,5) + x(:,4))./tt;
+y      = y(:);

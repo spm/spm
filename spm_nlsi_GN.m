@@ -78,7 +78,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4049 2010-08-26 16:33:23Z guillaume $
+% $Id: spm_nlsi_GN.m 4052 2010-08-27 19:22:44Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -200,6 +200,9 @@ end
 %--------------------------------------------------------------------------
 try
     hE = M.hE;
+    if length(hE) ~= nh
+        hE = hE*sparse(nh,1);
+    end
 catch
     hE = sparse(nh,1);
 end
@@ -208,8 +211,11 @@ end
 %--------------------------------------------------------------------------
 try
     ihC = inv(M.hC);
+    if length(ihC) ~= nh
+        ihC = ihC*speye(nh,nh);
+    end
 catch
-    ihC = eye(nh,nh);
+    ihC = speye(nh,nh);
 end
  
 % dimension reduction of parameter space
@@ -276,7 +282,7 @@ for k = 1:64
             iS    = 0;
         end
         for i = 1:nh
-            iS = iS + Q{i}*exp(h(i));
+            iS = iS + Q{i}*(exp(-16) + exp(h(i)));
         end
         S     = inv(iS);
         if any(isnan(S(:))) % | rcond(full(S))<1e-15, 
@@ -310,14 +316,14 @@ for k = 1:64
         
         % add hyperpriors
         %------------------------------------------------------------------
-        d     = h - hE;
+        d     = h     - hE;
         dFdh  = dFdh  - ihC*d;
         dFdhh = dFdhh - ihC;
         Ch    = inv(-dFdhh); 
         
         % update ReML estimate
         %------------------------------------------------------------------
-        dh    = spm_dx(dFdhh,dFdh,{8});
+        dh    = spm_dx(dFdhh,dFdh,{4});
         h     = h  + dh;
  
         % convergence

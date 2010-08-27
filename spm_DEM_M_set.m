@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 3733 2010-02-18 17:43:18Z karl $
+% $Id: spm_DEM_M_set.m 4052 2010-08-27 19:22:44Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -271,6 +271,7 @@ try, M.pg; catch, M(1).pg = []; end
 
 % check hyperpriors hE - [log]hyper-parameters and components
 %--------------------------------------------------------------------------
+pP    = 32;               % prior precision on log-precisions
 for i = 1:g
     
     
@@ -294,11 +295,11 @@ for i = 1:g
     
     % check hyperpriors (covariances)
     %----------------------------------------------------------------------
-    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE)); end
-    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE)); end
+    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE))/pP; end
+    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE))/pP; end
     
-    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE)); end
-    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE)); end
+    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE))/pP; end
+    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE))/pP; end
     
     % check Q and R (precision components)
     %======================================================================
