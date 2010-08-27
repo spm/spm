@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 3960 2010-06-30 17:41:24Z ged $
+% $Id: spm_spm.m 4051 2010-08-27 14:21:16Z guillaume $
  
-SVNid     = '$Rev: 3960 $';
+SVNid     = '$Rev: 4051 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -441,28 +441,33 @@ xX.xKXs.X = full(xX.xKXs.X);
 xX.pKX    = spm_sp('x-',xX.xKXs);                        % projector
 erdf      = spm_SpUtil('trRV',xX.xKXs);                  % Working error df
  
-%-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
+%-Compute Hsqr and F-threshold under i.i.d.
 %--------------------------------------------------------------------------
-if ~isfield(xVi,'V')
-    
+if isfield(xVi,'Fcontrast')
+    Fcname = 'User-specified contrast';
+    xCon   = spm_FcUtil('Set',Fcname,'F','c',xVi.Fcontrast,xX.xKXs);
+else
     Fcname = 'effects of interest';
     iX0    = [SPM.xX.iB SPM.xX.iG];
     xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
-    X1o    = spm_FcUtil('X1o', xCon(1),xX.xKXs);
-    Hsqr   = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
-    trRV   = spm_SpUtil('trRV',xX.xKXs);
-    trMV   = spm_SpUtil('trMV',X1o);
- 
-    % Threshold for voxels entering non-sphericity estimates
-    %----------------------------------------------------------------------
-    try
-        modality = lower(spm_get_defaults('modality'));
-        UFp      = spm_get_defaults(['stats.' modality '.ufp']);
-    catch
-        UFp      = 0.001;
-    end
-    UF           = spm_invFcdf(1 - UFp,[trMV,trRV]);
 end
+xVi.Fcontrast = xCon.c;
+
+X1o    = spm_FcUtil('X1o', xCon(1),xX.xKXs);
+Hsqr   = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
+trRV   = spm_SpUtil('trRV',xX.xKXs);
+trMV   = spm_SpUtil('trMV',X1o);
+
+% Threshold for voxels entering non-sphericity estimates and prior for PPM
+%----------------------------------------------------------------------
+try
+    modality = lower(spm_get_defaults('modality'));
+    UFp      = spm_get_defaults(['stats.' modality '.ufp']);
+catch
+    UFp      = 0.001;
+end
+xVi.UFp      = UFp;
+UF           = spm_invFcdf(1 - UFp,[trMV,trRV]);
  
 %-Image dimensions and data
 %==========================================================================
@@ -713,17 +718,23 @@ for z = 1:nbz:zdim                       %-loop over planes (2D or 3D data)
             %--------------------------------------------------------------
             if isfield(xX,'W')
  
+                j   = sum((Hsqr*beta).^2,1)/trMV > UF*ResSS/trRV;
+                j   = find(j);
+                
                 %-sample covariance and mean of Y (all voxels)
                 %----------------------------------------------------------
-                CY         = CY + Y*Y';
-                EY         = EY + sum(Y,2);
- 
+                if ~isempty(j)
+                    Y          = Y(:,j);
+                    CY         = CY + Y*Y';
+                    EY         = EY + sum(Y,2);
+                end
+                
                 %-Save betas etc. for current plane as we go along
                 %----------------------------------------------------------
                 CrBl       = [CrBl,    beta];
                 CrResI     = [CrResI,  res(i_res,:)];
                 CrResSS    = [CrResSS, ResSS];
- 
+                
             end % (xX,'W')
             clear Y                         %-Clear to save memory
  
