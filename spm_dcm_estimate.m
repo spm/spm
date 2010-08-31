@@ -1,18 +1,18 @@
 function [DCM] = spm_dcm_estimate(P)
 % Estimates parameters of a DCM (bilinear or nonlinear) for fMRI data
 % FORMAT [DCM] = spm_dcm_estimate(DCM)
-%   DCM - the DCM or its filename
+%   DCM - DCM structure or its filename
 %
 % Expects
 %--------------------------------------------------------------------------
-% DCM.a;                             % switch on endogenous connections
-% DCM.b;                             % switch on bilinear modulations
-% DCM.c;                             % switch on exogenous connections
-% DCM.U;                             % exogenous inputs
-% DCM.Y;                             % responses
-% DCM.Y.X0;                          % confounds
-% DCM.n;                             % number of regions
-% DCM.v;                             % number of scans
+% DCM.a                              % switch on endogenous connections
+% DCM.b                              % switch on bilinear modulations
+% DCM.c                              % switch on exogenous connections
+% DCM.U                              % exogenous inputs
+% DCM.Y                              % responses
+% DCM.Y.X0                           % confounds
+% DCM.n                              % number of regions
+% DCM.v                              % number of scans
 %
 % Options
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4049 2010-08-26 16:33:23Z guillaume $
+% $Id: spm_dcm_estimate.m 4056 2010-08-31 15:17:05Z guillaume $
  
  
 %-Load DCM structure
@@ -69,7 +69,7 @@ if ~nargin
     spm('FigName','Estimation in progress');
  
 end
-if ~isstruct(P), load(P); end
+if ~isstruct(P), load(P); else DCM = P; end
  
 % check options
 %==========================================================================
