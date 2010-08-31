@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4054 2010-08-27 19:27:09Z karl $
+% $Id: spm_dcm_review.m 4057 2010-08-31 15:23:39Z guillaume $
 
 
 %-Get DCM structure
@@ -346,7 +346,8 @@ switch action
             hold off
             title(['Input - ' DCM.U.name{i}],'FontSize',16)
             ylabel('event density {Hz}')
-            spm_axis tight
+            axis tight
+            lm = get(gca,'ylim'); set(gca,'ylim',lm + [-1 1]*diff(lm)/16);
         end
         xlabel('time {seconds}')
         if DCM.options.stochastic && isfield(DCM,'M')
