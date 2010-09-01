@@ -11,24 +11,29 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_run_file_move.m 4059 2010-09-01 15:09:44Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 4059 $'; %#ok
 
 action = fieldnames(job.action);
 action = action{1};
 if strcmp(action, 'delete')
+    todelete = {};
     for k = 1:numel(job.files)
         [p n e] = fileparts(job.files{k});
         if numel(e)>=4 && any(strcmp(e(1:4), {'.nii','.img'}))
             try
                 [p n e v] = spm_fileparts(job.files{k});
-                delete(fullfile(p,[n '.hdr']));
-                delete(fullfile(p,[n '.mat']));
+                todelete{end+1} = fullfile(p,[n '.hdr']);
+                todelete{end+1} = fullfile(p,[n '.mat']);
             end
         end
-        delete(fullfile(p, [n e]));
+        todelete{end+1} = fullfile(p, [n e]);
     end
+    ws = warning;
+    warning off;
+    delete(todelete{:});
+    warning(ws);
     out = [];
 else
     % copy or move
