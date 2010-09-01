@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 3995 2010-07-13 17:19:49Z karl $
+% $Id: spm_contrasts.m 4058 2010-09-01 14:26:34Z ged $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -175,7 +175,7 @@ for i = 1:length(Ic)
                 l     = spm_get_data(VHp,XYZ);       % get hyperparamters
                 Vc    = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
                 SE    = sqrt(l*Vc);                  % and standard error
-                Z     = cB./(SE + exp(-8)*max(SE));
+                Z     = cB./SE;
                 str   = sprintf('[%.1f]',SPM.xX.erdf);
                 
                 

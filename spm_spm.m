@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4051 2010-08-27 14:21:16Z guillaume $
+% $Id: spm_spm.m 4058 2010-09-01 14:26:34Z ged $
  
-SVNid     = '$Rev: 4051 $';
+SVNid     = '$Rev: 4058 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -909,7 +909,11 @@ xX.Bcov         = xX.pKX*xX.V*xX.pKX';                      % Cov(beta)
 %--------------------------------------------------------------------------
 VResMS.pinfo(1) = 1/xX.trRV;
 VResMS          = spm_create_vol(VResMS);
- 
+
+%-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
+%--------------------------------------------------------------------------
+spm_modify_resms(VResMS);
+
 %-Smoothness estimates of component fields and RESEL counts for volume
 %==========================================================================
 try
