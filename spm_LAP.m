@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4055 2010-08-27 19:28:13Z karl $
+% $Id: spm_LAP.m 4060 2010-09-01 17:17:36Z karl $
 
 
 % find or create a DEM figure
@@ -249,8 +249,7 @@ Dv     = kron(spm_speye(d,d,1),spm_speye(nv,nv));
 Dy     = kron(spm_speye(n,n,1),spm_speye(ny,ny));
 Dc     = kron(spm_speye(d,d,1),spm_speye(nc,nc));
 Du     = spm_cat(spm_diag({Dx,Dv}));
-Ip     = spm_speye(np,np);
-Ih     = spm_speye(nb,nb);
+Ip     = spm_speye(np + nb,np + nb);
 qp.dp  = sparse(np,1);                   % conditional expectation of dp/dt
 qh.dp  = sparse(nb,1);                   % conditional expectation of dh/dt
 
@@ -557,10 +556,8 @@ for iN = 1:nN
             
             % precision of fluctuations on parameters of hyperparameters
             %--------------------------------------------------------------
-            Kp    = 32*ns;
-            Kpp   = [0  1;
-                    -1 -Kp];
-            Kpu   = [0  1]';
+            Kp    = max(128,ns)*Ip;
+
             
             % assemble conditional means
             %--------------------------------------------------------------
@@ -576,30 +573,26 @@ for iN = 1:nN
             
             % flow
             %--------------------------------------------------------------
-            f{1}  =      Dy*spm_vec(q{1});
-            f{2}  =      Du*spm_vec(q{2:3}) - dLdu - dHdu;
-            f{3}  =      Dc*spm_vec(q{4});
-            f{4}  =   dLdbb*spm_vec(q{8:9});
-            f{5}  = - dLdb - dHdb - Kp*f{4};
+            f{1}  =   Dy*spm_vec(q{1});
+            f{2}  =   Du*spm_vec(q{2:3}) - dLdu - dHdu;
+            f{3}  =   Dc*spm_vec(q{4});
+            f{4}  =      spm_vec(q{8:9});
+            f{5}  = - Kp*spm_vec(q{8:9}) - dLdb - dHdb;
             
  
             % and Jacobian
             %--------------------------------------------------------------
-            dfduu = spm_cat({Dy      []       []   ;
-                           -dLduy Du-dLduu -dLduc  ;
-                            []       []       Dc });
-                         
+            dLdby   = [dLdpy; dLdhy];
+            dLdbu   = [dLdpu; dLdhu];
+            dLdbc   = [dLdpc; dLdhc];                
+ 
+            % and Jacobian
             %--------------------------------------------------------------
-            dfdpu = spm_cat({-dLdpy -dLdpu -dLdpc  ;
-                             -dLdhy -dLdhu -dLdhc});
-                         
-            dfdpu = kron(Kpu, dfdpu);              
-            dfdpp = kron(Kpp, dLdbb);
-            
-            dfdq  = spm_cat({dfduu []     ;
-                             dfdpu dfdpp});
- 
- 
+            dfdq  = spm_cat({Dy      []       []     []     [];
+                            -dLduy  Du-dLduu -dLduc  []     [];
+                             []      []       Dc     []     [];
+                             []      []       []     []     Ip;
+                            -dLdby  -dLdbu   -dLdbc -dLdbb -Kp});
  
  
             % update conditional modes of states

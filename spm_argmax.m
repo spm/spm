@@ -16,7 +16,7 @@ function [p f] = spm_argmax(fun,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_argmax.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_argmax.m 4060 2010-09-01 17:17:36Z karl $
  
  
 % arguments
@@ -26,7 +26,7 @@ i     = varargin{end};
 
 % Gauss-Newton scheme
 %======================================================================
-v     = -4;
+v     = -8;
 for j = 1:64
     
     % time

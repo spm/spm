@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_diff.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_diff.m 4060 2010-09-01 17:17:36Z karl $
  
 % create inline object
 %--------------------------------------------------------------------------
@@ -136,7 +136,7 @@ else
         fi    = spm_diff(f,xi{:},n(1:end - 1),V);
         J{i}  = spm_dfdx(fi,f0{1},dx);
     end
-    varargout = {J f0{:}};
+    varargout = [{J} f0];
 end
  
  

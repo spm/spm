@@ -19,7 +19,7 @@ function [varargout] = spm_dcm_optimise(qE,qC,pE,pC,priorfun,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_optimise.m 4053 2010-08-27 19:24:12Z karl $
+% $Id: spm_dcm_optimise.m 4060 2010-09-01 17:17:36Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -32,7 +32,7 @@ if nargin == 4
     varargin{2} = pE;
 end
 
-varargout   = spm_argmax('spm_reduced_evidence',qE,qC,pE,pC,priorfun,varargin{:},6);
+varargout   = spm_argmax('spm_log_evidence',qE,qC,pE,pC,priorfun,varargin{:},6);
 varargin{1} = varargout;
 varargout   = priorfun(varargin{:});
 

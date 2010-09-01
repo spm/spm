@@ -78,7 +78,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_nlsi_GN.m 4060 2010-09-01 17:17:36Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -223,8 +223,8 @@ end
 V     = spm_svd(pC,exp(-32));
 nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
-ip    = [1:np]';
-iu    = [1:nu]' + np;
+ip    = (1:np)';
+iu    = (1:nu)' + np;
  
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
@@ -273,26 +273,17 @@ for k = 1:64
         % check for stability
         %------------------------------------------------------------------
         if norm(J,'inf') > exp(32), break, end
-        clear S
+        
         % precision and conditional covariance
         %------------------------------------------------------------------
-        if nh
-            iS    = zeros(size(Q{1}));
-        else
-            iS    = 0;
-        end
+        iS    = sparse(0);
         for i = 1:nh
             iS = iS + Q{i}*(exp(-16) + exp(h(i)));
         end
         S     = inv(iS);
-        if any(isnan(S(:))) % | rcond(full(S))<1e-15, 
-            break, 
-        end
         iS    = kron(speye(nq),iS);
         Cp    = spm_inv(J'*iS*J + ipC);
-        if any(isnan(Cp(:))) | rcond(full(Cp))<1e-15, 
-            break, 
-        end
+        if any(isnan(Cp(:))) || rcond(full(Cp)) < exp(-32), break, end
  
         % precision operators for M-Step
         %------------------------------------------------------------------
@@ -408,7 +399,7 @@ for k = 1:64
         % subplot prediction
         %------------------------------------------------------------------
         figure(Fsi)
-        x    = [1:ns]*Y.dt;
+        x    = (1:ns)*Y.dt;
         xLab = 'time (seconds)';
         try
             if length(M.Hz) == ns
