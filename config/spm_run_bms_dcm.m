@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 4042 2010-08-25 11:18:59Z christophe $
+% $Id: spm_run_bms_dcm.m 4062 2010-09-02 14:04:17Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -169,7 +169,6 @@ else
                         subj(k).sess(h).model(j).F     = DCM.DCM.F;
                         subj(k).sess(h).model(j).Ep    = DCM.DCM.Ep;
                         subj(k).sess(h).model(j).Cp    = DCM.DCM.Cp;
-                        subj(k).sess(h).model(j).nonLin= DCM.DCM.options.nonlinear;
                         
                     else
                         
