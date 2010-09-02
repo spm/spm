@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4047 2010-08-26 16:02:25Z guillaume $
+% $Id: spm_figure.m 4061 2010-09-02 12:29:02Z guillaume $
 
 
 %==========================================================================
@@ -732,13 +732,17 @@ uimenu(t1,    'Label','&Specify File...', 'HandleVisibility','off', ...
 
 %-Copy Figure
 if ispc
-    uimenu(t0, 'Label','&Copy Figure', 'HandleVisibility','off',...
+    uimenu(t0, 'Label','Co&py Figure', 'HandleVisibility','off',...
        'CallBack','editmenufcn(gcbf,''EditCopyFigure'')');
 end
 
 %-Clear Menu
-uimenu(t0,    'Label','C&lear Figure', 'HandleVisibility','off', ...
+uimenu(t0,    'Label','&Clear Figure', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''Clear'',gcbf)');
+
+%-Close non-SPM figures
+uimenu(t0,    'Label','C&lose non-SPM Figures', 'HandleVisibility','off', ...
+    'CallBack',@myclosefig);
 
 %-Colour Menu
 t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off','Separator','on');
@@ -910,6 +914,16 @@ try
 end
 set(h,'WindowStyle','docked');
 try, pause(0.5), desktop.setGroupDocked(group,false); end
+
+%==========================================================================
+function myclosefig(obj,evt)
+%==========================================================================
+hMenu = spm_figure('FindWin','Menu');
+hInt  = spm_figure('FindWin','Interactive');
+hGra  = spm_figure('FindWin','Graphics');
+h     = setdiff(findobj(get(0,'children'),'flat','visible','on'), ...
+    [hMenu hInt hGra gcf]);
+close(h,'force');
 
 %==========================================================================
 function copy_menu(F,G)
