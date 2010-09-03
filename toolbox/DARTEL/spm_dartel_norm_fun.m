@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 3728 2010-02-17 12:18:34Z john $
+% $Id: spm_dartel_norm_fun.m 4065 2010-09-03 13:12:03Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -245,7 +245,7 @@ for m=1:numel(PI),
                     [f,c] = dartel3('push',f,y,dim);
                     spm_smooth(f,f,krn); % Side effects
                     spm_smooth(c,c,krn); % Side effects
-                    f = f./(c+eps);
+                    f = f./(c+0.001); % I don't like it, but it may stop a few emails.
                 else
                     % Modulated, by pushing
                     scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
