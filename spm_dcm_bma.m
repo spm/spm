@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 4042 2010-08-25 11:18:59Z christophe $
+% $Id: spm_dcm_bma.m 4063 2010-09-03 11:44:14Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -41,9 +41,13 @@ if isfield(DCM,'a')
     dcm_fmri = 1;
     nreg = DCM.n;
     min  = DCM.M.m;
+    dimD = 0;
 else
     dcm_fmri = 0;
 end
+
+firstsub  = 1;
+firstmod  = 1;
 
 Ep  = [];
 [Ni M] = size(post);
@@ -87,6 +91,11 @@ if rfx
             params(i).model(kk).vEp = spm_vec(params(i).model(kk).Ep);
             params(i).model(kk).Cp  = full(subj(i).sess(1).model(sel).Cp);
 
+            if dcm_fmri
+                dimDtmp = size(params(i).model(kk).Ep.D,3);
+                if dimDtmp ~= 0, dimD = dimDtmp; firstsub = i; firstmod = kk;end
+            end
+            
             % Average sessions
             if Nses > 1
 
@@ -142,37 +151,17 @@ if rfx
 
             end
 
-            % ensuring the parameter matrix accounts for D in bilinear model
-            Ep = params(i).model(kk).Ep;
-            if isfield(Ep,'D')
-                N_par = length(params(i).model(kk).vEp);
-                [mD,nD,pD] = size(Ep.D);
-                if ~pD % -> add zeros where needed in D, vEp and Cp.
-                    % put zeros in Ep/vEp
-                    Ep.D = zeros(nreg,nreg,nreg);
-                    N_D = nreg^3;
-                    vEp = spm_vec(Ep);
-                    N_last = 1+nreg*2; % transit, decay and exp parameter
-                    i_last = N_par-N_last+1;
-                    % put zeros in Cp
-                    tmp = full(params(i).model(kk).Cp);
-                    tmp = [tmp(1:i_last-1,:); zeros(N_D,N_par); tmp(i_last:end,:)];
-                    Cp = [tmp(:,1:i_last-1) zeros(N_par+N_D,N_D) tmp(:,i_last:end)];
-                    % save stuff back in place
-                    params(i).model(kk).Ep  = Ep;
-                    params(i).model(kk).vEp = vEp;
-                    params(i).model(kk).Cp  = Cp;
-                end
-            end
-
             [evec, eval] = eig(params(i).model(kk).Cp);
             deig         = diag(eval);
 
             params(i).model(kk).dCp = deig;
             params(i).model(kk).vCp = evec;
 
-        end
+        end   
     end
+    
+    % ENCONTRAR D dimensions!!!
+    
 else % Use an FFX
     % Find models in Occam's window
     mp       = max(post);
@@ -202,6 +191,11 @@ else % Use an FFX
             params(n).model(kk).Ep  = subj(n).sess(1).model(sel).Ep;
             params(n).model(kk).vEp = spm_vec(params(n).model(kk).Ep);
             params(n).model(kk).Cp  = full(subj(n).sess(1).model(sel).Cp);
+            
+            if dcm_fmri
+                dimDtmp = size(params(n).model(kk).Ep.D,3);
+                if dimDtmp ~= 0, dimD = dimDtmp; firstsub = n; firstmod = kk; end
+            end
 
             if Nses > 1
 
@@ -269,19 +263,17 @@ else % Use an FFX
 end
 
 % Pre-allocate sample arrays
-Np = length(params(1).model(1).vEp);
+Np = length(params(firstsub).model(firstmod).vEp);
 
 % get dimensions of a b c d parameters
 if dcm_fmri
 
     Nr      = nreg*nreg;
-    dimd    = size(params(1).model(1).Ep.D,3);
-    Np      = Nr + Nr*min + nreg*min + Nr*dimd;
 
     Etmp.A  = zeros(nreg,nreg,Nsamp);
     Etmp.B  = zeros(nreg,nreg,min,Nsamp);
     Etmp.C  = zeros(nreg,min,Nsamp);
-    Etmp.D  = zeros(nreg,nreg,dimd,Nsamp);
+    Etmp.D  = zeros(nreg,nreg,dimD,Nsamp);
 
     dima    = Nr;
     dimb    = Nr+Nr*min;
@@ -292,6 +284,11 @@ end
 clear Ep
 disp('')
 disp('Averaging models in Occams window...')
+
+Ep_all = zeros(Np,Nsub);
+Ep_sbj = zeros(Np,Nsub,Nsamp);
+Ep     = zeros(Np,Nsamp);
+
 for i=1:Nsamp
     % Pick a model
     if ~rfx
@@ -300,22 +297,26 @@ for i=1:Nsamp
     % Pick parameters from model for each subject
     for n=1:Nsub
 
+        clear mu dsig vsig
+        
         if rfx
             m = spm_multrnd(renorm(n).post,1);
         end
 
         mu                    = params(n).model(m).vEp;
-        dsig                  = params(n).model(m).dCp(:,1);
-        vsig(:,:)             = params(n).model(m).vCp(:,:);
+        nmu                   = length(mu);
+        dsig                  = params(n).model(m).dCp(1:nmu,1);
+        vsig(:,:)             = params(n).model(m).vCp(1:nmu,1:nmu);
 
         tmp                   = spm_normrnd(mu,{dsig,vsig},1);
-        Ep_all(:,n)           = tmp(:);
-        Ep_sbj(:,n,i)         = Ep_all(:,n);
+        
+        Ep_all(1:nmu,n)      = tmp(:);
+        Ep_sbj(1:nmu,n,i)    = Ep_all(1:nmu,n); 
 
     end
-
+    
     % Average over subjects
-    Ep(:,i)       = mean(Ep_all,2);
+    Ep(:,i) = mean(Ep_all,2);
 
 end
 
@@ -339,7 +340,11 @@ if dcm_fmri
     bma.a  = spm_unvec(Ep(1:dima,:),Etmp.A);
     bma.b  = spm_unvec(Ep(dima+1:dimb,:),Etmp.B);
     bma.c  = spm_unvec(Ep(dimb+1:dimc,:),Etmp.C);
-    bma.d  = spm_unvec(Ep(dimc+1:Np,:),Etmp.D);
+    if dimD ~=0
+        bma.d  = spm_unvec(Ep(dimc+1:dimc+Nr*dimD,:),Etmp.D);
+    else
+        bma.d  = Etmp.D;
+    end
 end
 
 % storing parameters
