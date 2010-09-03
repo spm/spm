@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 4063 2010-09-03 11:44:14Z maria $
+% $Id: spm_dcm_bma.m 4067 2010-09-03 16:59:35Z maria $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -159,8 +159,6 @@ if rfx
 
         end   
     end
-    
-    % ENCONTRAR D dimensions!!!
     
 else % Use an FFX
     % Find models in Occam's window
