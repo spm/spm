@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_PEB.m 4066 2010-09-03 14:26:26Z guillaume $
 
 % set default
 %--------------------------------------------------------------------------
@@ -364,9 +364,8 @@ if k == M, warning('maximum number of iterations exceeded'), end
 
 return
 
-function [C] = spm_inv(C);
+%==========================================================================
+function [C] = spm_inv(C)
 % inversion of sparse matrices
-%__________________________________________________________________________
 
-C  = inv(C + speye(length(C))*exp(-32));
-
+C  = inv(C + speye(length(C))*exp(-16));
