@@ -7,7 +7,7 @@ function out = spm_dartel_warp(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_warp.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_dartel_warp.m 4064 2010-09-03 12:57:10Z john $
 
 code = 2;
 st = job.settings;
@@ -58,7 +58,9 @@ for i=1:n2,
     NU.dat.scl_inter = 0;
     NU.descrip = 'Flow Field';
     if exist(NU.dat.fname,'file'),
-        u = NU(i).dat(:,:,:,1,:);
+        fprintf('Continuing registration from pre-existing parameters (%s)\n', NU.dat.fname);
+
+        u = NU.dat(:,:,:,1,:);
         u = single(squeeze(u));
     else
         u = zeros([dm,3],'single');

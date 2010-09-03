@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 3172 2009-06-02 11:40:42Z john $
+% $Id: spm_dartel_template.m 4064 2010-09-03 12:57:10Z john $
 
 code = 2;
 st = job.settings;
@@ -60,6 +60,7 @@ for i=1:n2,
    %    end;
    %end;
     if exist(NU(i).dat.fname,'file'),
+        fprintf('Continuing registration from pre-existing parameters (%s)\n', NU(i).dat.fname);
         u = NU(i).dat(:,:,:,1,:);
         u = single(squeeze(u));
         y = dartel3('Exp',u,[K 1 1]);
