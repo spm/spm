@@ -7,6 +7,7 @@ function D = spm_eeg_crop(S)
 % D        - MEEG object or filename of M/EEG mat-file with epoched data
 % timewin  - time window to retain (in PST ms)
 % freqwin  - frequency window to retain
+% channels - cell array of channel labels or 'all'.
 %
 % Output:
 % D        - MEEG object (also written on disk)
@@ -15,9 +16,9 @@ function D = spm_eeg_crop(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 4015 2010-07-23 16:35:03Z vladimir $
+% $Id: spm_eeg_crop.m 4069 2010-09-07 18:03:04Z vladimir $
 
-SVNrev = '$Rev: 4015 $';
+SVNrev = '$Rev: 4069 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -58,16 +59,42 @@ if isTF
     end
 end
 
+if D.nchannels > 1
+    if ~isfield(S, 'channels')
+        [selection, ok]= listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
+        if ~ok
+            return;
+        end
+        
+        S.channels = D.chanlabels(selection);
+    end
+    
+    if isequal(S.channels, 'all')
+        chanind = 1:D.nchannels;
+    else
+        chanind = spm_match_str(D.chanlabels, S.channels);
+    end
+else
+    chanind = 1;
+end
+
+
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
 if isTF
-    Dnew = clone(D, ['p' fnamedat(D)], [D.nchannels length(freqind) length(timeind) D.ntrials]);
+    Dnew = clone(D, ['p' fnamedat(D)], [length(chanind) length(freqind) length(timeind) D.ntrials]);
     Dnew = frequencies(Dnew, [], D.frequencies(freqind));
 else
-    Dnew = clone(D, ['p' fnamedat(D)], [D.nchannels length(timeind) D.ntrials]);
+    Dnew = clone(D, ['p' fnamedat(D)], [length(chanind) length(timeind) D.ntrials]);
 end
 
 Dnew = timeonset(Dnew, D.time(timeind(1)));
+
+Dnew = chanlabels(Dnew, [], D.chanlabels(chanind));
+Dnew = badchannels(Dnew, [], badchannels(D, chanind));
+Dnew = chantype(Dnew, [], chantype(D, chanind));
+Dnew = units(Dnew, [], units(D, chanind));
+Dnew = coor2D(Dnew, [], coor2D(D, chanind));
 
 %-Copy data
 %--------------------------------------------------------------------------
@@ -78,9 +105,9 @@ else Ibar = 1:D.ntrials; end
 for i = 1:D.ntrials
     
     if isTF
-        Dnew(:, :, :, i) =  D(:, freqind, timeind, i);
+        Dnew(:, :, :, i) =  D(chanind, freqind, timeind, i);
     else
-        Dnew(:, :, i) =  D(:, timeind, i);
+        Dnew(:, :, i) =  D(chanind, timeind, i);
     end
     
     if D.trialonset(i) ~= 0
