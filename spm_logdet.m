@@ -9,7 +9,7 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 3707 2010-02-02 19:01:59Z guillaume $
+% $Id: spm_logdet.m 4068 2010-09-07 16:50:08Z ged $
 
 sw    = warning('off','MATLAB:log:logOfZero');
 
@@ -31,7 +31,7 @@ if any(i ~= j)
       H = H + log(det(C/a));           
 end
 
-% invoke svd is rank deficient
+% invoke svd if rank deficient
 %--------------------------------------------------------------------------
 if ~isreal(H) || isinf(H)
     s  = svd(full(C));

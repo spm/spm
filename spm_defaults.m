@@ -17,7 +17,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % 
-% $Id: spm_defaults.m 4058 2010-09-01 14:26:34Z ged $
+% $Id: spm_defaults.m 4068 2010-09-07 16:50:08Z ged $
 
 %-Prevent users from making direct calls to this function
 %-----------------------------------------------------------------------
@@ -67,8 +67,6 @@ defaults.stats.pet.ufp      = 0.05;
 defaults.stats.eeg.ufp      = 1;
 defaults.stats.topoFDR      = 1;
 defaults.stats.rft.nonstat  = 0;
-defaults.stats.resms.method = 'max'; % see spm_modify_resms
-defaults.stats.resms.amount = 1e-3;
 
 % Mask defaults
 %=======================================================================

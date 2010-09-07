@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4058 2010-09-01 14:26:34Z ged $
+% $Id: spm_spm.m 4068 2010-09-07 16:50:08Z ged $
  
-SVNid     = '$Rev: 4058 $';
+SVNid     = '$Rev: 4068 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -912,7 +912,10 @@ VResMS          = spm_create_vol(VResMS);
 
 %-Modify ResMS (a form of shrinkage) to avoid problems of very low variance
 %--------------------------------------------------------------------------
-spm_modify_resms(VResMS);
+ResMS = spm_read_vols(VResMS);
+ResMS = ResMS + 1e-3 * max(ResMS(isfinite(ResMS)));
+spm_write_vol(VResMS, ResMS);
+clear ResMS
 
 %-Smoothness estimates of component fields and RESEL counts for volume
 %==========================================================================
