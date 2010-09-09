@@ -5,29 +5,19 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %
 % Use as
 %   [spectrum] = specest_nanfft(dat, ...)
-%
-%
+% where
 %   dat      = matrix of chan*sample
 %   time     = vector, containing time in seconds for each sample
 %   spectrum = matrix of taper*chan*foi*toi of fourier coefficients
-%
-%
-%
 %
 % Optional arguments should be specified in key-value pairs and can include:
 %   basis      = precomputes set of basis functions (sines/cosines)
 %   datataype  = 0, 1, 2
 %
-%
-%
-%
 % FFT SPEED NOT YET OPTIMIZED (e.g. matlab version, transpose or not)
 % FUNCTION IS RECURSIVE, SHOULD BE AVOIDED IN FAVOR OF TRANSPARANCY
 %
-%
 % See also SPECEST_MTMFFT, SPECEST_TFR, SPECEST_HILBERT, SPECEST_MTMWELCH, SPECEST_MTMCONVOL, SPECEST_MVAR, SPECEST_WLTCONVOL
-
-
 
 % Copyright (C) 2008, Robert Oostenveld
 %
@@ -47,16 +37,19 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 1159 2010-05-28 11:53:46Z roevdmei $
+% $Id: specest_nanfft.m 1546 2010-08-24 08:52:52Z roboos $
 
 % get the optional arguments
 basis     = keyval('basis',     varargin);
 datatype  = keyval('datatype',  varargin);
 
+% datatype = 0, no missing data
+% datatype = 1, the missing data is at the same location for all channels
+% datatype = 2, the missing data is at different timepoints for different channels
+
 % determine the data characteristics
 [nchan, nsample] = size(dat);
 fsample = 1/(time(2)-time(1));
-
 
 if mod(nsample,2)==0
   % the number of samples is even
@@ -128,57 +121,59 @@ switch datatype
   case 1
     % the missing data is at the same location for all channels
     % remove that piece from the data and from the basis functions and use linear estimation
-    
+
     keep = ~isnan(dat(1,:));
 
     if all(~keep)
       % the data is all NaN, no reason to try to estimate the basis
       % functions
       y = nan(size(dat));
-      return
-    end
-
-    basis = basis(:,keep);
-    dat = dat(:,keep);
-
-    % do the linear estimation based on dat=y*basis
-    % y = dat / basis;
-    y = dat * pinv(basis);
-
-    % disentagle the estimated components
-
-    if mod(nsample,2)==0
-      % the number of samples is even -> the last sine wave basis function is zero
-      sel1 = 1;       % lowest cosine, i.e. DC
-      sel2 = 2:(k-1); % all cosines in between
-      sel3 = k;       % highest cosine
-      sel4 = (k+1):nsample; % all sines
-
-      est1 = y(:,sel1);
-      est2 = y(:,sel2);
-      est3 = y(:,sel3);
-      est4 = y(:,sel4);
-
-      % combine the various estimates into a complex representation compatible with standard FFT
-      y_real = cat(2, est1,        est2, est3,          fliplr(est2));
-      y_imag = cat(2, zeros(nchan,1), -est4, zeros(nchan,1),    fliplr(est4));
-      y = y_real + i*y_imag;
 
     else
-      % the number of samples is odd -> also include the last sine wave basis function
-      sel1 = 1;       % lowest cosine, i.e. DC
-      sel2 = 2:k;     % all other cosines
-      sel3 = (k+1):nsample; % all sines
 
-      est1 = y(:,sel1);
-      est2 = y(:,sel2);
-      est3 = y(:,sel3);
+      basis = basis(:,keep);
+      dat = dat(:,keep);
 
-      % combine the various estimates into a complex representation compatible with standard FFT
-      y_real = cat(2, est1,        est2, fliplr(est2));
-      y_imag = cat(2, zeros(nchan,1), -est3, fliplr(est3));
-      y = y_real + i*y_imag;
-    end
+      % do the linear estimation based on dat=y*basis
+      % y = dat / basis;
+      y = dat * pinv(basis);
+
+      % disentagle the estimated components
+
+      if mod(nsample,2)==0
+        % the number of samples is even -> the last sine wave basis function is zero
+        sel1 = 1;       % lowest cosine, i.e. DC
+        sel2 = 2:(k-1); % all cosines in between
+        sel3 = k;       % highest cosine
+        sel4 = (k+1):nsample; % all sines
+
+        est1 = y(:,sel1);
+        est2 = y(:,sel2);
+        est3 = y(:,sel3);
+        est4 = y(:,sel4);
+
+        % combine the various estimates into a complex representation compatible with standard FFT
+        y_real = cat(2, est1,        est2, est3,          fliplr(est2));
+        y_imag = cat(2, zeros(nchan,1), -est4, zeros(nchan,1),    fliplr(est4));
+        y = y_real + i*y_imag;
+
+      else
+        % the number of samples is odd -> also include the last sine wave basis function
+        sel1 = 1;       % lowest cosine, i.e. DC
+        sel2 = 2:k;     % all other cosines
+        sel3 = (k+1):nsample; % all sines
+
+        est1 = y(:,sel1);
+        est2 = y(:,sel2);
+        est3 = y(:,sel3);
+
+        % combine the various estimates into a complex representation compatible with standard FFT
+        y_real = cat(2, est1,        est2, fliplr(est2));
+        y_imag = cat(2, zeros(nchan,1), -est3, fliplr(est3));
+        y = y_real + i*y_imag;
+      end
+      
+    end % if all(~keep)
 
   case 2
     % the missing data is at different timepoints for different channels
@@ -194,4 +189,3 @@ end
 
 % set output
 spectrum = y;
-

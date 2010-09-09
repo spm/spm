@@ -26,9 +26,9 @@ function [val, remaining] = keyval(key, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: keyval.m 1394 2010-07-10 21:02:48Z roboos $
+% $Id: keyval.m 1642 2010-09-08 06:55:02Z roboos $
 
-if length(varargin)==1 && iscell(varargin{1})
+if nargin==2 && iscell(varargin{1})
   varargin = varargin{1};
 end
 

@@ -79,7 +79,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 1424 2010-07-19 02:21:44Z josdie $
+% $Id: ft_read_event.m 1620 2010-09-06 13:22:04Z stekla $
 
 persistent sock           % for fcdc_tcp
 
@@ -693,6 +693,15 @@ switch eventformat
         rethrow(lasterr);
       end
     end
+
+  case 'fcdc_buffer_offline'
+    [path, file, ext] = fileparts(filename);
+    if isempty(hdr)
+      headerfile = fullfile(path, [file '/header']);    
+      hdr = read_buffer_offline_header(headerfile);
+    end
+    eventfile  = fullfile(path, [file '/events']);
+    event = read_buffer_offline_events(eventfile, hdr);
 
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header and event

@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1396 2010-07-12 13:18:31Z vlalit $
+% $Id: ft_read_header.m 1620 2010-09-06 13:22:04Z stekla $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -90,6 +90,11 @@ headerformat = keyval('headerformat', varargin);
 fallback     = keyval('fallback',     varargin);
 cache        = keyval('cache',        varargin);
 retry        = keyval('retry',        varargin); if isempty(retry), retry = false; end % for fcdc_buffer
+
+% SK: I added this as a temporary fix to prevent 1000000 voxel names
+% to be checked for uniqueness. fMRI users will probably never use
+% channel names for anything.
+checkUniqueLabels = true;
 
 % determine the filetype
 if isempty(headerformat)
@@ -188,6 +193,9 @@ switch headerformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
+  case 'fcdc_buffer_offline'
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '/header']);
   case {'tdt_tsq' 'tdt_tev'}
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.tsq']);
@@ -200,7 +208,7 @@ switch headerformat
     headerfile = filename;
 end
 
-if ~strcmp(filename, headerfile) && ~ft_filetype(filename, 'ctf_ds')
+if ~strcmp(filename, headerfile) && ~ft_filetype(filename, 'ctf_ds') && ~ft_filetype(filename, 'fcdc_buffer_offline')
   filename     = headerfile;                % this function will read the header
   headerformat = ft_filetype(filename);        % update the filetype
 end
@@ -766,10 +774,31 @@ switch headerformat
           for i=1:hdr.nChans
             hdr.label{i} = sprintf('%d', i);
           end
-        end
+        else
+		  checkUniqueLabels = false;
+		end
       end
     end
 	hdr.orig.bufsize = orig.bufsize;
+	
+  case 'fcdc_buffer_offline'
+    [hdr, nameFlag] = read_buffer_offline_header(headerfile);
+	switch nameFlag
+	  case 0
+	    % no labels generated (fMRI etc)
+		checkUniqueLabels = false; % no need to check these
+	  case 1
+		% hase generated fake channels
+	  	if isempty(fakechannelwarning) || ~fakechannelwarning
+          % give this warning only once
+          warning('creating fake channel names');
+          fakechannelwarning = true;
+        end
+		checkUniqueLabels = false; % no need to check these
+	  case 2
+	    % got labels from chunk, check those
+		checkUniqueLabels = true;
+	end
 
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header
@@ -1275,14 +1304,16 @@ switch headerformat
     end
 end
 
-if length(hdr.label)~=length(unique(hdr.label))
-  % all channels must have unique names
-  warning('all channels must have unique labels, creating unique labels');
-  for i=1:hdr.nChans
-    sel = find(strcmp(hdr.label{i}, hdr.label));
-    if length(sel)>1
-      for j=1:length(sel)
-        hdr.label{sel(j)} = sprintf('%s-%d', hdr.label{sel(j)}, j);
+if checkUniqueLabels 
+  if length(hdr.label)~=length(unique(hdr.label))
+    % all channels must have unique names
+    warning('all channels must have unique labels, creating unique labels');
+    for i=1:hdr.nChans
+      sel = find(strcmp(hdr.label{i}, hdr.label));
+      if length(sel)>1
+        for j=1:length(sel)
+          hdr.label{sel(j)} = sprintf('%s-%d', hdr.label{sel(j)}, j);
+        end
       end
     end
   end

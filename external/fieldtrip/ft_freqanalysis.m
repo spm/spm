@@ -57,7 +57,7 @@ function [freq] =ft_freqanalysis(cfg, data, flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 1479 2010-07-29 13:50:15Z roevdmei $
+% $Id: ft_freqanalysis.m 1550 2010-08-25 08:21:54Z roevdmei $
 
 fieldtripdefs
 
@@ -126,7 +126,6 @@ else
   if ~isfield(cfg, 'keeptrials'),       cfg.keeptrials       = 'no';         end
   if ~isfield(cfg, 'calcdof'),          cfg.calcdof          = 'no';         end
   
-  if ~isfield(cfg, 'pad'),              cfg.pad              = 'maxperlen';  end
   if ~isfield(cfg, 'channel'),          cfg.channel          = 'all';        end
   if ~isfield(cfg, 'precision'),        cfg.precision        = 'double';     end
   if ~isfield(cfg, 'output'),           cfg.output           = 'powandcsd';  end
@@ -181,7 +180,13 @@ else
   cfg.channel = ft_channelselection(cfg.channel, data.label);
   if isfield(cfg, 'channelcmb')
     cfg.channelcmb = ft_channelcombination(cfg.channelcmb, data.label);
+    selchan = unique([cfg.channel(:); cfg.channelcmb(:)]);  
+  else
+    selchan = cfg.channel;
   end
+  
+  % subselect the required channels
+  data = selectdata(data, 'channel', selchan);
   
   % determine the corresponding indices of all channels
   chanind    = match_str(data.label, cfg.channel);
@@ -202,8 +207,8 @@ else
     end
   end
   
-  % determine trail characteristics
-  ntrials = size(data.trial,2);
+  % determine trial characteristics
+  ntrials = numel(data.trial);
   trllength = zeros(1, ntrials);
   for itrial = 1:ntrials
     trllength(itrial) = size(data.trial{itrial}, 2);
@@ -213,7 +218,6 @@ else
     cfg.pad = padding/data.fsample;
   else
     padding = cfg.pad*data.fsample;
-    cfg.pad = padding;
     if padding<max(trllength)
       error('the specified padding is too short');
     end
@@ -238,8 +242,8 @@ else
     end
   end
   
+
   
-  % correct t_ftimwin to proper foi
   
   % tapsmofrq compatibility between functions (make it into a vector if it's not)
   if isfield(cfg,'tapsmofrq')
@@ -353,8 +357,9 @@ else
         % for now, there is a lot of redundancy, as each method has it's own case statement
         % when fully implemented, this can be cut down, perhaps in a separate switch, or perhaps as a time and a non-time if-loop
         foinumsmp = cfg.t_ftimwin .* data.fsample;
+        foinumsmp = foinumsmp(:);
         foinumsmp = repmat(foinumsmp,[1, ntap, nchan, ntoi]);
-        foinumsmp = permute(foinumsmp,[1 3 2 4]);
+        foinumsmp = permute(foinumsmp,[2 3 1 4]);
         if powflg
           powdum = 2.* abs(spectrum) .^ 2 ./ foinumsmp;
           if strcmp(cfg.taper, 'sine') % THIS IS NOT DONE IN THE MTMFFT CASE IN THE OLD IMPLEMENTATION, WHY?
@@ -490,16 +495,41 @@ else
   freq.label = data.label;
   freq.dimord = dimord;
   freq.freq   = foi;
+  hasdc       = find(foi==0);
   if exist('toi','var')
     freq.time = toi;
   end
   if powflg
+    % correct the 0 Hz bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
+    if ~isempty(hasdc)
+      if keeprpt>1
+        powspctrm(:,:,hasdc,:) = powspctrm(:,:,hasdc,:)./2;      
+      else
+        powspctrm(:,hasdc,:) = powspctrm(:,hasdc,:)./2;
+      end
+    end
     freq.powspctrm = powspctrm;
   end
   if fftflg
+    % correct the 0 Hz bin if present
+    if ~isempty(hasdc)
+      if keeprpt>1
+        fourierspctrm(:,:,hasdc,:) = fourierspctrm(:,:,hasdc,:)./sqrt(2);      
+      else
+        fourierspctrm(:,hasdc,:) = fourierspctrm(:,hasdc,:)./sqrt(2);
+      end
+    end
     freq.fourierspctrm = fourierspctrm;
   end
   if csdflg
+    % correct the 0 Hz bin if present
+    if ~isempty(hasdc)
+      if keeprpt>1
+        crsspctrm(:,:,hasdc,:) = crsspctrm(:,:,hasdc,:)./2;      
+      else
+        crsspctrm(:,hasdc,:) = crsspctrm(:,hasdc,:)./2;
+      end
+    end
     freq.labelcmb  = cfg.channelcmb;
     freq.crsspctrm = crsspctrm;
   end
@@ -538,7 +568,7 @@ else
     [st, i1] = dbstack;
     cfg.version.name = st(i1);
   end
-  cfg.version.id = '$Id: ft_freqanalysis.m 1479 2010-07-29 13:50:15Z roevdmei $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 1550 2010-08-25 08:21:54Z roevdmei $';
   % remember the configuration details of the input data
   try, cfg.previous = data.cfg; end
   % remember the exact configuration details in the output

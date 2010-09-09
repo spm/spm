@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1429 2010-07-20 07:32:27Z roboos $
+% $Id: ft_filetype.m 1620 2010-09-06 13:22:04Z stekla $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -536,6 +536,11 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'spike timestamps';
+  
+elseif isdir(filename) && exist(fullfile(filename, ['header'])) && exist(fullfile(filename, ['events']))
+  type = 'fcdc_buffer_offline';
+  manufacturer = 'F.C. Donders Centre';
+  content = 'FieldTrip buffer offline dataset';  
 
   % these are formally not Neuralynx file formats, but at the FCDC we use them together with Neuralynx
 elseif isdir(filename) && any(ft_filetype({ls.name}, 'neuralynx_ds'))
@@ -570,7 +575,7 @@ elseif isdir(filename) && filetype_check_extension(filename, '.sdma')
   type = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
   content = 'split DMA log file';
-
+ 
   % known Plexon file types
 elseif filetype_check_extension(filename, '.nex')  && filetype_check_header(filename, 'NEX1')
   type = 'plexon_nex';

@@ -76,7 +76,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 1290 2010-06-29 14:10:50Z roboos $
+% $Id: ft_senstype.m 1534 2010-08-20 10:43:46Z vlalit $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -286,13 +286,13 @@ else
       type = 'yokogawa160';
     elseif (mean(ismember(ft_senslabel('yokogawa160_planar'), sens.label)) > 0.4)
       type = 'yokogawa160_planar';
-    elseif (mean(ismember(ft_senslabel('neuromag306'),   sens.label)) > 0.8)
+    elseif any(mean(ismember(ft_senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';
-    elseif (mean(ismember(ft_senslabel('neuromag306alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
+    elseif any(mean(ismember(ft_senslabel('neuromag306alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
       type = 'neuromag306';
-    elseif (mean(ismember(ft_senslabel('neuromag122'),   sens.label)) > 0.8)
+    elseif any(mean(ismember(ft_senslabel('neuromag122'),   sens.label)) > 0.8)
       type = 'neuromag122';
-    elseif (mean(ismember(ft_senslabel('neuromag122alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
+    elseif any(mean(ismember(ft_senslabel('neuromag122alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
       type = 'neuromag122';
     elseif (mean(ismember(ft_senslabel('biosemi256'),    sens.label)) > 0.8)
       type = 'biosemi256';

@@ -25,7 +25,7 @@ function [grad,elec] = mne2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 1490 2010-07-31 12:39:51Z vlalit $
+% $Id: mne2grad.m 1529 2010-08-19 11:26:12Z vlalit $
 
 grad = [];
 
@@ -133,7 +133,10 @@ if nEEG>0
     % channels (thanks to Rik Henson)
     
     dig_eeg = find([orig.dig.kind]==3);  % Find EEG digitisations
-    dig_eeg(1) = [];                     % Remove reference
+    
+    if ~isempty(dig_eeg)
+        dig_eeg(1) = [];                     % Remove reference
+    end
     
     chn_eeg = find([orig.chs.kind]==2);  % Find EEG channels
 

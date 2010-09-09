@@ -33,7 +33,7 @@ function hs = plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_plot_sens.m 1572 2010-08-30 11:11:24Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -41,7 +41,7 @@ warning('on', 'MATLAB:divideByZero');
 keyvalcheck(varargin, 'optional', {'style', 'coil', 'label'});
 style = keyval('style', varargin); if isempty(style), style = 'k.'; end
 coil  = keyval('coil',  varargin); if isempty(coil), coil = false; end
-label = keyval('label', varargin); if isempty(coil), coil = false; end
+label = keyval('label', varargin); if isempty(label), label = 'off'; end
 
 % convert yes/no string into boolean value
 coil = istrue(coil);

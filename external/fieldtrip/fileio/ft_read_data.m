@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 1261 2010-06-22 15:09:23Z roboos $
+% $Id: ft_read_data.m 1620 2010-09-06 13:22:04Z stekla $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -184,6 +184,10 @@ switch dataformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
+  case 'fcdc_buffer_offline'
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '/header']);
+    datafile = fullfile(path, [file '/samples']);
   case {'tdt_tsq' 'tdt_tev'}
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.tsq']);
@@ -204,7 +208,7 @@ switch dataformat
     headerfile = filename;
 end
 
-if ~strcmp(filename, datafile) && ~ismember(dataformat, {'ctf_ds', 'ctf_old'})
+if ~strcmp(filename, datafile) && ~ismember(dataformat, {'ctf_ds', 'ctf_old', 'fcdc_buffer_offline'})
   filename   = datafile;                % this function will read the data
   dataformat = ft_filetype(filename);      % update the filetype
 end
@@ -582,6 +586,11 @@ switch dataformat
     [host, port] = filetype_check_uri(filename);
     dat = buffer('get_dat', [begsample-1 endsample-1], host, port);  % indices should be zero-offset
     dat = dat.buf(chanindx,:);                                        % select the desired channels
+
+  case 'fcdc_buffer_offline'
+    % read from a offline FieldTrip buffer data files
+    dat = read_buffer_offline_data(datafile, hdr, [begsample endsample]);
+    dat = dat(chanindx,:);
 
   case 'fcdc_matbin'
     % multiplexed data in a *.bin file, accompanied by a matlab file containing the header

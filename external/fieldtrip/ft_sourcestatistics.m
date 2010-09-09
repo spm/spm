@@ -62,7 +62,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $
+% $Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $
 
 fieldtripdefs
 
@@ -125,7 +125,7 @@ if strcmp(cfg.implementation, 'old'),
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -482,7 +482,7 @@ elseif strcmp(cfg.implementation, 'new')
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1024 2010-05-04 08:21:07Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -547,7 +547,11 @@ if hasrpt,
     end
     %tmp    = cell2mat(varargin{1}.(cfg.parameter)(inside,:,:,:,:));
   else
-    tmp = varargin{1}.(cfg.parameter)(inside,:,:,:,:);
+    if find(rptdim)==1,
+      tmp = varargin{1}.(cfg.parameter)(:,inside,:,:,:);
+    else
+      tmp = varargin{1}.(cfg.parameter)(inside,:,:,:,:);
+    end
   end
   
   if numel(rptdim)==1,

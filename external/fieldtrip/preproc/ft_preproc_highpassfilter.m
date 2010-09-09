@@ -42,7 +42,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_highpassfilter.m 1527 2010-08-19 07:13:46Z stekla $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -75,6 +75,18 @@ switch type
     end
     [B, A] = fir1(N, max(Fhp)/Fn, 'high');
 end  
+
+
+% SK: Check whether the calculated filter coefficients make sense.
+% If there are poles outside the unit circle, it will not be stable.
+% Might actually be worthwhile to check for sth. like 1-(1e-12) here.
+poles = roots(A);
+if any(abs(poles) >= 1)
+  poles
+  error(['Calculated filter coefficients have poles on or outside ' ...
+        'the unit circle and will not be stable. Try a higher cutoff ' ...
+        'frequency or a different type/order of filter.']);
+end
 
 % apply filter to the data
 switch dir

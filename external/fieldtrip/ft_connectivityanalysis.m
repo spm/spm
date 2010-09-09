@@ -51,9 +51,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 1398 2010-07-12 14:26:24Z jansch $
+% $Id: ft_connectivityanalysis.m 1618 2010-09-06 10:15:02Z jansch $
 
-fieldtripdefs
+%fieldtripdefs
 
 % check if the input cfg is valid for this function
 cfg = checkconfig(cfg, 'trackconfig', 'on');
@@ -92,6 +92,15 @@ dojack  = strcmp(cfg.jackknife, 'yes');
 normrpt = 0; % default, has to be overruled e.g. in plv, because of single replicate normalisation
 normpow = 1; % default, has to be overruled e.g. in csd,
 
+% select trials of interest
+if ~strcmp(cfg.trials, 'all')
+  data = selectdata(data, 'rpt', cfg.trials);
+  if isfield(data, 'cfg'),
+    cfg.trl    = findcfg(data.cfg, 'trl');
+    cfg.trlold = findcfg(data.cfg, 'trlold');
+  end
+end
+
 % FIXME check which methods require hasrpt
 
 % ensure that the input data is appropriate for the method
@@ -114,7 +123,7 @@ switch cfg.method
     
     if strcmp(cfg.method, 'csd'),
       normpow     = 0;
-      warning('cfg.complex for requested csd is set to %s, do you really want this?', cfg.complex);
+      % warning('cfg.complex for requested csd is set to %s, do you really want this?', cfg.complex);
     end
     
     dtype   = datatype(data);
@@ -146,11 +155,11 @@ switch cfg.method
     end
   case {'granger'}
     data    = checkdata(data, 'datatype', {'mvar' 'freqmvar' 'freq'});
-    inparam = 'transfer';
+    inparam = {'transfer', 'noisecov', 'crsspctrm'};
     % FIXME could also work with time domain data
   case {'instantaneous_causality'}
     data    = checkdata(data, 'datatype', {'mvar' 'freqmvar' 'freq'});
-    inparam = 'transfer';
+    inparam = {'transfer', 'noisecov', 'crsspctrm'};
   case {'total_interdependence'}
     data    = checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam = 'crsspctrm';
@@ -168,7 +177,7 @@ switch cfg.method
 end
 dtype = datatype(data);
 
-% ensure that source data ?is in 'new' representation
+% ensure that source data is in 'new' representation
 if strcmp(dtype, 'source'),
   data = checkdata(data, 'sourcerepresentation', 'new');
 end
@@ -178,7 +187,7 @@ end
 % FIXME trial selection has to be implemented still
 
 if isfield(data, 'label'),
-  cfg.channel     = ft_channelselection(cfg.channel, data.label);
+  cfg.channel = ft_channelselection(cfg.channel, data.label);
   if ~isempty(cfg.partchannel)
     cfg.partchannel = ft_channelselection(cfg.partchannel, data.label);
   end
@@ -189,7 +198,7 @@ if isfield(data, 'label') && ~isempty(cfg.channelcmb),
 end
 
 % check whether the required inparam is present in the data
-if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'crsspctrm')),
+if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inparam) && strcmp(inparam, 'crsspctrm'))),
   switch dtype
     case 'freq'
       if strcmp(inparam, 'crsspctrm')
@@ -198,8 +207,10 @@ if ~isfield(data, inparam) || (strcmp(inparam, 'crsspctrm') && isfield(data, 'cr
         elseif strcmp(inparam, 'crsspctrm') && isfield(data, 'powspctrm')
           % if input data is old-fashioned, i.e. contains powandcsd
           [data, powindx, hasrpt] = univariate2bivariate(data, 'powandcsd', 'crsspctrm', dtype, 0, cfg.channelcmb);
-        else
+        elseif isfield(data, 'labelcmb')
           powindx = labelcmb2indx(data.labelcmb);
+        else 
+          powindx = [];
         end
       elseif strcmp(inparam, 'powcovspctrm')
         if isfield(data, 'powspctrm'),
@@ -224,9 +235,10 @@ else
 end
 
 % do some additional work if single trial normalisation is required
+% for example when plv needs to be computed
 if normrpt && hasrpt,
   if strcmp(inparam, 'crsspctrm'),
-    tmp  = getfield(data, inparam);
+    tmp  = data.(inparam);
     nrpt = size(tmp,1);
     progress('init', cfg.feedback, 'normalising...');
     for k = 1:nrpt
@@ -234,10 +246,13 @@ if normrpt && hasrpt,
       tmp(k,:,:,:,:) = tmp(k,:,:,:,:)./abs(tmp(k,:,:,:,:));
     end
     progress('close');
-    data = setfield(data, inparam, tmp);
+    data.(inparam) = tmp;
   end
 end
 
+% convert the labels for the partialisation channels into indices
+% do the same for the labels of the channels that should be kept
+% convert the labels in the output to reflect the partialisation
 if ~isempty(cfg.partchannel)
   allchannel = ft_channelselection(cfg.channel, data.label);
   pchanindx  = match_str(allchannel,cfg.partchannel);
@@ -274,6 +289,20 @@ else
   % nothing required
 end
 
+% ensure that the first dimension is singleton if ~hasrpt
+if hasrpt
+  % nothing required
+else
+  if ischar(inparam)
+    data.(inparam) = reshape(data.(inparam), [1 size(data.(inparam))]);
+  else
+    for k = 1:numel(inparam)
+      data.(inparam{k}) = reshape(data.(inparam{k}), [1 size(data.(inparam{k}))]);
+    end
+  end
+  data.dimord    = ['rpt_',data.dimord];
+end
+    
 % compute the desired connectivity metric
 switch cfg.method
   case 'coh'
@@ -281,13 +310,12 @@ switch cfg.method
     % coherency
     
     tmpcfg             = [];
-    tmpcfg.cmplx       = cfg.complex;
+    tmpcfg.complex     = cfg.complex;
     tmpcfg.feedback    = cfg.feedback;
     tmpcfg.dimord      = data.dimord;
     tmpcfg.pownorm     = normpow;
     tmpcfg.pchanindx   = cfg.pchanindx;
     tmpcfg.allchanindx = cfg.allchanindx;
-    tmpcfg.hasrpt      = hasrpt;
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = cfg2keyval(tmpcfg);
@@ -299,13 +327,12 @@ switch cfg.method
     % cross-spectral density (only useful if partialisation is required)
     
     tmpcfg             = [];
-    tmpcfg.cmplx       = cfg.complex;
+    tmpcfg.complex     = cfg.complex;
     tmpcfg.feedback    = cfg.feedback;
     tmpcfg.dimord      = data.dimord;
     tmpcfg.pownorm     = normpow;
     tmpcfg.pchanindx   = cfg.pchanindx;
     tmpcfg.allchanindx = cfg.allchanindx;
-    tmpcfg.hasrpt      = hasrpt;
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = cfg2keyval(tmpcfg);
@@ -317,13 +344,12 @@ switch cfg.method
     % phase locking value
     
     tmpcfg           = [];
-    tmpcfg.cmplx     = cfg.complex;
+    tmpcfg.complex   = cfg.complex;
     tmpcfg.feedback  = cfg.feedback;
     tmpcfg.dimord    = data.dimord;
     tmpcfg.pownorm     = normpow;
     tmpcfg.pchanindx   = cfg.pchanindx;
     tmpcfg.allchanindx = cfg.allchanindx;
-    tmpcfg.hasrpt      = hasrpt;
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = cfg2keyval(tmpcfg);
@@ -346,7 +372,6 @@ switch cfg.method
     tmpcfg.complex     = 'real';
     tmpcfg.pownorm     = 1;
     tmpcfg.pchanindx   = [];
-    tmpcfg.hasrpt      = hasrpt;
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx = powindx; end
     optarg             = cfg2keyval(tmpcfg);
@@ -361,7 +386,6 @@ switch cfg.method
     tmpcfg.feedback    = cfg.feedback;
     tmpcfg.dimord      = data.dimord;
     tmpcfg.complex     = 'real';
-    tmpcfg.hasrpt      = hasrpt;
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx = powindx; end
     optarg             = cfg2keyval(tmpcfg);
@@ -373,19 +397,7 @@ switch cfg.method
     % granger causality
     
     if sum(datatype(data, {'freq' 'freqmvar'})),
-      hasrpt = ~isempty(strfind(data.dimord, 'rpt'));
-      if hasrpt,
-        nrpt = size(data.transfer,1);
-      else
-        nrpt = 1;
-        siz  = size(data.transfer);
-        data.transfer = reshape(data.transfer, [1 siz]);
-        siz  = size(data.noisecov);
-        data.noisecov = reshape(data.noisecov, [1 siz]);
-        siz  = size(data.crsspctrm);
-        data.crsspctrm = reshape(data.crsspctrm, [1 siz]);
-      end
-      
+    
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % multiple pairwise non-parametric transfer functions
         % linearly indexed
@@ -413,7 +425,7 @@ switch cfg.method
       %fs = cfg.fsample; %FIXME do we really need this, or is this related to how
       %noisecov is defined and normalised?
       fs = 1;
-      [datout, varout, n] = ft_connectivity_granger(data.transfer, data.noisecov, data.crsspctrm, fs, hasjack, powindx);
+      [datout, varout, nrpt] = ft_connectivity_granger(data.transfer, data.noisecov, data.crsspctrm, fs, hasjack, powindx);
       outparam = 'grangerspctrm';
     else
       error('granger for time domain data is not yet implemented');
@@ -422,18 +434,6 @@ switch cfg.method
   case 'instantaneous_causality'
     % instantaneous ft_connectivity between the series, requires the same elements as granger
     if sum(datatype(data, {'freq' 'freqmvar'})),
-      hasrpt = ~isempty(strfind(data.dimord, 'rpt'));
-      if hasrpt,
-        nrpt = size(data.transfer,1);
-      else
-        nrpt = 1;
-        siz  = size(data.transfer);
-        data.transfer = reshape(data.transfer, [1 siz]);
-        siz  = size(data.noisecov);
-        data.noisecov = reshape(data.noisecov, [1 siz]);
-        siz  = size(data.crsspctrm);
-        data.crsspctrm = reshape(data.crsspctrm, [1 siz]);
-      end
       
       if isfield(data, 'labelcmb'),
         % multiple pairwise non-parametric transfer functions
@@ -452,7 +452,7 @@ switch cfg.method
       %fs = cfg.fsample; %FIXME do we really need this, or is this related to how
       %noisecov is defined and normalised?
       fs = 1;
-      [datout, varout, n] = ft_connectivity_instantaneous(data.transfer, data.noisecov, data.crsspctrm, fs, hasjack, powindx);
+      [datout, varout, nrpt] = ft_connectivity_instantaneous(data.transfer, data.noisecov, data.crsspctrm, fs, hasjack, powindx);
       outparam = 'instantspctrm';
     else
       error('instantaneous causality for time domain data is not yet implemented');
@@ -462,7 +462,7 @@ switch cfg.method
     %total interdependence
     
     tmpcfg           = [];
-    tmpcfg.complex   = cfg.complex;
+    tmpcfg.complex   = 'abs';
     tmpcfg.feedback  = cfg.feedback;
     tmpcfg.dimord    = data.dimord;
     tmpcfg.pownorm   = normpow;
@@ -488,6 +488,8 @@ switch cfg.method
     tmpcfg          = [];
     tmpcfg.feedback = cfg.feedback;
     tmpcfg.powindx  = powindx;
+    tmpcfg.hasjack  = hasjack;
+    optarg          = cfg2keyval(tmpcfg);
     
     hasrpt = ~isempty(strfind(data.dimord, 'rpt'));
     if hasrpt,
@@ -497,7 +499,7 @@ switch cfg.method
       nrpt  = 1;
       datin = reshape(data.(inparam), [1 size(data.(inparam))]);
     end
-    [datout, varout, n] = ft_connectivity_dtf(tmpcfg, datin, hasjack);
+    [datout, varout, nrpt] = ft_connectivity_dtf(datin, optarg);
     outparam = 'dtfspctrm';
     
   case 'pdc'
@@ -512,6 +514,8 @@ switch cfg.method
     tmpcfg          = [];
     tmpcfg.feedback = cfg.feedback;
     tmpcfg.powindx  = powindx;
+    tmpcfg.hasjack  = hasjack;
+    optarg          = cfg2keyval(tmpcfg);
     
     hasrpt = ~isempty(strfind(data.dimord, 'rpt'));
     if hasrpt,
@@ -522,7 +526,7 @@ switch cfg.method
       datin = reshape(data.(inparam), [1 size(data.(inparam))]);
     end
     
-    [datout, varout, n] = ft_connectivity_pdc(tmpcfg, datin, hasjack);
+    [datout, varout, nrpt] = ft_connectivity_pdc(datin, optarg);
     outparam = 'pdcspctrm';
     
   case 'pcd'
@@ -533,9 +537,6 @@ switch cfg.method
     tmpcfg           = [];
     tmpcfg.feedback  = cfg.feedback;
     tmpcfg.dimord    = data.dimord;
-    tmpcfg.pownorm   = normpow;
-    tmpcfg.pchanindx = cfg.pchanindx;
-    tmpcfg.allchanindx = cfg.allchanindx;
     tmpcfg.nbin      = nearest(data.freq, data.freq(1)+cfg.bandwidth)-1;
     tmpcfg.normalize = cfg.normalize;
     tmpcfg.hasrpt      = hasrpt;
@@ -543,7 +544,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_psi(tmpcfg, data.(inparam), hasrpt, hasjack);
+    [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg);
     outparam         = 'psispctrm';
     
   case 'di'
@@ -567,7 +568,7 @@ if exist('powindx', 'var') && ~isempty(powindx),
     case 'source'
       nvox    = size(unique(data.pos(:,1:3),'rows'),1);
       ncmb    = size(data.pos,1)/nvox-1;
-      remove  = (powindx(:,1) == powindx(:,2)) & ([1:size(powindx,1)]' > nvox*ncmb);
+      remove  = (powindx(:,1) == powindx(:,2)) & ((1:size(powindx,1))' > nvox*ncmb);
       keepchn = ~remove;
       
       datout = datout(keepchn,:,:,:,:);
@@ -593,10 +594,18 @@ switch dtype
     if isfield(data, 'labelcmb'),
       stat.labelcmb = data.labelcmb;
     end
-    stat.dimord = data.dimord; %FIXME adjust dimord (remove rpt in dojack && hasrpt case)
-    stat        = setfield(stat, outparam, datout);
+    
+    tok = tokenize(data.dimord, '_');
+    dimord = '';
+    for k = 1:numel(tok)
+      if isempty(strfind(tok{k}, 'rpt'))
+        dimord = [dimord, '_', tok{k}];
+      end
+    end
+    stat.dimord = dimord(2:end);
+    stat.(outparam) = datout;
     if ~isempty(varout),
-      stat   = setfield(stat, [outparam,'sem'], (varout/nrpt).^0.5);
+      stat.([outparam,'sem']) = (varout/nrpt).^0.5;
     end
   case 'source'
     stat         = [];
@@ -604,9 +613,9 @@ switch dtype
     stat.dim     = data.dim;
     stat.inside  = data.inside;
     stat.outside = data.outside;
-    stat         = setfield(stat, outparam, datout);
+    stat.(outparam) = datout;
     if ~isempty(varout),
-      stat = setfield(stat, [outparam,'sem'], (varout/nrpt).^0.5);
+      stat.([outparam,'sem']) = (varout/nrpt).^0.5;
     end
 end
 
@@ -628,10 +637,10 @@ cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 1398 2010-07-12 14:26:24Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 1618 2010-09-06 10:15:02Z jansch $';
 
 % remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
+try cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
 stat.cfg = cfg;
 
@@ -776,23 +785,6 @@ for k = 1:nchan
   indx(sel2,2) = autoindx;
 end
 
-%----------------------------------
-function [c] = complexeval(c, str)
-
-switch str
-  case 'complex'
-    %do nothing
-  case 'abs'
-    c = abs(c);
-  case 'angle'
-    c = angle(c);
-  case 'imag'
-    c = imag(c);
-  case 'real'
-    c = real(c);
-  otherwise
-    error('cfg.complex = ''%s'' not supported', cfg.complex);
-end
 
 %------------------------------------------------------------------------------------------------------------------
 function [data, powindx, hasrpt] = univariate2bivariate(data, inparam, outparam, dtype, demeanflag, cmb, sqrtflag, keeprpt)
@@ -809,7 +801,7 @@ switch dtype
     getpowindx = 0;
     if ncmb==0,
       error('no channel combinations are specified');
-    elseif ncmb==nchan.^2 || ncmb==(nchan+1)*nchan*0.5,
+    elseif ncmb==nchan^2 || ncmb==(nchan+1)*nchan*0.5,
       dofull = 1;
     else
       dofull = 0;
@@ -904,7 +896,7 @@ switch dtype
       
       data.powcov = [data.pow .* data.pow(:,ones(1,nvox)*cmb) data.pow.*data.pow];
       data        = rmfield(data, 'pow');
-      powindx     = [nvox+[1:nvox] nvox+[1:nvox]; cmb*ones(1,nvox) nvox+[1:nvox]]';
+      powindx     = [nvox+(1:nvox) nvox+(1:nvox); cmb*ones(1,nvox) nvox+(1:nvox)]';
       
       data.pos    = [data.pos repmat(data.pos(cmb,:),[nvox 1]);data.pos data.pos];
       data.inside = [data.inside(:); data.inside(:)+nvox];
@@ -920,7 +912,7 @@ switch dtype
         data.crsspctrm = [mom.*conj(mom(:,ones(1,nvox)*cmb)) abs(mom).^2];
         data           = rmfield(data, 'mom');
         data           = rmfield(data, 'momdimord');
-        powindx     = [nvox+[1:nvox] nvox+[1:nvox]; cmb*ones(1,nvox) nvox+[1:nvox]]';
+        powindx     = [nvox+(1:nvox) nvox+(1:nvox); cmb*ones(1,nvox) nvox+(1:nvox)]';
         
         data.pos    = [data.pos repmat(data.pos(cmb,:),[nvox 1]);data.pos data.pos];
         data.inside = [data.inside(:); data.inside(:)+nvox];
@@ -932,15 +924,15 @@ switch dtype
         data.crsspctrm = reshape((transpose(mom)*conj(mom(:,cmb)))./nrpt, [nvox*ncmb 1]);
         tmppow         = mean(abs(mom).^2)';
         data.crsspctrm = cat(1, data.crsspctrm, tmppow);
-        tmpindx1       = transpose(ncmb*nvox + ones(ncmb+1,1)*[1:nvox]);
+        tmpindx1       = transpose(ncmb*nvox + ones(ncmb+1,1)*(1:nvox));
         tmpindx2       = repmat(tmpindx1(cmb(:),end), [1 nvox])';
         tmpindx3       = repmat(cmb(:), [1 nvox])'; %expressed in original voxel indices
         powindx        = [tmpindx1(:) [tmpindx2(:);tmpindx1(:,end)]];
         
         data.pos       = [repmat(data.pos, [ncmb 1]) data.pos(tmpindx3(:),:); data.pos data.pos];
-        data.inside    = data.inside(:)*ones(1,ncmb+1) + (ones(length(data.inside),1)*nvox)*[0:ncmb];
+        data.inside    = data.inside(:)*ones(1,ncmb+1) + (ones(length(data.inside),1)*nvox)*(0:ncmb);
         data.inside    = data.inside(:);
-        data.outside   = setdiff([1:nvox*(ncmb+1)]', data.inside);
+        data.outside   = setdiff((1:nvox*(ncmb+1))', data.inside);
         if isfield(data, 'momdimord'),
           data.crsspctrmdimord = ['pos_',data.momdimord(14:end)];%FIXME this assumes dimord to be 'rpttap_...'
         end

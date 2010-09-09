@@ -70,7 +70,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 1452 2010-07-26 07:43:23Z jansch $
+% $Id: ft_rejectartifact.m 1503 2010-08-12 10:39:00Z stewhi $
 
 fieldtripdefs
 
@@ -415,7 +415,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectartifact.m 1452 2010-07-26 07:43:23Z jansch $';
+cfg.version.id = '$Id: ft_rejectartifact.m 1503 2010-08-12 10:39:00Z stewhi $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;
@@ -429,21 +429,21 @@ cfg.version.id = '$Id: ft_rejectartifact.m 1452 2010-07-26 07:43:23Z jansch $';
 
 % apply the updated trial definition on the data
 
-if hasdata
-  tmpcfg     = [];
-  tmpcfg.trl = cfg.trl;
-  data       = ft_redefinetrial(tmpcfg,data);
-  % remember the configuration details, this overwrites the stored configuration of redefinetrial
-  data.cfg = cfg;
-  if isfield(data, 'offset')
-    data = rmfield(data, 'offset');
-  end
-  % return the data instead of the cfg
-  cfg = data;
-else
-  if isempty(cfg.trl)
+if isempty(cfg.trl)
     error('No trials left after artifact rejection.')
-  end
+else  
+    if hasdata
+        tmpcfg     = [];
+        tmpcfg.trl = cfg.trl;
+        data       = ft_redefinetrial(tmpcfg,data);
+        % remember the configuration details, this overwrites the stored configuration of redefinetrial
+        data.cfg = cfg;
+        if isfield(data, 'offset')
+            data = rmfield(data, 'offset');
+        end
+        % return the data instead of the cfg
+        cfg = data;
+    end
 end
 
 % if nargin>1
