@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4041 2010-08-25 09:49:22Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4071 2010-09-22 13:44:04Z gareth $
 
 %%
 % Load data, if necessary
@@ -355,8 +355,16 @@ while adding_dips
          mni_dip_pr(dip_q).S_s0(3,6)=mni_dip_pr(dip_q).S_s0(6,3);
          %% transform to MEG space   
          
-         dip_pr(dip_q).S_s0(:,1:3)=orM1*mni_dip_pr(dip_q).S_s0(:,1:3)*orM1'; %% NEED TO LOOK AT THIS
-         dip_pr(dip_q).S_s0(:,4:6)=orM1*mni_dip_pr(dip_q).S_s0(:,4:6)*orM1';
+         %dip_pr(dip_q).S_s0(:,1:3)=orM1*mni_dip_pr(dip_q).S_s0(:,1:3)*orM1'; %% NEED TO LOOK AT THIS
+         %dip_pr(dip_q).S_s0(:,4:6)=orM1*mni_dip_pr(dip_q).S_s0(:,4:6)*orM1';
+         tmp1=orM1*mni_dip_pr(dip_q).S_s0(1:3,1:3)*orM1'; %% NEED TO LOOK AT THIS
+         tmp2=orM1*mni_dip_pr(dip_q).S_s0(1:3,4:6)*orM1';
+         tmp3=orM1*mni_dip_pr(dip_q).S_s0(4:6,4:6)*orM1';
+         tmp4=orM1*mni_dip_pr(dip_q).S_s0(4:6,1:3)*orM1';
+         dip_pr(dip_q).S_s0(1:3,1:3)=tmp1;
+         dip_pr(dip_q).S_s0(1:3,4:6)=tmp2;
+         dip_pr(dip_q).S_s0(4:6,4:6)=tmp3;
+         dip_pr(dip_q).S_s0(4:6,1:3)=tmp4;
          
         % Moment prior
         wpr_q = spm_input('Moment prior ?',1+tr_q+dip_q+spr_q+2,'b', ...
@@ -379,15 +387,23 @@ while adding_dips
         end
         %dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
         %% couple all orientations, except x, positively or leave for now...
+          
                 mni_dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
-            mni_dip_pr(dip_q).S_w0(4,1)=-mni_dip_pr(dip_q).S_w0(4,4); %
+                
+            mni_dip_pr(dip_q).S_w0(4,1)=-mni_dip_pr(dip_q).S_w0(4,4); % reflect x orientation
             mni_dip_pr(dip_q).S_w0(5,2)=mni_dip_pr(dip_q).S_w0(5,5); %
             mni_dip_pr(dip_q).S_w0(6,3)=mni_dip_pr(dip_q).S_w0(6,6); %
             mni_dip_pr(dip_q).S_w0(1,4)=-mni_dip_pr(dip_q).S_w0(4,1); %
             mni_dip_pr(dip_q).S_w0(2,5)=mni_dip_pr(dip_q).S_w0(5,2); %
             mni_dip_pr(dip_q).S_w0(3,6)=mni_dip_pr(dip_q).S_w0(6,3); %
-          dip_pr(dip_q).S_w0(:,1:3)=orM1*mni_dip_pr(dip_q).S_w0(:,1:3)*orM1';
-         dip_pr(dip_q).S_w0(:,4:6)=orM1*mni_dip_pr(dip_q).S_w0(:,4:6)*orM1';
+            tmp1=orM1*mni_dip_pr(dip_q).S_w0(1:3,1:3)*orM1'; 
+            tmp2=orM1*mni_dip_pr(dip_q).S_w0(1:3,4:6)*orM1';
+            tmp3=orM1*mni_dip_pr(dip_q).S_w0(4:6,4:6)*orM1';
+            tmp4=orM1*mni_dip_pr(dip_q).S_w0(4:6,1:3)*orM1';
+            dip_pr(dip_q).S_w0(1:3,1:3)=tmp1;
+            dip_pr(dip_q).S_w0(1:3,4:6)=tmp2;
+            dip_pr(dip_q).S_w0(4:6,4:6)=tmp3;
+            dip_pr(dip_q).S_w0(4:6,1:3)=tmp4;
          
         
         
