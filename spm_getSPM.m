@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 3980 2010-07-08 15:55:37Z karl $
+% $Id: spm_getSPM.m 4072 2010-09-23 15:45:58Z will $
 
 
 %-GUI setup
@@ -497,15 +497,11 @@ if isfield(SPM,'PPM')
     
     % Set Bayesian con type
     %----------------------------------------------------------------------
-    if length(SPM.PPM.xCon) < Ic
-        SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
-    end
+    SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
     
-    % Make this one a Bayesian contrast - if first level
+    % Make all new contrasts Bayesian contrasts 
     %----------------------------------------------------------------------
-    if isfield(SPM.PPM,'VB')
-        [xCon(Ic).STAT] = deal('P');
-    end
+    [xCon(Ic).STAT] = deal('P');
     
     if all(strcmp([SPM.PPM.xCon(Ic).PSTAT],'T'))
         

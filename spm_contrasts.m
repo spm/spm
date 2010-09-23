@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4058 2010-09-01 14:26:34Z ged $
+% $Id: spm_contrasts.m 4072 2010-09-23 15:45:58Z will $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -86,8 +86,13 @@ for i = 1:length(Ic)
                     fprintf('\t%-32s: %30s',sprintf('X2 image %2d',ic),...
                         '...computing');                                %-#
                     
-                    xCon = spm_vb_x2(SPM,XYZ,xCon,ic);
-                    
+                    if isfield(SPM.PPM,'VB')
+                        % First level Bayes
+                        xCon = spm_vb_x2(SPM,XYZ,xCon,ic);
+                    else
+                        % Second level Bayes
+                        xCon = spm_bayes2_x2(SPM,XYZ,xCon,ic);
+                    end
                 else
                     %-Implement contrast as sum of scaled beta images
                     %------------------------------------------------------
