@@ -85,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4033 2010-08-04 15:53:35Z volkmar $
+% $Id: cfg_getfile.m 4073 2010-09-24 12:07:57Z volkmar $
 
 t = {};
 sts = false;
@@ -545,9 +545,8 @@ if ishandle(sel),
     t  = get(sel,'String');
     if isempty(t)
         t = {''};
-    end
-    if sfilt.code == -1 && ~isempty(t)
-        % don't canonicalise empty selection
+    elseif sfilt.code == -1
+        % canonicalise non-empty folder selection
         t = cellfun(@(t1)cpath(t1, pwd), t, 'UniformOutput',false);
     end;
     ok = 1;

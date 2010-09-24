@@ -21,9 +21,9 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 3591 2009-11-23 10:19:57Z volkmar $
+% $Id: initialise.m 4073 2010-09-24 12:07:57Z volkmar $
 
-rev = '$Rev: 3591 $'; %#ok
+rev = '$Rev: 4073 $'; %#ok
 
 if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
@@ -51,9 +51,11 @@ if numel(item.values)==1 && isa(item.values{1},'cfg_branch') ...
         if dflag
             item.values{1} = initialise(item.values{1}, val, dflag);
         else
+            citem = cell(1,numel(val));
             for k = 1:numel(val)
-                item.cfg_item.val{k} = initialise(item.values{1}, val(k), dflag);
+                citem{k} = initialise(item.values{1}, val(k), dflag);
             end;
+            item.cfg_item.val = citem;
         end;
     else
         cfg_message('matlabbatch:initialise', ...
@@ -99,13 +101,14 @@ else
             item.values{1} = initialise(item.values{1}, val{1}, dflag);
         end;
     else
+        citem = cell(1,numel(val));
         if numel(item.values) > 1 || item.forcestruct
             for l = 1:numel(val)
                 % val{l} should be a struct with a single field
                 vtag = fieldnames(val{l});
                 for k = 1:numel(item.values)
                     if strcmp(gettag(item.values{k}), vtag{1})
-                        item.cfg_item.val{l} = initialise(item.values{k}, ...
+                        citem{l} = initialise(item.values{k}, ...
                             val{l}.(vtag{1}), ...
                             dflag);
                     end;
@@ -113,10 +116,11 @@ else
             end;
         else
             for l = 1:numel(val)
-                item.cfg_item.val{l} = initialise(item.values{1}, ...
+                citem{l} = initialise(item.values{1}, ...
                     val{l}, dflag);
             end;
         end;
+        item.cfg_item.val = citem;
     end;
 end;
 

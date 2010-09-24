@@ -23,9 +23,9 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: subsref.m 4073 2010-09-24 12:07:57Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 4073 $'; %#ok
 
 persistent local_mysubs_fields;
 persistent par_class;
@@ -55,30 +55,23 @@ switch subs(1).type,
         end;
         switch subs(1).subs
             case local_mysubs_fields,
-                val = {item.(subs(1).subs)};
+                val = item.(subs(1).subs);
             case par_fields,
-                val = {item.(par_class).(subs(1).subs)};
+                val = item.(par_class).(subs(1).subs);
             otherwise
                 cfg_message('matlabbatch:subsref:unknownfield', ...
                       ['Reference to unknown field ''%s''.\nTo reference ' ...
                        'a field in the job structure, use a reference like ' ...
                        '''(x).%s'''], subs(1).subs, subs(1).subs);
         end;
-        if numel(subs) > 1 
-            % in this case, val has only one element, and
-            % subs(2:end) are indices into val{1} 
-            %    val = {builtin('subsref', val{1}, subs(2:end))};
-            % The line above does not seem to work, as MATLAB is
-            % not able to figure out which subsref to call and when.
-            for k = 2:numel(subs)
-                val = {subsref(val{1}, subs(k))};
-            end;
-        end;
-    case {'()','{}'},
-        val = subsref_job(item, subs, false);
+        if numel(subs) > 1
+            val = cfg_callbuiltin('subsref',val,subs(2:end));
+        end
+%    case {'()','{}'},
+%        val = subsref_job(item, subs, false);
     otherwise
         cfg_message('matlabbatch:subsref:unknowntype', ...
               'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
 
-varargout = val;
+varargout = {val};

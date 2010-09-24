@@ -20,43 +20,31 @@ function varargout = subsref(dep, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: subsref.m 4073 2010-09-24 12:07:57Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 4073 $'; %#ok
 
-switch subs(1).type,
-    case {'.'},
-        if numel(subs) > 1 && numel(dep) > 1
-            cfg_message('matlabbatch:subsref:multiref', 'Field reference for multiple structure elements that is followed by more reference blocks is an error.');
-        end;
-        switch subs(1).subs
-            case subs_fields(dep),
-                val = cell(size(dep));
-                for k = 1:numel(dep)
-                    val{k} = dep(k).(subs(1).subs);
-                end;
-            otherwise
-                cfg_message('matlabbatch:subsref:unknownfield', 'Reference to unknown field ''%s''.', subs(1).subs);
-        end;
-    case {'()'},
-        if numel(subs(1).subs) == 1 % vectorise output
-            szi = numel(dep);
-        else % sub-index output
-            szi = size(dep);
-        end;
-        for k = 1:numel(szi)
-            if ischar(subs(1).subs{k}) && strcmp(subs(1).subs{k},':')
-                subs(1).subs{k} = 1:szi(k);
-            end;
-        end;        
-        val = {dep(subs(1).subs{:})};
-    case {'{}'}
-        cfg_message('matlabbatch:subsref:notcell', 'Cell content reference from non cell-array object.');
-    otherwise
-        cfg_message('matlabbatch:subsref:unknowntype', 'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
+if strcmpi(subs(1).type, '()')
+    % select referenced objects from input array
+    dep = dep(subs(1).subs{:});
+    if numel(subs) == 1
+        % done, return selected objects
+        varargout{1} = dep;
+        return;
+    else
+        % continue, avoid recursion
+        subs = subs(2:end);
+    end
 end
-if numel(subs) > 1 % in this case, val has only one element, and subs(2:end) are indices into val{1}
-    val = {builtin('subsref', val{1}, subs(2:end))};
-end;
 
-varargout = val;
+if strcmpi(subs(1).type, '.')
+    % field reference
+    val = {dep.(subs(1).subs)};
+    if numel(subs) > 1
+        varargout = cellfun(@(cval)subsref(cval,subs(2:end)), val, 'UniformOutput', false);
+    else
+        varargout = val;
+    end
+else
+    cfg_message('matlabbatch:subsref:unknowntype', 'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
+end
