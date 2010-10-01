@@ -86,7 +86,7 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 % FT_TOPOPLOTTFR calls the function FT_TOPOPLOTER to do the plotting.
 %
 % See also:
-%   ft_topoplotER, ft_singleplotTFR, ft_multiplotTFR, ft_prepare_layout
+%   FT_TOPOPLOTER, FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR, FT_PREPARE_LAYOUT
 
 % Undocumented local options:
 % cfg.labeloffset (offset of labels to their marker, default = 0.005)
@@ -110,6 +110,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_topoplotTFR.m 1692 2010-09-16 14:31:37Z sashae $
 
 cfg=ft_topoplotER(cfg, varargin{:});

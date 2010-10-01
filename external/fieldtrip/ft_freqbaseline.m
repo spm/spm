@@ -10,7 +10,7 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %   cfg.baselinetype = 'absolute' 'relchange' 'relative' (default = 'absolute')
 %
 % See also FT_FREQANALYSIS, FT_TIMELOCKBASELINE, FT_FREQCOMPARISON
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -34,7 +34,7 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_freqbaseline.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -154,7 +154,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqbaseline.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_freqbaseline.m 1692 2010-09-16 14:31:37Z sashae $';
 
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end

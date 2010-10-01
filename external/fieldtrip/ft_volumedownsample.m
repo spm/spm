@@ -10,8 +10,8 @@ function [down] = ft_volumedownsample(cfg, source);
 %   cfg.downsample = integer number (default = 1, i.e. no downsampling)
 %   cfg.smooth     = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
 %
-% This function is used by FT_SOUREINTERPOLATE, FT_SOURCEREAD and FT_SOURCENORMALIZE.
-%
+% This function is used by FT_SOURCEINTERPOLATE, FT_VOLUMEWRITE and FT_VOLUMENORMALISE.
+
 % Undocumented local options:
 %   cfg.inputfile        = one can specifiy preanalysed saved data as input
 %   cfg.outputfile       = one can specify output as file to save to disk
@@ -34,7 +34,7 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 1259 2010-06-22 08:44:46Z jansch $
+% $Id: ft_volumedownsample.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -156,7 +156,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumedownsample.m 1259 2010-06-22 08:44:46Z jansch $';
+cfg.version.id = '$Id: ft_volumedownsample.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

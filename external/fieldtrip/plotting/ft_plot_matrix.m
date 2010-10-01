@@ -1,11 +1,11 @@
-function plot_matrix(varargin)
+function ft_plot_matrix(varargin)
 
-% PLOT_MATRIX
+% FT_PLOT_MATRIX
 %
 % Use as
-%   plot_matrix(C, ...)
+%   ft_plot_matrix(C, ...)
 % where C is a 2 dimensional MxN matrix, or
-%   plot_matrix(X, Y, C, ...)
+%   ft_plot_matrix(X, Y, C, ...)
 % where X and Y describe the 1xN horizontal and 1xM vertical axes 
 % respectively.
 %
@@ -23,7 +23,7 @@ function plot_matrix(varargin)
 %   'tag'
 %
 % Example use
-%   plot_matrix(randn(30,50), 'width', 1, 'height', 1, 'hpos', 0, 'vpos', 0)
+%   ft_plot_matrix(randn(30,50), 'width', 1, 'height', 1, 'hpos', 0, 'vpos', 0)
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
@@ -43,7 +43,7 @@ function plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_plot_matrix.m 1807 2010-09-29 12:30:27Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -238,5 +238,5 @@ if box
   boxposition(2) = hpos + width/2;
   boxposition(3) = vpos - height/2;
   boxposition(4) = vpos + height/2;
-  plot_box(boxposition);
+  ft_plot_box(boxposition);
 end

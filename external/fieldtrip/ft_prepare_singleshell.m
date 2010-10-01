@@ -29,7 +29,7 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %   G. Nolte, "The magnetic lead field theorem in the quasi-static
 %   approximation and its use for magnetoencephalography forward calculation
 %   in realistic volume conductors", Phys Med Biol. 2003 Nov 21;48(22):3637-52.
-%
+
 % Undocumented local options:
 %   cfg.inputfile        = one can specifiy preanalysed saved data as input
 %
@@ -54,7 +54,7 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_prepare_singleshell.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 

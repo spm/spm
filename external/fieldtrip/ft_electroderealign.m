@@ -73,7 +73,7 @@ function [norm] = ft_electroderealign(cfg)
 %   cfg.template.pnt(1,:) = [110 0 0]  % location of the nose
 %   cfg.template.pnt(2,:) = [0  90 0]  % left ear
 %   cfg.template.pnt(3,:) = [0 -90 0]  % right ear
-%   cfg.template.label    = {''nasion', 'lpa', 'rpa'}
+%   cfg.template.label    = {'nasion', 'lpa', 'rpa'}
 %
 % If you want to align existing electrodes to the head surface or position
 % new electrodes on the head surface, you should specify the head surface as
@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 1431 2010-07-20 07:47:55Z roboos $
+% $Id: ft_electroderealign.m 1768 2010-09-24 09:11:13Z sashae $
 
 fieldtripdefs
 
@@ -488,7 +488,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_electroderealign.m 1431 2010-07-20 07:47:55Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 1768 2010-09-24 09:11:13Z sashae $';
 
 % remember the configuration
 norm.cfg = cfg;

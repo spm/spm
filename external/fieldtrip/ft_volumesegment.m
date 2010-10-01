@@ -56,6 +56,8 @@ function [segment] = ft_volumesegment(cfg, mri)
 % 
 % As a third and optional step, you can perform a smoothing of the segmented
 % volumes.
+%
+% See also FT_READ_MRI
 
 % undocumented options
 %   cfg.keepintermediate = 'yes' or 'no'
@@ -79,7 +81,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_volumesegment.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 
@@ -354,7 +356,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: ft_volumesegment.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_volumesegment.m 1764 2010-09-23 12:52:25Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = mri.cfg; end
 % remember the exact configuration details in the output 

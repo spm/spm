@@ -15,14 +15,14 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical);
 % where
 %   source is the output of FT_SOURCEANALYSIS
 %   stat   is the output of FT_SOURCESTATISTICS
-%   mri    is the output of FT_READ_FCDC_MRI or the filename of a MRI
+%   mri    is the output of FT_READ_MRI or the filename of a MRI
 % and cfg is a structure with any of the following fields
 %   cfg.parameter     = string, default is 'all'
 %   cfg.interpmethod  = 'linear', 'cubic', 'nearest' or 'spline'
 %   cfg.downsample    = integer number (default = 1, i.e. no downsampling)
 %
-% See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS, FT_READ_FCDC_MRI
-%
+% See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS, FT_READ_MRI
+
 % Undocumented options
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -48,7 +48,7 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_sourceinterpolate.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -245,7 +245,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourceinterpolate.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 1692 2010-09-16 14:31:37Z sashae $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

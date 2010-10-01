@@ -38,7 +38,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 % cfg.masknans      = 'yes' or 'no' (default = 'yes')
 %
 % See also:
-%   ft_singleplotER, ft_multiplotER, ft_multiplotTFR, ft_topoplotER, ft_topoplotTFR
+%   FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
 % This function depends on FT_FREQBASELINE which has the following options:
 % cfg.baseline, documented
@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 1636 2010-09-07 13:30:14Z jansch $
+% $Id: ft_singleplotTFR.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 

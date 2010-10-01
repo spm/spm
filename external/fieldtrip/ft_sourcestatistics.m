@@ -38,7 +38,6 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 % for the corresponding configuration options and for a detailed
 % explanation of each method.
 %
-%
 % See also FT_SOURCEANALYSIS, FT_SOURCEDESCRIPTIVES, FT_SOURCEGRANDAVERAGE
 
 % Undocumented local options:
@@ -62,7 +61,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $
+% $Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -125,7 +124,7 @@ if strcmp(cfg.implementation, 'old'),
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -482,7 +481,7 @@ elseif strcmp(cfg.implementation, 'new')
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1493 2010-08-02 10:46:26Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $';
   
   % remember the configuration of the input data
   cfg.previous = [];

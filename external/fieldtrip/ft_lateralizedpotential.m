@@ -37,7 +37,7 @@ function lrp = ft_lateralizedpotential(cfg, avgL, avgR);
 %   Brain symmetry and topographic analysis of lateralized event-related
 %   potentials. Clin Neurophysiol. 114(7):1194-202, 2003.
 %
-% See also FT_LATERALIZEDFIELD, FT_TIMELOCKANALYSIS, FT_MULTIPLOTER
+% See also FT_TIMELOCKANALYSIS, FT_MULTIPLOTER
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -57,7 +57,7 @@ function lrp = ft_lateralizedpotential(cfg, avgL, avgR);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_lateralizedpotential.m 1264 2010-06-24 11:40:55Z timeng $
+% $Id: ft_lateralizedpotential.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -125,7 +125,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_lateralizedpotential.m 1264 2010-06-24 11:40:55Z timeng $';
+cfg.version.id = '$Id: ft_lateralizedpotential.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = avgL.cfg; end

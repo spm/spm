@@ -1,6 +1,6 @@
 function [filt] = ft_preproc_dftfilter(dat, Fs, Fl)
 
-% PREPROC_DFTFILTER applies a notch filter to the data to remove the 50Hz
+% FT_PREPROC_DFTFILTER applies a notch filter to the data to remove the 50Hz
 % or 60Hz line noise components. This is done by fitting a sine and cosine
 % at the specified frequency to the data and subsequently subtracting the
 % estimated components. The longer the data is, the sharper the spectral
@@ -43,7 +43,7 @@ function [filt] = ft_preproc_dftfilter(dat, Fs, Fl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_dftfilter.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_dftfilter.m 1722 2010-09-20 15:19:23Z sashae $
 
 % determine the size of the data
 [Nchans, Nsamples] = size(dat);

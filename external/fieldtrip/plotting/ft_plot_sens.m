@@ -1,9 +1,9 @@
-function hs = plot_sens(sens, varargin)
+function hs = ft_plot_sens(sens, varargin)
 
-% PLOT_SENS plots the position of the channels in the EEG or MEG sensor array
+% FT_PLOT_SENS plots the position of the channels in the EEG or MEG sensor array
 %
 % Use as
-%   plot_sens(sens, ...)
+%   ft_plot_sens(sens, ...)
 % where the first argument is the sensor array as returned by READ_SENS
 % or PREPARE_VOL_SENS. 
 %
@@ -12,8 +12,8 @@ function hs = plot_sens(sens, varargin)
 %   'coil'     true/false, plot each individual coil or the channelposition (default = false)
 %
 % Example
-%   sens = read_sens('Subject01.ds');
-%   plot_sens(sens, 'style', 'r*')
+%   sens = ft_read_sens('Subject01.ds');
+%   ft_plot_sens(sens, 'style', 'r*')
 
 % Copyright (C) 2009, Robert Oostenveld
 %
@@ -33,7 +33,7 @@ function hs = plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 1572 2010-08-30 11:11:24Z crimic $
+% $Id: ft_plot_sens.m 1810 2010-09-29 12:39:20Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 

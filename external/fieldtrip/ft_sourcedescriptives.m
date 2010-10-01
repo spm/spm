@@ -36,7 +36,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 % on the power and projected noise.
 %
 % See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -59,7 +59,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_sourcedescriptives.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -859,7 +859,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourcedescriptives.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 1692 2010-09-16 14:31:37Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

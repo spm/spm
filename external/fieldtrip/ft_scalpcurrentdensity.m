@@ -47,7 +47,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %   B. Hjort; An on-line transformation of EEG ccalp potentials into
 %   orthogonal source derivation. Electroencephalography and Clinical
 %   Neurophysiology 39:526-530, 1975.
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -70,7 +70,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 1439 2010-07-21 12:51:36Z jansch $
+% $Id: ft_scalpcurrentdensity.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -235,7 +235,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1439 2010-07-21 12:51:36Z jansch $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 1722 2010-09-20 15:19:23Z sashae $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

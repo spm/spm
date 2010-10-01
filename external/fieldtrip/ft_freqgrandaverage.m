@@ -16,7 +16,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %                       see FT_CHANNELSELECTION for details
 %
 % See also FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS, FT_FREQDESCRIPTIVES
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %                     The data should be provided in a cell array
@@ -42,7 +42,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 1311 2010-06-30 12:17:57Z timeng $
+% $Id: ft_freqgrandaverage.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -263,7 +263,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqgrandaverage.m 1311 2010-06-30 12:17:57Z timeng $';
+cfg.version.id = '$Id: ft_freqgrandaverage.m 1692 2010-09-16 14:31:37Z sashae $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

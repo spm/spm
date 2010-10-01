@@ -12,7 +12,7 @@ function [inside] = ft_inside_vol(pos, vol)
 %   inside   list of dipoles inside the brain compartment
 %            (1=inside, 0=outisde)
 %
-% Additional optional input arguments shoudl be given in key value pairs
+% Additional optional input arguments should be given in key value pairs
 % and can include
 %   <none>
 
@@ -34,7 +34,7 @@ function [inside] = ft_inside_vol(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: ft_inside_vol.m 1722 2010-09-20 15:19:23Z sashae $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)
@@ -107,4 +107,5 @@ switch ft_voltype(vol)
 end
 
 % ensure that these are column vectors
+inside(find(isnan(inside(:)))) = 0;
 inside  = logical(inside(:));

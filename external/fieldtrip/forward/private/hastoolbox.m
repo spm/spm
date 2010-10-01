@@ -10,7 +10,10 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % autoadd = 0 means that it will not be added
 % autoadd = 1 means that give an error if it cannot be added
 % autoadd = 2 means that give a warning if it cannot be added
-% autoadd = 3 means that it try to add it silently
+% autoadd = 3 means that it remains silent if it cannot be added
+%
+% silent = 0 means that it will give some feedback about adding the toolbox
+% silent = 1 means that it will not give feedback
 
 % Copyright (C) 2005-2010, Robert Oostenveld
 %
@@ -30,7 +33,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hastoolbox.m 1411 2010-07-14 11:00:12Z jansch $
+% $Id: hastoolbox.m 1757 2010-09-22 15:05:49Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -110,7 +113,7 @@ switch toolbox
   case 'AFNI'
     status = (exist('BrikLoad') && exist('BrikInfo'));
   case 'DSS'
-    status = exist('dss', 'file') && exist('dss_create_state', 'file');
+    status = exist('denss', 'file') && exist('dss_create_state', 'file');
   case 'EEGLAB'
     status = exist('runica', 'file');
   case 'NWAY'

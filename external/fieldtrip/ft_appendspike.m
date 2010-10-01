@@ -9,10 +9,10 @@ function [data] = ft_appendspike(cfg, varargin);
 %
 % Use as
 %   [spike] = ft_appendspike(cfg, spike1, spike2, spike3, ...)
-% where the input structures come from FT_READ_FCDC_SPIKE, or as
+% where the input structures come from FT_READ_SPIKE, or as
 %   [data]  = ft_appendspike(cfg, data, spike1, spike2, ...)
 % where the first data structure is the result of FT_PREPROCESSING
-% and the subsequent ones come from FT_READ_FCDC_SPIKE.
+% and the subsequent ones come from FT_READ_SPIKE.
 %
 % See also FT_APPENDDATA, FT_PREPROCESSING
 
@@ -34,7 +34,7 @@ function [data] = ft_appendspike(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_appendspike.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -127,7 +127,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appendspike.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_appendspike.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

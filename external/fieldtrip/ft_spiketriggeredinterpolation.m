@@ -25,7 +25,7 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 % selected channels will be interpolated or replaced with NaNs.
 %
 % See also FT_SPIKETRIGGEREDSPECTRUM, FT_SPIKETRIGGEREDAVERAGE
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -48,7 +48,7 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredinterpolation.m 1267 2010-06-25 09:08:42Z timeng $
+% $Id: ft_spiketriggeredinterpolation.m 1722 2010-09-20 15:19:23Z sashae $
 
 % set the defaults
 if ~isfield(cfg, 'timwin'),         cfg.timwin = [-0.001 0.002];    end
@@ -189,7 +189,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 1267 2010-06-25 09:08:42Z timeng $';
+cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

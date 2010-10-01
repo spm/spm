@@ -9,7 +9,7 @@ function [atlas] = ft_prepare_atlas(filename)
 % Use as:
 %   [atlas] = ft_prepare_atlas(filename)
 %
-% See also FT_VOLUMELOOKUP FT_SOURCEPLOT
+% See also FT_VOLUMELOOKUP, FT_SOURCEPLOT
 
 % Copyright (C) 2005-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
@@ -29,7 +29,7 @@ function [atlas] = ft_prepare_atlas(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_prepare_atlas.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 

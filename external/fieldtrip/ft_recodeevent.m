@@ -46,6 +46,8 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %                     'samplefromoffset'  number of samples from t=0 (c.f. response time)
 %                     'samplefrombegin'   number of samples from the begin of the trial
 %                     'samplefromend'     number of samples from the end   of the trial
+%
+% See also FT_DEFINETRIAL, FT_REDEFINETRIAL, FT_PREPROCESSING
 
 % Copyright (C) 2005, Robert Oostenveld
 %
@@ -65,7 +67,7 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_recodeevent.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_recodeevent.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 

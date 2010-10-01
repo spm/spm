@@ -1,6 +1,6 @@
-function select_contour
+function ft_select_contour
 
-% SELECT_CONTOUR
+% FT_SELECT_CONTOUR
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -18,4 +18,4 @@ function select_contour
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_contour.m 1417 2010-07-15 15:33:01Z crimic $
+% $Id: ft_select_contour.m 1820 2010-09-29 12:57:56Z crimic $

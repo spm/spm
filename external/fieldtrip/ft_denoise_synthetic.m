@@ -11,8 +11,8 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %                  type to which the data should be changed
 %   cfg.trials   = 'all' or a selection given as a 1xN vector (default = 'all')
 %
-% See also FT_PREPROCESSING, FT_DENOISE_SNS, FT_DENOISE_TSR, FT_DENOISE_PCA
-%
+% See also FT_PREPROCESSING
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -35,7 +35,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 1386 2010-07-09 11:29:38Z jansch $
+% $Id: ft_denoise_synthetic.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -121,7 +121,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_denoise_synthetic.m 1386 2010-07-09 11:29:38Z jansch $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 1722 2010-09-20 15:19:23Z sashae $';
 
   % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

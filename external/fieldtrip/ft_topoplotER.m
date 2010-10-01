@@ -2,7 +2,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 
 % FT_TOPOPLOTER plots the topographic distribution of 2-Dimensional datatypes as
 % event-related fields (ERF), potentials (ERP), the powerspectrum or coherence spectum
-% that was computed using the FT_TIMELOCKALYSIS, FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS or
+% that was computed using the FT_TIMELOCKANALYSIS, FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS or
 % FT_FREQDESCRIPTIVES functions, as a 2-D circular view (looking down at the top of the head).
 %
 % Use as:
@@ -81,7 +81,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %
 %
 % See also:
-%  ft_topoplotTFR, ft_topoplotIC, ft_singleplotER, ft_multiplotER, ft_prepare_layout
+%  FT_TOPOPLOTTFR, FT_TOPOPLOTIC, FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_PREPARE_LAYOUT
 
 % Undocumented local options:
 % The following additional cfg parameters are used when plotting 3-dimensional
@@ -134,7 +134,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 1636 2010-09-07 13:30:14Z jansch $
+% $Id: ft_topoplotER.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 

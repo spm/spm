@@ -57,7 +57,7 @@ function [freq] =ft_freqanalysis(cfg, data, flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 1550 2010-08-25 08:21:54Z roevdmei $
+% $Id: ft_freqanalysis.m 1690 2010-09-16 14:04:09Z roevdmei $
 
 fieldtripdefs
 
@@ -148,6 +148,11 @@ else
   elseif strcmp(cfg.keeptrials,'yes') &&  strcmp(cfg.keeptapers,'yes')
     keeprpt = 4;
   end
+  if strcmp(cfg.keeptrials,'yes') && strcmp(cfg.keeptapers,'yes')
+    if ~strcmp(cfg.output, 'fourier'),
+      error('Keeping trials AND tapers is only possible with fourier as the output.');
+    end
+  end
   
   % Set flags for output
   if strcmp(cfg.output,'pow')
@@ -180,7 +185,7 @@ else
   cfg.channel = ft_channelselection(cfg.channel, data.label);
   if isfield(cfg, 'channelcmb')
     cfg.channelcmb = ft_channelcombination(cfg.channelcmb, data.label);
-    selchan = unique([cfg.channel(:); cfg.channelcmb(:)]);  
+    selchan = unique([cfg.channel(:); cfg.channelcmb(:)]);
   else
     selchan = cfg.channel;
   end
@@ -242,7 +247,7 @@ else
     end
   end
   
-
+  
   
   
   % tapsmofrq compatibility between functions (make it into a vector if it's not)
@@ -263,9 +268,11 @@ else
   end
   
   
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%% Main loop over trials, inside fourierspectra are obtained and transformed into the appropriate outputs
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % this is done on trial basis to save memory
   for itrial = 1:ntrials
     disp(['processing trial ' num2str(itrial) ': ' num2str(size(data.trial{itrial},2)) ' samples']);
@@ -277,7 +284,11 @@ else
     if itrial == 1
       % minimal specest call, bookkeeping and such is in a second switch below here
       switch cfg.method
+        
+        
         case 'mtmconvol'
+          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          %%% MTMCONVOL
           [spectrum,ntaper,foi,toi] = specest_mtmconvol(dat, time, 'timeoi', cfg.toi, 'timwin', cfg.t_ftimwin, options{:});
           nfoi = numel(foi);
           ntoi = numel(toi);
@@ -305,8 +316,16 @@ else
             if fftflg, fourierspctrm = complex(zeros(ntrials*ntap,nchan,nfoi,ntoi,cfg.precision));    end
             dimord    = 'rpttap_chan_freq_time';
           end
+          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          
+          
+          
+          
+          
           
         case 'mtmfft'
+          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          %%% MTMFFT
           [spectrum,ntaper,foi] = specest_mtmfft(dat, time, options{:});
           nfoi = numel(foi);
           ntap = size(spectrum,1);
@@ -333,6 +352,11 @@ else
             if fftflg, fourierspctrm = complex(zeros(ntrials*ntap,nchan,nfoi,cfg.precision));    end
             dimord    = 'rpttap_chan_freq';
           end
+          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          
+          
+          
+          
         otherwise
           error('method %s is unknown', cfg.method);
       end % switch
@@ -342,10 +366,14 @@ else
     
     
     
+    
+    
     % do the spectral decompisition of this trial and put it into output variables
     switch cfg.method
       
       case 'mtmconvol'
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%% MTMCONVOL
         if itrial ~= 1
           [spectrum,ntaper,foi,toi] = specest_mtmconvol(dat, time, 'timeoi', cfg.toi, options{:},'timwin',cfg.t_ftimwin);
           nfoi = numel(foi);
@@ -362,7 +390,7 @@ else
         foinumsmp = permute(foinumsmp,[2 3 1 4]);
         if powflg
           powdum = 2.* abs(spectrum) .^ 2 ./ foinumsmp;
-          if strcmp(cfg.taper, 'sine') % THIS IS NOT DONE IN THE MTMFFT CASE IN THE OLD IMPLEMENTATION, WHY?
+          if strcmp(cfg.taper, 'sine') % THIS IS NOT DONE IN THE MTMFFT CASE IN THE OLD IMPLEMENTATION, WHY? - roevdmei
             sinetapscale = zeros(ntap,nfoi);  % assumes fixed number of tapers
             for isinetap = 1:ntaper(1)  % assumes fixed number of tapers
               sinetapscale(isinetap,:) = (1 - (((isinetap - 1) ./ ntaper) .^ 2));
@@ -391,6 +419,10 @@ else
           end
         end
         if csdflg
+          foinumsmp = cfg.t_ftimwin .* data.fsample;
+          foinumsmp = foinumsmp(:);
+          foinumsmp = repmat(foinumsmp,[1, ntap, nchancmb, ntoi]);
+          foinumsmp = permute(foinumsmp,[2 3 1 4]);
           csddum = 2.* (spectrum(:,cutdatindcmb(:,1),:,:) .* conj(spectrum(:,cutdatindcmb(:,2),:,:))) ./ foinumsmp;
           if keeprpt == 1
             crsspctrm = crsspctrm + (reshape(nanmean(csddum,1),[nchancmb nfoi ntoi]) ./ ntrials);
@@ -406,10 +438,14 @@ else
           acttimboiind = ~isnan(squeeze(spectrum(1,1,:,:)));
           dof(itrial,:,:) = repmat(ntaper,[1, ntoi]) .* acttimboiind;
         end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         
         
         
       case 'mtmfft'
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%% MTMFFT
         if itrial ~= 1
           [spectrum,ntaper,foi] = specest_mtmfft(dat, time, options{:});
           nfoi = numel(foi);
@@ -423,7 +459,7 @@ else
         foinumsmp = repmat(foinumsmp,[ntap, nchan, nfoi]);
         if powflg
           powdum = 2.* abs(spectrum) .^ 2 ./ foinumsmp;
-          % In freqanalysis_mtmfft, sine tapers are NOT scaled (they are in mtmconvol). below code performs the scaling for cfg.method = mtmfft
+          % In freqanalysis_mtmfft, sine tapers are NOT scaled (they are in mtmconvol). below code should perform the scaling for cfg.method = mtmfft (not tested)
           %           if strcmp(cfg.taper, 'sine')
           %             sinetapscale = zeros(ntap,nfoi);  % assumes fixed number of tapers
           %             for isinetap = 1:ntaper(1)  % assumes fixed number of tapers
@@ -453,6 +489,8 @@ else
           end
         end
         if csdflg
+          foinumsmp = cfg.pad * data.fsample;
+          foinumsmp = repmat(foinumsmp,[ntap, nchancmb, nfoi]);
           csddum = 2.* (spectrum(:,cutdatindcmb(:,1),:,:) .* conj(spectrum(:,cutdatindcmb(:,2),:,:))) ./ foinumsmp;
           if keeprpt == 1
             crsspctrm = crsspctrm + (reshape(nanmean(csddum,1),[nchancmb nfoi]) ./ ntrials);
@@ -467,14 +505,15 @@ else
         if strcmp(cfg.calcdof,'yes')
           dof(itrial,:) = ntaper;
         end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         
-        %       case 'wltconvol' % not testest yet
-        %         [spectrum,foi,toi] = specest_wltconvol(dat, time, options{:});
+        
+        
         
         
       otherwise
-        error('method %s is unknown', cfg.method);
+        error('method %s is unknown or not yet implemented with new low level functions', cfg.method);
     end % switch
     
     
@@ -482,11 +521,15 @@ else
     
     
     
+    
   end % for ntrials
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%% END: Main loop over trials
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ 
   
+    
   
   
   
@@ -503,7 +546,7 @@ else
     % correct the 0 Hz bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
     if ~isempty(hasdc)
       if keeprpt>1
-        powspctrm(:,:,hasdc,:) = powspctrm(:,:,hasdc,:)./2;      
+        powspctrm(:,:,hasdc,:) = powspctrm(:,:,hasdc,:)./2;
       else
         powspctrm(:,hasdc,:) = powspctrm(:,hasdc,:)./2;
       end
@@ -514,7 +557,7 @@ else
     % correct the 0 Hz bin if present
     if ~isempty(hasdc)
       if keeprpt>1
-        fourierspctrm(:,:,hasdc,:) = fourierspctrm(:,:,hasdc,:)./sqrt(2);      
+        fourierspctrm(:,:,hasdc,:) = fourierspctrm(:,:,hasdc,:)./sqrt(2);
       else
         fourierspctrm(:,hasdc,:) = fourierspctrm(:,hasdc,:)./sqrt(2);
       end
@@ -525,7 +568,7 @@ else
     % correct the 0 Hz bin if present
     if ~isempty(hasdc)
       if keeprpt>1
-        crsspctrm(:,:,hasdc,:) = crsspctrm(:,:,hasdc,:)./2;      
+        crsspctrm(:,:,hasdc,:) = crsspctrm(:,:,hasdc,:)./2;
       else
         crsspctrm(:,hasdc,:) = crsspctrm(:,hasdc,:)./2;
       end
@@ -568,19 +611,13 @@ else
     [st, i1] = dbstack;
     cfg.version.name = st(i1);
   end
-  cfg.version.id = '$Id: ft_freqanalysis.m 1550 2010-08-25 08:21:54Z roevdmei $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 1690 2010-09-16 14:04:09Z roevdmei $';
   % remember the configuration details of the input data
   try, cfg.previous = data.cfg; end
   % remember the exact configuration details in the output
   freq.cfg = cfg;
   
 end % IF OLD OR NEW IMPLEMENTATION
-
-
-
-
-
-
 
 
 
@@ -593,9 +630,6 @@ end
 if ~isempty(cfg.outputfile)
   savevar(cfg.outputfile, 'data', freq); % use the variable name "data" in the output file
 end
-
-
-
 
 
 

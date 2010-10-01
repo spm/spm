@@ -42,7 +42,7 @@ function [freq] = ft_freqanalysis_mtmfft(cfg, data);
 % a large prime factor sum. This is because the FFTs will then be computed
 % very inefficiently.
 %
-% See also FT_FREQANALYSIS_MTMCONVOL, FT_REQANALYSIS_WLTCONVOL, FT_FREQANALYSIS_TFR
+% See also FT_FREQANALYSIS_MTMCONVOL, FT_FREQANALYSIS_WLTCONVOL, FT_FREQANALYSIS_TFR
 
 % Undocumented local options
 %   cfg.calcdof = 'yes'   calculate the degrees of freedom for every trial
@@ -65,7 +65,7 @@ function [freq] = ft_freqanalysis_mtmfft(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mtmfft.m 1513 2010-08-17 08:18:25Z jansch $
+% $Id: ft_freqanalysis_mtmfft.m 1675 2010-09-15 16:23:16Z sashae $
 
 fieldtripdefs
 
@@ -452,7 +452,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: ft_freqanalysis_mtmfft.m 1513 2010-08-17 08:18:25Z jansch $';
+cfg.version.id = '$Id: ft_freqanalysis_mtmfft.m 1675 2010-09-15 16:23:16Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

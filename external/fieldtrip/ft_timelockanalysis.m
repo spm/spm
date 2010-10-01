@@ -31,6 +31,8 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %       the available samples in every trial will be used for the
 %       average and covariance computation. Missing values are replaced
 %       by NaN and are not included in the computation.
+%
+% See also FT_TIMELOCKGRANDAVERAGE, FT_TIMELOCKSTATISTICS
 
 % FIXME if input is one raw trial, the covariance is not computed correctly
 % 
@@ -89,7 +91,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 1386 2010-07-09 11:29:38Z jansch $
+% $Id: ft_timelockanalysis.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 
@@ -508,7 +510,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockanalysis.m 1386 2010-07-09 11:29:38Z jansch $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 1764 2010-09-23 12:52:25Z sashae $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

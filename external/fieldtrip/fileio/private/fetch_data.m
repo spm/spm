@@ -1,12 +1,12 @@
 function [dat] = fetch_data(data, varargin)
 
-% FETCH_DATA mimics the behaviour of READ_DATA, but for a FieldTrip
+% FETCH_DATA mimics the behaviour of FT_READ_DATA, but for a FieldTrip
 % raw data structure instead of a file on disk.
 %
 % Use as
 %   [dat] = fetch_data(data, ...)
 %
-% See also READ_DATA, FETCH_HEADER, FETCH_EVENT
+% See also FT_READ_DATA, FETCH_HEADER, FETCH_EVENT
 
 % Copyright (C) 2008, Esther Meeuwissen
 %
@@ -26,7 +26,7 @@ function [dat] = fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_data.m 1440 2010-07-21 12:52:25Z jansch $
+% $Id: fetch_data.m 1739 2010-09-21 13:17:59Z sashae $
     
 % check whether input is data
 data = checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');

@@ -1,10 +1,10 @@
-function [x, y] = select_box(handle, eventdata, varargin)
+function [x, y] = ft_select_box(handle, eventdata, varargin)
 
-% SELECT_BOX helper function for selecting a rectangular region
+% FT_SELECT_BOX helper function for selecting a rectangular region
 % in the current figure using the mouse.
 %
 % Use as
-%   [x, y] = select_box(...)
+%   [x, y] = ft_select_box(...)
 %
 % It returns a 2-element vector x and a 2-element vector y
 % with the corners of the selected region.
@@ -31,7 +31,7 @@ function [x, y] = select_box(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_box.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_select_box.m 1817 2010-09-29 12:52:55Z crimic $
 
 % get the optional arguments
 multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end

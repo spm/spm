@@ -37,8 +37,8 @@ function [mri] = ft_volumerealign(cfg, mri);
 % - the Z-axis goes approximately towards the vertex, orthogonal to X and Y
 %
 %
-% See also READ_MRI, FT_ELECTRODEREALIGN
-%
+% See also FT_READ_MRI, FT_ELECTRODEREALIGN
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -61,7 +61,7 @@ function [mri] = ft_volumerealign(cfg, mri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_volumerealign.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -232,7 +232,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumerealign.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_volumerealign.m 1722 2010-09-20 15:19:23Z sashae $';
 
 % remember the configuration
 mri.cfg = cfg;

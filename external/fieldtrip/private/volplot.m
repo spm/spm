@@ -40,7 +40,7 @@ function [dat] = volplot(x, y, z, dat, sel, cscale)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: volplot.m 1360 2010-07-06 08:38:59Z roboos $
+% $Id: volplot.m 1775 2010-09-25 11:48:58Z crimic $
 
 if nargin<2
   dat = x;
@@ -250,7 +250,9 @@ else
 
   fprintf('value of %f in voxel %d at [%.02f %.02f %.02f]\n', double(dat(xi, yi, zi)), sub2ind(dim, xi, yi, zi), x(xi), y(yi), z(zi));
 
+  warning off
   delete(subplot(2,2,4));   % delete the old colorbar
+  warning on
   h1 = subplot(2,2,1);
   h2 = subplot(2,2,2);
   h3 = subplot(2,2,3);

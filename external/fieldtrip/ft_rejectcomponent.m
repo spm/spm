@@ -11,7 +11,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    [data] = ft_rejectcomponent(cfg, comp, data)
 %
 % where the input comp is the result of FT_COMPONENTANALYSIS. The output
-% data will have the same format as the output of FT_PREFPROCESSING.
+% data will have the same format as the output of FT_PREPROCESSING.
 % An optional input argument data can be provided. In that case 
 % componentanalysis will do a subspace projection of the input data
 % onto the space which is spanned by the topographies in the unmixing
@@ -20,8 +20,8 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 % The configuration should contain
 %   cfg.component = list of components to remove, e.g. [1 4 7]
 % 
-% See also FT_COMPONENTANALYSIS, FT_PREFPROCESSING
-%
+% See also FT_COMPONENTANALYSIS, FT_PREPROCESSING
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_rejectcomponent.m 1779 2010-09-27 07:32:39Z jansch $
 
 fieldtripdefs
 
@@ -115,12 +115,16 @@ else
   labelnew = comp.topolabel(selcomp);
   
   %create data structure
+  if nargin==3 && isfield(data, 'trialinfo'),  trialinfo  = data.trialinfo;  end
+  if nargin==3 && isfield(data, 'sampleinfo'), sampleinfo = data.sampleinfo; end 
   data         = [];
   data.trial   = comp.trial;
   data.time    = comp.time;
   data.label   = comp.label;
   data.fsample = comp.fsample;
-  try, data.grad = comp.grad; end
+  try, data.grad       = comp.grad;  end
+  try, data.trialinfo  = trialinfo;  end
+  try, data.sampleinfo = sampleinfo; end
   
   keepunused = 'no'; %don't need to keep the original rejected components
 end
@@ -162,7 +166,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectcomponent.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 1779 2010-09-27 07:32:39Z jansch $';
 if nargin==2 || nargin < 2 
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end

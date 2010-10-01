@@ -10,7 +10,7 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 %   cfg.channel      = cell-array, see FT_CHANNELSELECTION
 %
 % See also FT_TIMELOCKANALYSIS, FT_FREQBASELINE
-%
+
 % Undocumented local options:
 %   cfg.blcwindow
 %   cfg.previous
@@ -36,7 +36,7 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_timelockbaseline.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -162,7 +162,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockbaseline.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_timelockbaseline.m 1722 2010-09-20 15:19:23Z sashae $';
 
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end

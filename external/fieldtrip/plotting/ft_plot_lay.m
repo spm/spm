@@ -1,9 +1,9 @@
-function plot_lay(lay, varargin)
+function ft_plot_lay(lay, varargin)
 
-% PLOT_LAY plots a two-dimensional layout
+% FT_PLOT_LAY plots a two-dimensional layout
 %
 % Use as
-%   plot_lay(layout, ...)
+%   ft_plot_lay(layout, ...)
 % where the layout is a FieldTrip structure obtained from PREPARE_LAYOUT.
 %
 % Additional options should be specified in key-value pairs and can be
@@ -37,7 +37,7 @@ function plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_plot_lay.m 1805 2010-09-29 12:27:18Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 

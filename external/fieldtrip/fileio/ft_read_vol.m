@@ -1,6 +1,6 @@
 function [vol] = ft_read_vol(filename, varargin)
 
-% READ_VOL reads a volume conduction model from various manufacturer
+% FT_READ_VOL reads a volume conduction model from various manufacturer
 % specific files. Currently supported are ASA, CTF, Neuromag, MBFYS
 % and Matlab.
 %
@@ -33,7 +33,7 @@ function [vol] = ft_read_vol(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_vol.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_vol.m 1722 2010-09-20 15:19:23Z sashae $
 
 % test whether the file exists
 if ~exist(filename)

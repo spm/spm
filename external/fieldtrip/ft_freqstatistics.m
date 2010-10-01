@@ -31,7 +31,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 % explanation of each method.
 %
 % See also FT_FREQANALYSIS, FT_FREQDESCRIPTIVES, FT_FREQGRANDAVERAGE
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %                     The data should be provided in a cell array
@@ -60,7 +60,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 1273 2010-06-25 15:40:16Z timeng $
+% $Id: ft_freqstatistics.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 
@@ -139,7 +139,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqstatistics.m 1273 2010-06-25 15:40:16Z timeng $';
+cfg.version.id = '$Id: ft_freqstatistics.m 1692 2010-09-16 14:31:37Z sashae $';
 
 % remember the configuration of the input data
 cfg.previous = [];

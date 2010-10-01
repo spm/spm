@@ -15,11 +15,12 @@ function [interp] = ft_channelrepair(cfg, data);
 % Since a nearest neighbour average is used, the input should contain
 % a gradiometer or electrode definition, i.e. data.grad or data.elec.
 %
-% See also FT_MEGINTERPOLATE
-%
+% See also FT_MEGREALIGN, FT_MEGPLANAR
+
 % Undocumented local options:
 %   cfg.inputfile        = one can specifiy preanalysed saved data as input
 %   cfg.outputfile       = one can specify output as file to save to disk
+
 % Copyright (C) 2004-2009, Robert Oostenveld
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -38,7 +39,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 1439 2010-07-21 12:51:36Z jansch $
+% $Id: ft_channelrepair.m 1685 2010-09-16 13:28:31Z sashae $
 
 fieldtripdefs
 
@@ -154,7 +155,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_channelrepair.m 1439 2010-07-21 12:51:36Z jansch $';
+cfg.version.id   = '$Id: ft_channelrepair.m 1685 2010-09-16 13:28:31Z sashae $';
 % remember the configuration details of the input data
 
 % remember the configuration details of the input data

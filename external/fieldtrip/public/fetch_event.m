@@ -1,12 +1,12 @@
 function [event]=fetch_event(data)
 
-% FETCH_EVENT mimics the behaviour of READ_EVENT, but for a FieldTrip
+% FETCH_EVENT mimics the behaviour of FT_READ_EVENT, but for a FieldTrip
 % raw data structure instead of a file on disk.
 %
 % Use as
 %   [event] = fetch_event(data)
 %
-% See also READ_EVENT, FETCH_HEADER, FETCH_DATA
+% See also FT_READ_EVENT, FETCH_HEADER, FETCH_DATA
 
 % Copyright (C) 2008, Esther Meeuwissen
 %
@@ -26,7 +26,7 @@ function [event]=fetch_event(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_event.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: fetch_event.m 1739 2010-09-21 13:17:59Z sashae $
 
 % check whether input is data
 data = checkdata(data, 'datatype', 'raw');

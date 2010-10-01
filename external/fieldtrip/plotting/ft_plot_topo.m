@@ -1,6 +1,6 @@
 function Zi = ft_plot_topo(chanX, chanY, dat, varargin)
 
-% PLOT_TOPO interpolates and plots the 2-D spatial topography of the
+% FT_PLOT_TOPO interpolates and plots the 2-D spatial topography of the
 % potential or field distribution over the head
 %
 % Use as
@@ -39,7 +39,7 @@ function Zi = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 1427 2010-07-19 11:44:01Z vlalit $
+% $Id: ft_plot_topo.m 1814 2010-09-29 12:48:42Z crimic $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage

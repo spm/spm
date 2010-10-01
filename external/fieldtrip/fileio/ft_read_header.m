@@ -1,7 +1,7 @@
 function [hdr] = ft_read_header(filename, varargin)
 
 % FT_READ_HEADER reads header information from a variety of EEG, MEG and LFP
-% files and represents the header information in a common data-indepentend
+% files and represents the header information in a common data-independent
 % format. The supported formats are listed below.
 %
 % Use as
@@ -28,7 +28,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %
 % The following MEG dataformats are supported
 %   CTF - VSM MedTech (*.ds, *.res4, *.meg4)
-%   Neuromag - Elektra (*.m4d, *.pdf, *.xyz)
+%   Neuromag - Elekta (*.fif)
 %   BTi - 4D Neuroimaging (*.m4d, *.pdf, *.xyz)
 %   Yokogawa (*.ave, *.con, *.raw)
 %
@@ -48,7 +48,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %   CED - Cambridge Electronic Design (*.smr)
 %   MPI - Max Planck Institute (*.dap)
 %
-% See also READ_DATA, READ_EVENT, WRITE_DATA, WRITE_EVENT
+% See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT
 
 % Copyright (C) 2003-2010 Robert Oostenveld
 %
@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1620 2010-09-06 13:22:04Z stekla $
+% $Id: ft_read_header.m 1759 2010-09-22 15:22:29Z sashae $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 

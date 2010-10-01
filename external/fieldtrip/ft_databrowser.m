@@ -46,7 +46,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %
 % See also FT_PREPROCESSING, FT_REJECTARTIFACT, FT_ARTIFACT_EOG, FT_ARTIFACT_MUSCLE,
 % FT_ARTIFACT_JUMP, FT_ARTIFACT_MANUAL, FT_ARTIFACT_THRESHOLD, FT_ARTIFACT_CLIP, FT_ARTIFACT_ECG
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1477 2010-07-29 12:48:30Z crimic $
+% $Id: ft_databrowser.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -416,7 +416,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1477 2010-07-29 12:48:30Z crimic $';
+cfg.version.id = '$Id: ft_databrowser.m 1722 2010-09-20 15:19:23Z sashae $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')

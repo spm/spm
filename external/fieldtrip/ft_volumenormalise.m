@@ -8,7 +8,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %
 % The input volume should be the result from FT_SOURCEINTERPOLATE.
 % Alternatively, the input can contain a single anatomical MRI that
-% was read with READ_FCDC_MRI, or you can specify a filename of an
+% was read with FT_READ_MRI, or you can specify a filename of an
 % anatomical MRI.
 %
 % Configuration options are:
@@ -22,22 +22,24 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %   cfg.name        = string for output filename
 %   cfg.write       = 'no' (default) or 'yes', writes the segmented volumes to SPM2
 %                     compatible analyze-file, with the suffix
-%                     _anatomy for the anatomical MRI volumeFT_
+%                     _anatomy for the anatomical MRI volume
 %                     _param   for each of the functional volumes
 %   cfg.nonlinear   = 'yes' (default) or 'no', estimates a nonlinear transformation
-%                     in addition to the linear affine registratFT_ion. If a reasonably
+%                     in addition to the linear affine registration. If a reasonably
 %                     accurate normalisation is sufficient, a purely linearly transformed
 %                     image allows for 'reverse-normalisation', which might come in handy
-%                     when for example a region of interest is dFT_efined on the normalised
+%                     when for example a region of interest is defined on the normalised
 %                     group-average.
 
 % Undocumented local options:
 %   cfg.keepintermediate = 'yes' or 'no'
 %   cfg.intermediatename = prefix of the the coregistered images and of the
-%                          original images in the original headcFT_oordinate system
+%                          original images in the original headcoordinate system
 %   cfg.spmparams        = one can feed in parameters from a prior normalisation
 %   cfg.inputfile        = one can specifiy preanalysed saved data as input
 %   cfg.outputfile       = one can specify output as file to save to disk
+%
+% See also FT_SOURCEINTERPOLATE, FT_READ_MRI
 
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
@@ -57,7 +59,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 1263 2010-06-23 15:40:37Z timeng $
+% $Id: ft_volumenormalise.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 
@@ -326,7 +328,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumenormalise.m 1263 2010-06-23 15:40:37Z timeng $';
+cfg.version.id = '$Id: ft_volumenormalise.m 1764 2010-09-23 12:52:25Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

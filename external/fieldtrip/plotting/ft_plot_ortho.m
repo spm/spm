@@ -1,9 +1,9 @@
-function fiducial=plot_ortho(data)
+function fiducial=ft_plot_ortho(data)
 %
-% PLOT_ORTHO visualizes an MRI 3D volume in 3 orthogonal projections
+% FT_PLOT_ORTHO visualizes an MRI 3D volume in 3 orthogonal projections
 %
 % Use as
-%   hs = plot_ortho(data, varargin)
+%   hs = ft_plot_ortho(data, varargin)
 %
 % Some defaults for the additional arguments:
 %
@@ -32,7 +32,7 @@ function fiducial=plot_ortho(data)
 %   'colorbar'            = 'yes' or 'no' (default = 'yes')
 %
 % Example
-%   figure, plot_ortho(data,'colorbar','no','interactive','yes','axis','off')
+%   figure, ft_plot_ortho(data,'colorbar','no','interactive','yes','axis','off')
 
 % Copyright (C) 2009, Cristiano Micheli 
 %
@@ -52,7 +52,7 @@ function fiducial=plot_ortho(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_plot_ortho.m 1809 2010-09-29 12:37:35Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 

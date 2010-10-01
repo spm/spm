@@ -1,6 +1,6 @@
-function uilayout(h, varargin)
+function ft_uilayout(h, varargin)
 
-% UILAYOUT is a helper function to facilitate the layout of multiple
+% FT_UILAYOUT is a helper function to facilitate the layout of multiple
 % usercontrol elements
 
 % Copyright (C) 2009, Robert Oostenveld
@@ -21,7 +21,7 @@ function uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_uilayout.m 1415 2010-07-15 15:26:27Z crimic $
+% $Id: ft_uilayout.m 1824 2010-09-29 13:07:55Z crimic $
 
 % these are used to make a selection of uicontrol elements
 tag    = keyval('tag', varargin{:});

@@ -30,7 +30,7 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 %   cfg.artfctdef.jump.artpadding    = automatically determined based on the filter padding (cfg.padding)
 %
 % The output argument "artifact" is a Nx2 matrix comparable to the
-% "trl" matrix of DEFINETRIAL. The first column of which specifying the
+% "trl" matrix of FT_DEFINETRIAL. The first column of which specifying the
 % beginsamples of an artifact period, the second column contains the
 % endsamples of the artifactperiods.
 %
@@ -58,7 +58,7 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_jump.m 1212 2010-06-09 10:29:43Z timeng $
+% $Id: ft_artifact_jump.m 1685 2010-09-16 13:28:31Z sashae $
 
 fieldtripdefs
 

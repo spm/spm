@@ -33,7 +33,7 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 % function does not support artifact- or filterpadding.
 %
 % See also FT_REJECTARTIFACT
-%
+
 % Undocumented local options:
 % cfg.inputfile
 % cfg.outputfile
@@ -56,7 +56,7 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 1197 2010-06-08 07:48:54Z timeng $
+% $Id: ft_artifact_threshold.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -185,7 +185,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_threshold.m 1197 2010-06-08 07:48:54Z timeng $';
+cfg.version.id = '$Id: ft_artifact_threshold.m 1722 2010-09-20 15:19:23Z sashae $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

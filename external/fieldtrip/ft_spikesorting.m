@@ -19,8 +19,8 @@ function [spike] = ft_spikesorting(cfg, spike);
 %   spike.timestamp = 1 x Nchans cell-array, each element contains a vector (1 x Nspikes)
 %   spike.unit      = 1 x Nchans cell-array, each element contains a vector (1 x Nspikes)
 %
-% See also READ_FCDC_SPIKE, FT_SPIKEDOWNSAMPLE
-% 
+% See also FT_READ_SPIKE, FT_SPIKEDOWNSAMPLE
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -43,7 +43,7 @@ function [spike] = ft_spikesorting(cfg, spike);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesorting.m 1247 2010-06-17 12:07:18Z timeng $
+% $Id: ft_spikesorting.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -132,7 +132,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spikesorting.m 1247 2010-06-17 12:07:18Z timeng $';
+cfg.version.id = '$Id: ft_spikesorting.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous    = spike.cfg;     end
 % remember the configuration

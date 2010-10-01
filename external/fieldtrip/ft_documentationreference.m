@@ -62,19 +62,29 @@ end
 
 % create the desired output directory
 if ~isdir(outdir)
-mkdir(outdir);
+  mkdir(outdir);
 end
 
+
+funname = flipdim(funname,1); % to avoid problems with overlapping function names
 for i=1:length(funname)
   filename = fullfile(outdir, [funname{i} '.txt']);
   str = help(funname{i});
+  
+  % make text html-compatible
+  str = strrep(str, '<', '&lt;');
+  str = strrep(str, '>', '&gt;');
+  
+  % add crossrefs
+  for f=1:length(funname)
+    str = strrep(str, [' ', upper(funname{f})], [' <a href=/reference/', funname{f}, '><font color=green>', upper(funname{f}),'</font></a>']);
+  end
+  
   fid = fopen(filename, 'wt');
   fprintf(fid, '=====  %s =====\n\n', upper(funname{i}));
   fprintf(fid, 'Note that this reference documentation is identical to the help that is displayed in Matlab when you type "help %s".\n\n', funname{i});
-  fprintf(fid, '<code>\n');  % required for docuwiki
+  fprintf(fid, '<html><pre>\n');   % required for docuwiki > use html preformatted style
   fprintf(fid, '%s', str);
-  fprintf(fid, '</code>\n');  % required for docuwiki
+  fprintf(fid, '</pre></html>\n'); % required for docuwiki
   fclose(fid);
 end
-
-

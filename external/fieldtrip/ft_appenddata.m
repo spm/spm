@@ -1,4 +1,4 @@
-function [data] = ft_appenddata(cfg, varargin);
+function [data] = ft_appenddata(cfg, varargin)
 
 % FT_APPENDDATA combines multiple datasets that have been preprocessed separately
 % into a single large dataset.
@@ -24,8 +24,9 @@ function [data] = ft_appenddata(cfg, varargin);
 % there's a slight discrepancy in the channels in the input data (e.g. missing
 % channels in one of the data structures). The function will then return a data
 % structure containing only the channels which are present in all inputs.
-% See also FT_PREPROCESSING
 %
+% See also FT_PREPROCESSING
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %                     The data should be provided in a cell array
@@ -50,7 +51,7 @@ function [data] = ft_appenddata(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 1489 2010-07-30 16:16:49Z crimic $
+% $Id: ft_appenddata.m 1795 2010-09-28 18:25:18Z jansch $
 
 fieldtripdefs
 
@@ -142,10 +143,12 @@ for j=1:Ndata
 end
 
 % check consistency of sensor positions across inputs
-haselec = isfield(varargin{1}, 'elec');
-hasgrad = isfield(varargin{1}, 'grad');
+for j=1:Ndata
+  haselec(j) = isfield(varargin{j}, 'elec');
+  hasgrad(j) = isfield(varargin{j}, 'grad');
+end
 removesens = 0;
-if haselec || hasgrad,
+if all(haselec==1) || all(hasgrad==1),
   for j=1:Ndata
     if haselec, sens{j} = getfield(varargin{j}, 'elec'); end
     if hasgrad, sens{j} = getfield(varargin{j}, 'grad'); end
@@ -157,6 +160,11 @@ if haselec || hasgrad,
       end
     end
   end
+elseif haselec(1)==1 || hasgrad(1)==1,
+  % apparently the first input has a grad or elec, but not all the other
+  % ones. because the output data will be initialized to be the first input
+  % data structure, this should be removed
+  removesens = 1;   
 end
 
 % check whether the data are obtained from the same datafile
@@ -280,7 +288,8 @@ end
 if removesampleinfo
     fprintf('removing trial definition from output\n');
     data            = rmfield(data, 'sampleinfo');
-    cfg.trl(:, 1:2) = nan;
+    %cfg.trl(:, 1:2) = nan;
+    if isfield(cfg, 'trl'), cfg = rmfield(cfg, 'trl'); end
 end
 
 % add version information to the configuration
@@ -292,7 +301,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appenddata.m 1489 2010-07-30 16:16:49Z crimic $';
+cfg.version.id = '$Id: ft_appenddata.m 1795 2010-09-28 18:25:18Z jansch $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

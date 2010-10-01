@@ -1,10 +1,10 @@
-function [selected] = select_point(pos, varargin)
+function [selected] = ft_select_point(pos, varargin)
 
-% SELECT_POINT helper function for selecting a one or multiple points
+% FT_SELECT_POINT helper function for selecting a one or multiple points
 % in the current figure using the mouse.
 %
 % Use as
-%   [selected] = select_point(pos, ...)
+%   [selected] = ft_select_point(pos, ...)
 %
 % It returns a list of the [x y] coordinates of the selected points.
 %
@@ -16,7 +16,7 @@ function [selected] = select_point(pos, varargin)
 %   pos = randn(10,2);
 %   figure
 %   plot(pos(:,1), pos(:,2), '.')
-%   select_point(pos)
+%   ft_select_point(pos)
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -34,7 +34,7 @@ function [selected] = select_point(pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_select_point.m 1822 2010-09-29 13:01:40Z crimic $
 
 
 % get optional input arguments

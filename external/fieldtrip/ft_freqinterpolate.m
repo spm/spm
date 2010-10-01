@@ -1,4 +1,3 @@
-
 function [freq] = ft_freqinterpolate(cfg, freq)
 
 % FT_FREQINTERPOLATE interpolates frequencies by looking at neighbouring
@@ -11,7 +10,7 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %   cfg.method   = 'nan', 'linear' (default = 'nan')
 %   cfg.foilim   = Nx2 matrix with begin and end of each interval to be
 %                  interpolated (default = [49 51; 99 101; 149 151])
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -35,7 +34,7 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqinterpolate.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_freqinterpolate.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -108,7 +107,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_freqinterpolate.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id   = '$Id: ft_freqinterpolate.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
 % remember the exact configuration details in the output

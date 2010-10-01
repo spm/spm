@@ -37,7 +37,7 @@ function [lay] = ft_prepare_layout(cfg, data);
 %   cfg.layout = 'vertical' will give you a Nx1 ordered layout
 %   cfg.layout = 'butterfly'  will give you a layout with all channels on top of each other
 %
-% See also ft_layoutplot, ft_topoplotER, ft_topoplotTFR, ft_multiplotER, ft_multiplotTFR
+% See also FT_LAYOUTPLOT, FT_TOPOPLOTER, FT_TOPOPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR
 
 % TODO switch to using planarchannelset function
 
@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 1118 2010-05-20 08:42:20Z tilsan $
+% $Id: ft_prepare_layout.m 1692 2010-09-16 14:31:37Z sashae $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is

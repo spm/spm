@@ -41,7 +41,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %                     alternatively, colors can be specified as Nx3 matrix of RGB values
 %
 % See also:
-%   ft_singleplotTFR, ft_multiplotER, ft_multiplotTFR, ft_topoplotER, ft_topoplotTFR
+%   FT_SINGLEPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
 % This function depends on FT_TIMELOCKBASELINE which has the following options:
 % cfg.baseline, documented
@@ -68,7 +68,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 1485 2010-07-30 09:18:55Z jansch $
+% $Id: ft_singleplotER.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 

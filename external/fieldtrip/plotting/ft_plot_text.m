@@ -1,10 +1,10 @@
-function [varargout] = plot_text(X, Y, str, varargin)
+function [varargout] = ft_plot_text(X, Y, str, varargin)
 
-% PLOT_TEXT helper function for plotting text, which can also be used in
+% FT_PLOT_TEXT helper function for plotting text, which can also be used in
 % combination with the multiple channel layout display in FieldTrip.
 %
 % Use as
-%   plot_text(X, Y, ...)
+%   ft_plot_text(X, Y, ...)
 % where optional input arguments should come in key-value pairs and may
 % include
 %   hpos
@@ -36,7 +36,7 @@ function [varargout] = plot_text(X, Y, str, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_text.m 1413 2010-07-15 14:40:26Z crimic $
+% $Id: ft_plot_text.m 1812 2010-09-29 12:43:51Z crimic $
 
 warning('on', 'MATLAB:divideByZero');
 

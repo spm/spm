@@ -17,7 +17,7 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %  cfg.normalizevar   = 'N' or 'N-1' (default = 'N-1')
 %
 % See also FT_TIMELOCKANALYSIS, FT_TIMELOCKSTATISTICS
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %                     The data should be provided in a cell array
@@ -41,7 +41,7 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 1273 2010-06-25 15:40:16Z timeng $
+% $Id: ft_timelockgrandaverage.m 1685 2010-09-16 13:28:31Z sashae $
 
 fieldtripdefs
 
@@ -184,7 +184,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockgrandaverage.m 1273 2010-06-25 15:40:16Z timeng $';
+cfg.version.id = '$Id: ft_timelockgrandaverage.m 1685 2010-09-16 13:28:31Z sashae $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

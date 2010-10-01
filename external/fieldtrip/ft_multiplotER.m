@@ -61,8 +61,8 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % of the subplots, you should create your own layout file.
 %
 % See also:
-%   ft_multiplotTFR, ft_singleplotER, ft_singleplotTFR, ft_topoplotER, ft_topoplotTFR,
-%   ft_prepare_layout.
+%   FT_MULTIPLOTTFR, FT_SINGLEPLOTER, FT_SINGLEPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR,
+%   FT_PREPARE_LAYOUT
 
 % Undocumented local options:
 % cfg.layoutname
@@ -99,7 +99,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 1430 2010-07-20 07:41:41Z roboos $
+% $Id: ft_multiplotER.m 1692 2010-09-16 14:31:37Z sashae $
 
 fieldtripdefs
 

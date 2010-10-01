@@ -55,6 +55,8 @@ function [output] = ft_volumelookup(cfg, volume)
 % Dependent on the input coordinates and the coordinates of the atlas, the
 % input MRI is transformed betweem MNI and Talairach-Tournoux coordinates
 % See http://www.mrc-cbu.cam.ac.uk/Imaging/Common/mnispace.shtml for more details.
+%
+% See also FT_PREPARE_ATLAS, FT_SOURCEPLOT
 
 % Copyright (C) 2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
@@ -74,7 +76,7 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 962 2010-04-25 06:32:37Z roboos $
+% $Id: ft_volumelookup.m 1764 2010-09-23 12:52:25Z sashae $
 
 fieldtripdefs
 

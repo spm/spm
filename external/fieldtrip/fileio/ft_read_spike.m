@@ -1,6 +1,6 @@
 function [spike] = ft_read_spike(filename, varargin);
 
-% READ_SPIKE reads spike timestamps and waveforms from various data
+% FT_READ_SPIKE reads spike timestamps and waveforms from various data
 % formats.
 %
 % Use as
@@ -35,7 +35,7 @@ function [spike] = ft_read_spike(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_read_spike.m 1722 2010-09-20 15:19:23Z sashae $
 
 % get the options
 spikeformat   = keyval('spikeformat',   varargin);

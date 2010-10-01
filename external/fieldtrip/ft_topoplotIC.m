@@ -69,7 +69,7 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 % of the subplots, you should create your own layout file.
 %
 % See also:
-%   ft_topoplotER, ft_singleplotTFR, ft_multiplotTFR, ft_prepare_layout
+%   FT_TOPOPLOTER, FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR, FT_PREPARE_LAYOUT
 
 % Undocumented local options:
 % cfg.labeloffset (offset of labels to their marker, default = 0.005)

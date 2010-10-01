@@ -91,7 +91,7 @@ switch taper
     
     % give error/warning about number of tapers
     if isempty(tap)
-      error('datalength to short for specified smoothing\ndatalength: %.3f s, smoothing: %.3f Hz, minimum smoothing: %.3f Hz',ndatsample/fsample,tapsmofrq,fsample/fsample);
+      error('datalength to short for specified smoothing\ndatalength: %.3f s, smoothing: %.3f Hz, minimum smoothing: %.3f Hz',ndatsample/fsample,tapsmofrq,fsample/ndatsample);
     elseif size(tap,1) == 1
       warning('using only one taper for specified smoothing')
     end
@@ -125,6 +125,7 @@ if timedelay ~= 0
     angletransform(ifreqoi) = angle(complex(coswav,sinwav));
   end
 end
+angletransform = repmat(angletransform,[nchan,1]);
 
 
 % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix

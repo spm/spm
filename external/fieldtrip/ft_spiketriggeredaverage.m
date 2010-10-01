@@ -14,7 +14,7 @@ function [timelock] = ft_spiketriggeredaverage(cfg, data)
 %                      see FT_CHANNELSELECTION for details
 %   cfg.keeptrials   = 'yes' or 'no', return individual trials or average (default = 'no')
 %   cfg.feedback     = 'no', 'text', 'textbar', 'gui' (default = 'no')
-%
+
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
 %   cfg.outputfile = one can specify output as file to save to disk
@@ -37,7 +37,7 @@ function [timelock] = ft_spiketriggeredaverage(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredaverage.m 1267 2010-06-25 09:08:42Z timeng $
+% $Id: ft_spiketriggeredaverage.m 1722 2010-09-20 15:19:23Z sashae $
 
 fieldtripdefs
 
@@ -208,7 +208,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spiketriggeredaverage.m 1267 2010-06-25 09:08:42Z timeng $';
+cfg.version.id = '$Id: ft_spiketriggeredaverage.m 1722 2010-09-20 15:19:23Z sashae $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
