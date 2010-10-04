@@ -20,9 +20,9 @@ function dep = subsasgn(dep, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: subsasgn.m 4075 2010-10-04 07:36:23Z volkmar $
 
-rev = '$Rev: 4073 $'; %#ok
+rev = '$Rev: 4075 $'; %#ok
 
 persistent my_cfg_dep
 sflag = false;
@@ -30,7 +30,7 @@ if strcmpi(subs(1).type, '()')
     % check array boundaries, extend if necessary
     if (numel(subs(1).subs) == 1 && numel(dep) < max(subs(1).subs{1})) || ...
             (numel(subs(1).subs) > ndims(dep)) || ...
-            any(cellfun(@max, subs(1).subs) > size(dep))
+            (numel(subs(1).subs) == ndims(dep) && any(cellfun(@max, subs(1).subs) > size(dep)))
         if isempty(my_cfg_dep)
             my_cfg_dep = cfg_dep;
         end
