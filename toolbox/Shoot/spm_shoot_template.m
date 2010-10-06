@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4026 2010-07-29 13:45:50Z john $
+% $Id: spm_shoot_template.m 4077 2010-10-06 15:50:20Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -148,7 +148,7 @@ if ~isempty(sparam),
 else
     sumt = max(sum(t,4),0)+eps;
     for j=1:n1+1,
-        g{j} = (t(:,:,:,j)+1)./(sumt+n1+1);
+        g{j} = (t(:,:,:,j)+0.1)./(sumt+0.1*(n1+1));
     end
     clear sumt
 end
@@ -289,7 +289,7 @@ for it=1:nits,
     else
         sumt = max(sum(t,4),0)+eps;
         for j=1:n1+1,
-            g{j} = (t(:,:,:,j)+0.05/sum(ok))./(sumt+0.05*(n1+1)/sum(ok));
+            g{j} = (t(:,:,:,j)+0.1)./(sumt+0.1*(n1+1));
         end
         clear sumt
     end

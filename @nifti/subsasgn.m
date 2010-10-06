@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: subsasgn.m 4077 2010-10-06 15:50:20Z john $
 
 
 switch subs(1).type,
@@ -345,11 +345,11 @@ return;
 function obj = assigndat(obj,val)
 if isa(val,'file_array'),
     sz = size(val);
-    if numel(sz)>8,
+    if numel(sz)>7,
         error('Too many dimensions in data.');
     end;
-    sz = [sz 1 1 1 1 1 1 1 1];
-    sz = sz(1:8);
+    sz = [sz 1 1 1 1 1 1 1];
+    sz = sz(1:7);
     sval = struct(val);
     d    = findindict(sval.dtype,'dtype');
     if isempty(d)
@@ -359,10 +359,10 @@ if isa(val,'file_array'),
     [pth,nam,suf]    = fileparts(sval.fname);
     if any(strcmp(suf,{'.img','.IMG'}))
         val.offset = max(sval.offset,0);
-        obj.hdr.magic = 'ni1';
+        obj.hdr.magic = ['ni1' char(0)];
     elseif any(strcmp(suf,{'.nii','.NII'}))
         val.offset = max(sval.offset,352);
-        obj.hdr.magic = 'n+1';
+        obj.hdr.magic = ['n+1' char(0)];
     else
         error(['Unknown filename extension (' suf ').']);
     end;
