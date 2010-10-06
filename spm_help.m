@@ -118,7 +118,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 3934 2010-06-17 14:58:25Z guillaume $
+% $Id: spm_help.m 4078 2010-10-06 17:41:26Z guillaume $
 
 
 %=======================================================================
@@ -707,7 +707,7 @@ Fhelp = spm_figure('FindWin',F);
 if isempty(Fhelp)
     Fhelp = spm_help('!CreateHelpWin');
 else
-    set(Fhelp,'Visible','on');
+    %set(Fhelp,'Visible','on');
 end
 FS = spm('FontSizes');
 PF = spm_platform('fonts');

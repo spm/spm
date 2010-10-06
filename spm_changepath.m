@@ -2,9 +2,12 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Recursively replace all occurences of a text pattern in a MATLAB variable.
 % FORMAT S = spm_changepath(Sf, oldp, newp)
 %
-% Sf       - MATLAB variable to fix, or char array of MAT filenames
+% Sf       - MATLAB variable to fix, or char array of MAT filenames,
+%            or directory name (all found MAT files will be analysed)
 % oldp     - old string to replace
 % newp     - new string replacing oldp
+%
+% S        - updated MATLAB variable (only if Sf is one)
 %
 % If the pattern is found in a string, any occurence of an invalid file
 % separator is replaced to match that of the current system.
@@ -15,51 +18,50 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 3277 2009-07-15 11:47:40Z guillaume $
+% $Id: spm_changepath.m 4078 2010-10-06 17:41:26Z guillaume $
 
 
+%-Input arguments
+%--------------------------------------------------------------------------
 if ~nargin
     Sf = spm_select(Inf,'mat','Select MAT files to fix');
-end
-if ischar(Sf)
-    S = cell(1,size(Sf,1));
-    for i=1:size(Sf,1)
-        try
-            S{i} = load(deblank(Sf(i,:)));
-        catch
-            error(sprintf('Cannot load %s.',deblank(Sf(i,:))));
-        end
-    end
-else
-    S = {Sf};
 end
 
 if nargin <= 1
     oldp = spm_input('Old pattern','+1','s');
 end
+
 if nargin <= 2
     newp = spm_input('New pattern','+1','s');
 end
 
-for i=1:numel(S)
-    S{i} = changepath(S{i},oldp,newp);
-    if ischar(Sf)
-        f   = deblank(Sf(i,:));
-        tmp = S{i};
-        [sts, msg] = movefile(f,[f '.old']);
-        if ~sts, error(msg); end
-        save(f ,'-struct','tmp');
+%-Replace pattern in given MAT-files
+%--------------------------------------------------------------------------
+if ischar(Sf)
+    if nargout
+        error('Output argument only valid for MATLAB variable input');
     end
-end
-
-if numel(S) == 1
-    S = S{1};
-end
-
-if nargout
-    varargout = {S};
+    if exist(Sf,'dir')
+        Sf = spm_select('FPList',Sf,'^.*\.mat$'); % FPListRec for recursive
+    end
+    if isempty(Sf), Sf = {}; else Sf = cellstr(Sf); end
+    for i=1:numel(Sf)
+        f = Sf{i};
+        try
+            S = load(f);
+        catch
+            error(sprintf('Cannot load %s.',f));
+        end
+        tmp = changepath(S,oldp,newp);
+        if ~isequalwithequalnans(tmp,S)
+            fprintf('=> Fixing %s\n',f);
+            [sts, msg] = movefile(f,[f '.old']);
+            if ~sts, error(msg); end
+            save(f ,'-struct','tmp','-V6');
+        end
+    end
 else
-    varargout = {};
+    varargout = { changepath(Sf,oldp,newp) };
 end
 
 %==========================================================================
