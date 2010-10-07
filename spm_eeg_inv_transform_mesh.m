@@ -1,22 +1,21 @@
 function mesh = spm_eeg_inv_transform_mesh(M, mesh)
-% Applies homogenous transformation to cortical mesh
+% Applies affine transformation to surface mesh
 % FORMAT mesh = spm_eeg_inv_transform_mesh(M, mesh)
 %
-% M1          - affine transformation matrix [4 x 4]
-% mesh        - 
+% M           - affine transformation matrix [4 x 4]
+% mesh        - patch structure
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_transform_mesh.m 2863 2009-03-11 20:25:33Z guillaume $
+% $Id: spm_eeg_inv_transform_mesh.m 4082 2010-10-07 16:11:48Z guillaume $
 
 fn = fieldnames(mesh);
 
-tess_ind = strmatch('tess_', fn);
-tess_ind = setdiff(tess_ind, strmatch('tess_mni', fn, 'exact'));
+tess_ind = find(strncmp(fn,'tess_',5) & ~strcmp(fn,'tess_mni'));
 
 for i = 1:length(tess_ind)
-    cmesh =  export(gifti(getfield(mesh, fn{tess_ind(i)})), 'spm');
+    cmesh = export(gifti(mesh.(fn{tess_ind(i)})),'spm');
     cmesh.vert = spm_eeg_inv_transform_points(M,cmesh.vert);
-    mesh = setfield(mesh, fn{tess_ind(i)}, cmesh);
+    mesh.(fn{tess_ind(i)}) = cmesh;
 end

@@ -1,5 +1,5 @@
 function [L,D] = spm_eeg_lgainmat(D,Is, channels)
-% loads (memory maps) or computes if necessary a gain matrix
+% loads or computes if necessary a gain matrix
 % FORMAT [L,D] = spm_eeg_lgainmat(D,Is)
 % D    - Data structure
 % Is   - indices of vertices
@@ -9,10 +9,10 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 3877 2010-05-07 19:49:35Z karl $
+% $Id: spm_eeg_lgainmat.m 4082 2010-10-07 16:11:48Z guillaume $
 
 
-% get gain or lead-feild matrix
+% get gain or lead-field matrix
 %--------------------------------------------------------------------------
 val = D.val;
 
@@ -22,7 +22,7 @@ for ind = 1:numel(forward)
     modality = forward(ind).modality;
     
     % channels
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     chanind = strmatch(modality, D.chantype);
     chanind = setdiff(chanind, D.badchannels);
 
@@ -43,24 +43,23 @@ try
     
     label = G.label;
     G     = G.G;
-    if numel(label) ~= size(G, 1) ||...
-            ~all(ismember(channels, label))
+    if numel(label) ~= size(G, 1) || ~all(ismember(channels, label))
         error('Gain matrix has an incorrect number of channels');
     end
 catch
     label = {};
     for ind = 1:numel(forward)
         % create a new lead-field matrix
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
 
         % Head Geometry (create tesselation file)
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         vert = forward(ind).mesh.vert;
         face = forward(ind).mesh.face;
 
         % normals
-        %--------------------------------------------------------------------------
-        norm = spm_eeg_inv_normals(vert,face);
+        %------------------------------------------------------------------
+        norm = spm_mesh_normals(struct('faces',face,'vertices',vert),true);
 
         vol  = forward(ind).vol;
         
@@ -72,7 +71,7 @@ catch
         modality = forward(ind).modality;     
 
         % Forward computation
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', forward(ind).channels);
         nvert = size(vert, 1);
 
@@ -121,7 +120,7 @@ catch
     end
     
     % Save
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     D.inv{val}.gainmat = ['SPMgainmatrix_' spm_str_manip(D.fname, 'tr') '_' num2str(val) '.mat'];
     save(fullfile(D.path, D.inv{val}.gainmat), 'G', 'label');
     save(D);

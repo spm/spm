@@ -10,7 +10,9 @@ function [M1] = spm_eeg_inv_rigidreg(data1, data2)
 %            second 3D surface to be registered 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%$Id: spm_eeg_inv_rigidreg.m 1523 2008-04-30 17:33:04Z vladimir $
+
+% Vladimir Litvak
+% $Id: spm_eeg_inv_rigidreg.m 4082 2010-10-07 16:11:48Z guillaume $
  
 M       = spm_detrend(data1');
 S       = spm_detrend(data2');
@@ -23,5 +25,3 @@ if det(R1) < 0
 end
 t1 = mean(data1,2) - R1*mean(data2,2);
 M1 = [R1 t1; 0 0 0 1];
-
-return

@@ -37,8 +37,8 @@ channel_labels = D.chanlabels(D.meegchannels(modality));
 allmeshvert_mni=D.inv{1}.mesh.tess_mni.vert;
 allmeshvert_ctf=D.inv{1}.forward.mesh.vert;
 allmeshfaces=D.inv{1}.forward.mesh.face;
-allmeshnorms_ctf=spm_eeg_inv_normals(allmeshvert_ctf,allmeshfaces);
-allmeshnorms_mni=spm_eeg_inv_normals(allmeshvert_mni,allmeshfaces);
+allmeshnorms_ctf=spm_mesh_normals(struct('faces',allmeshfaces,'vertices',allmeshvert_ctf),true);
+allmeshnorms_mni=spm_mesh_normals(struct('faces',allmeshfaces,'vertices',allmeshvert_mni),true);
 
 %%% FORCE  A SINGE SPHERE HEAD MODEL- simpler to compare inversions
 headmodels = {'Single Sphere', 'MEG Local Spheres', 'Single Shell'};
