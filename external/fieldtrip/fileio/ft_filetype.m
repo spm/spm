@@ -71,7 +71,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1620 2010-09-06 13:22:04Z stekla $
+% $Id: ft_filetype.m 1868 2010-10-06 15:53:56Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -816,6 +816,10 @@ elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exis
   type = 'fcdc_matbin';
   manufacturer = 'F.C. Donders Centre';
   content = 'multiplexed electrophysiology data';
+elseif filetype_check_extension(filename, '.mgz')
+  type = 'freesurfer_mgz';
+  manufacturer = 'FreeSurfer';
+  content = 'anatomical MRI';
 elseif filetype_check_extension(filename, '.lay')
   type = 'layout';
   manufacturer = 'Ole Jensen';
