@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: subsasgn_check.m 4087 2010-10-08 16:48:32Z volkmar $
 
-rev = '$Rev: 4073 $'; %#ok
+rev = '$Rev: 4087 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -65,8 +65,11 @@ if ischar(val) && any(strcmp(val, {'<UNDEFINED>','<DEFAULTS>'}))
     return;
 end
 if isa(val,'cfg_dep')
+    % {val.tgt_spec} does not seem to work properly
+    tspec = cell(size(val));
+    [tspec{:}] = deal(val.tgt_spec);
     % Check dependency match
-    sts2 = cellfun(@(cspec)match(item,cspec),{val.tgt_spec});
+    sts2 = cellfun(@(cspec)match(item,cspec),tspec);
     if ~all(sts2)
         cfg_message('matlabbatch:checkval', ...
             '%s: Dependency does not match.', subsasgn_checkstr(item,subs));

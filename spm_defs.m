@@ -11,7 +11,7 @@ function out = spm_defs(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 4030 2010-08-02 11:41:26Z guillaume $
+% $Id: spm_defs.m 4087 2010-10-08 16:48:32Z volkmar $
 
 [Def,mat] = get_comp(job.comp);
 [dpath ipath] = get_paths(job);
@@ -333,7 +333,7 @@ ofnames = cell(size(fnames,1),1);
 for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
     M = inv(V.mat);
-    [pth,nam,ext] = spm_fileparts(fnames(i,:));
+    [pth,nam,ext] = spm_fileparts(deblank(fnames(i,:)));
     if isempty(odir)
         % use same path as source image
         opth = pth;
