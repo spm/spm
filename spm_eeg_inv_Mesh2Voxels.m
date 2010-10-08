@@ -27,10 +27,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 4079 2010-10-07 11:41:54Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 4086 2010-10-08 12:35:36Z vladimir $
 
 
-SVNrev = '$Rev: 4079 $';
+SVNrev = '$Rev: 4086 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -169,7 +169,6 @@ for c = 1:numel(ssq)
 
     %-Store filename
     %----------------------------------------------------------------------
-    D.inv{val}.contrast.Vout{c}  = Vout;
     D.inv{val}.contrast.fname{c} = fname;
 
     spm_progress_bar('Set', c);
