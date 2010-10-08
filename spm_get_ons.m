@@ -1,8 +1,9 @@
 function [U] = spm_get_ons(SPM,s)
-% returns input [designed effects] structures
+% Returns input [designed effects] structures
 % FORMAT [U] = spm_get_ons(SPM,s)
 %
-% s  - session number (used by batch system)
+% SPM   - SPM structure (see spm_fMRI_design.m)
+% s     - session number
 %
 % U     - (1 x n)   struct array of (n) trial-specific structures
 %
@@ -19,30 +20,29 @@ function [U] = spm_get_ons(SPM,s)
 %       U(i).P(p).i    - sub-indices of u pertaining to P
 %__________________________________________________________________________
 %
-%
 % SLICE TIMING
 %
 % With longs TRs you may want to shift the regressors so that they are
-% aligned to a particular slice.  This is effected by resetting the
+% aligned to a particular slice. This is effected by resetting the
 % values of defaults.stats.fmri.t and defaults.stats.fmri.t0 in
-% spm_defaults. defaults.stats.fmri.t is the number of time-bins per
-% scan used when building regressors.  Onsets are defined
-% in temporal units of scans starting at 0.  defaults.stats.fmri.t0 is
-% the first time-bin at which the regressors are resampled to coincide
-% with data acquisition.  If defaults.stats.fmri.t0 = 1 then the
-% regressors will be appropriate for the first slice.  If you want to
-% temporally realign the regressors so that they match responses in the
-% middle slice then make defaults.stats.fmri.t0 =
+% spm_defaults. 
+% defaults.stats.fmri.t is the number of time-bins per scan used when
+% building regressors. Onsets are defined in temporal units of scans
+% starting at 0.
+% defaults.stats.fmri.t0 is the first time-bin at which the regressors are
+% resampled to coincide with data acquisition. If defaults.stats.fmri.t0
+% is set to 1 then the regressors will be appropriate for the first slice.
+% If you want to temporally realign the regressors so that they match
+% responses in the middle slice then make defaults.stats.fmri.t0 =
 % defaults.stats.fmri.t/2 (assuming there is a negligible gap between
-% volume acquisitions. Default values are defaults.stats.fmri.t = 16
-% and defaults.stats.fmri.t0 = 1.
-%
+% volume acquisitions).
+% Default values are defaults.stats.fmri.t=16 and defaults.stats.fmri.t0=1.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_get_ons.m 4083 2010-10-08 10:31:55Z guillaume $
 
 
 % time units
@@ -70,7 +70,7 @@ switch UNITS
         error('Unknown unit "%s".',UNITS);
 end
 
-% get inputs and names (try SPM.Sess(s).U first)
+% get inputs and names
 %==========================================================================
 try
     U   = SPM.Sess(s).U;

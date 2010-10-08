@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 3598 2009-11-26 11:48:59Z guillaume $
+% $Id: spm_graph.m 4083 2010-10-08 10:31:55Z guillaume $
 
 
 
@@ -85,7 +85,7 @@ spm_results_ui('Clear',Fgraph,2);
 
 %-Find nearest voxel [Euclidean distance] in point list & update GUI
 %--------------------------------------------------------------------------
-if ~length(xSPM.XYZmm)
+if isempty(xSPM.XYZmm)
     spm('alert!','No suprathreshold voxels!',mfilename,0);
 
     Y = []; y = []; beta = []; Bcov = [];
@@ -173,24 +173,47 @@ spm('pointer','watch');
 %==========================================================================
 try
     y = spm_get_data(SPM.xY.VY,XYZ);
-    y = spm_filter(SPM.xX.K,SPM.xX.W*y);
 catch
     try
         % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
         %------------------------------------------------------------------
         SPM.xY.VY = spm_vol(SPM.xY.P);
         y = spm_get_data(SPM.xY.VY,XYZ);
-        y = spm_filter(SPM.xX.K,SPM.xX.W*y);
-
+        
     catch
         % data has been moved or renamed
         %------------------------------------------------------------------
-        y = [];
-        spm('alert!',{'Original data have been moved or renamed',...
-            'Recomendation: please update SPM.xY.P'},...
-            mfilename,0);
+        choice = questdlg({'Original data have been moved or renamed',...
+            'How to proceed next?'},...
+            [mfilename ': data files missing...'],...
+            'Specify','Search','Ignore','Ignore');
+        
+        switch choice
+            case 'Specify'
+                [SPM.xY.P,sts] = ...
+                    spm_select(numel(SPM.xY.VY),'image','Select images');
+                if ~sts
+                    [Y,y,beta,Bcov] = deal([]);
+                    spm('Pointer','Arrow');
+                    return;
+                end
+                SPM.xY.VY = spm_vol(SPM.xY.P);
+                for i = 1:numel(SPM.xY.VY)
+                    SPM.xY.VY(i).pinfo(1:2,:) = ...
+                        SPM.xY.VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i);
+                end
+                y = spm_get_data(SPM.xY.VY,XYZ);
+            case 'Search'
+                SPM.xY.VY = spm_check_filename(SPM.xY.VY);
+                y = spm_get_data(SPM.xY.VY,XYZ);
+            otherwise
+                y = [];
+        end
     end
 end
+
+if ~isempty(y), y = spm_filter(SPM.xX.K,SPM.xX.W*y); end
+
 XYZstr = sprintf(' at [%g, %g, %g]',xyz);
 
 
@@ -200,7 +223,7 @@ if isempty(y)
 
     % make R = NaN so it will not be plotted
     %----------------------------------------------------------------------
-    R   = NaN*ones(size(SPM.xX.X,1),1);
+    R   = NaN(size(SPM.xX.X,1),1);
 
 else
     % residuals (non-whitened)

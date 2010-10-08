@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4072 2010-09-23 15:45:58Z will $
+% $Id: spm_getSPM.m 4083 2010-10-08 10:31:55Z guillaume $
 
 
 %-GUI setup
@@ -245,15 +245,6 @@ S    = SPM.xVol.S;                  %-search Volume {voxels}
 R    = SPM.xVol.R;                  %-search Volume {resels}
 M    = SPM.xVol.M(1:3,1:3);         %-voxels to mm matrix
 VOX  = sqrt(diag(M'*M))';           %-voxel dimensions
-
-% check the data and other files have valid filenames
-%--------------------------------------------------------------------------
-try, SPM.xY.VY     = spm_check_filename(SPM.xY.VY);     end
-try, SPM.xVol.VRpv = spm_check_filename(SPM.xVol.VRpv); end
-try, SPM.Vbeta     = spm_check_filename(SPM.Vbeta);     end
-try, SPM.VResMS    = spm_check_filename(SPM.VResMS);    end
-try, SPM.VM        = spm_check_filename(SPM.VM);        end
-
 
 %==========================================================================
 % - C O N T R A S T S ,   S P M    C O M P U T A T I O N ,    M A S K I N G
