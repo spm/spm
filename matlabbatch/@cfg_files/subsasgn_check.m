@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4087 2010-10-08 16:48:32Z volkmar $
+% $Id: subsasgn_check.m 4089 2010-10-11 11:53:34Z volkmar $
 
-rev = '$Rev: 4087 $'; %#ok
+rev = '$Rev: 4089 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -63,10 +63,9 @@ switch subs(1).subs
                 val = {val1};
             elseif isa(val{1}, 'cfg_dep')
                 % {val{1}.tgt_spec} does not seem to work properly
-                tspec = cell(size(val{1}));
-                [tspec{:}] = deal(val{1}.tgt_spec);
+                cval = val{1};
                 % Check dependency match
-                sts2 = cellfun(@(cspec)match(item,cspec),tspec);
+                sts2 = cellfun(@(cspec)match(item,cspec),{cval.tgt_spec});
                 if ~all(sts2)
                     cfg_message('matlabbatch:checkval', ...
                         '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
