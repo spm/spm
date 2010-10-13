@@ -16,7 +16,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 4090 2010-10-13 10:05:20Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -144,7 +144,9 @@ end
 ind = 1;
 D.inv{val}.datareg = struct([]);
 
-if ~isempty(D.sensors('EEG'))
+[junk, modalities] = modality(D);
+
+if ismember('EEG', modalities) && ~isempty(D.sensors('EEG'))
     if isempty(M1)
         S.template = (D.inv{val}.mesh.template | S.useheadshape);
         M1 = spm_eeg_inv_datareg(S);
@@ -159,7 +161,7 @@ if ~isempty(D.sensors('EEG'))
     ind = ind+1;
 end
 
-if ~isempty(D.sensors('MEG'))
+if ismember('MEG', modalities) && ~isempty(D.sensors('MEG'))
     if  D.inv{val}.mesh.template
         S.template = 2;
     else
