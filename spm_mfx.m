@@ -71,9 +71,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 4023 2010-07-28 18:41:36Z guillaume $
+% $Id: spm_mfx.m 4091 2010-10-14 11:50:17Z guillaume $
 
-SVNid = '$Rev: 4023 $';
+SVNid = '$Rev: 4091 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -167,7 +167,7 @@ fprintf('%-40s: %30s\n','Mixed-Effect Model','...ReML estimation');     %-#
 spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
 
 xsDes.Design = '2nd-level MFX analysis';
-xsDes.Name   = xCon.name;
+xsDes.Name   = xCon(I).name;
 S.xsDes      = xsDes;       % description
 
 
