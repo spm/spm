@@ -17,9 +17,9 @@ function spm_mip(Z,XYZ,M,units)
 % defined in the atlas of Talairach and Tournoux (1988); unless the third
 % dimension is time.
 %
-% This routine loads a mip putline from MIP.mat. This is an image with
+% This routine loads a mip outline from MIP.mat. This is an image with
 % contours and grids defining the space of Talairach & Tournoux (1988).
-% mip05 corresponds to the Talairach atlas, mip96 to the MNI templates.
+% mip95 corresponds to the Talairach atlas, mip96 to the MNI templates.
 % The outline and grid are superimposed at intensity 0.4.
 %
 % A default colormap of 64 levels is assumed. The pointlist image is
@@ -33,7 +33,7 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_mip.m 4093 2010-10-15 12:57:53Z volkmar $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------

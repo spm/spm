@@ -54,7 +54,7 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('Interp',hld)
 % sets the hold value to hld (see spm_slice_vol).
 %
-% FORMAT spm_orthviews('AddBlobs',handle,XYZ,Z,mat)
+% FORMAT spm_orthviews('AddBlobs',handle,XYZ,Z,mat,name)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations
@@ -113,7 +113,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_orthviews.m 4093 2010-10-15 12:57:53Z volkmar $
 
 
 
@@ -1860,14 +1860,14 @@ switch lower(varargin{1}),
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle;end;
         spm_figure('Clear','Interactive');
-        fname   = spm_select(1,'image','select image');
-        if ~isempty(fname)
-            c       = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+        fname   = spm_select([1 Inf],'image','select image(s)');
+        for k = 1:size(fname,1)
+            c       = spm_input(sprintf('Image %d: Colour',k),'+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
             colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
             c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-            hlabel = sprintf('%s (%s)',fname,c_names{c});
+            hlabel = sprintf('%s (%s)',fname(k,:),c_names{c});
             for i = 1:numel(cm_handles),
-                addcolouredimage(cm_handles(i),fname,colours(c,:));
+                addcolouredimage(cm_handles(i),fname(k,:),colours(c,:));
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
                 c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
                 ch_c_handle = get(c_handle,'Children');
