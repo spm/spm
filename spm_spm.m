@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4068 2010-09-07 16:50:08Z ged $
+% $Id: spm_spm.m 4094 2010-10-18 18:03:27Z guillaume $
  
-SVNid     = '$Rev: 4068 $';
+SVNid     = '$Rev: 4094 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -451,7 +451,6 @@ else
     iX0    = [SPM.xX.iB SPM.xX.iG];
     xCon   = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
 end
-xVi.Fcontrast = xCon.c;
 
 X1o    = spm_FcUtil('X1o', xCon(1),xX.xKXs);
 Hsqr   = spm_FcUtil('Hsqr',xCon(1),xX.xKXs);
