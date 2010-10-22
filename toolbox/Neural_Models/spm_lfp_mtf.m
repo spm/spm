@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 3119 2009-05-13 10:53:31Z rosalyn $
+% $Id: spm_lfp_mtf.m 4096 2010-10-22 19:40:34Z karl $
 
 
 % compute log-spectral density
@@ -58,13 +58,12 @@ end
 
 % spectrum of innovations (Gu)
 %--------------------------------------------------------------------------
-Gu   = exp(P.a)*f.^(-1)*2;                % spectral density of (AR) input
-Gu   = Gu + exp(P.b);                     % spectral density of IID input
+AR   = f.^-1;                                     % pink component
+ID   = f.^0;                                      % white component
+Gu   = AR*exp(P.a(1))   + ID*exp(P.a(2))/4;       % neuronal innovations
+Gn   = AR*exp(P.b(1))   + ID*exp(P.b(2))/8;       % channel noise (non-specific)
+Gs   = AR*exp(P.c(1,:)) + ID*exp(P.c(2,:))/8;     % channel noise (specific)
 
-% channel noise (specific and non-specific)
-%--------------------------------------------------------------------------
-Gs   = (exp(P.c(1))*f.^(-1) + exp(P.d(1)))/8;
-Gn   = (exp(P.c(2))*f.^(-1) + exp(P.d(2)))/16;
 
 
 % trial-specific effects
@@ -74,6 +73,7 @@ try, X = U.X; catch, X = sparse(1,0); end
 
 % cycle over trials
 %--------------------------------------------------------------------------
+GS     = 0;
 for  c = 1:size(X,1)
 
     % basline parameters
@@ -87,7 +87,7 @@ for  c = 1:size(X,1)
         Q.A{2} = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
         Q.A{3} = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
        try
-            Q.H = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
+            Q.H = Q.H + X(c,i)*diag(P.B{i});     % intrinsic connections
         catch
             Q.G = Q.G + X(c,i)*diag(P.B{i});
         end
@@ -121,27 +121,49 @@ for  c = 1:size(X,1)
                 Si       = fft(K1(:,i,k));
                 Sj       = fft(K1(:,j,k));
                 Gij      = Si.*conj(Sj);
-                Gij      = abs(Gij([1:N/2] + 1)).*Gu;
+                Gij      = Gij([1:N/2] + 1).*Gu;
                 G(:,i,j) = G(:,i,j) + Gij;
             end
 
-            % cross-spectral density from channel noise
-            %--------------------------------------------------------------
-            G(:,i,j) = G(:,i,j) + Gn;            % common noise
-            if i == j
-                G(:,i,i) = G(:,i,i) + Gs;        % and channel specific
-
-            else
-                % fill in lower half of CSD matrix
-                %------------------------------------------------------
-                G(:,j,i) = G(:,i,j);
-            end
-        end
+        end        
     end
 
-    % save frequencies of interest
+    % save trial-specific frequencies of interest
     %----------------------------------------------------------------------
     y{c} = G(If,:,:);
 
 end
+
+% and add channel noise
+%--------------------------------------------------------------------------
+for c = 1:length(y)
+    G     = y{c};
+    for i = 1:nc
+        for j = i:nc
+
+            % cross-spectral density from common channel noise
+            %--------------------------------------------------------------
+            G(:,i,j) = G(:,i,j) + Gn(If);
+            
+            % and channel specific noise
+            %--------------------------------------------------------------
+            if i == j
+                try
+                    G(:,i,i) = G(:,i,i) + Gs(If,i);
+                catch
+                    G(:,i,i) = G(:,i,i) + Gs(If,1);
+                end
+            else
+                
+                % fill in lower half of CSD matrix
+                %----------------------------------------------------------
+                G(:,j,i) = G(:,i,j);
+                
+            end
+        end
+    end
+    y{c} = abs(G);
+end
+    
+
 

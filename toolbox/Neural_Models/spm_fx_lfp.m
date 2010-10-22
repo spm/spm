@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_fx_lfp.m 4096 2010-10-22 19:40:34Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -60,7 +60,16 @@ D    = [2 4];                  % propagation delays (intrinsic, extrinsic)
 H    = [8 32];                 % receptor densities (excitatory, inhibitory)
 T    = [4 16];                 % synaptic constants (excitatory, inhibitory)
 R    = [1 2];                  % parameters of static nonlinearity
- 
+
+% [specified] fixed parameters
+%--------------------------------------------------------------------------
+try, E  = M.pF.E; end
+try, G  = M.pF.G; end
+try, D  = M.pF.D; end
+try, H  = M.pF.H; end
+try, T  = M.pF.T; end
+try, R  = M.pF.R; end
+
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
 A{1} = exp(P.A{1})*E(1);

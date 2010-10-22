@@ -23,10 +23,10 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 %
 %  M.pF.E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
 %  M.pF.G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
-%  M.pF.D = [2 16];              % propogation delays (intrinsic, extrinsic)
-%  M.pF.H = [4 32];              % receptor densities (excitatory, inhibitory)
-%  M.pF.T = [8 16];              % synaptic constants (excitatory, inhibitory)
-%  M.pF.R = 0.56;                % parameter of static nonlinearity
+%  M.pF.D = [2 32];              % propogation delays (intrinsic, extrinsic)
+%  M.pF.H = [4 48];              % receptor densities (excitatory, inhibitory)
+%  M.pF.T = [4 8];               % synaptic constants (excitatory, inhibitory)
+%  M.pF.R = [2 1]/4;             % parameter of static nonlinearity
 %
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -35,41 +35,41 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_fx_erp.m 4096 2010-10-22 19:40:34Z karl $
 
 
 
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-n  = length(P.A{1});             % number of sources
-x  = spm_unvec(x,M.x);           % neuronal states
+n  = length(P.A{1});        % number of sources
+x  = spm_unvec(x,M.x);      % neuronal states
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-try
-    E  = M.pF.E;                % extrinsic rates (forward, backward, lateral)
-    G  = M.pF.G;                % intrinsic rates (g1, g2 g3, g4)
-    D  = M.pF.D;                % propogation delays (intrinsic, extrinsic)
-    H  = M.pF.H;                % receptor densities (excitatory, inhibitory)
-    T  = M.pF.T;                % synaptic constants (excitatory, inhibitory)
-    R  = M.pF.R;                % parameters of static nonlinearity
-catch
-    E = [32 16 4];              % extrinsic rates (forward, backward, lateral)
-    G = [1 4/5 1/4 1/4]*128;    % intrinsic rates (g1, g2 g3, g4)
-    D = [2 32];                 % propogation delays (intrinsic, extrinsic)
-    H = [4 32];                 % receptor densities (excitatory, inhibitory)
-    T = [8 16];                 % synaptic constants (excitatory, inhibitory)
-    R = [2 1]/3;                % parameters of static nonlinearity
-end
+E = [32 16 4];              % extrinsic rates (forward, backward, lateral)
+G = [1 4/5 1/4 1/4]*128;    % intrinsic rates (g1 g2 g3 g4)
+D = [2 32];                 % propogation delays (intrinsic, extrinsic)
+H = [4 48];                 % receptor densities (excitatory, inhibitory)
+T = [4 8];                  % synaptic constants (excitatory, inhibitory)
+R = [2 1]/4;                % parameters of static nonlinearity
+
+% [specified] fixed parameters
+%--------------------------------------------------------------------------
+try, E  = M.pF.E; end
+try, G  = M.pF.G; end
+try, D  = M.pF.D; end
+try, H  = M.pF.H; end
+try, T  = M.pF.T; end
+try, R  = M.pF.R; end
 
 
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
-G     = ones(n,1)*G;
 try
     G = G.*exp(P.G);
 end
+G     = ones(n,1)*G;
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------

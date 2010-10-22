@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_dcm_dem.m 4096 2010-10-22 19:40:34Z karl $
 
 % check options
 %==========================================================================
@@ -37,7 +37,6 @@ try, h     = DCM.options.h;      catch, h         = 1;         end
 try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;         end
 try, onset = DCM.options.onset;  catch, onset     = 60;        end
 try, model = DCM.options.model;  catch, model     = 'DEM';     end
-try, lock  = DCM.options.lock;   catch, lock      = 0;         end
 
 
 % Data and spatial model (use h only for de-trending data)
@@ -209,7 +208,6 @@ DCM.options.h      = h;
 DCM.options.Nmodes = Nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
-DCM.options.lock   = lock;
 
 % store estimates in D
 %--------------------------------------------------------------------------

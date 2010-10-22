@@ -30,7 +30,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 %    pE.R - onset and dispersion
 %    pE.X - endogenous activity
 %
-% pC - prior covariances: cov(spm_vec(pE))
+% pC - prior (co)variances
 %
 % Because priors are specified under log normal assumptions, most
 % parameters are simply scaling coefficients with a prior expectation
@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_neural_priors.m 4096 2010-10-22 19:40:34Z karl $
 
 % check options
 %==========================================================================

@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 3653 2009-12-23 20:06:48Z karl $
+% $Id: spm_dcm_erp.m 4096 2010-10-22 19:40:34Z karl $
 
 % check options
 %==========================================================================
@@ -37,15 +37,17 @@ name = sprintf('DCM_%s',date);
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                   catch, DCM.name  = name;        end
-try, DCM.xU;                     catch, DCM.xU.X  = sparse(1,0); end
-try, h     = DCM.options.h;      catch, h         = 1;           end
-try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;           end
-try, onset = DCM.options.onset;  catch, onset     = 60;          end
-try, model = DCM.options.model;  catch, model     = 'NMM';       end
-try, lock  = DCM.options.lock;   catch, lock      = 0;           end
+try, DCM.name;                      catch, DCM.name  = name;        end
+try, DCM.xU;                        catch, DCM.xU.X  = sparse(1,0); end
+try, h     = DCM.options.h;         catch, h         = 1;           end
+try, Nm    = DCM.options.Nmodes;    catch, Nm        = 8;           end
+try, onset = DCM.options.onset;     catch, onset     = 60;          end
+try, model = DCM.options.model;     catch, model     = 'NMM';       end
+try, lock  = DCM.options.lock;      catch, lock      = 0;           end
+try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
 
-
+if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
+    
 
 
 % Data and spatial model (use h only for de-trending data)
@@ -132,33 +134,24 @@ try
     end
 end
 
-% lock experimental effects by introducing prior correlations
-%--------------------------------------------------------------------------
-if lock
-    pV    = spm_unvec(diag(pC),pE);
-    for i = 1:Nx
-        pB      = pV;
-        pB.B{i} = pB.B{i} - pB.B{i};
-        pB      = spm_vec(pV)  - spm_vec(pB);
-        pB      = sqrt(pB*pB') - diag(pB);
-        pC      = pC + pB;
-    end
-end
-
 % priors on spatial model
 %--------------------------------------------------------------------------
 M.dipfit.model = model;
 [gE,gC] = spm_L_priors(M.dipfit);
 
+% Set prior correlations (locking trial effects and dipole orientations
+%--------------------------------------------------------------------------
+if lock,  pC = spm_dcm_lock(pC); end
+if symm,  gC = spm_dcm_symm(gC); end
+
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f] = spm_dcm_x_neural(pE,model);
+[x,f]   = spm_dcm_x_neural(pE,model);
 
 
 % likelihood model
 %--------------------------------------------------------------------------
-M.IS  = 'spm_gen_erp_dfdp';                            % for fast inversion
 M.IS  = 'spm_gen_erp';
 M.FS  = 'spm_fy_erp';
 M.G   = 'spm_lx_erp';
@@ -260,6 +253,8 @@ DCM.options.Nmodes = Nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
 DCM.options.lock   = lock;
+DCM.options.symm   = symm;
+
 
 % store estimates in D
 %--------------------------------------------------------------------------

@@ -15,7 +15,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 %
 %--------------------------------------------------------------------------
 %
-% pC - prior covariances: cov(spm_vec(pE))
+% pC - prior (co)variances
 %
 % Because priors are specified under log normal assumptions, most
 % parameters are simply scaling coefficients with a prior expectation
@@ -30,17 +30,17 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 3517 2009-10-29 15:11:56Z guillaume $
+% $Id: spm_ssr_priors.m 4096 2010-10-22 19:40:34Z karl $
  
 
-% add prior on endogenous inputs (neuronal) and noise
+% number of LFP channels
 %--------------------------------------------------------------------------
-pE.a  = 0;               pV.a = 1/16;              % amplitude input AR
-pE.b  = 0;               pV.b = 0;                 % amplitude input IID
-pE.c  = [0 0];           pV.c = [1/16 1/16];       % amplitude noise AR
-pE.d  = [0 0];           pV.d = [1/16 1/16];       % amplitude noise IID
+if size(pE.L,1) == 1, n = size(pE.L,2); else, n = 1; end
 
-% and augment prior covariance
+% add prior on spectral density of innovations (pink and white coeficients)
 %--------------------------------------------------------------------------
-pC    = spm_cat(spm_diag({pC, diag(spm_vec(pV))}));
+pE.a  = sparse(2,1); pC.a = sparse(2,1) + 1/8; % neuronal innovations
+pE.b  = sparse(2,1); pC.b = sparse(2,1) + 1/8; % channel noise non-specific
+pE.c  = sparse(2,n); pC.c = sparse(2,n) + 1/8; % channel noise specific
+
  

@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4054 2010-08-27 19:27:09Z karl $
+% $Id: spm_L_priors.m 4096 2010-10-22 19:40:34Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -62,19 +62,19 @@ switch type
     
     case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
-        pE.Lpos = dipfit.Lpos;   Lpos = V*eye(3*n);     % positions
-        pE.L    = sparse(3,n);   L    =   eye(3*n);     % orientations
+        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;   % positions
+        pE.L    = sparse(3,n);   pC.L    = ones(3,n);     % orientations
         
     case{'IMG'}
         %------------------------------------------------------------------
-        m       = dipfit.Nm;                            % number of modes
-        pE.Lpos = sparse(3,0);   Lpos =   eye(0,0);     % positions
-        pE.L    = sparse(m,n);   L    =   eye(m*n);     % modes
+        m       = dipfit.Nm;                              % number modes
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
+        pE.L    = sparse(m,n);   pC.L    = ones(m,n);     % modes
         
     case{'LFP'}
         %------------------------------------------------------------------
-        pE.Lpos = sparse(3,0);   Lpos =   eye(0,0);     % positions
-        pE.L    = ones(1,m);     L    =   eye(m,m);     % gains
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
+        pE.L    = sparse(1,m);   pC.L    = ones(1,m);     % gains
         
     otherwise
         warndlg('Unknown spatial model')
@@ -87,70 +87,30 @@ switch model
     
     case{'ERP','SEP'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);       % 9 states
-        J    = diag(pE.J/64);
+        pE.J = sparse(1,[1 7 9],[0.2 0.8 0.6],1,9);       % 9 states
+        pC.J = pE.J/64;
         
     case{'LFP'}
         %------------------------------------------------------------------
         pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13);      % 13 states
-        J    = diag(pE.J/64);
+        pC.J = pE.J/64;
         
     case{'NMM'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,9);          % 9 states
-        J    = sparse([1,2],[1,2],[1/32 1/128],9,9);
+        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,9);         % 9 states
+        pC.J = sparse(1,[1,2],[1/32 1/128],1,9);
         
     case{'MFM'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,36);         % 9 states
-        J    = sparse([1,2],[1,2],[1/64 1/128],36,36);    % 27 covariances
+        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,36);        % 36 states =
+        pC.J = sparse(1,[1,2],[1/64 1/128],1,36);         % 9 1st + 27 2nd
         
     case{'DEM'}
         %------------------------------------------------------------------
-        pE.J = [];                                         % null
-        J    = [];
+        pE.J = [];                                        % null
+        pC.J = [];
         
     otherwise
         warndlg('Unknown neural model')
         
 end
-
-
-% Distance between homolgous sources (16mm)
-%--------------------------------------------------------------------------
-if symmetry, V = 16; else V = 0; end
-
-% symmetry constraints (based on Euclidean distance from mirror image)
-%==========================================================================
-switch type
-    
-    case{'ECD'}
-        if symmetry
-            
-            % correlation
-            %------------------------------------------------------------------
-            Mpos  = [-pE.Lpos(1,:); pE.Lpos(2,:); pE.Lpos(3,:)];
-            D = Inf*ones(n);
-            for i = 1:n
-                for j = 1:n
-                    if sign(pE.Lpos(1,i)) == sign(Mpos(1, j))
-                        D(i,j) = sqrt(sum(pE.Lpos(:,i) - Mpos(:,j)).^2);
-                    end
-                end
-            end
-            D     = (D + D')/2;
-            DD = zeros(n);
-            for i = 1:n
-                [M, I] = min(D(i, :));
-                if M<V                   
-                    DD(i, I) = 1;
-                end
-            end
-            
-            L     = L - kron(DD,diag([1 0 0])) + kron(DD,diag([0 1 1]));
-        end
-end
-
-% prior covariance
-%--------------------------------------------------------------------------
-pC  = spm_cat(spm_diag({pC, Lpos, exp(8)*L, J}));

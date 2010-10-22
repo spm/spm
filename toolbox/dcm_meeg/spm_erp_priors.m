@@ -1,4 +1,4 @@
-function [pE,pC] = spm_erp_priors(A,B,C)
+function [E,V] = spm_erp_priors(A,B,C)
 % prior moments for a neural-mass model of ERPs
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C)
 %
@@ -11,6 +11,7 @@ function [pE,pC] = spm_erp_priors(A,B,C)
 %    pE.T - syaptic time constants
 %    pE.H - syaptic densities
 %    pE.S - activation function parameters
+%    pE.G - intrinsic connection strengths
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -23,7 +24,7 @@ function [pE,pC] = spm_erp_priors(A,B,C)
 %--------------------------------------------------------------------------
 %    pE.R - onset and dispersion
 %
-% pC - prior covariances: cov(spm_vec(pE))
+% pC - prior (co)variances
 %
 % Because priors are specified under log normal assumptions, most
 % parameters are simply scaling coefficients with a prior expectation
@@ -38,7 +39,7 @@ function [pE,pC] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_erp_priors.m 4096 2010-10-22 19:40:34Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -51,8 +52,8 @@ end
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning('off','MATLAB:log:logOfZero');
-n     = size(C,1);                                 % number of sources
-u     = size(C,2);                                 % number of inputs
+n     = size(C,1);                                % number of sources
+u     = size(C,2);                                % number of inputs
 
 % parameters for neural-mass forward model
 %==========================================================================
@@ -60,12 +61,12 @@ n1    = ones(n,1);
  
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/8;                % time constants
-E.H   = log(n1);        V.H = n1/32;               % synaptic density
- 
+E.T   = log(n1);        V.T = n1/16;              % time constants
+E.H   = log(n1);        V.H = n1/32;              % synaptic density
+
 % set parameter of activation function
 %--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
+E.S   = [0 0];          V.S = [1 1]/16;           % dispersion & threshold
  
  
 % set extrinsic connectivity
@@ -73,36 +74,35 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 Q     = sparse(n,n);
 for i = 1:length(A)
       A{i} = ~~A{i};
-    E.A{i} = A{i}*32 - 32;                         % forward
-    V.A{i} = A{i}/16;                              % backward
-    Q      = Q | A{i};                             % and lateral connections
+    E.A{i} = A{i}*32 - 32;                        % forward
+    V.A{i} = A{i}/16;                             % backward
+    Q      = Q | A{i};                            % and lateral connections
 end
  
 for i = 1:length(B)
       B{i} = ~~B{i};
-    E.B{i} = 0*B{i};                               % input-dependent scaling
+    E.B{i} = 0*B{i};                              % input-dependent scaling
     V.B{i} = B{i}/16;
     Q      = Q | B{i};
 end
 C      = ~~C;
-E.C    = C*32 - 32;                                % where inputs enter
+E.C    = C*32 - 32;                               % where inputs enter
 V.C    = C/32;
  
-% set delay (enforcing symmetric delays)
+% set intrinsic connectivity
 %--------------------------------------------------------------------------
-E.D        = sparse(n,n);
-V.D        = Q/16;
+E.G    = sparse(1,4);
+V.G    = sparse(1,4) + 1/16;
+
+% set delay
+%--------------------------------------------------------------------------
+E.D    = sparse(n,n);
+V.D    = Q/16;
  
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
-E.R        = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
+E.R    = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 warning('on','MATLAB:log:logOfZero');
-
- 
-% covariance of neural parameters
-%==========================================================================
-pE    = E;
-pC    = diag(sparse(spm_vec(V)));
 
 
 return

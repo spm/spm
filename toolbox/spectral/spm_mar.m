@@ -22,9 +22,9 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mar.m 4096 2010-10-22 19:40:34Z karl $
 
-if nargin < 4 | isempty(verbose)
+if nargin < 4 || isempty(verbose)
     verbose=0;
 end
 
@@ -60,7 +60,7 @@ x=x(1:Nrows-1,:);
 y=X([p+1:1:N],:);
 
 k=p*d*d;
-if nargin < 3 | isempty(prior)
+if nargin < 3 || isempty(prior)
   prior.type='global';
   prior.groups=1;
   prior.group(1).index=ones(1,k);
@@ -149,7 +149,7 @@ for it=1:max_iters,
     else
         change=norm(w(:)-old_w(:))/k;
         if verbose
-            disp(sprintf('Iteration %d Delta_w=%1.6f',it,change));
+            fprintf('Iteration %d Delta_w=%1.6f',it,change);
         end
         if change < tol
             break;
@@ -180,7 +180,7 @@ lga=spm_lg_gamma(d,0.5*a);
 acc=-0.5*N*log(det(B));
 f_m=acc-kl_weights-kl_alpha+lga;
 if verbose
-    disp(sprintf('Iteration %d Acc=%1.3f KL_w=%1.3f KL_alpha=%1.3f LogGena=%1.3f Fm=%1.3f',it,acc,kl_weights,kl_alpha,lga,f_m));
+    fprintf('Iteration %d Acc=%1.3f KL_w=%1.3f KL_alpha=%1.3f LogGena=%1.3f Fm=%1.3f',it,acc,kl_weights,kl_alpha,lga,f_m);
 end
 
 % Load up returning data structure

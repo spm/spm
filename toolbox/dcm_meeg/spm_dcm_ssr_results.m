@@ -27,7 +27,7 @@ function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_results.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_ssr_results.m 4096 2010-10-22 19:40:34Z karl $
  
  
 % get figure handle
@@ -39,7 +39,7 @@ clf
 
 % placespectral features in xY.y
 %--------------------------------------------------------------------------
-DCM.xY.y  = spm_cond_units(DCM.xY.csd);
+DCM.xY.y  = spm_cond_units(DCM.xY.csd,'csd');
 
 % trial data
 %--------------------------------------------------------------------------
@@ -264,9 +264,14 @@ case{lower('Input')}
     
     % spectrum of innovations or noise (Gu)
     %----------------------------------------------------------------------
-    Gu   = exp(DCM.Ep.a)*xY.Hz.^(-1)*2;    % spectral density of (AR) input
-    Gu   = Gu + exp(DCM.Ep.b);             % spectral density of IID input
- 
+    try
+        Gu   = exp(DCM.Ep.a)*xY.Hz.^(-1)*2;    % spectral density of (AR) input
+        Gu   = Gu + exp(DCM.Ep.b);             % spectral density of IID input
+    catch
+        Gu   = exp(DCM.Ep.a(1))*xY.Hz.^(-1);    % spectral density of (AR) input
+        Gu   = Gu + exp(DCM.Ep.a(2));           % spectral density of IID input
+    end
+    
     % plot spectral density of innovations
     % ---------------------------------------------------------------------
     subplot(2,1,1)

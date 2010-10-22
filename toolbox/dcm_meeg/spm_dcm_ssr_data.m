@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 2773 2009-02-23 13:08:55Z vladimir $
+% $Id: spm_dcm_ssr_data.m 4096 2010-10-22 19:40:34Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -135,6 +135,7 @@ try
     T2          = DCM.options.Tdcm(2);
     [i, T1]     = min(abs(DCM.xY.Time - T1));
     [i, T2]     = min(abs(DCM.xY.Time - T2));
+    
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
     It          = [T1:DT:T2]';               % indices - bins
@@ -176,7 +177,7 @@ try
     if size(DCM.xY.csd,2) == Ne;
         if size(DCM.xY.csd{1},1) == Nf;
             if size(DCM.xY.csd{1},2) == Nm;
-                DCM.xY.y  = spm_cond_units(DCM.xY.csd);
+                DCM.xY.y  = spm_cond_units(DCM.xY.csd,'csd');
                 return
             end
         end
@@ -214,11 +215,10 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     DCM.xY.csd{i} = P/Nt;
    
-    
 end
  
 % place cross-spectral density in xY.y
 %==========================================================================
-DCM.xY.y    = spm_cond_units(DCM.xY.csd); 
+DCM.xY.y    = spm_cond_units(DCM.xY.csd,'csd'); 
 DCM.xY.U    = DCM.M.U;
 DCM.xY.code = condlabels(trial);

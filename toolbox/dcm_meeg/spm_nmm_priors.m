@@ -31,7 +31,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 %    pE.D    - delays
 %    pE.X    - exogenous background activity
 %
-% pC - prior covariances: cov(spm_vec(pE))
+% pC - prior (co)variances
 %
 % Because priors are specified under log normal assumptions, most
 % parameters are simply scaling coefficients with a prior expectation
@@ -46,7 +46,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 3653 2009-12-23 20:06:48Z karl $
+% $Id: spm_nmm_priors.m 4096 2010-10-22 19:40:34Z karl $
  
  
 % disable log zero warning
@@ -60,12 +60,12 @@ u     = size(C,2);                                % number of inputs
  
 % population variance
 %--------------------------------------------------------------------------
-pE.S   = 0;                 pC.S = 1/64;
+pE.S   = 0;                 pC.S = 1/16;
  
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-pE.T   = log(ones(n,1));    pC.T = ones(n,1)/32;    % excitatory constants
-pE.G   = log(ones(n,1));    pC.G = ones(n,1)/32;    % intrinsic connections
+pE.T   = log(ones(n,1));    pC.T = ones(n,1)/16;    % excitatory constants
+pE.G   = log(ones(n,1));    pC.G = ones(n,1)/16;    % intrinsic connections
  
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -120,15 +120,10 @@ pE.D   = [0 0];          pC.D  = [1 1]/64;
 
 % Exogenous background activity
 %--------------------------------------------------------------------------
-pE.X   = 0;              pC.X  = 1/64;
+pE.X   = 0;              pC.X  = 1/16;
 
 % Capacitance
 %--------------------------------------------------------------------------
-pE.CV  = 0;              pC.CV = 1/32;
+pE.CV  = 0;              pC.CV = 1/16;
 
 warning('on','MATLAB:log:logOfZero');
- 
-
-% covariance of neural parameters
-%==========================================================================
-pC    = diag(sparse(spm_vec(pC)));

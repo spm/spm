@@ -1,4 +1,4 @@
-function [pE,pC] = spm_lfp_priors(A,B,C)
+function [E,V] = spm_lfp_priors(A,B,C)
 % prior moments for a neural mass model of ERPs
 % FORMAT [pE,pC] = spm_lfp_priors(A,B,C)
 %
@@ -23,7 +23,7 @@ function [pE,pC] = spm_lfp_priors(A,B,C)
 %
 %--------------------------------------------------------------------------
 %
-% pC - prior covariances: cov(spm_vec(pE))
+% pC - prior (co)variances
 %
 % Because priors are specified under log normal assumptions, most
 % parameters are simply scaling coefficients with a prior expectation
@@ -38,7 +38,7 @@ function [pE,pC] = spm_lfp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_lfp_priors.m 4096 2010-10-22 19:40:34Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -94,14 +94,6 @@ V.C    = C/32;
 %--------------------------------------------------------------------------
 E.D    = sparse(n,n);     V.D = Q/16;              % extrinsic delays
 E.I    = 0;               V.I = 1/32;              % intrinsic delays
- 
-% prior covariances
-%--------------------------------------------------------------------------
-pE     = E;
-pC     = diag(sparse(spm_vec(V)));
- 
-% prior moments if two arguments
-%--------------------------------------------------------------------------
 warning('on','MATLAB:log:logOfZero');
 
 

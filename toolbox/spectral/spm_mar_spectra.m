@@ -38,9 +38,9 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mar_spectra.m 4096 2010-10-22 19:40:34Z karl $
 
-if nargin < 4  | isempty(show)
+if nargin < 4  || isempty(show)
     show=0;
 end
 
@@ -56,7 +56,7 @@ prec=diag(1./diag(mar.noise_cov));
 for ff=1:Nf,
   af_tmp=eye(d);
   for k=1:p,
-    af_tmp=af_tmp+mar.lag(k).a*exp(-i*w(ff)*k);
+    af_tmp=af_tmp+mar.lag(k).a*exp(-1i*w(ff)*k);
   end
   iaf_tmp=inv(af_tmp);
   H(ff,:,:)=iaf_tmp;  % transfer function
