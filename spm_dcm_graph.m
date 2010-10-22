@@ -7,7 +7,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_dcm_graph.m 4099 2010-10-22 19:47:37Z karl $
  
  
 % display parameters
@@ -48,6 +48,7 @@ if nargin < 2, return, end
 W     = max(abs(A),abs(A'));
 W     = W - diag(diag(W));
 W     = 3*W/max(W(:));
+W     = W.*(W > 1/128);
 for i = 1:length(A)
     for j = (i + 1):length(A)
         if W(i,j)

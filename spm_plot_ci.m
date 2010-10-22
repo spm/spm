@@ -14,7 +14,7 @@ function spm_plot_ci(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_plot_ci.m 4099 2010-10-22 19:47:37Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ if N > 1
     % time-series plot
     %======================================================================
     fill([t fliplr(t)],[full(E + c) fliplr(full(E - c))],...
-        [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+         [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
     plot(t,E,s)
     
 elseif n == 2
@@ -101,7 +101,6 @@ else
     % conditional means
     %----------------------------------------------------------------------
     bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8), hold on
-    axis square
     box off
     set(gca,'XLim',[0 n + 1])
     
