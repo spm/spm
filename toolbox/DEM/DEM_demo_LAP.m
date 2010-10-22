@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 4055 2010-08-27 19:28:13Z karl $
+% $Id: DEM_demo_LAP.m 4097 2010-10-22 19:42:01Z karl $
  
 % get basic convolution model
 %==========================================================================
@@ -32,7 +32,7 @@ pE      = spm_vec(P);
 np      = length(pE);
 pE(ip)  = 0;
 pE      = spm_unvec(pE,P);
-pC      = sparse(ip,ip,32,np,np);
+pC      = sparse(ip,ip,exp(8),np,np);
 M(1).pE = pE;
 M(1).pC = pC;
  
@@ -47,7 +47,7 @@ M(1).gC = 1/4;
  
 % generate data and invert
 %==========================================================================
-M(1).E.nN = 24;                                % number of time steps
+M(1).E.nN = 32;                                % number of time steps
 M(1).E.nD = 1;                                 % number of time steps
 M(1).E.s  = 1;                                 % smoothness
 M(1).E.d  = 2;                                 % order
