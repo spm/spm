@@ -1,12 +1,12 @@
-function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
-% Bayesian inversion of a nonlinear model using a Gauss-Newton/EM algorithm
-% FORMAT [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
+function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
+% Bayesian inversion of a nonlinear model using (Laplacian) sampling
+% FORMAT [Ep,Cp,Eh,F] = spm_nlsi_LS(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
 %
 % M.IS - function name f(P,M,U) - generative model
-%        This function specifies the nonlinear model: 
+%        This function specifies the nonlinear model:
 %        y = Y.y = IS(P,M,U) + X0*P0 + e
 %        were e ~ N(0,C).  For dynamic systems this would be an integration
 %        scheme (e.g. spm_int). spm_int expects the following:
@@ -51,8 +51,8 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% nonlinear model specified by IS(P,M,U) under Gaussian assumptions. 
-% Usually, IS is an integrator of a dynamic MIMO input-state-output model 
+% nonlinear model specified by IS(P,M,U) under Gaussian assumptions.
+% Usually, IS is an integrator of a dynamic MIMO input-state-output model
 %
 %              dx/dt = f(x,u,P)
 %              y     = g(x,u,P)  + X0*P0 + e
@@ -67,38 +67,32 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %              y     = IS(P,M,U) + X0*P0 + e
 %
 % Priors on the free parameters P are specified in terms of expectation pE
-% and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
-% approximation to estimate the conditional expectation and covariance of P
-% If the free-energy starts to increase, a Levenberg-Marquardt scheme is
-% invoked.  The M-Step estimates the precision components of e, in terms
-% of [Re]ML point estimators of the log-precisions.
-%
-% An optional feature selection can be specified with parameters M.FS.
+% and covariance pC.
 %
 % For generic aspects of the scheme see:
-% 
-% Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W. 
-% Variational free energy and the Laplace approximation. 
+%
+% Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W.
+% Variational free energy and the Laplace approximation.
 % NeuroImage. 2007 Jan 1;34(1):220-34.
-% 
+%
 % This scheme handels complex data along the lines originally described in:
-% 
-% Sehpard RJ, Lordan BP, and Grant EH. 
+%
+% Sehpard RJ, Lordan BP, and Grant EH.
 % Least squares analysis of complex data with applications to permittivity
 % measurements.
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4098 2010-10-22 19:46:28Z karl $
- 
+% $Id: spm_nlsi_LS.m 4098 2010-10-22 19:46:28Z karl $
+
 % figure (unless disabled)
 %--------------------------------------------------------------------------
 try
     M.nograph;
-catch 
+catch
     M.nograph = 0;
 end
 if ~M.nograph
@@ -112,7 +106,7 @@ try
 catch
     M.IS = 'spm_int';
 end
- 
+
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
 if isfield(M,'FS')
@@ -123,12 +117,12 @@ if isfield(M,'FS')
         y  = feval(M.FS,Y.y,M);
         IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
         
-    % FS(y,M)
-    %----------------------------------------------------------------------
+        % FS(y,M)
+        %----------------------------------------------------------------------
     catch
         y  = feval(M.FS,Y.y);
         IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
- 
+        
     end
 else
     
@@ -137,7 +131,7 @@ else
     y   = Y.y;
     IS  = inline([M.IS '(P,M,U)'],'P','M','U');
 end
- 
+
 % size of data (usually samples x channels)
 %--------------------------------------------------------------------------
 if iscell(y)
@@ -147,7 +141,7 @@ else
 end
 nr   = length(spm_vec(y))/ns;       % number of samples and responses
 M.ns = ns;                          % store in M.ns for integrator
- 
+
 % initial states
 %--------------------------------------------------------------------------
 try
@@ -156,7 +150,7 @@ catch
     if ~isfield(M,'n'), M.n = 0;    end
     M.x = sparse(M.n,1);
 end
- 
+
 % input
 %--------------------------------------------------------------------------
 try
@@ -164,7 +158,7 @@ try
 catch
     U = [];
 end
- 
+
 % initial parameters
 %--------------------------------------------------------------------------
 try
@@ -173,7 +167,7 @@ try
 catch
     M.P = M.pE;
 end
- 
+
 % time-step
 %--------------------------------------------------------------------------
 try
@@ -181,7 +175,7 @@ try
 catch
     Y.dt = 1;
 end
- 
+
 % precision components Q
 %--------------------------------------------------------------------------
 try
@@ -194,12 +188,9 @@ nh    = length(Q);                  % number of precision components
 nt    = length(Q{1});               % number of time bins
 nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
 h     = zeros(nh,1);                % initialise hyperparameters
- 
-% prior moments
-%--------------------------------------------------------------------------
-pE    = M.pE;
-pC    = M.pC;
- 
+
+
+
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
@@ -209,7 +200,7 @@ try
 catch
     dfdu = sparse(ns*nr,0);
 end
- 
+
 % hyperpriors - expectation
 %--------------------------------------------------------------------------
 try
@@ -220,209 +211,108 @@ try
 catch
     hE = sparse(nh,1);
 end
- 
-% hyperpriors - covariance
-%--------------------------------------------------------------------------
-try
-    ihC = inv(M.hC);
-    if length(ihC) ~= nh
-        ihC = ihC*speye(nh,nh);
-    end
-catch
-    ihC = speye(nh,nh);
-end
- 
-% unpack covariance
-%--------------------------------------------------------------------------
-if isstruct(pC);
-    pC = spm_diag(spm_vec(pC));
-end
 
-% dimension reduction of parameter space
+% prior moments
 %--------------------------------------------------------------------------
-V     = spm_svd(pC,exp(-32));
+pE    = M.pE;
+pC    = M.pC;
 nu    = size(dfdu,2);                 % number of parameters (confounds)
-np    = size(V,2);                    % number of parameters (effective)
-ip    = (1:np)';
-iu    = (1:nu)' + np;
- 
+np    = size(pC,2);                   % number of parameters (effective)
+
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
-pC    = V'*pC*V;
-uC    = speye(nu)/1e-8;
-ipC   = inv(spm_cat(spm_diag({pC,uC})));
- 
+ipC   = spm_inv(pC);
+
+
 % initialize conditional density
 %--------------------------------------------------------------------------
 Eu    = spm_pinv(dfdu)*spm_vec(y);
-p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
-Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
+Ep    = pE;
 
- 
-% EM
+% precision and conditional covariance
+%------------------------------------------------------------------
+iS    = sparse(0);
+for i = 1:nh
+    iS = iS + Q{i}*(exp(-16) + exp(hE(i)));
+end
+S     = spm_inv(iS);
+iS    = kron(speye(nq),iS);
+qS    = spm_sqrtm(pC/32);
+qE    = spm_vec(pE);
+pE    = spm_vec(pE);
+y     = spm_vec(y);
+np    = length(qE);
+
+
+% Sampling
 %==========================================================================
-C.F   = -Inf;                                   % free energy
-v     = -4;                                     % log ascent rate
-dFdh  = zeros(nh,1);
-dFdhh = zeros(nh,nh);
-for k = 1:32
+Gmax  = -Inf;
+for k = 1:64
     
     % time
-    %----------------------------------------------------------------------  
-    tStart = tic;
- 
-    % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
-    %======================================================================
- 
-    % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
-    [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+    tic;
     
-       
-    % prediction error and full gradients
-    %----------------------------------------------------------------------
-    e     =  spm_vec(y) - spm_vec(f) - dfdu*p(iu);
-    dfdp  =  reshape(spm_vec(dfdp),ns*nr,np);
-    J     = -[dfdp dfdu];
-    
- 
-    % M-step; Fisher scoring scheme to find h = max{F(p,h)}
+    % Gibb's sampling
     %======================================================================
-    for m = 1:8
- 
-        % check for stability
-        %------------------------------------------------------------------
-        if norm(J,'inf') > exp(32), break, end
+    for i = 1:128
         
-        % precision and conditional covariance
+        % prediction
         %------------------------------------------------------------------
-        iS    = sparse(0);
-        for i = 1:nh
-            iS = iS + Q{i}*(exp(-16) + exp(h(i)));
-        end
-        S     = spm_inv(iS);
-        iS    = kron(speye(nq),iS);
-        Pp    = real(J)'*iS*real(J) + imag(J)'*iS*imag(J);
-        Cp    = spm_inv(Pp + ipC);
-        if any(isnan(Cp(:))) || rcond(full(Cp)) < exp(-32), break, end
- 
-        % precision operators for M-Step
-        %------------------------------------------------------------------
-        for i = 1:nh
-            P{i}   = Q{i}*exp(h(i));
-            PS{i}  = P{i}*S;
-            P{i}   = kron(speye(nq),P{i});
-            JPJ{i} = real(J)'*P{i}*real(J) + ...
-                     imag(J)'*P{i}*imag(J);
-        end
-                    
-        % derivatives: dLdh = dL/dh,...
-        %------------------------------------------------------------------
-        for i = 1:nh
-            dFdh(i,1)      =   trace(PS{i})*nq/2 ...
-                             - real(e)'*P{i}*real(e)/2 ...
-                             - imag(e)'*P{i}*imag(e)/2 ...
-                             - sum(sum(Cp.*JPJ{i}))/2;
-            for j = i:nh
-                dFdhh(i,j) = - sum(sum(PS{i}.*PS{j}))*nq/2;
-                dFdhh(j,i) =   dFdhh(i,j);
-            end
-        end
-        
-        % add hyperpriors
-        %------------------------------------------------------------------
-        d     = h     - hE;
-        dFdh  = dFdh  - ihC*d;
-        dFdhh = dFdhh - ihC;
-        Ch    = spm_inv(-dFdhh); 
-        
-        % update ReML estimate
-        %------------------------------------------------------------------
-        dh    = spm_dx(dFdhh,dFdh,{4});
-        h     = h  + dh;
- 
-        % convergence
-        %------------------------------------------------------------------
-        dF    = dFdh'*dh;
-        if dF < 1e-2, break, end
- 
-    end
+        P(:,i) = qE + qS*randn(np,1);
+        R(:,i) = spm_vec(feval(IS,spm_unvec(P(:,i),M.pE),M,U));
 
+        % prediction error
+        %------------------------------------------------------------------
+        ey     = R(:,i) - y;
+        ep     = P(:,i) - pE;
+        
+        % Gibb's energy
+        %------------------------------------------------------------------
+        qh     = real(ey')*iS*real(ey) + imag(ey)'*iS*imag(ey);
+        G(i,1) = - ns*log(qh)/2 - ep'*ipC*ep/2;
+        
+        
+        % conditional mode
+        %----------------------------------------------------------------------
+        [maxG j] = max(G);
+        if maxG  > Gmax
+            qE   = P(:,j);
+            f    = R(:,j);
+            Gmax = maxG;
+        end
+        pE       = qE;
+        
+        disp(i)
+    end
     
-    % E-Step with Levenberg-Marquardt regularization
-    %======================================================================
- 
-    % objective function: F(p) (= log evidence - divergence)
+    
+    % conditional dispersion
     %----------------------------------------------------------------------
-    F = - real(e)'*iS*real(e)/2 ...
-        - imag(e)'*iS*imag(e)/2 ...
-        - p'*ipC*p/2 ...
-        - d'*ihC*d/2 ...
-        - ns*nr*log(8*atan(1))/2 ...
-        - spm_logdet(S)*nq/2 ...
-        + spm_logdet(ipC*Cp)/2 ...
-        + spm_logdet(ihC*Ch)/2;
- 
-    % record increases and reference log-evidence for reporting
-    %----------------------------------------------------------------------
-    try
-        F0; 
-        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(tStart))
-    catch
-        F0 = F;
+    q     = exp((G - maxG));
+    q     = q/sum(q);
+    for i = 1:np
+        for j = 1:np
+            qC(i,j) = ((P(i,:) - qE(i)).*(P(j,:) - qE(j)))*q;
+        end
     end
- 
-    % if F has increased, update gradients and curvatures for E-Step
-    %----------------------------------------------------------------------
-    if F > C.F
- 
-        % accept current estimates
-        %------------------------------------------------------------------
-        C.p   = p;
-        C.h   = h;
-        C.F   = F;
-        C.Cp  = Cp;
-        
-        % E-Step: Conditional update of gradients and curvature
-        %------------------------------------------------------------------
-        dFdp  = -real(J)'*iS*real(e) ...
-                -imag(J)'*iS*imag(e) - ipC*p;
-        dFdpp = -real(J)'*iS*real(J) ...
-                -imag(J)'*iS*imag(J) - ipC;
-        
-        % decrease regularization
-        %------------------------------------------------------------------
-        v     = min(v + 1/2,4);
-        str   = 'EM:(+)';
-        
-    else
- 
-        % reset expansion point
-        %------------------------------------------------------------------
-        p     = C.p;
-        h     = C.h;
-        Cp    = C.Cp;
- 
-        % and increase regularization
-        %------------------------------------------------------------------
-        v     = min(v - 2,-4);
-        str   = 'EM:(-)';
-        
-    end
- 
-    % E-Step: update
+    qS    = spm_sqrtm(qC);
+      
+    
+    % objective function:
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{v});
-    p     = p + dp;
-    Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
- 
+    F     = Gmax + spm_logdet(ipC*qC)/2;
+    F     = Gmax;
+    
+    
     % graphics
     %----------------------------------------------------------------------
     try
- 
+        
         % reshape prediction if necessary
         %------------------------------------------------------------------
-        f  = reshape(spm_vec(f),ns,nr);
+        f  = reshape(f,ns,nr);
+        d  = reshape(y,ns,nr);
         
         % subplot prediction
         %------------------------------------------------------------------
@@ -437,60 +327,55 @@ for k = 1:32
         end
         
         if isreal(f)
-            
             subplot(2,1,1)
-            plot(x,f), hold on
-            plot(x,f + spm_unvec(e,f),':'), hold off
+            plot(x,f,x,d,':')
             xlabel(xLab)
             title(sprintf('%s: %i','prediction and response: E-Step',k))
             grid on
             
         else
-            
             subplot(2,2,1)
-            plot(x,real(f)), hold on
-            plot(x,real(f + spm_unvec(e,f)),':'), hold off
+            plot(x,real(f),x,real(d),':')
             xlabel(xLab)
             ylabel('real')
             title(sprintf('%s: %i','prediction and response: E-Step',k))
             grid on
             
             subplot(2,2,2)
-            plot(x,imag(f)), hold on
-            plot(x,imag(f + spm_unvec(e,f)),':'), hold off
+            plot(x,imag(f),x,imag(d),':')
             xlabel(xLab)
             ylabel('imaginary')
             title(sprintf('%s: %i','prediction and response: E-Step',k))
             grid on
-            
         end
         
+        % subplot Gibb's smapling
+        %------------------------------------------------------------------
+        subplot(2,2,3)
+        plot(G)
+        xlabel('smaple')
+        title('Gibbs energy')
+    
         % subplot parameters
         %------------------------------------------------------------------
-        subplot(2,1,2)
-        bar(full(V*p(ip)))
+        subplot(2,2,4)
+        bar(full(qE - spm_vec(M.pE)))
         xlabel('parameter')
-        title('conditional [minus prior] expectation')
+        title('conditional expectation')
         grid on
         drawnow
         
     end
- 
+    
     % convergence
     %----------------------------------------------------------------------
-    dF  = dFdp'*dp;
-    fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
-    if k > 2 && dF < exp((v - 8))
-        fprintf(' convergence\n')
+    try, dF = F - Fk; catch, dF = 0; end
+    Fk      = F;
+    fprintf('%-6s: %i %6s %-6.3e %6s %.3e (%.2f)\n','LS',k,'F:',full(F),'dF:',full(dF),toc)
+    if k > 4 && dF < 1e-4
         break
-    end
- 
+    end  
 end
- 
-% outputs
-%--------------------------------------------------------------------------
-Ep     = spm_unvec(spm_vec(pE) + V*C.p(ip),pE);
-Cp     = V*C.Cp(ip,ip)*V';
-Eh     = C.h;
-F      = C.F;
+
+
 

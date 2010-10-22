@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_nlsi_N.m 4098 2010-10-22 19:46:28Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -227,7 +227,12 @@ try
 catch
     ihC = speye(nh,nh)*8;
 end
- 
+
+% unpack prior covariances
+%--------------------------------------------------------------------------
+if isstruct(M.pC); M.pC = spm_diag(spm_vec(M.pC)); end
+if isstruct(M.gC); M.gC = spm_diag(spm_vec(M.gC)); end
+
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
 Vp    = spm_svd(M.pC,exp(-32));
