@@ -4,6 +4,7 @@ function [pE,pC] = spm_dcm_fmri_priors(A,B,C,varargin)
 %    for bi-linear DCM: [pE,pC] = spm_dcm_fmri_priors(A,B,C)
 %    for nonlinear DCM: [pE,pC] = spm_dcm_fmri_priors(A,B,C,D)
 %    for two-state DCM: [pE,pC] = spm_dcm_fmri_priors(A,B,C,D,'2s')
+%    for one-state DCM: [pE,pC] = spm_dcm_fmri_priors(A,B,C,D, a )
 %
 % INPUT:
 %    A,B,C,D - constraints on connections (1 - present, 0 - absent)
@@ -25,7 +26,7 @@ function [pE,pC] = spm_dcm_fmri_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_dcm_fmri_priors.m 4100 2010-10-22 19:49:17Z karl $
 
 
 
@@ -36,7 +37,17 @@ n     = length(A);       % number of regions
 % varargin (D for nonlinear coupling)
 %--------------------------------------------------------------------------
 if nargin > 3, D = varargin{1}; else, D = zeros(n,n,0); end
-if nargin > 4, two_states = 1;  else, two_states = 0;   end
+two_states = 0;
+a          = 8;
+if nargin > 4 
+    if ischar(varargin{2})
+        two_states = 1;
+        a          = 8;
+    else
+        two_states = 0;
+        a = varargin{2};
+    end
+end
 
 % connectivity priors
 %==========================================================================
@@ -70,17 +81,17 @@ else
 
     % prior expectations
     %----------------------------------------------------------------------
-    pE.A  =  A/64 - eye(n,n);
+    pE.A  =  A/(64*n) - eye(n,n)/2;
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A/4 + eye(n,n)/16;
-    pC.B  =  B*4;
-    pC.C  =  C*4;
-    pC.D  =  D*4;
+    pC.A  =  A*a/n + eye(n,n)/(8*n);
+    pC.B  =  B;
+    pC.C  =  C;
+    pC.D  =  D;
 
 end
 
@@ -90,9 +101,9 @@ pE.transit = sparse(n,1);
 pE.decay   = sparse(n,1);
 pE.epsilon = sparse(1,1);
 
-pC.transit = sparse(n,1) + exp(-4);
-pC.decay   = sparse(n,1) + exp(-4);
-pC.epsilon = sparse(1,1) + exp(-4);
+pC.transit = sparse(n,1) + exp(-6);
+pC.decay   = sparse(n,1) + exp(-6);
+pC.epsilon = sparse(1,1) + exp(-6);
 
 pC         = diag(spm_vec(pC));
 

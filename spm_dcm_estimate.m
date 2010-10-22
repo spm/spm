@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4060 2010-09-01 17:17:36Z karl $
+% $Id: spm_dcm_estimate.m 4100 2010-10-22 19:49:17Z karl $
  
  
 %-Load DCM structure
@@ -84,7 +84,7 @@ try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.form;       catch, DCM.options.form  = 'Gaussian'; end
 try, DCM.options.W;          catch, DCM.options.W = 9;              end
 try, DCM.options.V;          catch, DCM.options.V = 4;              end
-try, DCM.options.s;          catch, DCM.options.s = 1/4;            end
+try, DCM.options.s;          catch, DCM.options.s = 1/3;            end
 
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
@@ -97,7 +97,11 @@ Y  = DCM.Y;                             % responses
 n  = DCM.n;                             % number of regions
 v  = DCM.v;                             % number of scans
  
- 
+% detrend inputs and outputs
+%--------------------------------------------------------------------------
+U.u     = spm_detrend(U.u);
+Y.y     = spm_detrend(Y.y);
+
 % check scaling of Y (enforcing a maximum change of 4%
 %--------------------------------------------------------------------------
 scale   = max(max((Y.y))) - min(min((Y.y)));
@@ -105,10 +109,20 @@ scale   = 4/max(scale,4);
 Y.y     = Y.y*scale;
 Y.scale = scale;
 
-% normalise inputs
+% check confounds (add constant if necessary)
 %--------------------------------------------------------------------------
-U.u  = spm_detrend(U.u); % No detrending as suggested by Karl? -> comment the line
- 
+if ~size(Y.X0,2), Y.X0 = ones(v,1); end
+
+
+% fMRI slice time sampling
+%--------------------------------------------------------------------------
+try, M.delays = DCM.delays; end
+try, M.TE     = DCM.TE;     end
+
+
+% create priors
+%==========================================================================
+
 % check DCM.d (for nonlinear DCMs)
 %--------------------------------------------------------------------------
 try
@@ -117,11 +131,6 @@ catch
     DCM.d = zeros(n,n,0);
     DCM.options.nonlinear = 0;
 end
- 
-% check confounds (add constant if necessary)
-%--------------------------------------------------------------------------
-if ~size(Y.X0,2), Y.X0 = ones(v,1); end
- 
  
 % specify parameters for spm_int_D (ensuring updates every second or so)
 %--------------------------------------------------------------------------
@@ -133,22 +142,41 @@ else
     M.IS     = 'spm_int';
 end
  
+% check DCM.c (for endogenous DCMs)
+%--------------------------------------------------------------------------
+if isempty(DCM.c)
+    DCM.c  = zeros(n,1);
+    DCM.b  = zeros(n,n,1);
+    U.u    = zeros(v,1);
+    U.name = {'null'};
+    DCM.options.endogenous = 1;
+end
+if ~any(spm_vec(DCM.c))
+    DCM.options.endogenous = 1;
+else
+    DCM.options.endogenous = 0;
+end
+if DCM.options.endogenous
+    DCM.options.two_state  = 0;
+    DCM.options.stochastic = 1;
+end
+
 % priors
 %--------------------------------------------------------------------------
 if DCM.options.two_state
     [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,'2s');
     x       = sparse(n,6);
 else
-    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);
-    x       = sparse(n,5);
+    if DCM.options.endogenous
+        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,128);
+        x       = sparse(n,5);
+    else
+        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);
+        x       = sparse(n,5);
+    end
 end
- 
-% fMRI slice time sampling
-%--------------------------------------------------------------------------
-try, M.delays = DCM.delays; end
-try, M.TE     = DCM.TE;     end
- 
- 
+
+
 % complete model specification
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_fmri';
@@ -169,8 +197,14 @@ M.ns  = v;
  
 % nonlinear system identification (Variational EM) - deterministic DCM
 %--------------------------------------------------------------------------
-[Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
- 
+if ~DCM.options.endogenous
+    [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
+else
+    Ep = pE;
+    Eh = 3;
+    F  = 0;
+end
+
 % proceed to stochastic (initialising with deterministic estimates)
 %--------------------------------------------------------------------------
 if DCM.options.stochastic
@@ -202,45 +236,59 @@ if DCM.options.stochastic
     % ---------------------------------------------------------------------
     form    = DCM.options.form;
     s       = DCM.options.s;
-    DEM.M(1).E.form  = form;       % form of random fluctuations
-    DEM.M(1).E.s     = s;          % smoothness of random fluctuations
-    DEM.M(1).E.d     = 2;          % embedding dimension 
-    DEM.M(1).E.n     = 4;          % embedding dimension
-    DEM.M(1).E.nN    = 8;          % maximum number of DEM iterations
+    
+    DEM.M(1).E.form = form;               % form of random fluctuations
+    DEM.M(1).E.s    = s;                  % smoothness of fluctuations
+    DEM.M(1).E.d    = 2;                  % embedding dimension 
+    DEM.M(1).E.n    = 6;                  % embedding dimension
+    DEM.M(1).E.nN   = 16;                 % maximum number of iterations
 
  
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
+    DEM.M(1).delays = M.delays/Y.dt;
     DEM.M(1).f  = inline([M.f '(x,v,P)*' num2str(Y.dt)],'x','v','P');
     DEM.M(1).P  = Ep;
-    DEM.M(1).pC = pC;
     
-    % delays (DEM works in time bins not seconds)
-    % ---------------------------------------------------------------------
-    DEM.M(1).delays = M.delays/Y.dt;
     
-    % Precision on hidden states (s.d. of about 10%)
-    % ---------------------------------------------------------------------
-    DEM.M(1).xP = 128;
-    
-    % Specify hyper-priors on precisions
+    % Specify hyper-priors on (log-precision of) observation noise
     % ---------------------------------------------------------------------
     DEM.M(1).Q  = spm_Ce(ones(1,n));
-    DEM.M(1).hE = Eh + 1;      % prior expectation of log-precision (noise)
-    DEM.M(1).hC = 1/8;         % prior covariance  of log-precision (noise)
+    DEM.M(1).hE = Eh + 1;                 % prior expectation
+    DEM.M(1).hC = 1/32;                   % prior covariance
+    
+    
+    % Specify hyper-priors, allowing hidden causes to fluctuate
+    % ---------------------------------------------------------------------
+    DEM.M(1).xP = 128;                    % s.d. ~ 10%      (hidden-state)
+    DEM.M(1).W  = exp(DCM.options.W);     % fixed precision (hidden-motion)
+    DEM.M(2).V  = exp(DCM.options.V);     % fixed precision (hidden-cause)
+        
+    % for endgenous DCMs, allow neuronal hidden states to fluctuate
+    % ---------------------------------------------------------------------
+    if DCM.options.endogenous
+        W           = exp(spm_vec(sparse(1:n,1,(6 - 16),n,5) + 16));
+        DEM.M(1).xP = exp(6);             % fixed precision (hidden-state)
+        DEM.M(1).W  = diag(W);            % fixed precision (hidden-motion)
+        DEM.M(2).V  = exp(16);            % fixed precision (hidden-cause)
+    end
 
-    DEM.M(1).W  = exp(DCM.options.W);      % fixed precision (hidden-state)
-    DEM.M(2).V  = exp(DCM.options.V);      % fixed precision (hidden-cause)
-    
-    
+
     % Generalised filtering (under the Laplace assumption)
     % =====================================================================
     if DCM.options.stochastic == 1
-        
-            DEM  = spm_LAP(DEM);           % no mean-field assumption
+            DEM  = spm_LAP(DEM);          % no mean-field assumption
     else
-            DEM  = spm_DEM(DEM);           % mean-field assumption (DEM)
+            DEM  = spm_DEM(DEM);          % mean-field assumption (DEM)
     end
+    
+    % Helpful suggestion
+    %----------------------------------------------------------------------
+    if length(DCM.F) < 4
+        disp('This inversion may have been unstable;')
+        disp('try reducing DCM.options.s to 1/4')
+    end
+    
     
     % Save DEM estimates
     %----------------------------------------------------------------------
@@ -259,7 +307,7 @@ if DCM.options.stochastic
     %----------------------------------------------------------------------
     y      = DEM.qU.v{1}';
     R      = DEM.qU.z{1}';
-    R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
+    R      = R - Y.X0*spm_inv(Y.X0'*Y.X0)*(Y.X0'*R);
     Ce     = exp(-DEM.qH.h{1});
  
 else
@@ -268,7 +316,7 @@ else
     %----------------------------------------------------------------------
     y      = feval(M.IS,Ep,M,U);
     R      = Y.y - y;
-    R      = R - Y.X0*inv(Y.X0'*Y.X0)*(Y.X0'*R);
+    R      = R - Y.X0*spm_inv(Y.X0'*Y.X0)*(Y.X0'*R);
     Ce     = exp(-Eh);
     
 end

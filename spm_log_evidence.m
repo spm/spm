@@ -1,0 +1,100 @@
+function [F,sE,sC] = spm_log_evidence(varargin)
+% Return the log-evidence of a reduced model (under Laplace approximation)
+% FORMAT [F,sE,sC] = spm_log_evidence(qE,qC,pE,pC,rE,rC)
+% FORMAT [F,sE,sC] = spm_log_evidence(qE,qC,pE,pC,priorfun,varargin)
+% FORMAT [F,sE,sC] = spm_log_evidence(qE,qC,pE,pC)
+%
+% qE,qC    - posterior expectation and covariance of full model
+% pE,pC    - prior expectation and covariance of full model
+% rE,rC    - prior expectation and covariance of reduced model
+% or 
+% priorfun - inline function that returns prior moments
+%            {rE rC} = priorfun(varargin{:})
+%
+% or (if omitted) rE = 0 and rC = 0;
+%
+% F        - reduced log-evidence: ln p(y|reduced model) - ln p(y|full model)
+% [sE,sC]  - posterior expectation and covariance of reduced model
+%
+%--------------------------------------------------------------------------
+% This routine assumed the reduced model is nested within a full model and
+% that the posteriors (and priors) are Gaussian. Nested here means that the
+% prior precision of the reduced model, minus the prior precision of the
+% full model is positive definite. We additionally assume that the prior
+% means are unchanged. The two input argument formats are for use with
+% spm_argmax.
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_log_evidence.m 4100 2010-10-22 19:49:17Z karl $
+ 
+% Compute reduced log-evidence
+%==========================================================================
+ 
+% check to see if priors are specified by a function
+%--------------------------------------------------------------------------
+qE = varargin{1};
+qC = varargin{2};
+pE = varargin{3};
+pC = varargin{4};
+try
+    priors = varargin{5}(varargin{6:end});
+    rE     = priors{1};
+    rC     = priors{2};
+catch
+    try
+        rE = varargin{5};
+        rC = varargin{6};
+    catch
+        n  = size(qC,1);
+        rE = sparse(n,1);
+        rC = sparse(n,n);
+    end
+end
+ 
+% tolerance to handle zero variances
+%--------------------------------------------------------------------------
+TOL = exp(-32);
+ 
+% reduced subspace 
+%--------------------------------------------------------------------------
+qE  = spm_vec(qE);
+pE  = spm_vec(pE);
+rE  = spm_vec(rE);
+ 
+if nargout == 1
+    dE  = pE - rE;
+    dC  = pC - rC;
+    k   = find(dE | any(dC,2));
+    if ~isempty(k)
+        qE  = qE(k);
+        pE  = pE(k);
+        rE  = rE(k);
+        qC  = qC(k,k);
+        pC  = pC(k,k);
+        rC  = rC(k,k);
+    end
+end
+
+% preliminaries 
+%--------------------------------------------------------------------------
+qP  = spm_inv(qC);
+pP  = spm_inv(pC);
+rP  = spm_inv(rC);
+sP  = qP + rP - pP;
+sE  = qP*qE + rP*rE - pP*pE;
+sC  = spm_inv(sP,TOL);
+ 
+% log-evidence
+%--------------------------------------------------------------------------
+F   = spm_logdet(rP*qP*sC*pC) ...
+    - (qE'*qP*qE + rE'*rP*rE - pE'*pP*pE - sE'*sC*sE);
+F   = F/2;
+ 
+% restore full conditional density
+%--------------------------------------------------------------------------
+if nargout > 1
+    sE = sC*sE;
+    sE = spm_unvec(sE,varargin{1});
+end

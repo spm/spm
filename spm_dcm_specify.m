@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 3710 2010-02-03 19:11:26Z guillaume $
+% $Id: spm_dcm_specify.m 4100 2010-10-22 19:49:17Z karl $
 
 
 %-Interactive window
@@ -44,7 +44,7 @@ name  = spm_input('name for DCM_???.mat','+1','s');
 
 %-Get cell array of region structures
 %--------------------------------------------------------------------------
-P     = cellstr(spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'},'',swd));
+P     = cellstr(spm_select([1 8],'^VOI.*\.mat$',{'select VOIs'},'',swd));
 m     = numel(P);
 for i = 1:m
     p     = load(P{i},'xY');
@@ -56,7 +56,7 @@ end
 % Inputs
 %==========================================================================
 
-%-Get 'causes' or inputs U
+%-Get (n) 'causes' or inputs U
 %--------------------------------------------------------------------------
 spm_input('Input specification:...  ',1,'d');
 Sess   = SPM.Sess(xY(1).Sess);
@@ -73,6 +73,7 @@ for  i = 1:u
         end
     end
 end
+n      = size(U.u,2);
 
 
 %==========================================================================
@@ -105,16 +106,20 @@ end
 %==========================================================================
 % Model options
 %==========================================================================
-spm_input('Model options:...  ',-1,'d');
-options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
-options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
-options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
-
+if n
+    spm_input('Model options:...  ',-1,'d');
+    options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
+    options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
+    options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
+else
+    options.nonlinear  = 0;
+    options.two_state  = 0;
+    options.stochastic = 1;
+end
 
 %==========================================================================
 % Graph connections
 %==========================================================================
-n     = size(U.u,2);
 a     = zeros(m,m);
 b     = zeros(m,m,n);
 c     = zeros(m,n);
@@ -151,10 +156,14 @@ for i = 1:m
             set(h3(i,j),'Value',1,...
                 'enable','off');
         else
-            set(h3(i,j),'TooltipString', ...
+            set(h3(i,j),'enable','on','TooltipString', ...
                 sprintf('from %s to %s',xY(j).name,xY(i).name));
         end
-
+        if n
+            set(h3(i,j),'Value',0);
+        else
+            set(h3(i,j),'Value',1);
+        end
     end
 end
 uicontrol(Finter,'String','done','Position', [300 100 060 020].*WS,...
@@ -198,15 +207,17 @@ for k = 1:n
     end
     for i = 1:m
         for j = 1:m
-            if a(i,j)==1
-                % If there is an intrinsic connection
-                % allow it to be modulated
+            if a(i,j) == 1
+                
+                % Allow modulation of intrinsic connections
+                %----------------------------------------------------------
                 h3(i,j) = uicontrol(Finter,...
                     'Position',[220+dx*j 360-dx*i 020 020].*WS,...
                     'BackgroundColor',bcolor,...
                     'Style','radiobutton');
                 set(h3(i,j),'TooltipString', ...
                     sprintf('from %s to %s',xY(j).name,xY(i).name));
+                
             end
         end
     end
@@ -216,7 +227,7 @@ for k = 1:n
     %-Get c
     %----------------------------------------------------------------------
     for i = 1:m
-        c(i,k)   = get(h2(i)  ,'Value');
+        c(i,k)   = get(h2(i),'Value');
     end
 
     %-Get b allowing any 2nd order effects
@@ -249,8 +260,9 @@ if options.nonlinear
         for i = 1:m
             for j = 1:m
                 if a(i,j)==1
-                    % If there is an intrinsic connection
-                    % allow it to be modulated
+                    
+                    % Allow modulation of intrinsic connections
+                    %------------------------------------------------------
                     h4(i,j) = uicontrol(Finter,...
                         'Position',[220+dx*j 360-dx*i 020 020].*WS,...
                         'BackgroundColor',bcolor,...
