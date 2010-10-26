@@ -33,7 +33,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hastoolbox.m 1757 2010-09-22 15:05:49Z roboos $
+% $Id: hastoolbox.m 1938 2010-10-18 07:35:33Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -95,6 +95,7 @@ url = {
   'ITAB'       'contact Stefania Della Penna'
   'BSMART'     'see http://www.brain-smart.org'
   'PEER'       'see http://fieldtrip.fcdonders.nl/development/peer'
+  'FREESURFER' 'see http://surfer.nmr.mgh.harvard.edu/fswiki'
   };
 
 if nargin<2
@@ -154,22 +155,26 @@ switch toolbox
     status  = (exist('SONFileHeader') && exist('SONChanList') && exist('SONGetChannel'));
   case '4D-VERSION'
     status  = (exist('read4d') && exist('read4dhdr'));
+  case {'STATS', 'STATISTICS'}
+    status = license('checkout', 'statistics_toolbox');         % also check the availability of a toolbox license
+  case {'OPTIM', 'OPTIMIZATION'}
+    status = license('checkout', 'optimization_toolbox');       % also check the availability of a toolbox license
+  case {'SPLINES', 'CURVE_FITTING'}
+    status = license('checkout', 'curve_fitting_toolbox');      % also check the availability of a toolbox license
   case 'SIGNAL'
-    status = hasfunction('medfilt1', toolbox) && exist('butter', 'file');   % also check the availability of a toolbox license
-  case 'OPTIM'
-    status  = hasfunction('fmincon', toolbox) && exist('fminunc', 'file');  % also check the availability of a toolbox license
-  case 'SPLINES'
-    status  = hasfunction('bspline', toolbox) && exist('csape', 'file');    % also check the availability of a toolbox license
+    status = license('checkout', 'signal_toolbox');             % also check the availability of a toolbox license
   case 'IMAGE'
-    status = hasfunction('bwlabeln', toolbox);                              % also check the availability of a toolbox license
+    status = license('checkout', 'image_toolbox');              % also check the availability of a toolbox license
+  case 'DCT'
+    status = license('checkout', 'distrib_computing_toolbox');  % also check the availability of a toolbox license
   case 'FASTICA'
     status  = exist('fastica', 'file');
   case 'BRAINSTORM'
     status  = exist('bem_xfer');
   case 'FILEIO'
-    status  = (exist('read_header') && exist('read_data') && exist('read_event') && exist('read_sens'));
-  case 'FORWINV'
-    status  = (exist('compute_leadfield') && exist('prepare_vol_sens'));
+    status  = (exist('ft_read_header') && exist('ft_read_data') && exist('ft_read_event') && exist('ft_read_sens'));
+  case 'FORMWARD'
+    status  = (exist('ft_compute_leadfield') && exist('ft_prepare_vol_sens'));
   case 'DENOISE'
     status  = (exist('tsr') && exist('sns'));
   case 'CTF'
@@ -189,7 +194,7 @@ switch toolbox
   case 'OPENMEEG'
     status = exist('openmeeg.m', 'file');
   case 'PLOTTING'
-    status  = (exist('plot_topo', 'file') && exist('plot_mesh', 'file') && exist('plot_matrix', 'file'));
+    status  = (exist('ft_plot_topo', 'file') && exist('ft_plot_mesh', 'file') && exist('ft_plot_matrix', 'file'));
   case 'PRTOOLS'
     status  = (exist('prversion', 'file') && exist('dataset', 'file') && exist('svc', 'file'));
   case 'ITAB'
@@ -200,6 +205,8 @@ switch toolbox
     status  = exist('peerslave', 'file') && exist('peermaster', 'file');
   case 'CONNECTIVITY'
     status  = exist('ft_connectivity_corr', 'file') && exist('ft_connectivity_granger', 'file');
+  case 'FREESURFER'
+    status  = exist('MRIread', 'file') && exist('vox2ras_0to1', 'file');
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;

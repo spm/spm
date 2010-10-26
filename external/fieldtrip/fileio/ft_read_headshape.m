@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 1295 2010-06-29 14:19:37Z roboos $
+% $Id: ft_read_headshape.m 1915 2010-10-12 11:58:06Z jansch $
 
 % test whether the file exists
 if ~exist(filename)
@@ -251,6 +251,18 @@ switch fileformat
       error('no headshape found in Matlab file');
     end
 
+  case {'freesurfer_triangle_binary', 'freesurfer_quadrangle'}
+    % the freesurfer toolbox is required for this
+    hastoolbox('freesurfer', 1);
+    [pnt, tri] = read_surf(filename);
+    if min(tri(:)) == 0
+      % start counting from 1
+      tri = tri + 1;
+    end
+    shape.pnt = pnt;
+    shape.tri = tri;
+    shape = rmfield(shape, 'fid');  
+ 
   otherwise
 
     success = 0;

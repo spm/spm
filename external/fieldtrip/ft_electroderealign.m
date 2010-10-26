@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 1768 2010-09-24 09:11:13Z sashae $
+% $Id: ft_electroderealign.m 1926 2010-10-13 15:54:45Z roboos $
 
 fieldtripdefs
 
@@ -116,8 +116,8 @@ if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangul
 if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
 if ~isfield(cfg, 'warp'),          cfg.warp = 'rigidbody';    end
 
-cfg = checkconfig(cfg, 'renamed', {'realignfiducials', 'fiducial'});
-cfg = checkconfig(cfg, 'renamed', {'realignfiducial',  'fiducial'});
+cfg = checkconfig(cfg, 'renamedval', {'method', 'realignfiducials', 'fiducial'});
+cfg = checkconfig(cfg, 'renamedval', {'method', 'realignfiducial',  'fiducial'});
 cfg = checkconfig(cfg, 'forbidden', 'outline');
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
@@ -162,9 +162,13 @@ if usetemplate
       template(i) = ft_read_sens(cfg.template{i});
     end
   end
+
+  clear tmp
   for i=1:Ntemplate
-    template(i) = ft_convert_units(template(i), elec.unit); % ensure that the units are consistent with the electrodes
+    tmp(i) = ft_convert_units(template(i), elec.unit); % ensure that the units are consistent with the electrodes
   end
+  template = tmp;
+  
 elseif useheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -488,7 +492,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_electroderealign.m 1768 2010-09-24 09:11:13Z sashae $';
+cfg.version.id = '$Id: ft_electroderealign.m 1926 2010-10-13 15:54:45Z roboos $';
 
 % remember the configuration
 norm.cfg = cfg;

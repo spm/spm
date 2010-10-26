@@ -28,7 +28,7 @@ function [spectrum,ntaper,freqoi] = specest_mtmfft(dat, time, varargin)
 % 
 %
 %
-% See also SPECEST_MTMCONVOL, SPECEST_TFR, SPECEST_HILBERT, SPECEST_MTMWELCH, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_WLTCONVOL
+% See also SPECEST_MTMCONVOL, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_WAVELET
 
 
 % get the optional input arguments
@@ -108,7 +108,7 @@ switch taper
     tap = tap ./ norm(tap,'fro');
     
 end % switch taper
-ntaper = size(tap,1);
+ntaper = repmat(size(tap,1),nfreqoi,1);
 
 
 % determine phase-shift so that for all frequencies angle(t=0) = 0
@@ -124,13 +124,14 @@ if timedelay ~= 0
     sinwav  = sin(anglein);
     angletransform(ifreqoi) = angle(complex(coswav,sinwav));
   end
+  angletransform = repmat(angletransform,[nchan,1]);
 end
-angletransform = repmat(angletransform,[nchan,1]);
+
 
 
 % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
-spectrum = cell(ntaper,1);
-for itap = 1:ntaper
+spectrum = cell(ntaper(1),1);
+for itap = 1:ntaper(1)
     dum = transpose(fft(transpose([dat .* repmat(tap(itap,:),[nchan, 1]) repmat(postpad,[nchan, 1])]))); % double explicit transpose to speedup fft
     dum = dum(:,freqboi);
     % phase-shift according to above angles
@@ -140,9 +141,9 @@ for itap = 1:ntaper
     dum = dum .* sqrt(2 ./ endnsample);
     spectrum{itap} = dum;
 end
-spectrum = reshape(vertcat(spectrum{:}),[nchan ntaper nfreqboi]);% collecting in a cell-array and later reshaping provides significant speedups
+spectrum = reshape(vertcat(spectrum{:}),[nchan ntaper(1) nfreqboi]);% collecting in a cell-array and later reshaping provides significant speedups
 spectrum = permute(spectrum, [2 1 3]);
-fprintf('nfft: %d samples, taper length: %d samples, %d tapers\n',endnsample,ndatsample,ntaper);
+fprintf('nfft: %d samples, taper length: %d samples, %d tapers\n',endnsample,ndatsample,ntaper(1));
 
 
 

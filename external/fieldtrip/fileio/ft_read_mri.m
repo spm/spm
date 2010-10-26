@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 1108 2010-05-20 07:43:30Z jansch $
+% $Id: ft_read_mri.m 1918 2010-10-12 14:48:34Z jansch $
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
@@ -232,7 +232,15 @@ elseif ft_filetype(filename, 'dicom')
     transform(2,2) = dy;
     transform(3,3) = dz;
   end
-
+elseif ft_filetype(filename, 'freesurfer_mgz')
+  hastoolbox('freesurfer', 1);
+  tmp = MRIread(filename);
+  img = permute(tmp.vol, [2 1 3]); %FIXME although this is probably correct
+  %see the help of MRIread, anecdotally columns and rows seem to need a swap
+  %in order to match the transform matrix (alternatively a row switch of the
+  %latter can be done)
+  hdr = rmfield(tmp, 'vol');
+  transform = tmp.vox2ras1;
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
   error(sprintf('unrecognized filetype of ''%s''', filename));
@@ -251,4 +259,7 @@ try
   % if present, store the homogenous transformation matrix
   mri.transform = transform;
 end
-
+try
+  % try to add units
+  mri = ft_convert_units(mri);
+end

@@ -42,6 +42,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - EEProbe
 %  - Elektra/Neuromag
 %  - LORETA
+%  - MGZ
 %  - MINC
 %  - Neuralynx
 %  - Neuroscan
@@ -71,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1868 2010-10-06 15:53:56Z roboos $
+% $Id: ft_filetype.m 1959 2010-10-25 19:57:34Z crimic $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -808,6 +809,31 @@ elseif (filetype_check_extension(filename, '.sbin') || filetype_check_extension(
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'averaged EEG data';
 
+% FreeSurfer file formats, see also http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm
+elseif filetype_check_extension(filename, '.mgz')
+  type = 'freesurfer_mgz';
+  manufacturer = 'FreeSurfer';
+  content = 'anatomical MRI';
+elseif filetype_check_header(filename, [255 255 254])
+  % FreeSurfer Triangle Surface Binary Format
+  type = 'freesurfer_triangle_binary';	% there is also an ascii triangle format
+  manufacturer = 'FreeSurfer';
+  content = 'surface description';
+elseif filetype_check_header(filename, [255 255 255])
+  % Quadrangle File
+  type = 'freesurfer_quadrangle'; % there is no ascii quadrangle format
+  manufacturer = 'FreeSurfer';
+  content = 'surface description';
+elseif filetype_check_header(filename, [255 255 253]) && ~exist([filename(1:(end-4)) '.mat'], 'file')
+  % "New" Quadrangle File
+  type = 'freesurfer_quadrangle_new';
+  manufacturer = 'FreeSurfer';
+  content = 'surface description';
+elseif filetype_check_extension(filename, '.curv') && filetype_check_header(filename, [255 255 255])
+  % "New" Curv File
+  type = 'freesurfer_curv_new';
+  manufacturer = 'FreeSurfer';
+  content = 'surface description';
 
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
@@ -816,10 +842,6 @@ elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exis
   type = 'fcdc_matbin';
   manufacturer = 'F.C. Donders Centre';
   content = 'multiplexed electrophysiology data';
-elseif filetype_check_extension(filename, '.mgz')
-  type = 'freesurfer_mgz';
-  manufacturer = 'FreeSurfer';
-  content = 'anatomical MRI';
 elseif filetype_check_extension(filename, '.lay')
   type = 'layout';
   manufacturer = 'Ole Jensen';

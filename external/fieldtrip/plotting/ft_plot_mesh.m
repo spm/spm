@@ -51,11 +51,10 @@ function ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 1808 2010-09-29 12:33:36Z crimic $
+% $Id: ft_plot_mesh.m 1913 2010-10-12 11:51:11Z jansch $
 
 warning('on', 'MATLAB:divideByZero');
 
-% FIXME: introduce option for color coding (see ft_sourceplot)
 keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 
 if ~isstruct(bnd) && isnumeric(bnd) && size(bnd,2)==3
@@ -120,6 +119,11 @@ if ~isempty(pnt)
   set(hs, 'tag', tag);
 end
 
+% if vertexcolor is an array with number of elements equal to the number of vertices
+if size(pnt,1)==numel(vertexcolor)
+  set(hs, 'FaceVertexCData', vertexcolor, 'FaceColor', 'interp'); 
+end
+
 if faceindex
   % plot the triangle indices (numbers) at each face
   for face_indx=1:size(tri,1)
@@ -132,7 +136,7 @@ if faceindex
   end
 end
 
-if ~isequal(vertexcolor, 'none')
+if ~isequal(vertexcolor, 'none') && ~(size(pnt,1)==numel(vertexcolor))
   if size(pnt, 2)==2
     hs = plot(pnt(:,1), pnt(:,2), 'k.');
   else

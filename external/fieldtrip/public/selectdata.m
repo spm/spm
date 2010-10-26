@@ -47,7 +47,7 @@ function [data] = selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: selectdata.m 1788 2010-09-28 07:51:15Z jansch $
+% $Id: selectdata.m 1954 2010-10-22 13:15:19Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -197,7 +197,7 @@ if length(data)>1 && ~israw,
     catdim = 0;
   elseif isempty(catdim) && (~isempty(strmatch('rpt',dimtok)) || ~isempty(strmatch('rpttap',dimtok)))
     %append observations
-    catdim = 1;
+    catdim = find(~cellfun('isempty',strfind(dimtok, 'rpt')));
   elseif ~isempty(strfind(dimtok{catdim},'pos'))
     dimtok{catdim} = 'pos';
   elseif isempty(catdim)
@@ -304,21 +304,21 @@ if length(data)>1 && ~israw,
   if ~strcmp(dimtok{catdim},'rpt') && ~strcmp(dimtok{catdim},'rpttap'),
     for k = 1:length(data)
       if k==1,
-        tmp       = getsubfield(data{k}, dimtok{catdim})';
-	    if isfield(data{k}, 'inside'),
-	      tmpnvox   = numel(data{k}.inside)+numel(data{k}.outside);
-	      tmpinside = data{k}.inside(:);
-	    end
+        tmp = getsubfield(data{k}, dimtok{catdim})';
+	if isfield(data{k}, 'inside'),
+	  tmpnvox   = numel(data{k}.inside)+numel(data{k}.outside);
+	  tmpinside = data{k}.inside(:);
+	end
       else
         if strcmp(dimtok{catdim},'pos')
-	      tmp       = [tmp;       getsubfield(data{k}, dimtok{catdim})];
-	      tmpinside = [tmpinside; data{k}.inside(:)+tmpnvox];
-	      tmpnvox   = tmpnvox+numel(data{k}.inside)+numel(data{k}.outside);
-	      sortflag  = 0;
+	  tmp       = [tmp;       getsubfield(data{k}, dimtok{catdim})];
+	  tmpinside = [tmpinside; data{k}.inside(:)+tmpnvox];
+	  tmpnvox   = tmpnvox+numel(data{k}.inside)+numel(data{k}.outside);
+	  sortflag  = 0;
         else
           tmp       = [tmp       getsubfield(data{k}, dimtok{catdim})'];
           sortflag  = 1;
-	    end
+	end
       end
     end
     data{1} = setsubfield(data{1}, dimtok{catdim}, tmp);
@@ -388,9 +388,9 @@ if length(data)>1 && ~israw,
   else
     data.([param{1},'dimord']) = dimord;
   end
-  if isfield(data, 'dim') & ~issource,
-    %data.dim    = dim;
-    data.dim = size(data.(param{1}));
+  if isfield(data, 'dim'),
+    data.dim    = dim;
+    %data.dim = size(data.(param{1}));
   elseif isfield(data, 'dim')
     data     = rmfield(data, 'dim'); %source data should not contain a dim
     %FIXME this should be handled by checkdata once the source structure is

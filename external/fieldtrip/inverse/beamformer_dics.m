@@ -230,11 +230,11 @@ switch submethod
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
         filt = pinv(lf' * invCf * lf) * lf' * invCf;
         [u, s, v] = svd(real(filt * Cf * ctranspose(filt)));
-        eta = u(:,1);
-        alpha = s(1,1)./s(2,2);
-        lf  = lf * eta;
-        dipout.ori{i} = eta;
-        dipout.orithr{i} = alpha;
+        maxpowori = u(:,1);
+        eta = s(1,1)./s(2,2);
+        lf  = lf * maxpowori;
+        dipout.ori{i} = maxpowori;
+        dipout.eta{i} = eta;
       end
       if isfield(dip, 'filter')
         % use the provided filter
@@ -296,9 +296,9 @@ switch submethod
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
         filt = pinv(lf' * invCf * lf) * lf' * invCf;
         [u, s, v] = svd(real(filt * Cf * ctranspose(filt)));
-        eta = u(:,1);
-        lf  = lf * eta;
-        dipout.ori{i} = eta;
+        maxpowori = u(:,1);
+        lf  = lf * maxpowori;
+        dipout.ori{i} = maxpowori;
       end
       if isfield(dip, 'filter')
         % use the provided filter
@@ -461,7 +461,7 @@ ori = u(:,1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1834 $  $Date: 2009/06/17 13:40:37 $
+%   $Revision: 1924 $  $Date: 2009/06/17 13:40:37 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

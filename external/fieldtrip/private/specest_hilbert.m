@@ -26,11 +26,11 @@ function [spectrum,freqoi,timeoi] = specest_hilbert(dat, time, varargin)
 %
 %
 %
-% See also SPECEST_MTMFFT, SPECEST_TFR, SPECEST_MTMCONVOL, SPECEST_MTMWELCH, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_WLTCONVOL
+% See also SPECEST_MTMFFT, SPECEST_CONVOL, SPECEST_MTMCONVOL, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_WAVELET
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Rev: 1180 $
+% $Rev: 1879 $
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'freqoi','timeoi','width','filttype','filtorder','filtdir'});

@@ -55,7 +55,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_componentanalysis.m 1943 2010-10-19 08:33:40Z crimic $
 
 fieldtripdefs
 
@@ -114,7 +114,7 @@ if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   tmpcfg.channel      = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
   tmpcfg.numcomponent = 'all';
   tmpcfg.method       = 'predetermined mixing matrix';
-  tmpcfg.outputfile   = cfg.outputfile
+  tmpcfg.outputfile   = cfg.outputfile;
   cfg                 = tmpcfg;
 end
 
@@ -433,7 +433,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_componentanalysis.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 1943 2010-10-19 08:33:40Z crimic $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -17,7 +17,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 % FFT SPEED NOT YET OPTIMIZED (e.g. matlab version, transpose or not)
 % FUNCTION IS RECURSIVE, SHOULD BE AVOIDED IN FAVOR OF TRANSPARANCY
 %
-% See also SPECEST_MTMFFT, SPECEST_TFR, SPECEST_HILBERT, SPECEST_MTMWELCH, SPECEST_MTMCONVOL, SPECEST_MVAR, SPECEST_WLTCONVOL
+% See also SPECEST_MTMFFT, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_MTMCONVOL, SPECEST_MVAR, SPECEST_WAVELET
 
 % Copyright (C) 2008, Robert Oostenveld
 %
@@ -37,7 +37,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 1546 2010-08-24 08:52:52Z roboos $
+% $Id: specest_nanfft.m 1880 2010-10-07 15:06:37Z roevdmei $
 
 % get the optional arguments
 basis     = keyval('basis',     varargin);

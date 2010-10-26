@@ -24,7 +24,7 @@ function fieldtripdefs
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtripdefs.m 1419 2010-07-16 07:04:14Z roboos $
+% $Id: fieldtripdefs.m 1939 2010-10-18 07:37:11Z roboos $
 
 % set the global defaults, the checkconfig function will copy these into the local configurations
 global ft_default
@@ -93,11 +93,6 @@ end
 
 try
   % numerous functions depend on this module
-  hastoolbox('forwinv', 1, 1);
-end
-
-try
-  % numerous functions depend on this module
   hastoolbox('inverse', 1, 1);
 end
 
@@ -116,4 +111,9 @@ try
   % this contains specific code and examples for realtime processing
   hastoolbox('realtime', 3, 1);             % not required
   hastoolbox('realtime/datasource', 3, 1);  % not required
+end
+
+try 
+  % this contains intermediate-level functions for spectral analysis
+  hastoolbox('specest', 1, 1);
 end

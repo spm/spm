@@ -46,7 +46,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 1620 2010-09-06 13:22:04Z stekla $
+% $Id: ft_write_data.m 1962 2010-10-26 09:56:10Z stekla $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -597,6 +597,18 @@ switch dataformat
       % the following code snippet can be used for testing
       ncs2 = read_neuralynx_ncs(filename, 1, inf);
     end
+    
+  case 'gdf'
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+    if ~isempty(chanindx)
+      % assume that the header corresponds to the original multichannel
+      % file and that the data represents a subset of channels
+      hdr.label  = hdr.label(chanindx);
+      hdr.nChans = length(chanindx);
+    end
+    write_gdf(filename, hdr, dat);
     
   otherwise
     error('unsupported data format');
