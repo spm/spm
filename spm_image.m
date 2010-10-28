@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_image.m 4103 2010-10-28 15:43:16Z john $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 3691 $');
+    spm('FnBanner',mfilename,'$Rev: 4103 $');
 
     % get the image's filename {P}
     %----------------------------------------------------------------------
@@ -271,7 +271,7 @@ if strcmp(op,'update_info'),
 
     tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
 
-    if sum(tmp(:).^2)>1e-8,
+    if sum(tmp(:).^2)>1e-5,
         set(st.posinf.w, 'String', 'Warning: shears involved');
     else
         set(st.posinf.w, 'String', '');

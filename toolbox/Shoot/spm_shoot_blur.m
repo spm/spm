@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4026 2010-07-29 13:45:50Z john $
+% $Id: spm_shoot_blur.m 4103 2010-10-28 15:43:16Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 12;                            end; % Maximum no. iterations
@@ -148,7 +148,7 @@ for i=1:its,
 
     fprintf('%d\t%g\t%g\t%g\t%g\t%g\t%g\n', i, ll/prod(d(1:3)),ll1/prod(d(1:3)), (ll+ll1)/prod(d(1:3)), ss2/ss1, mx, ss2/prod(d(1:3)));
 
-    reg = double(0.1*sqrt(mx));
+    reg = double(0.1*sqrt(mx)*d(4));
    %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
     a   = a - optimN(W,gr,[prm(1:6) prm(7)+reg rits]); % Gauss-Newton update
 
