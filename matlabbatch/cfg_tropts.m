@@ -1,6 +1,6 @@
 function tropts = cfg_tropts(stopspec, clvl, mlvl, cnt, mcnt, dflag)
 
-% function tropts = cfg_tropts(stopspec, clvl, mlvl, cnt, mcnt)
+% function tropts = cfg_tropts(stopspec, clvl, mlvl, cnt, mcnt, dflag)
 % This function is a shorthand that generates a traversal options structure
 % from the following items:
 % stopspec -   a find spec shorthand as input to cfg_findspec (see
@@ -16,9 +16,9 @@ function tropts = cfg_tropts(stopspec, clvl, mlvl, cnt, mcnt, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_tropts.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_tropts.m 4102 2010-10-28 10:47:15Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4102 $'; %#ok
 
 if nargin == 0
     tropts = struct('stopspec', {}, 'clvl', {}, 'mlvl', {}, 'cnt', {}, 'mcnt', {}, 'dflag', {});

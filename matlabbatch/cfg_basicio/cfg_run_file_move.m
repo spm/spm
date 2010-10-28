@@ -11,9 +11,9 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 4059 2010-09-01 15:09:44Z volkmar $
+% $Id: cfg_run_file_move.m 4102 2010-10-28 10:47:15Z volkmar $
 
-rev = '$Rev: 4059 $'; %#ok
+rev = '$Rev: 4102 $'; %#ok
 
 action = fieldnames(job.action);
 action = action{1};
@@ -30,10 +30,12 @@ if strcmp(action, 'delete')
         end
         todelete{end+1} = fullfile(p, [n e]);
     end
-    ws = warning;
-    warning off;
-    delete(todelete{:});
-    warning(ws);
+    if ~isempty(todelete)
+        ws = warning;
+        warning off;
+        delete(todelete{:});
+        warning(ws);
+    end
     out = [];
 else
     % copy or move
