@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 3978 2010-07-08 14:26:39Z vladimir $
+% $Id: checkmeeg.m 4104 2010-10-29 17:10:57Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -135,6 +135,11 @@ else
     else
         [meegstruct.channels(find(cellfun('isempty', {meegstruct.channels.bad}))).bad] = deal(0);
     end
+    
+    for i = 1:Nchannels
+        meegstruct.channels(i).bad = double(~~meegstruct.channels(i).bad);
+    end            
+    
     if ~isfield(meegstruct.channels, 'type')
         disp('checkmeeg: no channel type, assigning default');
         [meegstruct.channels.type] = deal('Other');
