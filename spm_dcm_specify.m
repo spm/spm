@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4100 2010-10-22 19:49:17Z karl $
+% $Id: spm_dcm_specify.m 4105 2010-10-31 21:47:01Z christophe $
 
 
 %-Interactive window
@@ -159,7 +159,7 @@ for i = 1:m
             set(h3(i,j),'enable','on','TooltipString', ...
                 sprintf('from %s to %s',xY(j).name,xY(i).name));
         end
-        if n
+        if n && i~=j
             set(h3(i,j),'Value',0);
         else
             set(h3(i,j),'Value',1);
