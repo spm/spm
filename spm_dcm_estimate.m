@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4100 2010-10-22 19:49:17Z karl $
+% $Id: spm_dcm_estimate.m 4108 2010-11-02 20:24:02Z karl $
  
  
 %-Load DCM structure
@@ -284,7 +284,7 @@ if DCM.options.stochastic
     
     % Helpful suggestion
     %----------------------------------------------------------------------
-    if length(DCM.F) < 4
+    if length(DEM.F) < 4
         disp('This inversion may have been unstable;')
         disp('try reducing DCM.options.s to 1/4')
     end
