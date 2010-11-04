@@ -144,13 +144,13 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_sourceplot.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
-%%% checkdata see below!!! %%%
+%%% ft_checkdata see below!!! %%%
 
 % set default for inputfile
 if ~isfield(cfg, 'inputfile'), cfg.inputfile                  = [];    end
@@ -240,7 +240,7 @@ if ischar(data)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
 
 % select the functional and the mask parameter
 cfg.funparameter  = parameterselection(cfg.funparameter, data);
@@ -1031,7 +1031,7 @@ title(cfg.title);
 set(gcf, 'renderer', cfg.renderer);
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % handle_ortho makes an overlay of 3D anatomical, functional and probability

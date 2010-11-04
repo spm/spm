@@ -167,7 +167,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 1446 2010-07-22 15:13:17Z jansch $
+% $Id: ft_preprocessing.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -182,7 +182,7 @@ elseif nargin==1 && isequal(cfg, 'guidelines')
   return
 end
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'method'),       cfg.method = 'trial';         end
@@ -231,11 +231,11 @@ if isfield(cfg, 'lnfilter') && strcmp(cfg.lnfilter, 'yes')
 end
 
 % this option has been renamed?
-cfg = checkconfig(cfg, 'renamed', {'output', 'export'});
+cfg = ft_checkconfig(cfg, 'renamed', {'output', 'export'});
 
 %this relates to a previous fix to handle 32 bit neuroscan data
 if isfield(cfg, 'nsdf'),
-  %FIXME this should be handled by checkconfig, but checkconfig does not allow yet for
+  %FIXME this should be handled by ft_checkconfig, but ft_checkconfig does not allow yet for
   %specific errors in the case of forbidden fields
   error('the use of cfg.nsdf is deprecated. fieldtrip tries to determine the bit resolution automatically. you can overrule this by specifying cfg.dataformat and cfg.headerformat. see: http://fieldtrip.fcdonders.nl/faq/i_have_problems_reading_in_neuroscan_.cnt_files._how_can_i_fix_this');
 end
@@ -264,10 +264,10 @@ if hasdata
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % the input data must be raw
-  data = checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes', 'hastrialdef', 'yes');
+  data = ft_checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes', 'hastrialdef', 'yes');
 
   % check if the input cfg is valid for this function
-  cfg = checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
+  cfg = ft_checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
 
   if cfg.padding>0
     error('cfg.padding should be zero, since filter padding is only possible while reading the data from file');
@@ -278,7 +278,7 @@ if hasdata
 
   % select trials of interest
   if ~strcmp(cfg.trials, 'all')
-    data = selectdata(data, 'rpt', cfg.trials);
+    data = ft_selectdata(data, 'rpt', cfg.trials);
   end
 
   % translate the channel groups (like 'all' and 'MEG') into real labels
@@ -295,16 +295,16 @@ if hasdata
   if isfield(data, 'sampleinfo'),  dataout.sampleinfo  = data.sampleinfo;  end
   if isfield(data, 'trialinfo'), dataout.trialinfo = data.trialinfo; end
   
-  progress('init', cfg.feedback, 'preprocessing');
+  ft_progress('init', cfg.feedback, 'preprocessing');
   ntrl = length(data.trial);
   dataout.trial = cell(1, ntrl);
   dataout.time  = cell(1, ntrl);
   for i=1:ntrl
-    progress(i/ntrl, 'preprocessing trial %d from %d\n', i, ntrl);
+    ft_progress(i/ntrl, 'preprocessing trial %d from %d\n', i, ntrl);
     % do the preprocessing on the selected channels
     [dataout.trial{i}, dataout.label, dataout.time{i}, cfg] = preproc(data.trial{i}(rawindx,:), data.label(rawindx), data.fsample, cfg, data.offset(i));
   end % for all trials
-  progress('close');
+  ft_progress('close');
 
 else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -316,10 +316,10 @@ else
   end
 
   % check if the input cfg is valid for this function
-  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-  cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-  cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+  cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
   % read the header
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
@@ -445,9 +445,9 @@ else
 
     fprintf('processing channel { %s}\n', sprintf('''%s'' ', hdr.label{rawindx}));
 
-    progress('init', cfg.feedback, 'reading and preprocessing');
+    ft_progress('init', cfg.feedback, 'reading and preprocessing');
     for i=1:ntrl
-      progress(i/ntrl, 'reading and preprocessing trial %d from %d\n', i, ntrl);
+      ft_progress(i/ntrl, 'reading and preprocessing trial %d from %d\n', i, ntrl);
       % non-zero padding is used for filtering and line noise removal
       nsamples = cfg.trl(i,2)-cfg.trl(i,1)+1;
       if nsamples>padding
@@ -507,7 +507,7 @@ else
       end
 
     end % for all trials
-    progress('close');
+    ft_progress('close');
 
     dataout                    = [];
     dataout.hdr                = hdr;                  % header details of the datafile
@@ -532,7 +532,7 @@ end % if hasdata
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 try
@@ -543,7 +543,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_preprocessing.m 1446 2010-07-22 15:13:17Z jansch $';
+cfg.version.id   = '$Id: ft_preprocessing.m 2003 2010-10-29 09:54:18Z jansch $';
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

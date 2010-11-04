@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 1915 2010-10-12 11:58:06Z jansch $
+% $Id: ft_read_headshape.m 1981 2010-10-27 10:47:32Z jansch $
 
 % test whether the file exists
 if ~exist(filename)
@@ -253,7 +253,7 @@ switch fileformat
 
   case {'freesurfer_triangle_binary', 'freesurfer_quadrangle'}
     % the freesurfer toolbox is required for this
-    hastoolbox('freesurfer', 1);
+    ft_hastoolbox('freesurfer', 1);
     [pnt, tri] = read_surf(filename);
     if min(tri(:)) == 0
       % start counting from 1

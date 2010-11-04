@@ -61,12 +61,12 @@ function [mri] = ft_volumerealign(cfg, mri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_volumerealign.m 2065 2010-11-03 10:15:17Z arjsto $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'renamedval', {'method', 'realignfiducial', 'fiducial'});
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial', 'fiducial'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'fiducial'),  cfg.fiducial = [];         end
@@ -81,12 +81,12 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    mri = loadvar(cfg.inputfile, 'data');
+    mri = loadvar(cfg.inputfile, 'mri');
   end
 end
 
 % check if the input data is valid for this function
-mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
+mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 
 if ~isfield(cfg, 'method')
   if ~isempty(cfg.fiducial)
@@ -221,7 +221,7 @@ mri.transform = realign * mri.transform;
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -232,14 +232,14 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumerealign.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_volumerealign.m 2065 2010-11-03 10:15:17Z arjsto $';
 
 % remember the configuration
 mri.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', mri); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'mri', mri); % use the variable name "data" in the output file
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

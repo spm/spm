@@ -68,17 +68,17 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_singleplotER.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 cla
 
 % for backward compatibility with old data structures
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i});
+  varargin{i} = ft_checkdata(varargin{i});
 end
 
 % set the defaults:
@@ -169,7 +169,7 @@ elseif (~isfield(cfg, 'yparam')) && (isfield(cfg, 'zparam'))
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported:
-cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
+cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Check for unconverted coherence spectrum data or any other bivariate metric:
 dimtok  = tokenize(varargin{1}.dimord, '_');
@@ -248,8 +248,8 @@ if ~isfield(cfg,'channel')
   % set the default
   cfg.channel = 'all';
   % for backward compatibility
-  cfg = checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
-  cfg = checkconfig(cfg, 'renamed', {'channelname',   'channel'});
+  cfg = ft_checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
+  cfg = ft_checkconfig(cfg, 'renamed', {'channelname',   'channel'});
 end
 
 hold on;
@@ -346,7 +346,7 @@ if ~isempty(cfg.renderer)
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

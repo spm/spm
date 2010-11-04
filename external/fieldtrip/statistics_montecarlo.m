@@ -97,19 +97,19 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: statistics_montecarlo.m 2006 2010-10-29 10:01:02Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
-cfg = checkconfig(cfg, 'renamed',     {'unitfactor',       'uvar'});
-cfg = checkconfig(cfg, 'renamed',     {'repeatedmeasures', 'uvar'});
-cfg = checkconfig(cfg, 'renamedval',  {'clusterthreshold', 'nonparametric', 'nonparametric_individual'});
-cfg = checkconfig(cfg, 'renamedval',  {'correctm', 'yes', 'max'});
-cfg = checkconfig(cfg, 'required',    {'statistic'});
-cfg = checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
-cfg = checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'unitfactor',       'uvar'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'repeatedmeasures', 'uvar'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'clusterthreshold', 'nonparametric', 'nonparametric_individual'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'yes', 'max'});
+cfg = ft_checkconfig(cfg, 'required',    {'statistic'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
 
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha    = 0.05;            end
@@ -134,7 +134,7 @@ if strcmp(cfg.correctm, 'cluster')
   if ~isfield(cfg, 'clustertail'),         cfg.clustertail = cfg.tail;          end
 else
   % these options only apply to clustering, to ensure appropriate configs they are forbidden when _not_ clustering
-  cfg = checkconfig(cfg, 'unused', {'clusterstatistic', 'clusteralpha', 'clustercritval', 'clusterthreshold', 'clustertail', 'neighbours'});
+  cfg = ft_checkconfig(cfg, 'unused', {'clusterstatistic', 'clusteralpha', 'clustercritval', 'clusterthreshold', 'clustertail', 'neighbours'});
 end
 
 % for backward compatibility and other warnings relating correcttail
@@ -144,7 +144,7 @@ if isfield(cfg,'correctp') && strcmp(cfg.correctp,'yes')
   cfg.correcttail = 'prob';
   cfg = rmfield(cfg,'correctp');
 elseif isfield(cfg,'correctp') && strcmp(cfg.correctp,'no')
-  cfg = checkconfig(cfg, 'renamed', {'correctp', 'correcttail'});
+  cfg = ft_checkconfig(cfg, 'renamed', {'correctp', 'correcttail'});
 elseif strcmp(cfg.correcttail,'no') && cfg.tail==0 && cfg.alpha==0.05
   warning('doing a two-sided test without correcting p-values or alpha-level, p-values and alpha-level will reflect one-sided tests per tail')
 end
@@ -196,7 +196,7 @@ if strcmp(cfg.correctm, 'cluster')
     fprintf('using a nonparmetric threshold for clustering\n');
     cfg.clustercritval = [];  % this will be determined later
   elseif strcmp(cfg.clusterthreshold, 'parametric') && isempty(cfg.clustercritval)
-    fprintf('computing a parmetric threshold for clustering\n');
+    fprintf('computing a parametric threshold for clustering\n');
     tmpcfg = [];
     tmpcfg.dimord         = cfg.dimord;
     tmpcfg.dim            = cfg.dim;
@@ -223,7 +223,7 @@ if strcmp(cfg.correctm, 'cluster')
 end
 
 % compute the statistic for the observed data
-progress('init', cfg.feedback, 'computing statistic');
+ft_progress('init', cfg.feedback, 'computing statistic');
 % get an estimate of the time required per evaluation of the statfun
 time_pre = cputime;
 
@@ -274,7 +274,7 @@ end
 
 % compute the statistic for the randomized data and count the outliers
 for i=1:Nrand
-  progress(i/Nrand, 'computing statistic %d from %d\n', i, Nrand);
+  ft_progress(i/Nrand, 'computing statistic %d from %d\n', i, Nrand);
   if strcmp(cfg.resampling, 'permutation')
     tmpdesign = design(:,resample(i,:));     % the columns in the design matrix are reshufled by means of permutation
     tmpdat    = dat;                        % the data itself is not shuffled
@@ -314,7 +314,7 @@ for i=1:Nrand
     end
   end
 end
-progress('close');
+ft_progress('close');
 
 if strcmp(cfg.correctm, 'cluster')
   % do the cluster postprocessing

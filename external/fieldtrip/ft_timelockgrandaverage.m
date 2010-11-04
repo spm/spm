@@ -41,11 +41,11 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 1685 2010-09-16 13:28:31Z sashae $
+% $Id: ft_timelockgrandaverage.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
@@ -64,7 +64,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
 end
 
 % set the defaults
@@ -173,7 +173,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -184,7 +184,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockgrandaverage.m 1685 2010-09-16 13:28:31Z sashae $';
+cfg.version.id = '$Id: ft_timelockgrandaverage.m 2003 2010-10-29 09:54:18Z jansch $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

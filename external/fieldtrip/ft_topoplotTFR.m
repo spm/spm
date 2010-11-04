@@ -1,6 +1,6 @@
 function [cfg] = ft_topoplotTFR(cfg, varargin)
 
-% FT_TOPOPLOTTFR plots the topographic distribution of 3-Dimensional datatypes as 
+% FT_TOPOPLOTTFR plots the topographic distribution of 3-Dimensional ft_datatypes as 
 % the time-frequency representation of power or coherence that was computed
 % using the FT_FREQANALYSIS or FT_FREQDESCRIPTIVES functions, as a 2-D circular
 % view (looking down at the top of the head).
@@ -110,6 +110,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_topoplotTFR.m 1976 2010-10-27 10:38:57Z jansch $
 
 cfg=ft_topoplotER(cfg, varargin{:});

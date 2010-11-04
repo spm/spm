@@ -42,13 +42,13 @@ function cfg = ft_interactiverealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interactiverealign.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_interactiverealign.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'required',    {'individual', 'template'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'required',    {'individual', 'template'});
 
 if ~isfield(cfg.individual, 'vol'),              cfg.individual.vol = [];                   end
 if ~isfield(cfg.individual, 'elec'),             cfg.individual.elec = [];                  end
@@ -103,7 +103,7 @@ norm = tmp;
 clear tmp
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -114,7 +114,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_interactiverealign.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_interactiverealign.m 1974 2010-10-27 10:36:50Z jansch $';
 
 % remember the transform
 cfg.m = norm.m;

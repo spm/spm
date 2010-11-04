@@ -133,7 +133,7 @@ else
 end
 
 % start the scanning with the proper metric
-progress('init', feedback, 'beaming sources\n');
+ft_progress('init', feedback, 'beaming sources\n');
 
 for i=1:size(dip.pos,1)
   if isfield(dip, 'leadfield') && ~isfield(dip, 'mom'),
@@ -186,10 +186,10 @@ for i=1:size(dip.pos,1)
     dipout.leadfield{i} = lf;
   end
 
-  progress(i/size(dip.pos,1), 'beaming source %d from %d\n', i, size(dip.pos,1));
+  ft_progress(i/size(dip.pos,1), 'beaming source %d from %d\n', i, size(dip.pos,1));
 end % for all dipoles
 
-progress('close');
+ft_progress('close');
 
 dipout.inside  = dip.originside;
 dipout.outside = dip.origoutside;
@@ -231,7 +231,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 919 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 1983 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

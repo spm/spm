@@ -59,14 +59,14 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 1791 2010-09-28 07:57:02Z jansch $
+% $Id: ft_sourcegrandaverage.m 2062 2010-11-03 10:10:06Z arjsto $
 
 if 1,
   % original implementation
 
   fieldtripdefs
 
-  cfg = checkconfig(cfg, 'trackconfig', 'on');
+  cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
   % set the defaults
   if ~isfield(cfg, 'parameter'),      cfg.parameter = 'pow';     end
@@ -89,14 +89,14 @@ if 1,
       error('cfg.inputfile should not be used in conjunction with giving input data to this function');
     else
       for i=1:numel(cfg.inputfile)
-        varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
+        varargin{i} = loadvar(cfg.inputfile{i}, 'source'); % read datasets from array inputfile
       end
     end
   end
 
   % check if the input data is valid for this function
   for i=1:length(varargin)
-    varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no');
+    varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no');
   end
 
   Nsubject = length(varargin);
@@ -265,7 +265,7 @@ if 1,
 
   cfg.outputfile;
   % get the output cfg
-  cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+  cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
   % add version information to the configuration
   try
@@ -276,7 +276,7 @@ if 1,
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 1791 2010-09-28 07:57:02Z jansch $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2062 2010-11-03 10:10:06Z arjsto $';
   % remember the configuration details of the input data
   cfg.previous = [];
   for i=1:Nsubject
@@ -287,7 +287,7 @@ if 1,
 
   % the output data should be saved to a MATLAB file
   if ~isempty(cfg.outputfile)
-    savevar(cfg.outputfile, 'data', grandavg); % use the variable name "data" in the output file
+    savevar(cfg.outputfile, 'source', grandavg); % use the variable name "data" in the output file
   end
 
 else
@@ -295,8 +295,8 @@ else
 
   fieldtripdefs
 
-  cfg = checkconfig(cfg, 'trackconfig', 'on');
-  cfg = checkconfig(cfg, 'deprecated', {'concatenate', 'randomization', 'permutation', 'c1', 'c2'});
+  cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+  cfg = ft_checkconfig(cfg, 'deprecated', {'concatenate', 'randomization', 'permutation', 'c1', 'c2'});
   
   % set the defaults
   if ~isfield(cfg, 'parameter'),      cfg.parameter = 'pow';     end
@@ -310,14 +310,14 @@ else
       error('cfg.inputfile should not be used in conjunction with giving input data to this function');
     else
       for i=1:numel(cfg.inputfile)
-        varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
+        varargin{i} = loadvar(cfg.inputfile{i}, 'source'); % read datasets from array inputfile
       end
     end
   end
 
   % check if the input data is valid for this function
   for i=1:length(varargin)
-    varargin{i} = checkdata(varargin{i}, 'datatype', {'source'}, 'feedback', 'no', ...
+    varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source'}, 'feedback', 'no', ...
                                          'sourcerepresentation', 'new');
     %FIXME also allow volume structures to be used
   end
@@ -341,14 +341,14 @@ else
   end
 
   if strcmp(cfg.keepindividual, 'yes')
-    grandavg = selectdata(varargin{:}, 'param', cfg.parameter);
+    grandavg = ft_selectdata(varargin{:}, 'param', cfg.parameter);
   else
-    grandavg = selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', 'yes');  
+    grandavg = ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', 'yes');  
   end
  
   cfg.outputfile;
   % get the output cfg
-  cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+  cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
   % add version information to the configuration
   try
@@ -356,7 +356,7 @@ else
     cfg.version.name = mfilename('fullpath');
   catch
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 1791 2010-09-28 07:57:02Z jansch $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2062 2010-11-03 10:10:06Z arjsto $';
   % remember the configuration details of the input data
   cfg.previous = [];
   for i=1:Nsubject
@@ -370,7 +370,7 @@ else
 
   % the output data should be saved to a MATLAB file
   if ~isempty(cfg.outputfile)
-    savevar(cfg.outputfile, 'data', grandavg); % use the variable name "data" in the output file
+    savevar(cfg.outputfile, 'source', grandavg); % use the variable name "data" in the output file
   end
 
 end

@@ -44,7 +44,7 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_prepare_bemmodel.m 1973 2010-10-27 10:35:18Z jansch $
 
 fieldtripdefs
 
@@ -106,7 +106,7 @@ if strcmp(cfg.method, 'dipoli')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % this uses an implementation that was contributed by Thom Oostendorp
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  hastoolbox('dipoli', 1);
+  ft_hastoolbox('dipoli', 1);
   
   % use the dipoli wrapper function
   vol = dipoli(vol, cfg.isolatedsource);
@@ -116,7 +116,7 @@ elseif strcmp(cfg.method, 'bemcp')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % this uses an implementation that was contributed by Christophe Philips
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  hastoolbox('bemcp', 1);
+  ft_hastoolbox('bemcp', 1);
   
   % do some sanity checks
   if length(vol.bnd)~=3
@@ -221,7 +221,7 @@ elseif strcmp(cfg.method, 'openmeeg')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % this uses an implementation that was contributed by INRIA Odyssee Team
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if ~hastoolbox('openmeeg');
+  if ~ft_hastoolbox('openmeeg');
     web('http://gforge.inria.fr/frs/?group_id=435')
     error('OpenMEEG toolbox needs to be installed!')
   else
@@ -234,7 +234,7 @@ elseif strcmp(cfg.method, 'brainstorm')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % this uses an implementation from the BrainStorm toolbox
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  hastoolbox('brainstorm', 1);
+  ft_hastoolbox('brainstorm', 1);
   error('not yet implemented');
   
 else

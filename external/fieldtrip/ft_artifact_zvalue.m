@@ -22,7 +22,7 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %   cfg.headerfile
 %   cfg.headerfile
 %   cfg.datafile
-%   cfg.datatype
+%   cfg.ft_datatype
 %
 % If you are calling FT_ARTIFACT_ZVALUE with also the second input argument
 % "data", then that should contain data that was already read from file in
@@ -82,7 +82,7 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 1038 2010-05-05 15:48:52Z timeng $
+% $Id: ft_artifact_zvalue.m 1979 2010-10-27 10:41:29Z jansch $
 
 fieldtripdefs
 
@@ -116,7 +116,7 @@ thresholdsum = strcmp(cfg.artfctdef.zvalue.cumulative, 'yes');
 if nargin > 1
   % data given as input
   isfetch = 1;
-  hdr = fetch_header(data);
+  hdr = ft_fetch_header(data);
 elseif nargin == 1
   % only cfg given
   isfetch = 0;
@@ -160,7 +160,7 @@ fprintf('searching trials');
 for trlop = 1:numtrl
   fprintf('.');
   if isfetch
-    dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
+    dat{trlop} = ft_fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
   else
     dat{trlop} = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'), 'dataformat', cfg.dataformat);
   end
@@ -206,7 +206,7 @@ end % for trlop
 %  for trlop = 1:numtrl
 %    fprintf('.');
 %    if isfetch
-%      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
+%      dat{trlop} = ft_fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
 %    else
 %      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
 %    end
@@ -356,6 +356,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 1038 2010-05-05 15:48:52Z timeng $';
+cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 1979 2010-10-27 10:41:29Z jansch $';
 
 

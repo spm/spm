@@ -34,7 +34,7 @@ function [data] = ft_appendspike(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_appendspike.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -47,7 +47,7 @@ end
 if all(isspike)
   spike = {};
   for i=1:length(varargin)
-    spike{i} = checkdata(varargin{i}, 'datatype', 'spike');
+    spike{i} = ft_checkdata(varargin{i}, 'datatype', 'spike');
   end
 
   % check the validity of the channel labels
@@ -70,7 +70,7 @@ if all(isspike)
 
 else
   % this checks the validity of the input data and simultaneously renames it for convenience
-  data  = varargin{1}; % checkdata(varargin{1}, 'datatype', 'raw');
+  data  = varargin{1}; % ft_checkdata(varargin{1}, 'datatype', 'raw');
   spike = ft_appendspike([], varargin{2:end}); 
 
   % check the validity of the channel labels
@@ -79,7 +79,7 @@ else
     error('not all channel labels are unique');
   end
 
-  trl = findcfg(data.cfg, 'trl');
+  trl = ft_findcfg(data.cfg, 'trl');
   if isempty(trl);
     error('could not find the trial information in the continuous data');
   end
@@ -127,7 +127,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appendspike.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_appendspike.m 2003 2010-10-29 09:54:18Z jansch $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

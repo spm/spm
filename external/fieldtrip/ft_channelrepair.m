@@ -39,11 +39,11 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 1685 2010-09-16 13:28:31Z sashae $
+% $Id: ft_channelrepair.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the default configuration
 if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4;         end
@@ -63,12 +63,12 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 % determine the type of data
@@ -144,7 +144,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 try
@@ -155,7 +155,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_channelrepair.m 1685 2010-09-16 13:28:31Z sashae $';
+cfg.version.id   = '$Id: ft_channelrepair.m 2003 2010-10-29 09:54:18Z jansch $';
 % remember the configuration details of the input data
 
 % remember the configuration details of the input data

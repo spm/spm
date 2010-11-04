@@ -29,7 +29,7 @@ function [atlas] = ft_prepare_atlas(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_prepare_atlas.m 1973 2010-10-27 10:35:18Z jansch $
 
 fieldtripdefs
 
@@ -46,7 +46,7 @@ end
 
 if useafni
   % check whether the required AFNI toolbox is available
-  hastoolbox('afni', 1);
+  ft_hastoolbox('afni', 1);
 
   atlas = ft_read_mri(filename);
 

@@ -49,17 +49,17 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_topoplotCC.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
 
 % check if the input data is valid for this function
-freq = checkdata(freq, 'cmbrepresentation', 'sparse');
+freq = ft_checkdata(freq, 'cmbrepresentation', 'sparse');
 
 % check if the input configuration is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'required', {'foi', 'layout'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'required', {'foi', 'layout'});
 
 % set the defaults
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text';        end
@@ -164,7 +164,7 @@ end % if newfigure
 % fix the limits for the axis
 axis(axis);
 
-progress('init', cfg.feedback, 'plotting connections...');
+ft_progress('init', cfg.feedback, 'plotting connections...');
 
 for i=1:ncmb
 
@@ -173,7 +173,7 @@ for i=1:ncmb
     continue
   end
 
-  progress(i/ncmb, 'plotting connection %d from %d (%s -> %s)\n', i, ncmb, beglabel{i}, endlabel{i});
+  ft_progress(i/ncmb, 'plotting connection %d from %d (%s -> %s)\n', i, ncmb, beglabel{i}, endlabel{i});
 
   if widthparam(i)>0
     begindx = strmatch(beglabel{i}, lay.label);
@@ -218,13 +218,13 @@ for i=1:ncmb
 
   end
 end
-progress('close');
+ft_progress('close');
 
 % improve the fit in the axis
 axis tight
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 if nargout<1
   clear cfg

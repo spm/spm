@@ -91,7 +91,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_timelockanalysis.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -119,11 +119,11 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
 
 % convert average to raw data for convenience, the output will be an average again
 % the purpose of this is to allow for repeated baseline correction, filtering and other preproc options that timelockanalysis supports
@@ -132,13 +132,13 @@ data = data2raw(data);
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);  
+  data = ft_selectdata(data, 'rpt', cfg.trials);  
 end
 
 ntrial = length(data.trial);
 
 % ensure that the preproc specific options are located in the cfg.preproc substructure
-cfg = checkconfig(cfg, 'createsubcfg',  {'preproc'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
 
 % preprocess the data, i.e. apply filtering, baselinecorrection, etc.
 fprintf('applying preprocessing options\n');
@@ -321,11 +321,11 @@ if (strcmp(cfg.keeptrials,'yes'))
   singtrial = nan*zeros(ntrial, nchan, maxwin);
 end
 
-progress('init', cfg.feedback, 'averaging trials');
+ft_progress('init', cfg.feedback, 'averaging trials');
 % do all the computations
 for i=1:ntrial
   % fprintf('averaging trial %d of %d\n', i, ntrial);
-  progress(i/ntrial, 'averaging trial %d of %d\n', i, ntrial);
+  ft_progress(i/ntrial, 'averaging trial %d of %d\n', i, ntrial);
 
   % determine whether the data in this trial can be used for all the requested computations
   switch cfg.vartrllength
@@ -404,7 +404,7 @@ for i=1:ntrial
     end
   end
 end % for ntrial
-progress('close');
+ft_progress('close');
 
 % compute the average
 if ~any(numsamples)
@@ -490,7 +490,7 @@ if isfield(data, 'elec')
 end
 if isfield(data, 'trialinfo') && strcmp(cfg.keeptrials, 'yes')
   % copy the trialinfo into the output
-  % but not the trialdef
+  % but not the sampleinfo
   timelock.trialinfo = data.trialinfo;
 end
 
@@ -499,7 +499,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -510,7 +510,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockanalysis.m 1764 2010-09-23 12:52:25Z sashae $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

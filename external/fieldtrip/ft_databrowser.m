@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_databrowser.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -90,16 +90,16 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
   if ~isfield(cfg, 'continuous') && length(data.trial) == 1
     cfg.continuous = 'yes';
   end
 else
   % check if the input cfg is valid for this function
-  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-  cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-  cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+  cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 end
 
 % this is the default for cfg.channelcolormap
@@ -132,10 +132,10 @@ end
 % get some initial parameters from the data
 if hasdata
   % fetch the header
-  hdr = fetch_header(data);
+  hdr = ft_fetch_header(data);
   
   % fetch the events
-  event = fetch_event(data);
+  event = ft_fetch_event(data);
   
   cfg.channel = ft_channelselection(cfg.channel, data.label);
   chansel = match_str(data.label, cfg.channel);
@@ -416,7 +416,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_databrowser.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_databrowser.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')
@@ -459,7 +459,7 @@ else
     thissample = thistrlbeg;
   end
   % look at opt.cfg.blocksize and make opt.trl accordingly
-  % if original data contains more than one trial, it will fail in fetch_data
+  % if original data contains more than one trial, it will fail in ft_fetch_data
   datbegsample = min(opt.trlorg(:,1));
   datendsample = max(opt.trlorg(:,2));
   smppertrl  = round(opt.fsample * opt.cfg.blocksize);
@@ -586,7 +586,7 @@ elseif strcmp(opt.cfg.selectmode, 'eval')
   % cut out the requested data segment
   seldata.label    = opt.curdat.label;
   seldata.time{1}  = offset2time(offset+begsel-begsample, opt.fsample, endsel-begsel+1);
-  seldata.trial{1} = fetch_data(opt.curdat, 'begsample', begsel, 'endsample', endsel);
+  seldata.trial{1} = ft_fetch_data(opt.curdat, 'begsample', begsel, 'endsample', endsel);
   seldata.fsample  = opt.fsample;
   seldata.cfg.trl  = [begsel endsel offset];
   
@@ -837,12 +837,12 @@ if isempty(opt.orgdata)
   dat = ft_read_data(opt.cfg.datafile, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', strcmp(opt.cfg.continuous, 'no'), 'dataformat', opt.cfg.dataformat, 'headerformat', opt.cfg.headerformat);
 else
   fprintf('fetching data... ');
-  dat = fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
+  dat = ft_fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
 end
 fprintf('done\n');
 
 fprintf('fetching artifacts... ');
-art = fetch_data(opt.artdata, 'begsample', begsample, 'endsample', endsample);
+art = ft_fetch_data(opt.artdata, 'begsample', begsample, 'endsample', endsample);
 fprintf('done\n');
 
 % apply preprocessing and determine the time axis

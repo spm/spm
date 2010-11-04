@@ -45,7 +45,7 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 1261 2010-06-22 15:09:23Z roboos $
+% $Id: ft_combineplanar.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -70,11 +70,11 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar'});
+data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar'});
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'forbidden', {'combinegrad'});
-cfg = checkconfig(cfg, 'deprecated', {'baseline'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'forbidden', {'combinegrad'});
+cfg = ft_checkconfig(cfg, 'deprecated', {'baseline'});
 
 if isfield(cfg, 'baseline')
   warning('only supporting cfg.baseline for backwards compatibility, please update your cfg');
@@ -82,14 +82,14 @@ if isfield(cfg, 'baseline')
   cfg.blcwindow = cfg.baseline;
 end
 
-israw      = datatype(data, 'raw');
-isfreq     = datatype(data, 'freq');
-istimelock = datatype(data, 'timelock');
+israw      = ft_datatype(data, 'raw');
+isfreq     = ft_datatype(data, 'freq');
+istimelock = ft_datatype(data, 'timelock');
 try, dimord = data.dimord; end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
-  error('trial selection has not been implemented yet') % first fix checkdata (see above)
+  error('trial selection has not been implemented yet') % first fix ft_checkdata (see above)
 end
 
 % find the combination of horizontal and vertical channels that should be combined
@@ -159,9 +159,9 @@ if isfreq
         Ntim   = size(data.fourierspctrm,4);
         %fourier= complex(zeros(Nrpt,Nsgn,Nfrq,Ntim),zeros(Nrpt,Nsgn,Nfrq,Ntim));
         fourier= zeros(Nrpt,Nsgn,Nfrq,Ntim)+nan;
-        progress('init', cfg.feedback, 'computing the svd');
+        ft_progress('init', cfg.feedback, 'computing the svd');
         for j = 1:Nsgn
-          progress(j/Nsgn, 'computing the svd of signal %d/%d\n', j, Nsgn);
+          ft_progress(j/Nsgn, 'computing the svd of signal %d/%d\n', j, Nsgn);
           for k = 1:Nfrq
             dum = reshape(data.fourierspctrm(:,[sel_dH(j) sel_dV(j)],fbin(k),:), [Nrpt 2 Ntim]);
             dum = permute(dum, [2 3 1]);
@@ -179,7 +179,7 @@ if isfreq
             %end
           end
         end
-        progress('close');
+        ft_progress('close');
         other              = data.fourierspctrm(:,sel_other,fbin,:);
         data               = rmfield(data,'fourierspctrm');
         data.fourierspctrm = cat(2, fourier, other);
@@ -195,7 +195,7 @@ if isfreq
 elseif (israw || istimelock)
   if istimelock,
     % convert timelock to raw
-    data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+    data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
   end
   
   switch cfg.combinemethod
@@ -238,12 +238,12 @@ elseif (israw || istimelock)
   
   if istimelock,
     % convert raw to timelock
-    data = checkdata(data, 'datatype', 'timelock', 'feedback', 'yes');
+    data = ft_checkdata(data, 'datatype', 'timelock', 'feedback', 'yes');
   end
   
 else
   error('unsupported input data');
-end % which datatype
+end % which ft_datatype
 
 % remove the fields for which the planar gradient could not be combined
 try, data = rmfield(data, 'crsspctrm');   end
@@ -254,7 +254,7 @@ try, data = rmfield(data, 'labelcmb');    end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 try
@@ -265,7 +265,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: ft_combineplanar.m 1261 2010-06-22 15:09:23Z roboos $';
+cfg.version.id  = '$Id: ft_combineplanar.m 2003 2010-10-29 09:54:18Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 

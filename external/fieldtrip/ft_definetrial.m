@@ -79,13 +79,13 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_definetrial.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
   % there used to be other system specific trialfuns in previous versions
@@ -143,7 +143,7 @@ fprintf('created %d trials\n', size(trl,1));
 cfg.trl = trl;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add information about the version of this function to the configuration
 try
@@ -154,7 +154,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: ft_definetrial.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: ft_definetrial.m 1974 2010-10-27 10:36:50Z jansch $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

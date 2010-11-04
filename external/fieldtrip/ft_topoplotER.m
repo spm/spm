@@ -1,6 +1,6 @@
 function [cfg] = ft_topoplotER(cfg, varargin)
 
-% FT_TOPOPLOTER plots the topographic distribution of 2-Dimensional datatypes as
+% FT_TOPOPLOTER plots the topographic distribution of 2-Dimensional ft_datatypes as
 % event-related fields (ERF), potentials (ERP), the powerspectrum or coherence spectum
 % that was computed using the FT_TIMELOCKANALYSIS, FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS or
 % FT_FREQDESCRIPTIVES functions, as a 2-D circular view (looking down at the top of the head).
@@ -134,12 +134,12 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_topoplotER.m 2070 2010-11-03 14:51:20Z roevdmei $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 cla
 
@@ -166,41 +166,41 @@ else
 end
 
 % For backward compatibility with old data structures:
-data = checkdata(data);
+data = ft_checkdata(data);
 
 % check for option-values to be renamed
-cfg = checkconfig(cfg, 'renamedval',     {'electrodes',   'dotnum',    'numbers'});
-cfg = checkconfig(cfg, 'renamedval',     {'zlim',         'absmax',    'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval',     {'electrodes',   'dotnum',    'numbers'});
+cfg = ft_checkconfig(cfg, 'renamedval',     {'zlim',         'absmax',    'maxabs'});
 % check for renamed options
-cfg = checkconfig(cfg, 'renamed',     {'electrodes',    'marker'});
-cfg = checkconfig(cfg, 'renamed',     {'emarker',       'markersymbol'});
-cfg = checkconfig(cfg, 'renamed',     {'ecolor',        'markercolor'});
-cfg = checkconfig(cfg, 'renamed',     {'emarkersize',   'markersize'});
-cfg = checkconfig(cfg, 'renamed',     {'efontsize',     'markerfontsize'});
-cfg = checkconfig(cfg, 'renamed',     {'hlmarker',      'highlightsymbol'});
-cfg = checkconfig(cfg, 'renamed',     {'hlcolor',       'highlightcolor'});
-cfg = checkconfig(cfg, 'renamed',     {'hlmarkersize',  'highlightsize'});
-cfg = checkconfig(cfg, 'renamed',     {'maplimits',     'zlim'});
-% old checkconfig adapted partially from topoplot.m (backwards backwards compatability)
-cfg = checkconfig(cfg, 'renamed',     {'grid_scale',    'gridscale'});
-cfg = checkconfig(cfg, 'renamed',     {'interpolate',   'interpolation'});
-cfg = checkconfig(cfg, 'renamed',     {'numcontour',    'contournum'});
-cfg = checkconfig(cfg, 'renamed',     {'electrod',      'marker'});
-cfg = checkconfig(cfg, 'renamed',     {'electcolor',    'markercolor'});
-cfg = checkconfig(cfg, 'renamed',     {'emsize',        'markersize'});
-cfg = checkconfig(cfg, 'renamed',     {'efsize',        'markerfontsize'});
-cfg = checkconfig(cfg, 'renamed',     {'headlimits',    'interplimits'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'electrodes',    'marker'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'emarker',       'markersymbol'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'ecolor',        'markercolor'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'emarkersize',   'markersize'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'efontsize',     'markerfontsize'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'hlmarker',      'highlightsymbol'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'hlcolor',       'highlightcolor'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'hlmarkersize',  'highlightsize'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'maplimits',     'zlim'});
+% old ft_checkconfig adapted partially from topoplot.m (backwards backwards compatability)
+cfg = ft_checkconfig(cfg, 'renamed',     {'grid_scale',    'gridscale'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'interpolate',   'interpolation'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'numcontour',    'contournum'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'electrod',      'marker'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'electcolor',    'markercolor'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'emsize',        'markersize'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'efsize',        'markerfontsize'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'headlimits',    'interplimits'});
 
 % check for forbidden options
-cfg = checkconfig(cfg, 'forbidden',  {'hllinewidth'});
-cfg = checkconfig(cfg, 'forbidden',  {'headcolor'});
-cfg = checkconfig(cfg, 'forbidden',  {'hcolor'});
-cfg = checkconfig(cfg, 'forbidden',  {'hlinewidth'});
-cfg = checkconfig(cfg, 'forbidden',  {'contcolor'});
-cfg = checkconfig(cfg, 'forbidden',  {'outline'});
-cfg = checkconfig(cfg, 'forbidden',  {'highlightfacecolor'});
-cfg = checkconfig(cfg, 'forbidden',  {'showlabels'});
-cfg = checkconfig(cfg, 'forbidden',  {'hllinewidth'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'headcolor'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'hcolor'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'hlinewidth'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'contcolor'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'outline'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightfacecolor'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'showlabels'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth'});
 
 % Set other config defaults:
 if ~isfield(cfg, 'xlim'),                  cfg.xlim = 'maxmin';           end
@@ -299,9 +299,11 @@ elseif strcmp(data.dimord, 'chan_freq')
   if ~isfield(cfg, 'yparam'),      cfg.yparam='';             end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';    end
 elseif strcmp(data.dimord, 'subj_chan_time') || strcmp(data.dimord, 'rpt_chan_time')
-  tmpcfg = [];
-  tmpcfg.trials = cfg.trials;
-  data = ft_timelockanalysis(tmpcfg, data);
+  if ~isfield(data,'avg')
+    tmpcfg = [];
+    tmpcfg.trials = cfg.trials;
+    data = ft_timelockanalysis(tmpcfg, data);
+  end
   if ~isfield(cfg, 'xparam'),      cfg.xparam='time';         end
   if ~isfield(cfg, 'yparam'),      cfg.yparam='';             end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='avg';          end
@@ -770,7 +772,7 @@ hold off;
 axis equal;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

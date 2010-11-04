@@ -42,7 +42,7 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: besa2fieldtrip.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -127,7 +127,7 @@ if isstruct(input)
     %fprintf('BESA data export\n');
 
     if isfield(input,'datatype')
-      switch input.datatype
+      switch input.ft_datatype
         case {'Raw_Data','Epoched_Data','Segment'}
           data.fsample    = input.samplingrate;
           data.label      = input.channellabels';
@@ -136,7 +136,7 @@ if isstruct(input)
             data.trial{1,k} = input.data(k).amplitudes';
           end
         otherwise
-          fprintf('datatype other than Raw_Data, Epoched or Segment');
+          fprintf('ft_datatype other than Raw_Data, Epoched or Segment');
       end
     else
       fprintf('workspace created with earlier MATLAB version');
@@ -154,7 +154,7 @@ elseif ischar(input)
   % (with contributions from Karsten, Vladimir and Robert), or the official
   % released functions by Karsten Hoechstetter from BESA. The functions in the
   % official toolbox have precedence.
-  hasbesa = hastoolbox('besa',1, 1);
+  hasbesa = ft_hastoolbox('besa',1, 1);
 
   type = filetype(input);
 
@@ -384,7 +384,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: besa2fieldtrip.m 948 2010-04-21 18:02:21Z roboos $';
+cfg.version.id = '$Id: besa2fieldtrip.m 2003 2010-10-29 09:54:18Z jansch $';
 data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

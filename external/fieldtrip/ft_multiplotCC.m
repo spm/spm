@@ -35,7 +35,7 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_multiplotCC.m 1972 2010-10-27 10:33:46Z jansch $
 
 fieldtripdefs
 
@@ -45,7 +45,7 @@ if ~isfield(cfg, 'xlim'),      cfg.xlim   = 'all';               end;
 if ~isfield(cfg, 'zparam'),    cfg.zparam = 'avg.icohspctrm';    end;
 
 % for backward compatibility with old data structures
-data = checkdata(data);
+data = ft_checkdata(data);
 
 if strcmp(cfg.zparam, 'avg.icohspctrm') && ~issubfield(data, 'avg.icohspctrm'),
   data.avg.icohspctrm = abs(imag(data.avg.cohspctrm));

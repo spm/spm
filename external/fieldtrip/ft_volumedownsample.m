@@ -34,15 +34,15 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_volumedownsample.m 2064 2010-11-03 10:12:40Z arjsto $
 
 fieldtripdefs
 
-%% checkdata see below!!! %%
+%% ft_checkdata see below!!! %%
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'unused',  {'voxelcoord'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'unused',  {'voxelcoord'});
 
 if ~isfield(cfg, 'spmversion'), cfg.spmversion = 'spm8'; end
 if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
@@ -59,7 +59,7 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    source = loadvar(cfg.inputfile, 'data');
+    source = loadvar(cfg.inputfile, 'source');
   end
 end
 
@@ -73,7 +73,7 @@ if strcmp(cfg.keepinside, 'yes')
 end
 
 % check if the input data is valid for this function
-source = checkdata(source, 'datatype', 'volume', 'feedback', 'no');
+source = ft_checkdata(source, 'datatype', 'volume', 'feedback', 'no');
 
 %make local copy of source and remove all functional parameters
 param = parameterselection('all', source);
@@ -107,9 +107,9 @@ down = grid2transform(down);
 if ~strcmp(cfg.smooth, 'no'),
   % check if the required spm is in your path:
   if strcmpi(cfg.spmversion, 'spm2'),
-    hastoolbox('SPM2',1);
+    ft_hastoolbox('SPM2',1);
   elseif strcmpi(cfg.spmversion, 'spm8'),
-    hastoolbox('SPM8',1);
+    ft_hastoolbox('SPM8',1);
   end
 
   for j = 1:length(cfg.parameter)
@@ -145,7 +145,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -156,7 +156,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumedownsample.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_volumedownsample.m 2064 2010-11-03 10:12:40Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output
@@ -164,5 +164,5 @@ down.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', down); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'source', down); % use the variable name "data" in the output file
 end

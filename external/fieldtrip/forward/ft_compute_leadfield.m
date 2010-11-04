@@ -86,7 +86,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 957 2010-04-23 08:04:06Z roboos $
+% $Id: ft_compute_leadfield.m 1982 2010-10-27 10:49:53Z jansch $
 
 persistent warning_issued;
 
@@ -244,7 +244,7 @@ elseif ismeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % use code from OpenMEEG
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      hastoolbox('openmeeg', 1);
+      ft_hastoolbox('openmeeg', 1);
 
       dsm = openmeeg_dsm(pos,vol);
       [h2mm,s2mm]= openmeeg_megm(pos,vol,sens);

@@ -29,7 +29,7 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 1542 2010-08-23 08:27:24Z roboos $
+% $Id: ft_headmovement.m 1974 2010-10-27 10:36:50Z jansch $
 
 
 fieldtripdefs
@@ -38,7 +38,7 @@ fieldtripdefs
 if ~isfield(cfg, 'numclusters'), cfg.numclusters = 12; end
 
 % if neccessary convert dataset into headerfile and datafile
-cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 hdr = ft_read_header(cfg.headerfile);
 
 %work with gradiometers in dewar coordinates, since HLCs are also 

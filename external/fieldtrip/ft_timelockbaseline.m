@@ -36,11 +36,11 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_timelockbaseline.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'baseline'),   cfg.baseline    = 'no';   end
@@ -59,7 +59,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-timelock = checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
+timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
 
 % the cfg.blc/blcwindow options are used in preprocessing and in
 % ft_timelockanalysis (i.e. in private/preproc), hence make sure that
@@ -151,7 +151,7 @@ end % ~strcmp(cfg.baseline, 'no')
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -162,7 +162,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockbaseline.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_timelockbaseline.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end

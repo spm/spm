@@ -38,7 +38,7 @@ function [freq] = ft_spiketriggeredspectrum(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredspectrum.m 1546 2010-08-24 08:52:52Z roboos $
+% $Id: ft_spiketriggeredspectrum.m 1980 2010-10-27 10:45:10Z jansch $
 
 % This function uses a NaN-aware spectral estimation technique, which will
 % default to the standard Matlab FFT routine if no NaNs are present. The
@@ -156,9 +156,9 @@ for i=1:ntrial
 
   spectrum{i} = zeros(length(spikesmp), nchansel, fend-fbeg+1);
 
-  progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
+  ft_progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
   for j=1:length(spikesmp)
-    progress(i/ntrial, 'spectrally decomposing data around spike %d of %d\n', j, length(spikesmp));
+    ft_progress(i/ntrial, 'spectrally decomposing data around spike %d of %d\n', j, length(spikesmp));
     begsmp = spikesmp(j) + begpad;
     endsmp = spikesmp(j) + endpad;
 
@@ -185,7 +185,7 @@ for i=1:ntrial
     spectrum{i}(j,:,:) = segment_fft;
 
   end % for each spike in this trial
-  progress('close');
+  ft_progress('close');
 
 end % for each trial
 
@@ -217,7 +217,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spiketriggeredspectrum.m 1546 2010-08-24 08:52:52Z roboos $';
+cfg.version.id = '$Id: ft_spiketriggeredspectrum.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

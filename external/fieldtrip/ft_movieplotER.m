@@ -44,7 +44,7 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 1430 2010-07-20 07:41:41Z roboos $
+% $Id: ft_movieplotER.m 2003 2010-10-29 09:54:18Z jansch $
 
 % Defaults
 if ~isfield(cfg, 'xlim'),          cfg.xlim = 'maxmin';           end
@@ -66,10 +66,10 @@ if ~isempty(cfg.inputfile)
 end
 
 % Checkdata
-timelock = checkdata(timelock, 'datatype', 'timelock');
+timelock = ft_checkdata(timelock, 'datatype', 'timelock');
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 
 % Read or create the layout that will be used for plotting:
 lay = ft_prepare_layout(cfg, timelock);

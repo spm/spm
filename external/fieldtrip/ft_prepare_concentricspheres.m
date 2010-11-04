@@ -51,11 +51,11 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 1428 2010-07-19 11:57:28Z vlalit $
+% $Id: ft_prepare_concentricspheres.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';                            end
@@ -68,7 +68,7 @@ if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   cfg.headshape = struct(cfg.headshape);
 end
 
-cfg = checkconfig(cfg, 'forbidden', 'nonlinear');
+cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');
 
 % get the surface describing the head shape
 headshape = prepare_mesh_headshape(cfg);
@@ -142,5 +142,5 @@ end
 vol.type = 'concentric';
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 

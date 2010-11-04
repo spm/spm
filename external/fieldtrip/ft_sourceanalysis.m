@@ -184,14 +184,14 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_sourceanalysis.m 2059 2010-11-03 10:03:25Z arjsto $
 
 fieldtripdefs
 
 % set a timer to determine how long the sourceanalysis takes in total
 tic;
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set defaults for optional cfg.inputfile, cfg.outputfile
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
@@ -209,20 +209,20 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 if nargin>2
-  baseline = checkdata(baseline, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
+  baseline = ft_checkdata(baseline, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 end
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
-cfg = checkconfig(cfg, 'renamed',     {'refchannel', 'refchan'});
-cfg = checkconfig(cfg, 'renamedval',  {'method', 'power',           'dics'});
-cfg = checkconfig(cfg, 'renamedval',  {'method', 'coh_refchan',     'dics'});
-cfg = checkconfig(cfg, 'renamedval',  {'method', 'coh_refdip',      'dics'});
-cfg = checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefchan', 'dics'});
-cfg = checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefdip',  'dics'});
-cfg = checkconfig(cfg, 'forbidden',   {'parallel'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'refchannel', 'refchan'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'power',           'dics'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'coh_refchan',     'dics'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'coh_refdip',      'dics'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefchan', 'dics'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefdip',  'dics'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'parallel'});
 
 % determine the type of input data
 if isfield(data, 'freq')
@@ -273,7 +273,7 @@ if ~isfield(cfg, 'prewhiten'),        cfg.prewhiten = 'no';       end
 
 % put the low-level options pertaining to the source reconstruction method in their own field
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = checkconfig(cfg, 'createsubcfg',  {cfg.method, 'grid'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {cfg.method, 'grid'});
 
 convertfreq = 0;
 convertcomp = 0;
@@ -568,7 +568,7 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
   end
   
   % get the relevant low level options from the cfg and convert into key-value pairs
-  optarg = cfg2keyval(getfield(cfg, cfg.method));
+  optarg = ft_cfg2keyval(getfield(cfg, cfg.method));
   
   for i=1:Nrepetitions
     fprintf('scanning repetition %d\n', i);
@@ -787,7 +787,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   end
   
   % get the relevant low level options from the cfg and convert into key-value pairs
-  optarg = cfg2keyval(getfield(cfg, cfg.method));
+  optarg = ft_cfg2keyval(getfield(cfg, cfg.method));
   
   if strcmp(cfg.method, 'lcmv') && ~isfield(grid, 'filter'),
     for i=1:Nrepetitions
@@ -1004,7 +1004,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -1015,7 +1015,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourceanalysis.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 2059 2010-11-03 10:03:25Z arjsto $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end
@@ -1029,7 +1029,7 @@ source.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', source); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'source', source); % use the variable name "data" in the output file
 end
 
 fprintf('total time in sourceanalysis %.1f seconds\n', toc);

@@ -67,7 +67,7 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_recodeevent.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_recodeevent.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -91,8 +91,8 @@ if nargin==2
   % event and trl are not specified in the function call, but the data is given ->
   % try to locate event and trl in the configuration
   data  = event;                       % rename the input variable
-  event = findcfg(data.cfg, 'event');  % search for the event field
-  trl   = findcfg(data.cfg, 'trl');    % search for the trl field
+  event = ft_findcfg(data.cfg, 'event');  % search for the event field
+  trl   = ft_findcfg(data.cfg, 'trl');    % search for the trl field
   if isempty(event)
     error('could not locate event structure in the data');
   elseif isempty(trl)

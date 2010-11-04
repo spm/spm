@@ -102,10 +102,10 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 1285 2010-06-29 11:34:13Z jansch $
+% $Id: ft_prepare_leadfield.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -133,7 +133,7 @@ else
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 if strcmp(cfg.sel50p, 'yes') && strcmp(cfg.lbex, 'yes')
   error('subspace projection with either lbex or sel50p is mutually exclusive');
@@ -170,10 +170,10 @@ if ft_voltype(vol, 'openmeeg')
   clear lf
   
 else
-  progress('init', cfg.feedback, 'computing leadfield');
+  ft_progress('init', cfg.feedback, 'computing leadfield');
   for i=1:length(grid.inside)
     % compute the leadfield on all grid positions inside the brain
-    progress(i/length(grid.inside), 'computing leadfield %d/%d\n', i, length(grid.inside));
+    ft_progress(i/length(grid.inside), 'computing leadfield %d/%d\n', i, length(grid.inside));
     dipindx = grid.inside(i);
     grid.leadfield{dipindx} = ft_compute_leadfield(grid.pos(dipindx,:), sens, vol, 'reducerank', cfg.reducerank, 'normalize', cfg.normalize, 'normalizeparam', cfg.normalizeparam);
     
@@ -182,7 +182,7 @@ else
       grid.leadfield{dipindx} = grid.leadfield{dipindx} * grid.mom(:,dipindx);
     end
   end % for all grid locations inside the brain
-  progress('close');
+  ft_progress('close');
 end
 
 
@@ -212,7 +212,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -223,7 +223,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_prepare_leadfield.m 1285 2010-06-29 11:34:13Z jansch $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 1980 2010-10-27 10:45:10Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

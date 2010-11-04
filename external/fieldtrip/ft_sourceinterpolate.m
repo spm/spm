@@ -48,15 +48,15 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_sourceinterpolate.m 2046 2010-11-03 08:40:09Z arjsto $
 
 fieldtripdefs
 
-%% checkdata see below!!! %%
+%% ft_checkdata see below!!! %%
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'unused',  {'keepinside'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'unused',  {'keepinside'});
 
 % set the defaults
 if ~isfield(cfg, 'parameter'),    cfg.parameter    = 'all';     end
@@ -69,7 +69,7 @@ if ~isfield(cfg, 'outputfile'),   cfg.outputfile   = [];        end
 
 % if ~isfield(cfg, 'sourceunits');  cfg.sourceunits  = [];        end % this is deprecated, since now autodetermined
 % if ~isfield(cfg, 'mriunits');     cfg.mriunits     = [];        end % this is deprecated, since now autodetermined
-cfg = checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
+cfg = ft_checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
 
 hasdata = (nargin>2);
 
@@ -79,7 +79,7 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    anatomical = loadvar(cfg.inputfile, 'data');
+    anatomical = loadvar(cfg.inputfile, 'mri');
   end
 end
 
@@ -90,8 +90,8 @@ if ischar(anatomical)
 end
 
 % check if the input data is valid for this function and ensure that the structures correctly describes a volume
-functional = checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
-anatomical = checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
+functional = ft_checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
+anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
 
 if isfield(cfg, 'sourceunits') && ~isempty(cfg.sourceunits)
   % this uses a deprecated option
@@ -234,7 +234,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -245,7 +245,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_sourceinterpolate.m 1692 2010-09-16 14:31:37Z sashae $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 2046 2010-11-03 08:40:09Z arjsto $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end
@@ -304,9 +304,9 @@ num = numel(ax);            % total number of voxels
 blocksize = floor(num/20);  % number of voxels to interpolate at once, split it into 20 chuncks
 lastblock = 0;              % boolean flag for while loop
 sel = 1:blocksize;          % selection of voxels that are interpolated, this is the first chunck
-progress('init', feedback, 'interpolating');
+ft_progress('init', feedback, 'interpolating');
 while (1)
-  progress(sel(1)/num, 'interpolating %.1f%%\n', 100*sel(1)/num);
+  ft_progress(sel(1)/num, 'interpolating %.1f%%\n', 100*sel(1)/num);
   if sel(end)>num
     sel = sel(1):num;
     lastblock = 1;
@@ -317,5 +317,5 @@ while (1)
   end
   sel = sel + blocksize;
 end
-progress('close');
+ft_progress('close');
 

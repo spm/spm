@@ -48,7 +48,7 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredinterpolation.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_spiketriggeredinterpolation.m 1980 2010-10-27 10:45:10Z jansch $
 
 % set the defaults
 if ~isfield(cfg, 'timwin'),         cfg.timwin = [-0.001 0.002];    end
@@ -128,9 +128,9 @@ for i=1:ntrial
 
   fprintf('processing trial %d of %d (%d spikes)\n', i, ntrial, length(spikesmp));
 
-  progress('init', cfg.feedback, 'interpolating spikes');
+  ft_progress('init', cfg.feedback, 'interpolating spikes');
   for j=1:length(spikesmp)
-    progress(i/ntrial, 'interpolating spike %d of %d\n', j, length(spikesmp));
+    ft_progress(i/ntrial, 'interpolating spike %d of %d\n', j, length(spikesmp));
     begsmp = spikesmp(j) + begpad;
     endsmp = spikesmp(j) + endpad;
 
@@ -168,7 +168,7 @@ for i=1:ntrial
     end % if strcmp(cfg.method)
 
   end % for each spike in this trial
-  progress('close');
+  ft_progress('close');
 
 end % for each trial
 
@@ -189,7 +189,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

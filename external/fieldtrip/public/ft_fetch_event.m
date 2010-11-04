@@ -1,10 +1,10 @@
-function [event]=fetch_event(data)
+function [event]=ft_fetch_event(data)
 
 % FETCH_EVENT mimics the behaviour of FT_READ_EVENT, but for a FieldTrip
 % raw data structure instead of a file on disk.
 %
 % Use as
-%   [event] = fetch_event(data)
+%   [event] = ft_fetch_event(data)
 %
 % See also FT_READ_EVENT, FETCH_HEADER, FETCH_DATA
 
@@ -26,10 +26,10 @@ function [event]=fetch_event(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fetch_event.m 1739 2010-09-21 13:17:59Z sashae $
+% $Id: ft_fetch_event.m 2004 2010-10-29 09:55:40Z jansch $
 
 % check whether input is data
-data = checkdata(data, 'datatype', 'raw');
+data = ft_checkdata(data, 'datatype', 'raw');
 
 % locate the event structure
 event = findcfg(data.cfg, 'event');

@@ -51,7 +51,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 1795 2010-09-28 18:25:18Z jansch $
+% $Id: ft_appenddata.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -77,7 +77,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hastrialdef', 'yes');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hastrialdef', 'yes');
 end
 
 % determine the dimensions of the data
@@ -96,7 +96,7 @@ end
 hastrialinfo = 0;
 for i=1:Ndata
   if isfield(varargin{i}, 'cfg')
-    trl{i} = findcfg(varargin{i}.cfg, 'trl');
+    trl{i} = ft_findcfg(varargin{i}.cfg, 'trl');
   else
     trl{i} = [];
   end
@@ -168,10 +168,10 @@ elseif haselec(1)==1 || hasgrad(1)==1,
 end
 
 % check whether the data are obtained from the same datafile
-origfile1      = findcfg(varargin{1}.cfg, 'datafile');
+origfile1      = ft_findcfg(varargin{1}.cfg, 'datafile');
 removesampleinfo = 0;
 for j=2:Ndata
-    if ~strcmp(origfile1, findcfg(varargin{j}.cfg, 'datafile')),
+    if ~strcmp(origfile1, ft_findcfg(varargin{j}.cfg, 'datafile')),
         removesampleinfo = 1;
         warning('input data comes from different datafiles');
         break;
@@ -301,7 +301,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_appenddata.m 1795 2010-09-28 18:25:18Z jansch $';
+cfg.version.id = '$Id: ft_appenddata.m 2003 2010-10-29 09:54:18Z jansch $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

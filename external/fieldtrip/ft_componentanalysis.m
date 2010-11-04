@@ -55,7 +55,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 1943 2010-10-19 08:33:40Z crimic $
+% $Id: ft_componentanalysis.m 2053 2010-11-03 09:48:30Z arjsto $
 
 fieldtripdefs
 
@@ -63,8 +63,8 @@ fieldtripdefs
 tic;
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'forbidden', {'detrend'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'forbidden', {'detrend'});
 
 % set the defaults
 if ~isfield(cfg, 'method'),        cfg.method  = 'runica';     end
@@ -87,7 +87,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % select channels, has to be done prior to handling of previous (un)mixing matrix
 cfg.channel = ft_channelselection(cfg.channel, data.label);
@@ -138,13 +138,13 @@ if ~isfield(cfg.dss.denf, 'params'),      cfg.dss.denf.params   = [];           
 % check whether the required low-level toolboxes are installed
 switch cfg.method
   case 'fastica'
-    hastoolbox('fastica', 1);       % see http://www.cis.hut.fi/projects/ica/fastica
+    ft_hastoolbox('fastica', 1);       % see http://www.cis.hut.fi/projects/ica/fastica
   case {'runica', 'jader', 'varimax', 'binica', 'sobi'}
-    hastoolbox('eeglab', 1);        % see http://www.sccn.ucsd.edu/eeglab
+    ft_hastoolbox('eeglab', 1);        % see http://www.sccn.ucsd.edu/eeglab
   case 'parafac'
-    hastoolbox('nway', 1);          % see http://www.models.kvl.dk/source/nwaytoolbox
+    ft_hastoolbox('nway', 1);          % see http://www.models.kvl.dk/source/nwaytoolbox
   case 'dss'
-    hastoolbox('dss', 1);           % see http://www.cis.hut.fi/projects/dss
+    ft_hastoolbox('dss', 1);           % see http://www.cis.hut.fi/projects/dss
 end % cfg.method
 
 % default is to compute just as many components as there are channels in the data
@@ -155,7 +155,7 @@ end
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 Ntrials  = length(data.trial);
 
@@ -231,7 +231,7 @@ switch cfg.method
     
     try
       % construct key-value pairs for the optional arguments
-      optarg = cfg2keyval(cfg.fastica);
+      optarg = ft_cfg2keyval(cfg.fastica);
       [A, W] = fastica(dat, optarg{:});
       weights = W;
       sphere = eye(size(W,2));
@@ -248,12 +248,12 @@ switch cfg.method
     
   case 'runica'
     % construct key-value pairs for the optional arguments
-    optarg = cfg2keyval(cfg.runica);
+    optarg = ft_cfg2keyval(cfg.runica);
     [weights, sphere] = runica(dat, optarg{:});
     
   case 'binica'
     % construct key-value pairs for the optional arguments
-    optarg = cfg2keyval(cfg.binica);
+    optarg = ft_cfg2keyval(cfg.binica);
     [weights, sphere] = binica(dat, optarg{:});
     
   case 'jader'
@@ -422,7 +422,7 @@ comp.topolabel = data.label(:);
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 try
@@ -433,7 +433,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_componentanalysis.m 1943 2010-10-19 08:33:40Z crimic $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 2053 2010-11-03 09:48:30Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
@@ -443,5 +443,5 @@ fprintf('total time in componentanalysis %.1f seconds\n', toc);
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', comp); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'comp', comp); % use the variable name "data" in the output file
 end

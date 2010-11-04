@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 1779 2010-09-27 07:32:39Z jansch $
+% $Id: ft_rejectcomponent.m 2043 2010-11-03 08:27:12Z arjsto $
 
 fieldtripdefs
 
@@ -55,18 +55,18 @@ if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
 
 if nargin==3 
   ntrials = length(data.trial);
-  data    = checkdata(data, 'datatype', 'raw');
+  data    = ft_checkdata(data, 'datatype', 'raw');
   label   = data.label;
 elseif nargin==2 
   ntrials = length(comp.trial);
   label   = comp.topolabel;
 else nargin<2 % only cfg is given; inputfile is expected
-    comp = loadvar(cfg.inputfile, 'data');
+    comp = loadvar(cfg.inputfile, 'comp');
     ntrials = length(comp.trial);
     label   = comp.topolabel;
 end
 
-comp    = checkdata(comp, 'datatype', 'comp');
+comp    = ft_checkdata(comp, 'datatype', 'comp');
 ncomps  = length(comp.label);
 
 if min(cfg.component)<1
@@ -155,7 +155,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add the version details of this function call to the configuration 
 try
@@ -166,7 +166,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectcomponent.m 1779 2010-09-27 07:32:39Z jansch $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 2043 2010-11-03 08:27:12Z arjsto $';
 if nargin==2 || nargin < 2 
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end
@@ -174,7 +174,7 @@ elseif nargin==3,
   try, cfg.previous{2} = comp.cfg; end
   try, cfg.previous{1} = data.cfg; end
   %the configuration of the data is relatively more important
-  %potential use of findcfg in subsequent analysis steps looks into 
+  %potential use of ft_findcfg in subsequent analysis steps looks into 
   %the previous{1} first
 end
 

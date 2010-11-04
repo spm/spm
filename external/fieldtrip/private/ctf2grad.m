@@ -29,7 +29,7 @@ function [grad] = ctf2grad(hdr, dewar);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 1058 2010-05-09 11:21:10Z roboos $
+% $Id: ctf2grad.m 1965 2010-10-27 09:29:21Z jansch $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -166,7 +166,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
     montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
     grad.balance.G2BR = montage;
   end
-
+  
   if isfield(hdr.BalanceCoefs, 'G3BR')
     meglabel          = label(hdr.BalanceCoefs.G3BR.MEGlist);
     reflabel          = label(hdr.BalanceCoefs.G3BR.Refindex);

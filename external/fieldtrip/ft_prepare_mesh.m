@@ -46,9 +46,9 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 1432 2010-07-21 08:20:46Z jansch $
+% $Id: ft_prepare_mesh.m 2041 2010-11-03 08:24:52Z arjsto $
 
-cfg = checkconfig(cfg, 'forbidden', 'numcompartments');
+cfg = ft_checkconfig(cfg, 'forbidden', 'numcompartments');
 
 % set the defaults
 if ~isfield(cfg, 'downsample'),      cfg.downsample = 1;         end
@@ -70,7 +70,7 @@ elseif  hasdata &&  isempty(cfg.inputfile)
   % this is ok
 elseif ~hasdata && ~isempty(cfg.inputfile)
   % the input data should be read from file
-  mri = loadvar(cfg.inputfile, 'data');
+  mri = loadvar(cfg.inputfile, 'mri');
 elseif ~hasdata &&  isempty(cfg.inputfile)
   mri = [];
 end

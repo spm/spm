@@ -24,7 +24,7 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 % See also FT_REJECTARTIFACT
 
 % Undocumented local options:
-% cfg.datatype
+% cfg.ft_datatype
 
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
@@ -44,14 +44,14 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 1763 2010-09-23 08:06:37Z jansch $
+% $Id: ft_artifact_ecg.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
 % set default rejection parameters for eog artifacts if necessary.
 if ~isfield(cfg,'artfctdef'),            cfg.artfctdef               = [];            end
@@ -78,14 +78,14 @@ if ~strcmp(cfg.artfctdef.ecg.method, 'zvalue'),
 end
 
 if nargin == 1,
-  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = ft_read_header(cfg.headerfile,'headerformat', cfg.headerformat);
   trl = cfg.trl;
 elseif nargin == 2,
-  data = checkdata(data, 'hastrialdef', 'yes');
-  cfg  = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
-  hdr  = fetch_header(data);
+  data = ft_checkdata(data, 'hastrialdef', 'yes');
+  cfg  = ft_checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+  hdr  = ft_fetch_header(data);
   if isfield(data, 'sampleinfo'), 
     trl = data.sampleinfo;
     for k = 1:numel(data.trial)
@@ -212,7 +212,7 @@ if ~isempty(sgnind)
       dat = dat + ft_preproc_baselinecorrect(dum);
       ntrlok = ntrlok + 1;
     elseif nargin==2,
-      dum = fetch_data(data, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'), 'docheck', 0);
+      dum = ft_fetch_data(data, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'), 'docheck', 0);
       if any(~isfinite(dum(:))),
       else
         ntrlok = ntrlok + 1;
@@ -284,7 +284,7 @@ cfg.artfctdef.ecg          = artfctdef;
 cfg.artfctdef.ecg.artifact = artifact;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -295,4 +295,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_ecg.m 1763 2010-09-23 08:06:37Z jansch $';
+cfg.version.id = '$Id: ft_artifact_ecg.m 2003 2010-10-29 09:54:18Z jansch $';

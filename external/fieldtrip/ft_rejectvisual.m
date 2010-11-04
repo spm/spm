@@ -124,11 +124,11 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 1439 2010-07-21 12:51:36Z jansch $
+% $Id: ft_rejectvisual.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 if ~isfield(cfg, 'channel'),     cfg.channel = 'all';          end
 if ~isfield(cfg, 'trials'),      cfg.trials = 'all';           end
@@ -156,11 +156,11 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
 
 % for backward compatibility
-cfg = checkconfig(cfg, 'renamedval',  {'metric',  'absmax',  'maxabs'});
-cfg = checkconfig(cfg, 'renamedval',  {'method',  'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'metric',  'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method',  'absmax',  'maxabs'});
 if ~isfield(cfg, 'metric') && any(strcmp(cfg.method, {'var', 'min', 'max', 'maxabs', 'range'}))
   cfg.metric = cfg.method;
   cfg.method = 'summary';
@@ -173,7 +173,7 @@ end
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 % determine the duration of each trial
@@ -206,7 +206,7 @@ elseif (strcmp(cfg.latency, 'poststim'))
 end
 
 % ensure that the preproc specific options are located in the cfg.preproc substructure
-cfg = checkconfig(cfg, 'createsubcfg',  {'preproc'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
 
 % apply scaling to the selected channel types to equate the absolute numbers (i.e. fT and uV)
 % make a seperate copy to prevent the original data from being scaled
@@ -350,7 +350,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -361,7 +361,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectvisual.m 1439 2010-07-21 12:51:36Z jansch $';
+cfg.version.id = '$Id: ft_rejectvisual.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

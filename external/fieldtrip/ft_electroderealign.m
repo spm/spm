@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 1926 2010-10-13 15:54:45Z roboos $
+% $Id: ft_electroderealign.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
@@ -116,9 +116,9 @@ if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangul
 if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
 if ~isfield(cfg, 'warp'),          cfg.warp = 'rigidbody';    end
 
-cfg = checkconfig(cfg, 'renamedval', {'method', 'realignfiducials', 'fiducial'});
-cfg = checkconfig(cfg, 'renamedval', {'method', 'realignfiducial',  'fiducial'});
-cfg = checkconfig(cfg, 'forbidden', 'outline');
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducials', 'fiducial'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial',  'fiducial'});
+cfg = ft_checkconfig(cfg, 'forbidden', 'outline');
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
@@ -492,7 +492,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_electroderealign.m 1926 2010-10-13 15:54:45Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 1974 2010-10-27 10:36:50Z jansch $';
 
 % remember the configuration
 norm.cfg = cfg;

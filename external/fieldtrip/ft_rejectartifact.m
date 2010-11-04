@@ -70,7 +70,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 1503 2010-08-12 10:39:00Z stewhi $
+% $Id: ft_rejectartifact.m 1979 2010-10-27 10:41:29Z jansch $
 
 fieldtripdefs
 
@@ -87,8 +87,8 @@ if 0
 end
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 
 % set the defaults
 if ~isfield(cfg, 'artfctdef'),              cfg.artfctdef        = [];         end
@@ -183,7 +183,7 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  data = checkdata(data, 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  data = ft_checkdata(data, 'hastrialdef', 'yes', 'hasoffset', 'yes');
   if isfield(data, 'sampleinfo')
     trl = [data.sampleinfo data.offset(:)];
     if isfield(data, 'trialinfo')
@@ -266,7 +266,7 @@ if nargin ==1
     hdr = ft_read_header(cfg.headerfile);
   end
 elseif nargin ==2
-  hdr = fetch_header(data);
+  hdr = ft_fetch_header(data);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -404,7 +404,7 @@ else
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the artfctdef substructure
 try
@@ -415,7 +415,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_rejectartifact.m 1503 2010-08-12 10:39:00Z stewhi $';
+cfg.version.id = '$Id: ft_rejectartifact.m 1979 2010-10-27 10:41:29Z jansch $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

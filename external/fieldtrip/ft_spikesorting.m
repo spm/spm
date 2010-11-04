@@ -43,7 +43,7 @@ function [spike] = ft_spikesorting(cfg, spike);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesorting.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_spikesorting.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -132,7 +132,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spikesorting.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_spikesorting.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous    = spike.cfg;     end
 % remember the configuration
@@ -149,11 +149,11 @@ end
 function [dist] = ward_distance(cfg, waveform);
 nspike = size(waveform,2);
 dist = zeros(nspike, nspike);
-progress('init', cfg.feedback, 'computing distance');
+ft_progress('init', cfg.feedback, 'computing distance');
 switch lower(cfg.ward.distance)
   case 'l1'
     for i=1:nspike
-      progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
+      ft_progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
       for j=2:nspike
         dist(i,j) = sum(abs(waveform(:,j)-waveform(:,i)));
         dist(j,i) = dist(i,j);
@@ -161,7 +161,7 @@ switch lower(cfg.ward.distance)
     end
   case 'l2'
     for i=1:nspike
-      progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
+      ft_progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
       for j=2:nspike
         dist(i,j) = sqrt(sum((waveform(:,j)-waveform(:,i)).^2));
         dist(j,i) = dist(i,j);
@@ -169,7 +169,7 @@ switch lower(cfg.ward.distance)
     end
   case 'correlation'
     for i=1:nspike
-      progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
+      ft_progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
       for j=2:nspike
         dist(i,j) = corrcoef(waveform(:,j),waveform(:,i));
         dist(j,i) = dist(i,j);
@@ -177,7 +177,7 @@ switch lower(cfg.ward.distance)
     end
   case 'cosine'
     for i=1:nspike
-      progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
+      ft_progress((i-1)/nspike, 'computing distance for spike %d/%d', i, nspike);
       for j=2:nspike
         x = waveform(:,j);
         y = waveform(:,i);
@@ -191,4 +191,4 @@ switch lower(cfg.ward.distance)
   otherwise
     error('unsupported distance metric');
 end
-progress('close');
+ft_progress('close');

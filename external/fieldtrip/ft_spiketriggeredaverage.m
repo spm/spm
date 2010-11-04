@@ -37,7 +37,7 @@ function [timelock] = ft_spiketriggeredaverage(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredaverage.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_spiketriggeredaverage.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -144,9 +144,9 @@ for i=1:ntrial
     singletrial{i} = nan*zeros(length(spikesmp), nchansel, numsmp);
   end
   
-  progress('init', cfg.feedback, 'averaging spikes');
+  ft_progress('init', cfg.feedback, 'averaging spikes');
   for j=1:length(spikesmp)
-    progress(i/ntrial, 'averaging spike %d of %d\n', j, length(spikesmp));
+    ft_progress(i/ntrial, 'averaging spike %d of %d\n', j, length(spikesmp));
     begsmp = spikesmp(j) + begpad;
     endsmp = spikesmp(j) + endpad;
     
@@ -169,7 +169,7 @@ for i=1:ntrial
     cumcnt = cumcnt + spikecnt(j);
     
   end % for each spike in this trial
-  progress('close');
+  ft_progress('close');
   
 end % for each trial
 
@@ -208,7 +208,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_spiketriggeredaverage.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_spiketriggeredaverage.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -35,7 +35,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_denoise_synthetic.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -56,7 +56,7 @@ if ~isempty(cfg.inputfile)
   end
 end
 
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
 
 if ~ft_senstype(data, 'ctf')
   error('synthetic gradients can only be computed for CTF data');
@@ -65,7 +65,7 @@ end
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 % remember the original channel ordering
@@ -121,7 +121,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_denoise_synthetic.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 2003 2010-10-29 09:54:18Z jansch $';
 
   % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

@@ -56,7 +56,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 1685 2010-09-16 13:28:31Z sashae $
+% $Id: ft_timelockstatistics.m 2063 2010-11-03 10:11:14Z arjsto $
 
 fieldtripdefs
 
@@ -79,7 +79,7 @@ end
 % for i=1:length(varargin)
 %   % FIXME at this moment (=10 May) this does not work, because the input might not always have an avg
 %   % See freqstatistics
-%   %varargin{i} = checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
+%   %varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
 % end
 
 % the low-level data selection function does not know how to deal with other parameters, so work around it
@@ -125,7 +125,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_timelockstatistics.m 1685 2010-09-16 13:28:31Z sashae $';
+cfg.version.id = '$Id: ft_timelockstatistics.m 2063 2010-11-03 10:11:14Z arjsto $';
 
 % remember the configuration of the input data
 cfg.previous = [];
@@ -142,6 +142,6 @@ stat.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', stat); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'stat', stat); % use the variable name "data" in the output file
 end
 

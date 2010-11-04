@@ -42,7 +42,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 1085 2010-05-18 11:18:43Z sashae $
+% $Id: ft_freqanalysis_tfr.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -123,11 +123,11 @@ end
 
 M = waveletfam(cfg.foi,data.fsample,cfg.waveletwidth);
 
-progress('init', cfg.feedback, 'convolving wavelets');
+ft_progress('init', cfg.feedback, 'convolving wavelets');
 
 for i=1:ntrial
   indicvect = data.time{i};
-  progress(i/ntrial, 'convolving wavelets, trial %d of %d\n', i, ntrial);
+  ft_progress(i/ntrial, 'convolving wavelets, trial %d of %d\n', i, ntrial);
 
   %for average and variance
   begsampl = nearest(indicvect,cfg.latency(1));
@@ -161,7 +161,7 @@ for i=1:ntrial
 
 end %for ntrial
 
-progress('close');
+ft_progress('close');
 
 if strcmp(cfg.keeptrials, 'yes')
   freq.dimord    = 'rpt_chan_freq_time';
@@ -174,7 +174,7 @@ freq.freq      = cfg.foi;
 freq.time      = indicvect(1:cfg.downsample:end);
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -185,7 +185,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqanalysis_tfr.m 1085 2010-05-18 11:18:43Z sashae $';
+cfg.version.id = '$Id: ft_freqanalysis_tfr.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

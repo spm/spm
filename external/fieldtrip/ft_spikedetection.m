@@ -76,10 +76,10 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedetection.m 1043 2010-05-06 10:27:19Z timeng $
+% $Id: ft_spikedetection.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the general defaults
 if ~isfield(cfg, 'dataset'),            cfg.dataset = [];             end
@@ -116,7 +116,7 @@ switch cfg.method
 end
 
 % ensure that the preproc specific options are located in the preproc substructure
-cfg = checkconfig(cfg, 'createsubcfg',  {'preproc'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
 
 status = mkdir(cfg.output);
 if ~status
@@ -465,7 +465,7 @@ for i=chansel(:)'
 end % for each file
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add the version details of this function call to the configuration
 try
@@ -476,4 +476,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikedetection.m 1043 2010-05-06 10:27:19Z timeng $';
+cfg.version.id   = '$Id: ft_spikedetection.m 1974 2010-10-27 10:36:50Z jansch $';

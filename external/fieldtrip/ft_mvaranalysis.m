@@ -9,7 +9,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 % The input data should be organised in a structure as obtained from 
 % the FT_PREPROCESSING function. The configuration depends on the type 
 % of computation that you want to perform.
-% The output is a data structure of datatype 'mvar' which contains the
+% The output is a data structure of ft_datatype 'mvar' which contains the
 % multivariate autoregressive coefficients in the field coeffs, and the
 % covariance of the residuals in the field noisecov. 
 %
@@ -74,7 +74,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 1536 2010-08-21 18:31:03Z jansch $
+% $Id: ft_mvaranalysis.m 2003 2010-10-29 09:54:18Z jansch $
 
 % set default configurations
 if ~isfield(cfg, 'toolbox'),    cfg.toolbox    = 'biosig';       end
@@ -96,10 +96,10 @@ if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];             end
 %check whether the requested toolbox is present
 switch cfg.toolbox
   case 'biosig'
-    hastoolbox('biosig', 1); 
+    ft_hastoolbox('biosig', 1); 
     nnans  = cfg.order;
   case 'bsmart'
-    hastoolbox('bsmart', 1);
+    ft_hastoolbox('bsmart', 1);
     nnans  = 0;
   otherwise
     error('toolbox %s is not yet supported', cfg.toolbox);
@@ -117,12 +117,12 @@ if ~isempty(cfg.inputfile)
 end
 
 %check the input-data
-data = checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
 
 %check configurations
 switch cfg.toolbox
   case 'biosig'
-    cfg = checkconfig(cfg, 'required', 'mvarmethod');
+    cfg = ft_checkconfig(cfg, 'required', 'mvarmethod');
   case 'bsmart'
     %nothing extra required
 end
@@ -248,9 +248,9 @@ else
 end
 
 %---loop over the tois
-progress('init', cfg.feedback, 'computing MAR-model');
+ft_progress('init', cfg.feedback, 'computing MAR-model');
 for j = 1:ntoi
-  progress(j/ntoi, 'processing timewindow %d from %d\n', j, ntoi);
+  ft_progress(j/ntoi, 'processing timewindow %d from %d\n', j, ntoi);
   sample        = nearest(timeaxis, cfg.toi(j));
   cfg.toi(j)    = timeaxis(sample);
   
@@ -312,7 +312,7 @@ for j = 1:ntoi
   end %---replicates
 
 end %---tois 
-progress('close');
+ft_progress('close');
 
 %---create output-structure
 mvardata          = [];
@@ -343,11 +343,11 @@ mvardata.fsampleorig = data.fsample;
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_mvaranalysis.m 1536 2010-08-21 18:31:03Z jansch $';
+cfg.version.id   = '$Id: ft_mvaranalysis.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try 

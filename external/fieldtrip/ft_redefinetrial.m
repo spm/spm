@@ -66,7 +66,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 1703 2010-09-17 13:01:58Z jansch $
+% $Id: ft_redefinetrial.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -96,13 +96,13 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', cfg.feedback);
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', cfg.feedback);
 fb   = strcmp(cfg.feedback, 'yes');
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   if fb, fprintf('selecting %d trials\n', length(cfg.trials)); end
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
   if length(cfg.offset)>1 && length(cfg.offset)~=length(cfg.trials)
     cfg.offset=cfg.offset(cfg.trials);
   end
@@ -198,14 +198,14 @@ elseif ~isempty(cfg.trl)
   % select new trials from the existing data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  % ensure that sampleinfo is present, if this fails fetch_data will crash
-  data = checkdata(data, 'hastrialdef', 'yes');  
+  % ensure that sampleinfo is present, if this fails ft_fetch_data will crash
+  data = ft_checkdata(data, 'hastrialdef', 'yes');  
 
   dataold = data;   % make a copy of the old data
   clear data        % this line is very important, we want to completely reconstruct the data from the old data!
   
   % make header
-  hdr = fetch_header(dataold);
+  hdr = ft_fetch_header(dataold);
   
   % make new data structure
   trl = cfg.trl;
@@ -222,7 +222,7 @@ elseif ~isempty(cfg.trl)
     % original trial
     iTrlorig  = find(dataold.sampleinfo(:,1)<=begsample & dataold.sampleinfo(:,2)>=endsample);
    
-    % used to speed up fetch_data
+    % used to speed up ft_fetch_data
     if iTrl==1,
       tmpdata = dataold;
     end
@@ -231,7 +231,7 @@ elseif ~isempty(cfg.trl)
     tmpdata.sampleinfo = dataold.sampleinfo(iTrlorig,:);
     if isfield(dataold, 'trialinfo'), tmpdata.trialinfo = dataold.trialinfo(iTrlorig,:); end;  
    
-    data.trial{iTrl} = fetch_data(tmpdata, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'docheck', 0);
+    data.trial{iTrl} = ft_fetch_data(tmpdata, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'docheck', 0);
     data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
     
     % ensure correct handling of trialinfo
@@ -261,7 +261,7 @@ elseif ~isempty(cfg.trl)
   end
 elseif ~isempty(cfg.length)
   
-  data = checkdata(data, 'hastrialdef', 'yes');
+  data = ft_checkdata(data, 'hastrialdef', 'yes');
   
   %create dummy trl-matrix and recursively call ft_redefinetrial
   nsmp    = round(cfg.length*data.fsample);
@@ -314,7 +314,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_redefinetrial.m 1703 2010-09-17 13:01:58Z jansch $';
+cfg.version.id = '$Id: ft_redefinetrial.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 if ~isempty(cfg.trl)

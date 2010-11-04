@@ -62,14 +62,14 @@ function [cfg, artifact] = ft_artifact_muscle(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_muscle.m 1212 2010-06-09 10:29:43Z timeng $
+% $Id: ft_artifact_muscle.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                     cfg.artfctdef                    = [];        end
@@ -148,11 +148,11 @@ end
 
 if hasdata
 % read the header
-cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+cfg = ft_checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
     [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg, data);
 else
- cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-    cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});  
+ cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+    cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});  
     tmpcfg.datafile    = cfg.datafile;
     tmpcfg.headerfile  = cfg.headerfile;
     [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg);
@@ -164,4 +164,4 @@ else
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

@@ -41,7 +41,7 @@ function [cfg] = ft_spikesplitting(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesplitting.m 1043 2010-05-06 10:27:19Z timeng $
+% $Id: ft_spikesplitting.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -217,12 +217,12 @@ for j=1:hdr.nChans
   end
 end
 
-progress('init', cfg.feedback, 'splitting data');
+ft_progress('init', cfg.feedback, 'splitting data');
 for i=1:(length(segment)-1)
   % read one segment of data
   begsample = segment(i);
   endsample = segment(i+1)-1;  % the begin of the next segment minus one
-  progress(i/(length(segment)-1), 'splitting data segment %d from %d\n', i, length(segment)-1);
+  ft_progress(i/(length(segment)-1), 'splitting data segment %d from %d\n', i, length(segment)-1);
   buf = read_neuralynx_dma(cfg.dataset, begsample, endsample, 'all');
   if ~isa(buf, 'int32')
     error('the buffer is expected to be int32');
@@ -245,7 +245,7 @@ for i=1:(length(segment)-1)
     end
   end
 end
-progress('close');
+ft_progress('close');
 
 % close all output files
 for j=1:hdr.nChans
@@ -263,5 +263,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_spikesplitting.m 1043 2010-05-06 10:27:19Z timeng $';
+cfg.version.id   = '$Id: ft_spikesplitting.m 1980 2010-10-27 10:45:10Z jansch $';
 

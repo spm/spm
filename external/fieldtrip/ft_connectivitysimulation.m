@@ -97,10 +97,10 @@ function [data] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 1884 2010-10-08 10:16:09Z jansch $
+% $Id: ft_connectivitysimulation.m 1974 2010-10-27 10:36:50Z jansch $
 
 % check input configuration for the generally applicable options
-cfg = checkconfig(cfg, 'required', {'nsignal' 'ntrials' 'triallength' 'fsample' 'method'});
+cfg = ft_checkconfig(cfg, 'required', {'nsignal' 'ntrials' 'triallength' 'fsample' 'method'});
 
 % method specific defaults
 switch cfg.method
@@ -110,15 +110,15 @@ case {'linear_mix'}
   if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
   if ~isfield(cfg, 'blc'),      cfg.blc      = 'yes';   end
   if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
-  cfg = checkconfig(cfg, 'required', {'mix' 'delay'});
+  cfg = ft_checkconfig(cfg, 'required', {'mix' 'delay'});
 case {'mvnrnd'}
   if ~isfield(cfg, 'bpfilter'), cfg.bpfilter = 'yes';   end
   if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
   if ~isfield(cfg, 'blc'),      cfg.blc      = 'yes';   end
   if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
-  cfg = checkconfig(cfg, 'required', {'covmat' 'delay'}); 
+  cfg = ft_checkconfig(cfg, 'required', {'covmat' 'delay'}); 
 case {'ar'}
-  cfg = checkconfig(cfg, 'required', {'params' 'noisecov'});
+  cfg = ft_checkconfig(cfg, 'required', {'params' 'noisecov'});
 otherwise
 end
 
@@ -255,7 +255,7 @@ data.label   = label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivitysimulation.m 1884 2010-10-08 10:16:09Z jansch $';
+cfg.version.id   = '$Id: ft_connectivitysimulation.m 1974 2010-10-27 10:36:50Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

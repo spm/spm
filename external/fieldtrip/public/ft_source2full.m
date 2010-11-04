@@ -1,4 +1,4 @@
-function [source] = source2full(source);
+function [source] = ft_source2full(source);
 
 % SOURCE2FULL recreates the grid locations outside the brain in the source 
 % reconstruction, so that the source volume again describes the full grid.
@@ -7,7 +7,7 @@ function [source] = source2full(source);
 % external file.
 %
 % Use as
-%   [source] = source2full(source)
+%   [source] = ft_source2full(source)
 %
 % See also SOURCE2SPARSE
 
@@ -29,7 +29,7 @@ function [source] = source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: source2full.m 1402 2010-07-12 19:41:58Z roboos $
+% $Id: ft_source2full.m 1987 2010-10-27 13:28:38Z jansch $
 
 fieldtripdefs
 
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2full.m 1402 2010-07-12 19:41:58Z roboos $';
+cfg.version.id = '$Id: ft_source2full.m 1987 2010-10-27 13:28:38Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

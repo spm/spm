@@ -49,7 +49,7 @@ function progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: progress.m 1494 2010-08-04 09:12:38Z jansch $
+% $Id: ft_progress.m 1963 2010-10-27 09:11:35Z jansch $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done

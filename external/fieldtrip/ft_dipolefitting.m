@@ -140,10 +140,10 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 1258 2010-06-22 08:33:48Z timeng $
+% $Id: ft_dipolefitting.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'channel'),     cfg.channel = 'all';        end
@@ -169,10 +169,10 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 
 % put the low-level options pertaining to the dipole grid (used for initial scanning) in their own field
-cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % the default for this depends on the data type
 if ~isfield(cfg, 'model'),
@@ -324,9 +324,9 @@ if strcmp(cfg.gridsearch, 'yes')
   
   % construct the grid on which the scanning will be done
   [grid, cfg] = prepare_dipole_grid(cfg, vol, sens);
-  progress('init', cfg.feedback, 'scanning grid');
+  ft_progress('init', cfg.feedback, 'scanning grid');
   for i=1:length(grid.inside)
-    progress(i/length(grid.inside), 'scanning grid location %d/%d\n', i, length(grid.inside));
+    ft_progress(i/length(grid.inside), 'scanning grid location %d/%d\n', i, length(grid.inside));
     indx = grid.inside(i);
     if isfield(grid, 'leadfield')
       % reuse the previously computed leadfield
@@ -348,7 +348,7 @@ if strcmp(cfg.gridsearch, 'yes')
         error('unsupported cfg.model');
     end % switch model
   end % looping over the grid
-  progress('close');
+  ft_progress('close');
   
   switch cfg.model
     case 'regional'
@@ -409,7 +409,7 @@ end % switch model
 
 if isfield(cfg, 'dipfit')
   % convert the structure with the additional low-level options into key-value pairs
-  optarg = cfg2keyval(getfield(cfg, 'dipfit'));
+  optarg = ft_cfg2keyval(getfield(cfg, 'dipfit'));
 else
   % no additional low-level options were specified
   optarg = {};
@@ -560,7 +560,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 try
@@ -571,7 +571,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_dipolefitting.m 1258 2010-06-22 08:33:48Z timeng $';
+cfg.version.id = '$Id: ft_dipolefitting.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

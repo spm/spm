@@ -1,15 +1,10 @@
-function [val, status] = findcfg(cfg, var);
+function [optarg] = cfg2keyval(cfg);
 
-% FINDCFG searches for an element in the cfg structure
-% or in the nested previous cfgs
+% CFG2KEYVAL converts between a structure and a cell-array with key-value
+% pairs which can be used for optional input arguments.
 %
 % Use as
-%   [val] = findcfg(cfg, var)
-% where the name of the variable should be specified as string.
-%
-% e.g.
-%   trl   = findcfg(cfg, 'trl')
-%   event = findcfg(cfg, 'event')
+%   [optarg] = cfg2keyval(cfg)
 
 % Copyright (C) 2006, Robert Oostenveld
 %
@@ -29,31 +24,11 @@ function [val, status] = findcfg(cfg, var);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcfg.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: ft_cfg2keyval.m 1963 2010-10-27 09:11:35Z jansch $
 
-if var(1)~='.'
-  var = ['.' var];
+if ~isempty(cfg)
+  optarg = [fieldnames(cfg) struct2cell(cfg)]';
+  optarg = optarg(:)';
+else
+  optarg = {};
 end
-val   = [];
-depth = 0;
-status = 0;
-
-while ~status
-  depth = depth + 1;
-  if issubfield(cfg,  var)
-    val = getsubfield(cfg, var);
-    status = 1;
-  elseif issubfield(cfg, '.previous');
-    [val, status] = findcfg(cfg.previous, var);
-     if status, break; end;
-  elseif iscell(cfg) 
-    for i=1:length(cfg)
-      [val, status] = findcfg(cfg{i}, var);
-      if status, break; end;
-    end
-  else
-    status = -1;
-    break
-  end
-end
-

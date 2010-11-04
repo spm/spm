@@ -94,11 +94,11 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_multiplotTFR.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 clf
 
@@ -117,10 +117,10 @@ if ~isempty(cfg.inputfile)
 end
 
 % for backward compatibility with old data structures
-data = checkdata(data);
+data = ft_checkdata(data);
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 
 % Set the defaults:
 if ~isfield(cfg,'baseline'),        cfg.baseline = 'no';               end
@@ -181,7 +181,7 @@ elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_ch
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported:
-cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
+cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Read or create the layout that will be used for plotting:
 lay = ft_prepare_layout(cfg, data);
@@ -474,7 +474,7 @@ if ~isempty(cfg.renderer)
 end
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

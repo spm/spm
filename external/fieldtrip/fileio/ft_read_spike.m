@@ -35,7 +35,7 @@ function [spike] = ft_read_spike(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_read_spike.m 1981 2010-10-27 10:47:32Z jansch $
 
 % get the options
 spikeformat   = keyval('spikeformat',   varargin);
@@ -187,7 +187,7 @@ switch spikeformat
     
   case 'neuroshare' % NOTE: still under development
     % check that the required neuroshare toolbox is available
-    hastoolbox('neuroshare', 1);
+    ft_hastoolbox('neuroshare', 1);
 
     tmp = read_neuroshare(filename, 'readspike', 'yes');
     spike.label = {tmp.hdr.entityinfo(tmp.list.segment).EntityLabel};

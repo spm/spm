@@ -34,11 +34,11 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_freqbaseline.m 2055 2010-11-03 09:52:11Z arjsto $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'baseline'),     cfg.baseline     = 'no';       end
@@ -54,12 +54,12 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    freq = loadvar(cfg.inputfile, 'data');
+    freq = loadvar(cfg.inputfile, 'freq');
   end
 end
 
 % check if the input data is valid for this function
-freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
+freq = ft_checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 
 % give a warning if the input is inconsistent
 if ischar(cfg.baseline) && strcmp(cfg.baseline, 'no') && ~isempty(cfg.baselinetype)
@@ -143,7 +143,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -154,7 +154,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqbaseline.m 1692 2010-09-16 14:31:37Z sashae $';
+cfg.version.id = '$Id: ft_freqbaseline.m 2055 2010-11-03 09:52:11Z arjsto $';
 
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
@@ -164,7 +164,7 @@ freq.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', freq); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'freq', freq); % use the variable name "data" in the output file
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

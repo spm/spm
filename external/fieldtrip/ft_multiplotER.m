@@ -99,11 +99,11 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_multiplotER.m 1974 2010-10-27 10:36:50Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 clf
 
@@ -126,7 +126,7 @@ end
 
 % For backward compatibility with old data structures:
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i});
+  varargin{i} = ft_checkdata(varargin{i});
 end
 
 % set the defaults:
@@ -205,7 +205,7 @@ elseif (~isfield(cfg, 'yparam')) && (isfield(cfg, 'zparam'))
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported
-cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
+cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Read or create the layout that will be used for plotting
 lay = ft_prepare_layout(cfg, varargin{1});
@@ -413,7 +413,7 @@ end
 
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

@@ -81,11 +81,11 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 1685 2010-09-16 13:28:31Z sashae $
+% $Id: ft_megplanar.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set defaults
 if ~isfield(cfg, 'inputfile'),      cfg.inputfile  = [];          end
@@ -102,12 +102,12 @@ if ~isempty(cfg.inputfile)
   end
 end
 
-isfreq = datatype(data, 'freq');
-israw  = datatype(data, 'raw');
-istlck = datatype(data, 'timelock');  % this will be temporary converted into raw
+isfreq = ft_datatype(data, 'freq');
+israw  = ft_datatype(data, 'raw');
+istlck = ft_datatype(data, 'timelock');  % this will be temporary converted into raw
 
 % check if the input data is valid for this function
-data  = checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153'});
+data  = ft_checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153'});
 
 if istlck
   % the timelocked data has just been converted to a raw representation
@@ -146,13 +146,13 @@ if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
-cfg = checkconfig(cfg, 'renamedvalue',  {'headshape', 'headmodel', []});
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
+cfg = ft_checkconfig(cfg, 'renamedvalue',  {'headshape', 'headmodel', []});
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data = selectdata(data, 'rpt', cfg.trials);
+  data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 if     strcmp(cfg.planarmethod, 'orig')
@@ -267,7 +267,7 @@ end
 
 if istlck
   % convert the raw structure back into a timelock structure
-  interp = checkdata(interp, 'datatype', 'timelock');
+  interp = ft_checkdata(interp, 'datatype', 'timelock');
   israw  = false;
 end
 
@@ -276,7 +276,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 try
@@ -287,7 +287,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_megplanar.m 1685 2010-09-16 13:28:31Z sashae $';
+cfg.version.id   = '$Id: ft_megplanar.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

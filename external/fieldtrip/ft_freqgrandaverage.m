@@ -42,11 +42,11 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_freqgrandaverage.m 2057 2010-11-03 09:57:58Z arjsto $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];         end
@@ -58,14 +58,14 @@ if ~isempty(cfg.inputfile) % the input data should be read from file
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     for i=1:numel(cfg.inputfile)
-      varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
+      varargin{i} = loadvar(cfg.inputfile{i}, 'freq'); % read datasets from array inputfile
     end
   end
 end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'no');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'no');
 end
 
 % set the defaults
@@ -252,7 +252,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -263,7 +263,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqgrandaverage.m 1692 2010-09-16 14:31:37Z sashae $';
+cfg.version.id = '$Id: ft_freqgrandaverage.m 2057 2010-11-03 09:57:58Z arjsto $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)
@@ -274,5 +274,5 @@ grandavg.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', grandavg); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'freq', grandavg); % use the variable name "data" in the output file
 end

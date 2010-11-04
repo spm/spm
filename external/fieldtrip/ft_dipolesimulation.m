@@ -74,7 +74,7 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 1183 2010-06-01 14:35:47Z vlalit $
+% $Id: ft_dipolesimulation.m 1980 2010-10-27 10:45:10Z jansch $
 
 fieldtripdefs
 
@@ -181,9 +181,9 @@ end
 
 simulated.trial  = {};
 simulated.time   = {};
-progress('init', cfg.feedback, 'computing simulated data');
+ft_progress('init', cfg.feedback, 'computing simulated data');
 for trial=1:Ntrials
-  progress(trial/Ntrials, 'computing simulated data for trial %d\n', trial);
+  ft_progress(trial/Ntrials, 'computing simulated data for trial %d\n', trial);
   lf = ft_compute_leadfield(dippos{trial}, sens, vol);
   nsamples = size(dipsignal{trial},2);
   nchannels = size(lf,1);
@@ -194,7 +194,7 @@ for trial=1:Ntrials
   end
   simulated.time{trial}   = time{trial};
 end
-progress('close');
+ft_progress('close');
 
 if ft_senstype(sens, 'meg')
   simulated.grad = sens;
@@ -231,7 +231,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_dipolesimulation.m 1183 2010-06-01 14:35:47Z vlalit $';
+cfg.version.id   = '$Id: ft_dipolesimulation.m 1980 2010-10-27 10:45:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

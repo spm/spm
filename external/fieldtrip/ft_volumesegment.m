@@ -81,13 +81,13 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_volumesegment.m 2067 2010-11-03 10:17:21Z arjsto $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
-%% checkdata see below!!! %%
+%% ft_checkdata see below!!! %%
 
 
 % set the defaults
@@ -113,9 +113,9 @@ end
 
 % check if the required spm is in your path:
 if strcmpi(cfg.spmversion, 'spm2'),
-  hastoolbox('SPM2',1);
+  ft_hastoolbox('SPM2',1);
 elseif strcmpi(cfg.spmversion, 'spm8'),
-  hastoolbox('SPM8',1);
+  ft_hastoolbox('SPM8',1);
 end
 
 if ~isfield(cfg, 'template'),
@@ -130,7 +130,7 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    mri = loadvar(cfg.inputfile, 'data');
+    mri = loadvar(cfg.inputfile, 'mri');
   end
 end
 
@@ -148,7 +148,7 @@ if hasdata
 end
 
 % check if the input data is valid for this function
-mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
+mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 
 % remember the original transformation matrix
 original.transform = mri.transform;
@@ -345,7 +345,7 @@ if length(V)>2, segment.csf       = V(3).dat; end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -356,7 +356,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: ft_volumesegment.m 1764 2010-09-23 12:52:25Z sashae $';
+cfg.version.id = '$Id: ft_volumesegment.m 2067 2010-11-03 10:17:21Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = mri.cfg; end
 % remember the exact configuration details in the output 
@@ -364,7 +364,7 @@ segment.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', segment); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'segment', segment); % use the variable name "data" in the output file
 end
 
 

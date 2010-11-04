@@ -57,14 +57,14 @@ function [cfg, artifact] = ft_artifact_manual(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_manual.m 1038 2010-05-05 15:48:52Z timeng $
+% $Id: ft_artifact_manual.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
-cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
 % set default rejection parameters if necessary.
 if ~isfield(cfg, 'artfctdef'),                          cfg.artfctdef                            = [];       end
@@ -92,8 +92,8 @@ end
 
 % read the header and do some preprocessing on the configuration
 fprintf('Reading raw data...');
-cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
 hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 cfg.artfctdef.manual.channel=ft_channelselection(cfg.artfctdef.manual.channel, hdr.label);
 cfg.artfctdef.manual.trl=cfg.trl;
@@ -282,7 +282,7 @@ artifact=cfg.trl(find((dat.RejMarkList)),[1,2]);
 cfg.artfctdef.manual.artifact = artifact;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add version information to the configuration
 try
@@ -293,7 +293,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_artifact_manual.m 1038 2010-05-05 15:48:52Z timeng $';
+cfg.version.id = '$Id: ft_artifact_manual.m 2003 2010-10-29 09:54:18Z jansch $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start that implement the gui callbacks

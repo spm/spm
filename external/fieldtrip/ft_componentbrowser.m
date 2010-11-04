@@ -37,7 +37,7 @@ function [varargout] = ft_componentbrowser(cfg, comp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentbrowser.m 1430 2010-07-20 07:41:41Z roboos $
+% $Id: ft_componentbrowser.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -46,7 +46,7 @@ fieldtripdefs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % check that the data comes from componentanalysis
-comp = checkdata(comp, 'datatype', 'comp');
+comp = ft_checkdata(comp, 'datatype', 'comp');
 
 % set the defaults:
 if ~isfield(cfg, 'comp'),   cfg.comp  = 1:10; end

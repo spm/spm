@@ -24,7 +24,7 @@ function [freq] = ft_freqanalysis_mvar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mvar.m 1536 2010-08-21 18:31:03Z jansch $
+% $Id: ft_freqanalysis_mvar.m 1980 2010-10-27 10:45:10Z jansch $
 
 if ~isfield(cfg, 'channel'),    cfg.channel    = 'all';          end
 if ~isfield(cfg, 'channelcmb'), cfg.channelcmb = {'all' 'all'};  end
@@ -68,9 +68,9 @@ crsspctrm = complex(zeros(nchan, nchan,  nfoi, ntoi), zeros(nchan, nchan,  nfoi,
 %FIXME build in repetitions
 
 %---loop over the tois
-progress('init', cfg.feedback, 'computing MAR-model based TFR');
+ft_progress('init', cfg.feedback, 'computing MAR-model based TFR');
 for j = 1:ntoi
-  progress(j/ntoi, 'processing timewindow %d from %d\n', j, ntoi);
+  ft_progress(j/ntoi, 'processing timewindow %d from %d\n', j, ntoi);
  
   %---compute transfer function
   ar = reshape(data.coeffs(:,:,:,j), [nchan nchan*nlag]);
@@ -83,7 +83,7 @@ for j = 1:ntoi
     crsspctrm(:,:,k,j) = tmph*nc*tmph';
   end
 end  
-progress('close');
+ft_progress('close');
 
 %---create output-structure
 freq          = [];

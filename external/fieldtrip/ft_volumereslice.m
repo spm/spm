@@ -39,7 +39,7 @@ function mri = ft_volumereslice(cfg, mri)
 % $Id$
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'resolution');   cfg.resolution   = 1;         end % in physical units
@@ -54,14 +54,14 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    mri = loadvar(cfg.inputfile, 'data');
+    mri = loadvar(cfg.inputfile, 'mri');
   end
 end
 
 % check if the input data is valid for this function and ensure that the structures correctly describes a volume
-mri = checkdata(mri, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
+mri = ft_checkdata(mri, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
 
-cfg = checkconfig(cfg, 'required', {'xrange', 'yrange', 'zrange'});
+cfg = ft_checkconfig(cfg, 'required', {'xrange', 'yrange', 'zrange'});
 
 if ~isequal(cfg.downsample, 1)
   % downsample the anatomical volume
@@ -108,5 +108,5 @@ mri.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', mri); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'mri', mri); % use the variable name "data" in the output file
 end

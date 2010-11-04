@@ -60,7 +60,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_freqstatistics.m 2058 2010-11-03 10:00:13Z arjsto $
 
 fieldtripdefs
 
@@ -75,7 +75,7 @@ if ~isempty(cfg.inputfile) % the input data should be read from file
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
     for i=1:numel(cfg.inputfile)
-      varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
+      varargin{i} = loadvar(cfg.inputfile{i}, 'freq'); % read datasets from array inputfile
     end
   end
 end
@@ -84,7 +84,7 @@ end
 for i=1:length(varargin)
   % FIXME at this moment (=2 April) this does not work, because the input might not always have a powspctrm o.i.d.
   % See email from Juriaan
-  % varargin{i} = checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'no');
+  % varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'no');
 end
 
 % the low-level data selection function does not know how to deal with other parameters, so work around it
@@ -139,7 +139,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqstatistics.m 1692 2010-09-16 14:31:37Z sashae $';
+cfg.version.id = '$Id: ft_freqstatistics.m 2058 2010-11-03 10:00:13Z arjsto $';
 
 % remember the configuration of the input data
 cfg.previous = [];
@@ -156,5 +156,5 @@ stat.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', stat); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'stat', stat); % use the variable name "data" in the output file
 end

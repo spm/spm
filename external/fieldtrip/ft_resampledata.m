@@ -63,11 +63,11 @@ function [data] = ft_resampledata(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_resampledata.m 1685 2010-09-16 13:28:31Z sashae $
+% $Id: ft_resampledata.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'resamplefs'), cfg.resamplefs = [];      end
@@ -93,7 +93,7 @@ end
 
 % check if the input data is valid for this function
 % ensure sampleinfo and trialinfo (if present) to be in the data
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
 
 if isempty(cfg.detrend)
   error('The previous default to apply detrending has been changed. Recommended is to apply a baseline correction instead of detrending. See the help of this function for more details.');
@@ -107,7 +107,7 @@ end
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
-  data       = selectdata(data, 'rpt', cfg.trials);
+  data       = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 % trl is not specified in the function call, but the data is given ->
@@ -144,7 +144,7 @@ if usefsample
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   ntr = length(data.trial);
   
-  progress('init', cfg.feedback, 'resampling data');
+  ft_progress('init', cfg.feedback, 'resampling data');
   [fsorig, fsres] = rat(cfg.origfs./cfg.resamplefs);%account for non-integer fs
   cfg.resamplefs  = cfg.origfs.*(fsres./fsorig);%get new fs exact
   
@@ -166,7 +166,7 @@ if usefsample
   end
   
   for itr = 1:ntr
-    progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
+    ft_progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
     if strcmp(cfg.blc,'yes')
       data.trial{itr} = ft_preproc_baselinecorrect(data.trial{itr});
     end
@@ -195,7 +195,7 @@ if usefsample
     data.trial{itr} = data.trial{itr}(:, begindx:end);
     
   end % for itr
-  progress('close');
+  ft_progress('close');
   
   % specify the new sampling frequency in the output
   data.fsample = cfg.resamplefs;
@@ -206,9 +206,9 @@ elseif usetime
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   ntr = length(data.trial);
   
-  progress('init', cfg.feedback, 'resampling data');
+  ft_progress('init', cfg.feedback, 'resampling data');
   for itr = 1:ntr
-    progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
+    ft_progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
     if strcmp(cfg.blc,'yes')
       data.trial{itr} = ft_preproc_baselinecorrect(data.trial{itr});
     end
@@ -224,7 +224,7 @@ elseif usetime
     % update the time axis
     data.time{itr} = cfg.time{itr};
   end % for itr
-  progress('close');
+  ft_progress('close');
   
   % specify the new sampling frequency in the output
   t1 = cfg.time{1}(1);
@@ -240,7 +240,7 @@ fprintf('original sampling rate = %d Hz\nnew sampling rate = %d Hz\n', cfg.origf
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 try
@@ -251,7 +251,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_resampledata.m 1685 2010-09-16 13:28:31Z sashae $';
+cfg.version.id = '$Id: ft_resampledata.m 2003 2010-10-29 09:54:18Z jansch $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

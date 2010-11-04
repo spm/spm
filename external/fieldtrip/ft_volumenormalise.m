@@ -59,13 +59,13 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 1764 2010-09-23 12:52:25Z sashae $
+% $Id: ft_volumenormalise.m 2048 2010-11-03 08:47:25Z arjsto $
 
 fieldtripdefs
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
-%% checkdata see below!!! %%
+%% ft_checkdata see below!!! %%
 
 % set the defaults
 if ~isfield(cfg,'spmversion'),       cfg.spmversion = 'spm8';                     end
@@ -88,16 +88,16 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    interp = loadvar(cfg.inputfile, 'data');
+    interp = loadvar(cfg.inputfile, 'interp');
     hasdata = true;
   end
 end
 
 % check if the required spm is in your path:
 if strcmpi(cfg.spmversion, 'spm2'),
-  hastoolbox('SPM2',1);
+  ft_hastoolbox('SPM2',1);
 elseif strcmpi(cfg.spmversion, 'spm8'),
-  hastoolbox('SPM8',1);
+  ft_hastoolbox('SPM8',1);
 end
 
 if ~isfield(cfg, 'template'),
@@ -155,7 +155,7 @@ if ischar(interp),
 end
 
 % check if the input data is valid for this function
-interp = checkdata(interp, 'datatype', 'volume', 'feedback', 'yes');
+interp = ft_checkdata(interp, 'datatype', 'volume', 'feedback', 'yes');
 
 % select the parameters that should be normalised
 cfg.parameter = parameterselection(cfg.parameter, interp);
@@ -312,7 +312,7 @@ end
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % remember the normalisation parameters in the configuration
 cfg.spmparams = params;
@@ -328,7 +328,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_volumenormalise.m 1764 2010-09-23 12:52:25Z sashae $';
+cfg.version.id = '$Id: ft_volumenormalise.m 2048 2010-11-03 08:47:25Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

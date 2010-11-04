@@ -26,11 +26,11 @@ function ft_volumewrite(cfg, volume)
 % homogenous coordinate transformation matrix and hence will be written in
 % their native coordinate system.
 %
-% You can specify the datatype for the spm and analyze formats using
-%   cfg.datatype      = 'bit1', 'uint8', 'int16', 'int32', 'float' or 'double'
+% You can specify the ft_datatype for the spm and analyze formats using
+%   cfg.ft_datatype      = 'bit1', 'uint8', 'int16', 'int32', 'float' or 'double'
 %
-% By default, integer datatypes will be scaled to the maximum value of the
-% physical or statistical parameter, floating point datatypes will not be
+% By default, integer ft_datatypes will be scaled to the maximum value of the
+% physical or statistical parameter, floating point ft_datatypes will not be
 % scaled. This can be modified with
 %   cfg.scaling       = 'yes' or 'no'
 %
@@ -67,11 +67,11 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 1303 2010-06-29 15:42:37Z timeng $
+% $Id: ft_volumewrite.m 2052 2010-11-03 09:45:38Z arjsto $
 
 fieldtripdefs
 
-%% checkdata see below!!! %%
+%% ft_checkdata see below!!! %%
 
 % check some of the cfg fields
 if ~isfield(cfg, 'filename'),    error('No output filename specified'); end
@@ -80,7 +80,7 @@ if isempty(cfg.filename),        error('Empty output filename');        end
 
 % set the defaults
 if ~isfield(cfg, 'filetype'),    cfg.filetype     = 'spm';      end
-if ~isfield(cfg, 'datatype')     cfg.datatype     = 'int16';    end
+if ~isfield(cfg, 'ft_datatype'), cfg.ft_datatype  = 'int16';    end
 if ~isfield(cfg, 'downsample'),  cfg.downsample   = 1;          end
 if ~isfield(cfg, 'markorigin')   cfg.markorigin   = 'no';       end
 if ~isfield(cfg, 'markfiducial') cfg.markfiducial = 'no';       end
@@ -88,7 +88,7 @@ if ~isfield(cfg, 'markcorner')   cfg.markcorner   = 'no';       end
 if ~isfield(cfg, 'inputfile'),   cfg.inputfile = [];            end
 
 if ~isfield(cfg, 'scaling'),
-  if any(strmatch(cfg.datatype, {'int8', 'int16', 'int32'}))
+  if any(strmatch(cfg.ft_datatype, {'int8', 'int16', 'int32'}))
     cfg.scaling = 'yes';
   else
     cfg.scaling = 'no';
@@ -112,12 +112,12 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    volume = loadvar(cfg.inputfile, 'data');
+    volume = loadvar(cfg.inputfile, 'volume');
   end
 end
 
 % check if the input data is valid for this function
-volume = checkdata(volume, 'datatype', 'volume', 'feedback', 'yes');
+volume = ft_checkdata(volume, 'datatype', 'volume', 'feedback', 'yes');
 
 % select the parameter that should be written
 cfg.parameter = parameterselection(cfg.parameter, volume);
@@ -187,7 +187,7 @@ data(isnan(data)) = 0;
 
 if strcmp(cfg.scaling, 'yes')
   % scale the data so that it fits in the desired numerical data format
-  switch lower(cfg.datatype)
+  switch lower(cfg.ft_datatype)
     case 'bit1'
       data = (data~=0);
     case 'uint8'
@@ -201,7 +201,7 @@ if strcmp(cfg.scaling, 'yes')
     case 'double'
       data = double(data ./ maxval);
     otherwise
-      error('unknown datatype');
+      error('unknown ft_datatype');
   end
 end
 
@@ -360,9 +360,9 @@ switch cfg.filetype
     avw.img = data;
 
     % orientation 0 means transverse unflipped (axial, radiological)
-    % X direction first,  progressing from patient right to left,
-    % Y direction second, progressing from patient posterior to anterior,
-    % Z direction third,  progressing from patient inferior to superior.
+    % X direction first,  ft_progressing from patient right to left,
+    % Y direction second, ft_progressing from patient posterior to anterior,
+    % Z direction third,  ft_progressing from patient inferior to superior.
     avw.hdr.hist.orient = 0;
 
     % specify voxel size
@@ -374,7 +374,7 @@ switch cfg.filetype
     % avw.hdr.dime.pixdim(2:4) = [resy resx resz];
 
     % specify the data type
-    switch lower(cfg.datatype)
+    switch lower(cfg.ft_datatype)
       case 'bit1'
         avw.hdr.dime.datatype = 1;
         avw.hdr.dime.bitpix   = 1;
@@ -394,7 +394,7 @@ switch cfg.filetype
         avw.hdr.dime.datatype = 64;
         avw.hdr.dime.bitpix   = 64;
       otherwise
-        error('unknown datatype');
+        error('unknown ft_datatype');
     end
 
     % write the header and image data

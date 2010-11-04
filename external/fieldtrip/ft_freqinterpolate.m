@@ -34,12 +34,12 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqinterpolate.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_freqinterpolate.m 2068 2010-11-03 10:18:53Z arjsto $
 
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the default values
 if ~isfield(cfg, 'method'),     cfg.method = 'nan';                     end
@@ -54,12 +54,12 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    freq = loadvar(cfg.inputfile, 'data');
+    freq = loadvar(cfg.inputfile, 'freq');
   end
 end
 
 % check if the input data is valid for this function
-freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
+freq = ft_checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 
 for i = 1:size(cfg.foilim,1)
   % determine the exact frequency bins to interpolate
@@ -96,7 +96,7 @@ end % for each frequency range
 cfg.outputfile;
 
 % get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 try
@@ -107,7 +107,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: ft_freqinterpolate.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.id   = '$Id: ft_freqinterpolate.m 2068 2010-11-03 10:18:53Z arjsto $';
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
 % remember the exact configuration details in the output
@@ -115,5 +115,5 @@ freq.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', freq); % use the variable name "data" in the output file
+  savevar(cfg.outputfile, 'freq', freq); % use the variable name "data" in the output file
 end

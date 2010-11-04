@@ -61,7 +61,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_sourcestatistics.m 2003 2010-10-29 09:54:18Z jansch $
 
 fieldtripdefs
 
@@ -78,9 +78,9 @@ if strcmp(cfg.implementation, 'old'),
   % check if the input data is valid for this function
   for i=1:length(varargin)
     if isfield(cfg, 'roi') && ~isempty(cfg.roi)
-      varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
+      varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
     else
-      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+      varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
     end
   end
   
@@ -124,7 +124,7 @@ if strcmp(cfg.implementation, 'old'),
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 2003 2010-10-29 09:54:18Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -143,8 +143,8 @@ elseif strcmp(cfg.implementation, 'new')
   
   %---------------------------
   % use the new implementation
-  issource = datatype(varargin{1}, 'source');
-  isvolume = datatype(varargin{1}, 'volume'); 
+  issource = ft_datatype(varargin{1}, 'source');
+  isvolume = ft_datatype(varargin{1}, 'volume'); 
  
   % check if the input data is valid for this function
   for i=1:length(varargin)
@@ -152,11 +152,11 @@ elseif strcmp(cfg.implementation, 'new')
       % FIXME implement roi-based statistics for the new implementation
       % (code is copied over from the old implementation but not yet tested
       error('roi based sourcestatistics is not yet implemented for the new implementation');
-      varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
+      varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
     else
-      varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index', 'sourcerepresentation', 'new');
+      varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index', 'sourcerepresentation', 'new');
       if strcmp(cfg.parameter, 'pow') && ~isfield(varargin{i}, 'pow'),
-        varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'new', 'haspow', 'yes');
+        varargin{i} = ft_checkdata(varargin{i}, 'sourcerepresentation', 'new', 'haspow', 'yes');
       end
     end
   end
@@ -182,7 +182,7 @@ elseif strcmp(cfg.implementation, 'new')
   if ismember('cfg.method', {'parametric' 'randomization' 'randcluster'}),
     % FIXME only supported for old-style source representation
     for i = 1:numel(varargin)
-      varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'old');
+      varargin{i} = ft_checkdata(varargin{i}, 'sourcerepresentation', 'old');
     end
     
     if exist(['statistics_',cfg.method]),
@@ -196,13 +196,13 @@ elseif strcmp(cfg.implementation, 'new')
     
     % convert representation of input data to new style
     for i = 1:numel(varargin)
-      varargin{i} = checkdata(varargin{i}, 'sourcerepresentation', 'new');
+      varargin{i} = ft_checkdata(varargin{i}, 'sourcerepresentation', 'new');
     end
 
     % check the input configuration
-    cfg = checkconfig(cfg, 'renamed',     {'approach',   'method'});
-    cfg = checkconfig(cfg, 'required',    {'method', 'parameter'});
-    cfg = checkconfig(cfg, 'forbidden',   {'transform'});
+    cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
+    cfg = ft_checkconfig(cfg, 'required',    {'method', 'parameter'});
+    cfg = ft_checkconfig(cfg, 'forbidden',   {'transform'});
 
     % set the defaults
     if ~isfield(cfg, 'channel'),     cfg.channel = 'all';            end
@@ -227,11 +227,11 @@ elseif strcmp(cfg.implementation, 'new')
     Nsource = length(varargin);
     Nvoxel  = length(varargin{1}.inside) + length(varargin{1}.outside);
 
-    %FIXME selectdata should be used for the subselection
-    %FIXME selectdata has to be adjusted to work with new style source data
+    %FIXME ft_selectdata should be used for the subselection
+    %FIXME ft_selectdata has to be adjusted to work with new style source data
     %if isfield(varargin{1}, 'freq') && ~strcmp(cfg.frequency, 'all'),
     %  for i=1:length(varargin)
-    %    varargin{i} = selectdata(varargin{i}, 'foilim', cfg.frequency, ...
+    %    varargin{i} = ft_selectdata(varargin{i}, 'foilim', cfg.frequency, ...
     %                             'avgoverfreq', cfg.avgoverfreq);
     %  end
     %end
@@ -481,7 +481,7 @@ elseif strcmp(cfg.implementation, 'new')
     [st, i] = dbstack;
     cfg.version.name = st(i);
   end
-  cfg.version.id = '$Id: ft_sourcestatistics.m 1692 2010-09-16 14:31:37Z sashae $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 2003 2010-10-29 09:54:18Z jansch $';
   
   % remember the configuration of the input data
   cfg.previous = [];
