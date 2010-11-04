@@ -33,7 +33,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4044 2010-08-25 14:03:48Z volkmar $
+% $Id: spm_dicom_convert.m 4109 2010-11-04 19:14:17Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -110,7 +110,7 @@ for i=1:length(hdr),
         volume(:,:,j) = img;
     end;
     dim = size(volume);
-    dt  = [spm_type('int16') spm_platform('bigend')];
+    dt  = determine_datatype(hdr{1});
 
     % Orientation information
     %-------------------------------------------------------------------
@@ -486,7 +486,7 @@ nc = hdr{1}.Columns;
 nr = hdr{1}.Rows;
 
 dim    = [nc nr length(hdr)];
-dt     = [spm_type('int16') spm_platform('bigend')];
+dt     = determine_datatype(hdr{1});
 
 % Orientation information
 %-------------------------------------------------------------------
@@ -613,7 +613,7 @@ nc = get_numaris4_numval(privdat,'Columns');
 nr = get_numaris4_numval(privdat,'Rows');
 
 dim    = [nc nr numel(hdr)];
-dt     = [spm_type('int16') spm_platform('bigend')];
+dt     = determine_datatype(hdr{1});
 
 % Orientation information
 %-------------------------------------------------------------------
@@ -1138,3 +1138,22 @@ if ~isempty(ascstart) && ~isempty(ascend)
     end;
 end;
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function dt = determine_datatype(hdr)
+% Determine what datatype to use for NIfTI images
+be = spm_platform('bigend');
+if hdr.HighBit>16
+    if hdr.PixelRepresentation
+        dt  = [spm_type( 'int32') be];
+    else
+        dt  = [spm_type('uint32') be];
+    end
+else
+    if hdr.PixelRepresentation
+        dt  = [spm_type( 'int16') be];
+    else
+        dt  = [spm_type('uint16') be];
+    end
+end
+
