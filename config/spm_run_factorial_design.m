@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 3860 2010-05-04 15:59:25Z guillaume $
+% $Id: spm_run_factorial_design.m 4111 2010-11-05 12:59:10Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -357,8 +357,8 @@ switch char(fieldnames(job.des))
         I(:,3)  = kron(ones(Npairs,1),[1 2]');
         I(:,4)  = I(:,1);
 
-        [H,Hnames] = spm_DesMtx(I(:,2),'-','Subject');
-        [B,Bnames] = spm_DesMtx(I(:,3),'-','Condition');
+        [B,Bnames] = spm_DesMtx(I(:,2),'-','Subject');
+        [H,Hnames] = spm_DesMtx(I(:,3),'-','Condition');
 
         % Names and levels
         SPM.factor(1).name     = 'Subject';
@@ -397,11 +397,10 @@ switch char(fieldnames(job.des))
         SPM.factor(1).variance = 0;
         SPM.factor(1).dept     = 0;
 
-        H = []; Hnames = [];
         if job.des.mreg.incint==0
-            B = []; Bnames = '';
+            H = []; Hnames = '';
         else
-            [B,Bnames] = spm_DesMtx(I(:,2),'-','mean');
+            [H,Hnames] = spm_DesMtx(I(:,2),'-','mean');
         end
 
         for i=1:length(job.des.mreg.mcov)
@@ -446,33 +445,33 @@ switch char(fieldnames(job.des))
         
         DesName = 'ANOVA - within subject';
         
-        anovaw=job.des.anovaw;
-        anovaw.fac(1).name='Subject';
-        anovaw.fac(1).dept=0;
-        anovaw.fac(1).variance=0;
-        anovaw.fac(1).gmsca=0;
-        anovaw.fac(1).ancova=0;
+        anovaw  = job.des.anovaw;
+        anovaw.fac(1).name      = 'Subject';
+        anovaw.fac(1).dept      = 0;
+        anovaw.fac(1).variance  = 0;
+        anovaw.fac(1).gmsca     = 0;
+        anovaw.fac(1).ancova    = 0;
         
-        anovaw.fac(2).name='Groups';
-        anovaw.fac(2).dept=job.des.anovaw.dept;
-        anovaw.fac(2).variance=job.des.anovaw.variance;
-        anovaw.fac(2).gmsca=job.des.anovaw.gmsca;
-        anovaw.fac(2).ancova=job.des.anovaw.ancova;
+        anovaw.fac(2).name      = 'Groups';
+        anovaw.fac(2).dept      = job.des.anovaw.dept;
+        anovaw.fac(2).variance  = job.des.anovaw.variance;
+        anovaw.fac(2).gmsca     = job.des.anovaw.gmsca;
+        anovaw.fac(2).ancova    = job.des.anovaw.ancova;
         
-        anovaw.fsuball.fsubject=anovaw.fsubject;
+        anovaw.fsuball.fsubject = anovaw.fsubject;
         
         % Main effect of subject and group
-        anovaw.maininters{1}.fmain.fnum=1;
-        anovaw.maininters{2}.fmain.fnum=2;
+        anovaw.maininters{1}.fmain.fnum = 1;
+        anovaw.maininters{2}.fmain.fnum = 2;
         
         [I,P,job.cov] = spm_design_within_subject(anovaw,job.cov);
             
-        [H,Hnames] = spm_design_flexible(anovaw,I);
+        [H,Hnames,B,Bnames]  = spm_design_flexible(anovaw,I);
         
-        for i=1:2,
-            SPM.factor(i)=anovaw.fac(i);
+        for i=1:2
+            SPM.factor(i)    = anovaw.fac(i);
         end
-        SPM.factor(1).levels   = length(job.des.anovaw.fsubject);
+        SPM.factor(1).levels = length(job.des.anovaw.fsubject);
         
     %-Full Factorial Design
     %======================================================================
@@ -526,7 +525,7 @@ switch char(fieldnames(job.des))
             
         end
 
-        [H,Hnames] = spm_design_flexible(job.des.fblock,I);
+        [H,Hnames,B,Bnames] = spm_design_flexible(job.des.fblock,I);
         
         for i=1:nf
             % Names and levels
