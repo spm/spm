@@ -3,30 +3,35 @@ function spm_dcm_post_hoc(P)
 % FORMAT spm_dcm_post_hoc(P)
 %
 % P         -  character/cell array of DCM filenames
-% name      -  name of DCM output file (will be prefixed by 'DCM_opt_')
 %
 % This routine searches over all reduced models and uses post-hoc model 
 % selection to select the best model. Reduced models here mean all 
 % permutations of free parameters (coupling parameters with a non-zero 
 % prior covariance), where models are defined in terms of their prior 
-% covariance.
+% covariance. The models should have been inverted prior to post hoc
+% optimisation
 % 
 % When several DCMs are selected, they are checked to ensure the same free 
 % parameters have been specified and the log-evidences are pooled in a 
 % fixed effects fashion.
+%
+% Post hoc optimisation requires the DCMs to be the same DCMs of different
+% data sets. Normally this DCM would be a full model in the sense of having
+% the maximum number of free parameters, such that the set of reduced models
+% is as large as possible.  In contrast spm_dcm_search operates on 
+% different DCMs of the same data to identify the best model.
 % 
 % The outputs of this routine are graphics reporting the model reduction 
 % (optimisation) and a DCM_opt_??? for every input DCM that contains the 
 % reduced conditional parameters estimates (for simplicity, the original 
 % kernels and predicted states are retained). The structural and function 
-% (spectral embedding) graphs are based on are based Bayesian parameter 
-% averages over multiple DCMs.
-%  
+% (spectral embedding) graphs are based on Bayesian parameter averages 
+% over multiple DCMs.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4108 2010-11-02 20:24:02Z karl $
+% $Id: spm_dcm_post_hoc.m 4112 2010-11-05 16:12:21Z karl $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -55,7 +60,7 @@ for j = 1:N
         C = pC;
     else
         if any(~pC - ~C)
-            fprintf('Please check model %i for compatibility',model)
+            fprintf('Please check model %i for compatibility',j)
             return
         end
     end
@@ -66,7 +71,7 @@ end
 k     = spm_fieldindices(DCM.Ep,'A','B','D');
 k     = k(~~C(k));
  
-% Create model space in terms of parameter indices
+% Create model space in terms of free parameter indices
 %--------------------------------------------------------------------------
 K     = spm_perm_mtx(length(k));
 n     = length(C);
@@ -185,9 +190,9 @@ for j = 1:N
     [pth, name] = fileparts(P{j});
     filename    = fullfile(pth,['DCM_opt_' name(4:end)]);
     if spm_matlab_version_chk('7') >= 0
-        save(filename, 'DCM', '-V6');
+        save(filename,'-V6','DCM','F','Ep','Cp');
     else
-        save(filename, 'DCM');
+        save(filename,'DCM','F','Ep','Cp');
     end
     
 end

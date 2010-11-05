@@ -2,6 +2,8 @@ function spm_dcm_ui(Action)
 % User interface for Dynamic Causal Modelling (DCM)
 % FORMAT spm_dcm_ui('specify')
 % FORMAT spm_dcm_ui('estimate')
+% FORMAT spm_dcm_ui('search')
+% FORMAT spm_dcm_ui('optimise')
 % FORMAT spm_dcm_ui('review')
 % FORMAT spm_dcm_ui('compare')
 % FORMAT spm_dcm_ui('average (BPA)')
@@ -65,7 +67,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 4108 2010-11-02 20:24:02Z karl $
+% $Id: spm_dcm_ui.m 4112 2010-11-05 16:12:21Z karl $
 
 
 % Get figure handles
@@ -84,10 +86,11 @@ disp('Please refer to this version as DCM10 in papers and publications.');
 %--------------------------------------------------------------------------
 if ~nargin
     str       =  'Action: ';
-    Actions   = {'specify', ...
+    Actions   = {'specify',  ...
                  'estimate', ...
+                 'search', ...
+                 'optimise', ...
                  'review',   ...
-                 'optimise',   ...
                  'compare',  ...
                  'average',  ...
                  'quit'};
@@ -132,15 +135,15 @@ case 'estimate',
         spm_dcm_estimate(P{i});
     end
 
-    
 %==========================================================================
-% Review results
+% Esimate and search a model set
 %==========================================================================
-case 'review',
+case 'search',
 
-    spm('FnBanner','spm_dcm_review');
+    spm('FnBanner','spm_dcm_search');
     
-    spm_dcm_review;
+    spm_dcm_search;
+
     
 %==========================================================================
 % Post hoc model optimisation/selection
@@ -151,7 +154,17 @@ case 'optimise',
     
     spm_dcm_post_hoc;
 
+    
+%==========================================================================
+% Review results
+%==========================================================================
+case 'review',
 
+    spm('FnBanner','spm_dcm_review');
+    
+    spm_dcm_review;
+    
+    
 %==========================================================================
 % Compare different models
 %==========================================================================

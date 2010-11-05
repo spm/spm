@@ -49,7 +49,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4108 2010-11-02 20:24:02Z karl $
+% $Id: spm_dcm_estimate.m 4112 2010-11-05 16:12:21Z karl $
  
  
 %-Load DCM structure
@@ -161,21 +161,9 @@ if DCM.options.endogenous
     DCM.options.stochastic = 1;
 end
 
-% priors
+% priors (and initial states)
 %--------------------------------------------------------------------------
-if DCM.options.two_state
-    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,'2s');
-    x       = sparse(n,6);
-else
-    if DCM.options.endogenous
-        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,128);
-        x       = sparse(n,5);
-    else
-        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);
-        x       = sparse(n,5);
-    end
-end
-
+[pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 
 % complete model specification
 %--------------------------------------------------------------------------

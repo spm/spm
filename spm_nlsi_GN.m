@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4098 2010-10-22 19:46:28Z karl $
+% $Id: spm_nlsi_GN.m 4112 2010-11-05 16:12:21Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -261,11 +261,13 @@ Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
  
 % EM
 %==========================================================================
+criterion = [0 0 0 0];
+
 C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-for k = 1:32
+for k = 1:64
     
     % time
     %----------------------------------------------------------------------  
@@ -480,10 +482,9 @@ for k = 1:32
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
-    if k > 2 && dF < exp((v - 8))
-        fprintf(' convergence\n')
-        break
-    end
+    
+    criterion = [(dF < 1e-2) criterion(1:end - 1)];
+    if all(criterion), fprintf(' convergence\n'), break, end
  
 end
  
