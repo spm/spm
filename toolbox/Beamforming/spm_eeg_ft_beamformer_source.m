@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 4113 2010-11-08 14:42:13Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -92,7 +92,14 @@ if ~isfield(S, 'outfile')
     S.outfile = spm_input('Output file name', '+1', 's', ['B' D.fname]);
 end
 
-modality = spm_eeg_modality_ui(D, 1, 1);
+modality = D.modality(1, 1);
+if isequal(modality, 'Multimodal')
+    if isfield(S, 'modality') && ~isempty(S.modality)
+        modality = S.modality;
+    else
+        modality = spm_eeg_modality_ui(D, 1, 1);
+    end
+end
 
 %% ============ Select the data and convert to Fieldtrip struct
 if ~isfield(S, 'conditions')
@@ -181,7 +188,7 @@ data.trial = data.trial(trialind);
 data.time = data.time(trialind);
 
 cfg = [];
-cfg.channel = modality;
+cfg.channel = D.chanlabels(setdiff(D.meegchannels(modality), D.badchannels))';
 cfg.covariance = 'yes';
 cfg.covariancewindow = 'maxperlength';
 cfg.keeptrials = 'no';
@@ -229,11 +236,60 @@ cfg.keepleadfield = 'yes';
 cfg.lambda =  S.lambda;
 source1 = ft_sourceanalysis(cfg, timelock1);
 
+if isfield(S, 'makecorrimage') &&  S.makecorrimage
+    if size(S.sources.pos, 1) ~= numel(source1.avg.filter)
+        error('Can only make correlation images for point sources');
+    end
+    
+    res = mkdir(pwd, 'corrimages');
+         
+    cfg.grid = [];
+    cfg.grid.xgrid = -90:10:90;
+    cfg.grid.ygrid = -120:10:100;
+    cfg.grid.zgrid = -70:10:110;
+    cfg.inwardshift = -10;
+    
+    fsource = ft_sourceanalysis(cfg, timelock1);
+    
+    
+    sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
+    
+    pow = nan(size(fsource.avg.pow));
+    for p = 1:numel(source1.avg.filter)
+        for q = 1:length(fsource.inside);
+            cc = corrcoef(source1.avg.filter{p}, fsource.avg.filter{fsource.inside(q)});
+            pow(fsource.inside(q)) = (cc(1,2))^2;
+            fprintf('Correlation image %d/%d\n', q, length(fsource.inside));
+        end
+        
+        fsource.pow = pow;
+        
+        cfg1 = [];
+        cfg1.sourceunits   = 'mm';
+        cfg1.parameter = 'pow';
+        cfg1.downsample = 1;
+        sourceint = ft_sourceinterpolate(cfg1, fsource, sMRI);
+        %%           
+        outvol = spm_vol(sMRI);
+        outvol.dt(1) = spm_type('float32');
+        
+        if length(trialind) == 1
+            suff = num2str(trialind);
+        else
+            suff = '';
+        end
+        
+        outvol.fname= fullfile(pwd, 'corrimages', ['corrimg_' spm_str_manip(D.fname, 'r') '_' S.sources.label{p} '_' suff '.nii']);
+        outvol = spm_create_vol(outvol);
+        spm_write_vol(outvol, sourceint.pow);
+    end
+end
+
 cfg = [];
 cfg.inwardshift = -30;
 cfg.vol = vol;
 cfg.grad = sens;
-cfg.grid = source2grid(source1);
+cfg.grid = ft_source2grid(source1);
 cfg.channel = modality;
 cfg.lambda =  S.lambda;
 cfg.rawtrial = 'yes';
@@ -278,22 +334,25 @@ for i=1:length(source2.trial)
     disp(['Extracting source data trial ' num2str(i) '/'  num2str(length(source2.trial))]);
     for j = 1:nsources
         if nvoi>0
-            y = cat(1, source2.trial(i).mom{(j-1)*nvoi+[1:nvoi]});
-            
-            % compute regional response in terms of first eigenvariate
-            %-----------------------------------------------------------------------
-            [m n]   = size(y);
-            if m > n
-                [v s v] = svd(y'*y);
-                Y       = v(:,1);
-            else
-                [u s u] = svd(y*y');
-                u       = u(:,1);
-                Y       = y'*u;
-            end
+            y = cat(1, source2.trial(i).mom{(j-1)*nvoi+[1:nvoi]});            
         else
-            Y       = source2.trial(i).mom{j};
+            y       = source2.trial(i).mom{j};
         end
+        
+        % compute regional response in terms of first eigenvariate
+        %-----------------------------------------------------------------------
+        [m n]   = size(y);
+        if m > n && n>1
+            [v s v] = svd(y'*y);
+            Y       = v(:,1);
+        elseif m>1
+            [u s u] = svd(y*y');
+            u       = u(:,1);
+            Y       = y'*u;
+        else
+            Y = y;
+        end
+        
         sourcedata.trial(i, j, :)= Y;
     end
 end
