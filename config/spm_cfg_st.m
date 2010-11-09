@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 4005 2010-07-21 10:54:55Z guillaume $
+% $Id: spm_cfg_st.m 4114 2010-11-09 15:26:07Z guillaume $
 
 % ---------------------------------------------------------------------
 % scans Session
@@ -114,9 +114,11 @@ st.help    = {
               ''
               'This correction assumes that the data are band-limited (i.e. there is no meaningful information present in the data at a frequency higher than that of the Nyquist). This assumption is support by the study of Josephs et al (1997, NeuroImage) that obtained event-related data at an effective TR of 166 msecs. No physio-logical signal change was present at frequencies higher than our typical Nyquist (0.25 HZ).'
               ''
-              'Written by Darren Gitelman at Northwestern U., 1998.  Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and Eric Zarahn at U. Penn.'
+              'When using the slice timing correction it is very important that you input the correct slice order, and if there is any uncertainty then users are encouraged to work with their physicist to determine the actual slice acquisition order.'
               ''
-              'Note that the authors of SPM do not generally suggest that this correction should be used, but the option is still retained for the few people who like to use it.'
+              'One can also consider augmenting the model by including the temporal derivative in the informed basis set instead of slice timing, which can account for +/- 1 second of changes in timing.'
+              ''
+              'Written by Darren Gitelman at Northwestern U., 1998.  Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and Eric Zarahn at U. Penn.'
               }';
 st.prog = @spm_run_st;
 st.vout = @vout;
