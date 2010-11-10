@@ -39,11 +39,11 @@ function [data] = fixdimord(data, keepsourcedimord);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 1018 2010-05-03 15:07:06Z jansch $
+% $Id: fixdimord.m 2077 2010-11-05 13:59:48Z vlalit $
 
 if nargin<2, keepsourcedimord = 0; end
 
-if strcmp('volume', datatype(data)) || strcmp('source', datatype(data));
+if strcmp('volume', ft_datatype(data)) || strcmp('source', ft_datatype(data));
   if isfield(data, 'dimord') && ~keepsourcedimord
     % data should not have a dimord (is not implemented yet, but some
     % functions add a dimord to these data which leads to unexpected behavior)

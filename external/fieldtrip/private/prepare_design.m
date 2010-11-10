@@ -61,7 +61,7 @@ function [cfg] = prepare_design(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_design.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: prepare_design.m 2097 2010-11-10 09:20:18Z roboos $
 
 % determine whether a beween or a within-units design is requested.
 if any(strcmp(cfg.statistic,{'indepsamplesT','indepsamplesregrT','indepsamplesZcoh','indepsamplesF'}))
@@ -142,14 +142,6 @@ elseif strcmp(designtype,'within')  % within-units conditions
 end;
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: prepare_design.m 952 2010-04-21 18:29:51Z roboos $';
-
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: prepare_design.m 2097 2010-11-10 09:20:18Z roboos $';
 

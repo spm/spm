@@ -136,11 +136,15 @@ end
 ft_progress('init', feedback, 'beaming sources\n');
 
 for i=1:size(dip.pos,1)
-  if isfield(dip, 'leadfield') && ~isfield(dip, 'mom'),
+  if isfield(dip, 'leadfield') && isfield(dip, 'mom') && size(dip.mom, 1)==size(dip.leadfield{i}, 2)
+    % reuse the leadfield that was previously computed and project
+    lf = dip.leadfield{i} * dip.mom(:,i);
+  elseif  isfield(dip, 'leadfield') &&  isfield(dip, 'mom')
+    % reuse the leadfield that was previously computed but don't project
+    lf = dip.leadfield{i};
+  elseif isfield(dip, 'leadfield') && ~isfield(dip, 'mom'),
     % reuse the leadfield that was previously computed
     lf = dip.leadfield{i};
-  elseif isfield(dip, 'leadfield') && isfield(dip, 'mom'),
-    lf = dip.leadfield{i} * dip.mom(:,i);
   elseif ~isfield(dip, 'leadfield') && isfield(dip, 'mom')
     % compute the leadfield for a fixed dipole orientation
     lf = ft_compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam) * dip.mom(:,i);
@@ -231,7 +235,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1983 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 2098 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

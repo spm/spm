@@ -134,15 +134,8 @@ bhv = bhv.data{1}(:);
 cfg = [];
 
 % add the version details of this function call to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id   = '$Id: spass2fieldtrip.m 1100 2010-05-19 14:51:31Z roboos $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id   = '$Id: spass2fieldtrip.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % remember the exact configuration details in the output
 lfp.cfg   = cfg;
@@ -161,5 +154,4 @@ end
 lfp.cfg.trl = trl;
 lfp.hdr.FirstTimeStamp = 0;
 lfp.hdr.TimeStampPerSample = fsample_swa./fsample_ana;
-
 

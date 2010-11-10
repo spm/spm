@@ -59,7 +59,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 2048 2010-11-03 08:47:25Z arjsto $
+% $Id: ft_volumenormalise.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -320,17 +320,12 @@ cfg.initial   = initial;
 cfg.final     = final;
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_volumenormalise.m 2048 2010-11-03 08:47:25Z arjsto $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_volumenormalise.m 2097 2010-11-10 09:20:18Z roboos $';
+
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
+
 % remember the exact configuration details in the output
 normalise.cfg = cfg;
 

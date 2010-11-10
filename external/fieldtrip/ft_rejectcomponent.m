@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 2043 2010-11-03 08:27:12Z arjsto $
+% $Id: ft_rejectcomponent.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -158,15 +158,9 @@ cfg.outputfile;
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add the version details of this function call to the configuration 
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath'); 
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_rejectcomponent.m 2043 2010-11-03 08:27:12Z arjsto $';
+cfg.version.name = mfilename('fullpath'); 
+cfg.version.id = '$Id: ft_rejectcomponent.m 2097 2010-11-10 09:20:18Z roboos $';
+
 if nargin==2 || nargin < 2 
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end
@@ -185,3 +179,4 @@ data.cfg = cfg;
 if ~isempty(cfg.outputfile)
   savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
 end
+

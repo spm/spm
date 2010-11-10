@@ -56,7 +56,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 2063 2010-11-03 10:11:14Z arjsto $
+% $Id: ft_timelockstatistics.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -117,15 +117,8 @@ end
 [stat, cfg] = statistics_wrapper(cfg, varargin{:});
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_timelockstatistics.m 2063 2010-11-03 10:11:14Z arjsto $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_timelockstatistics.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % remember the configuration of the input data
 cfg.previous = [];

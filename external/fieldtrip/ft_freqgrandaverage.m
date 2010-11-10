@@ -42,7 +42,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 2057 2010-11-03 09:57:58Z arjsto $
+% $Id: ft_freqgrandaverage.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -255,20 +255,15 @@ cfg.outputfile;
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_freqgrandaverage.m 2057 2010-11-03 09:57:58Z arjsto $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_freqgrandaverage.m 2097 2010-11-10 09:20:18Z roboos $';
+
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)
   try, cfg.previous{i} = varargin{i}.cfg; end
 end
+
 % remember the exact configuration details in the output
 grandavg.cfg = cfg;
 

@@ -60,7 +60,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 2058 2010-11-03 10:00:13Z arjsto $
+% $Id: ft_freqstatistics.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -131,15 +131,8 @@ else
 end
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_freqstatistics.m 2058 2010-11-03 10:00:13Z arjsto $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_freqstatistics.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % remember the configuration of the input data
 cfg.previous = [];
@@ -151,10 +144,11 @@ for i=1:length(varargin)
   end
 end
 
-% remember the exact configuration details
+% remember the exact configuration details in the output
 stat.cfg = cfg;
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
   savevar(cfg.outputfile, 'stat', stat); % use the variable name "data" in the output file
 end
+

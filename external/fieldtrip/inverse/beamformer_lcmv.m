@@ -17,8 +17,8 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 %   dipout      is the resulting dipole model with all details
 %
 % The input dipole model consists of
-%   dipin.pos   positions for dipole, e.g. regular grid
-%   dipin.mom   dipole orientation (optional)
+%   dipin.pos   positions for dipole, e.g. regular grid, Npositions x 3
+%   dipin.mom   dipole orientation (optional), 3 x Npositions
 %
 % Additional options should be specified in key-value pairs and can be
 %  'lambda'           = regularisation parameter
@@ -195,9 +195,12 @@ end
 ft_progress('init', feedback, 'scanning grid');
 
 for i=1:size(dip.pos,1)
-  if isfield(dip, 'leadfield') && isfield(dip, 'mom')
-    % reuse the leadfield that was previously computed
+  if isfield(dip, 'leadfield') && isfield(dip, 'mom') && size(dip.mom, 1)==size(dip.leadfield{i}, 2)
+    % reuse the leadfield that was previously computed and project
     lf = dip.leadfield{i} * dip.mom(:,i);
+  elseif  isfield(dip, 'leadfield') &&  isfield(dip, 'mom')
+    % reuse the leadfield that was previously computed but don't project
+    lf = dip.leadfield{i};
   elseif  isfield(dip, 'leadfield') && ~isfield(dip, 'mom')
     % reuse the leadfield that was previously computed
     lf = dip.leadfield{i};    
@@ -351,7 +354,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1983 $  $Date: 2009/03/23 21:14:42 $
+%   $Revision: 2098 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

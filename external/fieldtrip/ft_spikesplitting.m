@@ -41,7 +41,7 @@ function [cfg] = ft_spikesplitting(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesplitting.m 1980 2010-10-27 10:45:10Z jansch $
+% $Id: ft_spikesplitting.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -255,13 +255,6 @@ for j=1:hdr.nChans
 end
 
 % add the version details of this function call to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id   = '$Id: ft_spikesplitting.m 1980 2010-10-27 10:45:10Z jansch $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id   = '$Id: ft_spikesplitting.m 2097 2010-11-10 09:20:18Z roboos $';
 

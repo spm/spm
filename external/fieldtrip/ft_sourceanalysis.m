@@ -184,7 +184,7 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 2059 2010-11-03 10:03:25Z arjsto $
+% $Id: ft_sourceanalysis.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -1007,15 +1007,9 @@ cfg.outputfile;
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_sourceanalysis.m 2059 2010-11-03 10:03:25Z arjsto $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_sourceanalysis.m 2097 2010-11-10 09:20:18Z roboos $';
+
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end
@@ -1024,6 +1018,7 @@ elseif nargin==3
   try, cfg.previous{1} = data.cfg;     end
   try, cfg.previous{2} = baseline.cfg; end
 end
+
 % remember the exact configuration details in the output
 source.cfg = cfg;
 

@@ -76,7 +76,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 1534 2010-08-20 10:43:46Z vlalit $
+% $Id: ft_senstype.m 2075 2010-11-05 12:03:49Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -178,6 +178,10 @@ elseif issubfield(input, 'orig.stname')
 elseif issubfield(input, 'orig.sys_name')
   % this is a complete header that was read from a Yokogawa dataset
   type = 'yokogawa160';
+
+elseif issubfield(input, 'orig.FILE.Ext') && strcmp(input.orig.FILE.Ext, 'edf')
+  % this is a complete header that was read from an EDF or EDF+ dataset
+  type = 'electrode';
 
 else
   % start with unknown, then try to determine the proper type by looking at the labels

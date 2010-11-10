@@ -70,7 +70,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 1979 2010-10-27 10:41:29Z jansch $
+% $Id: ft_rejectartifact.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -407,15 +407,8 @@ end
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the artfctdef substructure
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_rejectartifact.m 1979 2010-10-27 10:41:29Z jansch $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_rejectartifact.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

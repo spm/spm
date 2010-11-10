@@ -57,7 +57,7 @@ function [freq] = ft_freqanalysis(cfg, data, flag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 2069 2010-11-03 12:41:21Z roevdmei $
+% $Id: ft_freqanalysis.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -353,11 +353,13 @@ else
       acttboi = squeeze(~isnan(spectrum(1,1,ifoi,:)));
       nacttboi = sum(acttboi);
       if ~hastime
-        acttboi = 1;
+        acttboi  = 1;
         nacttboi = 1;
+      elseif sum(acttboi)==0
+        %nacttboi = 1;
       end
       acttap = squeeze(~isnan(spectrum(:,1,ifoi,find(acttboi,1))));
-
+      acttap = logical([ones(ntaper(ifoi),1);zeros(size(spectrum,1)-ntaper(ifoi),1)]);
       if powflg
         powdum = abs(spectrum(acttap,:,ifoi,acttboi)) .^2;
         % sinetaper scaling, not checked whether it works if hastime = 0
@@ -414,14 +416,20 @@ else
           if powflg
             powspctrm(currrptind(acttap),:,ifoi,acttboi) = reshape(powdum,[ntaper(ifoi) nchan 1 nacttboi]);
             powspctrm(~currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            powspctrm( currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            powspctrm(~currrptind(acttap),:,ifoi, acttboi) = NaN;
           end
           if fftflg
             fourierspctrm(currrptind(acttap),:,ifoi,acttboi) = reshape(fourierdum,[ntaper(ifoi) nchan 1 nacttboi]);
             fourierspctrm(~currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            fourierspctrm( currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            fourierspctrm(~currrptind(acttap),:,ifoi, acttboi) = NaN;
           end
           if csdflg
             crsspctrm(currrptind(acttap),:,ifoi,acttboi) = reshape(csddum,[ntaper(ifoi) nchancmb 1 nacttboi]);
             crsspctrm(~currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            crsspctrm( currrptind(acttap),:,ifoi,~acttboi) = NaN;
+            crsspctrm(~currrptind(acttap),:,ifoi, acttboi) = NaN;
           end
           
       end % switch keeprpt
@@ -524,18 +532,14 @@ else
   
   try, freq.grad = data.grad; end   % remember the gradiometer array
   try, freq.elec = data.elec; end   % remember the electrode array
+
   % add information about the version of this function to the configuration
-  try
-    % get the full name of the function
-    cfg.version.name = mfilename('fullpath');
-  catch
-    % required for compatibility with Matlab versions prior to release 13 (6.5)
-    [st, i1] = dbstack;
-    cfg.version.name = st(i1);
-  end
-  cfg.version.id = '$Id: ft_freqanalysis.m 2069 2010-11-03 12:41:21Z roevdmei $';
+  cfg.version.name = mfilename('fullpath');
+  cfg.version.id = '$Id: ft_freqanalysis.m 2097 2010-11-10 09:20:18Z roboos $';
+
   % remember the configuration details of the input data
   try, cfg.previous = data.cfg; end
+
   % remember the exact configuration details in the output
   freq.cfg = cfg;
   

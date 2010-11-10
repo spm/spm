@@ -140,7 +140,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 2003 2010-10-29 09:54:18Z jansch $
+% $Id: ft_dipolefitting.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -563,15 +563,8 @@ cfg.outputfile;
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_dipolefitting.m 2003 2010-10-29 09:54:18Z jansch $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_dipolefitting.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

@@ -79,7 +79,7 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_definetrial.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -146,15 +146,8 @@ cfg.trl = trl;
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 % add information about the version of this function to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i1] = dbstack;
-  cfg.version.name = st(i1);
-end
-cfg.version.id = '$Id: ft_definetrial.m 1974 2010-10-27 10:36:50Z jansch $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_definetrial.m 2097 2010-11-10 09:20:18Z roboos $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

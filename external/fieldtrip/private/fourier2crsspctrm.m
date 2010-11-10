@@ -35,7 +35,7 @@ function output = fourier2crsspctrm(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fourier2crsspctrm.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: fourier2crsspctrm.m 2097 2010-11-10 09:20:18Z roboos $
 
 if ~isfield(cfg, 'channel'),     cfg.channel     = {'all'};                       end
 if ~isfield(cfg, 'channelcmb'),  cfg.channelcmb  = {};                            end
@@ -117,17 +117,12 @@ if isempty(output.crsspctrm), output = rmfield(output, 'crsspctrm'); end;
 if isempty(output.labelcmb ), output = rmfield(output, 'labelcmb' ); end;
 
 % add information about the version of this function to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i1] = dbstack;
-  cfg.version.name = st(i1);
-end
-cfg.version.id = '$Id: fourier2crsspctrm.m 952 2010-04-21 18:29:51Z roboos $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: fourier2crsspctrm.m 2097 2010-11-10 09:20:18Z roboos $';
+
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
+
 % remember the exact configuration details in the output 
 output.cfg = cfg;
 

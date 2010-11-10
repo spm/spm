@@ -57,7 +57,7 @@ function lrp = ft_lateralizedpotential(cfg, avgL, avgR);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_lateralizedpotential.m 1722 2010-09-20 15:19:23Z sashae $
+% $Id: ft_lateralizedpotential.m 2097 2010-11-10 09:20:18Z roboos $
 
 fieldtripdefs
 
@@ -117,19 +117,14 @@ for i=1:Nchan
 end
 
 % add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_lateralizedpotential.m 1722 2010-09-20 15:19:23Z sashae $';
+cfg.version.name = mfilename('fullpath');
+cfg.version.id = '$Id: ft_lateralizedpotential.m 2097 2010-11-10 09:20:18Z roboos $';
+
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = avgL.cfg; end
 try, cfg.previous{2} = avgR.cfg; end
+
 % remember the exact configuration details in the output 
 lrp.cfg = cfg;
 
@@ -137,3 +132,4 @@ lrp.cfg = cfg;
 if ~isempty(cfg.outputfile)
   savevar(cfg.outputfile, 'data', lrp); % use the variable name "data" in the output file
 end
+
