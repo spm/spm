@@ -5,7 +5,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 3760 2010-03-08 17:00:30Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 4118 2010-11-10 14:48:16Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -211,7 +211,7 @@ for i = 1:numel(job.D)
         meegfid.fid.label = meegfid.fid.label(selection);
         
         mrifid = [];
-        mrifid.pnt = [];
+        mrifid.pnt = D.inv{val}.mesh.fid.pnt;
         mrifid.fid.pnt = [];
         mrifid.fid.label = {job.coregistration.coregspecify.fiducial.fidname}';
         
