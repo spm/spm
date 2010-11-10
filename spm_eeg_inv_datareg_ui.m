@@ -16,7 +16,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 4090 2010-10-13 10:05:20Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 4116 2010-11-10 14:23:54Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -135,8 +135,10 @@ else
     S.targetfid = newmrifid;    
 end
 
-if ~isempty(S.sourcefid.pnt) && ~isfield(S, 'useheadshape')
-    S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
+if ~isempty(S.sourcefid.pnt)
+    if ~isfield(S, 'useheadshape')
+        S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
+    end
 else
     S.useheadshape = 0;
 end
