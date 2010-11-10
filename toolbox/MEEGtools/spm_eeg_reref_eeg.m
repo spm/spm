@@ -18,10 +18,10 @@ function [D, S] = spm_eeg_reref_eeg(S)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Rik Henson
-% $Id: spm_eeg_reref_eeg.m 3701 2010-01-28 13:01:40Z rik $
+% Rik Henson (updated so that bad channels included in tra but not used)
+% $Id: spm_eeg_reref_eeg.m 4117 2010-11-10 14:24:25Z vladimir $
 
-SVNrev = '$Rev: 3701 $';
+SVNrev = '$Rev: 4117 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,43 +42,45 @@ D = spm_eeg_load(D);
 
 % Get indices for just EEG channels and remove any bad channels
 %--------------------------------------------------------------------------
-eegchan = setdiff(D.meegchannels('EEG'), D.badchannels);
+eegchan  = D.meegchannels('EEG');
+goodchan = setdiff(eegchan, D.badchannels);
 
-if isempty(eegchan)
+if isempty(goodchan)
     error('No EEG channels that are not marked as bad...!?')
 end
 
 %-Get reference channel indices 
 %--------------------------------------------------------------------------
 if ~isfield(S, 'refchan')
-      [selection, ok]= listdlg('ListString', D.chanlabels(eegchan), 'SelectionMode', 'multiple' ,'Name', 'Select reference channels' , 'ListSize', [400 300]);
+      [selection, ok]= listdlg('ListString', D.chanlabels(goodchan), 'SelectionMode', 'multiple' ,'Name', 'Select reference channels' , 'ListSize', [400 300]);
     if ~ok
         return;
     end
     
-    if length(selection) == length(eegchan)
+    if length(selection) == length(goodchan)
         S.refchan = 'average';
     else
-        S.refchan = D.chanlabels(eegchan(selection));
+        S.refchan = D.chanlabels(goodchan(selection));
     end
 end
 
 if strcmpi(S.refchan,'average')
-    refchan = eegchan;
+    refchan = goodchan;
 elseif iscell(S.refchan)
     refchan = D.indchannel(S.refchan);
 elseif isnumeric(S.refchan)
     refchan = S.refchan;
 end
 
-refind = find(ismember(eegchan, refchan));
+refind  = find(ismember(eegchan, refchan));
+goodind = find(ismember(eegchan, goodchan));
 
 if length(refind) ~= length(refchan)
     error('Not all S.refchan are valid indices for (non-bad) EEG channels')
 end
 
-tra           = eye(length(eegchan));
-tra(:,refind) = tra(:,refind) - 1/length(refchan);
+tra                 = eye(length(eegchan));
+tra(goodind,refind) = tra(goodind,refind) - 1/length(refchan);
 
 S1=[];
 S1.D = D;
