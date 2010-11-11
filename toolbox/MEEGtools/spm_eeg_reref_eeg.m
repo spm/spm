@@ -19,9 +19,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson (updated so that bad channels included in tra but not used)
-% $Id: spm_eeg_reref_eeg.m 4117 2010-11-10 14:24:25Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 4119 2010-11-11 12:12:00Z vladimir $
 
-SVNrev = '$Rev: 4117 $';
+SVNrev = '$Rev: 4119 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,6 +74,7 @@ end
 
 refind  = find(ismember(eegchan, refchan));
 goodind = find(ismember(eegchan, goodchan));
+badind  = find(ismember(eegchan, D.badchannels));
 
 if length(refind) ~= length(refchan)
     error('Not all S.refchan are valid indices for (non-bad) EEG channels')
@@ -81,6 +82,7 @@ end
 
 tra                 = eye(length(eegchan));
 tra(goodind,refind) = tra(goodind,refind) - 1/length(refchan);
+tra(badind,refind)  = tra(badind,refind)  - 1/length(refchan);
 
 S1=[];
 S1.D = D;
