@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4092 2010-10-14 12:54:40Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4120 2010-11-15 11:47:36Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -185,9 +185,7 @@ if ~isfield(S,'weightttest'),
     S.weightttest=[];
 end; 
 
-if ~isfield(S,'fixweights'),
-    S.fixweights=[];
-end;
+
 
 
 % if ~isempty(S.weightspect),
@@ -654,7 +652,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
                 Yfull=power_trial;
             else
             %    Yfull=power_trial./repmat(std(power_trial),size(power_trial,1),1); 
-                Yfull=real(evoked_trial); %% NB ONLY TESTING REAL P
+                Yfull=[real(evoked_trial), imag(evoked_trial)]; %% split into sin and cos parts 
             end; % if power_flag
             %Yfull=power_trial;
         Y     = Yfull - X0*(X0'*Yfull); %% eg remove DC level or drift terms from all of Y
@@ -750,16 +748,20 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         if CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter)>maxcva(power_flag+1,iter),
             stats(fband).bestchi(power_flag+1,1:h,iter)=chi;
             if length(V)>1,
-                stats(fband).bestV(power_flag+1,1:h,iter,:)=V';
-                 stats(fband).bestv(power_flag+1,1:h,iter,:)=v';
+                if power_flag,
+                 stats(fband).bestVpw(1:h,iter,:)=V';
+                 stats(fband).bestvpw(1:h,iter,:)=v';
+                 stats(fband).bestUpw=U;
+                else
+                 stats(fband).bestVev(1:h,iter,:)=V';
+                 stats(fband).bestvev(1:h,iter,:)=v';
+                 stats(fband).bestUev=U;
+                end;
             end;% 
            
             stats(fband).pval(power_flag+1,1:h,iter)=p;
             stats(fband).df(power_flag+1,1:h,iter)=df;
             stats(fband).p05alyt(power_flag+1,1:h)=p05thresh;
-            %stats(fband).bestY(power_flag+1,:,:)=Y;
-            stats(fband).bestU(power_flag+1,:,:)=U;
-            %stats(fband).bestU(power_flag+1,:,:)=vX;
             stats(fband).maxind(power_flag+1,iter)=maskedgrid_inside_ind(i);
             stats(fband).freqHz=fHz(freq_indtest);
             stats(fband).freq_indtest=freq_indtest;
@@ -769,8 +771,11 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             maxcva(power_flag+1,iter)=CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter);
             end; % if CVA_Stat
         if (iter==TrueIter) && (length(V)>1),
-            
-            stats(fband).allV(power_flag+1,1:h,i,:)=V';
+            if power_flag,
+                stats(fband).allVpw(1:h,i,:)=V';
+                else
+                stats(fband).allVev(1:h,i,:)=V';
+                end;
             end;% if iter
         
         end; % for Niter
@@ -874,8 +879,11 @@ gridpositions=grid.pos(grid.inside,:);
     end; % IF TWOSAMPLETEST
     
     
-    [maxvals,maxind]=max(stats(fband).ctf_weights');
-       [minvals,minind]=max(-stats(fband).ctf_weights');
+    %[maxvals,maxind]=max(stats(fband).ctf_weights');
+    % [minvals,minind]=max(-stats(fband).ctf_weights');
+    [maxvals,maxind]=max(alllf');
+    [minvals,minind]=max(-alllf');
+     
        weight_extrema=[maxind' minind'];
        weight_extrema=sort(weight_extrema')'; %% doesn't matter if extrema are reversed
        u_extrema=unique(weight_extrema,'rows');
