@@ -60,28 +60,18 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 2707 2009-02-06 19:51:34Z karl $
+% $Id: spm_int_ode.m 4121 2010-11-17 16:16:18Z karl $
 
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U)
-    U.u = U;
-end
-try
-    dt = U.dt;
-catch
-    dt = 1;
-end
-try
-    ns = length(U.u);
-catch
-    ns = M.ns;
-end
- 
+if ~isstruct(U), U.u = U;   end
+try, U.dt; catch, U.dt = 1; end
+
 % sample times
 %--------------------------------------------------------------------------
-tspan = [1:ns]*dt;
+ns      = size(U.u,1);
+tspan   = (1:ns)*U.dt;
  
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
@@ -111,12 +101,21 @@ catch
 end
  
 % ODE45 functional form (note, the third argument of the ODE function is
-% used by ode15i (i.e, yp0).
+% used by ode15i (i.e, OPTIONS).
 %--------------------------------------------------------------------------
 ode   = inline('spm_vec(f(spm_unvec(x,M.x),U.u(ceil(t/U.dt),:),P,M))',...
-               't','x','yp0','P','M','U','f');
+               't','x','OPTIONS','P','M','U','f');
            
-[t x] = ode113(ode,tspan,spm_vec(x),[],P,M,U,f);
+
+OPTIONS = odeset;
+[t x]   = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
+
+% Give the integrator something to work with for 'flat' inputs:
+%--------------------------------------------------------------------------
+if norm(x,1) < exp(-16)
+   U.u   = spm_conv(U.u,8,0); 
+   [t x] = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
+end
  
  
 % output
@@ -125,7 +124,7 @@ for i = 1:ns
  
     % output - implement g(x)
     %----------------------------------------------------------------------
-    if length(g)
+    if ~isempty(g)
         y(:,i) = spm_vec(g(spm_unvec(x(i,:),M.x),U.u(i,:),P,M));
     else
         y(:,i) = spm_vec(spm_unvec(x(i,:),M.x));

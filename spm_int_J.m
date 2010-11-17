@@ -61,15 +61,14 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_int_J.m 4121 2010-11-17 16:16:18Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u; end
-M       = M(1);
 try, dt = U.dt;  catch, dt = 1;  end
-try, ns = M.ns;  catch, ns = length(U.u); end
+M       = M(1);
 
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
@@ -127,7 +126,7 @@ end
 
 % integrate
 %==========================================================================
-for i = 1:ns
+for i = 1:size(U.u,1)
 
     % input
     %----------------------------------------------------------------------

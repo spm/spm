@@ -61,15 +61,14 @@ function [y] = spm_int_sde(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_sde.m 2032 2008-09-02 18:31:16Z karl $
+% $Id: spm_int_sde.m 4121 2010-11-17 16:16:18Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u; end
-M       = M(1);
 try, dt = U.dt;  catch, dt = 1;  end
-try, ns = M.ns;  catch, ns = length(U.u); end
+M       = M(1);
 
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
@@ -86,7 +85,7 @@ end
 try
     g   = fcnchk(M.g,'x','u','P','M');
 catch
-    g   = [];
+    g   = inline('x','x','u','P','M');
 end
 
 % Initial states and inputs
@@ -134,7 +133,7 @@ end
 
 % integrate
 %==========================================================================
-for i = 1:ns
+for i = 1:size(U.u,1)
 
     % input
     %----------------------------------------------------------------------
@@ -158,11 +157,7 @@ for i = 1:ns
 
     % output - implement g(x)
     %----------------------------------------------------------------------
-    if length(g)
-        y(:,i) = spm_vec(g(x,u,P,M));
-    else
-        y(:,i) = spm_vec(x);
-    end
+    y(:,i) = spm_vec(g(x,u,P,M));
 
 end
 

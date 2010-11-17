@@ -59,15 +59,13 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_int_B.m 4121 2010-11-17 16:16:18Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U), U.u = U; end
 try, dt = U.dt; catch, dt = 1; end
-try, ns = M.ns; catch, ns = length(U.u); end
-
  
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
@@ -111,7 +109,7 @@ end
 % integrate
 %==========================================================================
 x0    = spm_vec(M.x);
-for i = 1:ns
+for i = 1:size(U.u,1)
  
     % input
     %----------------------------------------------------------------------

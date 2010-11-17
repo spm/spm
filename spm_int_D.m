@@ -57,7 +57,7 @@ function [y] = spm_int_D(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_D.m 3739 2010-02-26 13:12:44Z karl $
+% $Id: spm_int_D.m 4121 2010-11-17 16:16:18Z karl $
  
  
 % convert U to U.u if necessary
@@ -65,7 +65,12 @@ function [y] = spm_int_D(P,M,U)
 if ~isstruct(U), u.u = U; U = u; end
 try, dt = U.dt; catch, U.dt = 1; end
  
- 
+ % number of times to sample (v) and number of microtime bins (u)
+%--------------------------------------------------------------------------
+u      = size(U.u,1);
+try, v = M.ns;  catch, v = u;    end
+
+
 % get expansion point
 %--------------------------------------------------------------------------
 x = [1; spm_vec(M.x)];
@@ -78,14 +83,7 @@ if ~isfield(M,'f')
     M.x = sparse(0,0);
 end
  
-% number of times to sample (v) and number of microtime bins (u)
-%--------------------------------------------------------------------------
-u  = size(U.u,1);
-try
-    v = M.ns;
-catch
-    v = size(U.u,1);
-end
+
  
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
@@ -106,9 +104,9 @@ m          = length(M1);                     % m inputs
 % delays
 %--------------------------------------------------------------------------
 try
-    D  = round(M.delays/U.dt);
+    D  = max(round(M.delays/U.dt),1);
 catch
-    D  = ones(l,1)*round(u/v);
+    D  = ones(M.l,1)*round(u/v);
 end
  
 % state-dependent effects to include during integration
@@ -117,7 +115,7 @@ try
     M2 = M2(M.states);
     n  = length(M2);
 end
- 
+
 % decrease integration time steps
 %--------------------------------------------------------------------------
 try
@@ -125,8 +123,8 @@ try
 catch
     N  = 1;
 end
- 
- 
+
+
 % Evaluation times (t) and indicator array for inputs (su) and output (sy)
 %==========================================================================
  
@@ -140,21 +138,20 @@ su    = sparse(1,i,1,1,u);
 s     = ceil([0:v - 1]*u/v);
 for j = 1:M.l
     i       = s + D(j);
-    sy(j,:) = sparse(1,i,[1:v],1,u);
+    sy(j,:) = sparse(1,i,1:v,1,u);
 end
  
 % get (N) intervening times to evaluate
 %--------------------------------------------------------------------------
-i     = ceil([0:(v - 1)*N]*u/v/N) + D(1);
+i     = ceil((0:(v - 1)*N)*u/v/N) + D(1);
 sx    = sparse(1,i,1,1,u);
  
 % time in seconds
 %--------------------------------------------------------------------------
-t     = find(su | any(sy) | sx);
+t     = find(su | any(sy,1) | sx);
 su    = full(su(:,t));
 sy    = full(sy(:,t));
 dt    = [diff(t) 0]*U.dt;
- 
  
 % Integrate
 %--------------------------------------------------------------------------

@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_int.m 4121 2010-11-17 16:16:18Z karl $
  
  
 % convert U to U.u if necessary
@@ -63,7 +63,12 @@ function [y] = spm_int(P,M,U)
 if ~isstruct(U), u.u = U; U = u; end
 try, dt = U.dt; catch, U.dt = 1; end
  
- 
+% number of times to sample (v) and number of microtime bins (u)
+%--------------------------------------------------------------------------
+u       = size(U.u,1);
+try,  v = M.ns;  catch, v = u;   end
+
+
 % get expansion point
 %--------------------------------------------------------------------------
 x = [1; spm_vec(M.x)];
@@ -76,14 +81,7 @@ if ~isfield(M,'f')
     M.x = sparse(0,0);
 end
  
-% number of times to sample (v) and number of microtime bins (u)
-%--------------------------------------------------------------------------
-u = size(U.u,1);
-try
-    v = M.ns;
-catch
-    v = size(U.u,1);
-end
+
  
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
@@ -102,7 +100,7 @@ m       = length(M1);                     % m inputs
 % delays
 %--------------------------------------------------------------------------
 try
-    D  = round(M.delays/U.dt);
+    D  = max(round(M.delays/U.dt),1);
 catch
     D  = ones(M.l,1)*round(u/v);
 end
@@ -121,7 +119,7 @@ su    = sparse(1,i,1,1,u);
 s     = ceil([0:v - 1]*u/v);
 for j = 1:M.l
     i       = s + D(j);
-    sy(j,:) = sparse(1,i,[1:v],1,u);
+    sy(j,:) = sparse(1,i,1:v,1,u);
 end
  
 % time in seconds
