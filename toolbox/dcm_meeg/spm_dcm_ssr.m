@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_dcm_ssr.m 4122 2010-11-17 17:00:19Z rosalyn $
 
 
 % check options
@@ -109,7 +109,7 @@ end
 
 % get data-features (in reduced eigen-space)
 %--------------------------------------------------------------------------
-DCM        = spm_dcm_csd_data(DCM);
+DCM        = spm_dcm_ssr_data(DCM);
 DCM.xY.y   = spm_unvec(abs(spm_vec(DCM.xY.y)),DCM.xY.y);
 
 
