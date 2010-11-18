@@ -23,7 +23,7 @@ function spm_dcm_create(syn_model, source_model, SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 3741 2010-03-01 15:35:30Z guillaume $
+% $Id: spm_dcm_create.m 4124 2010-11-18 16:56:53Z karl $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -48,6 +48,7 @@ end
 switch upper(source_model)
     
     case 'GUI'
+        
         % Define model by GUI
         %==================================================================
 
@@ -249,12 +250,12 @@ switch upper(source_model)
 
         
     case 'IMPORT'
+        
         % Import existing model - prompt user to choose it
         %==================================================================
         P     = spm_select(1,'^DCM.*\.mat$','Select source DCM_???.mat');
         load(P)
 
-        
     otherwise
         % Import existing model (directly specified by directory & name)
         %==================================================================

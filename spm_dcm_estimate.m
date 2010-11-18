@@ -20,10 +20,8 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.stochastic             % fluctuations on hidden states
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
+% DCM.options.centre                 % mean-centre inputs
 % DCM.options.P                      % Starting estimates for parameters
-% DCM.options.W                      % noise log-precicion (hidden-states)
-% DCM.options.V                      % noise log-precicion (hidden-causes)
-% DCM.options.s                      % smoothness of random fluctuations
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -49,7 +47,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_dcm_estimate.m 4124 2010-11-18 16:56:53Z karl $
  
  
 %-Load DCM structure
@@ -81,11 +79,7 @@ end
 try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
-try, DCM.options.form;       catch, DCM.options.form  = 'Gaussian'; end
-try, DCM.options.W;          catch, DCM.options.W = 9;              end
-try, DCM.options.V;          catch, DCM.options.V = 4;              end
-try, DCM.options.s;          catch, DCM.options.s = 1/3;            end
-
+try, DCM.options.centre;     catch, DCM.options.centre     = 1;     end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
 try, M.P       = DCM.options.P ;end
@@ -97,10 +91,14 @@ Y  = DCM.Y;                             % responses
 n  = DCM.n;                             % number of regions
 v  = DCM.v;                             % number of scans
  
-% detrend inputs and outputs
+% detrend outputs (and inputs)  
 %--------------------------------------------------------------------------
-U.u     = spm_detrend(U.u);
-Y.y     = spm_detrend(Y.y);
+if DCM.options.centre
+    U.u = spm_detrend(U.u);
+    Y.y = spm_detrend(Y.y);
+else
+    Y.y = spm_detrend(Y.y);
+end
 
 % check scaling of Y (enforcing a maximum change of 4%
 %--------------------------------------------------------------------------
@@ -156,7 +154,7 @@ if ~any(spm_vec(DCM.c))
 else
     DCM.options.endogenous = 0;
 end
-if DCM.options.endogenous
+if  DCM.options.endogenous
     DCM.options.two_state  = 0;
     DCM.options.stochastic = 1;
 end
@@ -222,14 +220,11 @@ if DCM.options.stochastic
  
     % set inversion parameters
     % ---------------------------------------------------------------------
-    form    = DCM.options.form;
-    s       = DCM.options.s;
-    
-    DEM.M(1).E.form = form;               % form of random fluctuations
-    DEM.M(1).E.s    = s;                  % smoothness of fluctuations
+    DEM.M(1).E.form = 'Gaussian';         % form of random fluctuations
+    DEM.M(1).E.s    = 1/2;                % smoothness of fluctuations
     DEM.M(1).E.d    = 2;                  % embedding dimension 
     DEM.M(1).E.n    = 6;                  % embedding dimension
-    DEM.M(1).E.nN   = 16;                 % maximum number of iterations
+    DEM.M(1).E.nN   = 32;                 % maximum number of iterations
 
  
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
@@ -243,14 +238,14 @@ if DCM.options.stochastic
     % ---------------------------------------------------------------------
     DEM.M(1).Q  = spm_Ce(ones(1,n));
     DEM.M(1).hE = Eh + 1;                 % prior expectation
-    DEM.M(1).hC = 1/32;                   % prior covariance
+    DEM.M(1).hC = 1/16;                   % prior covariance
     
     
     % Specify hyper-priors, allowing hidden causes to fluctuate
     % ---------------------------------------------------------------------
     DEM.M(1).xP = 128;                    % s.d. ~ 10%      (hidden-state)
-    DEM.M(1).W  = exp(DCM.options.W);     % fixed precision (hidden-motion)
-    DEM.M(2).V  = exp(DCM.options.V);     % fixed precision (hidden-cause)
+    DEM.M(1).W  = exp(9);                 % fixed precision (hidden-motion)
+    DEM.M(2).V  = exp(4);                 % fixed precision (hidden-cause)
         
     % for endgenous DCMs, allow neuronal hidden states to fluctuate
     % ---------------------------------------------------------------------

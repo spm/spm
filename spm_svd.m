@@ -12,19 +12,14 @@ function [U,S,V] = spm_svd(X,U,T)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_svd.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_svd.m 4124 2010-11-18 16:56:53Z karl $
 
 
 
 % default thresholds
 %---------------------------------------------------------------------------
-if nargin < 2
-    U = 1e-6;
-end
-
-if nargin < 3
-    T = 0;
-end
+if nargin < 2, U = 1e-6; end
+if nargin < 3, T = 0;    end
 
 % deal with sparse matrices
 %---------------------------------------------------------------------------

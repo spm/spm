@@ -9,10 +9,10 @@ function [K] = spm_sqrtm(V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sqrtm.m 4068 2010-09-07 16:50:08Z ged $
+% $Id: spm_sqrtm.m 4124 2010-11-18 16:56:53Z karl $
 
 %--------------------------------------------------------------------------
-[u s] = spm_svd(V,1e-16);
+[u s] = spm_svd(V,0,1e-16);
 s     = sqrt(diag(s));
 m     = length(s);
 s     = sparse(1:m,1:m,s);

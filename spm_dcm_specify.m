@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4105 2010-10-31 21:47:01Z christophe $
+% $Id: spm_dcm_specify.m 4124 2010-11-18 16:56:53Z karl $
 
 
 %-Interactive window
@@ -95,7 +95,7 @@ while ~TE_ok
     TE = spm_input('Echo time, TE [s]', '+1', 'r', TE);
     if ~TE || (TE < 0) || (TE > 0.1)
         str = { 'Extreme value for TE or TE undefined.',...
-            'Please re-enter TE (in seconds!)'};
+                'Please re-enter TE (in seconds!)'};
         spm_input(str,'+1','bd','OK',[1],1);
     else
         TE_ok = 1;
@@ -106,15 +106,18 @@ end
 %==========================================================================
 % Model options
 %==========================================================================
-if n
+if n                                                     % there are inputs
     spm_input('Model options:...  ',-1,'d');
     options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
     options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
     options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
+    options.centre     = spm_input('centre input',      '+1','b',{'no','yes'},[0 1],1);
+
 else
     options.nonlinear  = 0;
     options.two_state  = 0;
     options.stochastic = 1;
+    options.centre     = 1;
 end
 
 %==========================================================================

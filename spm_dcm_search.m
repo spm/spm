@@ -11,7 +11,7 @@ function spm_dcm_search(P)
 % evidence and conditional density over free-parameters of each model
 % specified.
 %
-% The DCM specified do not need to be estimated. spm_dcm_search will invert
+% The DCM specified does not need to be estimated. spm_dcm_search will invert
 % the requisite (full DCM) automatically.
 %
 % The outputs of this routine are graphics reporting the model space search
@@ -31,7 +31,7 @@ function spm_dcm_search(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_dcm_search.m 4124 2010-11-18 16:56:53Z karl $
  
 % get filenames
 %--------------------------------------------------------------------------

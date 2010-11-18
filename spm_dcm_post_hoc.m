@@ -3,13 +3,16 @@ function spm_dcm_post_hoc(P)
 % FORMAT spm_dcm_post_hoc(P)
 %
 % P         -  character/cell array of DCM filenames
+%           - or cell array of DCM structures
 %
 % This routine searches over all reduced models and uses post-hoc model 
 % selection to select the best model. Reduced models here mean all 
 % permutations of free parameters (coupling parameters with a non-zero 
 % prior covariance), where models are defined in terms of their prior 
 % covariance. The models should have been inverted prior to post hoc
-% optimisation
+% optimisation. If there are more than 16 free-parameters, this routine 
+% will implement a greedy search, starting with the 8 parameters closest 
+% to the prior mean.
 % 
 % When several DCMs are selected, they are checked to ensure the same free 
 % parameters have been specified and the log-evidences are pooled in a 
@@ -31,18 +34,19 @@ function spm_dcm_post_hoc(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_dcm_post_hoc.m 4124 2010-11-18 16:56:53Z karl $
  
 % get filenames
 %--------------------------------------------------------------------------
 try
     P;
 catch
-    [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
+    [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
  
-if ischar(P), P = cellstr(P); end
+if ischar(P),   P = cellstr(P); end
+if isstruct(P), P = {P}; end
 N = numel(P);
  
 %-Check models are compatible in terms of their prior variances
@@ -51,8 +55,9 @@ for j = 1:N
     
     % get prior covariances
     %----------------------------------------------------------------------
-    load(P{j});
-    pC    = diag(DCM.M.pC);
+    try, load(P{j}); catch, DCM = P{j}; end
+    pC   = diag(DCM.M.pC);
+    
     
     % and compare it with the first model
     %----------------------------------------------------------------------
@@ -70,18 +75,58 @@ end
 %--------------------------------------------------------------------------
 k     = spm_fieldindices(DCM.Ep,'A','B','D');
 k     = k(~~C(k));
- 
+n     = length(C);
+
+
+% If there are too many find those with the least evidence
+%--------------------------------------------------------------------------
+if length(k) > 16
+    
+    %-Loop through DCMs and free parameters and get log-evidences
+    %----------------------------------------------------------------------
+    for j = 1:N
+        
+        try, load(P{j}); catch, DCM = P{j}; end
+        
+        % Get priors and posteriors
+        % -----------------------------------------------------------------
+        qE    = DCM.Ep;
+        qC    = DCM.Cp;
+        pE    = DCM.M.pE;
+        pC    = DCM.M.pC;
+        
+        % model search over new prior without the i-th parameter
+        % -----------------------------------------------------------------
+        for i = 1:length(k)
+            R      = speye(n,n) - sparse(k(i),k(i),1,n,n);
+            Z(i,j) = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
+        end
+    end
+    
+    % find parameters with the least evidence
+    %----------------------------------------------------------------------
+    Z      = sum(Z,2);
+    [Z i]  = sort(-Z);
+    k      = k(i(1:8));
+    
+    % flag a greedy search
+    %----------------------------------------------------------------------
+    repeat = 1;
+    
+else
+    repeat = 0;
+end
+
 % Create model space in terms of free parameter indices
 %--------------------------------------------------------------------------
 K     = spm_perm_mtx(length(k));
-n     = length(C);
  
-%-Loop through models and get log-evidences
+%-Loop through DCMs and models and get log-evidences
 %==========================================================================
- 
 for j = 1:N
     
-    load(P{j});
+    try, load(P{j}); catch, DCM = P{j}; end
+    fprintf('\nsearching (%i): 00%%',j)
     
     % Get priors and posteriors
     % ---------------------------------------------------------------------
@@ -95,9 +140,12 @@ for j = 1:N
     for i = 1:length(K)
         R      = speye(n,n) - sparse(k,k,K(i,:),n,n);
         G(i,j) = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
-    end
     
+        fprintf('\b\b\b\b')
+        fprintf('%-3.0f%%',i*100/length(K))
+    end 
 end
+fprintf('\n')
  
 % Pooled model evidence
 % =========================================================================
@@ -112,10 +160,17 @@ p     = p/sum(p);
 R     = speye(n,n) - sparse(k,k,K(i,:),n,n);
 rC    = R*pC*R;
  
+% Continue greedy search if any parameters have been eliminated
+%--------------------------------------------------------------------------
+nelim  = full(sum(K(i,:)));
+repeat = repeat & nelim;
+if repeat
+    fprintf('%i paramters eliminated in this step\n',nelim)
+end
  
 % Show results
 % -------------------------------------------------------------------------
-spm_figure('Getwin','Graphics'); clf
+spm_figure('Getwin','Graphics');
  
 subplot(2,2,1)
 if length(K) > 32, plot(S,'k'), else, bar(S,'c'), end
@@ -131,7 +186,6 @@ xlabel('model','FontSize',12)
 ylabel('probability','FontSize',12)
 axis square
  
- 
 % conditional estimates of selected model
 % =========================================================================
 Eq    = 0;
@@ -140,7 +194,7 @@ for j = 1:N
     
     % Get priors and posteriors
     % ---------------------------------------------------------------------
-    load(P{j});
+    try, load(P{j}); catch, DCM = P{j}; end
     
     qE   = DCM.Ep;
     qC   = DCM.Cp;
@@ -187,37 +241,48 @@ for j = 1:N
     
     %-Save optimised DCM
     %======================================================================
-    [pth, name] = fileparts(P{j});
-    filename    = fullfile(pth,['DCM_opt_' name(4:end)]);
+    try
+        [pth, name] = fileparts(P{j});
+        P{j} = fullfile(pth,['DCM_opt_' name(4:end)]);
+    catch
+        P{j} = fullfile(pwd,['DCM_opt_' date]);
+    end
     if spm_matlab_version_chk('7') >= 0
-        save(filename,'-V6','DCM','F','Ep','Cp');
+        save(P{j},'-V6','DCM','F','Ep','Cp');
     else
-        save(filename,'DCM','F','Ep','Cp');
+        save(P{j},'DCM','F','Ep','Cp');
     end
     
 end
- 
- 
  
 % Show full and reduced conditional estimates (for last DCM)
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Graphics');
  
-i     = spm_fieldindices(DCM.Ep,'A','B','C','D');
-qE    = spm_vec(qE);
-Ep    = spm_vec(Ep);
+i   = spm_fieldindices(DCM.Ep,'A','B','C','D');
+qE  = spm_vec(qE);
+Ep  = spm_vec(Ep);
  
 subplot(2,2,3)
-spm_plot_ci(qE(i),qC(i,i))
+spm_plot_ci(qE(i),qC(i,i)), hold on
 title('MAP connections (full)','FontSize',16)
 axis square
 a   = axis;
  
 subplot(2,2,4)
-spm_plot_ci(Ep(i),Cp(i,i))
+spm_plot_ci(Ep(i),Cp(i,i)), hold off
 title('MAP connections (reduced)','FontSize',16)
 axis square
 axis(a)
+drawnow
+ 
+% repeat optimisation (greedy search) if necessary
+%--------------------------------------------------------------------------
+if repeat
+    spm_dcm_post_hoc(P);
+    return
+end
+ 
  
 % Show structural and functional graphs
 %--------------------------------------------------------------------------
@@ -225,10 +290,9 @@ spm_figure('Getwin','Graph'); clf
  
 % Bayesian parameter average
 %--------------------------------------------------------------------------
-Cq     = spm_inv(Pq);
-Eq     = Cq*Eq;
-Eq     = spm_unvec(Eq,pE);
-A      = Eq.A + sum(Eq.B,3) + sum(Eq.D,3);
+Cq  = spm_inv(Pq);
+Eq  = Cq*Eq;
+Eq  = spm_unvec(Eq,pE);
+A   = Eq.A + sum(Eq.B,3) + sum(Eq.D,3);
  
 spm_dcm_graph(DCM.xY,A)
-
