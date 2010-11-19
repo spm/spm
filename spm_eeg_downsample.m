@@ -6,6 +6,7 @@ function D = spm_eeg_downsample(S)
 % (optional) fields of S:
 %   S.D           - MEEG object or filename of M/EEG mat-file
 %   S.fsample_new - new sampling rate, must be lower than the original one
+%   S.prefix      - prefix of generated file
 %
 % D               - MEEG object (also written on disk)
 %__________________________________________________________________________
@@ -17,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 3958 2010-06-30 16:24:46Z guillaume $
+% $Id: spm_eeg_downsample.m 4127 2010-11-19 18:05:18Z christophe $
 
-SVNrev = '$Rev: 3958 $';
+SVNrev = '$Rev: 4127 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -64,6 +65,12 @@ catch
     S.fsample_new = fsample_new;
 end
 
+try
+    prefix = S.prefix;
+catch
+    prefix = 'd';
+end
+
 % This is to handle non-integer sampling rates up to a reasonable precision
 P = round(10*fsample_new);
 Q = round(10*D.fsample);
@@ -83,7 +90,7 @@ end
 
 %-Generate new meeg object with new filenames
 %--------------------------------------------------------------------------
-Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
+Dnew = clone(D, [prefix fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
 t0 = clock;
 
 %-Second pass: resample all
@@ -99,6 +106,7 @@ if strcmp(D.type, 'continuous')
     datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
     blknum = ceil(datasz/memsz);
     blksz  = ceil(nchannels(D)/blknum);
+    blknum = ceil(nchannels(D)/blksz);
     
     % now downsample blocks of channels
     chncnt=1;
