@@ -80,12 +80,12 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 2076 2010-11-05 12:05:19Z roboos $
-
-persistent sock           % for fcdc_tcp
+% $Id: ft_read_event.m 2179 2010-11-25 08:13:30Z roboos $
 
 global event_queue        % for fcdc_global
+persistent sock           % for fcdc_tcp
 persistent db_blob        % for fcdc_mysql
+
 if isempty(db_blob)
   db_blob = 0;
 end
@@ -118,7 +118,6 @@ flt_mintimestamp = keyval('mintimestamp', varargin);
 flt_maxtimestamp = keyval('maxtimestamp', varargin);
 flt_minnumber    = keyval('minnumber', varargin);
 flt_maxnumber    = keyval('maxnumber', varargin);
-
 
 % determine the filetype
 if isempty(eventformat)

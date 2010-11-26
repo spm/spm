@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 2004 2010-10-29 09:55:40Z jansch $
+% $Id: ft_checkdata.m 2102 2010-11-11 07:51:06Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -766,6 +766,8 @@ end
 nsmp = cellfun('size',data.time,2);
 seln = find(nsmp>1,1, 'first');
 data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
+
+if isfield(freq, 'trialinfo'), data.trialinfo = freq.trialinfo; end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between ft_datatypes

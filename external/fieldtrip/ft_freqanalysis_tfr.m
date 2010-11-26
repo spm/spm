@@ -42,7 +42,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 1980 2010-10-27 10:45:10Z jansch $
+% $Id: ft_freqanalysis_tfr.m 2161 2010-11-23 10:40:14Z roevdmei $
 
 fieldtripdefs
 
@@ -63,7 +63,7 @@ if ~exist('OCTAVE_VERSION')
 end
 
 % set the defaults
-if ~isfield(cfg, 'method'),         cfg.method  = 'tfr';          end
+if ~isfield(cfg, 'method'),         cfg.method  = 'tfr';       end
 if ~isfield(cfg, 'channel'),        cfg.channel = 'all';          end
 if ~isfield(cfg, 'latency'),        cfg.latency = 'minperlength'; end
 if ~isfield(cfg, 'keeptrials'),     cfg.keeptrials   = 'no';      end
@@ -185,7 +185,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqanalysis_tfr.m 1980 2010-10-27 10:45:10Z jansch $';
+cfg.version.id = '$Id: ft_freqanalysis_tfr.m 2161 2010-11-23 10:40:14Z roevdmei $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

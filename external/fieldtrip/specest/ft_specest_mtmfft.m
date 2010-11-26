@@ -1,4 +1,4 @@
-function [spectrum,ntaper,freqoi] = specest_mtmfft(dat, time, varargin) 
+function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin) 
 
 % SPECEST_MTMFFT computes a fast Fourier transform using many possible tapers
 %
@@ -28,7 +28,7 @@ function [spectrum,ntaper,freqoi] = specest_mtmfft(dat, time, varargin)
 % 
 %
 %
-% See also SPECEST_MTMCONVOL, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_WAVELET
+% See also SPECEST_MTMCONVOL, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_WAVELET
 
 
 % get the optional input arguments
@@ -99,9 +99,14 @@ switch taper
   case 'sine'
     tap = sine_taper(ndatsample, ndatsample*(tapsmofrq./fsample))';
     tap = tap(1:(end-1), :); % remove the last taper
+  
   case 'alpha'
     error('not yet implemented');
     
+  case 'hanning'
+    tap = hanning(ndatsample)'; 
+    tap = tap./norm(tap, 'fro');
+
   otherwise
     % create the taper and ensure that it is normalized
     tap = window(taper, ndatsample)';

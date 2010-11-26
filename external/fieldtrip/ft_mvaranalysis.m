@@ -80,7 +80,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 2071 2010-11-04 20:13:49Z jansch $
+% $Id: ft_mvaranalysis.m 2105 2010-11-12 08:30:28Z jansch $
 
 % set default configurations
 if ~isfield(cfg, 'toolbox'),    cfg.toolbox    = 'biosig';       end
@@ -237,7 +237,7 @@ data          = ft_redefinetrial(tmpcfg, data);
 if strcmp(cfg.blc, 'yes'),
     tmpcfg           = [];
     tmpcfg.blc       = 'yes';
-    %tmpcfg.blcwindow = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
+    tmpcfg.blcwindow = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
     data             = ft_preprocessing(tmpcfg, data);
 else
     %do nothing
@@ -442,7 +442,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_mvaranalysis.m 2071 2010-11-04 20:13:49Z jansch $';
+cfg.version.id   = '$Id: ft_mvaranalysis.m 2105 2010-11-12 08:30:28Z jansch $';
 
 % remember the configuration details of the input data
 try

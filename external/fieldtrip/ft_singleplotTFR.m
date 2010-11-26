@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_singleplotTFR.m 2192 2010-11-25 16:41:52Z sashae $
 
 fieldtripdefs
 
@@ -179,11 +179,12 @@ if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(data, 'labelcmb')) || ...
     data.label     = [data.labelcmb(sel1,1);data.labelcmb(sel2,2)];
     data.labelcmb  = data.labelcmb([sel1;sel2],:);
     data           = rmfield(data, 'labelcmb');
+
   else
     % general solution
     
-    sel               = match_str(data.label, cfg.cohrefchannel);
-    siz               = [size(data.(cfg.zparam)) 1];
+    sel = match_str(data.label, cfg.cohrefchannel);
+    siz = [size(data.(cfg.zparam)) 1];
     if strcmp(cfg.matrixside, 'feedback')
       %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
       %sel1 = 1:siz(1);
@@ -202,6 +203,14 @@ if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(data, 'labelcmb')) || ...
     elseif strcmp(cfg.matrixside, 'fd-ff')
       data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(:,sel,:),2),[siz(1) 1 siz(3:end)]) - reshape(mean(data.(cfg.zparam)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
     end
+  end
+  
+  % FIXME - redo channelselection here to make sure chansel fits the data
+  cfg.channel = ft_channelselection(cfg.channel, data.label);
+  if isempty(cfg.channel)
+      error('no channels selected');
+  else
+      chansel = match_str(data.label, cfg.channel);
   end
 end
 

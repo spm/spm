@@ -57,20 +57,21 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 1941 2010-10-18 11:35:55Z crimic $
+% $Id: ft_select_channel.m 2122 2010-11-17 11:53:53Z jansch $
 
 % get optional input arguments
-callback = keyval('callback', varargin);
 multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
+callback = keyval('callback', varargin);
+event    = keyval('event', varargin);
 
 % convert 'yes/no' string to boolean value
 multiple  = istrue(multiple);
 
 if multiple
   % the selection is done using select_range, which will subsequently call select_channel_multiple
-  set(gcf, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', 'WindowButtonDownFcn'});
-  set(gcf, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', 'WindowButtonUpFcn'});
-  set(gcf, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', 'WindowButtonMotionFcn'});
+  set(gcf, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', event});
+  set(gcf, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', event});
+  set(gcf, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', event});
 else
   % the selection is done using select_channel_single
   pos = get(gca, 'CurrentPoint');

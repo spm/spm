@@ -60,7 +60,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_freqstatistics.m 2158 2010-11-23 09:42:50Z jansch $
 
 fieldtripdefs
 
@@ -121,18 +121,12 @@ elseif isfield(cfg, 'parameter')
   end
 end
 
-[status,output] = system('whoami');
-if isempty(strfind(output,'jan')),
-  % call the general function
-  [stat, cfg] = statistics_wrapper(cfg, varargin{:});
-else
-  % call the general function
-  [stat, cfg] = statistics_wrapperJM(cfg, varargin{:});
-end
+% call the general function
+[stat, cfg] = statistics_wrapper(cfg, varargin{:});
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_freqstatistics.m 2158 2010-11-23 09:42:50Z jansch $';
 
 % remember the configuration of the input data
 cfg.previous = [];

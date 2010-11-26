@@ -124,7 +124,10 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_rejectvisual.m 2189 2010-11-25 13:27:05Z roevdmei $
+
+% Undocumented options
+% cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 
 fieldtripdefs
 
@@ -143,6 +146,8 @@ if ~isfield(cfg, 'ecgscale'),    cfg.ecgscale = [];            end
 if ~isfield(cfg, 'megscale'),    cfg.megscale = [];            end
 if ~isfield(cfg, 'inputfile'),   cfg.inputfile = [];           end
 if ~isfield(cfg, 'outputfile'),  cfg.outputfile = [];          end
+if ~isfield(cfg, 'plotlayout'),  cfg.plotlayout = 'square';    end
+
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -354,7 +359,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectvisual.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_rejectvisual.m 2189 2010-11-25 13:27:05Z roevdmei $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

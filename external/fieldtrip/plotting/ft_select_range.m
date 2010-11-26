@@ -35,7 +35,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 1823 2010-09-29 13:03:54Z crimic $
+% $Id: ft_select_range.m 2122 2010-11-17 11:53:53Z jansch $
 
 % get the optional arguments
 event    = keyval('event',    varargin);
@@ -44,6 +44,7 @@ multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false;
 xrange   = keyval('xrange',   varargin); if isempty(xrange), xrange = true; end
 yrange   = keyval('yrange',   varargin); if isempty(yrange), yrange = true; end
 clear    = keyval('clear',   varargin);  if isempty(clear),  clear = false; end
+contextmenu = keyval('contextmenu', varargin); % this will be displayed following a right mouse click
 
 % convert 'yes/no' string to boolean value
 multiple  = istrue(multiple);

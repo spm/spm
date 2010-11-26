@@ -42,7 +42,7 @@ function [filt] = ft_preproc_bandstopfilter(dat,Fs,Fbp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandstopfilter.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_bandstopfilter.m 2178 2010-11-25 08:12:26Z roboos $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -86,5 +86,17 @@ switch dir
     filt = fliplr(filt);
   case 'twopass'
     filt = filtfilt(B, A, dat')';
+end
+
+% check for filter instabilities and try to solve them
+result_instable = any(isnan(filt(:))) || (max(range(filt,2))/max(range(dat,2))>2);
+if result_instable && N>1
+  warning('instable filter detected, applying two sequential filters');
+  step1 = floor(N/2);  
+  step2 = N - step1;
+  % apply the filter in two steps, note that this is recursive
+  filt = dat;
+  filt = ft_preproc_bandstopfilter(filt,Fs,Fbp,step1,type,dir);
+  filt = ft_preproc_bandstopfilter(filt,Fs,Fbp,step2,type,dir);
 end
 

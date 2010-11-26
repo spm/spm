@@ -1,11 +1,11 @@
-function [spectrum,freqoi,timeoi] = specest_wltconvol(dat, time, varargin) 
+function [spectrum,freqoi,timeoi] = ft_specest_wavelet(dat, time, varargin) 
 
-% SPECEST_WLTCONVOL performs time-frequency analysis on any time series trial data using the 'wavelet method' based on Morlet wavelets,
+% SPECEST_WAVELET performs time-frequency analysis on any time series trial data using the 'wavelet method' based on Morlet wavelets,
 % doing convolution in the time domain by multiplaction in the frequency domain
 %
 %
 % Use as
-%   [spectrum,freqoi,timoei] = specest_wltconvol(dat,time...)   
+%   [spectrum,freqoi,timoei] = specest_wavelet(dat,time...)   
 %
 %   dat      = matrix of chan*sample 
 %   time     = vector, containing time in seconds for each sample
@@ -30,7 +30,7 @@ function [spectrum,freqoi,timeoi] = specest_wltconvol(dat, time, varargin)
 % SHOULD FREQOI = 'ALL' BE REMOVED OR NOT?
 %
 %
-% See also SPECEST_MTMCONVOL, SPECEST_TFR, SPECEST_HILBERT, SPECEST_MTMWELCH, SPECEST_NANFFT, SPECEST_MVAR, SPECEST_MTMCONVOL
+% See also SPECEST_MTMCONVOL, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_MTMFFT
 
 
 % get the optional input arguments

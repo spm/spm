@@ -59,7 +59,7 @@ function [freq] = ft_freqanalysis_wltconvol(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_wltconvol.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_freqanalysis_wltconvol.m 2161 2010-11-23 10:40:14Z roevdmei $
 
 fieldtripdefs
 
@@ -320,7 +320,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: ft_freqanalysis_wltconvol.m 1974 2010-10-27 10:36:50Z jansch $';
+cfg.version.id = '$Id: ft_freqanalysis_wltconvol.m 2161 2010-11-23 10:40:14Z roevdmei $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

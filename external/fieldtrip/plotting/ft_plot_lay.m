@@ -4,7 +4,7 @@ function ft_plot_lay(lay, varargin)
 %
 % Use as
 %   ft_plot_lay(layout, ...)
-% where the layout is a FieldTrip structure obtained from PREPARE_LAYOUT.
+% where the layout is a FieldTrip structure obtained from FT_PREPARE_LAYOUT.
 %
 % Additional options should be specified in key-value pairs and can be
 %   'point'         = yes/no
@@ -37,7 +37,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 1805 2010-09-29 12:27:18Z crimic $
+% $Id: ft_plot_lay.m 2118 2010-11-17 08:40:44Z jansch $
 
 warning('on', 'MATLAB:divideByZero');
 

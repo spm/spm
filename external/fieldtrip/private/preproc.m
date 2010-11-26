@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 1177 2010-06-01 11:22:26Z vlalit $
+% $Id: preproc.m 2133 2010-11-19 11:04:18Z roboos $
 
 if nargin<5 || isempty(offset)
   offset = 0;
@@ -291,7 +291,7 @@ if strcmp(cfg.polyremoval, 'yes')
   % the begin and endsample of the polyremoval period correspond to the complete data minus padding
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
-  dat = polyremoval(dat, cfg.polyorder, begsample, endsample);
+  dat = ft_preproc_polyremoval(dat, cfg.polyorder, begsample, endsample);
 end
 if strcmp(cfg.detrend, 'yes')
   nsamples     = size(dat,2);
@@ -377,15 +377,3 @@ if begpadding~=0 || endpadding~=0
   end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%subfunction which does the polyremoval on the data without filter-padding
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dat = polyremoval(dat, polyorder, begsample, endsample);
-nsamples = size(dat,2);
-basis = [1:nsamples];
-x = zeros(polyorder+1,nsamples);
-for i = 0:polyorder
-  x(i+1,:) = basis.^(i);
-end
-a = dat(:,begsample:endsample)/x(:,begsample:endsample);
-dat = dat - a*x;

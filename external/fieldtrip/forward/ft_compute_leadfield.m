@@ -86,7 +86,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 1982 2010-10-27 10:49:53Z jansch $
+% $Id: ft_compute_leadfield.m 2112 2010-11-16 07:53:44Z roboos $
 
 persistent warning_issued;
 
@@ -431,6 +431,24 @@ elseif iseeg
       else
         error('No system matrix is present, BEM head model not calculated yet')
       end
+
+      case 'metufem'
+        p3 = zeros(Ndipoles * 3, 6);
+        for i = 1:Ndipoles
+          p3((3*i - 2) : (3 * i), 1:3) = [pos(i,:); pos(i,:); pos(i,:)];
+          p3((3*i - 2) : (3 * i), 4:6) = [1 0 0; 0 1 0; 0 0 1];
+        end
+        lf = metufem('pot', p3');
+
+      case 'metubem'
+        session = vol.session;
+        p3 = zeros(Ndipoles * 3, 6);
+        for i = 1:Ndipoles
+          p3((3*i - 2) : (3 * i), 1:3) = [pos(i,:); pos(i,:); pos(i,:)];
+          p3((3*i - 2) : (3 * i), 4:6) = [1 0 0; 0 1 0; 0 0 1];
+        end
+        [lf, session] = bem_solve_lfm_eeg(session, p3);
+
     case 'infinite'
       % the conductivity of the medium is not known
       if isempty(warning_issued)
