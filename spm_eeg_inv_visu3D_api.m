@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4004 2010-07-20 15:45:39Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 4130 2010-12-01 16:11:57Z vladimir $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -228,7 +228,10 @@ handles.colorbar = colorbar;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LOAD SENSOR FILE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-coor = D.coor2D;
+ic   = setdiff(D.meegchannels, D.badchannels);
+
+coor = D.coor2D(ic);
+
 xp = coor(1,:)';
 yp = coor(2,:)';
 
