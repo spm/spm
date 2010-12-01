@@ -15,9 +15,9 @@ function D = spm_eeg_detect_eyeblinks(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_detect_eyeblinks.m 3858 2010-04-30 20:56:20Z vladimir $
+% $Id: spm_eeg_detect_eyeblinks.m 4129 2010-12-01 14:53:38Z vladimir $
 
-SVNrev = '$Rev: 3858 $';
+SVNrev = '$Rev: 4129 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -25,10 +25,11 @@ spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Eyeblink detect'); spm('Pointer','Watch');
 
 
-%-Test for the presence of required Matlab toolbox
+%-Test for the presence of required Matlab toolbox - not needed anymore, 
+% using ft_preproc_bandpassfilter instead
 %--------------------------------------------------------------------------
 if ~license('test','signal_toolbox')
-    error('Signal Processing Toolbox is required for eyeblink detection.');
+%    error('Signal Processing Toolbox is required for eyeblink detection.');
 end
 
 %-Get MEEG object
@@ -73,7 +74,7 @@ end
 try 
     stdthresh = S.stdthresh;
 catch
-    stdthresh = 3;
+    stdthresh = 4;
 end
 
 if ~isfield(S, 'overwrite')
@@ -88,11 +89,11 @@ end
 eog_data = D(eogchan,:,:);
 
 %% filter data at 1-15Hz (eyeblink duration typically 100-300ms) and demean
-eog_filt = detrend(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 1001, 'fir'), 'constant');
+eog_filt = detrend(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but'), 'constant');
 
 %% find eye-movements
 
-sd_eeg = std(eog_filt);
+sd_eeg=(percentile(eog_filt,85)-percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
 em_thresh = stdthresh*sd_eeg;
 
 %% find 'spikes' (putative eyeblinks):
@@ -115,17 +116,26 @@ for i = 1:length(spikes)
     spikemat(:,i) = eog_filt(spikes(i)-eblength+1:spikes(i)+eblength);
 end
 
-%reject spikes whose peak is not within 0.5 s.d. of the mean (gets rid of most artefacts
+%reject spikes whose peak is not within 1 s.d. of the mean (gets rid of most artefacts
 %    etc. not removed by filtering):
 mn_spike = mean(spikemat(eblength,:));
-sd_spike = 0.5*std(spikemat(eblength,:));
+sd_spike = std(spikemat(eblength,:));
 spikes(spikemat(eblength,:)>mn_spike+sd_spike | ...
        spikemat(eblength,:)<mn_spike-sd_spike) = [];
 spikemat(:,find(spikemat(eblength,:)>mn_spike+sd_spike | ...
        spikemat(eblength,:)<mn_spike-sd_spike)) = [];
 
 disp(['Number of putative eyeblinks detected: ' num2str(length(spikes))]);
-          
+       
+num_eb_per_min=60*length(spikes)/(D.time(end)-D.time(1));
+disp([num2str(num_eb_per_min) ' eye-blinks per minute '])
+if (num_eb_per_min<0.5)
+    error(['Only ' num2str(num_eb_per_min) ' eye-blinks per minute detected by algorithm. Try a lower threshold.'])
+end
+if (num_eb_per_min>60)
+    error(['As many as ' num2str(num_eb_per_min) ' eye-blinks per minute detected by algorithm. Try a higher threshold.'])
+end
+
 % plot
 %----------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
