@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4130 2010-12-01 16:11:57Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 4131 2010-12-02 12:02:41Z vladimir $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -471,7 +471,8 @@ UpDate_Display_SENS(hObject,handles);
 function Individual_Callback(hObject, eventdata, handles)
 set(handles.Template,'Value',0);
 try
-    handles.vert = handles.D.inv{handles.D.val}.mesh.tess_ctx.vert;
+    tess_ctx = gifti(handles.D.inv{handles.D.val}.mesh.tess_ctx);
+    handles.vert = tess_ctx.vertices;
     set(handles.Template,  'Value',0);
     set(handles.Individual,'Value',1);
 end
