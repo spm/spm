@@ -1,6 +1,6 @@
 function [type, dimord] = ft_datatype(data, desired)
 
-% DATATYPE determines the type of data represented in a FieldTrip data
+% FT_DATATYPE determines the type of data represented in a FieldTrip data
 % structure and returns a string with raw, freq, timelock source, comp,
 % spike, source, volume, dip.
 %
@@ -8,7 +8,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %   [type, dimord] = ft_datatype(data)
 %   [type, dimord] = ft_datatype(data, desired)
 %
-% See also CHANTYPE, FILETYPE, SENSTYPE, VOLTYPE
+% See also FT_CHANTYPE, FT_FILETYPE, FT_SENSTYPE, FT_VOLTYPE
 
 % Copyright (C) 2008, Robert Oostenveld
 %
@@ -28,12 +28,12 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 1987 2010-10-27 13:28:38Z jansch $
+% $Id: ft_datatype.m 2240 2010-12-01 09:13:44Z roevdmei $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
 israw      = isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
 isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
-istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
+istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp     = isfield(data, 'topo') || isfield(data, 'topolabel');
 isspike    = isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
 isvolume   = isfield(data, 'transform') && isfield(data, 'dim');

@@ -15,7 +15,7 @@ function ft_plot_mesh(bnd, varargin)
 % the arguments is given below with the correspondent admitted choices.
 %
 %     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx1 array where N is the number of vertices
 %     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
 %     'faceindex'     true or false
 %     'vertexindex'   true or false
@@ -51,7 +51,7 @@ function ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 1913 2010-10-12 11:51:11Z jansch $
+% $Id: ft_plot_mesh.m 2280 2010-12-03 14:58:21Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -63,15 +63,26 @@ if ~isstruct(bnd) && isnumeric(bnd) && size(bnd,2)==3
   bnd.pnt = bnd;
 end
 
+haspnt = isfield(bnd, 'pnt');
+hastri = isfield(bnd, 'tri');
+
 % get the optional input arguments
 facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),   facecolor='white';end
-vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor), vertexcolor='none';end
+vertexcolor = keyval('vertexcolor', varargin); 
 edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),   edgecolor='k';end
 faceindex   = keyval('faceindex',   varargin); if isempty(faceindex),   faceindex=false;end
 vertexindex = keyval('vertexindex', varargin); if isempty(vertexindex), vertexindex=false;end
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),  vertexsize=10;end
 facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),   facealpha=1;end
 tag         = keyval('tag',         varargin); if isempty(tag),         tag='';end
+
+if isempty(vertexcolor)
+  if haspnt && hastri
+    vertexcolor='none';
+  else
+    vertexcolor='k';
+  end
+end
 
 % convert string into boolean values
 faceindex   = istrue(faceindex);

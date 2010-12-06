@@ -1,16 +1,16 @@
 function [source] = ft_source2sparse(source);
 
-% SOURCE2SPARSE removes the grid locations outside the brain from the source 
+% FT_SOURCE2SPARSE removes the grid locations outside the brain from the source 
 % reconstruction, thereby saving memory.
 %
 % This invalidates the fields that describe the grid, and also makes it
 % more difficult to make a plot of each of the slices of the source volume.
-% The original source structure can be recreated using SOURCE2FULL.
+% The original source structure can be recreated using FT_SOURCE2FULL.
 %
 % Use as
 %   [source] = ft_source2sparse(source)
 %
-% See also SOURCE2FULL
+% See also FT_SOURCE2FULL
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -30,7 +30,7 @@ function [source] = ft_source2sparse(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2sparse.m 1987 2010-10-27 13:28:38Z jansch $
+% $Id: ft_source2sparse.m 2235 2010-11-30 21:01:30Z jansch $
 
 fieldtripdefs
 
@@ -157,7 +157,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2sparse.m 1987 2010-10-27 13:28:38Z jansch $';
+cfg.version.id = '$Id: ft_source2sparse.m 2235 2010-11-30 21:01:30Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

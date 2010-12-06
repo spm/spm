@@ -40,12 +40,12 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 2120 2010-11-17 09:10:45Z jansch $
+% $Id: ft_plot_slice.m 2229 2010-11-30 10:54:34Z jansch $
 
 persistent previous_dim X Y Z;
 
-transform = keyval('transform',   varargin); if isempty(transform),  transform  = eye(4);    end;
-loc       = keyval('location',    varargin); if isempty(loc),        loc        = [0 0 0];   end;
+transform = keyval('transform',   varargin);
+loc       = keyval('location',    varargin); 
 ori       = keyval('orientation', varargin); if isempty(ori),        ori        = [0 0 1];   end;
 resolution = keyval('resolution', varargin); if isempty(resolution), resolution = 1;         end;
 mask       = keyval('datmask',    varargin);
@@ -63,6 +63,18 @@ ori = ori./sqrt(sum(ori.^2));
 dim          = size(dat);
 if isempty(previous_dim),
   previous_dim = [0 0 0];
+end
+
+% set the location if empty
+if isempty(loc) && (isempty(transform) || all(all(transform-eye(4)==0)==1))
+  loc = dim./2;
+elseif isempty(loc)
+  loc = [0 0 0];
+end
+
+% set the transformation matrix if empty
+if isempty(transform)
+  transform = eye(4);
 end
 
 % check whether mask is ok

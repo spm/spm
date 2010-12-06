@@ -92,7 +92,7 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id$
+% $Id: ft_topoplotIC.m 2212 2010-11-27 11:55:07Z roboos $
 
 % config default
 if ~isfield(cfg, 'component'),             cfg.component = [];            end

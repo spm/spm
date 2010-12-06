@@ -1,12 +1,12 @@
-function [hdr] = fetch_header(data)
+function [hdr] = ft_fetch_header(data)
 
-% FETCH_HEADER mimics the behaviour of FT_READ_HEADER, but for a FieldTrip
+% FT_FETCH_HEADER mimics the behaviour of FT_READ_HEADER, but for a FieldTrip
 % raw data structure instead of a file on disk.
 %
 % Use as
-%   [hdr] = fetch_header(data)
+%   [hdr] = ft_fetch_header(data)
 %
-% See also FT_READ_HEADER, FETCH_DATA, FETCH_EVENT
+% See also FT_READ_HEADER, FT_FETCH_DATA, FT_FETCH_EVENT
 
 % Copyright (C) 2008, Esther Meeuwissen
 %
@@ -26,7 +26,7 @@ function [hdr] = fetch_header(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_header.m 2004 2010-10-29 09:55:40Z jansch $
+% $Id: ft_fetch_header.m 2235 2010-11-30 21:01:30Z jansch $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');

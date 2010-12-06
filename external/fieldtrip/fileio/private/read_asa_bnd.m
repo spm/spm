@@ -1,4 +1,4 @@
-/function bnd = read_asa_bnd(fn);
+function bnd = read_asa_bnd(fn);
 
 % READ_ASA_BND reads an ASA boundary triangulation file
 % converting the units of the vertices to mm
@@ -21,7 +21,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_bnd.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_asa_bnd.m 2209 2010-11-27 10:25:04Z roboos $
 
 Npnt = read_asa(fn, 'NumberPositions=', '%d');
 Ndhk = read_asa(fn, 'NumberPolygons=', '%d');

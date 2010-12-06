@@ -1,11 +1,11 @@
-function [status] = hastoolbox(toolbox, autoadd, silent)
+function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 
-% HASTOOLBOX tests whether an external toolbox is installed. Optionally
+% FT_HASTOOLBOX tests whether an external toolbox is installed. Optionally
 % it will try to determine the path to the toolbox and install it
 % automatically.
 %
 % Use as
-%   [status] = hastoolbox(toolbox, autoadd, silent)
+%   [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %
 % autoadd = 0 means that it will not be added
 % autoadd = 1 means that give an error if it cannot be added
@@ -33,7 +33,7 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 1963 2010-10-27 09:11:35Z jansch $
+% $Id: ft_hastoolbox.m 2203 2010-11-26 19:00:30Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -90,7 +90,7 @@ url = {
   'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
   'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
   'BEMCP'      'contact Christophe Phillips'
-  'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg'
+  'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg and http://gforge.inria.fr/frs/?group_id=435'
   'PRTOOLS'    'see http://www.prtools.org'
   'ITAB'       'contact Stefania Della Penna'
   'BSMART'     'see http://www.brain-smart.org'

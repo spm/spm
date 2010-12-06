@@ -46,7 +46,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 1962 2010-10-26 09:56:10Z stekla $
+% $Id: ft_write_data.m 2266 2010-12-02 15:34:33Z stekla $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -609,6 +609,18 @@ switch dataformat
       hdr.nChans = length(chanindx);
     end
     write_gdf(filename, hdr, dat);
+    
+  case 'edf'
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+    if ~isempty(chanindx)
+      % assume that the header corresponds to the original multichannel
+      % file and that the data represents a subset of channels
+      hdr.label  = hdr.label(chanindx);
+      hdr.nChans = length(chanindx);
+    end
+    write_edf(filename, hdr, dat);    
     
   otherwise
     error('unsupported data format');

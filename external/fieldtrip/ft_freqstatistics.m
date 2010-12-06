@@ -60,14 +60,14 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 2158 2010-11-23 09:42:50Z jansch $
+% $Id: ft_freqstatistics.m 2255 2010-12-01 18:10:24Z crimic $
 
 fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
-
+if ~isfield(cfg, 'parameter'),   cfg.parameter = 'powspctrm';       end
 hasdata = nargin>1;
 
 if ~isempty(cfg.inputfile) % the input data should be read from file
@@ -126,7 +126,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 2158 2010-11-23 09:42:50Z jansch $';
+cfg.version.id = '$Id: ft_freqstatistics.m 2255 2010-12-01 18:10:24Z crimic $';
 
 % remember the configuration of the input data
 cfg.previous = [];

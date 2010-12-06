@@ -37,7 +37,7 @@ function [data, pca, stdpre, stdpst] = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_denoise_pca.m 2268 2010-12-02 16:22:35Z jansch $
 
 fieldtripdefs
 
@@ -270,11 +270,12 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_denoise_pca.m,v 1.9 2009/10/12 14:50:59 jansch Exp $';
+cfg.version.id   = '$Id: ft_denoise_pca.m 2268 2010-12-02 16:22:35Z jansch $';
 % remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-% remember the exact configuration details in the output
-data.cfg = cfg;
+cfg.previous = [];
+for i=1:numel(varargin)
+  try, cfg.previous{i} = varargin{i}.cfg; end
+end
 
 %-----cellcov
 function [c] = cellcov(x, y, dim, flag)

@@ -31,7 +31,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %   cfg.grid.outside    = vector with indices of the sources outside the brain (optional)
 %
 % You should specify the volume conductor model with
-%   cfg.hdmfile         = string, file containing the volume conduction model
+%   cfg.headshape       = string, file containing the volume conduction model
 % or alternatively
 %   cfg.vol             = structure with volume conduction model
 %
@@ -102,7 +102,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_prepare_leadfield.m 2274 2010-12-03 12:32:00Z johzum $
 
 fieldtripdefs
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -216,7 +216,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_prepare_leadfield.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 2274 2010-12-03 12:32:00Z johzum $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

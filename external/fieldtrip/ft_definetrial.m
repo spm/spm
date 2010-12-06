@@ -10,6 +10,8 @@ function [cfg] = ft_definetrial(cfg);
 % where the configuration structure should contain either
 %   cfg.trialdef   = structure with details of trial definition, see below
 %   cfg.trialfun   = function name, see below
+% and also
+%   cfg.dataset    = pathname to dataset
 %
 % A call to FT_DEFINETRIAL results in the trial definition "trl" being added
 % to the output configuration structure. The trials are defined according
@@ -79,7 +81,7 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_definetrial.m 2273 2010-12-03 12:30:18Z johzum $
 
 fieldtripdefs
 
@@ -147,7 +149,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_definetrial.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_definetrial.m 2273 2010-12-03 12:30:18Z johzum $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

@@ -26,7 +26,7 @@ function write_off(filename, pnt, plc)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_off.m $
+% $Id: write_off.m 2212 2010-11-27 11:55:07Z roboos $
 
 nedges = 0;
 fid  = fopen(filename, 'wb');

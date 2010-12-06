@@ -66,7 +66,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_redefinetrial.m 2224 2010-11-29 20:21:35Z jansch $
 
 fieldtripdefs
 
@@ -272,9 +272,11 @@ elseif ~isempty(cfg.length)
     offset = time2offset(data.time{k}, data.fsample);
     tmp1   = [data.sampleinfo(k,:) offset];
     tmp2   = (tmp1(1):nshift:(tmp1(2)+1-nsmp))';
-    tmp2(:,2) = tmp2 + nsmp - 1;
-    tmp2(:,3) = tmp2(:,1) + offset - tmp2(1,1);
-    newtrl = [newtrl; tmp2];
+    if ~isempty(tmp2)
+      tmp2(:,2) = tmp2 + nsmp - 1;
+      tmp2(:,3) = tmp2(:,1) + offset - tmp2(1,1);
+      newtrl = [newtrl; tmp2];
+    end
   end
 
   tmpcfg = [];
@@ -307,7 +309,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_redefinetrial.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_redefinetrial.m 2224 2010-11-29 20:21:35Z jansch $';
 
 % remember the configuration details of the input data
 if ~isempty(cfg.trl)

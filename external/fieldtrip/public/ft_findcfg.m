@@ -1,15 +1,15 @@
 function [val, status] = ft_findcfg(cfg, var);
 
-% FINDCFG searches for an element in the cfg structure
+% FT_FINDCFG searches for an element in the cfg structure
 % or in the nested previous cfgs
 %
 % Use as
-%   [val] = findcfg(cfg, var)
+%   [val] = ft_findcfg(cfg, var)
 % where the name of the variable should be specified as string.
 %
 % e.g.
-%   trl   = findcfg(cfg, 'trl')
-%   event = findcfg(cfg, 'event')
+%   trl   = ft_findcfg(cfg, 'trl')
+%   event = ft_findcfg(cfg, 'event')
 
 % Copyright (C) 2006, Robert Oostenveld
 %
@@ -29,7 +29,7 @@ function [val, status] = ft_findcfg(cfg, var);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_findcfg.m 1991 2010-10-27 15:02:57Z crimic $
+% $Id: ft_findcfg.m 2235 2010-11-30 21:01:30Z jansch $
 
 if var(1)~='.'
   var = ['.' var];

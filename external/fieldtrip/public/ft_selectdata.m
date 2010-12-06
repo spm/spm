@@ -1,6 +1,6 @@
 function [data] = ft_selectdata(varargin)
 
-% SELECTDATA serves to subselect regions-of-interest from the input data,
+% FT_SELECTDATA serves to subselect regions-of-interest from the input data,
 % with or without averaging across the specified dimensions. It also
 % concatenates multiple input data structures along the compatible
 % dimension and is thus a more general implementation of ft_appenddata,
@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 2167 2010-11-23 14:48:49Z jansch $
+% $Id: ft_selectdata.m 2235 2010-11-30 21:01:30Z jansch $
 
 % FIXME ROI selection is not yet implemented
 

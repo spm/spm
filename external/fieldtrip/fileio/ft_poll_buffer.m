@@ -53,7 +53,7 @@ function numbers = ft_poll_buffer(filename, thresholds, timeout)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: $
+% $Id: ft_poll_buffer.m 2212 2010-11-27 11:55:07Z roboos $
 
 threshtime = [-1 -1 0];
 if nargin>1

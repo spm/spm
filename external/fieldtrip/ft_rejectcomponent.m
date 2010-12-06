@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_rejectcomponent.m 2267 2010-12-02 16:13:04Z jansch $
 
 fieldtripdefs
 
@@ -159,17 +159,14 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration 
 cfg.version.name = mfilename('fullpath'); 
-cfg.version.id = '$Id: ft_rejectcomponent.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 2267 2010-12-02 16:13:04Z jansch $';
 
-if nargin==2 || nargin < 2 
+if nargin < 3 
   % remember the configuration details of the input data 
   try, cfg.previous = comp.cfg; end
 elseif nargin==3,
-  try, cfg.previous{2} = comp.cfg; end
-  try, cfg.previous{1} = data.cfg; end
-  %the configuration of the data is relatively more important
-  %potential use of ft_findcfg in subsequent analysis steps looks into 
-  %the previous{1} first
+  try, cfg.previous{1} = comp.cfg; end
+  try, cfg.previous{2} = data.cfg; end
 end
 
 % keep the configuration in the output

@@ -42,7 +42,7 @@ function [obj] = convert_event(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id$
+% $Id: convert_event.m 2212 2010-11-27 11:55:07Z roboos $
 
 % Check if target is specified correctly
 if sum(strcmp(target, {'event', 'trl', 'artifact', 'boolvec'})) < 1

@@ -1,13 +1,13 @@
-function [grid] = source2grid(source)
+function [grid] = ft_source2grid(source)
 
-% SOURCE2GRID removes the fields from a source structure that are
-% not neccessary to reuse the dipole grid in another source estimation.
+% FT_SOURCE2GRID removes the fields from a source structure that are
+% not necessary to reuse the dipole grid in another source estimation.
 %
 % Use as
-%   [grid] = source2grid(source);
+%   [grid] = ft_source2grid(source);
 %
 % The resulting grid can be used in the configuration of another
-% run of SOURCANALYSIS.
+% run of FT_SOURCEANALYSIS.
 %
 % See also SOURCE2SPARSE, SOURCE2FULL
 
@@ -29,7 +29,7 @@ function [grid] = source2grid(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2grid.m 1963 2010-10-27 09:11:35Z jansch $
+% $Id: ft_source2grid.m 2235 2010-11-30 21:01:30Z jansch $
 
 fieldtripdefs
 
