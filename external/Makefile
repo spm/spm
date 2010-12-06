@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4043 2010-08-25 13:03:34Z guillaume $
+# $Id: Makefile 4134 2010-12-06 12:18:17Z guillaume $
 
 include ../src/Makefile.var
 
@@ -17,7 +17,7 @@ FIELDTRIPMEX =\
 	\
 	fieldtrip/forward/private/lmoutr.$(SUF) fieldtrip/forward/private/meg_leadfield1.$(SUF) \
 	fieldtrip/forward/private/plgndr.$(SUF) fieldtrip/forward/private/ptriproj.$(SUF) \
-	fieldtrip/forward/private/solid_angle.$(SUF) \
+	fieldtrip/forward/private/solid_angle.$(SUF) fieldtrip/forward/private/routlm.$(SUF) \
 	\
 	fieldtrip/inverse/private/solid_angle.$(SUF) \
 	\
@@ -50,6 +50,9 @@ bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
 	$(MEX) $< -outdir $(shell dirname $<) $(MEXEND)
 
 fieldtrip/forward/private/lmoutr.$(SUF): fieldtrip/forward/private/lmoutr.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
+	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
+
+fieldtrip/forward/private/routlm.$(SUF): fieldtrip/forward/private/routlm.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
 	$(MEX) $< -outdir $(shell dirname $<) fieldtrip/forward/private/geometry.c $(MEXEND)
 
 fieldtrip/forward/private/ptriproj.$(SUF): fieldtrip/forward/private/ptriproj.c fieldtrip/forward/private/geometry.c fieldtrip/forward/private/geometry.h
