@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 3928 2010-06-16 12:09:22Z guillaume $
+% $Id: spm_results_ui.m 4136 2010-12-09 22:22:28Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 3928 $'; 
+SVNid = '$Rev: 4136 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -477,7 +477,7 @@ switch lower(Action), case 'setup'                         %-Set up results
                 'Box','on','TickDir','out',...
                 'XTick',spm_DesRep('ScanTick',nPar,10),'XTickLabel','',...
                 'XLim', [0,nPar]+0.5,...
-                'YTick',[0:size(SPM.xCon(xSPM.Ic(ii)).c,2)]+0.5,....
+                'YTick',[0:size(SPM.xCon(xSPM.Ic(ii)).c,2)]+0.5,...
                 'YTickLabel','',...
                 'YLim', [0,size(xCon(xSPM.Ic(ii)).c,2)]+0.5 )
  

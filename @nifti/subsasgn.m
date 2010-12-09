@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 4077 2010-10-06 15:50:20Z john $
+% $Id: subsasgn.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 switch subs(1).type,
@@ -16,11 +16,11 @@ case {'.'},
     objs = struct(obj);
     for i=1:length(varargin),
         val     = varargin{i};
-        obji    = class(objs(i),'nifti');
+        obji    = nifti(objs(i));
         obji    = fun(obji,subs,val);
         objs(i) = struct(obji);
     end;
-    obj = class(objs,'nifti');
+    obj = nifti(objs);
 
 case {'()'},
     objs = struct(obj);
@@ -33,7 +33,7 @@ case {'()'},
         %end;
         for i=1:numel(t),
             val  = varargin{1};
-            obji = class(t(i),'nifti');
+            obji = nifti(t(i));
             obji = subsasgn(obji,subs(2:end),val);
             t(i) = struct(obji);
         end;
@@ -51,7 +51,7 @@ case {'()'},
             error('Assignment between unlike types is not allowed.');
         end;
     end;
-    obj = class(objs,'nifti');
+    obj = nifti(objs);
 
 otherwise
     error('Cell contents reference from a non-cell array object.');
@@ -82,7 +82,7 @@ case {'.'},
         if ~isfield(obj.hdr,'magic'), error('Not a NIFTI-1 header'); end;
 
         if length(subs)>1, % && ~strcmpi(subs(1).subs,{'raw','dat'}),
-            val0 = subsref(class(obj,'nifti'),subs(1));
+            val0 = subsref(nifti(obj),subs(1));
             val1 = subsasgn(val0,subs(2:end),val);
         else
             val1 = val;
@@ -333,7 +333,7 @@ case {'.'},
 
         objs(ii) = obj;
     end
-    obj = class(objs,'nifti');
+    obj = nifti(objs);
 
 otherwise
     error('This should not happen.');

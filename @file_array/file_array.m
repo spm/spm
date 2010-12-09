@@ -13,7 +13,7 @@ function a = file_array(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: file_array.m 1340 2008-04-09 17:11:23Z john $
+% $Id: file_array.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 if nargin==1
@@ -38,5 +38,5 @@ if nargin>=6, a = scl_inter(a,varargin{6}); end;
 if nargin>=7, a = permission(a,varargin{7}); end;
 
 a.pos = ones(size(a.dim));
-a     = class(a,'file_array');
+a     = file_array(a);
 

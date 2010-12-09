@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 4065 2010-09-03 13:12:03Z john $
+% $Id: spm_dartel_norm_fun.m 4136 2010-12-09 22:22:28Z guillaume $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -109,7 +109,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
         % Re-order data
         %--------------------------------------------------------------------------
         subjs = job.data.subjs;
-        subj  = struct('flowfield',cell(numel(subjs.flowfields),1),....
+        subj  = struct('flowfield',cell(numel(subjs.flowfields),1),...
                        'images',   cell(numel(subjs.flowfields),1));
         for i=1:numel(subj)
             subj(i).flowfield = {subjs.flowfields{i}};

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4037 2010-08-06 14:52:27Z guillaume $
+# $Id: Makefile 4136 2010-12-09 22:22:28Z guillaume $
 #
 ###############################################################################
 #
@@ -66,6 +66,9 @@ all: verb.$(SUF) $(SPMMEX) verb.end
 
 clean: verb.clean
 	$(DEL) $(OBS)
+ifeq (mex,$(SUF))
+	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o
+endif
 
 distclean: clean verb.distclean
 	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
@@ -385,6 +388,13 @@ verb.mexs64:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (Solaris 64 bit)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mex:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        ${PLATFORM} compilation (`octave -v | head -n 1`)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 

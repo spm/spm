@@ -16,7 +16,7 @@ function [S] = DEM_birdsong(file)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_birdsong.m 1380 2008-04-11 18:55:18Z karl $ 
+% $Id: DEM_birdsong.m 4136 2010-12-09 22:22:28Z guillaume $ 
  
 % load bird song
 %==========================================================================

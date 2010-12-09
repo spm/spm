@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 3960 2010-06-30 17:41:24Z ged $
+% $Id: spm_est_smoothness.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 %-Assign input arguments
@@ -187,7 +187,7 @@ if D == 1
 end
 if D == 2
     resel_xyz = [L(:,1,1) L(:,2,2)];
-    resel_img = L(:,1,1).*L(:,2,2) - ......
+    resel_img = L(:,1,1).*L(:,2,2) - ...
                 L(:,1,2).*L(:,1,2);
 end
 if D == 3

@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 3571 2009-11-13 16:16:48Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 4136 2010-12-09 22:22:28Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -348,7 +348,7 @@ if ~~D.PSD.source.VIZU.current
         'xdata',[gridTime;gridTime],...
         'ydata',[miJ;maJ],...
         'visible','off');
-    set(D.PSD.handles.axes2,....
+    set(D.PSD.handles.axes2,...
         'ylim',[miJ;maJ]);  
 
     % create buttons

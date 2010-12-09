@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_spm_Bayes.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 %-Say hello
@@ -106,7 +106,7 @@ end
 %=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising')             %-#
 
-%-Initialise oonditional estimate image files
+%-Initialise conditional estimate image files
 %-----------------------------------------------------------------------
 xX             = SPM.xX;
 [nScan nBeta]  = size(xX.X);
@@ -147,7 +147,7 @@ for i = 1:nHp
 end
 VHp   = spm_create_vol(VHp);
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')      %-#
+fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...initialised')        %-#
 
 
 %=======================================================================
@@ -157,7 +157,7 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimating priors')%-#
 
 % get row u{i} and column v{i}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
-s      = nHp;
+s = nHp;
 if isfield(SPM,'Sess')
     for i = 1:s
          u{i} = SPM.Sess(i).row;
@@ -176,7 +176,7 @@ for i = 1:s
 
     % Get design X and confounds X0
     %---------------------------------------------------------------
-    fprintf('%-30s- %i\n','  ReML Session',i);                   %-#
+    fprintf('%-30s\n',sprintf('  ReML Session %i',i));           %-#
     X     = xX.X(u{i}, v{i});
     X0    = xX.X(u{i},v0{i});
     [m n] = size(X);
@@ -245,9 +245,9 @@ for  z = 1:zdim
     %-------------------------------------------------------------------
     U       = find(XYZ(3,:) == z);
     nbch    = ceil(length(U)/blksz);
-    CrBl    = zeros(nBeta,length(U));   %-conditional parameter estimates
-    CrHp    = zeros(nHp,  length(U));   %-ReML hyperparameter estimates
-    for bch = 1:nbch            %-loop over bunches of lines (planks)
+    CrBl    = zeros(nBeta,length(U)); %-conditional parameter estimates
+    CrHp    = zeros(nHp,  length(U)); %-ReML hyperparameter estimates
+    for bch = 1:nbch                  %-loop over bunches of lines (planks)
 
     %-construct list of voxels in this block
     %---------------------------------------------------------------

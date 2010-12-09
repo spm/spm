@@ -4,10 +4,10 @@ function out = spm_run_bms_dcm_vis(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chun-Chuan Chen and Maria Joao Rosa
-% $Id: spm_run_bms_dcm_vis.m 4042 2010-08-25 11:18:59Z christophe $
+% $Id: spm_run_bms_dcm_vis.m 4136 2010-12-09 22:22:28Z guillaume $
 
-if ~exist('job','var') | isempty(job.file{1})==1
-    fname = spm_select([1 1],'^BMS.mat$','select BMS.mat file');
+if ~exist('job','var') || isempty(job.file{1})
+    fname = spm_select([1 1],'^BMS\.mat$','select BMS.mat file');
     load(fname);
 else
     load(job.file{1});

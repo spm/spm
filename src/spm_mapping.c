@@ -1,10 +1,11 @@
 /*
- * $Id: spm_mapping.c 2026 2008-08-29 10:41:22Z john $
+ * $Id: spm_mapping.c 4136 2010-12-09 22:22:28Z guillaume $
  * John Ashburner
  */
 
 /* Matlab dependent high level data access and map manipulation routines */
 
+#include <stdio.h>
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>

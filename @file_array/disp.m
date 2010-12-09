@@ -4,7 +4,7 @@ function disp(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: disp.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: disp.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 if numel(struct(obj))>1,
@@ -19,7 +19,7 @@ if numel(struct(obj))>1,
         fprintf('%d\n',sz(end));
     end;
 else
-    display(mystruct(obj))
+    disp(mystruct(obj))
 end;
 return;
 %=======================================================================

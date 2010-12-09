@@ -1,10 +1,12 @@
 /*
- * $Id: spm_existfile.c 2267 2008-09-30 21:13:55Z guillaume $
+ * $Id: spm_existfile.c 4136 2010-12-09 22:22:28Z guillaume $
  * Guillaume Flandin
  */
  
 #define _FILE_OFFSET_BITS 64
 
+#include <stdio.h>
+#include <stdbool.h>
 #include "mex.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

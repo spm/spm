@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 2457 2008-11-12 09:24:30Z guillaume $
+# $Id: Makefile 4136 2010-12-09 22:22:28Z guillaume $
 
 include ../../src/Makefile.var
 
@@ -36,4 +36,8 @@ optimN.$(SUF): optimN.c optimN_mex.c
 	$(MEX) optimN.c optimN_mex.c $(MEXEND)
 
 optimNn.$(SUF): optimN.c optimN_mex.c
+ifneq (mex,$(SUF))
 	$(MEX) optimN.c optimN_mex.c -DNEUMANN -output optimNn $(MEXEND)
+else
+	$(MEX) optimN.c optimN_mex.c -DNEUMANN --output optimNn.$(SUF) $(MEXEND)
+endif

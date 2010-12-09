@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4114 2010-11-09 15:26:07Z guillaume $
+% $Id: spm_DesRep.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 
@@ -1367,8 +1367,8 @@ switch get(gcbf,'SelectionType')
 case 'normal'
     try
         str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
-              subsref(get(gco,'UserData'),...
-              struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
+              full(subsref(get(gco,'UserData'),...
+              struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}}))));
     catch
         str = '(no cached covariance matrix to surf)';
     end
@@ -1376,7 +1376,7 @@ case 'extend'
     try
         ind = 1:length(subsref(get(gco,'Userdata'),...
             struct('type','.','subs','h')));
-        isel = logical(zeros(size(ind)));
+        isel = false(size(ind));
         for k = 1:length(ind)
             isel(k) = subsref(get(gco,'UserData'),...
                 struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;

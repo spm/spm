@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 3919 2010-06-04 16:45:16Z guillaume $
+% $Id: spm_cfg_voi.m 4136 2010-12-09 22:22:28Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -315,7 +315,7 @@ roi.num     = [1 Inf];
 expression         = cfg_entry;
 expression.tag     = 'expression';
 expression.name    = 'Expression';
-expression.help    = {['Expression to be evaluated, using i1, i2, ...' ...
+expression.help    = {['Expression to be evaluated, using i1, i2, ...',...
     'and logical operators (&, |, ~)']};
 expression.strtype = 's';
 expression.num     = [2 Inf];
@@ -358,8 +358,8 @@ name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name of VOI';
 name.help    = {['Name of the VOI mat file that will be saved in the ' ...
-'same directory than the SPM.mat file. A ''VOI_'' prefix will be added. '...
-''...
+'same directory than the SPM.mat file. A ''VOI_'' prefix will be added. ' ...
+'' ...
 'A binary NIfTI image of the VOI will also be saved.']};
 name.strtype = 's';
 name.num     = [1 Inf];

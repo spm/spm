@@ -15,7 +15,7 @@ function [P] = spm_fp_fmin(M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_fmin.m 2030 2008-09-02 18:28:40Z karl $
+% $Id: spm_fp_fmin.m 4136 2010-12-09 22:22:28Z guillaume $
  
  
 % specify function returning the flow-dependent part of dp/dt 'spm_fp_fun'

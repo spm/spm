@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 3392 2009-09-11 14:13:38Z guillaume $
+ * $Id: file2mat.c 4136 2010-12-09 22:22:28Z guillaume $
  * John Ashburner
  */
 
@@ -16,6 +16,7 @@ http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 #include <stdlib.h>
 #include <sys/types.h>
 #include <string.h>
+#include <stdio.h>
 #include "mex.h"
 
 #ifdef SPM_WIN32

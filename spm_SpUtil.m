@@ -256,7 +256,7 @@ function varargout = spm_SpUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes Jean-Baptiste Poline
-% $Id: spm_SpUtil.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_SpUtil.m 4136 2010-12-09 22:22:28Z guillaume $
 
 % (frobenius norm trick by S. Rouquette)
 
@@ -522,7 +522,7 @@ if  sL == 0,
     else varargout = {[], []}; end
 else, 
 
-   if nargin > 2 & ~isempty(varargin{3})    
+   if nargin > 2 && ~isempty(varargin{3})    
 
     V = varargin{3};
     u = sX.u(:,1:rk);
@@ -592,7 +592,7 @@ elseif  rk==0, warning('Rank is null in spm_SpUtil trMV ');
     return; 
 end;
 
-if nargin > 2 & ~isempty(varargin{3}) %- V provided, and assumed correct !
+if nargin > 2 && ~isempty(varargin{3}) %- V provided, and assumed correct !
 
     V = varargin{3};
     u = sX.u(:,1:rk);

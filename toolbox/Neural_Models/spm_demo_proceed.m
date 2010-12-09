@@ -8,7 +8,7 @@ function spm_demo_proceed(tag,str)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_demo_proceed.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: spm_demo_proceed.m 4136 2010-12-09 22:22:28Z guillaume $
 
 % get figure
 %--------------------------------------------------------------------------

@@ -5,7 +5,7 @@ function o = cat(dr,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: cat.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: cat.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 if dr>32 || dr<0, error('Unknown command option.'); end;
@@ -36,5 +36,5 @@ if any(diff(d(:,[1:(dr-1) (dr+1):end]),1,1))
     error('All matrices on a row in the bracketed expression must have the same number of rows.');
 else
     o = vertcat(tmp{:});
-    o = class(o,'file_array');
+    o = file_array(o);
 end;

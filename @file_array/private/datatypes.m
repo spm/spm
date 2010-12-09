@@ -4,7 +4,7 @@ function dt = datatypes
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: datatypes.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: datatypes.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 persistent dtype
@@ -24,10 +24,10 @@ if isempty(dtype),
         1280,'UINT64'    ,'uint64'  ,@uint64 ,1,8  ,t,t,f
         16  ,'FLOAT32'   ,'float32' ,@single ,1,4  ,f,f,t
         64  ,'FLOAT64'   ,'double'  ,@double ,1,8  ,f,f,t
-        1536,'FLOAT128'  ,'float128',@crash  ,1,16 ,f,f,f
+        1536,'FLOAT128'  ,'float128',@error  ,1,16 ,f,f,f
         32  ,'COMPLEX64' ,'float32' ,@single ,2,4  ,f,f,f
         1792,'COMPLEX128','double'  ,@double ,2,8  ,f,f,f
-        2048,'COMPLEX256','float128',@crash  ,2,16 ,f,f,f
+        2048,'COMPLEX256','float128',@error  ,2,16 ,f,f,f
         128 ,'RGB24'     ,'uint8'   ,@uint8  ,3,1  ,t,t,f};
     dtype = struct(...
         'code'     ,table(:,1),...

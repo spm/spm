@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 1790 2008-06-05 11:27:02Z spm $
+ * $Id: spm_bwlabel.c 4136 2010-12-09 22:22:28Z guillaume $
  * Jesper Andersson
  */
 
@@ -23,8 +23,9 @@
  ***************************************************************/
 
 #include <math.h>
-#include "mex.h"
+#include <stdio.h>
 #include <limits.h>
+#include "mex.h"
 
 /* Silly little macros. */
 

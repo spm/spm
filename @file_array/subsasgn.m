@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 1355 2008-04-10 10:52:35Z vladimir $
+% $Id: subsasgn.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 if isempty(subs)
@@ -47,7 +47,7 @@ if length(subs.subs) < length(dm),
 end;
 
 dm   = [dm ones(1,16)];
-do   = ones(1,16);
+di   = ones(1,16);
 args = {};
 for i=1:length(subs.subs),
     if ischar(subs.subs{i}),
@@ -56,7 +56,7 @@ for i=1:length(subs.subs),
     else
         args{i} = int32(subs.subs{i});
     end;
-    do(i) = length(args{i});
+    di(i) = length(args{i});
 end;
 for j=1:length(sobj),
     if strcmp(sobj(j).permission,'ro'),
@@ -69,7 +69,7 @@ if length(sobj)==1
     if numel(dat)~=1,
         subfun(sobj,double(dat),args{:});
     else
-        dat1 = double(dat) + zeros(do);
+        dat1 = double(dat) + zeros(di);
         subfun(sobj,dat1,args{:});
     end;
 else

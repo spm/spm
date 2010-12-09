@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4035 2010-08-05 18:54:32Z guillaume $
+% $Id: spm_mesh_render.m 4136 2010-12-09 22:22:28Z guillaume $
 
 
 %-Input parameters
@@ -250,16 +250,17 @@ switch lower(action)
             set(get(H.colourbar,'Children'),'Tag','');
         end
         c(1:size(col,1),1,1:size(col,2)) = col;
+        ic = findobj(H.colourbar,'Type','image');
         if size(d,1) > 1
-            set(get(H.colourbar,'child'),'CData',c(1:size(d,1),:,:));
-            set(get(H.colourbar,'child'),'YData',[1 size(d,1)]);
+            set(ic,'CData',c(1:size(d,1),:,:));
+            set(ic,'YData',[1 size(d,1)]);
             set(H.colourbar,'YLim',[1 size(d,1)]);
             set(H.colourbar,'YTickLabel',[]);
         else
-            set(get(H.colourbar,'child'),'CData',c);
+            set(ic,'CData',c);
             clim = getappdata(H.patch,'clim');
             if isempty(clim), clim = [false min(d) max(d)]; end
-            set(get(H.colourbar,'child'),'YData',clim(2:3));
+            set(ic,'YData',clim(2:3));
             set(H.colourbar,'YLim',clim(2:3));
         end
         setappdata(H.axis,'handles',H);
