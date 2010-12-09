@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4120 2010-11-15 11:47:36Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4135 2010-12-09 11:55:22Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -300,6 +300,10 @@ else
     Nfeatures=S.Nfeatures;
 end;
 
+if ~isfield(S,'write_epochs'),
+    S.write_epochs=[];
+end;
+
 
 %% now read in all trialtype and hold them as windowed fourier transforms
 [uniquewindows]=unique(S.design.Xstartlatencies);
@@ -489,6 +493,21 @@ if ~isempty(S.fixedweights),
         end;
 end;
 
+%% prepare to write images
+talpositions = spm_eeg_inv_transform_points(datareg.toMNI, grid.pos(grid.inside,:)); %% MADE DATAREG STAND ALONE
+sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');    
+ if S.write_epochs,
+     if (S.Nfeatures>1) || (S.Niter>1),
+         error('cannot write epochs for more than one permutation or one feature');
+     end;
+     disp('storing all data in memory');
+     allY=zeros(length(grid.inside),Ntrials,2);
+    epochdirname='Epoch_cvaBf_images';
+    if S.logflag,
+        epochdirname=[epochdirname '_log'];
+    end;
+    res = mkdir(D.path, epochdirname);
+ end;
 
 %% Now have all lead fields and all data
 %% Now do actual beamforming
@@ -617,7 +636,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         lf  = lf * eta; %% now have got the lead field at this voxel, compute some contrast
        
         weights=(lf'*cinv*lf)\lf'*cinv; %% no regularisation for now
-        
+        normweights=sqrt(weights*weights');
         if S.fixedweights,
             weights=S.fixedweights(i,:);
             end;
@@ -625,10 +644,10 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             disp('RANDOM WEIGHT !');
             weights=randn(size(weights));
         end;
-        %if S.return_weights
-            stats(fband).ctf_weights(maskedgrid_inside_ind(i),:)=weights;
-            alllf(maskedgrid_inside_ind(i),:)=lf;
-        %end
+        
+        stats(fband).ctf_weights(maskedgrid_inside_ind(i),:)=weights;
+        alllf(maskedgrid_inside_ind(i),:)=lf;
+        
         
         for j=1:Ntrials, %% this non-linear step (power estimation) has to be done at each location
             fdata=squeeze(fftnewdata(j,freq_indtest,:));
@@ -651,10 +670,8 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             if power_flag,
                 Yfull=power_trial;
             else
-            %    Yfull=power_trial./repmat(std(power_trial),size(power_trial,1),1); 
                 Yfull=[real(evoked_trial), imag(evoked_trial)]; %% split into sin and cos parts 
-            end; % if power_flag
-            %Yfull=power_trial;
+            end; % if power_fla
         Y     = Yfull - X0*(X0'*Yfull); %% eg remove DC level or drift terms from all of Y
         [u s v] = spm_svd(Y,-1,-1); % ,1/4);              %% get largest variance in Y   -1s make sure nothing is removed
             %% reduce dimensions to Nfeatures
@@ -667,6 +684,11 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
        %   U=u(1:redNfeatur es,:);
           U=u(:,1:redNfeatures); %% IMPORTANT ?
           Y   = Y*U;
+          if S.write_epochs,
+            nfact=normweights.^(power_flag+1); %% normalise for amplitude or power
+            allY(i,:,power_flag+1)=Y./nfact; %% normalise the Ys by the depth
+            
+            end;
         
   %% NOTE TSTAT COMPUTED Y BEFORE DIMENSION REDUCTION- COMPARISON ONLY VALID WHEN Y
   %% and YFULL have same dimensionality
@@ -747,17 +769,17 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         
         if CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter)>maxcva(power_flag+1,iter),
             stats(fband).bestchi(power_flag+1,1:h,iter)=chi;
-            if length(V)>1,
+            %if length(V)>1,
                 if power_flag,
                  stats(fband).bestVpw(1:h,iter,:)=V';
                  stats(fband).bestvpw(1:h,iter,:)=v';
                  stats(fband).bestUpw=U;
                 else
-                 stats(fband).bestVev(1:h,iter,:)=V';
+                 stats(fband).bestVev(1:h,iter,:)=complex(V(1:size(evoked_trial,2),:),V(size(evoked_trial,2)+1:end,:))';
                  stats(fband).bestvev(1:h,iter,:)=v';
                  stats(fband).bestUev=U;
                 end;
-            end;% 
+            %end;% 
            
             stats(fband).pval(power_flag+1,1:h,iter)=p;
             stats(fband).df(power_flag+1,1:h,iter)=df;
@@ -774,7 +796,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             if power_flag,
                 stats(fband).allVpw(1:h,i,:)=V';
                 else
-                stats(fband).allVev(1:h,i,:)=V';
+                stats(fband).allVev(1:h,i,:)=complex(V(1:size(evoked_trial,2),:),V(size(evoked_trial,2)+1:end,:))';
                 end;
             end;% if iter
         
@@ -833,16 +855,10 @@ if S.Niter>1,
     end; % if TWOSAMPLETEST
 end; % if
   
-%save('tmp_data_cva.mat');
-talpositions = spm_eeg_inv_transform_points(datareg.toMNI, grid.pos(grid.inside,:)); %% MADE DATAREG STAND ALONE
-gridpositions=grid.pos(grid.inside,:);
-
-
-    
-    sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
     
     
     csource=grid; %% only plot and write out unpermuted iteration
+    gridpositions=csource.pos(csource.inside,:);
     csource.pow_maxchi(csource.inside) = CVA_maxstat(:,2,TrueIter);  %power
     csource.evoked_maxchi(csource.inside) = CVA_maxstat(:,1,TrueIter);
     csource.pow_tstat(csource.inside) = tstat(:,2,TrueIter).^2;
@@ -896,7 +912,7 @@ gridpositions=grid.pos(grid.inside,:);
         end;
     
         
-    %end; % if preview
+   
     
     
     %% else %% write out the data sets
@@ -927,7 +943,8 @@ gridpositions=grid.pos(grid.inside,:);
             prop=0.4;
             colourmap=jetmap;
             spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,max_mv(2),dispthresh_mv(2));
-            disp('Chi pw image. Press any key to continue..');
+            
+            disp(sprintf('Chi pw image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05));
             pause;
         end; % if preview
     colormap(cmap);
@@ -941,10 +958,13 @@ gridpositions=grid.pos(grid.inside,:);
             prop=0.4;
             colourmap=jetmap;
             spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,max_mv(1),dispthresh_mv(1));
-            disp('Chi ev image. Press any key to continue..');
+            disp(sprintf('Chi ev image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05));
             pause;
         end; % if preview
         
+        outvals=CVA_maxstat(:,1,TrueIter);
+      %  prefix='testrun';
+     %[outvol]=write_trial_image(0,0,talpositions,datareg,sMRI,D,dirname,csource,outvals,prefix,freqbands(fband,:))
     colormap(cmap);
     if TWOSAMPLETEST
         outvol.fname= fullfile(D.path, dirname, ['tstat_pow_' spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' S.filenamestr '.nii']);
@@ -953,7 +973,24 @@ gridpositions=grid.pos(grid.inside,:);
         spm_write_vol(outvol, sourceint_pow_tstat.pow_tstat);
     end; % if twosample
     
-%     
+% %% now write all trials of data out
+    if S.write_epochs,
+     permnum=1;
+     outfilenames_pw=[];
+     outfilenames_ev=[];
+     for trialnum=1:Ntrials,
+        prefix='ev';outvals=allY(:,trialnum,1); %% evoked first
+        [outvolev]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D,epochdirname,csource,outvals,prefix,freqbands(fband,:));
+        outfilenames_ev=strvcat(outfilenames_ev,outvolev.fname);
+        prefix='pow';outvals=allY(:,trialnum,2); %% then power
+        [outvolpw]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D,epochdirname,csource,outvals,prefix,freqbands(fband,:));
+        outfilenames_pw=strvcat(outfilenames_pw,outvolpw.fname);
+     end; % for trialnum
+     stats(fband).outfile_pw_epochs=outfilenames_pw;
+     stats(fband).outfile_ev_epochs=outfilenames_ev;
+    end;
+    
+   
     end; % if ~S.gridpos
     
     
@@ -964,3 +1001,40 @@ end; % for fband=1:Nbands
 end % function
 
 
+
+
+function [outvol]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D,dirname,csource,outvals,prefix,freqband)
+    
+    
+    %outvals=outvals./1e12;
+    %outvals=outvals.*0; 
+    %outvals(715)=trialnum;
+    csource.pow_maxchi(csource.inside) = outvals;
+    
+    csource.pow_maxchi(csource.outside)=0;
+    
+  
+        
+    cfg1 = [];
+    cfg1.sourceunits   = 'mm';
+    cfg1.parameter = 'pow_maxchi';
+    cfg1.downsample = 1;
+    sourceint_pow_maxchi = ft_sourceinterpolate(cfg1, csource, sMRI);
+    
+    
+    cfg = [];
+    cfg.sourceunits   = 'mm';
+    cfg.parameter = 'pow';
+    cfg.downsample = 1;
+    
+    
+    outvol = spm_vol(sMRI);
+    outvol.dt(1) = spm_type('float32');
+    featurestr=['Nf1'] ; %% only for 1 feature
+    outvol.fname= fullfile(D.path, dirname, [sprintf('Trial%04d_Perm%04d_%s',trialnum,permnum,prefix)  spm_str_manip(D.fname, 'r') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
+    
+    outvol = spm_create_vol(outvol);
+    spm_write_vol(outvol, sourceint_pow_maxchi.pow_maxchi);
+ 
+      
+end
