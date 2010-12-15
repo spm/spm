@@ -14,7 +14,7 @@ function A = spm_mesh_area(M,PF)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id$
+% $Id: spm_mesh_area.m 4139 2010-12-15 18:31:49Z guillaume $
 
 if isnumeric(M)
     A = M;

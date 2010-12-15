@@ -20,7 +20,7 @@ function [R, RPV] = spm_mesh_resels(M,T,S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id$
+% $Id: spm_mesh_resels.m 4139 2010-12-15 18:31:49Z guillaume $
 
 %-Parse input arguments
 %--------------------------------------------------------------------------
