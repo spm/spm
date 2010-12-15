@@ -59,7 +59,7 @@ function F = spm_Pcdf(x,l)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Pcdf.m 2975 2009-03-26 21:43:31Z guillaume $
+% $Id: spm_Pcdf.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -69,11 +69,11 @@ if nargin<1, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(l)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(l),ones(1,rd-ad(2))];    ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(l),ones(1,rd-ad(2))];];
 rs = max(as);
 xa = prod(as,2)>1;
-if all(xa) & any(diff(as(xa,:)))
+if all(xa) && any(diff(as(xa,:)))
     error('non-scalar args must match in size'), end
 
 

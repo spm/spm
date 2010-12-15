@@ -256,14 +256,14 @@ function varargout = spm_SpUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes Jean-Baptiste Poline
-% $Id: spm_SpUtil.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_SpUtil.m 4137 2010-12-15 17:18:32Z guillaume $
 
 % (frobenius norm trick by S. Rouquette)
 
 %-Format arguments
 %-----------------------------------------------------------------------
 if nargin==0, error('do what? no arguments given...')
-    else, action = varargin{1}; end
+else action = varargin{1}; end
 
 
 switch lower(action), 
@@ -271,14 +271,14 @@ switch lower(action),
 case {'iscon','allcon','conr','cono'}
 %=======================================================================
 % i = spm_SpUtil('isCon',x,c)
-if nargin==0, varargout={[]}, error('isCon : no argument specified'), end;
+if nargin==0, varargout={[]}; error('isCon : no argument specified'), end;
 if nargin==1, 
    varargout={[]}; warning('isCon : no contrast specified'); return; 
 end;
 if ~spm_sp('isspc',varargin{2})
-    sX = spm_sp('Set',varargin{2});
-else,   sX = varargin{2}; end
-if nargin==2, c=eye(spm_sp('size',sX,2)); else, c=varargin{3}; end;
+     sX = spm_sp('Set',varargin{2});
+else sX = varargin{2}; end
+if nargin==2, c=eye(spm_sp('size',sX,2)); else c=varargin{3}; end;
 if isempty(c), varargout={[]}; return, end
 
 switch lower(action)
@@ -312,18 +312,18 @@ case {'+c->tsp','c->tsp'}    %- Ortho. partitioning implied by F-contrast
 
 %--------- begin argument check ------------------------------
 if nargin ~= 3, error(['Wrong number of arguments in ' action])
-else,   sX = varargin{2}; c = varargin{3}; end;
+else sX = varargin{2}; c = varargin{3}; end;
 if nargout > 2, error(['Too many output arguments in ' action]), end;
 if ~spm_sp('isspc',sX),  sX = spm_sp('set',varargin{2}); end;
 if sX.rk == 0, error('c->Tsp null rank sX == 0'); end;
-if ~isempty(c) & spm_sp('size',sX,2) ~= size(c,1), 
+if ~isempty(c) && spm_sp('size',sX,2) ~= size(c,1), 
    error(' c->TSp matrix & contrast dimensions don''t match');   
 end
 %--------- end argument check --------------------------------- 
 
 %- project c onto the space of  X' if needed 
 %-------------------------------------------
-if ~isempty(c) & ~spm_sp('isinspp',sX,c),
+if ~isempty(c) && ~spm_sp('isinspp',sX,c),
    warning([sprintf('\n') 'c is not a proper contrast in ' action ...
             ' in ' mfilename sprintf('\n') '!!! projecting...' ]);
    disp('from'), c, disp('to'), c = spm_sp('oPp:',sX,c)
@@ -335,40 +335,40 @@ switch nargout
 % case 0
 %   warning(['no output demanded in ' mfilename ' ' action])
 case {0,1}
-   if ~isempty(c) & any(any(c))                 %- c not empty & not null
+   if ~isempty(c) && any(any(c))               %- c not empty & not null
       if cukFlag, varargout = { spm_sp('cukxp-:',sX,c) };
       else        varargout = { spm_sp('xp-:',sX,c) };
       end
-   else if isempty(c), varargout = { [] };      %- c empty
-        else,                                   %- c null
+   else if isempty(c), varargout = { [] };     %- c empty
+       else                                    %- c null
            if cukFlag, varargout = { spm_sp('cukx',sX,c) }; 
-           else,       varargout = { spm_sp('x',sX)*c };
+           else        varargout = { spm_sp('x',sX)*c };
            end
-        end;
+       end
    end
 
 case 2
-   if ~isempty(c) & any(any(c))         %- not empty and not null
+   if ~isempty(c) && any(any(c))         %- not empty and not null
       if cukFlag,
          varargout = {  
-        spm_sp('cukxp-:',sX,c), ...             %- X1o
-        spm_sp('cukx',sX,spm_sp('r',spm_sp('set',c))) };    %- X0
+        spm_sp('cukxp-:',sX,c), ...      %- X1o
+        spm_sp('cukx',sX,spm_sp('r',spm_sp('set',c))) };      %- X0
       else
          varargout = {  
-        spm_sp(':',sX, spm_sp('xp-:',sX,c)), ...            %- X1o
+        spm_sp(':',sX, spm_sp('xp-:',sX,c)), ...              %- X1o
         spm_sp(':',sX, ...
-               spm_sp('x',sX)*spm_sp('r',spm_sp('set',c))) };   %- X0
+               spm_sp('x',sX)*spm_sp('r',spm_sp('set',c))) }; %- X0
       end
    else            
-      if isempty(c),                    %- empty
+      if isempty(c),                     %- empty
          if cukFlag, varargout = { [], spm_sp('cukx',sX) }; 
-         else,       varargout = { [], spm_sp('x',sX) };
+         else        varargout = { [], spm_sp('x',sX) };
          end
-      else,                             %- null
+      else                               %- null
          if cukFlag, 
             varargout = { spm_sp(':',sX,spm_sp('cukx',sX,c)), ...
                           spm_sp(':',sX,spm_sp('cukx',sX)) }; 
-         else,
+         else
             varargout = { spm_sp('x',sX)*c, spm_sp('x',sX)};
          end
       end;
@@ -386,7 +386,7 @@ case {'i0->x1o','+i0->x1o'} %- Space tested whilst keeping size of X(i0)
 % arguments are checked in calls to spm_Util
 %--------------------------------------------
 if nargin<3, error('Insufficient arguments'),  
-else, sX = varargin{2}; i0 = varargin{3}; end;
+else sX = varargin{2}; i0 = varargin{3}; end;
 
 cukFlag = strcmp(lower(action),'+i0->x1o');
 
@@ -416,7 +416,7 @@ case {'i0->c'}                 %-
 
 %--------- begin argument check --------------------------------
 if nargin<3, error('Insufficient arguments'),  
-else, sX = varargin{2}; i0 = varargin{3}; end;
+else sX = varargin{2}; i0 = varargin{3}; end;
 if ~spm_sp('isspc',sX),  sX = spm_sp('set',varargin{2}); end;
 if spm_sp('rk',sX) == 0, error('i0->c null rank sX == 0'); end;
 sL  = spm_sp('size',sX,2);
@@ -461,25 +461,25 @@ cukFlag = strcmp(lower(action),'+x0->c');
 
 %--------- begin argument check --------- 
 if nargin<3, error('Insufficient arguments'),  
-else, 
-   sX = varargin{2}; 
-   if cukFlag, cukX0 = varargin{3}; else, X0 = varargin{3}; end 
-end;
-if ~spm_sp('isspc',sX),  sX = spm_sp('set',varargin{2}); end;
-if spm_sp('rk',sX) == 0, error(['null rank sX == 0 in ' action]); end;
-if cukFlag
-   if ~isempty(cukX0) & spm_sp('rk',sX) ~= size(cukX0,1),
-      cukX0, spm_sp('rk',sX),
-      error(['cukX0 of wrong size ' mfilename ' ' action]), end;
 else
-   if ~isempty(X0) & spm_sp('size',sX,1) ~= size(X0,1),
+   sX = varargin{2}; 
+   if cukFlag, cukX0 = varargin{3}; else X0 = varargin{3}; end 
+end
+if ~spm_sp('isspc',sX),  sX = spm_sp('set',varargin{2}); end
+if spm_sp('rk',sX) == 0, error(['null rank sX == 0 in ' action]); end
+if cukFlag
+   if ~isempty(cukX0) && spm_sp('rk',sX) ~= size(cukX0,1),
+      cukX0, spm_sp('rk',sX),
+      error(['cukX0 of wrong size ' mfilename ' ' action]), end
+else
+   if ~isempty(X0) && spm_sp('size',sX,1) ~= size(X0,1),
       X0, spm_sp('size',sX,1),
-      error(['X0 of wrong size ' mfilename ' ' action]),X0, end;
+      error(['X0 of wrong size ' mfilename ' ' action]),X0, end
 end
 %--------- end argument check --------- 
 
 if cukFlag
-   if isempty(cukX0), X0 = []; else, X0 = spm_sp('ox',sX)*cukX0; end
+   if isempty(cukX0), X0 = []; else X0 = spm_sp('ox',sX)*cukX0; end
 end
 
 varargout = { sf_X0_2_c(X0,sX) };
@@ -520,7 +520,7 @@ if  sL == 0,
     warning('space with no dimension ');    
     if nargout==1, varargout = {[]};
     else varargout = {[], []}; end
-else, 
+else
 
    if nargin > 2 && ~isempty(varargin{3})    
 
@@ -529,13 +529,13 @@ else,
     clear sX;
     if nargout==1
         %-only trRV needed
-        if rk==0 | isempty(rk),  trMV = 0; 
-        else,   trMV = sum(sum( u .* (V*u) ));
-        end;
+        if rk==0 || isempty(rk),  trMV = 0; 
+        else trMV = sum(sum( u .* (V*u) ));
+        end
         varargout = { trace(V) - trMV};
     else
         %-trRVRV is needed as well
-        if rk==0 | isempty(rk),  
+        if rk==0 || isempty(rk),  
             trMV = 0; 
             trRVRV = (norm(V,'fro'))^2;
          trV = trace(V);
@@ -556,13 +556,13 @@ else,
    else  %- nargin == 2 | isempty(varargin{3})
 
     if nargout==1
-        if rk==0 | isempty(rk), varargout = {sL}; 
-        else, varargout = {sL - rk}; 
-        end;
+        if rk==0 || isempty(rk), varargout = {sL}; 
+        else varargout = {sL - rk}; 
+        end
     else
-        if rk==0 | isempty(rk),  varargout = {sL,sL};
-        else, varargout = {sL - rk, sL - rk};
-        end;    
+        if rk==0 || isempty(rk),  varargout = {sL,sL};
+        else varargout = {sL - rk, sL - rk};
+        end    
     end
 
     end
@@ -628,10 +628,10 @@ case {'i0->edf','edf'}                  %-Effective F degrees of freedom
 %-----------------------------------------------------------------------
 %--------- begin argument check ---------------------------------------- 
 if nargin<3, error('insufficient arguments'),
-else, i0 = varargin{3}; sX = varargin{2}; end
+else i0 = varargin{3}; sX = varargin{2}; end
 if ~spm_sp('isspc',sX), sX = spm_sp('Set',sX); end;
 i0  = sf_check_i0(i0,spm_sp('size',sX,2));
-if nargin == 4, V=varargin{4}; else, V = eye(spm_sp('size',sX,1)); end;
+if nargin == 4, V=varargin{4}; else V = eye(spm_sp('size',sX,1)); end;
 if nargin>4, error('Too many input arguments'), end;
 %--------- end argument check ------------------------------------------ 
 
@@ -653,19 +653,19 @@ case 'size'                                      %-Size of design matrix
 %=======================================================================
 % sz = spm_SpUtil('size',x,dim)
 
-if nargin<3, dim=[]; else, dim = varargin{3}; end
+if nargin<3, dim=[]; else dim = varargin{3}; end
 if nargin<2, error('insufficient arguments'), end
 
 if isstruct(varargin{2})
    if isfield(varargin{2},'X')
     sz = size(varargin{2}.X);
-   else, error('no X field'); end;  
+   else error('no X field'); end;  
 else
     sz = size(varargin{2});
 end
 
 if ~isempty(dim)
-    if dim>length(sz), sz = 1; else, sz = sz(dim); end
+    if dim>length(sz), sz = 1; else sz = sz(dim); end
     varargout = {sz};
 elseif nargout>1
     varargout = cell(1,min(nargout,length(sz)));
@@ -680,7 +680,7 @@ case 'ix0check'                                      %-
 % i0c = spm_SpUtil('iX0check',i0,sL)
 
 if nargin<3, error('insufficient arguments'),
-else, i0 = varargin{2}; sL = varargin{3}; end;
+else i0 = varargin{2}; sL = varargin{3}; end;
 
 varargout = {sf_check_i0(i0,sL)};
 
@@ -700,10 +700,10 @@ function i0c = sf_check_i0(i0,sL)
 % NB : [] = sf_check_i0([],SL);
 %
 
-if all(ismember(i0,[0,1])) & length(i0(:))==sL, i0c=find(i0); 
-elseif ~isempty(i0) & any(floor(i0)~=i0) | any(i0<1) | any(i0>sL)
+if all(ismember(i0,[0,1])) && length(i0(:))==sL, i0c=find(i0); 
+elseif ~isempty(i0) && any(floor(i0)~=i0) || any(i0<1) || any(i0>sL)
     error('logical mask or vector of column indices required')
-else, i0c = i0; end
+else i0c = i0; end
 
 %=======================================================================
 function c = sf_X0_2_c(X0,sX)  
@@ -726,7 +726,7 @@ if ~isempty(X0)
    sL = spm_sp('size',sX,2);
 
    %- why the   "& size(X0,2) ~= sL"   !!!?
-   if isempty(c) & size(X0,2) ~= sL
+   if isempty(c) && size(X0,2) ~= sL
       c = zeros(sL,1);
    end
 
@@ -734,17 +734,4 @@ else
    c = spm_sp('xpx',sX);
 end
 
-%
 %- c = spm_sp('r',sc0,spm_sp('oxp',sX)); would also works.
-
-
-
-
-
-
-
-
-
-
-
-

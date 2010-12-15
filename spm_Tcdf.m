@@ -5,12 +5,12 @@ function F = spm_Tcdf(x,v)
 % x - T-variate (Student's t has range (-Inf,Inf)
 % v - degrees of freedom (v>0, non-integer d.f. accepted)
 % F - CDF of Student's t-distribution with v degrees of freedom at points x
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Tcdf implements the Cumulative Distribution of the Students t-distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of the Student's t-distribution with v degrees of
 % freedom is the probability that a realisation of a t random variable
 % X has value less than x; F(x)=Pr{X<x} for X~G(h,c). Student's
@@ -21,12 +21,12 @@ function F = spm_Tcdf(x,v)
 % v, rather it will compute for any df v>0.
 %
 % Variate relationships: (Evans et al., Ch37 & 7)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Student's t distribution with 1 degree of freedom is the Standard
 % Cauchy distribution, which has a simple closed form CDF.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF of the Student's t-distribution with v degrees of freedom
 % is related to the incomplete beta function by:
 %       Pr(|X|<x) = betainc(v/(v+x^2),v/2,1/2)
@@ -44,7 +44,7 @@ function F = spm_Tcdf(x,v)
 %
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -57,15 +57,15 @@ function F = spm_Tcdf(x,v)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Tcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Tcdf.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v)];
@@ -74,12 +74,12 @@ as = [  [size(x),ones(1,rd-ad(1))];...
     [size(v),ones(1,rd-ad(2))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
-if all(xa) & any(diff(as(xa,:)))
+if all(xa) && any(diff(as(xa,:)))
     error('non-scalar args must match in size'), end
 
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
@@ -92,7 +92,7 @@ if any(~md(:)), F(~md) = NaN;
 F( md  &  x==0 ) = 0.5;
 
 %-Special case: Standard Cauchy distribution when v=1
-ml = ( md  &  v==1 ); if xa(1), mlx=ml; else, mlx=1; end
+ml = ( md  &  v==1 ); if xa(1), mlx=ml; else mlx=1; end
 F(ml) = 0.5 + atan(x(mlx))/pi;
 
 %-Compute where defined & not special cases

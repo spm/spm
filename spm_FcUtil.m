@@ -127,13 +127,13 @@ function varargout = spm_FcUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_FcUtil.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_FcUtil.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 %-Format arguments
 %-----------------------------------------------------------------------
 if nargin==0, error('do what? no arguments given...')
-else, action = varargin{1}; end
+else action = varargin{1}; end
 
 
 switch lower(action),
@@ -142,10 +142,10 @@ case 'fconfields'               %- fields of F contrast
 %=======================================================================
 % Fc = spm_FcUtil('FconFields')
 
-if nargout > 1, error('Too many output arguments: FconFields'), end;
-if nargin  > 1, error('Too many input arguments:  FconFields'), end;
+if nargout > 1, error('Too many output arguments: FconFields'), end
+if nargin  > 1, error('Too many input arguments:  FconFields'), end
 
-varargout = {sf_FconFields;}
+varargout = {sf_FconFields};
 
 case {'set','v1set'}                %- Create an F contrast
 %=======================================================================
@@ -167,20 +167,20 @@ case {'set','v1set'}                %- Create an F contrast
 
 %-check # arguments...
 %--------------------------------------------------------------------------
-if nargin<6, error('insufficient arguments'), end;
-if nargout > 1, error('Too many output arguments Set'), end;
+if nargin<6, error('insufficient arguments'), end
+if nargout > 1, error('Too many output arguments Set'), end
 
 %-check arguments...
 %--------------------------------------------------------------------------
-if ~ischar(varargin{2}), error('~ischar(name)'), end;
-if ~(varargin{3}=='F'|varargin{3}=='T'|varargin{3}=='P'), 
-    error('~(STAT==F|STAT==T|STAT==P)'), end;
+if ~ischar(varargin{2}), error('~ischar(name)'), end
+if ~(varargin{3}=='F'||varargin{3}=='T'||varargin{3}=='P'), 
+    error('~(STAT==F|STAT==T|STAT==P)'), end
 if ~ischar(varargin{4}), error('~ischar(varargin{4})'); 
-else set_action = varargin{4}; end;
+else set_action = varargin{4}; end
 
 sX = varargin{6};
-if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
-if isempty(sX.X), error('Empty space X in Set'); end;
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end
+if isempty(sX.X), error('Empty space X in Set'); end
 
 Fc = sf_FconFields;
 %- use the name as a flag to insure that F-contrast has been 
@@ -188,7 +188,7 @@ Fc = sf_FconFields;
 Fc.name = varargin{2};
 
 Fc.STAT = varargin{3};
-if Fc.STAT=='T' &  ~(any(strcmp(set_action,{'c+','c'}))) 
+if Fc.STAT=='T' &&  ~(any(strcmp(set_action,{'c+','c'}))) 
    warning('enter T stat with contrast - here no check rank == 1');
 end
 
@@ -198,80 +198,80 @@ end
 %- NO. v1 = strcmp(action,'v1set');
 
 switch set_action,
-        case {'c','c+'}
-       Fc.iX0  = set_action;
-           c = spm_sp(':', sX, varargin{5});
-       if isempty(c)
-              [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,[]);
-          %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,[]);
-              Fc.c    = c;
-       elseif size(c,1) ~= sL, 
-          error(['not contrast dim. in ' mfilename ' ' set_action]); 
-       else 
-              if strcmp(set_action,'c+')  
-                 if ~spm_sp('isinspp',sX,c), c = spm_sp('oPp:',sX,c); end;
-          end;
-          if Fc.STAT=='T' &  ~sf_is_T(sX,c)
-                 %- Could be make more self-correcting by giving back an F
-         error('trying to define a t that looks like an F'); 
-          end
-          Fc.c   = c;
-              [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,c);
-          %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
-       end;
+    case {'c','c+'}
+        Fc.iX0  = set_action;
+        c = spm_sp(':', sX, varargin{5});
+        if isempty(c)
+            [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,[]);
+            %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,[]);
+            Fc.c    = c;
+        elseif size(c,1) ~= sL,
+            error(['not contrast dim. in ' mfilename ' ' set_action]);
+        else
+            if strcmp(set_action,'c+')
+                if ~spm_sp('isinspp',sX,c), c = spm_sp('oPp:',sX,c); end
+            end;
+            if Fc.STAT=='T' &&  ~sf_is_T(sX,c)
+                %- Could be make more self-correcting by giving back an F
+                error('trying to define a t that looks like an F');
+            end
+            Fc.c   = c;
+            [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,c);
+            %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
+        end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % 'option given for completeness - not for SPM use'
 
     case {'X0'}
-           warning(['option given for completeness - not for SPM use']);
-       Fc.iX0  = set_action;
-       X0 = spm_sp(':', sX, varargin{5});
-       if isempty(X0),
-              Fc.c         = spm_sp('xpx',sX); 
-              Fc.X1o.ukX1o = spm_sp('cukx',sX);
-              Fc.X0.ukX0   = [];    
-       elseif size(X0,1) ~= sC, 
-              error('dimension of X0 wrong in Set');
-       else 
-              Fc.c         = spm_SpUtil('X0->c',sX,X0);
-          Fc.X0.ukX0   = spm_sp('ox',sX)'*X0;   
-              Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
-       end
-
-        case 'ukX0' 
-           warning(['option given for completeness - not for SPM use']);
-       Fc.iX0  = set_action;
-       if isempty(ukX0), 
-              Fc.c         = spm_sp('xpx',sX); 
-              Fc.X1o.ukX1o = spm_sp('cukx',sX);
-              Fc.X0.ukX0   = [];    
-       elseif size(ukX0,1) ~= spm_sp('rk',sX), 
-              error('dimension of cukX0 wrong in Set');
-       else 
-              Fc.c         = spm_SpUtil('+X0->c',sX,ukX0);
-          Fc.X0.ukX0   = ukX0;  
-              Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
-       end 
+        warning('option given for completeness - not for SPM use');
+        Fc.iX0  = set_action;
+        X0 = spm_sp(':', sX, varargin{5});
+        if isempty(X0),
+            Fc.c         = spm_sp('xpx',sX);
+            Fc.X1o.ukX1o = spm_sp('cukx',sX);
+            Fc.X0.ukX0   = [];
+        elseif size(X0,1) ~= sC,
+            error('dimension of X0 wrong in Set');
+        else
+            Fc.c         = spm_SpUtil('X0->c',sX,X0);
+            Fc.X0.ukX0   = spm_sp('ox',sX)'*X0;
+            Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
+        end
+        
+    case 'ukX0'
+        warning('option given for completeness - not for SPM use');
+        Fc.iX0  = set_action;
+        if isempty(ukX0),
+            Fc.c         = spm_sp('xpx',sX);
+            Fc.X1o.ukX1o = spm_sp('cukx',sX);
+            Fc.X0.ukX0   = [];
+        elseif size(ukX0,1) ~= spm_sp('rk',sX),
+            error('dimension of cukX0 wrong in Set');
+        else
+            Fc.c         = spm_SpUtil('+X0->c',sX,ukX0);
+            Fc.X0.ukX0   = ukX0;
+            Fc.X1o.ukX1o = spm_SpUtil('+c->Tsp',sX,Fc.c);
+        end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     case 'iX0'
-       iX0        = varargin{5};
-       iX0        = spm_SpUtil('iX0check',iX0,sL);
-       Fc.iX0     = iX0;
-           Fc.X0.ukX0 = spm_sp('ox',sX)' * spm_sp('Xi',sX,iX0);
-           if isempty(iX0), 
-          Fc.c          = spm_sp('xpx',sX); 
-          Fc.X1o.ukX1o  = spm_sp('cukx',sX);  
-       else             
-          Fc.c          = spm_SpUtil('i0->c',sX,iX0);
-          Fc.X1o.ukX1o  = spm_SpUtil('+c->Tsp',sX,Fc.c);
-       end;
-
-    otherwise 
-       error('wrong action in Set '); 
-
-end;
+        iX0        = varargin{5};
+        iX0        = spm_SpUtil('iX0check',iX0,sL);
+        Fc.iX0     = iX0;
+        Fc.X0.ukX0 = spm_sp('ox',sX)' * spm_sp('Xi',sX,iX0);
+        if isempty(iX0),
+            Fc.c          = spm_sp('xpx',sX);
+            Fc.X1o.ukX1o  = spm_sp('cukx',sX);
+        else
+            Fc.c          = spm_SpUtil('i0->c',sX,iX0);
+            Fc.X1o.ukX1o  = spm_SpUtil('+c->Tsp',sX,Fc.c);
+        end
+        
+    otherwise
+        error('wrong action in Set ');
+        
+end
 varargout = {Fc};
 
 case 'x0' % spm_FcUtil('X0',Fc,sX)
@@ -283,7 +283,7 @@ else
 end
 if nargout ~= 1, error('too few/many output arguments - need 1'), end
 if ~sf_IsFcon(Fc), error('argument is not a contrast struct'), end
-if ~spm_sp('isspc',sX), sX = spm_sp('set',sX); end;
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX); end
 
 varargout = {sf_X0(Fc,sX)};
 
@@ -296,7 +296,7 @@ else
 end
 if nargout ~= 1, error('too few/many output arguments - need 1'), end
 if ~sf_IsFcon(Fc), error('argument is not a contrast struct'), end
-if ~spm_sp('isspc',sX), sX = spm_sp('set',sX); end;
+if ~spm_sp('isspc',sX), sX = spm_sp('set',sX); end
 
 varargout = {sf_X1o(Fc,sX)};
 
@@ -307,7 +307,7 @@ case 'isfcon'               %- Is it an F contrast ?
 
 if nargin~=2, error('too few/many input arguments - need 2'), end
 if ~isstruct(varargin{2}), varargout={0}; 
-else, varargout = {sf_IsFcon(varargin{2})};
+else varargout = {sf_IsFcon(varargin{2})};
 end
 
 
@@ -319,11 +319,11 @@ if nargin<3, error('Insufficient arguments'), end
 if nargout >= 3, error('Too many output argument.'), end
 Fc = varargin{2};
 sX = varargin{3};
-if nargin == 4, V = varargin{4}; else V = []; end;
+if nargin == 4, V = varargin{4}; else V = []; end
 
 if ~sf_IsFcon(Fc), error('Fc must be Fcon'), end
 if ~spm_sp('isspc',sX)
-    sX = spm_sp('set',sX);  end;
+    sX = spm_sp('set',sX);  end
 
 if ~sf_isempty_X1o(Fc)
    [trMV, trMVMV] = spm_SpUtil('trMV',sf_X1o(Fc,sX),V);
@@ -332,18 +332,18 @@ else
    trMVMV = 0;
 end 
 if ~trMVMV, edf_tsp = 0; warning('edf_tsp = 0'), 
-else,  edf_tsp = trMV^2/trMVMV; end;    
+else  edf_tsp = trMV^2/trMVMV; end;    
 
 if nargout == 2
 
    [trRV, trRVRV] = spm_SpUtil('trRV',sX,V);
-   if ~trRVRV, edf_Xsp = 0, warning('edf_Xsp = 0'),
-   else,  edf_Xsp = trRV^2/trRVRV; end;
+   if ~trRVRV, edf_Xsp = 0; warning('edf_Xsp = 0'),
+   else  edf_Xsp = trRV^2/trRVRV; end;
 
    varargout = {edf_tsp, edf_Xsp};
 else    
    varargout = {edf_tsp};
-end;
+end
 
 
 
@@ -511,11 +511,11 @@ if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
 str  = Fc2(1).name; for i=2:L2 str = [str ' ' Fc2(i).name]; end;
 Fc2  = spm_FcUtil('Set',str,'F','c+',cat(2,Fc2(:).c),sX);
 
-if sf_isempty_X1o(Fc2) | sf_isnull(Fc2,sX)
+if sf_isempty_X1o(Fc2) || sf_isnull(Fc2,sX)
     varargout = {Fc1};
 else
     for i=1:L1
-        if sf_isempty_X1o(Fc1(i)) | sf_isnull(Fc1(i),sX)
+        if sf_isempty_X1o(Fc1(i)) || sf_isnull(Fc1(i),sX)
             %- Fc1(i) is an [] or 0 contrast : ortho to anything; 
             out(i) = Fc1(i);
         else
@@ -531,7 +531,7 @@ case {'|_?'}        %-  Are contrasts orthogonals
 
 if nargin < 3, error('Insufficient arguments'), end
 Fc1 = varargin{2}; sX = varargin{3};
-if nargin > 3, Fc2 = varargin{4}; else, Fc2 = []; end;
+if nargin > 3, Fc2 = varargin{4}; else Fc2 = []; end;
 if isempty(Fc1), error('give at least one non empty contrast'), end;
 
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
@@ -563,7 +563,7 @@ Fc1 = varargin{2}; Fc2 = varargin{4}; sX = varargin{3};
 L1  = length(Fc1);
 if  ~L1, warning('no contrast given to in'); 
      if nargout == 2, varargout = {[] []}; 
-     else, varargout = {[]}; end;
+     else varargout = {[]}; end;
      return; 
 end
 for i=1:L1
@@ -634,7 +634,7 @@ if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
 
 idx = [];
 for i=1:L1
-    if sf_isempty_X1o(Fc(i)) | sf_isnull(Fc(i),sX), idx = [idx i]; end
+    if sf_isempty_X1o(Fc(i)) || sf_isnull(Fc(i),sX), idx = [idx i]; end
 end
 if isempty(idx) 
     varargout = {0};
@@ -666,12 +666,12 @@ Fc = struct(...
     'name',     '',...
     'STAT',     '',...
     'c',        [],...
-    'X0',       struct('ukX0',[]),... %!15/10
+    'X0',       struct('ukX0',[]),...
     'iX0',      [],...
-    'X1o',      struct('ukX1o',[]),...  %!15/10
+    'X1o',      struct('ukX1o',[]),...
     'eidf',     [],...
     'Vcon',     [],...
-    'Vspm',     []  );
+    'Vspm',     []);
  
 %=======================================================================
 % used internally. Minimum contrast structure
@@ -682,9 +682,8 @@ minFc = struct(...
     'name',     '',...
     'STAT',     '',...
     'c',        [],...
-    'X0',           [],...
-    'X1o',          []...
-    );
+    'X0',       [],...
+    'X1o',      []);
 
 %=======================================================================
 % yes_no = spm_FcUtil('IsFcon',Fc)
@@ -727,7 +726,7 @@ if sf_ver(Fc) > 1,
    if b ~= isempty(Fc.c), 
       Fc.c, Fc.X1o.ukX1o, error('Contrast internally not consistent');
    end
-else, 
+else
    b = isempty(Fc.X1o);
    %- consistency check
    if b ~= isempty(Fc.c), 
@@ -741,7 +740,7 @@ function b = sf_X1o(Fc,sX)
 
 if sf_ver(Fc) > 1, 
    b = spm_sp('ox',sX)*Fc.X1o.ukX1o; 
-else, 
+else
    b = Fc.X1o;
 end
 
@@ -752,7 +751,7 @@ function b = sf_X0(Fc,sX)
 
 if sf_ver(Fc) > 1, 
    b = spm_sp('ox',sX)*Fc.X0.ukX0; 
-else, 
+else
    b = Fc.X0;
 end
 
@@ -763,7 +762,7 @@ function b = sf_isempty_X0(Fc)
 
 if sf_ver(Fc) > 1, 
    b = isempty(Fc.X0.ukX0); 
-else, 
+else
    b = isempty(Fc.X0);
 end
 
@@ -789,7 +788,7 @@ function hsqr = sf_Hsqr(Fc,sX)
 %-**** fprintf('v%d\n',sf_ver(Fc));
 if sf_ver(Fc) > 1,    
    hsqr = spm_sp('ox',spm_sp('set',Fc.X1o.ukX1o))' * spm_sp('cukx',sX);
-else, 
+else
    hsqr = spm_sp('ox',spm_sp('set',Fc.X1o))'*spm_sp('x',sX);
 end
 %=======================================================================
@@ -845,7 +844,7 @@ Fc1o  = spm_FcUtil('Set',['(' Fc1.name ' |_ (' Fc2.name '))'], ...
 %-                          Fc1.STAT, 'c',c,sX);
 
 %=======================================================================
-function b = sf_Rortho(Fc1,sX,Fc2);
+function b = sf_Rortho(Fc1,sX,Fc2)
 
 if isempty(Fc2)
    if length(Fc1) <= 1, b = 0; 
@@ -881,13 +880,10 @@ function boul = sf_is_T(sX,c)
 
 boul = 1;
 if ~spm_sp('isinspp',sX,c), c = spm_sp('oPp:',sX,c); end;
-if rank(c) > 1 | any(any(c'*c < 0)), boul = 0; end;
-
-
-
+if rank(c) > 1 || any(any(c'*c < 0)), boul = 0; end;
 
 %=======================================================================
-function [idxFc2, idxFc1] =  sf_in(Fc1, sX, Fc2);
+function [idxFc2, idxFc1] =  sf_in(Fc1, sX, Fc2)
 
 L2 = length(Fc2);
 L1 = length(Fc1);
@@ -897,14 +893,14 @@ for j=1:L1
    %- project Fc1(j).c if not estimable
    if ~spm_sp('isinspp',sX,Fc1(j).c), %- warning ? 
       c1  = spm_sp('oPp:',sX,Fc1(j).c); 
-   else, 
+   else
       c1 = Fc1(j).c; 
    end
    sc1 = spm_sp('Set',c1); 
    S   = Fc1(j).STAT;
 
-   boul = 0; i = 1;
-   for i =1:L2,
+   boul = 0;
+   for i =1:L2
       if Fc2(i).STAT == S
          %- the same statistics. else just go on to the next contrast
          boul = spm_sp('==',sc1,spm_sp('oPp',sX,Fc2(i).c));
@@ -912,14 +908,14 @@ for j=1:L1
          %- if they are the same space and T stat (same direction),
          %- then check wether they are in the same ORIENTATION
          %- works because size(X1o,2) == 1, else .* with (Fc1(j).c'*Fc2(i).c)
-         if boul & S == 'T'
+         if boul && S == 'T'
             atmp = sf_X1o(Fc1(j),sX);
             btmp = sf_X1o(Fc2(i),sX);
             boul = ~any(any( (atmp' * btmp) < 0 ));
          end
          %- note the indices
-         if boul, idxFc1 = [idxFc1 j]; idxFc2 = [idxFc2 i]; end;
-      end;
+         if boul, idxFc1 = [idxFc1 j]; idxFc2 = [idxFc2 i]; end
+      end
    end
 end %- for j=1:L1
 

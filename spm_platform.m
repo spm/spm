@@ -53,7 +53,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 2820 2009-03-03 18:59:39Z guillaume $
+% $Id: spm_platform.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 %-Initialise
@@ -139,7 +139,24 @@ end
 
 function PLATFORM = init_platform(comp)     %-Initialise platform variables
 %==========================================================================
-if nargin<1, comp=computer; end
+if nargin<1
+    comp = computer;
+    
+    if any(comp=='-') % Octave
+        if isunix
+            switch uname.machine
+                case 'x86_64'
+                    comp = 'GLNXA64';
+                case {'i586','i686'}
+                    comp = 'GLNX86';
+            end
+        elseif ispc
+            comp = 'PCWIN';
+        elseif ismac
+            comp = 'MACI';
+        end
+    end
+end
 
 %-Platform definitions
 %--------------------------------------------------------------------------
@@ -154,7 +171,6 @@ PDefs = {'PCWIN',     'win',   0;...
          'GLNXA64',   'unx',   0};
 
 PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
-
 
 %-Which computer?
 %--------------------------------------------------------------------------

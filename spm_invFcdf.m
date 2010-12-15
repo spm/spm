@@ -9,13 +9,13 @@ function x = spm_invFcdf(F,v,w)
 % v  - Shape parameter 1 /   numerator degrees of freedom (v>0)
 % w  - Shape parameter 2 / denominator degrees of freedom (w>0)
 % x  - F-variate   (F has range [0,Inf) )
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Fcdf implements the inverse Cumulative Distribution Function
 % for the F-distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of the F distribution with degrees of freedom v & w,
 % defined for positive integer degrees of freedom v & w, is the
 % probability that a realisation of an F random variable X has value
@@ -23,7 +23,7 @@ function x = spm_invFcdf(F,v,w)
 % for v>0 & w>0, and for x in [0,Inf) (See Evans et al., Ch16).
 %
 % Variate relationships: (Evans et al., Ch16 & 37)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The square of a Student's t variate with w degrees of freedom is
 % distributed as an F-distribution with [1,w] degrees of freedom.
 %
@@ -32,7 +32,7 @@ function x = spm_invFcdf(F,v,w)
 % w/2 & v/2, as described below.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Using the routine spm_invBcdf for the Beta distribution, with
 % appropriate parameters:  The CDF of the F-distribution with v,w
 % degrees of freedom is related to the incomplete beta function by:
@@ -44,7 +44,7 @@ function x = spm_invFcdf(F,v,w)
 %
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -57,15 +57,15 @@ function x = spm_invFcdf(F,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invFcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_invFcdf.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Unpack degrees of freedom v & w from single df parameter (v)
@@ -87,24 +87,27 @@ end
 %-Check argument sizes
 ad = [ndims(F);ndims(v);ndims(w)];
 rd = max(ad);
-as = [  [size(F),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];...
-    [size(w),ones(1,rd-ad(3))]     ];
+as = [[size(F),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(w),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 x = zeros(rs);
 
 %-Only defined for F in [0,1] & strictly positive v & w.
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  v>0  &  w>0 );
-if any(~md(:)), x(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    x(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Special cases: x=0 when F=0, x=Inf when F=1
 x(md & F==1) = Inf;

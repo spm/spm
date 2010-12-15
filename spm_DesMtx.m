@@ -1,4 +1,4 @@
-function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
+function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % Design matrix construction from factor level and covariate vectors
 % FORMAT [X,Pnames] = spm_DesMtx(<FCLevels-Constraint-FCnames> list)
 % FORMAT [X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(FCLevels,Constraint,FCnames)
@@ -250,7 +250,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 3934 2010-06-17 14:58:25Z guillaume $
+% $Id: spm_DesMtx.m 4137 2010-12-15 17:18:32Z guillaume $
 
 
 
@@ -261,12 +261,12 @@ if nargin==0 error('Insufficient arguments'), end
 if ischar(varargin{1})
     %-Non-recursive action string usage
     Constraint=varargin{1};
-elseif nargin>=2 & ~(ischar(varargin{2}) | iscell(varargin{2}))
+elseif nargin>=2 && ~(ischar(varargin{2}) || iscell(varargin{2}))
     [X1,Pnames1]=spm_DesMtx(varargin{1});
     [X2,Pnames2]=spm_DesMtx(varargin{2:end});
     X=[X1,X2]; Pnames=[Pnames1;Pnames2];
     return
-elseif nargin>=3 & ~(ischar(varargin{3}) | iscell(varargin{3}))
+elseif nargin>=3 && ~(ischar(varargin{3}) || iscell(varargin{3}))
     [X1,Pnames1]=spm_DesMtx(varargin{1:2});
     [X2,Pnames2]=spm_DesMtx(varargin{3:end});
     X=[X1,X2]; Pnames=[Pnames1;Pnames2];
@@ -280,9 +280,9 @@ else
     %-If I is a vector, make it a column vector
     I=varargin{1}; if size(I,1)==1, I=I'; end
     %-Sort out constraint and Factor/Covariate name parameters
-    if nargin<2, Constraint='-'; else, Constraint=varargin{2}; end
+    if nargin<2, Constraint='-'; else Constraint=varargin{2}; end
     if isempty(I), Constraint='mt'; end
-    if nargin<3, FCnames={}; else, FCnames=varargin{3}; end
+    if nargin<3, FCnames={}; else FCnames=varargin{3}; end
     if char(FCnames), FCnames=cellstr(FCnames); end
 end
 
@@ -304,10 +304,10 @@ X = I;
 %-Construct parameter name index
 %-----------------------------------------------------------------------
 if isempty(FCnames)
-    if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else, FCnames={'<X>'}; end
+    if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else FCnames={'<X>'}; end
 end
 
-if length(FCnames)==1 & size(X,2)>1
+if length(FCnames)==1 && size(X,2)>1
     Pnames = cell(size(X,2),1);
     for i=1:size(X,2)
         Pnames{i} = sprintf('%s [%d]',FCnames{1},i);
@@ -443,7 +443,7 @@ end
 %-Set up design matrix X & names matrix - ignore zero levels if '~FxC' use
 %-----------------------------------------------------------------------
 if Constraint(1)~='~',  [X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
-    else,       [X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
+    else       [X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
 X = X.*(C*ones(1,size(X,2)));
 Pnames = cellstr([repmat([Cnames,'@'],size(Index,2),1),char(Pnames)]);
 
@@ -463,7 +463,7 @@ if size(I,2)~=1, error('Simple main effect requires vector index'), end
 %-'.0' corner point constraint is applied to zero factor level only
 nXcols = size(X,2);
 zCol   = find(Index==0);
-if nXcols==1 & ~strcmp(Constraint,'.0')
+if nXcols==1 && ~strcmp(Constraint,'.0')
     error('only one level: can''t constrain')
 elseif strcmp(Constraint,'.')
     X(:,nXcols)=[]; Pnames(nXcols)=[]; Index(nXcols)=[];
@@ -572,7 +572,7 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
 
     if CornerPointI %-impose CornerPointI constraints
         if Constraint(end)~='0',    i = max(Index(1,:));
-            else,           i = 0; end
+            else           i = 0; end
         cols=find(Index(1,:)==i); %-columns to delete
         if isempty(cols)
             warning('no zero i level to constrain')
@@ -585,7 +585,7 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
 
     if CornerPointJ %-impose CornerPointJ constraints
         if Constraint(end)~='0',    j = max(Index(2,:));
-            else,           j = 0; end
+            else           j = 0; end
         cols=find(Index(2,:)==j);
         if isempty(cols)
             warning('no zero j level to constrain')
@@ -600,9 +600,9 @@ end
 case {'PDS','pds'}                          %-Patterned data set utility
 %=======================================================================
 % i = spm_DesMtx('pds',v,m,n)
-if nargin<4, n=1; else, n=varargin{4}; end
-if nargin<3, m=1; else, m=varargin{3}; end
-if nargin<2, varargout={[]}, return, else, v=varargin{2}; end
+if nargin<4, n=1; else n=varargin{4}; end
+if nargin<3, m=1; else m=varargin{3}; end
+if nargin<2, varargout={[]}; return, else v=varargin{2}; end
 if any([size(n),size(m)])>1, error('n & m must be scalars'), end
 if any(([m,n]~=floor([m,n]))|([m,n]<1))
     error('n & m must be natural numbers'), end
@@ -623,8 +623,8 @@ nX   = []; nPnames = {}; Carg = 2;
 %-----------------------------------------------------------------------
 while(Carg <= nargin)
     rX = varargin{Carg}; Carg=Carg+1;
-    if Carg<=nargin & ~isempty(varargin{Carg}) & ...
-            (ischar(varargin{Carg}) | iscellstr(varargin{Carg}))
+    if Carg<=nargin && ~isempty(varargin{Carg}) && ...
+            (ischar(varargin{Carg}) || iscellstr(varargin{Carg}))
     rPnames = char(varargin{Carg}); Carg=Carg+1;
     else    %-No names to work out blocks from - normalise by column
     rPnames = repmat('<UnSpec>',size(rX,2),1);
@@ -634,7 +634,7 @@ while(Carg <= nargin)
 
 
     while(~isempty(rX))
-    if size(rX,2)>1 & max([1,find(rPnames(1,:)=='(')]) < ...
+    if size(rX,2)>1 && max([1,find(rPnames(1,:)=='(')]) < ...
                     max([0,find(rPnames(1,:)==')')])
     %-Non-specific block: find the rest & column normalise round zero
     %===============================================================
@@ -658,7 +658,7 @@ while(Carg <= nargin)
         rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-    elseif size(rX,2)>1 & max([1,find(rPnames(1,:)=='[')]) < ...
+    elseif size(rX,2)>1 && max([1,find(rPnames(1,:)=='[')]) < ...
                     max([0,find(rPnames(1,:)==']')])
     %-Block: find the rest & normalise together
     %===============================================================
@@ -674,7 +674,7 @@ while(Carg <= nargin)
         rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-    elseif size(rX,2)>1 & max([1,strfind(rPnames(1,:),'_{')]) < ...
+    elseif size(rX,2)>1 && max([1,strfind(rPnames(1,:),'_{')]) < ...
                     max([0,find(rPnames(1,:)=='}')])
     %-Factor, interaction of factors, or FxC: find the rest...
     %===============================================================
@@ -754,9 +754,9 @@ Map = { '\mu',      'const';...
     '\rho',     'covint';...
     '\zeta',    'global';...
     '\epsilon', 'error'};
-if nargin<2, aMap={}; else, aMap = varargin{2}; end
+if nargin<2, aMap={}; else aMap = varargin{2}; end
 if isempty(aMap), X=Map; return, end
-if ~(iscellstr(aMap) & ndims(aMap)==2), error('aMap must be an nx2 cellstr'), end
+if ~(iscellstr(aMap) && ndims(aMap)==2), error('aMap must be an nx2 cellstr'), end
 for i=1:size(aMap,1)
     j = find(strcmp(aMap{i,1},Map(:,1)));
     if isempty(j)
@@ -772,7 +772,7 @@ case {'ETeXNames','etexnames'} %-Search & replace: for Englishifying TeX
 %=======================================================================
 % EPnames = spm_DesMtx('TeXnames',Pnames,aMap)
 if nargin<2, varargout={''}; return, end
-if nargin<3, aMap={}; else, aMap = varargin{3}; end
+if nargin<3, aMap={}; else aMap = varargin{3}; end
 Map = spm_DesMtx('ParMap',aMap);
 EPnames = varargin{2};
 for i=1:size(Map,1)
