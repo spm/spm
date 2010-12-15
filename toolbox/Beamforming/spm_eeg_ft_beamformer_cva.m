@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4135 2010-12-09 11:55:22Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4140 2010-12-15 18:55:06Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -353,38 +353,6 @@ if size(fftnewdata,3)~=Nchans,
     size(fftnewdata)
     error('Data dimension mismatch');
 end;
-% 
-% for i=1:Ntrials, %% read in all individual trial types
-% %     cfg.trials=S.design.Xtrials(i);
-% %     cfg.latency=[S.design.Xstartlatencies(i) S.design.Xstartlatencies(i)+S.design.Xwindowduration]
-% % 
-% % 
-% %     cfg.channel=channel_labels;
-% %     cfg.feedback='off';
-% %     
-% %     %%    cfg.trl=cfg.trials;
-% %     subdata=ft_timelockanalysis(cfg,data); % subset of original data
-%     epochdata=squeeze(allepochdata(S.design.Xtrials(i),:,:))'; %% get an epoch of data with channels in columns
-%     if S.detrend==1
-%         dtepochdata=detrend(epochdata); %% detrend epoch data, this includes removind dc level. NB. This will have an effect on specific evoked response components !
-%         else 
-%         dtepochdata=epochdata; %% no dc removal, no detrend : this will have effect on accuracy of fourier estimate at non dc bins
-%         end; % detrend 
-%     wdtepochfft=dtepochdata.*allfftwindow; %% windowed
-%     
-%     epochfft=fft(wdtepochfft);
-%     %%     epochcov=cov(epochfft);
-%     
-%     fftnewdata(i,:,:)=epochfft(1:NumUniquePts,:); % .*filtervect';
-%    
-%     
-% end; 
-% if size(fftnewdata,3)~=Nchans,
-%     fftnewdata
-%     error('Data dimension mismatch');
-% end;
-
-%clear allepochdata; %% no longer needed
 
 
 
@@ -444,6 +412,16 @@ else
     end;
 
     
+if ~isfield(S,'bootstrap'),
+    S.bootstrap=[];
+else
+    Nboot=S.bootstrap;
+    end;
+if isempty(S.bootstrap),
+    S.bootstrap=0;
+    Nboot=1;
+    end;
+    
 cfg.feedback='off';
 cfg.inwardshift           = 0; % mm
 
@@ -482,9 +460,7 @@ if ~isempty(S.maskgrid),
       [overlap_pos,maskedgrid_inside_ind]=intersect(grid_coarse,mask_coarse,'rows'); %% mesh_vert_ind are mesh points in this mask
       maskedgrid_inside_ind=sort(maskedgrid_inside_ind);
  end; % if 
-%  if isfield(S,'gridstep_Ylim'),
-%     maskedgrid_inside_ind=find(positio
-%     end;
+
 
 if ~isempty(S.fixedweights),
     disp('NB USING SUPPLIED FIXED WEIGHTS');
@@ -515,6 +491,17 @@ sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
 %% construct covariance matrix within frequency range of interest
 
 disp('now running through freq bands and constructing t stat images');
+
+origfftnewdata=fftnewdata;
+for boot=1:Nboot,
+    
+    bttrials=randi(Ntrials,Ntrials,1);
+    if boot==1,
+        bttrials=1:Ntrials;
+    else
+        disp(['Bootstrap run' num2str(boot)]);
+    end; % if boot
+    fftnewdata=origfftnewdata(bttrials,:,:);
 for fband=1:Nbands,
     freqrange=freqbands(fband,:);
     freq_ind=intersect(find(fHz>=freqrange(1)),find(fHz<freqrange(2)));
@@ -699,6 +686,12 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         
             
         X=Xdesign(randind(iter,:),:); %% randind(1,:)=1, i.e. unpermuted
+        
+        if boot>1, %% have to also shuffle design matrix with data in bootstrap
+            tmp=X;
+            X=tmp(bttrials,:);
+            end;
+            
   
               %-Canonical Variates Analysis
     %   ==========================================================================
@@ -932,6 +925,9 @@ end; % if
     outvol = spm_vol(sMRI);
     outvol.dt(1) = spm_type('float32');
     featurestr=[S.filenamestr 'Nf' num2str(redNfeatures)] ;
+    if S.bootstrap,
+        featurestr=sprintf('%s_bt%03d_',featurestr,boot);
+        end; % if
     outvol.fname= fullfile(D.path, dirname, ['chi_pw_'  spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
     stats(fband).outfile_chi_pw=outvol.fname;
     outvol = spm_create_vol(outvol);
@@ -997,7 +993,8 @@ end; % if
        
     
 end; % for fband=1:Nbands
-    
+end; %% bootstrap    
+
 end % function
 
 
