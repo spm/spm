@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4124 2010-11-18 16:56:53Z karl $
+% $Id: spm_dcm_specify.m 4142 2010-12-21 20:16:36Z christophe $
 
 
 %-Interactive window
@@ -56,25 +56,31 @@ end
 % Inputs
 %==========================================================================
 
-%-Get (n) 'causes' or inputs U
+%-Get (nc) 'causes' or inputs U
 %--------------------------------------------------------------------------
 spm_input('Input specification:...  ',1,'d');
 Sess   = SPM.Sess(xY(1).Sess);
-U.dt   = Sess.U(1).dt;
-u      = length(Sess.U);
-U.name = {};
-U.u    = [];
-for  i = 1:u
-    for j = 1:length(Sess.U(i).name)
-        str = ['include ' Sess.U(i).name{j} '?'];
-        if spm_input(str,'+1','y/n',[1 0],1)
-            U.u             = [U.u Sess.U(i).u(33:end,j)];
-            U.name{end + 1} = Sess.U(i).name{j};
+if isempty(Sess.U)
+    % spontaneous activity, i.e. no stimuli
+    nc = 0;
+    U = [];
+else
+    % with stimuli
+    U.dt   = Sess.U(1).dt;
+    u      = length(Sess.U);
+    U.name = {};
+    U.u    = [];
+    for  i = 1:u
+        for j = 1:length(Sess.U(i).name)
+            str = ['include ' Sess.U(i).name{j} '?'];
+            if spm_input(str,'+1','y/n',[1 0],1)
+                U.u             = [U.u Sess.U(i).u(33:end,j)];
+                U.name{end + 1} = Sess.U(i).name{j};
+            end
         end
     end
+    nc     = size(U.u,2);
 end
-n      = size(U.u,2);
-
 
 %==========================================================================
 % Timings
@@ -95,7 +101,7 @@ while ~TE_ok
     TE = spm_input('Echo time, TE [s]', '+1', 'r', TE);
     if ~TE || (TE < 0) || (TE > 0.1)
         str = { 'Extreme value for TE or TE undefined.',...
-                'Please re-enter TE (in seconds!)'};
+            'Please re-enter TE (in seconds!)'};
         spm_input(str,'+1','bd','OK',[1],1);
     else
         TE_ok = 1;
@@ -106,26 +112,32 @@ end
 %==========================================================================
 % Model options
 %==========================================================================
-if n                                                     % there are inputs
+if nc                                                     % there are inputs
     spm_input('Model options:...  ',-1,'d');
     options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
     options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
     options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
     options.centre     = spm_input('centre input',      '+1','b',{'no','yes'},[0 1],1);
-
+    options.endogenous = 0;
 else
     options.nonlinear  = 0;
     options.two_state  = 0;
     options.stochastic = 1;
     options.centre     = 1;
+    options.endogenous = 1;
 end
 
 %==========================================================================
 % Graph connections
 %==========================================================================
 a     = zeros(m,m);
-b     = zeros(m,m,n);
-c     = zeros(m,n);
+if options.endogenous
+    b     = zeros(m,m,1);
+    c     = zeros(m,1);
+else
+    b     = zeros(m,m,nc);
+    c     = zeros(m,nc);
+end
 d     = zeros(m,m,0);
 
 %-Intrinsic connections (A matrix)
@@ -162,7 +174,7 @@ for i = 1:m
             set(h3(i,j),'enable','on','TooltipString', ...
                 sprintf('from %s to %s',xY(j).name,xY(i).name));
         end
-        if n && i~=j
+        if nc && i~=j
             set(h3(i,j),'Value',0);
         else
             set(h3(i,j),'Value',1);
@@ -188,7 +200,7 @@ delete(findobj(get(Finter,'Children'),'flat'));
 %==========================================================================
 uicontrol(Finter,'String','done','Position', [300 100 060 020].*WS,...
     'Callback', 'uiresume(gcbf)');
-for k = 1:n
+for k = 1:nc
 
     %-Buttons and labels
     %----------------------------------------------------------------------
@@ -211,7 +223,7 @@ for k = 1:n
     for i = 1:m
         for j = 1:m
             if a(i,j) == 1
-                
+
                 % Allow modulation of intrinsic connections
                 %----------------------------------------------------------
                 h3(i,j) = uicontrol(Finter,...
@@ -220,13 +232,13 @@ for k = 1:n
                     'Style','radiobutton');
                 set(h3(i,j),'TooltipString', ...
                     sprintf('from %s to %s',xY(j).name,xY(i).name));
-                
+
             end
         end
     end
-    
+
     uiwait(Finter);
-    
+
     %-Get c
     %----------------------------------------------------------------------
     for i = 1:m
@@ -243,7 +255,7 @@ for k = 1:n
         end
     end
     delete([h1(:); h2(:); h3(a==1)])
-    
+
 end
 delete(findobj(get(Finter,'Children'),'flat'));
 
@@ -263,7 +275,7 @@ if options.nonlinear
         for i = 1:m
             for j = 1:m
                 if a(i,j)==1
-                    
+
                     % Allow modulation of intrinsic connections
                     %------------------------------------------------------
                     h4(i,j) = uicontrol(Finter,...
@@ -317,6 +329,12 @@ Y.Q        = spm_Ce(ones(1,n)*v);
 %==========================================================================
 % DCM structure
 %==========================================================================
+
+% Endogenous input specification
+if isempty(U)
+    U.u    = zeros(v,1);
+    U.name = {'null'};
+end
 
 %-Store all variables in DCM structure
 %--------------------------------------------------------------------------

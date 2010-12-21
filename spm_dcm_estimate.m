@@ -8,6 +8,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.a                              % switch on endogenous connections
 % DCM.b                              % switch on bilinear modulations
 % DCM.c                              % switch on exogenous connections
+% DCM.d                              % switch on nonlinear modulations
 % DCM.U                              % exogenous inputs
 % DCM.Y                              % responses
 % DCM.Y.X0                           % confounds
@@ -47,7 +48,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4124 2010-11-18 16:56:53Z karl $
+% $Id: spm_dcm_estimate.m 4142 2010-12-21 20:16:36Z christophe $
  
  
 %-Load DCM structure
@@ -93,11 +94,9 @@ v  = DCM.v;                             % number of scans
  
 % detrend outputs (and inputs)  
 %--------------------------------------------------------------------------
+Y.y = spm_detrend(Y.y);
 if DCM.options.centre
     U.u = spm_detrend(U.u);
-    Y.y = spm_detrend(Y.y);
-else
-    Y.y = spm_detrend(Y.y);
 end
 
 % check scaling of Y (enforcing a maximum change of 4%
@@ -111,12 +110,10 @@ Y.scale = scale;
 %--------------------------------------------------------------------------
 if ~size(Y.X0,2), Y.X0 = ones(v,1); end
 
-
 % fMRI slice time sampling
 %--------------------------------------------------------------------------
 try, M.delays = DCM.delays; end
 try, M.TE     = DCM.TE;     end
-
 
 % create priors
 %==========================================================================
