@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_input.m 4143 2010-12-22 11:55:43Z guillaume $
 
 
 %=======================================================================
@@ -935,7 +935,7 @@ if isempty(Labels), error('No Labels specified'), end
 if iscellstr(Labels), Labels=char(Labels); end
 
 %-Convert Labels "option" string to string matrix if required
-if ischar(Labels) && any(Labels=='|')
+if ischar(Labels) && any(Labels(:)=='|')
     OptStr=Labels;
     BarPos=find([OptStr=='|',1]);
     Labels=OptStr(1:BarPos(1)-1);
