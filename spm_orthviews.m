@@ -113,7 +113,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4093 2010-10-15 12:57:53Z volkmar $
+% $Id: spm_orthviews.m 4144 2010-12-23 14:48:40Z john $
 
 
 
@@ -726,6 +726,7 @@ else
         return;
     end;
 end;
+if numel(V)>1, V=V(1); end
 
 ii = 1;
 while ~isempty(st.vols{ii}), ii = ii + 1; end;

@@ -33,7 +33,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4109 2010-11-04 19:14:17Z john $
+% $Id: spm_dicom_convert.m 4144 2010-12-23 14:48:40Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -57,7 +57,7 @@ if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect),
     fspe = convert_spectroscopy(spect,root_dir,format);
 end;
 
-out.files = {fmos{:} fstd{:} fspe{:}};
+out.files = [fmos fstd fspe];
 if isempty(out.files)
     out.files = {''};
 end;
@@ -337,11 +337,11 @@ for j=1:length(vol),
         if any(diff(z)==0)
             tmp = sort_into_vols_again(vol{j});
             vol{j} = tmp{1};
-            vol2 = {vol2{:} tmp{2:end}};
+            vol2 = [vol2 tmp(2:end)];
         end;
     end;
 end;
-vol = {vol{:} vol2{:}};
+vol = [vol vol2];
 for j=1:length(vol),
     if length(vol{j})>1,
         orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
@@ -443,7 +443,7 @@ while ~all(d),
     volj(i)   = volj(i(si));
     for i1=1:length(i),
         if length(vol2)<i1, vol2{i1} = {}; end;
-        vol2{i1} = {vol2{i1}{:} volj{i(i1)}};
+        vol2{i1} = [vol2(i1) volj(i(i1))];
     end;
     d(i) = 1;
 end;
@@ -553,9 +553,57 @@ end;
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
 N      = nifti;
-pinfo  = [1 0];
-if isfield(hdr{1},'RescaleSlope'),      pinfo(1) = hdr{1}.RescaleSlope;     end;
-if isfield(hdr{1},'RescaleIntercept'),  pinfo(2) = hdr{1}.RescaleIntercept; end;
+pinfos = [ones(length(hdr),1) zeros(length(hdr),1)];
+for i=1:length(hdr)
+    if isfield(hdr{i},'RescaleSlope'),     pinfos(i,1) = hdr{i}.RescaleSlope;     end 
+    if isfield(hdr{i},'RescaleIntercept'), pinfos(i,2) = hdr{i}.RescaleIntercept; end
+end
+
+if any(any(diff(pinfos,1))),
+    % Ensure random numbers are reproducible (see later)
+    % when intensities are dithered to prevent aliasing effects.
+    rand('state',0);
+end
+
+volume = zeros(dim);
+for i=1:length(hdr),
+    plane = read_image_data(hdr{i});
+
+    if any(any(diff(pinfos,1))),
+        % This is to prevent aliasing effects in any subsequent histograms
+        % of the data (eg for mutual information coregistration).
+        % It's a bit inelegant, but probably necessary for when slices are
+        % individually rescaled.
+        plane = double(plane) + rand(size(plane)) - 0.5;
+    end
+
+    if pinfos(i,1)~=1, plane = plane*pinfos(i,1); end;
+    if pinfos(i,2)~=0, plane = plane+pinfos(i,2); end;
+
+    plane = fliplr(plane);
+    if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
+    volume(:,:,i) = plane;
+    spm_progress_bar('Set',i);
+end;
+
+if ~any(any(diff(pinfos,1))),
+    % Same slopes and intercepts for all slices
+    pinfo = pinfos(1,:);
+else
+    % Variable slopes and intercept (maybe PET/SPECT)
+    mx = max(volume(:));
+    mn = min(volume(:));
+
+    %%  Slope and Intercept
+    %%  32767*pinfo(1) + pinfo(2) = mx
+    %% -32768*pinfo(1) + pinfo(2) = mn
+    % pinfo = ([32767 1; -32768 1]\[mx; mn])';
+
+    % Slope only
+    dt    = 'int16-be';
+    pinfo = [max(mx/32767,-mn/32768) 0];
+end
+
 N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
 N.mat  = mat;
 N.mat0 = mat;
@@ -563,19 +611,6 @@ N.mat_intent  = 'Scanner';
 N.mat0_intent = 'Scanner';
 N.descrip     = descrip;
 create(N);
-volume = zeros(dim);
-
-for i=1:length(hdr),
-    plane = read_image_data(hdr{i});
-
-    if pinfo(1)~=1, plane = plane*pinfo(1); end;
-    if pinfo(2)~=0, plane = plane+pinfo(2); end;
-
-    plane = fliplr(plane);
-    if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
-    volume(:,:,i) = plane;
-    spm_progress_bar('Set',i);
-end;
 N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 return;
@@ -803,9 +838,9 @@ for i=1:length(hdr),
         % NumberOfImagesInMosaic seems to be set to zero for pseudo images
         % containing e.g. online-fMRI design matrices, don't treat them as
         % mosaics
-        standard = {standard{:},hdr{i}};
+        standard = [standard,hdr(i)];
     else
-        mosaic = {mosaic{:},hdr{i}};
+        mosaic = [mosaic,hdr(i)];
     end;
 end;
 return;
@@ -956,7 +991,7 @@ for i=1:length(str),
     if strcmp(deblank(str(i).name),name),
         for j=1:str(i).nitems,
             if  str(i).item(j).xx(1),
-                val = {val{:} str(i).item(j).val};
+                val = [val {str(i).item(j).val}];
             end;
         end;
         break;
