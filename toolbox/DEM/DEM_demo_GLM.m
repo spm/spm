@@ -11,12 +11,12 @@
  
 % specify parameters
 %--------------------------------------------------------------------------
-N     = 4;                                        % length of data sequence
+N     = 16;                                        % length of data sequence
 X     = randn(8,2);
  
 % generate data
 %--------------------------------------------------------------------------
-DEM   = spm_DEM_generate(spm_DEM_M('GLM',X),N,{},{1})
+DEM   = spm_DEM_generate(spm_DEM_M('GLM',X),N,{},{1});
  
 % DEM estimation
 %==========================================================================
@@ -27,7 +27,7 @@ qH    = DEM.qH;
  
 % Classical (OLS) estimation of states
 %==========================================================================
-[Ce,h,W,L] = spm_reml_sc(DEM.Y*DEM.Y',X,DEM.M(1).Q,N);
+[Ce,h,W,L] = spm_reml(DEM.Y*DEM.Y',X,DEM.M(1).Q,N);
 V          = pinv(X)*DEM.Y;
 C          = h*pinv(X)*DEM.M(1).Q{1}*pinv(X)';
  

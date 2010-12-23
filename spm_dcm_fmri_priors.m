@@ -26,11 +26,11 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_dcm_fmri_priors.m 4146 2010-12-23 21:01:39Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
-n  = length(A);
+n = length(A);
 
 % check options and D (for nonlinear coupling)
 %--------------------------------------------------------------------------

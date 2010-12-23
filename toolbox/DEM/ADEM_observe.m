@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 3977 2010-07-08 14:14:35Z karl $
+% $Id: ADEM_observe.m 4146 2010-12-23 21:01:39Z karl $
  
  
 % hidden causes and states
@@ -174,7 +174,7 @@ axis square tight
 
 % coherence analysis
 %==========================================================================
-spm_figure('GetWin','Figure 4')
+spm_figure('GetWin','Figure 4');
 
 T  = 16;
 xe = DEM.qU.w{1}(5:end,T:end);      % prediction error on attractor states

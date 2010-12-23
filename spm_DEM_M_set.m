@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_DEM_M_set.m 4146 2010-12-23 21:01:39Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -61,7 +61,6 @@ g      = length(M);
 %--------------------------------------------------------------------------
 if isfield(M,'f') && ~isfield(M,'n') && ~isfield(M,'x')
     msgbox('please specify hidden states or their number')
-    error(' ')
 end
  
  
@@ -151,7 +150,6 @@ for i = 1:g
     %----------------------------------------------------------------------
     if length(M(i).pC) ~= np
         warndlg(sprintf('please check: M(%i).pC',i))
-        who,keyboard
     end
  
 end
@@ -199,12 +197,10 @@ for i = (g - 1):-1:1
         f       = feval(M(i).f,x,v,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
             warndlg(sprintf('please check: M(%i).f(x,v,P)',i));
-            who,keyboard
         end
  
     catch
         warndlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
-        who,keyboard
     end
     try M(i).fx = fcnchk(M(i).fx,'x','v','P'); end
     try M(i).fv = fcnchk(M(i).fv,'x','v','P'); end
@@ -227,7 +223,6 @@ for i = (g - 1):-1:1
  
     catch
         warndlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
-        who,keyboard
     end
     try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
     try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
@@ -249,7 +244,6 @@ for i = 1:g
         M(i).xP = sparse(M(i).n,M(i).n);
     elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
         warndlg(sprintf('please Check: M(%i).xP',i))
-        who,keyboard
     end
 end
 
@@ -271,7 +265,7 @@ try, M.pg; catch, M(1).pg = []; end
 
 % check hyperpriors hE - [log]hyper-parameters and components
 %--------------------------------------------------------------------------
-pP    = 32;               % prior precision on log-precisions
+pP    = 1;               % prior precision on log-precisions
 for i = 1:g
     
     
@@ -333,7 +327,6 @@ for i = 1:g
     for j = 1:length(M(i).Q)
         if length(M(i).Q{j}) ~= M(i).l
             warndlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
-            who,keyboard
         end
     end
     
@@ -342,7 +335,6 @@ for i = 1:g
     for j = 1:length(M(i).R)
         if length(M(i).R{j}) ~= M(i).n
             warndlg(sprintf('wrong size; M(%d).R{%d}',i,j))
-            who,keyboard
         end
     end
     
@@ -398,17 +390,17 @@ try M(1).E.dt; catch M(1).E.dt = 1; end
  
 % embedding orders
 %--------------------------------------------------------------------------
-try M(1).E.d;  catch, if nx, M(1).E.d = 2;  else M(1).E.d = 0;  end, end
-try M(1).E.n;  catch, if nx, M(1).E.n = 6;  else M(1).E.n = 0;  end, end
+try M(1).E.d;  catch, if nx, M(1).E.d = 2; else M(1).E.d = 0;  end, end
+try M(1).E.n;  catch, if nx, M(1).E.n = 6; else M(1).E.n = 0;  end, end
 
 M(1).E.d = min(M(1).E.d,M(1).E.n);
  
 % number of iterations
 %--------------------------------------------------------------------------
-try M(1).E.nD; catch, if nx, M(1).E.nD = 1;  else M(1).E.nD = 8; end, end
-try M(1).E.nE; catch,        M(1).E.nE = 1;  end
-try M(1).E.nM; catch,        M(1).E.nM = 8;  end
-try M(1).E.nN; catch,        M(1).E.nN = 16; end
+try M(1).E.nD; catch, if nx, M(1).E.nD = 1; else M(1).E.nD = 8; end, end
+try M(1).E.nE; catch,        M(1).E.nE = 8; end
+try M(1).E.nM; catch,        M(1).E.nM = 8; end
+try M(1).E.nN; catch,        M(1).E.nN = 8; end
  
 % checks on smoothness hyperparameter
 %==========================================================================

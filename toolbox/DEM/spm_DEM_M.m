@@ -72,6 +72,7 @@ switch lower(model)
             M(i).g  = inline('P*v','x','v','P');
             M(i).pE = pE{i};
             M(i).hE = 0;
+            M(i).hC = 16;
 
         end
 
@@ -237,8 +238,8 @@ switch lower(model)
 
         % model specification - 1st level
         %------------------------------------------------------------------
-        f      = '(16*x/(1 + x^2) - x/2 + v*2)/8';
-        g      = '(x^2)/16';
+        f      = '(16*x./(1 + x.^2) - x/2 + v*2)/8';
+        g      = '(x.^2)/16';
         M(1).x = 1;
         M(1).f = inline(f,'x','v','P');
         M(1).g = inline(g,'x','v','P');

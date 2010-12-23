@@ -94,7 +94,6 @@ M(1).E.linear = 1;            % tell spm_DEM this is a linear model
 M(1).E.nD = 1;                % D-steps per time bin (1 for dynamic systems)
 M(1).E.nE = 1;                % E-steps per iteration
 M(1).E.nM = 1;                % M-steps per iteration
-M(1).E.nN = 1;                % number of iterations
 DEM.M     = M;
  
 % Because we want to record the response of the model over time, to each

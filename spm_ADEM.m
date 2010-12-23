@@ -112,7 +112,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: spm_ADEM.m 4146 2010-12-23 21:01:39Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -567,7 +567,7 @@ for iE = 1:nE
         for i = 1:nh
             iS = iS + Q{i}*exp(qh.h(i));
         end
-        S     = inv(iS);
+        S     = spm_inv(iS);
         dS    = ECE + EE - S*nY;
          
         % 1st-order derivatives: dFdh = dF/dh

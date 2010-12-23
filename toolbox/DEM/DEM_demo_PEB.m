@@ -20,6 +20,8 @@ DEM   = spm_DEM_generate(spm_DEM_M('HLM',X1,X2),N,{},h);
  
 % DEM estimation
 %==========================================================================
+DEM.M(1).E.nE = 16;
+
 [DEM] = spm_DEM(DEM);
 qU    = DEM.qU;
 qP    = DEM.qP;

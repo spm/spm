@@ -28,7 +28,6 @@ title('double well','FontSize',14)
  
 % get nonlinear state-space model
 %==========================================================================
-if ~strcmp(questdlg('proceed with demo'),'Yes'), return, end
 M        = spm_DEM_M('ssm');
 M(1).E.N = 64;
  
@@ -66,8 +65,7 @@ spm_DFP_plot(DFP.QU,DFP.pU)
 
 % Graphical comparison of DFP and PF
 %==========================================================================
-if ~strcmp(questdlg('compare with particle filter'),'Yes'), return, end
-figure(Fgraph)
+spm_figure('GetWin','Figure 1');
 clf
  
 % show density on state (PF)
@@ -100,8 +98,6 @@ title('sample density (VF)')
  
 % show density on casue
 %==========================================================================
-if ~strcmp(questdlg('show density on cause'),'Yes'), return, end
- 
 for i = 1:T
     x = {DFP.QU{i}.v};
     for j = 1:length(x)

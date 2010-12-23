@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: DEM_demo_song_inference.m 4146 2010-12-23 21:01:39Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -37,9 +37,9 @@ M(1).E.K = exp(-2);
  
 % level 1
 %--------------------------------------------------------------------------
-% P(1): Prandtl number
-% P(2): 8/3
-% P(3): Rayleigh number
+% Prandtl number  = 10
+% P(2)            = v(2)
+% Rayleigh number = v(1) - 4: 
  
 x       = [0.9; 0.8; 2];
 M(1).f  = ' [-10 10 0; (v(1) - 4 - x(3)) -1 0; x(2) 0 -v(2)]*x/16;';

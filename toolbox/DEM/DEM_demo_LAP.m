@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 4097 2010-10-22 19:42:01Z karl $
+% $Id: DEM_demo_LAP.m 4146 2010-12-23 21:01:39Z karl $
  
 % get basic convolution model
 %==========================================================================
@@ -47,7 +47,8 @@ M(1).gC = 1/4;
  
 % generate data and invert
 %==========================================================================
-M(1).E.nN = 32;                                % number of time steps
+M(1).E.nN = 16;                                % number of E steps
+M(1).E.nE = 16;                                % number of E steps
 M(1).E.nD = 1;                                 % number of time steps
 M(1).E.s  = 1;                                 % smoothness
 M(1).E.d  = 2;                                 % order

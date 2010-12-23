@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_DEM_qU.m 4146 2010-12-23 21:01:39Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -37,10 +37,10 @@ end
  
 % time-series specification
 %--------------------------------------------------------------------------
-g     = length(V);          % order of hierarchy
-N     = size(V{1},2);       % length of data sequence
-dt    = 1;                  % time step
-t     = [1:N]*dt;           % time
+g     = max(length(V),2);                        % order of hierarchy
+N     = size(V{1},2);                            % length of data sequence
+dt    = 1;                                       % time step
+t     = [1:N]*dt;                                % time
  
  
 % unpack conditional covariances
@@ -77,7 +77,7 @@ for i = 1:g
             y      = ci*c(j,:);
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
-                 [1 1 1]*.8,'EdgeColor',[1 1 1]*.6)
+                 [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             plot(t,full(E{i}),'r:',t,full(V{i}))
             hold off
         end
@@ -95,13 +95,16 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
-            plot(t,pV{i},':k','linewidth',1),box off
+            plot(t,pV{i},':k','linewidth',1)
         end
         hold on
         try
-            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i})),box off
+            plot(t,full(V{i}))
         end
-        hold off
+        try
+            plot(t,full(E{i}(:,1:N)),'r:')
+        end
+        box off, hold off
         set(gca,'XLim',[t(1) t(end)])
         a   = axis;
  
@@ -109,15 +112,18 @@ for i = 1:g
         %------------------------------------------------------------------
         if i > 1 && size(c,1)
             hold on
-            j      = [1:size(V{i},1)];
+            j      = (1:size(V{i},1));
             y      = ci*c(j,:);
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
-                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.6)
+                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             try 
-                plot(t,pV{i},':k','linewidth',1),box off
+                plot(t,pV{i},':k','linewidth',1)
             end
-            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
+            try
+                plot(full(E{i}(:,1:N)),'r:')
+            end
+            plot(t,full(V{i})),box off
             hold off
         end
  
@@ -125,6 +131,8 @@ for i = 1:g
         %------------------------------------------------------------------
         if i == 1
             title('prediction and error','FontSize',16);
+        elseif length(V) < i
+            title('no causes','FontSize',16);
         elseif ~size(V{i},1)
             title('no causes','FontSize',16);
         else

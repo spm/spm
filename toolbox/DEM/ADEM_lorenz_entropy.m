@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 3977 2010-07-08 14:14:35Z karl $
+% $Id: ADEM_lorenz_entropy.m 4146 2010-12-23 21:01:39Z karl $
  
 % generative process (environment)
 %==========================================================================
@@ -99,7 +99,6 @@ U     = sparse(n,1);
  
 M(1).E.nE = 1;
 M(1).E.nM = 8;
-M(1).E.nN = 1;
  
 DEM{1}.M = M;
 DEM{1}.G = G;
@@ -128,7 +127,7 @@ if DEMO
         % display
         %------------------------------------------------------------------
         spm_DEM_qU(DEM{i + 1}.qU,DEM{i + 1}.pU)
-        DEM{i + 1}.F
+        
     end
     
     save DEM_lorenz_entropy DEM

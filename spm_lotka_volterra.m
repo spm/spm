@@ -1,11 +1,12 @@
 function [f] = spm_lotka_volterra(x,v,P)
 % equations of motion for Lotka-Volterra dynamics
 % FORMAT [f] = spm_lotka_volterra(x,v,P)
+% FORMAT [f] = spm_lotka_volterra(n)
 %
-% x   - hidden states
-% v   - exogenous inputs
-% P.f - lateral connectivity
-% P.k - rate [default 1]
+% [x.]x - hidden states
+% [x.]v - exogenous inputs
+% P.f   - lateral connectivity
+% P.k   - rate [default 1]
 %
 % returns f = dx/dt = P.f*S(x) - x/8 + 1;
 %              S(x) = 1./(1 + exp(-x))
@@ -17,32 +18,48 @@ function [f] = spm_lotka_volterra(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 3113 2009-05-11 15:25:13Z karl $
-
+% $Id: spm_lotka_volterra.m 4146 2010-12-23 21:01:39Z karl $
 
 
 % intialise
 %==========================================================================
-try, P.k; catch, P.k = 1; end
-try, P.l; catch, P.l = 1; end
+try, k = P.k; catch, k = 1; end
+try, l = P.l; catch, l = 1; end
 
+% check for hidden cause
+%--------------------------------------------------------------------------
+if isempty(v), v = 1;       end
+
+% check for parameters of succession
+%--------------------------------------------------------------------------
+try
+    P.f;
+catch
+    n   = length(x);
+    P.f = spm_speye(n,n,-1) - spm_speye(n,n,1); P.f(n,1) = -1; P.f(1,n) = 1;
+    P.f = v*P.f + speye(n,n) - 1;
+end
+
+
+% flow
+%==========================================================================
 try
     
-    % SHC states 
+    % SHC states
     %----------------------------------------------------------------------
     f  = P.f*(1./(1 + exp(-x))) - x/8 + 1;
-    f  = P.k*f;
-
+    f  = k*f;
+    
 catch
-
-    % SHC states and flow to point attractors in P.g
+    
+    % SHC states (x.x and x.v) and flow to point attractors in P.g
     %----------------------------------------------------------------------
     x.e  = exp(x.x);
     f.x  = P.f*(1./(1 + exp(-x.x))) - x.x/8 + 1;
     f.v  = P.g*x.e - x.v*sum(x.e);
-
-    f.x  = P.k*f.x;
-    f.v  = P.l*f.v;
-
+    
+    f.x  = k*f.x;
+    f.v  = l*f.v;
+    
 end
 

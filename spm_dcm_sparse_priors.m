@@ -12,7 +12,7 @@ function [A,K,k] = spm_dcm_sparse_priors(n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_sparse_priors.m 4053 2010-08-27 19:24:12Z karl $
+% $Id: spm_dcm_sparse_priors.m 4146 2010-12-23 21:01:39Z karl $
 
 
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ K     = cell(N + 1,1);
 A     = {};
 for i = 1:2^N
     
-    % adjacency martix
+    % adjacency matrix
     %----------------------------------------------------------------------
     a = full(sparse(I,J,p(i,:),n,n));
     a = a + a' + eye(n,n);

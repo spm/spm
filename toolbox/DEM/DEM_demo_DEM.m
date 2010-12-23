@@ -27,7 +27,7 @@ M(1).R  = {speye(M(1).n,M(1).n)};
  
 % generate data and invert
 %==========================================================================
-M(1).E.nN = 16;                                % DEM-steps
+M(1).E.nE = 16;                                % DEM-steps
 N         = 32;                                % length of data sequence
 U         = exp(-([1:N] - 12).^2/(2.^2));      % this is the Gaussian cause
 DEM       = spm_DEM_generate(M,U,{P},{8,32},{32});

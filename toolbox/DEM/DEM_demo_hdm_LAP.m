@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 4097 2010-10-22 19:42:01Z karl $
+% $Id: DEM_demo_hdm_LAP.m 4146 2010-12-23 21:01:39Z karl $
 
 % set-up
 %--------------------------------------------------------------------------
@@ -51,7 +51,8 @@ if DEMO
     M(1).E.linear = 1;
     M(1).E.n  = 4;
     M(1).E.nD = 1;
-    M(1).E.nN = 8;
+    M(1).E.nE = 16;
+    M(1).E.nN = 16;
     M(1).E.s  = 1/2;
 
     % Decimate U.u from micro-time

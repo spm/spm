@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4125 2010-11-18 16:57:51Z karl $
+% $Id: spm_LAP.m 4146 2010-12-23 21:01:39Z karl $
  
  
 % find or create a DEM figure
@@ -85,7 +85,17 @@ end
 % check model, data and priors
 %==========================================================================
 [M Y U] = spm_DEM_set(DEM);
- 
+
+
+% set regularisation
+%--------------------------------------------------------------------------
+try
+    dt = DEM.M(1).E.v;
+catch
+    dt = 0;
+    DEM.M(1).E.v = dt;
+end
+
  
 % number of iterations
 %--------------------------------------------------------------------------
@@ -257,11 +267,11 @@ dedgg  = sparse(ng,ng);
             
 % curvatures of Gibb's energy w.r.t. hyperparameters
 %--------------------------------------------------------------------------
-dHdh   = sparse(nh,  1);
-dHdg   = sparse(ng,  1);
-dHdp   = sparse(np,  1);
-dHdx   = sparse(nx*n,1);
-dHdv   = sparse(nv*d,1);
+dHdh   = sparse(nh,1);
+dHdg   = sparse(ng,1);
+dHdp   = sparse(np,1);
+dHdu   = sparse(nu,1);
+
  
 % preclude unnecessary iterations and set switches
 %--------------------------------------------------------------------------
@@ -277,7 +287,7 @@ ig     = p.g < 16;
 ie     = kron(ones(n,1),ih);
 ix     = kron(ones(n,1),ig);
 iv     = kron(ones(d,1),ih((1:nv) + ny));
-je     = find([ie; ix]);
+je     = find([ie; ix]); ix(1:nx) = 1;
 ju     = find([ix; iv]);
 jub    = find([ix; iv; ones(np + nb,1)]);
  
@@ -295,7 +305,6 @@ ib     = (1:(np + nb)) + nu;
 % Iterate Laplace scheme
 %==========================================================================
 F      = -Inf;
-dt     = 0;
 for iN = 1:nN
  
     % get time and clear persistent variables in evaluation routines
@@ -466,6 +475,7 @@ for iN = 1:nN
             Cup   = spm_inv(iC(iup,iup));
             Chh   = spm_inv(dLdhh);
             
+            
             % first-order derivatives of Entropy term
             %==============================================================
             
@@ -498,16 +508,25 @@ for iN = 1:nN
                                    Lpup [] });
                 dHdp(i) = sum(sum(diCdp.*Cup))/2;
             end
+            
+            % hidden states and causes (disabled for stability)
+            %--------------------------------------------------------------
+            for i = 1:(nu - nu)
+                Lppu    = dE.dpu{i}'*dEdp';
+                Lupu    = dEdu*dE.dpu{i};
+                Lppu    = Lppu + Lppu';
+                diCdu   = spm_cat({[]    Lupu;
+                                   Lupu' Lppu});
+                dHdu(i) = sum(sum(diCdu.*Cup))/2;
+            end
  
             % and concatenate
             %--------------------------------------------------------------
             dHdb  = [dHdh; dHdg];
-            dHdu  = [dHdx; dHdv];
             dHdb  = [dHdp; dHdb];
             dLdb  = [dLdp; dLdh];
 
-            
-            
+                        
             % save conditional moments (and prediction error) at Q{t}
             %==============================================================
             if iD == 1
@@ -558,16 +577,17 @@ for iN = 1:nN
             %--------------------------------------------------------------
             try
                 dLdBB = dLdBB*(1 - 1/ns) + dLdbb/ns;
+
             catch
                 dLdBB = dLdbb + Ib*32;
             end
- 
+
             % whiten gradient (and curvatures) with regularised precision
             %--------------------------------------------------------------
-            Cb    = spm_inv(dLdBB + Ib*exp(3 + dt));
+            IB    = diag(diag(dLdBB));
+            Cb    = spm_inv(dLdBB + IB*exp(dt));
             dLdb  = Cb*dLdb;
             dHdb  = Cb*dHdb;
-            dLdbb = Cb*dLdbb;
             
             % assemble conditional means
             %--------------------------------------------------------------
@@ -579,7 +599,7 @@ for iN = 1:nN
             q.h  = qh.h;
             q.g  = qh.g;
             q.d  = dbdt;
-            
+                        
             % flow
             %--------------------------------------------------------------
             f.y  =  Dy*spm_vec(q.y)                  ;
@@ -590,11 +610,11 @@ for iN = 1:nN
 
             % and Jacobian
             %--------------------------------------------------------------
-            dfdq = {Dy     []        []    []     [] ;
-                   -dLduy  Du-dLduu -dLduc []     [] ;
-                    []     []        Dc    []     [] ;
-                    []     []        []    []     Ib ;
-                    []     []        []   -dLdbb -Kb};
+            dfdq = {Dy     []        []     []    [] ;
+                   -dLduy  Du-dLduu -dLduc  []    [] ;
+                    []     []        Dc     []    [] ;
+                    []     []        []     []    Ib ;
+                    []     []        []    -Ib   -Kb};
           
  
             % update conditional modes of states
@@ -663,6 +683,14 @@ for iN = 1:nN
     %----------------------------------------------------------------------
     if Fe < F(iN)
         
+        % start again if F never increased
+        %------------------------------------------------------------------
+        if iN == 2 && dt < 8
+            DEM.M(1).E.v = DEM.M(1).E.v + 2;
+            DEM = spm_LAP(DEM);
+            return
+        end
+                
         % save free-energy
         %------------------------------------------------------------------
         F(iN + 1) = F(iN);
@@ -674,7 +702,7 @@ for iN = 1:nN
         
         % decrease update time
         %------------------------------------------------------------------
-        dt = dt + 1;
+        dt = max(dt + 2,2);
         
         % convergence
         %------------------------------------------------------------------
@@ -684,7 +712,7 @@ for iN = 1:nN
         
         % convergence
         %------------------------------------------------------------------
-        if Fe - F(iN) < 1e-2
+        if Fe - F(iN) < 1e-2 && iN > 4
             convergence = 1; 
         else
             convergence = 0; 
@@ -702,7 +730,7 @@ for iN = 1:nN
         
         % increase update time
         %------------------------------------------------------------------
-        dt    = max(dt - 1/2,0);
+        dt    = max(dt - 1,-8);
         
     end
  
