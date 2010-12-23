@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4078 2010-10-06 17:41:26Z guillaume $
+% $Id: spm.m 4145 2010-12-23 15:18:30Z guillaume $
 
 
 %=======================================================================
@@ -948,14 +948,15 @@ case 'cmdline'                                  %-SPM command line mode?
 %-----------------------------------------------------------------------
 if nargin<2, CmdLine=[]; else CmdLine=varargin{2}; end
 if isempty(CmdLine)
-    defaults = spm('getglobal','defaults');
-    if isfield(defaults,'cmdline')
-        CmdLine = defaults.cmdline;
-    else
+    try
+        CmdLine = spm_get_defaults('cmdline');
+    catch
         CmdLine = 0;
     end
 end
-varargout = {CmdLine || (get(0,'ScreenDepth')==0)};
+varargout = { CmdLine | ...
+              (get(0,'ScreenDepth')==0) | ...
+              strcmpi(spm_check_version,'octave') };
 
 
 %=======================================================================
@@ -1016,7 +1017,7 @@ case 'pointer'                 %-Set mouse pointer in all MATLAB windows
 % spm('Pointer',Pointer)
 %-----------------------------------------------------------------------
 if nargin<2, Pointer='Arrow'; else  Pointer=varargin{2}; end
-set(get(0,'Children'),'Pointer',Pointer)
+set(get(0,'Children'),'Pointer',lower(Pointer))
 
 
 %=======================================================================
