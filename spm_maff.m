@@ -21,7 +21,7 @@ function [M,h] = spm_maff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_maff.m 4148 2011-01-04 16:49:23Z guillaume $
 
 [buf,MG] = loadbuf(varargin{1:2});
 M        = affreg(buf, MG, varargin{2:end});
@@ -78,7 +78,7 @@ sol1 = sol;
 ll   = -Inf;
 nsmp = sum(cat(1,buf.nm));
 pr   = struct('b',[],'db1',[],'db2',[],'db3',[]);
-spm_chi2_plot('Init','Registering','Log-likelihood','Iteration');
+spm_plot_convergence('Init','Registering','Log-likelihood','Iteration');
 
 for iter=1:200
     penalty = (sol1-mu)'*isig*(sol1-mu);
@@ -105,7 +105,7 @@ for iter=1:200
     h1    = h1/ssh;
     h2    = log2(h1./(sum(h1,2)*sum(h1,1)));
     ll1   = sum(sum(h0.*h2))/ssh - penalty/ssh;
-    spm_chi2_plot('Set',ll1);
+    spm_plot_convergence('Set',ll1);
     if ll1-ll<1e-5, break; end;
     ll    = ll1;
     sol   = sol1;
@@ -148,7 +148,7 @@ for iter=1:200
     sol1  = (Alpha+Alpha0)\(Alpha*sol - Beta - Beta0);
 end;
 
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 M = P2M(sol);
 return;
 %_______________________________________________________________________

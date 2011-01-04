@@ -38,7 +38,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 1966 2008-07-29 15:40:11Z john $
+% $Id: spm_affreg.m 4148 2011-01-04 16:49:23Z guillaume $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
@@ -315,7 +315,7 @@ for iter=1:256,
     % and try again.  Repeat a few times.
     % ---------------------------------------------------------------
     ss = ss/n;
-    if iter>1, spm_chi2_plot('Set',ss); end;
+    if iter>1, spm_plot_convergence('Set',ss); end;
     if (pss-ss)/pss < 1e-6,
         est_smo = 1;
     end;

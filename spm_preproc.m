@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_preproc.m 4148 2011-01-04 16:49:23Z guillaume $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -181,7 +181,7 @@ clear f
 
 finalit = 0;
 
-spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+spm_plot_convergence('Init','Processing','Log-likelihood','Iteration');
 for iter=1:100,
 
     if finalit,
@@ -219,7 +219,7 @@ for iter=1:100,
         % variances of these Gaussians in order to give it a chance
         vr(lkp(K)) = vr(lkp(K))*8;
 
-        spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+        spm_plot_convergence('Init','Processing','Log-likelihood','Iteration');
     end;
 
     % Load the warped prior probability images into the buffer
@@ -282,7 +282,7 @@ for iter=1:100,
             end;
 
             if subit>1 || (iter>1 && ~finalit),
-                spm_chi2_plot('Set',ll);
+                spm_plot_convergence('Set',ll);
             end;
 if finalit, fprintf('Mix: %g\n',ll); end;
             if subit == 1,
@@ -346,7 +346,7 @@ if finalit, fprintf('Mix: %g\n',ll); end;
                     break;
                 else
                     % Accept new solution
-                    spm_chi2_plot('Set',ll);
+                    spm_plot_convergence('Set',ll);
                     oTbias = Tbias;
                     if subit > 1 && ~((ll-oll)>tol1*nm),
                         % Improvement is only small, so go to next step
@@ -514,7 +514,7 @@ if finalit, fprintf('Mix: %g\n',ll); end;
             end;
         end;
 
-        spm_chi2_plot('Set',ll);
+        spm_plot_convergence('Set',ll);
         if (ll-oll)<tol1*nm, break; end;
     end;
 
@@ -523,7 +523,7 @@ if finalit, fprintf('Mix: %g\n',ll); end;
         break; % This can be commented out.
     end;
 end;
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 
 results        = opts;
 results.image  = V;

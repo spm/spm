@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_normalise.m 4148 2011-01-04 16:49:23Z guillaume $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -172,7 +172,7 @@ aflags.sep = max(aflags.sep,max(sqrt(sum(VG(1).mat(1:3,1:3).^2))));
 aflags.sep = max(aflags.sep,max(sqrt(sum(VF(1).mat(1:3,1:3).^2))));
 
 M         = eye(4); %spm_matrix(prms');
-spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration');
+spm_plot_convergence('Init','Affine Registration','Mean squared difference','Iteration');
 [M,scal]  = spm_affreg(VG1, VF1, aflags, M);
  
 fprintf('Fine Affine Registration..\n');
@@ -181,7 +181,7 @@ aflags.WF  = VWF;
 aflags.sep = aflags.sep/2;
 [M,scal]   = spm_affreg(VG1, VF1, aflags, M,scal);
 Affine     = inv(VG(1).mat\M*VF1(1).mat);
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 
 % Basis function Normalisation
 %-----------------------------------------------------------------------

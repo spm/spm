@@ -80,7 +80,7 @@ function P = spm_realign(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_realign.m 4148 2011-01-04 16:49:23Z guillaume $
 
 
 if nargin==0, return; end;
@@ -217,13 +217,13 @@ if numel(P) > 2,
     % now. It basically involves removing the voxels that contribute
     % least to the determinant of the inverse covariance matrix.
 
-    spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
+    spm_plot_convergence('Init','Eliminating Unimportant Voxels',...
               'Relative quality','Iteration');
     Alpha = [A0 b];
     Alpha = Alpha'*Alpha;
     det0  = det(Alpha);
     det1  = det0;
-    spm_chi2_plot('Set',det1/det0);
+    spm_plot_convergence('Set',det1/det0);
     while det1/det0 > flags.quality,
         dets  = zeros(size(A0,1),1);
         for i=1:size(A0,1),
@@ -240,9 +240,9 @@ if numel(P) > 2,
         Alpha = [A0 b];
         Alpha = Alpha'*Alpha;
         det1  = det(Alpha);
-        spm_chi2_plot('Set',single(det1/det0));
+        spm_plot_convergence('Set',single(det1/det0));
     end;
-    spm_chi2_plot('Clear');
+    spm_plot_convergence('Clear');
 end;
 %-----------------------------------------------------------------------
 

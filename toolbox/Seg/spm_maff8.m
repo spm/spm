@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 3217 2009-06-22 10:50:46Z john $
+% $Id: spm_maff8.m 4148 2011-01-04 16:49:23Z guillaume $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -111,7 +111,7 @@ sol1 = sol;
 ll   = -Inf;
 krn  = spm_smoothkern(2,(-256:256)',0);
 
-spm_chi2_plot('Init','Registering','Log-likelihood','Iteration');
+spm_plot_convergence('Init','Registering','Log-likelihood','Iteration');
 
 h1 = ones(256,numel(tpm.dat));
 for iter=1:200
@@ -179,7 +179,7 @@ for iter=1:200
     ssh   = sum(h0(:));
     ll1   = sum(sum(h0.*log2(h1)))/ssh - penalty/ssh;
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
-    spm_chi2_plot('Set',ll1);
+    spm_plot_convergence('Set',ll1);
     if (ll1-ll)<1e-4, break; end;
     ll    = ll1;
     sol   = sol1;
@@ -236,7 +236,7 @@ for iter=1:200
     sol1  = sol - (Alpha+Alpha0)\(Beta+isig*(sol-mu));
 end;
 
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 M = P2M(sol);
 return;
 %_______________________________________________________________________

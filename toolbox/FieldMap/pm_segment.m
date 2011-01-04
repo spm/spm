@@ -52,7 +52,7 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: pm_segment.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: pm_segment.m 4148 2011-01-04 16:49:23Z guillaume $
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
@@ -268,7 +268,7 @@ if ~isempty(VG) && isstruct(VG),
     end;
     VFS(1).pinfo(1:2,:) = VFS(1).pinfo(1:2,:)/spm_global(VFS(1));
 
-    spm_chi2_plot('Init','Affine Registration','Mean squared difference','Iteration');
+    spm_plot_convergence('Init','Affine Registration','Mean squared difference','Iteration');
     flags     = struct('sep',aflags.smosrc, 'regtype',aflags.regtype,'WG',[],'globnorm',0,'debug',0);
     M         = eye(4);
     [M,scal]  = spm_affreg(VG, VFS, flags, M);
@@ -277,7 +277,7 @@ if ~isempty(VG) && isstruct(VG),
 
     flags.sep = aflags.smosrc/2;
     M         = spm_affreg(VG, VFS, flags, M,scal);
-    spm_chi2_plot('Clear');
+    spm_plot_convergence('Clear');
 
 elseif all(size(VG) == [4 4])
     % Assume that second argument is a matrix that will do the job
@@ -351,7 +351,7 @@ return;
 %=======================================================================
 function [CP,BP,SP] = run_segment(CP,BP,SP,VF,sums,x1,x2,x3)
 oll = -Inf;
-spm_chi2_plot('Init','Segmenting','Log-likelihood','Iteration #');
+spm_plot_convergence('Init','Segmenting','Log-likelihood','Iteration #');
 
 for iter = 1:64,
     ll= 0;
@@ -367,7 +367,7 @@ for iter = 1:64,
     end;
 
     BP = update_bp(BP);
-    if iter>1, spm_chi2_plot('Set',ll); end;
+    if iter>1, spm_plot_convergence('Set',ll); end;
     %fprintf('\t%g\n', ll);
 
     % Stopping criterion
@@ -379,7 +379,7 @@ for iter = 1:64,
     end;
     oll = ll;
 end;
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 return;
 %=======================================================================
 

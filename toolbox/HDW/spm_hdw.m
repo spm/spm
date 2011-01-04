@@ -8,7 +8,7 @@ function spm_hdw(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_hdw.m 4030 2010-08-02 11:41:26Z guillaume $
+% $Id: spm_hdw.m 4148 2011-01-04 16:49:23Z guillaume $
 
 for i=1:numel(job.data),
     run_warping(job.data(i).mov{1},job.data(i).ref{1},job.warp_opts,job.bias_opts);
@@ -143,7 +143,7 @@ lmRb    = speye(size(Cbias))*prod(d)*reg2;
 Tbias   = zeros(d3);
 
 ll = Inf;
-spm_chi2_plot('Init','Bias Correction','- Log-likelihood','Iteration');
+spm_plot_convergence('Init','Bias Correction','- Log-likelihood','Iteration');
 for subit=1:nits,
 
     % Compute objective function and its 1st and second derivatives
@@ -193,7 +193,7 @@ for subit=1:nits,
         Beta  = Beta  + kron(b3,spm_krutil(wt1,B1bias,B2bias,0));
         Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,B1bias,B2bias,1));
     end;
-    spm_chi2_plot('Set',ll/prod(d));
+    spm_plot_convergence('Set',ll/prod(d));
 
 
     if subit > 1 && ll>oll,

@@ -18,7 +18,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_klaff.m 3150 2009-05-26 18:11:14Z john $
+% $Id: spm_klaff.m 4148 2011-01-04 16:49:23Z guillaume $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end
@@ -85,7 +85,7 @@ end
 
 M = Nf.mat\Ng.mat;
 
-spm_chi2_plot('Init','KL Divergence Affine Registration',...
+spm_plot_convergence('Init','KL Divergence Affine Registration',...
               'RMS Change', 'Iteration');
 
 for it=1:64,
@@ -202,10 +202,10 @@ for it=1:64,
    %M = M*(eye(4) + dM);  % Another possibility
     M = M*real(expm(dM)); % Forces the transform to have non-neg Jacobian
     fprintf('%3d  %15g  %15g\n', it, sqrt(sum(dM(:).^2)), kl/nv);
-    spm_chi2_plot('Set', sqrt(sum(dM(:).^2)));
+    spm_plot_convergence('Set', sqrt(sum(dM(:).^2)));
     if sum(dM(:).^2) < 1e-7, break; end
 end
-spm_chi2_plot('Clear');
+spm_plot_convergence('Clear');
 %________________________________________________________
 
 %________________________________________________________

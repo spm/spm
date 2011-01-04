@@ -15,14 +15,14 @@ function spm_chi2_plot(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_chi2_plot.m 4147 2010-12-24 13:50:06Z guillaume $
+% $Id: spm_chi2_plot.m 4148 2011-01-04 16:49:23Z guillaume $
 
-%persistent runonce
-%if isempty(runonce)
-%    warning(['spm_chi2_plot is deprecated. ',...
-%        'Use spm_plot_convergence instead.']);
-%    runonce = 1;
-%end
+persistent runonce
+if isempty(runonce)
+    warning(['spm_chi2_plot is deprecated. ',...
+        'Use spm_plot_convergence instead.']);
+    runonce = 1;
+end
 
 if ~nargin, action = 'Init'; end
 spm_plot_convergence(action,varargin{:});

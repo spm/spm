@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 3864 2010-05-05 17:21:20Z john $
+% $Id: spm_preproc8.m 4148 2011-01-04 16:49:23Z guillaume $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -256,7 +256,7 @@ for n=1:N,
     clear B1 B2 B3 T C
 end
 
-spm_chi2_plot('Init','Initialising','Log-likelihood','Iteration');
+spm_plot_convergence('Init','Initialising','Log-likelihood','Iteration');
 for iter=1:20,
 
     % Load the warped prior probability images into the buffer
@@ -424,7 +424,7 @@ for iter=1:20,
                 end
 
                 if subit>1 || iter>1,
-                    spm_chi2_plot('Set',ll);
+                    spm_plot_convergence('Set',ll);
                 end
                 if ll-oll<tol1*nm,
                     % Improvement is small, so go to next step
@@ -491,7 +491,7 @@ for iter=1:20,
                %fprintf('Hist:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 if subit>1 || iter>1,
-                    spm_chi2_plot('Set',ll);
+                    spm_plot_convergence('Set',ll);
                 end
                 if ll-oll<tol1*nm,
                     % Improvement is small, so go to next step
@@ -651,7 +651,7 @@ for iter=1:20,
                             for n1=1:N, llrb = llrb + chan(n1).ll; end
                         else
                             % Accept new solution
-                            spm_chi2_plot('Set',ll);
+                            spm_plot_convergence('Set',ll);
                            %fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);
                             if oll-ll<0,
                                 chan(n).lmreg = chan(n).lmreg*0.5;
@@ -673,8 +673,8 @@ for iter=1:20,
         if iter==1 && iter1==1,
             % Most of the log-likelihood improvements are in the first iteration.
             % Show only improvements after this, as they are more clearly visible.
-            spm_chi2_plot('Clear');
-            spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+            spm_plot_convergence('Clear');
+            spm_plot_convergence('Init','Processing','Log-likelihood','Iteration');
 
            if use_mog && numel(obj.lkp) ~= numel(lkp),
                 mn1 = mn;
@@ -842,7 +842,7 @@ for iter=1:20,
                 lam   = lam*8;
                %fprintf('Warp:\t%g\t%g\t%g :o(\n', ll1, llr1,llrb);
             else
-                spm_chi2_plot('Set',ll1);
+                spm_plot_convergence('Set',ll1);
                 lam   = lam*0.5;
                 ll    = ll1;
                 llr   = llr1;
@@ -863,7 +863,7 @@ for iter=1:20,
         break
     end
 end
-% spm_chi2_plot('Clear');
+% spm_plot_convergence('Clear');
 
 results.image  = obj.image;
 results.tpm    = tpm.V;
