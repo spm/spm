@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_preproc.m 4149 2011-01-05 17:08:32Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -30,7 +30,7 @@ opts0.ngaus    = [2 2 2 4];
 opts0.warpreg  = 1;
 opts0.warpco   = 25;
 opts0.biasreg  = 0.0001;
-opts0.biasfwhm = 75;
+opts0.biasfwhm = 60;
 opts0.regtype  = 'mni';
 opts0.fudge    = 5;
 opts0.samp     = 3;
