@@ -113,7 +113,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4144 2010-12-23 14:48:40Z john $
+% $Id: spm_orthviews.m 4151 2011-01-07 18:09:25Z guillaume $
 
 
 
@@ -210,11 +210,13 @@ global st;
 
 if isempty(st), reset_st; end;
 
-spm('Pointer','watch');
-
 if nargin == 0, action = ''; end;
 action = lower(action);
 
+if ~any(strcmpi(action,{'reposition','pos'}))
+    spm('Pointer','watch');
+end
+    
 switch lower(action),
     case 'image',
         H = specify_image(varargin{1});
