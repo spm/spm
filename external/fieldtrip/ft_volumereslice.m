@@ -36,7 +36,7 @@ function mri = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: ft_volumereslice.m 2410 2010-12-14 13:59:37Z eelspa $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -93,7 +93,10 @@ cfg.outputfile;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumereslice.m 2212 2010-11-27 11:55:07Z roboos $';
+cfg.version.id = '$Id: ft_volumereslice.m 2410 2010-12-14 13:59:37Z eelspa $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try cfg.previous = mri.cfg; end

@@ -25,7 +25,7 @@ function [dat] = read_nex_data(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nex_data.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_nex_data.m 2528 2011-01-05 14:12:08Z eelspa $
 
 try,
   % work with the original header, not the FieldTrip one
@@ -94,7 +94,7 @@ for sgnlop=1:length(sgn)
     dat(sgnlop,:) = dum(:)' * hdr.varheader(sgn(sgnlop)).adtomv;
 
   else
-    % warning(sprintf('unsupported data format for channel %s', hdr.label{sgn(sgnlop)}));
+    % warning('unsupported data format for channel %s', hdr.label{sgn(sgnlop)});
   end
 
 end

@@ -21,9 +21,9 @@ function ft_documentationreference(outdir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationreference.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: ft_documentationreference.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 p = fileparts(which(mfilename));
 
@@ -57,7 +57,16 @@ f9 = {f9.name}';
 f10 = dir(fullfile(p, 'plotting', '*.m'));
 f10 = {f10.name}';
 
-funname = cat(1, f1, f2, f3, f4, f5, f6, f7, f8, f9,f10);
+f11 = dir(fullfile(p, 'statfun', '*.m'));
+f11 = {f11.name}';
+
+f12 = dir(fullfile(p, 'specest', '*.m'));
+f12 = {f12.name}';
+
+f13 = dir(fullfile(p, 'connectivity', '*.m'));
+f13 = {f13.name}';
+
+funname = cat(1, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11);
 
 for i=1:length(funname)
   [p, funname{i}, x] = fileparts(funname{i});

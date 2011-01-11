@@ -51,9 +51,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_appenddata.m 2528 2011-01-05 14:12:08Z eelspa $
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
@@ -102,7 +102,7 @@ for i=1:Ndata
   end
   if isempty(trl{i})
     % a trial definition is expected in each continuous data set
-    warning(sprintf('could not locate the trial definition ''trl'' in data structure %d', i));
+    warning('could not locate the trial definition ''trl'' in data structure %d', i);
   end
   hastrialinfo = isfield(varargin{i}, 'trialinfo') + hastrialinfo;
 end
@@ -117,7 +117,7 @@ for i=1:Ndata
   end
   if isempty(sampleinfo{i})
     % a sample definition is expected in each data set
-    warning(sprintf('no ''sampleinfo'' field in data structure %d', i));
+    warning('no ''sampleinfo'' field in data structure %d', i);
   end
   hassampleinfo = isfield(varargin{i}, 'sampleinfo') + hassampleinfo;
 end
@@ -294,7 +294,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_appenddata.m 2528 2011-01-05 14:12:08Z eelspa $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

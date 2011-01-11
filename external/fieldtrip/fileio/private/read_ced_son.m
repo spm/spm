@@ -66,7 +66,7 @@ function [out] = read_ced_son(datafile,varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ced_son.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ced_son.m 2298 2010-12-06 20:47:12Z roboos $
 
 MODE = 'continuous';  % assume continuous now
 
@@ -88,7 +88,7 @@ for idx=1:length(fields)
 end;
 
 % First, check if NeuroShare DLL can be loaded
-if filetype(datafile, 'ced_son')
+if ft_filetype(datafile, 'ced_son')
     % TODO other DLLs for other binary formats could be supported here as well
     ns_RESULT = ns_SetLibrary(which('nsCedSon.dll'));
 end

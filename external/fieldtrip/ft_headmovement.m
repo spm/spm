@@ -29,10 +29,10 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_headmovement.m 2439 2010-12-15 16:33:34Z johzum $
 
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'numclusters'), cfg.numclusters = 12; end
@@ -60,7 +60,7 @@ tmpcfg.channel      = {'HLC0011' 'HLC0012' 'HLC0013'...
 tmpcfg.continuous   = 'yes';
 data                = ft_preprocessing(tmpcfg);
 
-%resample doesn't work, because data will be blc'ed
+%resample doesn't work, because data will be demeaned
 %tmpcfg              = [];
 %tmpcfg.resamplefs   = 100;
 %data                = resampledata(tmpcfg, data);

@@ -47,7 +47,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 1981 2010-10-27 10:47:32Z jansch $
+% $Id: ft_read_sens.m 2528 2011-01-05 14:12:08Z eelspa $
 
 % test whether the file exists
 if ~exist(filename)
@@ -112,12 +112,12 @@ switch fileformat
     elpfile = fullfile(p, [f '.elp']);
     elafile = fullfile(p, [f '.ela']);
     if exist(elpfile, 'file')
-      warning(sprintf('reading channel labels from %s', elpfile));
+      warning('reading channel labels from %s', elpfile);
       % read the channel names from the accompanying ELP file
       lbl = importdata(elpfile);
       sens.label = strrep(lbl.textdata(:,2) ,'''', '');
     elseif exist(elafile, 'file')
-      warning(sprintf('reading channel labels from %s', elafile));
+      warning('reading channel labels from %s', elafile);
       % read the channel names from the accompanying ELA file
       lbl = importdata(elafile);
       lbl = strrep(lbl, 'MEG ', ''); % remove the channel type

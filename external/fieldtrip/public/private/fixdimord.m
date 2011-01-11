@@ -39,7 +39,7 @@ function [data] = fixdimord(data, keepsourcedimord);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 2077 2010-11-05 13:59:48Z vlalit $
+% $Id: fixdimord.m 2528 2011-01-05 14:12:08Z eelspa $
 
 if nargin<2, keepsourcedimord = 0; end
 
@@ -47,7 +47,7 @@ if strcmp('volume', ft_datatype(data)) || strcmp('source', ft_datatype(data));
   if isfield(data, 'dimord') && ~keepsourcedimord
     % data should not have a dimord (is not implemented yet, but some
     % functions add a dimord to these data which leads to unexpected behavior)
-    warning(sprintf('unexpected dimord "%s", dimord is removed from data', data.dimord));
+    warning('unexpected dimord "%s", dimord is removed from data', data.dimord);
     data = rmfield(data, 'dimord');
     return
   else
@@ -106,7 +106,7 @@ for i=1:length(dimtok)
 
     case {'vox' 'repl' 'wcond'}
       % these are used in some fieldtrip functions, but are not considered standard
-      warning(sprintf('unexpected dimord "%s"', data.dimord));
+      warning('unexpected dimord "%s"', data.dimord);
 
     case {'pos'}
       % this will be the future default for simple sources

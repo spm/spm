@@ -41,9 +41,9 @@ function [stat, cfg] = statistics_stats(cfg, dat, design);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_stats.m 1980 2010-10-27 10:45:10Z jansch $
+% $Id: statistics_stats.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % test for the presence of the statistics toolbox
 hasstats = (exist('ttest') & exist('ttest2'));

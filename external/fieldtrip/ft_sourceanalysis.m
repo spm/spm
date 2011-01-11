@@ -184,9 +184,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_sourceanalysis.m 2522 2011-01-03 12:50:01Z roboos $
 
-fieldtripdefs
+ft_defaults
 
 % set a timer to determine how long the sourceanalysis takes in total
 tic;
@@ -814,9 +814,25 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
       dip(i).inside  = tmpdip.inside;
       dip(i).outside = tmpdip.outside;
       dip(i).mom     = cell(1,size(tmpdip.pos,1));
+      dip(i).cov     = cell(1,size(tmpdip.pos,1));
+      dip(i).pow     = zeros(size(tmpdip.pos,1),1)*nan;
       for ii=1:length(tmpdip.inside)
         indx             = tmpdip.inside(ii);
-        dip(i).mom{indx} = reshape(tmpdip.mom{indx}(i,:,:),[sizmom(1) siz(3)]);
+        tmpmom           = reshape(tmpdip.mom{indx}(i,:,:),[sizmom(1) siz(3)]);
+        dip(i).mom{indx} = tmpmom;
+       
+        % the following recovers the single trial power and covariance, but
+        % importantly the latency over which the power is defined is the
+        % latency of the event-related field in the input and not the
+        % latency of the covariance window, which can differ from the
+        % former
+        dip(i).cov{indx} = (tmpmom*tmpmom')./siz(3);
+        if isempty(cfg.lcmv.powmethod) || strcmp(cfg.lcmv.powmethod, 'trace')
+          dip(i).pow(indx) = trace(dip(i).cov{indx});
+        else
+          [tmpu,tmps,tmpv] = svd(dip(i).cov{indx});
+          dip(i).pow(indx) = tmps(1);
+        end
       end
     end
   elseif strcmp(cfg.method, 'sam')
@@ -887,13 +903,6 @@ else
   source.dim   = [size(grid.pos,1) 1];
 end
 
-source.vol = vol;
-if exist('grad', 'var')
-  source.grad = grad;
-elseif exist('elec', 'var')
-  source.elec = elec;
-end
-
 if istimelock
   % add the time axis to the output
   source.time = data.time;
@@ -902,10 +911,10 @@ elseif iscomp
 elseif isfreq
   % add the frequency axis to the output
   cfg.frequency    = data.freq(nearest(data.freq, cfg.frequency));
-  source.frequency = cfg.frequency;
+  source.freq = cfg.frequency;
   if isfield(data, 'time') && isfield(cfg, 'latency')
     cfg.latency    = data.time(nearest(data.time, cfg.latency));
-    source.latency = cfg.latency;
+    source.time    = cfg.latency;
   end
   if isfield(data, 'cumtapcnt'),
     source.cumtapcnt = data.cumtapcnt;
@@ -1008,7 +1017,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 2522 2011-01-03 12:50:01Z roboos $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 if nargin==2

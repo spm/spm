@@ -35,7 +35,7 @@ function [varargout] = read_plexon_plx(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_plexon_plx.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_plexon_plx.m 2528 2011-01-05 14:12:08Z eelspa $
 
 % parse the optional input arguments
 hdr              = keyval('header', varargin);
@@ -159,7 +159,7 @@ if ~isempty(ChannelIndex)
     sel = find(sel);
 
     if isempty(sel)
-      warning(sprintf('spike channel %d contains no data', ChannelIndex(i)));
+      warning('spike channel %d contains no data', ChannelIndex(i));
       varargin{end+1} = [];
       continue;
     end
@@ -223,7 +223,7 @@ if ~isempty(SlowChannelIndex)
 
     if isempty(sel)
       error(sprintf('Continuous channel %d contains no data', SlowChannelIndex(i)));
-      % warning(sprintf('Continuous channel %d contains no data', SlowChannelIndex(i)));
+      % warning('Continuous channel %d contains no data', SlowChannelIndex(i));
       % varargin{end+1} = [];
       % continue;
     end
@@ -279,7 +279,7 @@ if ~isempty(EventIndex)
     sel = find(sel);
 
     if isempty(sel)
-      warning(sprintf('event channel %d contains no data', EventIndex(i)));
+      warning('event channel %d contains no data', EventIndex(i));
       varargin{end+1} = [];
       continue;
     end

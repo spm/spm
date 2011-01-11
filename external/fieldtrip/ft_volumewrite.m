@@ -67,9 +67,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 2052 2010-11-03 09:45:38Z arjsto $
+% $Id: ft_volumewrite.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 %% ft_checkdata see below!!! %%
 

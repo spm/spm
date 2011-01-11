@@ -30,9 +30,9 @@ function [dataout] = ft_channelnormalise(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: ft_channelnormalise.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -100,7 +100,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelnormalise.m 2212 2010-11-27 11:55:07Z roboos $';
+cfg.version.id   = '$Id: ft_channelnormalise.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

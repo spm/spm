@@ -13,7 +13,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.channel      = cell-array with channel selection (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.numcomponent = 'all' or number (default = 'all')
-%   cfg.blc          = 'no' or 'yes' (default = 'yes')
+%   cfg.demean       = 'no' or 'yes' (default = 'yes')
 %   cfg.runica       = substructure with additional low-level options for this method
 %   cfg.binica       = substructure with additional low-level options for this method
 %   cfg.dss          = substructure with additional low-level options for this method
@@ -55,9 +55,9 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_componentanalysis.m 2514 2010-12-24 13:12:34Z jansch $
 
-fieldtripdefs
+ft_defaults
 
 % set a timer to determine how long this function takes
 tic;
@@ -65,10 +65,11 @@ tic;
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'forbidden', {'detrend'});
+cfg = ft_checkconfig(cfg, 'renamed',   {'blc', 'demean'});
 
 % set the defaults
 if ~isfield(cfg, 'method'),        cfg.method  = 'runica';     end
-if ~isfield(cfg, 'blc'),           cfg.blc     = 'yes';        end
+if ~isfield(cfg, 'demean'),        cfg.demean  = 'yes';        end
 if ~isfield(cfg, 'trials'),        cfg.trials  = 'all';        end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';        end
 if ~isfield(cfg, 'numcomponent'),  cfg.numcomponent = 'all';   end
@@ -107,7 +108,7 @@ if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   
   % remove all cfg settings  that do not apply
   tmpcfg              = [];
-  tmpcfg.blc          = cfg.blc;
+  tmpcfg.demean       = cfg.demean;
   tmpcfg.trials       = cfg.trials;
   tmpcfg.topo         = cfg.topo;        % the MxN mixing matrix (M channels, N components)
   tmpcfg.topolabel    = cfg.topolabel;   % the Mx1 labels of the data that was used in determining the mixing matrix
@@ -174,7 +175,7 @@ for trial=1:Ntrials
   Nsamples(trial) = size(data.trial{trial},2);
 end
 
-if strcmp(cfg.blc, 'yes')
+if strcmp(cfg.demean, 'yes')
   % optionally perform baseline correction on each trial
   fprintf('baseline correcting data \n');
   for trial=1:Ntrials
@@ -275,7 +276,7 @@ switch cfg.method
     % eigenvalue decomposition (EVD)
     [E,D] = eig(C);
     % sort eigenvectors in descending order of eigenvalues
-    d = cat(2,[1:1:Nchans]',diag(D));
+    d = cat(2,(1:1:Nchans)',diag(D));
     d = sortrows(d,[-2]);
     % return the desired number of principal components
     weights = E(:,d(1:cfg.numcomponent,1))';
@@ -380,8 +381,8 @@ end % switch method
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % collect the results
-try, comp.fsample = data.fsample; end
-try, comp.time    = data.time;    end
+if isfield(data, 'fsample'), comp.fsample = data.fsample; end
+if isfield(data, 'time'),    comp.time    = data.time;    end
 
 % compute the activations in each trial
 for trial=1:Ntrials
@@ -393,7 +394,7 @@ for trial=1:Ntrials
   end
 end
 
-%get the mixing matrix
+% get the mixing matrix
 if strcmp(cfg.method, 'parafac')
   comp.topo = f{2};
   comp.f1   = f{1}; %FIXME, this is not properly supported yet
@@ -405,7 +406,7 @@ else
   comp.topo = pinv(weights*sphere); %allow fewer sources than sensors
 end
 
-%get the labels
+% get the labels
 if strcmp(cfg.method, 'predetermined mixing matrix'),
   prefix = 'component';
 else
@@ -417,6 +418,21 @@ for k = 1:size(comp.topo,2)
 end
 comp.topolabel = data.label(:);
 
+% apply the montage also to the elec/grad, if present
+if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra'))
+  fprintf('applying the mixing matrix to the sensor description\n');
+  if isfield(data, 'grad')
+    sensfield = 'grad';
+  else
+    sensfield = 'elec';
+  end
+  montage          = [];
+  montage.labelorg = data.label;
+  montage.labelnew = comp.label;
+  montage.tra      = weights * sphere;
+  comp.(sensfield) = ft_apply_montage(data.(sensfield), montage);
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -426,10 +442,13 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 2514 2010-12-24 13:12:34Z jansch $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
+if isfield(data, 'cfg'), cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 comp.cfg = cfg;

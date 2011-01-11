@@ -27,7 +27,7 @@ function cfg = dataset2files(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: dataset2files.m 2298 2010-12-06 20:47:12Z roboos $
 
 % start with empty fields if thery are not present
 if ~isfield(cfg, 'dataset')
@@ -56,7 +56,7 @@ if ~isempty(cfg.dataset)
   
     
   
-  switch filetype(cfg.dataset)
+  switch ft_filetype(cfg.dataset)
     case 'ctf_ds'
       % convert CTF dataset into filenames
       [path, file, ext] = fileparts(cfg.dataset);

@@ -74,9 +74,9 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_dipolesimulation.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'dip'),        cfg.dip = [];             end
@@ -224,7 +224,10 @@ simulated.label   = sens.label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_dipolesimulation.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id   = '$Id: ft_dipolesimulation.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

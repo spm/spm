@@ -24,7 +24,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_combined_ds.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_combined_ds.m 2298 2010-12-06 20:47:12Z roboos $
 
 needhdr = nargin==1 || isempty(hdr);
 needdat = nargin>1;
@@ -48,7 +48,7 @@ if needhdr
 
   for i=1:nfiles
     fname{i} = fullfile(dirname, ls(i).name);
-    ftype{i} = filetype(fname{i});
+    ftype{i} = ft_filetype(fname{i});
     sel(i)   = any(strcmp(ftype{i}, supported));
     [p, f, x] = fileparts(fname{i});
     if filetype_check_extension(fname{i}, '.mat')

@@ -48,7 +48,7 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredinterpolation.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_spiketriggeredinterpolation.m 2410 2010-12-14 13:59:37Z eelspa $
 
 % set the defaults
 if ~isfield(cfg, 'timwin'),         cfg.timwin = [-0.001 0.002];    end
@@ -182,7 +182,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 2410 2010-12-14 13:59:37Z eelspa $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

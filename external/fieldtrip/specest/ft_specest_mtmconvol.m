@@ -253,12 +253,12 @@ switch dimord
       for itap = 1:ntaper(ifreqoi)
         % compute indices that will be used to extracted the requested fft output
         nsamplefreqoi    = timwin(ifreqoi) .* fsample;
-        reqtimeboiind    = find((timeboi >=  (nsamplefreqoi ./ 2)) & (timeboi <    ndatsample - (nsamplefreqoi ./2)));
+        reqtimeboiind    = find((timeboi >=  (nsamplefreqoi ./ 2)) & (timeboi <    (ndatsample - (nsamplefreqoi ./2))));
         reqtimeboi       = timeboi(reqtimeboiind);
         
         % compute datspectrum*wavelet, if there are reqtimeboi's that have data
         dum = fftshift(transpose(ifft(transpose(datspectrum .* repmat(wltspctrm{ifreqoi}(itap,:),[nchan 1])))),2); % double explicit transpose to speedup fft
-        tmp = complex(nan(nchan,ntimeboi));
+        tmp = complex(nan(nchan,ntimeboi),nan(nchan,ntimeboi));
         tmp(:,reqtimeboiind) = dum(:,reqtimeboi);
         tmp = tmp .* sqrt(2 ./ timwinsample(ifreqoi));
         spectrum(:,:,freqtapind{ifreqoi}(itap)) = tmp;

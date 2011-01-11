@@ -46,7 +46,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 % This function depends on FT_TIMELOCKBASELINE which has the following options:
 % cfg.baseline, documented
 % cfg.channel
-% cfg.blcwindow
+% cfg.baselinewindow
 % cfg.previous
 % cfg.version
 
@@ -68,9 +68,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_singleplotER.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 

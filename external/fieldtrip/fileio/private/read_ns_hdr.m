@@ -32,7 +32,7 @@ function [hdr] = read_ns_hdr(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ns_hdr.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ns_hdr.m 2528 2011-01-05 14:12:08Z eelspa $
 
 fid = fopen(filename,'r','ieee-le');
 
@@ -310,7 +310,7 @@ elseif hdr.domain==1
   % data in frequency domain
 else
   % probably old datafile, assume the data to be in time domain
-  warning(sprintf('assuming the data to be in time domain (domain was %d)', hdr.domain));
+  warning('assuming the data to be in time domain (domain was %d)', hdr.domain);
   hdr.domain=0;
 end
 

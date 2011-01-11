@@ -62,12 +62,12 @@ function [lay] = ft_prepare_layout(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 1692 2010-09-16 14:31:37Z sashae $
+% $Id: ft_prepare_layout.m 2439 2010-12-15 16:33:34Z johzum $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
 
-fieldtripdefs
+ft_defaults
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % basic check/initialization of input arguments

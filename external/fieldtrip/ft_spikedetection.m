@@ -53,8 +53,8 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %   cfg.preproc.hpfiltdir     = filter direction, 'twopass' (default) or 'onepass'
 %   cfg.preproc.bpfiltdir     = filter direction, 'twopass' (default) or 'onepass'
 %   cfg.preproc.detrend       = 'no' or 'yes'
-%   cfg.preproc.blc           = 'no' or 'yes'
-%   cfg.preproc.blcwindow     = [begin end] in seconds, the default is the complete trial
+%   cfg.preproc.demean        = 'no' or 'yes'
+%   cfg.preproc.baselinewindow = [begin end] in seconds, the default is the complete trial
 %   cfg.preproc.hilbert       = 'no' or 'yes'
 %   cfg.preproc.rectify       = 'no' or 'yes'
 
@@ -76,9 +76,9 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedetection.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_spikedetection.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the general defaults
@@ -117,6 +117,8 @@ end
 
 % ensure that the preproc specific options are located in the preproc substructure
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
+cfg.preproc = ft_checkconfig(cfg.preproc, 'renamed', {'blc', 'demean'});
+cfg.preproc = ft_checkconfig(cfg.preproc, 'renamed', {'blcwindow', 'baselinewindow'});
 
 status = mkdir(cfg.output);
 if ~status
@@ -469,5 +471,8 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_spikedetection.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id   = '$Id: ft_spikedetection.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 

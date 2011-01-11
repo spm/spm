@@ -44,9 +44,9 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_artifact_ecg.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -66,6 +66,10 @@ if ~isfield(cfg.artfctdef.ecg,'psttim'), cfg.artfctdef.ecg.psttim    = 0.3;     
 if ~isfield(cfg.artfctdef.ecg,'mindist'), cfg.artfctdef.ecg.mindist  = 0.5;           end
 if ~isfield(cfg, 'headerformat'),         cfg.headerformat           = [];            end
 if ~isfield(cfg, 'dataformat'),           cfg.dataformat             = [];            end
+
+cfg.artfctdef = ft_checkconfig(cfg.artfctdef, 'renamed',    {'blc', 'demean'});
+cfg.artfctdef = ft_checkconfig(cfg.artfctdef, 'renamed',    {'blcwindow' 'baselinewindow'});
+
 
 % for backward compatibility
 if isfield(cfg.artfctdef.ecg,'sgn')
@@ -100,7 +104,7 @@ padsmp        = round(artfctdef.padding*hdr.Fs);
 ntrl          = size(trl,1);
 artfctdef.trl = trl;
 artfctdef.channel = ft_channelselection(artfctdef.channel, hdr.label);
-artfctdef.blc = 'yes';
+artfctdef.demean  = 'yes';
 sgnind        = match_str(hdr.label, artfctdef.channel);
 numecgsgn     = length(sgnind);
 fltpadding    = 0;
@@ -120,7 +124,7 @@ if ~isfield(cfg, 'continuous')
     end
 end
 
-% read in the ecg-channel and do blc and squaring
+% read in the ecg-channel and do demean and squaring
 if nargin==2,
   tmpcfg = [];
   tmpcfg.channel = artfctdef.channel;
@@ -288,4 +292,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_artifact_ecg.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_artifact_ecg.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();

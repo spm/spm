@@ -39,7 +39,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %                      are z-transformed prior to the model fit. This may be
 %                      necessary if the magnitude of the signals is very different
 %                      e.g. when fitting a model to combined MEG/EMG data
-%   cfg.blc        = 'yes' (default) or 'no' explicit removal of DC-offset
+%   cfg.demean     = 'yes' (default) or 'no' explicit removal of DC-offset
 %   cfg.ems        = 'no' (default) or 'yes' explicit removal ensemble mean
 %
 % ft_mvaranalysis can be used to obtain one set of coefficients for
@@ -80,7 +80,11 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 2105 2010-11-12 08:30:28Z jansch $
+% $Id: ft_mvaranalysis.m 2422 2010-12-15 08:44:29Z jansch $
+
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
+cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 
 % set default configurations
 if ~isfield(cfg, 'toolbox'),    cfg.toolbox    = 'biosig';       end
@@ -91,7 +95,7 @@ if ~isfield(cfg, 'keeptrials'), cfg.keeptrials = 'no';           end
 if ~isfield(cfg, 'jackknife'),  cfg.jackknife  = 'no';           end
 if ~isfield(cfg, 'zscore'),     cfg.zscore     = 'no';           end
 if ~isfield(cfg, 'feedback'),   cfg.feedback   = 'textbar';      end
-if ~isfield(cfg, 'blc'),        cfg.blc        = 'yes';          end
+if ~isfield(cfg, 'demean'),     cfg.demean     = 'yes';          end
 if ~isfield(cfg, 'ems'),        cfg.ems        = 'no';           end
 if ~isfield(cfg, 'toi'),        cfg.toi        = [];             end
 if ~isfield(cfg, 't_ftimwin'),  cfg.t_ftimwin  = [];             end
@@ -233,11 +237,11 @@ tmpcfg        = [];
 tmpcfg.toilim = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
 data          = ft_redefinetrial(tmpcfg, data);
 
-%---blc
-if strcmp(cfg.blc, 'yes'),
+%---demean
+if strcmp(cfg.demean, 'yes'),
     tmpcfg           = [];
-    tmpcfg.blc       = 'yes';
-    tmpcfg.blcwindow = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
+    tmpcfg.demean    = 'yes';
+    tmpcfg.baselinewindow = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
     data             = ft_preprocessing(tmpcfg, data);
 else
     %do nothing
@@ -442,7 +446,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_mvaranalysis.m 2105 2010-11-12 08:30:28Z jansch $';
+cfg.version.id   = '$Id: ft_mvaranalysis.m 2422 2010-12-15 08:44:29Z jansch $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try

@@ -55,9 +55,9 @@ function neighbours = ft_neighbourselection(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_neighbourselection.m 1262 2010-06-22 15:26:45Z roboos $
+% $Id: ft_neighbourselection.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'feedback'),       cfg.feedback = 'no';   end

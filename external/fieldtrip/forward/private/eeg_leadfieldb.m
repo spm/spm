@@ -37,7 +37,7 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfieldb.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: eeg_leadfieldb.m 2344 2010-12-08 10:34:24Z crimic $
 
 
 % do some sanity checks
@@ -60,7 +60,7 @@ ncmp = length(vol.bnd);
 % the number of electrodes, to the number of vertices of the skin
 % compartment or to the total number of vertices
 nelc  = size(elc, 1);
-nskin = size(vol.bnd(vol.skin).pnt,1);
+nskin = size(vol.bnd(vol.skin_surface).pnt,1);
 nall  = 0;
 for i=1:ncmp
   nall = nall + size(vol.bnd(i).pnt,1);

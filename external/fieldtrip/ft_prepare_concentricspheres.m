@@ -16,7 +16,7 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %
 % Example:
 %
-%   % first create 4 surfaces that represent the brain, csf, skull and skin
+%   % first create 4 surfaces that represent the inner_skull_surface, csf, outer_skull_surface and skin_surface
 %   radius = [86 88 92 100];
 %   headshape = [];
 %   for i=1:4
@@ -51,9 +51,9 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_prepare_concentricspheres.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 

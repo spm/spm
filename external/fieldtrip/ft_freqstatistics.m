@@ -60,9 +60,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 2255 2010-12-01 18:10:24Z crimic $
+% $Id: ft_freqstatistics.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
@@ -126,7 +126,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 2255 2010-12-01 18:10:24Z crimic $';
+cfg.version.id = '$Id: ft_freqstatistics.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration of the input data
 cfg.previous = [];

@@ -49,9 +49,9 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 1980 2010-10-27 10:45:10Z jansch $
+% $Id: ft_topoplotCC.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 
 % check if the input data is valid for this function

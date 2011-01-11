@@ -42,9 +42,9 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 2161 2010-11-23 10:40:14Z roevdmei $
+% $Id: ft_freqanalysis_tfr.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % ensure that this function is started as a subfunction of the FT_FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')
@@ -185,7 +185,11 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_freqanalysis_tfr.m 2161 2010-11-23 10:40:14Z roevdmei $';
+cfg.version.id = '$Id: ft_freqanalysis_tfr.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
+
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

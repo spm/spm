@@ -29,7 +29,7 @@ function [source] = ft_source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 2235 2010-11-30 21:01:30Z jansch $
+% $Id: ft_source2full.m 2528 2011-01-05 14:12:08Z eelspa $
 
 fieldtripdefs
 
@@ -272,7 +272,7 @@ elseif strcmp(stype, 'new')
           tmp(1,inside)  = source.(fn{i});
           source.(fn{i}) = tmp;
         else
-          warning(sprintf('sparse to full conversion failed for field %s\n', fn{i}));
+          warning('sparse to full conversion failed for field %s\n', fn{i});
         end
       else
         indx = find(size(source.(fn{i}))==Nsparse);
@@ -290,7 +290,7 @@ elseif strcmp(stype, 'new')
           tmp    = zeros([Nfull Nfull tmpsiz(3:end)]) + nan;
           tmp(inside,inside,:,:,:) = source.(fn{i});
         else
-          warning(sprintf('sparse to full conversion failed for field %s\n', fn{i}));
+          warning('sparse to full conversion failed for field %s\n', fn{i});
         end
       end
       % nothing to do
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 2235 2010-11-30 21:01:30Z jansch $';
+cfg.version.id = '$Id: ft_source2full.m 2528 2011-01-05 14:12:08Z eelspa $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

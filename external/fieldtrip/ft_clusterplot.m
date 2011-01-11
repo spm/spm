@@ -52,9 +52,9 @@ function ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 2034 2010-11-03 08:09:28Z arjsto $
+% $Id: ft_clusterplot.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % default for inputfile
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end

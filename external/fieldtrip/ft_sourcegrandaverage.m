@@ -59,12 +59,12 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $
 
 if 1,
   % original implementation
 
-  fieldtripdefs
+  ft_defaults
 
   cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -272,7 +272,10 @@ if 1,
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2097 2010-11-10 09:20:18Z roboos $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $';
+  
+  % add information about the Matlab version used to the configuration
+  cfg.version.matlab = version();
 
   % remember the configuration details of the input data
   cfg.previous = [];
@@ -291,7 +294,7 @@ if 1,
 else
   % new implementation (with restricted functionality)
 
-  fieldtripdefs
+  ft_defaults
 
   cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
   cfg = ft_checkconfig(cfg, 'deprecated', {'concatenate', 'randomization', 'permutation', 'c1', 'c2'});
@@ -354,7 +357,11 @@ else
     cfg.version.name = mfilename('fullpath');
   catch
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2097 2010-11-10 09:20:18Z roboos $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $';
+  
+  % add information about the Matlab version used to the configuration
+  cfg.version.matlab = version();
+
   % remember the configuration details of the input data
   cfg.previous = [];
   for i=1:Nsubject

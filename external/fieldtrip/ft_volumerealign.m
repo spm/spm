@@ -1,9 +1,9 @@
-function [mri] = ft_volumerealign(cfg, mri);
+function [mri] = ft_volumerealign(cfg, mri)
 
 % FT_VOLUMEREALIGN spatially aligns an anatomical MRI with head coordinates based on
-% external fiducials. This function does not change the volume
-% itself, but adjusts the homogenous transformation matrix that
-% describes the coordinate system.
+% external fiducials or anatomical landmarks. This function does not change the
+% volume itself, but adjusts the homogeneous transformation matrix that describes
+% the coordinate system.
 %
 % This function only changes the coordinate system of an anatomical
 % MRI, it does not change the MRI as such. For spatial normalisation
@@ -19,8 +19,25 @@ function [mri] = ft_volumerealign(cfg, mri);
 % The configuration can contain the following options
 %   cfg.clim           = [min max], scaling of the anatomy color (default
 %                        is to adjust to the minimum and maximum)
-%   cfg.method         = different methods for aligning the electrodes
-%                        'fiducial' realign the volume to the fiducials
+%   cfg.method         = different methods for aligning the volume 
+%                        'fiducial' realign the volume to the fiducials,
+%                                     using 'ALS_CTF' convention, i.e.
+%                                     the origin is exactly between lpa and rpa
+%                                     the X-axis goes towards nas
+%                                     the Y-axis goes approximately towards lpa, 
+%                                       orthogonal to X and in the plane spanned
+%                                       by the fiducials
+%                                     the Z-axis goes approximately towards the vertex,
+%                                       orthogonal to X and Y
+%                        'landmark' realign the volume to anatomical landmarks,
+%                                     using RAS_Tal convention, i.e.
+%                                     the origin corresponds with the anterior commissure
+%                                     the Y-axis is along the line from the posterior
+%                                       commissure to the anterior commissure
+%                                     the Z-axis is towards the vertex, in between the
+%                                       hemispheres
+%                                     the X-axis is orthogonal to the YZ-plane, 
+%                                       positive to the right
 %                        'interactive'     manually using graphical user interface
 %
 % For realigning to the fiducials, you should specify the position of the
@@ -29,13 +46,12 @@ function [mri] = ft_volumerealign(cfg, mri);
 %   cfg.fiducial.lpa  = [i j k], position of LPA
 %   cfg.fiducial.rpa  = [i j k], position of RPA
 %
-% By specifying the fiducial coordinates either in the cfg or interactively, the
-% anatomical MRI volume is realigned according to the folowing convention:
-% - the origin is exactly between LPA and RPA
-% - the X-axis goes towards NAS
-% - the Y-axis goes approximately towards LPA, orthogonal to X and in the plane spanned by the fiducials
-% - the Z-axis goes approximately towards the vertex, orthogonal to X and Y
-%
+% For realigning to the landmarks, you should specify the position of the
+% landmarks in voxel indices.
+%   cfg.landmark.ac      = [i j k], position of anterior commissure
+%   cfg.landmark.pc      = [i j k], position of posterior commissure
+%   cfg.landmark.xzpoint = [i j k], point on the midsagittal-plane with positive Z-coordinate,
+%                                     i.e. interhemispheric point above ac and pc
 %
 % See also FT_READ_MRI, FT_ELECTRODEREALIGN
 
@@ -61,15 +77,16 @@ function [mri] = ft_volumerealign(cfg, mri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_volumerealign.m 2526 2011-01-05 08:37:42Z jansch $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial', 'fiducial'});
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'fiducial'),  cfg.fiducial = [];         end
+if ~isfield(cfg, 'landmark'),  cfg.landmark = [];         end
 if ~isfield(cfg, 'parameter'), cfg.parameter = 'anatomy'; end
 if ~isfield(cfg, 'clim'),      cfg.clim      = [];        end
 if ~isfield(cfg, 'inputfile'), cfg.inputfile = [];        end
@@ -91,9 +108,20 @@ mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 if ~isfield(cfg, 'method')
   if ~isempty(cfg.fiducial)
     cfg.method = 'fiducial';
+    basedonfid = 1;
+    basedonmrk = 0;
+  elseif ~isempty(cfg.landmark)
+    cfg.method = 'landmark';
+    basedonfid = 0;
+    basedonmrk = 1;
   else
     cfg.method = 'interactive';
   end
+end
+
+if strcmp(cfg.method, 'interactive')
+  basedonfid = 0;
+  basedonmrk = 0;
 end
 
 % select the parameter that should be displayed
@@ -106,12 +134,18 @@ switch cfg.method
   case 'fiducial'
     % do nothing
     
+  case 'landmark'
+    % do nothing
+
   case 'interactive'
     showcrosshair = true;
     dat = getsubfield(mri, cfg.parameter);
     nas = [];
     lpa = [];
     rpa = [];
+    antcomm = [];
+    pstcomm = [];
+    xzpoint = [];
     x = 1:mri.dim(1);
     y = 1:mri.dim(2);
     z = 1:mri.dim(3);
@@ -123,6 +157,7 @@ switch cfg.method
       fprintf('============================================================\n');
       fprintf('click with mouse button to reslice the display to a new position\n');
       fprintf('press n/l/r on keyboard to record the current position as fiducial location\n');
+      fprintf('press a/p/z on keyboard to record the current position as anatomical landmark\n');
       fprintf('press i,j,k or I,J,K on the keyboard to increment or decrement the slice number by one\n');
       fprintf('press c or C on the keyboard to show or hide the crosshair\n');
       fprintf('press q on keyboard to quit interactive mode\n');
@@ -140,6 +175,12 @@ switch cfg.method
         rpa = [xc yc zc];
       elseif key=='n'
         nas = [xc yc zc];
+      elseif key=='a'
+        antcomm = [xc yc zc];
+      elseif key=='p'
+        pstcomm = [xc yc zc];
+      elseif key=='z'
+        xzpoint = [xc yc zc];
       elseif key=='c'
         showcrosshair = true;
       elseif key=='C'
@@ -200,21 +241,51 @@ switch cfg.method
     cfg.fiducial.lpa = lpa;
     cfg.fiducial.rpa = rpa;
     
+    cfg.landmark.ac     = antcomm;
+    cfg.landmark.pc     = pstcomm;
+    cfg.landmark.xzpoint = xzpoint;
+
+    if ~isempty(nas) && ~isempty(lpa) && ~isempty(rpa)
+      basedonfid = 1;
+    end
+
+    if ~isempty(antcomm) && ~isempty(pstcomm) && ~isempty(xzpoint)
+      basedonmrk = 1;
+    end
   otherwise
     error('unsupported method');
 end
 
+if basedonfid && basedonmrk
+  basedonmrk = 0;
+  warning('both fiducials and anatomical landmarks have been defined interactively: using the fiducials for realignment');
+end
 
-% the fiducial locations are now specified in voxels, convert them to head
-% coordinates according to the existing transform matrix
-nas_head = warp_apply(mri.transform, cfg.fiducial.nas);
-lpa_head = warp_apply(mri.transform, cfg.fiducial.lpa);
-rpa_head = warp_apply(mri.transform, cfg.fiducial.rpa);
+if basedonfid
+  % the fiducial locations are now specified in voxels, convert them to head
+  % coordinates according to the existing transform matrix
+  nas_head = warp_apply(mri.transform, cfg.fiducial.nas);
+  lpa_head = warp_apply(mri.transform, cfg.fiducial.lpa);
+  rpa_head = warp_apply(mri.transform, cfg.fiducial.rpa);
 
-% compute the homogenous transformation matrix describing the new coordinate system
-realign = headcoordinates(nas_head, lpa_head, rpa_head);
+  % compute the homogenous transformation matrix describing the new coordinate system
+  [realign, coordsys] = headcoordinates(nas_head, lpa_head, rpa_head);
+
+elseif basedonmrk
+  % the fiducial locations are now specified in voxels, convert them to head
+  % coordinates according to the existing transform matrix
+  ac     = warp_apply(mri.transform, cfg.landmark.ac);
+  pc     = warp_apply(mri.transform, cfg.landmark.pc);
+  xzpoint= warp_apply(mri.transform, cfg.landmark.xzpoint);
+
+  % compute the homogenous transformation matrix describing the new coordinate system
+  [realign, coordsys] = headcoordinates(ac, pc, xzpoint, 'RAS_TAL');
+
+end
+
 % combine the additional transformation with the original one
 mri.transform = realign * mri.transform;
+mri.coordsys  = coordsys;
 
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
@@ -225,7 +296,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_volumerealign.m 2526 2011-01-05 08:37:42Z jansch $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration
 mri.cfg = cfg;

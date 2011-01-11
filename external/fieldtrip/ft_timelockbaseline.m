@@ -1,4 +1,4 @@
-function [timelock] = ft_timelockbaseline(cfg, timelock);
+function [timelock] = ft_timelockbaseline(cfg, timelock)
 
 % FT_TIMELOCKBASELINE performs baseline correction for ERF and ERP data
 %
@@ -12,7 +12,7 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 % See also FT_TIMELOCKANALYSIS, FT_FREQBASELINE
 
 % Undocumented local options:
-%   cfg.blcwindow
+%   cfg.baselinewindow
 %   cfg.previous
 %   cfg.version
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
@@ -36,11 +36,13 @@ function [timelock] = ft_timelockbaseline(cfg, timelock);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_timelockbaseline.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
+cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 
 % set the defaults
 if ~isfield(cfg, 'baseline'),   cfg.baseline    = 'no';   end
@@ -64,16 +66,16 @@ timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
 % the cfg.blc/blcwindow options are used in preprocessing and in
 % ft_timelockanalysis (i.e. in private/preproc), hence make sure that
 % they can also be used here for consistency
-if isfield(cfg, 'baseline') && (isfield(cfg, 'blc') || isfield(cfg, 'blcwindow'))
+if isfield(cfg, 'baseline') && (isfield(cfg, 'demean') || isfield(cfg, 'baselinewindow'))
   error('conflicting configuration options, you should use cfg.baseline');
-elseif isfield(cfg, 'blc') && strcmp(cfg.blc, 'no')
+elseif isfield(cfg, 'demean') && strcmp(cfg.demean, 'no')
   cfg.baseline = 'no';
-  cfg = rmfield(cfg, 'blc');
-  cfg = rmfield(cfg, 'blcwindow');
-elseif isfield(cfg, 'blc') && strcmp(cfg.blc, 'yes')
-  cfg.baseline = cfg.blcwindow;
-  cfg = rmfield(cfg, 'blc');
-  cfg = rmfield(cfg, 'blcwindow');
+  cfg = rmfield(cfg, 'demean');
+  cfg = rmfield(cfg, 'baselinewindow');
+elseif isfield(cfg, 'demean') && strcmp(cfg.demean, 'yes')
+  cfg.baseline = cfg.baselinewindow;
+  cfg = rmfield(cfg, 'demean');
+  cfg = rmfield(cfg, 'baselinewindow');
 end
 
 if ischar(cfg.baseline)
@@ -155,7 +157,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockbaseline.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_timelockbaseline.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end

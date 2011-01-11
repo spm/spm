@@ -58,9 +58,9 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_jump.m 2003 2010-10-29 09:54:18Z jansch $
+% $Id: ft_artifact_jump.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');

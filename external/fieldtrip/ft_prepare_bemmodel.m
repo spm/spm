@@ -12,8 +12,8 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %
 % The configuration can contain
 %   cfg.tissue         = [1 2 3], segmentation value of each tissue type
-%   cfg.numvertices    = [Nskin Nskull Nbrain]
-%   cfg.conductivity   = [Cskin Cskull Cbrain]
+%   cfg.numvertices    = [Nskin_surface Nouter_skull_surface Ninner_skull_surface]
+%   cfg.conductivity   = [Cskin_surface Couter_skull_surface Cinner_skull_surface]
 %   cfg.hdmfile        = string, file containing the volume conduction model (can be empty)
 %   cfg.isolatedsource = compartment number, or 0
 %   cfg.method         = 'dipoli', 'openmeeg', 'brainstorm' or 'bemcp'
@@ -44,9 +44,9 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 1973 2010-10-27 10:35:18Z jansch $
+% $Id: ft_prepare_bemmodel.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if ~isfield(cfg, 'tissue'),         cfg.tissue = [8 12 14];                  end
 if ~isfield(cfg, 'numvertices'),    cfg.numvertices = [1 2 3] * 500;         end
@@ -82,9 +82,9 @@ else
 end
 
 vol.source = find_innermost_boundary(vol.bnd);
-vol.skin   = find_outermost_boundary(vol.bnd);
+vol.skin_surface   = find_outermost_boundary(vol.bnd);
 fprintf('determining source compartment (%d)\n', vol.source);
-fprintf('determining skin compartment (%d)\n',   vol.skin);
+fprintf('determining skin compartment (%d)\n',   vol.skin_surface);
 
 if isempty(cfg.isolatedsource) && Ncompartment>1 && strcmp(cfg.method, 'dipoli')
   % the isolated source compartment is by default the most inner one
@@ -122,7 +122,7 @@ elseif strcmp(cfg.method, 'bemcp')
   if length(vol.bnd)~=3
     error('this only works for three surfaces');
   end
-  if vol.skin~=3
+  if vol.skin_surface~=3
     error('the skin should be the third surface');
   end
   if vol.source~=1
@@ -134,7 +134,7 @@ elseif strcmp(cfg.method, 'bemcp')
   
   % 2. BEM model estimation, only for the scalp surface
   
-  defl =[ 0 0 1/size(vol.bnd(vol.skin).pnt,1)];
+  defl =[ 0 0 1/size(vol.bnd(vol.skin_surface).pnt,1)];
   % ensure deflation for skin surface, i.e. average reference over skin
   
   % NOTE:

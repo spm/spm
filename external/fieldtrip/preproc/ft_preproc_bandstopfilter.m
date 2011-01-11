@@ -42,7 +42,7 @@ function [filt] = ft_preproc_bandstopfilter(dat,Fs,Fbp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandstopfilter.m 2178 2010-11-25 08:12:26Z roboos $
+% $Id: ft_preproc_bandstopfilter.m 2455 2010-12-16 15:57:00Z stekla $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -76,17 +76,11 @@ switch type
     [B, A] = fir1(N, [min(Fbp)/Fn max(Fbp)/Fn], 'stop');
 end
 
-% apply filter to the data
-switch dir
-  case 'onepass'
-    filt = filter(B, A, dat')';
-  case 'onepass-reverse'
-    dat  = fliplr(dat);
-    filt = filter(B, A, dat')';
-    filt = fliplr(filt);
-  case 'twopass'
-    filt = filtfilt(B, A, dat')';
-end
+filt = filter_with_correction(B,A,dat,dir);
+
+%SK: I think the following is non-sense. Approximating a high-order
+% bandstop filter by a succession of low-order bandstop filters
+% will most likely give you very bad accuracy.
 
 % check for filter instabilities and try to solve them
 result_instable = any(isnan(filt(:))) || (max(range(filt,2))/max(range(dat,2))>2);
@@ -99,4 +93,3 @@ if result_instable && N>1
   filt = ft_preproc_bandstopfilter(filt,Fs,Fbp,step1,type,dir);
   filt = ft_preproc_bandstopfilter(filt,Fs,Fbp,step2,type,dir);
 end
-

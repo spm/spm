@@ -22,7 +22,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %   [cfg] = ft_checkconfig(cfg, ...)
 %
 % The behaviour of checkconfig can be controlled by the following cfg options,
-% which can be set as global fieldtrip defaults (see FIELDTRIPDEFS):
+% which can be set as global fieldtrip defaults (see FT_DEFAULTS):
 %   cfg.checkconfig = 'pedantic', 'loose' or 'silent' (control the feedback behaviour of checkconfig)
 %   cfg.trackconfig = 'cleanup', 'report' or 'off'
 %   cfg.checksize   = number in bytes, can be inf (set max size allowed for output cfg fields)
@@ -39,7 +39,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %   checksize       = 'yes', 'no'            % remove large fields from the cfg
 %   trackconfig     = 'on', 'off'            % start/end config tracking
 %
-% See also FT_CHECKDATA, FIELDTRIPDEFS
+% See also FT_CHECKDATA, FT_DEFAULTS
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 2235 2010-11-30 21:01:30Z jansch $
+% $Id: ft_checkconfig.m 2528 2011-01-05 14:12:08Z eelspa $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -124,7 +124,7 @@ if ~isempty(renamed)
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
+      warning('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1});
     elseif pedantic
       error(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
     end
@@ -140,7 +140,7 @@ if ~isempty(renamedval) && isfield(cfg, renamedval{1})
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('use cfg.%s=''%s'' instead of cfg.%s=''%s''', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+      warning('use cfg.%s=''%s'' instead of cfg.%s=''%s''', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2});
     elseif pedantic
       error(sprintf('use cfg.%s=''%s'' instead of cfg.%s=''%s''', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
     end
@@ -167,7 +167,7 @@ if ~isempty(deprecated)
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+      warning('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)});
     elseif pedantic
       error(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
     end
@@ -184,7 +184,7 @@ if ~isempty(unused)
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('The field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
+      warning('The field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)});
     elseif pedantic
       error(sprintf('The field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
     end
@@ -201,7 +201,7 @@ if ~isempty(forbidden)
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('The field cfg.%s is forbidden, it will be removed from your configuration\n', forbidden{ismember(forbidden, fieldsused)}));
+      warning('The field cfg.%s is forbidden, it will be removed from your configuration\n', forbidden{ismember(forbidden, fieldsused)});
     elseif pedantic
       error(sprintf('The field cfg.%s is forbidden\n', forbidden{ismember(forbidden, fieldsused)}));
     end
@@ -238,8 +238,6 @@ if ~isempty(createsubcfg)
           'refchannel'
           'implicitref'
           'detrend'
-          'blc'
-          'blcwindow'
           'bpfiltdir'
           'bpfilter'
           'bpfiltord'
@@ -250,6 +248,8 @@ if ~isempty(createsubcfg)
           'bsfiltord'
           'bsfilttype'
           'bsfreq'
+          'demean'
+          'baselinewindow'
           'denoise'
           'dftfilter'
           'dftfreq'

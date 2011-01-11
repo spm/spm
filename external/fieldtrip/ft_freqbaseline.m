@@ -34,9 +34,9 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_freqbaseline.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -147,7 +147,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqbaseline.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_freqbaseline.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end

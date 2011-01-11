@@ -101,9 +101,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_electroderealign.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % this is used for feedback of the lower-level functions
 global fb
@@ -485,7 +485,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_electroderealign.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the exact configuration details in the output
 norm.cfg = cfg;

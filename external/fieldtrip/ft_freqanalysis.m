@@ -25,6 +25,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                   OR, if you want to use the old implementation (not from the specest module)
 %                   'mtmfft_old' 
 %                   'mtmconvol_old'
+%                   'wltconvol_old'
 %   cfg.output     = 'pow'       return the power-spectra
 %                    'powandcsd' return the power and the cross-spectra
 %                    'fourier'   return the complex Fourier-spectra
@@ -69,6 +70,8 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   cfg.tapsmofrq  = vector 1 x numfoi, the amount of spectral smoothing through
 %                    multi-tapering. Note that 4 Hz smoothing means
 %                    plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
+%   cfg.foilim     = [begin end], frequency band of interest
+%       OR
 %   cfg.foi        = vector 1 x numfoi, frequencies of interest
 %   cfg.taper      = 'dpss', 'hanning' or many others, see WINDOW (default = 'dpss')
 %                     For cfg.output='powandcsd', you should specify the channel combinations
@@ -78,10 +81,12 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   cfg.toi        = vector 1 x numtoi, the times on which the analysis windows
 %                    should be centered (in seconds)
 %
-%  WLTCONVOL
-%   WLTCONVOL performs time-frequency analysis on any time series trial data
+%  WAVELET
+%   WAVELET performs time-frequency analysis on any time series trial data
 %   using the 'wavelet method' based on Morlet wavelets.
 %   cfg.foi        = vector 1 x numfoi, frequencies of interest
+%   cfg.foilim     = [begin end], frequency band of interest
+%       OR
 %   cfg.toi        = vector 1 x numtoi, the times on which the analysis windows
 %                    should be centered (in seconds)
 %   cfg.width      = 'width' of the wavelet, determines the temporal and spectral
@@ -147,14 +152,14 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 2190 2010-11-25 15:34:43Z roevdmei $
+% $Id: ft_freqanalysis.m 2539 2011-01-07 09:36:21Z jansch $
 
-fieldtripdefs
+ft_defaults
 
 % defaults for optional input/ouputfile
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile               = [];    end
 if ~isfield(cfg, 'outputfile'), cfg.outputfile              = [];    end
-if ~isfield(cfg, 'implementation'), cfg.implementation      = 'specest';    end
+
 
 
 % load optional given inputfile as data
@@ -191,6 +196,8 @@ cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'convol', 'mtmconvol'});
 
 % NEW OR OLD - switch for selecting which function to call and when to do it - this will change when the development of specest proceeds
 % ALSO: Check for all cfg options that are defaulted in the old functions
+cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'wltconvol', 'wavelet'});
+
 switch cfg.method
   
   
@@ -198,24 +205,58 @@ switch cfg.method
   case 'mtmconvol'
     specestflg = 1;
     if ~isfield(cfg, 'taper'),            cfg.taper            =  'dpss';      end
+    if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
     if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
       error('you must specify a smoothing parameter with taper = dpss');
     end
-    
+    % check for foi above Nyquist
+    if isfield(cfg,'foi')
+      if any(cfg.foi > (data.fsample/2))
+        error('frequencies in cfg.foi are above Nyquist')
+      end
+      if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
+        error('you must specify a smoothing parameter with taper = dpss');
+      end
+    end
     
     
   case 'mtmfft'
     specestflg = 1;
     if ~isfield(cfg, 'taper'),            cfg.taper            =  'dpss';      end
+    if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
+    if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
+      error('you must specify a smoothing parameter with taper = dpss');
+    end
+    % check for foi above Nyquist
+    if isfield(cfg,'foi')
+      if any(cfg.foi > (data.fsample/2))
+        error('frequencies in cfg.foi are above Nyquist')
+      end
+    end
     if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
       error('you must specify a smoothing parameter with taper = dpss');
     end
     
-    
+  case 'wavelet'
+    specestflg = 1;
+    if ~isfield(cfg, 'width'),         cfg.width      = 7;            end
+    if ~isfield(cfg, 'gwidth'),        cfg.gwidth     = 3;            end
+
+     
+  case 'hilbert_devel'
+    warning('the hilbert implementation is under heavy development, do not use it for analysis purposes')
+    specestflg = 1;
+    if ~isfield(cfg, 'filttype'),         cfg.filttype      = 'but';        end
+    if ~isfield(cfg, 'filtorder'),        cfg.filtorder     = 4;            end
+    if ~isfield(cfg, 'filtdir'),          cfg.filtdir       = 'twopass';    end
+    if ~isfield(cfg, 'width'),            cfg.width         = 1;            end
+    cfg.method = 'hilbert';
+
     
   otherwise
     specestflg = 0;
     if ~isempty(strfind(cfg.method,'_old'))
+      disp(['using old implementation of ' cfg.method(1:end-4)])
     else
       disp(['''' cfg.method ''' has not been implemented yet in the specest toolbox, the old implementation is being used'])
     end
@@ -237,27 +278,25 @@ else
   % set all the defaults
   if ~isfield(cfg, 'pad'),              cfg.pad              = 'maxperlen';  end
   if ~isfield(cfg, 'output'),           cfg.output           = 'pow';        end
-  if ~isfield(cfg, 'taper'),            cfg.taper            =  'dpss';      end
-  if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
-  if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
-    error('you must specify a smoothing parameter with taper = dpss');
-  end
-  if ~isfield(cfg, 'keeptapers'),       cfg.keeptapers       = 'no';         end
-  if ~isfield(cfg, 'keeptrials'),       cfg.keeptrials       = 'no';         end
   if ~isfield(cfg, 'calcdof'),          cfg.calcdof          = 'no';         end
   
   if ~isfield(cfg, 'channel'),          cfg.channel          = 'all';        end
   if ~isfield(cfg, 'precision'),        cfg.precision        = 'double';     end
   if ~isfield(cfg, 'output'),           cfg.output           = 'powandcsd';  end
-  if strcmp(cfg.output, 'fourier'),
-    cfg.keeptrials = 'yes';
-    cfg.keeptapers = 'yes';
-  end
   if ~isfield(cfg, 'foi'),              cfg.foi              = [];           end
   if ~isfield(cfg, 'foilim'),           cfg.foilim           = [];           end
   if ~isfield(cfg, 'correctt_ftimwin'), cfg.correctt_ftimwin = 'no';         end
   
-  
+  % keeptrials and keeptapers should be conditional on cfg.output, cfg.output = 'fourier' should always output tapers
+  if strcmp(cfg.output, 'fourier')
+    if ~isfield(cfg, 'keeptrials'), cfg.keeptrials = 'yes'; end
+    if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'yes'; end
+  else
+    if ~isfield(cfg, 'keeptrials'), cfg.keeptrials = 'no'; end
+    if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'no'; end
+  end 
+ 
+  if ~isfield(cfg, 'keeptrials'),       cfg.keeptrials       = 'no';         end
   % set flags for keeping trials and/or tapers
   if strcmp(cfg.keeptrials,'no') &&  strcmp(cfg.keeptapers,'no')
     keeprpt = 1;
@@ -382,6 +421,7 @@ else
     if strcmp(cfg.method,'mtmconvol') && length(cfg.tapsmofrq) == 1 && length(cfg.foi) ~= 1
       cfg.tapsmofrq = ones(length(cfg.foi),1) * cfg.tapsmofrq;
     elseif strcmp(cfg.method,'mtmfft') && length(cfg.tapsmofrq) ~= 1
+      warning('cfg.tapsmofrq should be a single number when cfg.method = mtmfft, now using only the first element')
       cfg.tapsmofrq = cfg.tapsmofrq(1);
     end
   end
@@ -389,9 +429,9 @@ else
   
   % options that don't change over trials
   if isfield(cfg,'tapsmofrq')
-    options = {'pad', cfg.pad, 'taper', cfg.taper, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq};
+    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq};
   else
-    options = {'pad', cfg.pad, 'taper', cfg.taper, 'freqoi', cfg.foi};
+    options = {'pad', cfg.pad, 'freqoi', cfg.foi};
   end
   
   
@@ -410,25 +450,53 @@ else
     % Perform specest call and set some specifics
     clear spectrum % in case of very large trials, this lowers peak mem usage a bit
     switch cfg.method
+           
+      
       case 'mtmconvol'
-        [spectrum_mtmconvol,ntaper,foi,toi] = ft_specest_mtmconvol(dat, time, 'timeoi', cfg.toi, 'timwin', cfg.t_ftimwin, options{:}, 'dimord', 'chan_time_freqtap');
+        [spectrum_mtmconvol,ntaper,foi,toi] = ft_specest_mtmconvol(dat, time, 'timeoi', cfg.toi, 'timwin', cfg.t_ftimwin, 'taper', cfg.taper, options{:}, 'dimord', 'chan_time_freqtap');
         hastime = true;
+        % error for different number of tapers per trial
+        if (keeprpt == 4) && any(ntaper(:) ~= ntaper(1))
+          error('currently you can only keep trials AND tapers, when using the number of tapers per frequency is equal across frequency')
+        end
         % create tapfreqind for later indexing
         freqtapind = [];
         tempntaper = [0; cumsum(ntaper(:))];
         for iindfoi = 1:numel(foi)
           freqtapind{iindfoi} = tempntaper(iindfoi)+1:tempntaper(iindfoi+1);
         end
+     
+        
       case 'mtmfft'
-        [spectrum,ntaper,foi] = ft_specest_mtmfft(dat, time, options{:});
+        [spectrum,ntaper,foi] = ft_specest_mtmfft(dat, time, 'taper', cfg.taper, options{:});
         hastime = false;
+     
+        
+      case 'wavelet'  
+        [spectrum,foi,toi] = ft_specest_wavelet(dat, time, 'timeoi', cfg.toi, 'width', cfg.width, 'gwidth', cfg.gwidth,options{:});
+        hastime = true;
+        % create FAKE ntaper (this requires very minimal code change below for compatibility with the other specest functions)
+        ntaper = ones(1,numel(foi));
+        % modify spectrum for same reason as fake ntaper
+        spectrum = reshape(spectrum,[1 nchan numel(foi) numel(toi)]);
+          
+        
+      case 'hilbert'  
+        [spectrum,foi,toi] = ft_specest_hilbert(dat, time, 'timeoi', cfg.toi, 'filttype', cfg.filttype, 'filtorder', cfg.filtorder, 'filtdir', cfg.filtdir, 'width', cfg.width, options{:});
+        hastime = true;
+        % create FAKE ntaper (this requires very minimal code change below for compatibility with the other specest functions)
+        ntaper = ones(1,numel(foi));
+        % modify spectrum for same reason as fake ntaper
+        spectrum = reshape(spectrum,[1 nchan numel(foi) numel(toi)]);
+        
+        
       otherwise
         error('method %s is unknown or not yet implemented with new low level functions', cfg.method);
     end % switch
     
     % Set n's
-    nfoi = numel(foi);
-    ntap = max(ntaper);
+    maxtap = max(ntaper);
+    nfoi   = numel(foi);
     if hastime
       ntoi = numel(toi);
     else
@@ -446,17 +514,14 @@ else
         if fftflg, fourierspctrm = complex(zeros(nchan,nfoi,ntoi,cfg.precision));    end
         dimord    = 'chan_freq_time';
       elseif keeprpt == 2 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'no'
-        if powflg, powspctrm     = nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision);             end
-        if csdflg, crsspctrm     = complex(nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision),...
-                                           nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision)); end
-        if fftflg, fourierspctrm = complex(nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision),...
-                                           nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision));    end
+        if powflg, powspctrm     = nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision);                                                                 end
+        if csdflg, crsspctrm     = complex(nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision)); end
+        if fftflg, fourierspctrm = complex(nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision));       end
         dimord    = 'rpt_chan_freq_time';
-      elseif keeprpt == 4 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'yes'
-        % FIXME this works only if all frequencies have the same number of tapers (ancient fixme)
-        if powflg, powspctrm     = zeros(ntrials*ntap,nchan,nfoi,ntoi,cfg.precision);             end
-        if csdflg, crsspctrm     = complex(zeros(ntrials*ntap,nchancmb,nfoi,ntoi,cfg.precision)); end
-        if fftflg, fourierspctrm = complex(zeros(ntrials*ntap,nchan,nfoi,ntoi,cfg.precision));    end
+      elseif keeprpt == 4 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'yes'         % FIXME this works only if all frequencies have the same number of tapers (ancient fixme)
+        if powflg, powspctrm     = zeros(ntrials*maxtap,nchan,nfoi,ntoi,cfg.precision);             end
+        if csdflg, crsspctrm     = complex(zeros(ntrials*maxtap,nchancmb,nfoi,ntoi,cfg.precision)); end
+        if fftflg, fourierspctrm = complex(zeros(ntrials*maxtap,nchan,nfoi,ntoi,cfg.precision));    end
         dimord    = 'rpttap_chan_freq_time';
       end
       if ~hastime
@@ -472,6 +537,13 @@ else
         end
       end
       
+      % prepare cumtapcnt
+      switch cfg.method %% IMPORTANT, SHOULD WE KEEP THIS SPLIT UP PER METHOD OR GO FOR A GENERAL SOLUTION NOW THAT WE HAVE SPECEST
+        case 'mtmconvol'
+          cumtapcnt = zeros(ntrials,nfoi);
+        case 'mtmfft'
+          cumtapcnt = zeros(ntrials,1);
+      end
       
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -508,7 +580,7 @@ else
                 powdum = abs(spectrum(acttap,:,foiind(ifoi),acttboi)) .^2;
                 % sinetaper scaling, not checked whether it works if hastime = 0
                 % FIXME why does the scaling only has to be done for power?
-                if strcmp(cfg.taper, 'sine')
+                if isfield(cfg,'taper') && strcmp(cfg.taper, 'sine')
                     sinetapscale = zeros(ntaper(ifoi),nfoi);  % assumes fixed number of tapers
                     for isinetap = 1:ntaper(ifoi)  % assumes fixed number of tapers
                         sinetapscale(isinetap,:) = (1 - (((isinetap - 1) ./ ntaper(ifoi)) .^ 2));
@@ -574,16 +646,11 @@ else
         end %ifoi
         
     else
-        % mtmconvol is a special case and needs special processing
-        if ~all(ntaper==ntaper(1)),
-          error('if cfg.keeptapers=''yes'' all fois need an equal amount of tapers');
-        end
-        
         if strcmp(cfg.method,'mtmconvol')
           spectrum = permute(reshape(spectrum_mtmconvol,[nchan ntoi ntaper(1) nfoi]),[3 1 4 2]);
         end
         
-        rptind = reshape(1:ntrials .* ntap,[ntap ntrials]);
+        rptind = reshape(1:ntrials .* maxtap,[maxtap ntrials]);
         currrptind = rptind(:,itrial);
         if powflg
           powspctrm(currrptind,:,:) = abs(spectrum).^2;
@@ -600,6 +667,13 @@ else
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
+    % set cumptapcnt
+    switch cfg.method %% IMPORTANT, SHOULD WE KEEP THIS SPLIT UP PER METHOD OR GO FOR A GENERAL SOLUTION NOW THAT WE HAVE SPECEST
+      case 'mtmconvol'
+          cumtapcnt(itrial,:) = ntaper;
+      case 'mtmfft'
+        cumtapcnt(itrial) = ntaper(1); % fixed number of tapers? for the moment, yes, as specest_mtmfft computes only one set of tapers
+    end
     
   end % for ntrials
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -661,10 +735,8 @@ else
   if strcmp(cfg.method,'mtmfft') && (keeprpt == 2 || keeprpt == 4)
     freq.cumsumcnt = trllength';
   end
-  if keeprpt == 2,
-    freq.cumtapcnt = repmat(ntaper(:)', [size(powspctrm,1) 1]);
-  elseif keeprpt == 4,
-    freq.cumtapcnt = repmat(ntaper(1), [size(fourierspctrm,1)./ntaper(1) 1]); % assumes fixed number of tapers
+  if exist('cumtapcnt','var')
+    freq.cumtapcnt = cumtapcnt;
   end
   
   
@@ -684,7 +756,10 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 2190 2010-11-25 15:34:43Z roevdmei $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 2539 2011-01-07 09:36:21Z jansch $';
+  
+  % add information about the Matlab version used to the configuration
+  cfg.version.matlab = version();
   
   % remember the configuration details of the input data
   try, cfg.previous = data.cfg; end

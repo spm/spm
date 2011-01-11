@@ -56,9 +56,9 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_analytic.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: statistics_analytic.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

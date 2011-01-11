@@ -57,8 +57,8 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %   cfg.artfctdef.zvalue.hpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.artfctdef.zvalue.bpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.artfctdef.zvalue.detrend       = 'no' or 'yes'
-%   cfg.artfctdef.zvalue.blc           = 'no' or 'yes'
-%   cfg.artfctdef.zvalue.blcwindow     = [begin end] in seconds, the default is the complete trial
+%   cfg.artfctdef.zvalue.demean        = 'no' or 'yes'
+%   cfg.artfctdef.zvalue.baselinewindow = [begin end] in seconds, the default is the complete trial
 %   cfg.artfctdef.zvalue.hilbert       = 'no' or 'yes'
 %   cfg.artfctdef.zvalue.rectify       = 'no' or 'yes'
 %
@@ -82,9 +82,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_artifact_zvalue.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                   cfg.artfctdef                    = [];       end
@@ -97,6 +97,8 @@ if isfield(cfg.artfctdef.zvalue,'sgn')
   cfg.artfctdef.zvalue.channel = cfg.artfctdef.zvalue.sgn;
   cfg.artfctdef.zvalue         = rmfield(cfg.artfctdef.zvalue, 'sgn');
 end
+cfg.artfctdef = ft_checkconfig(cfg.artfctdef, 'renamed',    {'blc', 'demean'});
+cfg.artfctdef = ft_checkconfig(cfg.artfctdef, 'renamed',    {'blcwindow' 'baselinewindow'});
 
 if isfield(cfg.artfctdef.zvalue, 'artifact')
   fprintf('zvalue artifact detection has already been done, retaining artifacts\n');
@@ -349,5 +351,5 @@ fprintf('detected %d artifacts\n', size(artifact,1));
 
 % add version information to the configuration
 cfg.artfctdef.zvalue.version.name = mfilename('fullpath');
-cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 2439 2010-12-15 16:33:34Z johzum $';
 

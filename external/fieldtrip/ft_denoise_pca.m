@@ -37,18 +37,19 @@ function [data, pca, stdpre, stdpst] = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 2268 2010-12-02 16:22:35Z jansch $
+% $Id: ft_denoise_pca.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
-cfg = checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
 
 if ~isfield(cfg, 'truncate'),    cfg.truncate   = 'no';     end;
 if ~isfield(cfg, 'channel'),     cfg.channel    = 'MEG';    end;
 if ~isfield(cfg, 'refchannel'),  cfg.refchannel = 'MEGREF'; end;
 if ~isfield(cfg, 'trials'),      cfg.trials     = 'all';    end;
 if ~isfield(cfg, 'zscore'),      cfg.zscore     = 'no';     end;
-if ~isfield(cfg, 'blc'),         cfg.blc        = 'yes';    end;
+if ~isfield(cfg, 'demean'),      cfg.demean     = 'yes';    end;
 if ~isfield(cfg, 'pertrial'),    cfg.pertrial   = 'no';     end
 
 if strcmp(cfg.pertrial, 'yes'),
@@ -66,9 +67,9 @@ end
 computeweights = ~isfield(cfg, 'pca');
 
 %overrule insensible user specifications
-%if ~strcmp(cfg.blc, 'yes'),
-%  cfg.blc = 'yes';
-%end
+if ~strcmp(cfg.demean, 'yes'),
+  cfg.demean = 'yes';
+end
 
 if length(varargin)==1,
   data    = varargin{1};
@@ -147,7 +148,7 @@ nchan  = length(data.label);
 nsmp   = cellfun('size', data.trial, 2);
 
 %compute and remove mean from data
-if strcmp(cfg.blc, 'yes'),
+if strcmp(cfg.demean, 'yes'),
   m             = cellmean(data.trial,    2);
   data.trial    = cellvecadd(data.trial, -m);
   m             = cellmean(refdata.trial,    2);
@@ -209,8 +210,8 @@ end
 %compute std of data after
 stdpst = cellstd(data.trial, 2);
 
-%blc
-if strcmp(cfg.blc, 'yes'),
+%demean
+if strcmp(cfg.demean, 'yes'),
   m          = cellmean(data.trial, 2);
   data.trial = cellvecadd(data.trial, -m);
 end
@@ -270,7 +271,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_denoise_pca.m 2268 2010-12-02 16:22:35Z jansch $';
+cfg.version.id   = '$Id: ft_denoise_pca.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:numel(varargin)

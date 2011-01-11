@@ -76,9 +76,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 2003 2010-10-29 09:54:18Z jansch $
+% $Id: ft_volumelookup.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 roi2mask = 0;
 mask2label = 0;

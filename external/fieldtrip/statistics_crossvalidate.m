@@ -42,9 +42,9 @@ function stat = statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_crossvalidate.m 2131 2010-11-19 09:56:10Z marvger $
+% $Id: statistics_crossvalidate.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % specify classification procedure
 if isfield(cfg,'cv')

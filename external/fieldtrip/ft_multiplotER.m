@@ -22,6 +22,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
 % cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
 % cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
+% cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 % cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
 % cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
@@ -73,7 +74,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % This function depends on FT_TIMELOCKBASELINE which has the following options:
 % cfg.baseline, documented
 % cfg.channel
-% cfg.blcwindow
+% cfg.baselinewindow
 % cfg.previous
 % cfg.version
 %
@@ -99,9 +100,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_multiplotER.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -115,18 +116,29 @@ if ~isempty(cfg.inputfile) % the input data should be read from file
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
+    if ischar(cfg.inputfile)
+      % only one file is needed
+      cfg.inputfile = {cfg.inputfile};
+    end
     for i=1:numel(cfg.inputfile)
       varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
-      data = varargin{i};
     end
   end
 else
-  data = varargin{1};
+  % do nothing
 end
+data = varargin{1};
 
-% For backward compatibility with old data structures:
+% ensure that hte input is correct, also backward compatibility with old data structures:
 for i=1:length(varargin)
-  varargin{i} = ft_checkdata(varargin{i});
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'timelock', 'freq'});
+  
+  % this is needed for correct treatment of GRAPHCOLOR later on
+  if nargin>1,
+    iname{i+1} = inputname(i);
+  else 
+    iname{i+1} = cfg.inputfile{i};
+  end
 end
 
 % set the defaults:
@@ -147,12 +159,20 @@ if ~isfield(cfg,'maskparameter'), cfg.maskparameter = [];                       
 if ~isfield(cfg,'linestyle'),     cfg.linestyle     = '-';                         end
 if ~isfield(cfg,'linewidth'),     cfg.linewidth     = 0.5;                         end
 if ~isfield(cfg,'maskstyle'),     cfg.maskstyle     = 'box';                       end
+if ~isfield(cfg,'channel'),       cfg.channel       = 'all';                       end
 
 if ischar(cfg.graphcolor)
   GRAPHCOLOR = ['k' cfg.graphcolor];
 elseif isnumeric(cfg.graphcolor)
   GRAPHCOLOR = [0 0 0; cfg.graphcolor];
 end
+
+% perform channel selection
+cfg.channel = ft_channelselection(cfg.channel, data.label);
+for iargin = 1:length(varargin)
+  varargin{iargin} = ft_selectdata(varargin{iargin}, 'channel', cfg.channel);
+end
+
 
 % Set x/y/zparam defaults according to varargin{1}.dimord value:
 if strcmp(varargin{1}.dimord, 'chan_time')
@@ -217,6 +237,12 @@ for k=1:length(varargin)
     % A reference channel is required:
     if ~isfield(cfg,'cohrefchannel'),
       error('no reference channel specified');
+    end
+    % check for cohrefchannel being part of selection
+    if ~strcmp(cfg.cohrefchannel,'gui')
+      if ~any(strcmp(cfg.cohrefchannel,cfg.channel))
+        error('cfg.cohrefchannel is a not present in the (selected) channels)')
+      end
     end
     
     if strcmp(cfg.cohrefchannel, 'gui')
@@ -332,8 +358,8 @@ for k=1:length(varargin)
   Labels     = getfield(varargin{k}, 'label');
   
   if length(varargin) > 1
-    if ischar(GRAPHCOLOR);        colorLabels = [colorLabels inputname(k+1) '=' GRAPHCOLOR(k+1) '\n'];
-    elseif isnumeric(GRAPHCOLOR); colorLabels = [colorLabels inputname(k+1) '=' num2str(GRAPHCOLOR(k+1,:)) '\n'];
+    if ischar(GRAPHCOLOR);        colorLabels = [colorLabels iname{k+1} '=' GRAPHCOLOR(k+1) '\n'];
+    elseif isnumeric(GRAPHCOLOR); colorLabels = [colorLabels iname{k+1} '=' num2str(GRAPHCOLOR(k+1,:)) '\n'];
     end
   end
   

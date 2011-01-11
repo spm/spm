@@ -63,8 +63,8 @@ function [dataout] = ft_preprocessing(cfg, data)
 %   cfg.bpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.medianfiltord = length of median filter (default = 9)
-%   cfg.blc           = 'no' or 'yes', whether to apply baseline correction (default = 'no')
-%   cfg.blcwindow     = [begin end] in seconds, the default is the complete trial (default = 'all')
+%   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
+%   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
 %   cfg.detrend       = 'no' or 'yes', this is done on the complete trial (default = 'no')
 %   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial (default = 'no')
 %   cfg.polyorder     = polynome order (default = 2)
@@ -119,8 +119,8 @@ function [dataout] = ft_preprocessing(cfg, data)
 % cfg.boxcar
 % cfg.polyremoval, documented
 % cfg.polyorder, documented
-% cfg.blc, documented
-% cfg.blcwindow, documented
+% cfg.demean, documented
+% cfg.baselinewindow, documented
 % cfg.bpfilter, documented
 % cfg.bpfiltord, documented
 % cfg.bpfilttype, documented
@@ -167,9 +167,9 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_preprocessing.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if nargin==0
   help(mfilename);
@@ -183,6 +183,8 @@ elseif nargin==1 && isequal(cfg, 'guidelines')
 end
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
+cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 
 % set the defaults
 if ~isfield(cfg, 'method'),       cfg.method = 'trial';         end
@@ -536,7 +538,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id   = '$Id: ft_preprocessing.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

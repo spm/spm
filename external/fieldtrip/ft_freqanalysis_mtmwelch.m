@@ -69,9 +69,9 @@ function [freq] = ft_freqanalysis_mtmwelch(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mtmwelch.m 1085 2010-05-18 11:18:43Z sashae $
+% $Id: ft_freqanalysis_mtmwelch.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % ensure that this function is started as a subfunction of the FT_FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')

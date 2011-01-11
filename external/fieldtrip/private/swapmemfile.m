@@ -36,7 +36,7 @@ function [data] = swapmemfile(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: swapmemfile.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: swapmemfile.m 2298 2010-12-06 20:47:12Z roboos $
 
 % this variable will be empty at the first call
 persistent file
@@ -54,7 +54,7 @@ elseif ~isempty(file)
 elseif isempty(file) && (~ischar(data) || ~filetype(data, 'matlab'))
   % data is already present in memory, and does not originate from a file
   % do nothing
-elseif isempty(file) && ischar(data) && filetype(data, 'matlab')
+elseif isempty(file) && ischar(data) && ft_filetype(data, 'matlab')
   % data is not present in memory but should be read from a Matlab file
   % remember the filename from which the data originates
   file = data;

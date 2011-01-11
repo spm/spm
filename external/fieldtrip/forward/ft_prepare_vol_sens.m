@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 2218 2010-11-29 09:11:40Z roboos $
+% $Id: ft_prepare_vol_sens.m 2475 2010-12-19 18:10:00Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -71,20 +71,20 @@ iseeg = ft_senstype(sens, 'eeg');
 ismeg = ft_senstype(sens, 'meg');
 
 % determine the skin compartment
-if ~isfield(vol, 'skin')
+if ~isfield(vol, 'skin_surface')
   if isfield(vol, 'bnd')
-    vol.skin   = find_outermost_boundary(vol.bnd);
+    vol.skin_surface   = find_outermost_boundary(vol.bnd);
   elseif isfield(vol, 'r') && length(vol.r)<=4
-    [dum, vol.skin] = max(vol.r);
+    [dum, vol.skin_surface] = max(vol.r);
   end
 end
 
-% determine the brain compartment
-if ~isfield(vol, 'brain')
+% determine the inner_skull_surface compartment
+if ~isfield(vol, 'inner_skull_surface')
   if isfield(vol, 'bnd')
-    vol.brain  = find_innermost_boundary(vol.bnd);
+    vol.inner_skull_surface  = find_innermost_boundary(vol.bnd);
   elseif isfield(vol, 'r') && length(vol.r)<=4
-    [dum, vol.brain] = min(vol.r);
+    [dum, vol.inner_skull_surface] = min(vol.r);
   end
 end
 
@@ -285,14 +285,23 @@ elseif ismeg
 elseif iseeg
   % select the desired channels from the electrode array
   % order them according to the users specification
-  [selchan, selsens] = match_str(channel, sens.label);
-  sens.label = sens.label(selsens);
-  sens.pnt   = sens.pnt(selsens,:);
-
+  Nchans    = size(sens.tra,1);
+  Ncontacts = size(sens.tra,2);
+   
+  % In case of Nchans~=Ncontacts it is difficult to determine 
+  % how to deal with contacts positions (keep the original positions)
+  if Nchans == Ncontacts
+    [selchan, selsens] = match_str(channel, sens.label);
+    sens.label = sens.label(selsens);
+    sens.pnt = sens.pnt(selsens,:);
+  else
+    warning('A sub-selection of channels will not be taken into account')
+  end
+  
   % create a 2D projection and triangulation
   sens.prj   = elproj(sens.pnt);
   sens.tri   = delaunay(sens.prj(:,1), sens.prj(:,2));
-
+  
   switch ft_voltype(vol)
     case 'infinite'
       % nothing to do
@@ -327,10 +336,10 @@ elseif iseeg
 
       % project the electrodes on the skin and determine the bilinear interpolation matrix
       if ~isfield(vol, 'tra')
-        % determine boundary corresponding with skin and brain
-        if ~isfield(vol, 'skin')
-          vol.skin = find_outermost_boundary(vol.bnd);
-          fprintf('determining skin compartment (%d)\n', vol.skin);
+        % determine boundary corresponding with skin and inner_skull_surface
+        if ~isfield(vol, 'skin_surface')
+          vol.skin_surface = find_outermost_boundary(vol.bnd);
+          fprintf('determining skin compartment (%d)\n', vol.skin_surface);
         end
         if ~isfield(vol, 'source')
           vol.source = find_innermost_boundary(vol.bnd);
@@ -341,20 +350,20 @@ elseif iseeg
         else
           fprintf('projecting electrodes on skin surface\n');
           % compute linear interpolation from triangle vertices towards electrodes
-          [el, prj] = project_elec(sens.pnt, vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri);
-          tra       = transfer_elec(vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri, el);
+          [el, prj] = project_elec(sens.pnt, vol.bnd(vol.skin_surface).pnt, vol.bnd(vol.skin_surface).tri);
+          tra       = transfer_elec(vol.bnd(vol.skin_surface).pnt, vol.bnd(vol.skin_surface).tri, el);
           
           % replace the original electrode positions by the projected positions
           sens.pnt = prj;
 
-          if size(vol.mat,1)==size(vol.bnd(vol.skin).pnt,1)
+          if size(vol.mat,1)==size(vol.bnd(vol.skin_surface).pnt,1)
             % construct the transfer from only the skin vertices towards electrodes
             interp = tra;
           else
-            % construct the transfer from all vertices (also brain/skull) towards electrodes
+            % construct the transfer from all vertices (also inner_skull_surface/outer_skull_surface) towards electrodes
             interp = [];
             for i=1:length(vol.bnd)
-              if i==vol.skin
+              if i==vol.skin_surface
                 interp = [interp, tra];
               else
                 interp = [interp, zeros(size(el,1), size(vol.bnd(i).pnt,1))];
@@ -366,7 +375,7 @@ elseif iseeg
           % this speeds up the subsequent repeated leadfield computations
           fprintf('combining electrode transfer and system matrix\n');
           if strcmp(ft_voltype(vol), 'openmeeg')
-            nb_points_external_surface = size(vol.bnd(vol.skin).pnt,1);
+            nb_points_external_surface = size(vol.bnd(vol.skin_surface).pnt,1);
             vol.mat = vol.mat((end-nb_points_external_surface+1):end,:);            
             vol.mat = interp(:,1:nb_points_external_surface) * vol.mat;
           else

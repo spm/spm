@@ -26,7 +26,7 @@ function ft_flush_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_flush_header.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_flush_header.m 2528 2011-01-05 14:12:08Z eelspa $
 
 % set the defaults
 headerformat = keyval('headerformat', varargin); if isempty(headerformat), headerformat = ft_filetype(filename); end
@@ -53,7 +53,7 @@ switch headerformat
 
   case 'matlab'
     if exist(filename, 'file')
-      warning(sprintf('deleting existing file ''%s''', filename));
+      warning('deleting existing file ''%s''', filename);
       delete(filename);
     end
 

@@ -125,5 +125,6 @@
 %   ft_sourceplot
 %   ft_clusterplot
 
-% Subversion does not use the Log keyword, use 'svn log <filename>' or 'svn -v log | less' to get detailled information
+% $Id: Contents.m 2508 2010-12-22 22:19:08Z roboos $
+% $Rev: 2508 $
 

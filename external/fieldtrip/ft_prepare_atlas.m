@@ -29,9 +29,9 @@ function [atlas] = ft_prepare_atlas(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 1973 2010-10-27 10:35:18Z jansch $
+% $Id: ft_prepare_atlas.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 useafni = 0;
 usewfu  = 0;

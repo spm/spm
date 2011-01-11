@@ -76,8 +76,8 @@ function [data] = ft_rejectvisual(cfg, data);
 %
 % This function depends on PREPROC which has the following options:
 % cfg.absdiff
-% cfg.blc
-% cfg.blcwindow
+% cfg.demean
+% cfg.baselinewindow
 % cfg.boxcar
 % cfg.bpfilter
 % cfg.bpfiltord
@@ -124,12 +124,12 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 2189 2010-11-25 13:27:05Z roevdmei $
+% $Id: ft_rejectvisual.m 2439 2010-12-15 16:33:34Z johzum $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 
-fieldtripdefs
+ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -359,7 +359,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectvisual.m 2189 2010-11-25 13:27:05Z roevdmei $';
+cfg.version.id = '$Id: ft_rejectvisual.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

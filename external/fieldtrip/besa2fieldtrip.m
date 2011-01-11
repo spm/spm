@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: besa2fieldtrip.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if isstruct(input) && numel(input)>1
   % use a recursive call to convert multiple inputs
@@ -377,7 +377,11 @@ end
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: besa2fieldtrip.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: besa2fieldtrip.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
+
 data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

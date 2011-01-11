@@ -28,6 +28,7 @@ any later version). See the file COPYING for more details.
 The functions in this toolbox are copyrighted by their respective authors:
   Robert Oostenveld, DCCN, FCDC, SMI, MBFYS
   Jan-Mathijs Schoffelen, CCNi, FCDC
+  Roemer van der Meij, DCC
   Pascal Fries, FCDC
   Markus Bauer, FCDC
   Ole Jensen, FCDC
@@ -38,7 +39,7 @@ The functions in this toolbox are copyrighted by their respective authors:
   Saskia Haegens, DCCN, FCDC
   and others ...
 
-Copyright (C) 2008-2009, Donders Institute for Brain, Cognition and Behaviour, The Netherlands (DCCN, DCC, DCN)
+Copyright (C) 2008-2011, Donders Institute for Brain, Cognition and Behaviour, The Netherlands (DCCN, DCC, DCN)
 Copyright (C) 2008-2009, Centre for Cognitive Neuroimaging in Glasgow, United Kingdom (CCNi)
 Copyright (C) 2009-2009, Netherlands Institute for Neuroscience (NIN)
 Copyright (C) 2003-2008, F.C. Donders Centre, University Nijmegen, The Netherlands (FCDC)

@@ -97,9 +97,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 2006 2010-10-29 10:01:02Z jansch $
+% $Id: statistics_montecarlo.m 2432 2010-12-15 11:30:54Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});

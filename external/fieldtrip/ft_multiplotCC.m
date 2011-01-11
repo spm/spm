@@ -35,9 +35,9 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 1972 2010-10-27 10:33:46Z jansch $
+% $Id: ft_multiplotCC.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151s.lay';       end;
 if ~isfield(cfg, 'xparam'),    cfg.xparam = 'foi';               end;

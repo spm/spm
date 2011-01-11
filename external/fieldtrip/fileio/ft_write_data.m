@@ -46,7 +46,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 2266 2010-12-02 15:34:33Z stekla $
+% $Id: ft_write_data.m 2528 2011-01-05 14:12:08Z eelspa $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -362,7 +362,7 @@ switch dataformat
     elseif  append && ~exist(filename, 'file')
       % file does not yet exist, which is not a problem
     elseif ~append &&  exist(filename, 'file')
-      warning(sprintf('deleting existing file ''%s''', filename));
+      warning('deleting existing file ''%s''', filename);
       delete(filename);
     elseif ~append && ~exist(filename, 'file')
       % file does not yet exist, which is not a problem

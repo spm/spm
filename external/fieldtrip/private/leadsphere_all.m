@@ -19,7 +19,7 @@ function out=leadsphere_chans(xloc,sensorloc,sensorori)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: leadsphere_all.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: leadsphere_all.m 2529 2011-01-06 08:23:49Z jansch $
 
 [n,nsens]=size(sensorloc); %n=3 m=? 
 [n,ndip]=size(xloc);
@@ -47,7 +47,7 @@ A3=crossproduct(xlocrep,sensororirep);
 A4=scal2vec(dotproduct(gradf,sensororirep));
 A5=crossproduct(xlocrep,sensorlocrep);
 
-out=1000*(A3.*A1-(A4.*A2).*A5);
+out=1e-7*(A3.*A1-(A4.*A2).*A5); %%GRB change
 
 return;
 

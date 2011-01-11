@@ -38,14 +38,14 @@ function [freq] = ft_spiketriggeredspectrum(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredspectrum.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: ft_spiketriggeredspectrum.m 2439 2010-12-15 16:33:34Z johzum $
 
 % This function uses a NaN-aware spectral estimation technique, which will
 % default to the standard Matlab FFT routine if no NaNs are present. The
 % fft_along_rows subfunction below demonstrates the expected function
 % behaviour.
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'timwin'),       cfg.timwin = [-0.1 0.1];    end
@@ -210,7 +210,10 @@ freq.origtrial      = freq.origtrial(~sel);
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_spiketriggeredspectrum.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: ft_spiketriggeredspectrum.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

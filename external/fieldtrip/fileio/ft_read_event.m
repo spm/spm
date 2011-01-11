@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 2179 2010-11-25 08:13:30Z roboos $
+% $Id: ft_read_event.m 2528 2011-01-05 14:12:08Z eelspa $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -657,19 +657,21 @@ switch eventformat
       end
     end
 
-    if sum(strcmp('trial',{event.type})) ~= hdr.nTrials
-        for segment=1:hdr.nTrials  % cell information
-            eventCount=eventCount+1;
-            event(eventCount).type     = 'trial';
-            event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-            event(eventCount).offset   = -hdr.nSamplesPre;
-            event(eventCount).duration =  hdr.nSamples;
-            if unsegmented,
-                event(eventCount).value    = [];
-            else
-                event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+    if eventCount > 0
+        if sum(strcmp('trial',{event.type})) ~= hdr.nTrials
+            for segment=1:hdr.nTrials  % cell information
+                eventCount=eventCount+1;
+                event(eventCount).type     = 'trial';
+                event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+                event(eventCount).offset   = -hdr.nSamplesPre;
+                event(eventCount).duration =  hdr.nSamples;
+                if unsegmented,
+                    event(eventCount).value    = [];
+                else
+                    event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+                end
             end
-        end
+        end;
     end;
 
   case 'eyelink_asc'
@@ -1307,7 +1309,7 @@ if ~isempty(event)
   [dum, indx] = sort([event.sample]);
   event = event(indx);
   % else
-  %   warning(sprintf('no events found in %s', filename));
+  %   warning('no events found in %s', filename);
 end
 
 % apply the optional filters

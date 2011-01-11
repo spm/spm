@@ -51,9 +51,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 2003 2010-10-29 09:54:18Z jansch $
+% $Id: ft_connectivityanalysis.m 2439 2010-12-15 16:33:34Z johzum $
 
-%fieldtripdefs
+%ft_defaults
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -119,7 +119,6 @@ switch cfg.method
     
     if strcmp(cfg.method, 'csd'),
       normpow     = 0;
-      % warning('cfg.complex for requested csd is set to %s, do you really want this?', cfg.complex);
     end
     
     dtype   = ft_datatype(data);
@@ -220,8 +219,8 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         [data, powindx, hasrpt] = univariate2bivariate(data, 'mom', 'crsspctrm', dtype, 'cmb', cfg.refindx, 'keeprpt', 0);
         %[data, powindx, hasrpt] = univariate2bivariate(data, 'fourierspctrm', 'crsspctrm', dtype, 0, cfg.refindx, [], 1);
       elseif strcmp(inparam, 'powcov')
-        data            = ft_checkdata(data, 'haspow', 'yes');
-        [data, powindx] = univariate2bivariate(data, 'pow', 'powcov', dtype, 'demeanflag', strcmp(cfg.removemean,'yes'), 'cmb', cfg.refindx, 'sqrtflag', strcmp(cfg.method,'amplcorr'), 'keeprpt', 0);
+        data            = ft_checkdata(data, 'sourcerepresentation', 'new', 'haspow', 'yes');
+        [data, powindx, hasrpt] = univariate2bivariate(data, 'pow', 'powcov', dtype, 'demeanflag', strcmp(cfg.removemean,'yes'), 'cmb', cfg.refindx, 'sqrtflag', strcmp(cfg.method,'amplcorr'), 'keeprpt', 0);
       end
     otherwise
   end
@@ -279,6 +278,12 @@ elseif hasrpt && dojack,
   data    = ft_selectdata(data, 'jackknife', 'yes');
   hasjack = 1;
 elseif hasrpt
+  % create dof variable
+  if isfield(data, 'dof')
+    dof = data.dof;
+  elseif isfield(data, 'cumtapcnt')
+    dof = sum(data.cumtapcnt);
+  end
   data   = ft_selectdata(data, 'avgoverrpt', 'yes');
   hasrpt = 0;
 else
@@ -296,7 +301,12 @@ else
       data.(inparam{k}) = reshape(data.(inparam{k}), [1 size(data.(inparam{k}))]);
     end
   end
-  data.dimord    = ['rpt_',data.dimord];
+  
+  if isfield(data, 'dimord')
+    data.dimord    = ['rpt_',data.dimord];
+  else
+    data.([inparam,'dimord']) = ['rpt_',data.([inparam,'dimord'])];
+  end
 end
     
 % compute the desired connectivity metric
@@ -364,7 +374,11 @@ switch cfg.method
     
     tmpcfg             = [];
     tmpcfg.feedback    = cfg.feedback;
-    tmpcfg.dimord      = data.dimord;
+    if isfield(data, 'dimord'),
+      tmpcfg.dimord = data.dimord;
+    else
+      tmpcfg.dimord = data.([inparam,'dimord']); 
+    end
     tmpcfg.complex     = 'real';
     tmpcfg.pownorm     = 1;
     tmpcfg.pchanindx   = [];
@@ -620,9 +634,8 @@ if isfield(data, 'frequency'), stat.frequency = data.frequency; end
 if isfield(data, 'time'), stat.time = data.time; end
 if isfield(data, 'grad'), stat.grad = data.grad; end
 if isfield(data, 'elec'), stat.elec = data.elec; end
-if exist('nrpt', 'var'),  stat.dof  = nrpt;      end
-%FIXME this is not correct for TF-representations when trials have
-%different lengths
+if exist('dof',  'var'),  stat.dof  = dof;       end
+%FIXME this needs to be implemented still
 
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
@@ -633,7 +646,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 2003 2010-10-29 09:54:18Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 2439 2010-12-15 16:33:34Z johzum $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end
@@ -762,24 +778,24 @@ else
   v = [];
 end
 
-%----------------------------------------
-function [indx] = labelcmb2indx(labelcmb)
-
-%identify the auto-combinations
-ncmb = size(labelcmb,1);
-indx = zeros(ncmb,2);
-
-label = unique(labelcmb(:));
-nchan = numel(label);
-autoindx = zeros(nchan,1);
-for k = 1:nchan
-  sel1 = strcmp(label{k}, labelcmb(:,1));
-  sel2 = strcmp(label{k}, labelcmb(:,2));
-  autoindx = find(sel1 & sel2);
-  
-  indx(sel1,1) = autoindx;
-  indx(sel2,2) = autoindx;
-end
+%%----------------------------------------
+%function [indx] = labelcmb2indx(labelcmb)
+%
+%%identify the auto-combinations
+%ncmb = size(labelcmb,1);
+%indx = zeros(ncmb,2);
+%
+%label = unique(labelcmb(:));
+%nchan = numel(label);
+%autoindx = zeros(nchan,1);
+%for k = 1:nchan
+%  sel1 = strcmp(label{k}, labelcmb(:,1));
+%  sel2 = strcmp(label{k}, labelcmb(:,2));
+%  autoindx = find(sel1 & sel2);
+%  
+%  indx(sel1,1) = autoindx;
+%  indx(sel2,2) = autoindx;
+%end
 
 %------------------------------------------------------------------------------------------------------------------
 %function [data, powindx, hasrpt] = univariate2bivariate(data, inparam, outparam, dtype, demeanflag, cmb, sqrtflag, keeprpt)

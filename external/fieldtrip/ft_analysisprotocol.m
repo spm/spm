@@ -64,14 +64,14 @@ function [script, details] = ft_analysisprotocol(cfg, datacfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_analysisprotocol.m 2439 2010-12-15 16:33:34Z johzum $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-fieldtripdefs
+ft_defaults
 
 % set the defaults
 if ~isfield(cfg, 'filename'),    cfg.filename    = [];   end

@@ -39,8 +39,8 @@ function [data] = ft_connectivitysimulation(cfg)
 %   Optional cfg options:
 %      cfg.bpfilter  = 'yes' (or 'no')
 %      cfg.bpfreq    = [bplow bphigh] (default: [15 25])
-%      cfg.blc       = 'yes' (or 'no')
-%      cfg.blcwindow = [begin end] in seconds, the default is the complete trial 
+%      cfg.demean    = 'yes' (or 'no')
+%      cfg.baselinewindow = [begin end] in seconds, the default is the complete trial 
 %      cfg.absnoise  = scalar (default: 1), specifying the standard
 %                             deviation of white noise superimposed on top
 %                             of the simulated signals
@@ -59,8 +59,8 @@ function [data] = ft_connectivitysimulation(cfg)
 %   Optional cfg options:
 %      cfg.bpfilter  = 'yes' (or 'no')
 %      cfg.bpfreq    = [bplow bphigh] (default: [15 25])
-%      cfg.blc       = 'yes' (or 'no')
-%      cfg.blcwindow = [begin end] in seconds, the default is the complete trial 
+%      cfg.demean    = 'yes' (or 'no')
+%      cfg.baselinewindow = [begin end] in seconds, the default is the complete trial 
 %      cfg.absnoise  = scalar (default: 1), specifying the standard
 %                             deviation of white noise superimposed on top
 %                             of the simulated signals
@@ -97,10 +97,11 @@ function [data] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 1974 2010-10-27 10:36:50Z jansch $
+% $Id: ft_connectivitysimulation.m 2422 2010-12-15 08:44:29Z jansch $
 
 % check input configuration for the generally applicable options
 cfg = ft_checkconfig(cfg, 'required', {'nsignal' 'ntrials' 'triallength' 'fsample' 'method'});
+cfg = ft_checkconfig(cfg, 'rename',   {'blc', 'demean'});
 
 % method specific defaults
 switch cfg.method
@@ -108,13 +109,13 @@ case {'linear_mix'}
   %method specific defaults
   if ~isfield(cfg, 'bpfilter'), cfg.bpfilter = 'yes';   end
   if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
-  if ~isfield(cfg, 'blc'),      cfg.blc      = 'yes';   end
+  if ~isfield(cfg, 'demean'),   cfg.dmean    = 'yes';   end
   if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
   cfg = ft_checkconfig(cfg, 'required', {'mix' 'delay'});
 case {'mvnrnd'}
   if ~isfield(cfg, 'bpfilter'), cfg.bpfilter = 'yes';   end
   if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
-  if ~isfield(cfg, 'blc'),      cfg.blc      = 'yes';   end
+  if ~isfield(cfg, 'demean'),   cfg.demean   = 'yes';   end
   if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
   cfg = ft_checkconfig(cfg, 'required', {'covmat' 'delay'}); 
 case {'ar'}
@@ -255,7 +256,10 @@ data.label   = label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivitysimulation.m 1974 2010-10-27 10:36:50Z jansch $';
+cfg.version.id   = '$Id: ft_connectivitysimulation.m 2422 2010-12-15 08:44:29Z jansch $';
+
+% add information about the Matlab version used to the configuration
+cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

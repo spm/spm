@@ -39,7 +39,7 @@ function Zi = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 1814 2010-09-29 12:48:42Z crimic $
+% $Id: ft_plot_topo.m 2527 2011-01-05 10:13:46Z jansch $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -66,8 +66,8 @@ datmask       = keyval('datmask',      varargin);
 holdflag = ishold;
 hold on
 
-chanX = chanX * width  + hpos;
-chanY = chanY * height + vpos;
+chanX = chanX(:) * width  + hpos;
+chanY = chanY(:) * height + vpos;
 
 if strcmp(interplim, 'electrodes'),
   hlim = [min(chanX) max(chanX)];
@@ -109,9 +109,11 @@ elseif ~isempty(mask)
   yi        = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
   [Xi,Yi]   = meshgrid(xi', yi);
   if ~isempty(newpoints)
-    tmp = [mask{1};newpoints];
-    indx = convhull(tmp(:,1),tmp(:,2));
-    mask{1} = tmp(indx,:);
+    warning('Some points fall outside the outline, please consider using another layout')
+% FIXME: I am not sure about it, to be tested!
+%     tmp = [mask{1};newpoints];
+%     indx = convhull(tmp(:,1),tmp(:,2));
+%     mask{1} = tmp(indx,:);
   end 
   for i=1:length(mask)
     mask{i}(:,1) = mask{i}(:,1)+hpos;
@@ -124,17 +126,16 @@ else
   maskimage = [];
 end
 
-
 % adjust maskimage to also mask channels as specified in maskdat
 if ~isempty(datmask)
   xi           = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
   yi           = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
-  maskimagetmp = griddata(chanX', chanY, datmask, xi', yi, 'nearest'); % interpolate the mask data
+  maskimagetmp = griddata(chanX', chanY, datmask, xi', yi, interpmethod); % interpolate the mask data
   if isempty(maskimage)
     maskimage = maskimagetmp;
   else
-    maskimagetmp = maskimage + maskimagetmp;
-    maskimage = maskimagetmp > 1;
+    maskimagetmp2 = maskimage + maskimagetmp;
+    maskimage = maskimagetmp2 > 1;
   end
 end
   
@@ -147,6 +148,9 @@ if ~isempty(maskimage)
   Zi(~maskimage) = NaN;
 end
 
+if exist('maskimagetmp')
+  maskimagetmp(~maskimage) = NaN;
+end
 
 % plot the outline of the head, ears and nose
 for i=1:length(outline)
@@ -167,7 +171,13 @@ end
 if strcmp(style,'surf') || strcmp(style,'surfiso')
   deltax = xi(2)-xi(1); % length of grid entry
   deltay = yi(2)-yi(1); % length of grid entry
-  h = surface(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor', shading);
+  h = surf(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor', shading);
+  
+  %if exist('maskimagetmp')
+  %  set(h, 'facealpha', 'flat');
+  %  set(h, 'alphadatamapping', 'scaled');
+  %  set(h, 'alphadata', maskimagetmp);
+  %end
 end
 
 % Plot filled contours

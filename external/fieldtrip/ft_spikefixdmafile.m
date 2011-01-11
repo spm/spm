@@ -32,9 +32,9 @@ function ft_spikefixdmafile(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikefixdmafile.m 1102 2010-05-19 15:33:23Z roboos $
+% $Id: ft_spikefixdmafile.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % set the general defaults
 if ~isfield(cfg, 'dataset'),  cfg.dataset = [];           end

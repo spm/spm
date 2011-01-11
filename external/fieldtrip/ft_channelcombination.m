@@ -42,9 +42,9 @@ function [collect] = ft_channelcombination(channelcmb, datachannel, includeauto)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelcombination.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_channelcombination.m 2439 2010-12-15 16:33:34Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if nargin==2,
   includeauto = 0;

@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: prepare_mesh_headshape.m 2338 2010-12-08 10:18:10Z crimic $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -39,7 +39,7 @@ else
 end
 
 % usually a headshape only describes a single surface boundaries, but there are cases
-% that multiple surfaces are included, e.g. skin, skull, brain
+% that multiple surfaces are included, e.g. skin_surface, outer_skull_surface, inner_skull_surface
 nbnd = numel(headshape);
 
 if ~isfield(headshape, 'tri')

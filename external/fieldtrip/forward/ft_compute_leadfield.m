@@ -77,7 +77,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 2225 2010-11-29 21:49:59Z roboos $
+% $Id: ft_compute_leadfield.m 2476 2010-12-19 18:21:48Z crimic $
 
 persistent warning_issued;
 
@@ -456,7 +456,11 @@ elseif iseeg
   % compute average reference for EEG leadfield
   avg = mean(lf, 1);
   lf  = lf - repmat(avg, size(lf,1), 1);
-
+  % apply the correct montage to the leadfield
+  if isfield(sens,'tra')
+    lf = sens.tra*lf;
+  end
+  
 end % iseeg or ismeg
 
 % optionally apply leadfield rank reduction
