@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_image.m 4156 2011-01-11 19:03:31Z guillaume $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 4152 $');
+    spm('FnBanner',mfilename,'$Rev: 4156 $');
 
     % get the image's filename {P}
     %----------------------------------------------------------------------
@@ -435,12 +435,12 @@ end;
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
 [zl rl] = spm_orthviews('ZoomMenu');
-czlabel = cellstr(size(zl));
+czlabel = cell(size(zl));
 for cz = 1:numel(zl)
     if ~isfinite(zl(cz))
         czlabel{cz} = 'Full Volume';
     else
-        czlabel{cz} = sprintf('%dx%d mm', 2*zl(cz), 2*zl(cz));
+        czlabel{cz} = sprintf('%dx%dx%dmm', 2*zl(cz), 2*zl(cz), 2*zl(cz));
     end
 end
 st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 75 125 20].*WS,...

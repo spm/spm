@@ -20,7 +20,7 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_powell.m 3283 2009-07-23 17:37:36Z john $
+% $Id: spm_powell.m 4156 2011-01-11 19:03:31Z guillaume $
 
 
 p     = p(:);
@@ -125,7 +125,7 @@ while t(2).f > t(3).f,
             d = (1+gold)*(t(3).p-t(2).p);
         end;
         u.p  = t(2).p+d;
-    else,
+    else
         % sign of pol(3) (the 2nd deriv) is not +ve
         % so extend out by golden ratio instead
         u.p  = t(3).p+gold*(t(3).p-t(2).p);
@@ -196,11 +196,11 @@ for iter=1:128,
     % that the displaced point is between the brackets
     % and that the solution is a minimum rather than a maximum
     eps2 = 2*eps*abs(t(1).p)+eps;
-    if abs(d) > abs(ppd)/2 | u.p < brk(1)+eps2 | u.p > brk(2)-eps2 | pol(3)<=0,
+    if abs(d) > abs(ppd)/2 || u.p < brk(1)+eps2 || u.p > brk(2)-eps2 || pol(3)<=0,
         % if criteria are not met, then golden search into the larger part
         if t(1).p >= 0.5*(brk(1)+brk(2)),
             d = gold1*(brk(1)-t(1).p);
-        else,
+        else
             d = gold1*(brk(2)-t(1).p);
         end;
         u.p = t(1).p+d;
@@ -212,12 +212,12 @@ for iter=1:128,
     % Insert the new point into the appropriate position and update
     % the brackets if necessary
     if u.f <= t(1).f,
-        if u.p >= t(1).p, brk(1)=t(1).p; else, brk(2)=t(1).p; end;
+        if u.p >= t(1).p, brk(1)=t(1).p; else brk(2)=t(1).p; end;
         t(3) = t(2);
         t(2) = t(1);
         t(1) = u;
-    else,
-        if u.p < t(1).p, brk(1)=u.p; else, brk(2)=u.p; end;
+    else
+        if u.p < t(1).p, brk(1)=u.p; else brk(2)=u.p; end;
         if u.f <= t(2).f,
             t(3) = t(2);
             t(2) = u;
@@ -239,7 +239,7 @@ if (nargin == 0)
 else
     % initialize
     %---------------------------------------------------------------
-    if (strcmp(lower(action),'init'))
+    if strcmpi(action,'init')
         if (nargin<4)
             arg3 = 'Function';
             if (nargin<3)
@@ -272,7 +272,7 @@ else
 
     % reset
     %---------------------------------------------------------------
-    elseif (strcmp(lower(action),'set'))
+    elseif strcmpi(action,'set')
         F = spm_figure('FindWin','Interactive');
         br = findobj(F,'Tag','LinMinPlot');
         if (~isempty(br))
@@ -285,15 +285,15 @@ else
 
     % clear
     %---------------------------------------------------------------
-    elseif (strcmp(lower(action),'clear'))
+    elseif strcmpi(action,'clear')
         fg = spm_figure('FindWin','Interactive');
         if isstruct(min1dplot),
-            if ishandle(min1dplot.ax), delete(min1dplot.ax); end;
+            if ishandle(min1dplot.ax), delete(min1dplot.ax); end
             set(fg,'Pointer',min1dplot.pointer);
             set(fg,'Name',min1dplot.name);
-        end;
+        end
         spm_figure('Clear',fg);
         drawnow;
-    end;
+    end
 end
 %_______________________________________________________________________

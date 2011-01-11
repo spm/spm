@@ -10,17 +10,16 @@ function H = spm_hist2(G,F,M,s)
 %      sampled, whereas [4 4 4] means that only 1 in 64 voxels are
 %      sampled.
 %
-% This function is called by spm_mireg for rapidly computing
-% joint histograms for mutual information image registration.
+% This function is called by spm_coreg for rapidly computing joint
+% histograms for mutual information image registration.
 %
 % Note that the function jitters the sampling of the data to reduce
 % interpolation artifacts.
-%
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2001-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_hist2.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_hist2.m 4156 2011-01-11 19:03:31Z guillaume $
 
 %-This is merely the help file for the compiled routine
 error('spm_hist2.c not compiled - see Makefile')
