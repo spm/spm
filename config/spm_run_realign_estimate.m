@@ -9,18 +9,18 @@ function out = spm_run_realign_estimate(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realign_estimate.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_realign_estimate.m 4152 2011-01-11 14:13:35Z volkmar $
 
 job           = varargin{1};
-P             = {};
+P             = cell(size(job.data));
 for i=1:length(job.data),
-    P{i}  = strvcat(job.data{i});
+    P{i}  = char(job.data{i});
 end;
 flags.quality = job.eoptions.quality;
 flags.fwhm    = job.eoptions.fwhm;
 flags.sep     = job.eoptions.sep;
 flags.rtm     = job.eoptions.rtm;
-flags.PW      = strvcat(job.eoptions.weight);
+flags.PW      = char(job.eoptions.weight);
 flags.interp  = job.eoptions.interp;
 flags.wrap    = job.eoptions.wrap;
 spm_realign(P,flags);

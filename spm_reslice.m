@@ -34,6 +34,8 @@ function spm_reslice(P,flags)
 %                        The first image is not actually moved, so it may
 %                        not be necessary to resample it.
 %                  2   - reslice all the images.
+%                  If which is a 2-element vector, flags.mean will be set
+%                  to flags.which(2).
 %
 %         wrap   - three values of either 0 or 1, representing wrapping in
 %                  each of the dimensions. For fMRI, [1 1 0] would be used.
@@ -57,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_reslice.m 4152 2011-01-11 14:13:35Z volkmar $
 
 %__________________________________________________________________________
 %
@@ -94,17 +96,22 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 
 
-def_flags = struct('interp',1, 'mask',1, 'mean',1, 'which',2, ...
-                   'wrap',[0 0 0]', 'prefix','r');
+def_flags        = spm_get_defaults('realign.write');
+def_flags.prefix = 'r';
 if nargin < 2
     flags = def_flags;
 else
     fnms = fieldnames(def_flags);
     for i=1:length(fnms)
         if ~isfield(flags,fnms{i})
-            flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
+            flags.(fnms{i}) = def_flags(fnms{i});
         end
     end
+end
+
+if numel(flags.which) == 2
+    flags.mean  = flags.which(2);
+    flags.which = flags.which(1);
 end
 
 if ~nargin || isempty(P), P = spm_select([2 Inf],'image'); end

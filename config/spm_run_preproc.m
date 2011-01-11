@@ -9,11 +9,11 @@ function out = spm_run_preproc(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_preproc.m 4152 2011-01-11 14:13:35Z volkmar $
 
-job.opts.tpm = strvcat(job.opts.tpm{:});
+job.opts.tpm = char(job.opts.tpm);
 if isfield(job.opts,'msk'),
-    job.opts.msk = strvcat(job.opts.msk{:});
+    job.opts.msk = char(job.opts.msk);
 end;
 for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);

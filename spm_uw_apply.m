@@ -120,31 +120,15 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_uw_apply.m 4152 2011-01-11 14:13:35Z volkmar $
 
 tiny = 5e-2;
 
-def_flags = struct('mask',       1,...
-                   'mean',       1,...
-                   'interp',     4,...
-                   'wrap',       [0 1 0],...
-                   'which',      1,...
-                   'udc',        1,...
-                   'prefix',     'u');
+def_flags        = spm_get_defaults('realign.write');
+def_flags.udc    = 1;
+def_flags.prefix = 'u';
 
 defnames = fieldnames(def_flags);
-
-%
-% Replace hardcoded defaults with spm_defaults
-% when exist and defined.
-%
-defaults = spm_get_defaults;
-if isfield(defaults,'realign') && isfield(defaults.realign,'write')
-   wd = defaults.realign.write;
-   if isfield(wd,'interp'),    def_flags.interp = wd.interp; end
-   if isfield(wd,'wrap'),      def_flags.wrap = wd.wrap; end
-   if isfield(wd,'mask'),      def_flags.mask = wd.mask; end
-end
 
 if nargin < 1 || isempty(ds)
     ds = load(spm_select(1,'.*uw\.mat$','Select Unwarp result file'),'ds');
@@ -161,23 +145,19 @@ end
 
 %
 % Replace defaults with user supplied values for all fields
-% defined by user. Also, warn user of any invalid fields,
-% probably reflecting misspellings.
+% defined by user. 
 %
 if nargin < 2 || isempty(flags)
    flags = def_flags;
 end
 for i=1:length(defnames)
    if ~isfield(flags,defnames{i})
-      %flags = setfield(flags,defnames{i},getfield(def_flags,defnames{i}));
       flags.(defnames{i}) = def_flags.(defnames{i});
    end
 end
-flagnames = fieldnames(flags);
-for i=1:length(flagnames)
-   if ~isfield(def_flags,flagnames{i})
-      warning('Warning, unknown flag field %s',flagnames{i});
-   end
+if numel(flags.which) == 2
+    flags.mean  = flags.which(2);
+    flags.which = flags.which(1);
 end
 
 ntot = 0;

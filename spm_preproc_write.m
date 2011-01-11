@@ -11,11 +11,11 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 1586 2008-05-08 20:45:20Z john $
+% $Id: spm_preproc_write.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 if nargin==1,
-    opts = struct('biascor',0,'GM',[0 0 1],'WM',[0 0 1],'CSF',[0 0 0],'cleanup',0);
+    opts = spm_get_defaults('preproc.output');
 end;
 if numel(p)>0,
     b0  = spm_load_priors(p(1).VG);

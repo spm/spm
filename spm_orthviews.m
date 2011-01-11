@@ -28,8 +28,21 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('MaxBB')
 % sets the bounding box big enough display the whole of all images
 %
-% FORMAT spm_orthviews('Resolution',res)
+% FORMAT spm_orthviews('Resolution'[,res])
 % res      - resolution (mm)
+% sets the sampling resolution for all images. The effective resolution
+% will be the minimum of res and the voxel sizes of all images. If no
+% resolution is specified, the minimum of 1mm and the voxel sizes of the
+% images is used.
+%
+% FORMAT spm_orthviews('Zoom'[,fov[,res]])
+% fov      - half width of field of view (mm)
+% res      - resolution (mm)
+% sets the displayed part and sampling resolution for all images. The
+% image display will be centered at the current crosshair position. The
+% image region [xhairs-fov xhairs+fov] will be shown. If no argument is
+% given or fov == Inf, the image display will be reset to "Full
+% Volume". Optionally, the display resolution can be set as well.
 %
 % FORMAT spm_orthviews('Delete', handle)
 % handle   - image number to delete
@@ -88,11 +101,19 @@ function varargout = spm_orthviews(action,varargin)
 % hReg      - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %
-% spm_orthviews('AddContext',handle)
+% FORMAT spm_orthviews('AddContext',handle)
 % handle   - image number to add context menu to
 %
-% spm_orthviews('RemoveContext',handle)
+% FORMAT spm_orthviews('RemoveContext',handle)
 % handle   - image number to remove context menu from
+%
+% FORMAT spm_orthviews('ZoomMenu',zoom,res)
+% FORMAT [zoom, res] = spm_orthviews('ZoomMenu')
+% zoom     - A list of predefined zoom values
+% res      - A list of predefined resolutions
+% This list is used by spm_image and spm_orthviews('addcontext',...) to
+% create the 'Zoom' menu. The values can be retrieved by calling
+% spm_orthviews('ZoomMenu') with 2 output arguments.
 %
 % CONTEXT MENU
 % spm_orthviews offers many of its features in a context menu, which is
@@ -113,7 +134,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4151 2011-01-07 18:09:25Z guillaume $
+% $Id: spm_orthviews.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 
@@ -208,6 +229,9 @@ function varargout = spm_orthviews(action,varargin)
 
 global st;
 
+persistent zoomlist;
+persistent reslist;
+
 if isempty(st), reset_st; end;
 
 if nargin == 0, action = ''; end;
@@ -221,14 +245,19 @@ switch lower(action),
     case 'image',
         H = specify_image(varargin{1});
         if ~isempty(H)
-            st.vols{H}.area = [0 0 1 1];
-            if numel(varargin)>=2, st.vols{H}.area = varargin{2}; end;
+            if numel(varargin)>=2,
+                st.vols{H}.area = varargin{2};
+            else
+                st.vols{H}.area = [0 0 1 1];
+            end;
             if isempty(st.bb), st.bb = maxbb; end;
+            resolution;
             bbox;
             cm_pos;
         end;
         varargout{1} = H;
-        st.centre    = mean(maxbb);
+        mmcentre     = mean(st.Space*[maxbb';1 1],2)';
+        st.centre    = mmcentre(1:3);
         redraw_all
         
     case 'bb',
@@ -272,10 +301,12 @@ switch lower(action),
         if numel(varargin)<1,
             st.Space = eye(4);
             st.bb = maxbb;
+            resolution;
             bbox;
             redraw_all;
         else
             space(varargin{:});
+            resolution;
             bbox;
             redraw_all;
         end;
@@ -286,7 +317,7 @@ switch lower(action),
         redraw_all;
         
     case 'resolution',
-        resolution(varargin{1});
+        resolution(varargin{:});
         bbox;
         redraw_all;
         
@@ -416,6 +447,31 @@ switch lower(action),
             handles = varargin{1};
         end;
         varargout{1} = valid_handles(handles);
+
+    case 'zoom',
+        zoom_op(varargin{:});
+        
+    case 'zoommenu',
+        if isempty(zoomlist)
+            zoomlist = [5    10  20 40 80 Inf];
+            reslist  = [.125 .25 .5 .5 1  1];
+        end
+        if nargin >= 3
+            if all(cellfun(@isnumeric,varargin(1:2))) && ...
+                    numel(varargin{1})==numel(varargin{2})
+                zoomlist = varargin{1}(:);
+                reslist  = varargin{2}(:);
+            else
+                warning('spm_orthviews:zoom',...
+                        'Invalid zoom or resolution list.')
+            end
+        end
+        if nargout > 0
+            varargout{1} = zoomlist;
+        end
+        if nargout > 1
+            varargout{2} = reslist;
+        end
         
     otherwise,
         addonaction = strcmp(st.plugins,action);
@@ -651,7 +707,16 @@ return;
 %_______________________________________________________________________
 function resolution(arg1)
 global st
-res      = arg1/mean(svd(st.Space(1:3,1:3)));
+if nargin == 0
+    res = 1; % Default minimum resolution 1mm
+else
+    res = arg1;
+end
+for i=valid_handles(1:24)
+    % adapt resolution to smallest voxel size of displayed images
+    res = min([res,sqrt(sum((st.vols{i}.mat(1:3,1:3)).^2))]);
+end
+res      = res/mean(svd(st.Space(1:3,1:3)));
 Mat      = diag([res res res 1]);
 st.Space = st.Space*Mat;
 st.bb    = st.bb/res;
@@ -712,6 +777,37 @@ if ~isempty(st.vols{arg1})
     st.Space  = Space;
     st.bb = bb;
 end;
+return;
+%_______________________________________________________________________
+%_______________________________________________________________________
+function zoom_op(varargin)
+global st
+if nargin > 0
+    fov = varargin{1};
+else
+    fov = Inf;
+end
+if nargin > 1
+    res = varargin{2};
+else
+    res = Inf;
+end
+if ~isfinite(fov),
+    st.bb = maxbb;
+else
+    vx = sqrt(sum(st.Space(1:3,1:3).^2));
+    vx = vx.^(-1);
+    pos = spm_orthviews('pos');
+    pos = st.Space\[pos ; 1];
+    pos = pos(1:3)';
+    st.bb = [pos-fov*vx; pos+fov*vx];
+end;
+resolution(res);
+bbox;
+redraw_all;
+if isfield(st.vols{1},'sdip')
+    spm_eeg_inv_vbecd_disp('RedrawDip');
+end
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -894,19 +990,19 @@ is   = inv(st.Space);
 cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 
 for i = valid_handles(arg1),
-    M = st.vols{i}.premul*st.vols{i}.mat;
+    M = st.Space\st.vols{i}.premul*st.vols{i}.mat;
     TM0 = [ 1 0 0 -bb(1,1)+1
         0 1 0 -bb(1,2)+1
         0 0 1 -cent(3)
         0 0 0 1];
-    TM = inv(TM0*(st.Space\M));
+    TM = inv(TM0*M);
     TD = Dims([1 2]);
     
     CM0 = [ 1 0 0 -bb(1,1)+1
         0 0 1 -bb(1,3)+1
         0 1 0 -cent(2)
         0 0 0 1];
-    CM = inv(CM0*(st.Space\M));
+    CM = inv(CM0*M);
     CD = Dims([1 3]);
     
     if st.mode ==0,
@@ -914,13 +1010,14 @@ for i = valid_handles(arg1),
             0 1 0 -bb(1,2)+1
             1 0 0 -cent(1)
             0 0 0 1];
-        SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
+        SM = inv(SM0*M); 
+        SD = Dims([3 2]);
     else
         SM0 = [ 0 -1 0 +bb(2,2)+1
             0  0 1 -bb(1,3)+1
             1  0 0 -cent(1)
             0  0 0 1];
-        SM = inv(SM0*(st.Space\M));
+        SM = inv(SM0*M);
         SD = Dims([2 3]);
     end;
     
@@ -1038,10 +1135,10 @@ for i = valid_handles(arg1),
                 end;
                 
                 vol  = st.vols{i}.blobs{1}.vol;
-                M    = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
-                tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])';
-                tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
-                tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
+                M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
+                tmpt = spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])';
+                tmpc = spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])';
+                tmps = spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])';
                 
                 %tmpt_z = find(tmpt==0);tmpt(tmpt_z) = NaN;
                 %tmpc_z = find(tmpc==0);tmpc(tmpc_z) = NaN;
@@ -1090,10 +1187,10 @@ for i = valid_handles(arg1),
                 
                 % get blob data
                 vol  = st.vols{i}.blobs{1}.vol;
-                M    = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
-                tmpt = spm_slice_vol(vol,inv(TM0*(st.Space\M)),TD,[0 NaN])';
-                tmpc = spm_slice_vol(vol,inv(CM0*(st.Space\M)),CD,[0 NaN])';
-                tmps = spm_slice_vol(vol,inv(SM0*(st.Space\M)),SD,[0 NaN])';
+                M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
+                tmpt = spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])';
+                tmpc = spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])';
+                tmps = spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])';
                 
                 % actimg scaled round 0, black NaNs
                 topc = size(actc,1)+1;
@@ -1398,12 +1495,21 @@ item0c    = uimenu(item_parent, 'UserData','v_value');
 
 %contextsubmenu 1
 item1     = uimenu(item_parent,'Label','Zoom');
-item1_1   = uimenu(item1,      'Label','Full Volume',   'Callback','spm_orthviews(''context_menu'',''zoom'',6);', 'Checked','on');
-item1_2   = uimenu(item1,      'Label','160x160x160mm', 'Callback','spm_orthviews(''context_menu'',''zoom'',5);');
-item1_3   = uimenu(item1,      'Label','80x80x80mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',4);');
-item1_4   = uimenu(item1,      'Label','40x40x40mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',3);');
-item1_5   = uimenu(item1,      'Label','20x20x20mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',2);');
-item1_6   = uimenu(item1,      'Label','10x10x10mm',    'Callback','spm_orthviews(''context_menu'',''zoom'',1);');
+[zl, rl]  = spm_orthviews('ZoomMenu');
+for cz = numel(zl):-1:1
+    if ~isfinite(zl(cz))
+        czlabel = 'Full Volume';
+    else
+        czlabel = sprintf('%dx%d mm', 2*zl(cz), 2*zl(cz));
+    end
+    item1_x = uimenu(item1, 'Label',czlabel, ...
+                     'Callback', sprintf(...
+                         'spm_orthviews(''context_menu'',''zoom'',%d,%d)',...
+                         zl(cz),rl(cz)));
+    if ~isfinite(zl(cz)) % default display is Full Volume
+        set(item1_x, 'Checked','on');
+    end
+end
 
 %contextsubmenu 2
 checked={'off','off'};
@@ -1585,7 +1691,7 @@ switch lower(varargin{1}),
         spm_orthviews('reposition',newpos_mm(1:3));
         
     case 'zoom'
-        zoom_all(varargin{2});
+        zoom_all(varargin{2:end});
         bbox;
         redraw_all;
         
@@ -1921,35 +2027,17 @@ end
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function zoom_all(op)
+function zoom_all(zoom,res)
 global st
 cm_handles = get_cm_handles;
-res = [.125 .125 .25 .5 1 1];
-if op==6,
-    st.bb = maxbb;
-else
-    vx = sqrt(sum(st.Space(1:3,1:3).^2));
-    vx = vx.^(-1);
-    pos = spm_orthviews('pos');
-    pos = st.Space\[pos ; 1];
-    pos = pos(1:3)';
-    if     op == 5, st.bb = [pos-80*vx ; pos+80*vx] ;
-    elseif op == 4, st.bb = [pos-40*vx ; pos+40*vx] ;
-    elseif op == 3, st.bb = [pos-20*vx ; pos+20*vx] ;
-    elseif op == 2, st.bb = [pos-10*vx ; pos+10*vx] ;
-    elseif op == 1; st.bb = [pos- 5*vx ; pos+ 5*vx] ;
-    else disp('no Zoom possible');
-    end;
-end
-resolution(res(op));
-redraw_all;
+zoom_op(zoom,res);
 for i = 1:numel(cm_handles)
     z_handle = get(findobj(cm_handles(i),'label','Zoom'),'Children');
     set(z_handle,'Checked','off');
-    set(z_handle(op),'Checked','on');
-end
-
-if isfield(st.vols{1},'sdip')
-    spm_eeg_inv_vbecd_disp('RedrawDip');
+    if isfinite(zoom)
+        set(findobj(z_handle,'Label',sprintf('%dx%d mm', 2*zoom, 2*zoom)),'Checked','on');
+    else
+        set(findobj(z_handle,'Label','Full Volume'),'Checked','on');
+    end
 end
 return;

@@ -169,46 +169,35 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 3770 2010-03-10 10:36:55Z chloe $
+% $Id: spm_uw_estimate.m 4152 2011-01-11 14:13:35Z volkmar $
 
-if nargin < 1 | isempty(P), P = spm_select(Inf,'image'); end
+if nargin < 1 || isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
 
 %
 % Hardcoded default input parameters.
 %
-defpar = struct('order',           [12 12],...
-                'sfP',             [],...
+defpar = struct('sfP',             [],...
                 'M',               P(1).mat,...
-                'regorder',        1,...
-                'lambda',          1e5,...
-                'jm',              0,...
                 'fot',             [4 5],...
                 'sot',             [],...
-                'fwhm',            4,...
-                'rem',             1,...
-                'exp_round',       'Average',...
-                'noi',             5,...
                 'hold',            [1 1 1 0 1 0]);
 
-defnames = fieldnames(defpar);
+%
+% Merge hardcoded defaults and spm_defaults. Translate spm_defaults
+% settings to internal defaults.
+%
+ud = spm_get_defaults('unwarp.estimate');
+if isfield(ud,'basfcn'),    defpar.order = ud.basfcn; end
+if isfield(ud,'regorder'),  defpar.regorder = ud.regorder; end
+if isfield(ud,'regwgt'),    defpar.lambda = ud.regwgt; end
+if isfield(ud,'jm'),        defpar.jm = ud.jm; end
+if isfield(ud,'fwhm'),      defpar.fwhm = ud.fwhm; end
+if isfield(ud,'rem'),       defpar.rem = ud.rem; end
+if isfield(ud,'noi'),       defpar.noi = ud.noi; end
+if isfield(ud,'expround'),  defpar.exp_round = ud.expround; end
 
-%
-% Replace hardcoded defaults with spm_defaults
-% when exist and defined.
-%
-defaults = spm_get_defaults;
-if isfield(defaults,'unwarp') && isfield(defaults.unwarp,'estimate')
-   ud = defaults.unwarp.estimate;
-   if isfield(ud,'basfcn'),    defpar.order = ud.basfcn; end
-   if isfield(ud,'regorder'),  defpar.regorder = ud.regorder; end
-   if isfield(ud,'regwgt'),    defpar.lambda = ud.regwgt; end
-   if isfield(ud,'jm'),        defpar.jm = ud.jm; end
-   if isfield(ud,'fwhm'),      defpar.fwhm = ud.fwhm; end
-   if isfield(ud,'rem'),       defpar.rem = ud.rem; end
-   if isfield(ud,'noi'),       defpar.noi = ud.noi; end
-   if isfield(ud,'expround'),  defpar.exp_round = ud.expround; end
-end
+defnames = fieldnames(defpar);
 
 %
 % Go through input parameters, chosing the default
@@ -217,21 +206,21 @@ end
 % reflecting a misspelling).
 %
 
-if nargin < 2 | isempty(par)
+if nargin < 2 || isempty(par)
    par = defpar;
 end
 ds = [];
 for i=1:length(defnames)
-   if isfield(par,defnames{i}) & ~isempty(getfield(par,defnames{i}))
-      ds = setfield(ds,defnames{i},getfield(par,defnames{i}));
+   if isfield(par,defnames{i}) && ~isempty(par.(defnames{i}))
+      ds.(defnames{i}) = par.(defnames{i});
    else
-      ds = setfield(ds,defnames{i},getfield(defpar,defnames{i}));
+      ds.(defnames{i}) = defpar.(defnames{i});
    end
 end
 parnames = fieldnames(par);
 for i=1:length(parnames)
    if ~isfield(defpar,parnames{i})
-      warning(sprintf('Unknown par field %s',parnames{i}));
+      warning('Unknown par field %s',parnames{i});
    end
 end
 

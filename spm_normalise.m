@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_normalise.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -140,15 +140,15 @@ if ischar(VWG), VWG=spm_vol(VWG); end;
 if ischar(VWF), VWF=spm_vol(VWF); end;                                                                     
 
 
-def_flags = struct('smosrc',8,'smoref',0,'regtype','mni',...
-    'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
+def_flags          = spm_get_defaults('normalise.estimate');
+def_flags.graphics = 1;
 if nargin < 6,
     flags = def_flags;
 else
     fnms  = fieldnames(def_flags);
     for i=1:length(fnms),
         if ~isfield(flags,fnms{i}),
-            flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
+            flags.(fnms{i}) = def_flags.(fnms{i});
         end;
     end;
 end;

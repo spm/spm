@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 2534 2008-12-08 10:16:46Z christophe $
+% $Id: spm_write_sn.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 if isempty(V), return; end;
@@ -79,8 +79,8 @@ if nargin==3 && ischar(flags) && strcmpi(flags,'modulate'),
     return;
 end;
 
-def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0,...
-                   'prefix','w');
+def_flags        = spm_get_defaults('normalise.write');
+def_flags.prefix = 'w';
 
 if nargin < 3,
     flags = def_flags;

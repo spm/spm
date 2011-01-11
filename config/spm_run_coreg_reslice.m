@@ -9,11 +9,11 @@ function out = spm_run_coreg_reslice(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_reslice.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_coreg_reslice.m 4152 2011-01-11 14:13:35Z volkmar $
 
 job = varargin{1};
 
-P            = strvcat(strvcat(job.ref),strvcat(job.source));
+P            = char([job.ref(:);job.source(:)]);
 flags.mask   = job.roptions.mask;
 flags.mean   = 0;
 flags.interp = job.roptions.interp;

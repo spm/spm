@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4103 2010-10-28 15:43:16Z john $
+% $Id: spm_image.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 4103 $');
+    spm('FnBanner',mfilename,'$Rev: 4152 $');
 
     % get the image's filename {P}
     %----------------------------------------------------------------------
@@ -285,23 +285,9 @@ if strcmp(op,'reset'),
 end;
 
 if strcmp(op,'zoom_in'),
-    op = get(st.zoomer,'Value');
-    if op==1,
-        spm_orthviews('resolution',1);
-        spm_orthviews('MaxBB');
-    else
-        vx = sqrt(sum(st.Space(1:3,1:3).^2));
-        vx = vx.^(-1);
-        pos = spm_orthviews('pos');
-        pos = st.Space\[pos ; 1];
-        pos = pos(1:3)';
-        if     op == 2, st.bb = [pos-80*vx ; pos+80*vx] ; spm_orthviews('resolution',1);
-        elseif op == 3, st.bb = [pos-40*vx ; pos+40*vx] ; spm_orthviews('resolution',.5);
-        elseif op == 4, st.bb = [pos-20*vx ; pos+20*vx] ; spm_orthviews('resolution',.25);
-        elseif op == 5, st.bb = [pos-10*vx ; pos+10*vx] ; spm_orthviews('resolution',.125);
-        else            st.bb = [pos- 5*vx ; pos+ 5*vx] ; spm_orthviews('resolution',.125);
-        end;
-    end;
+    cz = get(st.zoomer,'Value');
+    [zl rl] = spm_orthviews('ZoomMenu');
+    spm_orthviews('zoom',zl(cz),rl(cz));
     return;
 end;
 
@@ -448,8 +434,17 @@ end;
 % Assorted other buttons.
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
+[zl rl] = spm_orthviews('ZoomMenu');
+czlabel = cellstr(size(zl));
+for cz = 1:numel(zl)
+    if ~isfinite(zl(cz))
+        czlabel{cz} = 'Full Volume';
+    else
+        czlabel{cz} = sprintf('%dx%d mm', 2*zl(cz), 2*zl(cz));
+    end
+end
 st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 75 125 20].*WS,...
-    'String',char('Full Volume','160x160x160mm','80x80x80mm','40x40x40mm','20x20x20mm','10x10x10mm'),...
+    'String',czlabel,...
     'Callback','spm_image(''zoom_in'')','ToolTipString','zoom in by different amounts');
 c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom_in'')';
 uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20].*WS,...

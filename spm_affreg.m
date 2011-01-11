@@ -38,7 +38,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_affreg.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
@@ -351,7 +351,7 @@ function [d1,d2] = reg(M,n,typ)
 if nargin<3, typ = 'subj'; end;
 if nargin<2, n   = 13;     end;
 
-[mu,isig] = priors(typ);
+[mu,isig] = spm_affine_priors(typ);
 ds  = 0.000001;
 d1  = zeros(n,1);
 d2  = zeros(n);
@@ -395,55 +395,6 @@ T = T(els)' - mu;
 h = T'*isig*T;
 return;
 %_______________________________________________________________________
-
-%_______________________________________________________________________
-function [mu,isig] = priors(typ)
-% The parameters for this distribution were derived empirically from 227
-% scans, that were matched to the ICBM space.
-%_______________________________________________________________________
-
-mu   = zeros(6,1);
-isig = zeros(6);
-switch deblank(lower(typ)),
-
-case 'mni', % For registering with MNI templates...
-    mu   = [0.0667 0.0039 0.0008 0.0333 0.0071 0.1071]';
-    isig = 1e4 * [
-        0.0902   -0.0345   -0.0106   -0.0025   -0.0005   -0.0163
-       -0.0345    0.7901    0.3883    0.0041   -0.0103   -0.0116
-       -0.0106    0.3883    2.2599    0.0113    0.0396   -0.0060
-       -0.0025    0.0041    0.0113    0.0925    0.0471   -0.0440
-       -0.0005   -0.0103    0.0396    0.0471    0.2964   -0.0062
-       -0.0163   -0.0116   -0.0060   -0.0440   -0.0062    0.1144];
-
-case 'rigid', % Constrained to be almost rigid...
-    mu   = zeros(6,1);
-    isig = eye(6)*1e9;
-
-case 'isochoric', % Volume preserving...
-    error('Not implemented');
-
-case 'isotropic', % Isotropic zoom in all directions...
-    error('Not implemented');
-
-case 'subj', % For inter-subject registration...
-    mu   = zeros(6,1);
-    isig = 1e3 * [
-        0.8876    0.0784    0.0784   -0.1749    0.0784   -0.1749
-        0.0784    5.3894    0.2655    0.0784    0.2655    0.0784
-        0.0784    0.2655    5.3894    0.0784    0.2655    0.0784
-       -0.1749    0.0784    0.0784    0.8876    0.0784   -0.1749
-        0.0784    0.2655    0.2655    0.0784    5.3894    0.0784
-       -0.1749    0.0784    0.0784   -0.1749    0.0784    0.8876];
-
-case 'none', % No regularisation...
-    mu   = zeros(6,1);
-    isig = zeros(6);
-
-otherwise,
-    error(['"' typ '" not recognised as type of regularisation.']);
-end;
-return;
 
 %_______________________________________________________________________
 function [y1,y2,y3]=coords(M,x1,x2,x3)

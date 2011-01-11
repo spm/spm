@@ -18,23 +18,11 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4149 2011-01-05 17:08:32Z john $
+% $Id: spm_preproc.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
-[dir,nam,ext]  = fileparts(which(mfilename));
-opts0.tpm   = char(...
-               fullfile(dir,'tpm','grey.nii'),...
-               fullfile(dir,'tpm','white.nii'),...
-               fullfile(dir,'tpm','csf.nii'));
-opts0.ngaus    = [2 2 2 4];
-opts0.warpreg  = 1;
-opts0.warpco   = 25;
-opts0.biasreg  = 0.0001;
-opts0.biasfwhm = 60;
-opts0.regtype  = 'mni';
-opts0.fudge    = 5;
-opts0.samp     = 3;
-opts0.msk      = '';
+opts0     = rmfield(spm_get_defaults('preproc'),'output');
+opts0.msk = '';
 
 if nargin==0
     V = spm_select(1,'image');

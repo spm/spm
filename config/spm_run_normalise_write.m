@@ -9,21 +9,15 @@ function out = spm_run_normalise_write(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_normalise_write.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_normalise_write.m 4152 2011-01-11 14:13:35Z volkmar $
 
 job    = varargin{1};
-o      = job.roptions;
-rflags = struct(...
-    'preserve',o.preserve,...
-    'bb',      o.bb,...
-    'vox',     o.vox,...
-    'interp',  o.interp,...
-    'wrap',    o.wrap,...
-        'prefix',  o.prefix);
+rflags = job.roptions;
 
+out = repmat(struct('files',{''}),size(job.subj));
 for i=1:numel(job.subj),
-    spm_write_sn(strvcat(job.subj(i).resample{:}),...
-        strvcat(job.subj(i).matname{:}),rflags);
+    spm_write_sn(char(job.subj(i).resample),...
+        char(job.subj(i).matname),rflags);
     res = job.subj(i).resample;
     out(i).files = cell(size(res));
     for j=1:numel(res),

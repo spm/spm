@@ -9,14 +9,13 @@ function out = spm_run_realign_reslice(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realign_reslice.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_realign_reslice.m 4152 2011-01-11 14:13:35Z volkmar $
 
 job          = varargin{1};
-P            = strvcat(job.data);
+P            = char(job.data);
 flags.mask   = job.roptions.mask;
-flags.mean   = job.roptions.which(2);
 flags.interp = job.roptions.interp;
-flags.which  = job.roptions.which(1);
+flags.which  = job.roptions.which;
 flags.wrap   = job.roptions.wrap;
 flags.prefix = job.roptions.prefix;
 spm_reslice(P,flags);

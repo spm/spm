@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 4050 2010-08-26 18:09:18Z guillaume $
+% $Id: spm_coreg.m 4152 2011-01-11 14:13:35Z volkmar $
 
 
 if nargin>=4,
@@ -83,8 +83,8 @@ if nargin>=4,
     return;
 end;
 
-def_flags = struct('sep',[4 2],'params',[0 0 0  0 0 0], 'cost_fun','nmi','fwhm',[7 7],...
-    'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
+def_flags          = spm_get_defaults('coreg.estimate');
+def_flags.params   = [0 0 0  0 0 0];
 def_flags.graphics = ~spm('CmdLine');
 if nargin < 3,
     flags = def_flags;
@@ -107,7 +107,7 @@ if nargin < 2,
     VF = spm_vol(spm_select(Inf,'image','Select moved image(s)'));
 else
     VF = varargin{2};
-    if ischar(VF) || iscellstr(VF), VF = spm_vol(strvcat(VF)); end;
+    if ischar(VF) || iscellstr(VF), VF = spm_vol(char(VF)); end;
 end;
 
 if ~isfield(VG, 'uint8'),
@@ -120,6 +120,7 @@ end;
 sc = flags.tol(:)'; % Required accuracy
 sc = sc(1:length(flags.params));
 xi = diag(sc*20);
+x = zeros(numel(VF),numel(flags.params));
 
 for k=1:numel(VF),
     VFk = VF(k);
