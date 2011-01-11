@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4094 2010-10-18 18:03:27Z guillaume $
+% $Id: spm_spm.m 4155 2011-01-11 15:22:39Z guillaume $
  
-SVNid     = '$Rev: 4094 $';
+SVNid     = '$Rev: 4155 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -333,7 +333,9 @@ if exist(fullfile(SPM.swd,'mask.img'),'file') == 2
         return
     else
         warning('Overwriting old results\n\t (pwd = %s) ',SPM.swd);
-        try, SPM = rmfield(SPM,'xVol'); end
+        try, SPM     = rmfield(SPM,     'xVol'); end
+        try, SPM.xX  = rmfield(SPM.xX,  'W');    end
+        try, SPM.xVi = rmfield(SPM.xVi, 'V');    end
     end
 end
  
@@ -882,12 +884,12 @@ if ~isfield(xVi,'V')
     %----------------------------------------------------------------------
     if ~isfield(xX,'W')
         if spm_matlab_version_chk('7') >=0
-            save('SPM','SPM','-V6');
+            save('SPM.mat','SPM','-V6');
         else
-            save('SPM','SPM');
+            save('SPM.mat','SPM');
         end
         clear
-        load SPM
+        load('SPM.mat');
         SPM = spm_spm(SPM);
         return
     end
@@ -974,9 +976,9 @@ SPM.swd        = pwd;
 %-Save analysis parameters in SPM.mat file
 %--------------------------------------------------------------------------
 if spm_matlab_version_chk('7') >=0
-    save('SPM','SPM','-V6');
+    save('SPM.mat','SPM','-V6');
 else
-    save('SPM','SPM');
+    save('SPM.mat','SPM');
 end
  
 %==========================================================================

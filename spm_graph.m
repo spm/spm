@@ -5,14 +5,14 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % xSPM   - structure containing SPM, distributional & filtering details
 %          about the excursion set
 % SPM    - structure containing generic details about the analysis
-% hReg   - handle of MIP register
+% hReg   - handle of MIP register or [x y z] coordinates
 %
 % Y      - fitted   data for the selected voxel
 % y      - adjusted data for the selected voxel
 % beta   - parameter estimates (ML or MAP)
 % Bcov   - Covariance of parameter estimates (ML or conditional)
 %
-% see spm_getSPM for details
+% See spm_getSPM for details.
 %__________________________________________________________________________
 %
 % spm_graph is a Callback script that uses the structures above to:  (i)
@@ -22,40 +22,39 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % a) Contrasts of parameter estimates (e.g. activations) and their
 % standard error.
 %
-% b) Fitted and adjusted responses that can be plotted against time,
-% scan, or an indicator variable in the design matrix.
+% b) Fitted and adjusted responses that can be plotted against time, scan,
+% or an indicator variable in the design matrix.
 %
 % c) (fMRI only).  Evoked responses using the basis functions to give
-% impulse responses that would have been seen in the absence of other effects.
-% The PSTH (peristimulus-time histogram) option provides a finite impulse
-% response (FIR) estimate of the trial-specific evoked response as a function
-% of peristimulus time.  This is estimated by refitting a convolution model
-% to the selected voxel using an FIR basis set.  This is simply a set of
-% small boxes covering successive time bins after trial onset.  The width
-% of each bin is usually the TR.  This option provides a more time-resolved
-% quantitative characterisation of the evoked hemodynamic response.  However,
-% it should not be over-interpreted because inference is usually made using a
-% simpler and more efficient basis set (e.g., canonical hrf, or canonical
-% plus time derivative).
+% impulse responses that would have been seen in the absence of other
+% effects. The PSTH (peristimulus-time histogram) option provides a finite
+% impulse response (FIR) estimate of the trial-specific evoked response as
+% a function of peristimulus time.  This is estimated by refitting a
+% convolution model to the selected voxel using an FIR basis set.  This is
+% simply a set of small boxes covering successive time bins after trial
+% onset.  The width of each bin is usually the TR.  This option provides a
+% more time-resolved quantitative characterisation of the evoked
+% hemodynamic response.  However, it should not be over-interpreted because
+% inference is usually made using a simpler and more efficient basis set
+% (e.g., canonical hrf, or canonical plus time derivative).
 %
 % Getting adjusted data:
 % Ensuring the data are adjusted properly can be important (e.g. in
 % constructing explanatory variables such as in a psychophysiological
 % interaction). To remove or correct for specific effects, specify an
 % appropriate F contrast and simply plot the fitted (and adjusted)
-% responses after selecting that F contrast.  The vectors Y (fitted)
-% and y (adjusted) in the workspace will now be corrected for the
-% effects in the reduced design matrix (X0) specified in the contrast
-% manager with the column indices (iX0) of the confounds in this
-% adjustment.
+% responses after selecting that F contrast. The vectors Y (fitted) and y
+% (adjusted) in the workspace will now be corrected for the effects in the
+% reduced design matrix (X0) specified in the contrast manager with the
+% column indices (iX0) of the confounds in this adjustment.
 %
 % Plotting data:
 % All data and graphics use filtered/whitened data and residuals. In PET
 % studies the parameter estimates and the fitted data are often the same
 % because the explanatory variables are simply indicator variables taking
-% the value of one.  Only contrasts previously defined can be plotted.
-% This ensures that the parameters plotted are meaningful even when there
-% is collinearity among the design matrix subpartitions.
+% the value of one.  Only contrasts previously defined can be plotted. This
+% ensures that the parameters plotted are meaningful even when there is
+% collinearity among the design matrix subpartitions.
 %
 % Selecting contrasts used for PPMs will automatically give plots
 % based on conditonal estimates.
@@ -64,13 +63,12 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 %                   contrast.standarderror = SE;
 %                   contrast.interval      = 2*CI;
 %
-% is assigned in base workspace for plots of contrasts and their error
+% is assigned in base workspace for plots of contrasts and their error.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 4083 2010-10-08 10:31:55Z guillaume $
-
+% $Id: spm_graph.m 4155 2011-01-11 15:22:39Z guillaume $
 
 
 %-Get Graphics figure handle
@@ -92,15 +90,18 @@ if isempty(xSPM.XYZmm)
     return
 end
 
-[xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
-spm_XYZreg('SetCoords',xyz,hReg);
-XYZ     = xSPM.XYZ(:,i);        % coordinates
+if numel(hReg) == 1
+    xyz = spm_XYZreg('GetCoords',hReg);
+else
+    xyz = hReg;
+end
+[xyz,i] = spm_XYZreg('NearestXYZ',xyz,xSPM.XYZmm);
+if numel(hReg) == 1, spm_XYZreg('SetCoords',xyz,hReg); end
+XYZ     = xSPM.XYZ(:,i);
 
-%-Plot
+
+%-Find out what to plot
 %==========================================================================
-
-% find out what to plot
-%--------------------------------------------------------------------------
 Cplot = {   'Contrast estimates and 90% C.I.',...
             'Fitted responses',...
             'Event-related responses',...
@@ -167,7 +168,7 @@ switch Cplot
 
 end
 
-spm('pointer','watch');
+spm('Pointer','Watch');
 
 %-Extract filtered and whitened data from files
 %==========================================================================
@@ -226,6 +227,7 @@ if isempty(y)
     R   = NaN(size(SPM.xX.X,1),1);
 
 else
+    
     % residuals (non-whitened)
     %----------------------------------------------------------------------
     R   = spm_sp('r',SPM.xX.xKXs,y);
@@ -296,9 +298,8 @@ else
         end
 
     else
-        Bcov  = SPM.PPM.Cby;
+        Bcov     = SPM.PPM.Cby;
         for j = 1:length(SPM.PPM.l)
-
             l    = spm_get_data(SPM.VHp(j),XYZ);
             Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
         end
@@ -306,7 +307,10 @@ else
 end
 CI    = 1.6449;                 % = spm_invNcdf(1 - 0.05);
 
-spm('pointer','arrow');
+spm('Pointer','Arrow');
+
+%-Plot
+%==========================================================================
 
 %-Colour specifications and index;
 %--------------------------------------------------------------------------
@@ -314,8 +318,8 @@ Col   = [0 0 0; .8 .8 .8; 1 .5 .5];
 
 switch Cplot
 
-    % plot parameter estimates
-    %----------------------------------------------------------------------
+    %-Plot parameter estimates
+    %======================================================================
     case 'Contrast estimates and 90% C.I.'
 
         % compute contrast of parameter estimates and 90% C.I.
@@ -358,8 +362,9 @@ switch Cplot
         %------------------------------------------------------------------
         Y = [];
 
-        % all fitted effects or selected effects
-        %------------------------------------------------------------------
+        
+    %-All fitted effects or selected effects
+    %======================================================================
     case 'Fitted responses'
 
         % predicted or adjusted response
@@ -398,8 +403,8 @@ switch Cplot
             x    = SPM.xX.xKXs.X(:,i);
             XLAB = SPM.xX.name{i};
 
-            % scan or time
-            %--------------------------------------------------------------
+        % scan or time
+        %------------------------------------------------------------------
         elseif Cx == 2
 
             if isfield(SPM.xY,'RT')
@@ -410,8 +415,8 @@ switch Cplot
                 XLAB = 'scan number';
             end
 
-            % user specified
-            %--------------------------------------------------------------
+        % user specified
+        %------------------------------------------------------------------
         elseif Cx == 3
 
             x    = spm_input('enter ordinate','!+1','e','',size(Y,1));
@@ -444,13 +449,14 @@ switch Cplot
         ylabel(['response',XYZstr])
         legend('fitted','plus error')
         hold off
-
-        % modeling evoked responses based on Sess
-        %------------------------------------------------------------------
+        
+        
+    %-Modeling evoked responses based on Sess
+    %======================================================================
     case 'Event-related responses'
 
         % get plot type
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         Rplot   = { 'fitted response and PSTH',...
             'fitted response and 90% C.I.',...
             'fitted response and adjusted data'};
@@ -465,8 +471,6 @@ switch Cplot
         %------------------------------------------------------------------
         switch TITLE
             case 'fitted response and PSTH'
-
-
                 % build a simple FIR model subpartition (X); bin size = TR
                 %----------------------------------------------------------
                 BIN         = SPM.xY.RT;
@@ -507,8 +511,6 @@ switch Cplot
                 PCI         = CI*sqrt(diag(bcov(1:j,(1:j))))/dt;
         end
 
-
-
         % basis functions and parameters
         %------------------------------------------------------------------
         X     = SPM.xBF.bf/dt;
@@ -529,8 +531,6 @@ switch Cplot
         y     = R(Sess(s).row(:));
         pst   = pst(q);
         y     = y(q) + Y(bin(q) + 1);
-
-
 
         % plot
         %------------------------------------------------------------------
@@ -557,7 +557,6 @@ switch Cplot
 
         end
 
-
         % label
         %------------------------------------------------------------------
         [i j] = max(Y);
@@ -568,10 +567,9 @@ switch Cplot
         hold off
 
 
-        % modeling evoked responses based on Sess
-        %------------------------------------------------------------------
+    %-Modeling evoked responses based on Sess
+    %======================================================================
     case 'Parametric responses'
-
 
         % return gracefully if no parameters
         %------------------------------------------------------------------
@@ -592,7 +590,6 @@ switch Cplot
             q = [q P.^i];
         end
         q     = spm_orth(q);
-
 
         % parameter estimates for this effect
         %------------------------------------------------------------------
@@ -634,8 +631,8 @@ switch Cplot
         grid on
 
 
-        % modeling evoked responses based on Sess
-        %------------------------------------------------------------------
+    %-Modeling evoked responses based on Sess
+    %======================================================================
     case 'Volterra Kernels'
 
         % Parameter estimates and basis functions
@@ -680,11 +677,11 @@ switch Cplot
             xlabel('peristimulus time {secs}')
 
 
-            % first  order kernel
-            %--------------------------------------------------------------
+        % first  order kernel
+        %------------------------------------------------------------------
         else
-            B     = beta(Sess(s).Fc(u).i(1:size(bf,2)));
-            Y     = bf*B;
+            B = beta(Sess(s).Fc(u).i(1:size(bf,2)));
+            Y = bf*B;
 
             % plot
             %--------------------------------------------------------------

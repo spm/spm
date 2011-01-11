@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4072 2010-09-23 15:45:58Z will $
+% $Id: spm_contrasts.m 4155 2011-01-11 15:22:39Z guillaume $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -281,8 +281,8 @@ SPM.xCon = xCon;
 %--------------------------------------------------------------------------
 if ~isequal(tmpSPM,SPM)
     if spm_matlab_version_chk('7') >=0
-        save('SPM', 'SPM', '-V6');
+        save('SPM.mat', 'SPM', '-V6');
     else
-        save('SPM', 'SPM');
+        save('SPM.mat', 'SPM');
     end
 end

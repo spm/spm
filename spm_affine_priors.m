@@ -1,6 +1,13 @@
 function [mu,isig] = spm_affine_priors(typ)
+% Distribution of the priors used in affine registration
+%
 % The parameters for this distribution were derived empirically from 227
 % scans, that were matched to the ICBM space.
+%_______________________________________________________________________
+% Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
+
+% John Ashburner
+% $Id: spm_affine_priors.m 4155 2011-01-11 15:22:39Z guillaume $
 
 %% Values can be derived by...
 %sn = spm_select(Inf,'.*seg_inv_sn.mat$');
@@ -76,5 +83,4 @@ case 'none', % No regularisation...
 
 otherwise
     error(['"' typ '" not recognised as type of regularisation.']);
-end;
-return;
+end

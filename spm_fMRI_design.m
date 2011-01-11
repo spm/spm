@@ -164,10 +164,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_fMRI_design.m 4155 2011-01-11 15:22:39Z guillaume $
 
 
-SVNid = '$Rev: 3691 $';
+SVNid = '$Rev: 4155 $';
 
 %-GUI setup
 %--------------------------------------------------------------------------
@@ -366,9 +366,9 @@ if save_SPM
     %----------------------------------------------------------------------
     fprintf('%-40s: ','Saving fMRI design')                             %-#
     if spm_matlab_version_chk('7') >= 0,
-        save('SPM', 'SPM', '-V6');
+        save('SPM.mat', 'SPM', '-V6');
     else
-        save('SPM', 'SPM');
+        save('SPM.mat', 'SPM');
     end
     fprintf('%30s\n','...SPM.mat saved');
 end
