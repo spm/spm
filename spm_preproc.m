@@ -18,10 +18,11 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_preproc.m 4160 2011-01-13 13:36:02Z volkmar $
 
 
 opts0     = rmfield(spm_get_defaults('preproc'),'output');
+opts0.tpm = char(opts0.tpm); % In defaults, tpms are stored as cellstr
 opts0.msk = '';
 
 if nargin==0
