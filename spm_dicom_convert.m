@@ -33,7 +33,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4144 2010-12-23 14:48:40Z john $
+% $Id: spm_dicom_convert.m 4162 2011-01-13 19:46:03Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -337,11 +337,11 @@ for j=1:length(vol),
         if any(diff(z)==0)
             tmp = sort_into_vols_again(vol{j});
             vol{j} = tmp{1};
-            vol2 = [vol2 tmp(2:end)];
+            vol2 = {vol2{:} tmp{2:end}};
         end;
     end;
 end;
-vol = [vol vol2];
+vol = {vol{:} vol2{:}};
 for j=1:length(vol),
     if length(vol{j})>1,
         orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
@@ -443,7 +443,7 @@ while ~all(d),
     volj(i)   = volj(i(si));
     for i1=1:length(i),
         if length(vol2)<i1, vol2{i1} = {}; end;
-        vol2{i1} = [vol2(i1) volj(i(i1))];
+        vol2{i1} = {vol2{i1}{:} volj{i(i1)}};
     end;
     d(i) = 1;
 end;
@@ -838,9 +838,9 @@ for i=1:length(hdr),
         % NumberOfImagesInMosaic seems to be set to zero for pseudo images
         % containing e.g. online-fMRI design matrices, don't treat them as
         % mosaics
-        standard = [standard,hdr(i)];
+        standard = {standard{:}, hdr{i}};
     else
-        mosaic = [mosaic,hdr(i)];
+        mosaic = {mosaic{:},hdr{i}};
     end;
 end;
 return;
@@ -991,7 +991,7 @@ for i=1:length(str),
     if strcmp(deblank(str(i).name),name),
         for j=1:str(i).nitems,
             if  str(i).item(j).xx(1),
-                val = [val {str(i).item(j).val}];
+                val = {val{:} str(i).item(j).val};
             end;
         end;
         break;
