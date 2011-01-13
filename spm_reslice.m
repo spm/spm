@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_reslice.m 4163 2011-01-13 20:47:40Z guillaume $
 
 %__________________________________________________________________________
 %
@@ -104,7 +104,7 @@ else
     fnms = fieldnames(def_flags);
     for i=1:length(fnms)
         if ~isfield(flags,fnms{i})
-            flags.(fnms{i}) = def_flags(fnms{i});
+            flags.(fnms{i}) = def_flags.(fnms{i});
         end
     end
 end
