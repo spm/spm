@@ -29,9 +29,9 @@ function [S, Pout] = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 4106 2010-11-01 11:27:09Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 4164 2011-01-14 14:42:06Z vladimir $
 
-SVNrev = '$Rev: 4106 $';
+SVNrev = '$Rev: 4164 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -134,7 +134,7 @@ end
 [sts, msg] = mkdir(P, F);
 if ~sts, error(msg); end
 P  = fullfile(P, F);
-if isfield(S.images,'region_no')
+if isfield(S, 'images') && isfield(S.images,'region_no')
     F = sprintf('%dROI', S.images.region_no);
     [sts, msg] = mkdir(P, F);
     if ~sts, error(msg); end
