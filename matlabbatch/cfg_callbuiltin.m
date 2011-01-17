@@ -1,4 +1,4 @@
-function varargout = callbuiltin(varargin)
+function varargout = cfg_callbuiltin(varargin)
 if nargout == 0
     try
         varargout{1} = builtin(varargin{:});

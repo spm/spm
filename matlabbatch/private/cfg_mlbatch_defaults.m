@@ -11,26 +11,30 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 3792 2010-03-22 13:11:36Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 4166 2011-01-17 15:06:41Z volkmar $
 
-rev = '$Rev: 3792 $'; %#ok
+rev = '$Rev: 4166 $'; %#ok
 
-% Font definition for cfg_ui user interface
-% cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
-% lfont: used in lists, value edit dialogues etc.
-cfg_defaults.cfg_ui.lfont.FontAngle  = 'normal';
-cfg_defaults.cfg_ui.lfont.FontName   = get(0,'factoryTextFontName');
-cfg_defaults.cfg_ui.lfont.FontSize   = 12;
-cfg_defaults.cfg_ui.lfont.FontUnits  = 'points';
-cfg_defaults.cfg_ui.lfont.FontWeight = 'normal';
-% bfont: used for buttons
-cfg_defaults.cfg_ui.bfont.FontAngle  = get(0, 'factoryUicontrolFontAngle');
-cfg_defaults.cfg_ui.bfont.FontName   = get(0,'factoryUicontrolFontName');
-cfg_defaults.cfg_ui.bfont.FontSize   = get(0, 'factoryUicontrolFontSize');
-cfg_defaults.cfg_ui.bfont.FontUnits  = get(0, 'factoryUicontrolFontUnits');
-cfg_defaults.cfg_ui.bfont.FontWeight = get(0, 'factoryUicontrolFontWeight');
-% Toggle ExpertEdit mode. Value can be 'on' or 'off'
-cfg_defaults.cfg_ui.ExpertEdit = 'off';
+try
+    % Font definition for cfg_ui user interface
+    % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
+    % lfont: used in lists, value edit dialogues etc.
+    cfg_defaults.cfg_ui.lfont.FontAngle  = 'normal';
+    cfg_defaults.cfg_ui.lfont.FontName   = get(0,'factoryTextFontName');
+    cfg_defaults.cfg_ui.lfont.FontSize   = 12;
+    cfg_defaults.cfg_ui.lfont.FontUnits  = 'points';
+    cfg_defaults.cfg_ui.lfont.FontWeight = 'normal';
+    % bfont: used for buttons
+    cfg_defaults.cfg_ui.bfont.FontAngle  = get(0, 'factoryUicontrolFontAngle');
+    cfg_defaults.cfg_ui.bfont.FontName   = get(0,'factoryUicontrolFontName');
+    cfg_defaults.cfg_ui.bfont.FontSize   = get(0, 'factoryUicontrolFontSize');
+    cfg_defaults.cfg_ui.bfont.FontUnits  = get(0, 'factoryUicontrolFontUnits');
+    cfg_defaults.cfg_ui.bfont.FontWeight = get(0, 'factoryUicontrolFontWeight');
+    % Toggle ExpertEdit mode. Value can be 'on' or 'off'
+    cfg_defaults.cfg_ui.ExpertEdit = 'off';
+catch
+    cfg_defaults.cfg_ui = false;
+end
 
 % cfg_util
 % Parallel execution of independent modules

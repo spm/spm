@@ -375,9 +375,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: cfg_util.m 4166 2011-01-17 15:06:41Z volkmar $
 
-rev = '$Rev: 4073 $';
+rev = '$Rev: 4166 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1031,7 +1031,8 @@ function varargout = local_cd(pth)
 % Try to work around some unexpected behaviour of MATLAB's cd command
 if ~isempty(pth)
     if ischar(pth)
-        wd = cd(pth);
+        wd = pwd;
+        cd(pth);
     else
         cfg_message('matlabbatch:usage','CD: path must be a string.');
     end
