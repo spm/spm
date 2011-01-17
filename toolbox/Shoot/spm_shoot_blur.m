@@ -20,12 +20,12 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4103 2010-10-28 15:43:16Z john $
+% $Id: spm_shoot_blur.m 4165 2011-01-17 14:40:27Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 12;                            end; % Maximum no. iterations
 if nargin<2, prm = [2, 1,1,1, 1,0.01,0.01];       end; % Default regularisation
-rits = [2 2]; % No. cycles and no. relaxation iterations
+rits = [1 2]; % No. cycles and no. relaxation iterations
 
 W    = zeros([d(1:3) round(((d(4)-1)*d(4))/2)],'single'); % 2nd derivatives
 gr   = zeros([d(1:3),d(4)-1],'single');                   % 1st derivatives
