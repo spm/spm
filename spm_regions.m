@@ -42,10 +42,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 3812 2010-04-07 16:52:05Z karl $
+% $Id: spm_regions.m 4167 2011-01-19 16:32:53Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -122,7 +122,11 @@ xY.M = xSPM.M;
 try, xY = rmfield(xY,'M'); end
 try, xY = rmfield(xY,'rej'); end
 
-if isempty(xY.XYZmm), error('Empty region.'); end
+if isempty(xY.XYZmm)
+    warning('Empty region.');
+    Y = [];
+    return;
+end
 
 
 %-Extract required data from results files
@@ -243,7 +247,7 @@ end
 %==========================================================================
 str = ['VOI_' xY.name];
 if isfield(xY,'Sess') && isfield(SPM,'Sess')
-    str = sprintf('VOI_%s_%i',xY.name,xY.Sess);
+    str = sprintf('VOI_%s_%i.mat',xY.name,xY.Sess);
 end
 if spm_matlab_version_chk('7') >= 0
     save(fullfile(SPM.swd,str),'-V6','Y','xY')
@@ -251,8 +255,7 @@ else
     save(fullfile(SPM.swd,str),'Y','xY')
 end
 
-fprintf('   VOI saved as %s\n', ...
-    spm_str_manip(fullfile(SPM.swd,[str '.mat']),'k55'));               %-#
+fprintf('   VOI saved as %s\n',spm_str_manip(fullfile(SPM.swd,str),'k55'));
 
 %-Reset title
 %--------------------------------------------------------------------------
