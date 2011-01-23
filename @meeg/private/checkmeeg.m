@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4104 2010-10-29 17:10:57Z vladimir $
+% $Id: checkmeeg.m 4168 2011-01-23 18:42:04Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -240,8 +240,10 @@ else
                 error('Unknown transform type');
         end
         % and restore original file_array scale, if available (exist) & useful (~=[])
-        if exist('sav_sc','var') && ~isempty(sav_sc)
-            meegstruct.data.y.scl_slope = sav_sc;
+        if exist('sav_sc','var') && ~isempty(sav_sc) && ...
+                ~strncmpi(meegstruct.data.y.dtype, 'float', 5) && ...
+                   size(meegstruct.data.y, 1) == length(sav_sc)            
+           meegstruct.data.y.scl_slope = sav_sc;
         end
         
     end
