@@ -4,14 +4,14 @@
 % Model) of fMRI respsosnes using simulated data. This is an endogenous 
 % DCM in that there are no exogenous inputs. The demonstration specifies 
 % and inverts a full connectivity model and then illustrates post-hoc model
-% optimisation to recovery (discover) the true architecture. It concludes 
+% optimisation to recover (discover) the true architecture. It concludes 
 % with an automatic model optimization in terms of the prior variances over
 % coupling parameters.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_DCM_LAP.m 4170 2011-01-24 18:37:42Z karl $
  
 % Specify a DCM to generte synthetic data
 %==========================================================================

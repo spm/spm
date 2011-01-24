@@ -1,6 +1,6 @@
-% Demo for a bird songs: In this example, we show that DEM can not only
+% Demo for bird songs: In this example, we show that DEM can not only
 % estimate the hidden states of an autonomous system but can also
-% deconvolve dynamics changes in its control parameters.  We illustrate
+% deconvolve dynamic changes in its control parameters.  We illustrate
 % this using a slow Lorentz attractor to drive a fast one; both  showing
 % deterministic chaos.  We endow the simulations with a little ethological
 % validity by using the states of the fast Lorentz attractor as control
@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: DEM_demo_song_omission.m 4170 2011-01-24 18:37:42Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)

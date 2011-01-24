@@ -1,14 +1,14 @@
 function spm_DEM_ButtonDownFcn
-% ButtonDownFcn to play a movie or sound on button press
+% ButtonDownFcn to play (or save) a movie or sound on button press
 % FORMAT spm_DEM_ButtonDownFcn
 %
-% Require gcbo to have appropriate UserData; see spm_DEM_movie and
+% Requires gcbo to have appropriate UserData; see spm_DEM_movie and
 % spm_DEM_play_song
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 3774 2010-03-11 19:20:11Z karl $
+% $Id: spm_DEM_ButtonDownFcn.m 4170 2011-01-24 18:37:42Z karl $
  
 % default
 %--------------------------------------------------------------------------

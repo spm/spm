@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_DEM_qU.m 4170 2011-01-24 18:37:42Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ for i = 1:g
  
     if N == 1
  
-        % causal states and error - single observation
+        % hidden causes and error - single observation
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         t = 1:size(V{i},1);
@@ -91,7 +91,7 @@ for i = 1:g
  
     else
  
-        % causal states and error - time series
+        % hidden causes and error - time series
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
@@ -102,7 +102,7 @@ for i = 1:g
             plot(t,full(V{i}))
         end
         try
-            plot(t,full(E{i}(:,1:N)),'r:')
+            plot(t,full(E{i}),'r:')
         end
         box off, hold off
         set(gca,'XLim',[t(1) t(end)])
@@ -121,7 +121,7 @@ for i = 1:g
                 plot(t,pV{i},':k','linewidth',1)
             end
             try
-                plot(full(E{i}(:,1:N)),'r:')
+                plot(t,full(E{i}),'r:')
             end
             plot(t,full(V{i})),box off
             hold off

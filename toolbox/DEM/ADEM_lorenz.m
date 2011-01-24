@@ -9,7 +9,7 @@
 % generative model
 %==========================================================================
 clear
-DEMO     = 0;                          % switch for demo
+DEMO     = 1;                          % switch for demo
 G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
@@ -143,7 +143,7 @@ if DEMO
     save DEM_lorenz G DEM
 else
     try
-    load DEM_lorenz
+        load DEM_lorenz
     catch
         disp({'sorry; the previously prepared .mat file is not compatible';
               'with your version of matlab - run this routine with DEMO = 1'})
@@ -159,7 +159,7 @@ spm_DEM_qU(DEM.qU)
 % replace priors with learned conditional expectation and plot
 %--------------------------------------------------------------------------
 M             = DEM.M;
-M(1).E.linear = 3;                     % nonlinear
+M(1).E.linear = 3;
 
 spm_figure('GetWin','Graphics');
 subplot(3,2,5)

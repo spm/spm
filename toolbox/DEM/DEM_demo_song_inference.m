@@ -1,22 +1,25 @@
-% Demo for a bird songs: In this example, we show that DEM can not only
-% estimate the hidden states of an autonomous system but can also
-% deconvolve dynamics changes in its control parameters.  We illustrate
-% this using a slow Lorentz attractor to drive a fast one; both  showing
-% deterministic chaos.  We endow the simulations with a little ethological
-% validity by using the states of the fast Lorentz attractor as control
-% variables in the syrinx of a song bird (usually these would control a van
-% der Pol oscillator model). We will look at the true and inferred songs
-% with and without the last part missing.  When sonograms are displayed the
-% song can be played by a mouse click on the image. The final plots show
-% simulated event related potential to show that there is a marked
-% responses (prediction error) of the system when an expected ‘syllable’ is
-% omitted. This demonstrates the implicit sequence-decoding of input
-% streams, using uncontrollable state-space models
+% Perceptual categorisation of bird songs: The generative model of 
+% birdsong used in this simulation comprises a Lorenz attractor with two 
+% control parameters (or hidden causes), which, in turn, delivers two 
+% control parameters to a synthetic syrinx to produce ‘chirps’ that are 
+% modulated in amplitude and frequency.  The chirps were then presented 
+% as a stimulus to a synthetic bird to see if it could infer the 
+% underlying causal states and thereby categorise the song. This entails 
+% minimising free energy by changing the internal representation of the 
+% control parameters. Each simulated song comprises a series of chirps 
+% whose frequency and number fall progressively from song a to song c, 
+% as a causal state (known as the Raleigh number) is decreased.  The 
+% simulations show that the causes are identified after about 600 
+% milliseconds with high conditional precision (90% confidence intervals 
+% are shown in grey). These simulations illustrate the nature of 
+% perceptual categorisation under generalised predictive coding: Here, 
+% recognition corresponds to mapping from a continuously changing and 
+% chaotic sensory input to a fixed point in perceptual space.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_song_inference.m 4170 2011-01-24 18:37:42Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
