@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4098 2010-10-22 19:46:28Z karl $
+% $Id: spm_nlsi_N.m 4169 2011-01-24 18:34:20Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -448,7 +448,7 @@ for ip = 1:64
  
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1/2,4);
+        v     = min(v + 1/2,8);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -473,7 +473,7 @@ for ip = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        v     = min(v - 2,-4);
+        v     = min(v - 2,0);
         str   = 'EM(-)';
  
     end

@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_erp_priors.m 4169 2011-01-24 18:34:20Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ end
 for i = 1:length(B)
       B{i} = ~~B{i};
     E.B{i} = 0*B{i};                              % input-dependent scaling
-    V.B{i} = B{i}/16;
+    V.B{i} = B{i}/8;
     Q      = Q | B{i};
 end
 C      = ~~C;

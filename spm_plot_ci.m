@@ -14,7 +14,7 @@ function spm_plot_ci(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4099 2010-10-22 19:47:37Z karl $
+% $Id: spm_plot_ci.m 4169 2011-01-24 18:34:20Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -57,10 +57,10 @@ if iscell(C)
     end
 else
     if isvector(C)
-        c = ci*sqrt(C(j));
+        c = ci*sqrt(C);
     else
         C = diag(C);
-        c = ci*sqrt(C(j));
+        c = ci*sqrt(C(j,:));
     end
 end
 
