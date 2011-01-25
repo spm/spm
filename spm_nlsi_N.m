@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4169 2011-01-24 18:34:20Z karl $
+% $Id: spm_nlsi_N.m 4171 2011-01-25 19:00:40Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -335,7 +335,7 @@ for ip = 1:64
         % Optimize F(h): parameters of iS(h)
         %==================================================================
         dgdb   = [dgdp dgdg dgdu];           
-        for ih = 1:8
+        for ih = 1:16
  
             % precision
             %--------------------------------------------------------------
@@ -407,7 +407,7 @@ for ip = 1:64
         %------------------------------------------------------------------
         dg    = spm_dx(dFdgg,dFdg,{8});
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
- 
+         
         % convergence
         %------------------------------------------------------------------
         dG    = dFdg'*dg;

@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_x_neural.m 4171 2011-01-25 19:00:40Z karl $
 
 
 % initial state and equation
@@ -35,7 +35,7 @@ switch lower(model)
         % inital states
         %------------------------------------------------------------------
         x  =  spm_x_erp(P);
-        f  = 'spm_fx_erp';
+        f  = 'spm_fx_sep';
         
     % linear David et al model (linear in states) - with self-inhibition
     %======================================================================

@@ -24,8 +24,8 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 %  M.pF.E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
 %  M.pF.G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
 %  M.pF.D = [2 32];              % propogation delays (intrinsic, extrinsic)
-%  M.pF.H = [4 32];              % receptor densities (excitatory, inhibitory)
-%  M.pF.T = [8 16];              % synaptic constants (excitatory, inhibitory)
+%  M.pF.H = [4 48];              % receptor densities (excitatory, inhibitory)
+%  M.pF.T = [4 8];               % synaptic constants (excitatory, inhibitory)
 %  M.pF.R = [2 1]/4;             % parameter of static nonlinearity
 %
 %__________________________________________________________________________
@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 4171 2011-01-25 19:00:40Z karl $
+% $Id: spm_fx_sep.m 4171 2011-01-25 19:00:40Z karl $
 
 
 
@@ -50,9 +50,9 @@ x  = spm_unvec(x,M.x);      % neuronal states
 E = [32 16 4];              % extrinsic rates (forward, backward, lateral)
 G = [1 4/5 1/4 1/4]*128;    % intrinsic rates (g1 g2 g3 g4)
 D = [2 32];                 % propogation delays (intrinsic, extrinsic)
-H = [4 32];                 % receptor densities (excitatory, inhibitory)
-T = [8 16];                 % synaptic constants (excitatory, inhibitory)
-R = [2 1]/2;                % parameters of static nonlinearity
+H = [4 48];                 % receptor densities (excitatory, inhibitory)
+T = [4 8];                  % synaptic constants (excitatory, inhibitory)
+R = [2 1]/4;                % parameters of static nonlinearity
 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
