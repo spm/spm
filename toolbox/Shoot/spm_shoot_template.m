@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4077 2010-10-06 15:50:20Z john $
+% $Id: spm_shoot_template.m 4174 2011-01-26 13:33:13Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -311,8 +311,7 @@ end
 
 if any(~ok)
     fprintf('Problems with:\n');
-    nok = find(~ok);
-    for i=nok
+    for i=find(~ok)',
         fprintf('\t%s\n', NU(i).dat.fname);
     end
 end

@@ -20,12 +20,12 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4165 2011-01-17 14:40:27Z john $
+% $Id: spm_shoot_blur.m 4174 2011-01-26 13:33:13Z john $
 
 d   = [size(t),1,1,1];
-if nargin<3, its = 12;                            end; % Maximum no. iterations
+if nargin<3, its = 16;                            end; % Maximum no. iterations
 if nargin<2, prm = [2, 1,1,1, 1,0.01,0.01];       end; % Default regularisation
-rits = [1 2]; % No. cycles and no. relaxation iterations
+rits = [1 1]; % No. cycles and no. relaxation iterations
 
 W    = zeros([d(1:3) round(((d(4)-1)*d(4))/2)],'single'); % 2nd derivatives
 gr   = zeros([d(1:3),d(4)-1],'single');                   % 1st derivatives
@@ -36,8 +36,8 @@ s    = sum(t,4);
 for k=1:d(4),
     t(:,:,:,k) = t(:,:,:,k)./s;
 end
-maxs  = max(s(:)); % Used for scaling the regularisation
-prm(end) = prm(end)+maxs*sqrt(eps('single'));
+maxs     = max(s(:)); % Used for scaling the regularisation
+prm(end) = prm(end)+maxs*d(4)*1e-3;
 
 % Only d(4)-1 fields need to be estimated because sum(a,4) = 0.  This matrix
 % is used to rotate out the null space
@@ -152,7 +152,7 @@ for i=1:its,
    %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
     a   = a - optimN(W,gr,[prm(1:6) prm(7)+reg rits]); % Gauss-Newton update
 
-    if ss2/ss1<1e-5, break; end        % Converged?
+    if ss2/ss1<1e-4, break; end        % Converged?
 end
 
 sig = sftmax(a,R);
