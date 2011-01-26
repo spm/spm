@@ -23,7 +23,7 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_smooth.m 4172 2011-01-26 12:13:29Z guillaume $
 
 
 %-----------------------------------------------------------------------
@@ -55,7 +55,7 @@ if ischar(Q) && isstruct(P),
     Q         = P;
     Q.fname   = q;
     if ~isempty(num),
-        Q.n       = str2double(num);
+        Q.n       = str2num(num);
     end;
     if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end;
     Q.descrip = sprintf('%s - conv(%g,%g,%g)',Q.descrip, s);
