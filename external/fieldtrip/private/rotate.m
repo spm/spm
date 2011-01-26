@@ -1,4 +1,4 @@
-function [H] = rotate(D);
+function [H] = rotate(f)
 
 % ROTATE returns the homogenous coordinate transformation matrix
 % corresponding to a rotation around the x, y and z-axis. The direction of
@@ -46,15 +46,19 @@ function [H] = rotate(D);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rotate.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: rotate.m 2638 2011-01-25 21:50:19Z roboos $
+
+if numel(f)~=3
+  error('incorrect input vector');
+end
 
 % convert degrees to radians
-R = D*pi/180;
+f = f*pi/180;
 
 % get the individual angles (in radians)
-rx = R(1);
-ry = R(2);
-rz = R(3);
+rx = f(1);
+ry = f(2);
+rz = f(3);
 
 % precompute the sin/cos values of the angles
 cX = cos(rx);

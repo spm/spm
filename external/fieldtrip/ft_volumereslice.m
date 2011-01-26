@@ -1,24 +1,29 @@
 function mri = ft_volumereslice(cfg, mri)
 
-% FT_VOLUMERESLICE reslices a volume along the principal axes of the
-% coordinate system according to a specified resolution.
+% FT_VOLUMERESLICE interpolates and reslices a volume along the
+% principal axes of the coordinate system according to a specified
+% resolution.
 %
 % Use as
 %   mri = ft_volumereslice(cfg, mri)
 % where the mri contains an anatomical or functional volume and cfg is a
 % configuration structure containing
+%   cfg.resolution = number, in physical units
+% The new spatial extent can be specified with
 %   cfg.xrange     = [min max], in physical units
 %   cfg.yrange     = [min max], in physical units
 %   cfg.zrange     = [min max], in physical units
-%   cfg.resolution = number, in physical units
+% or alternatively with
+%   cfg.dim        = [nx ny nz], size of the volume in each direction
 %
 % See also FT_VOLUMEDOWNSAMPLE, FT_SOURCEINTERPOLATE
 
 % Undocumented local options:
 %   cfg.inputfile        = one can specifiy preanalysed saved data as input
 %   cfg.outputfile       = one can specify output as file to save to disk
+%   cfg.downsample
 
-% Copyright (C) 2010, Robert Oostenveld
+% Copyright (C) 2010-2011, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -36,7 +41,9 @@ function mri = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 2410 2010-12-14 13:59:37Z eelspa $
+% $Id: ft_volumereslice.m 2645 2011-01-26 08:05:32Z roboos $
+
+ft_defaults
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -46,6 +53,13 @@ if ~isfield(cfg, 'resolution');   cfg.resolution   = 1;         end % in physica
 if ~isfield(cfg, 'downsample');   cfg.downsample   = 1;         end
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile    = [];        end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile   = [];        end
+
+if isfield(cfg, 'dim')
+  % a dimension of 2 should result in voxels at -0.5 and 0.5, i.e. two voxels centered at zero
+  cfg.xrange = [-cfg.dim(1)/2+0.5 cfg.dim(1)/2-0.5] * cfg.resolution;
+  cfg.yrange = [-cfg.dim(2)/2+0.5 cfg.dim(2)/2-0.5] * cfg.resolution;
+  cfg.zrange = [-cfg.dim(3)/2+0.5 cfg.dim(3)/2-0.5] * cfg.resolution;
+end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -77,7 +91,7 @@ zgrid = cfg.zrange(1):cfg.resolution:cfg.zrange(2);
 
 pseudomri           = [];
 pseudomri.dim       = [length(xgrid) length(ygrid) length(zgrid)];
-pseudomri.transform = translate([cfg.xrange(1) cfg.yrange(1) cfg.zrange(1)]) * scale([cfg.resolution cfg.resolution cfg.resolution]);
+pseudomri.transform = translate([cfg.xrange(1) cfg.yrange(1) cfg.zrange(1)]) * scale([cfg.resolution cfg.resolution cfg.resolution]) * translate([-1 -1 -1]);
 pseudomri.anatomy   = zeros(pseudomri.dim, 'int8');
 
 clear xgrid ygrid zgrid
@@ -93,7 +107,7 @@ cfg.outputfile;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumereslice.m 2410 2010-12-14 13:59:37Z eelspa $';
+cfg.version.id = '$Id: ft_volumereslice.m 2645 2011-01-26 08:05:32Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -100,7 +100,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_multiplotER.m 2642 2011-01-25 22:20:12Z roboos $
 
 ft_defaults
 
@@ -472,7 +472,6 @@ ft_plot_text( x2,y2,num2str(ylim(2),3),'HorizontalAlignment','Left','VerticalAli
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotWnd(x,y,xidc,xlim,ylim,xpos,ypos,width,height,label,cfg,color,mask)
-set(gca,'FontSize',cfg.fontsize);
 
 x = x(xidc);
 y = y(xidc);

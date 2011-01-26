@@ -1,4 +1,4 @@
-function [H] = scale(S);
+function [H] = scale(f)
 
 % SCALE returns the homogenous coordinate transformation matrix
 % corresponding to a scaling along the x, y and z-axis
@@ -41,12 +41,16 @@ function [H] = scale(S);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scale.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: scale.m 2639 2011-01-25 21:52:13Z roboos $
+
+if numel(f)~=3
+  error('incorrect input vector');
+end
 
 H = [
-  S(1) 0    0    0 
-  0    S(2) 0    0
-  0    0    S(3) 0
+  f(1) 0    0    0 
+  0    f(2) 0    0
+  0    0    f(3) 0
   0    0    0    1
   ];
 

@@ -89,7 +89,7 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_headmodelplot.m 2574 2011-01-13 10:27:38Z roboos $
 
 ft_defaults
 
@@ -146,8 +146,23 @@ if strcmp(cfg.plotgrid, 'yes')
     sourcegrid.inside   = cfg.grid.inside;
     sourcegrid.outside  = cfg.grid.outside;
   else
-    % construct the grid according to the configuration
-    sourcegrid = prepare_dipole_grid(cfg, vol, sens);
+    % construct the dipole grid according to the configuration
+    tmpcfg = [];
+    tmpcfg.vol  = vol;
+    tmpcfg.grad = sens; % this can be electrodes or gradiometers
+    % copy all options that are potentially used in ft_prepare_sourcemodel
+    try, tmpcfg.grid        = cfg.grid;         end
+    try, tmpcfg.mri         = cfg.mri;          end
+    try, tmpcfg.headshape   = cfg.headshape;    end
+    try, tmpcfg.tightgrid   = cfg.tightgrid;    end
+    try, tmpcfg.symmetry    = cfg.symmetry;     end
+    try, tmpcfg.smooth      = cfg.smooth;       end
+    try, tmpcfg.threshold   = cfg.threshold;    end
+    try, tmpcfg.spheremesh  = cfg.spheremesh;   end
+    try, tmpcfg.inwardshift = cfg.inwardshift;  end
+    try, tmpcfg.mriunits    = cfg.mriunits;     end
+    try, tmpcfg.sourceunits = cfg.sourceunits;  end
+    [sourcegrid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
   end
 else
   % construct an empty dipole grid

@@ -140,7 +140,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_dipolefitting.m 2574 2011-01-13 10:27:38Z roboos $
 
 ft_defaults
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -321,9 +321,25 @@ if strcmp(cfg.gridsearch, 'yes')
   else
     error('dipole scanning is only possible for a single dipole or a symmetric dipole pair');
   end
-  
-  % construct the grid on which the scanning will be done
-  [grid, cfg] = prepare_dipole_grid(cfg, vol, sens);
+
+  % construct the dipole grid on which the gridsearch will be done
+  tmpcfg = [];
+  tmpcfg.vol  = vol;
+  tmpcfg.grad = sens; % this can be electrodes or gradiometers
+  % copy all options that are potentially used in ft_prepare_sourcemodel
+  try, tmpcfg.grid        = cfg.grid;         end
+  try, tmpcfg.mri         = cfg.mri;          end
+  try, tmpcfg.headshape   = cfg.headshape;    end
+  try, tmpcfg.tightgrid   = cfg.tightgrid;    end
+  try, tmpcfg.symmetry    = cfg.symmetry;     end
+  try, tmpcfg.smooth      = cfg.smooth;       end
+  try, tmpcfg.threshold   = cfg.threshold;    end
+  try, tmpcfg.spheremesh  = cfg.spheremesh;   end
+  try, tmpcfg.inwardshift = cfg.inwardshift;  end
+  try, tmpcfg.mriunits    = cfg.mriunits;     end
+  try, tmpcfg.sourceunits = cfg.sourceunits;  end
+  [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+
   ft_progress('init', cfg.feedback, 'scanning grid');
   for i=1:length(grid.inside)
     ft_progress(i/length(grid.inside), 'scanning grid location %d/%d\n', i, length(grid.inside));
@@ -564,7 +580,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_dipolefitting.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_dipolefitting.m 2574 2011-01-13 10:27:38Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

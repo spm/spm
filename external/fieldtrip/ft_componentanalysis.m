@@ -55,7 +55,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 2514 2010-12-24 13:12:34Z jansch $
+% $Id: ft_componentanalysis.m 2602 2011-01-19 13:37:55Z sashae $
 
 ft_defaults
 
@@ -442,7 +442,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 2514 2010-12-24 13:12:34Z jansch $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 2602 2011-01-19 13:37:55Z sashae $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -452,6 +452,15 @@ if isfield(data, 'cfg'), cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 comp.cfg = cfg;
+
+% copy the sampleinfo into the output
+if isfield(data, 'sampleinfo')
+  comp.sampleinfo = data.sampleinfo;
+end
+% copy the trialinfo into the output
+if isfield(data, 'trialinfo')
+  comp.trialinfo = data.trialinfo;
+end
 
 fprintf('total time in componentanalysis %.1f seconds\n', toc);
 

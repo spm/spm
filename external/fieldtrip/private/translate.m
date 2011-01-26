@@ -1,4 +1,4 @@
-function [H] = translate(T);
+function [H] = translate(f)
 
 % TRANSLATE returns the homogenous coordinate transformation matrix
 % corresponding to a translation along the x, y and z-axis
@@ -41,11 +41,15 @@ function [H] = translate(T);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: translate.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: translate.m 2638 2011-01-25 21:50:19Z roboos $
+
+if numel(f)~=3
+  error('incorrect input vector');
+end
 
 H = [
-  1 0 0 T(1)
-  0 1 0 T(2)
-  0 0 1 T(3)
+  1 0 0 f(1)
+  0 1 0 f(2)
+  0 0 1 f(3)
   0 0 0 1
   ];

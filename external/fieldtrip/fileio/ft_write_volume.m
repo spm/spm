@@ -1,6 +1,6 @@
 function [V] = ft_write_volume(filename, dat, varargin)
 
-% FT_WRITE_DATA exports volumetric data to a file.
+% FT_WRITE_VOLUME exports volumetric data to a file.
 %
 % Use as
 %   V = ft_write_volume(filename, dat, ...)
@@ -9,8 +9,11 @@ function [V] = ft_write_volume(filename, dat, varargin)
 % but that is not required since it will be added automatically.
 %
 % Additional options should be specified in key-value pairs and can be
-%   'spmversion'     spmversion to be used
+%   'spmversion'     spmversion to be used (in case data needs to be
+%                      written in analyze format
 %   'dataformat'     string, see below
+%   'transform'      transformation matrix, specifying the transformation
+%                      from voxel coordinates to head coordinates
 %
 % The supported dataformats are
 %   analyze
@@ -37,11 +40,11 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id:$
 
 % get the options
 dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = ft_filetype(filename); end
-transform     = keyval('transform',     varargin); if isempty(transform,   transform  = eye(4);                end
+transform     = keyval('transform',     varargin); if isempty(transform),  transform  = eye(4);                end
 spmversion    = keyval('spmversion',    varargin);
 
 switch dataformat
@@ -53,7 +56,7 @@ switch dataformat
 
     V = volumewrite_spm(filename, dat, transform, spmversion);
 
-  case 'mgz'
+  case {'freesurfer_mgz' 'mgz'}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % mgz-volume using freesurfer
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

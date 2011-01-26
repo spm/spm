@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_checkdata.m 2659 2011-01-26 11:51:05Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -94,7 +94,6 @@ cmbrepresentation = keyval('cmbrepresentation',  varargin);
 channelcmb    = keyval('channelcmb',   varargin);
 sourcedimord  = keyval('sourcedimord', varargin);
 sourcerepresentation = keyval('sourcerepresentation', varargin);
-keepoutside   = keyval('keepoutside',  varargin);
 
 % determine the type of input data
 % this can be raw, freq, timelock, comp, spike, source, volume, dip
@@ -148,7 +147,8 @@ end % give feedback
 
 if isfreq || istimelock || iscomp || issource || isvolume
   % ensure consistency between the dimord string and the axes that describe the data dimensions
-  data = fixdimord(data, strcmp(sourcerepresentation, 'new'));
+  %data = fixdimord(data, strcmp(sourcerepresentation, 'new'));
+  data = fixdimord(data);
 end
 
 if istimelock
@@ -606,11 +606,6 @@ if ~isempty(cmbrepresentation)
     error('This function requires data with a covariance, coherence or cross-spectrum');
   end
 end % cmbrepresentation
-
-if issource && strcmp(keepoutside, 'no'),
-  % remove all grid points that are marked as outside
-  data = ft_source2sparse(data);
-end
 
 if issource && ~isempty(sourcerepresentation)
   data = fixsource(data, 'type', sourcerepresentation);
@@ -1478,10 +1473,12 @@ switch fname
     
     if isfield(output, 'freq') && numel(output.freq)>1 && numel(output.freq)==size(tmp,dimnum)
       dimord = [dimord,'_freq'];
+      dimnum = dimnum+1;
     end
     
     if isfield(output, 'time') && numel(output.time)>1 && numel(output.time)==size(tmp,dimnum)
       dimord = [dimord,'_time'];
+      dimnum = dimnum+1;
     end
     
     otherwise

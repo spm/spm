@@ -45,13 +45,13 @@ function hdr = read_yokogawa_header(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_header.m 1112 2010-05-20 08:33:18Z tilsan $
+% $Id: read_yokogawa_header.m 2617 2011-01-20 15:19:35Z jorhor $
 
 % FIXED
 %  txt -> m
 %  fopen iee-le
 
-if ~hasyokogawa('16bitBeta6')
+if ~ft_hastoolbox('yokogawa')
     error('cannot determine whether Yokogawa toolbox is present');
 end
 

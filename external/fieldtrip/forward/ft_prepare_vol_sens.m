@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 2475 2010-12-19 18:10:00Z crimic $
+% $Id: ft_prepare_vol_sens.m 2612 2011-01-20 10:21:09Z roboos $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -285,8 +285,13 @@ elseif ismeg
 elseif iseeg
   % select the desired channels from the electrode array
   % order them according to the users specification
-  Nchans    = size(sens.tra,1);
-  Ncontacts = size(sens.tra,2);
+  if ~isfield(sens, 'tra')
+     Nchans    = length(sens.label);
+     Ncontacts = length(sens.label);
+  else
+     Nchans    = size(sens.tra,1);
+     Ncontacts = size(sens.tra,2);
+  end;
    
   % In case of Nchans~=Ncontacts it is difficult to determine 
   % how to deal with contacts positions (keep the original positions)

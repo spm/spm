@@ -184,7 +184,7 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 2522 2011-01-03 12:50:01Z roboos $
+% $Id: ft_sourceanalysis.m 2574 2011-01-13 10:27:38Z roboos $
 
 ft_defaults
 
@@ -354,8 +354,23 @@ elseif (strcmp(cfg.permutation,   'yes') || ...
   fprintf('precomputing leadfields for efficient handling of multiple trials\n');
   [grid, cfg] = ft_prepare_leadfield(cfg, data);
 else
-  % only prepare the grid positions, the leadfield will be computed on the fly if not present
-  [grid, cfg] = prepare_dipole_grid(cfg, vol, sens);
+  % only prepare the dipole grid positions, the leadfield will be computed on the fly if not present
+  tmpcfg = [];
+  tmpcfg.vol  = vol;
+  tmpcfg.grad = sens; % this can be electrodes or gradiometers
+  % copy all options that are potentially used in ft_prepare_sourcemodel
+  try, tmpcfg.grid        = cfg.grid;         end
+  try, tmpcfg.mri         = cfg.mri;          end
+  try, tmpcfg.headshape   = cfg.headshape;    end
+  try, tmpcfg.tightgrid   = cfg.tightgrid;    end
+  try, tmpcfg.symmetry    = cfg.symmetry;     end
+  try, tmpcfg.smooth      = cfg.smooth;       end
+  try, tmpcfg.threshold   = cfg.threshold;    end
+  try, tmpcfg.spheremesh  = cfg.spheremesh;   end
+  try, tmpcfg.inwardshift = cfg.inwardshift;  end
+  try, tmpcfg.mriunits    = cfg.mriunits;     end
+  try, tmpcfg.sourceunits = cfg.sourceunits;  end
+  [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1017,7 +1032,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 2522 2011-01-03 12:50:01Z roboos $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 2574 2011-01-13 10:27:38Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

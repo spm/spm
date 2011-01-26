@@ -101,7 +101,7 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_electroderealign.m 2641 2011-01-25 22:04:27Z roboos $
 
 ft_defaults
 
@@ -470,8 +470,11 @@ end
 % apply the spatial transformation to all electrodes, and replace the
 % electrode labels by their case-sensitive original values
 switch cfg.method
-  case {'template' 'fiducial', 'interactive'}
+  case {'template' 'fiducial'}
     norm.pnt   = warp_apply(norm.m, orig.pnt, cfg.warp);
+  case 'interactive'
+    % the transformation is a 4x4 homogenous transformation matrix
+    norm.pnt   = warp_apply(norm.m, orig.pnt, 'homogenous');
   case 'manual'
     % the positions are already assigned in correspondence with the mesh
     norm = orig;
@@ -485,7 +488,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_electroderealign.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_electroderealign.m 2641 2011-01-25 22:04:27Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

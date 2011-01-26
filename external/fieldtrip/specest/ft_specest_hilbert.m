@@ -31,7 +31,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Rev: 2497 $
+% $Rev: 2579 $
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'freqoi','timeoi','width','filttype','filtorder','filtdir','pad'});
@@ -48,7 +48,7 @@ pad       = keyval('pad',       varargin);
 
 
 % Determine fsample and set total time-length of data
-fsample = 1/(time(2)-time(1));
+fsample = round(1/(time(2)-time(1)));
 dattime = ndatsample / fsample; % total time in seconds of input data
 
 % Zero padding

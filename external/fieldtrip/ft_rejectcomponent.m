@@ -44,7 +44,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 2514 2010-12-24 13:12:34Z jansch $
+% $Id: ft_rejectcomponent.m 2602 2011-01-19 13:37:55Z sashae $
 
 ft_defaults
 
@@ -165,14 +165,22 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration 
 cfg.version.name = mfilename('fullpath'); 
-cfg.version.id = '$Id: ft_rejectcomponent.m 2514 2010-12-24 13:12:34Z jansch $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 2602 2011-01-19 13:37:55Z sashae $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
 
 if ~hasdata 
-  % remember the configuration details of the input data 
+  % remember the configuration details of the input data
   if isfield(comp, 'cfg'), cfg.previous = comp.cfg; end
+  % copy the sampleinfo into the output
+  if isfield(comp, 'sampleinfo')
+    data.sampleinfo = comp.sampleinfo;
+  end
+  % copy the trialinfo into the output
+  if isfield(comp, 'trialinfo')
+    data.trialinfo = comp.trialinfo;
+  end
 elseif hasdata
   if isfield(comp, 'cfg'), cfg.previous{1} = comp.cfg; end
   if isfield(comp, 'cfg'), cfg.previous{2} = data.cfg; end

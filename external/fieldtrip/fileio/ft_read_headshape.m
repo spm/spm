@@ -27,7 +27,29 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 2550 2011-01-11 12:31:57Z jansch $
+% $Id: ft_read_headshape.m 2585 2011-01-15 14:57:23Z jansch $
+
+% check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
+if iscell(filename)
+  for i=1:numel(filename)
+    tmpshape = ft_read_headshape(filename{i}, varargin{:});
+    if i==1,
+      shape = tmpshape;
+    else
+      tmpshape  = ft_convert_units(tmpshape, shape.unit);
+      npnt      = size(shape.pnt,1);
+      shape.pnt = cat(1, shape.pnt, tmpshape.pnt);
+      if isfield(shape, 'tri') && isfield(tmpshape, 'tri')
+        shape.tri = cat(1, shape.tri, tmpshape.tri + npnt);
+      elseif ~isfield(shape, 'tri') && ~isfield(tmpshape, 'tri')
+        % this is ok
+      else
+        error('not all input files seem to contain a triangulation'); 
+      end
+    end  
+  end
+  return
+end
 
 % test whether the file exists
 if ~exist(filename)

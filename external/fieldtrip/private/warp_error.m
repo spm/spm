@@ -1,4 +1,4 @@
-function [dist] = warp_error(M, input, target, varargin);
+function [dist] = warp_error(M, input, target, varargin)
 
 % WARP_ERROR computes the mean distance after linear or non-linear warping
 % and can be used as the goalfunction in a 3D warping minimalisation
@@ -42,7 +42,7 @@ function [dist] = warp_error(M, input, target, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_error.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: warp_error.m 2640 2011-01-25 22:01:32Z roboos $
 
 if ~isempty(M)
   % apply the warp to the input positions

@@ -100,7 +100,7 @@ function [interp] = ft_megrealign(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_megrealign.m 2574 2011-01-13 10:27:38Z roboos $
 
 ft_defaults
 
@@ -324,7 +324,22 @@ else
 end
 
 % create the dipole grid on which the data will be projected
-grid = prepare_dipole_grid(cfg, volold, data.grad);
+tmpcfg = [];
+tmpcfg.vol  = volold;
+tmpcfg.grad = data.grad;
+% copy all options that are potentially used in ft_prepare_sourcemodel
+try, tmpcfg.grid        = cfg.grid;         end
+try, tmpcfg.mri         = cfg.mri;          end
+try, tmpcfg.headshape   = cfg.headshape;    end
+try, tmpcfg.tightgrid   = cfg.tightgrid;    end
+try, tmpcfg.symmetry    = cfg.symmetry;     end
+try, tmpcfg.smooth      = cfg.smooth;       end
+try, tmpcfg.threshold   = cfg.threshold;    end
+try, tmpcfg.spheremesh  = cfg.spheremesh;   end
+try, tmpcfg.inwardshift = cfg.inwardshift;  end
+try, tmpcfg.mriunits    = cfg.mriunits;     end
+try, tmpcfg.sourceunits = cfg.sourceunits;  end
+[grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
 pos = grid.pos;
 
 % sometimes some of the dipole positions are nan, due to problems with the headsurface triangulation
@@ -476,7 +491,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megrealign.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_megrealign.m 2574 2011-01-13 10:27:38Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

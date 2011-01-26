@@ -1,4 +1,4 @@
-function [result, M] = warp_pnt(input, target, method)
+function [result, M] = warp_optim(input, target, method)
 
 % WARP_PNT determine intermediate positions using warping (deformation)
 % the input cloud of points is warped to match the target.
@@ -49,7 +49,7 @@ function [result, M] = warp_pnt(input, target, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_optim.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: warp_optim.m 2640 2011-01-25 22:01:32Z roboos $
 
 global fb;
 

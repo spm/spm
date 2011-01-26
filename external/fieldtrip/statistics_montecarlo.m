@@ -97,7 +97,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 2432 2010-12-15 11:30:54Z johzum $
+% $Id: statistics_montecarlo.m 2622 2011-01-20 15:32:41Z jorhor $
 
 ft_defaults
 
@@ -188,7 +188,7 @@ resample = resampledesign(cfg, design);
 Nrand = size(resample,1);
 
 % most of the statfuns result in this warning, which is not interesting
-warning('off', 'MATLAB:warn_r14_stucture_assignment');
+ws = warning('off', 'MATLAB:warn_r14_stucture_assignment');
 
 if strcmp(cfg.correctm, 'cluster')
   % determine the critical value for cluster thresholding
@@ -407,3 +407,5 @@ for i=1:length(fn)
     stat = setfield(stat, fn{i}, getfield(statfull, fn{i}));
   end
 end
+
+warning(ws); % revert to original state

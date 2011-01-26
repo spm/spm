@@ -66,7 +66,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_redefinetrial.m 2636 2011-01-25 17:46:25Z craric $
 
 ft_defaults
 
@@ -290,7 +290,7 @@ if ~isempty(cfg.minlength)
   trllength = zeros(Ntrial, 1);
   % determine the length of each trial
   for i=1:Ntrial
-    trllength(i) = data.time{i}(end) - data.time{i}(1);
+    trllength(i) = size(data.trial{i},2) * 1/data.fsample; % this the the DURATION of the selected samples 
   end
   if ischar(cfg.minlength) && strcmp(cfg.minlength, 'maxperlen')
     minlength = max(trllength);
@@ -309,7 +309,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_redefinetrial.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_redefinetrial.m 2636 2011-01-25 17:46:25Z craric $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

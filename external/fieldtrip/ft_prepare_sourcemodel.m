@@ -1,16 +1,24 @@
-function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
+function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 
-% PREPARE_DIPOLE_GRID helps to make a regular grid with dipoles that can be
-% used for scanning (e.g. for SOURCEANALYSIS) or linear estimation (e.g.
-% for MEGREALIGN).
+% FT_PREPARE_SOURCEMODEL helps to make a source model that can be
+% used for source reconstruction, beamformer scanning, linear
+% estimation and MEG interpolation.
 %
-% A grid can be constructed based on
+% Use as
+%   [grid, cfg] = prepare_dipole_grid(cfg)
+% where the configuration structure contains the details on how the source
+% model should be constructed.
+%
+% A source model can be constructed based on
 %   - regular 3D grid with explicit specification
 %   - regular 3D grid with specification of the resolution
 %   - regular 3D grid, based on segmented MRI, restricted to gray matter
 %   - surface grid based on brain surface from volume conductor
 %   - surface grid based on head surface from external file
 %   - using user-supplied grid positions, which can be regular or irregular
+%   - cortical sheet that was created in MNE or Freesurfer
+% The approach that will be used depends on the configuration options that
+% you specify.
 %
 % Configuration options for generating a regular 3-D grid
 %   cfg.grid.xgrid      = vector (e.g. -20:1:20) or 'auto' (default = 'auto')
@@ -36,7 +44,13 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 %   cfg.threshold     = 0.1, relative to the maximum value in the segmentation
 %   cfg.smooth        = 5, smoothing in voxels
 %
+% Configuration options for reading a cortical sheet from file
+%   cfg.headshape     = string, should be a *.fif file
+%
 % Other configuration options
+%   cfg.vol          = volume conduction model
+%   cfg.grad         = gradiometer definition
+%   cfg.elec         = electrode definition
 %   cfg.grid.tight   = 'yes' or 'no' (default is automatic)
 %   cfg.inwardshift  = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
 %   cfg.symmetry     = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
@@ -44,15 +58,40 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 %                      single triangulated boundary, or a Nx3 matrix with surface
 %                      points
 %
-% See also SOURCEANALYSIS, MEGREALIGN, DIPOLEFITTING, PREPARE_LEADFIELD
+% See also FT_SOURCEANALYSIS, FT_MEGREALIGN, FT_DIPOLEFITTING, FT_PREPARE_LEADFIELD
 
-% Copyright (C) 2004-2009, Robert Oostenveld
+% Searching through the code, it seems that the following cfg fields are being used
+% cfg.grid
+% cfg.mri
+% cfg.headshape
+% cfg.tightgrid
+% cfg.symmetry
+% cfg.smooth
+% cfg.threshold
+% cfg.spheremesh
+% cfg.inwardshift
+% cfg.mriunits
+% cfg.sourceunits
+
+% Copyright (C) 2004-2011, Robert Oostenveld
 %
-% Subversion does not use the Log keyword, use 'svn log <filename>' or 'svn -v log | less' to get detailled information
+% %Log$
 
 % set the defaults
 if ~isfield(cfg, 'symmetry'),         cfg.symmetry    = [];       end
 if ~isfield(cfg, 'grid'),             cfg.grid        = [];       end
+
+if ~isfield(cfg, 'vol') && nargin>1
+  % put it in the configuration structure
+  % this is for backward compatibility, 13 Januari 2011
+  cfg.vol = vol;
+end
+
+if ~isfield(cfg, 'sens') && nargin>2
+  % put it in the configuration structure
+  % this is for backward compatibility, 13 Januari 2011
+  cfg.grad = sens;
+end
 
 % for backward compatibility
 if isfield(cfg, 'tightgrid')
@@ -76,14 +115,20 @@ basedongrid   = isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid);  % regula
 basedonpos    = isfield(cfg.grid, 'pos');                               % using user-supplied grid positions, which can be regular or irregular
 basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surface grid based on inward shifted head surface from external file
 basedonmri    = isfield(cfg, 'mri');                                    % regular 3D grid, based on segmented MRI, restricted to gray matter
-basedonvol    = 0;                                                      % surface grid based on inward shifted brain surface from volume conductor
+basedonvol    = false;                                                  % surface grid based on inward shifted brain surface from volume conductor
+basedoncortex = isfield(cfg, 'headshape') && (iscell(cfg.headshape) || ft_filetype(cfg.headshape, 'neuromag_fif') || ft_filetype(cfg.headshape, 'freesurfer_triangle_binary')); % cortical sheet from MNE or Freesurfer, also in case of multiple files/hemispheres
+
+if basedonshape && basedoncortex
+  % treating it as cortical sheet has preference
+  basedonshape = false;
+end
 
 if basedongrid && basedonpos
   % fall back to default behaviour, in which the pos overrides the grid
-  basedongrid = 0;
+  basedongrid = false;
 end
 
-if ~any([basedonauto basedongrid basedonpos basedonshape basedonmri]) && nargin>1 && ~isempty(vol)
+if ~any([basedonauto basedongrid basedonpos basedonshape basedonmri basedoncortex]) && nargin>1 && ~isempty(cfg.vol)
   % fall back to default behaviour, which is to create a surface grid (e.g. used in MEGRELIGN)
   basedonvol = 1;
 end
@@ -118,6 +163,11 @@ if basedonshape
   if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no'; end
 end
 
+if basedoncortex
+  if ~isfield(cfg, 'sourceunits');      cfg.sourceunits = 'cm';     end
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no'; end
+end
+
 if basedonmri
   fprintf('creating dipole grid based on grey matter from segmented MRI\n');
   if ~isfield(cfg, 'threshold'),        cfg.threshold = 0.1;        end % relative
@@ -134,7 +184,7 @@ if basedonvol
 end
 
 % these are mutually exclusive
-if sum([basedonauto basedongrid basedonpos basedonshape basedonmri basedonvol])~=1
+if sum([basedonauto basedongrid basedonpos basedonshape basedonmri basedonvol basedoncortex])~=1
   error('incorrect cfg specification for constructing a dipole grid');
 end
 
@@ -155,6 +205,22 @@ end
 
 % start with an empty grid
 grid = [];
+
+% copy the volume conductor and sensor array out of the cfg
+if isfield(cfg, 'vol')
+  vol = cfg.vol;
+else
+  vol = [];
+end
+
+% these are mutually exclusive
+if isfield(cfg, 'grad')
+  sens = cfg.grad;
+elseif isfield(cfg, 'elec')
+  sens = cfg.elec;
+else
+  sens = [];
+end
 
 if basedonauto
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -251,7 +317,7 @@ if basedonmri
   % construct a grid based on the segmented MRI that is provided in the
   % configuration, only voxels in gray matter will be used
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   % convert the source/functional data into the same units as the anatomical MRI
   scale = 1;
   switch cfg.sourceunits
@@ -278,7 +344,7 @@ if basedonmri
     otherwise
       error('unknown physical dimension in cfg.mriunits');
   end
-
+  
   if ~isfield(cfg.grid, 'resolution')
     switch cfg.sourceunits
       case 'mm'
@@ -291,8 +357,8 @@ if basedonmri
         cfg.grid.resolution = 0.01;
     end
   end
-
-  if isstr(cfg.mri)
+  
+  if ischar(cfg.mri)
     % read the segmentation from file
     mri      = read_fcdc_mri(cfg.mri);
     mri.gray = double(mri.anatomy);
@@ -307,13 +373,13 @@ if basedonmri
   else
     error('cannot determine the format of the segmentation in cfg.mri');
   end
-
+  
   % apply a smoothing of a certain amount of voxels
   if ~strcmp(cfg.smooth, 'no');
     fprintf('smoothing gray matter segmentation with %d voxels\n', cfg.smooth);
     spm_smooth(mri.gray, mri.gray, cfg.smooth);
   end
-
+  
   % determine for each voxel whether it belongs to the cortex
   if isfield(cfg, 'threshold')
     fprintf('thresholding gray matter segmentation at a relative value of %f\n', cfg.threshold);
@@ -321,7 +387,7 @@ if basedonmri
   else
     error('you must specify cfg.threshold for cortex segmentation');
   end
-
+  
   ind                 = find(head(:));
   fprintf('%d from %d voxels in the segmentation are marked as cortex (%.0f%%)\n', length(ind), prod(size(head)), 100*length(ind)/prod(size(head)));
   [X,Y,Z]             = ndgrid(1:mri.dim(1), 1:mri.dim(2), 1:mri.dim(3));   % create the grid in MRI-coordinates
@@ -354,7 +420,7 @@ if basedonmri
     end
   end
   inside = find(inside);
-
+  
   grid.pos            = pos2head/scale;                                     % convert to source units
   grid.xgrid          = xgrid/scale;                                        % convert to source units
   grid.ygrid          = ygrid/scale;                                        % convert to source units
@@ -362,10 +428,35 @@ if basedonmri
   grid.dim            = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
   grid.inside         = inside(:);
   grid.outside        = setdiff(1:size(grid.pos,1),grid.inside)';
-
+  
   fprintf('the regular 3D grid encompassing the cortex contains %d grid points\n', size(grid.pos,1));
   fprintf('%d grid points inside gray matter\n', length(grid.inside));
   fprintf('%d grid points outside gray matter\n', length(grid.outside));
+end
+
+if basedoncortex
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % read it from a *.fif file that was created using Freesurfer and MNE
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if iscell(cfg.headshape)
+    % FIXME loop over all files, this should be two hemispheres
+    keyboard
+  end
+  switch ft_filetype(cfg.headshape)
+    case 'freesurfer_triangle_binary'
+      % it contains a cortical sheet which was created by the Freesurfer software
+      shape = ft_read_headshape(cfg.headshape, 'format', 'freesurfer_triangle_binary');
+    case 'neuromag_fif'
+      % fif files can contain a variety of objects
+      % here we assume that it contains a cortical sheet which was created by the MNE software
+      shape = ft_read_headshape(cfg.headshape, 'format', 'mne_source');
+    otherwise
+      % use autodetection
+      shape = ft_read_headshape(cfg.headshape);
+  end
+  grid.pos = shape.pnt;
+  grid.tri = shape.tri;
+  grid = ft_convert_units(grid, cfg.sourceunits);
 end
 
 if basedonshape
@@ -494,3 +585,5 @@ if ~isempty(cfg.symmetry)
   % expand the number of parameters from one (3) to two dipoles (6)
   grid.pos = grid.pos(:,expand) .* repmat(mirror, size(grid.pos,1), 1);
 end
+
+% FIXME should the cfg be added to the output grid?

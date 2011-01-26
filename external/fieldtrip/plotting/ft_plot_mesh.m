@@ -51,9 +51,9 @@ function ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 2280 2010-12-03 14:58:21Z roboos $
+% $Id: ft_plot_mesh.m 2622 2011-01-20 15:32:41Z jorhor $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
 
@@ -119,7 +119,13 @@ if ~isfield(bnd, 'tri')
   bnd.tri = [];
 end
 
-pnt = bnd.pnt;
+if isfield(bnd, 'pnt')
+  % this is normal
+  pnt = bnd.pnt;
+elseif isfield(bnd, 'pos')
+  % this is the case for a cortical sheet source model from ft_prepare_sourcemodel
+  pnt = bnd.pos;
+end
 tri = bnd.tri;
 
 if ~isempty(pnt)
@@ -185,3 +191,4 @@ if ~holdflag
   hold off
 end
 
+warning(ws); %revert to original state

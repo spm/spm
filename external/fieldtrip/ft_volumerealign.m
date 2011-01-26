@@ -77,7 +77,7 @@ function [mri] = ft_volumerealign(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 2526 2011-01-05 08:37:42Z jansch $
+% $Id: ft_volumerealign.m 2629 2011-01-21 13:32:56Z jansch $
 
 ft_defaults
 
@@ -284,6 +284,7 @@ elseif basedonmrk
 end
 
 % combine the additional transformation with the original one
+mri.transformorig = mri.transform;
 mri.transform = realign * mri.transform;
 mri.coordsys  = coordsys;
 
@@ -296,7 +297,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 2526 2011-01-05 08:37:42Z jansch $';
+cfg.version.id = '$Id: ft_volumerealign.m 2629 2011-01-21 13:32:56Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 1959 2010-10-25 19:57:34Z crimic $
+% $Id: ft_filetype.m 2582 2011-01-14 12:29:05Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -104,14 +104,23 @@ end
 % end
 
 if iscell(filename)
-  % perform the test for each filename, return a boolean vector
-  type = false(size(filename));
+  if ~isempty(desired)
+    % perform the test for each filename, return a boolean vector
+    type = false(size(filename));
+  else
+    % return a string with the type for each filename
+    type = cell(size(filename));
+  end
   for i=1:length(filename)
     if strcmp(filename{i}(end), '.')
       % do not recurse into this directory or the parent directory
       continue
     else
-      type(i) = ft_filetype(filename{i}, desired);
+      if iscell(type)
+        type{i} = ft_filetype(filename{i}, desired);
+      else
+        type(i) = ft_filetype(filename{i}, desired);
+      end
     end
   end
   return

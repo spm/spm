@@ -81,7 +81,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 2532 2011-01-06 10:30:23Z jansch $
+% $Id: ft_volumesegment.m 2555 2011-01-11 14:30:17Z jansch $
 
 ft_defaults
 
@@ -203,7 +203,7 @@ end
 
 if strcmp(cfg.segment, 'yes')
   % convert and write the volume to an analyze format, so that it can be handled by spm
-  Va = volumewrite_spm([cfg.name,'.img'], mri.anatomy, mri.transform, cfg.spmversion);
+  Va = ft_write_volume([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion);
 
   % spm is quite noisy, prevent the warnings from displaying on screen
   % warning off;
@@ -364,7 +364,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 2532 2011-01-06 10:30:23Z jansch $';
+cfg.version.id = '$Id: ft_volumesegment.m 2555 2011-01-11 14:30:17Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

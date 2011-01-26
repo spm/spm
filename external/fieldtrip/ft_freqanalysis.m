@@ -18,7 +18,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                       based on multiplication in the frequency domain
 %                   'mtmwelch', performs frequency analysis using Welch's averaged
 %                       modified periodogram method of spectral estimation
-%                   'wltconvol', implements wavelet time frequency transformation
+%                   'wavelet', implements wavelet time frequency transformation
 %                       (using Morlet wavelets) based on multiplication in the frequency domain
 %                   'tfr', implements wavelet time frequency transformation
 %                       (using Morlet wavelets) based on convolution in the time domain
@@ -85,8 +85,8 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   WAVELET performs time-frequency analysis on any time series trial data
 %   using the 'wavelet method' based on Morlet wavelets.
 %   cfg.foi        = vector 1 x numfoi, frequencies of interest
-%   cfg.foilim     = [begin end], frequency band of interest
 %       OR
+%   cfg.foilim     = [begin end], frequency band of interest
 %   cfg.toi        = vector 1 x numtoi, the times on which the analysis windows
 %                    should be centered (in seconds)
 %   cfg.width      = 'width' of the wavelet, determines the temporal and spectral
@@ -125,8 +125,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                     multi-tapering. Note that 4 Hz smoothing means
 %                     plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
 %
-% See also FT_FREQANALYSIS_OLD, FT_FREQANALYSIS_MTMWELCH, FT_FREQANALYSIS_WLTCONVOL,
-% FT_FREQANALYSIS_TFR
+% See also FT_FREQANALYSIS_OLD, FT_FREQANALYSIS_MTMWELCH, FT_FREQANALYSIS_TFR
 
 % Undocumented local options:
 % cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based on correct cfg.foi)
@@ -152,7 +151,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 2539 2011-01-07 09:36:21Z jansch $
+% $Id: ft_freqanalysis.m 2591 2011-01-17 16:35:01Z jansch $
 
 ft_defaults
 
@@ -581,7 +580,8 @@ else
                 % sinetaper scaling, not checked whether it works if hastime = 0
                 % FIXME why does the scaling only has to be done for power?
                 if isfield(cfg,'taper') && strcmp(cfg.taper, 'sine')
-                    sinetapscale = zeros(ntaper(ifoi),nfoi);  % assumes fixed number of tapers
+                    %sinetapscale = zeros(ntaper(ifoi),nfoi);  % assumes fixed number of tapers
+                    sinetapscale = zeros(ntaper(ifoi),1);  % assumes fixed number of tapers
                     for isinetap = 1:ntaper(ifoi)  % assumes fixed number of tapers
                         sinetapscale(isinetap,:) = (1 - (((isinetap - 1) ./ ntaper(ifoi)) .^ 2));
                     end
@@ -756,7 +756,7 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 2539 2011-01-07 09:36:21Z jansch $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 2591 2011-01-17 16:35:01Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();

@@ -77,7 +77,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 2476 2010-12-19 18:21:48Z crimic $
+% $Id: ft_compute_leadfield.m 2653 2011-01-26 09:49:12Z crimic $
 
 persistent warning_issued;
 
@@ -416,13 +416,19 @@ elseif iseeg
       lf = eeg_leadfieldb(pos, sens.pnt, vol);
     
     case 'openmeeg'
-      dsm = openmeeg_dsm(pos,vol);
-      if isfield(vol,'mat')
-        lf = vol.mat*dsm;
-      else
-        error('No system matrix is present, BEM head model not calculated yet')
+      try 
+        dsm = openmeeg_dsm(pos,vol);
+        if isfield(vol,'mat')
+          lf = vol.mat*dsm;
+        else
+          error('No system matrix is present, BEM head model not calculated yet')
+        end        
+      catch
+        warning('The number of dipoles is too high: the algorithm will run for 10 dipoles at a time')
+        tmp = peercellfun(@openmeeg_helper,{pos},{vol},{10},'StopOnError', false);
+        lf = tmp{1};
       end
-
+      
       case 'metufem'
         p3 = zeros(Ndipoles * 3, 6);
         for i = 1:Ndipoles
@@ -507,4 +513,4 @@ if ~isempty(weight)
     lf(:,3*(i-1)+3) = lf(:,3*(i-3)+1) * weight(i); % the leadfield for the z-direction
   end
 end
-
+  

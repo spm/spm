@@ -42,7 +42,7 @@ function [filt] = ft_preproc_bandstopfilter(dat,Fs,Fbp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandstopfilter.m 2455 2010-12-16 15:57:00Z stekla $
+% $Id: ft_preproc_bandstopfilter.m 2614 2011-01-20 10:52:13Z jansch $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -83,7 +83,9 @@ filt = filter_with_correction(B,A,dat,dir);
 % will most likely give you very bad accuracy.
 
 % check for filter instabilities and try to solve them
-result_instable = any(isnan(filt(:))) || (max(range(filt,2))/max(range(dat,2))>2);
+rangedat  = max(dat,[],2)  - min(dat,[],2);
+rangefilt = max(filt,[],2) - min(filt,[],2);
+result_instable = any(isnan(filt(:))) || (max(rangefilt)/max(rangedat)>2);
 if result_instable && N>1
   warning('instable filter detected, applying two sequential filters');
   step1 = floor(N/2);  

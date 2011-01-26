@@ -20,7 +20,7 @@ function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rejectvisual_channel.m 2263 2010-12-02 12:27:17Z vlalit $
+% $Id: rejectvisual_channel.m 2622 2011-01-20 15:32:41Z jorhor $
 
 % determine the initial selection of trials and channels
 nchan = length(data.label);
@@ -30,16 +30,19 @@ trlsel  = logical(ones(1,ntrl));
 chansel = logical(zeros(1,nchan));
 chansel(match_str(data.label, cfg.channel)) = 1;
 
+% compute the sampling frequency from the first two timepoints
+fsample = 1/(data.time{1}(2) - data.time{1}(1));
+
 % compute the offset from the time axes
 offset = zeros(ntrl,1);
 for i=1:ntrl
-  offset(i) = time2offset(data.time{i}, data.fsample);
+  offset(i) = time2offset(data.time{i}, fsample);
 end
 
 ft_progress('init', cfg.feedback, 'filtering data');
 for i=1:ntrl
   ft_progress(i/ntrl, 'filtering data in trial %d of %d\n', i, ntrl);
-  [data.trial{i}, label, time, cfg.preproc] = preproc(data.trial{i}, data.label, data.fsample, cfg.preproc, offset(i));
+  [data.trial{i}, label, time, cfg.preproc] = preproc(data.trial{i}, data.label, fsample, cfg.preproc, offset(i));
 end
 ft_progress('close');
 

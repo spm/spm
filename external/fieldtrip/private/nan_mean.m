@@ -38,7 +38,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nan_mean.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: nan_mean.m 2622 2011-01-20 15:32:41Z jorhor $
 
 function out = nan_mean(in, dim)
 
@@ -57,7 +57,7 @@ function out = nan_mean(in, dim)
     end;
     tmpin = in;
     tmpin(find(isnan(in(:)))) = 0;
-    warning('off', 'MATLAB:divideByZero');
+    ws = warning('off', 'MATLAB:divideByZero');
     out = sum(tmpin, dim) ./ sum(~isnan(in),dim);
-    warning('on', 'MATLAB:divideByZero');
+    warning(ws);
     
