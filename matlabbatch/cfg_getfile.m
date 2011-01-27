@@ -85,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4166 2011-01-17 15:06:41Z volkmar $
+% $Id: cfg_getfile.m 4176 2011-01-27 14:34:44Z volkmar $
 
 t = {};
 sts = false;
@@ -925,8 +925,12 @@ return;
 
 %=======================================================================
 function [f,d] = listfiles(dr,filt)
-ob = sib(gco,'msg');
-domsg = ~isempty(ob);
+try
+    ob = sib(gco,'msg');
+    domsg = ~isempty(ob);
+catch
+    domsg = false;
+end
 if domsg
     omsg = msg(ob,'Listing directory...');
 end
