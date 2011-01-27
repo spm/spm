@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 3536 2009-11-05 15:00:32Z chloe $
+% $Id: tbx_cfg_fieldmap.m 4175 2011-01-27 12:42:36Z chloe $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -321,10 +321,11 @@ writeunwarped.values{2} = 0;
 anat         = cfg_files;
 anat.tag     = 'anat';
 anat.name    = 'Select anatomical image for comparison';
-anat.help    = {'Select an anatomical image for comparison with the distortion corrected EPI.'};
+anat.help    = {'Select an anatomical image for comparison with the distortion corrected EPI or leave empty.'};
 anat.filter = 'image';
 anat.ufilter = '.*';
 anat.num     = [0 1];
+anat.val     = {''};
 % ---------------------------------------------------------------------
 % matchanat Match anatomical image to EPI?
 % ---------------------------------------------------------------------
@@ -333,12 +334,11 @@ matchanat.tag     = 'matchanat';
 matchanat.name    = 'Match anatomical image to EPI?';
 matchanat.help    = {'Match the anatomical image to the distortion corrected EPI. This can be done to allow for visual inspection and comparison of the distortion corrected EPI.'};
 matchanat.labels = {
-                    'match anat'
                     'none'
+                    'match anat'
 }';
-matchanat.values{1} = 1;
-matchanat.values{2} = 0;
-
+matchanat.values{1} = 0;
+matchanat.values{2} = 1;
 % ---------------------------------------------------------------------
 % ---------------------------------------------------------------------
 % Different kinds of input jobs

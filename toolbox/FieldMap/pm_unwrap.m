@@ -79,7 +79,7 @@ function varargout = pm_unwrap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_unwrap.m 4076 2010-10-06 15:33:20Z chloe $
+% $Id: pm_unwrap.m 4175 2011-01-27 12:42:36Z chloe $
 
 %
 % The following are a set of parameters that
@@ -214,7 +214,7 @@ switch lower(method)
       %
       % Added this little bug fix which prevents pm_merge_regions crashing
       % because it has too many regions to merge. 
-      while cn>1800
+      while cn>1800 & nstep > 2
           nstep=nstep-1;
           [irima,cn] = pm_initial_regions(opm,mask,nstep);
       end
