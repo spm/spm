@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4145 2010-12-23 15:18:30Z guillaume $
+% $Id: spm.m 4178 2011-01-27 15:12:53Z guillaume $
 
 
 %=======================================================================
@@ -434,7 +434,7 @@ spm_get_defaults('modality',Modality);
 %-----------------------------------------------------------------------
 if strcmpi(Modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'external','fieldtrip'));
-    fieldtripdefs;
+    ft_defaults;
     addpath(fullfile(spm('Dir'),'external','bemcp'));
     addpath(fullfile(spm('Dir'),'external','ctf'));
     addpath(fullfile(spm('Dir'),'external','eeprobe'));
@@ -444,6 +444,16 @@ if strcmpi(Modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'toolbox', 'Neural_Models'));
     addpath(fullfile(spm('Dir'),'toolbox', 'Beamforming'));
     addpath(fullfile(spm('Dir'),'toolbox', 'MEEGtools'));
+end
+
+%-Turn output pagination off in Octave
+%-----------------------------------------------------------------------
+if strcmpi(spm_check_version,'octave')
+    try
+        more('off');
+        page_screen_output(false);
+        page_output_immediately(true);
+    end
 end
 
 %-Return defaults variable if asked

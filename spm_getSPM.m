@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4083 2010-10-08 10:31:55Z guillaume $
+% $Id: spm_getSPM.m 4178 2011-01-27 15:12:53Z guillaume $
 
 
 %-GUI setup
@@ -224,7 +224,7 @@ cd(SPM.swd);
 %-Check the model has been estimated
 %--------------------------------------------------------------------------
 try
-    SPM.xVol.XYZ;
+    SPM.xVol.S;
 catch
     
     %-Check the model has been estimated
@@ -760,7 +760,7 @@ Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
-    warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
+    warning('SPM:NoVoxels','No voxels survive height threshold at u=%0.2g',u);
 end
 
 
@@ -768,7 +768,7 @@ end
 %--------------------------------------------------------------------------
 if ~isempty(XYZ) && nc == 1
     
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold')  %-#
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold'); %-#
     
     %-Get extent threshold [default = 0]
     %----------------------------------------------------------------------
@@ -784,7 +784,7 @@ if ~isempty(XYZ) && nc == 1
     Q     = [];
     for i = 1:max(A)
         j = find(A == i);
-        if length(j) >= k; Q = [Q j]; end
+        if length(j) >= k, Q = [Q j]; end
     end
     
     % ...eliminate voxels
@@ -793,7 +793,7 @@ if ~isempty(XYZ) && nc == 1
     XYZ   = XYZ(:,Q);
     if isempty(Q)
         fprintf('\n');                                                  %-#
-        warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
+        warning('SPM:NoVoxels','No voxels survive extent threshold at k=%0.2g',k);
     end
     
 else

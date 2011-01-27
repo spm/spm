@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 3757 2010-03-08 11:41:53Z guillaume $
+% $Id: spm_run_fmri_spec.m 4178 2011-01-27 15:12:53Z guillaume $
 
 
 original_dir = pwd;
@@ -309,9 +309,9 @@ end
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
 if spm_matlab_version_chk('7') >= 0
-    save('SPM','-V6','SPM');
+    save('SPM.mat','-V6','SPM');
 else
-    save('SPM','SPM');
+    save('SPM.mat','SPM');
 end;
 
 fprintf('%30s\n','...SPM.mat saved')                                    %-#

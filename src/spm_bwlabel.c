@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 4136 2010-12-09 22:22:28Z guillaume $
+ * $Id: spm_bwlabel.c 4178 2011-01-27 15:12:53Z guillaume $
  * Jesper Andersson
  */
 
@@ -362,7 +362,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 
    nl = translate_labels(il,dim,tt,ttn,l);
 
-   plhs[1] = mxCreateScalarDouble(nl);
+   plhs[1] = mxCreateDoubleScalar(nl);
 
    /* Clean up a bit. */
 

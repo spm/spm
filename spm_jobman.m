@@ -92,7 +92,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 3916 2010-06-03 11:12:34Z guillaume $
+% $Id: spm_jobman.m 4178 2011-01-27 15:12:53Z guillaume $
 
 
 if nargin==0
@@ -202,7 +202,15 @@ else
             cfg_util('deljob', cjob);
 
         case {'run','run_nogui'}
-            cjob = cfg_util('initjob', mljob);
+            try
+                cjob = cfg_util('initjob', mljob);
+            catch
+                s = lasterror;
+                if strcmpi(s.identifier,'MATLAB:UndefinedFunction')
+                    warning('You probably need to run spm_jobman(''initcfg''); beforehand.');
+                end
+                rethrow(s);
+            end
             cfg_util('run', cjob);
             if nargout > 0
                 varargout{1} = cfg_util('getalloutputs', cjob);

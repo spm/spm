@@ -21,7 +21,7 @@ function M = spm_maff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_maff.m 4178 2011-01-27 15:12:53Z guillaume $
 
 [buf,MG] = loadbuf(varargin{1:2});
 M        = affreg(buf, MG, varargin{2:end});
@@ -164,7 +164,11 @@ R  = V\J;
 
 lV = logm(V);
 lR = -logm(R);
-if sum(sum(imag(lR).^2))>1e-6, error('Rotations by pi are still a problem.'); end;
+if sum(sum(imag(lR).^2))>1e-6
+    error('Rotations by pi are still a problem.');
+else
+    lR = real(lR);
+end
 P       = zeros(12,1);
 P(1:3)  = M(1:3,4);
 P(4:6)  = lR([2 3 6]);
