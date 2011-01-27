@@ -9,7 +9,7 @@ function out = spm_run_reorient(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_reorient.m 3130 2009-05-18 14:41:31Z volkmar $
+% $Id: spm_run_reorient.m 4177 2011-01-27 14:35:32Z volkmar $
 
 job = varargin{1};
 if isfield(job.transform,'transprm')
@@ -28,7 +28,7 @@ else
     for k = 1:numel(job.srcfiles)
         V = spm_vol(job.srcfiles{k});
         X = spm_read_vols(V);
-        [p n e v] = spm_fileparts(V.fname)
+        [p n e v] = spm_fileparts(V.fname);
         V.mat = job.transform.transM*V.mat;
         V.fname = fullfile(p, [job.prefix n e v]);
         spm_write_vol(V,X);
