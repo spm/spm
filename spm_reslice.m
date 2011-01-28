@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 4163 2011-01-13 20:47:40Z guillaume $
+% $Id: spm_reslice.m 4179 2011-01-28 13:57:20Z volkmar $
 
 %__________________________________________________________________________
 %
@@ -112,6 +112,8 @@ end
 if numel(flags.which) == 2
     flags.mean  = flags.which(2);
     flags.which = flags.which(1);
+elseif ~isfield(flags,'mean')
+    flags.mean  = 1; 
 end
 
 if ~nargin || isempty(P), P = spm_select([2 Inf],'image'); end
