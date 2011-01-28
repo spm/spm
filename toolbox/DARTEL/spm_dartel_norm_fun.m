@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_dartel_norm_fun.m 4180 2011-01-28 14:44:09Z john $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -173,19 +173,31 @@ for m=1:numel(PI),
     NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
     if jactransf,
-        NO.dat.fname=fullfile(pth,['smw' nam ext]);
+        if fwhm==0,
+            NO.dat.fname=fullfile(pth,['mw' nam ext]);
+        else
+            NO.dat.fname=fullfile(pth,['smw' nam ext]);
+        end
         NO.dat.scl_slope = 1.0;
         NO.dat.scl_inter = 0.0;
         NO.dat.dtype     = 'float32-le';
     else
-        NO.dat.fname=fullfile(pth,['sw' nam ext]);
+        if fwhm==0,
+            NO.dat.fname=fullfile(pth,['w' nam ext]);
+        else
+            NO.dat.fname=fullfile(pth,['sw' nam ext]);
+        end
     end
     NO.dat.dim = [dim NI.dat.dim(4:end)];
     NO.mat  = mat;
     NO.mat0 = mat;
     NO.mat_intent  = mat_intent;
     NO.mat0_intent = mat_intent;
-    NO.descrip = sprintf('Smoothed (%gx%gx%g) DARTEL normed',fwhm);
+    if fwhm==0,
+        NO.descrip = 'DARTEL normed';
+    else
+        NO.descrip = sprintf('Smoothed (%gx%gx%g) DARTEL normed',fwhm);
+    end
     out{m} = NO.dat.fname;
     NO.extras = [];
     create(NO);
