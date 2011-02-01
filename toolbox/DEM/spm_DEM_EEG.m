@@ -17,7 +17,7 @@ function [R] = spm_DEM_EEG(DEM,dt,n,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_EEG.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_DEM_EEG.m 4187 2011-02-01 20:13:57Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ try, graphics; catch, graphics = 0; end
 
 % loop over hierarchical (cortical) levels
 %--------------------------------------------------------------------------
-if graphics, cla; hold on; end
+if graphics, hold off; cla; hold on; end
 
 z     = DEM.qU.z;
 pst   = [1:size(z{1},2)]*dt*1000;

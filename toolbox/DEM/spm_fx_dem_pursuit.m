@@ -1,6 +1,6 @@
 function [f]= spm_fx_dem_pursuit(x,v,P)
 % returns the flow for visual pursuit demo
-% FORMAT [f]= spm_fx_dem_observe(x,v,P)
+% FORMAT [f]= spm_fx_dem_pursuit(x,v,P)
 %
 % x    - hidden states:
 %   x.o(1) - oculomotor angle
@@ -15,7 +15,7 @@ function [f]= spm_fx_dem_pursuit(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_pursuit.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: spm_fx_dem_pursuit.m 4187 2011-02-01 20:13:57Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ f.a  = spm_lotka_volterra(x.a,v);
 % motion of target states
 %==========================================================================
  
-% target location is determined by the attractor state x.a
+% target location is determined by the attractor state softmax(x.a)
 %--------------------------------------------------------------------------
 n    = length(x.a);
 p    = exp(2*x.a);

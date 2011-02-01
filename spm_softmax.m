@@ -1,6 +1,6 @@
 function [y] = spm_softmax(x,k)
 % softmax (neural transfer)  function
-% FORMAT [y] = spm_softmax(x)
+% FORMAT [y] = spm_softmax(x,k)
 %
 % x - vector of activity
 % k - temperature or inverse sensitivity parameter (default k = 1)
@@ -11,7 +11,7 @@ function [y] = spm_softmax(x,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_softmax.m 3757 2010-03-08 11:41:53Z guillaume $
+% $Id: spm_softmax.m 4187 2011-02-01 20:13:57Z karl $
  
 % apply
 %--------------------------------------------------------------------------

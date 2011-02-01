@@ -17,7 +17,7 @@ function [R] = spm_DEM_MEG(DEM,dt,n,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_MEG.m 2907 2009-03-20 13:02:24Z karl $
+% $Id: spm_DEM_MEG.m 4187 2011-02-01 20:13:57Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ try, graphics; catch, graphics = 0; end
 
 % loop over hierarchical (cortical) levels
 %--------------------------------------------------------------------------
-if graphics, cla; hold on; end
+if graphics, hold off; end
 
 z     = DEM.qU.z;
 w     = DEM.qU.w;
@@ -71,7 +71,7 @@ for k = 1:length(n)
     end
 
     if graphics
-        plot(pst,R{k,1},'r')
+        plot(pst,R{k,1},'r'), hold on
         try
             plot(pst,R{k,2},'r:')
         end

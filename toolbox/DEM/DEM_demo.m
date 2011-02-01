@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 11-Jan-2011 14:33:49
+% Last Modified by GUIDE v2.5 01-Feb-2011 19:44:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -284,10 +284,21 @@ run_demo_Callback(hObject, handles, 'DEM_demo_Cornsweet')
 function pushbutton105_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'ADEM_pursuit')
 
+% --- Executes on button press in pushbutton117.
+function pushbutton117_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_cued_response')
+
+% --- Executes on button press in pushbutton118.
+function pushbutton118_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEM_demo_MMN_deviance')
+
+
+
+
 
 
 % PDF callbacks
-
+%--------------------------------------------------------------------------
 
 % --- Executes on button press in pushbutton107.
 function pushbutton107_Callback(hObject, eventdata, handles)
@@ -328,4 +339,5 @@ pdfmanage('open','Attention uncertainty and free-energy.pdf');
 % --- Executes on button press in pushbutton116.
 function pushbutton116_Callback(hObject, eventdata, handles)
 pdfmanage('open','DEM A variational treatment of dynamic systems.pdf');
+
 

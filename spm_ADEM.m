@@ -112,7 +112,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_ADEM.m 4187 2011-02-01 20:13:57Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -637,8 +637,10 @@ for iE = 1:nE
             z     = spm_unvec(pU(t).z{1},{G.v});
             w     = spm_unvec(pU(t).w{1},{G.x});
             for i = 1:nl
-                PU.v{i}(:,t)     = spm_vec(v{i});
-                PU.z{i}(:,t)     = spm_vec(z{i});
+                try
+                    PU.v{i}(:,t) = spm_vec(v{i});
+                    PU.z{i}(:,t) = spm_vec(z{i});
+                end
                 try
                     PU.x{i}(:,t) = spm_vec(x{i});
                     PU.w{i}(:,t) = spm_vec(w{i});
