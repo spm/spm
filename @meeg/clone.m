@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 3807 2010-04-06 19:29:08Z vladimir $
+% $Id: clone.m 4181 2011-02-01 12:08:30Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -36,7 +36,20 @@ newFileName = [fullfile(pth,fname),ext];
 % copy the file_array
 d = this.data.y; % 
 d.fname = newFileName;
-d.dim = dim; 
+dim_o = d.dim;
+
+% This takes care of an issue specific to int data files which are not
+% officially supported in SPM8.
+if ~strncmpi(meegstruct.data.y.dtype, 'float', 5) && ...
+        dim(1)>dim_o(1) && length(d.scl_slope)>1
+    % adding channel and scl_slope defined -> need to increase scl_slope
+    v_slope = mode(d.scl_slope);
+    if length(v_slope)>1
+        warning('Trying to guess the scaling factor for new channels. This might be wrong.');        
+    end
+    d.scl_slope = [d.scl_slope' ones(1,dim(1)-dim_o(1))*v_slope]';
+end
+d.dim = dim;
 
 % physically initialise file
 if length(dim) == 3
