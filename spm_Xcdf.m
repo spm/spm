@@ -14,7 +14,7 @@ function F = spm_Xcdf(x,v)
 % degrees of freedom is less than x. F(x) = Pr{X<x} for X~\Chi^2(v)
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Chi-squared distribution with v degrees of freedom is defined for
 % positive integer v and x in [0,Inf). The Cumulative Distribution
 % Function (CDF) F(x) is the probability that a realisation of a
@@ -22,16 +22,16 @@ function F = spm_Xcdf(x,v)
 % (See Evans et al., Ch8)
 %
 % Variate relationships: (Evans et al., Ch8 & Ch18)
-%-----------------------------------------------------------------------
-% The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
+%--------------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is equivalent to
+% the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Using routine spm_Gcdf for Gamma distribution, with appropriate parameters.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -45,16 +45,16 @@ function F = spm_Xcdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Xcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Xcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Check enough arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 F = spm_Gcdf(x,v/2,1/2);

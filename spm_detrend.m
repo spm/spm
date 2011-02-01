@@ -1,19 +1,19 @@
-function [y] = spm_detrend(x,p)
-% polynomial detrending over columns
-% FORMAT [y] = spm_detrend(x,p)
-%___________________________________________________________________________
+function y = spm_detrend(x,p)
+% Polynomial detrending over columns
+% FORMAT y = spm_detrend(x,p)
+% x   - data matrix
+% p   - order of polynomial [default: 0]
+% 
+% y   - detrended data matrix
+%__________________________________________________________________________
 %
 % spm_detrend removes linear and nonlinear trends from column-wise data
-% matrices
-% x   - data matrix
-% p   - order of polynomial
-% y   - detrended data matrix
-%
+% matrices.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 3717 2010-02-08 16:44:42Z guillaume $
+% $Id: spm_detrend.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 % defaults
@@ -30,9 +30,7 @@ end
 % centre columns
 %--------------------------------------------------------------------------
 if ~p
-    for i = 1:n
-        y(:,i) = x(:,i) - mean(x(:,i));
-    end
+    y = bsxfun(@minus, x, mean(x));
     return
 end
 

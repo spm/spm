@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4155 2011-01-11 15:22:39Z guillaume $
+% $Id: spm_spm.m 4182 2011-02-01 12:29:09Z guillaume $
  
-SVNid     = '$Rev: 4155 $';
+SVNid     = '$Rev: 4182 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -808,24 +808,20 @@ CY   = CY - EY*EY';
 %-If not defined, compute non-sphericity V using ReML Hyperparameters
 %==========================================================================
 if ~isfield(xVi,'V')
-    
+	
     %-check there are signficant voxels
     %----------------------------------------------------------------------
     if s == 0
         spm('FigName','Stats: no significant voxels',Finter); 
         spm('Pointer','Arrow');
-        if isfield(SPM.xGX,'rg')&&~isempty(SPM.xGX.rg)
+        if isfield(SPM.xGX,'rg') && ~isempty(SPM.xGX.rg) && ~spm('CmdLine')
             figure(Finter);
             plot(SPM.xGX.rg);
-            spm('alert*',{'Please check your data'; ...
-                'There are no significant voxels';...
-                'The globals are plotted for diagnosis'});
-        else
-            spm('alert*',{'Please check your data'; ...
-                'There are no significant voxels'});
+            title('global mean per volume image');
         end
-        warning('Please check your data: There are no significant voxels.');
-        return
+        spm('alert*',{'Please check your data'; ...
+            'There are no significant voxels'});
+        error('Please check your data: There are no significant voxels.');
     end
  
     %-ReML estimate of residual correlations through hyperparameters (h)

@@ -47,11 +47,10 @@ function x = spm_invBcdf(F,v,w,tol)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invBcdf.m 4137 2010-12-15 17:18:32Z guillaume $
-
+% $Id: spm_invBcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Parameters
@@ -98,7 +97,6 @@ if isempty(Q), return, end
 if xa(1), FQ=F(Q); FQ=FQ(:); else FQ=F*ones(length(Q),1); end
 if xa(2), vQ=v(Q); vQ=vQ(:); else vQ=v*ones(length(Q),1); end
 if xa(3), wQ=w(Q); wQ=wQ(:); else wQ=w*ones(length(Q),1); end
-%-?Q=?Q(:) stuff is to avoid discrepant orientations of vector arguments!
 
 %-Interval bisection
 %--------------------------------------------------------------------------
@@ -118,6 +116,8 @@ while ~isempty(QQ) &&  i<maxIt
     i           = i+1;
 end
 
-if i==maxIt, warning('convergence criteria not reached - maxIt reached'), end
+if i==maxIt
+    warning('convergence criteria not reached - maxIt reached');
+end
 
 x(Q) = xQ;

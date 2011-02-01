@@ -6,7 +6,7 @@ function x = spm_invNcdf(F,u,v)
 % u - mean              [Defaults to 0]
 % v - variance  (v>0)   [Defaults to 1]
 % x - ordinates of N(u,v) at which CDF F(x)=F
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_invNcdf implements the inverse of the Cumulative Distribution
 % Function (CDF) for the Normal (Gaussian) family of distributions.
@@ -16,7 +16,7 @@ function x = spm_invNcdf(F,u,v)
 % variance v.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of a Normal distribution with mean u and variance v is
 % the probability that a random realisation X from this distribution
 % will be less than x. F(x)=Pr(X<=x) for X~N(u,v). The inverse CDF
@@ -28,7 +28,7 @@ function x = spm_invNcdf(F,u,v)
 % its inverse as \Phi^{-1}(F).
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF for a standard N(0,1) Normal distribution, \Phi(z), is
 % related to the error function by: (Abramowitz & Stegun, 26.2.29)
 %
@@ -39,13 +39,13 @@ function x = spm_invNcdf(F,u,v)
 %
 % where erfinv(.) is the inverse error function.
 %
-% MatLab's implementation of the inverse error function is used for
+% MATLAB's implementation of the inverse error function is used for
 % computation of z=\Phi^{-1}(F), the corresponding standard normal
 % variate, which converted to a variate x from a N(u,v) distribution by:
 %       x = u+z*sqrt(v)
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -58,16 +58,15 @@ function x = spm_invNcdf(F,u,v)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 3450 2009-10-08 16:11:13Z guillaume $
-
+% $Id: spm_invNcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, v=1; end
 if nargin<2, u=0; end
 if nargin<1, x=[]; return, end
@@ -78,19 +77,22 @@ as = [  [size(F),ones(1,rd-ad(1))];...
     [size(v),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 x = zeros(rs);
 
 %-Only defined for F in [0,1], & strictly positive variance v.
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  ones(size(u))  &  v>0 );
-if any(~md(:)), x(~md) = NaN;
-    warning('SPM:outOfRangeNormal','Returning NaN for out of range arguments'), end
+if any(~md(:))
+    x(~md) = NaN;
+    warning('SPM:outOfRangeNormal','Returning NaN for out of range arguments');
+end
 
 %-Compute where defined
 Q  = find( md );

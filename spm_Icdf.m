@@ -6,13 +6,13 @@ function F = spm_Icdf(x,n,p)
 % n - Binomial n
 % p - Binomial p [Defaults to 0.5]
 % F - CDF
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Icdf returns the Cumulative Distribution Function for the
 % Binomial family of distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Bin(n,p) distribution is the distribution of the number of
 % successes from n identical independent Bernoulli trials each with
 % success probability p. If random variable X is the number of
@@ -31,7 +31,7 @@ function F = spm_Icdf(x,n,p)
 % where nCx is the Binomial coefficient "n-choose-x", given by n!/(x!(n-x)!)
 %
 % Normal approximation:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % For (npq>5 & 0.1<=p<=0.9) | min(np,nq)>10 | npq>25 the Normal
 % approximation to the Binomial may be used:
 %       X~Bin(n,p),  X~:~N(np,npq)              ( ~:~ -> approx. distributed as)
@@ -41,7 +41,7 @@ function F = spm_Icdf(x,n,p)
 %       \Phi(x) = 0.5+0.5*erf(x/sqrt(2))
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % F(x), the CDF of the Binomial distribution, for X~Bin(n,p), is related
 % to the incomplete beta function, by:
 %
@@ -51,7 +51,7 @@ function F = spm_Icdf(x,n,p)
 % further details.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -64,16 +64,16 @@ function F = spm_Icdf(x,n,p)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Icdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Icdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, p=0.5; end
 if nargin<2, error('Insufficient arguments'), end
 ad = [ndims(x);ndims(n);ndims(p)];
@@ -83,18 +83,21 @@ as = [  [size(x),ones(1,rd-ad(1))];...
     [size(p),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for whole n, and for p in [0,1]. Return NaN if undefined.
 md = ( ones(size(x))  &  n==floor(n)  &  n>=0  &  p>=0  &  p<=1 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-F is 1 where x>=n, or (p=0 & x>=0) (where betainc involves log of zero)
 m1 = ( x>=n  |  (p==0 & x>=0) );

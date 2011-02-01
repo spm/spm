@@ -5,13 +5,13 @@ function x = spm_invPcdf(F,l)
 % F - CDF (lower tail p-value)
 % x - ordinates
 % l - Poisson mean parameter (lambda l>0) [Defaults to 1]
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_invPcdf returns the inverse Cumulative Distribution Function for
 % the Poisson family of distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Poisson Po(l) distribution is the distribution of the number of
 % events in unit time for a stationary Poisson process with mean
 % parameter lambda=1, or equivalently rate 1/l. If random variable X is
@@ -25,11 +25,11 @@ function x = spm_invPcdf(F,l)
 % function.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % x is found by direct summation of the Poisson PDFs until F is exceeded.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -42,38 +42,41 @@ function x = spm_invPcdf(F,l)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invPcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_invPcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, l=1; end
 if nargin<1, error('Insufficient arguments'), end
 
 ad = [ndims(F);ndims(l)];
 rd = max(ad);
-as = [  [size(F),ones(1,rd-ad(1))];...
-    [size(l),ones(1,rd-ad(2))];    ];
+as = [[size(F),ones(1,rd-ad(1))];...
+      [size(l),ones(1,rd-ad(2))];];
 rs = max(as);
 xa = prod(as,2)>1;
-if all(xa) & any(diff(as(xa,:)))
-    error('non-scalar args must match in size'), end
+if all(xa) && any(diff(as(xa,:)))
+    error('non-scalar args must match in size');
+end
 
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 x = zeros(rs);
 
 %-Only defined for F in [0,1] & l>0 & . Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  l>0 );
-if any(~md(:)), x(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    x(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Infinite where defined but F=1
 mi = ( F==1 ); x(md&mi) = Inf;

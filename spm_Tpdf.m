@@ -5,13 +5,13 @@ function f = spm_Tpdf(x,v)
 % x - t-ordinates
 % v - degrees of freedom (v>0, non-integer d.f. accepted)
 % f - PDF of t-distribution with v degrees of freedom (df) at points t
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Tpdf implements the Probability Density Function of Students 
 % t-distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Student's t-distribution with v degrees of freedom is defined for
 % positive integer v and x in (-Inf,Inf), and has Probability Distribution
 % Function (PDF) f(x) given by: (See Evans et al., Ch37)
@@ -24,12 +24,12 @@ function f = spm_Tpdf(x,v)
 % v, rather it will compute for any df v>0.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Direct computation using the beta function for
 %       sqrt(pi)*gamma(v/2) / gamma((v+1)/2)  =  beta(v/2,1/2)
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -42,36 +42,39 @@ function f = spm_Tpdf(x,v)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Tpdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Tpdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];    ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];];
 rs = max(as);
 xa = prod(as,2)>1;
-if all(xa) & any(diff(as(xa,:)))
-    error('non-scalar args must match in size'), end
+if all(xa) && any(diff(as(xa,:)))
+    error('non-scalar args must match in size');
+end
 
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 f = zeros(rs);
 
 %-Only defined for v>0. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0 );
-if any(~md(:)), f(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    f(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Compute where defined
 Q  = find( md );

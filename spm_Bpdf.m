@@ -11,7 +11,7 @@ function f = spm_Bpdf(x,v,w)
 % spm_Bpdf implements the Probability Density Function for Beta distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The PDF of the Beta distribution shape parameters v & w, defined
 % for positive integer degrees of freedom v>0 & w>0, and for x in
 % [0,1] is given by: (See Evans et al., Ch5)
@@ -21,16 +21,16 @@ function f = spm_Bpdf(x,v,w)
 %                 beta(v,w)
 %
 % Variate relationships:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Many: See Evans et al., Ch5
 %
 % Algorithm:
-%-----------------------------------------------------------------------
-% Direct computation using logs and Matlab's implementation of the log
+%--------------------------------------------------------------------------
+% Direct computation using logs and MATLAB's implementation of the log
 % beta function (betaln).
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -43,37 +43,39 @@ function f = spm_Bpdf(x,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Bpdf.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_Bpdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];...
-    [size(w),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(w),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 f = zeros(rs);
 
 %-Only defined for x in [0,1] & strictly positive v & w.
 % Return NaN if undefined.
 md = ( x>=0  &  x<=1  &  v>0  &  w>0 );
-if any(~md(:)), f(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    f(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Special cases: x=0 & x=1
 f(md & x==0 & v<1) = Inf;

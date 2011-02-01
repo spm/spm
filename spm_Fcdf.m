@@ -9,12 +9,12 @@ function F = spm_Fcdf(x,v,w)
 % v  - Shape parameter 1 /   numerator degrees of freedom (v>0)
 % w  - Shape parameter 2 / denominator degrees of freedom (w>0)
 % F  - CDF of F-distribution with [v,w] degrees of freedom at points x
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Fcdf implements the Cumulative Distribution Function of the F-distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of the F distribution with degrees of freedom v & w,
 % defined for positive integer degrees of freedom v & w, is the
 % probability that a realisation of an F random variable X has value
@@ -22,7 +22,7 @@ function F = spm_Fcdf(x,v,w)
 % for v>0 & w>0, and for x in [0,Inf) (See Evans et al., Ch16).
 %
 % Variate relationships: (Evans et al., Ch16 & 37)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The square of a Student's t variate with w degrees of freedom is
 % distributed as an F-distribution with [1,w] degrees of freedom.
 %
@@ -31,7 +31,7 @@ function F = spm_Fcdf(x,v,w)
 % w/2 & v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Using the relationship with the Beta distribution: The CDF of the
 % F-distribution with v,w degrees of freedom is related to the
 % incomplete beta function by:
@@ -41,11 +41,11 @@ function F = spm_Fcdf(x,v,w)
 % easily verified by substituting for w/(w+v*x^2) in the integral of the
 % incomplete beta function.
 %
-% MatLab's implementation of the incomplete beta function is used.
+% MATLAB's implementation of the incomplete beta function is used.
 %
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -59,14 +59,14 @@ function F = spm_Fcdf(x,v,w)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Fcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Unpack degrees of freedom v & w from single df parameter (v)
@@ -88,23 +88,25 @@ end
 %-Check argument sizes
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];...
-    [size(w),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(w),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
     error('non-scalar args must match in size'), end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for strictly positive v & w. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0  &  w>0 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Non-zero where defined and x>0
 Q  = find( md  &  x>0 );

@@ -11,7 +11,7 @@ function f = spm_Xpdf(x,v)
 % Chi-squared distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Chi-squared distribution with v degrees of freedom is defined for
 % positive integer v and x in [0,Inf), and has Probability Distribution
 % Function (PDF) f(x) given by: (See Evans et al., Ch8)
@@ -21,16 +21,16 @@ function f = spm_Xpdf(x,v)
 %           2^(v/2) * gamma(v/2)
 %
 % Variate relationships: (Evans et al., Ch8 & Ch18)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Chi-squared distribution with v degrees of freedom is equivalent
 % to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Using routine spm_Gpdf for Gamma distribution, with appropriate parameters.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -44,16 +44,16 @@ function f = spm_Xpdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Xpdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Xpdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Check enough arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 f = spm_Gpdf(x,v/2,1/2);

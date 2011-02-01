@@ -11,7 +11,7 @@ function x = spm_invXcdf(F,v)
 % Chi-squared distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Chi-squared distribution with v degrees of freedom is defined for
 % positive integer v and x in [0,Inf). The Cumulative Distribution
 % Function (CDF) F(x) is the probability that a realisation of a
@@ -19,16 +19,17 @@ function x = spm_invXcdf(F,v)
 % (See Evans et al., Ch8)
 %
 % Variate relationships: (Evans et al., Ch8 & Ch18)
-%-----------------------------------------------------------------------
-% The Chi-squared distribution with v degrees of freedom is equivalent
-% to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
+%--------------------------------------------------------------------------
+% The Chi-squared distribution with v degrees of freedom is equivalent to
+% the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
-% Using routine spm_invGcdf for Gamma distribution, with appropriate parameters.
+%--------------------------------------------------------------------------
+% Using routine spm_invGcdf for Gamma distribution, with appropriate
+% parameters.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -42,16 +43,16 @@ function x = spm_invXcdf(F,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invXcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_invXcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Check enough arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Computation
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 x = spm_invGcdf(F,v/2,1/2);

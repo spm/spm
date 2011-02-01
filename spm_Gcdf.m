@@ -11,7 +11,7 @@ function F = spm_Gcdf(x,h,l)
 % spm_Gcdf implements the Cumulative Distribution of the Gamma-distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of the Gamma distribution with shape parameter h and
 % scale l is the probability that a realisation of a Gamma random
 % variable X has value less than x F(x)=Pr{X<x} for X~G(h,l). The Gamma
@@ -20,7 +20,7 @@ function F = spm_Gcdf(x,h,l)
 % parameterisation of the Gamma with scale parameter c=1/l)
 %
 % Variate relationships: (Evans et al., Ch18 & Ch8)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % For natural (strictly +ve integer) shape h this is an Erlang distribution.
 %
 % The Standard Gamma distribution has a single parameter, the shape h.
@@ -30,7 +30,7 @@ function F = spm_Gcdf(x,h,l)
 % to the Gamma distribution with scale parameter 1/2 and shape parameter v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF of the Gamma distribution with scale parameter l and shape h
 % is related to the incomplete Gamma function by
 %
@@ -40,10 +40,10 @@ function F = spm_Gcdf(x,h,l)
 % of the incomplete Gamma function. The relationship is easily verified
 % by substituting for t/c in the integral, where c=1/l.
 %
-% MatLab's implementation of the incomplete gamma function is used.
+% MATLAB's implementation of the incomplete gamma function is used.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -56,14 +56,14 @@ function F = spm_Gcdf(x,h,l)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Gcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Gcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(h);ndims(l)];
@@ -73,18 +73,21 @@ as = [  [size(x),ones(1,rd-ad(1))];...
     [size(l),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for strictly positive h & l. Return NaN if undefined.
 md = ( ones(size(x))  &  h>0  &  l>0 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Non-zero where defined and x>0
 Q  = find( md  &  x>0 );

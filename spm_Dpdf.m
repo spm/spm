@@ -16,13 +16,13 @@ function f = spm_Dpdf(x,a)
 %
 % Algorithm:
 %--------------------------------------------------------------------------
-% Direct computation using logs and Matlab's implementation of the log of 
+% Direct computation using logs and MATLAB's implementation of the log of 
 % the gamma function (gammaln).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_Dpdf.m 2636 2009-01-21 09:57:20Z guillaume $
+% $Id: spm_Dpdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 %-Check enough arguments
 %--------------------------------------------------------------------------

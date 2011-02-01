@@ -9,12 +9,12 @@ function f = spm_Fpdf(x,v,w)
 % v  - Shape parameter 1 /   numerator degrees of freedom (v>0)
 % w  - Shape parameter 2 / denominator degrees of freedom (w>0)
 % f  - PDF of F-distribution with [v,w] degrees of freedom at points x
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Fpdf implements the Probability Density Function of the F-distribution.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The PDF of the F-distribution with degrees of freedom v & w, defined
 % for positive integer degrees of freedom v>0 & w>0, and for x in
 % [0,Inf) by: (See Evans et al., Ch16)
@@ -24,7 +24,7 @@ function f = spm_Fpdf(x,v,w)
 %           gamma(v/2)*gamma(w/2) * (1+(v/w)x)^((v+w)/2)
 %
 % Variate relationships: (Evans et al., Ch16 & 37)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The square of a Student's t variate with w degrees of freedom is
 % distributed as an F-distribution with [1,w] degrees of freedom.
 %
@@ -33,12 +33,12 @@ function f = spm_Fpdf(x,v,w)
 % w/2 & v/2.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Direct computation using the beta function for
 %       gamma(v/2)*gamma(w/2) / gamma((v+w)/2)  =  beta(v/2,w/2)
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -51,15 +51,15 @@ function f = spm_Fpdf(x,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fpdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Fpdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
 
 %-Unpack degrees of freedom v & w from single df parameter (v)
@@ -81,23 +81,26 @@ end
 %-Check argument sizes
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];...
-    [size(w),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(w),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 f = zeros(rs);
 
 %-Only defined for strictly positive v & w. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0  &  w>0 );
-if any(~md(:)), f(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    f(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Non-zero where defined and x>0
 Q  = find( md  &  x>0 );

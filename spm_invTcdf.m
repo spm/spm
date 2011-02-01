@@ -61,10 +61,10 @@ function x = spm_invTcdf(F,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invTcdf.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_invTcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -78,7 +78,8 @@ as = [  [size(F),ones(1,rd-ad(1))];...
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) && any(diff(as(xa,:)))
-    error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size');
+end
 
 
 %-Computation
@@ -89,8 +90,10 @@ x = zeros(rs);
 %-Only defined for F in [0,1] & strictly positive v.
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  v>0 );
-if any(~md(:)), x(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    x(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Special case: x is 0 when F=0.5, -Inf when F=0, +Inf when F=1
 x(md & F==0) = -Inf;

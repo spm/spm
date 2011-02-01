@@ -2,7 +2,7 @@ function [p] = spm_ncTcdf(x,v,d)
 % Cumulative Distribution Function (CDF) of non-central t-distribution
 % FORMAT [p] = spm_ncTcdf(x,v,d)
 % x -  T-variate (Student's t has range (-Inf,Inf)
-% v - degrees of freedom (v>0, non-integer d.f. accepted
+% v - degrees of freedom (v>0, non-integer d.f. accepted)
 % F - CDF of non-central t-distribution with v d.f. at points x
 %
 % see:
@@ -11,10 +11,11 @@ function [p] = spm_ncTcdf(x,v,d)
 % Russell V. Lenth
 % Applied Statistics, Vol. 38, No. 1 (1989), pp. 185-189
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ncTcdf.m 2807 2009-03-02 12:08:44Z karl $
+% $Id: spm_ncTcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+
 
 % CDF
 %--------------------------------------------------------------------------

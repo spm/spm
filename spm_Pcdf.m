@@ -56,10 +56,10 @@ function F = spm_Pcdf(x,l)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Pcdf.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_Pcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -74,7 +74,8 @@ as = [[size(x),ones(1,rd-ad(1))];...
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) && any(diff(as(xa,:)))
-    error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size');
+end
 
 
 %-Computation
@@ -84,9 +85,11 @@ F = zeros(rs);
 
 %-Only defined for l>0. Return NaN if undefined.
 md = ( ones(size(x))  &  l>0 );
-if any(~md(:)), F(~md) = NaN;
+if any(~md(:))
+    F(~md) = NaN;
     warning('SPM:outOfRangePoisson',...
-        'Returning NaN for out of range arguments'), end
+        'Returning NaN for out of range arguments');
+end
 
 %-Non-zero only where defined and x>=0
 Q  = find( md  &  x>=0 );

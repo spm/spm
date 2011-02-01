@@ -6,7 +6,7 @@ function display(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: display.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: display.m 4182 2011-02-01 12:29:09Z guillaume $
 
 display_name = inputname(1);
 if isempty(display_name)
@@ -17,6 +17,9 @@ if length(this) == 1 && ~isempty(this.data)
     eval([display_name ' = struct(this);']);
     eval(['display(' display_name ');']);
 else
+    disp(' ')
+    disp([display_name ' =']);
+    disp(' ');
     eval([display_name ' = this;']);
-    eval(['builtin(''display'',' display_name ');']);
+    eval(['disp(' display_name ');']);
 end

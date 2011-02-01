@@ -6,13 +6,13 @@ function f = spm_Ipdf(x,n,p)
 % n - Binomial n
 % p - Binomial p [Defaults to 0.5]
 % f - PDF
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_Ipdf returns the Probability (Distribution) Function (PDF) for
 % the Binomial family of distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Bin(n,p) distribution is the distribution of the number of
 % successes from n identical independent Bernoulli trials each with
 % success probability p. If random variable X is the number of
@@ -27,7 +27,7 @@ function f = spm_Ipdf(x,n,p)
 % where nCx is the Binomial coefficient "n-choose-x", given by n!/(x!(n-x)!).
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % For vary small n, nCx can be computed naively as the ratio of
 % factorials, using gamma(n+1) to return n!. For moderately sized n, n!
 % (& x! &/or (n-x)!) become very large, and naive computation isn't
@@ -49,7 +49,7 @@ function f = spm_Ipdf(x,n,p)
 % of n & x. See Press et al., Sec6.1 for further details.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -62,37 +62,39 @@ function f = spm_Ipdf(x,n,p)
 %       "Numerical Recipes in C"
 %        Cambridge
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Ipdf.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_Ipdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, p=0.5; end
 if nargin<2, error('Insufficient arguments'), end
 ad = [ndims(x);ndims(n);ndims(p)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(n),ones(1,rd-ad(2))];...
-    [size(p),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(n),ones(1,rd-ad(2))];...
+      [size(p),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 f = zeros(rs);
 
 %-Only defined for whole n, and for p in [0,1]. Return NaN if undefined.
 md = ( ones(size(x))  &  n==floor(n)  &  n>=0  &  p>=0  &  p<=1 );
-if any(~md(:)), f(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    f(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Non-zero only where defined and x is whole with 0<=x<=n
 Q  = find( md  &  x==floor(x)  &  n>=x  &  x>=0 );
@@ -106,23 +108,23 @@ f(Q) = round(exp(gammaln(n(Qn)+1) -gammaln(x(Qx)+1) - gammaln(n(Qn)-x(Qx)+1)));
 f(Q) = f(Q).* p(Qp).^x(Qx) .* (1-p(Qp)).^(n(Qn)-x(Qx));
 
 %-Return
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 return
 
 
 
-%=======================================================================
+%==========================================================================
 %-Direct computation method: (For interest)
-%=======================================================================
+%==========================================================================
 % The following cunning direct computation is faster than using log
 % gammas, but is rather difficult to vectorise.
 %q=1-p;
 %if r<n/2
 %   %-better for small r (less terms) / small p (smaller numbers)
-%   %---------------------------------------------------------------
+%   %----------------------------------------------------------------------
 %   f=prod([[n:-1:n-r+1]*p,1]./[r:-1:1,1])*q^(n-r);
 %else
 %   %-better for large r (less terms) / small q (smaller numbers)
-%   %---------------------------------------------------------------
+%   %----------------------------------------------------------------------
 %   f=prod([[n:-1:r+1]*q,1]./[n-r:-1:1,1])*p^r;
 %end

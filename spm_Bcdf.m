@@ -12,7 +12,7 @@ function F = spm_Bcdf(x,v,w)
 % distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The Beta distribution has two shape parameters, v and w, and is
 % defined for v>0 & w>0 and for x in [0,1] (See Evans et al., Ch5).
 % The Cumulative Distribution Function (CDF) F(x) is the probability
@@ -22,15 +22,15 @@ function F = spm_Bcdf(x,v,w)
 % definitions of the incomplete beta function.
 %
 % Variate relationships:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Many: See Evans et al., Ch5
 %
 % Algorithm:
-%-----------------------------------------------------------------------
-% Using Matlab's implementation of the incomplete beta finction (betainc).
+%--------------------------------------------------------------------------
+% Using MATLAB's implementation of the incomplete beta finction (betainc).
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -43,37 +43,39 @@ function F = spm_Bcdf(x,v,w)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Bcdf.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_Bcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))];...
-    [size(w),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(w),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
-if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size'), end
+if sum(xa)>1 && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
+end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for x in [0,1] & strictly positive v & w.
 % Return NaN if undefined.
 md = ( x>=0  &  x<=1  &  v>0  &  w>0 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Special cases: F=1 when x=1
 F(md & x==1) = 1;

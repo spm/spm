@@ -40,7 +40,7 @@ function F = spm_Tcdf(x,v)
 % easily verified by substituting for v/(v+x^2) in the integral of the
 % incomplete beta function.
 %
-% MatLab's implementation of the incomplete beta function is used.
+% MATLAB's implementation of the incomplete beta function is used.
 %
 %
 % References:
@@ -58,10 +58,10 @@ function F = spm_Tcdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Tcdf.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_Tcdf.m 4182 2011-02-01 12:29:09Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -70,12 +70,13 @@ if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(v),ones(1,rd-ad(2))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))]];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) && any(diff(as(xa,:)))
-    error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size');
+end
 
 
 %-Computation
@@ -85,8 +86,10 @@ F = zeros(rs);
 
 %-Only defined for strictly positive v. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
 
 %-Special case: f is 0.5 when x=0 (where betainc involves log of zero)
 F( md  &  x==0 ) = 0.5;
