@@ -28,20 +28,21 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 3653 2009-12-23 20:06:48Z karl $
+% $Id: spm_dcm_erp_results.m 4186 2011-02-01 20:11:32Z karl $
 
 
 % get Action if necessary
 %--------------------------------------------------------------------------
 if nargin < 2
     
-    str{1} = 'ERPs (sources)';
-    str{2} = 'Coupling (A)';
-    str{3} = 'Coupling (B)';
-    str{4} = 'Coupling (C)';
-    str{5} = 'trial-specific effects';
-    str{6} = 'Input';
-    str{7} = 'Response';
+    str{1} = 'ERPs (mode)';
+    str{2} = 'ERPs (sources)';
+    str{3} = 'Coupling (A)';
+    str{4} = 'Coupling (B)';
+    str{5} = 'Coupling (C)';
+    str{6} = 'trial-specific effects';
+    str{7} = 'Input';
+    str{8} = 'Response';
     str{8} = 'Data';
     Action = str{spm_input('Action',0,'m',str)};
     

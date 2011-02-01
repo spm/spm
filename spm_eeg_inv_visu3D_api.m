@@ -5,12 +5,12 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % - SPM_EEG_INV_VISU3D_API(filename) where filename is the eeg/meg .mat file
 % - SPM_EEG_INV_VISU3D_API('callback_name', ...) invoke the named callback.
 %
-% Last Modified by GUIDE v2.5 01-Feb-2007 20:16:13
+% Last Modified by GUIDE v2.5 27-Jan-2011 13:57:10
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4131 2010-12-02 12:02:41Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 4186 2011-02-01 20:11:32Z karl $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ catch
 end
 
 if ~isfield(D,'inv')
-    error(sprintf('Please specify and invert a forward model\n'));
+    error('Please specify and invert a forward model\n');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GET RESULTS (default: current or last analysis)
@@ -132,7 +132,11 @@ try
     
     % sensor data
     %----------------------------------------------------------------------
-    A                 = pinv(full(spm_cat(spm_diag(U))));
+    if iscell(U)
+        A             = spm_pinv(spm_cat(spm_diag(U)));
+    else
+        A             = spm_pinv(U)';
+    end
     handles.sens_data = A*Y*T(Ts,:)';
     handles.pred_data = A*L*J(Is,:);
     
@@ -185,7 +189,7 @@ end
 
 handles.vert  = vert;
 handles.face  = face;
-handles.grayc = sqrt(sum((vert.^2)')); handles.grayc = handles.grayc'/max(handles.grayc);
+handles.grayc = sqrt(sum((vert.^2),2)); handles.grayc = handles.grayc'/max(handles.grayc);
 clear vert face
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,11 +233,9 @@ handles.colorbar = colorbar;
 % LOAD SENSOR FILE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ic   = setdiff(D.meegchannels, D.badchannels);
-
 coor = D.coor2D(ic);
-
-xp = coor(1,:)';
-yp = coor(2,:)';
+xp   = coor(1,:)';
+yp   = coor(2,:)';
 
 x        = linspace(min(xp),max(xp),64);
 y        = linspace(min(yp),max(yp),64);
