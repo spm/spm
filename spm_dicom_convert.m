@@ -7,9 +7,10 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 %        'all'      - all DICOM files [default]
 %        'mosaic'   - the mosaic images
 %        'standard' - standard DICOM files
-%        'spect'    - SIEMENS Spectroscopy DICOMs (position only)
-%                     This will write out a mask image volume with 1's
-%                     set at the position of spectroscopy voxel(s).
+%        'spect'    - SIEMENS Spectroscopy DICOMs (some formats only)
+%                     This will write out a 5D NIFTI containing real and
+%                     imaginary part of the spectroscopy time points at the
+%                     position of spectroscopy voxel(s).
 %        'raw'      - convert raw FIDs (not implemented)
 % root_dir - 'flat' - do not produce file tree [default]
 %            With all other options, files will be sorted into
@@ -33,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4162 2011-01-13 19:46:03Z john $
+% $Id: spm_dicom_convert.m 4183 2011-02-01 13:51:45Z volkmar $
 
 
 if nargin<2, opts     = 'all'; end
@@ -646,9 +647,12 @@ end
 %-------------------------------------------------------------------
 nc = get_numaris4_numval(privdat,'Columns');
 nr = get_numaris4_numval(privdat,'Rows');
+% Guess number of timepoints in file - don't know whether this should be
+% 'DataPointRows'-by-'DataPointColumns' or 'SpectroscopyAcquisitionDataColumns'
+ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
 
-dim    = [nc nr numel(hdr)];
-dt     = determine_datatype(hdr{1});
+dim    = [nc nr numel(hdr) 2 ntp];
+dt     = spm_type('float32'); % Fixed datatype
 
 % Orientation information
 %-------------------------------------------------------------------
@@ -676,12 +680,12 @@ orient           = reshape(get_numaris4_numval(privdat,...
 ps               = get_numaris4_numval(privdat,'PixelSpacing');
 if nc*nr == 1
     % Single Voxel Spectroscopy (based on the following information from SIEMENS)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %---------------------------------------------------------------
     % NOTE: Internally the position vector of the CSI matrix shows to the outer border
     % of the first voxel. Therefore the position vector has to be corrected.
     % (Note: The convention of Siemens spectroscopy raw data is in contrast to the
     %  DICOM standard where the position vector points to the center of the first voxel.)
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %---------------------------------------------------------------
     % SIEMENS decides which definition to use based on the contents of the
     % 'PixelSpacing' internal header field. If it has non-zero values,
     % assume DICOM convention. If any value is zero, assume SIEMENS
@@ -751,7 +755,6 @@ end;
 
 % Write the image volume
 %-------------------------------------------------------------------
-spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
 N      = nifti;
 pinfo  = [1 0];
 if isfield(hdr{1},'RescaleSlope'),      pinfo(1) = hdr{1}.RescaleSlope;     end;
@@ -762,20 +765,18 @@ N.mat0 = mat;
 N.mat_intent  = 'Scanner';
 N.mat0_intent = 'Scanner';
 N.descrip     = descrip;
+N.extras      = struct('MagneticFieldStrength',...
+                       get_numaris4_numval(privdat,'MagneticFieldStrength'),...
+                       'TransmitterReferenceAmplitude',...
+                       get_numaris4_numval(privdat,'TransmitterReferenceAmplitude'));
 create(N);
-volume = zeros(dim);
 
-for i=1:length(hdr),
-    plane = read_spect_data(hdr{i},privdat);
-    if pinfo(1)~=1, plane = plane*pinfo(1); end;
-    if pinfo(2)~=0, plane = plane+pinfo(2); end;
-    plane = fliplr(plane);
-    if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
-    volume(:,:,i) = plane;
-    spm_progress_bar('Set',i);
-end;
-N.dat(:,:,:) = volume;
-spm_progress_bar('Clear');
+% Read data, swap dimensions
+data = permute(reshape(read_spect_data(hdr{1},privdat),dim([4 5 1 2 3])), ...
+                [3 4 5 1 2]);
+% plane = fliplr(plane);
+
+N.dat(:,:,:,:,:) = data;
 return;
 %_______________________________________________________________________
 
@@ -945,11 +946,19 @@ return;
 
 %_______________________________________________________________________
 function img = read_spect_data(hdr,privdat)
-% Image dimensions
-%-------------------------------------------------------------------
-nc = get_numaris4_numval(privdat,'Columns');
-nr = get_numaris4_numval(privdat,'Rows');
-img = ones(nr,nc);
+% Guess number of timepoints in file - don't know whether this should be
+% 'DataPointRows'-by-'DataPointColumns' or 'SpectroscopyAcquisitionDataColumns'
+ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
+% Data is stored as complex float32 values, timepoint by timepoint, voxel
+% by voxel. Reshaping is done in write_spectroscopy_volume.
+if ntp*2*4 ~= hdr.SizeOfCSAData
+    warning([hdr.Filename,': Data size mismatch.']);
+end
+fp = fopen(hdr.Filename,'r','ieee-le');
+fseek(fp,hdr.StartOfCSAData,'bof');
+img = fread(fp,2*ntp,'float32');
+fclose(fp);
+return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -1139,7 +1148,9 @@ function ret = read_ascconv(hdr)
 % ### ASCCONV BEGIN ###
 % and ends with
 % ### ASCCONV END ###
-% It is read by spm_dicom_headers into an entry 'MrProtocol' in CSASeriesHeaderInfo
+% It is read by spm_dicom_headers into an entry 'MrProtocol' in
+% CSASeriesHeaderInfo or into an entry 'MrPhoenixProtocol' in
+% Private_0029_1110 or Private_0029_1120.
 % The additional items are assignments in C syntax, here they are just
 % translated according to
 % [] -> ()
@@ -1149,8 +1160,10 @@ function ret = read_ascconv(hdr)
 ret=struct;
 
 % get ascconv data
-if strcmp(hdr.CSAImageHeaderVersion, 'syngo MR B13')
-    X = hdr.Private_0029_1120;
+if isfield(hdr, 'Private_0029_1110')
+    X = get_numaris4_val(hdr.Private_0029_1110,'MrPhoenixProtocol');
+elseif isfield(hdr, 'Private_0029_1120')
+    X = get_numaris4_val(hdr.Private_0029_1120,'MrPhoenixProtocol');
 else
     X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
 end
@@ -1161,10 +1174,10 @@ ascend = strfind(X,'### ASCCONV END ###');
 if ~isempty(ascstart) && ~isempty(ascend)
     tokens = textscan(char(X((ascstart+22):(ascend-1))),'%s', ...
         'delimiter',char(10));
+    tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','0x([0-9a-fA-F]*)'},{'($1+1)','''$1''','hex2dec(''$1'')'});
+    % If everything would evaluate correctly, we could use
+    % eval(sprintf('ret.%s;\n',tokens{1}{:}));
     for k = 1:numel(tokens{1})
-        tokens{1}{k}=regexprep(tokens{1}{k},'\[([0-9]*)\]','($1+1)');
-        tokens{1}{k}=regexprep(tokens{1}{k},'"(.*)"','''$1''');
-        tokens{1}{k}=regexprep(tokens{1}{k},'0x([0-9a-fA-F]*)','hex2dec(''$1'')');
         try
             eval(['ret.' tokens{1}{k} ';']);
         catch
