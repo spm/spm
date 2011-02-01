@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 4181 2011-02-01 12:08:30Z vladimir $
+% $Id: clone.m 4184 2011-02-01 17:36:34Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -40,7 +40,7 @@ dim_o = d.dim;
 
 % This takes care of an issue specific to int data files which are not
 % officially supported in SPM8.
-if ~strncmpi(meegstruct.data.y.dtype, 'float', 5) && ...
+if ~strncmpi(d.dtype, 'float', 5) && ...
         dim(1)>dim_o(1) && length(d.scl_slope)>1
     % adding channel and scl_slope defined -> need to increase scl_slope
     v_slope = mode(d.scl_slope);
