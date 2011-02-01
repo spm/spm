@@ -71,9 +71,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 4091 2010-10-14 11:50:17Z guillaume $
+% $Id: spm_mfx.m 4185 2011-02-01 18:46:18Z guillaume $
 
-SVNid = '$Rev: 4091 $';
+SVNid = '$Rev: 4185 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -266,10 +266,10 @@ SPM       = S;
 SPM.swd   = fullfile(swd,'mfx');
 [st, me]  = mkdir(SPM.swd);
 if st
-    if spm_matlab_version_chk('7') >= 0,
-        save(fullfile(SPM.swd,'SPM'), 'SPM', '-V6');
+    if spm_check_version('matlab','7') >= 0,
+        save(fullfile(SPM.swd,'SPM.mat'), 'SPM', '-V6');
     else
-        save(fullfile(SPM.swd,'SPM'), 'SPM');
+        save(fullfile(SPM.swd,'SPM.mat'), 'SPM');
     end
 else
     error('Could not save SPM.mat in mfx: %s', me)

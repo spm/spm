@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_mesh_render.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 %-Input parameters
@@ -522,7 +522,7 @@ set(dcm_obj, 'Enable','on', 'SnapToDataVertex','on', ...
 function txt = myDataCursorUpdate(obj,evt,H)
 pos = get(evt,'Position');
 txt = {['X: ',num2str(pos(1))],...
-	   ['Y: ',num2str(pos(2))],...
+       ['Y: ',num2str(pos(2))],...
        ['Z: ',num2str(pos(3))]};
 i = ismember(get(H.patch,'vertices'),pos,'rows');
 txt = {['Node: ' num2str(find(i))] txt{:}};

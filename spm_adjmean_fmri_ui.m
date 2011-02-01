@@ -192,7 +192,7 @@ function spm_adjmean_fmri_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_adjmean_fmri_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_adjmean_fmri_ui.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 
@@ -595,11 +595,11 @@ Des = struct(...
         'aPMap',    [],...
         'EXnames',  EXnames,...
         'iX',       iX      );
-if spm_matlab_version_chk('7') >= 0
-    save('SPMadj','-V6',...
+if spm_check_version('matlab','7') >= 0
+    save('SPMadj.mat','-V6',...
         'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
 else
-    save('SPMadj',...
+    save('SPMadj.mat',...
         'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
 end;
 

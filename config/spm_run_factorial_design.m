@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 4111 2010-11-05 12:59:10Z guillaume $
+% $Id: spm_run_factorial_design.m 4185 2011-02-01 18:46:18Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -1008,10 +1008,10 @@ end
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
 
-if spm_matlab_version_chk('7') >= 0
-    save('SPM', 'SPM', '-V6');
+if spm_check_version('matlab','7') >= 0
+    save('SPM.mat', 'SPM', '-V6');
 else
-    save('SPM', 'SPM');
+    save('SPM.mat', 'SPM');
 end
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 

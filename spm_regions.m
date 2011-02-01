@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 4167 2011-01-19 16:32:53Z guillaume $
+% $Id: spm_regions.m 4185 2011-02-01 18:46:18Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -245,11 +245,11 @@ end
 
 %-Save
 %==========================================================================
-str = ['VOI_' xY.name];
+str = ['VOI_' xY.name '.mat'];
 if isfield(xY,'Sess') && isfield(SPM,'Sess')
     str = sprintf('VOI_%s_%i.mat',xY.name,xY.Sess);
 end
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(fullfile(SPM.swd,str),'-V6','Y','xY')
 else
     save(fullfile(SPM.swd,str),'Y','xY')

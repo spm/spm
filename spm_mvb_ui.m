@@ -77,7 +77,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 3656 2009-12-23 20:17:30Z karl $
+% $Id: spm_mvb_ui.m 4185 2011-02-01 18:46:18Z guillaume $
  
  
 %-Get figure handles and set title
@@ -222,10 +222,10 @@ spm_mvb_display(MVB)
  
 % save
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(SPM.swd,name),'-V6','MVB')
+if spm_check_version('matlab','7') >= 0
+    save(fullfile(SPM.swd,[name '.mat']),'-V6','MVB')
 else
-    save(fullfile(SPM.swd,name),'MVB')
+    save(fullfile(SPM.swd,[name '.mat']),'MVB')
 end
 assignin('base','MVB',MVB)
 

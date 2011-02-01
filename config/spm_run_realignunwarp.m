@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_run_realignunwarp.m 4185 2011-02-01 18:46:18Z guillaume $
 
 job = varargin{1};
 
@@ -92,7 +92,7 @@ for i = 1:numel(P)
     [path,name] = fileparts(P{i}(1,:));
     out.sess(i).dsfile{1} =  fullfile(path,[name '_uw.mat']);
 
-    if spm_matlab_version_chk('7') >= 0
+    if spm_check_version('matlab','7') >= 0
         save(out.sess(i).dsfile{1},'-V6','ds');
     else
         save(out.sess(i).dsfile{1},'ds');

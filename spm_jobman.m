@@ -4,51 +4,51 @@ function varargout = spm_jobman(varargin)
 % It translates spm_jobman callbacks into matlabbatch callbacks and allows
 % to edit and run SPM5 style batch jobs.
 %
+% FORMAT spm_jobman('initcfg')
+% Initialise jobs configuration and set MATLAB path accordingly.
+%
+% FORMAT spm_jobman('run',job)
+% FORMAT output_list = spm_jobman('run',job)
+% Run specified job
+% job         - can be the name of a jobfile (as a .m, .mat or a .xml), a
+%               cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
+%               cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
+% output_list - cell array and contains the output arguments from each
+%               module in the job. The format and contents of these
+%               outputs is defined in the configuration of each module
+%               (.prog and .vout callbacks).
+%
 % FORMAT job_id = spm_jobman
 %        job_id = spm_jobman('interactive')
 %        job_id = spm_jobman('interactive',job)
 %        job_id = spm_jobman('interactive',job,node)
 %        job_id = spm_jobman('interactive','',node)
-% Runs the user interface in interactive mode. The job_id can be used to
-% manipulate this job in cfg_util. Note that changes to the job in cfg_util
-% will not show up in cfg_ui unless 'Update View' is called.
+% Run the user interface in interactive mode.
+% node        - indicate which part of the configuration is to be used.
+%               For example, it could be 'spm.spatial.coreg.estimate'.
+% job_id      - can be used to manipulate this job in cfg_util. Note that
+%               changes to the job in cfg_util will not show up in cfg_ui
+%               unless 'Update View' is called.
+%__________________________________________________________________________
+%
+% Programmers help:
 %
 % FORMAT output_list = spm_jobman('serial')
 %        output_list = spm_jobman('serial',job[,'',   input1,...inputN])
 %        output_list = spm_jobman('serial',job ,node[,input1,...inputN])
 %        output_list = spm_jobman('serial',''  ,node[,input1,...inputN])
-% Runs the user interface in serial mode. I job is not empty, then node
-% is silently ignored. Inputs can be a list of arguments. These are
-% passed on to the open inputs of the specified job/node. Each input should
-% be suitable to be assigned to item.val{1}. For cfg_repeat/cfg_choice
-% items, input should be a cell list of indices input{1}...input{k} into
+% Run the user interface in serial mode. If job is not empty, then node
+% is silently ignored. Inputs can be a list of arguments. These are passed
+% on to the open inputs of the specified job/node. Each input should be
+% suitable to be assigned to item.val{1}. For cfg_repeat/cfg_choice items,
+% input should be a cell list of indices input{1}...input{k} into
 % item.value. See cfg_util('filljob',...) for details.
-%
-% FORMAT output_list = spm_jobman('run',job)
-%        output_list = spm_jobman('run_nogui',job)
-% Runs a job without X11 (as long as there is no graphics output from the
-% job itself). The matlabbatch system does not need graphics output to run
-% a job.
-%
-%     node - indicates which part of the configuration is to be used.
-%            For example, it could be 'jobs.spatial.coreg'.
-%
-%     job  - can be the name of a jobfile (as a .m, .mat or a .xml), a
-%            cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
-%            cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
-%
-% Output_list is a cell array and contains the output arguments from each
-% module in the job. The format and contents of these outputs is defined in
-% the configuration of each module (.prog and .vout callbacks).
-%
-% FORMAT spm_jobman('initcfg')
-% Initialise cfg_util configuration and set path accordingly.
-%
+% 
 % FORMAT jobs = spm_jobman('spm5tospm8',jobs)
-% Takes a cell list of SPM5 job structures and returns SPM8 compatible versions.
+% Take a cell list of SPM5 job structures and returns SPM8 compatible versions.
 %
 % FORMAT job = spm_jobman('spm5tospm8bulk',jobfiles)
-% Takes a cell string with SPM5 job filenames and saves them in SPM8
+% Take a cell string with SPM5 job filenames and saves them in SPM8
 % compatible format. The new job files will be MATLAB .m files. Their
 % filenames will be derived from the input filenames. To make sure they are
 % valid MATLAB script names they will be processed with
@@ -57,13 +57,10 @@ function varargout = spm_jobman(varargin)
 %
 % FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
-% Creates a cell array containing help information.  This is justified
+% Create a cell array containing help information.  This is justified
 % to be 'width' characters wide. e.g.
-%     h = spm_jobman('help','jobs.spatial.coreg.estimate');
-%     for i=1:numel(h),fprintf('%s\n',h{i}); end;
-%
-% not implemented: FORMAT spm_jobman('defaults')
-% Runs the interactive defaults editor.
+%     h = spm_jobman('help','spm.spatial.coreg.estimate');
+%     for i=1:numel(h), fprintf('%s\n',h{i}); end
 %
 % FORMAT [tag, job] = spm_jobman('harvest', job_id|cfg_item|cfg_struct)
 % Take the job with id job_id in cfg_util and extract what is
@@ -73,199 +70,216 @@ function varargout = spm_jobman(varargin)
 % job - harvested data from the current job/cfg_item tree
 %
 % FORMAT spm_jobman('pulldown')
-% Creates a pulldown 'TASKS' menu in the Graphics window.
-%
+% Create a pulldown 'TASKS' menu in the Graphics window.
+%__________________________________________________________________________
+% 
 % not implemented: FORMAT spm_jobman('jobhelp')
-% Creates a cell array containing help information specific for a certain
+% Create a cell array containing help information specific for a certain
 % job. Help is only printed for items where job specific help is
 % present. This can be used together with spm_jobman('help') to create a
-% job specific manual. This feature is available only on MATLAB R14SP2
-% and higher.
+% job specific manual.
 %
 % not implemented: FORMAT spm_jobman('chmod')
-% Changes the modality for the TASKS pulldown.
+% Change the modality for the TASKS pulldown.
 %
+% not implemented: FORMAT spm_jobman('defaults')
+% Run the interactive defaults editor.
+%
+% not implemented: FORMAT output_list = spm_jobman('run_nogui',job)
+% Run a job without X11 (as long as there is no graphics output from the
+% job itself). The matlabbatch system does not need graphics output to run
+% a job.
+%__________________________________________________________________________
+% 
 % This code is based on earlier versions by John Ashburner, Philippe 
 % Ciuciu and Guillaume Flandin.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: spm_jobman.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
-if nargin==0
+if ~isdeployed && ~exist('cfg_util','file') && ...
+        ~(nargin == 1 && strcmpi(varargin{1},'initcfg'))
+    warning('spm:spm_jobman:NotInitialised',...
+        'Run spm_jobman(''initcfg''); beforehand');
+    spm_jobman('initcfg');
+end
+
+if ~nargin
     h = cfg_ui;
     if nargout > 0, varargout = {h}; end
-else
-    cmd = lower(varargin{1});
-    if any(strcmp(cmd, {'serial','interactive','run','run_nogui'}))
-        if nargin > 1
-            % sort out job/node arguments for interactive, serial, run cmds
-            if nargin>=2 && ~isempty(varargin{2})
-                % do not consider node if job is given
-                if ischar(varargin{2}) || iscellstr(varargin{2})
-                    jobs = load_jobs(varargin{2});
-                elseif iscell(varargin{2})
-                    if iscell(varargin{2}{1})
-                        % assume varargin{2} is a cell of jobs
-                        jobs = varargin{2};
-                    else
-                        % assume varargin{2} is a single job
-                        jobs{1} = varargin{2};
-                    end;
-                end;
-                [mljob comp] = canonicalise_job(jobs);
-            elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
-                % Node spec only allowed for 'interactive', 'serial'
-                arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
-                mod_cfg_id = cfg_util('tag2mod_cfg_id',arg3);
-            else
-                error('spm:spm_jobman:WrongUI', ...
-                    'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
-            end;
-        end
-    end;
-    switch cmd
-        case 'help'
-            if (nargin < 2) || isempty(varargin{2})
-                node = 'spm';
-            else
-                node = regexprep(varargin{2},'^spmjobs\.','spm.');
-            end;
-            if nargin < 3
-                width = 60;
-            else
-                width = varargin{3};
-            end;
-            varargout{1} = cfg_util('showdocwidth', width, node);
-            
-        case 'initcfg'
-            if ~isdeployed
-                addpath(fullfile(spm('Dir'),'matlabbatch'));
-                addpath(fullfile(spm('Dir'),'config'));
-            end
-            cfg_get_defaults('cfg_util.genscript_run', @genscript_run);
-            cfg_util('initcfg'); % This must be the first call to cfg_util
-            if ~spm('cmdline')
-                f = cfg_ui('Visible','off'); % Create invisible batch ui
-                f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
-                f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
-                    'HandleVisibility','off', 'tag','jobs', ...
-                    'Separator','on');
-                f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', ...
-                    'Callback',@conv_jobs, ...
-                    'HandleVisibility','off', 'tag','jobs');
-            end
-        case 'interactive',
-            if exist('mljob', 'var')
-                cjob = cfg_util('initjob', mljob);
-            elseif exist('mod_cfg_id', 'var')
-                if isempty(mod_cfg_id)
-                    arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
-                    warning('spm:spm_jobman:NodeNotFound', ...
-                        ['Can not find executable node ''%s'' - running '...
-                        'matlabbatch without default node.'], arg3);
-                    cjob = cfg_util('initjob');
-                else
-                    cjob = cfg_util('initjob');
-                    mod_job_id = cfg_util('addtojob', cjob, mod_cfg_id);
-                    cfg_util('harvest', cjob, mod_job_id);
-                end;
-            else
-                cjob = cfg_util('initjob');
-            end;
-            cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
-            if nargout > 0
-                varargout{1} = cjob;
-            end;
-            
-        case 'serial',
-            if exist('mljob', 'var')
-                cjob = cfg_util('initjob', mljob);
-            else
-                cjob = cfg_util('initjob');
-                if nargin > 2
-                    arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
-                    [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', lower(arg3));
-                    cfg_util('addtojob', cjob, mod_cfg_id);
-                end;
-            end;
-            sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{4:end});
-            if sts
-                cfg_util('run', cjob);
-                if nargout > 0
-                    varargout{1} = cfg_util('getalloutputs', cjob);
-                end
-            end;
-            cfg_util('deljob', cjob);
+    return;
+end
 
-        case {'run','run_nogui'}
-            try
-                cjob = cfg_util('initjob', mljob);
-            catch
-                s = lasterror;
-                if strcmpi(s.identifier,'MATLAB:UndefinedFunction')
-                    warning('You probably need to run spm_jobman(''initcfg''); beforehand.');
+cmd = lower(varargin{1});
+if strcmp(cmd,'run_nogui')
+    warning('spm:spm_jobman:NotImplemented', ...
+            'Callback ''%s'' not implemented.', cmd);
+    cmd = 'run';
+end
+if any(strcmp(cmd, {'serial','interactive','run'}))
+    if nargin > 1
+        % sort out job/node arguments for interactive, serial, run cmds
+        if nargin>=2 && ~isempty(varargin{2})
+            % do not consider node if job is given
+            if ischar(varargin{2}) || iscellstr(varargin{2})
+                jobs = load_jobs(varargin{2});
+            elseif iscell(varargin{2})
+                if iscell(varargin{2}{1})
+                    % assume varargin{2} is a cell of jobs
+                    jobs = varargin{2};
+                else
+                    % assume varargin{2} is a single job
+                    jobs{1} = varargin{2};
                 end
-                rethrow(s);
             end
+            mljob = canonicalise_job(jobs);
+        elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
+            % Node spec only allowed for 'interactive', 'serial'
+            arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
+            mod_cfg_id = cfg_util('tag2mod_cfg_id',arg3);
+        else
+            error('spm:spm_jobman:WrongUI', ...
+                'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
+        end
+    end
+end
+
+switch cmd
+    case {'initcfg'}
+        if ~isdeployed
+            addpath(fullfile(spm('Dir'),'matlabbatch'));
+            addpath(fullfile(spm('Dir'),'config'));
+        end
+        cfg_get_defaults('cfg_util.genscript_run', @genscript_run);
+        cfg_util('initcfg'); % This must be the first call to cfg_util
+        if ~spm('cmdline')
+            f = cfg_ui('Visible','off'); % Create invisible batch ui
+            f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
+            f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
+                'HandleVisibility','off', 'tag','jobs', ...
+                'Separator','on');
+            f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', ...
+                'Callback',@conv_jobs, ...
+                'HandleVisibility','off', 'tag','jobs');
+        end
+        
+    case {'interactive'}
+        if exist('mljob', 'var')
+            cjob = cfg_util('initjob', mljob);
+        elseif exist('mod_cfg_id', 'var')
+            if isempty(mod_cfg_id)
+                arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
+                warning('spm:spm_jobman:NodeNotFound', ...
+                    ['Can not find executable node ''%s'' - running '...
+                    'matlabbatch without default node.'], arg3);
+                cjob = cfg_util('initjob');
+            else
+                cjob = cfg_util('initjob');
+                mod_job_id = cfg_util('addtojob', cjob, mod_cfg_id);
+                cfg_util('harvest', cjob, mod_job_id);
+            end
+        else
+            cjob = cfg_util('initjob');
+        end
+        cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
+        if nargout > 0
+            varargout{1} = cjob;
+        end
+        
+    case {'serial'}
+        if exist('mljob', 'var')
+            cjob = cfg_util('initjob', mljob);
+        else
+            cjob = cfg_util('initjob');
+            if nargin > 2
+                arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
+                [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', lower(arg3));
+                cfg_util('addtojob', cjob, mod_cfg_id);
+            end
+        end
+        sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{4:end});
+        if sts
             cfg_util('run', cjob);
             if nargout > 0
                 varargout{1} = cfg_util('getalloutputs', cjob);
             end
-            cfg_util('deljob', cjob);
-            
-        case {'spm5tospm8'}
-            varargout{1} = canonicalise_job(varargin{2});
+        end
+        cfg_util('deljob', cjob);
+        
+    case {'run'}
+        cjob = cfg_util('initjob', mljob);
+        cfg_util('run', cjob);
+        if nargout > 0
+            varargout{1} = cfg_util('getalloutputs', cjob);
+        end
+        cfg_util('deljob', cjob);
+        
+    case {'spm5tospm8'}
+        varargout{1} = canonicalise_job(varargin{2});
+        
+    case {'spm5tospm8bulk'}
+        conv_jobs(varargin{2});
+        
+    case {'harvest'}
+        if nargin == 1
+            error('spm:spm_jobman:CantHarvest', ...
+                ['Can not harvest job without job_id. Please use ' ...
+                'spm_jobman(''harvest'', job_id).']);
+        elseif cfg_util('isjob_id', varargin{2})
+            [tag job] = cfg_util('harvest', varargin{2});
+        elseif isa(varargin{2}, 'cfg_item')
+            [tag job] = harvest(varargin{2}, varargin{2}, false, false);
+        elseif isstruct(varargin{2})
+            % try to convert into class before harvesting
+            c = cfg_struct2cfg(varargin{2});
+            [tag job] = harvest(c,c,false,false);
+        else
+            error('spm:spm_jobman:CantHarvestThis', ...
+                'Can not harvest this argument.');
+        end
+        varargout{1} = tag;
+        varargout{2} = job;
+        
+    case {'help'}
+        if (nargin < 2) || isempty(varargin{2})
+            node = 'spm';
+        else
+            node = regexprep(varargin{2},'^spmjobs\.','spm.');
+        end
+        if nargin < 3
+            width = 60;
+        else
+            width = varargin{3};
+        end
+        varargout{1} = cfg_util('showdocwidth', width, node);
+        
+    case {'pulldown'}
+        pulldown;
+        
+    case {'defaults'}
+        warning('spm:spm_jobman:NotImplemented', ...
+            'Callback ''%s'' not implemented.', varargin{1});
+        
+    case {'chmod'}
+        warning('spm:spm_jobman:NotImplemented', ...
+            'Callback ''%s'' not implemented.', varargin{1});
+        
+    case {'jobhelp'}
+        warning('spm:spm_jobman:NotImplemented', ...
+            'Callback ''%s'' not implemented.', varargin{1});
+        
+    otherwise
+        error(['"' varargin{1} '" - unknown option']);
+end
 
-        case {'spm5tospm8bulk'}
-            conv_jobs(varargin{2});
-            
-        case {'defaults'},
-            warning('spm:spm_jobman:NotImplemented', 'Not yet implemented.');
-            
-        case {'pulldown'}
-            pulldown;
 
-        case {'chmod'}
-            warning('spm:spm_jobman:NotImplemented', 'Callback ''%s'' not implemented.', varargin{1});
-
-        case {'help'}
-            warning('spm:spm_jobman:NotImplemented', 'Not yet implemented.');
-
-        case {'jobhelp'}
-            warning('spm:spm_jobman:NotImplemented', 'Callback ''%s'' not implemented.', varargin{1});
-
-        case {'harvest'}
-            if nargin == 1
-                error('spm:spm_jobman:CantHarvest', ...
-                        ['Can not harvest job without job_id. Please use ' ...
-                         'spm_jobman(''harvest'', job_id).']);
-            elseif cfg_util('isjob_id', varargin{2})
-                [tag job] = cfg_util('harvest', varargin{2});
-            elseif isa(varargin{2}, 'cfg_item')
-                [tag job] = harvest(varargin{2}, varargin{2}, false, false);
-            elseif isstruct(varargin{2})
-                % try to convert into class before harvesting
-                c = cfg_struct2cfg(varargin{2});
-                [tag job] = harvest(c,c,false,false);
-            else
-                error('spm:spm_jobman:CantHarvestThis', ['Can not harvest ' ...
-                                    'this argument.']);
-            end;
-            varargout{1} = tag;
-            varargout{2} = job;
-
-        otherwise
-            error(['"' varargin{1} '" - unknown option']);
-    end;
-end;
-return;
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
+%==========================================================================
+% function [mljob, comp] = canonicalise_job(job)
+%==========================================================================
 function [mljob, comp] = canonicalise_job(job)
 % job: a cell list of job data structures.
 % Check whether job is a SPM5 or matlabbatch job. In the first case, all
@@ -282,8 +296,8 @@ for cj = 1:numel(job)
             {'temporal', 'spatial', 'stats', 'tools', 'util'}));
         if ~comp(cj)
             break;
-        end;
-    end;
+        end
+    end
     if comp(cj)
         tmp = convert_jobs(job{cj});
         for i=1:numel(tmp),
@@ -291,27 +305,28 @@ for cj = 1:numel(job)
         end
     else
         mljob{cj} = job{cj};
-    end;
-end;
-%------------------------------------------------------------------------
+    end
+end
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function conv_jobs(varargin)
+%==========================================================================
 function conv_jobs(varargin)
 % Select a list of jobs, canonicalise each of it and save as a .m file
 % using gencode.
-spm('pointer','watch');
+spm('Pointer','Watch');
 if nargin == 0 || ~iscellstr(varargin{1})
     [fname sts] = spm_select([1 Inf], 'batch', 'Select job file(s)');
     fname = cellstr(fname);
-    if ~sts, return; end;
+    if ~sts, return; end
 else
     fname = varargin{1};
-end;
+end
 
 joblist = load_jobs(fname);
 for k = 1:numel(fname)
     if ~isempty(joblist{k})
-        [p n e v] = spm_fileparts(fname{k});
+        [p n] = spm_fileparts(fname{k});
         % Save new job as genvarname(*_spm8).m
         newfname = fullfile(p, sprintf('%s.m', ...
             genvarname(sprintf('%s_spm8', n))));
@@ -319,27 +334,28 @@ for k = 1:numel(fname)
         cjob = cfg_util('initjob', canonicalise_job(joblist(k)));
         cfg_util('savejob', cjob, newfname);
         cfg_util('deljob', cjob);
-    end;
-end;
-spm('pointer','arrow');
-%------------------------------------------------------------------------
+    end
+end
+spm('Pointer','Arrow');
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function load_job(varargin)
+%==========================================================================
 function load_job(varargin)
 % Select a single job file, canonicalise it and display it in GUI
 [fname sts] = spm_select([1 Inf], 'batch', 'Select job file');
-if ~sts, return; end;
+if ~sts, return; end
 
-spm('pointer','watch');
+spm('Pointer','Watch');
 joblist = load_jobs(fname);
 if ~isempty(joblist{1})
     spm_jobman('interactive',joblist{1});
-end;
-spm('pointer','arrow');
-return;
-%------------------------------------------------------------------------
+end
+spm('Pointer','Arrow');
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function newjobs = load_jobs(job)
+%==========================================================================
 function newjobs = load_jobs(job)
 % Load a list of possible job files, return a cell list of jobs. Jobs can
 % be either SPM5 (i.e. containing a 'jobs' variable) or SPM8/matlabbatch
@@ -349,12 +365,12 @@ if ischar(job)
     filenames = cellstr(job);
 else
     filenames = job;
-end;
+end
 newjobs = {};
 for cf = 1:numel(filenames)
     [p,nam,ext] = fileparts(filenames{cf});
     switch ext
-        case '.xml',
+        case '.xml'
             spm('Pointer','Watch');
             try
                 loadxml(filenames{cf},'jobs');
@@ -363,9 +379,9 @@ for cf = 1:numel(filenames)
                     loadxml(filenames{cf},'matlabbatch');
                 catch
                     warning('spm:spm_jobman:LoadFailed','LoadXML failed: ''%s''',filenames{cf});
-                end;
-            end;
-            spm('Pointer');
+                end
+            end
+            spm('Pointer','Arrow');
         case '.mat'
             try
                 S=load(filenames{cf});
@@ -378,7 +394,7 @@ for cf = 1:numel(filenames)
                 end
             catch
                 warning('spm:spm_jobman:LoadFailed','Load failed: ''%s''',filenames{cf});
-            end;
+            end
         case '.m'
             try
                 fid = fopen(filenames{cf},'rt');
@@ -387,25 +403,25 @@ for cf = 1:numel(filenames)
                 eval(str);
             catch
                 warning('spm:spm_jobman:LoadFailed','Load failed: ''%s''',filenames{cf});
-            end;
+            end
             if ~(exist('jobs','var') || exist('matlabbatch','var'))
                 warning('spm:spm_jobman:JobNotFound','No SPM5/SPM8 job found in ''%s''', filenames{cf});
-            end;
+            end
         otherwise
             warning('Unknown extension: ''%s''', filenames{cf});
-    end;
+    end
     if exist('jobs','var')
         newjobs = [newjobs(:); {jobs}];
         clear jobs;
     elseif exist('matlabbatch','var')
         newjobs = [newjobs(:); {matlabbatch}];
         clear matlabbatch;
-    end;
-end;
-return;
-%------------------------------------------------------------------------
+    end
+end
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function njobs = convert_jobs(jobs)
+%==========================================================================
 function njobs = convert_jobs(jobs)
 decel    = struct('spatial',struct('realign',[],'coreg',[],'normalise',[]),...
                  'temporal',[],...
@@ -414,14 +430,14 @@ decel    = struct('spatial',struct('realign',[],'coreg',[],'normalise',[]),...
                  'util',[],...
                  'tools',struct('dartel',[]));
 njobs  = {};
-for i0 = 1:numel(jobs),
+for i0 = 1:numel(jobs)
     tmp0  = fieldnames(jobs{i0});
     tmp0  = tmp0{1};
-    if any(strcmp(tmp0,fieldnames(decel))),
-        for i1=1:numel(jobs{i0}.(tmp0)),
+    if any(strcmp(tmp0,fieldnames(decel)))
+        for i1=1:numel(jobs{i0}.(tmp0))
             tmp1  = fieldnames(jobs{i0}.(tmp0){i1});
             tmp1  = tmp1{1};
-            if ~isempty(decel.(tmp0)),
+            if ~isempty(decel.(tmp0))
                 if any(strcmp(tmp1,fieldnames(decel.(tmp0)))),
                     for i2=1:numel(jobs{i0}.(tmp0){i1}.(tmp1)),
                         njobs{end+1} = struct(tmp0,struct(tmp1,jobs{i0}.(tmp0){i1}.(tmp1){i2}));
@@ -437,9 +453,10 @@ for i0 = 1:numel(jobs),
         njobs{end+1} = jobs{i0};
     end
 end
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function pulldown
+%==========================================================================
 function pulldown
 fg = spm_figure('findwin','Graphics');
 if isempty(fg), return; end;
@@ -456,17 +473,19 @@ f5 = uimenu(f0,'Label','SPM (serial)', ...
             'HandleVisibility','off', 'tag','jobs');
 cfg_ui('local_setmenu', f5, cfg_util('tag2cfg_id', 'spm'), ...
        @local_init_serial, false);
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function local_init_interactive(varargin)
+%==========================================================================
 function local_init_interactive(varargin)
 cjob = cfg_util('initjob');
 mod_cfg_id = get(gcbo,'userdata');
 cfg_util('addtojob', cjob, mod_cfg_id);
 cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function local_init_serial(varargin)
+%==========================================================================
 function local_init_serial(varargin)
 mod_cfg_id = get(gcbo,'userdata');
 cjob = cfg_util('initjob');
@@ -474,39 +493,40 @@ cfg_util('addtojob', cjob, mod_cfg_id);
 sts = cfg_util('filljobui', cjob, @serial_ui);
 if sts
     cfg_util('run', cjob);
-end;
+end
 cfg_util('deljob', cjob);
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function [val sts] = serial_ui(item)
+%==========================================================================
 function [val sts] = serial_ui(item)
 % wrapper function to translate cfg_util('filljobui'... input requests into
 % spm_input/cfg_select calls.
 sts = true;
-switch class(item),
-    case 'cfg_choice',
+switch class(item)
+    case 'cfg_choice'
         labels = cell(size(item.values));
         values = cell(size(item.values));
         for k = 1:numel(item.values)
             labels{k} = item.values{k}.name;
             values{k} = k;
-        end;
+        end
         val = spm_input(item.name, 1, 'm', labels, values);
-    case 'cfg_menu',
+    case 'cfg_menu'
         val = spm_input(item.name, 1, 'm', item.labels, item.values);
         val = val{1};
-    case 'cfg_repeat',
+    case 'cfg_repeat'
         labels = cell(size(item.values));
         values = cell(size(item.values));
         for k = 1:numel(item.values)
             labels{k} = item.values{k}.name;
             values{k} = k;
-        end;
+        end
         % enter at least item.num(1) values
         for k = 1:item.num(1)
             val(k) = spm_input(sprintf('%s(%d)', item.name, k), 1, 'm', ...
                                labels, values);
-        end;
+        end
         % enter more (up to varargin{3}(2) values
         labels = {labels{:} 'Done'};
         % values is a cell list of natural numbers, use -1 for Done
@@ -518,12 +538,12 @@ switch class(item),
                 break;
             else
                 val(end+1) = val1;
-            end;
-        end;
-    case 'cfg_entry',
+            end
+        end
+    case 'cfg_entry'
         val = spm_input(item.name, 1, item.strtype, '', item.num, ...
                         item.extras);
-    case 'cfg_files',
+    case 'cfg_files'
         [t,sts] = cfg_getfile(item.num, item.filter, item.name, '', ...
                               item.dir, item.ufilter);
         if sts
@@ -531,11 +551,12 @@ switch class(item),
         else
             val = {};
             error('File selector was closed.');
-        end;
-end;
-%------------------------------------------------------------------------
+        end
+end
 
-%------------------------------------------------------------------------
+%==========================================================================
+% function [code cont] = genscript_run
+%==========================================================================
 function [code cont] = genscript_run
 % Return code snippet to initialise SPM defaults and run a job generated by
 % cfg_util('genscript',...) through spm_jobman.

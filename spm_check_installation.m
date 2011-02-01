@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4025 2010-07-29 11:10:15Z guillaume $
+% $Id: spm_check_installation.m 4185 2011-02-01 18:46:18Z guillaume $
 
 if isdeployed, return; end
 
@@ -39,9 +39,9 @@ function check_basic
 %-Minimal MATLAB version required
 %--------------------------------------------------------------------------
 try
-    v = spm_matlab_version_chk('7.1');
+    v = spm_check_version('matlab','7.1');
 catch
-    error('Where is spm_matlab_version_chk.m?');
+    error('Where is spm_check_version.m?');
 end
 if v < 0
     error([...

@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_dcm_phase.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 % check options 
@@ -210,7 +210,7 @@ DCM.y = y;                     % Model predictions
 
 % and save
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >= 0
+if spm_check_version('matlab','7') >= 0
     save(DCM.name, '-V6', 'DCM');
 else
     save(DCM.name, 'DCM');

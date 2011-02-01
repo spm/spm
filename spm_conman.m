@@ -244,7 +244,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 3933 2010-06-17 14:19:08Z guillaume $
+% $Id: spm_conman.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 %==========================================================================
@@ -492,10 +492,10 @@ if (nargin==0) || ~ischar(varargin{1})
     
     %-Save SPM.mat only if SPM structure as changed
     if ~isequal(tmpSPM,SPM)
-        if spm_matlab_version_chk('7') >=0
-            save('SPM', 'SPM', '-V6');
+        if spm_check_version('matlab','7') >=0
+            save('SPM.mat', 'SPM', '-V6');
         else
-            save('SPM', 'SPM');
+            save('SPM.mat', 'SPM');
         end
     end
 

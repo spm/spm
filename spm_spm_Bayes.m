@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_spm_Bayes.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 %-Say hello
@@ -367,11 +367,11 @@ SPM.VCbeta = Vbeta;         % Filenames - parameters
 SPM.VHp    = VHp;           % Filenames - hyperparameters
 SPM.PPM    = PPM;           % PPM structure
 
-if spm_matlab_version_chk('7') >=0
-    save('SPM', 'SPM', '-V6');
+if spm_check_version('matlab','7') >=0
+    save('SPM.mat', 'SPM', '-V6');
 else
-    save('SPM', 'SPM');
-end;
+    save('SPM.mat', 'SPM');
+end
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
 

@@ -18,13 +18,13 @@ function DCM = spm_dcm_ssr(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
-%   options.type         - 'ECD', ‘LFP’ or ‘IMG’     (see spm_erp_L)
-%   options.model        - 'ECD', ‘SEP’, 'NMM' or ‘MFM’
+%   options.type         - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
+%   options.model        - 'ECD', 'SEP', 'NMM' or 'MFM'
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4123 2010-11-18 12:12:57Z rosalyn $
+% $Id: spm_dcm_ssr.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 % check options
@@ -178,7 +178,7 @@ DCM.ID = ID;                   % data ID
 %--------------------------------------------------------------------------
 DCM.options.Nmodes = Nm;
 
-if spm_matlab_version_chk('7.1') >= 0
+if spm_check_version('matlab','7') >= 0
     save(DCM.name, '-V6', 'DCM');
 else
     save(DCM.name, 'DCM');

@@ -23,7 +23,7 @@ function spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_dcm_U.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 %-Load DCM and SPM files
@@ -91,7 +91,7 @@ end
 
 % Save DCM with replaced inputs
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(DCM_filename, 'DCM','-V6');
 else
     save(DCM_filename, 'DCM');

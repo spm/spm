@@ -53,9 +53,9 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm_surf.m 4185 2011-02-01 18:46:18Z guillaume $
 
-SVNrev = '$Rev: 3081 $';
+SVNrev = '$Rev: 4185 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');
@@ -194,7 +194,7 @@ linfun('Rendering: Coronal 1..');    rend{5} = make_struct(V,[pi/2 pi/2 0]);
 linfun('Rendering: Coronal 2..');    rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
 linfun('Rendering: Save..');
-if spm_matlab_version_chk('7') >=0
+if spm_check_version('matlab','7') >= 0
     save(oname,'-V6','rend');
 else
     save(oname,'rend');

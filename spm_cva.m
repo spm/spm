@@ -81,7 +81,7 @@ function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 3710 2010-02-03 19:11:26Z guillaume $
+% $Id: spm_cva.m 4185 2011-02-01 18:46:18Z guillaume $
  
 
 % get figure handles
@@ -120,7 +120,7 @@ catch
     name = spm_input('name','-8','s',con);
 end
 name   = strrep(name,' ','_');
-name   = ['CVA_' name];
+name   = ['CVA_' name '.mat'];
  
 % get current location {mm}
 %--------------------------------------------------------------------------
@@ -262,7 +262,7 @@ CVA.p        = p;            % p-values
  
 % save
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(fullfile(SPM.swd,name),'-V6','CVA')
 else
     save(fullfile(SPM.swd,name),'CVA')

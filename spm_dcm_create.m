@@ -23,7 +23,7 @@ function spm_dcm_create(syn_model, source_model, SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 4124 2010-11-18 16:56:53Z karl $
+% $Id: spm_dcm_create.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -291,14 +291,14 @@ DCM.Y = Y;
 
 %-Save and reset title
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
-    save(['DCM_',syn_model],'-V6','DCM');
+if spm_check_version('matlab','7') >= 0
+    save(['DCM_' syn_model '.mat'],'-V6','DCM');
 else
-    save(['DCM_',syn_model],'DCM');
+    save(['DCM_' syn_model '.mat'],'DCM');
 end
 
 % Now generate synthetic output data
 %==========================================================================
-spm_dcm_generate(['DCM_' syn_model],source_model,SNR);
+spm_dcm_generate(['DCM_' syn_model '.mat'],source_model,SNR);
 
 spm('FigName',header);

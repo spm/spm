@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 3859 2010-05-04 13:43:41Z john $
+% $Id: spm_preproc_run.m 4185 2011-02-01 18:46:18Z guillaume $
 
 if nargin==1,
     varargout{:} = run_job(job);
@@ -162,17 +162,17 @@ return
 
 %_______________________________________________________________________
 function savefields(fnam,p)
-if length(p)>1, error('Can''t save fields.'); end;
+if length(p)>1, error('Can''t save fields.'); end
 fn = fieldnames(p);
-if numel(fn)==0, return; end;
-for i=1:length(fn),
+if numel(fn)==0, return; end
+for i=1:length(fn)
     eval([fn{i} '= p.' fn{i} ';']);
-end;
-if spm_matlab_version_chk('7') >= 0
+end
+if spm_check_version('matlab','7') >= 0
     save(fnam,'-V6',fn{:});
 else
     save(fnam,fn{:});
-end;
+end
 
 return;
 %_______________________________________________________________________

@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_spm.m 4185 2011-02-01 18:46:18Z guillaume $
  
-SVNid     = '$Rev: 4182 $';
+SVNid     = '$Rev: 4185 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -808,7 +808,7 @@ CY   = CY - EY*EY';
 %-If not defined, compute non-sphericity V using ReML Hyperparameters
 %==========================================================================
 if ~isfield(xVi,'V')
-	
+    
     %-check there are signficant voxels
     %----------------------------------------------------------------------
     if s == 0
@@ -879,7 +879,7 @@ if ~isfield(xVi,'V')
     % If xX.W is not specified use W*W' = inv(V) to give ML estimators
     %----------------------------------------------------------------------
     if ~isfield(xX,'W')
-        if spm_matlab_version_chk('7') >=0
+        if spm_check_version('matlab','7') >=0
             save('SPM.mat','SPM','-V6');
         else
             save('SPM.mat','SPM');
@@ -971,7 +971,7 @@ SPM.swd        = pwd;
  
 %-Save analysis parameters in SPM.mat file
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >=0
+if spm_check_version('matlab','7') >=0
     save('SPM.mat','SPM','-V6');
 else
     save('SPM.mat','SPM');

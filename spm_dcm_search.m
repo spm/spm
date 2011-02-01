@@ -31,7 +31,7 @@ function spm_dcm_search(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 4124 2010-11-18 16:56:53Z karl $
+% $Id: spm_dcm_search.m 4185 2011-02-01 18:46:18Z guillaume $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -157,7 +157,7 @@ for j = 1:N
     
     % Save DCM
     %======================================================================
-    if spm_matlab_version_chk('7') >= 0
+    if spm_check_version('matlab','7') >= 0
         save(P{j},'-V6','DCM','F','Ep','Cp');
     else
         save(P{j},'DCM','F','Ep','Cp');
@@ -235,8 +235,8 @@ DCM.PP = p;
 % Reduced model (optimum)
 %--------------------------------------------------------------------------
 pth      = fileparts(P{1});
-filename = fullfile(pth,'DCM_optimum');
-if spm_matlab_version_chk('7') >= 0
+filename = fullfile(pth,'DCM_optimum.mat');
+if spm_check_version('matlab','7') >= 0
     save(filename,'-V6','DCM','F','Ep','Cp');
 else
     save(filename,'DCM','F','Ep','Cp');
@@ -249,7 +249,7 @@ Ep       = FUL.Ep;
 Cp       = FUL.Cp;
 F        = FUL.F;
 filename = fullfile(pth,'DCM_full');
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(filename,'-V6','DCM','F','Ep','Cp');
 else
     save(filename,'DCM','F','Ep','Cp');

@@ -72,15 +72,15 @@ function varargout = spm_select(varargin)
 % Add directory dir to list of previous directories.
 % FORMAT dirs = spm_select('prevdirs')
 % Retrieve list of previous directories.
-%____________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 3948 2010-06-25 09:48:03Z volkmar $
+% $Id: spm_select.m 4185 2011-02-01 18:46:18Z guillaume $
 
 if ~isdeployed && ~exist('cfg_getfile','file')
     addpath(fullfile(spm('dir'),'matlabbatch'));
-end;
+end
 % cfg_getfile expects and returns cellstr arguments for multi-line strings
 if nargin > 0 && ischar(varargin{1}) && strcmpi(varargin{1},'filter') && ischar(varargin{2})
     varargin{2} = cellstr(varargin{2});

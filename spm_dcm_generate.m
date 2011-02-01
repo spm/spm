@@ -15,13 +15,13 @@ function varargout = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 3899 2010-05-25 15:36:40Z guillaume $
+% $Id: spm_dcm_generate.m 4185 2011-02-01 18:46:18Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
 if isstruct(syn_model)
     DCM       = syn_model;
-    syn_model = ['DCM-' date];
+    syn_model = ['DCM-' date '.mat'];
 else
     load(syn_model)
 end
@@ -115,7 +115,7 @@ Y.secs = Y.dt*v;
 DCM.Y  = Y;                                    % simulated data
 DCM.y  = y;                                    % simulated signal
 DCM.M  = M;                                    % model
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(syn_model, 'DCM', '-V6');
 else
     save(syn_model, 'DCM');

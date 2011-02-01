@@ -6,10 +6,10 @@ function out = spm_run_preproc(job)
 % job    - harvested job data structure (see matlabbatch help)
 % Output:
 % out    - computation results, usually a struct variable.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_run_preproc.m 4185 2011-02-01 18:46:18Z guillaume $
 
 job.opts.tpm = char(job.opts.tpm);
 if isfield(job.opts,'msk'),
@@ -50,20 +50,19 @@ for i=1:numel(job.data)
     end;
 end;
 return;
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+%==========================================================================
 function savefields(fnam,p)
-if length(p)>1, error('Can''t save fields.'); end;
+if length(p)>1, error('Can''t save fields.'); end
 fn = fieldnames(p);
-if numel(fn)==0, return; end;
-for i=1:length(fn),
+if numel(fn)==0, return; end
+for i=1:length(fn)
     eval([fn{i} '= p.' fn{i} ';']);
-end;
-if spm_matlab_version_chk('7') >= 0
+end
+if spm_check_version('matlab','7') >= 0
     save(fnam,'-V6',fn{:});
 else
     save(fnam,fn{:});
-end;
+end
 
 return;

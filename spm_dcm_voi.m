@@ -15,7 +15,7 @@ function spm_dcm_voi (DCM_filename,voi_filenames)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_voi.m 3521 2009-10-29 18:37:41Z guillaume $
+% $Id: spm_dcm_voi.m 4185 2011-02-01 18:46:18Z guillaume $
 
 
 load(DCM_filename);
@@ -44,7 +44,7 @@ end
 
 % Save (overwrite) new DCM file
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7') >= 0
+if spm_check_version('matlab','7') >= 0
     save(DCM_filename, 'DCM', '-V6');
 else
     save(DCM_filename, 'DCM');

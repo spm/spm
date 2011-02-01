@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_dcm_dem.m 4185 2011-02-01 18:46:18Z guillaume $
 
 % check options
 %==========================================================================
@@ -291,7 +291,7 @@ end
 
 % and save
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >= 0
+if spm_check_version('matlab','7') >= 0
     save(DCM.name, '-V6', 'DCM');
 else
     save(DCM.name, 'DCM');

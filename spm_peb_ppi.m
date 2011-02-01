@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 3678 2010-01-14 04:54:38Z Darren $
+% $Id: spm_peb_ppi.m 4185 2011-02-01 18:46:18Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -583,9 +583,9 @@ end % (switch)
 %--------------------------------------------------------------------------
 PPI.xY = xY;
 PPI.dt = dt;
-str    = ['PPI_' PPI.name];
+str    = ['PPI_' PPI.name '.mat'];
 
-if spm_matlab_version_chk('7') >= 0,
+if spm_check_version('matlab','7') >= 0,
     save(fullfile(SPM.swd,str),'-V6','PPI')
 else
     save(fullfile(SPM.swd,str),'PPI')

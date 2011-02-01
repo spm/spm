@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 3723 2010-02-12 15:15:18Z guillaume $
+% $Id: spm_dcm_average.m 4185 2011-02-01 18:46:18Z guillaume $
 
 try
     P;
@@ -115,10 +115,10 @@ DCM.Pp  = spm_unvec(Pp,pE);
 %-Save new DCM
 %==========================================================================
 DCM.name = [name ' (Bayesian FFX average)'];
-if spm_matlab_version_chk('7') >= 0
-    save(['DCM_avg_' name], 'DCM', '-V6');
+if spm_check_version('matlab','7') >= 0
+    save(['DCM_avg_' name '.mat'], 'DCM', '-V6');
 else
-    save(['DCM_avg_' name], 'DCM');
+    save(['DCM_avg_' name '.mat'], 'DCM');
 end
 
 % Warn the user how this average DCM should NOT be used
