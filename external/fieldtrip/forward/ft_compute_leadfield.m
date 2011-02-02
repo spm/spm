@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 2741 2011-02-02 10:22:30Z crimic $
+% $Id: ft_compute_leadfield.m 2767 2011-02-02 16:29:31Z crimic $
 
 persistent warning_issued;
 
@@ -386,17 +386,11 @@ elseif iseeg
     
     case 'openmeeg'
       if ft_hastoolbox('openmeeg', 1);
-        try
-          dsm = openmeeg_dsm(pos,vol);
-          if isfield(vol,'mat')
-            lf = vol.mat*dsm;
-          else
-            error('No system matrix is present, BEM head model not calculated yet')
-          end
-        catch
-          warning('The number of dipoles is too high: the algorithm will run for less dipoles at a time')
-          % split factor = 500
-          lf = openmeeg_helper(pos,vol,500);
+        dsm = openmeeg_dsm(pos,vol);
+        if isfield(vol,'mat')
+          lf = vol.mat*dsm;
+        else
+          error('No system matrix is present, BEM head model not calculated yet')
         end
       else
         error('Openmeeg toolbox not installed')
