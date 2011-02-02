@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 4113 2010-11-08 14:42:13Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 4188 2011-02-02 11:25:51Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -175,6 +175,8 @@ M1(1:3,1:3) =U*V';
 vol = ft_transform_vol(M1, vol);
 sens = ft_transform_sens(M1, sens);
 
+pos = spm_eeg_inv_transform_points(M1*datareg.fromMNI, S.sources.pos);
+
 channel = D.chanlabels(setdiff(meegchannels(D, modality), D.badchannels));
 
 [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', channel);
@@ -207,7 +209,7 @@ end
 
 if ~isfield(S, 'voi') || isequal(S.voi, 'no')
     nvoi = 0;
-    cfg.grid.pos     = S.sources.pos;
+    cfg.grid.pos     = pos;
     if isfield(S.sources, 'ori')
         cfg.grid.mom    = S.sources.ori;
     else
@@ -221,8 +223,8 @@ else
     sphere(sqrt(X(:).^2 + Y(:).^2 + Z(:).^2)>S.voi.radius, :) = [];
     nvoi = size(sphere, 1);
     cfg.grid.pos = [];
-    for s = 1:size(S.sources.pos, 1)
-        cfg.grid.pos = [cfg.grid.pos; sphere+repmat(S.sources.pos(s, :), nvoi, 1)];
+    for s = 1:size(pos, 1)
+        cfg.grid.pos = [cfg.grid.pos; sphere+repmat(pos(s, :), nvoi, 1)];
     end
 end
 
@@ -237,7 +239,7 @@ cfg.lambda =  S.lambda;
 source1 = ft_sourceanalysis(cfg, timelock1);
 
 if isfield(S, 'makecorrimage') &&  S.makecorrimage
-    if size(S.sources.pos, 1) ~= numel(source1.avg.filter)
+    if size(pos, 1) ~= numel(source1.avg.filter)
         error('Can only make correlation images for point sources');
     end
     
