@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 2537 2011-01-06 15:50:20Z roevdmei $
+% $Id: preproc.m 2673 2011-01-26 15:39:37Z jansch $
 
 
 
@@ -195,6 +195,7 @@ if ~isfield(cfg, 'dftinvert'),    cfg.dftinvert = 'no';         end
 if ~isfield(cfg, 'standardize'),  cfg.standardize = 'no';       end
 if ~isfield(cfg, 'denoise'),      cfg.denoise = '';             end
 if ~isfield(cfg, 'subspace'),     cfg.subspace = [];            end
+if ~isfield(cfg, 'custom'),       cfg.custom = '';              end
 
 % test whether the Matlab signal processing toolbox is available
 if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
@@ -248,7 +249,7 @@ if ~strcmp(cfg.montage, 'no') && ~isempty(cfg.montage)
   % this is an alternative approach for rereferencing, with arbitrary complex linear combinations of channels
   tmp.trial = {dat};
   tmp.label = label;
-  tmp = ft_apply_montage(tmp, cfg.montage);
+  tmp = ft_apply_montage(tmp, cfg.montage, 'feedback', 'none');
   dat = tmp.trial{1};
   label = tmp.label;
   clear tmp
@@ -369,6 +370,9 @@ if strcmp(cfg.standardize, 'yes'),
 end
 if ~isempty(cfg.subspace),
   dat = ft_preproc_subspace(dat, cfg.subspace);
+end
+if ~isempty(cfg.custom),
+  dat = feval(cfg.custom.funhandle, dat, cfg.custom.varargin);
 end
 if ~isempty(cfg.precision)
   % convert the data to another numeric precision, i.e. double, single or int32

@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_read_event.m 2729 2011-02-01 11:44:34Z marvger $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -281,7 +281,7 @@ switch eventformat
 
     % find the STATUS channel and read the values from it
     schan = find(strcmpi(hdr.label,'STATUS'));
-    sdata = ft_read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', schan);
+    sdata = ft_read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', schan);
 
     % find indices of negative numbers
     bit24i = find(sdata < 0);

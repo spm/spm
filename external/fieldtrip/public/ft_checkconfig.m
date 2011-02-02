@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_checkconfig.m 2742 2011-02-02 10:43:41Z johzum $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -647,7 +647,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check the size of fields in the cfg, remove large fields
 % the max allowed size should be specified in cfg.checksize (this can be
-% set with fieldtripdefs)
+% set with ft_defaults)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(checksize, 'yes') && ~isinf(cfg.checksize)
   cfg = checksizefun(cfg, cfg.checksize);

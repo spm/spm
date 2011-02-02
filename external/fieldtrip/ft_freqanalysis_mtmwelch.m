@@ -69,7 +69,7 @@ function [freq] = ft_freqanalysis_mtmwelch(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mtmwelch.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_freqanalysis_mtmwelch.m 2721 2011-02-01 09:05:04Z jansch $
 
 ft_defaults
 
@@ -119,9 +119,9 @@ end
 % NOTE: the degrees of freedom should be returned by freqanalysis_mtmconvol, 
 % and used here to weigh every trial and timepoint accordingly. But
 % currently that is not yet possible.
-freq.powspctrm = nan_mean(freq.powspctrm, timedim);
+freq.powspctrm = nanmean(freq.powspctrm, timedim);
 if isfield(freq, 'crsspctrm')
-  freq.crsspctrm = nan_mean(freq.crsspctrm, timedim);
+  freq.crsspctrm = nanmean(freq.crsspctrm, timedim);
 end
 
 % remove the time axis

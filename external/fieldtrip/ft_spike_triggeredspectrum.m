@@ -11,8 +11,11 @@ function [freq] = ft_spike_triggeredspectrum(cfg, data, spike)
 %   Configurations:
 %   cfg.timwin       = [begin end], time around each spike (default = [-0.1 0.1])
 %   cfg.foilim       = [begin end], frequency band of interest (default = [0 150])
-%   cfg.taper        = 'hanning' or many others, see WINDOW (default = 'hanning'). Multi-tapering is
-%                       not implemented since this will rotate the phases. 
+%   cfg.taper        = 'hanning' or many others, see WINDOW (default = 'hanning'). 
+%   cfg.tapsmofrq    = number, the amount of spectral smoothing through
+%                      multi-tapering. Note that 4 Hz smoothing means
+%                      plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
+%                      Note: multitapering rotates phases (no problem for consistency)
 %   cfg.spikechannel = string, name of single spike channel to trigger on. See FT_CHANNELSELECTION
 %   cfg.channel      = Nx1 cell-array with selection of channels (default = 'all'),
 %                      see FT_CHANNELSELECTION for details
@@ -75,8 +78,8 @@ if ~isfield(cfg, 'channel'),        cfg.channel        = 'all';        end
 if ~isfield(cfg, 'spikechannel'),   cfg.spikechannel   = [];           end
 if ~isfield(cfg, 'feedback'),       cfg.feedback       = 'no';         end
 
-if strcmp(cfg.taper, 'dpss') || strcmp(cfg.taper, 'sine') 
-    error('sorry, multitapering is not yet implemented');
+if strcmp(cfg.taper, 'sine')
+  error('sorry, sine taper is not yet implemented');
 end
 
 % check whether a third input is specified
@@ -108,8 +111,15 @@ nTrials    = length(data.trial); % number of trials
 begpad = round(cfg.timwin(1)*data.fsample); % number of samples before spike
 endpad = round(cfg.timwin(2)*data.fsample); % number of samples after spike
 numsmp = endpad - begpad + 1;               % number of samples of segment
-taper  = window(cfg.taper, numsmp);         % create a hanning taper
-taper  = taper./norm(taper);                % normalize the taper
+if ~strcmp(cfg.taper,'dpss')
+  taper  = window(cfg.taper, numsmp);
+  taper  = taper./norm(taper);
+else
+  % not implemented yet: keep tapers, or selecting only a subset of them.
+  taper  = dpss(numsmp, cfg.tapsmofrq);
+  taper  = taper(:,1:end-1);            % we get 2*NW-1 tapers
+  taper  = sum(taper,2)./size(taper,2); % using the linearity of multitapering
+end
 
 % frequency selection
 freqaxis = linspace(0, data.fsample, numsmp);
@@ -191,13 +201,17 @@ for iTrial = 1:nTrials
     if nVld<1,continue,end % continue to the next trial if this one does not contain valid spikes
 
     my_fft = @specest_nanfft;
-    progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
+    ft_progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
     for iSpike = vldSpikes
-        progress(iTrial/nTrials, 'spectrally decomposing data around spike %d of %d\n', iSpike, length(spikesmp));
+        ft_progress(iTrial/nTrials, 'spectrally decomposing data around spike %d of %d\n', iSpike, length(spikesmp));
         begsmp = spikesmp(iSpike) + begpad;
         endsmp = spikesmp(iSpike) + endpad;
         segment = data.trial{iTrial}(chansel,begsmp:endsmp);
-
+        
+        % substract the DC component from every segment, to avoid any leakage of the taper
+        segmentMean = repmat(nanmean(segment,2),1,numsmp); % nChan x Numsmp
+        segment     = segment - segmentMean; % LFP has average of zero now (no DC)
+        
         % taper the data segment around the spike and compute the fft
         segment_fft = my_fft(segment * sparse(diag(taper)));
 
@@ -217,7 +231,7 @@ for iTrial = 1:nTrials
         spectrum{iTrial}(iSpike,:,:) = segment_fft;
 
     end % for each spike in this trial
-    progress('close');
+    ft_progress('close');
 end % for each trial
 
 % collect the results

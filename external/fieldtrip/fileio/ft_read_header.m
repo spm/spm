@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 1981 2010-10-27 10:47:32Z jansch $
+% $Id: ft_read_header.m 2728 2011-02-01 11:30:47Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -995,7 +995,25 @@ switch headerformat
     end
 
     if iscontinuous
-      raw = fiff_setup_read_raw(filename);
+        try
+            %we only use 1 input argument here to allow backward
+            %compatibility up to MNE 2.6.x:
+            raw = fiff_setup_read_raw(filename);
+        catch me
+            %there is an error - we try to use MNE 2.7.x (if present) to
+            %determine if the cause is maxshielding:
+            try
+                allow_maxshield = true;
+                raw = fiff_setup_read_raw(filename,allow_maxshield);
+            catch
+                %unknown problem, or MNE version 2.6.x or less:
+                rethrow(me);
+            end
+            %no error message from fiff_setup_read_raw? Then maxshield
+            %was applied, but maxfilter wasn't, so return this error:
+            error(['Maxshield data has not had maxfilter applied to it - cannot be read by fieldtrip. ' ...
+                'Apply Neuromag maxfilter before converting to fieldtrip format.']);
+        end
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
       hdr.nSamplesPre = 0;
       % otherwise conflicts will occur in read_data

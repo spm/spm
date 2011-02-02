@@ -34,7 +34,7 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_freqbaseline.m 2721 2011-02-01 09:05:04Z jansch $
 
 ft_defaults
 
@@ -147,7 +147,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqbaseline.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_freqbaseline.m 2721 2011-02-01 09:05:04Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -195,7 +195,7 @@ end
 
 for k=1:size(TFdata,2) % loop frequencies
   for l=1:size(TFdata,1) % loop channels
-    TFbl(l,k) = nan_mean(TFdata(l,k,tidx),3);%compute average baseline power
+    TFbl(l,k) = nanmean(TFdata(l,k,tidx),3);%compute average baseline power
     
     if TFbl(l,k) == 0,
       error('Average baseline power is zero');
@@ -222,7 +222,7 @@ end
 
 for k=1:size(TFdata,2) % loop frequencies
   for l=1:size(TFdata,1) % loop channels
-    TFbl(l,k) = nan_mean(TFdata(l,k,tidx),3); %compute average baseline power
+    TFbl(l,k) = nanmean(TFdata(l,k,tidx),3); %compute average baseline power
     
     if TFbl(l,k) == 0,
       error('Average baseline power is zero');
@@ -250,7 +250,7 @@ end
 
 for k=1:size(TFdata,2) % loop frequencies
   for l=1:size(TFdata,1) % loop channels
-    TFbl(l,k) = nan_mean(TFdata(l,k,tidx),3); %compute average baseline power
+    TFbl(l,k) = nanmean(TFdata(l,k,tidx),3); %compute average baseline power
   end
 end
 for k=1:size(TFdata,2) % loop frequencies

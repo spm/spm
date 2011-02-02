@@ -26,11 +26,11 @@ function [event]=ft_fetch_event(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_event.m 2235 2010-11-30 21:01:30Z jansch $
+% $Id: ft_fetch_event.m 2681 2011-01-27 11:39:41Z jansch $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw');
 
 % locate the event structure
-event = findcfg(data.cfg, 'event');
+event = ft_findcfg(data.cfg, 'event');
 

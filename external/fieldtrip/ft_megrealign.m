@@ -100,7 +100,7 @@ function [interp] = ft_megrealign(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 2574 2011-01-13 10:27:38Z roboos $
+% $Id: ft_megrealign.m 2671 2011-01-26 15:18:56Z arjsto $
 
 ft_defaults
 
@@ -174,7 +174,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Ntemplate = length(cfg.template);
 for i=1:Ntemplate
-  if isstr(cfg.template{i}),
+  if ischar(cfg.template{i}),
     fprintf('reading template sensor position from %s\n', cfg.template{i});
     template(i) = ft_read_sens(cfg.template{i});
   elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'pnt') && isfield(cfg.template{i}, 'ori') && isfield(cfg.template{i}, 'tra'),
@@ -491,7 +491,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megrealign.m 2574 2011-01-13 10:27:38Z roboos $';
+cfg.version.id   = '$Id: ft_megrealign.m 2671 2011-01-26 15:18:56Z arjsto $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

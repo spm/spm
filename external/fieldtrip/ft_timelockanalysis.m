@@ -91,7 +91,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_timelockanalysis.m 2723 2011-02-01 09:09:55Z jansch $
 
 ft_defaults
 
@@ -439,9 +439,9 @@ if strcmp(cfg.covariance, 'yes')
     end
   else
     if strcmp(cfg.removemean, 'yes')
-      covsig = squeeze(nan_sum(covsig, 1)) / (sum(numcovsigsamples)-ntrial);
+      covsig = squeeze(nansum(covsig, 1)) / (sum(numcovsigsamples)-ntrial);
     else
-      covsig = squeeze(nan_sum(covsig, 1)) / sum(numcovsigsamples);
+      covsig = squeeze(nansum(covsig, 1)) / sum(numcovsigsamples);
     end
   end
 end
@@ -510,7 +510,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockanalysis.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 2723 2011-02-01 09:09:55Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

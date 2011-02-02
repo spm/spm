@@ -69,7 +69,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 2599 2011-01-19 10:42:18Z jorhor $
+% $Id: ft_databrowser.m 2711 2011-01-31 12:06:15Z crimic $
 
 ft_defaults
 
@@ -352,11 +352,11 @@ uicontrol('tag', 'group1a', 'parent', h, 'units', 'normalized', 'style', 'pushbu
 uicontrol('tag', 'group2a', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+leftarrow')
 uicontrol('tag', 'group2a', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+rightarrow')
 if strcmp(cfg.continuous, 'no')
-  uilayout(h, 'tag', 'group1a', 'visible', 'off', 'retag', 'group1');
-  uilayout(h, 'tag', 'group2a', 'visible', 'off', 'retag', 'group2');
+  ft_uilayout(h, 'tag', 'group1a', 'visible', 'off', 'retag', 'group1');
+  ft_uilayout(h, 'tag', 'group2a', 'visible', 'off', 'retag', 'group2');
 else
-  uilayout(h, 'tag', 'group1a', 'visible', 'on', 'retag', 'group1');
-  uilayout(h, 'tag', 'group2a', 'visible', 'on', 'retag', 'group2');
+  ft_uilayout(h, 'tag', 'group1a', 'visible', 'on', 'retag', 'group1');
+  ft_uilayout(h, 'tag', 'group2a', 'visible', 'on', 'retag', 'group2');
 end
 
 uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'vertical', 'userdata', 'v')
@@ -375,16 +375,16 @@ if strcmp(cfg.viewmode, 'butterfly')
   uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'identify', 'userdata', 'i', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
 end
 
-uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
-uilayout(h, 'tag', 'group2', 'width', 0.05, 'height', 0.05);
+ft_uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
+ft_uilayout(h, 'tag', 'group2', 'width', 0.05, 'height', 0.05);
 
-uilayout(h, 'tag', 'group1', 'style', 'pushbutton', 'callback', @keyboard_cb);
-uilayout(h, 'tag', 'group2', 'style', 'pushbutton', 'callback', @keyboard_cb);
-uilayout(h, 'tag', 'group3', 'style', 'pushbutton', 'callback', @keyboard_cb);
+ft_uilayout(h, 'tag', 'group1', 'style', 'pushbutton', 'callback', @keyboard_cb);
+ft_uilayout(h, 'tag', 'group2', 'style', 'pushbutton', 'callback', @keyboard_cb);
+ft_uilayout(h, 'tag', 'group3', 'style', 'pushbutton', 'callback', @keyboard_cb);
 
-uilayout(h, 'tag', 'group1', 'retag', 'viewui');
-uilayout(h, 'tag', 'group2', 'retag', 'viewui');
-uilayout(h, 'tag', 'viewui', 'BackgroundColor', [0.8 0.8 0.8], 'hpos', 'auto', 'vpos', 0.01);
+ft_uilayout(h, 'tag', 'group1', 'retag', 'viewui');
+ft_uilayout(h, 'tag', 'group2', 'retag', 'viewui');
+ft_uilayout(h, 'tag', 'viewui', 'BackgroundColor', [0.8 0.8 0.8], 'hpos', 'auto', 'vpos', 0.01);
 
 definetrial_cb(h);
 redraw_cb(h);
@@ -409,7 +409,7 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 2599 2011-01-19 10:42:18Z jorhor $';
+cfg.version.id = '$Id: ft_databrowser.m 2711 2011-01-31 12:06:15Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

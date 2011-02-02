@@ -59,7 +59,7 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $
 
 if 1,
   % original implementation
@@ -210,14 +210,14 @@ if 1,
       selA = find(res(i,:)==1);
       selB = find(res(i,:)==2);
       % create the randomized averaged data
-      trialA(i) = setsubfield([], cfg.parameter, nan_mean(dat(:,selA),2));
-      trialB(i) = setsubfield([], cfg.parameter, nan_mean(dat(:,selB),2));
+      trialA(i) = setsubfield([], cfg.parameter, nanmean(dat(:,selA),2));
+      trialB(i) = setsubfield([], cfg.parameter, nanmean(dat(:,selB),2));
     end
     % create the observed average data
     selA = find(design==1);
     selB = find(design==2);
-    avgA = setsubfield([], cfg.parameter, nan_mean(dat(:,selA),2));
-    avgB = setsubfield([], cfg.parameter, nan_mean(dat(:,selB),2));
+    avgA = setsubfield([], cfg.parameter, nanmean(dat(:,selA),2));
+    avgB = setsubfield([], cfg.parameter, nanmean(dat(:,selB),2));
   
     % construct a source structure that can be fed into SOURCESTATISTICS_RANDOMIZATION or SOURCESTATISTICS_RANDCLUSTER
     grandavg.trialA  = trialA;
@@ -228,8 +228,8 @@ if 1,
   else
     if strcmp(cfg.concatenate, 'no'),
       % compute a plain average and variance over all input source structures
-      grandavg.avg    = setsubfield([], cfg.parameter, nan_mean(dat,2));
-      grandavg.var    = setsubfield([], cfg.parameter, nan_std(dat')'.^2);  % nan_std operates over the first dimension
+      grandavg.avg    = setsubfield([], cfg.parameter, nanmean(dat,2));
+      grandavg.var    = setsubfield([], cfg.parameter, nanstd(dat,[],2).^2);
       grandavg.dimord = 'voxel';
     else
       grandavg.avg    = setsubfield([], cfg.parameter, dat);
@@ -272,7 +272,7 @@ if 1,
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
@@ -357,7 +357,7 @@ else
     cfg.version.name = mfilename('fullpath');
   catch
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2439 2010-12-15 16:33:34Z johzum $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();

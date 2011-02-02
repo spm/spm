@@ -140,7 +140,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 2574 2011-01-13 10:27:38Z roboos $
+% $Id: ft_dipolefitting.m 2683 2011-01-27 15:14:20Z stewhi $
 
 ft_defaults
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -353,6 +353,11 @@ if strcmp(cfg.gridsearch, 'yes')
     % the model is V=lf*mom+noise, therefore mom=pinv(lf)*V estimates the
     % dipole moment this makes the model potential U=lf*pinv(lf)*V and the
     % model error is norm(V-U) = norm(V-lf*pinv(lf)*V) = norm((eye-lf*pinv(lf))*V)
+    if any(isnan(lf(:)))
+        % this might happen if one of the dipole locations of the grid is
+        % outside the brain compartment
+        lf(:) = 0;
+    end
     switch cfg.model
       case 'regional'
         % sum the error over all latencies
@@ -580,7 +585,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_dipolefitting.m 2574 2011-01-13 10:27:38Z roboos $';
+cfg.version.id = '$Id: ft_dipolefitting.m 2683 2011-01-27 15:14:20Z stewhi $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

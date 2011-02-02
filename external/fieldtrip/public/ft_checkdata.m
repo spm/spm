@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 2659 2011-01-26 11:51:05Z roboos $
+% $Id: ft_checkdata.m 2689 2011-01-28 10:00:46Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1149,8 +1149,8 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'fullfast')
 
 elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
   % this is how is currently done in prepare_freq_matrices
-  data = checkdata(data, 'cmbrepresentation', 'sparse');
-  data = checkdata(data, 'cmbrepresentation', 'full');
+  data = ft_checkdata(data, 'cmbrepresentation', 'sparse');
+  data = ft_checkdata(data, 'cmbrepresentation', 'full');
 
 end
 

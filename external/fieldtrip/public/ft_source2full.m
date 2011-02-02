@@ -29,9 +29,9 @@ function [source] = ft_source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_source2full.m 2742 2011-02-02 10:43:41Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 if ~isfield(source, 'inside')  || ...
    ~isfield(source, 'outside') || ...
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 2528 2011-01-05 14:12:08Z eelspa $';
+cfg.version.id = '$Id: ft_source2full.m 2742 2011-02-02 10:43:41Z johzum $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

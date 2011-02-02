@@ -49,7 +49,7 @@ function [B] = expand_orthogonal(A,flg,method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: expand_orthogonal.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: expand_orthogonal.m 2666 2011-01-26 15:02:31Z arjsto $
 
 
 % References:
@@ -76,7 +76,7 @@ if (flg~=0) && (flg~=1)
 end
 
 % method must be a string
-if ~isstr(method)
+if ~ischar(method)
    error('input argument ''method'' must be a string');
 end
 

@@ -43,7 +43,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 2646 2011-01-26 08:11:07Z roboos $
+% $Id: fixdimord.m 2727 2011-02-01 10:26:48Z roboos $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -97,6 +97,11 @@ if ~isfield(data, 'dimord')
   end
 end
 
+if strcmp(data.dimord, 'voxel')
+  % this means that it is position
+  data.dimord = 'pos';
+end
+
 dimtok = tokenize(data.dimord, '_');
 
 for i=1:length(dimtok)
@@ -132,9 +137,9 @@ for i=1:length(dimtok)
     case {'ori'}
       % don't change, it is ok
       
-    case {'vox' 'repl' 'wcond'}
+    case {'voxel' 'vox' 'repl' 'wcond'}
       % these are used in some fieldtrip functions, but are not considered standard
-      warning('unexpected dimord "%s"', data.dimord);
+      warning_once('unexpected dimord "%s"', data.dimord);
       
     case {'pos'}
       % this is for source data on a 3-d grid, a cortical sheet, or unstructured positions

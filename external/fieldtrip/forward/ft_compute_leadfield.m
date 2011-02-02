@@ -57,7 +57,8 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 % See also FT_PREPARE_VOL_SENS, FT_HEADMODEL_ASA, FT_HEADMODEL_BEMCP,
 % FT_HEADMODEL_CONCENTRICSPHERES, FT_HEADMODEL_DIPOLI, FT_HEADMODEL_HALFSPACE,
 % FT_HEADMODEL_INFINITE, FT_HEADMODEL_LOCALSPHERES, FT_HEADMODEL_OPENMEEG,
-% FT_HEADMODEL_SINGLESHELL, FT_HEADMODEL_SINGLESPHERE
+% FT_HEADMODEL_SINGLESHELL, FT_HEADMODEL_SINGLESPHERE,
+% FT_HEADMODEL_HALFSPACE
 
 % Copyright (C) 2004-2010, Robert Oostenveld
 %
@@ -77,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 2653 2011-01-26 09:49:12Z crimic $
+% $Id: ft_compute_leadfield.m 2741 2011-02-02 10:22:30Z crimic $
 
 persistent warning_issued;
 
@@ -353,60 +354,28 @@ elseif iseeg
         pos = pos - repmat(vol.o, Ndipoles, 1);
       end
 
-      if Nspheres==1
-        if Ndipoles>1
-          % loop over multiple dipoles
-          lf = zeros(size(sens.pnt,1),3*Ndipoles);
-          for i=1:Ndipoles
-            lf(:,(3*i-2):(3*i)) = eeg_leadfield1(pos(i,:), sens.pnt, vol);
-          end
-        else
-          % only single dipole
-          lf = eeg_leadfield1(pos, sens.pnt, vol);
-        end
-
-      elseif Nspheres==2
-        vol.r = [vol.r(1) vol.r(2) vol.r(2) vol.r(2)];
-        vol.c = [vol.c(1) vol.c(2) vol.c(2) vol.c(2)];
-        if Ndipoles>1
-          % loop over multiple dipoles
-          lf = zeros(size(sens.pnt,1),3*Ndipoles);
-          for i=1:Ndipoles
-            lf(:,(3*i-2):(3*i)) = eeg_leadfield4(pos(i,:), sens.pnt, vol);
-          end
-        else
-          % only single dipole
-          lf = eeg_leadfield4(pos, sens.pnt, vol);
-        end
-
-      elseif Nspheres==3
-        vol.r = [vol.r(1) vol.r(2) vol.r(3) vol.r(3)];
-        vol.c = [vol.c(1) vol.c(2) vol.c(3) vol.c(3)];
-        if Ndipoles>1
-          % loop over multiple dipoles
-          lf = zeros(size(sens.pnt,1),3*Ndipoles);
-          for i=1:Ndipoles
-            lf(:,(3*i-2):(3*i)) = eeg_leadfield4(pos(i,:), sens.pnt, vol);
-          end
-        else
-          % only single dipole
-          lf = eeg_leadfield4(pos, sens.pnt, vol);
-        end
-
-      elseif Nspheres==4
-        if Ndipoles>1
-          % loop over multiple dipoles
-          lf = zeros(size(sens.pnt,1),3*Ndipoles);
-          for i=1:Ndipoles
-            lf(:,(3*i-2):(3*i)) = eeg_leadfield4(pos(i,:), sens.pnt, vol);
-          end
-        else
-          % only single dipole
-          lf = eeg_leadfield4(pos, sens.pnt, vol);
-        end
-
-      else
-        error('more than 4 concentric spheres are not supported');
+      switch Nspheres
+        case 1
+          funnam = 'eeg_leadfield1';
+        case 2
+          vol.r = [vol.r(1) vol.r(2) vol.r(2) vol.r(2)];
+          vol.c = [vol.c(1) vol.c(2) vol.c(2) vol.c(2)];
+          funnam = 'eeg_leadfield4';
+        case 3
+          vol.r = [vol.r(1) vol.r(2) vol.r(3) vol.r(3)];
+          vol.c = [vol.c(1) vol.c(2) vol.c(3) vol.c(3)];
+          funnam = 'eeg_leadfield4';
+        case 4
+          vol.r = [vol.r(1) vol.r(2) vol.r(3) vol.r(4)];
+          vol.c = [vol.c(1) vol.c(2) vol.c(3) vol.c(4)];         
+          funnam = 'eeg_leadfield4';
+        otherwise
+          error('more than 4 concentric spheres are not supported')
+      end
+      
+      lf = zeros(size(sens.pnt,1),3*Ndipoles);
+      for i=1:Ndipoles
+        lf(:,(3*i-2):(3*i)) = feval(funnam,pos(i,:), sens.pnt, vol);
       end
 
     case {'bem', 'dipoli', 'asa', 'avo', 'bemcp'}
@@ -416,19 +385,23 @@ elseif iseeg
       lf = eeg_leadfieldb(pos, sens.pnt, vol);
     
     case 'openmeeg'
-      try 
-        dsm = openmeeg_dsm(pos,vol);
-        if isfield(vol,'mat')
-          lf = vol.mat*dsm;
-        else
-          error('No system matrix is present, BEM head model not calculated yet')
-        end        
-      catch
-        warning('The number of dipoles is too high: the algorithm will run for 10 dipoles at a time')
-        tmp = peercellfun(@openmeeg_helper,{pos},{vol},{10},'StopOnError', false);
-        lf = tmp{1};
+      if ft_hastoolbox('openmeeg', 1);
+        try
+          dsm = openmeeg_dsm(pos,vol);
+          if isfield(vol,'mat')
+            lf = vol.mat*dsm;
+          else
+            error('No system matrix is present, BEM head model not calculated yet')
+          end
+        catch
+          warning('The number of dipoles is too high: the algorithm will run for less dipoles at a time')
+          % split factor = 500
+          lf = openmeeg_helper(pos,vol,500);
+        end
+      else
+        error('Openmeeg toolbox not installed')
       end
-      
+  
       case 'metufem'
         p3 = zeros(Ndipoles * 3, 6);
         for i = 1:Ndipoles
@@ -454,6 +427,9 @@ elseif iseeg
         warning_issued = 1;
       end
       lf = inf_medium_leadfield(pos, sens.pnt, 1);
+  
+    case 'halfspace'
+      lf = halfspace_medium_leadfield(pos, sens.pnt, vol);
 
     otherwise
       error('unsupported volume conductor model for EEG');

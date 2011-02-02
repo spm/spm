@@ -47,23 +47,32 @@ dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataf
 transform     = keyval('transform',     varargin); if isempty(transform),  transform  = eye(4);                end
 spmversion    = keyval('spmversion',    varargin);
 
+if isempty(spmversion), spmversion = 'SPM8'; end
+
+if strcmp(dataformat, 'nifti') && strcmp(spmversion, 'SPM2') 
+  error('nifti can only be written by spm versions newer than spm2');
+end
+
 switch dataformat
    
   case {'analyze_img' 'analyze_hdr' 'analyze'}
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %analyze data, using SPM
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    %analyze data, using SPM
     V = volumewrite_spm(filename, dat, transform, spmversion);
 
   case {'freesurfer_mgz' 'mgz'}
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % mgz-volume using freesurfer
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ft_hastoolbox('freesurfer', 1);
 
-    ft_hastoolbox('freesurfer', 1);  
-    save_mgh(dat, filename, transform); %FIXME think about transform being 0 or 1 based
+    % in matlab the transformation matrix assumes the voxel indices to be 1-based
+    % freesurfer assumes the voxel indices to be 0-based
+    transform = vox2ras_1to0(transform);  
+    save_mgh(dat, filename, transform);
     V = [];
+ 
+  case {'nifti'}
+    %nifti data, using SPM
+    V = volumewrite_spm(filename, dat, transform, spmversion); 
   
   otherwise
     error('unsupported data format');

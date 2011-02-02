@@ -29,9 +29,9 @@ function [grid] = ft_source2grid(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2grid.m 2235 2010-11-30 21:01:30Z jansch $
+% $Id: ft_source2grid.m 2742 2011-02-02 10:43:41Z johzum $
 
-fieldtripdefs
+ft_defaults
 
 % these are always supposed to be present
 grid.pos     = source.pos;

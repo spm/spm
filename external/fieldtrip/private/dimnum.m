@@ -36,9 +36,9 @@ function [num,dims]=dimnum(dimord, dim)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dimnum.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: dimnum.m 2666 2011-01-26 15:02:31Z arjsto $
 
-if(~isstr(dimord)||~isstr(dim))error('Both dimord and dim must be strings');end;
+if(~ischar(dimord)||~ischar(dim))error('Both dimord and dim must be strings');end;
 
 dims=tokenize(dimord,'_'); % splits the dimord string in parts using '_' as a delimiter
 dim=lower(dim); % makes the function case unsensitive.

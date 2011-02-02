@@ -135,7 +135,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 2548 2011-01-11 10:34:46Z jansch $
+% $Id: ft_topoplotER.m 2664 2011-01-26 14:41:38Z jansch $
 
 ft_defaults
 
@@ -164,6 +164,9 @@ if hasdata
 elseif hasinputfile
   if iscell(cfg.inputfile), cfg.inputfile = cfg.inputfile{1}; end
   data = loadvar(cfg.inputfile, 'data');
+  if isfield(cfg, 'interactive') && strcmp(cfg.interactive, 'yes'),
+    warning('switching off interactive mode, this is not supported when loading an inputfile from disk');
+  end
 end
 
 % For backward compatibility with old data structures:
