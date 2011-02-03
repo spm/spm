@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_ov_reorient.m 4191 2011-02-03 13:30:02Z guillaume $
 
-rev = '$Revision: 3756 $';
+rev = '$Revision: 4191 $';
 
 global st;
 if isempty(st)
@@ -54,8 +54,8 @@ switch cmd
         ret = item0;
 
     case 'context_init'
-        Finter = spm_figure('FindWin', 'Interactive');
-        Fgraph = spm_figure('FindWin', 'Graphics');
+        Finter = spm_figure('GetWin', 'Interactive');
+        Fgraph = spm_figure('GetWin', 'Graphics');
         figure(Finter);
         spm_input('!DeleteInputObj',Finter);
         handles = spm_orthviews('valid_handles');
