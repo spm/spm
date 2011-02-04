@@ -36,7 +36,7 @@ function [version] = hasyokogawa(desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hasyokogawa.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: hasyokogawa.m 2810 2011-02-03 23:00:36Z roboos $
 
 % return empty if not present
 version = [];

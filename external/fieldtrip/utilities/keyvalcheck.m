@@ -27,7 +27,7 @@ function keyvalcheck(arglist, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: keyvalcheck.m 951 2010-04-21 18:24:01Z roboos $
+% $Id: keyvalcheck.m 2810 2011-02-03 23:00:36Z roboos $
 
 % this is to speed up subsequent calls with the same input arguments
 persistent previous_argin

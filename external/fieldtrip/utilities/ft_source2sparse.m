@@ -30,7 +30,7 @@ function [source] = ft_source2sparse(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2sparse.m 2742 2011-02-02 10:43:41Z johzum $
+% $Id: ft_source2sparse.m 2810 2011-02-03 23:00:36Z roboos $
 
 ft_defaults
 
@@ -157,7 +157,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2sparse.m 2742 2011-02-02 10:43:41Z johzum $';
+cfg.version.id = '$Id: ft_source2sparse.m 2810 2011-02-03 23:00:36Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

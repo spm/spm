@@ -33,6 +33,6 @@ function offset = time2offset(time, fsample);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: time2offset.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: time2offset.m 2787 2011-02-03 11:55:33Z roboos $
 
 offset = round(time(1)*fsample);

@@ -24,7 +24,7 @@ function is_in_empty = get_dip_halfspace(P,vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: get_dip_halfspace.m $
+% $Id: get_dip_halfspace.m 2781 2011-02-03 10:48:53Z roboos $
 
 is_in_empty = false;
 ori = vol.ori;

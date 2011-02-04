@@ -29,7 +29,7 @@ function [select] = parameterselection(param, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: parameterselection.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: parameterselection.m 2787 2011-02-03 11:55:33Z roboos $
 
 if ischar(param)
   param = {param};   % it should be a cell-array

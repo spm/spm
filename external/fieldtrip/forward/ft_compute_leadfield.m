@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 2767 2011-02-02 16:29:31Z crimic $
+% $Id: ft_compute_leadfield.m 2775 2011-02-02 22:43:03Z crimic $
 
 persistent warning_issued;
 
@@ -423,7 +423,7 @@ elseif iseeg
       lf = inf_medium_leadfield(pos, sens.pnt, 1);
   
     case 'halfspace'
-      lf = halfspace_medium_leadfield(pos, sens.pnt, vol);
+      lf = eeg_halfspace_medium_leadfield(pos, sens.pnt, vol);
 
     otherwise
       error('unsupported volume conductor model for EEG');

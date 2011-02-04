@@ -64,6 +64,7 @@ end
 
 now = toc(stopwatch); % measure time since first function call
 fname = fixname([msgid '_' msgstr]); % make a nice string that is allowed as structure fieldname, copy the subfunction from  ft_hastoolbox
+fname = decomma(fname);
 
 if isfield(previous, fname) && now>previous.(fname).timeout
     % it has timed out, give the warning again
@@ -85,7 +86,7 @@ end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function
+% helper functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = fixname(toolbox)
 out = lower(toolbox);
@@ -97,4 +98,10 @@ out(out=='\') = '_'; % fix backward slashes
 while(out(1) == '_'), out = out(2:end); end; % remove preceding underscore
 while(out(end) == '_'), out = out(1:end-1); end; % remove subsequent underscore
 
+end
+
+function nameout = decomma(name)
+nameout = name;
+indx = findstr(name,',');
+nameout(indx)=[];
 end

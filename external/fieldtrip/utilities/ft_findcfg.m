@@ -29,7 +29,7 @@ function [val, status] = ft_findcfg(cfg, var);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_findcfg.m 2235 2010-11-30 21:01:30Z jansch $
+% $Id: ft_findcfg.m 2810 2011-02-03 23:00:36Z roboos $
 
 if var(1)~='.'
   var = ['.' var];

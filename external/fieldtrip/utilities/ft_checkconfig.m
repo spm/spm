@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 2742 2011-02-02 10:43:41Z johzum $
+% $Id: ft_checkconfig.m 2810 2011-02-03 23:00:36Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double

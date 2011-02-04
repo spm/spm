@@ -40,7 +40,7 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id:$
+% $Id: ft_write_volume.m 2781 2011-02-03 10:48:53Z roboos $
 
 % get the options
 dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = ft_filetype(filename); end

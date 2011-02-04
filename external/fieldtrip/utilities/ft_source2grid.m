@@ -29,7 +29,7 @@ function [grid] = ft_source2grid(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2grid.m 2742 2011-02-02 10:43:41Z johzum $
+% $Id: ft_source2grid.m 2810 2011-02-03 23:00:36Z roboos $
 
 ft_defaults
 

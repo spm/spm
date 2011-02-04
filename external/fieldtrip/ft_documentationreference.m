@@ -21,7 +21,7 @@ function ft_documentationreference(outdir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationreference.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_documentationreference.m 2829 2011-02-04 09:51:27Z jansch $
 
 ft_defaults
 
@@ -30,7 +30,7 @@ p = fileparts(which(mfilename));
 f1 = dir(fullfile(p, 'ft_*.m'));
 f1 = {f1.name}';
 
-f2 = dir(fullfile(p, 'public', '*.m'));
+f2 = dir(fullfile(p, 'utilities', '*.m'));
 f2 = {f2.name}';
 
 f3 = dir(fullfile(p, 'preproc', '*.m'));

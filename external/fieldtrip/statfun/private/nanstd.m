@@ -38,7 +38,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nanstd.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: nanstd.m 2787 2011-02-03 11:55:33Z roboos $
 
 function out = nanstd(in, varargin)
    

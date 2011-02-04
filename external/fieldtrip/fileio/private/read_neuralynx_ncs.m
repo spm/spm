@@ -24,7 +24,7 @@ function [ncs] = read_neuralynx_ncs(filename, begrecord, endrecord)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_ncs.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_neuralynx_ncs.m 2787 2011-02-03 11:55:33Z roboos $
 
 if nargin<2
   begrecord = 1;
