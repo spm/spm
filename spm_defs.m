@@ -11,7 +11,7 @@ function out = spm_defs(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 4141 2010-12-21 16:57:33Z guillaume $
+% $Id: spm_defs.m 4194 2011-02-05 18:08:06Z ged $
 
 [Def,mat] = get_comp(job.comp);
 [dpath ipath] = get_paths(job);
@@ -81,7 +81,7 @@ bb  = job.bb;
 sn  = load(job.matname{1});
 
 if any(isfinite(bb(:))) || any(isfinite(vox)),
-    [bb0,vox0] = bbvox_from_V(sn.VG(1));
+    [bb0,vox0] = spm_get_bbox(sn.VG(1), 'old');
 
     if any(~isfinite(vox)), vox = vox0; end;
     if any(~isfinite(bb)),  bb  = bb0;  end;
@@ -163,17 +163,6 @@ for j=1:length(z)
     Def{2}(:,:,j) = single(Y2);
     Def{3}(:,:,j) = single(Z2);
 end;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function [bb,vx] = bbvox_from_V(V)
-% Return the default bounding box for an image volume
-
-vx = sqrt(sum(V.mat(1:3,1:3).^2));
-o  = V.mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
-return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________

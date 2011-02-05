@@ -15,7 +15,7 @@ function out = spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 2340 2008-10-15 10:17:27Z john $
+% $Id: spm_dartel_import.m 4194 2011-02-05 18:08:06Z ged $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -174,7 +174,7 @@ if iopt,
 end;
 
 % Sort out bounding box etc
-[bb1,vx1]       = bbvox_from_V(p.VG(1));
+[bb1,vx1] = spm_get_bbox(p.VG(1), 'old');
 bb(~isfinite(bb)) = bb1(~isfinite(bb));
 if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
 bb(1,:) = vx*ceil(bb(1,:)/vx);
@@ -353,14 +353,3 @@ for i=1:numel(pth),
         return;
     end;
 end;
-%=======================================================================
-
-%=======================================================================
-function [bb,vx] = bbvox_from_V(V)
-vx = sqrt(sum(V(1).mat(1:3,1:3).^2));
-if det(V(1).mat(1:3,1:3))<0, vx(1) = -vx(1); end;
-
-o  = V(1).mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V(1).dim(1:3)-o)];
-return;

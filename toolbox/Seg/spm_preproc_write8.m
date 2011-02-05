@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4030 2010-08-02 11:41:26Z guillaume $
+% $Id: spm_preproc_write8.m 4194 2011-02-05 18:08:06Z ged $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -15,8 +15,7 @@ end
 d1        = size(tpm.dat{1});
 d1        = d1(1:3);
 M1        = tpm.M;
-[bb1,vx1] = bbvox_from_V(tpm.V(1));
-
+[bb1 vx1] = spm_get_bbox(tpm.V(1), 'old');
 
 if isfield(res,'mg'),
     lkp = res.lkp;
@@ -27,7 +26,7 @@ end
 
 N   = numel(res.image);
 if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
-if nargin<3, bf = true(N,2);  end % corrected, field
+if nargin<3, bf = true(N,2);  end % field, corrected
 if nargin<4, df = true(1,2);  end % inverse, forward
 
 [pth,nam]=fileparts(res.image(1).fname);
@@ -408,17 +407,6 @@ i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 spm_conv_vol(dat,dat,x,y,z,-[i j k]);
-return;
-%=======================================================================
-
-%=======================================================================
-function [bb,vx] = bbvox_from_V(V)
-vx = sqrt(sum(V(1).mat(1:3,1:3).^2));
-if det(V(1).mat(1:3,1:3))<0, vx(1) = -vx(1); end;
-
-o  = V(1).mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V(1).dim(1:3)-o)];
 return;
 %=======================================================================
 

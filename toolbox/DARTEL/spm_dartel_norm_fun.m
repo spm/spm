@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 4180 2011-01-28 14:44:09Z john $
+% $Id: spm_dartel_norm_fun.m 4194 2011-02-05 18:08:06Z ged $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -59,8 +59,8 @@ Mt   = Nt.mat;
 dimt = size(Nt.dat);
 
 if any(isfinite(bb(:))) || any(isfinite(vox)),
-    [bb0,vox0] = bbvox(Mt,dimt);
-
+    [bb0 vox0] = spm_get_bbox(Nt, 'old');
+    
     msk = ~isfinite(vox); vox(msk) = vox0(msk);
     msk = ~isfinite(bb);   bb(msk) =  bb0(msk);
 
@@ -272,13 +272,3 @@ for m=1:numel(PI),
     fprintf('\n'); drawnow;
 end
 %__________________________________________________________________________
-
-%__________________________________________________________________________
-function [bb,vx] = bbvox(M,dim)
-vx = sqrt(sum(M(1:3,1:3).^2));
-if det(M(1:3,1:3))<0, vx(1) = -vx(1); end;
-o  = M\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(dim(1:3)-o)];
-return;
- 

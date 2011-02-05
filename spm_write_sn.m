@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_write_sn.m 4194 2011-02-05 18:08:06Z ged $
 
 
 if isempty(V), return; end;
@@ -438,7 +438,7 @@ if nargin<4,
     end
 end
 
-[bb0,vox0] = bbvox_from_V(VG);
+[bb0 vox0] = spm_get_bbox(VG, 'old');
 if ~all(isfinite(vox(:))), vox = vox0; end;
 if ~all(isfinite(bb(:))),  bb  = bb0;  end;
 
@@ -479,17 +479,6 @@ if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
     mat = mat*Flp;
     x   = flipud(x(:))';
 end;
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function [bb,vx] = bbvox_from_V(V)
-vx = sqrt(sum(V.mat(1:3,1:3).^2));
-if det(V.mat(1:3,1:3))<0, vx(1) = -vx(1); end;
-
-o  = V.mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
 return;
 %_______________________________________________________________________
 
