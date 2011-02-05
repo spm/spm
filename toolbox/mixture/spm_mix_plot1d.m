@@ -10,7 +10,7 @@ function [] = spm_mix_plot1d (data, mix, rng, nPoints)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Ged Ridgway
-% $Id: spm_mix_plot1d.m 4068 2010-09-07 16:50:08Z ged $
+% $Id: spm_mix_plot1d.m 4195 2011-02-05 18:39:13Z ged $
 
 if nargin < 4 || isempty(nPoints), nPoints = 100; end
 if nargin < 3 || isempty(rng)
@@ -46,6 +46,7 @@ set(plh(end), 'LineStyle', '--')
 legend(legs, 'Location', 'BestOutside');
 
 if ~isempty(data)
+    xl = xlim;
     subplot(2,1,2)
     [c b] = hist(data, round(sqrt(numel(data))));
     bar(b, c / sum(c) / mean(diff(b)), 'k');
@@ -55,6 +56,6 @@ if ~isempty(data)
         plot(x, f, '--', 'Color', mixcol);
         legend('Histogram', 'Parzen PDF', 'Location', 'BestOutside');
     end
-    xlim(rng);
+    xlim(xl);
     subplot(2,1,1); % (so any subsequent title command goes over this plot)
 end

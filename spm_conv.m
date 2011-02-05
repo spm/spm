@@ -16,7 +16,7 @@ function [X] = spm_conv(X,sx,sy)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_conv.m 4195 2011-02-05 18:39:13Z ged $
 
 
 % assume isomorphic smoothing
@@ -35,11 +35,11 @@ sy    = sy/sqrt(8*log(2)) + eps;
 
 % kernels
 %---------------------------------------------------------------------------
-Ex    = min([ceil(3*sx) lx]);
+Ex    = min([round(6*sx) lx]);
 x     = [-Ex:Ex];
 kx    = exp(-x.^2/(2*sx^2));
 kx    = kx/sum(kx);
-Ey    = min([ceil(3*sy) ly]);
+Ey    = min([round(6*sy) ly]);
 y     = [-Ey:Ey];
 ky    = exp(-y.^2/(2*sy^2));
 ky    = ky/sum(ky);
