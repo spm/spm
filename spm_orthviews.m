@@ -134,7 +134,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_orthviews.m 4196 2011-02-08 15:57:07Z ged $
 
 
 
@@ -453,8 +453,8 @@ switch lower(action),
         
     case 'zoommenu',
         if isempty(zoomlist)
-            zoomlist = [5    10  20 40 80 Inf];
-            reslist  = [.125 .25 .5 .5 1  1];
+            zoomlist = [NaN 0 5    10  20 40 80 Inf];
+            reslist  = [1   1 .125 .25 .5 .5 1  1  ];
         end
         if nargin >= 3
             if all(cellfun(@isnumeric,varargin(1:2))) && ...
@@ -737,20 +737,11 @@ function bb = maxbb
 global st
 mn = [Inf Inf Inf];
 mx = -mn;
-for i=valid_handles(1:24),
-    bb = [[1 1 1];st.vols{i}.dim(1:3)];
-    c = [   bb(1,1) bb(1,2) bb(1,3) 1
-        bb(1,1) bb(1,2) bb(2,3) 1
-        bb(1,1) bb(2,2) bb(1,3) 1
-        bb(1,1) bb(2,2) bb(2,3) 1
-        bb(2,1) bb(1,2) bb(1,3) 1
-        bb(2,1) bb(1,2) bb(2,3) 1
-        bb(2,1) bb(2,2) bb(1,3) 1
-        bb(2,1) bb(2,2) bb(2,3) 1]';
-    tc = st.Space\(st.vols{i}.premul*st.vols{i}.mat)*c;
-    tc = tc(1:3,:)';
-    mx = max([tc ; mx]);
-    mn = min([tc ; mn]);
+for i=valid_handles(1:24)
+    premul = st.Space \ st.vols{i}.premul;
+    bb = spm_get_bbox(st.vols{i}, 'fv', premul);
+    mx = max([bb ; mx]);
+    mn = min([bb ; mn]);
 end;
 bb = [mn ; mx];
 return;
@@ -792,8 +783,22 @@ if nargin > 1
 else
     res = Inf;
 end
-if ~isfinite(fov),
+if isinf(fov)
     st.bb = maxbb;
+elseif isnan(fov) || fov == 0
+    current_handle = valid_handles(1:24);
+    if numel(current_handle) > 1 % called from check reg context menu
+        current_handle = get_current_handle;
+    end
+    if fov == 0
+        % zoom to bounding box of current image ~= 0
+        thr = 'nz';
+    else
+        % zoom to bounding box of current image > chosen threshold
+        thr = spm_input('Threshold (Y > ...)', '+1', 'r', '0', 1);
+    end
+    premul = st.Space \ st.vols{current_handle}.premul;
+    st.bb = spm_get_bbox(st.vols{current_handle}, thr, premul);
 else
     vx = sqrt(sum(st.Space(1:3,1:3).^2));
     vx = vx.^(-1);
@@ -1497,16 +1502,20 @@ item0c    = uimenu(item_parent, 'UserData','v_value');
 item1     = uimenu(item_parent,'Label','Zoom');
 [zl, rl]  = spm_orthviews('ZoomMenu');
 for cz = numel(zl):-1:1
-    if ~isfinite(zl(cz))
+    if isinf(zl(cz))
         czlabel = 'Full Volume';
+    elseif isnan(zl(cz))
+        czlabel = 'Bounds, this image > ...';
+    elseif zl(cz) == 0
+        czlabel = 'Bounds, this image ~= 0';
     else
         czlabel = sprintf('%dx%d mm', 2*zl(cz), 2*zl(cz));
     end
-    item1_x = uimenu(item1, 'Label',czlabel, ...
-                     'Callback', sprintf(...
-                         'spm_orthviews(''context_menu'',''zoom'',%d,%d)',...
-                         zl(cz),rl(cz)));
-    if ~isfinite(zl(cz)) % default display is Full Volume
+    item1_x = uimenu(item1, 'Label',czlabel,...
+        'Callback', sprintf(...
+        'spm_orthviews(''context_menu'',''zoom'',%d,%d)',...
+        zl(cz),rl(cz)));
+    if isinf(zl(cz)) % default display is Full Volume
         set(item1_x, 'Checked','on');
     end
 end
@@ -2034,10 +2043,10 @@ zoom_op(zoom,res);
 for i = 1:numel(cm_handles)
     z_handle = get(findobj(cm_handles(i),'label','Zoom'),'Children');
     set(z_handle,'Checked','off');
-    if isfinite(zoom)
-        set(findobj(z_handle,'Label',sprintf('%dx%d mm', 2*zoom, 2*zoom)),'Checked','on');
-    else
+    if isinf(zoom)
         set(findobj(z_handle,'Label','Full Volume'),'Checked','on');
-    end
+    elseif zoom > 0
+        set(findobj(z_handle,'Label',sprintf('%dx%d mm', 2*zoom, 2*zoom)),'Checked','on');
+    end % leave all unchecked if either bounding box option was chosen
 end
 return;

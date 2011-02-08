@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4159 2011-01-13 13:19:09Z volkmar $
+% $Id: spm_image.m 4196 2011-02-08 15:57:07Z ged $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 4159 $');
+    spm('FnBanner',mfilename,'$Rev: 4196 $');
 
     % get the image's filename {P}
     %----------------------------------------------------------------------
@@ -435,13 +435,17 @@ end;
 % Assorted other buttons.
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
-[zl rl] = spm_orthviews('ZoomMenu');
+zl = spm_orthviews('ZoomMenu');
 czlabel = cell(size(zl));
 % List zoom steps in reverse order
 zl = zl(end:-1:1);
 for cz = 1:numel(zl)
-    if ~isfinite(zl(cz))
+    if isinf(zl(cz))
         czlabel{cz} = 'Full Volume';
+    elseif isnan(zl(cz))
+        czlabel{cz} = 'Bounds, this image > ...';
+    elseif zl(cz) == 0
+        czlabel{cz} = 'Bounds, this image ~= 0';
     else
         czlabel{cz} = sprintf('%dx%dx%dmm', 2*zl(cz), 2*zl(cz), 2*zl(cz));
     end
