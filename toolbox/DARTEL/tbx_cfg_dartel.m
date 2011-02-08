@@ -4,7 +4,7 @@ function dartel = tbx_cfg_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: tbx_cfg_dartel.m 4197 2011-02-08 18:57:11Z ged $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -868,13 +868,13 @@ preserve         = cfg_menu;
 preserve.tag     = 'preserve';
 preserve.name    = 'Preserve';
 preserve.help    = {
-'Preserve Concentrations: Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
+'Preserve Concentrations (no "modulation"): Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
 ''
-'Preserve Total: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
+'Preserve Amount ("modulation"): Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
 }';
 preserve.labels = {
-                   'Preserve Concentrations (no "modulation")'
-                   'Preserve Amount ("modulation")'
+                   'Preserve Concentrations'
+                   'Preserve Amount'
 }';
 preserve.values = {0 1};
 preserve.val    = {0};

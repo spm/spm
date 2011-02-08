@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4196 2011-02-08 15:57:07Z ged $
+% $Id: spm_image.m 4197 2011-02-08 18:57:11Z ged $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 4196 $');
+    spm('FnBanner',mfilename,'$Rev: 4197 $');
 
     % get the image's filename {P}
     %----------------------------------------------------------------------
@@ -443,9 +443,9 @@ for cz = 1:numel(zl)
     if isinf(zl(cz))
         czlabel{cz} = 'Full Volume';
     elseif isnan(zl(cz))
-        czlabel{cz} = 'Bounds, this image > ...';
+        czlabel{cz} = 'BBox (Y > ...)';
     elseif zl(cz) == 0
-        czlabel{cz} = 'Bounds, this image ~= 0';
+        czlabel{cz} = 'BBox (nonzero)';
     else
         czlabel{cz} = sprintf('%dx%dx%dmm', 2*zl(cz), 2*zl(cz), 2*zl(cz));
     end

@@ -13,7 +13,7 @@ function [BB vx] = spm_get_bbox(V, thr, premul)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_bbox.m 4194 2011-02-05 18:08:06Z ged $
+% $Id: spm_get_bbox.m 4197 2011-02-08 18:57:11Z ged $
 
 % Undocumented expert options:
 % V           - can be a 4D @nifti object (but not 5D), image-based BBs
@@ -77,7 +77,7 @@ else
             case 'nn'  % non-NaN, though include +/- Inf in computation
                 img = ~isnan(img);
             case 'nz'  % special case of non-zero (rather than > 0)
-                img = img ~= 0;
+                img = ~isnan(img) & img ~= 0;
             otherwise
                 error('Unknown threshold type %s', thr)
         end
@@ -89,10 +89,11 @@ else
         img = all(img, 4);
     end
     if nnz(img) == 0
-        BB = nan(2, 3);
-        return
+        warning('spm_get_bbox:nothing', ...
+            'Threshold leaves no voxels, returning full field of view');
+    else
+        XYZ = XYZ(:, img); % keep only coords that satisfy condition
     end
-    XYZ = XYZ(:, img); % keep only coords that satisfy condition
 end
 
 if ~exist('BB', 'var') % exists already if 'old' case chosen above

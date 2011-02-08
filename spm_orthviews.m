@@ -134,7 +134,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4196 2011-02-08 15:57:07Z ged $
+% $Id: spm_orthviews.m 4197 2011-02-08 18:57:11Z ged $
 
 
 
@@ -1505,9 +1505,9 @@ for cz = numel(zl):-1:1
     if isinf(zl(cz))
         czlabel = 'Full Volume';
     elseif isnan(zl(cz))
-        czlabel = 'Bounds, this image > ...';
+        czlabel = 'BBox, this image > ...';
     elseif zl(cz) == 0
-        czlabel = 'Bounds, this image ~= 0';
+        czlabel = 'BBox, this image nonzero';
     else
         czlabel = sprintf('%dx%d mm', 2*zl(cz), 2*zl(cz));
     end
