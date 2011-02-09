@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4168 2011-01-23 18:42:04Z vladimir $
+% $Id: checkmeeg.m 4198 2011-02-09 12:48:41Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -64,9 +64,23 @@ else
     end
     
     for k = 1:Ntrials
-        if isnumeric(meegstruct.trials(k).label)
-            meegstruct.trials(k).label = num2str(meegstruct.trials(k).label);
+        
+        label = meegstruct.trials(k).label;
+        
+        if iscell(label) && numel(label) == 1
+            label = label{1};
         end
+        
+        if isnumeric(label)
+            label = num2str(label);
+        end
+        
+        if isa(label, 'char')
+           meegstruct.trials(k).label = label;
+        else
+           meegstruct.trials(k).label = 'Unknown';
+           disp('checkmeeg: some trial labels were not strings, changing back to ''Unknown''');
+        end                        
         
         if  length(meegstruct.trials(k).bad)>1 || ~ismember(meegstruct.trials(k).bad, [0, 1])
             disp(['checkmeeg: illegal value for bad flag in trial ' num2str(k) ', setting to zero.']);
