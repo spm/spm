@@ -1,8 +1,8 @@
 function VO = spm_write_sn(V,prm,flags,extras)
-% Write Out Warped Images.
+% Write out warped images
 % FORMAT VO = spm_write_sn(V,matname,flags,msk)
 % V         - Images to transform (filenames or volume structure).
-% matname   - Transformation information (filename or structure).
+% prm       - Transformation information (filename or structure).
 % flags     - flags structure, with fields...
 %           interp   - interpolation method (0-7)
 %           wrap     - wrap edges (e.g., [1 1 0] for 2D MRI sequences)
@@ -25,7 +25,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %
 % Don't use interpolation methods greater than one for data containing
 % NaNs.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT msk = spm_write_sn(V,matname,flags,'mask')
 % V         - Images to transform (filenames or volume structure).
@@ -40,7 +40,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %             images.
 %
 %
-% _______________________________________________________________________
+%_________________________________________________________________________
 %
 % FORMAT VO = spm_write_sn(V,prm,'modulate')
 % V         - Spatially normalised images to modulate (filenames or
@@ -58,11 +58,11 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %  the total counts from any structure are preserved.  It was written
 %  as an optional step in performing voxel based morphometry.
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4194 2011-02-05 18:08:06Z ged $
+% $Id: spm_write_sn.m 4199 2011-02-10 20:07:17Z guillaume $
 
 
 if isempty(V), return; end;
@@ -128,9 +128,9 @@ else
 end;
 
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 
 [X,Y] = ndgrid(x,y);
@@ -172,9 +172,9 @@ for i=1:numel(V),
 end;
 spm_progress_bar('Clear');
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk)
 
 [X,Y] = ndgrid(x,y);
@@ -206,7 +206,7 @@ for i=1:numel(V),
 
     for j=1:length(z),   % Cycle over planes
         % Nonlinear deformations
-        %----------------------------------------------------------------------------
+        %------------------------------------------------------------------
         tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
         ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
         tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
@@ -225,8 +225,8 @@ for i=1:numel(V),
             j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
             j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
 
-            % The determinant of the Jacobian reflects relative volume changes.
-            %------------------------------------------------------------------
+            % The determinant of the Jacobian reflects relative volume changes
+            %-----------------------------------------------------------------
             dat       = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
             Dat(:,:,j) = single(dat);
         end;
@@ -244,9 +244,9 @@ for i=1:numel(V),
 end;
 spm_progress_bar('Clear');
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function VO = modulate(V,prm)
 
 spm_progress_bar('Init',numel(V),'Modulating','volumes completed');
@@ -288,8 +288,8 @@ for i=1:numel(V),
             j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
             j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
 
-            % The determinant of the Jacobian reflects relative volume changes.
-            %------------------------------------------------------------------
+            % The determinant of the Jacobian reflects relative volume changes
+            %-----------------------------------------------------------------
             dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
             dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
             Dat(:,:,j) = single(dat);
@@ -309,9 +309,9 @@ for i=1:numel(V),
 end;
 spm_progress_bar('Clear');
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function VO   = make_hdr_struct(V,x,y,z,mat,prefix)
 VO            = V;
 VO.fname      = prepend(V.fname,prefix);
@@ -320,24 +320,24 @@ VO.dim(1:3)   = [length(x) length(y) length(z)];
 VO.pinfo      = V.pinfo;
 VO.descrip    = 'spm - 3D normalized';
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function T2 = get_2Dtrans(T3,B,j)
 d   = [size(T3) 1 1 1];
 tmp = reshape(T3,d(1)*d(2),d(3));
 T2  = reshape(tmp*B(j,:)',d(1),d(2));
 return;
-%_______________________________________________________________________
+%==========================================================================
 
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
 [pth,nm,xt,vr] = spm_fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function Mask = getmask(X,Y,Z,dim,wrp)
 % Find range of slice
 tiny = 5e-2;
@@ -346,9 +346,9 @@ if ~wrp(1), Mask = Mask & (X >= (1-tiny) & X <= (dim(1)+tiny)); end;
 if ~wrp(2), Mask = Mask & (Y >= (1-tiny) & Y <= (dim(2)+tiny)); end;
 if ~wrp(3), Mask = Mask & (Z >= (1-tiny) & Z <= (dim(3)+tiny)); end;
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function [X2,Y2,Z2] = mmult(X1,Y1,Z1,Mult)
 if length(Z1) == 1,
     X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + (Mult(1,3)*Z1 + Mult(1,4));
@@ -360,12 +360,12 @@ else
     Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + Mult(3,3)*Z1 + Mult(3,4);
 end;
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function msk = get_snmask(V,prm,x,y,z,wrap)
 % Generate a mask for where there is data for all images
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 msk = cell(length(z),1);
 t1 = cat(3,V.mat);
 t2 = cat(1,V.dim);
@@ -383,20 +383,20 @@ if numel(V)>1 && any(any(diff(t,1,1))),
         Count = zeros(length(x),length(y));
         if isempty(Tr),
             % Generate a mask for where there is data for all images
-            %----------------------------------------------------------------------------
+            %--------------------------------------------------------------
             for i=1:numel(V),
                 [X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
             end;
         else
             % Nonlinear deformations
-            %----------------------------------------------------------------------------
+            %--------------------------------------------------------------
             X1 = X    + BX*get_2Dtrans(Tr(:,:,:,1),BZ,j)*BY';
             Y1 = Y    + BX*get_2Dtrans(Tr(:,:,:,2),BZ,j)*BY';
             Z1 = z(j) + BX*get_2Dtrans(Tr(:,:,:,3),BZ,j)*BY';
 
             % Generate a mask for where there is data for all images
-            %----------------------------------------------------------------------------
+            %--------------------------------------------------------------
             for i=1:numel(V),
                 [X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
@@ -410,9 +410,9 @@ else
     for j=1:length(z), msk{j} = uint32([]); end;
 end;
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 % The old voxel size and origin notation is used here.
 % This requires that the position and orientation
@@ -480,9 +480,9 @@ if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
     x   = flipud(x(:))';
 end;
 return;
-%_______________________________________________________________________
+%==========================================================================
 
-%_______________________________________________________________________
+%==========================================================================
 function VO = write_dets(P,bb,vox)
 if nargin==1,
     job = P;
@@ -523,7 +523,7 @@ for i=1:numel(V),
         ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
         tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
 
-        %----------------------------------------------------------------------------
+        %------------------------------------------------------------------
         j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
         j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
         j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
@@ -538,4 +538,4 @@ for i=1:numel(V),
 end;
 spm_progress_bar('Clear');
 return;
-%_______________________________________________________________________
+%==========================================================================

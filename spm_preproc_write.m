@@ -7,26 +7,27 @@ function spm_preproc_write(p,opts)
 %        GM      - flags for which images should be written
 %        WM      - similar to GM
 %        CSF     - similar to GM
-%____________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_preproc_write.m 4199 2011-02-10 20:07:17Z guillaume $
 
+if ischar(p), p = load(p); end
 
-if nargin==1,
+if nargin==1
     opts = spm_get_defaults('preproc.output');
-end;
-if numel(p)>0,
+end
+if numel(p)>0
     b0  = spm_load_priors(p(1).VG);
-end;
-for i=1:numel(p),
+end
+for i=1:numel(p)
     preproc_apply(p(i),opts,b0);
-end;
+end
 return;
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function preproc_apply(p,opts,b0)
 
 %sopts = [opts.GM ; opts.WM ; opts.CSF];
@@ -35,11 +36,11 @@ switch nclasses
     case 3
         sopts = [opts.GM ; opts.WM ; opts.CSF];
     case 4
-       sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1];
+        sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1];
     case 5
-       sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1 ; opts.EXTRA2];
+        sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1 ; opts.EXTRA2];
     otherwise
-        error('######## unsupported number of classes....!!!')
+        error('Unsupported number of classes!')
 end
 
 [pth,nam,ext]=fileparts(p.VF.fname);
@@ -175,9 +176,9 @@ for k1=1:size(sopts,1),
     end;
 end;
 return;
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function [x1,y1,z1] = defs(sol,z,B1,B2,B3,x0,y0,z0,M)
 x1a = x0    + transf(B1,B2,B3(z,:),sol(:,:,:,1));
 y1a = y0    + transf(B1,B2,B3(z,:),sol(:,:,:,2));
@@ -186,9 +187,9 @@ x1  = M(1,1)*x1a + M(1,2)*y1a + M(1,3)*z1a + M(1,4);
 y1  = M(2,1)*x1a + M(2,2)*y1a + M(2,3)*z1a + M(2,4);
 z1  = M(3,1)*x1a + M(3,2)*y1a + M(3,3)*z1a + M(3,4);
 return;
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function t = transf(B1,B2,B3,T)
 if ~isempty(T)
     d2 = [size(T) 1];
@@ -198,9 +199,9 @@ else
     t = zeros(size(B1,1),size(B2,1),size(B3,1));
 end;
 return;
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function dat = decimate(dat,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
@@ -212,9 +213,9 @@ j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 spm_conv_vol(dat,dat,x,y,z,-[i j k]);
 return;
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function [g,w,c] = clean_gwc(g,w,c, level)
 if nargin<4, level = 1; end;
 
@@ -222,7 +223,7 @@ b    = w;
 b(1) = w(1);
 
 % Build a 3x3x3 seperable smoothing kernel
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 kx=[0.75 1 0.75];
 ky=[0.75 1 0.75];
 kz=[0.75 1 0.75];
@@ -232,7 +233,7 @@ kx=kx/sm; ky=ky/sm; kz=kz/sm;
 th1 = 0.15;
 if level==2, th1 = 0.2; end;
 % Erosions and conditional dilations
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 niter = 32;
 spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
 for j=1:niter,
@@ -260,7 +261,4 @@ for i=1:size(b,3),
 end;
 spm_progress_bar('Clear');
 return;
-%=======================================================================
-
-%=======================================================================
-
+%==========================================================================
