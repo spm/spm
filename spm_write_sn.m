@@ -1,6 +1,6 @@
 function VO = spm_write_sn(V,prm,flags,extras)
 % Write out warped images
-% FORMAT VO = spm_write_sn(V,matname,flags,msk)
+% FORMAT VO = spm_write_sn(V,prm,flags,msk)
 % V         - Images to transform (filenames or volume structure).
 % prm       - Transformation information (filename or structure).
 % flags     - flags structure, with fields...
@@ -27,17 +27,17 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % NaNs.
 %__________________________________________________________________________
 %
-% FORMAT msk = spm_write_sn(V,matname,flags,'mask')
-% V         - Images to transform (filenames or volume structure).
-% matname   - Transformation information (filename or structure).
-% flags     - flags structure, with fields...
-%           wrap     - wrap edges (e.g., [1 1 0] for 2D MRI sequences)
-%           vox      - voxel sizes (3 element vector - in mm)
-%                      Non-finite values mean use template vox.
-%           bb       - bounding box (2x3 matrix - in mm)
-%                      Non-finite values mean use template bb.
-% msk       - a cell array for masking a series of spatially normalised
-%             images.
+% FORMAT msk = spm_write_sn(V,prm,flags,'mask')
+% V          - Images to transform (filenames or volume structure).
+% prm        - Transformation information (filename or structure).
+% flags      - flags structure, with fields...
+%            wrap - wrap edges (e.g., [1 1 0] for 2D MRI sequences)
+%            vox  - voxel sizes (3 element vector - in mm)
+%                   Non-finite values mean use template vox.
+%            bb   - bounding box (2x3 matrix - in mm)
+%                   Non-finite values mean use template bb.
+% msk        - a cell array for masking a series of spatially normalised
+%              images.
 %
 %
 %_________________________________________________________________________
@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4199 2011-02-10 20:07:17Z guillaume $
+% $Id: spm_write_sn.m 4201 2011-02-15 10:52:00Z ged $
 
 
 if isempty(V), return; end;

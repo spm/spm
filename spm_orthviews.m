@@ -40,9 +40,13 @@ function varargout = spm_orthviews(action,varargin)
 % res      - resolution (mm)
 % sets the displayed part and sampling resolution for all images. The
 % image display will be centered at the current crosshair position. The
-% image region [xhairs-fov xhairs+fov] will be shown. If no argument is
-% given or fov == Inf, the image display will be reset to "Full
-% Volume". Optionally, the display resolution can be set as well.
+% image region [xhairs-fov xhairs+fov] will be shown.
+% If no argument is given or fov == Inf, the image display will be reset to
+% "Full Volume". If fov == 0, the image will be zoomed to the bounding box
+% from spm_get_bbox for the non-zero voxels of the image. If fov is NaN,
+% then a threshold can be entered, and spm_get_bbox will be used to derive
+% the bounding box of the voxels above this threshold.
+% Optionally, the display resolution can be set as well.
 %
 % FORMAT spm_orthviews('Delete', handle)
 % handle   - image number to delete
@@ -113,7 +117,8 @@ function varargout = spm_orthviews(action,varargin)
 % res      - A list of predefined resolutions
 % This list is used by spm_image and spm_orthviews('addcontext',...) to
 % create the 'Zoom' menu. The values can be retrieved by calling
-% spm_orthviews('ZoomMenu') with 2 output arguments.
+% spm_orthviews('ZoomMenu') with 2 output arguments. Values of 0, NaN and
+% Inf are treated specially, see the help for spm_orthviews('Zoom' ...).
 %
 % CONTEXT MENU
 % spm_orthviews offers many of its features in a context menu, which is
@@ -134,7 +139,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4197 2011-02-08 18:57:11Z ged $
+% $Id: spm_orthviews.m 4201 2011-02-15 10:52:00Z ged $
 
 
 
