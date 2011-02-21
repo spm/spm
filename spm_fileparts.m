@@ -6,19 +6,17 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % nam   - filename
 % ext   - extension
 % num   - comma separated list of values
-%
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_fileparts.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_fileparts.m 4205 2011-02-21 15:39:08Z guillaume $
 
 
 num = '';
 [pth,nam,ext] = fileparts(fname);
 ind = find(ext==',');
-if ~isempty(ind),
+if ~isempty(ind)
     num = ext(ind(1):end);
     ext = ext(1:(ind(1)-1));
-end;
-
+end

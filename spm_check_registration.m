@@ -11,46 +11,31 @@ function spm_check_registration(images)
 % Copyright (C) 1997-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 4158 2011-01-12 19:57:08Z guillaume $
+% $Id: spm_check_registration.m 4205 2011-02-21 15:39:08Z guillaume $
 
 
-if nargin==0
-    
-    images = spm_select([1 15],'image','Select images');
-    if isempty(images), return; end
-    spm_check_registration(images);
-    
-elseif nargin==1
-    
-    fg = spm_figure('Findwin','Graphics');
-    if isempty(fg)
-        fg = spm_figure('Create','Graphics');
-        if isempty(fg)
-            error('Can''t create Graphics window');
-        end
-    else
-        spm_figure('Clear','Graphics');
-    end
-    if isstruct(images) && isfield(images,'data')
-        images = char(images.data);
-    end
-    if ischar(images), images = spm_vol(images); end
-    spm_orthviews('Reset');
-    mn = length(images);
-    n  = round(mn^0.4);
-    m  = ceil(mn/n);
-    w  = 1/n;
-    h  = 1/m;
-    ds = (w+h)*0.02;
-    for ij=1:mn
-        i = 1-h*(floor((ij-1)/n)+1);
-        j = w*rem(ij-1,n);
-        handle = spm_orthviews('Image', images(ij),...
-            [j+ds/2 i+ds/2 w-ds h-ds]);
-        if ij==1, spm_orthviews('Space'); end
-        spm_orthviews('AddContext',handle);
-    end
-    
-else
-    error('Incorrect Usage');
+if ~nargin
+    [images, sts] = spm_select([1 15],'image','Select images');
+    if ~sts, return; end
+end
+
+if ischar(images), images = spm_vol(images); end
+
+spm_figure('GetWin','Graphics');
+spm_figure('Clear','Graphics');
+spm_orthviews('Reset');
+
+mn = length(images);
+n  = round(mn^0.4);
+m  = ceil(mn/n);
+w  = 1/n;
+h  = 1/m;
+ds = (w+h)*0.02;
+for ij=1:mn
+    i = 1-h*(floor((ij-1)/n)+1);
+    j = w*rem(ij-1,n);
+    handle = spm_orthviews('Image', images(ij),...
+        [j+ds/2 i+ds/2 w-ds h-ds]);
+    if ij==1, spm_orthviews('Space'); end
+    spm_orthviews('AddContext',handle);
 end

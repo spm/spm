@@ -1,7 +1,7 @@
-function spm_image(op,varargin)
-% image and header display
+function spm_image(action,varargin)
+% Image and header display
 % FORMAT spm_image
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_image is an interactive facility that allows orthogonal sections
 % from an image volume to be displayed.  Clicking the cursor on either
@@ -17,12 +17,12 @@ function spm_image(op,varargin)
 %
 % The images can be re-oriented by entering appropriate translations,
 % rotations and zooms into the panel on the left.  The transformations
-% can then be saved by hitting the ``Reorient images...'' button.  The
-% transformations that were applied to the image are saved to the
-% ``.mat'' files of the selected images.  The transformations are
-% considered to be relative to any existing transformations that may be
-% stored in the ``.mat'' files.  Note that the order that the
-% transformations are applied in is the same as in ``spm_matrix.m''.
+% can then be saved by hitting the "Reorient images..." button.  The
+% transformations that were applied to the image are saved to the header
+% information of the selected images.  The transformations are considered
+% to be relative to any existing transformations that may be stored.
+% Note that the order that the transformations are applied in is the
+% same as in spm_matrix.m.
 %
 % The ``Reset...'' button next to it is for setting the orientation of
 % images back to transverse.  It retains the current voxel sizes,
@@ -38,217 +38,198 @@ function spm_image(op,varargin)
 %   Vox size   - the distance (in mm) between the centres of
 %                neighbouring voxels.
 %   Origin     - the voxel at the origin of the co-ordinate system
-%   DIr Cos    - Direction cosines.  This is a widely used
+%   Dir Cos    - Direction cosines.  This is a widely used
 %                representation of the orientation of an image.
 %
 % There are also a few options for different resampling modes, zooms
-% etc.  You can also flip between voxel space (as would be displayed
-% by Analyze) or world space (the orientation that SPM considers the
-% image to be in).  If you are re-orienting the images, make sure that
-% world space is specified.  Blobs (from activation studies) can be
-% superimposed on the images and the intensity windowing can also be
-% changed.
-%
-%_______________________________________________________________________
+% etc.  You can also flip between voxel space or world space.  If you
+% are re-orienting the images, make sure that world space is specified.
+% Blobs (from activation studies) can be superimposed on the images and 
+% the intensity windowing can also be changed.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4197 2011-02-08 18:57:11Z ged $
+% $Id: spm_image.m 4205 2011-02-21 15:39:08Z guillaume $
 
 
 global st
 
-if nargin == 0,
-    spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 4197 $');
+if ~nargin, action = 'Init'; end
 
-    % get the image's filename {P}
-    %----------------------------------------------------------------------
-    P      = spm_select(1,'image','Select image');
-    spm_image('init',P);
+if ~any(strcmpi(action,{'init','reset'})) && ...
+        (isempty(st) || ~isfield(st,'vols') || isempty(st.vols{1}))
+    spm_image('Reset');
+    warning('Lost all the image information');
     return;
-end;
-
-if isstruct(op)
-    % job data structure
-    spm_image('init', op.data{1});
-    return;
-end;
-
-try
-    if ~strcmp(op,'init') && ~strcmp(op,'reset') && isempty(st.vols{1})
-        my_reset; warning('Lost all the image information');
-        return;
-    end;
-catch
 end
 
-if strcmp(op,'repos'),
-    % The widgets for translation rotation or zooms have been modified.
-    %-----------------------------------------------------------------------
-    fg      = spm_figure('Findwin','Graphics');
-    set(fg,'Pointer','watch');
-    i       = varargin{1};
-    st.B(i) = eval(get(gco,'String'),num2str(st.B(i)));
-    set(gco,'String',st.B(i));
+switch lower(action)
+    
+    case {'init','display'}
+    % Display image
+    %----------------------------------------------------------------------
+    if isempty(varargin)
+        [P, sts] = spm_select(1,'image','Select image');
+        if ~sts, return; end
+    else
+        P = varargin{1};
+    end
+    if ischar(P), P = spm_vol(P); end
+    P = P(1);
+
+    init_display(P);
+    
+    case 'repos'
+    % The widgets for translation rotation or zooms have been modified
+    %----------------------------------------------------------------------
+    trz = varargin{1};
+    try, st.B(trz) = eval(get(gco,'String')); end
+    set(gco,'String',st.B(trz));
     st.vols{1}.premul = spm_matrix(st.B);
     % spm_orthviews('MaxBB');
-    spm_image('zoom_in');
-    spm_image('update_info');
-    set(fg,'Pointer','arrow');
-    return;
-end;
-
-if strcmp(op,'shopos'),
-    % The position of the crosshairs has been moved.
-    %-----------------------------------------------------------------------
-    if isfield(st,'mp'),
-        fg  = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.mp),
-            set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('pos')));
-            pos = spm_orthviews('pos',1);
+    spm_image('Zoom');
+    spm_image('Update');
+    
+    case 'shopos'
+    % The position of the crosshairs has been moved
+    %----------------------------------------------------------------------
+    if isfield(st,'mp')
+        fg = spm_figure('Findwin','Graphics');
+        if any(findobj(fg) == st.mp)
+            set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('Pos')));
+            pos = spm_orthviews('Pos',1);
             set(st.vp,'String',sprintf('%.1f %.1f %.1f',pos));
             set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),st.hld)));
         else
             st.Callback = ';';
             st = rmfield(st,{'mp','vp','in'});
-        end;
+        end
     else
         st.Callback = ';';
-    end;
-    return;
-end;
-
-if strcmp(op,'setposmm'),
-    % Move the crosshairs to the specified position
-    %-----------------------------------------------------------------------
-    if isfield(st,'mp'),
+    end
+ 
+    case 'setposmm'
+    % Move the crosshairs to the specified position {mm}
+    %----------------------------------------------------------------------
+    if isfield(st,'mp')
         fg = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.mp),
+        if any(findobj(fg) == st.mp)
             pos = sscanf(get(st.mp,'String'), '%g %g %g');
-            if length(pos)~=3,
-                pos = spm_orthviews('pos');
-            end;
+            if length(pos)~=3
+                pos = spm_orthviews('Pos');
+            end
             spm_orthviews('Reposition',pos);
-        end;
-    end;
-    return;
-end;
-
-if strcmp(op,'setposvx'),
-    % Move the crosshairs to the specified position
-    %-----------------------------------------------------------------------
-    if isfield(st,'mp'),
+        end
+    end
+    
+    case 'setposvx'
+    % Move the crosshairs to the specified position {vx}
+    %----------------------------------------------------------------------
+    if isfield(st,'mp')
         fg = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.vp),
+        if any(findobj(fg) == st.vp)
             pos = sscanf(get(st.vp,'String'), '%g %g %g');
-            if length(pos)~=3,
+            if length(pos)~=3
                 pos = spm_orthviews('pos',1);
-            end;
+            end
             tmp = st.vols{1}.premul*st.vols{1}.mat;
             pos = tmp(1:3,:)*[pos ; 1];
             spm_orthviews('Reposition',pos);
-        end;
-    end;
-    return;
-end;
+        end
+    end
 
-
-if strcmp(op,'addblobs'),
+    case 'addblobs'
     % Add blobs to the image - in full colour
+    %----------------------------------------------------------------------
     spm_figure('Clear','Interactive');
     nblobs = spm_input('Number of sets of blobs',1,'1|2|3|4|5|6',[1 2 3 4 5 6],1);
-    for i=1:nblobs,
-        [SPM,VOL] = spm_getSPM;
+    for i=1:nblobs
+        [SPM,xSPM] = spm_getSPM;
         c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
         colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-        spm_orthviews('addcolouredblobs',1,VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
-        set(st.blobber,'String','Remove Blobs','Callback','spm_image(''rmblobs'');');
-    end;
-    spm_orthviews('addcontext',1);
+        spm_orthviews('AddColouredBlobs',1,xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:));
+        set(st.blobber,'String','Remove Blobs','Callback','spm_image(''RemoveBlobs'');');
+    end
+    spm_orthviews('AddContext',1);
     spm_orthviews('Redraw');
-end;
 
-if strcmp(op,'rmblobs'),
+    case {'removeblobs','rmblobs'}
     % Remove all blobs from the images
-    spm_orthviews('rmblobs',1);
-    set(st.blobber,'String','Add Blobs','Callback','spm_image(''addblobs'');');
-    spm_orthviews('rmcontext',1); 
+    %----------------------------------------------------------------------
+    spm_orthviews('RemoveBlobs',1);
+    set(st.blobber,'String','Add Blobs','Callback','spm_image(''AddBlobs'');');
+    spm_orthviews('RemoveContext',1); 
     spm_orthviews('Redraw');
-end;
 
-if strcmp(op,'window'),
+    case 'window'
+    % Window
+    %----------------------------------------------------------------------
     op = get(st.win,'Value');
-    if op == 1,
-        spm_orthviews('window',1);
+    if op == 1
+        spm_orthviews('Window',1); % automatic
     else
-        spm_orthviews('window',1,spm_input('Range','+1','e','',2));
-    end;
-end;
-
-
-if strcmp(op,'reorient'),
-    % Time to modify the ``.mat'' files for the images.
-    % I hope that giving people this facility is the right thing to do....
-    %-----------------------------------------------------------------------
+        spm_orthviews('Window',1,spm_input('Range','+1','e','',2));
+    end
+    
+    case 'reorient'
+    % Reorient images
+    %----------------------------------------------------------------------
     mat = spm_matrix(st.B);
     if det(mat)<=0
         spm('alert!','This will flip the images',mfilename,0,1);
-    end;
-    P = spm_select(Inf, 'image','Images to reorient');
-    Mats = zeros(4,4,size(P,1));
-    spm_progress_bar('Init',size(P,1),'Reading current orientations',...
+    end
+    [P, sts] = spm_select([1 Inf], 'image','Images to reorient');
+    if ~sts, return; else P = cellstr(P); end
+    Mats = zeros(4,4,numel(P));
+    spm_progress_bar('Init',numel(P),'Reading current orientations',...
         'Images Complete');
-    for i=1:size(P,1),
-        Mats(:,:,i) = spm_get_space(P(i,:));
+    for i=1:numel(P)
+        Mats(:,:,i) = spm_get_space(P{i});
         spm_progress_bar('Set',i);
-    end;
-    spm_progress_bar('Init',size(P,1),'Reorienting images',...
+    end
+    spm_progress_bar('Init',numel(P),'Reorienting images',...
         'Images Complete');
-    for i=1:size(P,1),
-        spm_get_space(P(i,:),mat*Mats(:,:,i));
+    for i=1:numel(P)
+        spm_get_space(P{i},mat*Mats(:,:,i));
         spm_progress_bar('Set',i);
-    end;
+    end
     spm_progress_bar('Clear');
     tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
-    if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
-        spm_image('init',st.vols{1}.fname);
-    end;
-    return;
-end;
+    if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8
+        spm_image('Init',st.vols{1}.fname);
+    end
 
-if strcmp(op,'resetorient'),
-    % Time to modify the ``.mat'' files for the images.
-    % I hope that giving people this facility is the right thing to do....
-    %-----------------------------------------------------------------------
-    P = spm_select(Inf, 'image','Images to reset orientation of');
-    spm_progress_bar('Init',size(P,1),'Resetting orientations',...
+    case 'resetorient'
+    % Reset orientation of images
+    %----------------------------------------------------------------------
+    [P,sts] = spm_select([1 Inf], 'image','Images to reset orientation of');
+    if ~sts, return; else P = cellstr(P); end
+    spm_progress_bar('Init',numel(P),'Resetting orientations',...
         'Images Complete');
-    for i=1:size(P,1),
-        V    = spm_vol(deblank(P(i,:)));
+    for i=1:numel(P)
+        V    = spm_vol(P{i});
         M    = V.mat;
         vox  = sqrt(sum(M(1:3,1:3).^2));
-        if det(M(1:3,1:3))<0, vox(1) = -vox(1); end;
+        if det(M(1:3,1:3))<0, vox(1) = -vox(1); end
         orig = (V.dim(1:3)+1)/2;
-                off  = -vox.*orig;
-                M    = [vox(1) 0      0      off(1)
+        off  = -vox.*orig;
+        M    = [vox(1) 0      0      off(1)
                 0      vox(2) 0      off(2)
                 0      0      vox(3) off(3)
                 0      0      0      1];
-        spm_get_space(P(i,:),M);
+        spm_get_space(P{i},M);
         spm_progress_bar('Set',i);
-    end;
+    end
     spm_progress_bar('Clear');
     tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
-    if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8,
-        spm_image('init',st.vols{1}.fname);
-    end;
-    return;
-end;
+    if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8
+        spm_image('Init',st.vols{1}.fname);
+    end
 
-if strcmp(op,'update_info'),
-    % Modify the positional information in the right hand panel.
-    %-----------------------------------------------------------------------
+    case 'update'
+    % Modify the positional information in the right hand panel
+    %----------------------------------------------------------------------
     mat = st.vols{1}.premul*st.vols{1}.mat;
     Z = spm_imatrix(mat);
     Z = Z(7:9);
@@ -271,51 +252,48 @@ if strcmp(op,'update_info'),
 
     tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
 
-    if sum(tmp(:).^2)>1e-5,
+    if sum(tmp(:).^2)>1e-5
         set(st.posinf.w, 'String', 'Warning: shears involved');
     else
         set(st.posinf.w, 'String', '');
-    end;
+    end
 
-    return;
-end;
-
-if strcmp(op,'reset'),
-    my_reset;
-end;
-
-if strcmp(op,'zoom_in'),
+    case 'zoom'
+    % Zoom in
+    %----------------------------------------------------------------------
     [zl rl] = spm_orthviews('ZoomMenu');
     % Values are listed in reverse order
     cz = numel(zl)-get(st.zoomer,'Value')+1;
-    spm_orthviews('zoom',zl(cz),rl(cz));
-    return;
-end;
+    spm_orthviews('Zoom',zl(cz),rl(cz));
 
-if strcmp(op,'init'),
+    case 'reset'
+    % Reset
+    %----------------------------------------------------------------------
+    spm_orthviews('Reset');
+    spm_figure('Clear','Graphics');
+
+end
+
+
+%==========================================================================
+function init_display(P)
+
+global st
+
 fg = spm_figure('GetWin','Graphics');
-if isempty(fg), error('Can''t create graphics window'); end
-spm_figure('Clear','Graphics');
-
-P = varargin{1};
-if ischar(P), P = spm_vol(P); end;
-P = P(1);
-
-spm_orthviews('Reset');
+spm_image('Reset');
 spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
-if isempty(st.vols{1}), return; end;
+if isempty(st.vols{1}), return; end
 
 spm_orthviews('MaxBB');
 st.callback = 'spm_image(''shopos'');';
 
 st.B = [0 0 0  0 0 0  1 1 1  0 0 0];
 
-% locate Graphics window and clear it
-%-----------------------------------------------------------------------
+% Widgets for re-orienting images.
+%--------------------------------------------------------------------------
 WS = spm('WinScale');
 
-% Widgets for re-orienting images.
-%-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_image(''reset'');');
 uicontrol(fg,'Style','Text', 'Position',[75 220 100 016].*WS,'String','right  {mm}');
 uicontrol(fg,'Style','Text', 'Position',[75 200 100 016].*WS,'String','forward  {mm}');
@@ -344,7 +322,7 @@ uicontrol(fg,'Style','Pushbutton','String','Reset...','Callback','spm_image(''re
          'Position',[195 35 55 020].*WS,'ToolTipString','reset orientations of selected images');
 
 % Crosshair position
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[70 250 180 90].*WS);
 uicontrol(fg,'Style','Text', 'Position',[75 320 170 016].*WS,'String','Crosshair Position');
 uicontrol(fg,'Style','PushButton', 'Position',[75 316 170 006].*WS,...
@@ -360,7 +338,7 @@ st.vp = uicontrol(fg,'Style','edit', 'Position',[110 275 135 020].*WS,'String','
 st.in = uicontrol(fg,'Style','Text', 'Position',[140 255  85 020].*WS,'String','');
 
 % General information
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[305  25 280 325].*WS);
 uicontrol(fg,'Style','Text','Position' ,[310 330 50 016].*WS,...
     'HorizontalAlignment','right', 'String', 'File:');
@@ -377,24 +355,23 @@ uicontrol(fg,'Style','Text','Position' ,[410 290 160 016].*WS,...
 uicontrol(fg,'Style','Text','Position' ,[310 270 100 016].*WS,...
     'HorizontalAlignment','right', 'String', 'Intensity:');
 str = 'varied';
-if size(st.vols{1}.pinfo,2) == 1,
-    if st.vols{1}.pinfo(2),
+if size(st.vols{1}.pinfo,2) == 1
+    if st.vols{1}.pinfo(2)
         str = sprintf('Y = %g X + %g', st.vols{1}.pinfo(1:2)');
     else
         str = sprintf('Y = %g X', st.vols{1}.pinfo(1)');
-    end;
-end;
+    end
+end
 uicontrol(fg,'Style','Text','Position' ,[410 270 160 016].*WS,...
     'HorizontalAlignment','left', 'String', str,'FontWeight','bold');
 
-if isfield(st.vols{1}, 'descrip'),
+if isfield(st.vols{1}, 'descrip')
     uicontrol(fg,'Style','Text','Position' ,[310 250 260 016].*WS,...
     'HorizontalAlignment','center', 'String', st.vols{1}.descrip,'FontWeight','bold');
-end;
-
+end
 
 % Positional information
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 mat = st.vols{1}.premul*st.vols{1}.mat;
 Z = spm_imatrix(mat);
 Z = Z(7:9);
@@ -428,12 +405,12 @@ st.posinf.m3 = uicontrol(fg,'Style','Text','Position' ,[410 130 160 016].*WS,...
 tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
 st.posinf.w = uicontrol(fg,'Style','Text','Position' ,[310 110 260 016].*WS,...
     'HorizontalAlignment','center', 'String', '','FontWeight','bold');
-if sum(tmp(:).^2)>1e-8,
+if sum(tmp(:).^2)>1e-8
     set(st.posinf.w, 'String', 'Warning: shears involved');
-end;
+end
 
-% Assorted other buttons.
-%-----------------------------------------------------------------------
+% Assorted other buttons
+%--------------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
 zl = spm_orthviews('ZoomMenu');
 czlabel = cell(size(zl));
@@ -452,8 +429,8 @@ for cz = 1:numel(zl)
 end
 st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 75 125 20].*WS,...
     'String',czlabel,...
-    'Callback','spm_image(''zoom_in'')','ToolTipString','zoom in by different amounts');
-c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom_in'')';
+    'Callback','spm_image(''zoom'')','ToolTipString','zoom in by different amounts');
+c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom'')';
 uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20].*WS,...
     'String',char('World Space','Voxel Space'),...
     'Callback',c,'ToolTipString','display in aquired/world orientation');
@@ -470,11 +447,3 @@ st.win = uicontrol(fg,'Style','popupmenu','Position',[315 35 125 20].*WS,...
 %   'String','Window','Callback','spm_image(''window'');','ToolTipString','range of voxel intensities % displayed');
 st.blobber = uicontrol(fg,'Style','pushbutton','Position',[450 35 125 20].*WS,...
     'String','Add Blobs','Callback','spm_image(''addblobs'');','ToolTipString','superimpose activations');
-end;
-return;
-
-
-function my_reset
-spm_orthviews('reset');
-spm_figure('Clear','Graphics');
-return;

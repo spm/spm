@@ -1,17 +1,13 @@
 function varargout = spm_orthviews(action,varargin)
-% Display Orthogonal Views of a Normalized Image
+% Display orthogonal views of a set of images
 % FORMAT H = spm_orthviews('Image',filename[,position])
 % filename - name of image to display
-% area     - position of image
+% area     - position of image {relative}
 %            -  area(1) - position x
 %            -  area(2) - position y
 %            -  area(3) - size x
 %            -  area(4) - size y
 % H        - handle for ortho sections
-% FORMAT spm_orthviews('BB',bb)
-% bb       - bounding box
-%            [loX loY loZ
-%             hiX hiY hiZ]
 %
 % FORMAT spm_orthviews('Redraw')
 % Redraws the images
@@ -24,6 +20,11 @@ function varargout = spm_orthviews(action,varargin)
 %            transformation matrix and dimensions (e.g. one of the blobs
 %            of a view)
 % with no arguments - puts things into mm space
+%
+% FORMAT spm_orthviews('BB',bb)
+% bb       - bounding box
+%            [loX loY loZ
+%             hiX hiY hiZ]
 %
 % FORMAT spm_orthviews('MaxBB')
 % sets the bounding box big enough display the whole of all images
@@ -94,15 +95,24 @@ function varargout = spm_orthviews(action,varargin)
 % blobs print well.
 %
 % FORMAT spm_orthviews('AddColourBar',handle,blobno)
-% Adds colourbar for a specified blob set
+% Adds colourbar for a specified blob set.
 % handle   - image number
 % blobno   - blob number
 %
 % FORMAT spm_orthviews('RemoveBlobs',handle)
 % Removes all blobs from the image specified by the handle(s).
 %
+% FORMAT spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
+% Adds blobs from an image in true colour.
+% handle   - image number to add blobs to [default: 1]
+% filename - image containing blob data [default: request via GUI]
+% colourmap - colormap to display blobs in [default: GUI input]
+% prop     - intensity proportion of activation cf grayscale [default: 0.4]
+% mx       - maximum intensity to scale to [maximum value in activation image]
+% mn       - minimum intensity to scale to [minimum value in activation image]
+%
 % FORMAT spm_orthviews('Register',hReg)
-% hReg      - Handle of HandleGraphics object to build registry in.
+% hReg     - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %
 % FORMAT spm_orthviews('AddContext',handle)
@@ -119,28 +129,20 @@ function varargout = spm_orthviews(action,varargin)
 % create the 'Zoom' menu. The values can be retrieved by calling
 % spm_orthviews('ZoomMenu') with 2 output arguments. Values of 0, NaN and
 % Inf are treated specially, see the help for spm_orthviews('Zoom' ...).
-%
-% CONTEXT MENU
-% spm_orthviews offers many of its features in a context menu, which is
-% accessible via the right mouse button in each displayed image.
+%__________________________________________________________________________
 %
 % PLUGINS
-% The display capabilities of spm_orthviews can be extended with
-% plugins. These are located in the spm_orthviews subdirectory of the SPM
-% distribution. Currently there are 3 plugins available:
-% quiver    Add Quiver plots to a displayed image
-% quiver3d  Add 3D Quiver plots to a displayed image
-% roi       ROI creation and modification
+% The display capabilities of spm_orthviews can be extended with plugins.
+% These are located in the spm_orthviews subdirectory of the SPM
+% distribution.
 % The functionality of plugins can be accessed via calls to
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
-%
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 4201 2011-02-15 10:52:00Z ged $
-
+% John Ashburner et al
+% $Id: spm_orthviews.m 4205 2011-02-21 15:39:08Z guillaume $
 
 
 % The basic fields of st are:
@@ -168,39 +170,39 @@ function varargout = spm_orthviews(action,varargin)
 %
 % When a new image is displayed, the cell entry contains the information
 % returned by spm_vol (type help spm_vol for more info).  In addition,
-% there are a few other fields, some of which I will document here:
+% there are a few other fields, some of which are documented here:
 %
-%         premul - a matrix to premultiply the .mat field by.  Useful
-%                  for re-orienting images.
-%         window - either 'auto' or an intensity range to display the
-%                  image with.
-%         mapping- Mapping of image intensities to grey values. Currently
-%                  one of 'linear', 'histeq', loghisteq',
-%                  'quadhisteq'. Default is 'linear'.
-%                  Histogram equalisation depends on the image toolbox
-%                  and is only available if there is a license available
-%                  for it.
-%         ax     - a cell array containing an element for the three
-%                  views.  The fields of each element are handles for
-%                  the axis, image and crosshairs.
+%         premul  - a matrix to premultiply the .mat field by.  Useful
+%                   for re-orienting images.
+%         window  - either 'auto' or an intensity range to display the
+%                   image with.
+%         mapping - Mapping of image intensities to grey values. Currently
+%                   one of 'linear', 'histeq', loghisteq',
+%                   'quadhisteq'. Default is 'linear'.
+%                   Histogram equalisation depends on the image toolbox
+%                   and is only available if there is a license available
+%                   for it.
+%         ax      - a cell array containing an element for the three
+%                   views.  The fields of each element are handles for
+%                   the axis, image and crosshairs.
 %
-%         blobs - optional.  Is there for using to superimpose blobs.
-%                 vol     - 3D array of image data
-%                 mat     - a mapping from vox-to-mm (see spm_vol, or
-%                           help on image formats).
-%                 max     - maximum intensity for scaling to.  If it
-%                           does not exist, then images are auto-scaled.
+%         blobs   - optional.  Is there for using to superimpose blobs.
+%                   vol     - 3D array of image data
+%                   mat     - a mapping from vox-to-mm (see spm_vol, or
+%                             help on image formats).
+%                   max     - maximum intensity for scaling to.  If it
+%                             does not exist, then images are auto-scaled.
 %
-%                 There are two colouring modes: full colour, and split
-%                 colour.  When using full colour, there should be a
-%                 'colour' field for each cell element.  When using
-%                 split colourscale, there is a handle for the colorbar
-%                 axis.
+%                   There are two colouring modes: full colour, and split
+%                   colour.  When using full colour, there should be a
+%                   'colour' field for each cell element.  When using
+%                   split colourscale, there is a handle for the colorbar
+%                   axis.
 %
-%                 colour  - if it exists it contains the
-%                           red,green,blue that the blobs should be
-%                           displayed in.
-%                 cbar    - handle for colorbar (for split colourscale).
+%                   colour  - if it exists it contains the
+%                             red,green,blue that the blobs should be
+%                             displayed in.
+%                   cbar    - handle for colorbar (for split colourscale).
 %
 % PLUGINS
 % The plugin concept has been developed to extend the display capabilities
@@ -214,7 +216,7 @@ function varargout = spm_orthviews(action,varargin)
 %                st.plugins{:}.
 %                The subfunction 'add_context' calls each plugin with
 %                feval(['spm_ov_', st.plugins{k}], ...
-%             'context_menu', i, parent_menu)
+%                  'context_menu', i, parent_menu)
 %                Each plugin may add its own submenu to the context
 %                menu.
 % b) at redraw:  After images and blobs of st.vols{i} are drawn, the
@@ -222,7 +224,7 @@ function varargout = spm_orthviews(action,varargin)
 %                the plugin list st.plugins{:}. For each matching entry, the
 %                corresponding plugin is called with the command 'redraw':
 %                feval(['spm_ov_', st.plugins{k}], ...
-%             'redraw', i, TM0, TD, CM0, CD, SM0, SD);
+%                  'redraw', i, TM0, TD, CM0, CD, SM0, SD);
 %                The values of TM0, TD, CM0, CD, SM0, SD are defined in the
 %                same way as in the redraw subfunction of spm_orthviews.
 %                It is up to the plugin to do all necessary redraw
@@ -237,36 +239,35 @@ global st;
 persistent zoomlist;
 persistent reslist;
 
-if isempty(st), reset_st; end;
+if isempty(st), reset_st; end
 
-if nargin == 0, action = ''; end;
-action = lower(action);
+if nargin == 0, action = ''; end
 
 if ~any(strcmpi(action,{'reposition','pos'}))
-    spm('Pointer','watch');
+    spm('Pointer','Watch');
 end
     
-switch lower(action),
+switch lower(action)
     case 'image',
         H = specify_image(varargin{1});
         if ~isempty(H)
-            if numel(varargin)>=2,
+            if numel(varargin)>=2
                 st.vols{H}.area = varargin{2};
             else
                 st.vols{H}.area = [0 0 1 1];
-            end;
-            if isempty(st.bb), st.bb = maxbb; end;
+            end
+            if isempty(st.bb), st.bb = maxbb; end
             resolution;
             bbox;
             cm_pos;
-        end;
+        end
         varargout{1} = H;
         mmcentre     = mean(st.Space*[maxbb';1 1],2)';
         st.centre    = mmcentre(1:3);
         redraw_all
         
     case 'bb',
-        if ~isempty(varargin) && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end;
+        if ~isempty(varargin) && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end
         bbox;
         redraw_all;
         
@@ -275,11 +276,11 @@ switch lower(action),
         eval(st.callback);
         if isfield(st,'registry'),
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
-        end;
+        end
         
     case 'reposition',
         if isempty(varargin), tmp = findcent;
-        else tmp = varargin{1}; end;
+        else tmp = varargin{1}; end
         if numel(tmp) == 3
             h = valid_handles(st.snap);
             if ~isempty(h)
@@ -290,7 +291,7 @@ switch lower(action),
         end
         redraw_all;
         eval(st.callback);
-        if isfield(st,'registry'),
+        if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
         cm_pos;
@@ -303,7 +304,7 @@ switch lower(action),
         cm_pos;
         
     case 'space',
-        if numel(varargin)<1,
+        if numel(varargin)<1
             st.Space = eye(4);
             st.bb = maxbb;
             resolution;
@@ -314,7 +315,7 @@ switch lower(action),
             resolution;
             bbox;
             redraw_all;
-        end;
+        end
         
     case 'maxbb',
         st.bb = maxbb;
@@ -327,14 +328,14 @@ switch lower(action),
         redraw_all;
         
     case 'window',
-        if numel(varargin)<2,
+        if numel(varargin)<2
             win = 'auto';
-        elseif numel(varargin{2})==2,
+        elseif numel(varargin{2})==2
             win = varargin{2};
-        end;
-        for i=valid_handles(varargin{1}),
+        end
+        for i=valid_handles(varargin{1})
             st.vols{i}.window = win;
-        end;
+        end
         redraw(varargin{1});
         
     case 'delete',
@@ -348,11 +349,11 @@ switch lower(action),
         my_reset;
         
     case 'pos',
-        if isempty(varargin),
+        if isempty(varargin)
             H = st.centre(:);
         else
             H = pos(varargin{1});
-        end;
+        end
         varargout{1} = H;
         
     case 'interp',
@@ -382,15 +383,6 @@ switch lower(action),
         % redraw(varargin{1});
         
     case 'addtruecolourimage',
-        % spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
-        % Adds blobs from an image in true colour
-        % handle   - image number to add blobs to [default 1]
-        % filename of image containing blob data [default - request via GUI]
-        % colourmap - colormap to display blobs in [GUI input]
-        % prop - intensity proportion of activation cf grayscale [0.4]
-        % mx   - maximum intensity to scale to [maximum value in activation image]
-        % mn   - minimum intensity to scale to [minimum value in activation image]
-        %
         if nargin < 2
             varargin(1) = {1};
         end
@@ -422,24 +414,24 @@ switch lower(action),
     case 'addcolourbar',
         addcolourbar(varargin{1}, varargin{2});
         
-    case 'rmblobs',
+    case {'removeblobs','rmblobs'},
         rmblobs(varargin{1});
         redraw(varargin{1});
         
     case 'addcontext',
-        if nargin == 1,
+        if nargin == 1
             handles = 1:24;
         else
             handles = varargin{1};
-        end;
+        end
         addcontexts(handles);
         
-    case 'rmcontext',
-        if nargin == 1,
+    case {'removecontext','rmcontext'},
+        if nargin == 1
             handles = 1:24;
         else
             handles = varargin{1};
-        end;
+        end
         rmcontexts(handles);
         
     case 'context_menu',
@@ -450,7 +442,7 @@ switch lower(action),
             handles = 1:24;
         else
             handles = varargin{1};
-        end;
+        end
         varargout{1} = valid_handles(handles);
 
     case 'zoom',
@@ -479,13 +471,13 @@ switch lower(action),
         end
         
     otherwise,
-        addonaction = strcmp(st.plugins,action);
+        addonaction = strcmpi(st.plugins,action);
         if any(addonaction)
             feval(['spm_ov_' st.plugins{addonaction}],varargin{:});
-        end;
-end;
+        end
+end
 
-spm('Pointer');
+spm('Pointer','Arrow');
 return;
 
 
@@ -966,6 +958,7 @@ function redraw_all
 redraw(1:24);
 return;
 %_______________________________________________________________________
+%_______________________________________________________________________
 function mx = maxval(vol)
 if isstruct(vol),
     mx = -Inf;
@@ -977,6 +970,7 @@ if isstruct(vol),
 else
     mx = max(vol(isfinite(vol)));
 end;
+%_______________________________________________________________________
 %_______________________________________________________________________
 function mn = minval(vol)
 if isstruct(vol),
@@ -1497,14 +1491,14 @@ fg = spm_figure('Findwin','Graphics');set(0,'CurrentFigure',fg);
 item_parent = uicontextmenu;
 
 %contextsubmenu 0
-item00  = uimenu(item_parent, 'Label','unknown image', 'Separator','on');
+item00  = uimenu(item_parent, 'Label','unknown image');
 spm_orthviews('context_menu','image_info',item00,volhandle);
 item0a    = uimenu(item_parent, 'UserData','pos_mm',     'Callback','spm_orthviews(''context_menu'',''repos_mm'');','Separator','on');
 item0b    = uimenu(item_parent, 'UserData','pos_vx',     'Callback','spm_orthviews(''context_menu'',''repos_vx'');');
 item0c    = uimenu(item_parent, 'UserData','v_value');
 
 %contextsubmenu 1
-item1     = uimenu(item_parent,'Label','Zoom');
+item1     = uimenu(item_parent,'Label','Zoom','Separator','on');
 [zl, rl]  = spm_orthviews('ZoomMenu');
 for cz = numel(zl):-1:1
     if isinf(zl(cz))
@@ -1627,11 +1621,14 @@ for i=1:3,
     st.vols{volhandle}.ax{i}.cm = item_parent;
 end;
 
-if ~isempty(st.plugins) % process any plugins
-    for k = 1:numel(st.plugins),
-        feval(['spm_ov_', st.plugins{k}], ...
-            'context_menu', volhandle, item_parent);
-    end;
+% process any plugins
+for k = 1:numel(st.plugins),
+	feval(['spm_ov_', st.plugins{k}], ...
+        'context_menu', volhandle, item_parent);
+    if k==1
+        h = get(item_parent,'Children');
+        set(h(1),'Separator','on'); 
+    end
 end;
 return;
 %_______________________________________________________________________
@@ -1877,10 +1874,10 @@ switch lower(varargin{1}),
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle; end;
         spm_figure('Clear','Interactive');
-        [SPM,VOL] = spm_getSPM;
+        [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
             for i = 1:numel(cm_handles),
-                addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
+                addblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M);
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
@@ -1928,15 +1925,15 @@ switch lower(varargin{1}),
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle; end;
         spm_figure('Clear','Interactive');
-        [SPM,VOL] = spm_getSPM;
+        [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
             c         = spm_input('Colour','+1','m',...
                 'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
             colours   = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
             c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
-            hlabel = sprintf('%s (%s)',VOL.title,c_names{c});
+            hlabel = sprintf('%s (%s)',xSPM.title,c_names{c});
             for i = 1:numel(cm_handles),
-                addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:),VOL.title);
+                addcolouredblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:),xSPM.title);
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
                 c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
                 ch_c_handle = get(c_handle,'Children');

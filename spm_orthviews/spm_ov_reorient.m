@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4191 2011-02-03 13:30:02Z guillaume $
+% $Id: spm_ov_reorient.m 4205 2011-02-21 15:39:08Z guillaume $
 
-rev = '$Revision: 4191 $';
+rev = '$Revision: 4205 $';
 
 global st;
 if isempty(st)
@@ -78,7 +78,7 @@ switch cmd
             labels{end+1} = '#contour lines';
         end;
         st.vols{volhandle(1)}.reorient.order = uicontrol(...
-            Finter, 'Style','PopupMenu', 'Position', [75 60 330 025], ...
+            Finter, 'Style','PopupMenu', 'Position', [75 60 250 025], ...
             'String',{'Translation(1) Rotation(2) Zoom(3)', ...
             'Zoom(1) Translation(2) Rotation(3)', ...
             'Zoom(1) Rotation(2) Translation(3)'},...
@@ -244,8 +244,8 @@ switch cmd
             if ncl > 0
                 todraw=spm_orthviews('valid_handles');
                 for d = 1:3
-                    CData = sqrt(sum(get(st.vols{volhandle}.ax{d}.d,'CData').^2, ...
-                        3));
+                    CData = sqrt(sum(get(st.vols{volhandle}.ax{d}.d,'CData').^2, 3));
+                    CData(isinf(CData)) = NaN;
                     for h = todraw
                         if h ~= volhandle
                             axes(st.vols{h}.ax{d}.ax);

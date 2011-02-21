@@ -13,7 +13,7 @@ function [BB vx] = spm_get_bbox(V, thr, premul)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_bbox.m 4197 2011-02-08 18:57:11Z ged $
+% $Id: spm_get_bbox.m 4205 2011-02-21 15:39:08Z guillaume $
 
 % Undocumented expert options:
 % V           - can be a 4D @nifti object (but not 5D), image-based BBs
@@ -24,14 +24,14 @@ function [BB vx] = spm_get_bbox(V, thr, premul)
 %-Get an SPM volume structure
 %--------------------------------------------------------------------------
 if nargin < 1 || isempty(V)
-    [V ok] = spm_select(1, 'image', 'Select Image');
-    if ~ok, error('Must select an image'), end
+    [V, sts] = spm_select(1, 'image', 'Select Image');
+    if ~sts, error('Must select an image'), end
 end
 if ischar(V), V = spm_vol(V); end
 
 %-Get volume structure from @nifti object if given
 %--------------------------------------------------------------------------
-if strcmpi(class(V), 'nifti')
+if isa(V, 'nifti')
     V = spm_vol(V.dat.fname); % (potentially a struct array of volumes)
 end
 

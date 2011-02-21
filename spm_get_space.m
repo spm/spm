@@ -4,60 +4,54 @@ function M = spm_get_space(P,M)
 %            spm_get_space(P,M)
 % M - voxel-to-world mapping
 % P - image filename
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_space.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_space.m 4205 2011-02-21 15:39:08Z guillaume $
 
 
-[pth,nam,ext] = fileparts(P);
-t = find(ext==',');
-n = [1 1];
-if ~isempty(t),
-    n   = str2num(ext((t(1)+1):end));
-    ext = ext(1:(t-1));
-    P   = fullfile(pth,[nam ext]);
-end;
+[pth,nam,ext,num] = spm_fileparts(P);
+if ~isempty(num), n = str2num(num); else n = [1 1]; end
+P = fullfile(pth,[nam ext]);
 
 N = nifti(P);
-if nargin==2,
+if nargin==2
     N.mat_intent = 'Aligned';
-    if n(1)==1,
+    if n(1)==1
 
         % Ensure volumes 2..N have the original matrix
-        if size(N.dat,4)>1 && sum(sum((N.mat-M).^2))>1e-8,
+        if size(N.dat,4)>1 && sum(sum((N.mat-M).^2))>1e-8
             M0 = N.mat;
-            if ~isfield(N.extras,'mat'),
+            if ~isfield(N.extras,'mat')
                 N.extras.mat = zeros([4 4 size(N.dat,4)]);
             else
-                if size(N.extras.mat,4)<size(N.dat,4),
+                if size(N.extras.mat,4)<size(N.dat,4)
                     N.extras.mat(:,:,size(N.dat,4)) = zeros(4);
-                end;
-            end;
-            for i=2:size(N.dat,4),
+                end
+            end
+            for i=2:size(N.dat,4)
                 if sum(sum(N.extras.mat(:,:,i).^2))==0,
                     N.extras.mat(:,:,i) = M0;
-                end;
-            end;
-        end;
+                end
+            end
+        end
 
-        N.mat        = M;
-        if strcmp(N.mat0_intent,'Aligned'), N.mat0 = M; end;
+        N.mat = M;
+        if strcmp(N.mat0_intent,'Aligned'), N.mat0 = M; end
         if ~isempty(N.extras) && isstruct(N.extras) && isfield(N.extras,'mat') &&...
-            size(N.extras.mat,3)>=1,
+            size(N.extras.mat,3)>=1
             N.extras.mat(:,:,n(1)) = M;
-        end;
+        end
     else
         N.extras.mat(:,:,n(1)) = M;
-    end;
+    end
     create(N);
 else
     if ~isempty(N.extras) && isstruct(N.extras) && isfield(N.extras,'mat') &&...
-        size(N.extras.mat,3)>=n(1) && sum(sum(N.extras.mat(:,:,n(1)).^2)),
+        size(N.extras.mat,3)>=n(1) && sum(sum(N.extras.mat(:,:,n(1)).^2))
         M = N.extras.mat(:,:,n(1));
     else
         M = N.mat;
-    end;
-end;
-
+    end
+end
