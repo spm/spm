@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 4020 2010-07-28 12:41:23Z vladimir $
+% $Id: spm_MEEGtools.m 4204 2011-02-21 12:36:08Z vladimir $
 
 
 funlist = {
@@ -32,6 +32,7 @@ funlist = {
     'Detect eyeblinks',  'spm_eeg_detect_eyeblinks'
     'Relabel trials for epoched CTF datasets', 'spm_eeg_recode_epoched_ctf'
     'Correct TMS artefact', 'spm_eeg_tms_correct'
+    'Plot scalp maps from M/EEG image', 'spm_eeg_img2maps'
     };
 
 str = sprintf('%s|', funlist{:, 1});
