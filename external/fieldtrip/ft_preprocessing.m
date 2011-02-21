@@ -93,14 +93,14 @@ function [dataout] = ft_preprocessing(cfg, data)
 % will have raw data represented as a single continuous segment or as
 % multiple data segments that often correspond to trials in an experiment.
 % This usually serves as input for one of the following functions:
-%   FT_TIMELOCKANALYSIS  to compute event-related fields or potentials
-%   FT_FREQANALYSIS      to compute the frequency or time-frequency representation
-%   FT_PREPROCESSING     if you want to apply additional temporal filters, baseline correct, rereference or apply an EEG montage
-%   FT_APPENDDATA        if you have preprocessed seperate conditions or datasets and want to combine them
-%   FT_REDEFINETRIAL     if you want to cut the data segments into smaller pieces or want to change the time axes
-%   FT_DATABROWSER       to inspect the data and check for artefacts
-%   FT_REJECTVISUAL      to inspect the data and remove trials that contain artefacts
-%   FT_COMPONENTANALYSIS if you want to use ICA to remove artifacts
+%    * FT_TIMELOCKANALYSIS  to compute event-related fields or potentials
+%    * FT_FREQANALYSIS      to compute the frequency or time-frequency representation
+%    * FT_PREPROCESSING     if you want to apply additional temporal filters, baseline correct, rereference or apply an EEG montage
+%    * FT_APPENDDATA        if you have preprocessed seperate conditions or datasets and want to combine them
+%    * FT_REDEFINETRIAL     if you want to cut the data segments into smaller pieces or want to change the time axes
+%    * FT_DATABROWSER       to inspect the data and check for artefacts
+%    * FT_REJECTVISUAL      to inspect the data and remove trials that contain artefacts
+%    * FT_COMPONENTANALYSIS if you want to use ICA to remove artifacts
 
 % Undocumented local options:
 % cfg.paddir = direction of padding, 'left'/'right'/'both' (default = 'both')
@@ -167,7 +167,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_preprocessing.m 2868 2011-02-12 20:07:00Z roboos $
 
 ft_defaults
 
@@ -538,7 +538,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_preprocessing.m 2868 2011-02-12 20:07:00Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

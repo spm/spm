@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 2810 2011-02-03 23:00:36Z roboos $
+% $Id: ft_checkdata.m 2886 2011-02-16 09:42:35Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1605,6 +1605,7 @@ if isfield(freq, 'trialinfo'), data.trialinfo = freq.trialinfo; end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [data] = raw2timelock(data)
 
+nsmp = cellfun('size',data.time,2);
 data   = ft_checkdata(data, 'hastrialdef', 'yes');
 ntrial = numel(data.trial);
 nchan  = numel(data.label);
@@ -1641,17 +1642,25 @@ else
   data.trial   = tmptrial;
   data.time    = tmptime;
   data.dimord = 'rpt_chan_time';
+  data = rmfield(data, 'fsample'); % fsample in timelock data is obsolete
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [data] = timelock2raw(data)
+try
+  nsmp = cellfun('size',data.time,2);
+catch
+  nsmp = size(data.time,2);
+end
 switch data.dimord
   case 'chan_time'
     data.trial{1} = data.avg;
     data.time     = {data.time};
     data          = rmfield(data, 'avg');
+    seln = find(nsmp>1,1, 'first');
+    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
   case 'rpt_chan_time'
     tmptrial = {};
     tmptime  = {};
@@ -1665,6 +1674,8 @@ switch data.dimord
     data       = rmfield(data, 'trial');
     data.trial = tmptrial;
     data.time  = tmptime;
+    seln = find(nsmp>1,1, 'first');
+    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
   case 'subj_chan_time'
     tmptrial = {};
     tmptime  = {};
@@ -1678,6 +1689,8 @@ switch data.dimord
     data       = rmfield(data, 'individual');
     data.trial = tmptrial;
     data.time  = tmptime;
+    seln = find(nsmp>1,1, 'first');
+    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));    
   otherwise
     error('unsupported dimord');
 end

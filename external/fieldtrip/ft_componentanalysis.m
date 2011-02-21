@@ -15,7 +15,8 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.numcomponent = 'all' or number (default = 'all')
 %   cfg.demean       = 'no' or 'yes' (default = 'yes')
 %   cfg.runica       = substructure with additional low-level options for this method
-%   cfg.binica       = substructure with additional low-level options for this method
+%   cfg.binica       = substructure with additional low-level options for
+%   this method
 %   cfg.dss          = substructure with additional low-level options for this method
 %   cfg.fastica      = substructure with additional low-level options for this method
 %
@@ -55,12 +56,12 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 2602 2011-01-19 13:37:55Z sashae $
+% $Id: ft_componentanalysis.m 2879 2011-02-14 09:44:31Z jorhor $
 
 ft_defaults
 
 % set a timer to determine how long this function takes
-tic;
+stopwatch=tic;
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -442,7 +443,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 2602 2011-01-19 13:37:55Z sashae $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 2879 2011-02-14 09:44:31Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -462,7 +463,7 @@ if isfield(data, 'trialinfo')
   comp.trialinfo = data.trialinfo;
 end
 
-fprintf('total time in componentanalysis %.1f seconds\n', toc);
+fprintf('total time in componentanalysis %.1f seconds\n', toc(stopwatch));
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

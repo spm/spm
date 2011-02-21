@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 2720 2011-02-01 08:35:35Z crimic $
+% $Id: ft_prepare_vol_sens.m 2833 2011-02-06 20:19:54Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -323,7 +323,7 @@ elseif iseeg
         % wrong halfspace (projected on the plane)
         for i=1:size(pnt,1)
           P = pnt(i,:);
-          is_in_empty = get_dip_halfspace(P,vol);
+          is_in_empty = acos(dot(vol.ori,(P-vol.pnt)./norm(P-vol.pnt))) < pi/2;
           if is_in_empty
             d = dist(P); 
             dPplane = -dot(vol.ori, vol.pnt-P, 2);

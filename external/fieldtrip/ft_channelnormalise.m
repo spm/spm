@@ -30,7 +30,7 @@ function [dataout] = ft_channelnormalise(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_channelnormalise.m 2841 2011-02-09 09:47:23Z jorhor $
 
 ft_defaults
 
@@ -70,7 +70,7 @@ datssq = zeros(nchan,1);
 % FIXME this can be kept, provided the scaling is built in appropriately
 dataout         = [];
 dataout.label   = data.label;
-dataout.fsample = data.fsample;
+if isfield(data, 'fsample'); dataout.fsample = data.fsample; end;
 dataout.trial   = cell(1,ntrl);
 dataout.time    = data.time;
 if isfield(data, 'sampleinfo'),  dataout.sampleinfo  = data.sampleinfo;  end
@@ -100,7 +100,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelnormalise.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_channelnormalise.m 2841 2011-02-09 09:47:23Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

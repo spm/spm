@@ -22,7 +22,7 @@ function [i] = nearest(array, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nearest.m 2810 2011-02-03 23:00:36Z roboos $
+% $Id: nearest.m 2865 2011-02-12 19:24:57Z roboos $
 
 mbreal(array);
 mbreal(val);

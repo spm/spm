@@ -27,7 +27,7 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_ctf_shm.m 2826 2011-02-04 09:39:42Z roboos $
+% $Id: write_ctf_shm.m 2885 2011-02-16 09:41:58Z roboos $
 
 % remember the original working directory
 pwdir = pwd;

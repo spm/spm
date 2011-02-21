@@ -61,7 +61,7 @@ function label = ft_senslabel(type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 2787 2011-02-03 11:55:33Z roboos $
+% $Id: ft_senslabel.m 2885 2011-02-16 09:41:58Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -2737,25 +2737,25 @@ switch type
   case 'egi32'
     label = cell(32, 1);
     for i = 1:32
-      label{i} = sprintf('e%d', i);
+      label{i} = sprintf('E%d', i);
     end
 
   case 'egi64'
     label = cell(64, 1);
     for i = 1:64
-      label{i} = sprintf('e%d', i);
+      label{i} = sprintf('E%d', i);
     end
 
   case 'egi128'
     label = cell(128, 1);
     for i = 1:128
-      label{i} = sprintf('e%d', i);
+      label{i} = sprintf('E%d', i);
     end
 
   case 'egi256'
     label = cell(256, 1);
     for i = 1:256
-      label{i} = sprintf('e%d', i);
+      label{i} = sprintf('E%d', i);
     end
 
   case 'itab153'

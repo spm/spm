@@ -184,12 +184,12 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 2574 2011-01-13 10:27:38Z roboos $
+% $Id: ft_sourceanalysis.m 2839 2011-02-09 09:34:29Z crimic $
 
 ft_defaults
 
 % set a timer to determine how long the sourceanalysis takes in total
-tic;
+stopwatch = tic;
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -1032,7 +1032,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 2574 2011-01-13 10:27:38Z roboos $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 2839 2011-02-09 09:34:29Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -1054,5 +1054,5 @@ if ~isempty(cfg.outputfile)
   savevar(cfg.outputfile, 'source', source); % use the variable name "data" in the output file
 end
 
-fprintf('total time in sourceanalysis %.1f seconds\n', toc);
+fprintf('total time in sourceanalysis %.1f seconds\n', toc(stopwatch));
 

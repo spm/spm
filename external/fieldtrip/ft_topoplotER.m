@@ -135,7 +135,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 2664 2011-01-26 14:41:38Z jansch $
+% $Id: ft_topoplotER.m 2901 2011-02-17 10:43:26Z jansch $
 
 ft_defaults
 
@@ -549,13 +549,18 @@ if isfield(cfg, 'yparam') && ~isempty(cfg.yparam)
 end
 
 % Take subselection of channels, this only works
-% in the interactive mode
+% if the interactive mode is switched off
 if exist('selchannel', 'var')
   sellab = match_str(data.label, selchannel);
   label  = data.label(sellab);
 else
   sellab = 1:numel(data.label);
   label  = data.label;
+end
+
+if isfull
+  sel1 = intersect(sel1, sellab);
+  sel2 = intersect(sel2, sellab);
 end
 
 % Make vector dat with one value for each channel

@@ -24,7 +24,7 @@ function [data, dimord] = data2raw(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: data2raw.m 2787 2011-02-03 11:55:33Z roboos $
+% $Id: data2raw.m 2885 2011-02-16 09:41:58Z roboos $
 
 % determine the type of input data
 if isfield(data, 'label') && ~isfield(data, 'avg') && isfield(data, 'trial') && iscell(data.trial)

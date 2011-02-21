@@ -27,9 +27,9 @@ function [planar] = planarchannelset(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: planarchannelset.m 1261 2010-06-22 15:09:23Z roboos $
+% $Id: planarchannelset.m 2857 2011-02-10 18:59:56Z roboos $
 
-switch lower(senstype(data))
+switch lower(ft_senstype(data))
   case 'ctf151_planar'
     planar = {
       'MLC11_dH'     'MLC11_dV'     'MLC11'

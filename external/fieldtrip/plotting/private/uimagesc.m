@@ -16,7 +16,7 @@ function h = uimagesc(varargin)
 % History:
 %   2006/06/12: v1.00, first version.
 %
-% $Id: uimagesc.m 2787 2011-02-03 11:55:33Z roboos $
+% $Id: uimagesc.m 2885 2011-02-16 09:41:58Z roboos $
 
 clim = [];
 switch (nargin),

@@ -70,7 +70,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_scalpcurrentdensity.m 2841 2011-02-09 09:47:23Z jorhor $
 
 ft_defaults
 
@@ -218,7 +218,7 @@ end
 scd.elec    = elec;
 scd.time    = data.time;
 scd.label   = data.label;
-scd.fsample = data.fsample;
+scd.fsample = 1/(data.time{1}(2) - data.time{1}(1));
 if isfield(data, 'sampleinfo')
   scd.sampleinfo = data.sampleinfo;
 end
@@ -228,7 +228,7 @@ end
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 2841 2011-02-09 09:47:23Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -39,7 +39,7 @@ function Zi = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 2527 2011-01-05 10:13:46Z jansch $
+% $Id: ft_plot_topo.m 2904 2011-02-17 15:24:58Z jansch $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -76,8 +76,8 @@ elseif strcmp(interplim, 'mask') && ~isempty(mask),
   hlim = [inf -inf];
   vlim = [inf -inf];
   for i=1:length(mask)
-    hlim = [min([hlim(1); mask{i}(:,1)+hpos]) max([hlim(2); mask{i}(:,1)+hpos])];
-    vlim = [min([vlim(1); mask{i}(:,2)+vpos]) max([vlim(2); mask{i}(:,2)+vpos])];
+    hlim = [min([hlim(1); mask{i}(:,1)*width+hpos]) max([hlim(2); mask{i}(:,1)*width+hpos])];
+    vlim = [min([vlim(1); mask{i}(:,2)*width+vpos]) max([vlim(2); mask{i}(:,2)*width+vpos])];
   end
 else
   hlim = [min(chanX) max(chanX)];
@@ -108,16 +108,18 @@ elseif ~isempty(mask)
   xi        = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
   yi        = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
   [Xi,Yi]   = meshgrid(xi', yi);
-  if ~isempty(newpoints)
+  if ~isempty(newpoints) && (hpos == 0 || vpos == 0)
     warning('Some points fall outside the outline, please consider using another layout')
 % FIXME: I am not sure about it, to be tested!
 %     tmp = [mask{1};newpoints];
 %     indx = convhull(tmp(:,1),tmp(:,2));
 %     mask{1} = tmp(indx,:);
+% NOTE: if you set hpos and/or vpos, newpoints is not empty, but nothing
+% needs to be fixed (this fixme screws up things, then)
   end 
   for i=1:length(mask)
-    mask{i}(:,1) = mask{i}(:,1)+hpos;
-    mask{i}(:,2) = mask{i}(:,2)+vpos;
+    mask{i}(:,1) = mask{i}(:,1)*width+hpos;
+    mask{i}(:,2) = mask{i}(:,2)*height+vpos;
     mask{i}(end+1,:) = mask{i}(1,:);                   % force them to be closed
     maskimage(inside_contour([Xi(:) Yi(:)], mask{i})) = true;
   end
@@ -158,7 +160,6 @@ for i=1:length(outline)
   yval = outline{i}(:,2) * height + vpos;
   ft_plot_vector(xval, yval, 'Color','k', 'LineWidth',2)
 end
-
 
 % Create isolines
 if strcmp(style,'iso') || strcmp(style,'surfiso')

@@ -7,9 +7,9 @@ function [tok] = tokenize(str, sep, rep)
 %   t = tokenize(str, sep)
 %   t = tokenize(str, sep, rep)
 % where
-%   str    = the string that you want to cut into pieces
-%   sep    = the separator at which to cut (default is whitespace)
-%   rep    = whether to treat repeating seperator characters as one (default is false)
+%   str = the string that you want to cut into pieces
+%   sep = the separator at which to cut (default is whitespace)
+%   rep = whether to treat repeating seperator characters as one (default is false)
 %
 % With the optional boolean flag "rep" you can specify whether repeated
 % seperator characters should be squeezed together (e.g. multiple
@@ -36,7 +36,7 @@ function [tok] = tokenize(str, sep, rep)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: tokenize.m 2787 2011-02-03 11:55:33Z roboos $
+% $Id: tokenize.m 2885 2011-02-16 09:41:58Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

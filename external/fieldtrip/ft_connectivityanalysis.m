@@ -30,10 +30,13 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                 'pdc',       partial directed coherence, support for freq and freqmvar data
 %                 'granger',   granger causality, support for freq and freqmvar data
 %                 'psi',       phaseslope index, support for freq and freqmvar data
-%                 'pcd',       pairwise circular difference
 %                 'di',        directionality index
+%                 'wpli',          weighted phase lag index
+%                 'wpli_debiased'  debiased weighted phase lag index
+%                 'ppc'        pairwise phase consistency
+%                 'wppc'       weighted pairwise phase consistency
 
-% Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen, Andre Bastos
+% Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen, Andre Bastos, Martin Vinck
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -51,7 +54,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_connectivityanalysis.m 2905 2011-02-18 10:02:45Z vlalit $
 
 %ft_defaults
 
@@ -129,7 +132,26 @@ switch cfg.method
       otherwise
     end
     % FIXME think of accommodating partial coherence for source data with only a few references
-    
+  case {'wpli'}
+    data    = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
+    inparam = 'crsspctrm';
+    debiaswpli = 0;
+    if hasjack, error('to compute wpli, data should be in rpt format'); end
+  case {'wpli_debiased'}
+    data    = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
+    inparam = 'crsspctrm';
+    debiaswpli = 1;       
+    if hasjack, error('to compute wpli, data should be in rpt format'); end
+  case {'ppc'}
+    data    = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
+    inparam = 'crsspctrm';
+    weightppc = 0;
+    if hasjack, error('to compute ppc, data should be in rpt format'); end      
+  case {'wppc'}
+    data    = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
+    inparam = 'crsspctrm';
+    weightppc = 1;       
+    if hasjack, error('to compute wppc, data should be in rpt format'); end  
   case {'plv'}
     data    = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam = 'crsspctrm';
@@ -256,7 +278,7 @@ if ~isempty(cfg.partchannel)
   
   cfg.pchanindx   = pchanindx;
   cfg.allchanindx = kchanindx;
-  partstr = '';
+  partstr = ''; 
   for k = 1:numel(cfg.partchannel)
     partstr = [partstr,'-',cfg.partchannel{k}];
   end
@@ -273,11 +295,11 @@ end
 % check if jackknife is required
 if hasrpt && dojack && hasjack,
   % do nothing
-elseif hasrpt && dojack,
+elseif hasrpt && dojack && ~(exist('debiaswpli', 'var') || exist('weightppc', 'var')),
   % compute leave-one-outs
   data    = ft_selectdata(data, 'jackknife', 'yes');
   hasjack = 1;
-elseif hasrpt
+elseif hasrpt && ~(exist('debiaswpli', 'var') || exist('weightppc', 'var'))
   % create dof variable
   if isfield(data, 'dof')
     dof = data.dof;
@@ -345,7 +367,32 @@ switch cfg.method
     
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
     outparam = 'crsspctrm';
-    
+  case {'wpli' 'wpli_debiased'}
+    % weighted pli or debiased weighted phase lag index.
+    tmpcfg                 = [];
+    tmpcfg.feedback        = cfg.feedback;
+    tmpcfg.dojack          = dojack;
+    tmpcfg.debias          = debiaswpli;
+    optarg                 = ft_cfg2keyval(tmpcfg);    
+    [datout, varout, nrpt] = ft_connectivity_wpli(data.(inparam), optarg);
+    if debiaswpli
+      outparam = 'wpli_debiasedspctrm'; 
+    else
+      outparam = 'wplispctrm';    
+    end
+  case {'wppc' 'ppc'}
+    % weighted pairwise phase consistency or pairwise phase consistency
+    tmpcfg                 = [];
+    tmpcfg.feedback        = cfg.feedback;
+    tmpcfg.dojack          = dojack;
+    tmpcfg.weighted        = weightppc;
+    optarg                 = ft_cfg2keyval(tmpcfg);    
+    [datout, varout, nrpt] = ft_connectivity_ppc(data.(inparam), optarg);
+    if weightppc
+      outparam = 'wppcspctrm';     
+    else
+      outparam = 'ppcspctrm';
+    end
   case 'plv'
     % phase locking value
     
@@ -394,8 +441,14 @@ switch cfg.method
     
     tmpcfg             = [];
     tmpcfg.feedback    = cfg.feedback;
-    tmpcfg.dimord      = data.dimord;
+    if isfield(data, 'dimord'),
+      tmpcfg.dimord = data.dimord;
+    else
+      tmpcfg.dimord = data.([inparam,'dimord']); 
+    end
     tmpcfg.complex     = 'real';
+    tmpcfg.pownorm     = 1;
+    tmpcfg.pchanindx   = [];
     tmpcfg.hasjack     = hasjack;
     if exist('powindx', 'var'), tmpcfg.powindx = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
@@ -539,8 +592,6 @@ switch cfg.method
     [datout, varout, nrpt] = ft_connectivity_pdc(datin, optarg);
     outparam = 'pdcspctrm';
     
-  case 'pcd'
-    % pairwise circular distance
   case 'psi'
     % phase slope index
     
@@ -646,7 +697,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 2905 2011-02-18 10:02:45Z vlalit $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

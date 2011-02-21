@@ -43,7 +43,7 @@ function [cluster, num] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: findcluster.m 2856 2011-02-10 11:24:31Z arjsto $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);
@@ -86,7 +86,7 @@ end;
 labelmat = zeros(size(onoff));
 total = 0;
 for spatdimlev=1:spatdimlength
-  [labelmat(spatdimlev, :, :), num] = bwlabeln(reshape(onoff(spatdimlev, :, :), nfreq, ntime), 4);
+  [labelmat(spatdimlev, :, :), num] = spm_bwlabel(double(reshape(onoff(spatdimlev, :, :), nfreq, ntime)), 6); % the previous code contained a '4' for input
   labelmat(spatdimlev, :, :) = labelmat(spatdimlev, :, :) + (labelmat(spatdimlev, :, :)~=0)*total;
   total = total + num;
 end

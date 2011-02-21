@@ -41,7 +41,7 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 2697 2011-01-28 11:18:24Z jansch $
+% $Id: ft_timelockgrandaverage.m 2841 2011-02-09 09:47:23Z jorhor $
 
 ft_defaults
 
@@ -162,7 +162,7 @@ end
 
 grandavg           = [];
 grandavg.label     = cfg.channel;       % cell-array
-grandavg.fsample   = varargin{1}.fsample;
+%grandavg.fsample   = varargin{1}.fsample; % fsample is obsolete
 grandavg.time      = ResultsTime;       % 1 x Nsamples
 
 %KEEP INDIVIDUAL MEANS?
@@ -184,7 +184,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockgrandaverage.m 2697 2011-01-28 11:18:24Z jansch $';
+cfg.version.id = '$Id: ft_timelockgrandaverage.m 2841 2011-02-09 09:47:23Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

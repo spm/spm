@@ -51,7 +51,7 @@ function ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 2622 2011-01-20 15:32:41Z jorhor $
+% $Id: ft_plot_mesh.m 2906 2011-02-18 13:12:35Z jansch $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -131,7 +131,6 @@ tri = bnd.tri;
 if ~isempty(pnt)
   hs = patch('Vertices', pnt, 'Faces', tri);
   set(hs, 'FaceColor', facecolor);
-  set(hs, 'FaceAlpha', facealpha);
   set(hs, 'EdgeColor', edgecolor);
   set(hs, 'tag', tag);
 end
@@ -139,6 +138,14 @@ end
 % if vertexcolor is an array with number of elements equal to the number of vertices
 if size(pnt,1)==numel(vertexcolor)
   set(hs, 'FaceVertexCData', vertexcolor, 'FaceColor', 'interp'); 
+end
+
+% if facealpha is an array with number of elements equal to the number of vertices
+if size(pnt,1)==numel(facealpha)
+  set(hs, 'FaceVertexAlphaData', facealpha);
+  set(hs, 'FaceAlpha', 'interp');
+elseif numel(facealpha)==1
+  set(hs, 'FaceAlpha', facealpha);
 end
 
 if faceindex

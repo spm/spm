@@ -32,7 +32,7 @@ function [EventCodes, segHdr, eventData] = read_sbin_events(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_events.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_sbin_events.m 2881 2011-02-15 06:04:44Z josdie $
 
 fid=fopen([filename],'r');
 if fid==-1
@@ -127,18 +127,25 @@ segHdr = zeros(NSegments,2);
 if unsegmented
     eventData = logical(zeros(NEvent,NSegments*NSamples));
     switch precision
-      case 2
-        dataType = 'int16';
-      case 4
-        dataType = 'single';
-      case 6
-        dataType = 'double';
+        case 2
+            dataType = 'int16';
+            byteSize=2;
+        case 4
+            dataType = 'single';
+            byteSize=4;
+        case 6
+            dataType = 'double';
+            byteSize=8;
     end
-    allData = fread(fid,[NChan+NEvent,NSegments*NSamples],dataType,endian);
-    eventData = logical(allData(NChan+1:end,:));
+    beg_dat = ftell(fid);
+    for ii=1:NEvent
+        fseek(fid,beg_dat+(NChan+ii-1)*byteSize,'bof');
+        eventData(ii,:) = logical(fread(fid, NSamples, ...
+            dataType, (NChan+NEvent-1)*byteSize, endian))';
+    end
 else
     eventData = zeros(NEvent,NSegments*NSamples);
-    for j = 1:NSegments*(NSamples/nsmp)
+    for j = 1:NSegments
         %read miniheader per segment
         [segHdr(j,1), count]    = fread(fid, 1,'int16',endian);    %cell
         [segHdr(j,2), count]    = fread(fid, 1,'int32',endian);    %time stamp

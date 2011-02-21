@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 2673 2011-01-26 15:39:37Z jansch $
+% $Id: preproc.m 2845 2011-02-09 10:52:20Z jansch $
 
 
 
@@ -198,7 +198,7 @@ if ~isfield(cfg, 'subspace'),     cfg.subspace = [];            end
 if ~isfield(cfg, 'custom'),       cfg.custom = '';              end
 
 % test whether the Matlab signal processing toolbox is available
-if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
+if strcmp(cfg.medianfilter, 'yes') && ~ft_hastoolbox('signal')
   error('median filtering requires the Matlab signal processing toolbox');
 end
 
