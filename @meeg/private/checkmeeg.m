@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4198 2011-02-09 12:48:41Z vladimir $
+% $Id: checkmeeg.m 4207 2011-02-22 10:48:36Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -218,12 +218,20 @@ else
     end
     
     if isa(meegstruct.data.y, 'file_array')
+        % catching up (unlikely case) where filearray.fname is
+        % different from data.fnamedat -> set data.fnamedat
+        [junk, yfname, yext] = fileparts(meegstruct.data.y.fname);
+        [junk, dfname, dext] = fileparts(meegstruct.data.fnamedat);
+        if ~strcmp([yfname yext],[dfname dext])
+            meegstruct.data.fnamedat = [yfname yext];
+        end
+        % save original file_array scale & offset, just in case
+        sav_sc = meegstruct.data.y.scl_slope;
+        sav_os = meegstruct.data.y.offset;
         try
             % Try reading data, i.e. check if it's a "good" filearray
             meegstruct.data.y(1, 1, 1);
         catch
-            % save original file_array scale, just in case
-            sav_sc = meegstruct.data.y.scl_slope;
             meegstruct.data.y = [];
         end
     end
@@ -255,9 +263,12 @@ else
         end
         % and restore original file_array scale, if available (exist) & useful (~=[])
         if exist('sav_sc','var') && ~isempty(sav_sc) && ...
-                ~strncmpi(meegstruct.data.y.dtype, 'float', 5) && ...
                    size(meegstruct.data.y, 1) == length(sav_sc)            
-           meegstruct.data.y.scl_slope = sav_sc;
+            meegstruct.data.y.scl_slope = sav_sc;
+        end
+        % and restore original file_array offset, if available (exist) & useful (~=0)
+        if exist('sav_os','var') && sav_os
+            meegstruct.data.y.offset = sav_os;
         end
         
     end
