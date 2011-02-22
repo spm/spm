@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_results_ui.m 4209 2011-02-22 20:11:05Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4136 $'; 
+SVNid = '$Rev: 4209 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -710,9 +710,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         hExit  = uicontrol(Finter,'Style','PushButton','String','exit',...
             'ToolTipString','exit the results section',...
             'FontSize',FS(9),'ForegroundColor','r',...
-            'Callback',['spm_clf(''Interactive''), spm_clf(''Graphics''),'...
-              'close(spm_figure(''FindWin'',''Satellite'')),'...
-              'clear'],...
+            'Callback','spm_results_ui(''close'')',...
             'Interruptible','on','Enable','on',...
             'Position',[325 055 035 018].*WS);
  
@@ -1130,7 +1128,16 @@ switch lower(Action), case 'setup'                         %-Set up results
             set(HR,{'Visible'},HRv)
         end
  
- 
+        
+    %======================================================================
+    case 'close'                                            %-Close Results
+    %======================================================================
+        spm_clf('Interactive');
+        spm_clf('Graphics');
+        close(spm_figure('FindWin','Satellite'));
+        evalin('base','clear');
+    
+    
     %======================================================================
     case 'launchmp'                            %-Launch multiplanar toolbox
     %======================================================================

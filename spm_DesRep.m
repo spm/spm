@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_DesRep.m 4209 2011-02-22 20:11:05Z guillaume $
 
 
 
@@ -262,7 +262,13 @@ function varargout = spm_DesRep(varargin)
 
 %-Format arguments
 %-----------------------------------------------------------------------
-if nargin==0, spm_DesRep('DesRepUI'); return, end
+if nargin==0
+    hC = spm_DesRep('DesRepUI'); 
+    SPM = get(hC,'UserData');
+    spm_DesRep('DesMtx',SPM.xX,...
+            reshape({SPM.xY.VY.fname},size(SPM.xY.VY)),SPM.xsDes);
+    return;
+end
 
 switch lower(varargin{1})
 
@@ -293,10 +299,10 @@ end
 %=======================================================================
 %-Work out where design configuration has come from!
 if ~isfield(SPM,'cfg')
-    if     isfield(SPM.xX,'V'),     cfg = 'SPMest';
-    elseif isfield(SPM.xY,'VY'),        cfg = 'SPMdata';
-    elseif isfield(SPM,'Sess'),     cfg = 'SPMcfg';
-    else, error('Can''t fathom origin!')
+    if     isfield(SPM.xX,'V'),  cfg = 'SPMest';
+    elseif isfield(SPM.xY,'VY'), cfg = 'SPMdata';
+    elseif isfield(SPM,'Sess'),  cfg = 'SPMcfg';
+    else   error('Can''t fathom origin!')
     end
     SPM.cfg = cfg;
 end
@@ -397,8 +403,10 @@ end
 
 hxvi = uimenu(hExplore, 'Label','Covariance structure', ...
     'Callback',[cb, 'spm_DesRep(''xVi'', tmp.xVi);'], 'UserData',hC, 'HandleVisibility','off');
-if ~isfield(SPM,'xVi') | (isfield(SPM.xVi,'iid') & SPM.xVi.iid) | ...
-    ~(isfield(SPM.xVi,'V')|isfield(SPM.xVi,'Vi')), set(hxvi,'Enable','off'); end;
+if ~isfield(SPM,'xVi') || (isfield(SPM.xVi,'iid') && SPM.xVi.iid) || ...
+    ~(isfield(SPM.xVi,'V') || isfield(SPM.xVi,'Vi'))
+    set(hxvi,'Enable','off');
+end
 
 %-Clear, Quit, Help
 %-----------------------------------------------------------------------
@@ -427,7 +435,7 @@ fnames  = varargin{2};
 I       = varargin{3};
 xC      = varargin{4};
 sF      = varargin{5};
-if nargin<6, xs=[]; else, xs = varargin{6}; end %-Structure of strings
+if nargin<6, xs=[]; else xs = varargin{6}; end %-Structure of strings
 
 [fnames,CPath] = spm_str_manip(fnames,'c'); %-extract common path component
 nScan          = size(I,1);         %-#images
@@ -460,7 +468,7 @@ if bL(1), x=x+dx1; text(x+.01,.1,sF{1},'Rotation',90), end
 
 for j = 1:length(xC)
     n = size(xC(j).rc,2);
-    if n>1, tmp=xC(j).cname; else, tmp={xC(j).rcname}; end
+    if n>1, tmp=xC(j).cname; else tmp={xC(j).rcname}; end
     for k=1:n
         x=x+dx2;
         text(x,.1,tmp{k},'Rotation',90,'Interpreter','TeX')
@@ -532,9 +540,9 @@ if ~isempty(xs)
         text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
             'HorizontalAlignment','Right','FontWeight','Bold',...
             'FontSize',FS(9))
-        s = getfield(xs,sf{1});
+        s = xs.(sf{1});
         if ~iscellstr(s), s={s}; end
-        for i=1:prod(size(s))
+        for i=1:numel(s)
             text(0.31,y,s{i},'FontSize',FS(9))
             y=y-dy;
         end
@@ -601,23 +609,23 @@ if isfield(varargin{2},'V')
     str = sprintf('Covariance structure V: %s',varargin{2}.form);
   else
     str = 'Covariance structure V';
-  end;
-  if isfield(varargin{2},'var') & isfield(varargin{2},'dep') & ...
-      isfield(varargin{2},'sF') & isfield(varargin{2},'I')
+  end
+  if isfield(varargin{2},'var') && isfield(varargin{2},'dep') && ...
+     isfield(varargin{2},'sF') && isfield(varargin{2},'I')
     r     = find((max(varargin{2}.I) > 1) & ~varargin{2}.var & ~varargin{2}.dep);
     if any(varargin{2}.dep)
       cmstr = 'yes';
     else
       cmstr = 'no';
-    end;
+    end
     str = sprintf(['Covariance structure V - replications over ''%s''\n'...
         'Correlated repeated measures: %s'], ...
       varargin{2}.sF{r},cmstr);
-  end;
+  end
   xlabel(str);
 else
   text(.5,.5, 'Covariance not (yet) estimated.', 'HorizontalAlignment','center');
-end;
+end
 
 if isfield(varargin{2},'h')
   hPEstAx   = axes('Position',[.07 .315 .6 .025],...
@@ -660,30 +668,30 @@ case {'desmtx','desorth'} %-Display design matrix / design orthogonality
 % spm_DesRep('DesOrth',xX)
 if nargin<2, error('insufficient arguments'), end
 if ~isstruct(varargin{2}), error('design matrix structure required'), end
-if nargin<3, fnames={}; else, fnames=varargin{3}; end
-if nargin<4, xs=[]; else, xs=varargin{4}; end
+if nargin<3, fnames={}; else fnames=varargin{3}; end
+if nargin<4, xs=[]; else xs=varargin{4}; end
 
-desmtx = strcmp(lower(varargin{1}),'desmtx');
+desmtx = strcmpi(varargin{1},'desmtx');
 
 
 %-Locate DesMtx (X), scaled DesMtx (nX) & get parameter names (Xnames)
 %-----------------------------------------------------------------------
-if isfield(varargin{2},'xKXs') & ...
-        ~isempty(varargin{2}.xKXs) & isstruct(varargin{2}.xKXs)
+if isfield(varargin{2},'xKXs') && ...
+        ~isempty(varargin{2}.xKXs) && isstruct(varargin{2}.xKXs)
     iX = 1;
     [nScan,nPar] = size(varargin{2}.xKXs.X);
-elseif isfield(varargin{2},'X') & ~isempty(varargin{2}.X)
+elseif isfield(varargin{2},'X') && ~isempty(varargin{2}.X)
     iX = 0;
     [nScan,nPar] = size(varargin{2}.X);
 else
     error('Can''t find DesMtx in this structure!')
 end
 
-if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
-    inX = 1; else, inX = 0; end
+if isfield(varargin{2},'nKX') && ~isempty(varargin{2}.nKX)
+    inX = 1; else inX = 0; end
 
-if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
-    Xnames = varargin{2}.name; else, Xnames = {}; end
+if isfield(varargin{2},'name') && ~isempty(varargin{2}.name)
+    Xnames = varargin{2}.name; else Xnames = {}; end
 
 
 %-Compute design orthogonality matrix if DesOrth
@@ -767,7 +775,7 @@ end
 %-Filenames
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
 % ( down to <32 items. Always show last item so #images is indicated.   )     
-if desmtx & ~isempty(fnames)
+if desmtx && ~isempty(fnames)
     axes('Position',[.68 .4 .3 .4],'Visible','off',...
         'DefaultTextFontSize',FS(8),...
         'YLim',[0,nScan]+0.5,'YDir','Reverse')
@@ -785,7 +793,7 @@ end
 %-----------------------------------------------------------------------
 if iX,  set(hDesMtxIm,'UserData',...
     struct('X',varargin{2}.xKXs.X,'Xnames',{Xnames},'fnames',{fnames}))
-else,   set(hDesMtxIm,'UserData',...
+else   set(hDesMtxIm,'UserData',...
     struct('X',varargin{2}.X,     'Xnames',{Xnames},'fnames',{fnames}))
 end
 set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
@@ -797,7 +805,7 @@ if desmtx
     hPEstAx   = axes('Position',[.07 .315 .6 .025],...
             'DefaultTextInterpreter','TeX');
     if iX,  est = spm_SpUtil('IsCon',varargin{2}.xKXs);
-    else,   est = spm_SpUtil('IsCon',varargin{2}.X); end
+    else    est = spm_SpUtil('IsCon',varargin{2}.X); end
     hParEstIm = image((est+1)*32);
     set(hPEstAx,...
         'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
@@ -879,9 +887,9 @@ if ~isempty(xs)
         text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
             'HorizontalAlignment','Right','FontWeight','Bold',...
             'FontSize',FS(9))
-        s = getfield(xs,sf{1});
+        s = xs.(sf{1});
         if ~iscellstr(s), s={s}; end
-        for i=1:prod(size(s))
+        for i=1:numel(s)
             text(0.31,y,s{i},'FontSize',FS(9))
             y=y-dy;
         end
@@ -901,7 +909,7 @@ if nargin<3, error('insufficient arguments'), end
 xC     = varargin{3};   %-Struct array of covariate information
 if ~isstruct(varargin{2}), error('design matrix structure required'), end
 
-if ~length(xC), spm('alert!','No covariates!',mfilename), return, end
+if isempty(xC), spm('alert!','No covariates!',mfilename), return, end
 
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
@@ -929,14 +937,14 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 %-Design matrix (as underlay for plots) and parameter names
 %-----------------------------------------------------------------------
 [nScan,nPar]   = size(varargin{2}.X);
-if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
-    Xnames = varargin{2}.name; else, Xnames = {}; end
+if isfield(varargin{2},'name') && ~isempty(varargin{2}.name)
+    Xnames = varargin{2}.name; else Xnames = {}; end
 
 %-Design matrix
 hDesMtx = axes('Position',[.1 .5 .7 .3]);
-if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
+if isfield(varargin{2},'nKX') && ~isempty(varargin{2}.nKX)
     image(varargin{2}.nKX'*32+32)
-elseif isfield(varargin{2},'xKXs') & ~isempty(varargin{2}.xKXs)
+elseif isfield(varargin{2},'xKXs') && ~isempty(varargin{2}.xKXs)
     image(spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames)*32+32)
 else
     image(spm_DesMtx('sca',varargin{2}.X,Xnames)*32+32)
@@ -990,7 +998,7 @@ for i = 1:length(xC)
         'FontWeight','Bold','FontSize',FS(9))
     s = xC(i).descrip;
     if ~iscellstr(s), s={s}; end
-    for j=1:prod(size(s))
+    for j=1:numel(s)
         text(0.31,y,s{j},'FontSize',FS(9))
         y=y-dy;
     end
@@ -1067,7 +1075,7 @@ case 'scantick'
 % spm_DesRep('ScanTick',nScan,lim)
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
 % ( down to <32 items. Always show last item so #images is indicated.    )     
-if nargin<3, lim=32; else, lim=varargin{3}; end
+if nargin<3, lim=32; else lim=varargin{3}; end
 if nargin<2, error('insufficient arguments'), end
 nScan = varargin{2};
 
@@ -1086,7 +1094,7 @@ case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'} %-Surf DesMtx
 
 h    = get(gca,'Xlabel');
 
-if strcmp(lower(varargin{1}),'surfdesmtxup_cb')
+if strcmpi(varargin{1},'surfdesmtxup_cb')
     UD = get(h,'UserData');
     set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
         'UserData',UD.UserData)
@@ -1095,13 +1103,13 @@ if strcmp(lower(varargin{1}),'surfdesmtxup_cb')
 end
 
 
-if strcmp(lower(varargin{1}),'surfdesmtx_cb')
-    UD = struct(    'String',   get(h,'String'),...
-            'Interpreter',  get(h,'Interpreter'),...
-            'UserData', get(h,'UserData'));
+if strcmpi(varargin{1},'surfdesmtx_cb')
+    UD = struct('String',      get(h,'String'),...
+                'Interpreter', get(h,'Interpreter'),...
+                'UserData',    get(h,'UserData'));
     set(h,'UserData',UD)
     set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesMtxMo_CB'')',...
-         'WindowButtonUpFcn',    'spm_DesRep(''SurfDesMtxUp_CB'')')
+         'WindowButtonUpFcn','spm_DesRep(''SurfDesMtxUp_CB'')')
 end
 
 mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
@@ -1149,7 +1157,7 @@ case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}  %-Surf ParEstIm
 
 h    = get(gca,'Xlabel');
 
-if strcmp(lower(varargin{1}),'surfestimup_cb')
+if strcmpi(varargin{1},'surfestimup_cb')
     UD = get(h,'UserData');
     set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
         'UserData',UD.UserData)
@@ -1157,7 +1165,7 @@ if strcmp(lower(varargin{1}),'surfestimup_cb')
     return
 end
 
-if strcmp(lower(varargin{1}),'surfestim_cb')
+if strcmpi(varargin{1},'surfestim_cb')
     UD = struct(    'String',   get(h,'String'),...
             'Interpreter',  get(h,'Interpreter'),...
             'UserData', get(h,'UserData'));
@@ -1208,7 +1216,7 @@ case {'surfdeso_cb','surfdesomo_cb','surfdesoup_cb'}    %-Surf DesOrthIm
 
 h    = get(gca,'Xlabel');
 
-if strcmp(lower(varargin{1}),'surfdesoup_cb')
+if strcmpi(varargin{1},'surfdesoup_cb')
     UD = get(h,'UserData');
     set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
         'UserData',UD.UserData)
@@ -1216,7 +1224,7 @@ if strcmp(lower(varargin{1}),'surfdesoup_cb')
     return
 end
 
-if strcmp(lower(varargin{1}),'surfdeso_cb')
+if strcmpi(varargin{1},'surfdeso_cb')
     UD = struct(    'String',   get(h,'String'),...
             'Interpreter',  get(h,'Interpreter'),...
             'UserData', get(h,'UserData'));
@@ -1243,7 +1251,7 @@ case 'normal'
             str = '{\bf not orthogonal}';
         end
         if ~diff(ij), str=[str,' {\it(same column)}']; end
-        if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else, tmp=''; end
+        if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else tmp=''; end
         str = { sprintf('{\\bf %s} (col %d)',...
                 UD.Xnames{ij(1)},ij(1)),...
                 sprintf('& {\\bf %s} (col %d)',...
@@ -1275,12 +1283,12 @@ case {'surfcon_cb','surfconmo_cb','surfconup_cb'}        %-Surf Contrast
 % spm_DesRep('SurfConOUp_CB')
 
 cUD = get(gco,'UserData');
-if ~isstruct(cUD) | ~isfield(cUD,'h')
+if ~isstruct(cUD) || ~isfield(cUD,'h')
     warning('contrast GUI objects setup incorrectly'), return
 end
 h    = cUD.h;
 
-if strcmp(lower(varargin{1}),'surfconup_cb')
+if strcmpi(varargin{1},'surfconup_cb')
     UD = get(h,'UserData');
     set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
         'UserData',UD.UserData)
@@ -1288,7 +1296,7 @@ if strcmp(lower(varargin{1}),'surfconup_cb')
     return
 end
 
-if strcmp(lower(varargin{1}),'surfcon_cb')
+if strcmpi(varargin{1},'surfcon_cb')
     UD = struct(    'String',   get(h,'String'),...
             'Interpreter',  get(h,'Interpreter'),...
             'UserData', get(h,'UserData'));
@@ -1305,7 +1313,7 @@ istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
     try
-        if cUD.i>0, str = sprintf('%d',cUD.i); else, str = ''; end
+        if cUD.i>0, str = sprintf('%d',cUD.i); else str = ''; end
         switch get(gco,'Type')
         case 'image'
             str = sprintf('%s\\{F\\}: {\\bf%s} (%d,%d) = %.2f',...
@@ -1340,7 +1348,7 @@ case {'surfxvi_cb','surfxvimo_cb','surfxviup_cb'} %-Surf Xvi
 
 h    = get(gca,'Xlabel');
 
-if strcmp(lower(varargin{1}),'surfxviup_cb')
+if strcmpi(varargin{1},'surfxviup_cb')
       UD = get(h,'UserData');
       set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
               'UserData',UD.UserData)
@@ -1349,7 +1357,7 @@ if strcmp(lower(varargin{1}),'surfxviup_cb')
 end
 
 
-if strcmp(lower(varargin{1}),'surfxvi_cb')
+if strcmpi(varargin{1},'surfxvi_cb')
       UD = struct(    'String',       get(h,'String'),...
                       'Interpreter',  get(h,'Interpreter'),...
                       'UserData',     get(h,'UserData'));
@@ -1413,7 +1421,7 @@ case {'surfhpestim_cb','surfhpestimmo_cb','surfhpestimup_cb'}  %-Surf ParHpestim
 
 h    = get(gca,'Xlabel');
 
-if strcmp(lower(varargin{1}),'surfhpestimup_cb')
+if strcmpi(varargin{1},'surfhpestimup_cb')
       UD = get(h,'UserData');
       set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
               'UserData',UD.UserData)
@@ -1421,7 +1429,7 @@ if strcmp(lower(varargin{1}),'surfhpestimup_cb')
       return
 end
 
-if strcmp(lower(varargin{1}),'surfhpestim_cb')
+if strcmpi(varargin{1},'surfhpestim_cb')
       UD = struct(    'String',       get(h,'String'),...
                       'Interpreter',  get(h,'Interpreter'),...
                       'UserData',     get(h,'UserData'));
