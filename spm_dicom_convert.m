@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4183 2011-02-01 13:51:45Z volkmar $
+% $Id: spm_dicom_convert.m 4213 2011-02-23 19:18:30Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -787,7 +787,11 @@ guff   = {};
 for i=1:length(hdr),
     if ~checkfields(hdr{i},'Modality') || ~(strcmp(hdr{i}.Modality,'MR') ||...
             strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'CT'))
-        disp(['Cant find appropriate modality information for "' hdr{i}.Filename '".']);
+        if checkfields(hdr{i},'Modality'),
+            fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT or PET.\n', hdr{i}.Filename, hdr{i}.Modality);
+        else
+            fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
+        end
         guff = [guff(:)',hdr(i)];
     elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
