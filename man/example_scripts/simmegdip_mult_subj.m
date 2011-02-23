@@ -2,17 +2,17 @@
 %% template, 
 %% can vary source std in amplitude and/or location across subjects
 
-cd C:\users\gbarnes\documents\mv_multsubj
+cd('D:\SPM MEEG 2010\Preprocessing demo\MEG');
 
 Nsubj=10;
 %% ORIGINAL FACES DATA FILE
 origspmfilename='cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat'
-outpath='C:\users\gbarnes\documents\simdata_vlad';
+outpath='D:\Data\Scaling\simulated';
 %% FOR SIMULATED NOISE- recording BW of 80Hz, white noise level 10ft/rtHz
-noiselevel=10*1e-15;
+noiselevel=50*1e-15;
 BW=80; 
-cross_subj_disp=0; %% sd of positions across subjects mm
-cross_subj_sdamp_pc=0; %% %sd of amplitude variation across subjects
+cross_subj_disp=5; %% sd of positions across subjects mm
+cross_subj_sdamp_pc=100; %% %sd of amplitude variation across subjects
 
 %% set frequency and amplitude of the two dipoles defined above 
 %% for each condition (faces/scrambled) separately
@@ -35,7 +35,7 @@ duration=0.3;% duration
 
 
 for s=1:Nsubj,
-    dipamp_subj=dipamp+dipamp.*randn(size(dipamp))*cross_subj_sdamp_pc./100;;
+    dipamp_subj=dipamp+dipamp.*randn(size(dipamp))*cross_subj_sdamp_pc./100;
 
 %% OUTPUT SIMULATED DATA FILE
 spmfilename=[outpath filesep sprintf('%s%d',substr,s)];

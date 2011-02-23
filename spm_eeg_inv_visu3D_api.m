@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4203 2011-02-18 15:00:09Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 4211 2011-02-23 16:00:02Z vladimir $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -129,11 +129,12 @@ try
     handles.pst       = D.inv{val}.inverse.pst(Ts);
     handles.srcs_data = J;
     handles.Nmax      = max(abs(J(:)));
+    handles.Is        = Is;
     
     % sensor data
     %----------------------------------------------------------------------        
     if ~iscell(U)
-        U = {U};
+        U = {U'};
     end
     
     A             = spm_pinv(spm_cat(spm_diag(U))')';    
@@ -233,12 +234,16 @@ handles.colorbar = colorbar;
 % LOAD SENSOR FILE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Ic = {};
-for i = 1:numel(D.inv{val}.inverse.Ic)
-    if i == 1
-       Ic{i} = 1:length(D.inv{val}.inverse.Ic{i});
-    else
-       Ic{i} = Ic{i-1}(end)+(1:length(D.inv{val}.inverse.Ic{i}));
+if iscell(D.inv{val}.inverse.Ic)
+    for i = 1:numel(D.inv{val}.inverse.Ic)
+        if i == 1
+            Ic{i} = 1:length(D.inv{val}.inverse.Ic{i});
+        else
+            Ic{i} = Ic{i-1}(end)+(1:length(D.inv{val}.inverse.Ic{i}));
+        end
     end
+else
+   Ic{1} = 1:length(D.inv{val}.inverse.Ic); 
 end
 
 handles.Ic = Ic;
@@ -257,7 +262,12 @@ handles.sens_coord = [xp yp];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INITIAL SENSOR LEVEL DISPLAY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-set(handles.modality, 'String', D.inv{val}.inverse.modality);
+
+if isfield(D.inv{val}.inverse, 'modality')
+  set(handles.modality, 'String', D.inv{val}.inverse.modality);
+else
+   set(handles.modality, 'String', 'MEEG');  % This is for backward compatibility with old DCM-IMG
+end
 
 figure(handles.fig)
 axes(handles.sensors_axes);
@@ -761,12 +771,12 @@ set(handles.fig1, 'ButtonDownFcn', @Velec_ButtonDown)
 guidata(hObject,handles);
 
 function Velec_ButtonDown(hObject, eventdata)
-handles = guidata(hObject);
-
-coord = get(handles.sources_axes, 'CurrentPoint')
-dist  = sum((handles.vert - repmat(coord(1, :), size(handles.vert, 1), 1)).^2, 2);
+handles     = guidata(hObject);
+vert        = handles.vert(handles.Is, :);
+coord       = get(handles.sources_axes, 'CurrentPoint');
+dist        = sum((vert - repmat(coord(1, :), size(vert, 1), 1)).^2, 2);
 [junk, ind] = min(dist);
-coord = handles.vert(ind, :);
+coord       = vert(ind, :);
 
 axes(handles.sources_axes);
 hold on

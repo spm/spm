@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4169 2011-01-24 18:34:20Z karl $
+% $Id: spm_dcm_erp.m 4211 2011-02-23 16:00:02Z vladimir $
 
 % check options
 %==========================================================================
@@ -312,23 +312,24 @@ if strcmp(M.dipfit.type,'IMG')
 
     % fill in fields of inverse structure
     %----------------------------------------------------------------------
-    inverse.trials = DCM.options.trials;   % trial or condition
-    inverse.type   = 'DCM';                % inverse model
-    inverse.J      = J;                    % Conditional expectation
-    inverse.L      = L;                    % Lead field (reduced)
-    inverse.R      = speye(Nc,Nc);         % Re-referencing matrix
-    inverse.T      = T0;                   % temporal subspace
-    inverse.U      = U;                    % spatial subspace
-    inverse.Is     = Is;                   % Indices of active dipoles
-    inverse.It     = DCM.xY.It;            % Indices of time bins
-    inverse.Ic     = DCM.xY.Ic;            % Indices of good channels
-    inverse.Y      = Y;                    % reduced data
-    inverse.Nd     = Nd;                   % number of dipoles
-    inverse.Nt     = Nt;                   % number of trials
-    inverse.pst    = xY.pst;               % peri-stimulus time
-    inverse.F      = DCM.F;                % log-evidence
-    inverse.R2     = R2;                   % variance accounted for (%)
-    inverse.dipfit = M.dipfit;             % forward model for DCM
+    inverse.trials   = DCM.options.trials;   % trial or condition
+    inverse.modality = {DCM.xY.modality};    % modality
+    inverse.type     = 'DCM';                % inverse model
+    inverse.J        = J;                    % Conditional expectation
+    inverse.L        = L;                    % Lead field (reduced)
+    inverse.R        = speye(Nc,Nc);         % Re-referencing matrix
+    inverse.T        = T0;                   % temporal subspace
+    inverse.U        = U;                    % spatial subspace
+    inverse.Is       = Is;                   % Indices of active dipoles
+    inverse.It       = DCM.xY.It;            % Indices of time bins
+    inverse.Ic       = DCM.xY.Ic;            % Indices of good channels
+    inverse.Y        = Y;                    % reduced data
+    inverse.Nd       = Nd;                   % number of dipoles
+    inverse.Nt       = Nt;                   % number of trials
+    inverse.pst      = xY.pst;               % peri-stimulus time
+    inverse.F        = DCM.F;                % log-evidence
+    inverse.R2       = R2;                   % variance accounted for (%)
+    inverse.dipfit   = M.dipfit;             % forward model for DCM
 
     % append DCM results and save in structure
     %----------------------------------------------------------------------
