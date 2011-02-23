@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4071 2010-09-22 13:44:04Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4210 2011-02-23 11:02:32Z gareth $
 
 %%
 % Load data, if necessary
@@ -528,7 +528,7 @@ for ii=1:length(ltr)
      mniposvar=diag(S0_mni); %% convert pos variance into approx mni space by switching axes
      mniposvar=reshape(mniposvar,3,length(Pout(maxind).post_S_s)/3);
      
-     displayVBupdate2(Pout(j).y,pov,allF,Niter,dip_amp,mnimom,mniloc(1:3,:),mniposvar,P,j,[],Pout(j).F,Pout(j).ypost,maxind);
+     displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,mnimom,mniloc(1:3,:),mniposvar,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind);
      
     %displayVBupdate2(Pout(maxind).y,pov,allF,Niter,dip_amp,mniloc,Pout(maxind).post_mu_s,Pout(maxind).post_S_s,P,j,[],Pout(maxind).F,Pout(maxind).ypost,maxind,D);
   % 
