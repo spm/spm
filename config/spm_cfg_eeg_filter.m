@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 4212 2011-02-23 17:50:55Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 4212 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -48,10 +48,10 @@ dir.help = {'Select the filter direction.'};
 order = cfg_entry;
 order.tag = 'order';
 order.name = 'Filter order';
-order.val = {[]};
+order.val = {5};
 order.strtype = 'n';
-order.num = [0 1];
-order.help = {'Enter the filter order (leave empty for default)'};
+order.num = [1 1];
+order.help = {'Enter the filter order'};
 
 flt = cfg_branch;
 flt.tag = 'filter';

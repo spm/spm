@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_montage
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_montage.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_montage.m 4212 2011-02-23 17:50:55Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -20,21 +20,12 @@ montage.filter = 'mat';
 montage.num = [1 1];
 montage.help = {'Select a montage file.'};
 
-yes = cfg_const;
-yes.tag = 'yes';
-yes.name = 'Keep the other channels';
-yes.val = {1};
-
-no = cfg_const;
-no.tag = 'no';
-no.name = 'Remove the other channels';
-no.val = {1};
-
-keepothers = cfg_choice;
+keepothers = cfg_menu;
 keepothers.tag = 'keepothers';
 keepothers.name = 'Keep other channels';
-keepothers.values = {yes,no};
-keepothers.val = {yes};
+keepothers.labels = {'Yes', 'No'};
+keepothers.values = {'yes', 'no'};
+keepothers.val = {'no'};
 keepothers.help = {'Specify whether you want to keep channels that are not contributing to the new channels'};
 
 S = cfg_exbranch;
@@ -50,12 +41,7 @@ function out = eeg_montage(job)
 % construct the S struct
 S.D = job.D{1};
 S.montage = job.montage{1};
-if isfield(job.keepothers, 'yes')
-    S.keepothers = 'yes';
-else
-    S.keepothers = 'no';
-end
-
+S.keepothers = job.keepothers;
 out.D = spm_eeg_montage(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
