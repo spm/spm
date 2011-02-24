@@ -17,7 +17,7 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %
 % The supported dataformats are
 %   analyze
-%   nifti FIXME
+%   nifti
 %   mgz (freesurfer)
 %
 % See also FT_WRITE_DATA 
@@ -40,7 +40,7 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_volume.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: ft_write_volume.m 2947 2011-02-24 12:31:23Z jansch $
 
 % get the options
 dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = ft_filetype(filename); end

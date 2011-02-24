@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 2908 2011-02-18 19:27:22Z jansch $
+% $Id: ft_read_headshape.m 2914 2011-02-21 16:08:36Z jansch $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -294,6 +294,10 @@ switch fileformat
     tmp = load(filename);
     if isfield(tmp, 'shape')
       shape = tmp.shape;
+    elseif isfield(tmp, 'bnd')
+      % the variable in the file is most likely a precomputed triangulation of some
+      % sort
+      shape = tmp.bnd;
     elseif isfield(tmp, 'elec')
       shape.fid.pnt   = tmp.elec.pnt;
       shape.fid.label = tmp.elec.label;

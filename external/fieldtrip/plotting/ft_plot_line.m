@@ -1,4 +1,4 @@
-function ft_plot_line(X, Y, varargin)
+function h = ft_plot_line(X, Y, varargin)
 
 % FT_PLOT_LINE helper function for plotting a line, which can also be used in
 % combination with the multiple channel layout display in FieldTrip.
@@ -35,7 +35,7 @@ function ft_plot_line(X, Y, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_line.m 1806 2010-09-29 12:28:25Z crimic $
+% $Id: ft_plot_line.m 2918 2011-02-21 17:05:16Z giopia $
 
 warning('on', 'MATLAB:divideByZero');
 

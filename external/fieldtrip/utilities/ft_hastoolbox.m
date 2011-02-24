@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_hastoolbox.m 2945 2011-02-24 08:19:40Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -211,6 +211,8 @@ switch toolbox
     status  = exist('ft_connectivity_corr', 'file') && exist('ft_connectivity_granger', 'file');
   case 'FREESURFER'
     status  = exist('MRIread', 'file') && exist('vox2ras_0to1', 'file');
+  case 'FNS'
+    status  = exist('elecsfwd', 'file') && exist('img_get_gray', 'file');
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;
@@ -232,6 +234,12 @@ if autoadd>0 && ~status
   prefix = fullfile(fileparts(which('ft_defaults')), 'external');
   if ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
+    licensefile = [lower(toolbox) '_license'];
+    if status && exist(licensefile, 'file')
+      % this will execute openmeeg_license and mne_license
+      % which display the license on screen for three seconds
+      feval(licensefile);
+    end
   end
 
   % for linux computers in the F.C. Donders Centre

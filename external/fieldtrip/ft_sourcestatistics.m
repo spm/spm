@@ -16,7 +16,6 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %   cfg.method       = different methods for calculating the probability of the null-hypothesis,
 %                    'montecarlo'    uses a non-parametric randomization test to get a Monte-Carlo estimate of the probability,
 %                    'analytic'      uses a parametric test that results in analytic probability,
-%                    'glm'           uses a general linear model approach,
 %                    'stats'         uses a parametric test from the Matlab statistics toolbox,
 %                    'parametric'    uses the Matlab statistics toolbox (very similar to 'stats'),
 %                    'randomization' uses randomization of the data prior to source reconstruction,
@@ -61,7 +60,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $
 
 ft_defaults
 
@@ -117,7 +116,7 @@ if strcmp(cfg.implementation, 'old'),
   
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 2439 2010-12-15 16:33:34Z johzum $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
@@ -470,7 +469,7 @@ elseif strcmp(cfg.implementation, 'new')
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 2439 2010-12-15 16:33:34Z johzum $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();

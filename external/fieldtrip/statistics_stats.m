@@ -1,8 +1,8 @@
 function [stat, cfg] = statistics_stats(cfg, dat, design);
 
 % This is a helper function that performs a massive univariate statistical
-% test. This function is called by either TIMELOCKSTATISTICS, FREQSTATISTICS
-% or SOURCSTATISTICS.
+% test. This function is called by either FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS
+% or FT_SOURCSTATISTICS.
 %
 %  This function uses the Matlab statistics toolbox to perform various
 %  statistical tests on timelock, frequency or source data. Supported
@@ -41,7 +41,7 @@ function [stat, cfg] = statistics_stats(cfg, dat, design);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_stats.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: statistics_stats.m 2938 2011-02-23 13:34:15Z sashae $
 
 ft_defaults
 

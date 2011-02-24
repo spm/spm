@@ -7,13 +7,13 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 % the type of data on which you want to perform the test.
 %
 % Use as:
-%   stat = timelockstatistics(cfg, data1, data2, data3, ...)
-%   stat = freqstatistics    (cfg, data1, data2, data3, ...)
-%   stat = sourcestatistics  (cfg, data1, data2, data3, ...)
+%   stat = ft_timelockstatistics(cfg, data1, data2, data3, ...)
+%   stat = ft_freqstatistics    (cfg, data1, data2, data3, ...)
+%   stat = ft_sourcestatistics  (cfg, data1, data2, data3, ...)
 %
-% Where the data is obtained from TIMELOCKANALYSIS, FREQANALYSIS
-% or SOURCEANALYSIS respectively, or from TIMELOCKGRANDAVERAGE,
-% FREQGRANDAVERAGE or SOURCEGRANDAVERAGE respectively.
+% Where the data is obtained from FT_TIMELOCKANALYSIS, FT_FREQANALYSIS
+% or FT_SOURCEANALYSIS respectively, or from FT_TIMELOCKGRANDAVERAGE,
+% FT_FREQGRANDAVERAGE or FT_SOURCEGRANDAVERAGE respectively.
 %
 % Required configuration option: cfg.statstic (see below)
 % Forbidden configuration options: cfg.ztransform, cfg.removemarginalmeans,
@@ -44,7 +44,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %   cfg.clustertail      = -1, 1 or 0 (default = 0)
 %
 % To include the channel dimension for clustering, you should specify
-%   cfg.neighbours       = structure with the neighbours of each channel, see NEIGHBOURSELECTION
+%   cfg.neighbours       = structure with the neighbours of each channel, see FT_NEIGHBOURSELECTION
 % If you specify an empty neighbourhood structure, clustering will only be done
 % in frequency and time (if available) and not over neighbouring channels.
 %
@@ -68,7 +68,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 % Check the private functions statfun_xxx (e.g.  with xxx=tstat) for
 % the correct format of the input and output.
 %
-% See also TIMELOCKSTATISTICS, FREQSTATISTICS, SOURCESTATISTICS
+% See also FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS, FT_SOURCESTATISTICS
 
 % Undocumented local options:
 %   cfg.resampling       permutation, bootstrap
@@ -97,7 +97,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 2663 2011-01-26 14:12:38Z sashae $
+% $Id: statistics_montecarlo.m 2939 2011-02-23 13:40:06Z sashae $
 
 ft_defaults
 

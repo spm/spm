@@ -36,7 +36,7 @@ function [tok] = tokenize(str, sep, rep)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: tokenize.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: tokenize.m 2922 2011-02-21 21:47:27Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

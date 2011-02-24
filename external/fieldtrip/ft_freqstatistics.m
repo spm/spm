@@ -23,7 +23,6 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %                    'montecarlo' get Monte-Carlo estimates of the significance probabilities and/or critical values from the permutation distribution,
 %                    'analytic'   get significance probabilities and/or critical values from the analytic reference distribution (typically, the sampling distribution under the null hypothesis),
 %                    'stats'      use a parametric test from the Matlab statistics toolbox,
-%                    'glm'        use a general linear model approach.
 %
 % The other cfg options depend on the method that you select. You
 % should read the help of the respective subfunction STATISTICS_XXX
@@ -60,7 +59,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_freqstatistics.m 2943 2011-02-24 07:17:06Z jansch $
 
 ft_defaults
 
@@ -126,7 +125,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_freqstatistics.m 2943 2011-02-24 07:17:06Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
