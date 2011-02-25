@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4084 2010-10-08 11:05:02Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4216 2011-02-25 14:04:27Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -102,6 +102,13 @@ if ~isfield(S,'suffix_str'),
 end; % if
 
 
+    
+if ~isfield(S,'bootstrap'),
+    S.bootstrap=[];
+else
+    Nboot=S.bootstrap;
+    end;
+    
 if ~isfield(S,'components'),
     S.components=[];
 end; % if
@@ -395,7 +402,17 @@ if ~isempty(S.maskgrid),
     maskedgrid_inside_ind=find(S.maskgrid==1); %% indices into grid.inside 
     end; 
 
-
+ if cfg.reducerank, %% follow up rank reduction and remove redundant dimension from lead fields
+    for i=1:length(maskedgrid_inside_ind), %% 81
+        lf1=cell2mat(grid.leadfield(grid.inside(maskedgrid_inside_ind(i))));
+        [u1,s1,v1]=svd(lf1'*lf1);
+        grid.leadfield(grid.inside(maskedgrid_inside_ind(i)))={lf1*u1(:,1:cfg.reducerank)};
+        %normlf(i)=std(dot(lfnew',lfnew'));
+    end;
+ end; % if reduce rank
+ 
+ %[a,b]=min(normlf) 
+ %origin=grid.pos(grid.inside(maskedgrid_inside_ind(b)),:)
 
     
 %% Now have all lead fields and all data
@@ -404,6 +421,17 @@ if ~isempty(S.maskgrid),
 %% construct covariance matrix within frequency range of interest
 
 disp('now running through freq bands and constructing t stat images');
+origfftnewdata=fftnewdata;
+for boot=1:Nboot,
+    
+    bttrials=randi(Ntrials,Ntrials,1);
+    if boot==1,
+        bttrials=1:Ntrials;
+    else
+        disp(['Bootstrap run' num2str(boot)]);
+    end; % if boot
+    fftnewdata=origfftnewdata(bttrials,:,:);
+    
 for fband=1:Nbands,
     freqrange=S.freqbands{fband};
     freq_ind=intersect(find(fHz>=freqrange(1)),find(fHz<freqrange(2)));
@@ -486,13 +514,19 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
       
  dfe=Ntrials-rank(Xdesign);  % df test
  
+
+    
     for i=1:length(maskedgrid_inside_ind), %% 81
         lf=cell2mat(grid.leadfield(grid.inside(maskedgrid_inside_ind(i))));
         
         %% get optimal orientation- direct copy from Robert's beamformer_lcmv.m
         projpower_vect=pinv(lf'*cinv*lf);
+        [u1,s1,v1]=svd(lf'*cinv*lf);
+        usecomp=length(s1);
+        
         [u, s, v] = svd(real(projpower_vect));
         eta = u(:,compind);
+        
         lf  = lf * eta; %% now have got the lead field at this voxel, compute some contrast
         weights=lf'*cinv/(lf'*cinv*lf); %% CORRECT WEIGHTS CALC
         
@@ -525,23 +559,13 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
        %% Now permute the rows of X if necessary
         for iter=1:S.Niter,
         
-%             
+          
+            
              X=Xdesign(randind(iter,:),:); %% randind(1,:)=1, i.e. unpermuted
-%             cond1_ind=find(X(:,1)>0);
-%             cond2_ind=find(X(:,1)<=0);
-%             nx=length(cond1_ind);
-%             ny=length(cond2_ind);
-%             dfe = nx + ny - 2;
-%             xba_epochs=Yfull(cond1_ind,:)*tfiltervect; %% for univariate tfiltervect is all ones (i.e. sum)
-%             yba_epochs=Yfull(cond2_ind,:)*tfiltervect; %%
-%             pdiff=mean(xba_epochs)-mean(yba_epochs);
-%             s2x=var(xba_epochs);
-%             s2y=var(yba_epochs);
-%             sPooled = sqrt(((nx-1) .* s2x + (ny-1) .* s2y) ./ dfe);
-%             se = sPooled .* sqrt(1./nx + 1./ny);
-%             tstat(maskedgrid_inside_ind(i),iter) = pdiff ./ se; %
-%             normdiff(maskedgrid_inside_ind(i),iter)=pdiff/(weights*noise_id*weights');
-%             
+             if boot>1, %% have to also shuffle design matrix with data in bootstrap
+                tmp=X;
+                X=tmp(bttrials,:);
+                end;
             
             % Contrast
             
@@ -557,7 +581,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             
             tstat(maskedgrid_inside_ind(i),iter)=c*B./SE;
             normdiff(maskedgrid_inside_ind(i),iter)=c*B/(weights*noise_id*weights'); %% maybe a factor missing here
-
+            %allB(maskedgrid_inside_ind(i))=B;
     
         end; % for Niter
         
@@ -647,6 +671,11 @@ end; % if
     cfg.sourceunits   = 'mm';
     cfg.parameter = 'pow';
     cfg.downsample = 1;
+    
+     featurestr='';
+    if S.bootstrap,
+        featurestr=sprintf('%s_bt%03d_',featurestr,boot);
+        end; % if
     % write t stat
     dirname='tstatBf_images';
     if S.logflag,
@@ -657,7 +686,7 @@ end; % if
     outvol = spm_vol(sMRI);
     outvol.dt(1) = spm_type('float32');
     
-        outvol.fname= fullfile(D.path, dirname, ['spmT_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['spmT_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
         
         stats(fband).outfile_pow_tstat=outvol.fname;
         outvol = spm_create_vol(outvol);
@@ -672,7 +701,7 @@ end; % if
             disp('Press any key to continue');
             pause;
         end; % if preview
-        outvol.fname= fullfile(D.path, dirname, ['spmNdiff_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['spmNdiff_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
         
          stats(fband).outfile_normdiff=outvol.fname;
          outvol = spm_create_vol(outvol);
@@ -683,8 +712,11 @@ end; % if
     
 end; % for fband=1:Nbands
 
-   
-     
+end; % for boot   
+
+bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' featurestr '.mat']);
+save(bootlist,'bttrials');
+
      
 end % function
 
