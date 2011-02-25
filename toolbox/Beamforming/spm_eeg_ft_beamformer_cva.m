@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4140 2010-12-15 18:55:06Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4217 2011-02-25 14:04:49Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -461,6 +461,14 @@ if ~isempty(S.maskgrid),
       maskedgrid_inside_ind=sort(maskedgrid_inside_ind);
  end; % if 
 
+  if cfg.reducerank, %% follow up rank reduction and remove redundant dimension from lead fields
+    for i=1:length(maskedgrid_inside_ind), %% 81
+        lf1=cell2mat(grid.leadfield(grid.inside(maskedgrid_inside_ind(i))));
+        [u1,s1,v1]=svd(lf1'*lf1);
+        grid.leadfield(grid.inside(maskedgrid_inside_ind(i)))={lf1*u1(:,1:cfg.reducerank)};
+        %normlf(i)=std(dot(lfnew',lfnew'));
+    end;
+ end; % if reduce rank
 
 if ~isempty(S.fixedweights),
     disp('NB USING SUPPLIED FIXED WEIGHTS');
@@ -489,6 +497,7 @@ sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
 %% Now do actual beamforming
 %% decide on the covariance matrix we need
 %% construct covariance matrix within frequency range of interest
+
 
 disp('now running through freq bands and constructing t stat images');
 
@@ -994,13 +1003,15 @@ end; % if
     
 end; % for fband=1:Nbands
 end; %% bootstrap    
+bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.mat']);
+save(bootlist,'bttrials');
 
 end % function
 
 
 
 
-function [outvol]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D,dirname,csource,outvals,prefix,freqband)
+function [soutvol]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D,dirname,csource,outvals,prefix,freqband)
     
     
     %outvals=outvals./1e12;
@@ -1031,7 +1042,14 @@ function [outvol]=write_trial_image(trialnum,permnum,talpositions,datareg,sMRI,D
     outvol.fname= fullfile(D.path, dirname, [sprintf('Trial%04d_Perm%04d_%s',trialnum,permnum,prefix)  spm_str_manip(D.fname, 'r') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
     
     outvol = spm_create_vol(outvol);
+    
     spm_write_vol(outvol, sourceint_pow_maxchi.pow_maxchi);
- 
+    soutvol=outvol;
+    mmsampling=min(abs(diag(soutvol.mat(1:3,1:3)))); %% get sampling of the output image
+    Sfwhm=mmsampling*3; %% smooth by 3* this to get sufficiently sampled output image
+    soutvol.fname= fullfile(D.path, dirname, [sprintf('S%dmmTrial%04d_Perm%04d_%s',Sfwhm,trialnum,permnum,prefix)  spm_str_manip(D.fname, 'r') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
+    
+    spm_smooth(outvol,soutvol,Sfwhm);
+    
       
 end
