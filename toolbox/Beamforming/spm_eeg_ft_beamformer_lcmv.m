@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4216 2011-02-25 14:04:27Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4218 2011-03-01 11:58:01Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -107,6 +107,11 @@ if ~isfield(S,'bootstrap'),
     S.bootstrap=[];
 else
     Nboot=S.bootstrap;
+    end;
+    
+if isempty(S.bootstrap),
+    S.bootstrap=0;
+    Nboot=1;
     end;
     
 if ~isfield(S,'components'),
