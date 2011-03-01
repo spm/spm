@@ -40,7 +40,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 2229 2010-11-30 10:54:34Z jansch $
+% $Id: ft_plot_slice.m 2968 2011-02-26 13:46:32Z jansch $
 
 persistent previous_dim X Y Z;
 
@@ -92,6 +92,12 @@ if ~dointerp && ~all(round(loc)==loc),   dointerp = true; end
 if ~dointerp && sum(ori)~=1,             dointerp = true; end
 if ~dointerp && ~(resolution==round(resolution)), dointerp = true; end
 
+% determine the caller function and toggle dointerp to true, if
+% ft_plot_slice has been called from ft_plot_montage
+% this is necessary for the correct allocation of the persistent variables
+st = dbstack;
+if ~dointerp && strcmp(st(2).name, 'ft_plot_montage'), dointerp = true; end
+
 if dointerp
   %--------cut a slice using interpn
   
@@ -102,7 +108,7 @@ if dointerp
   else
     [X, Y, Z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
   end
- 
+  
   % define 'x' and 'y' axis in projection plane.
   % this is more or less arbitrary
   [x, y] = projplane(ori);

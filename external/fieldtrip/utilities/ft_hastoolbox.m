@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 2945 2011-02-24 08:19:40Z roboos $
+% $Id: ft_hastoolbox.m 3000 2011-02-28 21:42:59Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -119,6 +119,8 @@ switch toolbox
     status = exist('runica', 'file');
   case 'NWAY'
     status = exist('parafac', 'file');
+  case 'SPM'
+    status = exist('spm.m'); % any version of SPM is fine
   case 'SPM99'
     status = exist('spm.m') && strcmp(spm('ver'),'SPM99');
   case 'SPM2'

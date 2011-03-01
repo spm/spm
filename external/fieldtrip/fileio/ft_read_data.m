@@ -9,7 +9,7 @@ function [dat] = ft_read_data(filename, varargin)
 %   dat = ft_read_data(filename, ...)
 %
 % Additional options should be specified in key-value pairs and can be
-%   'header'         header structure, see READ_HEADER
+%   'header'         header structure, see FT_READ_HEADER
 %   'begsample'      first sample to read
 %   'endsample'      last sample to read
 %   'begtrial'       first trial to read, mutually exclusive with begsample+endsample
@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 2390 2010-12-14 08:37:11Z stekla $
+% $Id: ft_read_data.m 3006 2011-03-01 13:17:09Z johzum $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -535,7 +535,7 @@ switch dataformat
   case 'ctf_read_meg4'
     % check that the required low-level toolbox is available
     ft_hastoolbox('eegsf', 1);
-    % read it using the CTF importer from the NIH and Daren Weber
+    % read it using the CTF importer from the NIH and Darren Weber
     tmp = ctf_read_meg4(filename, hdr.orig, chanindx, 'all', begtrial:endtrial);
     dat = cat(3, tmp.data{:});
     % the data is shaped in a 3-D array
@@ -546,6 +546,9 @@ switch dataformat
     % read the data from shared memory
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
+  case 'dataq_wdq'
+    dat = read_wdq_data(filename, hdr.orig, begsample, endsample, chanindx);
+    
   case 'eeglab_set'
     dat = read_eeglabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
     dimord = 'chans_samples_trials';

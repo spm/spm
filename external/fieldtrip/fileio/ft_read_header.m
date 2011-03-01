@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 2728 2011-02-01 11:30:47Z vlalit $
+% $Id: ft_read_header.m 2948 2011-02-24 20:07:45Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -438,14 +438,14 @@ switch headerformat
       warning('cannot read balancing coefficients for NONE');
     end
     if any(~cellfun(@isempty,strfind(coeftype, 'G1BR')))
-      try
+    %  try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
         orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
         orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
         orig.BalanceCoefs.G1BR.Refindex  = Refindex;
-      catch
-        warning('cannot read balancing coefficients for G1BR');
-      end
+    %  catch
+    %    warning('cannot read balancing coefficients for G1BR');
+    %  end
     end
     if any(~cellfun(@isempty,strfind(coeftype, 'G2BR')))
       try
@@ -556,6 +556,24 @@ switch headerformat
     % read the header information from shared memory
     hdr = read_shm_header(filename);
 
+  case 'dataq_wdq'
+    orig            = read_wdq_header(filename);
+    hdr             = [];
+    hdr.Fs          = orig.fsample;
+    hdr.nChans      = orig.nchan; 
+    hdr.nSamples    = orig.nbytesdat/(2*orig.nchan);
+    hdr.nSamplesPre = 0;
+    hdr.nTrials     = 1;
+    for k = 1:hdr.nChans
+      if isfield(orig.chanhdr(k), 'annot') && ~isempty(orig.chanhdr(k).annot)
+        hdr.label{k,1} = orig.chanhdr(k).annot;
+      else
+        hdr.label{k,1} = orig.chanhdr(k).label;
+      end
+    end
+    
+    % add the original header details
+    hdr.orig  = orig;
   case 'edf'
     % this reader is largely similar to the bdf reader
     hdr = read_edf(filename);

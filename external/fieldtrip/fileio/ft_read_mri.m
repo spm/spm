@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 2644 2011-01-26 07:44:56Z roboos $
+% $Id: ft_read_mri.m 2973 2011-02-26 13:54:24Z jansch $
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = ft_hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
@@ -223,7 +223,7 @@ elseif ft_filetype(filename, 'dicom')
   img = img(:,:,indx);
   
   try
-    % construct a homgenous transformation matrix that performs the scaling from voxels to mm
+    % construct a homgeneous transformation matrix that performs the scaling from voxels to mm
     dx = hdr(1).PixelSpacing(1);
     dy = hdr(1).PixelSpacing(2);
     dz = hdr(2).SliceLocation - hdr(1).SliceLocation;

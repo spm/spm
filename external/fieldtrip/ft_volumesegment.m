@@ -29,7 +29,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %                     c3, for the csf segmentation
 %                   
 %   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
-%   cfg.coordinates = 'spm, 'ctf' or empty for interactive (default = [])
+%   cfg.coordinates = 'spm', 'ctf' or empty for interactive (default = [])
 %
 % As the first step the coordinate frame of the input MRI has to
 % be approximately aligned to the template. For this, a homogeneous
@@ -81,7 +81,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 2555 2011-01-11 14:30:17Z jansch $
+% $Id: ft_volumesegment.m 3005 2011-03-01 13:14:18Z crimic $
 
 ft_defaults
 
@@ -364,7 +364,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 2555 2011-01-11 14:30:17Z jansch $';
+cfg.version.id = '$Id: ft_volumesegment.m 3005 2011-03-01 13:14:18Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

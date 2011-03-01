@@ -47,10 +47,10 @@ function [data] = ft_checkdata(data, varargin)
 %    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %    GNU General Public License for more details.
 %
-%    You should have received a copy of the GNU General Public License
+%    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 2886 2011-02-16 09:42:35Z roboos $
+% $Id: ft_checkdata.m 2989 2011-02-28 14:18:17Z eelspa $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -569,6 +569,7 @@ if isequal(hasoffset, 'yes')
     for i=1:length(data.time);
       data.offset(i) = time2offset(data.time{i}, data.fsample);
     end
+    data.offset = data.offset(:); % ensure that it is a column vector
     okflag = 1;
   elseif ~okflag && ft_datatype(data, 'mvar')
     data.offset = 0;

@@ -56,7 +56,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 2879 2011-02-14 09:44:31Z jorhor $
+% $Id: ft_componentanalysis.m 2972 2011-02-26 13:52:48Z jansch $
 
 ft_defaults
 
@@ -300,7 +300,7 @@ switch cfg.method
     f = parafac(dat, cfg.numcomponent);
     
   case 'dss'
-    params         = cfg.dss;
+    params         = struct(cfg.dss);
     params.denf.h  = str2func(cfg.dss.denf.function);
     if ~ischar(cfg.numcomponent)
       params.sdim = cfg.numcomponent;
@@ -443,7 +443,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 2879 2011-02-14 09:44:31Z jorhor $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 2972 2011-02-26 13:52:48Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

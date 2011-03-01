@@ -38,6 +38,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - BESA
 %  - BrainVision
 %  - Curry
+%  - Dataq
 %  - EDF
 %  - EEProbe
 %  - Elektra/Neuromag
@@ -72,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 2582 2011-01-14 12:29:05Z roboos $
+% $Id: ft_filetype.m 2996 2011-02-28 16:12:55Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -130,6 +131,17 @@ end
 type         = 'unknown';
 manufacturer = 'unknown';
 content      = 'unknown';
+
+if isempty(filename)
+  if isempty(desired)
+    % return the "unknown" outputs
+    return
+  else
+    % return that it is a non-match
+    type = false;
+    return
+  end
+end
 
 [p, f, x] = fileparts(filename);
 
@@ -660,6 +672,12 @@ elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']),
   manufacturer = 'BESA';
   content = 'simple binary channel data with a seperate generic ascii header';
 
+  % known Dataq file formats
+elseif filetype_check_extension(upper(filename), '.WDQ')
+  type         = 'dataq_wdq';
+  manufacturer = 'dataq instruments';
+  content      = 'electrophysiological data';
+  
   % old files from Pascal Fries' PhD research at the MPI
 elseif filetype_check_extension(filename, '.dap') && filetype_check_header(filename, char(1))
   type = 'mpi_dap';

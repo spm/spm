@@ -15,7 +15,7 @@ function [pnt,tri]=head_surf(vol,grad,flag);
 % The default is flag=1.
 %
 % The head surface triangulation can be used in combination with
-% find_inside_vol to determine which voxels of a beamformer scan 
+% ft_inside_vol to determine which voxels of a beamformer scan 
 % are located within the head (region of interest).
 
 % Copyright (C) Jan-Matthijs Schoffelen
@@ -36,7 +36,7 @@ function [pnt,tri]=head_surf(vol,grad,flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: head_surf.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: head_surf.m 3010 2011-03-01 15:00:09Z eelspa $
 
 if nargin<3
   flag = 1;

@@ -34,7 +34,7 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterstat.m 2856 2011-02-10 11:24:31Z arjsto $
+% $Id: clusterstat.m 3002 2011-03-01 07:29:01Z arjsto $
 
 % set the defaults
 if ~isfield(cfg,'orderedstats'),   cfg.orderedstats = 'no';    end
@@ -247,9 +247,9 @@ else
 end
 
 % do the clustering on the randomized data
-progress('init', cfg.feedback, 'computing clusters in randomization');
+ft_progress('init', cfg.feedback, 'computing clusters in randomization');
 for i=1:Nrand
-    progress(i/Nrand, 'computing clusters in randomization %d from %d\n', i, Nrand);
+    ft_progress(i/Nrand, 'computing clusters in randomization %d from %d\n', i, Nrand);
     if needpos,
         if issource
             tmp = zeros(cfg.dim);
@@ -343,7 +343,7 @@ for i=1:Nrand
         end
     end % needneg
 end % for 1:Nrand
-progress('close');
+ft_progress('close');
 
 % compare the values for the observed clusters with the randomization distribution
 if needpos,

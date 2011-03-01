@@ -26,9 +26,9 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: find_inside_vol.m 3011 2011-03-01 15:03:34Z eelspa $
 
-
+warning('find_inside_vol is obsolete and will be removed, please use ft_inside_vol');
 inside  = ft_inside_vol(pos, vol);
 % replace boolean vector with indexing vectors
 outside = find(~inside);

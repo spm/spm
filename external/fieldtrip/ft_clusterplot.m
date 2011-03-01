@@ -52,7 +52,7 @@ function ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_clusterplot.m 2967 2011-02-26 13:42:12Z jansch $
 
 ft_defaults
 
@@ -123,7 +123,8 @@ if isfield(cfg, 'interplimits'),          cfgtopo.interplimits   = cfg.interplim
 if isfield(cfg, 'interpolation'),         cfgtopo.interpolation  = cfg.interpolation;   end
 if isfield(cfg, 'contournum'),            cfgtopo.contournum     = cfg.contournum;      end
 if isfield(cfg, 'colorbar'),              cfgtopo.colorbar       = cfg.colorbar;        end
-if isfield(cfg, 'shading'),               cfgtopo.shading        =  cfg.shading';       end
+if isfield(cfg, 'shading'),               cfgtopo.shading        = cfg.shading';        end
+if isfield(cfg, 'zlim'),                  cfgtopo.zlim           = cfg.zlim;            end
 cfgtopo.zparam = cfg.zparam;
 
 % prepare the layout, this only has to be done once

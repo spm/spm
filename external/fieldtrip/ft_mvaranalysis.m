@@ -80,7 +80,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 2422 2010-12-15 08:44:29Z jansch $
+% $Id: ft_mvaranalysis.m 2975 2011-02-26 13:56:27Z jansch $
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
@@ -147,7 +147,8 @@ if isempty(cfg.toi) && isempty(cfg.t_ftimwin)
     %fit model to entire data segment
     ok = 1;
     for k = 1:numel(data.trial)
-        if any(data.time{k}~=data.time{1}),
+        %if any(data.time{k}~=data.time{1}),
+        if size(data.trial{k},2) ~= size(data.trial{1},2)
             ok = 0;
             break
         end
@@ -446,7 +447,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_mvaranalysis.m 2422 2010-12-15 08:44:29Z jansch $';
+cfg.version.id   = '$Id: ft_mvaranalysis.m 2975 2011-02-26 13:56:27Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

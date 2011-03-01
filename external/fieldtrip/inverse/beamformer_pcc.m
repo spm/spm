@@ -49,7 +49,9 @@ keepcsd = 1;
 % find the dipole positions that are inside/outside the brain
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isfield(dip, 'inside') & ~isfield(dip, 'outside');
-  [dip.inside, dip.outside] = find_inside_vol(dip.pos, vol);
+  insideLogical = ft_inside_vol(dip.pos, vol);
+  dip.inside = find(insideLogical);
+  dip.outside = find(~dip.inside);
 elseif isfield(dip, 'inside') & ~isfield(dip, 'outside');
   dip.outside    = setdiff(1:size(dip.pos,1), dip.inside);
 elseif ~isfield(dip, 'inside') & isfield(dip, 'outside');
@@ -235,7 +237,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 2098 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 3009 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

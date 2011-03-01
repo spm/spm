@@ -77,7 +77,7 @@ function [mri] = ft_volumerealign(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 2629 2011-01-21 13:32:56Z jansch $
+% $Id: ft_volumerealign.m 3008 2011-03-01 14:13:04Z crimic $
 
 ft_defaults
 
@@ -122,6 +122,12 @@ end
 if strcmp(cfg.method, 'interactive')
   basedonfid = 0;
   basedonmrk = 0;
+elseif strcmp(cfg.method, 'fiducial')
+  basedonfid = 1;
+  basedonmrk = 0; 
+elseif strcmp(cfg.method, 'landmark')
+  basedonfid = 0;
+  basedonmrk = 1;  
 end
 
 % select the parameter that should be displayed
@@ -297,7 +303,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 2629 2011-01-21 13:32:56Z jansch $';
+cfg.version.id = '$Id: ft_volumerealign.m 3008 2011-03-01 14:13:04Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

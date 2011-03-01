@@ -1,4 +1,4 @@
-function [down] = ft_volumedownsample(cfg, source);
+function [down] = ft_volumedownsample(cfg, source)
 
 % FT_VOLUMEDOWNSAMPLE downsamples an anatomical MRI or source reconstruction
 % and optionally normalizes its coordinate axes, keeping the homogenous
@@ -34,7 +34,7 @@ function [down] = ft_volumedownsample(cfg, source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_volumedownsample.m 3000 2011-02-28 21:42:59Z roboos $
 
 ft_defaults
 
@@ -104,14 +104,14 @@ end
 down = grid2transform(down);
 
 % smooth functional parameters, excluding anatomy and inside
-if ~strcmp(cfg.smooth, 'no'),
-  % check if the required spm is in your path:
+if isfield(cfg, 'smooth') && ~strcmp(cfg.smooth, 'no'),
+  % check that SPM is on the path, try to add the preferred version
   if strcmpi(cfg.spmversion, 'spm2'),
     ft_hastoolbox('SPM2',1);
   elseif strcmpi(cfg.spmversion, 'spm8'),
     ft_hastoolbox('SPM8',1);
   end
-
+  
   for j = 1:length(cfg.parameter)
     if strcmp(cfg.parameter{j}, 'inside')
       fprintf('not smoothing %s\n', cfg.parameter{j});
@@ -149,14 +149,16 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumedownsample.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_volumedownsample.m 3000 2011-02-28 21:42:59Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
 
 % remember the configuration details of the input data
 
-try, cfg.previous = source.cfg; end
+if isfield(source, 'cfg'),
+  cfg.previous = source.cfg;
+end
 
 % remember the exact configuration details in the output
 down.cfg = cfg;

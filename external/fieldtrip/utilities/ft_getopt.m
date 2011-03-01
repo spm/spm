@@ -14,7 +14,7 @@ function val = ft_getopt(opt, key, default)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_getopt.m 2921 2011-02-21 21:45:17Z roboos $
+% $Id: ft_getopt.m 2978 2011-02-27 17:13:16Z roboos $
 
 if nargin<3
   default = [];
@@ -29,7 +29,7 @@ if isa(opt, 'struct') || isa(opt, 'config')
     val = opt.(key);
   end
   
-else isa(opt, 'cell')
+elseif isa(opt, 'cell')
   % get the key-value from the cell-array
   if mod(length(opt),2)
     error('optional input arguments should come in key-value pairs, i.e. there should be an even number');

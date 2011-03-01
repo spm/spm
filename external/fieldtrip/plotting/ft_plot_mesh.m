@@ -1,4 +1,4 @@
-function ft_plot_mesh(bnd, varargin)
+function [hs] = ft_plot_mesh(bnd, varargin)
 
 % FT_PLOT_MESH visualizes the information of a mesh contained in the first
 % argument bnd. The boundary argument (bnd) contains typically 2 fields
@@ -7,7 +7,7 @@ function ft_plot_mesh(bnd, varargin)
 % Use as
 %   ft_plot_mesh(bnd, ...)
 %
-% PLOT_MESH also allows to plot only vertices by
+% FT_PLOT_MESH also allows to plot only vertices by
 %   ft_plot_mesh(pnt)
 % where pnt is a list of 3d points cartesian coordinates.
 %
@@ -51,7 +51,7 @@ function ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 2906 2011-02-18 13:12:35Z jansch $
+% $Id: ft_plot_mesh.m 2953 2011-02-25 14:51:16Z jansch $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

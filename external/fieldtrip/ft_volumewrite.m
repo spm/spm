@@ -17,14 +17,18 @@ function ft_volumewrite(cfg, volume)
 %   cfg.parameter     = string, describing the functional data to be processed, 
 %                         e.g. 'pow', 'coh' or 'nai'
 %   cfg.filename      = filename without the extension
-%   cfg.filetype      = 'analyze', 'analyze_spm', 'nifti', 'mgz', 'vmp' or 'vmr'
+%   cfg.filetype      = 'analyze', 'nifti', 'nifti_img', 'analyze_spm', 'mgz', 
+%                         'vmp' or 'vmr'
 %   cfg.vmpversion    = 1 or 2 (default) version of the vmp-format to use
-%   cfg.coordinates   = 'spm, 'ctf' or empty for interactive (default = [])
+%   cfg.coordinates   = 'spm' or 'ctf', this will only affect the
+%                          functionality in case filetype = 'analyze', 'vmp',
+%                          or 'vmr'
 %
-% The default filetype is 'analyze_spm', which means that a *.hdr and *.img file
-% will be written using the SPM8 toolbox. 
-% The analyze_spm, nifti, and mgz filetypes support a homogeneous transformation
-% matrix, the other filetypes do not support a homogeneous coordinate transformation
+% The default filetype is 'nifti', which means that a single *.nii file
+% will be written using the SPM8 toolbox. The 'nifti_img' filetype uses SPM8 for 
+% a dual file (*.img/*.hdr) nifti-format file.
+% The analyze, analyze_spm, nifti, nifti_img and mgz filetypes support a homogeneous
+% transformation matrix, the other filetypes do not support a homogeneous transformation
 % matrix and hence will be written in their native coordinate system.
 %
 % You can specify the datatype for the analyze_spm and analyze formats using
@@ -51,6 +55,7 @@ function ft_volumewrite(cfg, volume)
 % cfg.inputfile  = one can specifiy preanalysed saved data as input
 
 % Copyright (C) 2003-2006, Robert Oostenveld, Markus Siegel
+% Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -68,7 +73,7 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 2947 2011-02-24 12:31:23Z jansch $
+% $Id: ft_volumewrite.m 2964 2011-02-26 12:58:01Z jansch $
 
 ft_defaults
 
@@ -78,7 +83,7 @@ ft_defaults
 cfg = ft_checkconfig(cfg, 'required', {'filename', 'parameter'});
 
 % set the defaults
-cfg.filetype     = ft_getopt(cfg, 'filetype',     'analyze_spm');
+cfg.filetype     = ft_getopt(cfg, 'filetype',     'nifti');
 cfg.datatype     = ft_getopt(cfg, 'datatype',     'int16');
 cfg.downsample   = ft_getopt(cfg, 'downsample',   1);
 cfg.markorigin   = ft_getopt(cfg, 'markorigin',   'no');
@@ -412,6 +417,17 @@ switch cfg.filetype
       cfg.filename = [cfg.filename,'.nii'];
     end
     ft_write_volume(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
+ 
+  case 'nifti_img'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % write in nifti dual file format, using functions from  the SPM8 toolbox
+    % this format supports a homogenous transformation matrix
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    [pathstr, name, ext] = fileparts(cfg.filename);
+    if isempty(ext)
+      cfg.filename = [cfg.filename,'.img'];
+    end
+    ft_write_volume(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
   
   case 'analyze_spm'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -422,7 +438,7 @@ switch cfg.filetype
     if isempty(ext)
       cfg.filename = [cfg.filename,'.img'];
     end
-    ft_write_volume(cfg.filename, data, 'dataformat', 'analyze', 'transform', transform, 'spmversion', 'SPM8');
+    ft_write_volume(cfg.filename, data, 'dataformat', 'analyze', 'transform', transform, 'spmversion', 'SPM2');
   
   case 'mgz'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 2729 2011-02-01 11:44:34Z marvger $
+% $Id: ft_read_event.m 2999 2011-02-28 21:24:08Z jansch $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1266,6 +1266,18 @@ switch eventformat
       event(i).sample    = tmp.event.sample(i);
     end
 
+  case 'dataq_wdq'
+    if isempty(hdr)
+      hdr     = ft_read_header(filename, 'headerformat', 'dataq_wdq');
+    end
+    trigger  = read_wdq_data(filename, hdr.orig, 'lowbits');
+    [ix, iy] = find(trigger);
+    for i=1:numel(ix)
+      event(i).type   = num2str(ix(i));
+      event(i).value  = trigger(ix(i),iy(i));
+      event(i).sample = iy(i); 
+    end
+    
   otherwise
     error('unsupported event format (%s)', eventformat);
 end
