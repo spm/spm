@@ -18,21 +18,24 @@ function varargout = spm_preproc_run(job,arg)
 %
 % See the user interface for a description of the fields.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_preproc_run.m 4221 2011-03-01 20:22:52Z guillaume $
 
-if nargin==1,
-    varargout{:} = run_job(job);
-elseif strcmpi(arg,'check'),
-    varargout{:} = check_job(job);
-elseif strcmpi(arg,'vfiles'),
-    varargout{:} = vfiles_job(job);
-elseif strcmpi(arg,'vout'),
-    varargout{:} = vout_job(job);
-else
-    error('Unknown argument ("%s").', arg);
+if nargin == 1, arg = 'run'; end
+
+switch lower(arg)
+    case 'run'
+        varargout{1} = run_job(job);
+    case 'check'
+        varargout{1} = check_job(job);
+    case 'vfiles'
+        varargout{1} = vfiles_job(job);
+    case 'vout'
+        varargout{1} = vout_job(job);
+    otherwise
+        error('Unknown argument ("%s").', arg);
 end
 return
 %_______________________________________________________________________
