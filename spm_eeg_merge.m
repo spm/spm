@@ -56,9 +56,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 3563 2009-11-12 15:06:05Z vladimir $
+% $Id: spm_eeg_merge.m 4222 2011-03-02 10:23:19Z vladimir $
 
-SVNrev = '$Rev: 3563 $';
+SVNrev = '$Rev: 4222 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -96,7 +96,10 @@ end
 %-Check input and determine number of new number of trial types
 %--------------------------------------------------------------------------
 Ntrials = 0;
-isTF   =  strncmpi(D{1}.transformtype,'TF',2); % TF and TFphase
+megsens = [];
+eegsens = [];
+fid     = [];
+isTF    =  strncmpi(D{1}.transformtype,'TF',2); % TF and TFphase
 
 for i = 1:Nfiles
     if ~isequal(D{i}.transformtype, D{1}.transformtype)
@@ -129,9 +132,20 @@ for i = 1:Nfiles
                D{1}.fname, D{i}.fname);
     end
 
+    if ~isempty(D{i}.sensors('MEG'))
+        megsens = [megsens D{i}.sensors('MEG')];
+    end
+    
+    if ~isempty(D{i}.sensors('EEG'))
+        eegsens = [eegsens D{i}.sensors('EEG')];
+    end
+    
+    if ~isempty(megsens) || ~isempty(eegsens)
+        fid = [fid D{i}.fiducials];
+    end
+    
     Ntrials = [Ntrials D{i}.ntrials];
 end
-
 
 %-Prepare some useful lists
 %--------------------------------------------------------------------------
@@ -276,6 +290,32 @@ elseif isstruct(S.recode)
     end
 end
             
+%-Average sensor locations
+%--------------------------------------------------------------------------
+if ~isempty(megsens)
+    spm_figure('GetWin','Graphics');clf;
+    if ~isempty(eegsens)
+        h = subplot(2, 1, 1);
+        aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
+        Dout = sensors(Dout, 'EEG', aeegsens);
+        
+        h = subplot(2, 1, 2);
+    else
+        h = axes;
+    end
+    
+    [amegsens afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Dout = sensors(Dout, 'MEG', amegsens);
+    Dout = fiducials(Dout, afid);
+elseif ~isempty(eegsens)
+    spm_figure('GetWin','Graphics');clf;
+    h = axes;
+    [aeegsens afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Dout = sensors(Dout, 'EEG', aeegsens);
+    Dout = fiducials(Dout, afid);
+end
+
+
 
 %-Write files
 %--------------------------------------------------------------------------
