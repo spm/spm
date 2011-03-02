@@ -53,12 +53,18 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %   cfg.headshape        = a filename containing headshape, a structure containing a
 %                          single triangulated boundary, or a Nx3 matrix with surface
 %                          points
+%
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
 
 % Undocumented local options:
 % cfg.surface_facecolor
 % cfg.surface_edgecolor
 % cfg.surface_facealpha
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
 
 %
 % This function depends on FT_PREPARE_VOL_SENS which has the following options:
@@ -89,7 +95,7 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 2574 2011-01-13 10:27:38Z roboos $
+% $Id: ft_headmodelplot.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

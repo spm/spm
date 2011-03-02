@@ -125,12 +125,20 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                     multi-tapering. Note that 4 Hz smoothing means
 %                     plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_FREQANALYSIS_OLD, FT_FREQANALYSIS_MTMWELCH, FT_FREQANALYSIS_TFR
 
 % Undocumented local options:
-% cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based on correct cfg.foi)
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-% cfg.outputfile = one can specify output as file to save to disk
+% cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based
+% on correct cfg.foi)
 
 % Copyright (C) 2003-2006, F.C. Donders Centre, Pascal Fries
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
@@ -151,7 +159,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 2591 2011-01-17 16:35:01Z jansch $
+% $Id: ft_freqanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -756,7 +764,7 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 2591 2011-01-17 16:35:01Z jansch $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();

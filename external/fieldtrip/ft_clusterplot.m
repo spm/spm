@@ -28,11 +28,15 @@ function ft_clusterplot(cfg, stat)
 % You CANNOT specify cfg.xlim, any of the FT_TOPOPLOTER highlight
 % options, cfg.comment and cfg.commentpos.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
 % See also:
 %   FT_TOPOPLOTER, FT_SINGLEPLOTER
-
-% Undocumented local option:
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
 
 % Copyright (C) 2007, Ingrid Nieuwenhuis, F.C. Donders Centre
 %
@@ -52,7 +56,7 @@ function ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 2967 2011-02-26 13:42:12Z jansch $
+% $Id: ft_clusterplot.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

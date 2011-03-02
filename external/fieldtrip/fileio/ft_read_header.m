@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 2948 2011-02-24 20:07:45Z jansch $
+% $Id: ft_read_header.m 3034 2011-03-02 09:26:16Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -560,8 +560,8 @@ switch headerformat
     orig            = read_wdq_header(filename);
     hdr             = [];
     hdr.Fs          = orig.fsample;
-    hdr.nChans      = orig.nchan; 
-    hdr.nSamples    = orig.nbytesdat/(2*orig.nchan);
+    hdr.nChans      = orig.nchan;
+    hdr.nSamples    = orig.nbytesdat/(2*hdr.nChans);
     hdr.nSamplesPre = 0;
     hdr.nTrials     = 1;
     for k = 1:hdr.nChans

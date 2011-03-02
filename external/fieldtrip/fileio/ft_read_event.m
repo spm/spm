@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 2999 2011-02-28 21:24:08Z jansch $
+% $Id: ft_read_event.m 3042 2011-03-02 10:30:58Z jansch $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1271,7 +1271,7 @@ switch eventformat
       hdr     = ft_read_header(filename, 'headerformat', 'dataq_wdq');
     end
     trigger  = read_wdq_data(filename, hdr.orig, 'lowbits');
-    [ix, iy] = find(trigger);
+    [ix, iy] = find(trigger>1); %it seems as if the value of 1 is meaningless
     for i=1:numel(ix)
       event(i).type   = num2str(ix(i));
       event(i).value  = trigger(ix(i),iy(i));

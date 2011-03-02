@@ -28,12 +28,17 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.topo         = NxN matrix with a component topography in each column
 %   cfg.topolabel    = Nx1 cell-array with the channel labels
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FASTICA, RUNICA, SVD, JADER, VARIMAX, DSS, CCA, SOBI
 
-% Undocumented local options:
-%   cfg.inputfile        = one can specifiy preanalysed saved data as input
-%   cfg.outputfile       = one can specify output as file to save to disk
-%
 % NOTE parafac is also implemented, but that does not fit into the
 % structure of 2D decompositions very well. Probably I should implement it
 % in a separate function for N-D decompositions
@@ -56,7 +61,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 2972 2011-02-26 13:52:48Z jansch $
+% $Id: ft_componentanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -443,7 +448,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 2972 2011-02-26 13:52:48Z jansch $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -60,6 +60,14 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % used for creating a layout. If you want to have more fine-grained control
 % over the layout of the subplots, you should create your own layout file.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure. For this particular function, the
+% data should be provided as a cell array.
+%
 % See also:
 %   FT_MULTIPLOTER, FT_SINGLEPLOTER, FT_SINGLEPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR,
 %   FT_PREPARE_LAYOUT
@@ -69,8 +77,6 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % cfg.layoutname
 % cfg.xparam
 % cfg.zparam
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-%                  The data should be provided in a cell array
 
 %
 % This function depends on FT_FREQBASELINE which has the following options:
@@ -96,7 +102,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 2971 2011-02-26 13:48:43Z jansch $
+% $Id: ft_multiplotTFR.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

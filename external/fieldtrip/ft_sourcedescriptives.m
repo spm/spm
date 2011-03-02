@@ -35,12 +35,17 @@ function [source] = ft_sourcedescriptives(cfg, source)
 % parameters. This is done after applying the optional transformation
 % on the power and projected noise.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS
 
-% Undocumented local options:
-%   cfg.inputfile  = one can specifiy preanalysed saved data as input
-%   cfg.outputfile = one can specify output as file to save to disk
-%
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 % Copyright (C) 2010, Jan-Mathijs Schoffelen
 
@@ -61,7 +66,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 2433 2010-12-15 11:35:05Z johzum $
+% $Id: ft_sourcedescriptives.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -854,7 +859,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourcedescriptives.m 2433 2010-12-15 11:35:05Z johzum $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

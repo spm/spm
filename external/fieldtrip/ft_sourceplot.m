@@ -118,11 +118,15 @@ function [cfg] = ft_sourceplot(cfg, data)
 %   cfg.renderer       = 'painters', 'zbuffer',' opengl' or 'none' (default = 'opengl')
 %                        When using opacity the OpenGL renderer is required.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
 % See also FT_SOURCEANALYSIS, FT_SOURCEGRANDAVERAGE, FT_SOURCESTATISTICS,
 %  FT_VOLUMELOOKUP, FT_PREPARE_ATLAS
-
-% Undocumented local option:
-%   cfg.inputfile  = one can specifiy preanalysed saved data as input
 
 % TODO have to be built in:
 %   cfg.marker        = [Nx3] array defining N marker positions to display (orig: from sliceinterp)
@@ -153,7 +157,7 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 2682 2011-01-27 12:41:07Z joagro $
+% $Id: ft_sourceplot.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

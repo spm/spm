@@ -34,11 +34,17 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 % beginsamples of an artifact period, the second column contains the
 % endsamples of the artifactperiods.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
 % See also FT_ARTIFACT_ZVALUE, FT_REJECTARTIFACT
 
 % Undocumented local options:
 % cfg.method
-% cfg.inputfile = one can specifiy preanalysed saved data as input
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
@@ -58,7 +64,7 @@ function [cfg, artifact] = ft_artifact_jump(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_jump.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_artifact_jump.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

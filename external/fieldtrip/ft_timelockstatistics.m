@@ -27,13 +27,16 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 % for the corresponding configuration options and for a detailed
 % explanation of each method.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_TIMELOCKANALYSIS, FT_TIMELOCKGRANDAVERAGE
-
-% Undocumented local options:
-%   cfg.inputfile  = one can specifiy preanalysed saved data as input
-%                     The data should be provided in a cell array
-%   cfg.outputfile = one can specify output as file to save to disk
-
 
 % This function depends on STATISTICS_WRAPPER
 
@@ -55,7 +58,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 2943 2011-02-24 07:17:06Z jansch $
+% $Id: ft_timelockstatistics.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -117,7 +120,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockstatistics.m 2943 2011-02-24 07:17:06Z jansch $';
+cfg.version.id = '$Id: ft_timelockstatistics.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

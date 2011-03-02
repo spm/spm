@@ -40,6 +40,13 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 % cfg.graphcolor    = color(s) used for plotting the dataset(s) (default = 'brgkywrgbkywrgbkywrgbkyw')
 %                     alternatively, colors can be specified as Nx3 matrix of RGB values
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
 % See also:
 %   FT_SINGLEPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
@@ -68,7 +75,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 2988 2011-02-28 13:21:15Z jansch $
+% $Id: ft_singleplotER.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

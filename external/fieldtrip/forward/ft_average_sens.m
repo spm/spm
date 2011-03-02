@@ -31,7 +31,7 @@ function [asens, afiducials] = ft_average_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_average_sens.m 2996 2011-02-28 16:12:55Z roboos $
+% $Id: ft_average_sens.m 3043 2011-03-02 10:54:14Z vlalit $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -159,10 +159,17 @@ switch nfid
     tra1  = headcoordinates(sens(1).pnt(ind1, :), sens(1).pnt(ind2, :), sens(1).pnt(ind3, :));
     afiducials = ft_transform_headshape(tra\tra1, fiducials);
     
-  case nsens
-    fidpnt = zeros(size(fiducials(1).fid.pnt));
-    
+  case nsens    
+      
     for i=1:nsens
+      hs = strmatch('headshape', fiducials(i).fid.label);
+      fiducials(i).fid.label(hs)  = [];
+      fiducials(i).fid.pnt(hs, :) = [];
+      
+      if i == 1
+          fidpnt = zeros(size(fiducials(1).fid.pnt));
+      end
+      
       if ~isequal(fiducials(i).fid.label, fiducials(1).fid.label)
         error('all fiducials should have the same labels for averaging');
       end

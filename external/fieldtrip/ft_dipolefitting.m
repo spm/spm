@@ -80,6 +80,15 @@ function [source] = ft_dipolefitting(cfg, data)
 %   cfg.dipfit.optimfun = function to use, can be 'fminsearch' or 'fminunc' (default is determined automatic)
 %   cfg.dipfit.maxiter  = maximum number of function evaluations allowed (default depends on the optimfun)
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_SOURCEANALYSIS, FT_PREPARE_LEADFIELD
 
 % TODO change the output format, more suitable would be something like:
@@ -93,8 +102,6 @@ function [source] = ft_dipolefitting(cfg, data)
 
 % Undocumented local options:
 %   cfg.dipfit.constr   = Source model constraints, depends on cfg.symmetry
-%   cfg.inputfile  = one can specifiy preanalysed saved data as input
-%   cfg.outputfile = one can specify output as file to save to disk
 %
 % This function depends on FT_PREPARE_DIPOLE_GRID which has the following options:
 % cfg.grid.xgrid (default set in FT_PREPARE_DIPOLE_GRID: cfg.grid.xgrid = 'auto'), documented
@@ -140,7 +147,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 2683 2011-01-27 15:14:20Z stewhi $
+% $Id: ft_dipolefitting.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -585,7 +592,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_dipolefitting.m 2683 2011-01-27 15:14:20Z stewhi $';
+cfg.version.id = '$Id: ft_dipolefitting.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

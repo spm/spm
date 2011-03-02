@@ -70,7 +70,7 @@ function spike = ft_datatype_spike(spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_spike.m 3039 2011-03-02 10:16:32Z jansch $
+% $Id: ft_datatype_spike.m 3040 2011-03-02 10:16:34Z jansch $
 
 
 % get the optional input arguments, which should be specified as key-value pairs

@@ -38,11 +38,16 @@ function [data] = ft_resampledata(cfg, data)
 %   data.trial
 %   data.time
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_PREPROCESSING
-
-% Undocumented local options:
-%   cfg.inputfile  = one can specifiy preanalysed saved data as input
-%   cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2003-2006, FC Donders Centre, Markus Siegel
 % Copyright (C) 2004-2009, FC Donders Centre, Robert Oostenveld
@@ -63,7 +68,7 @@ function [data] = ft_resampledata(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_resampledata.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_resampledata.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -245,7 +250,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_resampledata.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_resampledata.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

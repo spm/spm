@@ -20,10 +20,14 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %   cfg.artfctdef.clip.thresh   = 0.010;  minimum duration in seconds of a datasegment with consecutive identical samples to be considered as 'clipped'
 %   cfg.continuous              = 'yes' or 'no' whether the file contains continuous data
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
 % See also FT_REJECTARTIFACT
-
-% Undocumented local options:
-%   cfg.inputfile        = one can specifiy preanalysed saved data as input
 
 % Copyright (C) 2005, Robert Oostenveld
 %
@@ -43,7 +47,7 @@ function [cfg, artifact] = ft_artifact_clip(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_artifact_clip.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -169,7 +173,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_artifact_clip.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_artifact_clip.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

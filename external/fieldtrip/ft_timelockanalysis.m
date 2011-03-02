@@ -27,6 +27,15 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %       average and covariance computation. Missing values are replaced
 %       by NaN and are not included in the computation.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 % See also FT_TIMELOCKGRANDAVERAGE, FT_TIMELOCKSTATISTICS
 
 % FIXME if input is one raw trial, the covariance is not computed correctly
@@ -34,8 +43,6 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 % Undocumented local options:
 % cfg.feedback
 % cfg.preproc
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-% cfg.outputfile = one can specify output as file to save to disk
 %
 % Deprecated options:
 % cfg.latency
@@ -92,7 +99,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 2854 2011-02-10 10:06:20Z jansch $
+% $Id: ft_timelockanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -381,7 +388,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockanalysis.m 2854 2011-02-10 10:06:20Z jansch $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

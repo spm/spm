@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_selectdata.m 3038 2011-03-02 10:16:04Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -457,10 +457,19 @@ end
 
 if selectchan,
   %FIXME give selchan according to the order requested in selchan
-  %this does not work 
-  tmp            = ft_channelselection(selchan, data.label);
-  [dum, selchan] = match_str(tmp, data.label);
-end
+  %this does not work
+  
+  if isfield(data, 'label')
+    tmp            = ft_channelselection(selchan, data.label);
+    [dum, selchan] = match_str(tmp, data.label);
+  elseif isfield(data, 'labelcmb')
+    tmp            = ft_channelselection(selchan, unique(data.labelcmb(:)));
+    [dum, selchan1] = match_str(tmp, data.labelcmb(:,1));
+    [dum, selchan2] = match_str(tmp, data.labelcmb(:,2));
+    selchan         = intersect(selchan1, selchan2);
+  end
+  
+  end
 
 if selectfoi,
   if numel(selfoi)==1, selfoi(2) = selfoi; end;

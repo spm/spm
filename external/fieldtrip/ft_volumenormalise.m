@@ -30,14 +30,23 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %                     image allows for 'reverse-normalisation', which might come in handy
 %                     when for example a region of interest is defined on the normalised
 %                     group-average.
+%
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 
 % Undocumented local options:
 %   cfg.keepintermediate = 'yes' or 'no'
 %   cfg.intermediatename = prefix of the the coregistered images and of the
 %                          original images in the original headcoordinate system
-%   cfg.spmparams        = one can feed in parameters from a prior normalisation
-%   cfg.inputfile        = one can specifiy preanalysed saved data as input
-%   cfg.outputfile       = one can specify output as file to save to disk
+%   cfg.spmparams        = one can feed in parameters from a prior
+%   normalisation
 %
 % See also FT_SOURCEINTERPOLATE, FT_READ_MRI
 
@@ -59,7 +68,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 2555 2011-01-11 14:30:17Z jansch $
+% $Id: ft_volumenormalise.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -321,7 +330,7 @@ cfg.final     = final;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumenormalise.m 2555 2011-01-11 14:30:17Z jansch $';
+cfg.version.id = '$Id: ft_volumenormalise.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

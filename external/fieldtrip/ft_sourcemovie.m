@@ -11,11 +11,18 @@ function cfg = ft_sourcemovie(cfg, source)
 %  cfg.xparam     = string, parameter over which the movie unrolls (default = 'time')
 %  cfg.zparam     = string, parameter that is color coded (default = 'avg.pow')
 %
-% Seee also FT_SOURCEPLOT, FT_SOURCEINTERPOLATE
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure.
+%
+% See also FT_SOURCEPLOT, FT_SOURCEINTERPOLATE
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 2916 2011-02-21 16:27:51Z roboos $
+% $Id: ft_sourcemovie.m 3016 2011-03-01 19:09:40Z eelspa $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -149,7 +156,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourcemovie.m 2916 2011-02-21 16:27:51Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_sourcemovie.m 3016 2011-03-01 19:09:40Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version(); % this is helpful for debugging

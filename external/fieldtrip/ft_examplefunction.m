@@ -16,12 +16,21 @@ function dataout = ft_examplefunction(cfg, datain)
 % The configuration can optionally contain
 %   cfg.option3   = value, explain it here (default is automatic)
 %
-% Seee also <<give a list of function names, all in capitals>>
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
+% See also <<give a list of function names, all in capitals>>
 
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 2855 2011-02-10 10:34:27Z roboos $
+% $Id: ft_examplefunction.m 3016 2011-03-01 19:09:40Z eelspa $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -85,7 +94,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 2855 2011-02-10 10:34:27Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_examplefunction.m 3016 2011-03-01 19:09:40Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version(); % this is helpful for debugging

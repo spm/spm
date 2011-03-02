@@ -22,6 +22,16 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %   cfg.parameter          = string, describing the functional data to be processed, e.g. 'pow', 'nai' or 'coh'
 %   cfg.keepindividual     = 'no' or 'yes'
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure. For this particular function, the input data
+% should be structured as a single cell array.
+%
 % See also FT_SOURCEANALYSIS, FT_VOLUMENORMALISE, FT_SOURCESTATISTICS
 
 % Undocumented local options
@@ -36,10 +46,6 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %   cfg.numpermutation     = number, e.g. 500 or 'all'
 %   cfg.c1                 = list with subjects belonging to condition 1 (or A)
 %   cfg.c2                 = list with subjects belonging to condition 2 (or B)
-%   cfg.inputfile          = one can specifiy preanalysed saved data as input
-%                             The data should be provided in a cell array
-%   cfg.outputfile         = one can specify output as file to save to disk
-
 
 % Copyright (C) 2005, Robert Oostenveld
 %
@@ -59,7 +65,7 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $
+% $Id: ft_sourcegrandaverage.m 3016 2011-03-01 19:09:40Z eelspa $
 
 if 1,
   % original implementation
@@ -272,7 +278,7 @@ if 1,
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3016 2011-03-01 19:09:40Z eelspa $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
@@ -357,7 +363,7 @@ else
     cfg.version.name = mfilename('fullpath');
   catch
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 2722 2011-02-01 09:08:50Z jansch $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3016 2011-03-01 19:09:40Z eelspa $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();

@@ -80,6 +80,13 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % layout. If you want to have more fine-grained control over the layout
 % of the subplots, you should create your own layout file.
 %
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following option:
+%   cfg.inputfile   =  ...
+% If you specify this option the input data will be read from a *.mat
+% file on disk. This mat files should contain only a single variable named 'data',
+% corresponding to the input structure. For this particular function, the input should be
+% structured as a cell array.
 %
 % See also:
 %  FT_TOPOPLOTTFR, FT_TOPOPLOTIC, FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_PREPARE_LAYOUT
@@ -89,8 +96,6 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % data (i.e. when ft_topoplotTFR calls ft_topoplotER):
 % cfg.yparam          field to be plotted on y-axis
 % cfg.ylim            'maxmin' or [ymin ymax]         (default = 'maxmin')
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-%                  The data should be provided in a cell array
 
 % It is possible to use multiple highlight-selections (e.g.: multiple statistical clusters of channels)
 % To do this, all the content of the highlight-options (including cfg.highlight) should be placed in a cell-array
@@ -135,7 +140,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 2901 2011-02-17 10:43:26Z jansch $
+% $Id: ft_topoplotER.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 

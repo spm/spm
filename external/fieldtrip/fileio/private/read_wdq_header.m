@@ -33,6 +33,7 @@ fid = fopen(filename, 'r');
 %tmp = fread(fid, 110); % the first 110 bytes are always interpretable equally
 hdr = [];
 hdr.nchan         = fread(fid, 1, 'uint16');
+hdr.nchan         = hdr.nchan - bitand(hdr.nchan, 32);
 i2                = fread(fid, 1, 'uint16');
 hdr.offset        = fread(fid, 1, 'uint8');
 hdr.nbyteschanhdr = fread(fid, 1, 'uint8');
@@ -90,7 +91,7 @@ for k = 1:(hdr.nbyteshdr-hdr.offset-2)/hdr.nbyteschanhdr
   fread(fid, 1, 'uint8');
   fread(fid, 1, 'uint8'); % may be relevant for packed files
   chanhdr(k).channr = fread(fid, 1, 'uint8');
-  chanhdr(k).label  = ['chan',num2str(k, '%03d')];
+  chanhdr(k).label  = num2str(k);
 end
 hdr.chanhdr = chanhdr;
 

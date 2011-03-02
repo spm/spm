@@ -101,9 +101,10 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 2684 2011-01-27 15:17:07Z stewhi $
+% $Id: ft_electroderealign.m 3044 2011-03-02 11:14:07Z crimic $
 
 ft_defaults
+
 
 %text output
 disp('Close the figure to output new sensor positions');
@@ -124,6 +125,7 @@ if ~isfield(cfg, 'label'),         cfg.label = 'off';        end % show labels
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducials', 'fiducial'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial',  'fiducial'});
 cfg = ft_checkconfig(cfg, 'forbidden', 'outline');
+cfg = ft_checkconfig(cfg, 'renamedval',{'warp', 'rigidbody','homogenous'});
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
@@ -476,7 +478,7 @@ end
 % electrode labels by their case-sensitive original values
 switch cfg.method
   case {'template' 'fiducial', 'interactive'}
-    norm.pnt   = warp_apply(norm.m, orig.pnt, cfg.warp);
+    norm.pnt   = warp_apply(norm.m, orig.pnt,cfg.warp);
   case 'manual'
     % the positions are already assigned in correspondence with the mesh
     norm = orig;
@@ -490,7 +492,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_electroderealign.m 2684 2011-01-27 15:17:07Z stewhi $';
+cfg.version.id = '$Id: ft_electroderealign.m 3044 2011-03-02 11:14:07Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

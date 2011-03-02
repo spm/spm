@@ -35,6 +35,17 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                 'wpli_debiased'  debiased weighted phase lag index
 %                 'ppc'        pairwise phase consistency
 %                 'wppc'       weighted pairwise phase consistency
+%
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
+
 
 % Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen, Andre Bastos, Martin Vinck
 %
@@ -54,7 +65,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 2905 2011-02-18 10:02:45Z vlalit $
+% $Id: ft_connectivityanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
 
 %ft_defaults
 
@@ -697,7 +708,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 2905 2011-02-18 10:02:45Z vlalit $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

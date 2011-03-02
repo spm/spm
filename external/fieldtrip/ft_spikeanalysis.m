@@ -19,6 +19,16 @@ function [spike] = ft_spikeanalysis(cfg, data);
 %     cfg.bpfilter      = 'no' or 'yes'  bandpass filter
 %     cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %     cfg.bpfiltord     = bandpass filter order
+%
+% To facilitate data-handling and distributed computing with the peer-to-peer
+% module, this function has the following options:
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
+% If you specify one of these (or both) the input data will be read from a *.mat
+% file on disk and/or the output data will be written to a *.mat file. These mat
+% files should contain only a single variable, corresponding with the
+% input/output structure.
+%
 
 % Undocumented local options:
 % cfg.bpfilttype
@@ -31,8 +41,6 @@ function [spike] = ft_spikeanalysis(cfg, data);
 % cfg.taper
 % cfg.tapsmofrq
 % cfg.version
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-% cfg.outputfile = one can specify output as file to save to disk
 
 % Copyright (C) 2005, Robert Oostenveld
 %
@@ -52,7 +60,7 @@ function [spike] = ft_spikeanalysis(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikeanalysis.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_spikeanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
 
 ft_defaults
 
@@ -201,7 +209,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_spikeanalysis.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_spikeanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
