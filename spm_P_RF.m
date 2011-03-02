@@ -49,7 +49,7 @@ function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 3994 2010-07-13 15:53:30Z guillaume $
+% $Id: spm_P_RF.m 4225 2011-03-02 15:53:05Z guillaume $
 
 
 % get expectations
@@ -112,9 +112,6 @@ P        = 1 - spm_Pcdf(c - 1,(Ec + eps)*p);
 
 % set P and p = [] for non-implemented cases
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-if k > 0 && n > 1
-    P    = []; p = [];
-end
 if k > 0 && (STAT == 'X' || STAT == 'F')
     P    = []; p = [];
 end

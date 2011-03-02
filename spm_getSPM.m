@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: spm_getSPM.m 4225 2011-03-02 15:53:05Z guillaume $
 
 
 %-GUI setup
@@ -764,9 +764,9 @@ if isempty(Q)
 end
 
 
-%-Extent threshold (disallowed for conjunctions)
+%-Extent threshold
 %--------------------------------------------------------------------------
-if ~isempty(XYZ) && nc == 1
+if ~isempty(XYZ)
     
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...extent threshold'); %-#
     
