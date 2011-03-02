@@ -56,9 +56,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 4222 2011-03-02 10:23:19Z vladimir $
+% $Id: spm_eeg_merge.m 4223 2011-03-02 10:30:45Z vladimir $
 
-SVNrev = '$Rev: 4222 $';
+SVNrev = '$Rev: 4223 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ end
 
 %-Check input and determine number of new number of trial types
 %--------------------------------------------------------------------------
-Ntrials = 0;
+Ntrials = [];
 megsens = [];
 eegsens = [];
 fid     = [];
