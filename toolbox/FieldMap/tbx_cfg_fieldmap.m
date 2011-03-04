@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 4175 2011-01-27 12:42:36Z chloe $
+% $Id: tbx_cfg_fieldmap.m 4228 2011-03-04 15:00:15Z chloe $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -237,7 +237,7 @@ defaultsval.help    = {'Defaults values'};
 defaultsfile         = cfg_files;
 defaultsfile.tag     = 'defaultsfile';
 defaultsfile.name    = 'Defaults File';
-defaultsfile.help    = {'Select the ''pm_defaults*.m'' file containing the parameters for the field map data. Please make sure that the parameters defined in the defaults file are correct for your field map and EPI sequence. To create your own defaults file, either edit the distributed version and/or save it with the name ''pm_defaults_yourname.m''.'};
+defaultsfile.help    = {'Select the ''pm_defaults*.m'' file containing the parameters for the field map data. Please make sure that the parameters defined in the defaults file are correct for your field map and EPI sequence. To create your own customised defaults file, either edit the distributed version and/or save it with the name ''pm_defaults_yourname.m''.'};
 defaultsfile.filter  = 'm';
 [deffilepath, tmp]   = fileparts(mfilename('fullpath'));
 defaultsfile.dir     = deffilepath;
@@ -258,7 +258,7 @@ defaults.values  = {defaultsval defaultsfile };
 epi         = cfg_files;
 epi.tag     = 'epi';
 epi.name    = 'Select EPI to Unwarp';
-epi.help    = {'Select an image to distortion correct. The corrected image will be saved with the prefix u. The original and the distortion corrected images can be displayed for comparison.'};
+epi.help    = {'Select a single image to distortion correct. The corrected image will be saved with the prefix u. Note that this option is mainly for quality control of correction so that the original and distortion corrected images can be displayed for comparison. To unwarp multiple images please use either Realign & Unwarp or Apply VDM.'};
 epi.filter = 'image';
 epi.ufilter = '.*';
 epi.num     = [1 1];
@@ -274,9 +274,9 @@ session.help    = {'Data for this session.'};
 % generic EPI Sessions
 % ---------------------------------------------------------------------
 generic1         = cfg_repeat;
-generic1.tag     = 'generic';
+generic1.tag     = 'generic1';
 generic1.name    = 'EPI Sessions';
-generic1.help    = {'If a single VDM file will be used for multiple sessions, select the first EPI in each session. A copy of the VDM file will be matched to the first EPI in each session and save with a seprate name.'};
+generic1.help    = {'If a single set of field map data will be used for multiple EPI runs/sessions, select the first EPI in each run/session. A VDM file will created for each run/session, matched to the first EPI in each run/session and saved with a unique name extension.'};
 generic1.values  = {session };
 generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -285,9 +285,9 @@ generic1.num     = [1 Inf];
 matchvdm         = cfg_menu;
 matchvdm.tag     = 'matchvdm';
 matchvdm.name    = 'Match VDM to EPI?';
-matchvdm.help    = {'Match VDM file to EPI image. This option will coregister the field map data to the selected EPI before doing distortion correction.'};
+matchvdm.help    = {'Match VDM file to EPI image. This will coregister the field map data to the selected EPI for each run/session.'};
 matchvdm.labels = {
-                   'match vdm'
+                   'match VDM'
                    'none'
 }';
 matchvdm.values{1} = 1;
@@ -297,8 +297,8 @@ matchvdm.values{2} = 0;
 % ---------------------------------------------------------------------
 sessname         = cfg_entry;
 sessname.tag     = 'sessname';
-sessname.name    = 'Name extension for session specific vdm files';
-sessname.help    = {'This will be the name extension followed by an incremented integer for session specific vdm files.'};
+sessname.name    = 'Name extension for run/session specific VDM file';
+sessname.help    = {'This will be the name extension followed by an incremented integer for run/session specific VDM files.'};
 sessname.strtype = 's';
 sessname.num     = [1  Inf];
 sessname.def     = @(val)pm_get_defaults('sessname', val{:});
@@ -308,7 +308,7 @@ sessname.def     = @(val)pm_get_defaults('sessname', val{:});
 writeunwarped         = cfg_menu;
 writeunwarped.tag     = 'writeunwarped';
 writeunwarped.name    = 'Write unwarped EPI?';
-writeunwarped.help    = {'Write out distortion corrected EPI image. The image is saved with the prefix u.'};
+writeunwarped.help    = {'Write out distortion corrected EPI image. The image is saved with the prefix u. Note that this option is mainly for quality control of correction so that the original and distortion corrected images can be displayed for comparison. To unwarp multiple images please use either Realign & Unwarp or Apply VDM.'};
 writeunwarped.labels = {
                         'write unwarped EPI'
                         'none'
@@ -321,7 +321,7 @@ writeunwarped.values{2} = 0;
 anat         = cfg_files;
 anat.tag     = 'anat';
 anat.name    = 'Select anatomical image for comparison';
-anat.help    = {'Select an anatomical image for comparison with the distortion corrected EPI or leave empty.'};
+anat.help    = {'Select an anatomical image for comparison with the distortion corrected EPI or leave empty. Note that this option is mainly for quality control of correction.'};
 anat.filter = 'image';
 anat.ufilter = '.*';
 anat.num     = [0 1];
@@ -332,7 +332,7 @@ anat.val     = {''};
 matchanat         = cfg_menu;
 matchanat.tag     = 'matchanat';
 matchanat.name    = 'Match anatomical image to EPI?';
-matchanat.help    = {'Match the anatomical image to the distortion corrected EPI. This can be done to allow for visual inspection and comparison of the distortion corrected EPI.'};
+matchanat.help    = {'Match the anatomical image to the distortion corrected EPI. Note that this option is mainly for quality control of correction allowing for visual inspection and comparison of the distortion corrected EPI.'};
 matchanat.labels = {
                     'none'
                     'match anat'
@@ -344,7 +344,7 @@ matchanat.values{2} = 1;
 % Different kinds of input jobs
 % ---------------------------------------------------------------------
 % ---------------------------------------------------------------------
-% Presubtracted phase and magnitude
+% 1) Presubtracted phase and magnitude data
 % ---------------------------------------------------------------------
 % phase Phase Image
 % ---------------------------------------------------------------------
@@ -361,11 +361,10 @@ phase.num     = [1 1];
 magnitude         = cfg_files;
 magnitude.tag     = 'magnitude';
 magnitude.name    = 'Magnitude Image';
-magnitude.help    = {'Select a single magnitude image'};
+magnitude.help    = {'Select a single magnitude image. This is used for masking the phase information and coregistration with the EPI data. If two magnitude images are available, select the one acquired at the shorter echo time because it will have greater signal'};
 magnitude.filter = 'image';
 magnitude.ufilter = '.*';
 magnitude.num     = [1 1];
-
 % ---------------------------------------------------------------------
 % subj Subject
 % ---------------------------------------------------------------------
@@ -395,7 +394,7 @@ presubphasemag.prog = @fieldmap_presubphasemag;
 presubphasemag.vout = @vout;
 
 % ---------------------------------------------------------------------
-% Real and imaginary
+% 2) Real and imaginary data
 % ---------------------------------------------------------------------
 % shortreal Short Echo Real Image
 % ---------------------------------------------------------------------
@@ -460,12 +459,12 @@ realimag         = cfg_exbranch;
 realimag.tag     = 'realimag';
 realimag.name    = 'Real and Imaginary Data';
 realimag.val     = {generic };
-realimag.help    = {'Calculate a voxel displacement map (VDM) from real and imaginary field map data. This option expects two real and imaginary pairs of data of two different echo times.'};
+realimag.help    = {'Calculate a voxel displacement map (VDM) from real and imaginary field map data. This option expects two real and imaginary pairs of data of two different echo times. The phase images will be scaled between +/- PI.'};
 realimag.prog = @fieldmap_realimag;
 realimag.vout = @vout;
 
 % ---------------------------------------------------------------------
-% Phase and magnitude (4 files)
+% 3) Phase and magnitude (4 files)
 % ---------------------------------------------------------------------
 % shortphase Short Echo Phase Image
 % ---------------------------------------------------------------------
@@ -535,14 +534,14 @@ phasemag.prog = @fieldmap_phasemag;
 phasemag.vout = @vout;
 
 % ---------------------------------------------------------------------
-% Precalculated fieldmap
+% 4) Precalculated fieldmap
 % ---------------------------------------------------------------------
 % precalcfieldmap Precalculated field map
 % ---------------------------------------------------------------------
 precalcfieldmap1         = cfg_files;
 precalcfieldmap1.tag     = 'precalcfieldmap';
 precalcfieldmap1.name    = 'Precalculated field map';
-precalcfieldmap1.help    = {'Select a precalculated field map. This should be a processed field map (ie phase unwrapped, masked if necessary and scaled to Hz) , for example as generated by the FieldMap toolbox and stored as an fpm_* file.'};
+precalcfieldmap1.help    = {'Select a precalculated field map. This should be a processed field map (ie phase unwrapped, masked if necessary and scaled to Hz) , for example as generated by the FieldMap toolbox and are stored with fpm_* prefix.'};
 precalcfieldmap1.filter = 'image';
 precalcfieldmap1.ufilter = '.*';
 precalcfieldmap1.num     = [1 1];
@@ -556,7 +555,6 @@ magfieldmap.help    = {'Select magnitude image which is in the same space as the
 magfieldmap.filter = 'image';
 magfieldmap.ufilter = '.*';
 magfieldmap.num     = [0 1];
-
 % ---------------------------------------------------------------------
 % subj Subject
 % ---------------------------------------------------------------------
@@ -586,17 +584,182 @@ precalcfieldmap.prog = @fieldmap_precalcfieldmap;
 precalcfieldmap.vout = @vout;
 
 % ---------------------------------------------------------------------
+% 5) Apply vdm* file
+% ---------------------------------------------------------------------
+% scans Images
+% ---------------------------------------------------------------------
+scans         = cfg_files;
+scans.tag     = 'scans';
+scans.name    = 'Images';
+scans.help    = {
+                 'Select scans for this session. These are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced'
+                 };
+scans.filter = 'image';
+scans.ufilter = '.*';
+scans.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% vdmfile selected vdm files
+% ---------------------------------------------------------------------
+vdmfile         = cfg_files;
+vdmfile.tag     = 'vdmfile';
+vdmfile.name    = 'Fieldmap (vdm* file)';
+vdmfile.help    = {'Select VDM (voxel displacement map) for this session (e.g. created via FieldMap toolbox). This is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox).'};
+vdmfile.filter = 'image';
+vdmfile.ufilter = '.*';
+vdmfile.num     = [1 1];
+% ---------------------------------------------------------------------
+% vdmapply session Session
+% ---------------------------------------------------------------------
+data         = cfg_branch;
+data.tag     = 'data';
+data.name    = 'Session';
+data.val     = {scans vdmfile};
+data.help    = {'Data for this session.'};  
+% ---------------------------------------------------------------------
+% generic Data
+% ---------------------------------------------------------------------
+generic2         = cfg_repeat;
+generic2.tag     = 'generic2';
+generic2.name    = 'Data';
+generic2.help    = {'Subjects or sessions for which VDM file is being applied to images.'};
+generic2.values  = {data};
+generic2.num     = [1 Inf];
+
+% ---------------------------------------------------------------------
+% Reslice options for applyvdm
+% ---------------------------------------------------------------------
+% ---------------------------------------------------------------------
+% wrap Wrapping
+% ---------------------------------------------------------------------
+pedir         = cfg_menu;
+pedir.tag     = 'pedir';
+pedir.name    = 'Distortion direction';
+pedir.help    = {
+                 'In which direction are the distortions? Any single dimension can be corrected therefore input data may have been acquired with phase encode directions in Y (most typical), X or Z'};
+pedir.labels = {
+               'Posterior-Anterior (Y)'
+               'Right-Left (X)'
+               'Foot-Head (Z)'}';
+pedir.values = {[2] [1] [3]};
+pedir.def   = @(val)pm_get_defaults('pedir', val{:});
+% ---------------------------------------------------------------------
+%  Which images to reslice?
+% ---------------------------------------------------------------------
+applyvdmwhich         = cfg_menu;
+applyvdmwhich.tag     = 'which';
+applyvdmwhich.name    = 'Reslice which images ?';
+applyvdmwhich.help    = {
+                   'All Images (1..n) '
+                   '  This applies the VDM and reslices all the images. '
+                   'All Images + Mean Image '
+                   '   This applies the VDM reslices all the images and creates a mean of the resliced images.'
+}';
+applyvdmwhich.labels = {
+                  ' All Images (1..n)'
+                  ' All Images + Mean Image'
+}';
+applyvdmwhich.values = {[2 0] [2 1]};
+applyvdmwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
+% ---------------------------------------------------------------------
+% rinterp Interpolation
+% ---------------------------------------------------------------------
+rinterp         = cfg_menu;
+rinterp.tag     = 'rinterp';
+rinterp.name    = 'Interpolation';
+rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
+rinterp.labels = {
+                  'Nearest neighbour'
+                  'Trilinear'
+                  '2nd Degree B-spline '
+                  '3rd Degree B-Spline'
+                  '4th Degree B-Spline'
+                  '5th Degree B-Spline '
+                  '6th Degree B-Spline'
+                  '7th Degree B-Spline'
+}';
+rinterp.values = {0 1 2 3 4 5 6 7};
+rinterp.def    = @(val)spm_get_defaults('realign.write.interp', val{:});
+% ---------------------------------------------------------------------
+% wrap Wrapping
+% ---------------------------------------------------------------------
+wrap         = cfg_menu;
+wrap.tag     = 'wrap';
+wrap.name    = 'Wrapping';
+wrap.help    = {
+                'This indicates which directions in the volumes the values should wrap around in.  For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
+                '    No wrapping - for PET or images that have already                   been spatially transformed. Also the recommended option if                   you are not really sure.'
+                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space) etc.'
+}';
+wrap.labels = {
+               'No wrap'
+               'Wrap X'
+               'Wrap Y'
+               'Wrap X & Y'
+               'Wrap Z '
+               'Wrap X & Z'
+               'Wrap Y & Z'
+               'Wrap X, Y & Z'
+}';
+wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+               [1 1 1]};
+wrap.def    = @(val)spm_get_defaults('realign.write.wrap', val{:});
+% ---------------------------------------------------------------------
+% mask Masking
+% ---------------------------------------------------------------------
+mask         = cfg_menu;
+mask.tag     = 'mask';
+mask.name    = 'Masking';
+mask.help    = {'Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).'};
+mask.labels = {
+               'Mask images'
+               'Dont mask images'
+}';
+mask.values = {1 0};
+mask.def    = @(val)spm_get_defaults('realign.write.mask', val{:});
+% ---------------------------------------------------------------------
+% prefix Filename Prefix
+% ---------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the distortion corrected image file(s). Default prefix is ''u''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.def     = @(val)spm_get_defaults('unwarp.write.prefix', val{:});
+% ---------------------------------------------------------------------
+% applyvdmroptions Reslicing Options
+% ---------------------------------------------------------------------
+applyvdmroptions         = cfg_branch;
+applyvdmroptions.tag     = 'roptions';
+applyvdmroptions.name    = 'Reslice Options';
+applyvdmroptions.val     = {pedir applyvdmwhich rinterp wrap mask prefix };
+applyvdmroptions.help    = {'Apply VDM reslice options'};
+% ---------------------------------------------------------------------
+% applyvdm Apply vdm* file to EPI files
+% ---------------------------------------------------------------------
+applyvdm         = cfg_exbranch;
+applyvdm.tag     = 'applyvdm';
+applyvdm.name    = 'Apply VDM ';
+applyvdm.val     = {generic2 applyvdmroptions};
+applyvdm.help = {'Apply VDM (voxel displacement map) to resample voxel values in selected image(s). This allows a VDM to be applied to any images which are assumed to be already realigned (e.g. including EPI fMRI time series and DTI data).' 
+                 'The VDM can be been created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occuring as a result of magnetic susceptbility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.'                      
+                 'The selected images are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced. The VDM is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox). The resampled images are written to the input subdirectory with the same (prefixed) filename.'
+                 'e.g. The typical processing steps for fMRI time series would be 1) Realign: Estimate, 2) FieldMap to create VDM, 3) Apply VDM.'
+                 'Note that this routine is a general alternative to using the VDM in combination with Realign & Unwarp which estimates and corrects for the combined effects of static and movement-related susceptibility induced distortions. Apply VDM can be used when dynamic distortions are not (well) modelled by Realign & Unwarp (e.g. for fMRI data acquired with R->L phase-encoding direction, high field fMRI data or DTI data).'
+                 }';                
+applyvdm.prog = @fieldmap_applyvdm;
+applyvdm.vout = @vout_applyvdm;
+% ---------------------------------------------------------------------
 % fieldmap FieldMap
 % ---------------------------------------------------------------------
 fieldmap         = cfg_choice;
 fieldmap.tag     = 'fieldmap';
 fieldmap.name    = 'FieldMap';
 fieldmap.help    = {
-                    'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explantion of the theory behind the field map based unwarping, see FieldMap_principles.man. The resulting VDM files are saved with the prefix vdm and can be used in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
+                    'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explantion of the theory behind the field map based unwarping, see FieldMap_principles.man. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
                     ''
 }';
-fieldmap.values  = {presubphasemag realimag phasemag precalcfieldmap };
-
+fieldmap.values  = {presubphasemag realimag phasemag precalcfieldmap applyvdm};
 %------------------------------------------------------------------------
 function out=fieldmap_presubphasemag(job)
 for i=1:numel(job.subj),
@@ -617,7 +780,9 @@ function out=fieldmap_precalcfieldmap(job)
 for i=1:numel(job.subj),
    out(i)=FieldMap_Run(job.subj(i));
 end
-
+%------------------------------------------------------------------------
+function out=fieldmap_applyvdm(job)
+   out=FieldMap_applyvdm(job);
 %------------------------------------------------------------------------
 function dep = vout(job)
 
@@ -630,6 +795,31 @@ for k=1:numel(job.subj)
    dep(depnum).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
    depnum=depnum+1;
  end
+end;
+%------------------------------------------------------------------------
+function dep = vout_applyvdm(job)
+for k=1:numel(job.data)   
+    if job.roptions.which(1) > 0
+        cdep(1)            = cfg_dep;
+        cdep(1).sname      = sprintf('VDM corrected images (Sess %d)', k);
+        cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rfiles');
+        cdep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    end;
+    if k == 1
+        dep = cdep;
+    else
+        dep = [dep cdep];
+    end;
+end
+if ~strcmp(job.roptions.which,'<UNDEFINED>') && job.roptions.which(2),
+    if exist('dep','var')
+        dep(end+1) = cfg_dep;
+    else
+        dep = cfg_dep;
+    end;
+    dep(end).sname      = 'Mean Image';
+    dep(end).src_output = substruct('.','rmean');
+    dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 
 
