@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_run_bms_dcm.m 4229 2011-03-04 15:01:34Z maria $
 
 % input
 % -------------------------------------------------------------------------
@@ -53,7 +53,8 @@ if bma_do
         if data_se
             load(job.sess_dcm{1}(1).mod_dcm{1})
         else
-            error('Plase specify DCM.mat files to do BMA!')
+            spm('alert','Please specify DCM.mat files or model_space.mat to do BMA!','Error');
+            return
         end
     end
     
@@ -74,7 +75,8 @@ else
         disp('Loading model space')
         load(job.model_sp{1});
         if ~exist('subj','var')
-            error('Incorrect model space file! File must contain ''subj'' structure.')
+            spm('alert','Incorrect model space file! File must contain ''subj'' structure.','Error');
+            return
         end
     end
 end
@@ -118,7 +120,7 @@ else
     
     % Check if No of models > 2
     if nm < 2
-        msgbox('Please select more than one file')
+        spm('alert','Please select more than one file','Error');
         return
     end
     
@@ -215,16 +217,16 @@ else
                 failind = find(max(abs(diff(ID)),[],1) > eps);
                 if ~isempty(failind)
                     out.files{1} = [];
-                    msgbox(['Error: the models for subject ' num2str(k) ...
-                        ' session(s) ' num2str(failind) ' were not fitted to the same data.']);
+                    str_error = ['The models for subject ' num2str(k) ...
+                        ' session(s) ' num2str(failind) ' were not fitted to the same data.'];
+                    spm('alert',str_error,'Error');
                     return
                 end
             end
         else
             out.files{1} = [];
-            msgbox('Error: the number of sessions/models should be the same for all subjects!')
-            return
-            
+            spm('alert','The number of sessions/models should be the same for all subjects!','Error');
+            return         
         end
         
     end
@@ -253,8 +255,9 @@ if isfield(job.family_level,'family_file')
         m_indx  = 1:nm;
         
         if nfam ~= npart || npart == 1 || maxpart > npart
-            error('Invalid family file!')
+            spm('alert','Invalid family file!','Error');
             out.files{1} = [];
+            return
         end
     else
         do_family = 0;
@@ -285,7 +288,7 @@ else
         nmodfam = length(m_indx);
         
         if nfam ~= npart || npart == 1 || maxpart > npart || nmodfam > nm
-            error('Invalid family!')
+            spm('alert','Invalid family!','Error');
             out.files{1} = [];
             return
         end
@@ -325,7 +328,8 @@ if strcmp(method,'FFX');
                         indx  = find(family.partition==bma_fam);
                         post  = model.post(indx);
                     else
-                        error('Incorrect family for BMA!');
+                        spm('alert','Incorrect family for BMA!','Error');
+                        return
                     end
                 end
             end
@@ -349,8 +353,8 @@ if strcmp(method,'FFX');
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'ffx')
-            str = { 'Warning: existing BMS.mat file has been over-written!'};
-            msgbox(str)
+            spm('alert','Existing BMS.mat file has been over-written!',...
+                'Warning');
         end
     end
     BMS.DCM.ffx.data    = fname_msp;
@@ -412,7 +416,8 @@ else
                         indx = find(family.partition==bma_fam);
                         post = model.g_post(:,indx);
                     else
-                        error('Incorrect family for BMA!');
+                        spm('alert','Incorrect family for BMA!','Error');
+                        return
                     end
                 end
             end
@@ -435,8 +440,8 @@ else
     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
         load(fname);
         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'rfx')
-            str = { 'Warning:  existing BMS.mat file has been over-written!'};
-            msgbox(str)
+            spm('alert','Existing BMS.mat file has been over-written!',...
+                'Warning');
         end
     end
     BMS.DCM.rfx.data    = fname_msp;
