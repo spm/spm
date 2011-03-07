@@ -30,17 +30,23 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_ssr_priors.m 4232 2011-03-07 21:01:16Z karl $
  
 
 % number of LFP channels
 %--------------------------------------------------------------------------
 if size(pE.L,1) == 1, n = size(pE.L,2); else, n = 1; end
+if size(pE.C,1),      m = size(pE.C,2); else, m = 1; end
 
 % add prior on spectral density of innovations (pink and white coeficients)
 %--------------------------------------------------------------------------
 pE.a  = sparse(2,1); pC.a = sparse(2,1) + 1/8; % neuronal innovations
 pE.b  = sparse(2,1); pC.b = sparse(2,1) + 1/8; % channel noise non-specific
 pE.c  = sparse(2,n); pC.c = sparse(2,n) + 1/8; % channel noise specific
+pE.d  = sparse(8,m); pC.d = sparse(8,m) + 1/8; % neuronal innovations
+
+
+
+
 
  

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_api_erp.m 4232 2011-03-07 21:01:16Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -95,6 +95,7 @@ handles = ERP_Callback(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 % 'ERP'    - (linear second order NMM slow)
 % 'SEP'    - (linear second order NMM fast)
+% 'CMC'    - (linear second order NMM Canonical microcircuit)
 % 'LFP'    - (linear second order NMM self-inhibition)
 % 'NMM'    - (nonlinear second order NMM first-order moments)
 % 'MFM'    - (nonlinear second order NMM second-order moments)
@@ -109,10 +110,10 @@ end
 switch model
     case{'ERP'}, set(handles.model,'Value',1);
     case{'SEP'}, set(handles.model,'Value',2);
-    case{'LFP'}, set(handles.model,'Value',3);
-    case{'NMM'}, set(handles.model,'Value',4);
-    case{'MFM'}, set(handles.model,'Value',5);
-    case{'DEM'}, set(handles.model,'Value',6);
+    case{'CMC'}, set(handles.model,'Value',3);
+    case{'LFP'}, set(handles.model,'Value',4);
+    case{'NMM'}, set(handles.model,'Value',5);
+    case{'MFM'}, set(handles.model,'Value',6);
     otherwise
 end
  
@@ -1200,6 +1201,7 @@ switch handles.DCM.options.analysis
               'Coupling (C)',...
               'trial-specific effects',...
               'Input',...
+              'Transfer functions',...
               'Cross-spectra (sources)',...
               'Cross-spectra (channels)',...
               'Coherence (sources)',...

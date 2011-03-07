@@ -35,9 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 4171 2011-01-25 19:00:40Z karl $
-
-
+% $Id: spm_fx_erp.m 4232 2011-03-07 21:01:16Z karl $
 
 
 % get dimensions and configure state variables
@@ -112,7 +110,7 @@ f(:,4) = (He.*((A{1} + A{3})*S(:,9) + G(:,1).*S(:,9) + U) - 2*x(:,4) - x(:,1)./T
 % Infra-granular layer (pyramidal cells): depolarizing current
 %--------------------------------------------------------------------------
 f(:,2) = x(:,5);
-f(:,5) = (He.*((A{2} + A{3})*S(:,9) + G(:,2).*S(:,1)) - 2*x(:,5) - x(:,2)./Te)./Te;
+f(:,5) = (He.*((A{2} + A{3})*S(:,9) + G(:,2).*S(:,1) + U/8) - 2*x(:,5) - x(:,2)./Te)./Te;
 
 % Infra-granular layer (pyramidal cells): hyperpolarizing current
 %--------------------------------------------------------------------------

@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_csd_results_new.m 4232 2011-03-07 21:01:16Z karl $
  
  
 % get figure handle
@@ -329,8 +329,6 @@ case{lower('Input')}
     title('Non-specifc noise')
     axis square, grid on
     
-    
-    
 case{lower('Transfer functions')}
     
     % spm_dcm_ssr_results(DCM,'Cross-spectral density');
@@ -367,61 +365,7 @@ case{lower('Transfer functions')}
         end
     end
    
-    
-case{lower('Cross-spectra (sources)')}
-    
-    % spm_dcm_ssr_results(DCM,'Cross-spectral density');
-    %----------------------------------------------------------------------
-    co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
-    Hz   = DCM.Hz;
-    name = DCM.Sname;
-    nm   = length(name);
-    q    = max(abs(spm_vec(DCM.Hs)));
-    
-    tstr = {};
-    mstr = {};
-    for k = 1:nt
-        tstr{end + 1} = sprintf('predicted: trial %i',k);
-    end
-    for k = 1:nm
-        mstr{end + 1} = sprintf('predicted: %s',name{k});
-    end
-    
-    for i = 1:nm
-        for j = i:nm
- 
-            % for each trial type
-            %--------------------------------------------------------------
-            subplot(nm,nm,(i - 1)*nm + j),cla
-            for k = 1:nt
-                plot(Hz,abs(DCM.Hs{k}(:,i,j)),'color',co{k}), hold on
-                title(sprintf('CSD: %s to %s',name{j},name{i}))
-                xlabel('frequency Hz')
-                axis tight, set(gca,'YLim',[0 q])
-            end
-        end
- 
-        % legend
-        %------------------------------------------------------------------      
-        if i == nm && j == nm
-            legend(tstr)
-        end
-        
-        % spectral density
-        %------------------------------------------------------------------
-        subplot(2,2,3)
-        for k = 1:nt
-            plot(Hz,abs(DCM.Hs{k}(:,i,i)),'color',co{i}), hold on
-            axis tight, set(gca,'YLim',[0 q])
-        end
-    end
-   
-    title({'Spectral density over sources';'(in source-space)'},'FontSize',16)
-    xlabel('frequency (Hz)')
-    ylabel('abs(CSD)')
-    axis square
-    legend(mstr)
-    
+
     
 case{lower('Cross-spectra (channels)')}
     

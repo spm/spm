@@ -1,6 +1,6 @@
-function [E,V] = spm_erp_priors(A,B,C)
-% prior moments for a neural-mass model of ERPs
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C)
+function [E,V] = spm_cmc_priors(A,B,C)
+% prior moments for a canonical microcircuit model
+% FORMAT [pE,pC] = spm_cmc_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 %
@@ -36,10 +36,10 @@ function [E,V] = spm_erp_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_cmc_priors.m 4232 2011-03-07 21:01:16Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -57,19 +57,8 @@ u     = size(C,2);                                % number of inputs
 
 % parameters for neural-mass forward model
 %==========================================================================
-n1    = ones(n,1);
- 
-% set intrinsic [excitatory] time constants
-%--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/16;              % time constants
-E.H   = log(n1);        V.H = n1/32;              % synaptic density
 
-% set parameter of activation function
-%--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/16;           % dispersion & threshold
- 
- 
-% set extrinsic connectivity
+% extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
@@ -88,16 +77,18 @@ end
 C      = ~~C;
 E.C    = C*32 - 32;                               % where inputs enter
 V.C    = C/32;
- 
-% set intrinsic connectivity
-%--------------------------------------------------------------------------
-E.G    = sparse(1,4);
-V.G    = sparse(1,4) + 1/16;
 
-% set delay
+
+% synaptic parameters
 %--------------------------------------------------------------------------
-E.D    = sparse(n,n);
-V.D    = Q/16;
+Q    = Q + speye(n,n);                            % allow intrinsic delays
+E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
+E.H  = sparse(n,1);   V.H  = sparse(n,1) + 1/16;  % synaptic density
+E.G  = sparse(n,4);   V.G  = sparse(n,4) + 1/16;  % intrinsic connectivity
+E.D  = sparse(n,n);   V.D  = Q/16;                % delay
+E.S  = 0;             V.S  = 1/16;                % slope of sigmoid
+
+
  
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------

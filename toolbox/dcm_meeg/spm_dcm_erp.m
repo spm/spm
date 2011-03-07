@@ -20,14 +20,14 @@ function DCM = spm_dcm_erp(DCM)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.Nmodes       - number of spatial models to invert
 %   options.analysis     - 'ERP', 'SSR' or 'IND'
-%   options.model        - 'ERP', 'SEP', NMM or 'MFM'
+%   options.model        - 'ERP', 'SEP', 'CMC', 'NMM' or 'MFM'
 %   options.spatial      - 'ERP', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4211 2011-02-23 16:00:02Z vladimir $
+% $Id: spm_dcm_erp.m 4232 2011-03-07 21:01:16Z karl $
 
 % check options
 %==========================================================================

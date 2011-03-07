@@ -1,6 +1,6 @@
-function [y,w] = spm_csd_mtf(P,M,U)
+function [y,w,s] = spm_csd_mtf(P,M,U)
 % Spectral response of a NMM (transfer function x noise spectrum)
-% FORMAT [G,w] = spm_csd_mtf(P,M,U)
+% FORMAT [y,w,s] = spm_csd_mtf(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
@@ -9,17 +9,18 @@ function [y,w] = spm_csd_mtf(P,M,U)
 % G - {G(N,nc,nc}} - cross-spectral density for nc channels {trials}
 %                  - for N frequencies in M.Hz [default 1:64Hz]
 % w - frequencies
+% s - directed transfer functions (complex)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4095 2010-10-22 19:37:51Z karl $
-
-
+% $Id: spm_csd_mtf.m 4232 2011-03-07 21:01:16Z karl $
+ 
+ 
 % compute log-spectral density
 %==========================================================================
-
+ 
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
@@ -31,14 +32,19 @@ catch
     dt = 1/N;
     If = 1:N/2;
 end
-f    = [1:N/2]';
-w    = f(If);
-
-% exogenous (neuronal) inputs
+f    = [1:N/2]';                         % frequencies
+w    = f(If);                            % frequencies selected
+W    = [0 1:N/2 -(N/2 - 1):-1]';         % frequencies of Fourier transform
+W    = conj(2*pi*sqrt(-1)*W);            % radial frequencies
+ 
+% number of channels and exogenous (neuronal) inputs
 %--------------------------------------------------------------------------
-M.u  = sparse(M.m,1);
-
-% solve for fixed point (i.e., 64ms burn in)
+nc   = size(spm_lx_erp(P,M),1);
+nu   = M.m;
+M.u  = sparse(nu,1);
+ 
+ 
+% solve for fixed point (with 64 ms burn in)
 %--------------------------------------------------------------------------
 S    = M;
 S.g  = {};
@@ -47,39 +53,25 @@ V.dt = 8/1000;
 x    = spm_int_L(P,S,V);
 x    = spm_unvec(x(end,:),S.x);
 M.x  = x;
-
-% get delay operator
+ 
+% spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
-try
-    [fx dfdx D] = feval(M.f,M.x,M.u,P,M);
-catch
-    D = 1;
-end
-
-% spectrum of innovations (Gu)
-%--------------------------------------------------------------------------
-AR   = f.^-1;                                     % pink component
-ID   = f.^0;                                      % white component
-Gu   = AR*exp(P.a(1))   + ID*exp(P.a(2))/4;       % neuronal innovations
-Gn   = AR*exp(P.b(1))   + ID*exp(P.b(2))/8;       % channel noise (non-specific)
-Gs   = AR*exp(P.c(1,:)) + ID*exp(P.c(2,:))/8;     % channel noise (specific)
-
-
-
+[Gu,Gs,Gn] = spm_csd_mtf_gu(P,M);
+ 
+ 
 % trial-specific effects
 %==========================================================================
 try, X = U.X; catch, X = sparse(1,0); end
-
-
+ 
+ 
 % cycle over trials
 %--------------------------------------------------------------------------
-GS     = 0;
 for  c = 1:size(X,1)
-
-    % basline parameters
+ 
+    % baseline parameters
     %----------------------------------------------------------------------
     Q  = P;
-
+ 
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
@@ -92,78 +84,78 @@ for  c = 1:size(X,1)
             Q.G = Q.G + X(c,i)*diag(P.B{i});
         end
     end
-
-    % augment and bi-linearise (with delays)
-    %----------------------------------------------------------------------
-    [M0,M1,L] = spm_bireduce(M,Q,D);
-
-    % project onto spatial modes
+ 
+    % get (extrinsic) delays and (intrinsic) delay operator
     %----------------------------------------------------------------------
     try
-        L = M.U'*L;
+        Q.D         = diag(diag(P.D) + 32) - 32;
+        [fx dfdx D] = feval(M.f,M.x,M.u,Q,M);
+        d           = 16*exp(P.D)/1000;
+        d           = d - diag(diag(d));
+    catch
+        D           = 1;                        % intrinsic delays
+        d           = sparse(nc,nc);            % extrinsic delays
     end
-
-    % compute modulation transfer function using FFT of the kernels
+    
+ 
+    % augment and bi-linearise (with intrinsic delays)
+    %----------------------------------------------------------------------
+    [M0,M1,L] = spm_bireduce(M,Q,D);
+ 
+    % project onto spatial modes
+    %----------------------------------------------------------------------
+    try,    L = M.U'*L;   end
+ 
+    % kernels
     %----------------------------------------------------------------------
     [K0,K1]   = spm_kernels(M0,M1,L,N,dt);
-
-
-    % [cross]-spectral density
+ 
+    % Transfer functions (FFT of kernel)
     %----------------------------------------------------------------------
-    [N,nc,nu] = size(K1);
-    G     = zeros(N/2,nc,nc);
-    for i = 1:nc
-        for j = i:nc
+    S   = fft(K1);
 
-            % cross-spectral density from neuronal interactions
-            %--------------------------------------------------------------
+ 
+    % [cross]-spectral density from neuronal innovations
+    %----------------------------------------------------------------------
+    G     = zeros(N/2,nc,nc);  
+    for i = 1:nc
+        for j = 1:nc
             for k = 1:nu
-                Si       = fft(K1(:,i,k));
-                Sj       = fft(K1(:,j,k));
+                Si       = S(:,i,k).*exp(W*d(i,k));
+                Sj       = S(:,j,k).*exp(W*d(j,k));
                 Gij      = Si.*conj(Sj);
-                Gij      = Gij([1:N/2] + 1).*Gu;
+                Gij      = Gij((1:N/2) + 1).*Gu(:,k);
                 G(:,i,j) = G(:,i,j) + Gij;
             end
-
-        end        
+        end
     end
-
+    
     % save trial-specific frequencies of interest
     %----------------------------------------------------------------------
     y{c} = G(If,:,:);
-
+    s{c} = S(If,:,:);
+ 
 end
-
+ 
 % and add channel noise
 %--------------------------------------------------------------------------
+sc     = norm(abs(spm_vec(y)))*4;
+Gs    = Gs*sc;
+Gn    = Gn*sc;
 for c = 1:length(y)
     G     = y{c};
     for i = 1:nc
-        for j = i:nc
-
-            % cross-spectral density from common channel noise
-            %--------------------------------------------------------------
-            G(:,i,j) = G(:,i,j) + Gn(If);
-            
-            % and channel specific noise
-            %--------------------------------------------------------------
-            if i == j
-                try
-                    G(:,i,i) = G(:,i,i) + Gs(If,i);
-                catch
-                    G(:,i,i) = G(:,i,i) + Gs(If,1);
-                end
-            else
-                
-                % fill in lower half of CSD matrix
-                %----------------------------------------------------------
-                G(:,j,i) = conj(G(:,i,j));
-                
-            end
+        
+        % channel specific noise
+        %------------------------------------------------------------------
+        G(:,i,i) = G(:,i,i) + Gs(If,i);
+        
+        % and cross-spectral density from common channel noise
+        %------------------------------------------------------------------
+        for j = 1:nc
+            G(:,i,j) = G(:,i,j) + Gn(If);          
         end
     end
     y{c} = G;
 end
-    
-
 

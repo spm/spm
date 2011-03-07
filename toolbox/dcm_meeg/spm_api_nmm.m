@@ -227,6 +227,7 @@ end
 %--------------------------------------------------------------------------
 % 'ERP'    - (linear second order NMM slow)
 % 'SEP'    - (linear second order NMM fast)
+% 'CMC'    - (linear second order NMM Canonical microcircuit)
 % 'LFP'    - (linear second order NMM self-inhibition)
 % 'NMM'    - (nonlinear second order NMM first-order moments)
 % 'MFM'    - (nonlinear second order NMM second-order moments)
@@ -240,9 +241,10 @@ end
 switch model
     case{'ERP'}, set(handles.model,'Value',1);
     case{'SEP'}, set(handles.model,'Value',2);
-    case{'LFP'}, set(handles.model,'Value',3);
-    case{'NMM'}, set(handles.model,'Value',4);
-    case{'MFM'}, set(handles.model,'Value',5);
+    case{'CMC'}, set(handles.model,'Value',3);
+    case{'LFP'}, set(handles.model,'Value',4);
+    case{'NMM'}, set(handles.model,'Value',5);
+    case{'MFM'}, set(handles.model,'Value',6);
     otherwise
 end
 

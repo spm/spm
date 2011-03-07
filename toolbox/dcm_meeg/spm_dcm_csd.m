@@ -18,21 +18,21 @@ function DCM = spm_dcm_csd(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
-%   options.spatial      - 'ECD', 'LFP' or 'IMG'       (see spm_erp_L)
-%   options.model        - 'ECD', 'SEP', 'NMM' or 'MFM'
+%   options.spatial      - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
+%   options.model        - 'ERP', 'SEP', 'CMC', 'LFP', 'NMM' or 'MFM'
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_dcm_csd.m 4191 2011-02-03 13:30:02Z guillaume $
-
-
+% $Id: spm_dcm_csd.m 4232 2011-03-07 21:01:16Z karl $
+ 
+ 
 % check options
 %==========================================================================
 drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
-
+ 
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                      catch, DCM.name = name;      end
@@ -40,31 +40,31 @@ try, DCM.name;                      catch, DCM.name = 'DCM_SSR'; end
 try, model   = DCM.options.model;   catch, model    = 'NMM';     end
 try, spatial = DCM.options.spatial; catch, spatial  = 'LFP';     end
 try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
-
+ 
 % Spatial model
 %==========================================================================
 DCM.options.Nmodes = Nm;
-
+ 
 DCM  = spm_dcm_erp_dipfit(DCM, 1);
 Ns   = size(DCM.C,1);                                   % number of sources
 Nc   = DCM.M.dipfit.Nc;
 DCM  = spm_dcm_erp_data(DCM);
 DCM.M.dipfit.model = model;
-
-
+ 
+ 
 % Neural mass model
 %==========================================================================
-
+ 
 % prior moments on parameters
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
-
+ 
 % reduce prior conduction delays for LFP spatial models
 %--------------------------------------------------------------------------
 if strcmpi(spatial,'LFP')
     DCM.M.Pf.D = [2 16];
 end
-
+ 
 % check to see if neuronal priors have already been specified
 %--------------------------------------------------------------------------
 try
@@ -73,23 +73,23 @@ try
         fprintf('Using existing priors\n')
     end
 end
-
+ 
 % augment with priors on spatial model
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_L_priors(DCM.M.dipfit,pE,pC);
-
+ 
 % augment with priors on endogenous inputs (neuronal) and noise
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_ssr_priors(pE,pC);
-
+ 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]    = spm_dcm_x_neural(pE,model);
-
+ 
 % create DCM
 %--------------------------------------------------------------------------
 DCM.M.IS = 'spm_csd_mtf';
-DCM.M.FS = 'spm_lfp_sqrt';
+DCM.M.FS = [];
 DCM.M.g  = 'spm_gx_erp';
 DCM.M.f  = f;
 DCM.M.x  = x;
@@ -99,10 +99,10 @@ DCM.M.pC = pC;
 DCM.M.hE = 4;
 DCM.M.hC = 1/128;
 DCM.M.m  = Ns;
-
+ 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
-
+ 
 % Spatial modes
 %--------------------------------------------------------------------------
 if Nc < Nm
@@ -117,12 +117,12 @@ else
     end
     DCM.M.U = U;
 end
-
-% get data-features (in reduced eigen-space)
+ 
+% get data-features (in reduced eigenspace)
 %--------------------------------------------------------------------------
 DCM       = spm_dcm_csd_data(DCM);
-
-
+ 
+ 
 % complete model specification and invert
 %==========================================================================
 Nm        = size(DCM.M.U,2);                    % number of spatial modes
@@ -130,72 +130,72 @@ Nt        = size(DCM.xY.y,1);                   % number of trials
 Nf        = size(DCM.xY.y{1},1);                % number of frequency bins
 DCM.M.l   = Nm;
 DCM.M.Hz  = DCM.xY.Hz;
-
+ 
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
 DCM.xY.Q  = spm_Q(1/2,Nf,1);
 DCM.xY.X0 = sparse(Nf,0);
-
-% adjust gain to accomodate scaling differences among models
+ 
+% adjust gain to accommodate scaling differences among models
 %--------------------------------------------------------------------------
-Y         = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
-DCM.M.U   = U*sqrt(norm(abs(spm_vec(DCM.xY.y)),'inf')/norm(abs(spm_vec(Y,'inf'))));
-
-% adjust priors
-%--------------------------------------------------------------------------
-DCM.M.P   = spm_dcm_csd_priors(DCM.M,DCM.xU,DCM.xY);
+for i = 1:4
+    Y       = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
+    scale   = sqrt(norm(abs(spm_vec(DCM.xY.y)))/norm(abs(spm_vec(Y))));
+    DCM.M.U = DCM.M.U*scale;
+end
 
 % EM: inversion
 %--------------------------------------------------------------------------
 [Qp,Cp,Ce,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
-
+ 
 % Data ID
 %==========================================================================
-if isfield(DCM.M,'FS')
+try
     try
         ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
     catch
         ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y));
     end
-else
+catch
     ID  = spm_data_id(DCM.xY.y);
 end
-
-
-% Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
+ 
+ 
+% Bayesian inference {threshold = prior} NB Prior on A,B and C = exp(0) = 1
 %==========================================================================
 warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning('on', 'SPM:negativeVariance');
-
-
+ 
+ 
 % predictions (csd) and error (sensor space)
 %--------------------------------------------------------------------------
 Hc  = spm_csd_mtf(Qp,DCM.M,DCM.xU);                      % prediction
 Ec  = spm_unvec(spm_vec(DCM.xY.y) - spm_vec(Hc),Hc);     % prediction error
-
-
+ 
+ 
 % predictions (source space - cf, a LFP from virtual electrode)
 %--------------------------------------------------------------------------
 M             = DCM.M;    
 M.dipfit.type = 'LFP';
-
+ 
 qp        = Qp;
 qp.L      = sparse(1,Ns);      % set virtual electrode gain to unity
 qp.b      = qp.b - 32;         % and suppress non-specific and
 qp.c      = qp.c - 32;         % specific channel noise
-Hs        = spm_csd_mtf(qp,M,DCM.xU);
 
-[ccf pst] = spm_csd2ccf(Hs,DCM.M.Hz);
-[coh fsd] = spm_csd2coh(Hs,DCM.M.Hz);
-DCM.ccf   = ccf;
-DCM.coh   = coh;
-DCM.fsd   = fsd;
-DCM.pst   = pst;
-DCM.Hz    = DCM.M.Hz;
+[Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU);
+[ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz);
+[coh fsd]   = spm_csd2coh(Hs,DCM.M.Hz);
+DCM.dtf  = dtf;
+DCM.ccf  = ccf;
+DCM.coh  = coh;
+DCM.fsd  = fsd;
+DCM.pst  = pst;
+DCM.Hz   = Hz;
 
-
+ 
 % store estimates in DCM
 %--------------------------------------------------------------------------
 DCM.Ep = Qp;                   % conditional expectation
@@ -207,11 +207,11 @@ DCM.Hs = Hs;                   % conditional responses (y), source space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 DCM.ID = ID;                   % data ID
-
+ 
 % and save
 %--------------------------------------------------------------------------
 DCM.options.Nmodes = Nm;
-
+ 
 if spm_check_version('matlab','7') >= 0
     save(DCM.name, '-V6', 'DCM');
 else
