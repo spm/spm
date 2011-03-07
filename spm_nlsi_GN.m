@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_nlsi_GN.m 4230 2011-03-07 20:58:38Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -115,24 +115,24 @@ end
  
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
-if isfield(M,'FS')
+try
     
-    % FS(y,M)
+    % try FS(y,M)
     %----------------------------------------------------------------------
     try
         y  = feval(M.FS,Y.y,M);
         IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
         
-    % FS(y,M)
+    % try FS(y)
     %----------------------------------------------------------------------
     catch
         y  = feval(M.FS,Y.y);
         IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
- 
     end
-else
     
-    % FS(y) = y
+catch
+    
+    % otherwise FS(y) = y
     %----------------------------------------------------------------------
     y   = Y.y;
     IS  = inline([M.IS '(P,M,U)'],'P','M','U');
@@ -264,7 +264,7 @@ Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 criterion = [0 0 0 0];
 
 C.F   = -Inf;                                   % free energy
-v     = -4;                                     % log ascent rate
+v     = -2;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 for k = 1:64

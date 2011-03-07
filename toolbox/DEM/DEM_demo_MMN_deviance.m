@@ -26,7 +26,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_deviance.m 4187 2011-02-01 20:13:57Z karl $
+% $Id: DEM_demo_MMN_deviance.m 4230 2011-03-07 20:58:38Z karl $
  
  
 % Create the generative model
@@ -44,11 +44,12 @@ M(1).pE = P;                                 % The prior expectation
 M(1).x  = zeros(3,1);                        % hidden states
 M(1).V  = exp(4);                            % precision (data)
 M(1).W  = exp(4);                            % precision (motion)
+M(1).xP = exp(-4);                           % precision on states
  
 % level 2
 %--------------------------------------------------------------------------
 M(2).v  = zeros(2,1);                        % hidden causes
-M(2).V  = diag(exp([2,2]));                  % precision
+M(2).V  = diag(exp([2,0]));                  % precision
  
  
 % Create hidden causes that determine amplitude and pitch
@@ -57,7 +58,7 @@ N       = 64;                                % length of data sequence
 dt      = 0.005;                             % time bin (sec)
 T       = N*dt;                              % duration of chirp (sec)
 pst     = [1:N]*dt*1000;                     % time bin (ms)
-C       = exp(-([1:N] - 20).^2/(4.^2));      % amplitude
+C       = exp(-([1:N] - 20).^2/(8.^2));      % amplitude
 U       = [C; (zeros(1,N))];                 % pitch
  
  
@@ -68,7 +69,7 @@ spm_figure('GetWin','Figure 1');
 M(1).E.s = 1;                                % temporal smoothness
  
 DEM   = {};
-D     = [0 0.9 1.1 1.3 1.5];
+D     = [0 0.75 1 1.25 1.5];
 n     = length(D);
 for i = 1:n
     
@@ -124,7 +125,7 @@ xlabel('prestimulus time (ms)','FontSize',12)
 spm_figure('GetWin','DEM');
     
 DEM   = {};
-D     = 2*([0:4] - 4);
+D     = [0:4] - 4;
 n     = length(D);
 for i = 1:n
     

@@ -36,7 +36,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_bireduce.m 4230 2011-03-07 20:58:38Z karl $
 
 
 % set up
@@ -114,7 +114,7 @@ try
     fung = fcnchk(M.g,'x','u','P','M');
 catch
     M.g  = inline('spm_vec(x)','x','u','P','M');
-    M.l  = M.n;
+    M.l  = n;
     fung = fcnchk(M.g,'x','u','P','M');
 end
 

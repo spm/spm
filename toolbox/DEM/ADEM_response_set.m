@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: ADEM_response_set.m 4230 2011-03-07 20:58:38Z karl $
  
  
 % hidden causes and states
@@ -44,83 +44,81 @@
 %
 % g    - sensations:
 %   g.o  - motor angle (proprioception)
-%   g.p  - finger location (visual)
-%   g.c  - target contrast (visual)
+%   g.p  - target locations (visual) - intrinsic coordinates (polar)
+%   g.c  - target contrast  (visual)
 %--------------------------------------------------------------------------
  
 clear
  
 % parameters mapping from (unstable) point attractors to visual space
 %--------------------------------------------------------------------------
-P.x    = [-1  1  1 -1;                       % target locations (extrinsic)
+P      = [-1  1  1 -1;                       % target locations (extrinsic)
           -1 -1  1  1];
  
-P.s    = 1;                                  % softmax parameter
-n      = size(P.x,2);                        % number of attractors
+n      = size(P,2);                          % number of attractors
 N      = 128;                                % length of data sequence
- 
-% hidden states (M)
-%--------------------------------------------------------------------------
-x.o    = sparse(2,1);                        % finger location
-x.a    = sparse(n,1) - 4;                    % attractor (SHC) states
-x.a(4) = 0;
- 
  
 % Recognition model
 %==========================================================================
 M(1).E.s = 1;                                % smoothness
 M(1).E.n = 3;                                % order of 
 M(1).E.d = 2;                                % generalised motion
- 
- 
-% precisions: sensory input
+
+% precisions (sensory)
 %--------------------------------------------------------------------------
-V.o = exp(4) + sparse(2,1);                  % motor (proprioceptive)
-V.p = exp(4) + sparse(2,1);                  % target locations (visual)
-V.c = exp(4) + sparse(n,1);                  % target contrast (visual)
- 
- 
+V.o     = exp(8)  + sparse(2,1);
+V.p     = exp(8)  + sparse(2,1);
+V.c     = exp(8)  + sparse(n,1);
+
+
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(1).f  = 'spm_fx_dem_cue';                  % plant dynamics
-M(1).g  = 'spm_gx_dem_cue';                  % prediction
+M(1).f  = inline('(P*v - tan(x))/4', 'x', 'v', 'P');
+M(1).g  = inline('[x; tan(x); exp(-sum((P - tan(x)*ones(1,size(P,2))).^2)/2)'']', 'x', 'v', 'P');
 M(1).pE = P;                                 % target locations
-M(1).x  = x;                                 % hidden states
+M(1).x  = [0; 0];                            % hidden states (movement)
 M(1).V  = diag(spm_vec(V));                  % error precision
-M(1).W  = exp(4);                            % error precision
- 
-% level 2
+M(1).W  = exp(8);                            % error precision
+
+
+% level 2: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(2).f  = inline('spm_lotka_volterra(x,1/16)', 'x', 'v', 'P');
-M(2).g  = inline('spm_softmax(x)',             'x', 'v', 'P');
- 
-M(2).x  = [2; -2];                           % hidden states
-M(2).v  = [1;  0];                           % hidden causes
-M(2).V  = exp(4);                            % error precision
+M(2).f  = inline('spm_lotka_volterra(x,v(1)/2)', 'x', 'v', 'P');
+M(2).g  = inline('spm_softmax(x,2)',             'x', 'v', 'P');
+M(2).pE = P;                                 % target locations
+M(2).x  = [0; -1; -6; 2];                    % hidden states (affordance)
+M(2).V  = exp(6);                            % error precision
 M(2).W  = exp(4);                            % error precision
+M(2).xP = exp(0);
+
+ 
+% level 3
+%--------------------------------------------------------------------------
+M(3).f  = inline('spm_lotka_volterra(x,1/64)', 'x', 'v', 'P');
+M(3).g  = inline('spm_softmax(x)',             'x', 'v', 'P');
+ 
+M(3).x  = [2; -2];                           % hidden states (set)
+M(3).V  = exp(2);                            % error precision
+M(3).W  = exp(0);                            % error precision
+
  
 % generative model
 %==========================================================================
- 
-% hidden states (G)
-%--------------------------------------------------------------------------
-x.o = [0;0];                                 % finger location
-x.a = sparse(n,1);                           % attractor (SHC) states
- 
+
 % first level
 %--------------------------------------------------------------------------
-G(1).f  = 'spm_fx_adem_cue';
-G(1).g  = 'spm_gx_adem_cue';
-G(1).pE = P.x;
-G(1).x  = x;                                 % hidden states
+G(1).f  = inline('tanh(a) - x/8',  'x', 'v', 'a', 'P');
+G(1).g  = inline('[x; tan(x); v]', 'x', 'v', 'a', 'P');
+G(1).pE = P;
+G(1).x  = [0; 0];                            % hidden states (movement)
 G(1).V  = exp(16);                           % error precision
 G(1).W  = exp(16);                           % error precision
  
  
 % second level
 %--------------------------------------------------------------------------
-G(2).v  = sparse(n,1);                       % exogenous cues
-G(2).a  = [0; 0];                            % action forces
+G(2).v  = sparse(n,1);                       % exogenous cues (salience)
+G(2).a  = [0; 0];                            % action
 G(2).V  = exp(16);
  
 % Create cues
@@ -140,52 +138,40 @@ end
 DEM.G = G;
 DEM.M = M;
 DEM.C = C;
- 
-D     = 2 + (1:6)/2;            
+
+
+DEM   = spm_ADEM(DEM)
+subplot(4,2,7)
+%spm_dem_set_movie(DEM)
+return
+
+
+% graphics
+%----------------------------------------------------------------------
+[on,rt,ac] = spm_ADEM_set_rt(DEM);
+
+subplot(2,1,1), hold on
+plot(on,rt,'r:',on,rt,'r.','MarkerSize',24)
+xlabel('cue onset (sec)','FontSize',12)
+ylabel('milliseconds','FontSize',12)
+title('reaction times','FontSize',16)
+axis square, box off, hold off
+
+
+
+
+% set precision of salience or affordance
+%--------------------------------------------------------------------------
+D     = (-3:3)/2;
+D     = -2:2; 
 for i = 1:length(D)
  
- 
-    % set precision of salience or affordance - V.c
-    %----------------------------------------------------------------------
     ADEM{i}        = DEM;
-    V.c            = exp(D(i)) + sparse(n,1);
-    ADEM{i}.M(1).V = diag(spm_vec(V));
-    
-    % solve
-    %----------------------------------------------------------------------
-    ADEM{i}        = spm_ADEM(ADEM{i});
+    ADEM{i}.M(3).V = ADEM{i}.M(3).V*exp(D(i));
+    ADEM{i}        = spm_ADEM(ADEM{i});   
     
 end
- 
- 
- 
-% dynamics and movies
-%==========================================================================
- 
-% normal
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
-spm_DEM_qU(ADEM{6}.qU)
- 
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{6})
- 
-% delayed set switching
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
-spm_DEM_qU(ADEM{3}.qU)
- 
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{3})
- 
-% failure to switch set
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3');
-spm_DEM_qU(ADEM{2}.qU)
- 
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{2})
- 
+
  
 % reaction times and accuracy
 %==========================================================================
@@ -196,7 +182,7 @@ for i = 1:length(C)
  
     % get behavioral performance
     %----------------------------------------------------------------------
-    [on,rt,ac] = spm_ADEM_cue_rt(ADEM{i});
+    [on,rt,ac] = spm_ADEM_set_rt(ADEM{i});
  
     % graphics
     %----------------------------------------------------------------------
@@ -212,16 +198,44 @@ for i = 1:length(C)
     xlabel('cue onset (sec)','FontSize',12)
     ylabel('inverse distance','FontSize',12)
     title('spatial error','FontSize',16)
-    axis square, box off, hold off
-    drawnow
+    axis square, box off, , hold off, drawnow
  
 end
+
+return
  
+% dynamics and movies
+%==========================================================================
  
+% normal
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
+spm_DEM_qU(ADEM{6}.qU)
+ 
+subplot(3,2,5)
+spm_dem_set_movie(ADEM{6})
+ 
+% delayed set switching
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2');
+spm_DEM_qU(ADEM{3}.qU)
+ 
+subplot(3,2,5)
+spm_dem_set_movie(ADEM{3})
+ 
+% failure to switch set
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 3');
+spm_DEM_qU(ADEM{2}.qU)
+ 
+subplot(3,2,5)
+spm_dem_set_movie(ADEM{2})
+
+
 % demonstrate autonomous movement (by removing salient information)
 %==========================================================================
 DEM        = DEM;
-V.c        = exp(-2) + sparse(n,1);
+V.c        = exp(0) + sparse(n,1);
 DEM.M(1).V = diag(spm_vec(V));
 DEM        = spm_ADEM(DEM);
  
@@ -231,4 +245,4 @@ spm_figure('GetWin','DEM');
 spm_DEM_qU(DEM.qU)
  
 subplot(3,2,5)
-spm_dem_cue_movie(DEM)
+spm_dem_set_movie(DEM)

@@ -3,24 +3,15 @@ function [f]= spm_fx_adem_cue(x,v,a,P)
 % FORMAT [f]= spm_fx_adem_cue(x,v,a,P)
 %
 % x    - hidden states:
-%   x.o  - oculomotor angle
-%   x.a  - target contrast
+%   x.o  - motor angle
 %
 % v    - hidden causes
-%
-% P    - parameters 
-%  P.x   - target locations - extrinsic coordinates (Cartesian)
-%
-% g    - sensations:
-%   g.o  - oculomotor angle (proprioception)
-%   g.p  - target locations (visual) - intrinsic coordinates (polar)
-%   g.c  - target contrast
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_cue.m 4187 2011-02-01 20:13:57Z karl $
+% $Id: spm_fx_adem_cue.m 4230 2011-03-07 20:58:38Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
@@ -32,4 +23,4 @@ f.o  = tanh(a) - x.o/8;
 
 % motion of target contrast
 %==========================================================================
-f.a  = spm_lotka_volterra(x.a,v);
+f.a  = v - x.a;

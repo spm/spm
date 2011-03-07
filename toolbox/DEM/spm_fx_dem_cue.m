@@ -3,19 +3,17 @@ function [f]= spm_fx_dem_cue(x,v,P)
 % FORMAT [f]= spm_fx_dem_cue(x,v,P)
 %
 % x    - hidden states:
-%   x.o  - oculomotor angle
-%   x.x  - target locations (visual) - extrinsic coordinates (Cartesian)
-%   x.a  - target contrast (attractiveness)
+%   x.o  - intrinsic motor state (proprioceptive)
+%   x.a  - target salience (attractiveness)
 %
 % v    - hidden causes
 %
-% P    - parameters 
-%
+% P.x  - target locations (visual) - extrinsic coordinates (Cartesian)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_cue.m 4187 2011-02-01 20:13:57Z karl $
+% $Id: spm_fx_dem_cue.m 4230 2011-03-07 20:58:38Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
@@ -26,16 +24,11 @@ f    = x;
 
 % target location is determined by the attractor state softmax(x.a)
 %--------------------------------------------------------------------------
-t    = x.x*spm_softmax(x.a,2);
-f.o  = (atan(t) - x.o)/2;
-
-% motion of location states
-%==========================================================================
-f.x  = sparse(size(x.x,1),size(x.x,2));
+t    = P.x*spm_softmax(x.a,P.s);
+f.o  = (t - tan(x.o))/2;
 
 % motion of attractor states
 %==========================================================================
-f.a  = spm_lotka_volterra(x.a,v(1));
-
+f.a  = spm_lotka_volterra(x.a,1/2*v(1));
 
 

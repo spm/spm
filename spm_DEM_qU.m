@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4187 2011-02-01 20:13:57Z karl $
+% $Id: spm_DEM_qU.m 4230 2011-03-07 20:58:38Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -30,9 +30,6 @@ end
 try
     pV = pU.v;
     pX = pU.x;
-end
-try
-    pA = qU.a;
 end
  
 % time-series specification
@@ -141,11 +138,6 @@ for i = 1:g
                 plot(t,pV{i},':k','linewidth',1),box off
             end
             hold off
-            try
-                hold on
-                plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0]),box off
-            end
-            hold off
         end
         xlabel('time','FontSize',14)
         axis square
@@ -196,14 +188,16 @@ end
 %--------------------------------------------------------------------------
 if isfield(qU,'a')
     subplot(g,2,2*g)
-    plot(t,qU.a{2});
+    plot(t,qU.a{end});
+    str = 'action';
     try
         hold on
         plot(t,pU.v{2},':b','Linewidth',2),box off
+        str = 'perturbation and action';
     end
     hold off
     xlabel('time','Fontsize',14)
-    title('perturbation and action','Fontsize',16)
+    title(str,'Fontsize',16)
     axis square
     set(gca,'XLim',[t(1) t(end)])
     box off

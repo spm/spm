@@ -38,6 +38,8 @@ function [DEM] = spm_ADEM(DEM)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
 %   M(i).xP = precision (states)
+%   
+%   M(1).Ra = indices of prediction errors driving action
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i)
@@ -112,7 +114,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 4187 2011-02-01 20:13:57Z karl $
+% $Id: spm_ADEM.m 4230 2011-03-07 20:58:38Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
