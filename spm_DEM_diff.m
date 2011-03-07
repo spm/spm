@@ -17,7 +17,7 @@ function [u dg df] = spm_DEM_diff(M,u)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_DEM_diff.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: spm_DEM_diff.m 4233 2011-03-07 21:08:28Z karl $
 
 % Check for action (ADEM)
 %==========================================================================
@@ -73,7 +73,7 @@ wi    = spm_unvec(u.w{1},{M.x});
  
 % Derivatives for Jacobian
 %==========================================================================
-vi{nl} = zi{nl};
+vi{nl} = vi{nl} + zi{nl};
 for  i = (nl - 1):-1:1
  
     
