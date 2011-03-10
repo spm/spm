@@ -66,7 +66,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_sourcedescriptives.m 3086 2011-03-10 15:10:04Z jansch $
 
 ft_defaults
 
@@ -89,6 +89,14 @@ if ~isfield(cfg, 'keepcsd'),          cfg.keepcsd          = 'no';          end
 if ~isfield(cfg, 'fixedori'),         cfg.fixedori = 'over_trials';         end
 if ~isfield(cfg, 'inputfile'),        cfg.inputfile        = [];            end
 if ~isfield(cfg, 'outputfile'),       cfg.outputfile       = [];            end
+
+% only works for minimumnormestimate
+if ~isfield(cfg, 'demean'),         cfg.demean         = 'yes';    end
+if ~isfield(cfg, 'baselinewindow'), cfg.baselinewindow = [-inf 0]; end 
+if ~isfield(cfg, 'zscore'),         cfg.zscore         = 'yes';    end
+
+zscore = strcmp(cfg.zscore, 'yes');
+demean = strcmp(cfg.demean, 'yes');
 
 hasdata = (nargin>1);
 if ~isempty(cfg.inputfile)
@@ -114,8 +122,9 @@ end
 
 % determine the type of data, this is only relevant for a few specific types
 ispccdata = isfield(source, 'avg') && isfield(source.avg, 'csdlabel');
-islcmvavg = isfield(source, 'avg') && isfield(source, 'time') && isfield(source.avg, 'mom');
+islcmvavg = isfield(source, 'avg') && isfield(source, 'time') && isfield(source.avg, 'mom') && size(source.avg.pow, 2)==1;
 islcmvtrl = isfield(source, 'trial') && isfield(source, 'time') && isfield(source.trial, 'mom');
+ismneavg = isfield(source, 'avg') && isfield(source, 'time') && isfield(source.avg, 'mom') && size(source.avg.pow, 2)==numel(source.time);
 
 % check the consistency of the defaults
 if strcmp(cfg.projectmom, 'yes')
@@ -473,6 +482,75 @@ if ispccdata
       source.avg = rmfield(source.avg, 'noisecsd');
     end
   end
+
+elseif ismneavg
+  %the source reconstruction was computed using the minimumnormestimate and contains an average timecourse
+  if demean
+    begsmp = nearest(source.time, cfg.baselinewindow(1));
+    endsmp = nearest(source.time, cfg.baselinewindow(2));
+    ft_progress('init', cfg.feedback, 'baseline correcting dipole moments');
+    for diplop=1:length(source.inside)
+      ft_progress(diplop/length(source.inside), 'baseline correcting dipole moments %d/%d\n', diplop, length(source.inside));
+      mom = source.avg.mom{source.inside(diplop)};
+      mom = ft_preproc_baselinecorrect(mom, begsmp, endsmp);  
+      source.avg.mom{source.inside(diplop)} = mom;
+    end
+    ft_progress('close');
+  end
+
+  if projectmom
+    ft_progress('init', cfg.feedback, 'projecting dipole moment');
+    for diplop=1:length(source.inside)
+      ft_progress(diplop/length(source.inside), 'projecting dipole moment %d/%d\n', diplop, length(source.inside));
+      mom = source.avg.mom{source.inside(diplop)};
+      [mom, rmom] = svdfft(mom, 1);
+      source.avg.mom{source.inside(diplop)} = mom;
+      source.avg.ori{source.inside(diplop)} = rmom;
+    end
+    ft_progress('close');
+  end
+
+  if zscore
+    begsmp = nearest(source.time, cfg.baselinewindow(1));
+    endsmp = nearest(source.time, cfg.baselinewindow(2));
+    % zscore using baselinewindow for power
+    ft_progress('init', cfg.feedback, 'computing power');
+    for diplop=1:length(source.inside)
+      ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
+      mom = source.avg.mom{source.inside(diplop)};
+      mmom = mean(mom(begsmp:endsmp));
+      smom = std(mom(begsmp:endsmp));
+      pow  = sum(((mom-mmom)./smom).^2,1); 
+      source.avg.pow(source.inside(diplop),:) = pow;
+    end
+    ft_progress('close');
+    
+  else
+    % just square for power
+    ft_progress('init', cfg.feedback, 'computing power');
+    for diplop=1:length(source.inside)
+      ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
+      mom = source.avg.mom{source.inside(diplop)};
+      pow = sum(mom.^2,1); 
+      source.avg.pow(source.inside(diplop),:) = pow;
+    end
+    ft_progress('close');
+    
+  end
+
+
+  if strcmp(cfg.kurtosis, 'yes')
+    fprintf('computing kurtosis based on dipole timecourse\n');
+    source.avg.k2 = nan*zeros(size(source.pos,1),1);
+    for diplop=1:length(source.inside)
+      mom = source.avg.mom{source.inside(diplop)};
+      if length(mom)~=prod(size(mom))
+        error('kurtosis can only be computed for projected dipole moment');
+      end
+      source.avg.k2(source.inside(diplop)) = kurtosis(mom);
+    end
+  end
+
 
 elseif islcmvavg
   % the source reconstruction was computed using the lcmv beamformer and contains an average timecourse
@@ -859,7 +937,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourcedescriptives.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 3086 2011-03-10 15:10:04Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

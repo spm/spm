@@ -75,7 +75,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_singleplotER.m 3074 2011-03-08 16:00:59Z craric $
 
 ft_defaults
 
@@ -132,9 +132,9 @@ cfg.matrixside    = ft_getopt(cfg, 'matrixside',   '');
 Ndata = numel(varargin);
 
 % interactive plotting is not allowed with more than 1 input
-if Ndata >1 && strcmp(cfg.interactive, 'yes')
-  error('interactive plotting is not supported with more than 1 input data set');
-end
+% if Ndata >1 && strcmp(cfg.interactive, 'yes')
+%   error('interactive plotting is not supported with more than 1 input data set');
+% end
 
 %FIXME rename matrixside and cohrefchannel in more meaningful options
 if ischar(cfg.graphcolor)
@@ -393,6 +393,8 @@ for i=1:Ndata
   xparam = varargin{i}.(cfg.xparam);
   
   % Take subselection of channels
+  % this works for bivariate data with labelcmb because at this point the
+  % data has a label-field
   sellab = match_str(varargin{i}.label, selchannel);
   
   if ~isempty(cfg.yparam)
@@ -451,16 +453,13 @@ for i=1:Ndata
     
   % Update ymin and ymax for the current data set:
   if strcmp(cfg.ylim,'maxmin')
-    % Find maxmin for all varargins:
-    ymin = zeros(1, Ndata );
-    ymax = zeros(1, Ndata );
-    for i=1:Ndata 
+      if i==1
+          ymin = [];
+          ymax = [];
+      end
       % Select the channels in the data that match with the layout:
-      ymin(i) = min(datavector);
-      ymax(i) = max(datavector);
-    end
-    ymin = min(ymin);
-    ymax = max(ymax);
+      ymin = min([ymin min(datavector)]);
+      ymax = max([ymax max(datavector)]);
   else
     ymin = cfg.ylim(1);
     ymax = cfg.ylim(2);

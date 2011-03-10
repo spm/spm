@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3038 2011-03-02 10:16:04Z jansch $
+% $Id: ft_selectdata.m 3080 2011-03-10 10:33:30Z jorhor $
 
 % FIXME ROI selection is not yet implemented
 
@@ -60,9 +60,16 @@ kvp    = varargin(keyvals);
 dtype  = cell(1,length(data));
 dimord = cell(1,length(data));
 
+% keep track whether data contains subjects as repetitions
+hassubj = false(1, length(data));
 for k = 1:length(data)
-  data{k} = ft_checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw'});
-  [dtype{k}, dimord{k}]  = ft_datatype(data{k});
+  data{k} = ft_checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw'});  
+  [dtype{k}, dimord{k}]  = ft_datatype(data{k});  
+  if ~isempty(strfind(data{1}.dimord, 'subj'))
+    hassubj(k) = true;
+    data{k}.dimord = strrep(data{k}.dimord, 'subj', 'rpt');
+    dimord{k} = data{k}.dimord;
+  end
   if strcmp(dtype{k}, 'raw'),
     %ensure it to have an offset
     data{k} = ft_checkdata(data{k}, 'datatype', 'raw', 'hasoffset', 'yes');
@@ -71,6 +78,7 @@ for k = 1:length(data)
     data{k} = ft_checkdata(data{k}, 'sourcerepresentation', 'new');
   end
 end
+
 
 if any(~strmatch(dtype{1},dtype))
   error('different types of input data is not supported');
@@ -584,4 +592,8 @@ elseif isfreqmvar,
   if avgoverfreq, data = avgoverdim(data, 'freq', fb); end
   if avgovertime, data = avgoverdim(data, 'time', fb); end
   if dojack,      data = leaveoneout(data);            end    
+end
+
+if hassubj(1)    
+	data.dimord = strrep(data.dimord, 'rpt', 'subj');
 end

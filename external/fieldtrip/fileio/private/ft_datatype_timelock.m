@@ -28,10 +28,11 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %   - <none>
 %
 % Obsoleted fields:
-%   - <none>
+%   - fsample
 %
 % Revision history:
 %
+% (2011) The field 'fsample' was removed, as it was redundant.
 % (2003) The initial version was defined.
 %
 % See also FT_DATATYPE and FT_DATATYPE_xxx
@@ -54,7 +55,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 3040 2011-03-02 10:16:34Z jansch $
+% $Id: ft_datatype_timelock.m 3077 2011-03-09 11:19:18Z jorhor $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end

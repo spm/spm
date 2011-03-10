@@ -102,7 +102,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_multiplotTFR.m 3065 2011-03-07 08:47:27Z jansch $
 
 ft_defaults
 
@@ -364,6 +364,9 @@ dat = data.(cfg.zparam);
 if isfull
   dat = dat(sel1, sel2, ymin:ymax, xmin:xmax);
   dat = nanmean(dat, meandir);
+  siz = size(dat);
+  dat = reshape(dat, [max(siz(1:2)) siz(3) siz(4)]);
+  dat = dat(sellab, :, :);
 elseif haslabelcmb
   dat = dat(sellab, ymin:ymax, xmin:xmax);
 else
@@ -385,7 +388,7 @@ if ~isempty(cfg.maskparameter)
 end
 
 % Select the channels in the data that match with the layout:
-[seldat, sellay] = match_str(data.label, lay.label);
+[seldat, sellay] = match_str(label, lay.label);
 if isempty(seldat)
   error('labels in data and labels in layout do not match'); 
 end
@@ -431,7 +434,7 @@ end
 
 % set colormap
 if isfield(cfg,'colormap')
-  if size(cfg.colormap,2)~=3, error('singleplotTFR(): Colormap must be a n x 3 matrix'); end
+  if size(cfg.colormap,2)~=3, error('multiplotTFR(): Colormap must be a n x 3 matrix'); end
   set(gcf,'colormap',cfg.colormap);
 end;
 
@@ -576,7 +579,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_multiplotTFR(label, cfg, varargin)
 cfg.cohrefchannel = label;
-fprintf('selected cfg.cohrefchannel = ''%s''\n', cfg.cohrefchannel);
+fprintf('selected cfg.cohrefchannel = ''%s''\n', join(',', cfg.cohrefchannel));
 p = get(gcf, 'Position');
 f = figure;
 set(f, 'Position', p);
@@ -601,3 +604,16 @@ if ~isempty(label)
   ft_singleplotTFR(cfg, varargin{:});
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function t = join(separator,cells)
+if isempty(cells)
+  t = '';
+  return;
+end
+t = char(cells{1});
+
+for i=2:length(cells)
+  t = [t separator char(cells{i})];
+end

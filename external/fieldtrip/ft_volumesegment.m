@@ -88,7 +88,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_volumesegment.m 3059 2011-03-04 10:30:13Z jansch $
 
 ft_defaults
 
@@ -200,7 +200,7 @@ if strcmp(cfg.coordinates, 'ctf')
   mri = align_ctf2spm(mri);
   % also flip and permute the 3D volume itself, so that the voxel and headcoordinates approximately correspond
   % this seems to improve the convergence of the segmentation algorithm
-  [mri,flipflags] = align_ijk2xyz(mri);
+  [mri,permutevec,flipflags] = align_ijk2xyz(mri);
 elseif strcmp(cfg.coordinates, 'spm')
   fprintf('assuming that the input MRI is already approximately aligned with SPM coordinates\n');
   % nothing needs to be done
@@ -309,7 +309,9 @@ if strcmp(cfg.segment, 'yes')
     if strcmp(cfg.keepintermediate,'no'),
       delete([cfg.name,'.img']);
       delete([cfg.name,'.hdr']);
-      delete([cfg.name,'.mat']);
+      if exist([cfg.name,'.mat'], 'file'), 
+        delete([cfg.name,'.mat']);
+      end %does not always exist
     end
     if strcmp(cfg.write,'no'),
        delete(fullfile(pathstr,['c1',name,'.hdr']));
@@ -362,6 +364,13 @@ for k = 1:3
   end
 end
 
+if ~all(permutevec == [1 2 3])
+  segment.gray = ipermute(segment.gray, permutevec);
+  if isfield(segment, 'white'), segment.white = ipermute(segment.white, permutevec); end
+  if isfield(segment, 'csf'),   segment.csf   = ipermute(segment.csf,   permutevec); end
+  segment.dim  = ipermute(segment.dim, permutevec);
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -371,7 +380,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_volumesegment.m 3059 2011-03-04 10:30:13Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

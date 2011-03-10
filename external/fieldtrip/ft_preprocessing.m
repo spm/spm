@@ -174,7 +174,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_preprocessing.m 3081 2011-03-10 10:39:28Z jorhor $
 
 ft_defaults
 
@@ -272,6 +272,7 @@ if hasdata
   % do preprocessing of data that has already been read into memory
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+  convert = ft_datatype(data);
   % the input data must be raw
   data = ft_checkdata(data, 'datatype', 'raw', 'hasoffset', 'yes', 'hastrialdef', 'yes');
 
@@ -313,8 +314,16 @@ if hasdata
     % do the preprocessing on the selected channels
     [dataout.trial{i}, dataout.label, dataout.time{i}, cfg] = preproc(data.trial{i}(rawindx,:), data.label(rawindx), data.fsample, cfg, data.offset(i));
   end % for all trials
+  
+  % convert back to input type if necessary
+  switch convert
+      case 'timelock'
+          dataout = ft_checkdata(dataout, 'datatype', 'timelock');
+      otherwise
+          % keep the output as it is
+  end
   ft_progress('close');
-
+  
 else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % read the data from file and do the preprocessing
@@ -545,7 +554,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id   = '$Id: ft_preprocessing.m 3081 2011-03-10 10:39:28Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

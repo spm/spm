@@ -27,7 +27,7 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_fetch_data.m 3082 2011-03-10 10:42:03Z eelspa $
     
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
@@ -94,7 +94,7 @@ if trlnum>1,
       % skip it to speed up the indexing of the trial and sample numbers
       continue
     end
-    if trlbeg >= begsample && trlend <= endsample 
+    if trlbeg <= begsample && trlend >= endsample 
         % all data is in this trial!
         % get the indices of the current trial and break the loop
         trlidx = trllop;

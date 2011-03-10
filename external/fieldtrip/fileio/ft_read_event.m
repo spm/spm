@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 3042 2011-03-02 10:30:58Z jansch $
+% $Id: ft_read_event.m 3067 2011-03-07 14:12:33Z vlalit $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -389,6 +389,21 @@ switch eventformat
       'offset',   {orig.events.offset},...
       'duration', {orig.events.duration});
 
+  case  'ced_spike6mat'
+    if isempty(hdr)
+        hdr = ft_read_header(filename);
+    end
+     
+    chanindx = [];
+    for i = 1:numel(hdr.orig)
+      if ~any(isfield(hdr.orig{i}, {'units', 'scale'}))
+        chanindx = [chanindx i];                            
+      end
+    end
+    if ~isempty(chanindx)
+      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', chanindx, 'detectflank', detectflank);
+      event   = appendevent(event, trigger);
+    end
   case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'ctf_old'}
     % obtain the dataset name
     if ft_filetype(filename, 'ctf_meg4') ||  ft_filetype(filename, 'ctf_res4')

@@ -25,11 +25,11 @@ function channame = val2nearestchan(data,val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: val2nearestchan.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: val2nearestchan.m 3084 2011-03-10 10:53:54Z eelspa $
 
-fieldtripdefs
+ft_defaults
 
-[data] = checkdata(data, 'datatype', 'raw');
+[data] = ft_checkdata(data, 'datatype', 'raw');
 
 % identify time point nearest to given time
 timevec = [];

@@ -22,7 +22,7 @@ function cfg = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_sourcemovie.m 3087 2011-03-10 16:12:29Z jansch $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -52,6 +52,7 @@ xlim    = ft_getopt(cfg, 'xlim');
 zlim    = ft_getopt(cfg, 'zlim');
 xparam  = ft_getopt(cfg, 'xparam', 'time');     % use time as default
 zparam  = ft_getopt(cfg, 'zparam', 'avg.pow');  % use power as default
+mask    = ft_getopt(cfg, 'mask',   []);
 
 % update the configuration
 cfg.xparam = xparam;
@@ -106,21 +107,28 @@ s = uicontrol('style', 'slider');
 set(s, 'position', [20 20 pos(3)-40 20]);
 
 p = uicontrol('style', 'pushbutton');
-set(p, 'position', [pos(1)-90 80 50 20]);
+set(p, 'position', [20 50 50 20]);
 set(p, 'string', 'play')
 
 button_slower = uicontrol('style', 'pushbutton');
-set(button_slower, 'position', [pos(1)-90 110 20 20]);
+set(button_slower, 'position', [75 50 20 20]);
 set(button_slower, 'string', '-')
 set(button_slower, 'Callback', @cb_slower);
 
 button_faster = uicontrol('style', 'pushbutton');
-set(button_faster, 'position', [pos(1)-60 110 20 20]);
+set(button_faster, 'position', [100 50 20 20]);
 set(button_faster, 'string', '+')
 set(button_faster, 'Callback', @cb_faster);
 
+ht = uicontrol('style', 'text');
+set(ht, 'position', [125 50 pos(3)-145 20]);
+set(ht, 'string', 'time = ');
+set(ht, 'horizontalalignment', 'left');
+
+text(0,0,  sprintf('%s = \n', cfg.xparam));
 t = timer;
 set(t, 'timerfcn', {@cb_timer, h}, 'period', 0.1, 'executionmode', 'fixedSpacing');
+
 
 % collect the data and the options to be used in the figure
 opt.pnt = source.pos;
@@ -132,14 +140,25 @@ opt.cfg = cfg;
 opt.s = s;
 opt.p = p;
 opt.t = t;
+if ~isempty(mask) && ischar(mask)
+  opt.mask = double(getsubfield(source, mask));
+end
 
-hs = ft_plot_mesh(opt, 'edgecolor', 'none', 'vertexcolor', 0*opt.dat(:,1));
+ft_plot_mesh(opt, 'edgecolor', 'none', 'facecolor', [0.5 0.5 0.5]);
+lighting gouraud
+
+hs = ft_plot_mesh(opt, 'edgecolor', 'none', 'vertexcolor', 0*opt.dat(:,1), 'facealpha', 0*opt.mask(:,1));
+caxis(cfg.zlim);
 lighting gouraud
 camlight left
 camlight right
 
 % add the handle to the mesh
 opt.hs  = hs;
+
+% add the text-handle to the mesh
+opt.ht  = ht;
+
 guidata(h, opt);
 
 % from now it is safe to hand over the control to the callback function
@@ -156,7 +175,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourcemovie.m 3016 2011-03-01 19:09:40Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_sourcemovie.m 3087 2011-03-10 16:12:29Z jansch $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version(); % this is helpful for debugging
@@ -176,8 +195,12 @@ val = round(val*(size(opt.dat,2)-1))+1;
 val = min(val, size(opt.dat,2));
 val = max(val, 1);
 
-text(0, 0, sprintf('%s = %f\n', opt.cfg.xparam, opt.tim(val)));
+%text(0, 0, sprintf('%s = %f\n', opt.cfg.xparam, opt.tim(val)));
+set(opt.ht, 'string', sprintf('%s = %f\n', opt.cfg.xparam, opt.tim(val)));
 set(opt.hs, 'FaceVertexCData', opt.dat(:,val));
+if isfield(opt, 'mask')
+  set(opt.hs, 'FaceVertexAlphaData', opt.mask(:,val));
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

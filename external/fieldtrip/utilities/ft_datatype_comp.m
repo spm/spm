@@ -58,7 +58,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 3029 2011-03-01 20:54:20Z roboos $
+% $Id: ft_datatype_comp.m 3054 2011-03-03 15:27:02Z jorhor $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end
@@ -71,7 +71,7 @@ end
 rawdata = comp;
 rawdata = rmfield(rawdata, 'topo');
 rawdata = rmfield(rawdata, 'topolabel');
-rawdata = ft_datatype_raw(rawdata, version);
+rawdata = ft_datatype_raw(rawdata, 'version', version);
 
 % add the component specific fields again
 rawdata.topo      = comp.topo;

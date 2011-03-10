@@ -44,7 +44,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_channelrepair.m 3075 2011-03-09 11:10:58Z jorhor $
 
 ft_defaults
 
@@ -109,7 +109,8 @@ for k=badindx(:)'
     distance = norm(sens.pnt(l,:)-sens.pnt(sensindx,:));
     if distance<cfg.neighbourdist
       % include this channel as neighbour, weigh with inverse distance
-      repair(k,l) = 1/distance;
+      datlabindx = match_str(data.label, sens.label{l});
+      repair(k,datlabindx) = 1/distance;
       fprintf('  using neighbour %s\n', sens.label{l});
     end
   end
@@ -153,7 +154,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelrepair.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id   = '$Id: ft_channelrepair.m 3075 2011-03-09 11:10:58Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
