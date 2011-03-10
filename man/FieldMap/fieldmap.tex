@@ -7,18 +7,308 @@ FieldMap Version 2.0 can be downloaded as part SPM5:
 \url{http://www.fil.ion.ucl.ac.uk/spm/software/spm5/}\\
 FieldMap Version 1.1 for SPM2 can be downloaded from
 \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap/}}
- for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{jezzard95,jenkinson03,chloe_distortion,chloe_distortion2,ja_geometric}. The toolbox can be used in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. However, once a set of parameters has been established for a specific scanning protocol, the toolbox routines can be scripted or batched using the SPM8 user-interface. The toolbox creates a voxel-displacement map that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction. FieldMap and Unwarp are designed only to work with images collected with the phase-encode direction aligned with the anterior-posterior direction.
+ for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{chloe_distortion,chloe_distortion2,ja_geometric}. The toolbox uses methods based on earlier work by Jezzard et al., {jezzard95} and a phase-unwrapping algorithm by Jenkinson {jenkinson03}. The toolbox can be used via the SPM batch editor or in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. The toolbox creates a voxel displacement map (VDM) that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction or with an Apply VDM function for doing a static distortion correction on a set of realigned images. Realign \& Unwarp is designed to work only with images acquired with the phase-encode direction aligned with the anterior-posterior axis. Images acquired with phase-encode directions aligned with other axes can be distortion corrected using the FieldMap toolbox and Apply VDM utility.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=70mm]{FieldMap/fieldmap_taskmgr}
+\end{center}
+\caption{FieldMap using the SPM8 User Interface.\label{FM1}}
+\end{figure}
+
+\section{Presubtracted Phase and Magnitude Data}
+Calculate a voxel displacement map (VDM) from presubtracted phase and magnitude field map data (Figure \ref{FM1}). This option expects a single magnitude image and a single phase image resulting from the subtraction of two phase images (where the subtraction is usually done automatically by the scanner software). The phase image will be scaled between +/- PI.
+
+
+\subsection{Data}
+Subjects or sessions for which individual field map data has been acquired.
+
+
+\subsubsection{Subject}
+Data for this subject or field map session.
+
+
+\paragraph{Phase Image}
+Select a single phase image. This should be the result from the subtraction of two phase images (where the subtraction is usually done automatically by the scanner software). The phase image will be scaled between +/- PI.
+
+
+\paragraph{Magnitude Image}
+Select a single magnitude image. This is used for masking the phase information and coregistration with the EPI data. If two magnitude images are available, select the one acquired at the shorter echo time because it will have greater signal
+
+
+\paragraph{FieldMap defaults}
+FieldMap default values can be entered as a file or set of values.
+
+
+\subparagraph{Defaults values}
+Defaults values
+
+
+\textbf{Echo times [short TE long TE]}
+Enter the short and long echo times (in ms) of the data used to acquire the field map.
+
+
+\textbf{Mask brain}
+Select masking or no masking of the brain. If masking is selected, the magnitude image is used to generate a mask of the brain.
+
+
+\textbf{Blip direction}
+Enter the blip direction. This is the polarity of the phase-encode blips describing the direction in which k-space is traversed along the y-axis during EPI acquisition with respect to the coordinate system used in SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is deﬁned as positive from the posterior to the anterior of the head.
+
+
+\textbf{Total EPI readout time}
+Enter the total EPI readout time (in ms). This is the time taken to acquire all of the phase encode steps required to cover k-space (ie one image slice). For example, if the EPI sequence has 64 phase encode steps, the total readout time is the time taken to acquire 64 echoes, e.g. total readout time = number of echoes × echo spacing. This time does not include i) the duration of the excitation, ii) the delay between, the excitation and the start of the acquisition or iii) time for fat saturation etc.
+
+
+\textbf{EPI-based field map?}
+Select non-EPI or EPI based field map. The field map data may be acquired using a non-EPI sequence (typically a gradient echo sequence) or an EPI sequence. The processing will be slightly different for the two cases. If using an EPI-based ﬁeld map, the resulting Voxel Displacement Map will be inverted since the ﬁeld map was acquired in distorted space.
+
+
+\textbf{Jacobian modulation?}
+Select whether or not to use Jacobian modulation. This will adjust the intensities of voxels that have been stretched or compressed but in general is not recommended for EPI distortion correction
+
+
+\textbf{uflags}
+Different options for phase unwrapping and field map processing
+
+
+\textsc{Unwrapping method}
+Select method for phase unwrapping
+
+
+\textsc{FWHM}
+FWHM of Gaussian filter used to implement weighted smoothing of unwrapped maps.
+
+
+\textsc{pad}
+Size of padding kernel if required.
+
+
+\textsc{Weighted smoothing}
+Select normal or weighted smoothing.
+
+
+\textbf{mflags}
+Different options used for the segmentation and creation of the brain mask.
+
+
+\textsc{Template image for brain masking}
+Select template file for segmentation to create brain mask
+
+
+\textsc{FWHM}
+FWHM of Gaussian filter for smoothing brain mask.
+
+
+\textsc{Number of erosions}
+Number of erosions used to create brain mask.
+
+
+\textsc{Number of dilations}
+Number of dilations used to create brain mask.
+
+
+\textsc{Threshold}
+Threshold used to create brain mask from segmented data.
+
+
+\textsc{Regularization}
+Regularization value used in the segmentation. A larger value helps the segmentation to converge.
+
+
+\subparagraph{Defaults File}
+Select the 'pm\_defaults*.m' file containing the parameters for the field map data. Please make sure that the parameters defined in the defaults file are correct for your field map and EPI sequence. To create your own customised defaults file, either edit the distributed version and/or save it with the name 'pm\_defaults\_yourname.m'.
+
+
+\paragraph{EPI Sessions}
+If a single set of field map data will be used for multiple EPI runs/sessions, select the first EPI in each run/session. A VDM file will created for each run/session, matched to the first EPI in each run/session and saved with a unique name extension.
+
+
+\subparagraph{Session}
+Data for this session.
+
+
+\textbf{Select EPI to Unwarp}
+Select a single image to distortion correct. The corrected image will be saved with the prefix u. Note that this option is mainly for quality control of correction so that the original and distortion corrected images can be displayed for comparison. To unwarp multiple images please use either Realign \& Unwarp or Apply VDM.
+
+
+\paragraph{Match VDM to EPI?}
+Match VDM file to EPI image. This will coregister the field map data to the selected EPI for each run/session.
+
+
+\paragraph{Name extension for run/session specific VDM file}
+This will be the name extension followed by an incremented integer for run/session specific VDM files.
+
+
+\paragraph{Write unwarped EPI?}
+Write out distortion corrected EPI image. The image is saved with the prefix u. Note that this option is mainly for quality control of correction so that the original and distortion corrected images can be displayed for comparison. To unwarp multiple images please use either Realign \& Unwarp or Apply VDM.
+
+
+\paragraph{Select anatomical image for comparison}
+Select an anatomical image for comparison with the distortion corrected EPI or leave empty. Note that this option is mainly for quality control of correction.
+
+
+\paragraph{Match anatomical image to EPI?}
+Match the anatomical image to the distortion corrected EPI. Note that this option is mainly for quality control of correction allowing for visual inspection and comparison of the distortion corrected EPI.
+
+
+\section{Real and Imaginary Data}
+Calculate a voxel displacement map (VDM) from real and imaginary field map data. This option expects two real and imaginary pairs of data of two different echo times. The phase images will be scaled between +/- PI.
+
+
+\subsection{Data}
+Subjects or sessions for which individual field map data has been acquired.
+
+
+\subsubsection{Subject}
+Data for this subject or field map session.
+
+
+\paragraph{Short Echo Real Image}
+Select short echo real image
+
+
+\paragraph{Short Echo Imaginary Image}
+Select short echo imaginary image
+
+
+\paragraph{Long Echo Real Image}
+Select long echo real image
+
+
+\paragraph{Long Echo Imaginary Image}
+Select long echo imaginary image
+
+\paragraph{Other inputs}
+As for Presubtracted Phase and Magnitude Data.
+
+\section{Phase and Magnitude Data}
+Calculate a voxel displacement map (VDM) from double phase and magnitude field map data. This option expects two phase and magnitude pairs of data of two different echo times.
+
+
+\subsection{Data}
+Subjects or sessions for which individual field map data has been acquired.
+
+
+\subsubsection{Subject}
+Data for this subject or field map session.
+
+
+\paragraph{Short Echo Phase Image}
+Select short echo phase image
+
+
+\paragraph{Short Echo Magnitude Image}
+Select short echo magnitude image
+
+
+\paragraph{Long Echo Phase Image}
+Select long echo phase image
+
+
+\paragraph{Long Echo Magnitude Image}
+Select long echo magnitude image
+
+\paragraph{Other inputs}
+As for Presubtracted Phase and Magnitude Data.
+
+\section{Precalculated FieldMap (in Hz)}
+Calculate a voxel displacement map (VDM) from a precalculated field map. This option expects a processed field map (ie phase unwrapped, masked if necessary and scaled to Hz). Precalculated field maps can be generated by the FieldMap toolbox and stored as fpm\_* files.
+
+
+\subsection{Data}
+Subjects or sessions for which individual field map data has been acquired.
+
+
+\subsubsection{Subject}
+Data for this subject or field map session.
+
+
+\paragraph{Precalculated field map}
+Select a precalculated field map. This should be a processed field map (ie phase unwrapped, masked if necessary and scaled to Hz) , for example as generated by the FieldMap toolbox and are stored with fpm\_* prefix.
+
+
+\paragraph{Select magnitude image in same space as fieldmap}
+Select magnitude image which is in the same space as the field map to do matching to EPI.
+
+\paragraph{Other inputs}
+As for Presubtracted Phase and Magnitude Data.
+
+\section{Apply VDM }
+Apply VDM (voxel displacement map) to resample voxel values in selected image(s). This allows a VDM to be applied to any images which are assumed to be already realigned (e.g. including EPI fMRI time series and DTI data).
+
+The VDM can be been created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occuring as a result of magnetic susceptbility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.
+
+The selected images are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced. The VDM is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox). The resampled images are written to the input subdirectory with the same (prefixed) filename.
+
+e.g. The typical processing steps for fMRI time series would be 1) Realign: Estimate, 2) FieldMap to create VDM, 3) Apply VDM.
+
+Note that this routine is a general alternative to using the VDM in combination with Realign \& Unwarp which estimates and corrects for the combined effects of static and movement-related susceptibility induced distortions. Apply VDM can be used when dynamic distortions are not (well) modelled by Realign \& Unwarp (e.g. for fMRI data acquired with R-$>$L phase-encoding direction, high field fMRI data or DTI data).
+
+
+\subsection{Data}
+Subjects or sessions for which VDM file is being applied to images.
+
+
+\subsubsection{Session}
+Data for this session.
+
+
+\paragraph{Images}
+Select scans for this session. These are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced
+
+
+\paragraph{Fieldmap (vdm* file)}
+Select VDM (voxel displacement map) for this session (e.g. created via FieldMap toolbox). This is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox).
+
+
+\subsection{Reslice Options}
+Apply VDM reslice options
+
+
+\subsubsection{Distortion direction}
+In which direction are the distortions? Any single dimension can be corrected therefore input data may have been acquired with phase encode directions in Y (most typical), X or Z
+
+
+\subsubsection{Reslice which images ?}
+All Images (1..n) 
+
+  This applies the VDM and reslices all the images. 
+
+All Images + Mean Image 
+
+   This applies the VDM reslices all the images and creates a mean of the resliced images.
+
+
+\subsubsection{Interpolation}
+The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results \cite{thevenaz00a,unser93a,unser93b}. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.
+
+
+\subsubsection{Wrapping}
+This indicates which directions in the volumes the values should wrap around in.  For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject's nose may poke into the back of the subject's head. These are typically:
+
+    No wrapping - for PET or images that have already                   been spatially transformed. Also the recommended option if                   you are not really sure.
+
+    Wrap in  Y  - for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space) etc.
+
+
+\subsubsection{Masking}
+Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).
+
+
+\subsubsection{Filename Prefix}
+Specify the string to be prepended to the filenames of the distortion corrected image file(s). Default prefix is 'u'.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=70mm]{FieldMap/fieldmap_gui1}
 \includegraphics[width=70mm]{FieldMap/fieldmap_results1}
 \end{center}
-\caption{FieldMap GUI and Results. \label{FM1}}
+\caption{FieldMap GUI and Results. \label{FM2}}
 \end{figure}
 
 \section{Creating Field Maps Using the FieldMap GUI}
-The FieldMap Toolbox GUI is shown on the left Figure \ref{FM1}. It is divided into two parts. The top part deals with creating the field map in Hz and the bottom part deals with creating the voxel displacement map (VDM) and unwarping the EPI. The toolbox can be used by working through the different inputs in the following order:
+The FieldMap Toolbox GUI is shown on the left Figure \ref{FM2}. It is divided into two parts. The top part deals with creating the field map in Hz and the bottom part deals with creating the voxel displacement map (VDM) and unwarping the EPI. The toolbox can be used by working through the different inputs in the following order:
 
 \subsection{Create field map in Hz}
 
@@ -117,21 +407,6 @@ Call \texttt{spm\_help} to display \texttt{FieldMap.man}.
 \subsubsection{Quit}
 Quit the toolbox and closes all windows associated with it.
 
-\section{Using the pm\_defaults file \label{PMDEF}}
-Input parameters and the mode in which the toolbox works can be customised in the defaults file called pm\_defaults.m. Different defaults files can be selected. This means that it is possible to have more than one set of default parameters, e.g. to accommodate different scanners or sequences. To be recognised by the FieldMap toolbox, these files must be named pm\_defaults\_NAME.m and have the same format as the existing pm\_defaults.m. These defaults files can be loaded using the FieldMap GUI (as described in section \ref{loaddefs}) or selected when filling in the job fields using the SPM User-Interface (as described in section 6).
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=70mm]{FieldMap/fieldmap_taskmgr}
-\end{center}
-\caption{FieldMap using the SPM8 User Interface.\label{FM2}}
-\end{figure}
-
-\section{Using the SPM8 User Interface \label{SPM8UI}}
-FieldMap version 2.1 for SPM8 can be run using the SPM8 UI (Figure \ref{FM2}). To do this, from the top menu on the SPM8 Graphics window, select TASKS $\rightarrow$  SPM(interactive) $\rightarrow$ Tools $\rightarrow$  FieldMap. Select the type of FieldMap job to run from 1) Presubtracted Phase and Magntiude Data (this means a single phase and magnitude pair), 2) Real and Imaginary Data, 3) Phase and Magnitude Data (this means a double phase and magnitude pair) and 4) Precalculated FieldMap. In the Batch Editor, select New ``Subject'' in the lower panel, then select each item in the upper panel to fill in the different job fields. All fields marked with an X must be filled in. The other fields can be optionally filled or contain default values which can be changed if required.
-
-\section{Using FieldMap with multiple sessions or runs}
-If multiple EPI sessions or runs have been acquired, but with only a single set of fieldmap data, it is possible to automatically create a vdm file for each session. To do this, for each new each session under the input field EPI sessions, select the first EPI in each session. A copy of the VDM file will be matched to the first EPI in each session and saved with a separate name.
 
 \section{Using the FieldMap in Batch scripts}
 \texttt{FieldMap\_preprocess.m} which calls \texttt{FieldMap\_create.m} gives an example of how to run the FieldMap toolbox without using the GUI. To run the script, make sure your \matlab\ path includes the directory where the FieldMap toolbox is installed. This can be done using the Set Path option under File in the \matlab\ windows manager or using the command: 
@@ -162,7 +437,6 @@ where
 \emph{mask} do brain segmentation to mask field map (1/0)
 
 \emph{match} match vdm file to first EPI in run (1/0).
-
 
 NB: FieldMap will match the field map to the first epi image in the time series (after removing the dummy scans). Therefore, epi\_dir must be the directory that contains the epi run that all other images will be realigned to.
 
