@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 4188 2011-02-02 11:25:51Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 4238 2011-03-10 19:48:37Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -192,7 +192,6 @@ data.time = data.time(trialind);
 cfg = [];
 cfg.channel = D.chanlabels(setdiff(D.meegchannels(modality), D.badchannels))';
 cfg.covariance = 'yes';
-cfg.covariancewindow = 'maxperlength';
 cfg.keeptrials = 'no';
 timelock1 = ft_timelockanalysis(cfg, data);
 cfg.keeptrials = 'yes';
@@ -363,7 +362,6 @@ end
 sourcedata.time = timelock2.time;
 sourcedata.dimord = 'rpt_chan_time';
 sourcedata.label = S.sources.label;
-sourcedata.fsample = timelock2.fsample;
 sourcedata.avg = [];
 %%
 if ~isempty(S.appendchannels)
