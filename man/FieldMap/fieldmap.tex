@@ -61,7 +61,7 @@ Enter the total EPI readout time (in ms). This is the time taken to acquire all 
 
 
 \textbf{EPI-based field map?}
-Select non-EPI or EPI based field map. The field map data may be acquired using a non-EPI sequence (typically a gradient echo sequence) or an EPI sequence. The processing will be slightly different for the two cases. If using an EPI-based ﬁeld map, the resulting Voxel Displacement Map will be inverted since the field map was acquired in distorted space.
+Select non-EPI or EPI based field map. The field map data may be acquired using a non-EPI sequence (typically a gradient echo sequence) or an EPI sequence. The processing will be slightly different for the two cases. If using an EPI-based field map, the resulting Voxel Displacement Map will be inverted since the field map was acquired in distorted space.
 
 
 \textbf{Jacobian modulation?}
@@ -116,7 +116,7 @@ Threshold used to create brain mask from segmented data.
 Regularization value used in the segmentation. A larger value helps the segmentation to converge.
 
 
-\subparagraph{Defaults File}
+\subparagraph{Defaults File \label{PMDEF}}
 Select the 'pm\_defaults*.m' file containing the parameters for the field map data. Please make sure that the parameters defined in the defaults file are correct for your field map and EPI sequence. To create your own customised defaults file, either edit the distributed version and/or save it with the name 'pm\_defaults\_yourname.m'.
 
 
