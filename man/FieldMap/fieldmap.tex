@@ -7,7 +7,7 @@ FieldMap Version 2.0 can be downloaded as part SPM5:
 \url{http://www.fil.ion.ucl.ac.uk/spm/software/spm5/}\\
 FieldMap Version 1.1 for SPM2 can be downloaded from
 \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap/}}
- for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{chloe_distortion,chloe_distortion2,ja_geometric}. The toolbox uses methods based on earlier work by Jezzard et al., {jezzard95} and a phase-unwrapping algorithm by Jenkinson {jenkinson03}. The toolbox can be used via the SPM batch editor or in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. The toolbox creates a voxel displacement map (VDM) that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction or with an Apply VDM function for doing a static distortion correction on a set of realigned images. Realign \& Unwarp is designed to work only with images acquired with the phase-encode direction aligned with the anterior-posterior axis. Images acquired with phase-encode directions aligned with other axes can be distortion corrected using the FieldMap toolbox and Apply VDM utility.
+ for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{chloe_distortion,chloe_distortion2,ja_geometric}. The methods are based on earlier work by Jezzard et al.,\cite{jezzard95} and a phase-unwrapping algorithm by Jenkinson \cite{jenkinson03}. The toolbox can be used via the SPM batch editor or in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. A voxel displacement map (VDM) is created that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction or with an Apply VDM function for doing a static distortion correction on a set of realigned images. Realign \& Unwarp is designed to work only with images acquired with the phase-encode direction aligned with the anterior-posterior axis. Images acquired with phase-encode directions aligned with other axes can be distortion corrected using the FieldMap toolbox and Apply VDM utility.
 
 \begin{figure}
 \begin{center}
@@ -55,6 +55,7 @@ Select masking or no masking of the brain. If masking is selected, the magnitude
 \textbf{Blip direction}
 Enter the blip direction. This is the polarity of the phase-encode blips describing the direction in which k-space is traversed along the y-axis during EPI acquisition with respect to the coordinate system used in SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is defined as positive from the posterior to the anterior of the head.
 
+The convention used to describe the direction of the k-space traversal is based on the coordinate system used by SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is defined as positive from the posterior to the anterior of the head. The x-direction is defined as positive from left to right and the z-direction is defined as positive from foot to head. The polarity of the phase-encode blips describes in which direction k-space is traversed along the y-axis with respect to the coordinate system described here. 
 
 \textbf{Total EPI readout time}
 Enter the total EPI readout time (in ms). This is the time taken to acquire all of the phase encode steps required to cover k-space (ie one image slice). For example, if the EPI sequence has 64 phase encode steps, the total readout time is the time taken to acquire 64 echoes, e.g. total readout time = number of echos x echo spacing. This time does not include i) the duration of the excitation, ii) the delay between, the excitation and the start of the acquisition or iii) time for fat saturation etc.
@@ -135,6 +136,7 @@ Select a single image to distortion correct. The corrected image will be saved w
 \paragraph{Match VDM to EPI?}
 Match VDM file to EPI image. This will coregister the field map data to the selected EPI for each run/session.
 
+In general, the field map data should be acquired so that it is as closely registered with the EPI data as possible but matching can be selected if required. If a precalculated field map was loaded then the user is prompted to select a magnitude image in the same space as the field map. If real and imaginary images were selected, the toolbox automatically creates a magnitude image from these images and saves it with the name mag\_NAME-OF-FIRST-INPUT-IMAGE.img. 
 
 \paragraph{Name extension for run/session specific VDM file}
 This will be the name extension followed by an incremented integer for run/session specific VDM files.
