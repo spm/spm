@@ -32,7 +32,7 @@ function seed = pm_seed(angvar,mask,pxs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_seed.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_seed.m 4243 2011-03-11 15:38:50Z chloe $
 
 if nargin < 3
    mask = ones(size(angvar));
@@ -54,7 +54,7 @@ P = struct('dim',     [dim 64],...
            'mat',     M);
 P.dat = double(angvar<(pi^2)/12);
 svol = zeros(size(angvar));
-spm_smooth(P,svol,50);
+spm_smooth(P.dat,svol,50);
 
 %
 % A high value in svol "probably" indicates a
