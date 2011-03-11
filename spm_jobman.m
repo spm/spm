@@ -10,10 +10,11 @@ function varargout = spm_jobman(varargin)
 % FORMAT spm_jobman('run',job)
 % FORMAT output_list = spm_jobman('run',job)
 % Run specified job
-% job         - can be the name of a jobfile (as a .m, .mat or a .xml), a
-%               cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
-%               cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
-% output_list - cell array and contains the output arguments from each
+% job         - filename of a job (.m, .mat or .xml), or
+%               cell array of filenames, or
+%               'jobs'/'matlabbatch' variable, or
+%               cell array of 'jobs'/'matlabbatch' variables.
+% output_list - cell array containing the output arguments from each
 %               module in the job. The format and contents of these
 %               outputs is defined in the configuration of each module
 %               (.prog and .vout callbacks).
@@ -98,15 +99,16 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_jobman.m 4242 2011-03-11 15:12:04Z guillaume $
 
 
-if ~isdeployed && ~exist('cfg_util','file') && ...
-        ~(nargin == 1 && strcmpi(varargin{1},'initcfg'))
+persistent isInitCfg;
+if isempty(isInitCfg) &&  ~(nargin == 1 && strcmpi(varargin{1},'initcfg'))
     warning('spm:spm_jobman:NotInitialised',...
         'Run spm_jobman(''initcfg''); beforehand');
     spm_jobman('initcfg');
 end
+isInitCfg = true;
 
 if ~nargin
     h = cfg_ui;
