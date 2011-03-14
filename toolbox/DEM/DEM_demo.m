@@ -305,43 +305,43 @@ run_demo_Callback(hObject, handles, 'DEM_demo_contact_lens')
 
 % --- Executes on button press in pushbutton107.
 function pushbutton107_Callback(hObject, eventdata, handles)
-pdfmanage('open','Action and behavior A free-energy formulation.pdf');
+open('Action and behavior A free-energy formulation.pdf');
 
 % --- Executes on button press in pushbutton108.
 function pushbutton108_Callback(hObject, eventdata, handles)
-pdfmanage('open','Variational free energy and the Laplace approximation.pdf');
+open('Variational free energy and the Laplace approximation.pdf');
 
 % --- Executes on button press in pushbutton109.
 function pushbutton109_Callback(hObject, eventdata, handles)
-pdfmanage('open','Hierarchical Models in the Brain.pdf');
+open('Hierarchical Models in the Brain.pdf');
 
 % --- Executes on button press in pushbutton110.
 function pushbutton110_Callback(hObject, eventdata, handles)
-pdfmanage('open','Generalised Filtering.pdf');
+open('Generalised Filtering.pdf');
 
 % --- Executes on button press in pushbutton111.
 function pushbutton111_Callback(hObject, eventdata, handles)
-pdfmanage('open','Variational filtering.pdf');
+open('Variational filtering.pdf');
 
 % --- Executes on button press in pushbutton112.
 function pushbutton112_Callback(hObject, eventdata, handles)
-pdfmanage('open','Cortical circuits for perceptual inference.pdf');
+open('Cortical circuits for perceptual inference.pdf');
 
 % --- Executes on button press in pushbutton113.
 function pushbutton113_Callback(hObject, eventdata, handles)
-pdfmanage('open','Reinforcement Learning or Active Inference.pdf');
+open('Reinforcement Learning or Active Inference.pdf');
 
 % --- Executes on button press in pushbutton114.
 function pushbutton114_Callback(hObject, eventdata, handles)
-pdfmanage('open','Nonlinear Responses in fMRI The Balloon Model.pdf');
+open('Nonlinear Responses in fMRI The Balloon Model.pdf');
 
 % --- Executes on button press in pushbutton115.
 function pushbutton115_Callback(hObject, eventdata, handles)
-pdfmanage('open','Attention uncertainty and free-energy.pdf');
+open('Attention uncertainty and free-energy.pdf');
 
 % --- Executes on button press in pushbutton116.
 function pushbutton116_Callback(hObject, eventdata, handles)
-pdfmanage('open','DEM A variational treatment of dynamic systems.pdf');
+open('DEM A variational treatment of dynamic systems.pdf');
 
 
 

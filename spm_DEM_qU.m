@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: spm_DEM_qU.m 4247 2011-03-14 18:16:50Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -32,9 +32,19 @@ try
     pX = pU.x;
 end
  
+% order of hierarchy
+%--------------------------------------------------------------------------
+try
+    g = length(X) + 1;                           
+    if issempty(X{end})
+        g = g - 1;
+    end
+catch
+    g = length(V);
+end
+
 % time-series specification
 %--------------------------------------------------------------------------
-g     = length(X) + 1;                           % order of hierarchy
 N     = size(V{1},2);                            % length of data sequence
 dt    = 1;                                       % time step
 t     = [1:N]*dt;                                % time

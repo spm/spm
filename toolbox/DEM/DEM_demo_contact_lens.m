@@ -14,7 +14,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: DEM_demo_contact_lens.m 4247 2011-03-14 18:16:50Z karl $
  
  
 % non-linear generative model
@@ -28,8 +28,8 @@ v        = [-8   -2]';         %                 velocity = -8m/s, -2m/s
 V        = [1e-2  4];          % observation precision (inverse variance) 
                                % standard deviation of range: 10m
                                % standard deviation of angle: .5 mrad
-s        = 128;                % precision of fluctuations in motion
-                               % standard deviation of velocity: 0.08 m/s^2
+s        = 2;                  % precision of fluctuations in motion
+                               % standard deviation of velocity: 0.5 m/s^2
                                
  % preliminaries
 %--------------------------------------------------------------------------
@@ -55,7 +55,8 @@ M(2).V = s;
  
 % create data
 %==========================================================================
-DEM    = spm_DEM_generate(M,N);
+U      = v*ones(1,N);
+DEM    = spm_DEM_generate(M,U);
  
 spm_figure('Getwin','DEM');
 spm_DEM_qU(DEM.pU)
@@ -66,8 +67,8 @@ spm_DEM_qU(DEM.pU)
 DEM.M(1).x = [1e4; 2e3];
 DEM.M(2).v = [0; 0];
 DEM.M(1).V = exp(8);
-DEM.M(1).W = exp(4);
-DEM.M(2).V = exp(0);
+DEM.M(1).W = exp(8);
+DEM.M(2).V = exp(8);
  
  
 % DEM
