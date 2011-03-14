@@ -39,9 +39,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 3660 2010-01-04 19:11:24Z guillaume $
+% $Id: spm_eeg_epochs.m 4244 2011-03-14 13:33:01Z vladimir $
 
-SVNrev = '$Rev: 3660 $';
+SVNrev = '$Rev: 4244 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -133,6 +133,10 @@ end
 
 trl = epochinfo.trl;
 conditionlabels = epochinfo.conditionlabels;
+
+if numel(conditionlabels) == 1
+   conditionlabels = repmat(conditionlabels, 1, size(trl, 1));
+end
 
 try
     epochinfo.padding = S.epochinfo.padding;
