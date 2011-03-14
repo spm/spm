@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3030 2011-03-01 20:54:23Z roboos $
+% $Id: ft_checkdata.m 3094 2011-03-12 19:44:27Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -867,7 +867,7 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
   end   
   
   % remove first singleton dimension
-  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
+  if flag || nrpt==1, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
 
 elseif strcmp(current, 'fourier') && strcmp(desired, 'fullfast'),
 

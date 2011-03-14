@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_appenddata.m 3099 2011-03-14 13:38:10Z vlalit $
 
 ft_defaults
 
@@ -258,8 +258,10 @@ elseif catlabel
     
     %fill this trial with data
     endchan = Nch(1);
+    %allow some jitter for irregular sample frequencies
+    TOL = 10*eps;
     for i=2:Ndata
-      if ~all(data.time{j}==varargin{i}.time{j})
+      if ~all(data.time{j}-varargin{i}.time{j}<TOL)
         error('there is a difference in the time axes of the input data');
       end
       begchan = endchan+1;
@@ -301,7 +303,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_appenddata.m 3099 2011-03-14 13:38:10Z vlalit $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

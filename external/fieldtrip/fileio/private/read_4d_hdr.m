@@ -7,6 +7,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 % Adapted from the MSI>>Matlab code written by Eugene Kronberg
 
 % Copyright (C) 2008-2009, Centre for Cognitive Neuroimaging, Glasgow, Gavin Paterson & J.M.Schoffelen
+% Copyright (C) 2010-2011, Donders Institute for Brain, Cognition and Behavior, J.M.Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -24,11 +25,11 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_4d_hdr.m 3088 2011-03-11 08:52:19Z jansch $
 
 %read header
 if nargin ~= 2
-    error('Wrong number of input arguments');
+  error('Wrong number of input arguments');
 end
 
 if ~isempty(datafile),
@@ -36,7 +37,7 @@ if ~isempty(datafile),
   fid = fopen(datafile, 'r', 'b');
   
   if fid == -1
-      error('Cannot open file %s', datafile);
+    error('Cannot open file %s', datafile);
   end
   
   fseek(fid, 0, 'eof');

@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3080 2011-03-10 10:33:30Z jorhor $
+% $Id: ft_selectdata.m 3099 2011-03-14 13:38:10Z vlalit $
 
 % FIXME ROI selection is not yet implemented
 

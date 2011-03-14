@@ -64,7 +64,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 3031 2011-03-01 20:57:20Z roboos $
+% $Id: ft_datatype_raw.m 3096 2011-03-13 19:07:20Z jansch $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end
@@ -77,7 +77,7 @@ switch version
   case '2010v2'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isfield(data, 'fsample')
-      data.fsample = 1/(data.trial{1}(2) - data.trial{1}(1));
+      data.fsample = 1/(data.time{1}(2) - data.time{1}(1));
     end
 
     if isfield(data, 'offset')
@@ -98,7 +98,7 @@ switch version
   case '2010v1'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isfield(data, 'fsample')
-      data.fsample = 1/(data.trial{1}(2) - data.trial{1}(1));
+      data.fsample = 1/(data.time{1}(2) - data.time{1}(1));
     end
 
     if isfield(data, 'offset')
@@ -113,7 +113,7 @@ switch version
   case '2007'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isfield(data, 'fsample')
-      data.fsample = 1/(data.trial{1}(2) - data.trial{1}(1));
+      data.fsample = 1/(data.time{1}(2) - data.time{1}(1));
     end
 
     if isfield(data, 'offset')
@@ -123,7 +123,7 @@ switch version
   case '2003'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isfield(data, 'fsample')
-      data.fsample = 1/(data.trial{1}(2) - data.trial{1}(1));
+      data.fsample = 1/(data.time{1}(2) - data.time{1}(1));
     end
 
     if ~isfield(data, 'offset')

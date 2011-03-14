@@ -1,4 +1,4 @@
-function [freqOut] = ft_freqbaseline_new(cfg, freq)
+function [freqOut] = ft_freqbaseline(cfg, freq)
 
 % FT_FREQBASELINE performs baseline normalization for time-frequency data
 %
@@ -38,7 +38,7 @@ function [freqOut] = ft_freqbaseline_new(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 3048 2011-03-03 08:59:57Z eelspa $
+% $Id: ft_freqbaseline.m 3097 2011-03-14 12:00:36Z eelspa $
 
 ft_defaults
 
@@ -152,7 +152,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqbaseline.m 3048 2011-03-03 08:59:57Z eelspa $';
+cfg.version.id = '$Id: ft_freqbaseline.m 3097 2011-03-14 12:00:36Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
