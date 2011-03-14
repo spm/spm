@@ -305,45 +305,51 @@ run_demo_Callback(hObject, handles, 'DEM_demo_contact_lens')
 
 % --- Executes on button press in pushbutton107.
 function pushbutton107_Callback(hObject, eventdata, handles)
-open('Action and behavior A free-energy formulation.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Action_and_behavior_A_free-energy_formulation.pdf']);
 
 % --- Executes on button press in pushbutton108.
 function pushbutton108_Callback(hObject, eventdata, handles)
-open('Variational free energy and the Laplace approximation.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Variational_free_energy_and_the_Laplace_approximation.pdf']);
 
 % --- Executes on button press in pushbutton109.
 function pushbutton109_Callback(hObject, eventdata, handles)
-open('Hierarchical Models in the Brain.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Hierarchical_Models_in_the_Brain.pdf']);
 
 % --- Executes on button press in pushbutton110.
 function pushbutton110_Callback(hObject, eventdata, handles)
-open('Generalised Filtering.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Friston_MathProblEngin_2010_621670.pdf']);
 
 % --- Executes on button press in pushbutton111.
 function pushbutton111_Callback(hObject, eventdata, handles)
-open('Variational filtering.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Variational_filtering.pdf']);
 
 % --- Executes on button press in pushbutton112.
 function pushbutton112_Callback(hObject, eventdata, handles)
-open('Cortical circuits for perceptual inference.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Cortical_circuits_for_perceptual_inference.pdf']);
 
 % --- Executes on button press in pushbutton113.
 function pushbutton113_Callback(hObject, eventdata, handles)
-open('Reinforcement Learning or Active Inference.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'Reinforcement_Learning_or_Active_Inference.pdf']);
 
 % --- Executes on button press in pushbutton114.
 function pushbutton114_Callback(hObject, eventdata, handles)
-open('Nonlinear Responses in fMRI The Balloon Model.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+    'karl_nonlinear.pdf']);
 
 % --- Executes on button press in pushbutton115.
 function pushbutton115_Callback(hObject, eventdata, handles)
-open('Attention uncertainty and free-energy.pdf');
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+	'Attention_uncertainty_and_free-energy.pdf']);
 
 % --- Executes on button press in pushbutton116.
 function pushbutton116_Callback(hObject, eventdata, handles)
-open('DEM A variational treatment of dynamic systems.pdf');
-
-
-
-
+web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
+'DEM_A_variational_treatment_of_dynamic_systems.pdf']);
 
