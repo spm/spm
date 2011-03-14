@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4186 2011-02-01 20:11:32Z karl $
+% $Id: spm_dcm_erp_results.m 4248 2011-03-14 18:17:17Z karl $
 
 
 % get Action if necessary
@@ -435,7 +435,8 @@ case{lower('Response')}
 
             subplot(nt,2,2*i - 0)
             plot(t,DCM.H{i}*U)
-            xlabel('time (ms)')
+            xlabel('channels')
+            ylabel('time (ms)')
             title('Predicted')
             A(end + 1,:) = axis;
         end
@@ -480,7 +481,8 @@ case{lower('Response (image)')}
 
             subplot(nt,2,2*i - 0)
             imagesc([1:ne],t,DCM.H{i}*U)
-            xlabel('time (ms)')
+            xlabel('channels')
+            ylabel('time (ms)')
             title('Predicted')
             axis(A); axis square, grid on
         end
