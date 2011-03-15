@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4226 2011-03-03 11:27:48Z volkmar $
+% $Id: cfg_ui.m 4251 2011-03-15 17:42:32Z volkmar $
 
-rev = '$Rev: 4226 $'; %#ok
+rev = '$Rev: 4251 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -254,7 +254,7 @@ appid = get(gcbo, 'Userdata');
 udmodlist = get(handles.modlist, 'userdata');
 udmodlist(1).defid = id;
 udmodlist(1).cmod  = 1;
-set(handles.modlist, 'String',val{1}, 'Value',1, 'ListboxTop',1, 'Userdata',udmodlist);
+set(handles.modlist, 'Value',1, 'ListboxTop',1, 'Userdata',udmodlist, 'String',val{1});
 local_showmod(gcbo);
 % --------------------------------------------------------------------
 function local_editdefsquit(varargin)
@@ -311,7 +311,7 @@ else
     [mrk{~dep & sts}] = deal('');
     str = cfg_textfill(handles.modlist, str, mrk, false);
 end;
-set(handles.modlist, 'string', str, 'userdata',udmodlist, 'value', cmod, 'ListboxTop', max([cmod-2,1]));
+set(handles.modlist, 'userdata',udmodlist, 'value', cmod, 'ListboxTop', max(1,cmod-1), 'string', str);
 if ~isempty(sts) && all(sts)
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','on');
 else
@@ -443,13 +443,13 @@ if ~isempty(udmodlist.cmod)
     udmodule.contents = contents;
     udmodule.id = id;
     udmodule.oldvalue = citem;
-    set(handles.module, 'String', str, 'Value', citem, 'ListboxTop', max([citem-2,1]), 'userdata', udmodule);
+    set(handles.module, 'Value', citem, 'ListboxTop', citem, 'userdata', udmodule, 'String', str);
     udmodlist(1).cmod = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);
     uicontrol(handles.module);
 else
-    set(handles.module, 'String','No Module selected', 'Value',1,'ListboxTop',1,'Userdata',[]);
+    set(handles.module, 'Value',1,'ListboxTop',1,'Userdata',[], 'String',{'No Module selected'});
     set(handles.moduleHead,'String','No Current Module');
     set(findobj(handles.cfg_ui,'-regexp','Tag','^Btn.*'), 'Visible', 'off');
     set(findobj(handles.cfg_ui,'-regexp','Tag','^MenuEditVal.*'), 'Enable', 'off');
@@ -457,7 +457,7 @@ else
     set(handles.valshowLabel, 'Visible','off');
     % set help box to matlabbatch top node help
     [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'showdoc'});
-    set(handles.helpbox, 'String',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1, 'ListboxTop',1);
+    set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'String',cfg_justify(handles.helpbox, help{1}{1}));
 end;
 
 %% Show Item
@@ -500,7 +500,7 @@ switch(udmodule.contents{5}{citem})
         else
             str = '';
         end;
-        set(handles.valshow,'String', str, 'Visible','on', 'Value',1, 'ListboxTop',1);
+        set(handles.valshow, 'Visible','on', 'Value',1, 'ListboxTop',1,'String', str);
         set(handles.valshowLabel, 'Visible','on');
         if ~isfield(udmodlist, 'defid')
             sout = local_showvaledit_deps(obj);
@@ -553,7 +553,7 @@ switch(udmodule.contents{5}{citem})
             if cval == -1
                 cval = 1;
             end;
-            set(handles.valshow, 'String',str, 'Visible','on', 'Value',cval, 'ListboxTop',max([cval-2,1]), ...
+            set(handles.valshow, 'Visible','on', 'Value',cval, 'ListboxTop',max([cval-2,1]), 'String',str, ...
                               'Callback',@local_valedit_list, ...
                               'Keypressfcn',@local_valedit_key, ...
                               'Userdata',udvalshow);
@@ -638,7 +638,7 @@ switch(udmodule.contents{5}{citem})
             end
             str = [str1(:); str2(:); str3(:)];
             udvalshow.cmd = [cmd1(:); cmd2(:); cmd3(:)];
-            set(handles.valshow,'String', str, 'Visible','on', 'Value',1, 'ListboxTop',1, ...
+            set(handles.valshow, 'Visible','on', 'Value',1, 'ListboxTop',1, 'String', str, ...
                 'Callback',@local_valedit_repeat, ...
                 'KeyPressFcn', @local_valedit_key, ...
                 'Userdata',udvalshow);
@@ -660,7 +660,7 @@ else
 end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
-set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1, 'ListboxTop',1);
+set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
 drawnow;
 
 %% List matching dependencies
@@ -1677,7 +1677,7 @@ um = uicontextmenu;
 um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
-set(ctxt, 'Max',numel(str), 'String',str, 'UIContextMenu',um, 'Value',[], 'ListboxTop',1);
+set(ctxt, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1, 'String',str);
 
 function ShowCode_Copy(ob, ev, ctxt)
 str = get(ctxt,'String');
