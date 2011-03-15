@@ -375,9 +375,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 4166 2011-01-17 15:06:41Z volkmar $
+% $Id: cfg_util.m 4252 2011-03-15 17:49:51Z volkmar $
 
-rev = '$Rev: 4166 $';
+rev = '$Rev: 4252 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1562,10 +1562,11 @@ else
         str{numel(cjid2subsfailed)+k+1} = sprintf('Skipped: %s', ...
                                                   subsref(job.cjrun, [cjid2subsskipped{k} substruct('.','name')]));
     end
-    str{end+1} = sprintf(['If the problem can be fixed without modifying ' ...
-                        'the job, the computation can be resumed by ' ...
-                        'running\n   cfg_util(''cont'',%d)\nfrom the ' ...
-                        'MATLAB command line.'],cjob);
+% Commented out for SPM public release
+%    str{end+1} = sprintf(['If the problem can be fixed without modifying ' ...
+%                        'the job, the computation can be resumed by ' ...
+%                        'running\n   cfg_util(''cont'',%d)\nfrom the ' ...
+%                        'MATLAB command line.'],cjob);
     cfg_message('matlabbatch:run:jobfailed', '%s\n', str{:});
     err.identifier = 'matlabbatch:run:jobfailederr';
     err.message    = sprintf(['Job execution failed. The full log of this run can ' ...
