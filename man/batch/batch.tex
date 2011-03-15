@@ -532,12 +532,8 @@ for crun = 1:nrun
     % fMRI model specification: Multiple conditions - cfg_files
     inputs{4, crun} = MATLAB_CODE_TO_FILL_INPUT; 
 end
-job_id = cfg_util('initjob', jobs);
-sts    = cfg_util('filljob', job_id, inputs{:});
-if sts
-    cfg_util('run', job_id);
-end
-cfg_util('deljob', job_id);
+spm('defaults','fmri');
+spm_jobman('serial',jobs,'',inputs{:});
 \end{verbatim}
 
 The skeleton needs to be adapted to the actual data layout by adding

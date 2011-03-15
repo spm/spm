@@ -13,9 +13,5 @@ for crun = 1:nrun
     inputs{3, crun} = MATLAB_CODE_TO_FILL_INPUT; % Coreg: Estimate: Source Image - cfg_files
     inputs{4, crun} = MATLAB_CODE_TO_FILL_INPUT; % fMRI model specification: Multiple conditions - cfg_files
 end
-job_id = cfg_util('initjob', jobs);
-sts    = cfg_util('filljob', job_id, inputs{:});
-if sts
-    cfg_util('run', job_id);
-end
-cfg_util('deljob', job_id);
+spm('defaults','fmri');
+spm_jobman('serial',jobs,'',inputs{:});

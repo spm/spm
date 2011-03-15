@@ -24,10 +24,10 @@ jobs      = cell(size(subjdirs));
 inputs    = cell(6,numel(subjdirs));
 for sub = 1:numel(subjdirs)
     inputs{1,sub} = {fullfile(studydir,subjdirs{sub})};
-    inputs{2,sub} = cfg_getfile('FPList',fullfile(inputs{1,sub}{1}, ...
-                                                  'fMRI','Session1'),'^f.*\.img');
-    inputs{3,sub} = cfg_getfile('FPList',fullfile(inputs{1,sub}{1}, ...
-                                                  'fMRI','Session2'),'^f.*\.img');
+    inputs{2,sub} = cellstr(spm_select('FPList',fullfile(inputs{1,sub}{1}, ...
+                                                  'fMRI','Session1'),'^f.*\.img'));
+    inputs{3,sub} = cellstr(spm_select('FPList',fullfile(inputs{1,sub}{1}, ...
+                                                  'fMRI','Session2'),'^f.*\.img'));
     inputs{4,sub} = {fullfile(inputs{1,sub}{1},'sMRI','smri.img')};
     inputs{5,sub} = {fullfile(inputs{1,sub}{1},'fMRI','trials_ses1.mat')};
     inputs{6,sub} = {fullfile(inputs{1,sub}{1},'fMRI','trials_ses2.mat')};
