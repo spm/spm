@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 4204 2011-02-21 12:36:08Z vladimir $
+% $Id: spm_MEEGtools.m 4250 2011-03-15 14:50:04Z vladimir $
 
 
 funlist = {
@@ -19,6 +19,7 @@ funlist = {
     'Define spatial confounds' , 'spm_eeg_spatial_confounds'
     'Correct sensor data',        'spm_eeg_correct_sensor_data'
     'Use CTF head localization' , 'spm_eeg_megheadloc'
+    'Fix CTF head position data' ,'spm_eeg_fix_ctf_headloc'
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
