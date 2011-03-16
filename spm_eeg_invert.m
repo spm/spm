@@ -14,7 +14,7 @@ function [D] = spm_eeg_invert(D, val)
 %                      'ARD' ARD search on MSPs
 %                      'MSP' GS and ARD multiple sparse priors
 %                      'LOR' LORETA-like model
-%                      'IID' LORETA and minimum norm
+%                      'IID' minimum norm
 %     inverse.woi    - time window of interest ([start stop] in ms)
 %     inverse.lpf    - band-pass filter - low frequency cutoff (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cutoff (Hz)
@@ -120,7 +120,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert.m 3983 2010-07-09 13:56:01Z vladimir $
+% $Id: spm_eeg_invert.m 4254 2011-03-16 13:15:33Z vladimir $
 
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
