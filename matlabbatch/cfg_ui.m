@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4251 2011-03-15 17:42:32Z volkmar $
+% $Id: cfg_ui.m 4255 2011-03-18 13:11:03Z volkmar $
 
-rev = '$Rev: 4251 $'; %#ok
+rev = '$Rev: 4255 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -311,7 +311,8 @@ else
     [mrk{~dep & sts}] = deal('');
     str = cfg_textfill(handles.modlist, str, mrk, false);
 end;
-set(handles.modlist, 'userdata',udmodlist, 'value', cmod, 'ListboxTop', max(1,cmod-1), 'string', str);
+ltop = local_getListboxTop(handles.modlist, cmod, numel(str));
+set(handles.modlist, 'userdata',udmodlist, 'value', cmod, 'ListboxTop', ltop, 'string', str);
 if ~isempty(sts) && all(sts)
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','on');
 else
@@ -443,7 +444,8 @@ if ~isempty(udmodlist.cmod)
     udmodule.contents = contents;
     udmodule.id = id;
     udmodule.oldvalue = citem;
-    set(handles.module, 'Value', citem, 'ListboxTop', citem, 'userdata', udmodule, 'String', str);
+    ltop = local_getListboxTop(handles.module, citem, numel(str));
+    set(handles.module, 'Value', citem, 'ListboxTop', ltop, 'userdata', udmodule, 'String', str);
     udmodlist(1).cmod = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);
@@ -553,7 +555,8 @@ switch(udmodule.contents{5}{citem})
             if cval == -1
                 cval = 1;
             end;
-            set(handles.valshow, 'Visible','on', 'Value',cval, 'ListboxTop',max([cval-2,1]), 'String',str, ...
+            ltop = local_getListboxTop(handles.valshow, cval, numel(str));
+            set(handles.valshow, 'Visible','on', 'Value',cval, 'ListboxTop',ltop, 'String',str, ...
                               'Callback',@local_valedit_list, ...
                               'Keypressfcn',@local_valedit_key, ...
                               'Userdata',udvalshow);
@@ -1528,6 +1531,15 @@ function udvalshow = local_init_udvalshow
 % Initialise udvalshow to empty struct
 udvalshow = struct('cval',[],'en',[],'key',[]);
 
+% --------------------------------------------------------------------
+function ltop = local_getListboxTop(obj, val, maxval)
+% Get a safe value for ListboxTop property while keeping previous settings
+% if possible.
+% obj     handle of Listbox object
+% val     new Value property
+% maxval  new number of lines in obj
+oltop = get(obj, 'ListboxTop');
+ltop  = min([max(oltop,1), max(val-1,1), maxval]);
 
 % --- Executes when user attempts to close cfg_ui.
 function cfg_ui_CloseRequestFcn(hObject, eventdata, handles)
@@ -1677,7 +1689,8 @@ um = uicontextmenu;
 um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
-set(ctxt, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1, 'String',str);
+set(ctxt, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1);
+set(ctxt, 'String',str);
 
 function ShowCode_Copy(ob, ev, ctxt)
 str = get(ctxt,'String');
