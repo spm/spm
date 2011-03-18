@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_tf
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 4257 2011-03-18 15:28:29Z vladimir $
 
-rev = '$Rev: 3818 $';
+rev = '$Rev: 4257 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -29,7 +29,7 @@ frequencies.name = 'Frequencies of interest';
 frequencies.strtype = 'r';
 frequencies.num = [0 Inf];
 frequencies.val = {[]};
-frequencies.help = {'Frequencies of interest (as a vector), if empty 0-48 with optimal frequency bins ~1 Hz or above resolution'};
+frequencies.help = {'Frequencies of interest (as a vector), if empty 1-48 with optimal frequency bins ~1 Hz or above resolution'};
 
 specest_funs = dir(fullfile(spm('dir'), 'spm_eeg_specest_*.m'));
 specest_funs = {specest_funs(:).name};
