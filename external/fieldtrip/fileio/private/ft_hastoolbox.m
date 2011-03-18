@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 3001 2011-02-28 21:43:01Z roboos $
+% $Id: ft_hastoolbox.m 3120 2011-03-16 10:21:13Z crimic $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -96,6 +96,8 @@ url = {
   'BSMART'     'see http://www.brain-smart.org'
   'PEER'       'see http://fieldtrip.fcdonders.nl/development/peer'
   'FREESURFER' 'see http://surfer.nmr.mgh.harvard.edu/fswiki'
+  'SIMBIO'     'see https://www.mrt.uni-jena.de/simbio/index.php/Main_Page'
+  'FNS'        'see http://hhvn.nmsu.edu/wiki/index.php/FNS'
   };
 
 if nargin<2
@@ -215,6 +217,8 @@ switch toolbox
     status  = exist('MRIread', 'file') && exist('vox2ras_0to1', 'file');
   case 'FNS'
     status  = exist('elecsfwd', 'file') && exist('img_get_gray', 'file');
+  case 'SIMBIO'
+    status  = exist('ipm_linux_opt_Venant', 'file');
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;

@@ -31,6 +31,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % cfg.highlightcolor     = highlight marker color (default = [0 0 0] (black))
 % cfg.highlightsize      = highlight marker size (default = 6)
 % cfg.highlightfontsize  = highlight marker size (default = 8)
+% cfg.hotkeys            = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
 % cfg.colorbar           = 'yes'
 %                          'no' (default)
 %                          'North'              inside plot box near top
@@ -140,7 +141,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 3068 2011-03-07 15:28:06Z craric $
+% $Id: ft_topoplotER.m 3147 2011-03-17 12:38:09Z jansch $
 
 ft_defaults
 
@@ -243,6 +244,7 @@ if ~isfield(cfg, 'fontsize'),         cfg.fontsize = 8;              end
 if ~isfield(cfg, 'baseline'),         cfg.baseline = 'no';           end   %to avoid warning in timelock/freqbaseline
 if ~isfield(cfg, 'trials'),           cfg.trials = 'all';            end
 if ~isfield(cfg, 'interactive'),      cfg.interactive = 'no';        end
+if ~isfield(cfg, 'hotkeys'),          cfg.hotkeys = 'no';            end
 if ~isfield(cfg, 'renderer'),         cfg.renderer = [];             end   % matlab sets the default
 if ~isfield(cfg, 'marker'),           cfg.marker = 'on';             end
 if ~isfield(cfg, 'markersymbol'),     cfg.markersymbol = 'o';        end
@@ -499,13 +501,13 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
     if ~isfull,
         % Convert 2-dimensional channel matrix to a single dimension:
         if isempty(cfg.matrixside)
-            sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
-            sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+            sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
+            sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
         elseif strcmp(cfg.matrixside, 'feedforward')
             sel1 = [];
-            sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+            sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
         elseif strcmp(cfg.matrixside, 'feedback')
-            sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
+            sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
             sel2 = [];
         end
         fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.zparam);
@@ -811,10 +813,19 @@ if ~strcmp(cfg.marker,'off')
         'pointsize',cfg.markersize,...
         'labelsize',cfg.markerfontsize,...
         'labeloffset',cfg.labeloffset)
-end
+    end						    
 
 % Set colour axis
 caxis([zmin zmax]);
+
+if strcmp('yes',cfg.hotkeys)
+  %  Attach data and cfg to figure and attach a key listener to the figure
+  info = guidata(gcf);
+  info.zmin = zmin;
+  info.zmax = zmax;
+  guidata(gcf,info);
+  set(gcf, 'KeyPressFcn', @key_sub)
+end
 
 % Write comment
 if ~strcmp(cfg.comment,'no')
@@ -925,3 +936,23 @@ if ~isempty(label)
     set(f, 'Position', p);
     ft_singleplotTFR(cfg, varargin{:});
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION which handles hot keys in the current plot
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function key_sub(h, eventdata, handles, varargin)
+info = guidata(h);
+incr = (max(caxis)-min(caxis)) /10;
+% symmetrically scale color bar down by 10 percent
+if strcmp(eventdata.Key,'uparrow')
+  caxis([min(caxis)-incr max(caxis)+incr]);
+% symmetrically scale color bar up by 10 percent
+elseif strcmp(eventdata.Key,'downarrow')
+  caxis([min(caxis)+incr max(caxis)-incr]);
+% resort to minmax of data for colorbar
+elseif strcmp(eventdata.Key,'m')
+  caxis([info.zmin info.zmax]);
+end
+
+

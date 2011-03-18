@@ -35,6 +35,7 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 % cfg.highlightcolor     = highlight marker color (default = [0 0 0] (black))
 % cfg.highlightsize      = highlight marker size (default = 6)
 % cfg.highlightfontsize  = highlight marker size (default = 8)
+% cfg.hotkeys            = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
 % cfg.colorbar           = 'yes'
 %                          'no' (default)
 %                          'North'              inside plot box near top
@@ -111,6 +112,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 2349 2010-12-08 10:47:59Z roevdmei $
+% $Id: ft_topoplotTFR.m 3140 2011-03-16 17:03:16Z craric $
 
 cfg=ft_topoplotER(cfg, varargin{:});

@@ -1,4 +1,4 @@
-function [lay] = ft_prepare_layout(cfg, data);
+function [lay] = ft_prepare_layout(cfg, data)
 
 % FT_PREPARE_LAYOUT creates a 2-D layout of the channel locations. This layout
 % is required for plotting the topographical distribution of the potential
@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_prepare_layout.m 3105 2011-03-15 09:28:06Z jansch $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -720,6 +720,20 @@ else
   prj = elproj(pnt, method);
   d = dist(prj');
   d(find(eye(size(d)))) = inf;
+  
+  % This is a fix for .sfp files, containing positions of 'fiducial
+  % electrodes'. Their presence determines the minimum distance between 
+  % projected electrode positions, leading to very small boxes.
+  % This problem has been detected and reported by Matt Mollison.
+  % FIXME: consider changing the box-size being determined by mindist
+  % by a mean distance or so; this leads to overlapping boxes, but that
+  % also exists for some .lay files
+  if any(strmatch('Fid', label))
+    tmpsel = strmatch('Fid', label);
+    d(tmpsel, :) = inf;
+    d(:, tmpsel) = inf;
+  end
+  
   mindist = min(d(:));
   X = prj(:,1);
   Y = prj(:,2);

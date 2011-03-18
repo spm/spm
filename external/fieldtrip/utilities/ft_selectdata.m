@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3099 2011-03-14 13:38:10Z vlalit $
+% $Id: ft_selectdata.m 3106 2011-03-15 13:03:29Z jorhor $
 
 % FIXME ROI selection is not yet implemented
 
@@ -65,7 +65,7 @@ hassubj = false(1, length(data));
 for k = 1:length(data)
   data{k} = ft_checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw'});  
   [dtype{k}, dimord{k}]  = ft_datatype(data{k});  
-  if isfield(data{1}, 'dimord') && ~isempty(strfind(data{1}.dimord, 'subj'))
+  if isfield(data{k}, 'dimord') && ~isempty(strfind(data{k}.dimord, 'subj'))
     hassubj(k) = true;
     data{k}.dimord = strrep(data{k}.dimord, 'subj', 'rpt');
     dimord{k} = data{k}.dimord;

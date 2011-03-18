@@ -102,7 +102,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 3065 2011-03-07 08:47:27Z jansch $
+% $Id: ft_multiplotTFR.m 3147 2011-03-17 12:38:09Z jansch $
 
 ft_defaults
 
@@ -268,13 +268,13 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
   if ~isfull,
     % Convert 2-dimensional channel matrix to a single dimension:
     if isempty(cfg.matrixside)
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
+      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedforward')
       sel1 = [];
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedback')
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
+      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
       sel2 = [];
     end
     fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.zparam);

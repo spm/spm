@@ -73,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 2996 2011-02-28 16:12:55Z roboos $
+% $Id: ft_filetype.m 3154 2011-03-17 15:15:32Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -559,10 +559,16 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   manufacturer = 'Neuralynx';
   content = 'spike timestamps';
   
-elseif isdir(filename) && exist(fullfile(filename, ['header'])) && exist(fullfile(filename, ['events']))
+elseif isdir(filename) && exist(fullfile(filename, 'header'), 'file') && exist(fullfile(filename, 'events'), 'file')
   type = 'fcdc_buffer_offline';
   manufacturer = 'F.C. Donders Centre';
   content = 'FieldTrip buffer offline dataset';  
+
+elseif isdir(filename) && exist(fullfile(filename, 'info.xml'), 'file') && exist(fullfile(filename, 'signal1.bin'), 'file')
+  % this is a directory representing a dataset: it contains multiple xml files and one or more signalN.bin files
+  type = 'egi_mff';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'raw EEG data';
 
   % these are formally not Neuralynx file formats, but at the FCDC we use them together with Neuralynx
 elseif isdir(filename) && any(ft_filetype({ls.name}, 'neuralynx_ds'))
@@ -689,23 +695,23 @@ elseif isdir(filename) && ~isempty(cell2mat(regexp({ls.name}, '.dap$')))
   content = 'electrophysiological data';
 
   % Frankfurt SPASS format, which uses the Labview Datalog (DTLG) format
-elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.ana')
+elseif  filetype_check_extension(filename, '.ana') && filetype_check_header(filename, 'DTLG')
   type = 'spass_ana';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
-elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.swa')
+elseif  filetype_check_extension(filename, '.swa') && filetype_check_header(filename, 'DTLG')
   type = 'spass_swa';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
-elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.spi')
+elseif  filetype_check_extension(filename, '.spi') && filetype_check_header(filename, 'DTLG')
   type = 'spass_spi';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
-elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.stm')
+elseif  filetype_check_extension(filename, '.stm') && filetype_check_header(filename, 'DTLG')
   type = 'spass_stm';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
-elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.bhv')
+elseif  filetype_check_extension(filename, '.bhv') && filetype_check_header(filename, 'DTLG')
   type = 'spass_bhv';
   manufacturer = 'MPI Frankfurt';
   content = 'electrophysiological data';
@@ -821,6 +827,12 @@ elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filen
   content = 'BEM volume conduction model';
 
   % Electrical Geodesics Incorporated format
+  % the egi_mff format is checked earlier
+elseif filetype_check_extension(filename, '.bin') && strncmp(f, 'signal', 6)
+  % this file is contained in a MFF package/folder
+  type = 'egi_mff_bin';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'raw EEG data';
 elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.gave') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(255) char(255)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(255) char(255)]))
   type = 'egi_egia';
   manufacturer = 'Electrical Geodesics Incorporated';
@@ -881,9 +893,8 @@ elseif filetype_check_extension(filename, '.trl')
   type = 'fcdc_trl';
   manufacturer = 'F.C.Donders';
   content = 'trial definitions';
-elseif filetype_check_header(filename, [255 'BIOSEMI']) % filetype_check_extension(filename, '.bdf')
+elseif filetype_check_extension(filename, '.bdf') && filetype_check_header(filename, [255 'BIOSEMI'])
   type = 'biosemi_bdf';
-  %   type = 'bham_bdf';
   manufacturer = 'Biosemi Data Format';
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.edf')

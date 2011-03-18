@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 3099 2011-03-14 13:38:10Z vlalit $
+% $Id: ft_appenddata.m 3145 2011-03-17 08:59:12Z jansch $
 
 ft_defaults
 
@@ -222,15 +222,8 @@ elseif cattrial
     data.trial    = cat(2, data.trial,  varargin{i}.trial(:)');
     data.time     = cat(2, data.time,   varargin{i}.time(:)');
     % check if all datasets to merge have the sampleinfo field
-    if hassampleinfo
-      data.sampleinfo = cat(1, data.sampleinfo, varargin{i}.sampleinfo);
-    else
-      if isempty(sampleinfo{i})
-        varargin{i}.sampleinfo = [];
-      end
-      data.sampleinfo = cat(1, data.sampleinfo, varargin{i}.sampleinfo);
-    end
-    if hastrialinfo, data.trialinfo = cat(1, data.trialinfo, varargin{i}.trialinfo); end;
+    if hassampleinfo, data.sampleinfo = cat(1, data.sampleinfo, varargin{i}.sampleinfo); end
+    if hastrialinfo,  data.trialinfo  = cat(1, data.trialinfo, varargin{i}.trialinfo);   end;
     % FIXME is not entirely robust if the different inputs have different
     % number of columns in trialinfo
   end
@@ -292,18 +285,16 @@ if removesens
   if hasgrad, data = rmfield(data, 'grad'); end
 end
 
-if removesampleinfo
+if removesampleinfo && isfield(data, 'sampleinfo')
     fprintf('removing trial definition from output\n');
-    if isfield(data, 'sampleinfo')
-        data            = rmfield(data, 'sampleinfo');
-    end
+    data            = rmfield(data, 'sampleinfo');
     %cfg.trl(:, 1:2) = nan;
     if isfield(cfg, 'trl'), cfg = rmfield(cfg, 'trl'); end
 end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 3099 2011-03-14 13:38:10Z vlalit $';
+cfg.version.id = '$Id: ft_appenddata.m 3145 2011-03-17 08:59:12Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

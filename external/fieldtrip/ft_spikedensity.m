@@ -52,6 +52,7 @@ function [sdf sdfdata] = density(cfg,data)
 %     in TIMELOCKSTATISTICS for example.
 %   - SDFDATA is a raw DATA type structure that can be used itself in all functions that support
 %     raw data input (such as TIMELOCKANALYSIS, FREQANALYSIS).
+% $Id: ft_spikedensity.m 3144 2011-03-16 21:57:56Z marvin $
 
 % Copyright (C) 2010, Martin Vinck
 % TODO: check that SDFDATA is indeed completely compatible!
@@ -146,7 +147,7 @@ if cfg.timwin(1)>0 || cfg.timwin(2)<0 || cfg.timwin(1)>=cfg.timwin(2)
   error('MATLAB:spikestation:density:cfg:timwin:noInclusionTimeZero',...
         'Please specify cfg.timwin(1)<=0 and cfg.timwin(2)>=0 and cfg.timwin(2)>cfg.timwin(1)')
 end
-fsample = 1/(data.time{1}(2) / data.time{1}(2));
+fsample       = 1/data.fsample; % PLEASE DO NOT MESS WITH THIS LINE!
 sampleTime    = 1/fsample;
 winTime       = [fliplr(0:-sampleTime:cfg.timwin(1)) (sampleTime):sampleTime:cfg.timwin(2)];
 nLeftSamples  = length(find(winTime<0));  
@@ -213,7 +214,7 @@ maxNumSamples  = length(time);
 
 % preallocate the sum, squared sum and degrees of freedom
 [s,ss]   = deal(zeros(nUnits, maxNumSamples)); % sum and sum of squares
-dof      = zeros(1, length(s)); 
+dof      = zeros(nUnits, length(s)); 
 
 if (strcmp(cfg.keeptrials,'yes')), singleTrials = zeros(nTrials,nUnits,size(s,2)); end
 
@@ -260,7 +261,7 @@ for iTrial = 1:nTrials
         ss(iUnit,:)       = ss(iUnit,:) + y.^2;         % compute the squared sum
         
         % count the number of samples that went into the sum
-        dof(dofsel) = dof(dofsel) + 1;        
+        dof(iUnit,dofsel) = dof(iUnit,dofsel) + 1;        
         
         if strcmp(cfg.keeptrials,'yes'), singleTrials(iTrial,iUnit,:) = ySingleTrial; end
     end    
@@ -268,15 +269,14 @@ for iTrial = 1:nTrials
     data.trial{origTrial} = [];
     data.time{origTrial}  = [];
 end
-
-dofMat            = dof(ones(nUnits,1),:);
+dofMat                   = dof;
 
 % give back a similar structure as timelockanalysis
 sdf.avg                  = s ./ dofMat; 
 sdf.var                  = (ss - s.^2./dofMat)./(dofMat-1); % sumPsth.^2 ./ dof = dof .* (sumPsth/dof).^2
 sdf.dof                  = dofMat;
 sdf.time                 = time;
-sdf.fsample         	 = fsample; 
+sdf.fsample           	 = fsample; 
 sdf.label(1:nUnits)      = data.label(spikesel);
 if (strcmp(cfg.keeptrials,'yes'))
   sdf.trial = singleTrials;

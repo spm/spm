@@ -79,7 +79,7 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_volumewrite.m 3116 2011-03-16 08:04:04Z jansch $
 
 ft_defaults
 
@@ -257,11 +257,11 @@ switch cfg.filetype
       data = flipdim(data, 1);
     end
     siz = size(data);
-  case {'analyze_spm', 'nifti', 'mgz'}
+  case {'analyze_spm', 'nifti', 'nifti_img' 'mgz'}
     % this format supports a homogenous transformation matrix
     % nothing needs to be changed
   otherwise
-    fprintf('unknown fileformat\n');
+    warning('unknown fileformat\n');
 end
 
 % write the volume data to file

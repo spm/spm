@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 3051 2011-03-03 13:38:58Z jansch $
+% $Id: ft_singleplotTFR.m 3147 2011-03-17 12:38:09Z jansch $
 
 ft_defaults
 
@@ -193,13 +193,13 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
   if ~isfull,
     % Convert 2-dimensional channel matrix to a single dimension:
     if isempty(cfg.matrixside)
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
+      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedforward')
       sel1 = [];
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1));
+      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedback')
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2));
+      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
       sel2 = [];
     end
     fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.zparam);

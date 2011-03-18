@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 3006 2011-03-01 13:17:09Z johzum $
+% $Id: ft_read_data.m 3152 2011-03-17 15:02:50Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -668,6 +668,35 @@ switch dataformat
       dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
     end
     dimord = 'chans_samples_trials';
+
+  case {'egi_mff_bin'}
+    % this is a file contained within a MFF package, which represents the complete dataset
+    % better is to read the MFF package as a complete dataset instead of a single file
+    blockhdr = hdr.orig;
+
+    % the number of samples per block can be different
+    % assume that all channels have the same sampling frequency and number of samples per block
+    nsamples = zeros(size(blockhdr));
+    for i=1:length(blockhdr)
+      nsamples(i) = blockhdr(i).nsamples(1);
+    end
+    
+    cumsamples = cumsum(nsamples);
+    begblock = find(begsample<=cumsamples, 1, 'first');
+    endblock = find(endsample<=cumsamples, 1, 'first');
+    dat = read_mff_bin(filename, begblock, endblock);
+    % select channels and concatenate in a matrix
+    dat = cell2mat(dat(chanindx,:));
+
+    % select the desired samples from the concatenated blocks
+    if begblock==1
+      prevsamples = 0;
+    else
+      prevsamples = cumsamples(begblock-1);
+    end
+    begsel = begsample-prevsamples;
+    endsel = endsample-prevsamples;
+    dat = dat(:,begsel:endsel);
 
   case 'micromed_trc'
     dat = read_micromed_trc(filename, begsample, endsample);
