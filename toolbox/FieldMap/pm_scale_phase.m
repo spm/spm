@@ -6,7 +6,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_scale_phase.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: pm_scale_phase.m 4259 2011-03-22 15:48:59Z chloe $
 
 spm('defaults','FMRI');
 
@@ -17,7 +17,12 @@ mn=min(vol(:));
 mx=max(vol(:));
 svol=-pi+(vol-mn)*2*pi/(mx-mn);
 
-oV=V;
-name='sc';
-oV.fname=[spm_str_manip(V.fname, 'h') ['/' name] deblank(spm_str_manip(V.fname,'t'))];
+
+% Output image struct
+oV=struct('dim', V.dim(1:3),...
+          'dt',  [4 spm_platform('bigend')],...
+          'mat',     V.mat);
+name='sc';       
+oV.fname=fullfile(spm_str_manip(V.fname, 'h'),[name deblank(spm_str_manip(V.fname,'t'))]);
+oV.descrip='Scaled phase';
 spm_write_vol(oV,svol);

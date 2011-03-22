@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: FieldMap.m 4259 2011-03-22 15:48:59Z chloe $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -1480,6 +1480,7 @@ switch lower(Action)
    mn=min(vol(:));
    mx=max(vol(:));
    vol=-pi+(vol-mn)*2*pi/(mx-mn);
+   V.dt(1)=4;   
    varargout{1} = FieldMap('Write',V,vol,'sc',V.dt(1),V.descrip);
 
 %=======================================================================
