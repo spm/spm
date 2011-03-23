@@ -1,4 +1,4 @@
-function Ds = spm_eeg_inv_extract(D)
+function [Ds, D] = spm_eeg_inv_extract(D)
 % Exports source activity using the MAP projector
 % FORMAT [Ds] = spm_eeg_inv_extract(D)
 % Requires:
@@ -15,7 +15,7 @@ function Ds = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 4257 2011-03-18 15:28:29Z vladimir $
+% $Id: spm_eeg_inv_extract.m 4260 2011-03-23 13:42:21Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -67,6 +67,7 @@ for i = 1:Ns
         svert{i} = find(dist < rad);
     else
         [junk svert{i}] = min(dist);
+        XYZ = vert(svert{i}, :);
     end
 end
  
@@ -222,6 +223,5 @@ D.inv{D.val}.source.fname = fname;
 % save headers
 %-----------------------------------------------------------------------
 save(Ds);
-save(D);
 
 

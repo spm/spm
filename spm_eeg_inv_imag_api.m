@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 4186 2011-02-01 20:11:32Z karl $
+% $Id: spm_eeg_inv_imag_api.m 4260 2011-03-23 13:42:21Z vladimir $
 
 spm('Clear');
 
@@ -417,6 +417,9 @@ function CheckInverse_Callback(hObject, eventdata, handles)
 if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
     PST    = str2num(get(handles.PST,'String'));
     spm_eeg_invert_display(handles.D,PST);
+    if length(PST) == 3 && get(handles.extract, 'Value')
+        handles.D = spm_eeg_inv_extract_ui(handles.D, handles.D.val, PST);        
+    end
 elseif strcmp(handles.D.inv{handles.D.val}.method, 'vbecd')
     spm_eeg_inv_vbecd_disp('init',handles.D);
 end
