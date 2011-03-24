@@ -34,23 +34,25 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_fx_cmc.m 4261 2011-03-24 16:39:42Z karl $
  
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x     = spm_unvec(x,M.x);          % neuronal states
-[n m] = size(x);                   % number of sources and states  
+M.u   = u;                          % place inputs in M
+x     = spm_unvec(x,M.x);           % neuronal states
+[n m] = size(x);                    % number of sources and states  
 
  
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1 1]*1024;                  % extrinsic (forward, backward, lateral)  
-G  = [1 1 -1 -1 1 1 1 1 -1 1]*512; % intrinsic connections
-D  = [1.5 16];                       % propagation delays (intrinsic, extrinsic)
-T  = [2 2 8 4];                    % synaptic time constants
-R  = 1;                            % slope of sigmoid activation function
+E  = [1 1 1 1/4]*200;                   % extrinsic (forward and backward)  
+G  = [4 4 4 4 4 2 4 4 2 1]*200;     % intrinsic connections
+D  = [1 16];                        % delays (intrinsic, extrinsic)
+T  = [2 2 28 28];                   % synaptic time constants
+R  = 1;                             % slope of sigmoid activation function
  
+
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 try, E = M.pF.E; end
@@ -66,6 +68,7 @@ try, R = M.pF.R; end
 A{1} = exp(P.A{1})*E(1);
 A{2} = exp(P.A{2})*E(2);
 A{3} = exp(P.A{3})*E(3);
+A{4} = exp(P.A{4})*E(4);
 C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
@@ -103,7 +106,7 @@ for i = 1:size(P.G,2)
     G(:,i) = G(:,i).*exp(P.G(:,i));
 end
 
- 
+
 % Motion of states: f(x)
 %--------------------------------------------------------------------------
  
@@ -112,26 +115,26 @@ end
  
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------
-u      = A{1}*S(:,3) + A{3}*S(:,3) + U;
-u      = G(:,1).*S(:,1) + G(:,2).*S(:,3) + G(:,3).*S(:,5) + u;
+u      =   A{1}*S(:,3) + U;
+u      = - G(:,1).*S(:,1) - G(:,3).*S(:,5) - G(:,2).*S(:,3) + u;
 f(:,2) = (u - 2*x(:,2) - x(:,1)./T(:,1))./T(:,1);
  
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
-u      = A{2}*S(:,7) + A{3}*S(:,1);
-u      = G(:,7).*S(:,3) + G(:,8).*S(:,1) + u;
+u      = - A{3}*S(:,7);
+u      =   G(:,8).*S(:,1) - G(:,7).*S(:,3) + u;
 f(:,4) = (u - 2*x(:,4) - x(:,3)./T(:,2))./T(:,2);
  
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
-u      = - A{3}*S(:,7);
-u      = G(:,4).*S(:,5) + G(:,5).*S(:,1) + G(:,6).*S(:,7) + u;
+u      = - A{4}*S(:,3);
+u      =   G(:,5).*S(:,1) + G(:,6).*S(:,7) - G(:,4).*S(:,5) + u;
 f(:,6) = (u - 2*x(:,6) - x(:,5)./T(:,3))./T(:,3);
  
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
-u      = A{1}*S(:,3)/4 - A{3}*S(:,5);
-u      = G(:,9).*S(:,5) + G(:,10).*S(:,7) + u;
+u      =   A{2}*S(:,3);
+u      = - G(:,10).*S(:,7) - G(:,9).*S(:,5) + u;
 f(:,8) = (u - 2*x(:,8) - x(:,7)./T(:,4))./T(:,4);
  
 % Voltage
@@ -145,13 +148,6 @@ f      = spm_vec(f);
  
  
 if nargout == 1; return, end
- 
- 
-% Jacobian: J = df(x)/dx
-%==========================================================================
-J  = spm_diff('spm_fx_cmc',x,u,P,M,1);
- 
-if nargout == 2; return, end
  
  
 % delays
@@ -176,7 +172,7 @@ D  = Di + De;
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-Q  = inv(speye(length(J)) + D.*J);
+[Q,J] = spm_dcm_delay(M,P,D);
  
  
 return

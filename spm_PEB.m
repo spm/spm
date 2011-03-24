@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 4066 2010-09-03 14:26:26Z guillaume $
+% $Id: spm_PEB.m 4261 2011-03-24 16:39:42Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -76,7 +76,7 @@ for i = 1:p
     if ~isfield(P{i},'C')
         [n m] = size(P{i}.X);
         if i == 1
-            P{i}.C            = {speye(n,n)};
+            P{i}.C  = {speye(n,n)};
         else
             for j = 1:m
                 k         = find(P{i}.X(:,j));
@@ -107,8 +107,8 @@ for i = 1:p
     % indices for ith level parameters
     %----------------------------------------------------------------------
     [n m] = size(P{i}.X);
-    I{i}  = [1:n] + I{end}(end);
-    J{i}  = [1:m] + J{end}(end);
+    I{i}  = (1:n) + I{end}(end);
+    J{i}  = (1:m) + J{end}(end);
 
 end
 
@@ -298,7 +298,8 @@ for k = 1:M
     % Convergence
     %======================================================================
     w     = norm(dh,1);
-%     fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+    
+    % fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
     
     % if dF < 0.01
     %----------------------------------------------------------------------
@@ -362,10 +363,3 @@ end
 %--------------------------------------------------------------------------
 if k == M, warning('maximum number of iterations exceeded'), end
 
-return
-
-%==========================================================================
-function [C] = spm_inv(C)
-% inversion of sparse matrices
-
-C  = inv(C + speye(length(C))*exp(-16));

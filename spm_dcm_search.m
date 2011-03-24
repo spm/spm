@@ -4,6 +4,7 @@ function spm_dcm_search(P)
 %
 % P         -  character/cell array of DCM filenames
 %
+%--------------------------------------------------------------------------
 % spm_dcm_search operates on different DCMs of the same data to identify
 % the best model. It will invert the full model whose free-parameters are
 % the union (superset) of all free parameters in each model specified. The
@@ -11,8 +12,8 @@ function spm_dcm_search(P)
 % evidence and conditional density over free-parameters of each model
 % specified.
 %
-% The DCM specified does not need to be estimated. spm_dcm_search will invert
-% the requisite (full DCM) automatically.
+% The DCM specified does not need to be estimated. spm_dcm_search will 
+% invert the requisite (full DCM) automatically.
 %
 % The outputs of this routine are graphics reporting the model space search
 % (optimisation) and a DCM_optimum (in the first DCMs directory) for the
@@ -24,14 +25,15 @@ function spm_dcm_search(P)
 %        DCM.PF  - their associated free energies
 %        DCM.PP  - and posterior (model) probabilities
 %
-% in addition, the free energies and posterior estimates of each DCM in P are
-% saved for subsequent searches over different partitions of model space.
+% In addition, the free energies and posterior estimates of each DCM in P 
+% are saved for subsequent searches over different partitions of model 
+% space.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_dcm_search.m 4261 2011-03-24 16:39:42Z karl $
  
 % get filenames
 %--------------------------------------------------------------------------

@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_neural_priors.m 4261 2011-03-24 16:39:42Z karl $
  
 % check options
 %==========================================================================
@@ -65,9 +65,6 @@ switch lower(model)
         %------------------------------------------------------------------
         [pE,pC] = spm_erp_priors(A,B,C);
         
-        % add Q
-        %------------------------------------------------------------------
-        pE.Q    = 0;  pC.Q = 1/16;
         
     case{'cmc'}
  

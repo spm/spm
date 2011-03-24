@@ -27,7 +27,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 4100 2010-10-22 19:49:17Z karl $
+% $Id: spm_log_evidence.m 4261 2011-03-24 16:39:42Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -53,17 +53,13 @@ catch
     end
 end
  
-% tolerance to handle zero variances
-%--------------------------------------------------------------------------
-TOL = exp(-32);
- 
 % reduced subspace 
 %--------------------------------------------------------------------------
 qE  = spm_vec(qE);
 pE  = spm_vec(pE);
 rE  = spm_vec(rE);
  
-if nargout == 1
+if nargout < 2
     dE  = pE - rE;
     dC  = pC - rC;
     k   = find(dE | any(dC,2));
@@ -77,24 +73,34 @@ if nargout == 1
     end
 end
 
+% remove redundant dimensions
+%--------------------------------------------------------------------------
+i     = find(diag(pC));
+qC    = qC(i,i);
+pC    = pC(i,i);
+rC    = rC(i,i);
+
 % preliminaries 
 %--------------------------------------------------------------------------
-qP  = spm_inv(qC);
-pP  = spm_inv(pC);
-rP  = spm_inv(rC);
-sP  = qP + rP - pP;
-sE  = qP*qE + rP*rE - pP*pE;
-sC  = spm_inv(sP,TOL);
- 
+qP    = spm_inv(qC);
+pP    = spm_inv(pC);
+rP    = spm_inv(rC);
+sP    = qP + rP - pP;
+sC    = spm_inv(sP);
+sE    = pE;
+sE(i) = qP*qE(i) + rP*rE(i) - pP*pE(i); 
+
 % log-evidence
 %--------------------------------------------------------------------------
-F   = spm_logdet(rP*qP*sC*pC) ...
-    - (qE'*qP*qE + rE'*rP*rE - pE'*pP*pE - sE'*sC*sE);
-F   = F/2;
+F     = spm_logdet(rP*qP*sC*pC) ...
+      - (qE(i)'*qP*qE(i) + rE(i)'*rP*rE(i) - pE(i)'*pP*pE(i) - sE(i)'*sC*sE(i));
+F     = F/2;
  
 % restore full conditional density
 %--------------------------------------------------------------------------
 if nargout > 1
-    sE = sC*sE;
-    sE = spm_unvec(sE,varargin{1});
+    pE(i)   = sC*sE(i);
+    pC(i,i) = sC;
+    sE      = spm_unvec(pE,varargin{1});
+    sC      = pC;
 end

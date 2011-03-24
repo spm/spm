@@ -1,21 +1,23 @@
-function [G] = spm_dcm_csd_source_plot(model,s,pF)
+function [G] = spm_dcm_csd_source_plot(model,s,pF,N)
 % Spectral response (G) of a single source neural mass model
 % FORMAT [G] = spm_dcm_csd_source_plot(model,s)
 %
 % model - 'ERP', 'SEP', 'CMC', 'LFP', 'NMM' or 'MFM'
 % s     - indices of hidden neuronal states to plot
 % pF    - fixed parameters
+% N     - twice the maximum frequency
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_source_plot.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_csd_source_plot.m 4261 2011-03-24 16:39:42Z karl $
 
 
 % Create model
 %==========================================================================
-try, s; catch,s = [1 2 3 7]; end
+try, s; catch, s = [1 2 3 7]; end
+try, N; catch, N = 256;       end
 
 % prior moments on parameters
 %--------------------------------------------------------------------------
@@ -28,9 +30,10 @@ pE = spm_dcm_neural_priors({0,0,0},{},1,model);
 
 % create DCM
 %--------------------------------------------------------------------------
-M.f  = f;
-M.x  = x;
-M.n  = length(spm_vec(x));
+M.f     = f;
+M.x     = x;
+M.n     = length(spm_vec(x));
+[ns nx] = size(x);
 
 
 % compute spectral density
@@ -38,7 +41,6 @@ M.n  = length(spm_vec(x));
 
 % frequencies of interest
 %--------------------------------------------------------------------------
-N    = 256;
 dt   = 1/N;
 If   = 1:N/2;
 f    = [1:N/2]';
@@ -52,18 +54,36 @@ M.u  = 0;
 %--------------------------------------------------------------------------
 try, M.pF  = pF; end
 
+% get prior means (delays)
+%--------------------------------------------------------------------------
+try
+    di = M.pF.D(1);                    % intrinsic delays
+    de = M.pF.D(2);                    % extrinsic delays
+catch
+    de = 16;
+    di = 1;
+end
+
+
 % spectrum of innovations (Gu)
 %--------------------------------------------------------------------------
 Gu   = f.^(-1)*8;
 
+% get delay matrix
+%--------------------------------------------------------------------------
+De = exp(pE.D);
+Di = diag(diag(De));
+De = De - Di;
+De = De*de/1000;
+Di = Di*di/1000;
+De = kron(ones(nx,nx),De);
+Di = kron(ones(nx,nx) - speye(nx,nx),Di);
+D  = Di + De;
 
 % get delay operator
 %--------------------------------------------------------------------------
-try
-    [fx dfdx D] = feval(M.f,M.x,M.u,pE,M);
-catch
-    D = 1;
-end
+D  = spm_dcm_delay(M,pE,D);
+
 
 % augment and bi-linearise (with delays)
 %--------------------------------------------------------------------------
@@ -92,7 +112,7 @@ for i = 1:ns
         % Graphics
         %==================================================================
         subplot(ns,ns,(i - 1)*ns + j)
-        plot(abs(G(:,i,j)))
+        plot(f,abs(G(:,i,j)))
         xlabel('frequency')
         axis square
         

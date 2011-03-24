@@ -2,27 +2,31 @@ function spm_dcm_post_hoc(P)
 % Post hoc optimisation of DCMs (under Laplace approximation)
 % FORMAT spm_dcm_post_hoc(P)
 %
-% P         -  character/cell array of DCM filenames
+% P         - character/cell array of DCM filenames
 %           - or cell array of DCM structures
 %
-% This routine searches over all reduced models and uses post-hoc model 
-% selection to select the best model. Reduced models here mean all 
-% permutations of free parameters (coupling parameters with a non-zero 
-% prior covariance), where models are defined in terms of their prior 
-% covariance. The models should have been inverted prior to post hoc
-% optimisation. If there are more than 16 free-parameters, this routine 
-% will implement a greedy search, starting with the 8 parameters closest 
-% to the prior mean.
+%--------------------------------------------------------------------------
+% This routine searches over all possible reduced models of a full model 
+% (DCM) and uses post hoc model selection to select the best. Reduced 
+% models mean all permutations of free parameters (parameters with a non-
+% zero prior covariance), where models are defined in terms of their prior 
+% covariance. The full model should be inverted prior to post hoc 
+% optimization. If there are more than 16 free-parameters, this routine 
+% will implement a greedy search: This entails searching over all 
+% permutations of the 8 parameters whose removal (shrinking the prior 
+% variance to zero) produces the smallest reduction (greatest increase) 
+% in model evidence. This procedure is repeated until all 8 parameters 
+% are retained in the best model or there are no more parameters to 
+% consider. When several DCMs are optimized together (as in group studies), 
+% they are checked to ensure the same free parameters have been specified 
+% and the log-evidences are pooled in a fixed effects fashion.
 % 
-% When several DCMs are selected, they are checked to ensure the same free 
-% parameters have been specified and the log-evidences are pooled in a 
-% fixed effects fashion.
-%
-% Post hoc optimisation requires the DCMs to be the same DCMs of different
-% data sets. Normally this DCM would be a full model in the sense of having
-% the maximum number of free parameters, such that the set of reduced models
-% is as large as possible.  In contrast spm_dcm_search operates on 
-% different DCMs of the same data to identify the best model.
+% This application of post hoc optimization assumes the DCMs that are 
+% optimized are the same model of different data. Normally, this would be 
+% a full model, in the sense of having the maximum number of free 
+% parameters, such that the set of reduced models is as large as possible. 
+% In contrast spm_dcm_search operates on different DCMs of the same data 
+% to identify the best model
 % 
 % The outputs of this routine are graphics reporting the model reduction 
 % (optimisation) and a DCM_opt_??? for every input DCM that contains the 
@@ -31,10 +35,10 @@ function spm_dcm_post_hoc(P)
 % (spectral embedding) graphs are based on Bayesian parameter averages 
 % over multiple DCMs.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_dcm_post_hoc.m 4261 2011-03-24 16:39:42Z karl $
  
 % get filenames
 %--------------------------------------------------------------------------

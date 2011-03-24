@@ -14,7 +14,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 %   M.u   - (m x 1) = u    = expansion point: defaults to u = 0;
 %
 % P   - model parameters
-% D   - delay matrix (default D = 1)
+% D   - delay operator df/dx -> D*df/dx (default D = 1)
 %
 % A Bilinear approximation is returned where the states are
 %
@@ -36,7 +36,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: spm_bireduce.m 4261 2011-03-24 16:39:42Z karl $
 
 
 % set up

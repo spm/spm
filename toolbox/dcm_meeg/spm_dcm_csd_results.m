@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_csd_results.m 4261 2011-03-24 16:39:42Z karl $
  
  
 % get figure handle
@@ -90,8 +90,6 @@ case{lower('spectral data')}
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz    = xY.Hz;
-    q     = max([real(spm_vec(xY.y)); imag(spm_vec(xY.y))]);
-    p     = min([real(spm_vec(xY.y)); imag(spm_vec(xY.y))]);
     nm    = min(nm,4);
     name  = DCM.xY.name;
     
@@ -109,7 +107,7 @@ case{lower('spectral data')}
                 plot(Hz,real(xY.y{k}(:,i,j)),'color',co{k}), hold on
                 plot(Hz,imag(xY.y{k}(:,i,j)),':','color',co{k}), hold on
                 title(sprintf('%s to %s',name{j},name{i}))
-                axis tight, set(gca,'YLim',[p q])
+                axis square, spm_axis tight
             end
         end
  
@@ -118,15 +116,18 @@ case{lower('spectral data')}
         subplot(2,2,3)
         for k = 1:nt
             plot(Hz,abs(xY.y{k}(:,i,i)),'color',co{i}), hold on
-            axis tight, set(gca,'YLim',[0 q])
+            axis square, spm_axis tight
         end
     end
     
     title('Spectral density over modes')
     xlabel('Frequency (Hz)')
     ylabel('CSD')
-    axis square
+    axis square, spm_axis tight
     legend(name)
+    
+    subplot(nm,nm,nm)
+    legend('real','imag')
     return
     
 end
@@ -145,12 +146,13 @@ case{lower('Coupling (A)')}
     
     % spm_dcm_ssr_results(DCM,'coupling (A)');
     %----------------------------------------------------------------------
-    str = {'Forward','Backward','Lateral'};
-    for  i = 1:3
+    str = {'Forward (i)','Forward (ii)','Backward (i)','Backward (ii)'};
+    m   = length(DCM.Ep.A);
+    for  i = 1:m
         
         % images
         %------------------------------------------------------------------
-        subplot(4,3,i)
+        subplot(4,m,i)
         imagesc(exp(DCM.Ep.A{i}))
         title(str{i},'FontSize',10)
         set(gca,'YTick',1:ns,'YTickLabel',DCM.Sname,'FontSize',8)
@@ -161,14 +163,14 @@ case{lower('Coupling (A)')}
     
         % table
         %------------------------------------------------------------------
-        subplot(4,3,i + 3)
+        subplot(4,m,i + m)
         text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
  
     
         % PPM
         %------------------------------------------------------------------
-        subplot(4,3,i + 6)
+        subplot(4,m,i + m + m)
         image(64*DCM.Pp.A{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
@@ -177,7 +179,7 @@ case{lower('Coupling (A)')}
     
         % table
         %------------------------------------------------------------------
-        subplot(4,3,i + 9)
+        subplot(4,m,i + m + m + m)
         text(0,1/2,num2str(DCM.Pp.A{i},' %.2f'),'FontSize',8)
         axis off, axis square
         
@@ -339,7 +341,12 @@ case{lower('Transfer functions')}
     Hz   = DCM.Hz;
     name = DCM.Sname;
     nm   = length(name);
-    q    = max(abs(spm_vec(DCM.dtf)));
+    
+    
+    % spectrum of innovations or noise (Gu)
+    %----------------------------------------------------------------------
+    Gu   = spm_csd_mtf_gu(DCM.Ep,DCM.M);
+    
     
     tstr = {};
     for k = 1:nt
@@ -353,10 +360,17 @@ case{lower('Transfer functions')}
             %--------------------------------------------------------------
             subplot(nm,nm,(i - 1)*nm + j),cla
             for k = 1:nt
-                plot(Hz,abs(DCM.dtf{k}(:,i,j)),'color',co{k}), hold on
-                title(sprintf('CSD: %s to %s',name{j},name{i}))
+                
+                dtf = abs(DCM.dtf{k}(:,i,j));
+                stf = dtf.*Gu(Hz,j);
+                dtf = dtf/max(dtf);
+                stf = stf/max(stf);
+                
+                plot(Hz,dtf,   'color',co{k}), hold on
+                plot(Hz,stf,':','color',co{k}), hold off
+                title(sprintf('Spectral transfer: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
-                axis tight square, set(gca,'YLim',[0 q])
+                axis square, spm_axis tight
             end
         end
  
@@ -376,7 +390,6 @@ case{lower('Cross-spectra (sources)')}
     Hz   = DCM.Hz;
     name = DCM.Sname;
     nm   = length(name);
-    q    = max(abs(spm_vec(DCM.Hs)));
     
     tstr = {};
     mstr = {};
@@ -397,7 +410,7 @@ case{lower('Cross-spectra (sources)')}
                 plot(Hz,abs(DCM.Hs{k}(:,i,j)),'color',co{k}), hold on
                 title(sprintf('CSD: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
-                axis tight, set(gca,'YLim',[0 q])
+                axis square, spm_axis tight
             end
         end
  
@@ -412,14 +425,14 @@ case{lower('Cross-spectra (sources)')}
         subplot(2,2,3)
         for k = 1:nt
             plot(Hz,abs(DCM.Hs{k}(:,i,i)),'color',co{i}), hold on
-            axis tight, set(gca,'YLim',[0 q])
+            axis square, spm_axis tight
         end
     end
    
     title({'Spectral density over sources';'(in source-space)'},'FontSize',16)
     xlabel('frequency (Hz)')
     ylabel('abs(CSD)')
-    axis square
+    axis square, spm_axis tight
     legend(mstr)
     
     
@@ -429,7 +442,6 @@ case{lower('Cross-spectra (channels)')}
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz   = DCM.Hz;
-    q    = max(abs(spm_vec(DCM.Hc)));
     nm   = min(nm,4);
     
     tstr = {};
@@ -454,7 +466,7 @@ case{lower('Cross-spectra (channels)')}
                 plot(Hz,abs(DCM.Hc{k}(:,i,j) + DCM.Rc{k}(:,i,j)),':','color',co{k})
                 title(sprintf('mode %i to %i',j,i))
                 xlabel('frequency Hz')
-                axis tight square, set(gca,'YLim',[0 q])
+                axis square, spm_axis tight
             end
         end
  
@@ -470,7 +482,7 @@ case{lower('Cross-spectra (channels)')}
         for k = 1:nt
             plot(Hz,abs(DCM.Hc{k}(:,i,i)),'color',co{i}), hold on
             plot(Hz,abs(DCM.Hc{k}(:,i,i) + DCM.Rc{k}(:,i,i)),':','color',co{i})
-            axis tight square, set(gca,'YLim',[0 q])
+            axis square, spm_axis tight
         end
     end
    
@@ -509,7 +521,7 @@ case{lower('Coherence (sources)')}
                     plot(Hz,coh{k}(:,i,j),'color',co{k}), hold on
                     title(sprintf('Coh: %s to %s',name{j},name{i}))
                     xlabel('frequency Hz')
-                    axis tight square, set(gca,'YLim',[0 1])
+                    axis square, spm_axis tight
                 end
             
             end
@@ -522,7 +534,7 @@ case{lower('Coherence (sources)')}
                     plot(Hz,1000*fsd{k}(:,i,j),'color',co{k}), hold on
                     title(sprintf('Delay (ms) %s to %s',name{j},name{i}))
                     xlabel('Frequency Hz')
-                    axis tight square, set(gca,'YLim',[-16 16])
+                    axis square, spm_axis tight
                 end  
             end
            
@@ -563,7 +575,7 @@ case{lower('Coherence (channels)')}
                     plot(Hz,COH{k}(:,i,j),':','color',co{k}), hold on
                     title(sprintf('Coh: %i to %i',j,i))
                     xlabel('frequency Hz')
-                    axis tight square, set(gca,'YLim',[0 1])
+                    axis square, spm_axis tight
                 end
             
             end
@@ -577,7 +589,7 @@ case{lower('Coherence (channels)')}
                     plot(Hz,1000*FSD{k}(:,i,j),':','color',co{k}), hold on
                     title(sprintf('Delay (ms) %i to %i',j,i))
                     xlabel('frequency Hz')
-                    axis tight square, set(gca,'YLim',[-16 16])
+                    axis square, spm_axis tight
                 end  
             end
            

@@ -39,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_cmc_priors.m 4261 2011-03-24 16:39:42Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -54,53 +54,67 @@ end
 warning('off','MATLAB:log:logOfZero');
 n     = size(C,1);                                % number of sources
 u     = size(C,2);                                % number of inputs
-
+ 
 % parameters for neural-mass forward model
 %==========================================================================
-
+ 
+% restructure adjacency matrices
+%--------------------------------------------------------------------------
+D{1}  = A{1} | A{3};                              % forward
+D{2}  = A{1} | A{3};                              % forward
+D{3}  = A{2} | A{3};                              % backward
+D{4}  = A{2} | A{3};                              % backward
+A     = D;
+ 
 % extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
       A{i} = ~~A{i};
-    E.A{i} = A{i}*32 - 32;                        % forward
-    V.A{i} = A{i}/16;                             % backward
+    E.A{i} = A{i}*32 - 32;
+    V.A{i} = A{i}/16;
     Q      = Q | A{i};                            % and lateral connections
 end
  
+% extrinsic connectivity - input-dependent scaling
+%--------------------------------------------------------------------------
 for i = 1:length(B)
       B{i} = ~~B{i};
-    E.B{i} = 0*B{i};                              % input-dependent scaling
+    E.B{i} = 0*B{i};
     V.B{i} = B{i}/8;
     Q      = Q | B{i};
 end
+ 
+% extrinsic connectivity - where inputs enter
+%--------------------------------------------------------------------------
 C      = ~~C;
-E.C    = C*32 - 32;                               % where inputs enter
-V.C    = C/32;
-
-
+E.C    = C*32 - 32;
+V.C    = C - C;
+ 
 % synaptic parameters
 %--------------------------------------------------------------------------
+m    = 6;                                         % number of intrinsic
 Q    = Q + speye(n,n);                            % allow intrinsic delays
 E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
 E.H  = sparse(n,1);   V.H  = sparse(n,1) + 1/16;  % synaptic density
-E.G  = sparse(n,4);   V.G  = sparse(n,4) + 1/16;  % intrinsic connectivity
-E.D  = sparse(n,n);   V.D  = Q/16;                % delay
-E.S  = 0;             V.S  = 1/16;                % slope of sigmoid
-
+E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/16;  % intrinsic connectivity
+E.D  = sparse(n,n);   V.D  = Q/32;                % delay
+E.S  = 0;             V.S  = 1/32;                % slope of sigmoid
 
  
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
 E.R    = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 warning('on','MATLAB:log:logOfZero');
-
+ 
 return
+ 
+ 
  
 % demo for log-normal pdf
 %==========================================================================
 x  = (1:64)/16;
-for i = [2 16 128]
+for i = [2 16 32 128]
     v = 1/i;
     p = 1./x.*exp(-log(x).^2/(2*v))/sqrt(2*pi*v);
     plot(x,p)

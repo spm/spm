@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_erp_priors.m 4261 2011-03-24 16:39:42Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -62,7 +62,7 @@ n1    = ones(n,1);
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
 E.T   = log(n1);        V.T = n1/16;              % time constants
-E.H   = log(n1);        V.H = n1/32;              % synaptic density
+E.H   = log(n1);        V.H = n1/16;              % synaptic density
 
 % set parameter of activation function
 %--------------------------------------------------------------------------

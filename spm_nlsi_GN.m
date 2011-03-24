@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: spm_nlsi_GN.m 4261 2011-03-24 16:39:42Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -193,7 +193,7 @@ end
 nh    = length(Q);                  % number of precision components
 nt    = length(Q{1});               % number of time bins
 nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
-h     = zeros(nh,1);                % initialise hyperparameters
+h     = sparse(nh,1);                % initialise hyperparameters
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -215,11 +215,12 @@ end
 try
     hE = M.hE;
     if length(hE) ~= nh
-        hE = hE*sparse(nh,1);
+        hE = hE(1) + sparse(nh,1);
     end
 catch
     hE = sparse(nh,1);
 end
+h      = hE;
  
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
@@ -267,7 +268,7 @@ C.F   = -Inf;                                   % free energy
 v     = -2;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-for k = 1:64
+for k = 1:128
     
     % time
     %----------------------------------------------------------------------  
@@ -300,7 +301,7 @@ for k = 1:64
         %------------------------------------------------------------------
         iS    = sparse(0);
         for i = 1:nh
-            iS = iS + Q{i}*(exp(-16) + exp(h(i)));
+            iS = iS + Q{i}*(exp(-32) + exp(h(i)));
         end
         S     = spm_inv(iS);
         iS    = kron(speye(nq),iS);
@@ -341,6 +342,7 @@ for k = 1:64
         % update ReML estimate
         %------------------------------------------------------------------
         dh    = spm_dx(dFdhh,dFdh,{4});
+        dh    = min(max(dh,-1),1);
         h     = h  + dh;
  
         % convergence

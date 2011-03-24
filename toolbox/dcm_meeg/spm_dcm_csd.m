@@ -24,7 +24,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_csd.m 4261 2011-03-24 16:39:42Z karl $
  
  
 % check options
@@ -89,16 +89,17 @@ end
 % create DCM
 %--------------------------------------------------------------------------
 DCM.M.IS = 'spm_csd_mtf';
-DCM.M.FS = [];
+DCM.M.FS = 'spm_fs_csd';
 DCM.M.g  = 'spm_gx_erp';
 DCM.M.f  = f;
 DCM.M.x  = x;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 4;
-DCM.M.hC = 1/128;
+DCM.M.hE = 5;
+DCM.M.hC = exp(-8);
 DCM.M.m  = Ns;
+DCM.M.u  = sparse(Ns,1);
  
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
@@ -133,23 +134,40 @@ DCM.M.Hz  = DCM.xY.Hz;
  
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
-DCM.xY.Q  = spm_Q(1/2,Nf,1);
-DCM.xY.X0 = sparse(Nf,0);
- 
-% adjust gain to accommodate scaling differences among models
-%--------------------------------------------------------------------------
-for i = 1:4
-    Y       = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
-    scale   = sqrt(norm(abs(spm_vec(DCM.xY.y)))/norm(abs(spm_vec(Y))));
-    DCM.M.U = DCM.M.U*scale;
-end
+DCM.xY.Q    = {};
+DCM.xY.Q{1} = spm_Q(1/2,Nf,1)*diag(sqrt(DCM.xY.Hz))*spm_Q(1/2,Nf,1);
+DCM.xY.X0   = sparse(Nf,0);
 
-% EM: inversion
+
+% adjust gain to accommodate scaling differences among models and data
+%==========================================================================
+
+% cross-spectral data
 %--------------------------------------------------------------------------
+y        = spm_vec(DCM.xY.y);
+scale    = mean(abs(y));
+DCM.xY.y = spm_unvec(y/scale,DCM.xY.y);
+
+% check neural activity (without sensor noise) and extrinic coupling
+%--------------------------------------------------------------------------
+pE.b     = pE.b - 32;
+pE.c     = pE.c - 32;
+scale    = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
+while scale > 32
+    pE.A  = spm_unvec(spm_vec(pE.A) - 1/8,pE.A);
+    scale = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
+end
+DCM.M.pE.A = pE.A;
+DCM.M.U    = DCM.M.U/sqrt(scale)/2;
+
+
+% Variational Laplace: model inversion
+%==========================================================================
 [Qp,Cp,Ce,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+
  
 % Data ID
-%==========================================================================
+%--------------------------------------------------------------------------
 try
     try
         ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
@@ -181,9 +199,9 @@ M             = DCM.M;
 M.dipfit.type = 'LFP';
  
 qp        = Qp;
-qp.L      = sparse(1,Ns);      % set virtual electrode gain to unity
-qp.b      = qp.b - 32;         % and suppress non-specific and
-qp.c      = qp.c - 32;         % specific channel noise
+qp.L      = sparse(1,Ns);           % set virtual electrode gain to unity
+qp.b      = qp.b - 32;              % and suppress non-specific and
+qp.c      = qp.c - 32;              % specific channel noise
 
 [Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU);
 [ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz);

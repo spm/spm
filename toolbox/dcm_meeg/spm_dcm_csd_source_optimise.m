@@ -1,26 +1,32 @@
-function [PE] = spm_dcm_csd_source_optimise
+function [PF] = spm_dcm_csd_source_optimise
 % Stochastic optimisation of single source neural mass model
-% FORMAT [PE] = spm_dcm_csd_source_optimise
+% FORMAT [PF] = spm_dcm_csd_source_optimise
 %
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_source_optimise.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_csd_source_optimise.m 4261 2011-03-24 16:39:42Z karl $
  
  
 % Initaislie fixed paramters
 %==========================================================================
-% PF.G  = [1 1 -1 -1 1 1 1 1 -1 1]*512;
-PF.T  = [2 2 10 5];
-PF.D  = [2 16];
+% PF.G  = [4 4 4 4 4 2 4 4 2 1]*200;
+% PF.T  = [2 2 28 24];
+% PF.D  = [1 16];
+
+PF.G  = [1 1 1 1/2]*64;         % intrinsic rates (g1 g2 g3 g4)
+PF.H  = [4 64];                 % receptor densities (excitatory, inhibitory)
+PF.T  = [4 8];                  % synaptic constants (excitatory, inhibitory)
  
+
+HZ    = [60 16]; model = 'CMC'; s = [3 7]; Hz = [1:128]';
+HZ    = [20 16]; model = 'SEP'; s = [7 9]; Hz = [1:64]';
+
 N     = 512;
-s     = [3 7];
-Hz    = [1:128]';
 n     = length(spm_vec(PF));
 sC    = speye(n,n)/2;
-for k = 1:8
+for k = 1:4
     for i = 1:N
         
         % parameters
@@ -32,7 +38,7 @@ for k = 1:8
                 
         % CSD
         %------------------------------------------------------------------
-        G      = spm_dcm_csd_source_plot('CMC',s,pF);
+        G      = spm_dcm_csd_source_plot(model,s,pF,2*Hz(end));
         R(:,i) = spm_vec(G);
         
         % score - mean and variance over Hz
@@ -54,7 +60,7 @@ for k = 1:8
         
         % cost function
         %------------------------------------------------------------------
-        c(1,i) = sum((E1 - [60 16]).^2);
+        c(1,i) = sum((E1 - HZ).^2);
         c(2,i) = sum((sqrt(E2) - sqrt([64 64])).^2);
         c(3,i) = sum((E3 - [0 0]).^2);
         c(4,i) = sum((E4 - [0 0]).^2);
@@ -76,7 +82,7 @@ for k = 1:8
 
     % temperature
     %----------------------------------------------------------------------
-    T     = std(F)/64;
+    T     = std(F)/128;
 
     % mean
     %----------------------------------------------------------------------
@@ -93,12 +99,22 @@ for k = 1:8
     end   
     PF    = spm_unvec(Lq,PF);
     
-    spm_dcm_csd_source_plot('CMC',s,PF);
+    spm_dcm_csd_source_plot(model,s,PF,2*Hz(end));
     disp(PF)
     
 end
 
 return
+
+% SEP models
+%--------------------------------------------------------------------------
+% E  = [32 16 4];              % extrinsic rates (forward, backward, lateral)
+% G  = [1 1 1/4 1/4]*128;      % intrinsic rates (g1 g2 g3 g4)
+% D  = [2 32];                 % propagation delays (intrinsic, extrinsic)
+% H  = [4 32];                 % receptor densities (excitatory, inhibitory)
+% T  = [4 8];                  % synaptic constants (excitatory, inhibitory)
+% R  = [1 0];                  % parameters of static nonlinearity
+
 
 % SVD of mapping from parameters to CSD
 %--------------------------------------------------------------------------

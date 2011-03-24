@@ -14,7 +14,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4247 2011-03-14 18:16:50Z karl $
+% $Id: DEM_demo_contact_lens.m 4261 2011-03-24 16:39:42Z karl $
  
  
 % non-linear generative model
@@ -23,13 +23,14 @@ clear
  
 % The problem: states = [x(1) x(2)]; causes = [v(1) v(2)]
 %--------------------------------------------------------------------------
-x        = [1e4 1e4]';         % initial states: location = 10km,  10km
-v        = [-8   -2]';         %                 velocity = -8m/s, -2m/s
-V        = [1e-2  4];          % observation precision (inverse variance) 
+x        = [1e4 1e4 -8 -2]';   % initial states: location = 10km,  10km
+                               %                 velocity = -8m/s, -2m/s
+V        = [1e-2 4];           % observation precision (inverse variance) 
                                % standard deviation of range: 10m
                                % standard deviation of angle: .5 mrad
-s        = 2;                  % precision of fluctuations in motion
-                               % standard deviation of velocity: 0.5 m/s^2
+s        = 4;                  % precision of fluctuations in motion
+                               % standard deviation of velocity: 0.25 m/s^2
+W        = [s^2 s^2 s s];      % precision of fluctuations on hidden states
                                
  % preliminaries
 %--------------------------------------------------------------------------
@@ -38,25 +39,20 @@ t        = 1:N;                % time (seconds)
 M(1).E.s = 1/sqrt(2*s);        % smoothness of fluctuations
 M(1).E.n = 4;                  % order of generalised coordinates
  
- 
-% level 1 (simple slow motion of a distant radar target)
+% Level 1: Hidden states = [x(1) x(2) v(1) v(2)];
 %--------------------------------------------------------------------------
-g      = '[sqrt(x(1)^2 + x(2)^2); 1000*atan(x(2)/x(1))]';
-M(1).f = inline('v','x','v','P');
-M(1).g = inline( g ,'x','v','P');
-M(1).x = x;
-M(1).V = diag(V);
-M(1).W = s^2;
+f        = '[x(3); x(4); 0; 0]';
+g        = '[sqrt(x(1)^2 + x(2)^2); 1000*atan(x(2)/x(1))]';
+M(1).f   = inline(f,'x','v','P');
+M(1).g   = inline(g,'x','v','P');
+M(1).x   = x;
+M(1).V   = diag(V);
+M(1).W   = diag(W);
  
-% level 2 (fluctuating velocity)
-%--------------------------------------------------------------------------
-M(2).v = v;
-M(2).V = s;
  
 % create data
 %==========================================================================
-U      = v*ones(1,N);
-DEM    = spm_DEM_generate(M,U);
+DEM    = spm_DEM_generate(M,N);
  
 spm_figure('Getwin','DEM');
 spm_DEM_qU(DEM.pU)
@@ -64,58 +60,57 @@ spm_DEM_qU(DEM.pU)
  
 % Comparative inversions (variants of generalised filtering)
 %==========================================================================
-DEM.M(1).x = [1e4; 2e3];
-DEM.M(2).v = [0; 0];
-DEM.M(1).V = exp(8);
-DEM.M(1).W = exp(8);
-DEM.M(2).V = exp(8);
- 
- 
-% DEM
+
+% reset initial position and velocity (and increase predicions)
 %--------------------------------------------------------------------------
-DEM        = spm_DEM(DEM);
+DEM.M(1).x = [1e3; 1e3; 0; 0];
+DEM.M(1).V = M.V*16;
+DEM.M(1).W = M.W*64;
+ 
+% DEM and EKF
+%--------------------------------------------------------------------------
+DEM    = spm_DEM(DEM);
+EKF    = spm_ekf(DEM.M,DEM.Y);
  
 spm_figure('Getwin','DEM');
 spm_DEM_qU(DEM.qU,DEM.pU)
  
  
-% Extened Kalman filtering: states = [x(1) x(2) v(1) v(2)];
-%--------------------------------------------------------------------------
-f      = '[x(3); x(4); 0; 0]';
-g      = '[sqrt(x(1)^2 + x(2)^2); 1000*atan(x(2)/x(1))]';
-G(1).f = inline(f,'x','v','P');
-G(1).g = inline(g,'x','v','P');
-G(1).x = [1e4; 2e3; 0; 0];
-G(1).V = diag(V);
-G(1).W = diag([s^2 s^2 s s]);
- 
-% EKF  = spm_ekf(DEM.M,DEM.Y);
-EKF    = spm_ekf(G,DEM.Y);
- 
-% show prediction error
+% show prediction errors
 %==========================================================================
 spm_figure('Getwin','Graphics');
  
-D(1,:)  = sqrt(sum((DEM.pU.x{1}([1 2],:) - DEM.qU.x{1}([1 2],:)).^2));
-D(2,:)  = sqrt(sum((DEM.pU.x{1}([1 2],:) - EKF([1 2],:)).^2));
+D(1,:) = sqrt(sum((DEM.pU.x{1}([1 2],:) - DEM.qU.x{1}([1 2],:)).^2));
+D(2,:) = sqrt(sum((DEM.pU.x{1}([1 2],:) - EKF([1 2],:)).^2));
+D(3,:) = sqrt(sum((DEM.pU.x{1}([3 4],:) - DEM.qU.x{1}([3 4],:)).^2));
+D(4,:) = sqrt(sum((DEM.pU.x{1}([3 4],:) - EKF([3 4],:)).^2));
  
 % plot
 %--------------------------------------------------------------------------
-subplot(2,1,1)
-plot(t,log(D(:,:)))
+subplot(2,2,1)
+plot(t,log(D(1:2,:)))
 title('log(location error (m))','Fontsize',16)
 xlabel('time (secs)')
 ylabel('log distance from target')
 axis square
 legend('DEM','EKF')
-drawnow
+ 
+subplot(2,2,2)
+plot(t,log(D(3:4,:)))
+title('log(speed error (m/s))','Fontsize',16)
+xlabel('time (secs)')
+ylabel('log distance from target')
+axis square
+legend('DEM','EKF')
  
 subplot(2,1,2)
 plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:)     ),hold on
 plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),'-.'),hold on
-plot(EKF(1,2:end),EKF(2,2:end),':'),hold off
+plot(EKF(1,:),EKF(2,:),':'),hold off
 title('location (m)','Fontsize',16)
-axis([90 105 95 105]*1e2)
+axis([85 110 85 110]*1e2)
 xlabel('x')
 ylabel('y')
 axis square
+legend('true','DEM','EKF')
+drawnow

@@ -1,4 +1,4 @@
-function X = spm_inv(A,TOL)
+function X = spm_inv(A)
 % inverse for ill-conditioned matrices
 % FORMAT X = spm_inv(A)
 %
@@ -10,7 +10,7 @@ function X = spm_inv(A,TOL)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_inv.m 4098 2010-10-22 19:46:28Z karl $
+% $Id: spm_inv.m 4261 2011-03-24 16:39:42Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
