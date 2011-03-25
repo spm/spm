@@ -68,7 +68,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 4155 2011-01-11 15:22:39Z guillaume $
+% $Id: spm_graph.m 4262 2011-03-25 13:39:20Z guillaume $
 
 
 %-Get Graphics figure handle
@@ -593,7 +593,7 @@ switch Cplot
 
         % parameter estimates for this effect
         %------------------------------------------------------------------
-        B     = beta(Sess(s).Fc(u).i);
+        B     = beta(Sess(s).col(Sess(s).Fc(u).i));
 
         % reconstruct trial-specific responses
         %------------------------------------------------------------------
@@ -646,7 +646,7 @@ switch Cplot
 
             % Parameter estimates and kernel
             %--------------------------------------------------------------
-            B     = beta(Sess(s).Fc(u).i);
+            B     = beta(Sess(s).col(Sess(s).Fc(u).i));
             i     = 1;
             Y     = 0;
             for p = 1:size(bf,2)
@@ -680,7 +680,7 @@ switch Cplot
         % first  order kernel
         %------------------------------------------------------------------
         else
-            B = beta(Sess(s).Fc(u).i(1:size(bf,2)));
+            B = beta(Sess(s).col(Sess(s).Fc(u).i(1:size(bf,2))));
             Y = bf*B;
 
             % plot
