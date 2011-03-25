@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4174 2011-01-26 13:33:13Z john $
+% $Id: spm_shoot_template.m 4264 2011-03-25 19:18:33Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -218,7 +218,8 @@ for it=1:nits,
     spm_progress_bar('Clear');
 
     if issym
-        su = (su + su(end:-1:1,:,:,:))/(sum(ok)*2);
+        su(:,:,:,1)   = (su(:,:,:,1)   - su(end:-1:1,:,:,1)  )/(sum(ok)*2);
+        su(:,:,:,2:3) = (su(:,:,:,2:3) + su(end:-1:1,:,:,2:3))/(sum(ok)*2);
     else
         su = su/sum(ok);
     end
