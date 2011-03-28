@@ -15,9 +15,9 @@ function D = spm_eeg_detect_eyeblinks(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_detect_eyeblinks.m 4129 2010-12-01 14:53:38Z vladimir $
+% $Id: spm_eeg_detect_eyeblinks.m 4265 2011-03-28 13:18:31Z vladimir $
 
-SVNrev = '$Rev: 4129 $';
+SVNrev = '$Rev: 4265 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ eog_filt = detrend(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'bu
 
 %% find eye-movements
 
-sd_eeg=(percentile(eog_filt,85)-percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
+sd_eeg=(spm_percentile(eog_filt,85)-spm_percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
 em_thresh = stdthresh*sd_eeg;
 
 %% find 'spikes' (putative eyeblinks):
