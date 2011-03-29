@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4220 2011-03-01 20:06:25Z guillaume $
+% $Id: spm_figure.m 4272 2011-03-29 17:39:38Z guillaume $
 
 
 %==========================================================================
@@ -155,7 +155,10 @@ function varargout=spm_figure(varargin)
 % Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
 %
 % FORMAT spm_figure('ColorMap')
-% Callback for "ColorMap" buttons
+% Callback for "ColorMap" menu
+%
+% FORMAT spm_figure('FontSize')
+% Callback for "FontSize" menu
 %__________________________________________________________________________
 
 
@@ -760,6 +763,11 @@ uimenu(t2,    'Label','Invert',    'CallBack','spm_figure(''ColorMap'',''invert'
 uimenu(t2,    'Label','Brighten',  'CallBack','spm_figure(''ColorMap'',''brighten'')');
 uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'')');
 
+%-Font Size Menu
+t1=uimenu(t0, 'Label','&Font Size', 'HandleVisibility','off');
+uimenu(t1, 'Label','&Increase', 'CallBack','spm_figure(''FontSize'',1)');
+uimenu(t1, 'Label','&Decrease', 'CallBack','spm_figure(''FontSize'',-1)');
+
 %-Satellite Table
 uimenu(t0,    'Label','&Results Table', 'HandleVisibility','off', ...
     'Separator','on', 'Callback',@mysatfig);
@@ -821,6 +829,18 @@ case 'darken'
 otherwise
     error('Illegal ColAction specification');
 end
+
+%==========================================================================
+case 'fontsize'
+%==========================================================================
+% spm_figure('FontSize',sz)
+
+if nargin<2, sz=0; else sz=varargin{2}; end
+
+h  = [get(0,'CurrentFigure') spm_figure('FindWin','Satellite')];
+h  = findall(h,'type','text');
+fs = get(h,'fontsize');
+set(h,{'fontsize'},cellfun(@(x) x+sz,fs,'UniformOutput',false)) ;
 
 %==========================================================================
 otherwise
