@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 3596 2009-11-25 19:17:07Z guillaume $
+% $Id: spm_cfg_coreg.m 4269 2011-03-29 16:03:43Z guillaume $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
@@ -99,7 +99,7 @@ eoptions.help    = {'Various registration options, which are passed to the Powel
 % ---------------------------------------------------------------------
 estimate         = cfg_exbranch;
 estimate.tag     = 'estimate';
-estimate.name    = 'Coreg: Estimate';
+estimate.name    = 'Coregister: Estimate';
 estimate.val     = {ref source other eoptions };
 estimate.help    = {
                     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
@@ -209,7 +209,7 @@ roptions.help    = {'Various reslicing options.'};
 % ---------------------------------------------------------------------
 write         = cfg_exbranch;
 write.tag     = 'write';
-write.name    = 'Coreg: Reslice';
+write.name    = 'Coregister: Reslice';
 write.val     = {refwrite source roptions };
 write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
 write.prog = @spm_run_coreg_reslice;
@@ -229,7 +229,7 @@ source.num     = [1 1];
 % ---------------------------------------------------------------------
 estwrite         = cfg_exbranch;
 estwrite.tag     = 'estwrite';
-estwrite.name    = 'Coreg: Estimate & Reslice';
+estwrite.name    = 'Coregister: Estimate & Reslice';
 estwrite.val     = {ref source other eoptions roptions };
 estwrite.help    = {
                     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
@@ -245,7 +245,7 @@ estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 coreg         = cfg_choice;
 coreg.tag     = 'coreg';
-coreg.name    = 'Coreg';
+coreg.name    = 'Coregister';
 coreg.help    = {
                  'Within-subject registration using a rigid-body model. A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
                  ''

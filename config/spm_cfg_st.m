@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 4114 2010-11-09 15:26:07Z guillaume $
+% $Id: spm_cfg_st.m 4269 2011-03-29 16:03:43Z guillaume $
 
 % ---------------------------------------------------------------------
 % scans Session
@@ -11,7 +11,7 @@ function st = spm_cfg_st
 scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Session';
-scans.help    = {'Select images to acquisition correct.'};
+scans.help    = {'Select images to slice-time correct.'};
 scans.filter = 'image';
 scans.ufilter = '.*';
 scans.num     = [2 Inf];
@@ -30,7 +30,7 @@ generic.num     = [1 Inf];
 nslices         = cfg_entry;
 nslices.tag     = 'nslices';
 nslices.name    = 'Number of Slices';
-nslices.help    = {'Enter the number of slices'};
+nslices.help    = {'Enter the number of slices.'};
 nslices.strtype = 'n';
 nslices.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -39,7 +39,7 @@ nslices.num     = [1 1];
 tr         = cfg_entry;
 tr.tag     = 'tr';
 tr.name    = 'TR';
-tr.help    = {'Enter the TR in seconds'};
+tr.help    = {'Enter the TR (in seconds).'};
 tr.strtype = 'r';
 tr.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -48,7 +48,7 @@ tr.num     = [1 1];
 ta         = cfg_entry;
 ta.tag     = 'ta';
 ta.name    = 'TA';
-ta.help    = {'The TA (in seconds) must be entered by the user. It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'};
+ta.help    = {'Enter the TA (in seconds). It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'};
 ta.strtype = 'e';
 ta.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -90,7 +90,7 @@ refslice.num     = [1 1];
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''a''.'};
+prefix.help    = {'Specify the string to be prepended to the filenames of the slice-time corrected image file(s). Default prefix is ''a''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('slicetiming.prefix', val{:});

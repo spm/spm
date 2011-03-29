@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 4227 2011-03-03 15:17:14Z guillaume $
+% $Id: spm_run_voi.m 4269 2011-03-29 16:03:43Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -65,7 +65,9 @@ xSPM.XYZmm = XYZmm;
 xSPM.XYZ   = XYZ;
 xSPM.M     = SPM.xVol.M; % irrelevant here
 
+if ~isempty(xY.Ic), cwd = pwd; cd(SPM.swd); end % to find beta images
 [Y,xY]     = spm_regions(xSPM,SPM,[],xY);
+if  ~isempty(xY.Ic), cd(cwd); end
 
 %-Export results
 %--------------------------------------------------------------------------
