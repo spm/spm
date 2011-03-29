@@ -2,8 +2,6 @@ function spm_dcm_ui(Action)
 % User interface for Dynamic Causal Modelling (DCM)
 % FORMAT spm_dcm_ui('specify')
 % FORMAT spm_dcm_ui('estimate')
-% FORMAT spm_dcm_ui('search')
-% FORMAT spm_dcm_ui('optimise')
 % FORMAT spm_dcm_ui('review')
 % FORMAT spm_dcm_ui('compare')
 % FORMAT spm_dcm_ui('average (BPA)')
@@ -67,7 +65,7 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 4112 2010-11-05 16:12:21Z karl $
+% $Id: spm_dcm_ui.m 4267 2011-03-29 15:45:26Z guillaume $
 
 
 % Get figure handles
@@ -88,8 +86,6 @@ if ~nargin
     str       =  'Action: ';
     Actions   = {'specify',  ...
                  'estimate', ...
-                 'search', ...
-                 'optimise', ...
                  'review',   ...
                  'compare',  ...
                  'average',  ...
@@ -134,25 +130,6 @@ case 'estimate',
         spm('SFnBanner',sprintf('spm_dcm_estimate: model %d',i));
         spm_dcm_estimate(P{i});
     end
-
-%==========================================================================
-% Esimate and search a model set
-%==========================================================================
-case 'search',
-
-    spm('FnBanner','spm_dcm_search');
-    
-    spm_dcm_search;
-
-    
-%==========================================================================
-% Post hoc model optimisation/selection
-%==========================================================================
-case 'optimise',
-
-    spm('FnBanner','spm_dcm_post_hoc');
-    
-    spm_dcm_post_hoc;
 
     
 %==========================================================================
