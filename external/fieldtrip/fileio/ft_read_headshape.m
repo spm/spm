@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 2914 2011-02-21 16:08:36Z jansch $
+% $Id: ft_read_headshape.m 3229 2011-03-28 13:51:53Z roboos $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -254,7 +254,6 @@ switch fileformat
     shape = ft_convert_units(shape, 'cm');
 
   case 'yokogawa_coregis'
-
     in_str = textread(filename, '%s');
     nr_items = size(in_str,1);
     ind = 1;
@@ -317,6 +316,11 @@ switch fileformat
     shape.tri = tri;
     shape = rmfield(shape, 'fid');
 
+  case 'stl'
+    [pnt, tri, nrm] = read_stl(filename);
+    shape.pnt = pnt;
+    shape.tri = tri;
+
   case 'mne_tri'
     % FIXME this should be implemented, consistent with ft_write_headshape
     keyboard
@@ -367,7 +371,7 @@ switch fileformat
     end
 
     if ~success
-      error('unknown fileformat for head shape information');
+      error('unknown fileformat "%s" for head shape information', fileformat);
     end
 end
 

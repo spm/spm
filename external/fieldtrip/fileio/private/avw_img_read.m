@@ -60,7 +60,7 @@ function [ avw, machine ] = avw_img_read(fileprefix,IMGorient,machine,verbose)
 % 
 
 
-% $Revision: 2885 $ $Date: 2009/01/14 09:24:45 $
+% $Revision: 3197 $ $Date: 2009/01/14 09:24:45 $
 
 % Licence:  GNU GPL, no express or implied warranties
 % History:  05/2002, Darren.Weber@flinders.edu.au
@@ -84,9 +84,6 @@ function [ avw, machine ] = avw_img_read(fileprefix,IMGorient,machine,verbose)
 %  it allows the reading in of N-D volumes. See lines 270-280.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-% check if SPM2 is in path and if not add
-hastoolbox('SPM2',1);
 
 if ~exist('IMGorient','var'), IMGorient = ''; end
 if ~exist('machine','var'), machine = 'ieee-le'; end
@@ -129,7 +126,7 @@ if fid < 0,
 end
 
 if verbose,
-    ver = '[$Revision: 2885 $]';
+    ver = '[$Revision: 3197 $]';
     fprintf('\nAVW_IMG_READ [v%s]\n',ver(12:16));  tic;
 end
 

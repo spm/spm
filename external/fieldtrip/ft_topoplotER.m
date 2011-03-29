@@ -141,7 +141,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 3147 2011-03-17 12:38:09Z jansch $
+% $Id: ft_topoplotER.m 3179 2011-03-21 16:31:11Z craric $
 
 ft_defaults
 
@@ -815,18 +815,6 @@ if ~strcmp(cfg.marker,'off')
         'labeloffset',cfg.labeloffset)
     end						    
 
-% Set colour axis
-caxis([zmin zmax]);
-
-if strcmp('yes',cfg.hotkeys)
-  %  Attach data and cfg to figure and attach a key listener to the figure
-  info = guidata(gcf);
-  info.zmin = zmin;
-  info.zmax = zmax;
-  guidata(gcf,info);
-  set(gcf, 'KeyPressFcn', @key_sub)
-end
-
 % Write comment
 if ~strcmp(cfg.comment,'no')
     if strcmp(cfg.commentpos, 'title')
@@ -852,6 +840,13 @@ end
 
 % The remainder of the code is meant to make the figure interactive
 hold on;
+
+% Set colour axis
+caxis([zmin zmax]);
+if strcmp('yes',cfg.hotkeys)
+  %  Attach data and cfg to figure and attach a key listener to the figure
+  set(gcf, 'KeyPressFcn', {@key_sub, zmin, zmax})
+end
 
 % Make the figure interactive
 if strcmp(cfg.interactive, 'yes')
@@ -941,8 +936,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which handles hot keys in the current plot
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function key_sub(h, eventdata, handles, varargin)
-info = guidata(h);
+function key_sub(handle, eventdata, varargin)
 incr = (max(caxis)-min(caxis)) /10;
 % symmetrically scale color bar down by 10 percent
 if strcmp(eventdata.Key,'uparrow')
@@ -952,7 +946,7 @@ elseif strcmp(eventdata.Key,'downarrow')
   caxis([min(caxis)+incr max(caxis)-incr]);
 % resort to minmax of data for colorbar
 elseif strcmp(eventdata.Key,'m')
-  caxis([info.zmin info.zmax]);
+  caxis([varargin{1} varargin{2}]);
 end
 
 

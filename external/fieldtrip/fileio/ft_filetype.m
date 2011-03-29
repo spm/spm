@@ -73,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 3154 2011-03-17 15:15:32Z roboos $
+% $Id: ft_filetype.m 3229 2011-03-28 13:51:53Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -337,6 +337,11 @@ elseif isequal(f, 'hs_file') % the filename is "hs_file"
   manufacturer = '4D/BTI';
   content = 'head shape';
 elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
+  type = '4d';
+  manufacturer = '4D/BTi';
+  content = '';
+elseif length(filename)<=4 && exist([pwd,'/config']) %&& exist([pwd,'/hs_file'])
+  % this could be a 4D file with non-standard/processed name
   type = '4d';
   manufacturer = '4D/BTi';
   content = '';
@@ -885,6 +890,10 @@ elseif filetype_check_extension(filename, '.lay')
   type = 'layout';
   manufacturer = 'Ole Jensen';
   content = 'layout of channels for plotting';
+elseif filetype_check_extension(filename, '.stl')
+  type = 'stl';
+  manufacturer = 'various';
+  content = 'stereo litography file';
 elseif filetype_check_extension(filename, '.dcm') || filetype_check_extension(filename, '.ima') || filetype_check_header(filename, 'DICM', 128)
   type = 'dicom';
   manufacturer = 'Dicom';

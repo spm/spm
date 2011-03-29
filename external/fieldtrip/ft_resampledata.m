@@ -68,7 +68,7 @@ function [data] = ft_resampledata(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_resampledata.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_resampledata.m 3238 2011-03-29 09:16:09Z marvger $
 
 ft_defaults
 
@@ -142,7 +142,7 @@ if usefsample && usetime
 end
 
 % remember the original sampling frequency in the configuration
-cfg.origfs = data.fsample;
+cfg.origfs = double(data.fsample);
 
 if usefsample
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,7 +250,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_resampledata.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_resampledata.m 3238 2011-03-29 09:16:09Z marvger $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

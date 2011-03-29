@@ -1,7 +1,7 @@
-function [mri] = align_ctf2spm(mri);
+function [mri] = align_itab2spm(mri)
 
-% ALIGN_CTF2SPM performs an approximate alignment of the anatomical volume
-% from CTF towards SPM coordinates. Only the homogenous transformation matrix
+% ALIGN_ITAB2SPM performs an approximate alignment of the anatomical volume
+% from ITAB towards SPM coordinates. Only the homogenous transformation matrix
 % is modified.
 
 spmvox2spmhead = [
@@ -24,10 +24,11 @@ spmhead_Nas          = spmvox2spmhead * spmvox_Nas ;
 spmhead_Lpa_canal    = spmvox2spmhead * spmvox_Lpa_canal ;
 spmhead_Rpa_canal    = spmvox2spmhead * spmvox_Rpa_canal ;
 
-ctfvox2ctfhead  = mri.transform;
-spmhead2ctfhead = headcoordinates(spmhead_Nas(1:3), spmhead_Lpa_canal(1:3), spmhead_Rpa_canal(1:3), 0);
+itabvox2itabhead  = mri.transform;
+spmhead2itabhead  = headcoordinates(spmhead_Nas(1:3), spmhead_Lpa_canal(1:3), spmhead_Rpa_canal(1:3), 'RAS_ITAB');
 
-ctfvox2spmhead =  inv(spmhead2ctfhead) *  ctfvox2ctfhead;
+itabvox2spmhead =  inv(spmhead2itabhead) * itabvox2itabhead;
 
 % change the transformation matrix, such that it returns SPM head coordinates
-mri.transform = ctfvox2spmhead;
+mri.transform = itabvox2spmhead;
+mri.coordsys  = 'spm';

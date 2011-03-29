@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3149 2011-03-17 13:13:27Z jansch $
+% $Id: ft_checkdata.m 3199 2011-03-23 03:42:46Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -244,6 +244,12 @@ if ~isempty(dtype)
         data = comp2raw(data);
         iscomp = 0;
         israw = 1;
+        okflag = 1;
+      elseif isequal(dtype(iCell), {'timelock'}) && iscomp
+        data = comp2raw(data);
+        data = raw2timelock(data);
+        iscomp = 0;
+        istimelock = 1;
         okflag = 1;
       end
     end % for iCell

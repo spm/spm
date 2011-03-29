@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 2833 2011-02-06 20:19:54Z crimic $
+% $Id: ft_prepare_vol_sens.m 3234 2011-03-29 08:54:36Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -315,9 +315,9 @@ elseif iseeg
     case 'infinite'
       % nothing to do
 
-    case 'halfspace'
+    case {'halfspace', 'halfspace_monopole'}
       pnt    = sens.pnt;
-      if ft_voltype(vol,'halfspace')
+      if ft_voltype(vol,'halfspace') || ft_voltype(vol,'halfspace_monopole')
         d = dist(pnt);
         % scan the electrodes and reposition the ones which are in the
         % wrong halfspace (projected on the plane)

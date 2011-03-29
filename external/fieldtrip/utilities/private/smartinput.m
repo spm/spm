@@ -25,7 +25,7 @@ function [newval, change] = smartinput(question, oldval);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: smartinput.m 3220 2011-03-24 22:47:52Z jansch $
+% $Id: smartinput.m 3221 2011-03-24 22:48:13Z jansch $
 
 if ischar(oldval)
   newval = input(question, 's');

@@ -25,7 +25,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: ft_defaults.m 3245 2011-03-29 14:22:39Z roboos $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -113,6 +113,11 @@ end
 try 
   % this contains the functions to compute connecitivy metrics
   ft_hastoolbox('connectivity', 1,1);
+end
+
+try 
+  % this can be used for distrubuted/parallel computing
+  ft_hastoolbox('peer', 1,1);
 end
 
 try

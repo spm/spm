@@ -61,7 +61,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_componentanalysis.m 3184 2011-03-22 11:23:40Z roboos $
 
 ft_defaults
 
@@ -242,7 +242,9 @@ switch cfg.method
       [A, W] = fastica(dat, optarg{:});
       weights = W;
       sphere = eye(size(W,2));
-    catch ME
+    catch
+      % the "catch me" syntax is broken on MATLAB74, this fixes it
+      me = lasterror;
       % give a hopefully instructive error message
       fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
         'from\n' ...
@@ -250,7 +252,7 @@ switch cfg.method
         'to\n' ...
         '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
       % forward original error
-      rethrow(ME);
+      rethrow(me);
     end
     
   case 'runica'
@@ -448,7 +450,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 3184 2011-03-22 11:23:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

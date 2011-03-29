@@ -192,7 +192,7 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_sourceanalysis.m 3204 2011-03-23 19:53:15Z jansch $
 
 ft_defaults
 
@@ -629,7 +629,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
     hascovariance = 1;
   else
     % add a identity covariance matrix, this simplifies the handling of the different source reconstruction methods
-    % since the covariance is only used by some reconstruction methods and might not allways be present in the data
+    % since the covariance is only used by some reconstruction methods and might not always be present in the data
     if Ntrials==1
       data.cov = eye(Nchans);
     else
@@ -871,7 +871,11 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   elseif strcmp(cfg.method, 'mne')
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
-      dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:});
+      if hascovariance 
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
+      else
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:});
+      end
     end
   elseif strcmp(cfg.method, 'loreta')
     for i=1:Nrepetitions
@@ -1040,7 +1044,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 3204 2011-03-23 19:53:15Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

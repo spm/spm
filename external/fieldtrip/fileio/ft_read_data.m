@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 3152 2011-03-17 15:02:50Z roboos $
+% $Id: ft_read_data.m 3194 2011-03-23 02:40:58Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -380,7 +380,7 @@ switch dataformat
         error('unsupported data format');
     end
     % calibrate the data
-    dat = calib*dat;
+    dat = double(sparse(calib)*dat);
 
   case 'bci2000_dat'
     % this requires the load_bcidat mex file to be present on the path

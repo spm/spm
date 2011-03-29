@@ -107,7 +107,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_prepare_leadfield.m 3184 2011-03-22 11:23:40Z roboos $
 
 ft_defaults
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -194,13 +194,15 @@ if ft_voltype(vol, 'openmeeg')
     try
       lf = ft_compute_leadfield(grid.pos(grid.inside(batch),:), sens, vol, 'reducerank', cfg.reducerank, 'normalize', cfg.normalize, 'normalizeparam', cfg.normalizeparam);
       ok(batch) = true;
-    catch ME
-      if ~isempty(findstr(ME.message, 'Output argument "dsm" (and maybe others) not assigned during call to'))
+    catch
+      % the "catch me" syntax is broken on MATLAB74, this fixes it
+      me = lasterror;
+      if ~isempty(findstr(me.message, 'Output argument "dsm" (and maybe others) not assigned during call to'))
         % it does not fit in memory, split the problem in two halves and try once more
         batchsize = floor(batchsize/500);
         continue
       else
-        rethrow(ME);
+        rethrow(me);
       end % handling this particular error
     end
     
@@ -262,7 +264,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_prepare_leadfield.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 3184 2011-03-22 11:23:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

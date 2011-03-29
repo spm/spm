@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 3150 2011-03-17 14:41:12Z roboos $
+% $Id: ft_read_header.m 3241 2011-03-29 12:05:29Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -340,6 +340,10 @@ switch headerformat
     % use the biosig toolbox if available
     ft_hastoolbox('BIOSIG', 1);
     hdr = read_biosig_header(filename);
+    % gdf always represents continuous data
+    hdr.nSamples    = hdr.nSamples*hdr.nTrials;
+    hdr.nTrials     = 1;
+    hdr.nSamplesPre = 0;
 
   case {'biosemi_bdf', 'bham_bdf'}
     hdr = read_biosemi_bdf(filename);
@@ -777,7 +781,7 @@ switch headerformat
     hdr.nSamples    = orig.nsamples;
     hdr.nSamplesPre = 0; % since continuous
     hdr.nTrials     = 1; % since continuous
-	hdr.orig        = []; % add chunks if present
+    hdr.orig        = []; % add chunks if present
 	
 	% add the contents of attached .res4 file to the .orig field similar to offline data
 	if isfield(orig, 'ctf_res4')
@@ -1046,12 +1050,14 @@ switch headerformat
 
     if iscontinuous
         try
-            %we only use 1 input argument here to allow backward
-            %compatibility up to MNE 2.6.x:
+            % we only use 1 input argument here to allow backward
+            % compatibility up to MNE 2.6.x:
             raw = fiff_setup_read_raw(filename);
-        catch me
-            %there is an error - we try to use MNE 2.7.x (if present) to
-            %determine if the cause is maxshielding:
+        catch
+            % the "catch me" syntax is broken on MATLAB74, this fixes it
+            me = lasterror;
+            % there is an error - we try to use MNE 2.7.x (if present) to
+            % determine if the cause is maxshielding:
             try
                 allow_maxshield = true;
                 raw = fiff_setup_read_raw(filename,allow_maxshield);
@@ -1059,8 +1065,8 @@ switch headerformat
                 %unknown problem, or MNE version 2.6.x or less:
                 rethrow(me);
             end
-            %no error message from fiff_setup_read_raw? Then maxshield
-            %was applied, but maxfilter wasn't, so return this error:
+            % no error message from fiff_setup_read_raw? Then maxshield
+            % was applied, but maxfilter wasn't, so return this error:
             error(['Maxshield data has not had maxfilter applied to it - cannot be read by fieldtrip. ' ...
                 'Apply Neuromag maxfilter before converting to fieldtrip format.']);
         end

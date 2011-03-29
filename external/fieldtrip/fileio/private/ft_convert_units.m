@@ -1,4 +1,4 @@
-function [obj] = ft_convert_units(obj, target);
+function [obj] = ft_convert_units(obj, target)
 
 % FT_CONVERT_UNITS changes the geometrical dimension to the specified SI unit.
 % The units of the input object is determined from the structure field
@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: ft_convert_units.m 3212 2011-03-24 22:35:57Z jansch $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -46,7 +46,7 @@ function [obj] = ft_convert_units(obj, target);
 %   3) try to apply the scaling to the known geometrical elements in the input object
 
 % determine the unit-of-dimension of the input object
-if isfield(obj, 'unit')
+if isfield(obj, 'unit') && ~isempty(obj.unit)
   % use the units specified in the object
   unit = obj.unit;
 else

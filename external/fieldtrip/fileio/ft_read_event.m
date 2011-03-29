@@ -80,7 +80,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 3067 2011-03-07 14:12:33Z vlalit $
+% $Id: ft_read_event.m 3241 2011-03-29 12:05:29Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -161,21 +161,21 @@ switch eventformat
 
   case {'4d' '4d_pdf', '4d_m4d', '4d_xyz'}
     if isempty(hdr)
-      hdr = ft_read_header(filename);
+      hdr = ft_read_header(filename, 'headerformat', '4d');
     end
 
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && strcmp(hdr.orig.config_data.site_name, 'Glasgow'),
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',1, 'dataformat', '4d');
     else
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',0);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',0, 'dataformat', '4d');
     end
     event   = appendevent(event, trigger);
 
     respindx = match_str(hdr.label, 'RESPONSE');
     if ~isempty(respindx)
-      response = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', respindx, 'detectflank', detectflank, 'trigshift', trigshift);
+      response = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', respindx, 'detectflank', detectflank, 'trigshift', trigshift, 'dataformat', '4d');
       event    = appendevent(event, response);
     end
 
@@ -342,8 +342,18 @@ switch eventformat
   case {'biosig', 'gdf'}
     % FIXME it would be nice to figure out how sopen/sread return events
     % for all possible fileformats that can be processed with biosig
-    warning('BIOSIG does not have a consistent event representation, skipping events')
-    event = [];
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    % the following applies to Biosemi data that is stored in the gdf format
+    statusindx = find(strcmp(hdr.label, 'STATUS'));
+    if length(statusindx)==1
+      % represent the rising flanks in the STATUS channel as events
+      event = read_trigger(filename, 'header', hdr, 'chanindx', statusindx, 'detectflank', 'up', 'fixbiosemi', true);
+    else
+      warning('BIOSIG does not have a consistent event representation, skipping events')
+      event = [];
+    end
 
   case 'brainvision_vmrk'
     fid=fopen(filename,'rt');
@@ -661,32 +671,22 @@ switch eventformat
             event(eventCount).sample   = min(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples))) +(segment-1)*hdr.nSamples;
             event(eventCount).offset   = -hdr.nSamplesPre;
             event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
-            if event(eventCount).duration ~= hdr.nSamples 
-              event(eventCount).type     = 'trigger';
-            else
-              event(eventCount).type     = 'trial';
-            end;
+            event(eventCount).type     = 'trigger';
             event(eventCount).value    =  char(EventCodes(theEvent,:));
           end
         end
       end
     end
-
-    if eventCount > 0
-        if sum(strcmp('trial',{event.type})) ~= hdr.nTrials
-            for segment=1:hdr.nTrials  % cell information
-                eventCount=eventCount+1;
-                event(eventCount).type     = 'trial';
-                event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
-                event(eventCount).offset   = -hdr.nSamplesPre;
-                event(eventCount).duration =  hdr.nSamples;
-                if unsegmented,
-                    event(eventCount).value    = [];
-                else
-                    event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
-                end
-            end
-        end;
+    
+    if ~unsegmented
+        for segment=1:hdr.nTrials  % cell information
+            eventCount=eventCount+1;
+            event(eventCount).type     = 'trial';
+            event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+            event(eventCount).offset   = -hdr.nSamplesPre;
+            event(eventCount).duration =  hdr.nSamples;
+            event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
+        end
     end;
 
   case 'eyelink_asc'

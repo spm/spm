@@ -1,4 +1,4 @@
-function ft_plot_ortho(dat, varargin)
+function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 
 % FT_PLOT_ORTHO plots a 3 orthographic cuts through a 3-D volume
 %
@@ -41,7 +41,7 @@ function ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 2122 2010-11-17 11:53:53Z jansch $
+% $Id: ft_plot_ortho.m 3215 2011-03-24 22:38:29Z jansch $
 
 style     = keyval('style',       varargin); if isempty(style),      style      = 'subplot'; end
 loc       = keyval('location',    varargin); if isempty(loc),        loc        = [0 0 0];   end

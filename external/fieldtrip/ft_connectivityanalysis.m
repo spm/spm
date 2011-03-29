@@ -23,14 +23,12 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                               if cfg.partchannel is specified
 %                 'plv',       phase-locking value, support for freq and freqmvar data
 %                 'corr',      correlation coefficient (Pearson)
-%                 'xcorr',     cross correlation function
 %                 'powcorr',   power correlation, support for freq and source data
 %                 'amplcorr',  amplitude correlation, support for freq and source data
 %                 'dtf',       directed transfer function, support for freq and freqmvar data
 %                 'pdc',       partial directed coherence, support for freq and freqmvar data
 %                 'granger',   granger causality, support for freq and freqmvar data
 %                 'psi',       phaseslope index, support for freq and freqmvar data
-%                 'di',        directionality index
 %                 'wpli',          weighted phase lag index
 %                 'wpli_debiased'  debiased weighted phase lag index
 %                 'ppc'        pairwise phase consistency
@@ -46,7 +44,11 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % input/output structure.
 %
 
-
+% Methods to be implemented
+%
+%                 'xcorr',     cross correlation function
+%                 'di',        directionality index
+%
 % Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen, Andre Bastos, Martin Vinck
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -65,7 +67,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 3148 2011-03-17 13:13:26Z jansch $
+% $Id: ft_connectivityanalysis.m 3209 2011-03-24 22:33:17Z jansch $
 
 %ft_defaults
 
@@ -712,7 +714,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 3148 2011-03-17 13:13:26Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3209 2011-03-24 22:33:17Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

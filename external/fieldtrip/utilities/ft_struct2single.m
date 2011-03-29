@@ -35,7 +35,7 @@ function [x] = ft_struct2single(x, maxdepth);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_struct2single.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_struct2single.m 3213 2011-03-24 22:37:01Z jansch $
 
 if nargin<2
   maxdepth = inf;
@@ -80,6 +80,6 @@ switch class(a)
     a = single(a);
 
   otherwise
-     warning('not converting class %s', class(a))
+     warning_once(sprintf('not converting class %s', class(a)));
     % do nothing
 end

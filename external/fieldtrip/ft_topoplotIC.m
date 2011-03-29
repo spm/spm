@@ -13,6 +13,7 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %
 % The configuration can have the following parameters:
 % cfg.colormap           = any sized colormap, see COLORMAP
+% cfg.zlim               = 'maxmin', 'maxabs' or [zmin zmax] (default = 'maxmin')
 % cfg.marker             = 'on', 'labels', 'numbers', 'off'                    
 % cfg.markersymbol       = channel marker symbol (default = 'o')
 % cfg.markercolor        = channel marker color (default = [0 0 0] (black))
@@ -92,7 +93,7 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: ft_topoplotIC.m 3198 2011-03-23 03:42:45Z roboos $
 
 % config default
 if ~isfield(cfg, 'component'),             cfg.component = [];            end
