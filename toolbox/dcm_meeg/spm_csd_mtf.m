@@ -15,7 +15,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_csd_mtf.m 4281 2011-03-31 19:49:57Z karl $
 
 
 % compute log-spectral density
@@ -84,14 +84,22 @@ for  c = 1:size(X,1)
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
+        
+        
+        % extrinsic connections
+        %------------------------------------------------------------------
         for j = 1:length(A)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
+        
+        % intrinsic connections
+        %----------------------------------------------------------------------
         try
-            Q.H = Q.H + X(c,i)*diag(P.B{i});     % intrinsic connections
+            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
         catch
-            Q.G = Q.G + X(c,i)*diag(P.B{i});
+            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         end
+        
     end
     
     

@@ -27,7 +27,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 4278 2011-03-31 11:48:00Z karl $
+% $Id: spm_log_evidence.m 4281 2011-03-31 19:49:57Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -79,17 +79,21 @@ if nargout < 2
     end
 end
 
+% fix tolerance for matrix inversions
+%--------------------------------------------------------------------------
+TOL   = exp(-16);
+
 % remove fixed parameters under full model
 %--------------------------------------------------------------------------
 i     = find(diag(pC));
 
 % preliminaries
 %--------------------------------------------------------------------------
-qP    = spm_inv(qC(i,i));
-pP    = spm_inv(pC(i,i));
-rP    = spm_inv(rC(i,i));
+qP    = spm_inv(qC(i,i),TOL);
+pP    = spm_inv(pC(i,i),TOL);
+rP    = spm_inv(rC(i,i),TOL);
 sP    = qP + rP - pP;
-sC    = spm_inv(sP);
+sC    = spm_inv(sP,TOL);
 sE    = qP*qE(i) + rP*rE(i) - pP*pE(i);
 
 % log-evidence

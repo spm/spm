@@ -11,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: DEM_demo_Cornsweet.m 4281 2011-03-31 19:49:57Z karl $
  
  
 % Illustrate the Cornsweet effect
@@ -283,6 +283,12 @@ end
 spm_figure('GetWin','DEM');
 spm_DEM_qU(SIM{7}.qU)
 spm_figure('GetWin','Figure 3');
+
+
+% Fitting behavioural data
+%==========================================================================
+
+
  
  
 return

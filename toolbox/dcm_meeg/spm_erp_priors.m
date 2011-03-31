@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_erp_priors.m 4281 2011-03-31 19:49:57Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -57,16 +57,15 @@ u     = size(C,2);                                % number of inputs
 
 % parameters for neural-mass forward model
 %==========================================================================
-n1    = ones(n,1);
  
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/16;              % time constants
-E.H   = log(n1);        V.H = n1/16;              % synaptic density
+E.T   = sparse(n,2);  V.T = sparse(n,2) + 1/16;   % time constants
+E.H   = sparse(n,2);  V.H = sparse(n,2) + 1/16;   % synaptic density
 
 % set parameter of activation function
 %--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/16;           % dispersion & threshold
+E.S   = [0 0];        V.S = [1 1]/16;             % dispersion & threshold
  
  
 % set extrinsic connectivity
@@ -105,6 +104,8 @@ E.R    = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 warning('on','MATLAB:log:logOfZero');
 
 return
+
+
  
 % demo for log-normal pdf
 %==========================================================================

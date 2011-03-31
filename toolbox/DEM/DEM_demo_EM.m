@@ -86,7 +86,7 @@ GY.Q  = {kron(speye(G.l,G.l),Q)};
  
 % EM with a Gauss-Newton-like optimization of free energy
 %==========================================================================
-[Ep,Cp,S,F] = spm_nlsi_GN(G,GU,GY);
+[Ep,Cp,Eh,F] = spm_nlsi_GN(G,GU,GY);
  
 % parameters
 %--------------------------------------------------------------------------
@@ -135,7 +135,7 @@ for i = 1:8
     % EM
     %----------------------------------------------------------------------
     GY.y  = DEM.Y';
-    [Ep,Cp,S,F] = spm_nlsi_GN(G,GU,GY);
+    [Ep,Cp,Eh,F] = spm_nlsi_GN(G,GU,GY);
  
     % retain parameter estimates
     %----------------------------------------------------------------------
@@ -148,7 +148,7 @@ for i = 1:8
     EP(:,i) = eP;
  
     QH(i) = DEM.qH.h{1}(1);
-    EH(i) = -exp(S(1));
+    EH(i) = Eh(1);
 end
  
 clf

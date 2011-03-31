@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4171 2011-01-25 19:00:40Z karl $
+% $Id: spm_nlsi_N.m 4281 2011-03-31 19:49:57Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -201,7 +201,7 @@ end
 nh    = length(Q);          % number of precision components
 nt    = length(Q{1});       % number of time bins
 nq    = nr*ns/nt;           % for compact Kronecker form of M-step
-h     = zeros(nh,1);        % initialize hyperparameters
+
  
  
 % confounds (if specified)
@@ -217,15 +217,16 @@ end
 try
     hE  = M.hE;
 catch
-    hE  = sparse(nh,1) - log(mean(var(y)));
+    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 3;
 end
+h       =  hE;              % initialize hyperparameters
  
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
 try
-    ihC = inv(M.hC);
+    ihC = spm_inv(M.hC);
 catch
-    ihC = speye(nh,nh)*8;
+    ihC = speye(nh,nh)*exp(8);
 end
 
 % unpack prior covariances
@@ -253,9 +254,9 @@ sw    = warning('off','all');
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
 uC    = speye(nu,nu)*exp(32);
-ipC   = inv(pC);                               % p - state parameters
-igC   = inv(gC);                               % g - observer parameters
-iuC   = inv(uC);                               % u - fixed parameters
+ipC   = spm_inv(pC);                               % p - state parameters
+igC   = spm_inv(gC);                               % g - observer parameters
+iuC   = spm_inv(uC);                               % u - fixed parameters
 ibC   = spm_cat(spm_diag({ipC,igC,iuC}));      % all parameters
  
 % initialize conditional density
@@ -343,10 +344,10 @@ for ip = 1:64
             for i = 1:nh
                 iS = iS + Q{i}*exp(h(i));
             end
-            S     = inv(iS);
+            S     = spm_inv(iS);
             iS    = kron(speye(nq),iS);
             dFdbb = dgdb'*iS*dgdb + ibC;
-            Cb    = inv(dFdbb);
+            Cb    = spm_inv(dFdbb);
             
             % precision operators for M-Step
             %--------------------------------------------------------------
@@ -372,7 +373,7 @@ for ip = 1:64
             eh    = h     - hE;
             dFdh  = dFdh  - ihC*eh;
             dFdhh = dFdhh - ihC;
-            Ch    = inv(-dFdhh);
+            Ch    = spm_inv(-dFdhh);
             
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------

@@ -24,7 +24,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_csd.m 4281 2011-03-31 19:49:57Z karl $
  
  
 % check options
@@ -96,7 +96,7 @@ DCM.M.x  = x;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 5;
+DCM.M.hE = 8;
 DCM.M.hC = exp(-8);
 DCM.M.m  = Ns;
 DCM.M.u  = sparse(Ns,1);
@@ -134,8 +134,7 @@ DCM.M.Hz  = DCM.xY.Hz;
  
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
-DCM.xY.Q    = {};
-DCM.xY.Q{1} = spm_Q(1/2,Nf,1)*diag(sqrt(DCM.xY.Hz))*spm_Q(1/2,Nf,1);
+DCM.xY.Q    = {spm_Q(1/2,Nf,1)*diag(DCM.M.Hz)*spm_Q(1/2,Nf,1)};
 DCM.xY.X0   = sparse(Nf,0);
 
 
@@ -163,7 +162,8 @@ DCM.M.U    = DCM.M.U/sqrt(scale)/2;
 
 % Variational Laplace: model inversion
 %==========================================================================
-[Qp,Cp,Ce,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+[Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+Ce           = exp(-Eh);
 
  
 % Data ID

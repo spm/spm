@@ -16,7 +16,7 @@ function evidence = spm_dcm_evidence(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_evidence.m 3741 2010-03-01 15:35:30Z guillaume $
+% $Id: spm_dcm_evidence.m 4281 2011-03-31 19:49:57Z karl $
 
 
 % Only look at those parameters with non-zero prior covariance
@@ -29,9 +29,13 @@ wsel  = find(diag(DCM.M.pC));
 %--------------------------------------------------------------------------
 for i = 1:n
     try
-        lambda_i = DCM.Ce(i*v,i*v);              % old format
+        lambda_i = DCM.Ce(i*v,i*v);              % Ce is error covariance
     catch
-        lambda_i = DCM.Ce(i);                    % new format
+        try
+            lambda_i = DCM.Ce(i);                % Ce is a hyperparameter
+        catch
+            lambda_i = DCM.Ce;                   % Ce is the hyperparameter
+        end
     end
     evidence.region_cost(i) = -0.5*v*log(lambda_i) ...
         - 0.5*DCM.R(:,i)'*(1/lambda_i)*eye(v)*DCM.R(:,i);

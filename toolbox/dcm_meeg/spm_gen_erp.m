@@ -15,7 +15,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 3653 2009-12-23 20:06:48Z karl $
+% $Id: spm_gen_erp.m 4281 2011-03-31 19:49:57Z karl $
 
 % within-trial inputs
 %==========================================================================
@@ -64,15 +64,18 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
 
-        Q.A{1}  = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
-        Q.A{2}  = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
-        Q.A{3}  = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
+        Q.A{1}  = Q.A{1} + X(c,i)*P.B{i};         % forward connections
+        Q.A{2}  = Q.A{2} + X(c,i)*P.B{i};         % backward connections
+        Q.A{3}  = Q.A{3} + X(c,i)*P.B{i};         % lateral connections
 
+        % intrinsic connections
+        %----------------------------------------------------------------------
         try
-            Q.H = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
+            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
         catch
-            Q.G = Q.G + X(c,i)*diag(P.B{i});
+            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         end
+        
     end
 
     % integrate DCM for this trial

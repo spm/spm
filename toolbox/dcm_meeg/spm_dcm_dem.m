@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_dcm_dem.m 4281 2011-03-31 19:49:57Z karl $
 
 % check options
 %==========================================================================
@@ -196,6 +196,7 @@ DCM.Ep  = Qp;                   % conditional expectation f(x,u,p)
 DCM.Cp  = Cp;                   % conditional covariances G(g)
 DCM.Eg  = Qg;                   % conditional expectation
 DCM.Cg  = Cg;                   % conditional covariances
+DCM.Ce  = Ce;                   % conditional error covariance
 DCM.Pp  = Pp;                   % conditional probability
 DCM.H   = y;                    % conditional responses (y), projected space
 DCM.K   = x;                    % conditional responses (x)

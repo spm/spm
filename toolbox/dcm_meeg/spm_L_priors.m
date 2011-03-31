@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_L_priors.m 4281 2011-03-31 19:49:57Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -63,13 +63,13 @@ switch type
     case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
         pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;   % positions
-        pE.L    = sparse(3,n);   pC.L    = ones(3,n);     % orientations
+        pE.L    = sparse(3,n);   pC.L    = ones(3,n)*16;  % orientations
         
     case{'IMG'}
         %------------------------------------------------------------------
         m       = dipfit.Nm;                              % number modes
         pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
-        pE.L    = sparse(m,n);   pC.L    = ones(m,n);     % modes
+        pE.L    = sparse(m,n);   pC.L    = ones(m,n)*16;  % modes
         
     case{'LFP'}
         %------------------------------------------------------------------
@@ -88,7 +88,7 @@ switch model
     case{'ERP','SEP'}
         %------------------------------------------------------------------
         pE.J = sparse(1,[1 7 9],[0.2 0.8 0.6],1,9);       % 9 states
-        pC.J = pE.J/64;
+        pC.J = pE.J/16;
         
     case{'CMC'}
         %------------------------------------------------------------------
@@ -98,7 +98,7 @@ switch model
     case{'LFP'}
         %------------------------------------------------------------------
         pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13);      % 13 states
-        pC.J = pE.J/64;
+        pC.J = pE.J/16;
         
     case{'NMM'}
         %------------------------------------------------------------------

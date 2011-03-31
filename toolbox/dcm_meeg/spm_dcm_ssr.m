@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_ssr.m 4281 2011-03-31 19:49:57Z karl $
 
 
 % check options
@@ -134,7 +134,8 @@ DCM.M.U        = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
 
 % EM: inversion
 %--------------------------------------------------------------------------
-[Qp,Cp,Ce,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+[Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+Ce           = exp(-Eh);
 
 % Data ID
 %==========================================================================

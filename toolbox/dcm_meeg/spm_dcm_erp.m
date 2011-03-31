@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_dcm_erp.m 4281 2011-03-31 19:49:57Z karl $
 
 % check options
 %==========================================================================
@@ -141,13 +141,18 @@ M.dipfit.model = model;
 
 % Set prior correlations (locking trial effects and dipole orientations
 %--------------------------------------------------------------------------
-if lock,  pC = spm_dcm_lock(pC); end
-if symm,  gC = spm_dcm_symm(gC); end
+if lock, pC = spm_dcm_lock(pC);    end
+if symm, gC = spm_dcm_symm(gC,gE); end
 
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f]   = spm_dcm_x_neural(pE,model);
+[x,f] = spm_dcm_x_neural(pE,model);
+
+% hyperpriors (assuming about 99% signal to noise)
+%--------------------------------------------------------------------------
+hE    = 4 - log(var(spm_vec(xY.y)));
+hC    = exp(-8);
 
 
 % likelihood model
@@ -161,6 +166,8 @@ M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
 M.gC  = gC;
+M.hE  = hE;
+M.hC  = hC;
 M.m   = Nu;
 M.n   = length(spm_vec(M.x));
 M.l   = Nc;
@@ -238,6 +245,7 @@ DCM.Ep = Qp;                   % conditional expectation f(x,u,p)
 DCM.Cp = Cp;                   % conditional covariances G(g)
 DCM.Eg = Qg;                   % conditional expectation
 DCM.Cg = Cg;                   % conditional covariances
+DCM.Ce = Ce;                   % conditional error
 DCM.Pp = Pp;                   % conditional probability
 DCM.H  = y;                    % conditional responses (y), projected space
 DCM.K  = x;                    % conditional responses (x)
@@ -348,6 +356,10 @@ end
 
 % and save
 %--------------------------------------------------------------------------
-save(DCM.name,  'DCM');
-assignin('base','DCM',DCM)
+try
+    save(DCM.name,'DCM');
+catch
+    save(name,    'DCM');
+end
+assignin('base',  'DCM',DCM)
 return

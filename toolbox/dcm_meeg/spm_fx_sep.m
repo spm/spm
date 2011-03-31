@@ -22,7 +22,7 @@ function [f,J,Q] = spm_fx_sep(x,u,P,M)
 % Prior fixed parameter scaling [Defaults]
 %
 %  M.pF.E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
-%  M.pF.G = [1 1 1/2 1/4]*128;   % intrinsic rates (g1, g2 g3, g4)
+%  M.pF.G = [1 1 1 1/4]*128;     % intrinsic rates (g1, g2 g3, g4)
 %  M.pF.D = [1 16];              % propagation delays (intrinsic, extrinsic)
 %  M.pF.H = [4 64];              % receptor densities (excitatory, inhibitory)
 %  M.pF.T = [4 8];               % synaptic constants (excitatory, inhibitory)
@@ -37,7 +37,7 @@ function [f,J,Q] = spm_fx_sep(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_sep.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_fx_sep.m 4281 2011-03-31 19:49:57Z karl $
  
  
 % get dimensions and configure state variables
@@ -47,7 +47,7 @@ x  = spm_unvec(x,M.x);       % neuronal states
  
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1 1/4];              % extrinsic rates (forward, backward, lateral)
+E  = [32 16 4];              % extrinsic rates (forward, backward, lateral)
 G  = [1 1 1 1/2]*64;         % intrinsic rates (g1 g2 g3 g4)
 D  = [1 16];                 % propagation delays (intrinsic, extrinsic)
 H  = [4 64];                 % receptor densities (excitatory, inhibitory)
@@ -82,10 +82,11 @@ C     = exp(P.C);
  
 % intrinsic connectivity and parameters
 %--------------------------------------------------------------------------
-Te    = T(1)*exp(P.T)/1000;     % excitatory time constants
-Ti    = T(2)/1000;              % inhibitory time constants
-Hi    = H(2);                   % inhibitory receptor density
-He    = H(1)*exp(P.H);          % excitatory receptor density
+Te    = T(1)/1000*exp(P.T(:,1));         % excitatory time constants
+Ti    = T(2)/1000*exp(P.T(:,2));         % inhibitory time constants
+He    = H(1)*exp(P.H(:,1));              % excitatory receptor density
+Hi    = H(2)*exp(P.H(:,2));              % inhibitory receptor density
+
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------

@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_ssr_priors.m 4281 2011-03-31 19:49:57Z karl $
  
 
 % number of LFP channels
@@ -44,7 +44,6 @@ pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/32; % neuronal innovations
 pE.b = sparse(2,1); pC.b = sparse(2,1) + 1/32; % channel noise non-specific
 pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/32; % channel noise specific
 
-return
 
 % neuronal innovations
 %--------------------------------------------------------------------------

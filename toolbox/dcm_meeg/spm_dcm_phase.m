@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_dcm_phase.m 4281 2011-03-31 19:49:57Z karl $
 
 
 % check options 
@@ -76,7 +76,7 @@ Nu     = size(xU.X,2);                  % number of trial-specific effects
 
 % Set error covariance components - one per region
 %--------------------------------------------------------------------------
-xY.Q = spm_Ce(Ns*Nt*ones(1,Nr));
+xY.Q   = spm_Ce(Ns*Nt*ones(1,Nr));
 
 % Offsets
 xY.X0  = sparse(Ns,0);
@@ -140,7 +140,7 @@ end
 % Set up initial phases 
 for n=1:length(DCM.xY.y)
     xx=DCM.xY.y{n}(1,:);
-    M.trial{n}.x=double(xx(:)');
+    M.trial{n}.x = double(xx(:)');
 end
 
 
@@ -149,7 +149,7 @@ end
 
 % EM: inversion
 %--------------------------------------------------------------------------
-[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N (M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
 
 % Data ID
@@ -175,17 +175,15 @@ warning('on','SPM:negativeVariance');
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
-
 L   = feval(M.G, Qg,M);           % get gain matrix
 
 
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
-    s  = x{i};                   % prediction (source space)
-    y{i}  = s*L';                   % prediction (sensor space)
+    s    = x{i};                  % prediction (source space)
+    y{i} = s*L';                  % prediction (sensor space)
     %r  = xY.y{i} - y;            % residuals  (sensor space)
     
 end
@@ -203,10 +201,10 @@ DCM.Cp = Cp;                   % conditional covariances G(g)
 DCM.Eg = Qg;                   % conditional expectation
 DCM.Cg = Cg;                   % conditional covariances
 DCM.Pp = Pp;                   % conditional probability
-DCM.Ce = Ce;                   % ReML error covariance
+DCM.Ce = Ce;                   % conditional error covariance
 DCM.F  = F;                    % Laplace log evidence
 DCM.ID = ID;                   % data ID
-DCM.y = y;                     % Model predictions
+DCM.y  = y;                    % Model predictions
 
 % and save
 %--------------------------------------------------------------------------

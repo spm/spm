@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 3906 2010-06-01 10:48:32Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 4281 2011-03-31 19:49:57Z karl $
 
 
 
@@ -100,10 +100,10 @@ while outsideflag==1, %% don't use sources which end up outside the head
   %% startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
-        [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y);
+        [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
     P.Ep = Ep;
     P.Cp = Cp;
-    P.S  = S;
+    P.Eh = Eh;
     P.F  = F;
     [P.ypost,outsideflag]=spm_eeg_wrap_dipfit_vbecd(P.Ep,M,U);
     P.ypost = P.ypost./sc_y; %%  scale it back

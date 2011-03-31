@@ -13,7 +13,7 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_csd_mtf_gu.m 4281 2011-03-31 19:49:57Z karl $
 
  
 % frequencies of interest
@@ -48,7 +48,7 @@ end
 %--------------------------------------------------------------------------
 try
     X  = spm_dctmtx(N/2,size(P.d,1) + 1);
-    Gu = diag(Gu)*exp(X(:,2:end)*P.d);
+    Gu = Gu.*exp(X(:,2:end)*P.d);
 end
 if size(Gu,2) == 1, Gu = Gu*ones(1,M.m); end
 if size(Gs,2) == 1, Gs = Gs*ones(1,M.l); end

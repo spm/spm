@@ -40,7 +40,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_mtf_demo.m 4281 2011-03-31 19:49:57Z karl $
  
 clear global
 clear
@@ -109,7 +109,7 @@ Y.Q   = {spm_Q(1/2,length(f),1)};
  
 % invert
 %--------------------------------------------------------------------------
-[Ep,Cp,S,F] = spm_nlsi_GN(M,[],Y);
+[Ep,Cp,Eh,F] = spm_nlsi_GN(M,[],Y);
  
 % plot spectral density 
 %--------------------------------------------------------------------------

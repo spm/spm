@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_csd_results.m 4281 2011-03-31 19:49:57Z karl $
  
  
 % get figure handle
@@ -61,7 +61,7 @@ if nargin == 1
               'Covariance (channels)',...
               'Dipoles'};
           
-    s      = listdlg('PromptString','Select a file:',...
+    s      = listdlg('PromptString','Select an option:',...
                      'SelectionMode','single',...
                      'ListString',str);
     Action = str{s};

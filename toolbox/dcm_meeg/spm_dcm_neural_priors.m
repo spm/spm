@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_neural_priors.m 4281 2011-03-31 19:49:57Z karl $
  
 % check options
 %==========================================================================
@@ -51,21 +51,15 @@ switch lower(model)
  
     % linear David et al model (linear in states)
     %======================================================================
-    case{'erp'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,pC] = spm_erp_priors(A,B,C);
-        
-    % linear David et al model (linear in states)
-    %======================================================================
-    case{'sep'}
+    case{'erp','sep'}
  
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_erp_priors(A,B,C);
         
         
+    % linear David et al model (Canonical microcircuit)
+    %======================================================================        
     case{'cmc'}
  
         % prior moments on parameters
