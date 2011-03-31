@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 2338 2010-12-08 10:18:10Z crimic $
+% $Id: prepare_mesh_headshape.m 3250 2011-03-30 09:52:39Z johzum $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -33,7 +33,7 @@ elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
   headshape.pnt = cfg.headshape;
 elseif ischar(cfg.headshape)
   % read the headshape from file
-  headshape = read_headshape(cfg.headshape);
+  headshape = ft_read_headshape(cfg.headshape);
 else
   error('cfg.headshape is not specified correctly')
 end

@@ -33,7 +33,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 3241 2011-03-29 12:05:29Z roboos $
+% $Id: read_trigger.m 3256 2011-03-31 07:28:19Z roboos $
 
 event = [];
 
@@ -86,6 +86,8 @@ end
 if fixbiosemi
   % find indices of negative numbers
   signbit = find(dat < 0);
+  % change type to double (otherwise bitcmp will fail)
+  dat = double(dat);
   % make number positive and preserve bits 0-22
   dat(signbit) = bitcmp(abs(dat(signbit))-1,32);
   % apparently the 24 bits are still shifted by one byte

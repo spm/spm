@@ -15,60 +15,28 @@ function [freq] = ft_spike_triggeredspectrum(cfg, data, spike)
 %   cfg.tapsmofrq    = number, the amount of spectral smoothing through
 %                      multi-tapering. Note that 4 Hz smoothing means
 %                      plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
+%   cfg.taperopt     = additional inputs going to WINDOW func as cell array, e.g.
+%                      cfg.taperopt = {5, -35} with cfg.taper = 'taylorwin'.
 %                      Note: multitapering rotates phases (no problem for consistency)
 %   cfg.spikechannel = string, name of single spike channel to trigger on. See FT_CHANNELSELECTION
 %   cfg.channel      = Nx1 cell-array with selection of channels (default = 'all'),
 %                      see FT_CHANNELSELECTION for details
 %   cfg.feedback     = 'no', 'text', 'textbar', 'gui' (default = 'no')
+%   cfg.algorithm    = 'vectorized' (default) or 'loop'. If the window around each spike
+%                      is short, a moderate a speed up of 5-10 times is typical using vectorized 
+%                      code. However, for long windows (e.g. 0.5-1 second), vectorized
+%                      algorithm is typically 50-100 times faster because it calls FFT only 
+%                      once per trial (instead of nSpikes times).
+%                      In case an lfp segment contains NaNs, we use specest_nanfft.
+%   cfg.borderspikes = 'yes' (default) or 'no'. If 'yes', we process the spikes falling at the
+%                      border using the same taper for the LFP that falls within the trial.
 %
 % If the triggered spike leads a spike in another channel, then the angle
 % of the Fourier spectrum of that other channel will be negative. NOTE that
 % this should be checked for consistency.
-%
+% % $Id: ft_spike_triggeredspectrum.m 3255 2011-03-31 06:29:33Z marvin $
 
-% Copyright (C) 2008, Robert Oostenveld
-%
-% $Log: spiketriggeredspectrum.m,v $
-% Revision Martin Vinck Oct 2010:
-% Input can now also be spike, because this will be more accurate for high frequencies.
-% Changed output to be compatible with SPIKE type representation, adding field trialtime
-% Removed checking of spike channel inside function; this should be solved with cfg at least,
-% because sometimes we do not use spikes but events for example. Also depends a lot on recording
-% system
-%
-% Revision 1.8:
-% - Allowing for any window (hanning was entered always).
-% - Keeping the NaNs, because this makes it much easier to link STS structures
-%   with different frequency content.
-% - New spike channel autodetection function, and only checking for selected spike channel.
-% - Added an optional vectorized algorithm, for longer windows around the spikes this gives
-%   a great speed-up (up to factor 100) without loss of numerical precision.
-% - Allowed for SPIKE input, and a rephasing of the spike phase by using the exact spike time
-%   (which is slightly more accurate than using the sample time, can be relevant for high freqs).
-%
-% Revision 1.7  2008/10/01 08:23:05  roboos
-% use specest_nanfft as default
-%
-% Revision 1.6  2008/09/22 20:17:44  roboos
-% added call to ft_defaults to the begin of the function
-%
-% Revision 1.5  2008/07/15 18:17:57  roboos
-% fixed documentation
-%
-% Revision 1.4  2008/04/09 14:39:22  roboos
-% remove trials without data (too close to trial border) from the output
-%
-% Revision 1.3  2008/04/09 14:23:15  roboos
-% replicate double spikes, for keeptrials
-% give error if spike count >5
-%
-% Revision 1.2  2008/03/18 21:58:18  roboos
-% added normalization of the spectrum by the number of samples, and rotation of the phase to correct for t=0 being in the middle of the segment instead of at the begin
-%
-% Revision 1.1  2008/03/17 16:42:35  roboos
-% initial implementation, phase rotation still needs to be built in
-%
-% add cell evaluation for speed up
+% Copyright (C) 2008-2011, Robert Oostenveld, Martin Vinck
 
 % set the defaults
 if ~isfield(cfg, 'timwin'),         cfg.timwin         = [-0.1 0.1];   end
@@ -77,29 +45,43 @@ if ~isfield(cfg, 'taper'),          cfg.taper          = 'hanning';    end
 if ~isfield(cfg, 'channel'),        cfg.channel        = 'all';        end
 if ~isfield(cfg, 'spikechannel'),   cfg.spikechannel   = [];           end
 if ~isfield(cfg, 'feedback'),       cfg.feedback       = 'no';         end
-
+if ~isfield(cfg, 'algorithm'),      cfg.algorithm      = 'loop';       end
+if ~isfield(cfg, 'taperopt'),       cfg.taperopt       = [];           end
+if ~isfield(cfg,'borderspikes'),    cfg.borderspikes   = 'yes';        end
+  
 if strcmp(cfg.taper, 'sine')
   error('sorry, sine taper is not yet implemented');
 end
+
+% determine which algorithm to use
+if strcmp(cfg.algorithm,'loop')
+  doLoop = 1;
+elseif strcmp(cfg.algorithm,'vectorized')
+  doLoop = 0;
+else
+  error('unrecognized option for cfg.algorithm')
+end
+
+doBorderSpikes = strcmp(cfg.borderspikes,'yes');
 
 % check whether a third input is specified
 hasSpike = nargin==3;
 
 % do the selection of the spikechannels
 if hasSpike,
-  label = spike.label;
+  spikelabel = spike.label;
 else
-  label = data.label;
+  spikelabel = data.label;
 end
   
 % determine the channels to be averaged
-cfg.channel = ft_channelselection(cfg.channel, label);
-chansel     = match_str(label, cfg.channel); % selected channels
+cfg.channel = ft_channelselection(cfg.channel, data.label);
+chansel     = match_str(data.label, cfg.channel); % selected channels
 nchansel    = length(cfg.channel);                % number of channels
 
 % get the spikechannels
-cfg.spikechannel = ft_channelselection(cfg.spikechannel, label);
-spikesel         = match_str(label, cfg.spikechannel);
+cfg.spikechannel = ft_channelselection(cfg.spikechannel, spikelabel);
+spikesel         = match_str(spikelabel, cfg.spikechannel);
 nspikesel        = length(cfg.spikechannel); % number of spike channels
 if nspikesel~=1, error('MATLAB:ft_spike_triggeredspectrum:cfg:spiketriggeredspectrum:notOneSelected',...
                     'Onle one spike channel can be selected at a time'); 
@@ -112,7 +94,11 @@ begpad = round(cfg.timwin(1)*data.fsample); % number of samples before spike
 endpad = round(cfg.timwin(2)*data.fsample); % number of samples after spike
 numsmp = endpad - begpad + 1;               % number of samples of segment
 if ~strcmp(cfg.taper,'dpss')
-  taper  = window(cfg.taper, numsmp);
+  if iscell(cfg.taperopt)
+    taper  = window(cfg.taper, numsmp, cfg.taperopt{:});
+  else
+    taper  = window(cfg.taper, numsmp);
+  end
   taper  = taper./norm(taper);
 else
   % not implemented yet: keep tapers, or selecting only a subset of them.
@@ -137,7 +123,6 @@ spike_fft = fft(spk);
 spike_fft = spike_fft(fbeg:fend);
 spike_fft = spike_fft./abs(spike_fft);
 rephase   = conj(spike_fft);
-rephase   = rephase(:,ones(1,nchansel)).'; % bring it in the shape we will need later on
 
 % preallocate the outputs
 spectrum    = cell(1,nTrials);               
@@ -184,9 +169,25 @@ for iTrial = 1:nTrials
 
     % determine which spikes do not have their windows at the edges of the data
     nSpikes    = length(begsmp);
-    vldSpikes  = find(begsmp>=1&endsmp<=size(data.trial{iTrial},2)); % determine the valid spikes
+    vldSpikes    = begsmp>=1&endsmp<=size(data.trial{iTrial},2); % determine the valid spikes
+    earlySpikes  = begsmp<1 & spikesmp>=1;
+    lateSpikes   = spikesmp<=size(data.trial{iTrial},2) & endsmp>size(data.trial{iTrial},2);
+    if doBorderSpikes
+      vldSpikes  = find(vldSpikes(:) | earlySpikes(:) | lateSpikes(:));
+      begsmp(earlySpikes) = 1;
+      endsmp(earlySpikes) = numsmp;
+      endsmp(lateSpikes)  = size(data.trial{iTrial},2);
+      begsmp(lateSpikes)  = size(data.trial{iTrial},2)-numsmp+1;
+    else
+      vldSpikes  = find(vldSpikes);
+    end
+      
     nVld       = length(vldSpikes);
 
+    % we want to process the incomplete spikes, also with hann window
+    
+    % determine the new begsmp and endsmp for the spikes that fall around the border, we should not
+    % discard these, esp. not for low frequencies.
     fprintf('processing trial %d of %d (%d spikes)\n', iTrial, nTrials, sum(nSpikes));
 
     % store the spiketimes and spiketrials, constructing a type of SPIKE format
@@ -197,41 +198,127 @@ for iTrial = 1:nTrials
     
     % preallocate the spectrum that we create, also the spikes that will have NaNs
     spectrum{iTrial} = NaN(nSpikes, nchansel, nFreqs); 
-
+    rephaseMat = rephase(:,ones(1,nVld),ones(1,nchansel));
+    if doBorderSpikes && sum(earlySpikes)>0
+      for k = find(earlySpikes)        
+        spk = zeros(numsmp,1);
+        spk(spikesmp(k)) = 1;
+        spike_fft = fft(spk);
+        spike_fft = spike_fft(fbeg:fend);
+        spike_fft = spike_fft./abs(spike_fft);
+        reph   = conj(spike_fft);
+        rephaseMat(:,k,:) = repmat(reph,[1 1 nchansel]);
+      end
+    end
+    if doBorderSpikes && sum(lateSpikes)>0
+      n  = size(data.trial{iTrial},2);
+      bg = n-numsmp; 
+      for k = find(lateSpikes)        
+        spk = zeros(numsmp,1);
+        spk(spikesmp(k)-bg) = 1;
+        spike_fft = fft(spk);
+        spike_fft = spike_fft(fbeg:fend);
+        spike_fft = spike_fft./abs(spike_fft);
+        reph   = conj(spike_fft);
+        rephaseMat(:,k,:) = repmat(reph,[1 1 nchansel]);
+      end
+    end
+    
+    
     if nVld<1,continue,end % continue to the next trial if this one does not contain valid spikes
 
-    my_fft = @specest_nanfft;
-    ft_progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
-    for iSpike = vldSpikes
-        ft_progress(iTrial/nTrials, 'spectrally decomposing data around spike %d of %d\n', iSpike, length(spikesmp));
-        begsmp = spikesmp(iSpike) + begpad;
-        endsmp = spikesmp(iSpike) + endpad;
-        segment = data.trial{iTrial}(chansel,begsmp:endsmp);
-        
-        % substract the DC component from every segment, to avoid any leakage of the taper
-        segmentMean = repmat(nanmean(segment,2),1,numsmp); % nChan x Numsmp
-        segment     = segment - segmentMean; % LFP has average of zero now (no DC)
-        
-        % taper the data segment around the spike and compute the fft
-        segment_fft = my_fft(segment * sparse(diag(taper)));
+    if ~doLoop
+      % get the lfp, and reshape it such that we can index it at once.
+      lfp     = data.trial{iTrial}(chansel,:);
+      lfp     = reshape(lfp', [size(lfp,2) 1 nchansel]); % reshape to by time-by-1-by-nchansel
 
-        % select the desired output frequencies and normalize
-        segment_fft = segment_fft(:,fbeg:fend) ./ sqrt(numsmp/2);
+      % form the indices to index the LFP at once
+      segment = linspacevec(begsmp(vldSpikes),endsmp(vldSpikes),numsmp)';
+      
+      % cut out all windows at once to form a large 2-D matrix
+      segment = lfp(segment,:,:);
+      segment = reshape(segment,[numsmp nVld nchansel]);
+      segmentMean = repmat(nanmean(segment,1),[numsmp 1 1]); % nChan x Numsmp
+      segment     = segment - segmentMean; % LFP has average of zero now (no DC)
+      segmentMean = []; % remove to save memory
 
-        % rotate the phase at each frequency to correct for segment t=0 not being at the first sample
-        if hasSpike
-            % phase rotation according to difference data timeaxis and raw timestamps
-            spikerephase = exp(2*pi*1i*shift(iSpike)*freqs); % use fft shift property
-            segment_fft = segment_fft.* rephase .* spikerephase(:,ones(1,nchansel)).';
-        else
-            segment_fft = segment_fft.* rephase;
-        end
+      lfp     = [];
 
-        % store the result for this spike in this trial
-        spectrum{iTrial}(iSpike,:,:) = segment_fft;
+      hasNan = find(any(isnan(segment))); % this will be indx for nSpikes-by-nChans
+      [row,col] = ind2sub([nVld nchansel], hasNan);
 
-    end % for each spike in this trial
-    ft_progress('close');
+      % replace the parts in segment where there were nans in the data
+      %my_fft = @specest_nanfft;
+      my_fft = @specest_nanfft_;
+      nNans  = length(row);
+      fftNan = zeros(numsmp,nNans);
+      time  = randn(size(segment)); % this is actually not used (MV: why is it there then?)
+      for iNan = 1:nNans
+        fftNan(:,iNan) = my_fft(segment(:,row(iNan),col(iNan)).*taper, time);
+      end        
+
+      % fourier transform the data matrix 
+      segment = fft(segment .* taper(:,ones(1,nVld), ones(1,nchansel)));
+
+      % replace the part of the segment with NaNs now
+      for iNan = 1:nNans
+        segment(:,row(iNan),col(iNan)) = fftNan(:,iNan);
+      end
+
+      % select the desired output frequencies and normalize
+      segment = segment(fbeg:fend,:,:) ./ sqrt(numsmp/2);
+
+      % rotate the phase at each frequency to correct for segment t=0 not being at the first sample
+      if hasSpike
+          % phase rotation according to difference data timeaxis and raw timestamps
+          shift = shift(vldSpikes)';  
+          shiftrephase = shift(ones(nFreqs,1),:,ones(1,nchansel)).*freqs(:,ones(1,nVld),ones(1,nchansel));
+          shiftrephase = exp(i*2*pi*shiftrephase);
+
+          % rephase the fourier transform
+          segment = segment .* (rephase(:,ones(1,nVld),ones(1,nchansel)) .* shiftrephase); 
+      else
+          segment = segment .* (rephase(:,ones(1,nVld),ones(1,nchansel)));
+      end
+
+      % collect the results
+      spectrum{iTrial}(vldSpikes,1:nchansel,1:nFreqs) = permute(segment,[2 3 1]);
+    else        
+      my_fft = @specest_nanfft;
+      ft_progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
+      reph = repmat(rephase,1,nchansel).';
+      for iSpike = vldSpikes
+          ft_progress(iTrial/nTrials, 'spectrally decomposing data around spike %d of %d\n', iSpike, length(spikesmp));
+          begsmp = spikesmp(iSpike) + begpad;
+          endsmp = spikesmp(iSpike) + endpad;
+          segment = data.trial{iTrial}(chansel,begsmp:endsmp);
+
+          % substract the DC component from every segment, to avoid any leakage of the taper
+          segmentMean = repmat(nanmean(segment,2),1,numsmp); % nChan x Numsmp
+          segment     = segment - segmentMean; % LFP has average of zero now (no DC)
+
+          % taper the data segment around the spike and compute the fft
+          time  = randn(size(segment)); % this is actually not used (MV: why is it there then?)                                
+          segment_fft = my_fft(segment * sparse(diag(taper)),time);
+
+          % select the desired output frequencies and normalize
+          segment_fft = segment_fft(:,fbeg:fend) ./ sqrt(numsmp/2);
+
+          % rotate the phase at each frequency to correct for segment t=0 not being at the first sample
+          if hasSpike
+              % phase rotation according to difference data timeaxis and raw timestamps
+              spikerephase = exp(2*pi*1i*shift(iSpike)*freqs); % use fft shift property
+              segment_fft = segment_fft.* reph .* spikerephase(:,ones(1,nchansel)).';
+          else
+              segment_fft = segment_fft.* reph;
+          end
+
+          % store the result for this spike in this trial
+          spectrum{iTrial}(iSpike,:,:) = segment_fft;
+
+      end % for each spike in this trial
+      ft_progress('close');
+    end
 end % for each trial
 
 % collect the results
@@ -243,7 +330,7 @@ if ~hasSpike
   freq.time     = cat(2,spiketime{:})';  
   freq.trial    = cat(2,spiketrial{:})'; 
   for iTrial = 1:nTrials
-    freq.trialtime(iTrial,:) = [min(data.trial{iTrial}) max(data.trial{iTrial})];
+    freq.trialtime(iTrial,:) = [min(data.time{iTrial}) max(data.time{iTrial})];
   end
 else
   freq.time       = spike.time{spikesel}(:);  
@@ -362,6 +449,36 @@ indx(hasNan) = NaN;
 % reshape the indx back to the y format
 if (sum(szY>1)>1 || length(szY)>2) % in this case we are dealing with a matrix
   indx = reshape(indx,[szY]);
+end
+
+function y = linspacevec(d1, d2, n)
+
+%LINSPACEVEC Linearly spaced matrix with different stop and end values.
+% Example:
+% d1 = 1:10;
+% d2   = 11:2:30;
+% n = 10;
+% indx = linspacevec(d1,d2,n)
+
+%   Copyright 2008 Vinck
+
+if nargin == 2
+    n = 100;
+end
+
+d1 = d1(:);
+d2 = d2(:);
+
+d = d2-d1;
+if numel(d1)==1
+    n = double(n);
+    y = [d1+(0:n-2)*d/(floor(n)-1) d2];
+else    
+    D = d(:,ones(n-1,1));
+    v = (0:n-2)';
+    N = v(:,ones(length(d1),1))';
+    D1 = d1(:,ones(n-1,1));
+    y = [D1+N.*D/(n-1) d2];
 end
 
   

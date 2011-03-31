@@ -51,7 +51,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 2953 2011-02-25 14:51:16Z jansch $
+% $Id: ft_plot_mesh.m 3249 2011-03-30 09:51:22Z johzum $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -144,7 +144,7 @@ end
 if size(pnt,1)==numel(facealpha)
   set(hs, 'FaceVertexAlphaData', facealpha);
   set(hs, 'FaceAlpha', 'interp');
-elseif numel(facealpha)==1
+elseif ~isempty(pnt) && numel(facealpha)==1
   set(hs, 'FaceAlpha', facealpha);
 end
 

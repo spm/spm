@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 3234 2011-03-29 08:54:36Z crimic $
+% $Id: ft_compute_leadfield.m 3248 2011-03-30 07:37:27Z jansch $
 
 persistent warning_issued;
 
@@ -452,6 +452,9 @@ elseif iseeg
 end % iseeg or ismeg
 
 % optionally apply leadfield rank reduction
+if strcmpi(reducerank,'yes')
+  reducerank = size(lf,2) - 1;
+end
 if ~strcmp(reducerank, 'no') && reducerank<size(lf,2) && ~strcmp(ft_voltype(vol),'openmeeg')
   % decompose the leadfield
   [u, s, v] = svd(lf);
