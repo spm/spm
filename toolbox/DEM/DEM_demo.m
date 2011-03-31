@@ -346,7 +346,7 @@ web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
 % --- Executes on button press in pushbutton115.
 function pushbutton115_Callback(hObject, eventdata, handles)
 web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
-	'Attention_uncertainty_and_free-energy.pdf']);
+    'Attention_uncertainty_and_free-energy.pdf']);
 
 % --- Executes on button press in pushbutton116.
 function pushbutton116_Callback(hObject, eventdata, handles)

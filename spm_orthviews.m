@@ -142,7 +142,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4205 2011-02-21 15:39:08Z guillaume $
+% $Id: spm_orthviews.m 4276 2011-03-31 11:25:34Z spm $
 
 
 % The basic fields of st are:
@@ -1623,7 +1623,7 @@ end;
 
 % process any plugins
 for k = 1:numel(st.plugins),
-	feval(['spm_ov_', st.plugins{k}], ...
+    feval(['spm_ov_', st.plugins{k}], ...
         'context_menu', volhandle, item_parent);
     if k==1
         h = get(item_parent,'Children');
