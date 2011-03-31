@@ -288,8 +288,13 @@ Once you have estimated this new model, you can perform a Bayesian model compari
 \begin{enumerate}
  \item Press the ``DCM'' button.
  \item Choose \textsc{Compare}.
- \item Number of models to compare: 2
- \item Select the two models, e.g. in the order \texttt{DCM\_mod\_bwd.mat} and \texttt{DCM\_mod\_fwd.mat}.
+ \item In the Batch Editor window that opened, fill in the ``BMS: DCM'' module:
+ \begin{enumerate}
+   \item \texttt{Directory}: choose current directory,
+   \item \texttt{Data}: add a New Subject with a New Session and select the two models, e.g. in the order \texttt{DCM\_mod\_bwd.mat} and \texttt{DCM\_mod\_fwd.mat},
+   \item \texttt{Inference method}: choose ``Fixed effects (FFX)''.
+ \end{enumerate}
+ \item Press Run (the green triangle in the Batch Editor).
 \end{enumerate}
 
 The Graphics window, Fig.~\ref{dcm_fig9}, now shows a bar plot of the model evidence. You can see that our second model is better than the first one.

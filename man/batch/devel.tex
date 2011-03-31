@@ -1,0 +1,180 @@
+\chapter{Developer's guide}
+\label{Chap:batch:devel}
+
+\section{SPM5 to Matlabbatch transition guide}
+
+This is a short overview to describe code organisation and interfaces between
+SPM and the batch system.
+
+\subsection{Code Reorganisation}
+
+The following paths have changed:
+\begin{itemize}
+\item \verb|fullfile(spm('dir'),'matlabbatch')| Core batch system.
+\item \verb|fullfile(spm('dir'),'config')| New SPM config files.
+\item \verb|fullfile(spm('dir'),'oldconfig')| Old SPM config files (unused)
+\item \verb|spm_jobman.m| and \verb|spm_select.m| replaced with compatibility
+  code
+\item \verb|spm_Menu.fig| Callbacks adapted
+\end{itemize}
+
+Configuration code has been generated automatically from the existing SPM
+configuration using \verb|cfg_struct2cfg| and \verb|gencode|. This sometimes
+results in redundant/duplicate code. Also, conditional constructs like
+\verb|if|, \verb|case| may not have been considered. 
+
+Some assignments to configuration items are guarded by validity
+checks. Usually, there will be a warning issued if a wrong value is
+supplied. Special care needs to be taken for \verb|.prog|, \verb|.vfiles|,
+\verb|.vout|, \verb|.check| functions or function handles. The functions
+referenced here must be on MATLAB path before they are assigned to one of
+these fields. For toolboxes, this implies that toolbox paths must be added at
+the top of the configuration file.
+
+\subsection{Interfaces between SPM and Matlabbatch}
+
+\begin{description}
+\item[Unchanged] harvested job structure.
+\item[Changed] Top-level node in SPM config now called \verb|spmjobs| instead
+  of \verb|jobs|. New overall top-level node
+  \verb|matlabbatch|. \verb|spm_jobman| will convert and load SPM5 style batch
+  jobs into the new batch system.
+\item[Changed] Configuration file syntax - instead of structs, configuration
+  items are now objects. Structs of type \verb|<type>| are now represented as
+  objects of class \verb|cfg_<type>|. Existing SPM5 configuration can
+  be imported using \verb|cfg_struct2cfg|. There is a new class
+  \verb|cfg_exbranch| which is used for branches that have a \verb|.prog|
+  field.
+\item[Deprecated] Virtual files have been replaced by dependencies. These
+  require computations to return a single output argument (e.g. a cell,
+  struct). Parts of this output argument can be passed on to new inputs at
+  run-time. Virtual files are treated as a special output argument.
+\item[Added] Interface to the batch system
+  \begin{itemize}
+  \item \verb|cfg_util| Configuration management, job management, job
+    execution
+  \item \verb|cfg_serial| A utility to fill missing inputs and run a job
+    (optionally with a GUI input function)
+  \item \verb|cfg_ui| GUI - inspired by \verb|spm_jobman|, but modified to
+    work around some MATLAB GUI ``features'' (like input widgets loosing focus
+    before editing has finished).
+  \end{itemize}
+
+\end{description}
+
+\section{Configuration Code Details}
+
+Configuration code has been split into two files per configuration:
+\begin{description}
+\item[spm\_cfg\_*.m] Configuration classes, \verb|.check|, \verb|.vout|
+  subfunctions
+\item[spm\_run\_*.m] Run-time code, takes job structure as input and returns
+  output structure as specified in \verb|.vout|.
+\end{description}
+In a few cases (where there was no additional magic in the code), run-time
+code has been integrated into the main SPM code. This may be useful to run
+test batches without using the configuration/batch system.
+
+\subsection{Virtual Outputs}
+
+Virtual outputs are described by arrays of \verb|cfg_dep| objects. These
+objects contain a ``source'' and a ``target'' part. Functions may have more
+than one virtual output (e.g. one output per session, a collection of results
+variables). One \verb|cfg_dep| object has to be created for each output.
+
+Only two fields in the ``source'' part need to be set in a \verb|.vout|
+callback: 
+\begin{description}
+\item[sname] A display name for this output. This will appear in the
+  dependencies list and should describe the contents of this dependency.
+\item[src\_output] A subscript reference that can be used to address this
+  output in the variable returned at run-time.
+\item[tgt\_spec (optional)] A description on what kind of inputs this output
+  should be displayed as dependency. This is not very convenient yet, the
+  \verb|match| and \verb|cfg_findspec| methods are very restrictive in the
+  kind of expressions that are allowed.
+\end{description}
+
+The \verb|.vout| callback will be evaluated once the configuration system
+thinks that enough information about the \emph{structure} of the outputs is
+available. This condition is met, once all in-tree nodes
+\verb|cfg_(ex)branch|, \verb|cfg_choice|, \verb|cfg_repeat| have the required
+number of child nodes. 
+
+The \verb|.vout| callback is called with a job structure as input, but its
+code \emph{should not rely} on the evaluation of any contents of this
+structure (or at least provide a fallback). The contents of the leaf nodes may
+not be set or may contain a dependency object instead of a value during
+evalution of \verb|.vout|.
+
+The ``target'' part will be filled by the configuration classes, the
+\verb|src_exbranch| field is set in \verb|cfg_util|.
+
+\subsection{SPM Startup}
+
+The top level configuration file for SPM is \verb|spm_cfg.m|. It collects SPM
+core configuration files and does toolbox autodetection. If a toolbox
+directory contains \verb|*_cfg_*.m| files, they will be loaded. Otherwise, if
+there are only SPM5-style \verb|*_config_*.m| files, the configuration will be
+converted at run-time using \verb|cfg_struct2cfg|.
+
+\subsection{Defaults Settings}
+
+In Matlabbatch, there are different ways to set defaults:
+\begin{enumerate}
+\item \label{def:cf}in the configuration file itself,
+\item \label{def:cd}in a defaults file, which has a structure similar to a harvested
+  job,
+\item \label{def:def}using a \verb|.def| field for leaf items.
+\end{enumerate}
+Defaults set using option \ref{def:cf} or \ref{def:cd} will only be
+updated at SPM/matlabbatch startup. Defaults set using option
+\ref{def:def} will be set once a new job is started. These defaults take
+precedence over the other defaults.
+
+In core SPM, these defaults refer to \verb|spm_get_defaults|, which accesses
+\verb|spm_defaults|. Toolboxes may use their own callback functions.
+
+\subsection{Toolbox Migration}
+
+In the \verb|fullfile(spm('dir'),'toolbox')| folder there exists a migration
+utility \verb|spm_tbx_config2cfg.m|. This utility will create a
+\verb|*_cfg_*.m| and a \verb|*_def_*.m| file based on the configuration tree
+given as input argument.
+
+Toolboxes should set their defaults using the \verb|.def| fields,
+using a mechanism similar to \verb|spm_get_defaults|. This allows for
+flexibility without interfering with SPMs own defaults.
+
+\section{Utilities}
+
+\subsection{Batch Utilities}
+
+Matlabbatch is designed to support multiple applications. A standard
+application ``BasicIO'' is enabled by default. Among other options, it
+contains file/file selection manipulation utilities which can be used as as
+dependency source if multiple functions require the same set of files as input
+argument. For debugging purposes, ``Pass Output to Workspace'' can be used to
+assign outputs of a computation to a workspace variable.
+
+The \verb|cfg_confgui| folder contains an application which describes all
+configuration items in terms of configuration items. It is not enabled by
+default, but can be added to the batch system using
+\verb|cfg_util('addapp'...)|. This utility can be used generate a batch
+configuration file with the batch system itself.
+
+\subsection{MATLAB Code Generation}
+
+The \verb|gencode| utility generates MATLAB \verb|.m| file code for any kind
+of MATLAB variable. This is used to save batch files as well as to generate
+configuration code.
+
+\subsection{Configuration Management}
+
+The backend utility to manage the configuration data is \verb|cfg_util|. It
+provides callbacks to add application configurations, and to load, modify,
+save or run jobs. These callbacks are used by two frontends: \verb|cfg_ui| is
+a MATLAB GUI, while \verb|cfg_serial| can be used both as a GUI and in script
+mode. In script mode, it will fill in job inputs from an argument list. This
+allows to run predefined jobs with e.g. subject dependent inputs without
+knowing the exact details of the job structure.
