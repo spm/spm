@@ -9,13 +9,13 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 4068 2010-09-07 16:50:08Z ged $
+% $Id: spm_logdet.m 4278 2011-03-31 11:48:00Z karl $
 
 sw    = warning('off','MATLAB:log:logOfZero');
 
 % assume diagonal form
 %--------------------------------------------------------------------------
-TOL   = 1e-16;                                        % c.f. n*max(s)*eps
+TOL   = 1e-16;
 n     = length(C);
 s     = diag(C);
 i     = find(s > TOL & s < 1/TOL);
@@ -37,5 +37,5 @@ if ~isreal(H) || isinf(H)
     s  = svd(full(C));
     H  = sum(log(s(s > TOL & s < 1/TOL)));
 end
-
+H     = full(H);
 warning(sw)

@@ -5,12 +5,12 @@ function X = spm_inv(A)
 % A  - matrix
 % X  - inverse
 %
-% This routine simply adds a small identity matrix to A and calls inv.m
+% This routine simply adds a small diagonal matrix to A and calls inv.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_inv.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_inv.m 4278 2011-03-31 11:48:00Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -19,8 +19,8 @@ if isempty(A), X = sparse(n,m); return, end
  
 % tolerance
 %--------------------------------------------------------------------------
-TOL = max(eps(norm(A,'inf'))*max(m,n),exp(-32));
+TOL   = exp(-32);
 
 % inverse
 %--------------------------------------------------------------------------
-X   = inv(sparse(A) + speye(m,n)*TOL);
+X     = inv(sparse(A) + speye(m,n)*TOL);

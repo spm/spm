@@ -17,7 +17,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % [sE,sC]  - posterior expectation and covariance of reduced model
 %
 %--------------------------------------------------------------------------
-% This routine assumed the reduced model is nested within a full model and
+% This routine assumes the reduced model is nested within a full model and
 % that the posteriors (and priors) are Gaussian. Nested here means that the
 % prior precision of the reduced model, minus the prior precision of the
 % full model is positive definite. We additionally assume that the prior
@@ -27,7 +27,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_log_evidence.m 4278 2011-03-31 11:48:00Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -70,37 +70,39 @@ if nargout < 2
         qC  = qC(k,k);
         pC  = pC(k,k);
         rC  = rC(k,k);
+    else
+        
+        % the reduced and full models are the same
+        %------------------------------------------------------------------
+        F   = 0;
+        return
     end
 end
 
-% remove redundant dimensions
+% remove fixed parameters under full model
 %--------------------------------------------------------------------------
 i     = find(diag(pC));
-qC    = qC(i,i);
-pC    = pC(i,i);
-rC    = rC(i,i);
 
-% preliminaries 
+% preliminaries
 %--------------------------------------------------------------------------
-qP    = spm_inv(qC);
-pP    = spm_inv(pC);
-rP    = spm_inv(rC);
+qP    = spm_inv(qC(i,i));
+pP    = spm_inv(pC(i,i));
+rP    = spm_inv(rC(i,i));
 sP    = qP + rP - pP;
 sC    = spm_inv(sP);
-sE    = pE;
-sE(i) = qP*qE(i) + rP*rE(i) - pP*pE(i); 
+sE    = qP*qE(i) + rP*rE(i) - pP*pE(i);
 
 % log-evidence
 %--------------------------------------------------------------------------
-F     = spm_logdet(rP*qP*sC*pC) ...
-      - (qE(i)'*qP*qE(i) + rE(i)'*rP*rE(i) - pE(i)'*pP*pE(i) - sE(i)'*sC*sE(i));
+F     = spm_logdet(rP*qP*sC*pC(i,i)) ...
+      - (qE(i)'*qP*qE(i) + rE(i)'*rP*rE(i) - pE(i)'*pP*pE(i) - sE'*sC*sE);
 F     = F/2;
- 
+    
 % restore full conditional density
 %--------------------------------------------------------------------------
 if nargout > 1
-    pE(i)   = sC*sE(i);
-    pC(i,i) = sC;
-    sE      = spm_unvec(pE,varargin{1});
-    sC      = pC;
+    rE(i)   = sC*sE;
+    rC(i,i) = sC;
+    sE      = spm_unvec(rE,varargin{1});
+    sC      = rC;
 end
