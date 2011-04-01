@@ -10,14 +10,14 @@
 f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('convolution model');
 
-M(1).V  = exp(4);                           % error precision
-M(1).W  = exp(4);                          % error precision
+M(1).V  = exp(8);                             % error precision
+M(1).W  = exp(16);                             % error precision
  
 % and generate data
 %==========================================================================
 N       = 32;                                 % length of data sequence
 U       = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause;
-DEM     = spm_DEM_generate(M,U,{},{[] 16});
+DEM     = spm_DEM_generate(M,U,{},{[] 16},{16});
  
 % display
 %--------------------------------------------------------------------------

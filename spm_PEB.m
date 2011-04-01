@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_PEB.m 4283 2011-04-01 16:53:36Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -241,7 +241,7 @@ for k = 1:M
             Ce = Ce + Q{i}*h(i);
         end
     end
-    iC    = spm_inv(Ce);
+    iC    = spm_inv(Ce,exp(-16));
 
     % E-step: conditional mean E{B|y} and covariance cov(B|y)
     %======================================================================
