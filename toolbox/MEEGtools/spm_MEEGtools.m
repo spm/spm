@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 4250 2011-03-15 14:50:04Z vladimir $
+% $Id: spm_MEEGtools.m 4286 2011-04-04 13:35:04Z vladimir $
 
 
 funlist = {
@@ -34,6 +34,7 @@ funlist = {
     'Relabel trials for epoched CTF datasets', 'spm_eeg_recode_epoched_ctf'
     'Correct TMS artefact', 'spm_eeg_tms_correct'
     'Plot scalp maps from M/EEG image', 'spm_eeg_img2maps'
+    'Continuous data power', 'spm_eeg_cont_power'
     };
 
 str = sprintf('%s|', funlist{:, 1});
