@@ -95,7 +95,7 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 3253 2011-03-30 16:05:31Z roboos $
+% $Id: ft_sourceinterpolate.m 3268 2011-04-04 11:05:07Z jansch $
 
 ft_defaults
 
@@ -143,7 +143,6 @@ if ischar(anatomical)
   try
     fprintf('trying to read cortical mesh from file\n');
     anatomical = ft_read_headshape(anatomical);
-    continue
   catch
     fprintf('anatomical file does not seem to be a cortical mesh\n');
   end
@@ -397,7 +396,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceinterpolate.m 3253 2011-03-30 16:05:31Z roboos $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 3268 2011-04-04 11:05:07Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

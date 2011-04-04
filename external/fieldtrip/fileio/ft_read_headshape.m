@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 3229 2011-03-28 13:51:53Z roboos $
+% $Id: ft_read_headshape.m 3262 2011-03-31 15:15:52Z roboos $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -134,6 +134,12 @@ switch fileformat
 
   case 'itab_asc'
     shape = read_itab_asc(filename);
+    
+  case 'gifti'
+    ft_hastoolbox('gifti', 1);
+    g = gifti(filename);
+    shape.pnt = warp_apply(g.mat, g.vertices);
+    shape.tri = g.faces;
 
   case 'neuromag_mex'
     [co,ki,nu] = hpipoints(filename);

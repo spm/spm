@@ -33,13 +33,13 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 3119 2011-03-16 10:21:12Z crimic $
+% $Id: ft_hastoolbox.m 3265 2011-04-04 07:02:04Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
 persistent previous previouspath
 
-if ~isequal(previouspath, matlabpath)
+if ~isequal(previouspath, path)
   previous = [];
 end
 
@@ -98,6 +98,7 @@ url = {
   'FREESURFER' 'see http://surfer.nmr.mgh.harvard.edu/fswiki'
   'SIMBIO'     'see https://www.mrt.uni-jena.de/simbio/index.php/Main_Page'
   'FNS'        'see http://hhvn.nmsu.edu/wiki/index.php/FNS'
+  'GIFTI'      'see http://www.artefact.tk/software/matlab/gifti'
   };
 
 if nargin<2
@@ -219,6 +220,8 @@ switch toolbox
     status  = exist('elecsfwd', 'file') && exist('img_get_gray', 'file');
   case 'SIMBIO'
     status  = exist('ipm_linux_opt_Venant', 'file');
+  case 'GIFTI'
+    status  = exist('gifti', 'file');
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;
@@ -292,7 +295,7 @@ end
 
 % remember the previous path, allows us to determine on the next call
 % whether the path has been modified outise of this function
-previouspath = matlabpath;
+previouspath = path;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

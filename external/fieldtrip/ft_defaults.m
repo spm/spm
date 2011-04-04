@@ -25,7 +25,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 3245 2011-03-29 14:22:39Z roboos $
+% $Id: ft_defaults.m 3265 2011-04-04 07:02:04Z roboos $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -44,9 +44,9 @@ list = which('spm', '-all');
 if length(list)>1
   [ws warned] = warning_once('multiple versions of SPM on your path will confuse FieldTrip');
   if warned % only throw the warning once
-      for i=1:length(list)
-          warning('one version of SPM is found here: %s', list{i});
-      end
+    for i=1:length(list)
+      warning('one version of SPM is found here: %s', list{i});
+    end
   end
 end
 
@@ -61,7 +61,7 @@ try
   ft_hastoolbox('compat', 3, 1); % not required
 end
 
-try 
+try
   % this directory contains the backward compatibility wrappers for the fieldtrip/utilities functions
   ft_hastoolbox('utilities/compat', 3, 1);
 end
@@ -110,12 +110,12 @@ try
   ft_hastoolbox('plotting/compat', 1, 1);
 end
 
-try 
+try
   % this contains the functions to compute connecitivy metrics
   ft_hastoolbox('connectivity', 1,1);
 end
 
-try 
+try
   % this can be used for distrubuted/parallel computing
   ft_hastoolbox('peer', 1,1);
 end
@@ -126,7 +126,7 @@ try
   ft_hastoolbox('realtime/datasource', 3, 1);  % not required
 end
 
-try 
+try
   % this contains intermediate-level functions for spectral analysis
   ft_hastoolbox('specest', 1, 1);
 end
