@@ -35,7 +35,7 @@
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_motd.man 3028 2009-04-01 12:02:59Z guillaume $
+% $Id: spm_motd.man 4288 2011-04-04 14:45:17Z guillaume $

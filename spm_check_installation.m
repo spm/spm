@@ -13,7 +13,7 @@ function spm_check_installation(action)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_check_installation.m 4288 2011-04-04 14:45:17Z guillaume $
 
 if isdeployed, return; end
 
@@ -72,7 +72,7 @@ end
 
 %-Ensure that the original release - as well as the updates - was installed
 %--------------------------------------------------------------------------
-if ~exist(fullfile(d,'@nifti','nifti.m'),'file') % File that should not have changed
+if ~exist(fullfile(d,'@nifti','create.m'),'file') % File that should not have changed
     if isunix
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
