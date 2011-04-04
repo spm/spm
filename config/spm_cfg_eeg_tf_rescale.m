@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 3931 2010-06-16 15:28:54Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 4287 2011-04-04 13:55:54Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -74,6 +74,15 @@ method_rel.val   = {baseline};
 method_rel.help  = {'Relative.'};
 
 %--------------------------------------------------------------------------
+% method_zscore
+%--------------------------------------------------------------------------
+method_zscore       = cfg_branch;
+method_zscore.tag   = 'Zscore';
+method_zscore.name  = 'Zscore';
+method_zscore.val   = {baseline};
+method_zscore.help  = {'Z score'};
+
+%--------------------------------------------------------------------------
 % method_log
 %--------------------------------------------------------------------------
 method_log       = cfg_const;
@@ -99,7 +108,7 @@ method.tag    = 'method';
 method.name   = 'Rescale method';
 method.val    = {method_logr};
 method.help   = {'Select the rescale method.'};
-method.values = {method_logr method_diff method_rel method_log method_sqrt};
+method.values = {method_logr method_diff method_rel method_zscore method_log method_sqrt};
 
 %--------------------------------------------------------------------------
 % S
@@ -126,7 +135,7 @@ S.D            = job.D{1};
 S.tf.method    = fieldnames(job.method);
 S.tf.method    = S.tf.method{1};
 switch lower(S.tf.method)
-    case {'logr','diff', 'rel'}
+    case {'logr','diff', 'rel', 'zscore'}
         S.tf.Sbaseline = 1e-3*job.method.(S.tf.method).baseline.Sbaseline;
         if ~(isempty(job.method.(S.tf.method).baseline.Db) || isequal(job.method.(S.tf.method).baseline.Db, {''}))
             S.tf.Db = job.method.(S.tf.method).baseline.Db{1};

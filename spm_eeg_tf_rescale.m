@@ -23,9 +23,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 4280 2011-03-31 15:47:32Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 4287 2011-04-04 13:55:54Z vladimir $
 
-SVNrev = '$Rev: 4280 $';
+SVNrev = '$Rev: 4287 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,8 +45,8 @@ end
 try
     S.tf.method;
 catch
-    str  = {'LogR','Diff', 'Rel', 'Log','Sqrt'};
-    S.tf.method = spm_input('Rescale method','+1','b',str,[],1);
+    str  = {'LogR','Diff', 'Rel', 'Log', 'Sqrt', 'Zscore'};
+    S.tf.method = spm_input('Rescale method','+1','m',str,char(str),1);
 end
 
 Din  = spm_eeg_load(D);
@@ -57,7 +57,7 @@ D    = clone(Din, ['r' Din.fnamedat], [Din.nchannels Nf Din.nsamples Din.ntrials
 
 switch lower(S.tf.method)
     
-    case {'logr','diff', 'rel'}
+    case {'logr','diff', 'rel', 'zscore'}
         try
             S.tf.Sbaseline;
         catch            
@@ -100,6 +100,10 @@ switch lower(S.tf.method)
                 case 'diff'
                     xbase=mean(xbase(:,:,inds),3);
                     D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]));
+                case 'zscore'
+                    stdev = std(xbase(:,:,inds), [], 3);
+                    xbase= mean(xbase(:,:,inds),3);                    
+                    D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]))./repmat(stdev,[1 1 D.nsamples 1]);
                 case 'rel'
                     xbase=mean(xbase(:,:,inds),3);
                     D(:,:,:,c)= 100*((x./repmat(xbase,[1 1 D.nsamples 1]) - 1));
