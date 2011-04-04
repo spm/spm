@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4213 2011-02-23 19:18:30Z john $
+% $Id: spm_dicom_convert.m 4291 2011-04-04 15:52:57Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -536,11 +536,17 @@ mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
 if checkfields(hdr{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionType',...
         'ScanningSequence','RepetitionTime','EchoTime','FlipAngle',...
         'AcquisitionDate'),
+    if isfield(hdr{1},'ScanOptions'),
+        ScanOptions = hdr{1}.ScanOptions;
+    else
+        ScanOptions = 'no';
+    end
     tim = datevec(hdr{1}.AcquisitionTime/(24*60*60));
-    descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg %s %d:%d:%.5g',...
+    descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s %s %d:%d:%.5g',...
         hdr{1}.MagneticFieldStrength, hdr{1}.MRAcquisitionType,...
         deblank(hdr{1}.ScanningSequence),...
         hdr{1}.RepetitionTime,hdr{1}.EchoTime,hdr{1}.FlipAngle,...
+        ScanOptions,...
         datestr(hdr{1}.AcquisitionDate),tim(4),tim(5),tim(6));
 else
     descrip = hdr{1}.Modality;

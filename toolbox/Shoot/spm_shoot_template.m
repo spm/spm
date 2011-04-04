@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4264 2011-03-25 19:18:33Z john $
+% $Id: spm_shoot_template.m 4291 2011-04-04 15:52:57Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -279,7 +279,7 @@ for it=1:nits,
     %%%%%%%%%%%%%%%
 
     % Re-generate template data from sufficient statistics
-    if ~isempty(sparam),
+    if ~isempty(sparam) & it<nits/2,
         g0 = reconv(g,bs_args);
         g0 = spm_shoot_blur(t,[sparam(1), vx, sched(it+1)*sparam(2) sparam(3:4)],smits,g0);
         g  = cell(n1+1,1);
@@ -298,7 +298,7 @@ for it=1:nits,
 
     % Write template
     if ~isempty(tname),
-        NG.dat.fname    = fullfile(tdir,[tname '_' num2str(ceil(it/3)) '.nii']);
+        NG.dat.fname    = fullfile(tdir,[tname '_' num2str(ceil(it/6)) '.nii']);
         create(NG);
         for j=1:n1+1,
             NG.dat(:,:,:,j) = g{j};
