@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4272 2011-03-29 17:39:38Z guillaume $
+% $Id: spm_figure.m 4293 2011-04-05 17:48:17Z guillaume $
 
 
 %==========================================================================
@@ -299,7 +299,7 @@ else
     end 
 end
 set(F,'Pointer','Arrow')
-if ~isdocked && ~spm('CmdLine'), movegui(F); end
+%if ~isdocked && ~spm('CmdLine'), movegui(F); end
 
 %==========================================================================
 case 'close'
