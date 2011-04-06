@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: spm.m 4294 2011-04-06 18:03:20Z guillaume $
 
 
 %=======================================================================
@@ -266,8 +266,11 @@ function varargout=spm(varargin)
 %           [default 0] (if doing both GUI & text, waits on GUI alert)
 % h       - handle of msgbox created, empty if CmdLine used
 %
-% FORMAT spm('GUI_FileDelete')
-% CallBack for GUI for file deletion, using spm_select and confirmation dialogs
+% FORMAT spm('Delete',file)
+% Delete file(s), using spm_select and confirmation dialogs.
+%
+% FORMAT spm('Run',mscript)
+% Run M-script(s), using spm_select.
 %
 % FORMAT spm('Clean')
 % Clear all variables, globals, functions, MEX links and class definitions.
@@ -1093,18 +1096,46 @@ if nargout, varargout = {h}; end
 
 
 %=======================================================================
-case 'gui_filedelete'                                %-GUI file deletion
+case 'run'                                               %-Run script(s)
 %=======================================================================
-% spm('GUI_FileDelete')
+% spm('run',mscript)
 %-----------------------------------------------------------------------
-[P, sts] = spm_select(Inf,'.*','Select file(s) to delete');
-if ~sts, return; end
-P = cellstr(P);
+if nargin<2
+    [mscript, sts] = spm_select(Inf,'.*\.m$','Select M-file(s) to run');
+    if ~sts || isempty(mscript), return; end
+else
+    mscript = varargin{2};
+end
+mscript = cellstr(mscript);
+for i=1:numel(mscript)
+    fid = fopen(mscript{i});
+    if fid == -1, error('Cannot open %s',mscript{i}); end
+    S = fscanf(fid,'%c');
+    fclose(fid);
+    try
+        evalin('base',S);
+    catch
+        fprintf('Execution failed: %s\n',mscript{i});
+        rethrow(lasterror);
+    end
+end
+
+
+%=======================================================================
+case 'delete'                                           %-Delete file(s)
+%=======================================================================
+% spm('Delete',file)
+%-----------------------------------------------------------------------
+if nargin<2
+    [P, sts] = spm_select(Inf,'.*','Select file(s) to delete');
+    if ~sts, return; end
+else
+    P = varargin(2:end);
+end
+P = cellstr(P); P = P(:);
 n = numel(P);
-if n==0 || (n==1 && isempty(P{1}))
-    spm('alert"','Nothing selected to delete!','file delete',0);
-    return
-elseif n<4
+if n==0 || (n==1 && isempty(P{1})), return; end
+if n<4
     str=[{' '};P];
 elseif n<11
     str=[{' '};P;{' ';sprintf('(%d files)',n)}];

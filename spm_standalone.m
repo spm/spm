@@ -7,7 +7,7 @@ function spm_standalone(varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 4237 2011-03-10 19:46:33Z guillaume $ 
+% $Id: spm_standalone.m 4294 2011-04-06 18:03:20Z guillaume $ 
 
 [v,r] = spm('Ver');
 fprintf('%s (%s): %s\n',v,r,spm('Dir'));
@@ -40,17 +40,8 @@ switch lower(action)
     %----------------------------------------------------------------------
         spm('asciiwelcome');
         if nargin > 1
-            inputs = varargin(3:end);
-            fid = fopen(varargin{2});
-            if fid == -1, error('Cannot open %s',varargin{2}); end
-            S = fscanf(fid,'%c');
-            fclose(fid);
-            try
-                eval(S);
-            catch
-                fprintf('Execution failed: %s\n',varargin{2});
-                rethrow(lasterror);
-            end
+            assignin('base','inputs',varargin(3:end));
+            spm('run',varargin{2});
         end
         
     otherwise
