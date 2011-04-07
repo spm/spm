@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_cmc(x,u,P,M)
-% state equations for a neural mass model of erps
+% state equations for a neural mass model (canonical microcircuit)
 % FORMAT [f,J,D] = spm_fx_cmc(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_cmc(x,u,P,M)
 % FORMAT [f]     = spm_fx_cmc(x,u,P,M)
@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_fx_cmc.m 4298 2011-04-07 18:13:04Z karl $
  
  
 % get dimensions and configure state variables
@@ -42,17 +42,17 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 M.u   = u;                          % place inputs in M
 x     = spm_unvec(x,M.x);           % neuronal states
 [n m] = size(x);                    % number of sources and states  
-
+ 
  
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1 1 1/4]*200;                   % extrinsic (forward and backward)  
+E  = [1 1 1 1/4]*200;               % extrinsic (forward and backward)  
 G  = [4 4 4 4 4 2 4 4 2 1]*200;     % intrinsic connections
 D  = [1 16];                        % delays (intrinsic, extrinsic)
 T  = [2 2 28 28];                   % synaptic time constants
 R  = 1;                             % slope of sigmoid activation function
  
-
+ 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 try, E = M.pF.E; end
@@ -65,10 +65,15 @@ try, R = M.pF.R; end
  
 % Extrinsic connections
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})*E(1);
-A{2} = exp(P.A{2})*E(2);
-A{3} = exp(P.A{3})*E(3);
-A{4} = exp(P.A{4})*E(4);
+% ss = spiny stellate
+% sp = superficial pyramidal
+% dp = deep pyramidal
+% ii = inhibitory interneurons
+%--------------------------------------------------------------------------
+A{1} = exp(P.A{1})*E(1);           % forward  connections (sp -> ss)
+A{2} = exp(P.A{2})*E(2);           % forward  connections (sp -> dp)
+A{3} = exp(P.A{3})*E(3);           % backward connections (dp -> sp)
+A{4} = exp(P.A{4})*E(4);           % backward connections (dp -> ii)
 C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
@@ -85,7 +90,7 @@ U    = C*u(:);
 %==========================================================================
 T    = ones(n,1)*T/1000;
 G    = ones(n,1)*G;
-
+ 
 % free parameters on time constants and intrinsic connections
 %--------------------------------------------------------------------------
 % G(:,1)  ss -> ss
@@ -105,8 +110,8 @@ end
 for i = 1:size(P.G,2)
     G(:,i) = G(:,i).*exp(P.G(:,i));
 end
-
-
+ 
+ 
 % Motion of states: f(x)
 %--------------------------------------------------------------------------
  
@@ -127,7 +132,7 @@ f(:,4) = (u - 2*x(:,4) - x(:,3)./T(:,2))./T(:,2);
  
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
-u      = - A{4}*S(:,3);
+u      = - A{4}*S(:,7);
 u      =   G(:,5).*S(:,1) + G(:,6).*S(:,7) - G(:,4).*S(:,5) + u;
 f(:,6) = (u - 2*x(:,6) - x(:,5)./T(:,3))./T(:,3);
  
@@ -185,5 +190,3 @@ return
 % x'' = 2*k*exp(k*t) + k^2*t*exp(k*t)
 %     = 2*k*(x' - k*x) + k^2*x
 %     = 2*k*x' - k^2*x
-
-
