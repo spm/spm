@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 04-Mar-2011 21:40:03
+% Last Modified by GUIDE v2.5 06-Apr-2011 12:57:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -294,14 +294,18 @@ run_demo_Callback(hObject, handles, 'DEM_demo_MMN_deviance')
 
 % --- Executes on button press in pushbutton119.
 function pushbutton119_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton119 (see GCBO)
 run_demo_Callback(hObject, handles, 'DEM_demo_contact_lens')
+
+
+% --- Executes on button press in pushbutton120.
+function pushbutton120_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEM_demo_GF_and_KF')
 
 
 
 
 % PDF callbacks
-%--------------------------------------------------------------------------
+%==========================================================================
 
 % --- Executes on button press in pushbutton107.
 function pushbutton107_Callback(hObject, eventdata, handles)
@@ -352,4 +356,3 @@ web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
 function pushbutton116_Callback(hObject, eventdata, handles)
 web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
 'DEM_A_variational_treatment_of_dynamic_systems.pdf']);
-

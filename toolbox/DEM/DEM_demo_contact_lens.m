@@ -14,7 +14,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4279 2011-03-31 11:50:19Z karl $
+% $Id: DEM_demo_contact_lens.m 4297 2011-04-07 18:12:29Z karl $
  
  
 % non-linear generative model
@@ -32,13 +32,8 @@ V        = [1e-2 4];           % observation precision (inverse variance)
 s        = 1;                  % smoothness of fluctuations
 w        = 8;                  % precision of fluctuations in motion
 W        = [128 128 w w];      % standard deviation of velocity: 1/sqrt(w) = .3536 m/s^2
-
-% precision of fluctuations on hidden states
-%--------------------------------------------------------------------------
-
-
                                
- % preliminaries
+% preliminaries
 %--------------------------------------------------------------------------
 N        = 256;                % length of sequence
 t        = 1:N;                % time (seconds)
@@ -130,7 +125,6 @@ ylabel('y')
 axis square
 legend('true','DEM','EKF')
 
-
 % plot NEES
 %--------------------------------------------------------------------------
 subplot(2,2,4)
@@ -140,4 +134,36 @@ xlabel('time (secs)')
 axis square
 legend('DEM','EKF')
 drawnow
+
+
+return
+
+% prediction errors as a function of K
+%==========================================================================
+K     = -0:1/2:12;
+for i = 1:length(K)
+    
+    % DEM and EKF (linear)
+    %----------------------------------------------------------------------
+    DEM.M(1).E.K = exp(K(i));
+    DEM          = spm_DEM(DEM);
+    
+    % mean square error
+    %----------------------------------------------------------------------
+    kse(i,1) = mean(mean((DEM.pU.x{1} - DEM.qU.x{1}).^2));
+    
+end
+
+% show prediction errors
+%==========================================================================
+spm_DEM_qU(DEM.qU,DEM.pU)
+ 
+% plot trajectories
+%--------------------------------------------------------------------------
+subplot(1,2,1)
+plot(K,log(kse))
+title('log(MSE)','Fontsize',16)
+xlabel('log(K)','Fontsize',12)
+axis square
+
 

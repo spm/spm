@@ -24,11 +24,21 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 %  dE.dpu  - d/du[de[1:n]/dp
 %
 % where u = x{1:d]; v[1:d]
+%
+% To accelerate computations one can specify the nature of the model using
+% the field:
+%
+% M(1).E.linear = 0: full        - evaluates 1st and 2nd derivatives
+% M(1).E.linear = 1: linear      - equations are linear in x and v
+% M(1).E.linear = 2: bilinear    - equations are linear in x, v and x.v
+% M(1).E.linear = 3: nonlinear   - equations are linear in x, v, x.v, and x.x
+% M(1).E.linear = 4: full linear - evaluates 1st derivatives (for generalised 
+%                                  filtering, where parameters change)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_eval.m 4297 2011-04-07 18:12:29Z karl $
  
  
 % get dimensions

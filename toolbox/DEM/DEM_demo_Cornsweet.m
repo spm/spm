@@ -11,14 +11,14 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: DEM_demo_Cornsweet.m 4297 2011-04-07 18:12:29Z karl $
  
  
 % Illustrate the Cornsweet effect
 %==========================================================================
 clear
 spm_figure('GetWin','Figure 1');
-colormap([1:255]'*[1 1 1]/255)
+colormap((1:255)'*[1 1 1]/255)
  
 % basic profile
 %--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ for i = 1:length(C)
  
     subplot(nc,2,2*i)
     plot(YX*C(i))
-    title('reflectance ','FontSize',16)
+    title('Reflectance ','FontSize',16)
     xlabel('eccentricity ','FontSize',12)
     axis square, axis([1 nx -64 64]);
     
@@ -61,7 +61,7 @@ nr      = size(P.R,2);
 ni      = size(P.I,2);
 W       = log2(nx./sum(P.R > 0))*3;         % scale of reflectance
 W(1)    = 16;
-
+ 
  
 % initial hidden states and causes
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ M(1).g  = inline('exp(P.R*x + P.I*v(1:3))','x','v','P');
 M(1).pE = P;                                % The prior expectation
 M(1).x  = x;                                % The prior expectation
 M(1).V  = exp(6);                           % error precision (data)
-M(1).W  = exp(12);                           % error precision (motion)
+M(1).W  = exp(12);                          % error precision (motion)
 M(1).xP = diag(exp(W));                     % error precision (motion)
  
 % level 2
@@ -89,7 +89,7 @@ M(2).V  = exp(0);                           % error precision (cause)
 % Create stimulus
 %==========================================================================
  
-% Create stimulus
+% Create stimulus (with spatial and temporal envelopes YX and YT)
 %--------------------------------------------------------------------------
 M(1).E.n = 1;
 N        = 64;                             % length of sequence
@@ -115,7 +115,7 @@ spm_figure('GetWin','Figure 2'); clf
 subplot(2,2,1)
 PI  = P.I*DEM.qU.v{2}(ii,:);
 imagesc(exp(PI))
-title('perceived illunimant','FontSize',16)
+title('Perceived illunimant','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('eccentricity ','FontSize',12)
 axis square
@@ -123,20 +123,20 @@ axis square
 subplot(2,2,2)
 PR = P.R*DEM.qU.x{1};
 imagesc(exp(PR))
-title('perceived reflectance','FontSize',16)
+title('Perceived reflectance','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('eccentricity ','FontSize',12)
 axis square
  
 subplot(2,2,3)
 imagesc(DEM.qU.v{1})
-title('predicted stimulus','FontSize',16)
+title('Predicted stimulus','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('eccentricity ','FontSize',12)
 axis square
  
  
-% first order effect
+% first order effect: (R1) - Cornsweet
 %--------------------------------------------------------------------------
 C     = sparse(1,nx);
 i     = nx/2 - nx/4 - 1;
@@ -145,7 +145,7 @@ i     = nx/2 + nx/4 + 2;
 C(i)  = -1;
 R1    = C*P.R;
  
-% second order effect
+% second order effect: (R2) - Mach bands
 %--------------------------------------------------------------------------
 i     = nx/2 - nx/8 - 1;
 C(i)  = -1;
@@ -164,7 +164,7 @@ end
 subplot(2,2,4)
 spm_plot_ci(t,D1,V1), hold on
 spm_plot_ci(t,D2,V2), hold off
-title('perceived reflectance','FontSize',16)
+title('Perceived reflectance','FontSize',16)
 xlabel('time (ms)','FontSize',12)
 ylabel('eccentricity ','FontSize',12)
 axis square
@@ -194,6 +194,8 @@ end
  
  
  
+ 
+ 
 % show Cornsweet effect as a function of precision (contrast)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
@@ -201,7 +203,7 @@ spm_figure('GetWin','Figure 3'); clf
 subplot(3,1,1)
 spm_plot_ci(C,d1,v1),                hold on
 plot(C,d1,'ob',C,C*0,'LineWidth',2), hold off
-title('conditional difference (Cornsweet)','FontSize',16)
+title('Conditional difference (Cornsweet)','FontSize',16)
 xlabel('log-precision (contrast)','FontSize',12)
 ylabel('reflectance difference','FontSize',12)
 spm_axis tight square
@@ -209,7 +211,7 @@ spm_axis tight square
 subplot(3,1,2)
 spm_plot_ci(C,d2,v2),                hold on
 plot(C,d2,'or',C,C*0,'LineWidth',2), hold off
-title('conditional difference (Mach Band)','FontSize',16)
+title('Conditional difference (Mach Band)','FontSize',16)
 xlabel('log-precision (contrast)','FontSize',12)
 ylabel('reflectance difference','FontSize',12)
 spm_axis tight square
@@ -251,20 +253,20 @@ for i = 1:nj
     
     subplot(3,nj,i)
     plot(t,Es,'r')
-    title('error (sensory)','FontSize',14)
+    title('Error (sensory)','FontSize',14)
     xlabel('time (ms)','FontSize',12)
     ylabel('error (state)','FontSize',12)
  
     subplot(3,nj,i + nj)
     plot(t,Ev,'r')
-    title('error (hidden states)','FontSize',14)
+    title('Error (hidden states)','FontSize',14)
     xlabel('time (ms)','FontSize',12)
     ylabel('error (state)','FontSize',12)
     
  
 end
-
-
+ 
+ 
 % adjust axes
 %--------------------------------------------------------------------------
 for i = 1:nj
@@ -282,14 +284,57 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','DEM');
 spm_DEM_qU(SIM{7}.qU)
-spm_figure('GetWin','Figure 3');
-
-
-% Fitting behavioural data
-%==========================================================================
-
 
  
+% Fitting behavioural data
+%==========================================================================
+try, load cornsweet_data, catch, return, end
+
+% save simulation results
+%--------------------------------------------------------------------------
+sim.Con    = C;               % simulated contrast
+sim.Ecs    = d1;              % conditional expectation of Cornsweet effect
+sim.Emb    = d2;              % conditional expectation of mach band effect
+sim.Vcs    = v1;              % conditional dispersion of Cornsweet effect
+sim.Vmb    = v2;              % conditional dispersion of mach band effect
+ 
+% add emprical contrasts that were used
+%--------------------------------------------------------------------------
+
+sim.Con_cs = cornsweet.cornsweet;
+sim.Con_mb = mach.machContrast;
+G.sim      = sim;     % place in model
+ 
+% empirical responses
+%--------------------------------------------------------------------------
+Y.y{1}     = cornsweet.stepMatch(:);
+Y.y{2}     = mach.pSeeMach(:);
+Y.Q        = spm_Ce([length(Y.y{1}) length(Y.y{2})]); % error precisions
+ 
+ 
+% model parameters
+%--------------------------------------------------------------------------
+B.thresh = -2;                % log-contrast threshold for Mach band
+B.sig    = 1;                 % parameter of contrast function
+B.off    = 2;                 % parameter of contrast function
+B.con    = 1/32;              % scaling of reported contrast
+B.sen    = 4;                 % parameter of response probability
+nb       = length(spm_vec(B));
+ 
+ 
+% setup model of empirical responses
+%--------------------------------------------------------------------------
+G.IS = 'spm_cornsweet';       % function name f(P,M,U) - generative model
+G.pE = B;                     % prior expectation of model parameters
+G.pC = speye(nb,nb)/8;        % prior covariance  of model parameters
+G.hE = [16; 8];               % prior expectation of log-precisions
+G.hC = exp(-4);               % prior covariance of log-precisions
+ 
+ 
+% invert model of empirical responses and plot
+%--------------------------------------------------------------------------
+[Ep,Cp,Ce] = spm_nlsi_GN(G,[],Y);
+spm_cornsweet(Ep,G,Y)
  
 return
  
@@ -321,7 +366,7 @@ DEM      = spm_DEM_generate(M,64,P,{16 0},{16});
 subplot(3,2,1)
 PI  = P.I*DEM.pU.v{2}(ii,:);
 imagesc(exp(PI))
-title('illunimant','FontSize',16)
+title('Illunimant','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('location ','FontSize',12)
 axis square
@@ -329,14 +374,14 @@ axis square
 subplot(3,2,3)
 PR = P.R*DEM.pU.x{1};
 imagesc(exp(PR))
-title('reflectant','FontSize',16)
+title('Reflectant','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('location ','FontSize',12)
 axis square
  
 subplot(3,2,5)
 imagesc(DEM.pU.v{1})
-title('stimulus','FontSize',16)
+title('Stimulus','FontSize',16)
 xlabel('time (bins)','FontSize',12)
 ylabel('location ','FontSize',12)
 axis square
@@ -374,15 +419,17 @@ spm_figure('GetWin','Paper');
  
 subplot(2,2,1)
 imagesc(exp(I))
-title('illuminant ','FontSize',16)
+title('Illuminant ','FontSize',16)
 axis square
  
 subplot(2,2,2)
 imagesc(exp(R))
-title('reflectance ','FontSize',16)
+title('Reflectance ','FontSize',16)
 axis square
  
 subplot(2,1,2)
 imagesc(exp(I + R))
-title('image','FontSize',16)
+title('Image','FontSize',16)
 axis square, drawnow
+
+

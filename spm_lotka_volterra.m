@@ -18,13 +18,22 @@ function [f] = spm_lotka_volterra(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_lotka_volterra.m 4297 2011-04-07 18:12:29Z karl $
 
 
 % intialise
 %==========================================================================
 try, k = P.k; catch, k = 1; end
 try, l = P.l; catch, l = 1; end
+
+% just return connectivity
+%--------------------------------------------------------------------------
+if nargin == 1
+    n   = x;
+    f   = spm_speye(n,n,-1) - spm_speye(n,n,1); P.f(n,1) = -1; P.f(1,n) = 1;
+    f   = f + speye(n,n) - 1;
+    return
+end
 
 % check for hidden cause
 %--------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 function [p f] = spm_argmax(fun,varargin)
-% function minimisation using Guass-Newton
+% function minimisation using Gauss-Newton
 % FORMAT [P f] = spm_argmax('fun',varargin,i)
 %
 % fun      - inline function f - fun(P,varargin)
@@ -16,7 +16,7 @@ function [p f] = spm_argmax(fun,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_argmax.m 4060 2010-09-01 17:17:36Z karl $
+% $Id: spm_argmax.m 4297 2011-04-07 18:12:29Z karl $
  
  
 % arguments
@@ -62,7 +62,7 @@ for j = 1:64
     else
         x    = P.x;
         v    = min(v - 2, -4);
-        str  = 'EM:(-)';
+        str  = 'GN:(-)';
     end
 
     % Gradient ascent
