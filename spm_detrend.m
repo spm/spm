@@ -13,7 +13,7 @@ function y = spm_detrend(x,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_detrend.m 4299 2011-04-08 12:13:18Z guillaume $
 
 
 % defaults
@@ -30,7 +30,9 @@ end
 % centre columns
 %--------------------------------------------------------------------------
 if ~p
-    y = bsxfun(@minus, x, mean(x));
+    for i = 1:n
+        y(:,i) = x(:,i) - mean(x(:,i));
+    end
     return
 end
 
