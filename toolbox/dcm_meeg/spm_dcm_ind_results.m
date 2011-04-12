@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 3362 2009-09-04 14:21:40Z guillaume $
+% $Id: spm_dcm_ind_results.m 4303 2011-04-12 15:23:15Z vladimir $
 
 
 % get figure handle
@@ -43,8 +43,8 @@ clf
 
 xY     = DCM.xY;
 nt     = length(xY.y);           % Nr of trial types
-nr     = length(DCM.C);          % Nr of sources
-nu     = length(DCM.B);          % Nr of experimental effects
+nr     = size(xY.xf, 2);         % Nr of sources
+nu     = size(xY.xf, 1);         % Nr of experimental effects
 nf     = size(xY.U,2);           % Nr of frequency modes
 ns     = size(xY.y{1},1);        % Nr of time bins
 pst    = xY.pst;                 % peri-stmulus time
@@ -75,6 +75,8 @@ switch(lower(Action))
         end
     end
     
+    cx = spm_percentile(spm_vec(TF), [5 95]);
+    
     % loop over trials, sources (predicted and observed)
     %----------------------------------------------------------------------
     colormap(jet)
@@ -84,6 +86,7 @@ switch(lower(Action))
             subplot(2*nt,nr,(i - 1)*nr + j)
             imagesc(pst,Hz,TF{i,j}')
             axis xy
+            caxis(cx);
             xlabel('pst (ms)')
             ylabel('frequency')
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4232 2011-03-07 21:01:16Z karl $
+% $Id: spm_api_erp.m 4303 2011-04-12 15:23:15Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -83,9 +83,9 @@ end
 switch model
     case{'ERP'}, set(handles.ERP,'Value',1);
     case{'CSD'}, set(handles.ERP,'Value',2);
-    case{'SSR'}, set(handles.ERP,'Value',2);
-    case{'IND'}, set(handles.ERP,'Value',3);
-    case{'PHA'}, set(handles.ERP,'Value',4);
+    case{'SSR'}, set(handles.ERP,'Value',3);
+    case{'IND'}, set(handles.ERP,'Value',4);
+    case{'PHA'}, set(handles.ERP,'Value',5);
     otherwise
 end
 handles = ERP_Callback(hObject, eventdata, handles);
@@ -116,7 +116,7 @@ switch model
     case{'MFM'}, set(handles.model,'Value',6);
     otherwise
 end
- 
+
 % Type of model (spatial)
 %--------------------------------------------------------------------------
 % 'ECD'    - Equivalent current dipole
@@ -389,13 +389,20 @@ else
     handles.DCM.xY.modality = mod;
 end
 
+if isequal(handles.DCM.xY.modality, 'LFP')
+    set(handles.Spatial, 'Value', strmatch('LFP', get(handles.Spatial, 'String')));
+end   
 
 % Assemble and display data
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
 try
     handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
-    spm_dcm_erp_results(handles.DCM, 'Data');
+    if isfield(handles.DCM.xY, 'xy')
+        spm_dcm_erp_results(handles.DCM, 'Data');
+    else
+        spm_dcm_ind_results(handles.DCM, 'Wavelet');
+    end  
     set(handles.dt, 'String',sprintf('bins: %.1fms', handles.DCM.xY.dt*1000))
     set(handles.dt, 'Visible','on')
     set(handles.data_ok, 'enable', 'on'); 
@@ -419,7 +426,11 @@ function Y_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 try
     DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
-    spm_dcm_erp_results(DCM, 'Data');
+    if isfield(DCM.xY, 'xy')
+        spm_dcm_erp_results(DCM, 'Data');
+    else
+        spm_dcm_ind_results(DCM, 'Wavelet');
+    end  
     set(handles.dt, 'String',sprintf('bins: %.1fms', DCM.xY.dt*1000))
     set(handles.dt, 'Visible','on')
     set(handles.data_ok, 'enable', 'on'); 
@@ -1372,4 +1383,3 @@ guidata(hObject,handles);
 function priors_Callback(hObject, eventdata, handles);
 handles = reset_Callback(hObject, eventdata, handles);
 spm_api_nmm(handles.DCM)
-

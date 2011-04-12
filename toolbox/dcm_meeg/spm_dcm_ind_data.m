@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 3954 2010-06-29 15:50:23Z vladimir $
+% $Id: spm_dcm_ind_data.m 4303 2011-04-12 15:23:15Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -82,6 +82,8 @@ if ~isfield(DCM.xY, 'modality')
         DCM.xY.modality = mod;
     end
 end
+
+TFinput = isequal(D.transformtype, 'TF');
 
 if  ~isfield(DCM.xY, 'Ic')
     Ic        = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
@@ -174,56 +176,69 @@ catch
     end
 end
 
-if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
+if TFinput
+    DCM.xY.Hz = D.frequencies;
+    DCM.xY.Hz = DCM.xY.Hz(DCM.xY.Hz>=Hz1 & DCM.xY.Hz<=Hz2);
+else
+    if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
+    DCM.xY.Hz  = Hz1:HzD:Hz2;          % Frequencies
+end
 
-% get Morelet wavelets
-%--------------------------------------------------------------------------
-DCM.xY.Hz  = Hz1:HzD:Hz2;              % Frequencies
 DCM.xY.Nm  = Nm;                       % number of frequency modes
 dt         = 1000/D.fsample;           % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
-Nr         = size(DCM.C,1);            % number of sources
+if isequal(DCM.xY.modality, 'LFP')
+    Nr         = Nc;
+else
+    Nr         = size(DCM.C,1);        % number of sources
+end
 Ne         = length(trial);            % number of ERPs
 Nm         = DCM.xY.Nm;                % number of frequency modes
 
-% get induced responses (use previous time-frequency results if possible)
-%==========================================================================
-try
-    if size(DCM.xY.xf,1) == Ne;
-        if size(DCM.xY.xf,2) == Nr;
-            if size(DCM.xY.xf{1},1) == Nb;
-                if size(DCM.xY.xf{1},2) == Nm;
-                    if size(DCM.xY.U,1) == length(DCM.xY.Hz)
-                        DCM.xY.y = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
-                        return
+if ~TFinput
+
+% get Morelet wavelets
+%--------------------------------------------------------------------------
+    
+    % get induced responses (use previous time-frequency results if possible)
+    %==========================================================================
+    try
+        if size(DCM.xY.xf,1) == Ne;
+            if size(DCM.xY.xf,2) == Nr;
+                if size(DCM.xY.xf{1},1) == Nb;
+                    if size(DCM.xY.xf{1},2) == Nm;
+                        if size(DCM.xY.U,1) == length(DCM.xY.Hz)
+                            DCM.xY.y = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
+                            return
+                        end
                     end
                 end
             end
         end
     end
-end
-
-% high-pass filter (detrend)
-%--------------------------------------------------------------------------
-if Ns < 256
-    T = spm_orthpoly(Ns,h);
-    T = speye(Ns,Ns) - T*T';
-else
-    T = 1;
-end
-
-% create convolution matrices (Eucldian normalised with filtering)
-%--------------------------------------------------------------------------
-for i = 1:Nf
-    fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
     
-    W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
-    N    = fix(length(W{1})/2);
-    W    = W{1}.*(abs(W{1}) > exp(-8));
-    W    = spm_convmtx(W',Ns);
-    W    = W(It + N,:);
-    M{i} = W*T;
+    % high-pass filter (detrend)
+    %--------------------------------------------------------------------------
+    if Ns < 256
+        T = spm_orthpoly(Ns,h);
+        T = speye(Ns,Ns) - T*T';
+    else
+        T = 1;
+    end
     
+    % create convolution matrices (Eucldian normalised with filtering)
+    %--------------------------------------------------------------------------
+    for i = 1:Nf
+        fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
+        
+        W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
+        N    = fix(length(W{1})/2);
+        W    = W{1}.*(abs(W{1}) > exp(-8));
+        W    = spm_convmtx(W',Ns);
+        W    = W(It + N,:);
+        M{i} = W*T;
+        
+    end
 end
 
 % get MAP projector matrix for source components
@@ -259,8 +274,9 @@ if strcmp(DCM.options.spatial, 'ECD')
     end
 elseif strcmp(DCM.options.spatial, 'LFP')
     if strcmp(DCM.xY.modality, 'LFP')
-        Ng     = 1;
-        MAP    = speye(Nr,Nr);
+        Ng        = 1;
+        MAP       = speye(Nr,Nr);
+        DCM.Sname = D.chanlabels(Ic);
     else
         warndlg('LFP option can only be used with datasets of LFP modality');
         return;
@@ -284,19 +300,25 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     try c = c(1:512); end
     Nt    = length(c);
-    
+            
+    Ny    = Nb*Ng*Nr;
+    Y     = zeros(Ny*Nf,Nt);
     
     % Get data: log(spectral magnitude)
     %----------------------------------------------------------------------
-    Ny    = Nb*Ng*Nr;
-    Y     = zeros(Ny*Nf,Nt);
     for j = 1:Nf
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
-            y      = abs(M{j}*D(Ic,Is,c(k))'*MAP');
-            Y(f,k) = log(y(:));
+            if TFinput
+                y      = squeeze(D(Ic, D.indfrequency(DCM.xY.Hz(j)), It, c(k)))';
+                Y(f,k) = y(:);
+                %Y(f,k) = log(y(:));
+            else
+                y      = abs(M{j}*D(Ic,Is,c(k))'*MAP');
+                Y(f,k) = log(y(:));
+            end
         end
-        fprintf('\nevaluating %i Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
+        fprintf('\nevaluating %.1f Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
     end
     
     % weight with principal eigenvariate over trials (c.f., averaging)
@@ -309,7 +331,7 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
-        Yz{i,j} = Yk - ones(Nb,1)*Yk(1,:);
+        Yz{i,j} = Yk- ones(Nb,1)*Yk(1,:);
     end
 end
 

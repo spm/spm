@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 2773 2009-02-23 13:08:55Z vladimir $
+% $Id: spm_dcm_erp_data.m 4303 2011-04-12 15:23:15Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -66,6 +66,11 @@ catch
             return
         end
     end
+end
+
+if isequal(D.transformtype, 'TF')
+    DCM = spm_dcm_ind_data(DCM);
+    return;
 end
  
 % indices of EEG channel (excluding bad channels) and peristimulus times

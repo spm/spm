@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4207 2011-02-22 10:48:36Z christophe $
+% $Id: checkmeeg.m 4303 2011-04-12 15:23:15Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -440,7 +440,7 @@ lfpind = strmatch('LFP', chantypes, 'exact');
 
 % Allow DCM on a pure LFP dataset
 if strcmp(option, 'dcm') && isempty([eegind(:); megind(:)])...
-        && ~isempty(lfpind)&& strcmp(meegstruct.transform.ID, 'time')
+        && ~isempty(lfpind) && ismember(meegstruct.transform.ID, {'time', 'TF'})
     result = 1;
     return;
 end
