@@ -15,7 +15,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_gen_erp.m 4300 2011-04-12 08:34:56Z rosalyn $
 
 % within-trial inputs
 %==========================================================================
@@ -64,10 +64,11 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
 
-        Q.A{1}  = Q.A{1} + X(c,i)*P.B{i};         % forward connections
-        Q.A{2}  = Q.A{2} + X(c,i)*P.B{i};         % backward connections
-        Q.A{3}  = Q.A{3} + X(c,i)*P.B{i};         % lateral connections
-
+      Q.A{1} = Q.A{1} + X(c,i)*P.B{i};          % forward  connections (sp -> ss)
+      Q.A{2} = Q.A{2} + X(c,i)*P.B{i};          % forward  connections (sp -> dp)
+      Q.A{3} = Q.A{3} + X(c,i)*P.B{i};           % backward connections (dp -> sp)
+      Q.A{4} = Q.A{4} + X(c,i)*P.B{i};           % backward connections (dp -> ii)
+      
         % intrinsic connections
         %----------------------------------------------------------------------
         try
