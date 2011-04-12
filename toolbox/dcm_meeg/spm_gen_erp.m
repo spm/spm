@@ -15,7 +15,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 4301 2011-04-12 12:55:15Z rosalyn $
+% $Id: spm_gen_erp.m 4302 2011-04-12 13:24:42Z rosalyn $
 
 % within-trial inputs
 %==========================================================================
@@ -70,9 +70,7 @@ for  c = 1:size(X,1)
       
       % for cmc
       try 
-          
-      Q.A{4} = Q.A{4} + X(c,i)*P.B{i};         % Backward connections 
-      
+          Q.A{4} = Q.A{4} + X(c,i)*P.B{i};         % Backward connections 
       end
       
         % intrinsic connections
