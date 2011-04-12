@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_L_priors.m 4305 2011-04-12 18:15:32Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -110,10 +110,11 @@ switch model
         pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,36);        % 36 states =
         pC.J = sparse(1,[1,2],[1/64 1/128],1,36);         % 9 1st + 27 2nd
         
-    case{'DEM'}
+    case{'DEM','NFM'}
         %------------------------------------------------------------------
         pE.J = [];                                        % null
         pC.J = [];
+        
         
     otherwise
         warndlg('Unknown neural model')

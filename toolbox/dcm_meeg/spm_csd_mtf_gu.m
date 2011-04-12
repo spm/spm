@@ -9,11 +9,13 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Gn  - channel noise (non-specific)
 % Gs  - channel noise (specific)
 %
+% f   - frequency
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_csd_mtf_gu.m 4305 2011-04-12 18:15:32Z karl $
 
  
 % frequencies of interest
@@ -35,10 +37,10 @@ end
 
 % spectrum of channel noise (non-specific)
 %--------------------------------------------------------------------------
-Gn          = exp(P.b(1))*f.^(-exp(P.b(2)))*4; 
+Gn  = exp(P.b(1))*f.^(-exp(P.b(2)))*4; 
 
 
-% spectrum of channel noise (non-specific)
+% spectrum of channel noise (specific)
 %--------------------------------------------------------------------------
 for i = 1:size(P.c,2)
     Gs(:,i) = exp(P.c(1,i))*f.^(-exp(P.c(2,i)))*4;
