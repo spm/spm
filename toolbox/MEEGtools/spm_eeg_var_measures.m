@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 3914 2010-06-02 15:32:58Z vladimir $
+% $Id: spm_eeg_var_measures.m 4304 2011-04-12 15:24:23Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -177,8 +177,7 @@ end
 
 %%
 % Compute the MAR model 
-ns=data.fsample; % Sample rate
-tt=[1:Ntime]/ns;
+ns=1/mean(diff(data.time)); % Sample rate
 p= spm_input('Input model order', '+1', 'r', '', 1); % Order of MAR model
 freqs=[1:100]; % Frequencies to evaluate spectral quantities at
 
