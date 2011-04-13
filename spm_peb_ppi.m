@@ -44,10 +44,10 @@ function PPI = spm_peb_ppi(varargin)
 % conforms to Wiener filtering. The neuronal process is then used to form 
 % PPIs. See help text within function for more details.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_peb_ppi.m 4306 2011-04-13 17:02:00Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -123,23 +123,28 @@ Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
 spm_clf(Finter); set(Finter,'name','PPI Setup');
 
-
-% Check inputs and set up variables
+% Check inputs
 %--------------------------------------------------------------------------
-if nargin>0 && isstruct(varargin{1})
+if nargin && isstruct(varargin{1})
     SPM = varargin{1};
+    try
+        swd = SPM.pwd;
+    catch
+        swd = '';
+    end
 else
     try
-        load(varargin{1})
+        P            = varargin{1};
     catch
         [P, sts]     = spm_select(1,'^SPM\.mat$','Select SPM.mat');
         if ~sts, PPI = struct([]); return; end
-        swd          = spm_str_manip(P,'H');
-        load(fullfile(swd,'SPM.mat'));
-        SPM.swd      = swd;
     end
+    swd = spm_str_manip(P,'H');
+    load(fullfile(swd,'SPM.mat'));
 end
-cwd    = pwd;
+if isempty(swd) || strcmp(swd,'.'), swd = pwd; end
+SPM.swd = swd;
+cwd     = pwd;
 cd(SPM.swd)
 
 % Setup variables
