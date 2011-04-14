@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4294 2011-04-06 18:03:20Z guillaume $
+% $Id: spm.m 4308 2011-04-14 17:57:35Z guillaume $
 
 
 %=======================================================================
@@ -982,7 +982,16 @@ v   = get(h,'Value');
 if v==1, return, end
 set(h,'Value',1)
 CBs = get(h,'UserData');
-evalin('base',CBs{v-1})
+CB  = CBs{v-1};
+if ischar(CB)
+    evalin('base',CB)
+elseif isa(CB,'function_handle')
+    feval(CB);
+elseif iscell(CB)
+    feval(CB{:});
+else
+    error('Invalid CallBack.');
+end
 
 
 %=======================================================================
@@ -1098,7 +1107,7 @@ if nargout, varargout = {h}; end
 %=======================================================================
 case 'run'                                               %-Run script(s)
 %=======================================================================
-% spm('run',mscript)
+% spm('Run',mscript)
 %-----------------------------------------------------------------------
 if nargin<2
     [mscript, sts] = spm_select(Inf,'.*\.m$','Select M-file(s) to run');
@@ -1108,15 +1117,28 @@ else
 end
 mscript = cellstr(mscript);
 for i=1:numel(mscript)
-    fid = fopen(mscript{i});
-    if fid == -1, error('Cannot open %s',mscript{i}); end
-    S = fscanf(fid,'%c');
-    fclose(fid);
-    try
-        evalin('base',S);
-    catch
-        fprintf('Execution failed: %s\n',mscript{i});
-        rethrow(lasterror);
+    if isdeployed
+        [p,n,e] = fileparts(mscript{i});
+        if isempty(p), p = pwd;  end
+        if isempty(e), e = '.m'; end
+        mscript{i} = fullfile(p,[n e]);
+        fid = fopen(mscript{i});
+        if fid == -1, error('Cannot open %s',mscript{i}); end
+        S = fscanf(fid,'%c');
+        fclose(fid);
+        try
+            evalin('base',S);
+        catch
+            fprintf('Execution failed: %s\n',mscript{i});
+            rethrow(lasterror);
+        end
+    else
+        try
+            run(mscript{i});
+        catch
+            fprintf('Execution failed: %s\n',mscript{i});
+            rethrow(lasterror);
+        end
     end
 end
 

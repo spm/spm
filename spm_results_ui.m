@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4209 2011-02-22 20:11:05Z guillaume $
+% $Id: spm_results_ui.m 4308 2011-04-14 17:57:35Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4209 $'; 
+SVNid = '$Rev: 4308 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -687,11 +687,20 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Interruptible','on','Enable','on',...
             'Position',[285 120 100 020].*WS)
  
-        uicontrol(Finter,'Style','PushButton','String','save','FontSize',FS(10),...
-            'ToolTipString','save thresholded SPM as image',...
-            'Callback',['spm_write_filtered(xSPM.Z,xSPM.XYZ,xSPM.DIM,xSPM.M,',...
-              'sprintf(''SPM{%c}-filtered: u = %5.3f, k = %d'',',...
-              'xSPM.STAT,xSPM.u,xSPM.k));'],...
+        str = {'save...',...
+               'thresholded SPM',...
+               'all clusters (binary)',...
+               'all clusters (n-ary)',...
+               'current cluster'};
+        tmp = {{@mysavespm, 'thresh' },...
+               {@mysavespm, 'binary' },...
+               {@mysavespm, 'n-ary'  },...
+               {@mysavespm, 'current'}};
+        
+        uicontrol(Finter,'Style','PopUp','String',str,'FontSize',FS(10),...
+            'ToolTipString','save as image',...
+            'Callback','spm(''PopUpCB'',gcbo)',...
+            'UserData',tmp,...
             'Interruptible','on','Enable','on',...
             'Position',[285 095 100 020].*WS)
  
@@ -1211,3 +1220,41 @@ assignin('base','hReg',hReg);
 assignin('base','xSPM',xSPM);
 assignin('base','SPM',SPM);
 figure(spm_figure('GetWin','Interactive'));
+
+%==========================================================================
+function mysavespm(action)
+%==========================================================================
+xSPM = evalin('base','xSPM;');
+XYZ  = xSPM.XYZ;
+
+switch lower(action)
+    case 'thresh'
+        Z = xSPM.Z;
+        
+    case 'binary'
+        Z = ones(size(xSPM.Z));
+        
+    case 'n-ary'
+        Z       = spm_clusters(XYZ);
+        num     = max(Z);
+        [n, ni] = sort(histc(Z,1:num), 2, 'descend');
+        n       = size(ni);
+        n(ni)   = 1:num;
+        Z       = n(Z);
+        
+    case 'current'
+        [xyzmm,i] = spm_XYZreg('NearestXYZ',...
+            spm_results_ui('GetCoords'),xSPM.XYZmm);
+        spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
+        
+        A   = spm_clusters(XYZ);
+        j   = find(A == A(i));
+        Z   = ones(1,numel(j));
+        XYZ = xSPM.XYZ(:,j);
+        
+    otherwise
+        error('Unknown action.');
+end
+
+spm_write_filtered(Z, XYZ, xSPM.DIM, xSPM.M,...
+	sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',xSPM.STAT,xSPM.u,xSPM.k));
