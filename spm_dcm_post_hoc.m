@@ -35,10 +35,10 @@ function spm_dcm_post_hoc(P)
 % (spectral embedding) graphs are based on Bayesian parameter averages 
 % over multiple DCMs.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_post_hoc.m 4307 2011-04-14 16:45:43Z guillaume $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -175,6 +175,7 @@ end
 % Show results
 % -------------------------------------------------------------------------
 spm_figure('Getwin','Graphics');
+spm_figure('Clear');
  
 subplot(2,2,1)
 if length(K) > 32, plot(S,'k'), else, bar(S,'c'), end
@@ -247,7 +248,10 @@ for j = 1:N
     %======================================================================
     try
         [pth, name] = fileparts(P{j});
-        P{j} = fullfile(pth,['DCM_opt_' name(4:end) '.mat']);
+        if ~strncmp(name,'DCM_opt_',8)
+            name = ['DCM_opt_' name(5:end) '.mat'];
+        end
+        P{j} = fullfile(pth,name);
     catch
         P{j} = fullfile(pwd,['DCM_opt_' date '.mat']);
     end
