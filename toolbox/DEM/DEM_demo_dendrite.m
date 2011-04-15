@@ -14,13 +14,13 @@
 % expectations.  This provide a principled account of how neurons organise 
 % and selectively sample the myriad of potential pre-synaptic inputs they 
 % are exposed to, but it also connects elemental neuronal (dendritic) 
-% processing to generic schemes in statistics and machine learning, such 
-% as Bayesian model selection and automatic relevance determination.  
+% processing to generic schemes in statistics and machine learning:
+% such as Bayesian model selection and automatic relevance determination.  
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: DEM_demo_dendrite.m 4309 2011-04-15 19:31:45Z karl $
  
 % preliminaries
 %==========================================================================
@@ -38,7 +38,7 @@ np    = 5;                            % number of pre-synaptic neurons
 ns    = 4;                            % number of dendritic segments
 ny    = ns*np;                        % number of synapses
  
-w     = kron([1:np],ones(1,ns));      % prior contacts
+w     = kron((1:np),ones(1,ns));      % prior contacts
 g     = rem(randperm(ns*np),np) + 1;  % initial contacts
  
 P.w   = w';                           % synaptic weights 
@@ -238,7 +238,7 @@ h = findobj(gca,'type','image');
 set(h(1),'Userdata',{MM,16})
 set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
  
-
+ 
 % Illustrate sequence specificity
 %==========================================================================
 SIM   = DEM;
@@ -246,7 +246,7 @@ U     = -((1:N) - N/2).^2/(2*(N/8)^2);
 SIM.M(1).E.nE =  1;
 SIM.M(1).W    =  8;
 SIM.M(1).hE   =  2;
-SIM.M(2).v    = -4;
+SIM.M(2).v    = -1;
 SIM.M(2).V    =  8;
 n     = 4;
 t     = 1:N;
@@ -309,7 +309,7 @@ SIM = DEM;
 SIM.M(1).E.nE =  1;
 SIM.M(1).W    =  8;
 SIM.M(1).hE   =  2;
-SIM.M(2).v    = -4;
+SIM.M(2).v    = -1;
 SIM.M(2).V    =  8;
  
 IN    = 1:np;
@@ -338,14 +338,60 @@ for i = 1:length(u)
     V(2,i) = mean(exp(SIM.qU.v{2}));
     
 end
-
+ 
 % plot direction-selectivity
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Figure 4');
-
+ 
 subplot(2,1,1)
 plot(u,V(1,:),'r',u,V(1,:),'or',u,V(2,:),'b',u,V(2,:),'ob')
 xlabel('input velocity','FontSize',12)
 ylabel('mean response','FontSize',12)
-title('velocity-dependent responses','FontSize',16)
+title('Velocity-dependent responses','FontSize',16)
+axis square, box off
+ 
+ 
+% Spike-timing dependent plasticity
+%==========================================================================
+U             = -((1:N) - N/2).^2/(2*(N/8)^2);
+SIM           = spm_DEM_generate(DEM.M,U,P,{2 16},{8});
+SIM.M(1).E.nE =  4;
+SIM.M(1).W    =  8;
+SIM.M(1).hE   =  0;
+SIM.M(2).v    = -1;
+SIM.M(2).V    =  8;
+ 
+% time delay and synapse
+%--------------------------------------------------------------------------
+delay = -32:4:32;                   
+j     = 10;
+Y     = SIM.Y;
+for i = 1:length(delay)
+    
+    % delay j-th synaptic input
+    %----------------------------------------------------------------------
+    y          = Y(j,:);
+    y          = [(zeros(1,128) + y(1)) y (zeros(1,128) + y(end))];
+    y          = y((1:N) + 128 - delay(i));
+    SIM.Y(j,:) = y;
+    
+    % optimise precision
+    %----------------------------------------------------------------------
+    SIM        = spm_DEM(SIM);
+    
+    % record plasticity
+    %----------------------------------------------------------------------
+    qH(i)      = SIM.qH.h{1}(j);
+        
+end
+ 
+% plot Spike-timing dependent plasticity
+%--------------------------------------------------------------------------
+spm_figure('Getwin','Figure 4');
+ 
+subplot(2,1,2)
+plot(delay,qH)
+xlabel('delay','FontSize',12)
+ylabel('change in synaptic precicion','FontSize',12)
+title('Spike-timing dependent plasticity','FontSize',16)
 axis square, box off

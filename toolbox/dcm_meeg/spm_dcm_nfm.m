@@ -23,7 +23,7 @@ function DCM = spm_dcm_nfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_nfm.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_dcm_nfm.m 4309 2011-04-15 19:31:45Z karl $
  
  
 % check options
@@ -44,7 +44,7 @@ try, Nm    = DCM.options.Nmodes; catch, Nm       = 8;         end
 DCM  = spm_dcm_erp_dipfit(DCM, 1);
 Ns   = size(DCM.C,1);                                   % number of sources
 Nc   = DCM.M.dipfit.Nc;
-% DCM  = spm_dcm_erp_data(DCM);
+DCM  = spm_dcm_erp_data(DCM);
 DCM.M.dipfit.model = model;
  
  
