@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: spm_DEM.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
 
@@ -123,10 +123,10 @@ nu   = nv*d + nx*n;                    % number of generalised states
  
 % number of iterations
 %--------------------------------------------------------------------------
-try nD = M(1).E.nD; catch nD = 1; end
-try nE = M(1).E.nE; catch nE = 8; end
-try nM = M(1).E.nM; catch nM = 8; end
-try K  = M(1).E.K;  catch K  = 1; end
+try, nD = M(1).E.nD; catch, nD = 1; end
+try, nE = M(1).E.nE; catch, nE = 8; end
+try, nM = M(1).E.nM; catch, nM = 8; end
+try, K  = M(1).E.K;  catch, K  = 1; end
  
  
 % initialise regularisation parameters

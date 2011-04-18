@@ -75,7 +75,7 @@ function [block] = spm_vb_glmar (Y,block)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_glmar.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
 t0 = clock;
@@ -127,7 +127,7 @@ for it = 1:block.maxits, % Loop over iterations
     if block.update_w
         block = spm_vb_w (Y,block);
     end
-    if (block.p>0) & (block.update_a)
+    if (block.p>0) && (block.update_a)
         block = spm_vb_a (Y,block);
     end
     if block.update_lambda
@@ -136,7 +136,7 @@ for it = 1:block.maxits, % Loop over iterations
     if block.update_alpha
         block = spm_vb_alpha (Y,block);
     end
-    if (block.p>0) & (block.update_beta)
+    if (block.p>0) && (block.update_beta)
         block = spm_vb_beta (Y,block);
     end
     if block.update_F

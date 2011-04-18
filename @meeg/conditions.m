@@ -5,10 +5,10 @@ function res = conditions(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: conditions.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: conditions.m 4310 2011-04-18 16:07:35Z guillaume $
 
 res = getset(this, 'trials', 'label', varargin{:});
 
-if nargin ==1 & ~iscell(res)
+if nargin == 1 && ~iscell(res)
     res = {res};
 end

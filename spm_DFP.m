@@ -77,7 +77,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_DFP.m 4310 2011-04-18 16:07:35Z guillaume $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -117,10 +117,10 @@ kt   = 1;                              % rate constant for D-Step
 
 % number of iterations
 %--------------------------------------------------------------------------
-if nx, nD = 1;      else, nD = 8; end
-try nE = M(1).E.nE; catch nE = 1; end
-try nM = M(1).E.nM; catch nM = 8; end
-try nN = M(1).E.nN; catch nN = 8; end
+if nx, nD = 1;       else   nD = 8; end
+try, nE = M(1).E.nE; catch, nE = 1; end
+try, nM = M(1).E.nM; catch, nM = 8; end
+try, nN = M(1).E.nN; catch, nN = 8; end
 
 
 % initialise regularisation parameters

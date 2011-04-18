@@ -42,17 +42,17 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_get_image_def.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
 
-if nargin > 2 & ~isempty(defa)
+if nargin > 2 && ~isempty(defa)
    def = zeros(size(defa,1),1);
 else 
    def = zeros(prod(ds.P(1).dim(1:3)),1);
 end
 if nargout > 1
-   if nargin > 3 & ~isempty(ddefa)
+   if nargin > 3 && ~isempty(ddefa)
       jac = ones(size(ddefa,1),1);
    else
       jac = ones(prod(ds.P(1).dim(1:3)),1);
@@ -68,7 +68,7 @@ if isreal(P)
    if round(P) ~= P
       warning('Index has to be integer');
       return;
-   elseif P < 1 | P > size(ds.P,1)
+   elseif P < 1 || P > size(ds.P,1)
       warning('Index outside range of ds');
       return;
    end
@@ -92,7 +92,7 @@ end
 %
 % Get deformation field in phase encoding direction.
 %
-if nargin < 3 | isempty(defa)
+if nargin < 3 || isempty(defa)
    Bx = spm_dctmtx(ds.P(1).dim(1),ds.order(1));
    By = spm_dctmtx(ds.P(1).dim(2),ds.order(2));
    Bz = spm_dctmtx(ds.P(1).dim(3),ds.order(3));
@@ -116,7 +116,7 @@ end
 % Get Jacobian field in phase encode direction.
 %
 if nargout > 1
-   if nargin <  4 | isempty(ddefa)
+   if nargin <  4 || isempty(ddefa)
       Bx = spm_dctmtx(ds.P(1).dim(1),ds.order(1));
       dBy = spm_dctmtx(ds.P(1).dim(2),ds.order(2),'diff');
       Bz = spm_dctmtx(ds.P(1).dim(3),ds.order(3));
@@ -135,7 +135,3 @@ if nargout > 1
       end
    end
 end
-
-
-return
-

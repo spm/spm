@@ -9,14 +9,14 @@ function VO = spm_smoothto8bit(V,fwhm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smoothto8bit.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_smoothto8bit.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
-if nargin>1 & fwhm>0,
+if nargin>1 && fwhm>0,
     VO = smoothto8bit(V,fwhm);
-else,
+else
     VO = V;
-end;
+end
 return;
 %_______________________________________________________________________
 
@@ -38,7 +38,7 @@ for i=1:3,
     x      = -r{i}.s:r{i}.s;
     r{i}.k = exp(-0.5 * (x.*x)/s(i))/sqrt(2*pi*s(i));
     r{i}.k = r{i}.k/sum(r{i}.k);
-end;
+end
 
 buff = zeros([V.dim(1:2) r{3}.s*2+1]);
 
@@ -55,9 +55,9 @@ for i=1:V.dim(3)+r{3}.s,
         img(msk) = 0;
         buff(:,:,rem(i-1,r{3}.s*2+1)+1) = ...
             conv2(conv2(img,r{1}.k,'same'),r{2}.k','same');
-    else,
+    else
         buff(:,:,rem(i-1,r{3}.s*2+1)+1) = 0;
-    end;
+    end
 
     if i>r{3}.s,
         kern    = zeros(size(r{3}.k'));
@@ -67,9 +67,9 @@ for i=1:V.dim(3)+r{3}.s,
         ii      = i-r{3}.s;
         mx      = max(img(:));
         mn      = min(img(:));
-        if mx==mn, mx=mn+eps; end;
+        if mx==mn, mx=mn+eps; end
         VO.pinfo(1:2,ii) = [(mx-mn)/255 mn]';
         VO.dat(:,:,ii)   = uint8(round((img-mn)*(255/(mx-mn))));
-    end;
-end;
+    end
+end
 

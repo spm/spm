@@ -1,29 +1,27 @@
 function spm_dcm_display(varargin)
 % Region and anatomical graph display
-% FORMAT spm_dcm_display(xY,a,c)
+% FORMAT spm_dcm_display(xY,a,c,h)
 % xY    - cell of region structures (see spm_regions)
 % a     - connections of directed graph a(i,j,1) = p value; 
-%                                       a(i,j,2) = MAP estimate
-% value
+%                                       a(i,j,2) = MAP estimate value
 % c     - node-specific inputs
-% M     - margin (mm)                         [default = 32 ]
-% U     - threshold for plotting connections  [default = 0.9]
+% h     - figure handle [default: Graphics window]
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 3900 2010-05-25 16:17:13Z guillaume $
+% $Id: spm_dcm_display.m 4310 2011-04-18 16:07:35Z guillaume $
  
  
 % input arguments
 %--------------------------------------------------------------------------
-n       = length(varargin);
+n = length(varargin);
  
 % get dimensions
 %--------------------------------------------------------------------------
-if n < 1; xY = [];  else,   xY = varargin{1};    end
-if n < 2; a  = [];  else,   a  = varargin{2};    end
-if n < 3; c  = [];  else,   c  = varargin{3};    end
+if n < 1, xY = [];  else xY = varargin{1}; end
+if n < 2, a  = [];  else a  = varargin{2}; end
+if n < 3, c  = [];  else c  = varargin{3}; end
 if n < 4
     Fgraph  = spm_figure('GetWin','Graphics');
     ha = gca;
@@ -85,7 +83,7 @@ L       = M3*L;
 % get T1 background
 %--------------------------------------------------------------------------
 V       = spm_vol(fullfile(spm('Dir'),'canonical','single_subj_T1.nii'));
-ijk     = inv(V.mat)*xyz;
+ijk     = V.mat \ xyz;
 t1      = spm_sample_vol(V,ijk(1,:),ijk(2,:),ijk(3,:),2);
 t1      = (64 - 16) + 16*t1/max(t1(:));
  

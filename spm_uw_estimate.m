@@ -169,7 +169,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_uw_estimate.m 4310 2011-04-18 16:07:35Z guillaume $
 
 if nargin < 1 || isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
@@ -231,7 +231,7 @@ if length(ds.order) == 2
    mm          = sqrt(sum(P(1).mat(1:3,1:3).^2)).*P(1).dim(1:3);
    ds.order(3) = round(ds.order(1)*mm(3)/mm(1));
 end
-if isfield(ds,'sfP') & ~isempty(ds.sfP)
+if isfield(ds,'sfP') && ~isempty(ds.sfP)
    if ~isstruct(ds.sfP)
       ds.sfP = spm_vol(ds.sfP);
    end
@@ -327,7 +327,7 @@ dispP.mat  = spm_matrix(p); clear p;
 % for the time series. We will assume that the fieldmap has been
 % realigned to the space of the first EPI image in the time-series.
 %
-if isfield(ds,'sfP') & ~isempty(ds.sfP)
+if isfield(ds,'sfP') && ~isempty(ds.sfP)
    T = ds.sfP.mat\ds.M;
    txyz = xyz*T(1:3,:)';
    c = spm_bsplinc(ds.sfP,ds.hold);
@@ -354,7 +354,7 @@ for iter=1:ds.noi
    clear ref dx dy dz
 
    % Check that residual error still decreases.
-   if iter > 1 & yty > ssq(iter-1)
+   if iter > 1 && yty > ssq(iter-1)
       %
       % This means previous iteration was no good,
       % and we should go back to old_beta.
@@ -449,7 +449,7 @@ function [q,ep] = make_q(P,fot,sot,exp_round)
 %             then expansion around the 'First' MIGHT give a slightly
 %             better average geometric fidelity.
 
-if strcmp(lower(exp_round),'average');
+if strcmpi(exp_round,'average');
    %
    % Get geometric mean of all transformation matrices.
    % This will be used as the zero-point in the space 
@@ -464,9 +464,9 @@ if strcmp(lower(exp_round),'average');
    end
    mT = real(expm(mT/length(P)));
 
-elseif strcmp(lower(exp_round),'first');
+elseif strcmpi(exp_round,'first');
    mT = eye(4);
-elseif strcmp(lower(exp_round),'last');
+elseif strcmpi(exp_round,'last');
    mT = inv(P(end).mat) * P(1).mat;
 else
    warning(sprintf('Unknown expansion point %s',exp_round));
@@ -647,13 +647,13 @@ for scan = 1:length(P)
    spm_uw_show('NewAty',scan);
    T    = P(scan).mat\ds.M;
    txyz = xyz*T(1:3,:)';
-   if ~(all(beta == 0) & isempty(ds.sfield))
+   if ~(all(beta == 0) && isempty(ds.sfield))
       [idef,jac] = spm_get_image_def(scan,ds,def,ddefa);
       txyz(:,2)  = txyz(:,2)+idef;
    end;
    c    = spm_bsplinc(P(scan),ds.hold);
    y    = sf(scan) * spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds.hold);
-   if ds.jm & ~(all(beta == 0) & isempty(ds.sfield))
+   if ds.jm && ~(all(beta == 0) && isempty(ds.sfield))
       y = y .* jac;
    end;
 
@@ -700,7 +700,7 @@ for i=1:length(P)
    spm_uw_show('NewRef',i);
    T    = P(i).mat\ds.M;
    txyz = xyz*T(1:3,:)';
-   if ~(all(beta == 0) & isempty(ds.sfield))
+   if ~(all(beta == 0) && isempty(ds.sfield))
       [idef,jac] = spm_get_image_def(i,ds,def,ddefa);
       txyz(:,2)  = txyz(:,2)+idef;
    end;

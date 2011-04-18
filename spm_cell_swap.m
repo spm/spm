@@ -6,11 +6,11 @@ function [y] = spm_cell_swap(x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cell_swap.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_cell_swap.m 4310 2011-04-18 16:07:35Z guillaume $
 
 % return if empty
 %--------------------------------------------------------------------------
-if ~length(x)
+if isempty(x)
     y = {};
     return
 end

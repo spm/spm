@@ -114,7 +114,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: spm_ADEM.m 4310 2011-04-18 16:07:35Z guillaume $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -160,8 +160,8 @@ na   = ga;
  
 % number of iterations
 %--------------------------------------------------------------------------
-try nE = M(1).E.nE; catch nE = 16; end
-try nM = M(1).E.nM; catch nM = 8;  end
+try, nE = M(1).E.nE; catch, nE = 16; end
+try, nM = M(1).E.nM; catch, nM = 8;  end
  
  
 % initialise regularisation parameters

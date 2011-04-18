@@ -1,6 +1,6 @@
-function [DEM] = spm_LAP(DEM)
+function [DEM] = spm_NAP(DEM)
 % Laplacian model inversion
-% FORMAT DEM   = spm_LAP(DEM)
+% FORMAT DEM   = spm_NAP(DEM)
 %
 % DEM.M  - hierarchical model
 % DEM.Y  - response variable, output or data
@@ -54,7 +54,7 @@ function [DEM] = spm_LAP(DEM)
 % F         = log-evidence = log-marginal likelihood = negative free-energy
 %__________________________________________________________________________
 %
-% spm_LAP implements a variational scheme under the Laplace
+% spm_NAP implements a variational scheme under the Laplace
 % approximation to the conditional joint density q on states (u), parameters 
 % (p) and hyperparameters (h,g) of any analytic nonlinear hierarchical dynamic
 % model, with additive Gaussian innovations.
@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_NAP.m 3694 2010-01-22 14:16:51Z karl $
+% $Id: spm_NAP.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
 % find or create a DEM figure

@@ -16,7 +16,7 @@ function con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_bms_compare_groups.m 3569 2009-11-13 15:51:07Z guillaume $
+% $Id: spm_bms_compare_groups.m 4310 2011-04-18 16:07:35Z guillaume $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -50,7 +50,7 @@ zdim            = DIM(3);
 xords           = xords(:)';  
 yords           = yords(:)';
 I               = 1:xdim*ydim;
-zords_init      = repmat(1,1,xdim*ydim);
+zords_init      = ones(1,xdim*ydim);
 
 % Setup images
 % -------------------------------------------------------------------------
@@ -89,7 +89,7 @@ spm_progress_bar('Init',zdim,'BMS Maps (Inference)','Slices complete');
 for z = 1:zdim,
     
     spm_progress_bar('Set',z);                  % Update progress bar
-    j = repmat(NaN,xdim,ydim);                  % Init. image values
+    j = NaN(xdim,ydim);                         % Init. image values
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),'Computing contrast...')
     str   = sprintf('Slice %d out of %d',z,zdim); % Display slice nb.
     fprintf('\r%-40s: %30s',str,' ')
@@ -98,7 +98,7 @@ for z = 1:zdim,
     xyz     = [xords(I); yords(I); zords(I)];   % Slice coordinates
     nVox    = size(xyz,2);                      % Nb. of voxels per slice
     
-    alpha   = NaN(ngrp,ncon,nVox);           % Data 
+    alpha   = NaN(ngrp,ncon,nVox);              % Data 
     for jj=1:ngrp
         load(deblank(BMSfiles(jj,:)))
         for kk=1:ncon

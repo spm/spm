@@ -8,18 +8,18 @@ function [hdr,otherendian] = spm_read_hdr(fname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_read_hdr.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_read_hdr.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
 fid         = fopen(fname,'r','native');
 otherendian = 0;
 if (fid > 0)
     dime = read_dime(fid);
-    if dime.dim(1)<0 | dime.dim(1)>15, % Appears to be other-endian
+    if dime.dim(1)<0 || dime.dim(1)>15, % Appears to be other-endian
         % Re-open other-endian
         fclose(fid);
         if spm_platform('bigend'), fid = fopen(fname,'r','ieee-le');
-        else,                      fid = fopen(fname,'r','ieee-be'); end;
+        else                       fid = fopen(fname,'r','ieee-be'); end;
         otherendian = 1;
         dime = read_dime(fid);
     end;
@@ -38,7 +38,7 @@ if (fid > 0)
     %end;
 
     fclose(fid);
-else,
+else
     hdr = [];
     otherendian = NaN;
     %error(['Problem opening header file (' fopen(fid) ').']);

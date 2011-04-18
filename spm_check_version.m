@@ -59,10 +59,10 @@ function varargout = spm_check_version(tbx,chk)
 %
 % See also VERSION, VER.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_check_version.m 4145 2010-12-23 15:18:30Z guillaume $
+% $Id: spm_check_version.m 4310 2011-04-18 16:07:35Z guillaume $
 
 %-Detect software used
 %==========================================================================
@@ -82,6 +82,9 @@ if strcmpi(tbx,'matlab')
     % MATLAB is a special case. The ver command does not report the
     % entire version string.
     tbxVer = strtok(version);
+elseif strcmpi(tbx,'octave')
+    tbxVer = version;
+    tbxVer = strrep(tbxVer,'+','');
 else
     tbxStruct = ver(tbx);
     if isempty(tbxStruct)

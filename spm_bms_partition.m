@@ -12,7 +12,7 @@ function spm_bms_partition(BMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 3020 2009-03-31 18:45:00Z maria $
+% $Id: spm_bms_partition.m 4310 2011-04-18 16:07:35Z guillaume $
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -145,8 +145,12 @@ for p = 1:Vo(j).dim(3),
         if (mask>0) && ~spm_type(Vi(i).dt(1),'nanrep'), d(d==0)=NaN; end
         if dmtx, X(i,:) = d(:)'; else eval(['i',num2str(i),'=d;']); end
     end
-
-    eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
+    
+    try
+        eval(['Yp = ' f ';']);
+    catch
+        error(['Can''t evaluate "',f,'".']);
+    end
     if prod(Vo(j).dim(1:2)) ~= numel(Yp),
        error(['"',f,'" produced incompatible image.']); end
     if (mask<0), Yp(isnan(Yp))=0; end
@@ -154,7 +158,6 @@ for p = 1:Vo(j).dim(3),
 
 end
 
-temp   = [];
 temp   = Vo(j);
 temp   = spm_write_vol(temp,Y);
 out(j) = temp;

@@ -18,7 +18,7 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_anova.m 1143 2008-02-07 19:33:33Z spm $     
+% $Id: spm_vb_roi_anova.m 4310 2011-04-18 16:07:35Z guillaume $     
 
 if nargin == 1
     %-Get SPM.mat 
@@ -111,11 +111,11 @@ model = spm_vb_models (SPM,factor);
 % Fit models
 for m=1:6,
     
-    if nf==2 | (nf==1 & (m==1 | m==2 | m==6))
+    if nf==2 || (nf==1 && (m==1 || m==2 || m==6))
         % fit model
         SPM=original_SPM;
         
-        if ~(m==1 | m==6)
+        if ~(m==1 || m==6)
             % Get design matrix for relevant input set
             SPM.Sess(1).U=model(m).U;
             SPM.Sess(1).U=spm_get_ons(SPM,1);

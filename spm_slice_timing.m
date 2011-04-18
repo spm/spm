@@ -98,10 +98,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_slice_timing.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_slice_timing.m 4310 2011-04-18 16:07:35Z guillaume $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 3756 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 4310 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing',0);
 
 if nargin < 1,
@@ -123,7 +123,7 @@ end;
 
 if iscell(P),
     nsubjects = length(P);
-else,
+else
     nsubjects = 1;
     P = {P};
 end;
@@ -134,8 +134,8 @@ nslices = Vin(1).dim(3);
 % Modified (simplified) by R. Henson    03/06/25
 if nargin < 2,
     sliceorder=[];
-    while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
-        min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
+    while length(sliceorder)~=nslices || max(sliceorder)>nslices || ...
+        min(sliceorder)<1 || any(diff(sort(sliceorder))~=1),
         sliceorder = spm_input(...
            'Acquisition order? (1=first slice in image)','!+0','e');
     end;
@@ -151,13 +151,13 @@ end;
 if nargin < 4,
     TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
     TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices);
-    while TA > TR | TA <= 0,
+    while TA > TR || TA <= 0,
         TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
     end;
     timing(2) = TR - TA;
     timing(1) = TA / (nslices -1);
     factor = timing(1)/TR;
-else,
+else
     TR  = (nslices-1)*timing(1)+timing(2);
     fprintf('Your TR is %1.1f\n',TR);
     factor = timing(1)/TR;
@@ -188,7 +188,7 @@ for subj = 1:nsubjects
             Vout(k).fname  = fullfile(pth,[prefix nm xt vr]);
             if isfield(Vout(k),'descrip'),
                 desc = [Vout(k).descrip ' '];
-            else,
+            else
                 desc = '';
             end;
             Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
@@ -272,4 +272,3 @@ end
 
 spm('FigName','Slice timing: done',Finter,CmdLine);
 spm('Pointer');
-return;
