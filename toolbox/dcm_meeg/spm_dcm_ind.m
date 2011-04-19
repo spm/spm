@@ -1,5 +1,5 @@
 function DCM = spm_dcm_ind(DCM)   
-% Estimate parameters of a DCM model of spectral responses)
+% Estimate parameters of a (bilinear) DCM of induced spectral responses
 % FORMAT DCM = spm_dcm_ind(DCM)   
 %
 % DCM     
@@ -19,36 +19,53 @@ function DCM = spm_dcm_ind(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.type         - 'ECD' (1) or 'Imaging' (2) (see spm_erp_L)
-%__________________________________________________________________________
+%______________________________________________________________________
+% This routine inverts dynamic causal modeld (DCM) for induced or spectral 
+% responses as measured with the electroencephalogram (EEG) or the 
+% magnetoencephalogram (MEG). It models the time-varying power, over a 
+% range of frequencies, as the response of a distributed system of coupled 
+% electromagnetic sources to a spectral perturbation. The model parameters 
+% encode the frequency response to exogenous input and coupling among 
+% sources and different frequencies. Bayesian inversion of this model, 
+% given data enables inferences about the parameters of a particular model 
+% and allows one to compare different models, or hypotheses. One key aspect 
+% of the model is that it differentiates between linear and non-linear 
+% coupling; which correspond to within and between frequency coupling 
+% respectively. 
+% 
+% See: Chen CC, Kiebel SJ, Friston KJ.
+% Dynamic causal modelling of induced responses.
+% Neuroimage. 2008 Jul 15;41(4):1293-312.
+% ______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 4185 2011-02-01 18:46:18Z guillaume $
-
-
+% $Id: spm_dcm_ind.m 4312 2011-04-19 19:51:22Z karl $
+ 
+ 
 % check options 
 %==========================================================================
 clear spm_erp_L
-
+ 
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
 try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
-
+ 
 % Data and spatial model
 %==========================================================================
 DCM    = spm_dcm_erp_dipfit(DCM, 1);
-
+ 
 if ~isfield(DCM.xY,'source')   
     DCM  = spm_dcm_ind_data(DCM);
 end
-
+ 
 xY     = DCM.xY;
 xU     = DCM.xU;
 xU.dt  = xY.dt;
-
+ 
 % dimensions
 %--------------------------------------------------------------------------
 Nt     = length(xY.y);                  % number of trials
@@ -58,16 +75,18 @@ Nf     = size(xY.U,2);                  % number of frequency modes
 Ns     = size(xY.y{1},1);               % number of samples
 Nu     = size(xU.X,2);                  % number of trial-specific effects
 nx     = Nr*Nf;                         % number of states
-
-
+ 
+ 
 % assume noise precision is the same over modes:
 %--------------------------------------------------------------------------
 xY.Q   = {spm_Q(1/2,Ns,1)};
 xY.X0  = sparse(Ns,0);
-
+ 
+ 
+ 
 % Inputs
 %==========================================================================
-
+ 
 % trial-specific effects
 %--------------------------------------------------------------------------
 try
@@ -78,18 +97,18 @@ try
 catch
     DCM.B = {};
 end
-
+ 
 % model specification and nonlinear system identification
 %==========================================================================
 M      = DCM.M;
 try, M = rmfield(M,'g');  end
 try, M = rmfield(M,'FS'); end
-
+ 
 % prior moments
 %--------------------------------------------------------------------------
 [pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
-
-
+ 
+ 
 % likelihood model
 %--------------------------------------------------------------------------
 M.IS  = 'spm_gen_ind';
@@ -105,13 +124,17 @@ M.n   = nx;
 M.l   = Nr*Nf;
 M.ns  = Ns;
 M.ons = onset - xY.pst(1);
-
-
+ 
+% make the temporal dispersion of inputs scale with onset
+%--------------------------------------------------------------------------
+M.gamma = 1;
+ 
+ 
 % EM: inversion
 %--------------------------------------------------------------------------
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
-
-
+ 
+ 
 % Data ID
 %==========================================================================
 if isfield(M,'FS')
@@ -123,28 +146,28 @@ if isfield(M,'FS')
 else
     ID  = spm_data_id(xY.y);
 end
-
-
+ 
+ 
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
 warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning('on','SPM:negativeVariance');
-
-
+ 
+ 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-L   = feval(M.G, Qg,M);           % get gain matrix
-x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
-
-% trial-specific respsonses (in mode, channel and source space)
+L   = feval(M.G, Qg,M);        % get gain matrix
+x   = feval(M.IS,Qp,M,xU);     % prediction (source space)
+ 
+% trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
     
-    s  = x{i};                   % prediction (source space)
-    y  = s*L';                   % prediction (sensor space)
-    r  = xY.y{i} - y;            % residuals  (sensor space)
+    s  = x{i};                 % prediction (source space)
+    y  = s*L';                 % prediction (sensor space)
+    r  = xY.y{i} - y;          % residuals  (sensor space)
     
     % parse frequency modes
     %----------------------------------------------------------------------
@@ -155,7 +178,7 @@ for i = 1:Nt
         K{i,j} = s(:,f);
     end
 end
-
+ 
 % store estimates in DCM
 %--------------------------------------------------------------------------
 DCM.M  = M;                    % model specification
@@ -172,8 +195,8 @@ DCM.R  = R;                    % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 DCM.ID = ID;                   % data ID
-
-
+ 
+ 
 % and save
 %--------------------------------------------------------------------------
 if spm_check_version('matlab','7') >= 0
@@ -183,3 +206,5 @@ else
 end
 assignin('base','DCM',DCM)
 return
+
+

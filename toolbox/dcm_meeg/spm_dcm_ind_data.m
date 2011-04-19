@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4303 2011-04-12 15:23:15Z vladimir $
+% $Id: spm_dcm_ind_data.m 4312 2011-04-19 19:51:22Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -188,12 +188,12 @@ DCM.xY.Nm  = Nm;                       % number of frequency modes
 dt         = 1000/D.fsample;           % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 if isequal(DCM.xY.modality, 'LFP')
-    Nr         = Nc;
+    Nr = Nc;
 else
-    Nr         = size(DCM.C,1);        % number of sources
+    Nr = size(DCM.C,1);                % number of sources
 end
-Ne         = length(trial);            % number of ERPs
-Nm         = DCM.xY.Nm;                % number of frequency modes
+Ne     = length(trial);                % number of ERPs
+Nm     = DCM.xY.Nm;                    % number of frequency modes
 
 if ~TFinput
 
@@ -331,7 +331,7 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
-        Yz{i,j} = Yk- ones(Nb,1)*Yk(1,:);
+        Yz{i,j} = Yk - ones(Nb,1)*Yk(1,:);
     end
 end
 

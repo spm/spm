@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_nlsi_N.m 4312 2011-04-19 19:51:22Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -217,7 +217,7 @@ end
 try
     hE  = M.hE;
 catch
-    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 3;
+    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 5;
 end
 h       =  hE;              % initialize hyperparameters
  

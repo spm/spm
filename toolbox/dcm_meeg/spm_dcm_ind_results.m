@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4303 2011-04-12 15:23:15Z vladimir $
+% $Id: spm_dcm_ind_results.m 4312 2011-04-19 19:51:22Z karl $
 
 
 % get figure handle
@@ -42,9 +42,10 @@ figure(Fgraph)
 clf
 
 xY     = DCM.xY;
+xU     = DCM.xU;
 nt     = length(xY.y);           % Nr of trial types
-nr     = size(xY.xf, 2);         % Nr of sources
-nu     = size(xY.xf, 1);         % Nr of experimental effects
+nr     = size(xY.xf,2);          % Nr of sources
+nu     = size(xU.X, 2);          % Nr of experimental effects
 nf     = size(xY.U,2);           % Nr of frequency modes
 ns     = size(xY.y{1},1);        % Nr of time bins
 pst    = xY.pst;                 % peri-stmulus time
@@ -153,7 +154,7 @@ case{lower('Time-modes')}
     
 case{lower('Time-frequency')}
     
-    % reconstitute time-frequency and get principle model over channels
+    % reconstitute time-frequency and get principal mode over channels
     %----------------------------------------------------------------------
     nk    = length(Hz);
     for i = 1:nt
