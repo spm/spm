@@ -23,7 +23,7 @@ function T = spm_type(x, arg)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_type.m 4156 2011-01-11 19:03:31Z guillaume $
+% $Id: spm_type.m 4311 2011-04-19 14:27:08Z guillaume $
 
 prec   = {'uint8','int16','int32','float32','float64','int8','uint16','uint32'};
 types  = [    2      4      8   16   64   256    512    768];
@@ -41,7 +41,7 @@ end
 if ischar(x)
     sel = find(strcmpi(prec,deblank(x)));
 else
-    sel = find(types == x);
+    sel = find(ismember(types,x));
 end
 if nargin == 1
     if ischar(x)
@@ -49,7 +49,7 @@ if nargin == 1
         else T = types(sel); end
     else
         if isempty(sel), T = 'unknown';
-        else T = prec{sel}; end
+        else T = char(prec(sel)); end
     end
 elseif isempty(sel)
     T = NaN;
