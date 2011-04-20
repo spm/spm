@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4303 2011-04-12 15:23:15Z vladimir $
+% $Id: spm_api_erp.m 4313 2011-04-20 11:30:28Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1270,6 +1270,7 @@ switch handles.DCM.options.analysis
             'Coupling (B - modes)'
             'Input (C - Hz)'
             'Input (u - ms)'
+            'Input (C x u)'
             'Dipoles'
             'Save results as img'};
         try
