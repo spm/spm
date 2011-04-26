@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 3949 2010-06-25 14:33:57Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 4315 2011-04-26 13:56:07Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -228,10 +228,18 @@ end
 cfg.channel = D.chanlabels(D.meegchannels(modality));
 cfg.vol                   = vol;
 
-cfg.grid.xgrid = -90:S.gridres:90;
-cfg.grid.ygrid = -120:S.gridres:100;
-cfg.grid.zgrid = -70:S.gridres:110;
+mnigrid.xgrid = -90:S.gridres:90;
+mnigrid.ygrid = -120:S.gridres:100;
+mnigrid.zgrid = -50:S.gridres:110;
+
+mnigrid.dim   = [length(mnigrid.xgrid) length(mnigrid.ygrid) length(mnigrid.zgrid)];
+[X, Y, Z]  = ndgrid(mnigrid.xgrid, mnigrid.ygrid, mnigrid.zgrid);
+mnigrid.pos   = [X(:) Y(:) Z(:)];
+
+cfg.grid.dim = mnigrid.dim;
+cfg.grid.pos = spm_eeg_inv_transform_points(M1*datareg.fromMNI, mnigrid.pos);
 cfg.inwardshift = -10;
+
 grid            = ft_prepare_leadfield(cfg);          
  
 
@@ -275,6 +283,10 @@ else
 end
 
 if isfield(S, 'geteta') && S.geteta
+    if isfield(S, 'mniout') && S.mniout
+        filtsource.pos = mnigrid.pos;
+        filtsource.dim = mnigrid.dim;
+    end
     save(fullfile(D.path, 'ori.mat'), 'filtsource');
 end
 %
@@ -306,7 +318,13 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan) ||...
     
     csource = source{1};
     csource.pow = (pow*S.contrast(:));    
-              
+            
+    if isfield(S, 'mniout') && S.mniout
+        csource.pos = mnigrid.pos;
+        csource.dim = mnigrid.dim;
+    end
+    
+    
     cfg1 = [];
     cfg1.sourceunits   = 'mm';  
     cfg1.parameter = 'pow';
@@ -336,6 +354,11 @@ else
     
     source   = ft_sourceanalysis(cfg, freqall);    
      
+    if isfield(S, 'mniout') && S.mniout
+        source.pos = mnigrid.pos;
+        source.dim = mnigrid.dim;
+    end
+    
     clear('data', 'csource', 'filtsource', 'timelock', 'freq', 'grid', 'freqall');
    
     cfg = [];

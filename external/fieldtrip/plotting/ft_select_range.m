@@ -90,8 +90,8 @@ if pointonly && multiple
   multiple = false;
 end
 
-switch event
-  case 'WindowButtonDownFcn'
+switch lower(event)
+  case lower('WindowButtonDownFcn')
     if inSelection(p, userData.range)
       % the user has clicked in one of the existing selections
       evalCallback(callback, userData.range);
@@ -121,7 +121,7 @@ switch event
       userData.box(end+1) = line(xData, yData);
     end
     
-  case 'WindowButtonUpFcn'
+  case lower('WindowButtonUpFcn')
     if selecting
       % select the other corner of the box
       userData.range(end,2) = p(1);
@@ -166,7 +166,7 @@ switch event
       end
     end
     
-  case 'WindowButtonMotionFcn'
+  case lower('WindowButtonMotionFcn')
     if selecting && ~pointonly
       % update the selection box
       if xrange

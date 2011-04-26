@@ -10,7 +10,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_datareg_manual.m 4315 2011-04-26 13:56:07Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -160,7 +160,7 @@ D.inv{val}.datareg = struct([]);
 
 if ~isempty(D.sensors('EEG'))
     D.inv{val}.datareg(ind).sensors = ft_transform_sens(M1, D.sensors('EEG'));
-    D.inv{val}.datareg(ind).fid_eeg = D.inv{val}.datareg(ind).sensors;
+    D.inv{val}.datareg(ind).fid_eeg = ft_transform_headshape(M1, D.fiducials);
     D.inv{val}.datareg(ind).fid_mri = newmrifid;
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
