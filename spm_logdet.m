@@ -1,41 +1,48 @@
-function [H] = spm_logdet(C)
-% returns the log of the determinant of positive semi-definite matrix C
-% FORMAT [H] = spm_logdet(C)
+function H = spm_logdet(C)
+% returns the log of the determinant of positive (semi-)definite matrix C
+% FORMAT H = spm_logdet(C)
 % H = log(det(C))
 %
 % spm_logdet is a computationally efficient operator that can deal with
-% sparse matrices
+% full or sparse matrices. For non-positive definite cases, the determinant
+% is considered to be the product of the positive singular values.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_logdet.m 4278 2011-03-31 11:48:00Z karl $
+% Karl Friston and Ged Ridgway
+% $Id: spm_logdet.m 4314 2011-04-26 12:55:49Z ged $
 
-sw    = warning('off','MATLAB:log:logOfZero');
+% Note that whether sparse or full, rank deficient cases are handled in the
+% same way as in spm_logdet revision 4068, using svd on a full version of C
 
-% assume diagonal form
-%--------------------------------------------------------------------------
-TOL   = 1e-16;
-n     = length(C);
-s     = diag(C);
-i     = find(s > TOL & s < 1/TOL);
-C     = C(i,i);
-H     = sum(log(diag(C)));
-
-% invoke det if non-diagonal
-%--------------------------------------------------------------------------
-[i j] = find(C);
+[i j s] = find(C);
 if any(i ~= j)
-      n = length(C);
-      a = exp(H/n);
-      H = H + log(det(C/a));           
+    if issparse(C)
+        % non-diagonal sparse matrix
+        %------------------------------------------------------------------
+        [L nondef p] = chol(C, 'lower', 'vector');
+        % Note permutation p is unused but requesting it can make L sparser
+        if ~nondef
+            % pos. def. with Cholesky decomp L, and det(C) = det(L)^2
+            H = 2 * sum(log(full(diag(L))));
+            return
+        end
+        s = svd(full(C));
+    else
+        % non-diagonal full matrix
+        %------------------------------------------------------------------
+        try
+            R = chol(C);
+            H = 2 * sum(log(diag(R)));
+            return
+        catch
+            s = svd(C);
+        end
+    end
 end
 
-% invoke svd if rank deficient
+% if still here, singular values in s (diagonal values as a special case)
 %--------------------------------------------------------------------------
-if ~isreal(H) || isinf(H)
-    s  = svd(full(C));
-    H  = sum(log(s(s > TOL & s < 1/TOL)));
-end
-H     = full(H);
-warning(sw)
+TOL = 1e-16;                        % as in spm_logdet
+% TOL = max(size(C)) * eps(max(s)); % as in MATLAB's rank function
+H = sum(log(s(s > TOL & s < 1/TOL)));

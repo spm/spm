@@ -15,7 +15,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_orth.m 4314 2011-04-26 12:55:49Z ged $
  
 % default
 %--------------------------------------------------------------------------
@@ -29,18 +29,19 @@ end
 %--------------------------------------------------------------------------
 sw = warning('off','all');
 [n m] = size(X);
-i     = find(any(X));
-X     = X(:,i);
+X     = X(:, any(X));
+rankX = rank(X);
 try
     x     = X(:,1);
     j     = 1;
-    for i = 2:size(X,2)
+    for i = 2:size(X, 2)
         D = X(:,i);
-        D = D - x*(inv(x'*x)*x'*D);
+        D = D - x*pinv(x)*D;
         if norm(D,1) > exp(-32)
             x          = [x D];
             j(end + 1) = i;
         end
+        if numel(j) == rankX, break, end
     end
 catch
     x     = zeros(n,0);
