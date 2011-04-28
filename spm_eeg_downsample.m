@@ -18,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 4127 2010-11-19 18:05:18Z christophe $
+% $Id: spm_eeg_downsample.m 4319 2011-04-28 15:27:17Z vladimir $
 
-SVNrev = '$Rev: 4127 $';
+SVNrev = '$Rev: 4319 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -118,7 +118,7 @@ if strcmp(D.type, 'continuous')
         
         %loop through channels
         for j = 1:numel(blkchan)
-            d = Dtemp(j,:);
+            d = Dtemp(j,1:D.nsamples);
             Dtemp(j,:)=0; % overwrite Dtemp to save memory
             if flag_TBX % Signal Proc. Toolbox
                 Dtemp(j,1:nsamples_new) = resample(d', P, Q)';
