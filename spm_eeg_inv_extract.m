@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 4260 2011-03-23 13:42:21Z vladimir $
+% $Id: spm_eeg_inv_extract.m 4320 2011-04-29 21:24:23Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -104,7 +104,7 @@ It      = inv.inverse.It;
 Np      = length(It);
  
 try
-    trial = model.inverse.trials;
+    trial = inv.inverse.trials;
 catch
     trial = D.condlist;
 end
