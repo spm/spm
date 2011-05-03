@@ -37,25 +37,25 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 2118 2010-11-17 08:40:44Z jansch $
+% $Id: ft_plot_lay.m 3292 2011-04-05 14:36:34Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'point', 'box', 'label','labelsize','labeloffset', 'mask', 'outline', 'verbose','pointsymbol','pointcolor','pointsize'});
-hpos         = keyval('hpos',        varargin{:}); if isempty(hpos),       hpos = 0;            end
-vpos         = keyval('vpos',        varargin{:}); if isempty(vpos),       vpos = 0;            end
-point        = keyval('point',       varargin{:}); if isempty(point),      point = true;        end
-box          = keyval('box',         varargin{:}); if isempty(box),        box = true;          end
-label        = keyval('label',       varargin{:}); if isempty(label),      label = true;        end
-labelsize    = keyval('labelsize',   varargin{:}); if isempty(labelsize),  labelsize = 10;      end
-labeloffset  = keyval('labeloffset', varargin{:}); if isempty(labeloffset),labeloffset = 0;     end
-mask         = keyval('mask',        varargin{:}); if isempty(mask),       mask = true;         end
-outline      = keyval('outline',     varargin{:}); if isempty(outline),    outline = true;      end
-verbose      = keyval('verbose',     varargin{:}); if isempty(verbose),    verbose = false;     end
-pointsymbol  = keyval('pointsymbol', varargin{:});
-pointcolor   = keyval('pointcolor',  varargin{:});
-pointsize    = keyval('pointsize',   varargin{:});
+hpos         = keyval('hpos',        varargin); if isempty(hpos),       hpos = 0;            end
+vpos         = keyval('vpos',        varargin); if isempty(vpos),       vpos = 0;            end
+point        = keyval('point',       varargin); if isempty(point),      point = true;        end
+box          = keyval('box',         varargin); if isempty(box),        box = true;          end
+label        = keyval('label',       varargin); if isempty(label),      label = true;        end
+labelsize    = keyval('labelsize',   varargin); if isempty(labelsize),  labelsize = 10;      end
+labeloffset  = keyval('labeloffset', varargin); if isempty(labeloffset),labeloffset = 0;     end
+mask         = keyval('mask',        varargin); if isempty(mask),       mask = true;         end
+outline      = keyval('outline',     varargin); if isempty(outline),    outline = true;      end
+verbose      = keyval('verbose',     varargin); if isempty(verbose),    verbose = false;     end
+pointsymbol  = keyval('pointsymbol', varargin);
+pointcolor   = keyval('pointcolor',  varargin);
+pointsize    = keyval('pointsize',   varargin);
 
 % convert between true/false/yes/no etc. statements
 point   = istrue(point);
@@ -68,7 +68,9 @@ verbose = istrue(verbose);
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 X      = lay.pos(:,1) + hpos;
 Y      = lay.pos(:,2) + vpos;

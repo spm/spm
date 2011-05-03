@@ -35,7 +35,7 @@ function ft_plot_dipole(pos, ori, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_dipole.m 1803 2010-09-29 12:20:20Z crimic $
+% $Id: ft_plot_dipole.m 3287 2011-04-05 12:02:23Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -86,7 +86,9 @@ end
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 for i=1:size(pos,1)
   amplitude = norm(ori(:,i));

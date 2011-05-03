@@ -36,7 +36,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %   ANT - Advanced Neuro Technology, EEProbe (*.avr, *.eeg, *.cnt)
 %   Biosemi (*.bdf)
 %   CED - Cambridge Electronic Design (*. smr)
-%   Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw, *.sbin)
+%   Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw, *.sbin, MFF fileformat)
 %   Megis/BESA (*.avr, *.swf)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 3241 2011-03-29 12:05:29Z roboos $
+% $Id: ft_read_header.m 3419 2011-05-03 08:09:11Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -112,105 +112,12 @@ end
 % start with an empty header
 hdr = [];
 
-switch headerformat
-  case '4d_pdf'
-    datafile   = filename;
-    headerfile = [datafile '.m4d'];
-    sensorfile = [datafile '.xyz'];
-  case {'4d_m4d', '4d_xyz'}
-    datafile   = filename(1:(end-4)); % remove the extension
-    headerfile = [datafile '.m4d'];
-    sensorfile = [datafile '.xyz'];
-  case '4d'
-    [path, file, ext] = fileparts(filename);
-    datafile   = fullfile(path, [file,ext]);
-    headerfile = fullfile(path, [file,ext]);
-    configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_old'}
-    % convert CTF filename into filenames
-    [path, file, ext] = fileparts(filename);
-    if any(strcmp(ext, {'.res4' '.meg4', '.1_meg4' '.2_meg4' '.3_meg4' '.4_meg4' '.5_meg4' '.6_meg4' '.7_meg4' '.8_meg4' '.9_meg4'}))
-      filename = path;
-      [path, file, ext] = fileparts(filename);
-    end
-    if isempty(path) && isempty(file)
-      % this means that the dataset was specified as the present working directory, i.e. only with '.'
-      filename = pwd;
-      [path, file, ext] = fileparts(filename);
-    end
-    headerfile = fullfile(filename, [file '.res4']);
-    datafile   = fullfile(filename, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'ctf_meg4'
-    [path, file, ext] = fileparts(filename);
-    if isempty(path)
-      path = pwd;
-    end
-    headerfile = fullfile(path, [file '.res4']);
-    datafile   = fullfile(path, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'ctf_res4'
-    [path, file, ext] = fileparts(filename);
-    if isempty(path)
-      path = pwd;
-    end
-    headerfile = fullfile(path, [file '.res4']);
-    datafile   = fullfile(path, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'brainvision_vhdr'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    if exist(fullfile(path, [file '.eeg']))
-      datafile   = fullfile(path, [file '.eeg']);
-    elseif exist(fullfile(path, [file '.seg']))
-      datafile   = fullfile(path, [file '.seg']);
-    elseif exist(fullfile(path, [file '.dat']))
-      datafile   = fullfile(path, [file '.dat']);
-    end
-  case 'brainvision_eeg'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.eeg']);
-  case 'brainvision_seg'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.seg']);
-  case 'brainvision_dat'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.dat']);
-  case 'itab_raw'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.raw.mhd']);
-    datafile   = fullfile(path, [file '.raw']);
-  case 'fcdc_matbin'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.mat']);
-    datafile   = fullfile(path, [file '.bin']);
-  case 'fcdc_buffer_offline'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '/header']);
-  case {'tdt_tsq' 'tdt_tev'}
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.tsq']);
-    datafile   = fullfile(path, [file '.tev']);
-  case 'nmc_archive_k'
-    headerfile = filename;
-  otherwise
-    % convert filename into filenames, assume that the header and data are the same
-    datafile   = filename;
-    headerfile = filename;
-end
+% ensure that the headerfile and datafile are defined, which are sometimes different than the name of the dataset
+[filename, headerfile, datafile] = dataset2files(filename, headerformat);
 
 if ~strcmp(filename, headerfile) && ~ft_filetype(filename, 'ctf_ds') && ~ft_filetype(filename, 'fcdc_buffer_offline')
   filename     = headerfile;                % this function will read the header
-  headerformat = ft_filetype(filename);        % update the filetype
+  headerformat = ft_filetype(filename);     % update the filetype
 end
 
 % implement the caching in a data-format independent way
@@ -243,7 +150,7 @@ end % if cache
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch headerformat
   case '4d'
-    orig            = read_4d_hdr(datafile, configfile);
+    orig            = read_4d_hdr(datafile);
     hdr.Fs          = orig.header_data.SampleFrequency;
     hdr.nChans      = orig.header_data.TotalChannels;
     hdr.nSamples    = orig.header_data.SlicesPerEpoch;
@@ -652,7 +559,8 @@ switch headerformat
     hdr.Fs          = chdr(1,4); %making assumption that sample rate is same for all cells
     hdr.nChans      = fhdr(19);
     for i = 1:hdr.nChans
-      hdr.label{i,1}  = ['e' num2str(i)];
+      % this should be consistent with ft_senslabel
+      hdr.label{i,1}  = ['E' num2str(i)];
     end;
     %since NetStation does not properly set the fhdr(11) field, use the number of subjects from the chdr instead
     hdr.nTrials     = chdr(1,2)*fhdr(18); %number of trials is numSubjects * numCells
@@ -683,7 +591,8 @@ switch headerformat
     hdr.Fs          = chdr(1,4); %making assumption that sample rate is same for all cells
     hdr.nChans      = fhdr(19);
     for i = 1:hdr.nChans
-      hdr.label{i,1}  = ['e' num2str(i)];
+      % this should be consistent with ft_senslabel
+      hdr.label{i,1}  = ['E' num2str(i)];
     end;
     hdr.nTrials     = sum(chdr(:,2));
     hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));
@@ -714,7 +623,8 @@ switch headerformat
     hdr.Fs          = header_array(9);
     hdr.nChans      = header_array(10);
     for i = 1:hdr.nChans
-      hdr.label{i,1}  = ['e' num2str(i)];
+      % this should be consistent with ft_senslabel
+      hdr.label{i,1}  = ['E' num2str(i)];
     end;
     hdr.nTrials     = header_array(15);
     hdr.nSamplesPre = preBaseline;
@@ -726,38 +636,163 @@ switch headerformat
     hdr.orig.CateNames   = CateNames;
     hdr.orig.CatLengths  = CatLengths;
     
-  case 'egi_mff_bin'
-    % this is a file contained within a MFF package, which represents the complete dataset
-    % better is to read the MFF package as a complete dataset instead of a single file
-    blockhdr = read_mff_bin(filename);
+  case 'egi_mff'
+    orig = [];
     
-    % assume that all channels have the same sampling frequency and number of samples per block
-    hdr             = [];
-    hdr.Fs          = blockhdr(1).fsample(1);
-    hdr.nChans      = blockhdr(1).nsignals;
-    hdr.nSamplesPre = 0;
-    hdr.nTrials     = 1;
+    % get header info from .bin files
+    binfiles = dir(fullfile(filename, 'signal*.bin'));
+    if isempty(binfiles)
+      error('could not find any signal.bin in mff directory')
+    end
     
-    % the number of samples per block can be different
-    for i=1:length(blockhdr)
-      nsamples(i) = blockhdr(i).nsamples(1);
+    for iSig = 1:length(binfiles)
+      signalname = binfiles(iSig).name;
+      fullsignalname = fullfile(filename, signalname);
+      orig.signal(iSig).blockhdr = read_mff_bin(fullsignalname);
     end
-    hdr.nSamples = sum(nsamples);
-    
-    hdr.label       = cell(1,hdr.nChans);
-    if isempty(fakechannelwarning) || ~fakechannelwarning
-      % give this warning only once
-      warning('creating fake channel names');
-      fakechannelwarning = true;
-    end
-    for i=1:hdr.nChans
-      hdr.label{i} = sprintf('%d', i);
-    end
-    % this should be a column vector
-    hdr.label = hdr.label(:);
-    % remember the original header details
-    hdr.orig = blockhdr;
 
+    % get hdr info from xml files
+    ft_hastoolbox('XML4MATV2', 1, 0);
+    warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
+    xmlfiles = dir( fullfile(filename, '*.xml'));
+    disp('reading xml files to obtain header info...')
+    for i = 1:numel(xmlfiles)
+      if strcmpi(xmlfiles(i).name(1:2), '._') % Mac sometimes creates this useless files, don't use them
+      elseif strcmpi(xmlfiles(i).name(1:6), 'Events') % don't read in events here, can take a lot of time, and we can do that in ft_read_event
+      else
+        fieldname = xmlfiles(i).name(1:end-4);
+        filename_xml  = fullfile(filename, xmlfiles(i).name);
+        orig.xml.(fieldname) = xml2struct(filename_xml);
+      end
+    end
+    warning('on', 'MATLAB:REGEXP:deprecated')
+    
+    %make hdr according to FieldTrip rules
+    hdr = [];
+    Fs = zeros(length(orig.signal),1);
+    nChans = zeros(length(orig.signal),1);
+    nSamples = zeros(length(orig.signal),1);
+    for iSig = 1:length(orig.signal)
+      Fs(iSig)      = orig.signal(iSig).blockhdr(1).fsample(1);
+      nChans(iSig)  = orig.signal(iSig).blockhdr(1).nsignals;
+      % the number of samples per block can be different
+      nSamples_Block = zeros(length(orig.signal(iSig).blockhdr),1);
+      for iBlock  = 1:length(orig.signal(iSig).blockhdr)
+        nSamples_Block(iBlock) = orig.signal(iSig).blockhdr(iBlock).nsamples(1);
+      end
+      nSamples(iSig) = sum(nSamples_Block);
+    end
+
+    if length(unique(Fs)) > 1 || length(unique(nSamples)) > 1
+      error('Fs and nSamples should be the same in all signals')
+    end
+
+    hdr.Fs          = Fs(1);
+    hdr.nChans      = sum(nChans);
+    hdr.nSamplesPre = 0;
+    hdr.nSamples    = nSamples(1);
+    hdr.nTrials     = 1;
+
+    %-get channel labels, otherwise create them
+    if isfield(orig.xml, 'sensorLayout') % asuming that signal1 is hdEEG sensornet, and channels are in xml file sensorLayout
+      for iSens = 1:numel(orig.xml.sensorLayout.sensors)
+        if strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '0') %EEG chans
+          hdr.label{iSens} = num2str(orig.xml.sensorLayout.sensors(iSens).sensor.number);
+        elseif strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '1') %REF;
+          hdr.label{iSens} = orig.xml.sensorLayout.sensors(iSens).sensor.name;
+        else
+          %non interesting channels like place holders and COM
+        end
+      end
+      %check if the amount of lables corresponds with nChannels in signal 1
+      if length(hdr.label) == orig.signal(1).blockhdr(1).nsignals
+        %good
+      elseif length(hdr.label) > orig.signal(1).blockhdr(1).nsignals
+        warning('found more lables in xml.sensorLayout than channels in signal 1, thus can not use info in sensorLayout, and labeling with s1_eN instead')
+        for iSens = 1:orig.signal(1).blockhdr(1).nsignals
+          hdr.label{iSens} = sprintf('s1_e%03.f', iSens);
+        end
+      else warning('found less lables in xml.sensorLayout than channels in signal 1, thus can not use info in sensorLayout, and labeling with s1_eN instead')
+        for iSens = 1:orig.signal(1).blockhdr(1).nsignals
+          hdr.label{iSens} = sprintf('s1_e%03.f', iSens);
+        end
+      end
+      % get lables for other signals
+      if length(orig.signal) == 2
+        if isfield(orig.xml, 'pnsSet') % signal2 is PIB box, and lables are in xml file pnsSet
+          nbEEGchan = length(hdr.label);
+          for iSens = 1:numel(orig.xml.pnsSet.sensors)
+            hdr.label{nbEEGchan+iSens} = num2str(orig.xml.pnsSet.sensors(iSens).sensor.name);
+          end
+          if length(hdr.label) == orig.signal(2).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
+            %good
+          elseif length(hdr.label) < orig.signal(1).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
+            warning('found less lables in xml.pnsSet than channels in signal 2, labeling with s2_unknownN instead')
+            for iSens = length(hdr.label)+1 : orig.signal(1).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
+              hdr.label{iSens} = sprintf('s2_unknown%03.f', iSens);
+            end
+          else warning('found more lables in xml.pnsSet than channels in signal 2, thus can not use info in pnsSet, and labeling with s2_eN instead')
+            for iSens = orig.signal(1).blockhdr(1).nsignals+1 : orig.signal(1).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
+              hdr.label{iSens} = sprintf('s2_e%03.f', iSens);
+            end
+          end
+        else % signal2 is not PIBbox
+          warning('creating channel labels for signal 2 on the fly')
+          for iSens = 1:orig.signal(2).blockhdr(1).nsignals
+            hdr.label{end+1} = sprintf('s2_e%03.f', iSens);
+          end
+        end
+      elseif length(orig.signal) > 2
+        % loop over signals and label channels accordingly
+        warning('creating channel labels for signal 2 to signal N on the fly')
+        for iSig = 2:length(orig.signal)
+          for iSens = 1:orig.signal(iSig).blockhdr(1).nsignals
+            if iSig == 1 && iSens == 1
+              hdr.label{1} = sprintf('s%03.f_e%03.f', iSig, iSens);
+            else
+              hdr.label{end+1} = sprintf('s%03.f_e%03.f', iSig, iSens);
+            end
+          end
+        end
+      end
+    else %no xml.sensorLayout present
+      warning('no sensorLayout found in xml files, creating channel labels on the fly')
+      for iSig = 1:length(orig.signal)
+        for iSens = 1:orig.signal(iSig).blockhdr(1).nsignals
+          if iSig == 1 && iSens == 1
+            hdr.label{1} = sprintf('s%03.f_e%03.f', iSig, iSens);
+          else
+            hdr.label{end+1} = sprintf('s%03.f_e%03.f', iSig, iSens);
+          end
+        end
+      end
+    end
+
+    % check if multiple epochs are present
+    if isfield(orig.xml,'epoch') && length(orig.xml.epoch) > 1
+      % add info to header about which sample correspond to which epochs, becasue this is quite hard for user to get...
+      epochdef = zeros(length(orig.xml.epoch),3);
+      for iEpoch = 1:length(orig.xml.epoch)
+        if iEpoch == 1
+          epochdef(iEpoch,1) = round(str2double(orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs)+1;
+          epochdef(iEpoch,2) = round(str2double(orig.xml.epoch(iEpoch).epoch.endTime)./1000./hdr.Fs);
+          epochdef(iEpoch,3) = round(str2double(orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs); %offset corresponds to timing
+        else
+          NbSampEpoch = round(str2double(orig.xml.epoch(iEpoch).epoch.endTime)./1000./hdr.Fs - str2double(orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs);
+          epochdef(iEpoch,1) = epochdef(iEpoch-1,2) + 1;
+          epochdef(iEpoch,2) = epochdef(iEpoch-1,2) + NbSampEpoch;
+          epochdef(iEpoch,3) = round(str2double(orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs); %offset corresponds to timing
+        end
+      end
+      warning('the data contains multiple epochs with possibly discontinuous boundaries. Added ''epochdef'' to hdr.orig defining begin and end sample of each epoch. See hdr.orig.xml.epoch for epoch details, use ft_read_header to obtain header or look in data.dhr.')
+      % sanity check
+      if epochdef(end,2) ~= hdr.nSamples
+        error('number of samples in all epochs do not add up to total number of samples')
+      end      
+      orig.epochdef = epochdef;
+    end
+    hdr.orig      = orig;
+    
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);

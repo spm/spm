@@ -86,7 +86,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_megplanar.m 3380 2011-04-22 16:09:35Z jansch $
 
 ft_defaults
 
@@ -255,18 +255,11 @@ if any(strcmp(cfg.planarmethod, {'orig', 'sincos', 'fitplane'}))
   % apply the linear transformation to the data
   interp  = ft_apply_montage(data, montage, 'keepunused', 'yes');
   % also apply the linear transformation to the gradiometer definition
-  interp.grad = ft_apply_montage(data.grad, montage);
-  interp.grad.balance.planar = montage;
+  interp.grad = ft_apply_montage(data.grad, montage, 'balancename', 'planar', 'keepunused', 'yes');
   % ensure that the old sensor type does not stick around, because it is now invalid
   % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
   if isfield(interp.grad, 'type')
     interp.grad = rmfield(interp.grad, 'type');
-  end
-  % keep track of the linear transformations that have been applied
-  if strcmp(interp.grad.balance.current, 'none')
-    interp.grad.balance.current = 'planar';
-  else
-    interp.grad.balance.current = ['planar_' interp.grad.balance.current];
   end
 end
 
@@ -285,7 +278,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id   = '$Id: ft_megplanar.m 3380 2011-04-22 16:09:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

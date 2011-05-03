@@ -38,7 +38,9 @@ function comp = ft_datatype_comp(comp, varargin)
 %
 % (2003/latest) The initial version was defined
 %
-% See also FT_DATATYPE, FT_DATATYPE_RAW and FT_DATATYPE_xxx
+% See also FT_DATATYPE, FT_DATATYPE_COMP, FT_DATATYPE_DIP, FT_DATATYPE_FREQ,
+% FT_DATATYPE_MVAR, FT_DATATYPE_RAW, FT_DATATYPE_SOURCE, FT_DATATYPE_SPIKE,
+% FT_DATATYPE_TIMELOCK, FT_DATATYPE_VOLUME
 
 % Copyright (C) 2011, Robert Oostenveld
 %
@@ -58,7 +60,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 3199 2011-03-23 03:42:46Z roboos $
+% $Id: ft_datatype_comp.m 3424 2011-05-03 09:08:15Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end

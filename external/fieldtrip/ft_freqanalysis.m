@@ -159,32 +159,32 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 3161 2011-03-17 23:43:44Z roevdmei $
+% $Id: ft_freqanalysis.m 3404 2011-04-29 10:24:48Z jansch $
 
 ft_defaults
 
-% defaults for optional input/ouputfile
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile               = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile              = [];    end
+% defaults for optional input/ouputfile and feedback
+cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
+cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
+cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
 
 % load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
+hasdata      = (nargin>1);
+hasinputfile = ~isempty(cfg.inputfile);
+
+if hasdata && hasinputfile
+  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+elseif hasdata
+  % nothing needs to be done
+elseif hasinputfile
+  data = loadvar(cfg.inputfile, 'data');
 end
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', 'yes', 'hasoffset', 'yes', 'hastrialdef', 'yes');
 
 % select trials of interest
-if ~isfield(cfg, 'trials'),   cfg.trials   = 'all';  end % set the default
-if ~isfield(cfg, 'feedback'), cfg.feedback = 'text'; end
-
+cfg.trials = ft_getopt(cfg, 'trials', 'all');
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
   data = ft_selectdata(data, 'rpt', cfg.trials);
@@ -200,18 +200,19 @@ cfg = ft_checkconfig(cfg, 'required',    {'method'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'fft',    'mtmfft'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'convol', 'mtmconvol'});
 
-
-% NEW OR OLD - switch for selecting which function to call and when to do it - this will change when the development of specest proceeds
+% NEW OR OLD - switch for selecting which function to call and when to do it 
+% this will change when the development of specest proceeds
 % ALSO: Check for all cfg options that are defaulted in the old functions
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'wltconvol', 'wavelet'});
+
+if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
 
 switch cfg.method
     
   case 'mtmconvol'
     specestflg = 1;
-    if ~isfield(cfg, 'taper'),            cfg.taper            =  'dpss';      end
-    if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
-    if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
+    cfg.taper = ft_getopt(cfg, 'taper', 'dpss');    
+    if isequal(cfg.taper, 'dpss') && ~isfield(cfg, 'tapsmofrq')
       error('you must specify a smoothing parameter with taper = dpss');
     end
     % check for foi above Nyquist
@@ -226,8 +227,7 @@ switch cfg.method
     
   case 'mtmfft'
     specestflg = 1;
-    if ~isfield(cfg, 'taper'),            cfg.taper            =  'dpss';      end
-    if ~isfield(cfg, 'method'), error('you must specify a method in cfg.method'); end
+    cfg.taper = ft_getopt(cfg, 'taper', 'dpss');    
     if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
       error('you must specify a smoothing parameter with taper = dpss');
     end
@@ -243,8 +243,8 @@ switch cfg.method
     
   case 'wavelet'
     specestflg = 1;
-    if ~isfield(cfg, 'width'),         cfg.width      = 7;            end
-    if ~isfield(cfg, 'gwidth'),        cfg.gwidth     = 3;            end
+    cfg.width  = ft_getopt(cfg, 'width',  7);
+    cfg.gwidth = ft_getopt(cfg, 'gwidth', 3);
    
   case 'hilbert_devel'
     warning('the hilbert implementation is under heavy development, do not use it for analysis purposes')
@@ -264,8 +264,6 @@ switch cfg.method
     end
 end
 
-
-
 if ~specestflg
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % HERE THE OLD IMPLEMENTATION STARTS
@@ -278,28 +276,26 @@ else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % set all the defaults
-  if ~isfield(cfg, 'pad'),              cfg.pad              = 'maxperlen';  end
-  if ~isfield(cfg, 'output'),           cfg.output           = 'pow';        end
-  if ~isfield(cfg, 'calcdof'),          cfg.calcdof          = 'no';         end
-  
-  if ~isfield(cfg, 'channel'),          cfg.channel          = 'all';        end
-  if ~isfield(cfg, 'precision'),        cfg.precision        = 'double';     end
-  if ~isfield(cfg, 'output'),           cfg.output           = 'powandcsd';  end
-  if ~isfield(cfg, 'foi'),              cfg.foi              = [];           end
-  if ~isfield(cfg, 'foilim'),           cfg.foilim           = [];           end
-  if ~isfield(cfg, 'correctt_ftimwin'), cfg.correctt_ftimwin = 'no';         end
+  cfg.pad       = ft_getopt(cfg, 'pad',       'maxperlen');
+  cfg.output    = ft_getopt(cfg, 'output',    'pow');
+  cfg.calcdof   = ft_getopt(cfg, 'calcdof',   'no');
+  cfg.channel   = ft_getopt(cfg, 'channel',   'all');
+  cfg.precision = ft_getopt(cfg, 'precision', 'double');
+  cfg.foi       = ft_getopt(cfg, 'foi',       []);
+  cfg.foilim    = ft_getopt(cfg, 'foilim',    []);
+  cfg.correctt_ftimwin = ft_getopt(cfg, 'correctt_ftimwin', 'no');
   
   % keeptrials and keeptapers should be conditional on cfg.output,
   % cfg.output = 'fourier' should always output tapers
   if strcmp(cfg.output, 'fourier')
-    if ~isfield(cfg, 'keeptrials'), cfg.keeptrials = 'yes'; end
-    if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'yes'; end
+    cfg.keeptrials = ft_getopt(cfg, 'keeptrials', 'yes');
+    cfg.keeptapers = ft_getopt(cfg, 'keeptapers', 'yes');
     if strcmp(cfg.keeptrials, 'no') || strcmp(cfg.keeptapers, 'no'),
       error('cfg.output = ''fourier'' requires cfg.keeptrials = ''yes'' and cfg.keeptapers = ''yes''');
     end   
   else
-    if ~isfield(cfg, 'keeptrials'), cfg.keeptrials = 'no'; end
-    if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'no'; end
+    cfg.keeptrials = ft_getopt(cfg, 'keeptrials', 'no');
+    cfg.keeptapers = ft_getopt(cfg, 'keeptapers', 'no');
   end 
  
   % set flags for keeping trials and/or tapers
@@ -459,7 +455,8 @@ else
           cfg.taper, options{:}, 'dimord', 'chan_time_freqtap', 'feedback', fbopt);
  
         % the following variable is created to keep track of the number of
-        % trials per time bin
+        % trials per time bin and is needed for proper normalization if
+        % keeprpt==1 and the triallength is variable
         if itrial==1, trlcnt = zeros(1, numel(foi), numel(toi)); end  
         
         hastime = true;
@@ -474,13 +471,18 @@ else
           freqtapind{iindfoi} = tempntaper(iindfoi)+1:tempntaper(iindfoi+1);
         end
      
-        
       case 'mtmfft'
         [spectrum,ntaper,foi] = ft_specest_mtmfft(dat, time, 'taper', cfg.taper, options{:}, 'feedback', fbopt);
         hastime = false;
      
       case 'wavelet'  
         [spectrum,foi,toi] = ft_specest_wavelet(dat, time, 'timeoi', cfg.toi, 'width', cfg.width, 'gwidth', cfg.gwidth,options{:});
+        
+        % the following variable is created to keep track of the number of
+        % trials per time bin and is needed for proper normalization if
+        % keeprpt==1 and the triallength is variable
+        if itrial==1, trlcnt = zeros(1, numel(foi), numel(toi)); end  
+        
         hastime = true;
         % create FAKE ntaper (this requires very minimal code change below for compatibility with the other specest functions)
         ntaper = ones(1,numel(foi));
@@ -536,9 +538,11 @@ else
       % prepare calcdof
       if strcmp(cfg.calcdof,'yes')
         if hastime
-          dof = zeros(ntrials,nfoi,ntoi);
+          dof = zeros(nfoi,ntoi);
+          %dof = zeros(ntrials,nfoi,ntoi);
         else
-          dof = zeros(ntrials,nfoi);
+          dof = zeros(nfoi,1);
+          %dof = zeros(ntrials,nfoi);
         end
       end
       
@@ -553,129 +557,123 @@ else
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Create output
     if keeprpt~=4
     
-        for ifoi = 1:nfoi
+      for ifoi = 1:nfoi
             
-            % mtmconvol is a special case and needs special processing
-            if strcmp(cfg.method,'mtmconvol')
-                spectrum = reshape(permute(spectrum_mtmconvol(:,:,freqtapind{ifoi}),[3 1 2]),[ntaper(ifoi) nchan 1 ntoi]);
-                foiind = ones(1,nfoi);
-            else
-                foiind = 1:nfoi; % by using this vector below for indexing, the below code does not need to be duplicated for mtmconvol
-            end
-            
-            
-            % set ingredients for below
-            acttboi = squeeze(~isnan(spectrum(1,1,foiind(ifoi),:)));
-            nacttboi = sum(acttboi);
-            if ~hastime
-                acttboi  = 1;
-                nacttboi = 1;
-            elseif sum(acttboi)==0
-                %nacttboi = 1;
-            end
-            acttap = squeeze(~isnan(spectrum(:,1,foiind(ifoi),find(acttboi,1))));
-            acttap = logical([ones(ntaper(ifoi),1);zeros(size(spectrum,1)-ntaper(ifoi),1)]);
-            if powflg
-                powdum = abs(spectrum(acttap,:,foiind(ifoi),acttboi)) .^2;
-                % sinetaper scaling, not checked whether it works if hastime = 0
-                % FIXME why does the scaling only has to be done for power?
-                if isfield(cfg,'taper') && strcmp(cfg.taper, 'sine')
-                    %sinetapscale = zeros(ntaper(ifoi),nfoi);  % assumes fixed number of tapers
-                    sinetapscale = zeros(ntaper(ifoi),1);  % assumes fixed number of tapers
-                    for isinetap = 1:ntaper(ifoi)  % assumes fixed number of tapers
-                        sinetapscale(isinetap,:) = (1 - (((isinetap - 1) ./ ntaper(ifoi)) .^ 2));
-                    end
-                    sinetapscale = reshape(repmat(sinetapscale,[1 1 nchan ntoi]),[ntaper(ifoi) nchan 1 ntoi]);
-                    powdum = powdum .* sinetapscale;
-                end
-            end
-            if fftflg
-                fourierdum = spectrum(acttap,:,foiind(ifoi),acttboi);
-            end
-            if csdflg
-                csddum = spectrum(acttap,cutdatindcmb(:,1),foiind(ifoi),acttboi) .* conj(spectrum(acttap,cutdatindcmb(:,2),foiind(ifoi),acttboi));
-            end
-            
-            % switch between keep's
-            switch keeprpt
-                
-                case 1 % cfg.keeptrials,'no' &&  cfg.keeptapers,'no'
-                    if strcmp(cfg.method, 'mtmconvol'),
-                      trlcnt(1, ifoi, :) = trlcnt(1, ifoi, :) + shiftdim(double(acttboi(:)'),-1);
-                    end
-
-                    if powflg
-                        powspctrm(:,ifoi,acttboi) = powspctrm(:,ifoi,acttboi) + (reshape(mean(powdum,1),[nchan 1 nacttboi]) ./ ntrials);
-                        %powspctrm(:,ifoi,~acttboi) = NaN;
-                    end
-                    if fftflg
-                        fourierspctrm(:,ifoi,acttboi) = fourierspctrm(:,ifoi,acttboi) + (reshape(mean(fourierdum,1),[nchan 1 nacttboi]) ./ ntrials);
-                        %fourierspctrm(:,ifoi,~acttboi) = NaN;
-                    end
-                    if csdflg
-                        crsspctrm(:,ifoi,acttboi) = crsspctrm(:,ifoi,acttboi) + (reshape(mean(csddum,1),[nchancmb 1 nacttboi]) ./ ntrials);
-                        %crsspctrm(:,ifoi,~acttboi) = NaN;
-                    end
-                    
-                case 2 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'no'
-                    if powflg
-                        powspctrm(itrial,:,ifoi,acttboi) = reshape(mean(powdum,1),[nchan 1 nacttboi]);
-                        powspctrm(itrial,:,ifoi,~acttboi) = NaN;
-                    end
-                    if fftflg
-                        fourierspctrm(itrial,:,ifoi,acttboi) = reshape(mean(fourierdum,1), [nchan 1 nacttboi]);
-                        fourierspctrm(itrial,:,ifoi,~acttboi) = NaN;
-                    end
-                    if csdflg
-                        crsspctrm(itrial,:,ifoi,acttboi) = reshape(mean(csddum,1), [nchancmb 1 nacttboi]);
-                        crsspctrm(itrial,:,ifoi,~acttboi) = NaN;
-                    end
-                    
-                    
-            end % switch keeprpt
-            
-            
-            % do calcdof  dof = zeros(numper,numfoi,numtoi);
-            if strcmp(cfg.calcdof,'yes')
-                if hastime
-                    acttimboiind = ~isnan(squeeze(spectrum(1,1,foiind(ifoi),:)));
-                    dof(itrial,ifoi,acttimboiind) = ntaper(ifoi);
-                else % hastime = false
-                    dof(itrial,ifoi) = ntaper(ifoi);
-                end
-            end
-            
-            
-            
-        end %ifoi
-        
-    else
+        % mtmconvol is a special case and needs special processing
         if strcmp(cfg.method,'mtmconvol')
-          spectrum = permute(reshape(spectrum_mtmconvol,[nchan ntoi ntaper(1) nfoi]),[3 1 4 2]);
+          spectrum = reshape(permute(spectrum_mtmconvol(:,:,freqtapind{ifoi}),[3 1 2]),[ntaper(ifoi) nchan 1 ntoi]);
+          foiind = ones(1,nfoi);
+        else
+          foiind = 1:nfoi; % by using this vector below for indexing, the below code does not need to be duplicated for mtmconvol
         end
-        
-        rptind = reshape(1:ntrials .* maxtap,[maxtap ntrials]);
-        currrptind = rptind(:,itrial);
+            
+        % set ingredients for below
+        acttboi  = squeeze(~isnan(spectrum(1,1,foiind(ifoi),:)));
+        nacttboi = sum(acttboi);
+        if ~hastime
+          acttboi  = 1;
+          nacttboi = 1;
+        elseif sum(acttboi)==0
+          %nacttboi = 1;
+        end
+        acttap = squeeze(~isnan(spectrum(:,1,foiind(ifoi),find(acttboi,1))));
+        acttap = logical([ones(ntaper(ifoi),1);zeros(size(spectrum,1)-ntaper(ifoi),1)]);
         if powflg
-          powspctrm(currrptind,:,:) = abs(spectrum).^2;
+          powdum = abs(spectrum(acttap,:,foiind(ifoi),acttboi)) .^2;
+          % sinetaper scaling is disabled, because it is not consistent with the other
+          % tapers. if scaling is required, please specify cfg.taper =
+          % 'sine_old'
+          
+%         if isfield(cfg,'taper') && strcmp(cfg.taper, 'sine')
+%             %sinetapscale = zeros(ntaper(ifoi),nfoi);  % assumes fixed number of tapers
+%             sinetapscale = zeros(ntaper(ifoi),1);  % assumes fixed number of tapers
+%             for isinetap = 1:ntaper(ifoi)  % assumes fixed number of tapers
+%               sinetapscale(isinetap,:) = (1 - (((isinetap - 1) ./ ntaper(ifoi)) .^ 2));
+%             end
+%             sinetapscale = reshape(repmat(sinetapscale,[1 1 nchan ntoi]),[ntaper(ifoi) nchan 1 ntoi]);
+%             powdum = powdum .* sinetapscale;
+%           end
         end
         if fftflg
-          fourierspctrm(currrptind,:,:,:) = spectrum;
+          fourierdum = spectrum(acttap,:,foiind(ifoi),acttboi);
         end
         if csdflg
-          crsspctrm(currrptind,:,:,:) =  spectrum(cutdatindcmb(:,1),:,:) .* ...
-                                            conj(spectrum(cutdatindcmb(:,2),:,:));
+          csddum =      spectrum(acttap,cutdatindcmb(:,1),foiind(ifoi),acttboi) .* ...
+                   conj(spectrum(acttap,cutdatindcmb(:,2),foiind(ifoi),acttboi));
         end
+         
+        % switch between keep's
+        switch keeprpt
+              
+          case 1 % cfg.keeptrials,'no' &&  cfg.keeptapers,'no'
+            if exist('trlcnt', 'var'),
+              trlcnt(1, ifoi, :) = trlcnt(1, ifoi, :) + shiftdim(double(acttboi(:)'),-1);
+            end
+
+            if powflg
+              powspctrm(:,ifoi,acttboi) = powspctrm(:,ifoi,acttboi) + (reshape(mean(powdum,1),[nchan 1 nacttboi]) ./ ntrials);
+              %powspctrm(:,ifoi,~acttboi) = NaN;
+            end
+            if fftflg
+              fourierspctrm(:,ifoi,acttboi) = fourierspctrm(:,ifoi,acttboi) + (reshape(mean(fourierdum,1),[nchan 1 nacttboi]) ./ ntrials);
+              %fourierspctrm(:,ifoi,~acttboi) = NaN;
+            end
+            if csdflg
+              crsspctrm(:,ifoi,acttboi) = crsspctrm(:,ifoi,acttboi) + (reshape(mean(csddum,1),[nchancmb 1 nacttboi]) ./ ntrials);
+              %crsspctrm(:,ifoi,~acttboi) = NaN;
+            end
+                  
+          case 2 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'no'
+            if powflg
+              powspctrm(itrial,:,ifoi,acttboi) = reshape(mean(powdum,1),[nchan 1 nacttboi]);
+              powspctrm(itrial,:,ifoi,~acttboi) = NaN;
+            end
+            if fftflg
+              fourierspctrm(itrial,:,ifoi,acttboi) = reshape(mean(fourierdum,1), [nchan 1 nacttboi]);
+              fourierspctrm(itrial,:,ifoi,~acttboi) = NaN;
+            end
+            if csdflg
+              crsspctrm(itrial,:,ifoi,acttboi) = reshape(mean(csddum,1), [nchancmb 1 nacttboi]);
+              crsspctrm(itrial,:,ifoi,~acttboi) = NaN;
+            end
+                            
+        end % switch keeprpt
+        
+        % do calcdof  dof = zeros(numper,numfoi,numtoi);
+        if strcmp(cfg.calcdof,'yes')
+          if hastime
+            acttimboiind = ~isnan(squeeze(spectrum(1,1,foiind(ifoi),:)));
+            dof(ifoi,acttimboiind) = ntaper(ifoi) + dof(ifoi,acttimboiind);
+          else % hastime = false
+            dof(ifoi) = ntaper(ifoi) + dof(ifoi);
+          end
+        end
+      end %ifoi
+        
+    else
+      if strcmp(cfg.method,'mtmconvol')
+        spectrum = permute(reshape(spectrum_mtmconvol,[nchan ntoi ntaper(1) nfoi]),[3 1 4 2]);
+      end
+        
+      rptind = reshape(1:ntrials .* maxtap,[maxtap ntrials]);
+      currrptind = rptind(:,itrial);
+      if powflg
+        powspctrm(currrptind,:,:) = abs(spectrum).^2;
+      end
+      if fftflg
+        fourierspctrm(currrptind,:,:,:) = spectrum;
+      end
+      if csdflg
+        crsspctrm(currrptind,:,:,:) =          spectrum(cutdatindcmb(:,1),:,:) .* ...
+                                          conj(spectrum(cutdatindcmb(:,2),:,:));
+      end
         
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
     
     % set cumptapcnt
     switch cfg.method %% IMPORTANT, SHOULD WE KEEP THIS SPLIT UP PER METHOD OR GO FOR A GENERAL SOLUTION NOW THAT WE HAVE SPECEST
@@ -693,24 +691,23 @@ else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % re-normalise the TFRs if keeprpt==1
-  if strcmp(cfg.method, 'mtmconvol') && keeprpt==1 
+  if (strcmp(cfg.method, 'mtmconvol') || strcmp(cfg.method, 'wavelet')) && keeprpt==1 
     nanmask = trlcnt==0;
     if powflg
-        powspctrm = powspctrm.*ntrials;
-        powspctrm = powspctrm./trlcnt(ones(size(powspctrm,1),1),:,:);
-        powspctrm(nanmask(ones(size(powspctrm,1),1),:,:)) = nan;
+      powspctrm = powspctrm.*ntrials;
+      powspctrm = powspctrm./trlcnt(ones(size(powspctrm,1),1),:,:);
+      powspctrm(nanmask(ones(size(powspctrm,1),1),:,:)) = nan;
     end
     if fftflg
-        fourierspctrm = fourierspctrm.*ntrials;
-        fourierspctrm = fourierspctrm./trlcnt(ones(size(fourierspctrm,1),1),:,:);
-        fourierspctrm(nanmask(ones(size(fourierspctrm,1),1),:,:)) = nan;
+      fourierspctrm = fourierspctrm.*ntrials;
+      fourierspctrm = fourierspctrm./trlcnt(ones(size(fourierspctrm,1),1),:,:);
+      fourierspctrm(nanmask(ones(size(fourierspctrm,1),1),:,:)) = nan;
     end
     if csdflg
-        crsspctrm = crsspctrm.*ntrials;
-        crsspctrm = crsspctrm./trlcnt(ones(size(crsspctrm,1),1),:,:);
-        crsspctrm(nanmask(ones(size(crsspctrm,1),1),:,:)) = nan;
+      crsspctrm = crsspctrm.*ntrials;
+      crsspctrm = crsspctrm./trlcnt(ones(size(crsspctrm,1),1),:,:);
+      crsspctrm(nanmask(ones(size(crsspctrm,1),1),:,:)) = nan;
     end
-    
   end
   
   % set output variables
@@ -775,8 +772,6 @@ else
     cfg = rmfield(cfg,'foilim');
   end
   
-  
-  
   % accessing this field here is needed for the configuration tracking
   % by accessing it once, it will not be removed from the output cfg
   cfg.outputfile;
@@ -793,15 +788,13 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 3161 2011-03-17 23:43:44Z roevdmei $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 3404 2011-04-29 10:24:48Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
   
   % remember the configuration details of the input data
-  if isfield(cfg, 'previous'),
-    cfg.previous = data.cfg;
-  end
+  try cfg.previous = data.cfg; end
   
   % remember the exact configuration details in the output
   freq.cfg = cfg;
@@ -809,9 +802,8 @@ else
 end % IF OLD OR NEW IMPLEMENTATION
 
 % copy the trial specific information into the output
-if isfield(data, 'trialinfo'),
+if strcmp(cfg.keeptrials, 'yes') && isfield(data, 'trialinfo'),
   freq.trialinfo = data.trialinfo;
-  % FIXME this strictly only allowed for frequency data with repetitions
 end
 
 % the output data should be saved to a MATLAB file

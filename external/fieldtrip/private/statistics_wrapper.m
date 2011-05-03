@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 3056 2011-03-04 07:53:56Z jorhor $
+% $Id: statistics_wrapper.m 3394 2011-04-27 14:51:47Z arjsto $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -308,6 +308,9 @@ end
 % add descriptive information to the output and rehape into the input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if issource
+   if ~isfield(varargin{1},'dim') % FIX ME; this is added temporarily (20110427) to cope with ft_sourceanalysis output not having a dim field since r3273
+        varargin{1}.dim = [Nvoxel 1];
+   end
   if isempty(cfg.roi) || strcmp(cfg.avgoverroi, 'no')
     % remember the definition of the volume, assume that they are identical for all input arguments
     try stat.dim       = varargin{1}.dim;        end
@@ -506,7 +509,7 @@ for i=1:Nsource
   end
 end
 if isfield(varargin{1}, 'inside')
-  fprintf('only selecting voxels inside the brain for statistics (%.1f%%)\n', 100*length(varargin{1}.inside)/prod(varargin{1}.dim));
+  fprintf('only selecting voxels inside the brain for statistics (%.1f%%)\n', 100*length(varargin{1}.inside)/prod(dim));
   for j=prod(dim(2:end)):-1:1
     dat((j-1).*dim(1) + varargin{1}.outside, :) = [];
   end

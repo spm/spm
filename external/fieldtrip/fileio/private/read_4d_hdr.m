@@ -25,11 +25,12 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 3088 2011-03-11 08:52:19Z jansch $
+% $Id: read_4d_hdr.m 3328 2011-04-11 11:56:57Z jansch $
 
 %read header
 if nargin ~= 2
-  error('Wrong number of input arguments');
+  [path, file, ext] = fileparts(datafile);
+  configfile        = fullfile(path, 'config');
 end
 
 if ~isempty(datafile),

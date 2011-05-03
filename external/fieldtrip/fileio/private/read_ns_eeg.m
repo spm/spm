@@ -37,7 +37,7 @@ function [eeg] = read_ns_eeg(filename, epoch)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ns_eeg.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ns_eeg.m 3346 2011-04-15 07:45:17Z roboos $
 
 % read the neuroscan header 
 eeg = read_ns_hdr(filename);
@@ -70,6 +70,11 @@ if floor(sample_size)==2
   epoch_size = eeg.nchan*eeg.npnt*2 + 13;
   datatype ='int16';
 elseif floor(sample_size)==4
+  datatype ='int32';
+  epoch_size = eeg.nchan*eeg.npnt*4 + 13;
+elseif floor(sample_size)>4
+  % although this is not to be expected, it might be due to a very large "footer" compared to the data size
+  % Olga Sysoeva reported that this extention to the datatype detection fixed it for her (see http://bugzilla.fcdonders.nl/show_bug.cgi?id=547)
   datatype ='int32';
   epoch_size = eeg.nchan*eeg.npnt*4 + 13;
 end

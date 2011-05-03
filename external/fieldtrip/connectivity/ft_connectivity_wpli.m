@@ -45,11 +45,11 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_wpli.m 2900 2011-02-17 07:02:13Z marvin $
+% $Id: ft_connectivity_wpli.m 3292 2011-04-05 14:36:34Z roboos $
 
-feedback    = keyval('feedback', varargin{:}); if isempty(feedback), feedback = 'none'; end
-debias      = keyval('debias',   varargin{:});
-dojack      = keyval('dojack',   varargin{:});
+feedback    = keyval('feedback', varargin); if isempty(feedback), feedback = 'none'; end
+debias      = keyval('debias',   varargin);
+dojack      = keyval('dojack',   varargin);
 
 siz = size(input);
 n = siz(1);

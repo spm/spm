@@ -66,7 +66,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 3086 2011-03-10 15:10:04Z jansch $
+% $Id: ft_sourcedescriptives.m 3295 2011-04-05 15:07:23Z crimic $
 
 ft_defaults
 
@@ -515,6 +515,7 @@ elseif ismneavg
     endsmp = nearest(source.time, cfg.baselinewindow(2));
     % zscore using baselinewindow for power
     ft_progress('init', cfg.feedback, 'computing power');
+    source.avg.absmom = source.avg.pow;
     for diplop=1:length(source.inside)
       ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
       mom = source.avg.mom{source.inside(diplop)};
@@ -522,17 +523,20 @@ elseif ismneavg
       smom = std(mom(begsmp:endsmp));
       pow  = sum(((mom-mmom)./smom).^2,1); 
       source.avg.pow(source.inside(diplop),:) = pow;
+      source.avg.absmom(source.inside(diplop),:) = sum((mom-mmom)./smom,1);
     end
     ft_progress('close');
     
   else
     % just square for power
     ft_progress('init', cfg.feedback, 'computing power');
+    source.avg.absmom = source.avg.pow;
     for diplop=1:length(source.inside)
       ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
       mom = source.avg.mom{source.inside(diplop)};
       pow = sum(mom.^2,1); 
       source.avg.pow(source.inside(diplop),:) = pow;
+      source.avg.absmom(source.inside(diplop),:) = sum(mom,1);
     end
     ft_progress('close');
     
@@ -937,7 +941,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourcedescriptives.m 3086 2011-03-10 15:10:04Z jansch $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 3295 2011-04-05 15:07:23Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

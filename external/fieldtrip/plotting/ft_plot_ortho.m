@@ -41,7 +41,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 3215 2011-03-24 22:38:29Z jansch $
+% $Id: ft_plot_ortho.m 3287 2011-04-05 12:02:23Z roboos $
 
 style     = keyval('style',       varargin); if isempty(style),      style      = 'subplot'; end
 loc       = keyval('location',    varargin); if isempty(loc),        loc        = [0 0 0];   end
@@ -85,7 +85,10 @@ case 'subplot'
   axis equal;axis tight;axis off
   
 case 'intersect'
-  hold on;
+  holdflag = ishold;
+  if ~holdflag
+    hold on
+  end
   
   varargin{sel+1} = ori(1,:);
   hx = ft_plot_slice(dat, varargin{:});
@@ -98,7 +101,12 @@ case 'intersect'
   axis equal; axis tight; axis off;axis vis3d
   view(3);
 
+  if ~holdflag
+    hold off
+  end
+
 otherwise
+
 end
 
 % if strcmp(interactive, 'yes')

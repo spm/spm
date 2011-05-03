@@ -37,7 +37,7 @@ function [data, pca, stdpre, stdpst] = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_denoise_pca.m 3380 2011-04-22 16:09:35Z jansch $
 
 ft_defaults
 
@@ -237,7 +237,6 @@ if isfield(data, 'grad')
   montage.tra(i3,i1) = montage.tra(i3,i1) - pca.w(i4,i2);
   montage.labelorg  = labelorg;
   montage.labelnew  = labelorg;
-  data.grad         = ft_apply_montage(data.grad, montage, 'keepunused', 'yes');
   
   if isfield(data.grad, 'balance'),
     mnt = fieldnames(data.grad.balance);
@@ -245,23 +244,21 @@ if isfield(data, 'grad')
     if isempty(sel),
       sel = zeros(0,1);
     end  
-    name    = ['pca',num2str(length(sel)+1)];
-    if ~strcmp(data.grad.balance.current, 'none'),
-      current = getsubfield(data.grad.balance, data.grad.balance.current);
-      data.grad.balance.current = [name,'_',data.grad.balance.current];
-    else
-      current.tra      = eye(size(data.grad.tra,1));
-      current.labelorg = data.grad.label;
-      current.labelnew = data.grad.label;
-      data.grad.balance.current = name;
-    end
-    newcurrent = ft_apply_montage(current, montage, 'keepunused', 'yes');
-    data.grad.balance = setsubfield(data.grad.balance, data.grad.balance.current, newcurrent);
+    bname = ['pca',num2str(length(sel)+1)];
   else
-    balance = struct('pca1', montage);
-    data.grad.balance = balance;
-    data.grad.balance.current = 'pca1';
+    bname = 'pca1';
   end
+  
+  data.grad = ft_apply_montage(data.grad, montage, 'keepunused', 'yes', 'balancename', bname);
+
+  % order the fields
+  fnames = fieldnames(data.grad.balance);
+  for k = 1:numel(fnames)
+    tmp(k) = isstruct(data.grad.balance.(fnames{k}));
+  end
+  [srt, ix] = sort(tmp,'descend');
+  data.grad.balance = orderfields(data.grad.balance, fnames(ix));
+
 else
   warning('weights have been applied to the data only, not to the sensors');
 end
@@ -271,7 +268,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_denoise_pca.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_denoise_pca.m 3380 2011-04-22 16:09:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

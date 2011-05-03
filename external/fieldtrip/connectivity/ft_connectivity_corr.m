@@ -54,16 +54,16 @@ function [c, v, n] = ft_connectivity_corr(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_corr.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: ft_connectivity_corr.m 3292 2011-04-05 14:36:34Z roboos $
 
-hasjack  = keyval('hasjack',  varargin{:}); if isempty(hasjack),  hasjack  = 0;      end
-cmplx    = keyval('complex',  varargin{:}); if isempty(cmplx),    cmplx    = 'abs';  end
-feedback = keyval('feedback', varargin{:}); if isempty(feedback), feedback = 'none'; end
-dimord   = keyval('dimord',   varargin{:});
-powindx  = keyval('powindx',  varargin{:});
-pownorm  = keyval('pownorm',  varargin{:}); if isempty(pownorm),  pownorm  = 0;      end
-pchanindx   = keyval('pchanindx',   varargin{:});
-allchanindx = keyval('allchanindx', varargin{:});
+hasjack     = keyval('hasjack',     varargin); if isempty(hasjack),  hasjack  = 0;      end
+cmplx       = keyval('complex',     varargin); if isempty(cmplx),    cmplx    = 'abs';  end
+feedback    = keyval('feedback',    varargin); if isempty(feedback), feedback = 'none'; end
+dimord      = keyval('dimord',      varargin);
+powindx     = keyval('powindx',     varargin);
+pownorm     = keyval('pownorm',     varargin); if isempty(pownorm),  pownorm  = 0;      end
+pchanindx   = keyval('pchanindx',   varargin);
+allchanindx = keyval('allchanindx', varargin);
 
 if isempty(dimord)
   error('input parameters should contain a dimord'); 

@@ -81,7 +81,7 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_definetrial.m 3378 2011-04-22 14:01:23Z roboos $
 
 ft_defaults
 
@@ -131,7 +131,7 @@ else
   error('no trialfunction specified, see DEFINETRIAL for help');
 end
 
-if isfield(cfg, 'trialdef') && isfield(cfg.trialdef, 'eventtype') && strcmp(cfg.trialdef.eventtype, '?')
+if isfield(cfg, 'trialdef') && isfield(cfg.trialdef, 'eventtype') && isequal(cfg.trialdef.eventtype, '?')
   % give a gentle message instead of an error
   fprintf('no trials have been defined yet, see DEFINETRIAL for further help\n');
 elseif size(trl,1)<1
@@ -149,7 +149,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_definetrial.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id = '$Id: ft_definetrial.m 3378 2011-04-22 14:01:23Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

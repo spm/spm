@@ -8,9 +8,12 @@ function [type, dimord] = ft_datatype(data, desired)
 %   [type, dimord] = ft_datatype(data)
 %   [type, dimord] = ft_datatype(data, desired)
 %
-% See also FT_CHANTYPE, FT_FILETYPE, FT_SENSTYPE, FT_VOLTYPE
+% See also FT_CHANTYPE, FT_FILETYPE, FT_SENSTYPE, FT_VOLTYPE, FT_DATATYPE_COMP,
+% FT_DATATYPE_DIP, FT_DATATYPE_FREQ, FT_DATATYPE_MVAR, FT_DATATYPE_RAW,
+% FT_DATATYPE_SOURCE, FT_DATATYPE_SPIKE, FT_DATATYPE_TIMELOCK,
+% FT_DATATYPE_VOLUME
 
-% Copyright (C) 2008, Robert Oostenveld
+% Copyright (C) 2008-2011, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -28,19 +31,19 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_datatype.m 3423 2011-05-03 09:08:12Z roboos $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
-israw      = isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
+israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
 isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
-istimelock = isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
-iscomp     = isfield(data, 'topo') || isfield(data, 'topolabel');
-isspike    = isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
-isvolume   = isfield(data, 'transform') && isfield(data, 'dim');
-issource   = isfield(data, 'pos');
-isdip      = isfield(data, 'dip');
-ismvar     = isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
-isfreqmvar = isfield(data, 'freq') && isfield(data, 'transfer');
+istimelock =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
+isspike    =  isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
+iscomp     =  isfield(data, 'label') && isfield(data, 'topo') || isfield(data, 'topolabel');
+isvolume   =  isfield(data, 'transform') && isfield(data, 'dim');
+issource   =  isfield(data, 'pos');
+isdip      =  isfield(data, 'dip');
+ismvar     =  isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
+isfreqmvar =  isfield(data, 'freq') && isfield(data, 'transfer');
 
 if iscomp
   type = 'comp';  

@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 3194 2011-03-23 02:40:58Z roboos $
+% $Id: ft_read_data.m 3402 2011-04-28 21:50:35Z ingnie $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -103,114 +103,12 @@ if ~isempty(endtrial) && mod(endtrial, 1)
   endtrial = round(endtrial);
 end
 
-switch dataformat
-  case '4d_pdf'
-    datafile   = filename;
-    headerfile = [datafile '.m4d'];
-    sensorfile = [datafile '.xyz'];
-  case {'4d_m4d', '4d_xyz'}
-    datafile   = filename(1:(end-4)); % remove the extension
-    headerfile = [datafile '.m4d'];
-    sensorfile = [datafile '.xyz'];
-  case '4d'
-    [path, file, ext] = fileparts(filename);
-    datafile   = fullfile(path, [file,ext]);
-    headerfile = fullfile(path, [file,ext]);
-    configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_old'}
-    % convert CTF filename into filenames
-    [path, file, ext] = fileparts(filename);
-    if any(strcmp(ext, {'.res4' '.meg4', '.1_meg4' '.2_meg4' '.3_meg4' '.4_meg4' '.5_meg4' '.6_meg4' '.7_meg4' '.8_meg4' '.9_meg4'}))
-      filename = path;
-      [path, file, ext] = fileparts(filename);
-    end
-    if isempty(path) && isempty(file)
-      % this means that the dataset was specified as the present working directory, i.e. only with '.'
-      filename = pwd;
-      [path, file, ext] = fileparts(filename);
-    end
-    headerfile = fullfile(filename, [file '.res4']);
-    datafile   = fullfile(filename, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'ctf_meg4'
-    [path, file, ext] = fileparts(filename);
-    if isempty(path)
-      path = pwd;
-    end
-    headerfile = fullfile(path, [file '.res4']);
-    datafile   = fullfile(path, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'ctf_res4'
-    [path, file, ext] = fileparts(filename);
-    if isempty(path)
-      path = pwd;
-    end
-    headerfile = fullfile(path, [file '.res4']);
-    datafile   = fullfile(path, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'brainvision_vhdr'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    if exist(fullfile(path, [file '.eeg']))
-      datafile   = fullfile(path, [file '.eeg']);
-    elseif exist(fullfile(path, [file '.seg']))
-      datafile   = fullfile(path, [file '.seg']);
-    elseif exist(fullfile(path, [file '.dat']))
-      datafile   = fullfile(path, [file '.dat']);
-    end
-  case 'brainvision_eeg'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.eeg']);
-  case 'brainvision_seg'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.seg']);
-  case 'brainvision_dat'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.vhdr']);
-    datafile   = fullfile(path, [file '.dat']);
-  case 'itab_raw'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.raw.mhd']);
-    datafile   = fullfile(path, [file '.raw']);
-  case 'fcdc_matbin'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.mat']);
-    datafile   = fullfile(path, [file '.bin']);
-  case 'fcdc_buffer_offline'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '/header']);
-    datafile = fullfile(path, [file '/samples']);
-  case {'tdt_tsq' 'tdt_tev'}
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.tsq']);
-    datafile   = fullfile(path, [file '.tev']);
-  case 'nmc_archive_k'
-    [path, file, ext] = fileparts(filename);
-    headerfile = [path '/' file 'newparams.txt'];
-    if isempty(headerformat)
-      headerformat = 'nmc_archive_k';
-    end
-    if isempty(hdr)
-      hdr = ft_read_header(headerfile, 'headerformat', headerformat);
-    end
-    datafile = filename;
-  otherwise
-    % convert filename into filenames, assume that the header and data are the same
-    datafile   = filename;
-    headerfile = filename;
-end
+% ensure that the headerfile and datafile are defined, which are sometimes different than the name of the dataset
+[filename, headerfile, datafile] = dataset2files(filename, dataformat);
 
 if ~strcmp(filename, datafile) && ~ismember(dataformat, {'ctf_ds', 'ctf_old', 'fcdc_buffer_offline'})
   filename   = datafile;                % this function will read the data
-  dataformat = ft_filetype(filename);      % update the filetype
+  dataformat = ft_filetype(filename);   % update the filetype
 end
 
 % for backward compatibility, default is to check when it is not continous
@@ -380,7 +278,7 @@ switch dataformat
         error('unsupported data format');
     end
     % calibrate the data
-    dat = double(sparse(calib)*dat);
+    dat = double(full(sparse(calib)*dat));
 
   case 'bci2000_dat'
     % this requires the load_bcidat mex file to be present on the path
@@ -669,35 +567,76 @@ switch dataformat
     end
     dimord = 'chans_samples_trials';
 
-  case {'egi_mff_bin'}
-    % this is a file contained within a MFF package, which represents the complete dataset
-    % better is to read the MFF package as a complete dataset instead of a single file
-    blockhdr = hdr.orig;
-
-    % the number of samples per block can be different
-    % assume that all channels have the same sampling frequency and number of samples per block
-    nsamples = zeros(size(blockhdr));
-    for i=1:length(blockhdr)
-      nsamples(i) = blockhdr(i).nsamples(1);
+  case {'egi_mff'}
+    % check if requested data contains multiple epochs. If so, give error
+    if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+      data_in_epoch = zeros(1,length(hdr.orig.xml.epoch));
+      for iEpoch = 1:length(hdr.orig.xml.epoch)
+        begsamp_epoch = round(str2double(hdr.orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs);
+        endsamp_epoch = round(str2double(hdr.orig.xml.epoch(iEpoch).epoch.endTime)./1000./hdr.Fs);
+        data_in_epoch(iEpoch) = length(intersect(begsamp_epoch:endsamp_epoch,begsample:endsample));
+      end
+      if sum(data_in_epoch>1) > 1
+        fprintf('Requested sample %i to %i. \n', begsample, endsample);
+        error('The requested data is spread out over multiple epochs with possibly discontinuous boundaries. This is not allowed. Adjust trl to request only data within a single epoch.');
+      end
     end
     
-    cumsamples = cumsum(nsamples);
-    begblock = find(begsample<=cumsamples, 1, 'first');
-    endblock = find(endsample<=cumsamples, 1, 'first');
-    dat = read_mff_bin(filename, begblock, endblock);
-    % select channels and concatenate in a matrix
-    dat = cell2mat(dat(chanindx,:));
-
-    % select the desired samples from the concatenated blocks
-    if begblock==1
-      prevsamples = 0;
-    else
-      prevsamples = cumsamples(begblock-1);
+    %read in data in different signals
+    binfiles = dir(fullfile(filename, 'signal*.bin'));
+    if isempty(binfiles)
+      error('FieldTrip:read_mff_header:nobin', ['could not find any signal.bin in ' filename_mff ])
     end
-    begsel = begsample-prevsamples;
-    endsel = endsample-prevsamples;
-    dat = dat(:,begsel:endsel);
+    %determine which channels are in which signal
+    for iSig = 1:length(hdr.orig.signal)
+      if iSig == 1
+        chan2sig_ind(1:hdr.orig.signal(iSig).blockhdr(1).nsignals(1)) = iSig;
+      else
+        chan2sig_ind(end+1:end+1+hdr.orig.signal(iSig).blockhdr(1).nsignals(1)) = iSig;
+      end
+    end
+    for iSig = 1:length(hdr.orig.signal)
+      % adjust chanindx to match with current signal
+      [dum1, dum2, chanind_sig] = intersect(chanindx, find(chan2sig_ind==iSig));
+      if isempty(chanind_sig)
+        % no channels requested from current signal
+      else
+        blockhdr = hdr.orig.signal(iSig).blockhdr;
+        signalname = binfiles(iSig).name;
+        fullsignalname = fullfile(filename, signalname);
 
+        % the number of samples per block can be different
+        % assume that all channels have the same sampling frequency and number of samples per block
+        nsamples = zeros(size(blockhdr));
+        for i=1:length(blockhdr)
+          nsamples(i) = blockhdr(i).nsamples(1);
+        end
+
+        cumsamples = cumsum(nsamples);
+        begblock = find(begsample<=cumsamples, 1, 'first');
+        endblock = find(endsample<=cumsamples, 1, 'first');
+        datsig = read_mff_bin(fullsignalname, begblock, endblock);
+
+        % select channels and concatenate in a matrix
+        if exist('dat', 'var')
+          dat{length(dat)+1} = cell2mat(datsig(chanind_sig,:));
+        else
+          dat{1} = cell2mat(datsig(chanind_sig,:));
+        end
+        % select the desired samples from the concatenated blocks
+        if begblock==1
+          prevsamples = 0;
+        else
+          prevsamples = cumsamples(begblock-1);
+        end
+        begsel = begsample-prevsamples;
+        endsel = endsample-prevsamples;
+        dat{end} = dat{end}(:,begsel:endsel);
+      end
+    end
+    %concat signals
+    dat = cat(1,dat{:});
+    
   case 'micromed_trc'
     dat = read_micromed_trc(filename, begsample, endsample);
     if ~isequal(chanindx(:)', 1:hdr.nChans)
@@ -963,10 +902,16 @@ switch dataformat
     end
 
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
-    % check that the required low-level toolbox is available
-    ft_hastoolbox('yokogawa', 1);
-    dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
-
+    % the data can be read with two toolboxes, iether the one from Yokogawa or the one from Maryland
+    if ft_hastoolbox('sqdproject')
+      % chgannels are counted 0-based, samples are counted 1-based
+      [dat, info] = sqdread(filename, 'channels', chanindx-1, 'samples', [begsample endsample]);
+      dat = dat';
+    else
+      ft_hastoolbox('yokogawa', 1);
+      dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
+    end
+    
   case 'nmc_archive_k'
     dat = read_nmc_archive_k_data(filename, hdr, begsample, endsample, chanindx);
 

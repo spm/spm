@@ -36,6 +36,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.eegscale                = number, scaling to apply to the EEG channels prior to display
 %   cfg.eogscale                = number, scaling to apply to the EOG channels prior to display
 %   cfg.ecgscale                = number, scaling to apply to the ECG channels prior to display
+%   cfg.emgscale                = number, scaling to apply to the EMG channels prior to display
 %   cfg.megscale                = number, scaling to apply to the MEG channels prior to display
 %
 % The "artifact" field in the output cfg is a Nx2 matrix comparable to the
@@ -75,7 +76,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 3203 2011-03-23 16:22:32Z jorhor $
+% $Id: ft_databrowser.m 3403 2011-04-28 22:05:14Z ingnie $
 
 ft_defaults
 
@@ -83,37 +84,7 @@ ft_defaults
 if ~isfield(cfg, 'inputfile'),       cfg.inputfile = [];               end
 if ~isfield(cfg, 'outputfile'),      cfg.outputfile = [];              end
 
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
-  end
-end
-
-if hasdata
-  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
-  if ~isfield(cfg, 'continuous') && length(data.trial) == 1
-    cfg.continuous = 'yes';
-  end
-else
-  % check if the input cfg is valid for this function
-  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
-  cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-  cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
-  cfg = ft_checkconfig(cfg, 'required', {'continuous'});
-  cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
-end
-
-% this is the default for cfg.channelcolormap
-lines_color = [0.75 0 0;0 0 1;0 1 0;0.44 0.19 0.63;0 0.13 0.38;0.5 0.5 0.5;1 0.75 0;1 0 0;0.89 0.42 0.04;0.85 0.59 0.58;0.57 0.82 0.31;0 0.69 0.94;1 0 0.4;0 0.69 0.31;0 0.44 0.75];
-
 % set the defaults
-
 if ~isfield(cfg, 'channel'),         cfg.channel = 'all';             end
 if ~isfield(cfg, 'zscale'),          cfg.zscale = 'auto';             end
 if ~isfield(cfg, 'artfctdef'),       cfg.artfctdef = struct;          end
@@ -126,13 +97,52 @@ if ~isfield(cfg, 'event'),           cfg.event = [];                  end
 if ~isfield(cfg, 'selfun'),          cfg.selfun = 'browse_multiplotER';   end
 if ~isfield(cfg, 'selcfg'),          cfg.selcfg = [];                     end
 if ~isfield(cfg, 'colorgroups'),     cfg.colorgroups = 'sequential';      end
-if ~isfield(cfg, 'channelcolormap'), cfg.channelcolormap = lines_color;   end
+if ~isfield(cfg, 'channelcolormap'), cfg.channelcolormap = [0.75 0 0;0 0 1;0 1 0;0.44 0.19 0.63;0 0.13 0.38;0.5 0.5 0.5;1 0.75 0;1 0 0;0.89 0.42 0.04;0.85 0.59 0.58;0.57 0.82 0.31;0 0.69 0.94;1 0 0.4;0 0.69 0.31;0 0.44 0.75];   end
 if ~isfield(cfg, 'eegscale'),        cfg.eegscale = [];                   end
 if ~isfield(cfg, 'eogscale'),        cfg.eogscale = [];                   end
 if ~isfield(cfg, 'ecgscale'),        cfg.ecgscale = [];                   end
+if ~isfield(cfg, 'emgscale'),        cfg.emgscale = [];                   end
 if ~isfield(cfg, 'megscale'),        cfg.megscale = [];                   end
 
-if hasdata && isfield(data, 'topo') && strmatch(cfg.viewmode, 'component')
+hasdata = (nargin>1);
+
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    data = loadvar(cfg.inputfile, 'data');
+    hasdata = true;
+  end
+end
+
+if hasdata
+  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  % fetch the header from memory
+  hdr = ft_fetch_header(data);
+  if ~isfield(cfg, 'continuous') && length(data.trial) == 1
+    cfg.continuous = 'yes';
+  elseif ~isfield(cfg, 'continuous') && length(data.trial) > 1
+    cfg.continuous = 'no';
+  end
+else
+  % check if the input cfg is valid for this function
+  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+  cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+  % read the header from file
+  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  if ~isfield(cfg, 'continuous')
+    if hdr.nTrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
+  end
+end
+
+if hasdata && isfield(data, 'topo') && strcmp(cfg.viewmode, 'component')
   if ~isfield(cfg, 'comp')
     cfg.comp = 1:10; % to avoid plotting 274 components topographically
   end
@@ -153,8 +163,6 @@ if hasdata
   else
     resampled = true;
   end
-  % fetch the header
-  hdr = ft_fetch_header(data);
   
   % fetch the events
   event = ft_fetch_event(data);
@@ -168,17 +176,7 @@ if hasdata
   trlorg = [data.sampleinfo data.offset];
   Ntrials = size(trlorg, 1);
   
-  % this option relates to reading over trial boundaries in a pseudo-continuous dataset
-  if ~isfield(cfg, 'continuous')
-    if Ntrials==1
-      cfg.continuous = 'yes';
-    else
-      cfg.continuous = 'no';
-    end
-  end
-  
-
-  if strcmp(cfg.viewmode, 'component') 
+  if strcmp(cfg.viewmode, 'component')
     if ~isfield(cfg, 'layout')
       error('You need to specify a layout-file when browsing through components');
     end
@@ -186,24 +184,21 @@ if hasdata
     cfg.layout = ft_prepare_layout(cfg, data);
     
     if ~isfield(cfg, 'comp')
-        cfg.comp = 1:10; % to avoid plotting 274 components topographically
+      cfg.comp = 1:10; % to avoid plotting 274 components topographically
     end
     
-	cfg.channel = data.label(cfg.comp); 
+    cfg.channel = data.label(cfg.comp);
   end
   
 else
   % data has not been resampled
   resampled = false;
-  % read the header
-  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
   
-  % FIXME how is this supposed to work?
   % read the events
-  if ~isempty(cfg.event)
+  if isempty(cfg.event)
     event = ft_read_event(cfg.dataset);
   else
-    event = [];
+    event = cfg.event;
   end
   
   cfg.channel = ft_channelselection(cfg.channel, hdr.label);
@@ -218,17 +213,7 @@ else
     trlorg(k,[1 2]) = [1 hdr.nSamples] + [hdr.nSamples hdr.nSamples] .* (k-1);
   end
   
-  % this option relates to reading over trial boundaries in a pseudo-continuous dataset
-%   if ~isfield(cfg, 'continuous')
-%     if Ntrials==1
-%       cfg.continuous = 'yes';
-%     else
-%       cfg.continuous = 'no';
-%     end
-%   else
-%     Ntrials = 1;
-%   end
-end
+end % if hasdata
 
 if Nchans == 0
   error('no channels to display');
@@ -329,8 +314,8 @@ if ischar(cfg.zscale) && strcmp(cfg.zscale, 'auto')
     dat = data.trial{1}(chansel,:);
     time = data.time{1};
   else
-    % data needs to be read from file
-    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', hdr.nSamples, 'chanindx', chansel, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
+    % one second of data is read from file to determine the vertical scaling
+    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', round(hdr.Fs), 'chanindx', chansel, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
     time = (1:hdr.nSamples) / fsample;
   end
   
@@ -489,7 +474,7 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 3203 2011-03-23 16:22:32Z jorhor $';
+cfg.version.id = '$Id: ft_databrowser.m 3403 2011-04-28 22:05:14Z ingnie $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -970,6 +955,10 @@ if ~isempty(opt.cfg.ecgscale)
   chansel = match_str(lab, ft_channelselection('ECG*', lab));
   dat(chansel,:) = dat(chansel,:) .* opt.cfg.ecgscale;
 end
+if ~isempty(opt.cfg.emgscale)
+  chansel = match_str(lab, ft_channelselection('EMG*', lab));
+  dat(chansel,:) = dat(chansel,:) .* opt.cfg.emgscale;
+end
 
 fprintf('plotting data... ');
 switch opt.cfg.viewmode
@@ -992,20 +981,22 @@ switch opt.cfg.viewmode
     h_event = zeros(0, length(event));
     h_event_txt = zeros(0, length(event));
     if ~opt.resampled
-      % plot a line with text for each event
-      for k=1:length(event)
-        try
-          eventstr = sprintf('%s=%s', event(k).type, num2str(event(k).value)); %value can be both number and string
-        catch
-          eventstr = 'unknown';
+      try
+        % plot a line with text for each event
+        for k=1:length(event)
+          try
+            eventstr = sprintf('%s=%s', event(k).type, num2str(event(k).value)); %value can be both number and string
+          catch
+            eventstr = 'unknown';
+          end
+          eventtim = (event(k).sample-begsample+offset)/opt.fsample;
+          eventtim = (eventtim - opt.hlim(1)) / (opt.hlim(2) - opt.hlim(1));   % convert to value relative to box, i.e. from 0 to 1
+          eventtim = eventtim * (opt.hpos(2) - opt.hpos(1)) + opt.hpos(1);     % convert from relative to actual value along the horizontal figure axis
+          h_event(k) = ft_plot_line([eventtim eventtim], [0 1]);
+          %       h_event(k) = ft_plot_line([eventtim eventtim], [-opt.cfg.zscale opt.cfg.zscale]);
+          h_event_txt(k) = ft_plot_text(eventtim, ax(4)-0.01, eventstr);
         end
-        eventtim = (event(k).sample-begsample+offset)/opt.fsample;
-        eventtim = (eventtim - opt.hlim(1)) / (opt.hlim(2) - opt.hlim(1));   % convert to value relative to box, i.e. from 0 to 1
-        eventtim = eventtim * (opt.hpos(2) - opt.hpos(1)) + opt.hpos(1);     % convert from relative to actual value along the horizontal figure axis
-        h_event(k) = ft_plot_line([eventtim eventtim], [0 1]);
-%       h_event(k) = ft_plot_line([eventtim eventtim], [-opt.cfg.zscale opt.cfg.zscale]);
-        h_event_txt(k) = ft_plot_text(eventtim, ax(4)-0.01, eventstr);
-      end
+      end % try
     else
       if isfield(opt, 'orgdata') && isfield(opt.orgdata, 'sampleinfo') && isfield(opt.orgdata, 'offset')
         % find trials within this segment
@@ -1235,8 +1226,6 @@ switch opt.cfg.viewmode
     set(gca, 'xTick', [])
     set(gca, 'yTick', [])
     title(sprintf('%s %d, time from %g to %g s', opt.trialname, opt.trlop, tim(1), tim(end)));
-    
-    
     
     ax(1) = min(laytopo.pos(:,1) - laytopo.width/2);
     ax(2) = max(laytime.pos(:,1) + laytime.width/2);

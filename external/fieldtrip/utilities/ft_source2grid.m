@@ -29,7 +29,7 @@ function [grid] = ft_source2grid(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2grid.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_source2grid.m 3273 2011-04-04 15:00:32Z roboos $
 
 ft_defaults
 
@@ -43,6 +43,11 @@ try, grid.xgrid   = source.xgrid; end
 try, grid.ygrid   = source.ygrid; end
 try, grid.zgrid   = source.zgrid; end
 try, grid.dim     = source.dim;   end
+try, grid.tri     = source.tri;   end % only in case of a tesselated/triangulated cortical sheet source model
+
+if ~isfield(grid, 'dim') && isfield(grid, 'xgrid') && isfield(grid, 'ygrid') && isfield(grid, 'zgrid') 
+  grid.dim = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
+end
 
 if issubfield(source, 'filter')
   grid.filter = source.filter;

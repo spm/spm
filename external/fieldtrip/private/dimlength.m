@@ -18,7 +18,7 @@ function [n, fn] = dimlength(data, seldim, fld)
 
 % Copyright (C) 2010, Jan-Mathijs Schoffelen
 %
-% $Id: dimlength.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: dimlength.m 3358 2011-04-19 09:29:57Z jansch $
 
 if nargin<3
   fld = 'dimord';
@@ -112,6 +112,7 @@ else
         if isfield(data, 'powspctrm'),     n = [n size(data.powspctrm,     1)]; end
         if isfield(data, 'trial'),         n = [n size(data.trial,         1)]; end
         if isfield(data, 'fourierspctrm'), n = [n size(data.fourierspctrm, 1)]; end
+        if isfield(data, 'individual'),    n = [n size(data.individual,    1)]; end
         if ~all(n==n(1))
           error('inconsistent number of repetitions for dim "%s"', seldim);
         end

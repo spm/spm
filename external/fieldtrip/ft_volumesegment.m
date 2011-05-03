@@ -117,12 +117,13 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 3219 2011-03-24 22:42:27Z jansch $
+% $Id: ft_volumesegment.m 3362 2011-04-20 10:21:19Z crimic $
 
 ft_defaults
+% global px
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'deprecated',  'coordinates');
+cfg = ft_checkconfig(cfg, 'renamed',  {'coordinates', 'coordsys'});
 
 %% ft_checkdata see below!!! %%
 
@@ -203,16 +204,19 @@ if isfield(mri, 'gray') && isfield(mri, 'white') && isfield(mri, 'csf'),
 end
 
 if strcmp(cfg.segment, 'yes')
+  
   % ensure that the data has interpretable units and that the coordinate
   % system is in approximate spm space
   if ~isfield(mri, 'unit'),     mri.unit     = cfg.units;    end
   if ~isfield(mri, 'coordsys'), mri.coordsys = cfg.coordsys; end
+  
+  % remember the original transformation matrix coordinate system
+  original.transform = mri.transform;
+  original.coordsys  = mri.coordsys; 
+  
   mri = ft_convert_units(mri,    'mm');
   mri = ft_convert_coordsys(mri, 'spm');
   
-  % remember the original transformation matrix
-  original.transform = mri.transform;
-    
   % flip and permute the 3D volume itself, so that the voxel and 
   % headcoordinates approximately correspond this improves the convergence
   % of the segmentation algorithm
@@ -346,8 +350,10 @@ if strcmp(cfg.segment, 'yes')
 
   % collect the results
   segment.dim       = size(V(1).dat);
-  segment.transform = original.transform;           % use the original transformation-matrix
-  segment.coordsys  = mri.coordsys;
+  
+  segment.dim       = segment.dim(:)';    % enforce a row vector
+  segment.transform = original.transform; % use the original transform
+  segment.coordsys  = original.coordsys;  % use the original coordsys
   if isfield(mri, 'unit')
     segment.unit = mri.unit;
   end
@@ -368,7 +374,7 @@ if strcmp(cfg.segment, 'yes')
     segment.gray = ipermute(segment.gray, permutevec);
     if isfield(segment, 'white'), segment.white = ipermute(segment.white, permutevec); end
     if isfield(segment, 'csf'),   segment.csf   = ipermute(segment.csf,   permutevec); end
-    segment.dim  = ipermute(segment.dim, permutevec);
+    segment.dim  = size(segment.gray);
   end
 
   hassegment = 1;
@@ -397,7 +403,10 @@ if ~strcmp(cfg.smooth, 'no'),
     spm_smooth(segment.white, segment.white, cfg.smooth); % smooth the white matter
     spm_smooth(segment.csf,   segment.csf,   cfg.smooth); % smooth the csf compartment
   end
-  if hasanatomy
+  if hasanatomy & strcmp(cfg.segment,'no')
+    spm_smooth(segment.anatomy, segment.anatomy, cfg.smooth); 
+  else
+    segment.anatomy = mri.anatomy;
     spm_smooth(segment.anatomy, segment.anatomy, cfg.smooth); 
   end
   if hasbrain
@@ -431,6 +440,9 @@ if ~strcmp(cfg.threshold, 'no'),
     % create brain mask
     segment.brainmask = segment.brain>(cfg.threshold*max(segment.brain(:)));
     segment = rmfield(segment, 'brain');
+    % create skull from brain mask
+    braindil = imdilate(segment.brainmask,strel_bol(6));
+    segment.skull =  (braindil & ~segment.brainmask);
   end
     
 end
@@ -444,7 +456,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 3219 2011-03-24 22:42:27Z jansch $';
+cfg.version.id = '$Id: ft_volumesegment.m 3362 2011-04-20 10:21:19Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -25,6 +25,7 @@ function [data] = ft_checkdata(data, varargin)
 %   hastrialdef        = yes, no
 %   hasoffset          = yes, no (only applies to raw data)
 %   hascumtapcnt       = yes, no (only applies to freq data)
+%   hasdim             = yes, no
 %   hasdof             = yes, no
 %   cmbrepresentation  = sparse, full (applies to covariance and cross-spectral density)
 %
@@ -50,7 +51,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3198 2011-03-23 03:42:45Z roboos $
+% $Id: ft_checkdata.m 3421 2011-05-03 08:59:52Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -87,6 +88,7 @@ hasunits      = keyval('hasunits',      varargin);
 hastrialdef   = keyval('hastrialdef',   varargin); if isempty(hastrialdef), hastrialdef = 'no'; end
 hasoffset     = keyval('hasoffset',     varargin); if isempty(hasoffset), hasoffset = 'no'; end
 hasdimord     = keyval('hasdimord',     varargin); if isempty(hasdimord), hasdimord = 'no'; end
+hasdim        = keyval('hasdim',  varargin);
 hascumtapcnt  = keyval('hascumtapcnt',  varargin);
 hasdof        = keyval('hasdof',        varargin); if isempty(hasdof), hasdof = 'no'; end
 haspow        = keyval('haspow',        varargin); if isempty(haspow), haspow = 'no'; end
@@ -166,7 +168,7 @@ elseif iscomp
 elseif isspike
   data = ft_datatype_spike(data);
 elseif isvolume
-  data = ft_datatype_vol(data);
+  data = ft_datatype_volume(data);
 elseif issource
   data = ft_datatype_source(data);
 elseif isdip
@@ -381,7 +383,7 @@ if issource || isvolume,
     if isfield(data, 'avg') && isfield(data.avg, 'mom') && (isfield(data, 'freq') || isfield(data, 'frequency')) && strcmp(sourcedimord, 'rpt_pos'),
       %frequency domain source representation convert to single trial power
       Npos   = size(data.pos,1);
-      Nrpt   = length(data.cumtapcnt);
+      Nrpt   = size(data.cumtapcnt,1);
       tmpmom = zeros(Npos, size(data.avg.mom{data.inside(1)},2));
       tmpmom(data.inside,:) = cat(1,data.avg.mom{data.inside});
       tmppow = zeros(Npos, Nrpt);
@@ -483,12 +485,14 @@ if issource || isvolume,
   
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the source reconstructed parameters
-  if issource && prod(data.dim)==size(data.pos,1)
+  if issource && isfield(data, 'dim') && prod(data.dim)==size(data.pos,1)
     dim = [prod(data.dim) 1];
   elseif issource && any(~cellfun('isempty',strfind(fieldnames(data), 'dimord')))
     dim = [size(data.pos,1) 1]; %sparsely represented source structure new style
   elseif isfield(data, 'dim'),
     dim = [data.dim 1];
+  elseif issource
+    dim = [size(data.pos,1) 1];
   elseif isfield(data, 'dimord'),
     %HACK
     dimtok = tokenize(data.dimord, '_');
@@ -580,6 +584,12 @@ if isequal(hasoffset, 'yes')
 elseif isequal(hasoffset, 'no') && isfield(data, 'offset')
   data = rmfield(data, 'offset');
 end % if hasoffset
+
+if isequal(hasdim, 'yes') && ~isfield(data, 'dim')
+  data.dim = pos2dim3d(data.pos);
+elseif isequal(hasdim, 'no') && isfield(data, 'dim')
+    data = rmfield(data, 'dim');
+end % if hasdim
 
 if isequal(hascumtapcnt, 'yes') && ~isfield(data, 'cumtapcnt')
   error('This function requires data with a ''cumtapcnt'' field');
@@ -673,7 +683,7 @@ if strcmp(current, 'fourier') && strcmp(desired, 'fourier')
 elseif strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow')
   dimtok = tokenize(data.dimord, '_');
   if ~isempty(strmatch('rpttap',   dimtok)),
-    nrpt = length(data.cumtapcnt);
+    nrpt = size(data.cumtapcnt,1);
     flag = 0;
   else
     nrpt = 1;
@@ -756,7 +766,7 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'sparse')
   if isempty(channelcmb), error('no channel combinations are specified'); end
   dimtok = tokenize(data.dimord, '_');
   if ~isempty(strmatch('rpttap',   dimtok)),
-    nrpt = length(data.cumtapcnt);
+    nrpt = size(data.cumtapcnt,1);
     flag = 0;
   else
     nrpt = 1;
@@ -899,6 +909,9 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'fullfast'),
   else
     data.dimord = 'chan_chan_freq';
   end
+  
+  if isfield(data, 'trialinfo'),  data = rmfield(data, 'trialinfo'); end;
+  if isfield(data, 'sampleinfo'), data = rmfield(data, 'sampleinfo'); end;
 
 end % convert to the requested bivariate representation
 
@@ -937,7 +950,7 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'sparsewithpow')
   
 elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpt',   dimtok)), nrpt=numel(data.cumtapcnt); else nrpt = 1; end
+  if ~isempty(strmatch('rpt',   dimtok)), nrpt=size(data.cumtapcnt,1); else nrpt = 1; end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=numel(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time);      else ntim = 1; end
   nchan    = length(data.label);
@@ -999,7 +1012,7 @@ elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'sparse')
 
 elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpt',   dimtok)), nrpt=numel(data.cumtapcnt); else nrpt = 1; end
+  if ~isempty(strmatch('rpt',   dimtok)), nrpt=size(data.cumtapcnt,1); else nrpt = 1; end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=numel(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time);      else ntim = 1; end
   
@@ -1073,7 +1086,7 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
 
 elseif strcmp(current, 'sparse') && strcmp(desired, 'fullfast')
   dimtok = tokenize(data.dimord, '_');
-  if ~isempty(strmatch('rpt',   dimtok)), nrpt=numel(data.cumtapcnt); else nrpt = 1; end
+  if ~isempty(strmatch('rpt',   dimtok)), nrpt=size(data.cumtapcnt,1); else nrpt = 1; end
   if ~isempty(strmatch('freq',  dimtok)), nfrq=numel(data.freq);      else nfrq = 1; end
   if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time);      else ntim = 1; end
   
@@ -1169,8 +1182,8 @@ function [output] = fixsource(input, varargin)
 %     e.g. source.leadfield = cell(1,Npos), source.leadfielddimord = '{pos}_chan_ori'
 %          source.mom       = cell(1,Npos), source.momdimord       = '{pos}_ori_rpttap'
 
-type   = keyval('type',   varargin{:});
-haspow = keyval('haspow', varargin{:});
+type   = keyval('type',   varargin);
+haspow = keyval('haspow', varargin);
 
 if isempty(type),   type   = 'old'; end
 if isempty(haspow), haspow = 'no';  end
@@ -1373,7 +1386,7 @@ if strcmp(current, 'new') && strcmp(haspow, 'yes'),
     
   if convert,  
     npos = size(output.pos,1);
-    nrpt = numel(output.cumtapcnt);
+    nrpt = size(output.cumtapcnt,1);
     tmpmom = cat(2,output.mom{output.inside});
     tmppow = zeros(npos, nrpt);
     tapcnt = [0;cumsum(output.cumtapcnt(:))];
@@ -1458,7 +1471,7 @@ switch fname
   case 'ori'
     dimord = '';
   case 'pow'
-    if isfield(output, 'cumtapcnt') && numel(output.cumtapcnt)==size(tmp,dimnum)
+    if isfield(output, 'cumtapcnt') && size(output.cumtapcnt,1)==size(tmp,dimnum)
       dimord = [dimord,'_rpt'];
       dimnum = dimnum + 1;
     end

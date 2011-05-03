@@ -5,9 +5,8 @@ function [varargout] = ft_qualitycheck(cfg)
 % freq- like fashion. 2) The quantifications are visualized and exported to
 % a .PNG and .PDF file.
 %
-% This function is specific for MEG data recorded with either a CTF or BTI
-% system. In case of the latter system, the output does not contain the headpos
-% variable.
+% In case the data is MEG data recorded with a CTF system, the output contains
+% the headpositions.
 %
 % Use as:
 %   [info, timelock, freq, summary, headpos] = ft_qualitycheck(cfg)
@@ -16,13 +15,13 @@ function [varargout] = ft_qualitycheck(cfg)
 %   cfg.dataset = a string (e.g. 'dataset.ds')
 %
 % The following parameters can be used:
-%   cfg.analyze = 'yes' or 'no' to analyze the dataset (default = 'yes')
-%   cfg.savemat = 'yes' or 'no' to save the analysis (default = 'yes')
-%   cfg.matfile = a string (e.g. 'previousoutput.mat'), in combination with
-%                   analyze = 'no' only
+%   cfg.analyze   = 'yes' or 'no' to analyze the dataset (default = 'yes')
+%   cfg.savemat   = 'yes' or 'no' to save the analysis (default = 'yes')
+%   cfg.matfile   = a string (e.g. 'previousoutput.mat'), preferably in combination
+%                    with analyze = 'no'
 %   cfg.visualize = 'yes' or 'no' to visualize the analysis (default = 'yes')
-%   cfg.saveplot = 'yes' or 'no' to save the visualization (default = 'yes')
-%
+%   cfg.saveplot  = 'yes' or 'no' to save the visualization (default = 'yes')
+
 % Copyright (C) 2010-2011, Arjen Stolk, Bram Daams, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -56,9 +55,7 @@ if strcmp(cfg.analyze,'yes')
     tic
     
     % checks
-    cfg = ft_checkconfig(cfg, 'dataset2files', 'yes'); % translate into datafile+headerfile
-    isctf = ft_filetype(cfg.dataset, 'ctf_ds');
-    is4d  = ft_filetype(cfg.dataset, '4d');
+    cfg   = ft_checkconfig(cfg, 'dataset2files', 'yes'); % translate into datafile+headerfile
     
     % these will be replaced by more appropriate values
     info.datasetname = 'unknown';
@@ -69,7 +66,7 @@ if strcmp(cfg.analyze,'yes')
     
     % the exportname is also used in the cron job
     exportname = qualitycheck_exportname(cfg.dataset);
-    
+    [iseeg, ismeg, isctf, fltp] = filetyper(cfg.dataset);
     if isctf
         try
             % update the info fields
@@ -77,12 +74,11 @@ if strcmp(cfg.analyze,'yes')
         end
     end
     
-    % read events
-    info.event = ft_read_event(cfg.dataset);
-    
-    % read .res4 file
+    % add info
+    info.event                  = ft_read_event(cfg.dataset);
     info.hdr                    = ft_read_header(cfg.dataset);
-    
+    info.filetype               = fltp;    
+        
     % trial definition
     cfgdef                      = [];
     cfgdef.dataset              = cfg.dataset;
@@ -93,11 +89,20 @@ if strcmp(cfg.analyze,'yes')
     ntrials                     = size(cfgdef.trl,1)-1; % remove last trial
     timeunit                    = cfgdef.trialdef.triallength;
     
-    % channel settings
-    chans                       = ft_channelselection({'MEG','MEGREF'}, info.hdr.label);
-    MEGchans                    = ft_channelselection('MEG', info.hdr.label);
-    chanindx                    = match_str(info.hdr.label, chans);
-    MEGchanindx                 = match_str(chans, MEGchans);
+    % channelselection for jump detection (all) and for FFT (brain)
+    if ismeg
+        allchans                   = ft_channelselection({'MEG','MEGREF'}, info.hdr.label);
+        chans                      = ft_channelselection('MEG', info.hdr.label); % brain
+        allchanindx                = match_str(info.hdr.label, allchans);
+        chanindx                   = match_str(chans, allchans);
+        jumpthreshold              = 1e-10;
+    elseif iseeg
+        allchans                   = ft_channelselection('EEG', info.hdr.label);
+        chans                      = allchans;  % brain
+        allchanindx                = match_str(info.hdr.label, allchans);
+        chanindx                   = match_str(chans, allchans);
+        jumpthreshold              = 1e4;
+    end
     
     % find headcoil channels
     if isctf % this fails for older CTF data sets
@@ -127,7 +132,7 @@ if strcmp(cfg.analyze,'yes')
     
     cfgfreq              = [];
     cfgfreq.output       = 'pow';
-    cfgfreq.channel      = chans;
+    cfgfreq.channel      = allchans;
     cfgfreq.method       = 'mtmfft';
     cfgfreq.taper        = 'hanning';
     cfgfreq.keeptrials   = 'no';
@@ -135,28 +140,32 @@ if strcmp(cfg.analyze,'yes')
     
     % output variables
     timelock.dimord = 'chan_time';
-    timelock.label  = chans;
+    timelock.label  = allchans;
     timelock.time   = [timeunit-timeunit/2:timeunit:timeunit*ntrials-timeunit/2];
-    timelock.avg    = NaN(length(chans), ntrials); % updated in loop
-    timelock.median = NaN(length(chans), ntrials); % updated in loop
-    timelock.jumps  = NaN(length(chans), ntrials); % updated in loop
-    timelock.range  = NaN(length(chans), ntrials); % updated in loop
-    timelock.min    = NaN(length(chans), ntrials); % updated in loop
-    timelock.max    = NaN(length(chans), ntrials); % updated in loop
-    timelock.grad   = info.hdr.grad;
+    timelock.avg    = NaN(length(allchans), ntrials); % updated in loop
+    timelock.median = NaN(length(allchans), ntrials); % updated in loop
+    timelock.jumps  = NaN(length(allchans), ntrials); % updated in loop
+    timelock.range  = NaN(length(allchans), ntrials); % updated in loop
+    timelock.min    = NaN(length(allchans), ntrials); % updated in loop
+    timelock.max    = NaN(length(allchans), ntrials); % updated in loop
     
     freq.dimord     = 'chan_freq_time';
-    freq.label      = chans;
+    freq.label      = allchans;
     freq.freq       = [cfgfreq.foilim(1):cfgfreq.foilim(2)];
     freq.time       = [timeunit-timeunit/2:timeunit:timeunit*ntrials-timeunit/2];
-    freq.powspctrm  = NaN(length(chans), length(freq.freq), ntrials); % updated in loop
-    freq.grad       = info.hdr.grad;
+    freq.powspctrm  = NaN(length(allchans), length(freq.freq), ntrials); % updated in loop
     
     summary.dimord  = 'chan_time';
     summary.time    = [timeunit-timeunit/2:timeunit:timeunit*ntrials-timeunit/2];
     summary.label   = {'Mean';'Median';'Min';'Max';'Range';'HmotionN';'HmotionL';'HmotionR';'LowFreqPower';'LineFreqPower';'Jumps'};
     summary.avg     = NaN(length(summary.label), ntrials); % updated in loop
-    summary.grad    = info.hdr.grad;
+    
+    % try add gradiometer info
+    try
+        timelock.grad   = info.hdr.grad;
+        freq.grad       = info.hdr.grad;
+        summary.grad    = info.hdr.grad;
+    end
     
     % process trial by trial
     for t = 1:ntrials
@@ -181,24 +190,23 @@ if strcmp(cfg.analyze,'yes')
         end
         
         % update values
-        timelock.avg(:,t)           = mean(data.trial{1}(chanindx,:),2);
-        timelock.median(:,t)        = median(data.trial{1}(chanindx,:),2);
-        timelock.range(:,t)         = max(data.trial{1}(chanindx,:),[],2) - min(data.trial{1}(chanindx,:),[],2);
-        timelock.min(:,t)           = min(data.trial{1}(chanindx,:),[],2);
-        timelock.max(:,t)           = max(data.trial{1}(chanindx,:),[],2);
+        timelock.avg(:,t)           = mean(data.trial{1}(allchanindx,:),2);
+        timelock.median(:,t)        = median(data.trial{1}(allchanindx,:),2);
+        timelock.range(:,t)         = max(data.trial{1}(allchanindx,:),[],2) - min(data.trial{1}(allchanindx,:),[],2);
+        timelock.min(:,t)           = min(data.trial{1}(allchanindx,:),[],2);
+        timelock.max(:,t)           = max(data.trial{1}(allchanindx,:),[],2);
         
         % detect jumps
-        jumpthreshold               = 1e-10;
-        for c = 1:size(data.trial{1}(chanindx,:),1)
-            timelock.jumps(c,t)     = length(find(diff(data.trial{1,1}(chanindx(c),:)) > jumpthreshold));
+        for c = 1:size(data.trial{1}(allchanindx,:),1)
+            timelock.jumps(c,t)     = length(find(diff(data.trial{1,1}(allchanindx(c),:)) > jumpthreshold));
         end
         
         % FFT and noise estimation
         redef                       = ft_redefinetrial(cfgredef, data); clear data;
         FFT                         = ft_freqanalysis(cfgfreq, redef); clear redef;
         freq.powspctrm(:,:,t)       = FFT.powspctrm;
-        summary.avg(9,t)            = mean(mean(findpower(0, 2, FFT, MEGchanindx))); % Low Freq Power
-        summary.avg(10,t)           = mean(mean(findpower(49, 51, FFT, MEGchanindx))); clear FFT; % Line Freq Power
+        summary.avg(9,t)            = mean(mean(findpower(0, 2, FFT, chanindx))); % Low Freq Power
+        summary.avg(10,t)           = mean(mean(findpower(49, 51, FFT, chanindx))); clear FFT; % Line Freq Power
         
         toc
     end % end of trial loop
@@ -210,17 +218,17 @@ if strcmp(cfg.analyze,'yes')
         summary.avg(8,:) = sqrt(sum((headpos.avg(7:9,:)-repmat(headpos.avg(7:9,1),1,size(headpos.avg,2))).^2,1)); % R
     end
     
-    % summarize/mean and store variables
-    summary.avg(1,:)   = mean(timelock.avg(MEGchanindx,:),1);
-    summary.avg(2,:)   = mean(timelock.median(MEGchanindx,:),1);
-    summary.avg(3,:)   = mean(timelock.min(MEGchanindx,:),1);
-    summary.avg(4,:)   = mean(timelock.max(MEGchanindx,:),1);
-    summary.avg(5,:)   = mean(timelock.range(MEGchanindx,:),1);
-    summary.avg(11,:)  = mean(timelock.jumps(MEGchanindx,:),1);
+    % summarize/mean and store variables of brain info only
+    summary.avg(1,:)   = mean(timelock.avg(chanindx,:),1);
+    summary.avg(2,:)   = mean(timelock.median(chanindx,:),1);
+    summary.avg(3,:)   = mean(timelock.min(chanindx,:),1);
+    summary.avg(4,:)   = mean(timelock.max(chanindx,:),1);
+    summary.avg(5,:)   = mean(timelock.range(chanindx,:),1);
+    summary.avg(11,:)  = mean(timelock.jumps(chanindx,:),1);
     
     % add the version details of this function call to the configuration
     cfg.version.name   = mfilename('fullpath');
-    cfg.version.id     = '$Id: ft_qualitycheck.m 3182 2011-03-22 09:17:54Z arjsto $';
+    cfg.version.id     = '$Id: ft_qualitycheck.m 3393 2011-04-27 13:48:38Z arjsto $';
     cfg.version.matlab = version(); % Matlab version used
     
     % add the cfg to the output variables
@@ -254,14 +262,14 @@ if strcmp(cfg.visualize, 'yes')
     end
     
     % determine number of 1-hour plots to be made
-    nplots = ceil((info.hdr.nTrials-1)/(3600/10));
+    nplots = ceil(length(freq.time)/(3600/10));
     
     % create GUI-like figure(s)
     for p = 1:nplots
         fprintf('visualizing %s of %s \n', num2str(p), num2str(nplots));
         toi = [p*3600-3595 p*3600-5]; % select 1-hour chunks
         
-        if isstruct(headpos)
+        if exist('headpos','var')
             temp_timelock = ft_selectdata(timelock, 'toilim', toi);
             temp_freq     = ft_selectdata(freq, 'toilim', toi);
             temp_summary  = ft_selectdata(summary, 'toilim', toi);
@@ -309,13 +317,47 @@ else
     clear
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%
+function [x] = clipat(x, v, v2)
+v = [v v2]; % clip between value v and v2
+if length(v) == 1
+    x(find(x>v)) = v;
+elseif length(v) == 2 
+    x(find(x<v(1))) = v(1);
+    x(find(x>v(2))) = v(2);
+end
+    
+%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%
+function [iseeg, ismeg, isctf, fltp] = filetyper(dataset)
+fltp = ft_filetype(dataset);
+iseeg = ft_filetype(dataset,'brainvision_eeg') | ...
+    ft_filetype(dataset,'ns_eeg') | ...
+    ft_filetype(dataset,'bci2000_dat') | ...
+    ft_filetype(dataset,'neuroprax_eeg') | ...
+    ft_filetype(dataset,'egi_sbin') | ...
+    ft_filetype(dataset,'biosemi_bdf');
+ismeg = ft_filetype(dataset,'ctf_ds') | ...
+    ft_filetype(dataset,'4d') | ...
+    ft_filetype(dataset,'neuromag_fif') | ...
+    ft_filetype(dataset,'itab_raw');
+isctf = ft_filetype(dataset, 'ctf_ds');
+if ~ismeg && ~iseeg % if none found, try less strict checks
+    [p, f, ext] = fileparts(dataset);
+    if strcmp(ext, '.eeg')
+        fltp = 'brainvision_eeg';
+        iseeg = 1;
+    elseif strcmp(ext, '.bdf')
+        fltp = 'biosemi_bdf';
+        iseeg = 1;
+    elseif strcmp(ext, '.ds')
+        fltp = 'ctf_ds';
+        ismeg = 1;
+    else % otherwise use eeg settings for stability reasons
+        iseeg = 1;
+    end
+end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTIONS %%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%
 function [power, freq] = findpower(low, high, freqinput, chans)
 % replace value with the index of the nearest bin
 xmin  = nearest(getsubfield(freqinput, 'freq'), low);
@@ -324,7 +366,7 @@ xmax  = nearest(getsubfield(freqinput, 'freq'), high);
 power = freqinput.powspctrm(chans, xmin:xmax);
 freq  = freqinput.freq(:, xmin:xmax);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% SUBFUNCTION %%%%%%%%%%%%%%%%%%%%%%%%%
 function draw_figure(varargin)
 % deal with input
 if nargin == 6
@@ -342,6 +384,18 @@ elseif nargin == 5
     toi      = varargin{5};
 end
 
+% determine whether it is EEG or MEG
+[iseeg, ismeg, isctf, fltp] = filetyper(timelock.cfg.dataset);
+if ismeg
+    scaling = 1e15; % assuming data is in T and needs to become fT
+    powscaling = scaling^2;
+    ylab = 'fT';
+elseif iseeg
+    scaling = 1e0; % assuming data is in muV already
+    powscaling = scaling^2;
+    ylab = '\muV';
+end
+
 % PARENT FIGURE
 h.MainFigure = figure(...
     'MenuBar','none',...
@@ -350,8 +404,12 @@ h.MainFigure = figure(...
     'color','white',...
     'Position',[0.01 0.01 .99 .99]); % nearly fullscreen
 
-[d,w] = weekday(info.startdate);
-tmp = [w ' ' info.startdate];
+if strcmp(info.startdate,'unknown')
+    tmp = 'unknown';
+else
+    [d,w] = weekday(info.startdate);
+    tmp = [w ' ' info.startdate];
+end
 
 h.MainText = uicontrol(...
     'Parent',h.MainFigure,...
@@ -405,12 +463,6 @@ h.HmotionPanel = uipanel(...
     'Backgroundcolor','white',...
     'Position',[.01 .5 .25 .47]);
 
-h.HmotionAxes = axes(...
-    'Parent',h.HmotionPanel,...
-    'Units','normalized',...
-    'color','white',...
-    'Position',[.05 .08 .9 .52]);
-
 h.DataText = uicontrol(...
     'Parent',h.HmotionPanel,...
     'Style','text',...
@@ -429,17 +481,24 @@ h.TimeText = uicontrol(...
     'Backgroundcolor','white',...
     'Position',[.01 .78 .99 .1]);
 
+if ismeg
+    allchans = ft_senslabel('ctf275');
+    misschans = setdiff(ft_channelselection('MEG', info.hdr.label), allchans);
+    nchans = num2str(size(ft_channelselection('MEG', info.hdr.label),1));
+else
+    misschans = '';
+    nchans = num2str(size(ft_channelselection('EEG', info.hdr.label),1));
+end
+
 h.DataText2 = uicontrol(...
     'Parent',h.HmotionPanel,...
     'Style','text',...
     'Units','normalized',...
     'FontSize',10,...
-    'String',['fs: ' num2str(info.hdr.Fs) ', nchans: ' num2str(size(ft_channelselection('MEG', info.hdr.label),1))],...
+    'String',[fltp ', fs: ' num2str(info.hdr.Fs) ', nchans: ' nchans],...
     'Backgroundcolor','white',...
     'Position',[.01 .71 .99 .1]);
 
-allchans = ft_senslabel('ctf275');
-misschans = setdiff(ft_channelselection('MEG', info.hdr.label), allchans);
 h.DataText3 = uicontrol(...
     'Parent',h.HmotionPanel,...
     'Style','text',...
@@ -450,7 +509,13 @@ h.DataText3 = uicontrol(...
     'Position',[.01 .64 .99 .1]);
 
 % boxplot headmotion (*10; cm-> mm) per coil
-if isstruct(headpos)
+if exist('headpos','var')
+    h.HmotionAxes = axes(...
+        'Parent',h.HmotionPanel,...
+        'Units','normalized',...
+        'color','white',...
+        'Position',[.05 .08 .9 .52]);
+    
     hmotions = ([summary.avg(8,:)' summary.avg(7,:)' summary.avg(6,:)'])*10;
     boxplot(h.HmotionAxes, hmotions, 'orientation', 'horizontal', 'notch', 'on');
     set(h.HmotionAxes,'YTick',[1:3]);
@@ -465,12 +530,6 @@ h.SignalPanel = uipanel(...
     'Units','normalized',...
     'Backgroundcolor','white',...
     'Position',[.28 .34 .71 .63]);
-
-h.HmotionTimecourseAxes = axes(...
-    'Parent',h.SignalPanel,...
-    'Units','normalized',...
-    'color','white',...
-    'Position',[.08 .73 .89 .22]);
 
 h.SignalAxes = axes(...
     'Parent',h.SignalPanel,...
@@ -491,8 +550,16 @@ h.LowfreqnoiseAxes = axes(...
     'Position',[.08 .1 .89 .1]);
 
 % plot hmotion timecourses per coil (*10; cm-> mm)
-if isstruct(headpos)
-    plot(h.HmotionTimecourseAxes, summary.time, summary.avg(6,:)*10, summary.time, summary.avg(7,:)*10, summary.time, summary.avg(8,:)*10, 'LineWidth',2);
+if exist('headpos','var')
+    h.HmotionTimecourseAxes = axes(...
+        'Parent',h.SignalPanel,...
+        'Units','normalized',...
+        'color','white',...
+        'Position',[.08 .73 .89 .22]);
+    
+    plot(h.HmotionTimecourseAxes, summary.time, clipat(summary.avg(6,:)*10, 0, 10), ...
+                                summary.time, clipat(summary.avg(7,:)*10, 0, 10), ...
+                                summary.time, clipat(summary.avg(8,:)*10, 0, 10), 'LineWidth',2);
     ylim(h.HmotionTimecourseAxes,[0 10]);
     ylabel(h.HmotionTimecourseAxes, 'Coil distance [mm]');
     xlim(h.HmotionTimecourseAxes,[toi]);
@@ -501,31 +568,30 @@ if isstruct(headpos)
 end
 
 % plot mean and range of the raw signal
-plot(h.SignalAxes, summary.time, summary.avg(5,:)*1e15, summary.time, summary.avg(1,:)*1e15, 'LineWidth', 2);
+plot(h.SignalAxes, summary.time, summary.avg(5,:)*scaling, summary.time, summary.avg(1,:)*scaling, 'LineWidth', 2);
 set(h.SignalAxes,'Nextplot','add');
-plot(h.SignalAxes, summary.time, summary.avg(3,:)*1e15, summary.time, summary.avg(4,:)*1e15, 'LineWidth', 1, 'Color', [255/255 127/255 39/255]);
+plot(h.SignalAxes, summary.time, summary.avg(3,:)*scaling, summary.time, summary.avg(4,:)*scaling, 'LineWidth', 1, 'Color', [255/255 127/255 39/255]);
 grid(h.SignalAxes,'on');
-%ylim(h.SignalAxes,[-Inf 4e-10]);
-ylabel(h.SignalAxes, 'Amplitude [fT]');
+ylabel(h.SignalAxes, ['Amplitude [' ylab ']']);
 xlim(h.SignalAxes,[toi]);
 legend(h.SignalAxes,'Range','Mean','Min','Max');
 set(h.SignalAxes,'XTickLabel','');
 
 % plot linenoise
-semilogy(h.LinenoiseAxes, summary.time, summary.avg(10,:)*1e30, 'LineWidth',2);
+semilogy(h.LinenoiseAxes, summary.time, clipat(summary.avg(10,:)*powscaling, 1e2, 1e4), 'LineWidth',2);
 grid(h.LinenoiseAxes,'on');
-legend(h.LinenoiseAxes, 'LineFreq [fT^2/Hz]');
+legend(h.LinenoiseAxes, ['LineFreq [' ylab '^2/Hz]']);
 set(h.LinenoiseAxes,'XTickLabel','');
 xlim(h.LinenoiseAxes,[toi]);
-ylim(h.LinenoiseAxes,[0 1e3]);
+ylim(h.LinenoiseAxes,[1e2 1e4]); % before april 28th this was 1e0 - 1e3
 
 % plot lowfreqnoise
-semilogy(h.LowfreqnoiseAxes, summary.time, summary.avg(9,:)*1e30, 'LineWidth',2);
+semilogy(h.LowfreqnoiseAxes, summary.time, clipat(summary.avg(9,:)*powscaling, 1e10, 1e12), 'LineWidth',2);
 grid(h.LowfreqnoiseAxes,'on');
 xlim(h.LowfreqnoiseAxes,[toi]);
-ylim(h.LowfreqnoiseAxes,[0 1e10]);
-legend(h.LowfreqnoiseAxes, 'LowFreq [fT^2/Hz]');
-xlabel(h.LowfreqnoiseAxes, 'Time [seconds]');
+ylim(h.LowfreqnoiseAxes,[1e10 1e12]);
+legend(h.LowfreqnoiseAxes, ['LowFreq [' ylab '^2/Hz]']);
+xlabel(h.LowfreqnoiseAxes, 'Time [seconds]'); % before april 28th this was 1e0 - 1e10
 
 % EVENT PANEL
 h.EventPanel = uipanel(...
@@ -543,6 +609,9 @@ for j=1:length(a)
     eventtypes{j,1}    = a{j};
     eventtriggers{j,1} = sum(c==j);
     eventvalues{j,1}   = length(unique([info.event(c==j).value]));
+end
+if isempty(eventtypes)
+    eventtypes{1,1} = 'no triggers found';
 end
 
 h.EventText = uicontrol(...
@@ -586,9 +655,9 @@ h.SpectrumAxes = axes(...
     'Position',[.15 .2 .8 .7]);
 
 % plot powerspectrum
-loglog(h.SpectrumAxes, freq.freq, squeeze(mean(mean(freq.powspctrm,1),3))*1e30,'r','LineWidth',2);
+loglog(h.SpectrumAxes, freq.freq, squeeze(mean(mean(freq.powspctrm,1),3))*powscaling,'r','LineWidth',2);
 xlabel(h.SpectrumAxes, 'Frequency [Hz]');
-ylabel(h.SpectrumAxes, 'Power [fT^2/Hz]');
+ylabel(h.SpectrumAxes, ['Power [' ylab '^2/Hz]']);
 
 % ARTEFACT PANEL
 h.JumpPanel = uipanel(...
@@ -605,6 +674,9 @@ jumpcounts = {};
 for j=1:length(a)
     jumpchans{j,1}  = timelock.label{a(j)};
     jumpcounts{j,1} = sum(c==j);
+end
+if isempty(jumpchans)
+    jumpchans{1,1} = 'no jumps detected';
 end
 
 h.JumpText = uicontrol(...
@@ -625,28 +697,30 @@ h.JumpText2 = uicontrol(...
     'Backgroundcolor','white',...
     'Position',[.65 .5 .2 .4]);
 
-h.TopoMEG = axes(...
-    'Parent',h.JumpPanel,...
-    'color','white',...
-    'Units','normalized',...
-    'Position',[0.4 0.05 0.55 0.4]);
-
 % plot jumps on the dewar sensors
-MEGchans                 = ft_channelselection('MEG', timelock.label);
-MEGchanindx              = match_str(timelock.label, MEGchans);
-cfgtopo                  = [];
-cfgtopo.marker           = 'off';
-cfgtopo.colorbar         = 'no';
-cfgtopo.comment          = 'no';
-cfgtopo.style            = 'blank';
-cfgtopo.layout           = 'CTF275.lay';
-cfgtopo.highlight        = 'on';
-cfgtopo.highlightsymbol  = '.';
-cfgtopo.highlightsize    = [14];
-cfgtopo.highlightchannel = [find(sum(timelock.jumps(MEGchanindx,:),2)>0)];
-data.label               = MEGchans;
-data.powspctrm           = sum(timelock.jumps(MEGchanindx,:),2);
-data.dimord              = 'chan_freq';
-data.freq                = 1;
-axes(h.TopoMEG);
-ft_topoplotTFR(cfgtopo, data); clear data;
+if ismeg
+    h.TopoMEG = axes(...
+        'Parent',h.JumpPanel,...
+        'color','white',...
+        'Units','normalized',...
+        'Position',[0.4 0.05 0.55 0.4]);
+    
+    MEGchans                 = ft_channelselection('MEG', timelock.label);
+    MEGchanindx              = match_str(timelock.label, MEGchans);
+    cfgtopo                  = [];
+    cfgtopo.marker           = 'off';
+    cfgtopo.colorbar         = 'no';
+    cfgtopo.comment          = 'no';
+    cfgtopo.style            = 'blank';
+    cfgtopo.layout           = ft_prepare_layout(timelock);
+    cfgtopo.highlight        = 'on';
+    cfgtopo.highlightsymbol  = '.';
+    cfgtopo.highlightsize    = [14];
+    cfgtopo.highlightchannel = [find(sum(timelock.jumps(MEGchanindx,:),2)>0)];
+    data.label               = MEGchans;
+    data.powspctrm           = sum(timelock.jumps(MEGchanindx,:),2);
+    data.dimord              = 'chan_freq';
+    data.freq                = 1;
+    axes(h.TopoMEG);
+    ft_topoplotTFR(cfgtopo, data); clear data;
+end

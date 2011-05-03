@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3106 2011-03-15 13:03:29Z jorhor $
+% $Id: ft_selectdata.m 3371 2011-04-22 10:35:21Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -63,7 +63,7 @@ dimord = cell(1,length(data));
 % keep track whether data contains subjects as repetitions
 hassubj = false(1, length(data));
 for k = 1:length(data)
-  data{k} = ft_checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw'});  
+  data{k} = ft_checkdata(data{k}, 'datatype', {'freq' 'timelock' 'source', 'volume', 'freqmvar', 'raw', 'comp'});  
   [dtype{k}, dimord{k}]  = ft_datatype(data{k});  
   if isfield(data{k}, 'dimord') && ~isempty(strfind(data{k}.dimord, 'subj'))
     hassubj(k) = true;
@@ -89,7 +89,7 @@ if any(~strmatch(dimord{1},dimord))
   error('a different dimord in the input data is not supported');
 end
 
-israw    = strcmp(dtype{1},'raw');
+israw    = strcmp(dtype{1},'raw') || strcmp(dtype{1},'comp');
 isfreq   = strcmp(dtype{1},'freq');
 istlck   = strcmp(dtype{1},'timelock');
 issource = strcmp(dtype{1},'source');
@@ -483,7 +483,8 @@ if selectfoi,
   if numel(selfoi)==1, selfoi(2) = selfoi; end;
   if numel(selfoi)==2,
     %treat selfoi as lower limit and upper limit
-    selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
+    %selfoi = nearest(data.freq, selfoi(1)):nearest(data.freq, selfoi(2));
+    selfoi = find(data.freq>=selfoi(1) & data.freq<=selfoi(2));
   else
     %treat selfoi as a list of frequencies
     tmpfoi = zeros(1,numel(selfoi));
@@ -496,7 +497,8 @@ end
 
 if selecttoi,
   if length(seltoi)==1, seltoi(2) = seltoi; end;
-  seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
+  %seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
+  seltoi = find(data.time>=seltoi(1) & data.time<=seltoi(2));
 end
 
 if selectroi,

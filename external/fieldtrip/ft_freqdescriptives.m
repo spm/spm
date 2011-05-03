@@ -65,7 +65,7 @@ function [output] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqdescriptives.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_freqdescriptives.m 3364 2011-04-20 16:33:15Z sashae $
 
 ft_defaults
 
@@ -199,6 +199,11 @@ try, output.cumsumcnt = freq.cumsumcnt; end;
 output.powspctrm      = powspctrm;
 try, output.powspctrmsem = powspctrmsem; end;
 
+% remember the trialinfo
+if strcmp(cfg.keeptrials, 'yes') && isfield(freq, 'trialinfo')
+  output.trialinfo = freq.trialinfo;
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -208,7 +213,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqdescriptives.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_freqdescriptives.m 3364 2011-04-20 16:33:15Z sashae $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

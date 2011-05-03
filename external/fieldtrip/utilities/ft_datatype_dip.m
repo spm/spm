@@ -8,7 +8,9 @@ function dip = ft_datatype_dip(dip, varargin)
 %
 % FIXME more information should be added here
 %
-% See also FT_DATATYPE and FT_DATATYPE_xxx
+% See also FT_DATATYPE, FT_DATATYPE_COMP, FT_DATATYPE_DIP, FT_DATATYPE_FREQ,
+% FT_DATATYPE_MVAR, FT_DATATYPE_RAW, FT_DATATYPE_SOURCE, FT_DATATYPE_SPIKE,
+% FT_DATATYPE_TIMELOCK, FT_DATATYPE_VOLUME
 
 % Copyright (C) 2011, Robert Oostenveld
 %
@@ -28,5 +30,5 @@ function dip = ft_datatype_dip(dip, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_dip.m 3031 2011-03-01 20:57:20Z roboos $
+% $Id: ft_datatype_dip.m 3423 2011-05-03 09:08:12Z roboos $
 

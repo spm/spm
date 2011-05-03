@@ -48,6 +48,8 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %
 %                 'xcorr',     cross correlation function
 %                 'di',        directionality index
+%                 'spearman'   spearman's rank correlation
+%                 'corr'       pearson correlation
 %
 % Copyright (C) 2009, Robert Oostenveld, Jan-Mathijs Schoffelen, Andre Bastos, Martin Vinck
 %
@@ -67,7 +69,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 3209 2011-03-24 22:33:17Z jansch $
+% $Id: ft_connectivityanalysis.m 3335 2011-04-14 12:03:39Z jansch $
 
 %ft_defaults
 
@@ -231,6 +233,12 @@ end
 
 % check whether the required inparam is present in the data
 if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inparam) && strcmp(inparam, 'crsspctrm'))),
+  if iscell(inparam)
+    % in the case of multiple inparams, use the first one to check the
+    % input data (e.g. checking for 'transfer' for requested granger)
+    inparam    = inparam{1};
+  end
+  
   switch dtype
     case {'freq' 'freqmvar'}
       if strcmp(inparam, 'crsspctrm')
@@ -250,6 +258,31 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         elseif isfield(data, 'fourierspctrm'),
           [data, powindx] = univariate2bivariate(data, 'fourierspctrm', 'powcovspctrm', dtype, 'demeanflag', strcmp(cfg.removemean,'yes'), 'cmb', cfg.channelcmb, 'sqrtflag', strcmp(cfg.method,'amplcorr'));
         end
+      elseif strcmp(inparam, 'transfer')
+        if isfield(data, 'fourierspctrm')
+          %FIXME this is fast but throws away the trial dimension, consider
+          %a way to keep trial information if needed, but use the fast way
+          %if possible
+          data = ft_checkdata(data, 'cmbrepresentation', 'fullfast');
+        elseif isfield(data, 'powspctrm')
+          data = ft_checkdata(data, 'cmbrepresentation', 'full');
+        end
+        cfg    = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
+        
+        % check whether multiple pairwise decomposition is required (this
+        % can most conveniently be handled at this level
+        if size(cfg.npsf.channelcmb,1) == numel(data.label)*(numel(data.label)+1)/2
+          cfg.channelcmb = cfg.npsf.channelcmb;
+          cfg.block      = cfg.npsf.block;
+          cfg.blockindx  = cfg.npsf.blockindx;
+          % FIXME 
+          cfg.npsf = rmfield(cfg.npsf, 'channelcmb');
+          cfg.npsf = rmfield(cfg.npsf, 'block');
+          cfg.npsf = rmfield(cfg.npsf, 'blockindx');
+        end
+        optarg = ft_cfg2keyval(cfg.npsf);
+        data   = csd2transfer(data, optarg{:});
+        inparam = {'transfer' 'noisecov' 'crsspctrm'};
       end
     case 'source'
       if strcmp(inparam, 'crsspctrm')
@@ -365,7 +398,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     outparam = 'cohspctrm';
     
   case 'csd'
@@ -382,8 +415,9 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     outparam = 'crsspctrm';
+    
   case {'wpli' 'wpli_debiased'}
     % weighted pli or debiased weighted phase lag index.
     tmpcfg                 = [];
@@ -391,12 +425,13 @@ switch cfg.method
     tmpcfg.dojack          = dojack;
     tmpcfg.debias          = debiaswpli;
     optarg                 = ft_cfg2keyval(tmpcfg);    
-    [datout, varout, nrpt] = ft_connectivity_wpli(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_wpli(data.(inparam), optarg{:});
     if debiaswpli
       outparam = 'wpli_debiasedspctrm'; 
     else
       outparam = 'wplispctrm';    
     end
+    
   case {'wppc' 'ppc'}
     % weighted pairwise phase consistency or pairwise phase consistency
     tmpcfg                 = [];
@@ -404,12 +439,13 @@ switch cfg.method
     tmpcfg.dojack          = dojack;
     tmpcfg.weighted        = weightppc;
     optarg                 = ft_cfg2keyval(tmpcfg);    
-    [datout, varout, nrpt] = ft_connectivity_ppc(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_ppc(data.(inparam), optarg{:});
     if weightppc
       outparam = 'wppcspctrm';     
     else
       outparam = 'ppcspctrm';
     end
+    
   case 'plv'
     % phase locking value
     
@@ -424,7 +460,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     outparam         = 'plvspctrm';
     
   case 'corr'
@@ -450,7 +486,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     outparam        = 'amplcorrspctrm';
     
   case 'powcorr'
@@ -470,7 +506,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     outparam        = 'powcorrspctrm';
     
   case 'granger'
@@ -579,7 +615,7 @@ switch cfg.method
       nrpt  = 1;
       datin = reshape(data.(inparam), [1 size(data.(inparam))]);
     end
-    [datout, varout, nrpt] = ft_connectivity_dtf(datin, optarg);
+    [datout, varout, nrpt] = ft_connectivity_dtf(datin, optarg{:});
     outparam = 'dtfspctrm';
     
   case 'pdc'
@@ -606,7 +642,7 @@ switch cfg.method
       datin = reshape(data.(inparam), [1 size(data.(inparam))]);
     end
     
-    [datout, varout, nrpt] = ft_connectivity_pdc(datin, optarg);
+    [datout, varout, nrpt] = ft_connectivity_pdc(datin, optarg{:});
     outparam = 'pdcspctrm';
     
   case 'psi'
@@ -622,7 +658,7 @@ switch cfg.method
     if exist('powindx', 'var'), tmpcfg.powindx     = powindx; end
     optarg             = ft_cfg2keyval(tmpcfg);
     
-    [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg);
+    [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg{:});
     outparam         = 'psispctrm';
     
   case 'di'
@@ -714,7 +750,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 3209 2011-03-24 22:33:17Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3335 2011-04-14 12:03:39Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -741,7 +777,7 @@ cfg.hasrpt  = hasrpt;
 cfg.hasjack = hasjack;
 optarg = ft_cfg2keyval(cfg);
 
-[c, v, n] = ft_connectivity_corr(input, optarg);
+[c, v, n] = ft_connectivity_corr(input, optarg{:});
 c = -log(1-c.^2);
 v = -log(1-v.^2); %FIXME this is probably not correct
 

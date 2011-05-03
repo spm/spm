@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 2973 2011-02-26 13:54:24Z jansch $
+% $Id: ft_read_mri.m 3327 2011-04-11 11:53:39Z jansch $
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = ft_hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/
@@ -50,11 +50,13 @@ end
 if ft_filetype(filename, 'ctf_mri')
   [img, hdr] = read_ctf_mri(filename);
   transform = hdr.transformMRI2Head;
+  coordsys  = 'ctf';
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ft_filetype(filename, 'ctf_mri4')
   [img, hdr] = read_ctf_mri4(filename);
   transform = hdr.transformMRI2Head;
+  coordsys  = 'ctf';
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif ft_filetype(filename, 'ctf_svl')
@@ -262,4 +264,7 @@ end
 try
   % try to add units
   mri = ft_convert_units(mri);
+end
+try
+  mri.coordsys = coordsys;
 end

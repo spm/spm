@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 3266 2011-04-04 07:02:06Z roboos $
+% $Id: ft_hastoolbox.m 3374 2011-04-22 12:29:23Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -99,6 +99,8 @@ url = {
   'SIMBIO'     'see https://www.mrt.uni-jena.de/simbio/index.php/Main_Page'
   'FNS'        'see http://hhvn.nmsu.edu/wiki/index.php/FNS'
   'GIFTI'      'see http://www.artefact.tk/software/matlab/gifti'
+  'XML4MATV2'  'see http://www.mathworks.com/matlabcentral/fileexchange/6268-xml4mat-v2-0'
+  'SQDPROJECT' 'see http://www.isr.umd.edu/Labs/CSSL/simonlab'
   };
 
 if nargin<2
@@ -222,6 +224,10 @@ switch toolbox
     status  = exist('ipm_linux_opt_Venant', 'file');
   case 'GIFTI'
     status  = exist('gifti', 'file');
+  case 'XML4MATV2'
+    status  = exist('xml2struct.m', 'file');
+  case 'SQDPROJECT'
+    status = exist('sqdread.m', 'file') && exist('sqdwrite.m', 'file');
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;
@@ -302,7 +308,11 @@ previouspath = path;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function status = myaddpath(toolbox, silent)
 if exist(toolbox, 'dir')
-  if ~silent, warning('adding %s toolbox to your Matlab path', toolbox); end
+  if ~silent, 
+    ws = warning('backtrace', 'off');
+    warning('adding %s toolbox to your Matlab path', toolbox); 
+    warning(ws); % return to the previous warning level
+  end
   addpath(toolbox);
   status = 1;
 else

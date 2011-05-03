@@ -38,7 +38,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 1920 2010-10-13 08:33:10Z jansch $
+% $Id: ft_plot_headshape.m 3287 2011-04-05 12:02:23Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -56,7 +56,9 @@ hs      = [];
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 pnt = headshape.pnt;
 bnd.pnt = pnt;

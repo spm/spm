@@ -58,7 +58,7 @@ end
 [nchan,ndatsample] = size(dat);
 
 % Determine fsample and set total time-length of data
-fsample = round(1/(time(2)-time(1)));
+fsample = 1/(time(2)-time(1));
 dattime = ndatsample / fsample; % total time in seconds of input data
 
 % Zero padding
@@ -128,10 +128,16 @@ for ifreqoi = 1:nfreqoi
       end
       
     case 'sine'
-      tap = sine_taper(timwinsample(ifreqoi), timwinsample(ifreqoi) .* (tapsmofrq(ifreqoi) ./ fsample))';
       % remove the last taper
       tap = tap(1:(end-1), :);
       
+    case 'sine_old'
+      % to provide compatibility with the tapers being scaled (which was default 
+      % behavior prior to 29apr2011) yet this gave different magnitude of power 
+      % when comparing with slepian multi tapers
+      tap = sine_taper_scaled(timwinsample(ifreqoi), timwinsample(ifreqoi) .* (tapsmofrq(ifreqoi) ./ fsample))';
+      tap = tap(1:(end-1), :); % remove the last taper
+  
     case 'alpha'
       tap = alpha_taper(timwinsample(ifreqoi), freqoi(ifreqoi)./ fsample)';
       tap = tap./norm(tap)';

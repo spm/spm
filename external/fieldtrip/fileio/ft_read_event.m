@@ -13,8 +13,10 @@ function [event] = ft_read_event(filename, varargin)
 %   'headerformat'  string
 %   'eventformat'   string
 %   'header'        structure, see FT_READ_HEADER
-%   'detectflank'   string, can be 'up', 'down' or 'both' (default = 'up')
+%   'detectflank'   string, can be 'up', 'down', 'both' or 'auto' (default is system specific)
 %   'trigshift'     integer, number of samples to shift from flank to detect trigger value (default = 0)
+%   'trigindx'      list with channel numbers for the trigger detection, only for Yokogawa (default is automatic)
+%   'threshold'     threshold for analog trigger channels (default is system specific)
 %
 % Furthermore, you can specify optional arguments as key-value pairs
 % for filtering the events, e.g. to select only events of a specific
@@ -80,7 +82,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 3241 2011-03-29 12:05:29Z roboos $
+% $Id: ft_read_event.m 3376 2011-04-22 12:45:14Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -105,9 +107,10 @@ eventformat      = keyval('eventformat',  varargin);
 hdr              = keyval('header',       varargin);
 detectflank      = keyval('detectflank',  varargin); % up, down or both
 trigshift        = keyval('trigshift',    varargin); % default is assigned in subfunction
-trigindx         = keyval('trigindx',     varargin); % default is based on chantype helper function
+trigindx         = keyval('trigindx',     varargin); % this allows to override the automatic trigger channel detection and is useful for Yokogawa
 headerformat     = keyval('headerformat', varargin);
 dataformat       = keyval('dataformat',   varargin);
+threshold        = keyval('threshold',    varargin); % this is used for analog channels
 
 % this allows to read only events in a certain range, supported for selected data formats only
 flt_type         = keyval('type',         varargin);
@@ -161,9 +164,9 @@ switch eventformat
 
   case {'4d' '4d_pdf', '4d_m4d', '4d_xyz'}
     if isempty(hdr)
-      hdr = ft_read_header(filename, 'headerformat', '4d');
+      hdr = ft_read_header(filename, 'headerformat', eventformat);
     end
-
+    
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && strcmp(hdr.orig.config_data.site_name, 'Glasgow'),
@@ -688,6 +691,73 @@ switch eventformat
             event(eventCount).value    =  char([CateNames{segHdr(segment,1)}(1:CatLengths(segHdr(segment,1)))]);
         end
     end;
+    
+  case 'egi_mff'
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+
+    % get event info from xml files
+    ft_hastoolbox('XML4MATV2', 1, 0);
+    warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
+    xmlfiles = dir( fullfile(filename, '*.xml'));
+    disp('reading xml files to obtain event info... This might take a while if many events/triggers are present')
+    for i = 1:numel(xmlfiles)
+      if strcmpi(xmlfiles(i).name(1:6), 'Events')
+        fieldname = xmlfiles(i).name(1:end-4);
+        filename_xml  = fullfile(filename, xmlfiles(i).name);
+        xml.(fieldname) = xml2struct(filename_xml);
+      end
+    end
+    warning('on', 'MATLAB:REGEXP:deprecated')
+
+    % construct info needed for FieldTrip Event
+    eventNames = fieldnames(xml);
+    begTime = hdr.orig.xml.info.recordTime;
+    begTime(11) = ' '; begTime(end-6:end) = [];
+    begSDV = datenum(begTime);
+    % find out if there are epochs in this dataset
+    if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+      Msamp2offset = zeros(2,size(hdr.orig.epochdef,1),1+max(hdr.orig.epochdef(:,2)-hdr.orig.epochdef(:,1)));
+      Msamp2offset(:) = NaN;
+      for iEpoch = 1:size(hdr.orig.epochdef,1)
+        nSampEpoch = hdr.orig.epochdef(iEpoch,2)-hdr.orig.epochdef(iEpoch,1)+1;
+        Msamp2offset(1,iEpoch,1:nSampEpoch) = hdr.orig.epochdef(iEpoch,1):hdr.orig.epochdef(iEpoch,2); %sample number in samples
+        Msamp2offset(2,iEpoch,1:nSampEpoch) = hdr.orig.epochdef(iEpoch,3):hdr.orig.epochdef(iEpoch,3)+nSampEpoch-1; %offset in samples
+      end
+    end
+
+    % construct event according to FieldTrip rules
+    eventCount = 0;
+    for iXml = 1:length(eventNames)
+      for iEvent = 1:length(xml.(eventNames{iXml}))
+        eventCount = eventCount+1;
+        eventTime  = xml.(eventNames{iXml})(iEvent).event.beginTime;
+        eventTime(11) = ' '; eventTime(end-6:end) = [];
+        eventSDV = datenum(eventTime);
+        eventOffset = round((eventSDV - begSDV)*24*60*60*hdr.Fs); %in samples
+        % eventSample   
+        if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+          for iEpoch = 1:size(hdr.orig.epochdef,1)
+            [dum,dum2,dum3] = intersect(squeeze(Msamp2offset(2,iEpoch,:)), eventOffset);
+            if ~isempty(dum2)
+              EpochNum = iEpoch;
+              SampIndex = dum2;
+            end
+          end
+          eventSample = Msamp2offset(1,EpochNum,SampIndex);
+        else
+          eventSample = eventOffset+1;
+        end
+
+        event(eventCount).type     = eventNames{iXml}(8:end);
+        event(eventCount).sample   = eventSample;
+        event(eventCount).offset   = eventOffset;
+        event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
+        event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
+      end
+    end
+
 
   case 'eyelink_asc'
     if isempty(hdr)
@@ -1228,11 +1298,27 @@ switch eventformat
     end
     % translate the event table into known FieldTrip event types
     for i=1:numel(hdr.orig.event)
-      event(i).type     = 'trigger';
-      event(i).sample   = hdr.orig.event(i).offset + 1; % +1 was in EEGLAB pop_loadcnt
-      event(i).value    = hdr.orig.event(i).stimtype;
-      event(i).offset   = 0;
-      event(i).duration = 0;
+      event(end+1).type     = 'trigger';
+      event(end  ).sample   = hdr.orig.event(i).offset + 1; % +1 was in EEGLAB pop_loadcnt
+      event(end  ).value    = hdr.orig.event(i).stimtype;
+      event(end  ).offset   = 0;
+      event(end  ).duration = 0;
+      
+      % the code above assumes that all events are stimulus triggers
+      % howevere, there are also interesting events possible, such as responses
+      if hdr.orig.event(i).stimtype~=0
+        event(end+1).type     = 'stimtype';
+        event(end  ).sample   = hdr.orig.event(i).offset + 1; % +1 was in EEGLAB pop_loadcnt
+        event(end  ).value    = hdr.orig.event(i).stimtype;
+        event(end  ).offset   = 0;
+        event(end ).duration  = 0;
+      elseif hdr.orig.event(i).keypad_accept~=0
+        event(end+1).type     = 'keypad_accept';
+        event(end  ).sample   = hdr.orig.event(i).offset + 1; % +1 was in EEGLAB pop_loadcnt
+        event(end  ).value    = hdr.orig.event(i).keypad_accept;
+        event(end  ).offset   = 0;
+        event(end  ).duration = 0;
+      end
     end
 
   case 'ns_eeg'
@@ -1241,7 +1327,8 @@ switch eventformat
     end
     for i=1:hdr.nTrials
       % the *.eeg file has a fixed trigger value for each trial
-      % furthermore each trial has the label 'accept' or 'reject'
+      % furthermore each trial has additional fields like accept, correct, response and rt
+      
       tmp = read_ns_eeg(filename, i);
       % create an event with the trigger value
       event(end+1).type     = 'trial';
@@ -1249,10 +1336,32 @@ switch eventformat
       event(end  ).value    = tmp.sweep.type;  % trigger value
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration =  hdr.nSamples;
+      
       % create an event with the boolean accept/reject code
       event(end+1).type     = 'accept';
       event(end  ).sample   = (i-1)*hdr.nSamples + 1;
       event(end  ).value    = tmp.sweep.accept;  % boolean value indicating accept/reject
+      event(end  ).offset   = -hdr.nSamplesPre;
+      event(end  ).duration =  hdr.nSamples;
+      
+      % create an event with the boolean accept/reject code
+      event(end+1).type     = 'correct';
+      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+      event(end  ).value    = tmp.sweep.correct;  % boolean value
+      event(end  ).offset   = -hdr.nSamplesPre;
+      event(end  ).duration =  hdr.nSamples;
+      
+      % create an event with the boolean accept/reject code
+      event(end+1).type     = 'response';
+      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+      event(end  ).value    = tmp.sweep.response;  % probably a boolean value
+      event(end  ).offset   = -hdr.nSamplesPre;
+      event(end  ).duration =  hdr.nSamples;
+      
+      % create an event with the boolean accept/reject code
+      event(end+1).type     = 'rt';
+      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+      event(end  ).value    = tmp.sweep.rt;  % time in seconds
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration =  hdr.nSamples;
     end
@@ -1263,8 +1372,13 @@ switch eventformat
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     % check that the required low-level toolbox is available
     ft_hastoolbox('yokogawa', 1);
-    % allow the user to specify custom trigger channels
-    event = read_yokogawa_event(filename, 'trigindx', trigindx);
+    % the user should be able to specify the analog threshold
+    % the user should be able to specify the trigger channels
+    % the user should be able to specify the flank, but the code falls back to 'auto' as default
+    if isempty(detectflank)
+      detectflank = 'auto';
+    end
+    event = read_yokogawa_event(filename, 'detectflank', detectflank, 'trigindx', trigindx, 'threshold', threshold);
 
   case 'nmc_archive_k'
     event = read_nmc_archive_k_event(filename);

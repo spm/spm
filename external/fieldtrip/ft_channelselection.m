@@ -1,4 +1,4 @@
-function [channel] = ft_channelselection(channel, datachannel)
+function [channel] = ft_channelselection(desired, datachannel)
 
 % FT_CHANNELSELECTION for EEG and MEG labels
 %
@@ -64,9 +64,18 @@ function [channel] = ft_channelselection(channel, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_channelselection.m 3418 2011-05-03 08:02:14Z jorhor $
+
+% this is to avoid a recursion loop
+persistent recursion 
+if isempty(recursion)
+  recursion = false;
+end
 
 ft_defaults
+
+% start with the list of desired channels, this will be pruned/expanded
+channel = desired;
 
 if length(datachannel)~=length(unique(datachannel))
   error('data with non-unique channel names is not supported');
@@ -159,10 +168,10 @@ switch ft_senstype(datachannel)
   case {'yokogawa', 'yokogawa160', 'yokogawa160_planar'}
     % Yokogawa axial gradiometers channels start with AG, hardware planar gradiometer 
     % channels start with PG, magnetometers start with M
-    megax =strncmp('AG', datachannel, length('AG'));
-    megpl =strncmp('PG', datachannel, length('PG'));
-    megmag =strncmp('M', datachannel, length('M'));
-    megind = logical( megax + megpl + megmag);
+    megax    = strncmp('AG', datachannel, length('AG'));
+    megpl    = strncmp('PG', datachannel, length('PG'));
+    megmag   = strncmp('M',  datachannel, length('M' ));
+    megind   = logical( megax + megpl + megmag);
     labelmeg = datachannel(megind);
   
   case {'ctf', 'ctf275', 'ctf151', 'ctf275_planar', 'ctf151_planar'}
@@ -369,6 +378,26 @@ end
 % remove channels that occur more than once, this sorts the channels alphabetically
 channel = unique(channel);
 
+if isempty(channel) && ~recursion
+  % try whether only lowercase channel labels makes a difference
+  recursion = true;
+  channel   = ft_channelselection(desired, lower(datachannel));
+  recursion = false;
+  % undo the conversion to lowercase, this sorts the channels alphabetically
+  [c, ia, ib] = intersect(channel, lower(datachannel));
+  channel = datachannel(ib);
+end
+
+if isempty(channel) && ~recursion
+  % try whether only uppercase channel labels makes a difference
+  recursion = true;
+  channel = ft_channelselection(desired, upper(datachannel));
+  recursion = false;
+  % undo the conversion to uppercase, this sorts the channels alphabetically
+  [c, ia, ib] = intersect(channel, lower(datachannel));
+  channel = datachannel(ib);
+end
+
 % undo the sorting, make the order identical to that of the data channels
-[dataindx, indx] = match_str(datachannel, channel);
+[tmp, indx] = match_str(datachannel, channel);
 channel = channel(indx);

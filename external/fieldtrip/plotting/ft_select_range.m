@@ -35,7 +35,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 2122 2010-11-17 11:53:53Z jansch $
+% $Id: ft_select_range.m 3389 2011-04-26 13:58:48Z vlalit $
 
 % get the optional arguments
 event    = keyval('event',    varargin);

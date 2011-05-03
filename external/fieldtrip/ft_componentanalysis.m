@@ -61,7 +61,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 3184 2011-03-22 11:23:40Z roboos $
+% $Id: ft_componentanalysis.m 3380 2011-04-22 16:09:35Z jansch $
 
 ft_defaults
 
@@ -438,7 +438,7 @@ if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra'))
   montage.labelorg = data.label;
   montage.labelnew = comp.label;
   montage.tra      = weights * sphere;
-  comp.(sensfield) = ft_apply_montage(data.(sensfield), montage);
+  comp.(sensfield) = ft_apply_montage(data.(sensfield), montage, 'balancename', 'comp');
 end
 
 % accessing this field here is needed for the configuration tracking
@@ -450,7 +450,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 3184 2011-03-22 11:23:40Z roboos $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 3380 2011-04-22 16:09:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

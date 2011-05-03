@@ -85,7 +85,7 @@ function [mri] = ft_volumerealign(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 3192 2011-03-23 02:32:13Z roboos $
+% $Id: ft_volumerealign.m 3279 2011-04-05 07:04:22Z jansch $
 
 ft_defaults
 
@@ -100,7 +100,7 @@ if ~isfield(cfg, 'clim'),      cfg.clim      = [];        end
 if ~isfield(cfg, 'inputfile'), cfg.inputfile = [];        end
 if ~isfield(cfg, 'outputfile'),cfg.outputfile = [];       end
 if ~isfield(cfg, 'coordsys') && (strcmp(cfg.method, 'interactive') || strcmp(cfg.method, 'fiducial'))
-  cfg.coordsys = 'ALS_CTF';
+  cfg.coordsys = 'ctf';
 end
 
 hasdata = (nargin>1);
@@ -296,7 +296,7 @@ elseif basedonmrk
   xzpoint= warp_apply(mri.transform, cfg.landmark.xzpoint);
   
   % compute the homogenous transformation matrix describing the new coordinate system
-  [realign, coordsys] = headcoordinates(ac, pc, xzpoint, 'RAS_TAL');
+  [realign, coordsys] = headcoordinates(ac, pc, xzpoint, 'spm');
   
 end
 
@@ -314,7 +314,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 3192 2011-03-23 02:32:13Z roboos $';
+cfg.version.id = '$Id: ft_volumerealign.m 3279 2011-04-05 07:04:22Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -17,7 +17,7 @@ function [varargout] = ft_plot_vector(varargin)
 %   'style'
 %   'label'
 %   'fontsize'
-%   'axis'          can be 'yes' or 'no'
+%   'axis'          can be 'yes', 'no', 'xy', 'x' or 'y'
 %   'box'           can be 'yes' or 'no'
 %   'highlight'
 %   'highlightstyle'
@@ -29,7 +29,7 @@ function [varargout] = ft_plot_vector(varargin)
 % Example use
 %   ft_plot_vector(randn(1,100), 'width', 1, 'height', 1, 'hpos', 0, 'vpos', 0)
 
-% Copyrights (C) 2009, Robert Oostenveld
+% Copyrights (C) 2009-2011, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -47,7 +47,7 @@ function [varargout] = ft_plot_vector(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vector.m 1815 2010-09-29 12:50:46Z crimic $
+% $Id: ft_plot_vector.m 3294 2011-04-05 15:03:17Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -68,8 +68,6 @@ else
 end
 
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'width', 'height', 'hlim', 'vlim', 'style', 'label', ...
-  'fontsize', 'axis', 'box','highlight','highlightstyle','color', 'linewidth','markersize','markerfacecolor'});
 hpos            = keyval('hpos',               varargin);
 vpos            = keyval('vpos',               varargin);
 width           = keyval('width',              varargin);
@@ -87,13 +85,22 @@ highlight       = keyval('highlight',          varargin);
 highlightstyle  = keyval('highlightstyle',     varargin); if isempty(highlightstyle),  highlightstyle = 'box';     end
 markersize      = keyval('markersize',         varargin); if isempty(markersize),      markersize = 6;             end
 markerfacecolor = keyval('markerfacecolor',    varargin); if isempty(markerfacecolor), markerfacecolor = 'none';   end
+
 % convert the yes/no strings into boolean values
-axis = istrue(axis);
 box  = istrue(box);
+
+% this should be a string, because valid options include yes, no, xy, x, y
+if isequal(axis, true)
+  axis = 'yes';
+elseif isequal(axis, false)
+  axis = 'no';
+end
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 if ischar(hlim)
   switch hlim
@@ -176,13 +183,17 @@ end
 
 
 if ~isempty(highlight)
+  if ~islogical(highlight)
+    if ~all(highlight==0 | highlight==1)
+      % only warn if really different from 0/1
+      warning('converting mask to logical values')
+    end
+    highlight=logical(highlight);
+  end
+  
   switch highlightstyle
     case 'box'
       % find the sample number where the highlight begins and ends
-      if ~islogical(highlight)
-        highlight=logical(highlight);
-        warning('converting mask to logical values')
-      end
       begsample = find(diff([0 highlight 0])== 1);
       endsample = find(diff([0 highlight 0])==-1)-1;
       for i=1:length(begsample)
@@ -198,10 +209,6 @@ if ~isempty(highlight)
       end
     case 'thickness'
       % find the sample number where the highligh begins and ends
-      if ~islogical(highlight)
-        highlight=logical(highlight);
-        warning('converting mask to logical values')
-      end
       begsample = find(diff([0 highlight 0])== 1);
       endsample = find(diff([0 highlight 0])==-1)-1;
       linecolor = get(h,'Color'); % get current line color
@@ -212,10 +219,6 @@ if ~isempty(highlight)
       end  
     case 'saturation'
       % find the sample number where the highligh begins and ends
-      if ~islogical(highlight)
-        highlight=logical(highlight);
-        warning('converting mask to logical values')
-      end
       highlight = ~highlight; % invert the mask
       begsample = find(diff([0 highlight 0])== 1);
       endsample = find(diff([0 highlight 0])==-1)-1;
@@ -272,22 +275,40 @@ if box
   % ft_plot_box(boxposition, 'hpos', hpos, 'vpos', vpos, 'width', width, 'height', height, 'hlim', hlim, 'vlim', vlim);
 end
 
-if axis
+if ~isempty(axis) && ~strcmp(axis, 'no')
+  switch axis
+    case {'yes' 'xy'}
+      xaxis = true;
+      yaxis = true;
+    case {'x'}
+      xaxis = true;
+      yaxis = false;
+    case {'y'}
+      xaxis = false;
+      yaxis = true;
+    otherwise
+      error('invalid specification of the "axis" option')
+  end
+
   % determine where the original [0, 0] in the data is located in the scaled and shifted axes
   x0 = interp1(hlim, hpos + [-width/2  width/2 ], 0, 'linear', 'extrap');
   y0 = interp1(vlim, vpos + [-height/2 height/2], 0, 'linear', 'extrap');
 
-  X = [hpos-width/2  hpos+width/2];
-  Y = [y0 y0];
-  ft_plot_line(X, Y);
-  % str = sprintf('%g', hlim(1)); ft_plot_text(X(1), Y(1), str);
-  % str = sprintf('%g', hlim(2)); ft_plot_text(X(2), Y(2), str);
+  if xaxis
+    X = [hpos-width/2  hpos+width/2];
+    Y = [y0 y0];
+    ft_plot_line(X, Y);
+    % str = sprintf('%g', hlim(1)); ft_plot_text(X(1), Y(1), str);
+    % str = sprintf('%g', hlim(2)); ft_plot_text(X(2), Y(2), str);
+  end
 
-  X = [x0 x0];
-  Y = [vpos-height/2 vpos+height/2];
-  ft_plot_line(X, Y);
-  % str = sprintf('%g', vlim(1)); ft_plot_text(X(1), Y(1), str);
-  % str = sprintf('%g', vlim(2)); ft_plot_text(X(2), Y(2), str);
+  if yaxis
+    X = [x0 x0];
+    Y = [vpos-height/2 vpos+height/2];
+    ft_plot_line(X, Y);
+    % str = sprintf('%g', vlim(1)); ft_plot_text(X(1), Y(1), str);
+    % str = sprintf('%g', vlim(2)); ft_plot_text(X(2), Y(2), str);
+  end
 end
 
 % the (optional) output is the handle

@@ -192,7 +192,7 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 3204 2011-03-23 19:53:15Z jansch $
+% $Id: ft_sourceanalysis.m 3363 2011-04-20 16:15:03Z sashae $
 
 ft_defaults
 
@@ -919,15 +919,14 @@ end % if freq or timelock data
 % clean up and collect the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if isfield(grid, 'xgrid')
-  % the dipoles are placed on a regular grid that is aligned with the carthesian axes
-  % copy the description of the grid axes
-  source.xgrid = grid.xgrid;
-  source.ygrid = grid.ygrid;
-  source.zgrid = grid.zgrid;
-  source.dim   = [length(source.xgrid) length(source.ygrid) length(source.zgrid)];
-else
-  source.dim   = [size(grid.pos,1) 1];
+if isfield(grid, 'dim')
+  % the source reconstruction was perfomed on a regular 3d volume, remember the dimensions of the volume
+  source.dim = grid.dim;
+end
+
+if isfield(grid, 'tri')
+  % the source reconstruction was perfomed on a tesselated cortical sheet, remember the triangles
+  source.tri = grid.tri;
 end
 
 if istimelock
@@ -1035,6 +1034,11 @@ if (strcmp(cfg.jackknife, 'yes') || strcmp(cfg.bootstrap, 'yes') || strcmp(cfg.p
   source.trial  = dip;
 end
 
+% remember the trialinfo
+if strcmp(cfg.keeptrials, 'yes') && isfield(data, 'trialinfo')
+  source.trialinfo = data.trialinfo;
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -1044,7 +1048,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 3204 2011-03-23 19:53:15Z jansch $';
+cfg.version.id = '$Id: ft_sourceanalysis.m 3363 2011-04-20 16:15:03Z sashae $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -39,7 +39,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 3267 2011-04-04 07:38:47Z jansch $
+% $Id: ft_plot_topo.m 3287 2011-04-05 12:02:23Z roboos $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -64,7 +64,9 @@ datmask       = keyval('datmask',      varargin);
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 chanX = chanX(:) * width  + hpos;
 chanY = chanY(:) * height + vpos;

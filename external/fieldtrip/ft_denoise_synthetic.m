@@ -40,7 +40,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_denoise_synthetic.m 3380 2011-04-22 16:09:35Z jansch $
 
 ft_defaults
 
@@ -83,7 +83,7 @@ desired = cfg.gradient;
 if ~strcmp(current, 'none')
   % first undo/invert the previously applied balancing
   try
-    current_montage = getfield(data.grad.balance, data.grad.balance.current);
+    current_montage = getfield(data.grad.balance, current);
   catch
     error('unknown balancing for input data');
   end
@@ -96,14 +96,14 @@ end % if
 if ~strcmp(desired, 'none')
   % then apply the desired balancing
   try
-    desired_montage = getfield(data.grad.balance, cfg.gradient);
+    desired_montage = getfield(data.grad.balance, desired);
   catch
     error('unknown balancing for input data');
   end
   fprintf('converting from "none" to "%s"\n', desired);
-  data.grad = ft_apply_montage(data.grad, desired_montage, 'keepunused', 'yes');
-  data      = ft_apply_montage(data     , desired_montage, 'keepunused', 'yes');
-  data.grad.balance.current = desired;
+  data.grad = ft_apply_montage(data.grad, desired_montage, 'keepunused', 'yes', 'balancename', desired);
+  data      = ft_apply_montage(data     , desired_montage, 'keepunused', 'yes', 'balancename', desired);
+  %data.grad.balance.current = desired;
 end % if
 
 % reorder the channels to stay close to the original ordering
@@ -119,7 +119,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_denoise_synthetic.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 3380 2011-04-22 16:09:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

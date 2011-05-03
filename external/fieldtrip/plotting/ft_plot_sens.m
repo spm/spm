@@ -33,7 +33,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 1810 2010-09-29 12:39:20Z crimic $
+% $Id: ft_plot_sens.m 3287 2011-04-05 12:02:23Z roboos $
 
 warning('on', 'MATLAB:divideByZero');
 
@@ -48,7 +48,9 @@ coil = istrue(coil);
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 if coil
   % simply plot the position of all coils

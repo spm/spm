@@ -174,7 +174,7 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 3081 2011-03-10 10:39:28Z jorhor $
+% $Id: ft_preprocessing.m 3416 2011-05-02 20:12:44Z roboos $
 
 ft_defaults
 
@@ -351,6 +351,24 @@ else
     end
   end
 
+  if ~isfield(cfg, 'trl')
+    % treat the data as continuous if possible, otherwise define all trials as indicated in the header
+    if strcmp(cfg.continuous, 'yes')
+      trl = zeros(1, 3);
+      trl(1,1) = 1;
+      trl(1,2) = hdr.nSamples*hdr.nTrials;
+      trl(1,3) = -hdr.nSamplesPre;
+    else
+      trl = zeros(hdr.nTrials, 3);
+      for i=1:hdr.nTrials
+        trl(i,1) = (i-1)*hdr.nSamples + 1;
+        trl(i,2) = (i  )*hdr.nSamples    ;
+        trl(i,3) = -hdr.nSamplesPre;
+      end
+    end
+    cfg.trl = trl;
+  end
+
   % this should be a cell array
   if ~iscell(cfg.channel) && ischar(cfg.channel)
     cfg.channel = {cfg.channel};
@@ -395,24 +413,6 @@ else
   else
     % no padding was requested
     padding = 0;
-  end
-
-  if ~isfield(cfg, 'trl')
-    % treat the data as continuous if possible, otherwise define all trials as indicated in the header
-    if strcmp(cfg.continuous, 'yes')
-      trl = zeros(1, 3);
-      trl(1,1) = 1;
-      trl(1,2) = hdr.nSamples*hdr.nTrials;
-      trl(1,3) = -hdr.nSamplesPre;
-    else
-      trl = zeros(hdr.nTrials, 3);
-      for i=1:hdr.nTrials
-        trl(i,1) = (i-1)*hdr.nSamples + 1;
-        trl(i,2) = (i  )*hdr.nSamples    ;
-        trl(i,3) = -hdr.nSamplesPre;
-      end
-    end
-    cfg.trl = trl;
   end
 
   if any(strmatch('reject',       fieldnames(cfg))) || ...
@@ -554,7 +554,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 3081 2011-03-10 10:39:28Z jorhor $';
+cfg.version.id   = '$Id: ft_preprocessing.m 3416 2011-05-02 20:12:44Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

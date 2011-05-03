@@ -51,14 +51,14 @@ function [c, v, n] = ft_connectivity_psi(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_psi.m 2688 2011-01-28 09:42:53Z roboos $
+% $Id: ft_connectivity_psi.m 3292 2011-04-05 14:36:34Z roboos $
 
-hasjack   = keyval('hasjack',   varargin{:}); if isempty(hasjack),  hasjack = 0; end
-feedback  = keyval('feedback',  varargin{:}); if isempty(feedback), feedback = 'none'; end
-dimord    = keyval('dimord',    varargin{:});
-powindx   = keyval('powindx',   varargin{:});
-normalize = keyval('normalize', varargin{:}); if isempty(normalize), normalize = 'no'; end
-nbin      = keyval('nbin',      varargin{:});
+hasjack   = keyval('hasjack',   varargin); if isempty(hasjack),  hasjack = 0; end
+feedback  = keyval('feedback',  varargin); if isempty(feedback), feedback = 'none'; end
+dimord    = keyval('dimord',    varargin);
+powindx   = keyval('powindx',   varargin);
+normalize = keyval('normalize', varargin); if isempty(normalize), normalize = 'no'; end
+nbin      = keyval('nbin',      varargin);
 
 if isempty(dimord)
   error('input parameters should contain a dimord');

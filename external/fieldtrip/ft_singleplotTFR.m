@@ -18,6 +18,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %                     or trials)
 % cfg.maskstyle     = style used to mask nans, 'opacity' or 'saturation' (default = 'opacity')
 %                     use 'saturation' when saving to vector-format (like *.eps) to avoid all sorts of image-problems
+% cfg.maskalpha     = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
 % cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
 % cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.zlim          = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
@@ -28,6 +29,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %                     see FT_CHANNELSELECTION for details
 % cfg.cohrefchannel = name of reference channel for visualising coherence, can be 'gui'
 % cfg.fontsize      = font size of title (default = 8)
+% cfg.hotkeys          = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
 % cfg.colormap      = any sized colormap, see COLORMAP
 % cfg.colorbar      = 'yes', 'no' (default = 'yes')
 % cfg.interactive   = Interactive plot 'yes' or 'no' (default = 'no')
@@ -62,7 +64,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 3147 2011-03-17 12:38:09Z jansch $
+% $Id: ft_singleplotTFR.m 3398 2011-04-27 15:50:25Z craric $
 
 ft_defaults
 
@@ -84,7 +86,9 @@ cfg.zlim          = ft_getopt(cfg, 'zlim',         'maxmin');
 cfg.fontsize      = ft_getopt(cfg, 'fontsize',     8);
 cfg.colorbar      = ft_getopt(cfg, 'colorbar',     'yes');
 cfg.interactive   = ft_getopt(cfg, 'interactive',  'no');
+cfg.hotkeys       = ft_getopt(cfg, 'hotkeys',      'no');
 cfg.renderer      = ft_getopt(cfg, 'renderer',     []);
+cfg.maskalpha     = ft_getopt(cfg, 'maskalpha',     1);
 cfg.maskparameter = ft_getopt(cfg, 'maskparameter',[]);
 cfg.maskstyle     = ft_getopt(cfg, 'maskstyle',    'opacity');
 cfg.channel       = ft_getopt(cfg, 'channel',      'all');
@@ -311,16 +315,35 @@ end
 
 if ~isempty(cfg.maskparameter)
   mask = data.(cfg.maskparameter);
-  if isfull
+  if isfull && cfg.maskalpha == 1
     mask = mask(sel1, sel2, ymin:ymax, xmin:xmax);
     mask = nanmean(mask, meandir);
     siz  = size(mask);
     mask = reshape(mask, [max(siz(1:2)) siz(3) siz(4)]);
     mask = reshape(mask(sellab, :, :), [siz(3) siz(4)]);
-  elseif haslabelcmb
+  elseif haslabelcmb && cfg.maskalpha == 1
     mask = mask(sellab, ymin:ymax, xmin:xmax);
-  else
+  elseif cfg.maskalpha == 1
     mask = mask(sellab, ymin:ymax, xmin:xmax);
+  elseif isfull && cfg.maskalpha ~= 1 %% check me
+    maskl = mask(sel1, sel2, ymin:ymax, xmin:xmax);
+    maskl = nanmean(maskl, meandir);
+    siz  = size(maskl);
+    maskl = reshape(maskl, [max(siz(1:2)) siz(3) siz(4)]);
+    maskl = squeeze(reshape(maskl(sellab, :, :), [siz(3) siz(4)]));
+    mask = zeros(size(maskl));
+    mask(maskl) = 1;
+    mask(~maskl) = cfg.maskalpha;
+  elseif haslabelcmb && cfg.maskalpha ~= 1
+    maskl = squeeze(mask(sellab, ymin:ymax, xmin:xmax));
+    mask = zeros(size(maskl));
+    mask(maskl) = 1;
+    mask(~maskl) = cfg.maskalpha;
+  elseif cfg.maskalpha ~= 1
+    maskl = squeeze(mask(sellab, ymin:ymax, xmin:xmax));
+    mask = zeros(size(maskl));
+    mask(maskl) = 1;
+    mask(~maskl) = cfg.maskalpha;
   end
 end
 siz        = size(dat);
@@ -348,12 +371,12 @@ end;
 
 % Draw plot (and mask NaN's if requested):
 if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
-  mask = ~isnan(datamatrix);
-  mask = double(mask);
+  nans_mask = ~isnan(datamatrix);
+  mask = double(nans_mask);
   ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
 elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
-  mask = ~isnan(datamatrix);
-  mask = mask .* mdata;
+  nans_mask = ~isnan(datamatrix);
+  mask = mask .* nans_mask;
   mask = double(mask);
   ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
 elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
@@ -364,9 +387,16 @@ else
 end
 hold on
 axis xy;
+set(gca,'Color','k')
 
 if isequal(cfg.colorbar,'yes')
   colorbar;
+end
+
+% Set adjust color axis
+if strcmp('yes',cfg.hotkeys)
+  %  Attach data and cfg to figure and attach a key listener to the figure
+  set(gcf, 'KeyPressFcn', {@key_sub, zmin, zmax})
 end
 
 % Make the figure interactive:
@@ -443,3 +473,19 @@ p = get(gcf, 'Position');
 f = figure;
 set(f, 'Position', p);
 ft_topoplotER(cfg, varargin{:});
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION which handles hot keys in the current plot
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function key_sub(handle, eventdata, varargin)
+incr = (max(caxis)-min(caxis)) /10;
+% symmetrically scale color bar down by 10 percent
+if strcmp(eventdata.Key,'uparrow')
+  caxis([min(caxis)-incr max(caxis)+incr]);
+% symmetrically scale color bar up by 10 percent
+elseif strcmp(eventdata.Key,'downarrow')
+  caxis([min(caxis)+incr max(caxis)-incr]);
+% resort to minmax of data for colorbar
+elseif strcmp(eventdata.Key,'m')
+  caxis([varargin{1} varargin{2}]);
+end

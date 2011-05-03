@@ -29,7 +29,7 @@ function [grad] = ctf2grad(hdr, dewar);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: ctf2grad.m 3387 2011-04-26 10:07:01Z jansch $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -247,7 +247,8 @@ elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
     grad.tra(i,i       ) = 1;
     grad.tra(i,i+numMEG) = 1;
   end
-
+  numMEGcoils = size(grad.pnt, 1);
+  
   % combine the coils of each reference channel
   for i=1:numREF
     n = selREF(i);
@@ -263,9 +264,9 @@ elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
     numcoils = sum(sum(pos.^2, 2)~=0);
     % add the coils of this channel to the gradiometer array
     for j=1:numcoils
-      grad.pnt(numMEG+i, :)     = pos(j,:);
-      grad.ori(numMEG+i, :)     = ori(j,:) .* -sign(hdr.gainV(n));
-      grad.tra(numMEG+i, 2*numMEG+i) = 1;
+      grad.pnt(numMEGcoils+i, :)     = pos(j,:);
+      grad.ori(numMEGcoils+i, :)     = ori(j,:) .* -sign(hdr.gainV(n));
+      grad.tra(numMEG+i, numMEGcoils+i) = 1;
     end
   end
 

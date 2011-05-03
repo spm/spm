@@ -141,7 +141,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 3179 2011-03-21 16:31:11Z craric $
+% $Id: ft_topoplotER.m 3291 2011-04-05 14:35:02Z roboos $
 
 ft_defaults
 
@@ -628,7 +628,7 @@ chanLabels = cfg.layout.label(sellay);
 % make datmask structure with one value for each channel
 if ~isempty(cfg.maskparameter)
     datmask = data.(cfg.maskparameter);
-    if min(size(datmask)) ~= 1 || max(size(datmask)) ~= length(data.label)
+    if numel(datmask) ~= length(data.label)
         error('data in cfg.maskparameter should be vector with one value per channel')
     end
     datmask = datmask(:);

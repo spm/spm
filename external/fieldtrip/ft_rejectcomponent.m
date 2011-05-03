@@ -49,7 +49,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_rejectcomponent.m 3380 2011-04-22 16:09:35Z jansch $
 
 ft_defaults
 
@@ -154,9 +154,7 @@ if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra'))
   else
     sensfield = 'elec';
   end
-  data.(sensfield).balance.component = montage;
-  data.(sensfield).balance.current   = 'component';
-  data.(sensfield) = ft_apply_montage(data.(sensfield), montage, 'keepunused', keepunused);
+  data.(sensfield) = ft_apply_montage(data.(sensfield), montage, 'keepunused', keepunused, 'balancename', 'invcomp');
 else
   %warning('the gradiometer description does not match the data anymore');
 end
@@ -170,7 +168,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration 
 cfg.version.name = mfilename('fullpath'); 
-cfg.version.id = '$Id: ft_rejectcomponent.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_rejectcomponent.m 3380 2011-04-22 16:09:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

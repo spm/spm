@@ -95,7 +95,7 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 3268 2011-04-04 11:05:07Z jansch $
+% $Id: ft_sourceinterpolate.m 3300 2011-04-06 07:24:20Z jansch $
 
 ft_defaults
 
@@ -266,10 +266,9 @@ elseif ~is2Dana && ~is2Dfun
   functional = ft_checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   
-  if ~strcmp(functional.unit, anatomical.unit)
-    fprintf('converting functional data from %s into %s\n', functional.unit, anatomical.unit);
-    functional = ft_convert_units(functional, anatomical.unit);
-  end
+  % ensure that the functional data has the same unit as the anatomical
+  % data
+  functional = ft_convert_units(functional, anatomical.unit);
   
   % select the parameters that should be interpolated
   cfg.parameter = parameterselection(cfg.parameter, functional);
@@ -396,7 +395,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceinterpolate.m 3268 2011-04-04 11:05:07Z jansch $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 3300 2011-04-06 07:24:20Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

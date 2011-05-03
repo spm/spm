@@ -51,7 +51,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 3249 2011-03-30 09:51:22Z johzum $
+% $Id: ft_plot_mesh.m 3287 2011-04-05 12:02:23Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -113,7 +113,9 @@ end
 
 % everything is added to the current figure
 holdflag = ishold;
-hold on
+if ~holdflag
+  hold on
+end
 
 if ~isfield(bnd, 'tri')
   bnd.tri = [];
