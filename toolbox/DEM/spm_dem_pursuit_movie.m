@@ -1,4 +1,4 @@
-function spm_dem_pursuit_movie(DEM)
+function spm_dem_pursuit_movie(DEM,c)
 % creates a movie of visual prusuit in extrinsic and intrinsic coordinates
 % FORMAT spm_dem_pursuit_movie(DEM)
 %
@@ -25,8 +25,12 @@ function spm_dem_pursuit_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_pursuit_movie.m 4170 2011-01-24 18:37:42Z karl $
- 
+% $Id: spm_dem_pursuit_movie.m 4322 2011-05-04 15:28:08Z karl $
+
+
+% check subplot specifier
+%--------------------------------------------------------------------------
+try, c; catch, c = 0; end
  
 % movie
 %--------------------------------------------------------------------------
@@ -39,9 +43,7 @@ for i = 1:N
     
     % stimulus and tracking in extrinsic coordinates
     %======================================================================
-    subplot(2,2,1), cla
-    axis image ij
-    hold on
+    subplot(2,2,1 + c), cla, axis image ij, hold on
     px  = spm_unvec(DEM.pU.x{1}(:,i),DEM.M(1).x);   % extrinsic target
     qx  = spm_unvec(DEM.qU.x{1}(:,i),DEM.M(1).x);   % conditional estimate
     
@@ -63,8 +65,7 @@ for i = 1:N
     
     % stimulus and tracking in intrinsic coordinates
     %======================================================================
-    subplot(2,2,2), cla
-    hold on
+    subplot(2,2,2 + c), cla, hold on
     pv  = DEM.pU.v{1}(:,i);   % intrinsic stimulus
     
     % target location
@@ -89,16 +90,16 @@ end
  
 % set ButtonDownFcn
 %--------------------------------------------------------------------------
-subplot(2,2,1)
+subplot(2,2,1 + c)
 set(gca,'Userdata',{Me,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('left click for movie','FontSize',16)
+title('Extrinsic (left click for movie)','FontSize',16)
 xlabel('displacement (cm)')
 hold off
  
-subplot(2,2,2)
+subplot(2,2,2 + c)
 set(gca,'Userdata',{Mi,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('left click for movie','FontSize',16)
+title('Intrinsic (left click for movie)','FontSize',16)
 xlabel('displacement (radians)')
 hold off

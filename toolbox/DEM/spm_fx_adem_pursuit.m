@@ -15,7 +15,7 @@ function [f]= spm_fx_adem_pursuit(x,v,a,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_pursuit.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: spm_fx_adem_pursuit.m 4322 2011-05-04 15:28:08Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
@@ -31,12 +31,10 @@ f.a  = spm_lotka_volterra(x.a,v);
  
 % target location is determined by the attractor state x.a
 %--------------------------------------------------------------------------
-n    = length(x.a);
-p    = exp(2*x.a);
-t    = P*p/sum(p);
-f.x  = (t - x.x)/8;
+t    = P*spm_softmax(x.a,1/2);
+f.x  = (t - x.x)/2;
  
  
 % motion of oculomotor angles (driven by bounded action)
 %==========================================================================
-f.o  = tanh(a) - x.o/64;
+f.o  = tanh(a) - x.o/16;
