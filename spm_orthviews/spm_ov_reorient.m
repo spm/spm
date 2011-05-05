@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4205 2011-02-21 15:39:08Z guillaume $
+% $Id: spm_ov_reorient.m 4323 2011-05-05 07:25:05Z volkmar $
 
-rev = '$Revision: 4205 $';
+rev = '$Revision: 4323 $';
 
 global st;
 if isempty(st)
@@ -216,7 +216,7 @@ switch cmd
     case 'reorient'
         prms=zeros(1,12);
         for k=1:9
-            prms(k) = str2double(get(st.vols{volhandle(1)}.reorient.e(k),'string'));
+            prms(k) = evalin('base',[get(st.vols{volhandle(1)}.reorient.e(k),'string') ';']);
         end;
         switch get(st.vols{volhandle(1)}.reorient.order, 'value')
             case 1,
