@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4291 2011-04-04 15:52:57Z john $
+% $Id: spm_dicom_convert.m 4324 2011-05-06 11:29:30Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -813,15 +813,25 @@ for i=1:length(hdr),
         disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
         guff = [guff(:)',hdr(i)];
     elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
-        disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
+       %disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
         if ~isfield(hdr{i},'SeriesNumber')
             disp('Setting SeriesNumber to 1');
             hdr{i}.SeriesNumber=1;
             images = [images(:)',hdr(i)];
         end;
         if ~isfield(hdr{i},'AcquisitionNumber')
-            disp('Setting AcquisitionNumber to 1');
-            hdr{i}.AcquisitionNumber=1;
+            if isfield(hdr{i},'Manufacturer') && ~isempty(strfind(upper(hdr{1}.Manufacturer), 'PHILIPS'))
+                % WHY DO PHILIPS DO THINGS LIKE THIS????
+                if isfield(hdr{i},'InstanceNumber')
+                     hdr{i}.AcquisitionNumber = hdr{i}.InstanceNumber;
+                else
+                     disp('Setting AcquisitionNumber to 1');
+                     hdr{i}.AcquisitionNumber=1;
+                end
+             else
+                disp('Setting AcquisitionNumber to 1');
+                hdr{i}.AcquisitionNumber=1;
+             end
             images = [images(:)',hdr(i)];
         end;
         if ~isfield(hdr{i},'InstanceNumber')
