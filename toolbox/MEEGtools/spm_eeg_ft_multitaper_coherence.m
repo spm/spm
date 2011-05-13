@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 3761 2010-03-08 17:01:49Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 4326 2011-05-13 14:13:17Z vladimir $
 
 %%
-SVNrev = '$Rev: 3761 $';
+SVNrev = '$Rev: 4326 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -206,7 +206,7 @@ Dcoh = timeonset(Dcoh, freq.time(1));
 [ok, Dcoh] = check(Dcoh);
 
 if robust && savew
-    Dw = clone(D, ['WCOH' fnamedat(D)], [np length(freq.freq) 3*length(freq.time) D.ntrials]);
+    Dw = clone(Dcoh, ['WCOH' fnamedat(D)], [np length(freq.freq) 3*length(freq.time) D.ntrials]);
     Dw = frequencies(Dw, freq.freq);
     Dw = fsample(Dw, 1./mean(diff(freq.time)));
     Dw = timeonset(Dw, freq.time(1));

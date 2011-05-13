@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 3903 2010-05-28 09:39:13Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 4326 2011-05-13 14:13:17Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -84,13 +84,27 @@ hanning.labels = {'yes', 'no'};
 hanning.values = {1, 0};
 hanning.val = {1};
 
-priors  = cfg_files;
+priorsmask  = cfg_files;
+priorsmask.tag = 'priorsmask';
+priorsmask.name = 'Priors file';
+priorsmask.filter = '(.*\.gii$)|(.*\.mat$)|(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
+priorsmask.num = [0 1];
+priorsmask.help = {'Select a mask or a mat file with priors.'};
+priorsmask.val = {{''}};
+
+space = cfg_menu;
+space.tag = 'space';
+space.name = 'Prior image space';
+space.help = {'Space of the mask image.'};
+space.labels = {'MNI', 'Native'};
+space.values = {1, 0};
+space.val = {1};
+
+priors = cfg_branch;
 priors.tag = 'priors';
 priors.name = 'Source priors';
-priors.filter = '(.*\.gii$)|(.*\.mat$)|(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
-priors.num = [1 1];
-priors.help = {'Select a mask or a mat file with priors.'};
-priors.val = {''};
+priors.help = {'Restrict solutions to pre-specified VOIs'};
+priors.val  = {priorsmask, space};
 
 locs  = cfg_entry;
 locs.tag = 'locs';
@@ -167,8 +181,8 @@ if isfield(job.isstandard, 'custom')
     inverse.lpf  =  fix(min(job.isstandard.custom.foi));
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
     
-    if ~isempty(job.isstandard.custom.priors)
-        P = job.isstandard.custom.priors;
+    P = char(job.isstandard.custom.priors.priorsmask);
+    if ~isempty(P)        
         [p,f,e] = fileparts(P);
         switch lower(e)
             case '.gii'
@@ -183,6 +197,7 @@ if isfield(job.isstandard, 'custom')
             case {'.img', '.nii'}
                 S.D = D;
                 S.fmri = P;
+                S.space = job.isstandard.custom.priors.space;
                 D = spm_eeg_inv_fmripriors(S);
                 inverse.fmri = D.inv{D.val}.inverse.fmri;
                 load(inverse.fmri.priors);

@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_extract_ui(varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_extract_ui.m 4260 2011-03-23 13:42:21Z vladimir $
+% $Id: spm_eeg_inv_extract_ui.m 4326 2011-05-13 14:13:17Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ if ~isempty(Ds)
     clf(Fgraph)
     figure(Fgraph)
     
-    cl = D.condlist;
+    cl = Ds.condlist;
     
     for i = 1:numel(cl)
         if i == con
