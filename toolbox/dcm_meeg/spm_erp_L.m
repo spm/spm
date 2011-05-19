@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 4327 2011-05-15 17:51:49Z rosalyn $
+% $Id: spm_erp_L.m 4328 2011-05-19 09:02:21Z rosalyn $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -103,7 +103,7 @@ switch type
         catch
             n = m;
         end
-       L     = sparse(1:m,1:m,P.L,m,n);
+       L     = sparse(1:m,1:m,exp(P.L),m,n);
 
     otherwise
         warndlg('unknown spatial model')
