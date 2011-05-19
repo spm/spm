@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4303 2011-04-12 15:23:15Z vladimir $
+% $Id: checkmeeg.m 4329 2011-05-19 20:54:36Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -201,7 +201,9 @@ else
         disp('checkmeeg: data file name missing');
         return;
     else
-        [junk, fnamedat, ext] = fileparts(meegstruct.data.fnamedat);
+        fname = meegstruct.data.fnamedat;
+        if ~ispc, fname = strrep(fname,'\',filesep); end
+        [junk, fnamedat, ext] = fileparts(fname);
         if isempty(ext)
             meegstruct.data.fnamedat = [fnamedat '.dat'];
         else
@@ -220,8 +222,13 @@ else
     if isa(meegstruct.data.y, 'file_array')
         % catching up (unlikely case) where filearray.fname is
         % different from data.fnamedat -> set data.fnamedat
-        [junk, yfname, yext] = fileparts(meegstruct.data.y.fname);
-        [junk, dfname, dext] = fileparts(meegstruct.data.fnamedat);
+        fname = meegstruct.data.y.fname;
+        if ~ispc, fname = strrep(fname,'\',filesep); end
+        [junk, yfname, yext] = fileparts(fname);
+        
+        fnamedat = meegstruct.data.fnamedat;
+        if ~ispc, fnamedat = strrep(fnamedat,'\',filesep); end
+        [junk, dfname, dext] = fileparts(fnamedat);
         if ~strcmp([yfname yext],[dfname dext])
             meegstruct.data.fnamedat = [yfname yext];
         end
@@ -236,8 +243,10 @@ else
         end
     end
     
+    fn = meegstruct.data.y.fname;
+    if ~ispc, fn = strrep(fn,'\',filesep); end
     if ~isa(meegstruct.data.y, 'file_array') ...
-            || isempty(fileparts(meegstruct.data.y.fname)) ...
+            || isempty(fileparts(fn)) ...
             || ~exist(meegstruct.data.y.fname, 'file')
         if isfield(meegstruct, 'path')
             filepath = meegstruct.path;
@@ -318,7 +327,9 @@ if ~isfield(meegstruct, 'type') ||...
 end
 
 try
-    [pdat, fdat] = fileparts(meegstruct.data.y.fname);
+    fname = meegstruct.data.y.fname;
+    if ~ispc, fname = strrep(fname,'\',filesep); end
+    [pdat, fdat] = fileparts(fname);
 catch
     fdat = 'spm8';
 end
@@ -326,7 +337,9 @@ end
 if ~isfield(meegstruct, 'fname')
     meegstruct.fname = [fdat '.mat'];
 else
-    [p, f] = fileparts(meegstruct.fname);
+    fname = meegstruct.fname;
+    if ~ispc, fname = strrep(fname,'\',filesep); end
+    [p, f] = fileparts(fname);
     if isempty(f)
         f = fdat;
     end
@@ -335,7 +348,9 @@ end
 
 if ~isfield(meegstruct, 'path')
     try
-        meegstruct.path = fileparts(meegstruct.data.y.fname);
+        fname = meegstruct.data.y.fname;
+        if ~ispc, fname = strrep(fname,'\',filesep); end
+        meegstruct.path = fileparts(fname);
     catch
         meegstruct.path = pwd;
     end

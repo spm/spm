@@ -5,7 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 4040 2010-08-20 23:25:46Z vladimir $
+% $Id: badchannels.m 4329 2011-05-19 20:54:36Z christophe $
 
 
 
@@ -18,7 +18,7 @@ end
 
 if numel(varargin) >= 1  && ~isempty(varargin{1})  
     if ~(all(varargin{1} >= 1) && all(varargin{1} <= nchannels(this)))
-        error('Channel number of out range.');
+        error('Channel number out of range.');
     end
 end
 
