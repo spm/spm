@@ -21,6 +21,13 @@ function varargout = spm_orthviews(action,varargin)
 %            of a view)
 % with no arguments - puts things into mm space
 %
+% FORMAT H = spm_orthviews('Caption', handle, string, [Property, Value])
+% handle   - the view to which a caption should be added
+% string   - the caption text to add
+% optional:  Property-Value pairs, e.g. 'FontWeight', 'Bold'
+%
+% H        - the handle to the object whose String property has the caption
+%
 % FORMAT spm_orthviews('BB',bb)
 % bb       - bounding box
 %            [loX loY loZ
@@ -82,6 +89,9 @@ function varargout = spm_orthviews(action,varargin)
 % This method only adds one set of blobs, and displays them using a
 % split colour table.
 %
+% FORMAT spm_orthviews('setblobsmax', vn, bn, mx)
+% Set maximum value for blobs overlay number bn of view number vn to mx.
+%
 % FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour,name)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
@@ -142,7 +152,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4276 2011-03-31 11:25:34Z spm $
+% $Id: spm_orthviews.m 4330 2011-05-23 18:04:16Z ged $
 
 
 % The basic fields of st are:
@@ -265,6 +275,28 @@ switch lower(action)
         mmcentre     = mean(st.Space*[maxbb';1 1],2)';
         st.centre    = mmcentre(1:3);
         redraw_all
+
+    case 'caption'
+        vh = valid_handles(varargin{1});
+        nh = numel(vh);
+        
+        xlh = nan(nh, 1);
+        for i = 1:nh
+            xlh(i) = get(st.vols{vh(i)}.ax{3}.ax, 'XLabel');
+            if iscell(varargin{2})
+                if i <= length(varargin{2})
+                    set(xlh(i), 'String', varargin{2}{i});
+                end
+            else
+                set(xlh(i), 'String', varargin{2});
+            end
+            for np = 4:2:nargin
+                property = varargin{np-1};
+                value = varargin{np};
+                set(xlh(i), property, value);
+            end
+        end
+        varargout{1} = xlh;
         
     case 'bb',
         if ~isempty(varargin) && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end
@@ -369,6 +401,10 @@ switch lower(action)
     case 'addblobs',
         addblobs(varargin{:});
         % redraw(varargin{1});
+        
+    case 'setblobsmax'
+        st.vols{varargin{1}}.blobs{varargin{2}}.max = varargin{3};
+        spm_orthviews('redraw')
         
     case 'addcolouredblobs',
         addcolouredblobs(varargin{:});
