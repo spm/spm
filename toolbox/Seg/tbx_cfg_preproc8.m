@@ -4,7 +4,7 @@ function preproc8 = tbx_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_preproc8.m 4221 2011-03-01 20:22:52Z guillaume $
+% $Id: tbx_cfg_preproc8.m 4334 2011-05-31 16:39:53Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
@@ -254,6 +254,16 @@ end
 tissues.help = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using toolbox/Seg/TPM.nii).'};
 
 % ---------------------------------------------------------------------
+% mrf MRF Parameter
+% ---------------------------------------------------------------------
+mrf         = cfg_entry;
+mrf.tag     = 'mrf';
+mrf.name    = 'MRF Parameter';
+mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov Random Field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
+mrf.strtype = 'e';
+mrf.num     = [1 1];
+mrf.val     = {2};
+% ---------------------------------------------------------------------
 % reg Warping Regularisation
 % ---------------------------------------------------------------------
 reg         = cfg_entry;
@@ -324,8 +334,8 @@ write.val    = {[0 0]};
 % ---------------------------------------------------------------------
 warp         = cfg_branch;
 warp.tag     = 'warp';
-warp.name    = 'Warping';
-warp.val     = {reg affreg samp write };
+warp.name    = 'Warping & MRF';
+warp.val     = {mrf reg affreg samp write };
 warp.help    = {
 'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'};
 % ---------------------------------------------------------------------

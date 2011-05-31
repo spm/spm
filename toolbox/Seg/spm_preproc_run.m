@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4221 2011-03-01 20:22:52Z guillaume $
+% $Id: spm_preproc_run.m 4334 2011-05-31 16:39:53Z john $
 
 if nargin == 1, arg = 'run'; end
 
@@ -112,13 +112,13 @@ for iter=1:nit,
             tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
             tmp2 =  cat(1,job.channel(:).write);
             tmp3 = job.warp.write;
-            spm_preproc_write8(res,tmp1,tmp2,tmp3);
+            spm_preproc_write8(res,tmp1,tmp2,tmp3,job.warp.mrf);
         else
             % Not the final iteration, so compute sufficient statistics for
             % re-estimating the template data.
             N    = numel(job.channel);
             K    = numel(job.tissue);
-            cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0]);
+            cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0],job.warp.mrf);
             for k=1:K,
                 SS(:,:,:,k) = SS(:,:,:,k) + cls{k};
             end

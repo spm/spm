@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 3992 2010-07-13 11:57:17Z volkmar $
+% $Id: spm_dicom_headers.m 4334 2011-05-31 16:39:53Z john $
 
 if nargin<2, essentials = false; end
 
@@ -121,10 +121,12 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                     case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
                         %warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
                         flg = 'eb'; % Unused
-                    case {'1.2.840.10008.1.2.4.70'}  % JPEG Lossless Explicit VR
+                    case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51','1.2.840.10008.1.2.4.70',...
+                          '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'}, % JPEG Explicit VR
                         flg = 'el';
                         %warning(['Cant read JPEG Encoded file "' fopen(fp) '".']);
                     otherwise,
+                        flg = 'el';
                         warning(['Unknown Transfer Syntax UID for "' fopen(fp) '".']);
                         return;
                 end;
@@ -197,9 +199,11 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
                         tag.length = len1;
                     otherwise,
                         dat = '';
-                        fseek(fp,tag.length,'cof');
-                        warning(['Unknown VR [' num2str(tag.vr+0) '] in "'...
-                            fopen(fp) '" (offset=' num2str(ftell(fp)) ').']);
+                        if tag.length
+                            fseek(fp,tag.length,'cof');
+                            warning(['Unknown VR [' num2str(tag.vr+0) '] in "'...
+                                fopen(fp) '" (offset=' num2str(ftell(fp)) ').']);
+                        end
                 end;
                 if ~isempty(tag.name),
                     ret.(tag.name) = dat;
@@ -210,6 +214,8 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.lengt
     if len>=lim, return; end;
     tag = read_tag(fp,flg,dict);
 end;
+
+
 if ~isempty(tag),
     len = len + tag.le;
 
@@ -243,8 +249,11 @@ while len<lim,
     if (tag.group == 65534) && (tag.element == 57344), % FFFE/E000
         [Item,len1] = read_dicom(fp, flg, dict, tag.length);
         len    = len + len1;
-        n      = n + 1;
-        ret{n} = Item;
+        if ~isempty(Item)
+            n      = n + 1;
+            ret{n} = Item;
+        else
+        end
     elseif (tag.group == 65279) && (tag.element == 224), % FEFF/00E0
         % Byte-swapped
         [fname,perm,fmt] = fopen(fp);
@@ -321,9 +330,16 @@ if flg(1) =='e',
             if (tag.group == 65534) && (tag.element == 57357)
                 % at least on GE, ItemDeliminationItem does not have a
                 % VR, but 4 bytes zeroes as length
+                tag.vr    = 'UN';
                 tag.le    = 8;
                 tag.length = 0;
                 tmp = fread(fp,1,'ushort');
+            elseif (tag.group == 65534) && (tag.element == 57565)
+                % SequenceDelimitationItem - NOT ENTIRELY HAPPY WITH THIS
+                double(fread(fp,1,'uint'));
+                tag.vr     = 'UN';
+                tag.length = 0;
+                tag.le     = tag.le + 6;
             else
                 warning('Don''t know how to handle VR of ''\0\0''');
             end;
@@ -336,6 +352,7 @@ else
     tag.le =  8;
     tag.length = double(fread(fp,1,'uint'));
 end;
+
 if isempty(tag.vr) || isempty(tag.length),
     tag = [];
     return;

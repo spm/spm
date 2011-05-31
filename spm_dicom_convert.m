@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4324 2011-05-06 11:29:30Z john $
+% $Id: spm_dicom_convert.m 4334 2011-05-31 16:39:53Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -921,20 +921,27 @@ if fp==-1,
     return;
 end;
 
-if isfield(hdr,'TransferSyntaxUID') && strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.4.70')
-    % try to read PixelData as JPEG image - offset is just a guess
-    offset = 16;
-    fseek(fp,hdr.StartOfPixelData+offset,'bof');
-    img = fread(fp,Inf,'*uint8');
-    % save PixelData into temp file - imread and its subroutines can only
-    % read from file, not from memory
-    tfile = tempname;
-    tfp = fopen(tfile,'w+');
-    fwrite(tfp,img,'uint8');
-    fclose(tfp);
-    % read decompressed data, transpose to match DICOM row/column order
-    img = imread(tfile)';
-    delete(tfile);
+if isfield(hdr,'TransferSyntaxUID')
+    switch(hdr.TransferSyntaxUID)
+    case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51','1.2.840.10008.1.2.4.70',...
+          '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'},
+        % try to read PixelData as JPEG image - offset is just a guess
+        offset = 16;
+        fseek(fp,hdr.StartOfPixelData+offset,'bof');
+        img = fread(fp,Inf,'*uint8');
+        % save PixelData into temp file - imread and its subroutines can only
+        % read from file, not from memory
+        tfile = tempname;
+        tfp = fopen(tfile,'w+');
+        fwrite(tfp,img,'uint8');
+        fclose(tfp);
+        % read decompressed data, transpose to match DICOM row/column order
+        img = imread(tfile)';
+        delete(tfile);
+    otherwise
+        fseek(fp,hdr.StartOfPixelData,'bof');
+        img = fread(fp,hdr.Rows*hdr.Columns,prec);
+    end
 else
     fseek(fp,hdr.StartOfPixelData,'bof');
     img = fread(fp,hdr.Rows*hdr.Columns,prec);
@@ -1218,7 +1225,7 @@ if hdr.HighBit>16
         dt  = [spm_type('uint32') be];
     end
 else
-    if hdr.PixelRepresentation
+    if hdr.PixelRepresentation || hdr.HighBit<=15
         dt  = [spm_type( 'int16') be];
     else
         dt  = [spm_type('uint16') be];
