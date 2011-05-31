@@ -29,7 +29,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 3414 2011-05-02 20:05:59Z roboos $
+% $Id: ft_chantype.m 3530 2011-05-12 14:15:17Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -403,20 +403,28 @@ end
 if all(strcmp(type, 'unknown')) && ~recursion
   % try whether only lowercase channel labels makes a difference
   if islabel
+    recursion = true;
     type = ft_chantype(lower(input));
+    recursion = false;
   elseif isfield(input, 'label')
     input.label = lower(input.label);
+    recursion = true;
     type = ft_chantype(input);
+    recursion = false;
   end
 end
 
 if all(strcmp(type, 'unknown')) && ~recursion
   % try whether only uppercase channel labels makes a difference
   if islabel
+    recursion = true;
     type = ft_chantype(upper(input));
+    recursion = false;
   elseif isfield(input, 'label')
     input.label = upper(input.label);
+    recursion = true;
     type = ft_chantype(input);
+    recursion = false;
   end
 end  
 
