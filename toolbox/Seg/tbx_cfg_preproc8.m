@@ -4,7 +4,7 @@ function preproc8 = tbx_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_preproc8.m 4334 2011-05-31 16:39:53Z john $
+% $Id: tbx_cfg_preproc8.m 4337 2011-05-31 16:59:44Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
@@ -262,7 +262,7 @@ mrf.name    = 'MRF Parameter';
 mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov Random Field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
 mrf.strtype = 'e';
 mrf.num     = [1 1];
-mrf.val     = {2};
+mrf.val     = {0}; % {2};
 % ---------------------------------------------------------------------
 % reg Warping Regularisation
 % ---------------------------------------------------------------------

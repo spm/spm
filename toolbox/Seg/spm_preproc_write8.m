@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4334 2011-05-31 16:39:53Z john $
+% $Id: spm_preproc_write8.m 4337 2011-05-31 16:59:44Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -204,14 +204,23 @@ if do_cls
     end
     if mrf~=0, nmrf_its = 10; else nmrf_its = 1; end
 
-    spm_progress_bar('init',nmrf_its,['MRF: Working on ' nam],'Iterations completed');
-    G   = ones([Kb,1],'single')*mrf;
-    vx2 = single(sum(res.image(1).mat(1:3,1:3).^2));
-%   save PQG P Q G tiss Kb x3 ind
-    for iter=1:nmrf_its,
-        spm_mrf(P,Q,G,vx2);
-        spm_progress_bar('set',iter);
+    if mrf==0, % Done this way as spm_mrf is not compiled for all platforms yet
+        sQ = (sum(Q,4)+eps)/255;
+        for k1=1:size(Q,4)
+            P(:,:,:,k1) = uint8(round(Q(:,:,:,k1)./sQ));
+        end
+        clear sQ
+    else
+        spm_progress_bar('init',nmrf_its,['MRF: Working on ' nam],'Iterations completed');
+        G   = ones([Kb,1],'single')*mrf;
+        vx2 = single(sum(res.image(1).mat(1:3,1:3).^2));
+        %save PQG P Q G tiss Kb x3 ind
+        for iter=1:nmrf_its,
+            spm_mrf(P,Q,G,vx2);
+            spm_progress_bar('set',iter);
+        end
     end
+
     clear Q
 
     for k1=1:Kb,
