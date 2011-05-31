@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_L_priors.m 4335 2011-05-31 16:49:16Z rosalyn $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ switch type
     case{'LFP'}
         %------------------------------------------------------------------
         pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
-        pE.L    = sparse(1,m);   pC.L    = ones(1,m)/16;  % gains
+        pE.L    = sparse(1,m);   pC.L    = ones(1,m)*16;  % gains
         
     otherwise
         warndlg('Unknown spatial model')
@@ -87,7 +87,7 @@ switch model
     
     case{'ERP','SEP'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1 7 9],[0.2 0.8 0.6],1,9);       % 9 states
+        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);       % 9 states
         pC.J = pE.J/16;
         
     case{'CMC'}
