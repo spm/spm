@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 3724 2010-02-16 12:16:57Z vladimir $
+% $Id: spm_eeg_convert2images.m 4340 2011-06-02 13:15:31Z vladimir $
 
-SVNrev = '$Rev: 3724 $';
+SVNrev = '$Rev: 4340 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ if strncmpi(D.transformtype, 'TF',2)
     
     %-Average over channels or frequencies?
     %----------------------------------------------------------------------
-    try        
+    try
         images.fmt = S.images.fmt;
     catch
         spm_input('average over ...', 1, 'd')
@@ -84,12 +84,12 @@ if strncmpi(D.transformtype, 'TF',2)
         images.fmt   = Ctype{Sel};
         S.images.fmt = images.fmt;
     end
-
+    
     switch images.fmt
         %-Average over channels
         %------------------------------------------------------------------
         case {'channels'}
-
+            
             %-Select channels
             %--------------------------------------------------------------
             try
@@ -109,7 +109,7 @@ if strncmpi(D.transformtype, 'TF',2)
                 end
                 S.images.elecs = images.channels_of_interest;
             end
-
+            
             %-Attribute a region number to those channels
             %--------------------------------------------------------------
             try
@@ -123,7 +123,7 @@ if strncmpi(D.transformtype, 'TF',2)
                     images.Nregion = 1;
                 end
             end
-
+            
             %-Convert to NIfTI images
             %--------------------------------------------------------------
             cl  = D.condlist;
@@ -132,29 +132,29 @@ if strncmpi(D.transformtype, 'TF',2)
                 warning('Irregular frequency spacing.');
             end
             
-  %-Make output directory for each dataset
-  %--------------------------------------------------------------------------
+            %-Make output directory for each dataset
+            %--------------------------------------------------------------------------
             [P, F] = fileparts(S.D);
             if isempty(P), P = pwd; end
             [sts, msg] = mkdir(P, F);
             if ~sts, error(msg); end
             P  = fullfile(P, F);
-
+            
             Pout = cell(1, D.nconditions);
             for i = 1 : D.nconditions
-                Itrials = pickconditions(D, cl{i}, 1)';                
+                Itrials = pickconditions(D, cl{i}, 1)';
                 
                 Pout{i} = {};
                 
-  %-Make subdirectory for each condition
-  %--------------------------------------------------------------------------
+                %-Make subdirectory for each condition
+                %--------------------------------------------------------------------------
                 dname = sprintf('%dROI_TF_trialtype_%s', images.Nregion, cl{i});
                 [sts, msg] = mkdir(P, dname);
                 if ~sts, error(msg); end
                 dname = fullfile(P, dname);
-
+                
                 for l = Itrials(:)'
-
+                    
                     if strcmp(D.type, 'single')
                         % single trial data
                         fname = sprintf('trial%04d.img', l);
@@ -165,7 +165,7 @@ if strncmpi(D.transformtype, 'TF',2)
                     fname = fullfile(dname,fname);
                     
                     Pout{i} = [Pout{i}, {fname}];
-
+                    
                     N     = nifti;
                     dat   = file_array(fname, [D.nfrequencies D.nsamples], 'FLOAT64-LE');
                     N.dat = dat;
@@ -178,7 +178,7 @@ if strncmpi(D.transformtype, 'TF',2)
                     N.mat(2,4) = N.mat(2,4) - N.mat(2,2);
                     N.mat_intent = 'Aligned';
                     create(N);
-
+                    
                     if ~isempty(strmatch('MEG', D.chantype(images.channels_of_interest))) &&...
                             isempty(strmatch('fT', D.units(images.channels_of_interest))) && ...
                             isempty(strmatch('dB', D.units(images.channels_of_interest))) && ...
@@ -189,15 +189,15 @@ if strncmpi(D.transformtype, 'TF',2)
                     end
                     
                     N.dat(:, :) = scale*spm_squeeze(mean(D(images.channels_of_interest, :, :, l), 1), 1);
-
+                    
                 end
                 Pout{i} = char(Pout{i});
             end
-
-        %-Average over frequency
-        %------------------------------------------------------------------
+            
+            %-Average over frequency
+            %------------------------------------------------------------------
         case {'frequency'}
-
+            
             %-Select frequency window
             %--------------------------------------------------------------
             try
@@ -216,11 +216,19 @@ if strncmpi(D.transformtype, 'TF',2)
                 end
                 S.images.freqs = images.Frequency_window;
             end
-
-            % This is a slightly ugly fix for the problem of very small
-            % power values for MEG (in T^2). 
-            megchanind = strmatch('MEG', D.chantype);
+            
+            
+            megchanind = D.meegchannels('MEG');
             nonmegchanind = setdiff(1:D.nchannels, megchanind);
+            
+            if ~isempty(megchanind) &&...
+                    isempty(strmatch('fT', D.units(megchanind))) && ...
+                    isempty(strmatch('dB', D.units(megchanind))) && ...
+                    isempty(strmatch('%', D.units(megchanind)))
+                scale = 1e30;
+            else
+                scale = 1;
+            end
             
             %-Generate new dataset with averaged data over frequency window
             %--------------------------------------------------------------
@@ -229,58 +237,54 @@ if strncmpi(D.transformtype, 'TF',2)
             
             if isfield(S.images,'t_win')
                 % Only extract time points in specified window
-                tims=time(D);
-                if S.images.t_win(1) < tims(1) || S.images.t_win(2) > tims(end)
-                    disp('Error: Impossible specification of time extraction window');
-                    disp(S.images.t_win);
-                    return;
-                end
-                tind=find(tims > S.images.t_win(1) & tims < S.images.t_win(2));
-                Nind=length(tind);
-                Dnew = clone(D, fnamedat, [D.nchannels Nind D.ntrials]);
-                
-                if ~isempty(megchanind)
-                    Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        1e30*spm_squeeze(mean(D(megchanind, inds, tind(1):tind(end), :), 2), 2);
-                end
-                if ~isempty(nonmegchanind)
-                    Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        spm_squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2), 2);
-                end
-                
-                Dnew = timeonset(Dnew, tims(tind(1)));
+                t_win = S.images.t_win;
             else
-                Dnew = clone(D, fnamedat, [D.nchannels D.nsamples D.ntrials]);
-                if ~isempty(megchanind)
-                    Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        1e30*spm_squeeze(mean(D(megchanind, inds, :, :), 2), 2);
-                end
-                if ~isempty(nonmegchanind)
-                    Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
-                        spm_squeeze(mean(D(nonmegchanind, inds, :, :), 2), 2);
-                end
+                t_win = [D.time(1) D.time(end)];
             end
-                        
+            
+            
+            if t_win(1) < D.time(1) || t_win(2) > D.time(end)
+                disp('Error: Impossible specification of time extraction window');
+                disp(t_win);
+                return;
+            end
+            
+            tind = D.indsample(t_win(1)): D.indsample(t_win(2));
+            Nind=length(tind);
+            Dnew = clone(D, fnamedat, [D.nchannels Nind D.ntrials]);
+            
+            if ~isempty(megchanind)
+                Dnew(megchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                    scale*spm_squeeze(mean(D(megchanind, inds, tind(1):tind(end), :), 2), 2);
+            end
+            if ~isempty(nonmegchanind)
+                Dnew(nonmegchanind, 1:Dnew.nsamples, 1:Dnew.ntrials) = ...
+                    spm_squeeze(mean(D(nonmegchanind, inds, tind(1):tind(end), :), 2), 2);
+            end
+            
+            Dnew = timeonset(Dnew, D.time(tind(1)));
+            
+            
             Dnew = transformtype(Dnew, 'time');
             
             if ~isempty(megchanind)
                 Dnew = units(Dnew, megchanind, 'fT^2');
             end
-
+            
             save(Dnew);
-
+            
             %-Convert that dataset into images
             %--------------------------------------------------------------
             S.Fname = fullfile(Dnew.path, Dnew.fname);
             [S, Pout] = spm_eeg_convert2scalp(S);
-
-        %-Otherwise...
-        %------------------------------------------------------------------
+            
+            %-Otherwise...
+            %------------------------------------------------------------------
         otherwise
             error('Unknown dimension to average over.');
     end
 else
-
+    
     %-Time Epoched data
     %======================================================================
     S.Fname = fullfile(D.path, D.fname);
