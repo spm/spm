@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_pursuit.m 4322 2011-05-04 15:28:08Z karl $
+% $Id: ADEM_pursuit.m 4339 2011-06-02 13:04:49Z karl $
  
  
 % hidden causes and states
@@ -67,7 +67,7 @@ M(1).W   = exp(8);                            % error precision
 M(1).pE  = P;
  
  
-% level 2: not used
+% level 2:
 %--------------------------------------------------------------------------
 M(2).v  = 0;                                  % inputs
 M(2).V  = exp(2);

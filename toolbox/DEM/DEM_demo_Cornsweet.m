@@ -11,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: DEM_demo_Cornsweet.m 4339 2011-06-02 13:04:49Z karl $
  
  
 % Illustrate the Cornsweet effect
@@ -59,7 +59,7 @@ P.I     = spm_dctmtx(nx,3);                 % DCT for hidden causes
 P.I     = P.I/diag(max(P.I));
 nr      = size(P.R,2);
 ni      = size(P.I,2);
-W       = log2(nx./sum(P.R > 0))*3;         % scale of reflectance
+W       = log2(nx./sum(P.R > 0))*4;         % scale of reflectance
 W(1)    = 16;
  
  
@@ -67,7 +67,7 @@ W(1)    = 16;
 %--------------------------------------------------------------------------
 x       = sparse(nr,1);
 v       = sparse(ni + nr,1);
-v(1)    = -4;
+v(1)    = -1;
 ii      = (1:ni);
 ir      = (1:nr) + ni;
  
@@ -78,7 +78,7 @@ M(1).g  = inline('exp(P.R*x + P.I*v(1:3))','x','v','P');
 M(1).pE = P;                                % The prior expectation
 M(1).x  = x;                                % The prior expectation
 M(1).V  = exp(6);                           % error precision (data)
-M(1).W  = exp(12);                          % error precision (motion)
+M(1).W  = exp(10);                          % error precision (motion)
 M(1).xP = diag(exp(W));                     % error precision (motion)
  
 % level 2
@@ -174,7 +174,7 @@ drawnow
  
 % Cycle over different levels of visual precision (cf contrast)
 %==========================================================================
-C   = -2:2:16;
+C   = -2:12;
 for i = 1:length(C)
     
     % Change precision (contrast) and invert
@@ -192,9 +192,7 @@ for i = 1:length(C)
  
 end
  
- 
- 
- 
+
  
 % show Cornsweet effect as a function of precision (contrast)
 %--------------------------------------------------------------------------
@@ -219,7 +217,7 @@ spm_axis tight square
 % and associated percepts
 %--------------------------------------------------------------------------
 colormap([1:255]'*[1 1 1]/255)
-j     = [1 3 6];
+j     = [1 5 11];
 nj    = length(j);
 for i = 1:nj
    
@@ -300,7 +298,6 @@ sim.Vmb    = v2;              % conditional dispersion of mach band effect
  
 % add emprical contrasts that were used
 %--------------------------------------------------------------------------
-
 sim.Con_cs = cornsweet.cornsweet;
 sim.Con_mb = mach.machContrast;
 G.sim      = sim;     % place in model
@@ -335,9 +332,31 @@ G.hC = exp(-4);               % prior covariance of log-precisions
 %--------------------------------------------------------------------------
 [Ep,Cp,Ce] = spm_nlsi_GN(G,[],Y);
 spm_cornsweet(Ep,G,Y)
- 
+
+
+
+
 return
- 
+
+% plot behavioural results alone.
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+SE   = cornsweet.error;
+errorbar(cornsweet.cornsweet,cornsweet.stepMatch,SE/2)
+xlabel('empirical contrast','Fontsize',12)
+ylabel('reported contrast','Fontsize',12)
+title('Cornsweet','Fontsize',16)
+set(gca,'XLim',[0 .15]);
+axis square
+
+subplot(2,2,2)
+SE   = mach.error;
+errorbar(mach.machContrast,mach.pSeeMach,SE/2)
+xlabel('empirical contrast','Fontsize',12)
+ylabel('report probability','Fontsize',12)
+title('Mach Bands','Fontsize',16)
+set(gca,'XLim',[0 .15]);
+axis square
  
 % Ancillary code for producing figures:
 %==========================================================================

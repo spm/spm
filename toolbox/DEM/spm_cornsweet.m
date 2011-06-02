@@ -10,7 +10,7 @@ function [y] = spm_cornsweet(P,M,U)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cornsweet.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: spm_cornsweet.m 4339 2011-06-02 13:04:49Z karl $
  
  
 % get variables
@@ -82,8 +82,8 @@ pr     = (tanh((p - 1/2)*P.sen) + 1)/2;
 %--------------------------------------------------------------------------
 simcon = scale*exp(P.sig*sim.Con);
 con    = scale*exp(P.sig*    Con);
-p       = 0:1/64:1;
-pp      = (tanh((p - 1/2)*P.sen) + 1)/2;
+p      = 0:1/64:1;
+pp     = (tanh((p - 1/2)*P.sen) + 1)/2;
  
 subplot(2,2,1)
 plot(con,cs,simcon,css,'r.',sim.Con_cs,y{1},'b.',sim.Con_cs,U.y{1},'k.','MarkerSize',16)
@@ -106,12 +106,14 @@ semilogy(Con,con)
 xlabel('simulated contrast','Fontsize',12)
 ylabel('empirical contrast','Fontsize',12)
 title('Contrast mapping','Fontsize',16)
+set(gca,'XLim',[-2 8]);
 axis square
  
 subplot(2,2,4)
 plot(p,pp)
-xlabel('posterior confidnce','Fontsize',12)
-ylabel('response prabbalaity','Fontsize',12)
+xlabel('posterior confidence','Fontsize',12)
+ylabel('response probability','Fontsize',12)
 title('Response mapping','Fontsize',16)
 axis square
+
 

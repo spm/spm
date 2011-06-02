@@ -1,19 +1,19 @@
 % Demo applying the Laplace scheme to DCM with hidden states
 %__________________________________________________________________________
-% This routine demonstrates Generalised filtering for a DCM (Dynamic Causal
-% Model) of fMRI respsosnes using simulated data. This is an endogenous 
+% This routine demonstrates Generalized filtering for a DCM (Dynamic Causal
+% Model) of fMRI responses using simulated data. This is an endogenous 
 % DCM in that there are no exogenous inputs. The demonstration specifies 
 % and inverts a full connectivity model and then illustrates post-hoc model
-% optimisation to recover (discover) the true architecture. It concludes 
+% optimization to recover (discover) the true architecture. It concludes 
 % with an automatic model optimization in terms of the prior variances over
 % coupling parameters.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: DEM_demo_DCM_LAP.m 4339 2011-06-02 13:04:49Z karl $
  
-% Specify a DCM to generte synthetic data
+% Specify a DCM to generate synthetic data
 %==========================================================================
 clear
  
@@ -182,7 +182,7 @@ axis square
 % -------------------------------------------------------------------------
 spm_figure('Getwin','Figure 3'); clf
  
-% Automatic model selection (optimising prior variances on parameters)
+% Automatic model selection (optimizing prior variances on parameters)
 % =========================================================================
 [rE,rC]   = spm_dcm_optimise(qE,qC,pE,pC);
 rA        = spm_unvec(diag(rC),pE);
@@ -200,6 +200,3 @@ title('optmised priors','FontSize',16)
 xlabel('source','FontSize',12)
 ylabel('target','FontSize',12)
 axis square
- 
-
-
