@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_mip_ui.m 4341 2011-06-03 11:24:02Z john $
 
 
 %==========================================================================
@@ -168,7 +168,7 @@ CXYZ = [091 127 073];
 % DMIP = [DXYZ(2)+DXYZ(1), DXYZ(1)+DXYZ(3)];
 %-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij' + rot90)
 % Transverse: [Po(1), Po(2)]
-% Saggital  : [Po(1), Po(3)]
+% Sagittal  : [Po(1), Po(3)]
 % Coronal   : [Po(4), Po(3)]
 % 4 voxel offsets in Y since using character '<' as a pointer.
 Po(1)  =                  CXYZ(2) -2;

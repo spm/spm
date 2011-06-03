@@ -53,9 +53,9 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_surf.m 4341 2011-06-03 11:24:02Z john $
 
-SVNrev = '$Rev: 4185 $';
+SVNrev = '$Rev: 4341 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');
@@ -188,8 +188,8 @@ linfun('Rendering: ');
 
 linfun('Rendering: Transverse 1..'); rend{1} = make_struct(V,[pi 0 pi/2]);
 linfun('Rendering: Transverse 2..'); rend{2} = make_struct(V,[0 0 pi/2]);
-linfun('Rendering: Saggital 1..');   rend{3} = make_struct(V,[0 pi/2 pi]);
-linfun('Rendering: Saggital 2..');   rend{4} = make_struct(V,[0 pi/2 0]);
+linfun('Rendering: Sagittal 1..');   rend{3} = make_struct(V,[0 pi/2 pi]);
+linfun('Rendering: Sagittal 2..');   rend{4} = make_struct(V,[0 pi/2 0]);
 linfun('Rendering: Coronal 1..');    rend{5} = make_struct(V,[pi/2 pi/2 0]);
 linfun('Rendering: Coronal 2..');    rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
