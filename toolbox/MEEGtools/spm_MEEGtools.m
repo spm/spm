@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 4286 2011-04-04 13:35:04Z vladimir $
+% $Id: spm_MEEGtools.m 4342 2011-06-06 12:44:56Z vladimir $
 
 
 funlist = {
@@ -12,6 +12,7 @@ funlist = {
     'Transform EEG cap', 'spm_eeg_transform_cap';
     'Re-reference EEG', 'spm_eeg_reref_eeg';
     'Split conditions into separate datasets', 'spm_eeg_split_conditions';
+    'Estimate multiple DCMs', 'spm_dcm_estimate_group';
     'Fieldtrip interactive plotting', 'spm_eeg_plot_interactive';
     'Fieldtrip visual artefact rejection', 'spm_eeg_ft_artefact_visual';
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
