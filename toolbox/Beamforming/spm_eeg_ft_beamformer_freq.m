@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 4315 2011-04-26 13:56:07Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 4345 2011-06-07 16:48:49Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -126,9 +126,8 @@ if isempty(ind)
     return;
 end
 %%
-data = D.ftraw(0); 
-data.trial = data.trial(ind);
-data.time =  data.time(ind);
+data = D.fttimelock; 
+data.trial = data.trial(ind, :, :);
 %%
 if ~isfield(S, 'freqrange')
     if ~(isfield(S, 'centerfreq') && isfield(S, 'tapsmofrq'))
@@ -142,8 +141,6 @@ else
 end
 
 cfg = [];
-cfg.keeptrials = 'yes';
-cfg.channel    = [channel; refchan];
 %%
 if ~isfield(S, 'timewindows')
     for i = 1:spm_input('Number of time windows:', '+1', 'r', '1', 1)
@@ -152,8 +149,7 @@ if ~isfield(S, 'timewindows')
 end
 
 for i = 1:numel(S.timewindows)
-    cfg.latency = S.timewindows{i};
-    timelock{i} = ft_timelockanalysis(cfg,data);
+    timelock{i} = ft_selectdata(data, 'channel', [channel; refchan], 'toilim', S.timewindows{i}, 'avgoverrpt', 'no');
 end
 
 %%
