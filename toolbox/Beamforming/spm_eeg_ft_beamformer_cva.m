@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4217 2011-02-25 14:04:49Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4343 2011-06-07 14:46:22Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -112,6 +112,15 @@ if ~isfield(S,'return_weights')
     alllf=[];
 end
 
+if ~isfield(S,'compUV')
+    S.compUV=[];
+end; % if 
+
+if isempty(S.compUV),
+    S.compUV=0;
+end;
+
+
 if ~isfield(S,'Niter')
     S.Niter=[];
 end; % if 
@@ -188,12 +197,6 @@ end;
 
 
 
-% if ~isempty(S.weightspect),
-%         if Nbands>1,
-%             error('cannot weight spectra for more than one freqband');
-%         end; % if 
-% end; % if
-
 if ~isfield(S,'gridpos'),
     if ~isfield(S,'gridstep');
     S.gridstep = spm_input('Grid step (mm):', '+1', 'r', '5');
@@ -241,34 +244,11 @@ if isempty(S.regpc),
     S.regpc=0;
 end; % if
 
-%% READ IN JUST THE DATA WE need
-%% ASSUME THAT INPUT IS AS FOLLOWS
-%% a list of trial types and latency ranges for 2 conditions/periods (active and
-%% rest for now)
-%% each condition has an associated time window which must of equal sizes
-%% SO will have
-%% a list of trial indices and latencies, a list of trial types of the same
-%% length
-
-try
-    data = D.ftraw; %% convert to field trip format- direct memory map 
-catch
-    disp('failed to read data directly.. going slowly');
-   data = D.ftraw(0); %% convert to field trip format - file pointers
-end; 
-%% Check latencies are same here
 
 %% now read in the first trial of data just to get sizes of variables right
-cfg=[];
-cfg.keeptrials='no';
-cfg.trials=1; 
-
-
 Ntrials=size(S.design.X,1);
-cfg.latency=[S.design.Xstartlatencies(1) S.design.Xstartlatencies(1)+S.design.Xwindowduration];
-
-subdata=ft_timelockanalysis(cfg,data); 
-Nsamples=length(subdata.time);
+Isamples = D.indsample([S.design.Xstartlatencies(1) S.design.Xstartlatencies(1)+S.design.Xwindowduration]);
+Nsamples= diff(Isamples)+1;
 %channel_labels = D.chanlabels(D.meegchannels(modality));
 Nchans=length(channel_labels);
 dfe=Ntrials-rank(X);
@@ -309,32 +289,33 @@ end;
 [uniquewindows]=unique(S.design.Xstartlatencies);
 Nwindows=length(uniquewindows);
     
-    
+%% GET DATA- put each trial in allepochdata in same order as design matrix (i.e. remove dependence on Xtrials and Xstartlatencies)
+%TtofT=1e15; %% tesla to femto tesla 
+%disp('rescaling from tesla to fT !!');
+TtofT=1; %% tesla to femto tesla - turned off
+%disp('rescaling from tesla to fT !!');
 for i=1:Nwindows,     %% puts trials into epoch data according to order of design.X structures
-    winstart=uniquewindows(i); %% window start
-    cfg=[];
-    cfg.keeptrials='yes';
-    cfg.channel=channel_labels;
-    cfg.feedback='off';
-    useind=find(winstart==S.design.Xstartlatencies); %% indices into design.X structures
-    cfg.trials=S.design.Xtrials(useind); %% trials starting at these times
-    cfg.latency=[winstart winstart+S.design.Xwindowduration];
-    subdata=ft_timelockanalysis(cfg,data); % subset of original data
-    allepochdata(useind,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
+    Isamples = D.indsample([uniquewindows(i) uniquewindows(i)+S.design.Xwindowduration]);
+     useind=find(uniquewindows(i)==S.design.Xstartlatencies);
+    Itrials =S.design.Xtrials(useind); %% indices into design.X structures
+    allepochdata(useind,:,:)=permute(TtofT.*squeeze(D(D.indchannel(channel_labels), Isamples(1):Isamples(2), Itrials)), [3 1 2]); %% get an epoch of data with channels in columns
 end; % for i
-% 
-% for i=1:Nwindows,
+
+%  Was this- before cfg.latency was removed from ft_timelockanalysis
+% TtofT=1e15; %% tesla to femto tesla 
+% disp('rescaling from tesla to fT !!');
+% for i=1:Nwindows,     %% puts trials into epoch data according to order of design.X structures
 %     winstart=uniquewindows(i); %% window start
 %     cfg=[];
 %     cfg.keeptrials='yes';
 %     cfg.channel=channel_labels;
 %     cfg.feedback='off';
-%     cfg.trials=S.design.Xtrials(find(winstart==S.design.Xstartlatencies)); %% trials starting at these times
+%     useind=find(winstart==S.design.Xstartlatencies); %% indices into design.X structures
+%     cfg.trials=S.design.Xtrials(useind); %% trials starting at these times
 %     cfg.latency=[winstart winstart+S.design.Xwindowduration];
 %     subdata=ft_timelockanalysis(cfg,data); % subset of original data
-%     allepochdata(cfg.trials,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
+%     allepochdata(useind,:,:)=TtofT.*squeeze(subdata.trial); %% get an epoch of data with channels in columns
 % end; % for i
-
 
 for i=1:Ntrials, %% read in all individual trial types
     epochdata=squeeze(allepochdata(i,:,:))'; %% get an epoch of data with channels in columns
@@ -565,7 +546,7 @@ end; % for i
   disp(sprintf('largest/smallest eigenvalue=%3.2f',allsvd(1)/allsvd(end)));
   disp(sprintf('\nFrequency resolution %3.2fHz',mean(diff(fHz))));
   noise = allsvd(end); %% use smallest eigenvalue
-  redNfeatures=Nfeatures;
+  redNfeatures=[Nfeatures*2 Nfeatures]; %% NB major change
   
   if S.dimauto, %% only do this flag set
     if nmodes99<redNfeatures,
@@ -575,13 +556,19 @@ end; % for i
    end; % if S.dimauto
     
     if length(freq_indtest)<redNfeatures,    
-        disp(sprintf('reducing number of features to match bandwidth (from %d to %d) !!',redNfeatures,length(freq_indtest)));
-        redNfeatures=length(freq_indtest);
+        disp(sprintf('reducing number of  power features to match bandwidth (from %d to %d) !!',redNfeatures(2),length(freq_indtest)));
+        redNfeatures(2)=length(freq_indtest);
+    end;
+  if length(freq_indtest)<redNfeatures*2,    % more features in evoked case
+        disp(sprintf('reducing number of evoked features to match bandwidth (from %d to %d) !!',redNfeatures(1),2*length(freq_indtest)));
+        redNfeatures(1)=2*length(freq_indtest);
     end;
   
-    
+  if S.compUV
+      disp('Computing a pseudo stat based on UV estimate of covariance between signals');
+  end;
   disp(sprintf('covariance band from %3.2f to %3.2fHz (%d bins), test band %s (%d bins)',fHz(freq_ind(1)),fHz(freq_ind(end)),length(freq_ind),freq_teststr,length(freq_indtest)))
-  disp(sprintf('Using %d features',redNfeatures));
+  disp(sprintf('Using %d and %d features for power and amplitude tests respectively',redNfeatures(2),redNfeatures(1)));
     
   
   
@@ -612,9 +599,6 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
   
   
     for i=1:length(maskedgrid_inside_ind), %% 81
-        %disp('gridpoint')
-        %i
-        %length(maskedgrid_inside_ind)
         lf=cell2mat(grid.leadfield(grid.inside(maskedgrid_inside_ind(i))));
         
         %% get optimal orientation- direct copy from Robert's beamformer_lcmv.m
@@ -625,10 +609,6 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         else
             eta=S.gridori(grid.inside(maskedgrid_inside_ind(i)),:)';
         end;
-%         if i==80,
-%             disp('FIXING ORIENTATION AT SOURCE LOCATION !!')
-%             eta=[0.9513    0.1621         0]';
-%             end; % if i
         lf  = lf * eta; %% now have got the lead field at this voxel, compute some contrast
        
         weights=(lf'*cinv*lf)\lf'*cinv; %% no regularisation for now
@@ -642,8 +622,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         end;
         
         stats(fband).ctf_weights(maskedgrid_inside_ind(i),:)=weights;
-        alllf(maskedgrid_inside_ind(i),:)=lf;
-        
+        alllf(maskedgrid_inside_ind(i),:)=lf;        
         
         for j=1:Ntrials, %% this non-linear step (power estimation) has to be done at each location
             fdata=squeeze(fftnewdata(j,freq_indtest,:));
@@ -662,38 +641,29 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         
         
 
-        for power_flag=0:1,
-            if power_flag,
+      for power_flag=0:1,
+         if power_flag,
                 Yfull=power_trial;
             else
                 Yfull=[real(evoked_trial), imag(evoked_trial)]; %% split into sin and cos parts 
             end; % if power_fla
-        Y     = Yfull - X0*(X0'*Yfull); %% eg remove DC level or drift terms from all of Y
-        [u s v] = spm_svd(Y,-1,-1); % ,1/4);              %% get largest variance in Y   -1s make sure nothing is removed
-            %% reduce dimensions to Nfeatures
-        thresh=s(redNfeatures,redNfeatures);
-        if redNfeatures==length(freq_indtest),
-            thresh=0;
-            end;
-      
-          [u,s,v]=svd(Y'*Y); %% reduce dimensions of useful signal
-       %   U=u(1:redNfeatur es,:);
-          U=u(:,1:redNfeatures); %% IMPORTANT ?
-          Y   = Y*U;
-          if S.write_epochs,
-            nfact=normweights.^(power_flag+1); %% normalise for amplitude or power
-            allY(i,:,power_flag+1)=Y./nfact; %% normalise the Ys by the depth
-            
-            end;
+            Y     = Yfull - X0*(X0'*Yfull); %% eg remove DC level or drift terms from all of Y
+        %[u s v] = spm_svd(Y,-1,-1); % ,1/4);              %% get largest variance in Y   -1s make sure nothing is removed
+       
+        %% reduce dimensions to Nfeatures
+        [u,s,v]=svd(Y'*Y); %% reduce dimensions of useful signal
+         
+        U=u(:,1:redNfeatures(power_flag+1)); 
+        Y   = Y*U;
+        if S.write_epochs,
+          nfact=normweights.^(power_flag+1); %% normalise for amplitude or power
+          allY(i,:,power_flag+1)=Y./nfact; %% normalise the Ys by the depth
+          end;
         
-  %% NOTE TSTAT COMPUTED Y BEFORE DIMENSION REDUCTION- COMPARISON ONLY VALID WHEN Y
-  %% and YFULL have same dimensionality
-  %% compare with hotellings
         
        %% Now permute the rows of X if necessary
         for iter=1:S.Niter,
-        
-            
+                  
         X=Xdesign(randind(iter,:),:); %% randind(1,:)=1, i.e. unpermuted
         
         if boot>1, %% have to also shuffle design matrix with data in bootstrap
@@ -702,7 +672,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             end;
             
   
-              %-Canonical Variates Analysis
+        %-Canonical Variates Analysis
     %   ==========================================================================
     % remove null space of contrast
      %--------------------------------------------------------------------------
@@ -719,7 +689,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             tstat(maskedgrid_inside_ind(i),power_flag+1,iter)=B./SE;
             Ftstat=(B./SE).^2;
         end; % if TWOSAMPLETEST
-    
+        
         
         [n,b] = size(X);                       
         [n,m] = size(Y); %% n is number of epochs, m is number of features
@@ -727,14 +697,35 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         h     = min(b,m); %% either number of features or rank of X
         f     = n - b - size(X0,2); %% number of epochs- rank(X) - number of confounds
  
+        UVTEST=(1-power_flag)*S.compUV;
+        if UVTEST,
+            flatX=reshape(X,prod(size(X)),1);
+            flatY=reshape(X,prod(size(X)),1);
+            uvB  = pinv(flatX)*flatY; %% uv coeff
+            Tuv=flatX*uvB; %% uv prediction
+            SSTuv=Tuv'*Tuv;
+            Ruv=(flatY - Tuv); %% uv error
+            RSSuv=Ruv'*Ruv;
+            Tmuv=X*U*uvB;
+            SSTmuv=Tmuv'*Tmuv;
+            end;
+    
  
         % generalised eigensolution for treatment and residual sum of squares
         %--------------------------------------------------------------------------
-        T     = X*(P*Y); %% projection of X onto Y ?
+        T     = X*(P*Y); %% predticon of Y based on X (P*Y is the coefficient)
+        
         SST   = T'*T;
         SSR   = Y - T; %% residuals in Y (unexplained by X)
         SSR   = SSR'*SSR;
+        lastwarn('')
         [v,d] = eig(SSR\SST); %% explained/unexplained variance
+        
+        [lastmsg, LASTID] = lastwarn;
+        if ~isempty(lastmsg),
+            disp('rank problem');
+        end;
+        
         [q,r] = sort(-real(diag(d)));
         r     = r(1:h);
         d     = real(d(r,r));
@@ -755,6 +746,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         
 
         cval  = log(diag(d) + 1);
+        chi=[];df=[];p=[];p05thresh=[];
         for i1 = 1:h
             chi(i1) = (f - (m - b + 1)/2)*sum(cval(i1:h));
             df(i1)  = (m - i1 + 1)*(b - i1 + 1); % m is the number of features, b is the rank of the design matrix
@@ -765,23 +757,32 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
        
         CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter)=chi(1); %% get wilk's lambda stat
         CVA_otherdim(maskedgrid_inside_ind(i),power_flag+1,iter,1:h-1)=chi(2:h); %% tests on other dimensions
-        
-        allw(maskedgrid_inside_ind(i),power_flag+1,iter,:,:)=W;
-        
+%         if power_flag,
+%             allw_pw(maskedgrid_inside_ind(i),power_flag+1,iter,:,:)=W;
+%             else
+%             allw_ev(maskedgrid_inside_ind(i),power_flag+1,iter,:,:)=W;
+%         end;
+%         
         
         if CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter)>maxcva(power_flag+1,iter),
             stats(fband).bestchi(power_flag+1,1:h,iter)=chi;
-            %if length(V)>1,
-                if power_flag,
+            
+             if power_flag,
                  stats(fband).bestVpw(1:h,iter,:)=V';
                  stats(fband).bestvpw(1:h,iter,:)=v';
                  stats(fband).bestUpw=U;
+                 stats(fband).maxw_pw=w;
+                 stats(fband).maxW_pw=W;
+         
                 else
                  stats(fband).bestVev(1:h,iter,:)=complex(V(1:size(evoked_trial,2),:),V(size(evoked_trial,2)+1:end,:))';
                  stats(fband).bestvev(1:h,iter,:)=v';
                  stats(fband).bestUev=U;
+                 stats(fband).maxw_ev=w;
+                 stats(fband).maxW_ev=W;
+         
                 end;
-            %end;% 
+         
            
             stats(fband).pval(power_flag+1,1:h,iter)=p;
             stats(fband).df(power_flag+1,1:h,iter)=df;
@@ -790,8 +791,6 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             stats(fband).freqHz=fHz(freq_indtest);
             stats(fband).freq_indtest=freq_indtest;
             stats(fband).freq_ind=freq_ind;
-            stats(fband).maxw=w;
-            stats(fband).maxW=W;
             maxcva(power_flag+1,iter)=CVA_maxstat(maskedgrid_inside_ind(i),power_flag+1,iter);
             end; % if CVA_Stat
         if (iter==TrueIter) && (length(V)>1),
@@ -823,7 +822,7 @@ stats(fband).CVAmax=CVA_maxstat;
 stats(fband).CVAotherdim=CVA_otherdim;
 stats(fband).roymax=roymax;
 stats(fband).Roy2F=Roy2F;
-stats(fband).allw=allw;
+%stats(fband).allw=allw;
 stats(fband).tstat=tstat.^2;
 stats(fband).fHz=fHz;
 stats(fband).dfmisc=[b h m];
@@ -907,8 +906,8 @@ end; % if
        u_extrema=unique(weight_extrema,'rows');
        stats(fband).Nu_extrema=size(u_extrema,1);
        alpha=0.05;
-       stats(fband).alyt_thresh_Chi_05=spm_invXcdf(1-alpha/(stats(fband).Nu_extrema),Nfeatures*b); %% estimate of volumetric threshold
-    
+       stats(fband).alyt_thresh_Chi_05(1)=spm_invXcdf(1-alpha/(stats(fband).Nu_extrema),redNfeatures(1)*b); %% estimate of volumetric threshold for evoked
+        stats(fband).alyt_thresh_Chi_05(2)=spm_invXcdf(1-alpha/(stats(fband).Nu_extrema),redNfeatures(2)*b); %% estimate of volumetric thres for induced
     if isfield(S,'S.dispthresh_chi'),
         dispthresh_mv(2)=S.dispthresh_chi;
         end;
@@ -933,7 +932,7 @@ end; % if
     res = mkdir(D.path, dirname);
     outvol = spm_vol(sMRI);
     outvol.dt(1) = spm_type('float32');
-    featurestr=[S.filenamestr 'Nf' num2str(redNfeatures)] ;
+    featurestr=[S.filenamestr 'Nf' num2str(redNfeatures(2))] ;
     if S.bootstrap,
         featurestr=sprintf('%s_bt%03d_',featurestr,boot);
         end; % if
@@ -949,10 +948,11 @@ end; % if
             colourmap=jetmap;
             spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,max_mv(2),dispthresh_mv(2));
             
-            disp(sprintf('Chi pw image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05));
+            disp(sprintf('Chi pw image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05(2)));
             pause;
         end; % if preview
     colormap(cmap);
+    featurestr=[S.filenamestr 'Nf' num2str(redNfeatures(1))] ;
     outvol.fname= fullfile(D.path, dirname, ['chi_ev_' spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
     stats(fband).outfile_chi_ev=outvol.fname;
     outvol = spm_create_vol(outvol);
@@ -963,7 +963,7 @@ end; % if
             prop=0.4;
             colourmap=jetmap;
             spm_orthviews('Addtruecolourimage',1,outvol.fname,colourmap,prop,max_mv(1),dispthresh_mv(1));
-            disp(sprintf('Chi ev image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05));
+            disp(sprintf('Chi ev image. Est thresh for p<0.05 (corr) is %3.2f. Press any key to continue..',stats(fband).alyt_thresh_Chi_05(1)));
             pause;
         end; % if preview
         
@@ -993,6 +993,7 @@ end; % if
      end; % for trialnum
      stats(fband).outfile_pw_epochs=outfilenames_pw;
      stats(fband).outfile_ev_epochs=outfilenames_ev;
+     
     end;
     
    
