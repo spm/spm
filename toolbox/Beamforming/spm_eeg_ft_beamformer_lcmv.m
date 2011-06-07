@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4218 2011-03-01 11:58:01Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4344 2011-06-07 14:58:43Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -195,15 +195,7 @@ end
 def_colormap=colormap;
 jetmap=colormap('jet');
 colormap(def_colormap);
-% 
-%  try
-%      vol = D.inv{D.val}.forward.vol;
-%      datareg = D.inv{D.val}.datareg;
-%  catch
-%      D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
-%      D = spm_eeg_inv_datareg_ui(D, D.val);
-%      datareg = D.inv{D.val}.datareg;
-%  end
+
 
 if strcmp('EEG', modality)    
     sens = datareg.sensors;
@@ -216,13 +208,6 @@ end
 
 
 
-%% transform to mni space
-% M1 = datareg.toMNI;
-% [U, L, V] = svd(M1(1:3, 1:3));
-% M1(1:3,1:3) =U*V';
-% 
-% vol = ft_transform_vol(M1, vol);
-% sens = ft_transform_sens(M1, sens);
 
 
 Xdesign  =S.design.X;
@@ -258,36 +243,16 @@ Nbands=numel(S.freqbands);
 
 
 
-%% READ IN JUST THE DATA WE need
-%% ASSUME THAT INPUT IS AS FOLLOWS
-%% a list of trial types and latency ranges for 2 conditions/periods (active and
-%% rest for now)
-%% each condition has an associated time window which must of equal sizes
-%% SO will have
-%% a list of trial indices and latencies, a list of trial types of the same
-%% length
 
-try
-    data = D.ftraw; %% convert to field trip format- direct memory map 
-catch
-    disp('failed to read data directly.. going slowly');
-   data = D.ftraw(0); %% convert to field trip format - file pointers
-end; 
 %% Check latencies are same here
 
 %% now read in the first trial of data just to get sizes of variables right
-cfg=[];
-cfg.keeptrials='no';
-cfg.trials=1; 
 
-
+%% now read in the first trial of data just to get sizes of variables right
 Ntrials=size(S.design.X,1);
-cfg.latency=[S.design.Xstartlatencies(1) S.design.Xstartlatencies(1)+S.design.Xwindowduration];
-
-subdata=ft_timelockanalysis(cfg,data); 
-Nsamples=length(subdata.time);
+Isamples = D.indsample([S.design.Xstartlatencies(1) S.design.Xstartlatencies(1)+S.design.Xwindowduration]);
+Nsamples= diff(Isamples)+1;
 Nchans=length(channel_labels);
-
 
 if S.hanning,
     fftwindow=hamming(Nsamples);
@@ -319,22 +284,33 @@ end;
 [uniquewindows]=unique(S.design.Xstartlatencies);
 Nwindows=length(uniquewindows);
     
+
+%% GET DATA- put each trial in allepochdata in same order as design matrix (i.e. remove dependence on Xtrials and Xstartlatencies)
+TtofT=1; % e15; %% tesla to femto tesla - turned off
+%%disp('rescaling from tesla to fT !!');
 for i=1:Nwindows,     %% puts trials into epoch data according to order of design.X structures
-    winstart=uniquewindows(i); %% window start
-    cfg=[];
-    cfg.keeptrials='yes';
-    cfg.channel=channel_labels;
-    cfg.feedback='off';
-    useind=find(winstart==S.design.Xstartlatencies); %% indices into design.X structures
-    cfg.trials=S.design.Xtrials(useind); %% trials starting at these times
-    cfg.latency=[winstart winstart+S.design.Xwindowduration];
-    subdata=ft_timelockanalysis(cfg,data); % subset of original data
-    if length(subdata.time)~=Nsamples,
-        error('Check the window specified is within epoch');
-        
-        end;
-    allepochdata(useind,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
+    Isamples = D.indsample([uniquewindows(i) uniquewindows(i)+S.design.Xwindowduration]);
+     useind=find(uniquewindows(i)==S.design.Xstartlatencies);
+    Itrials =S.design.Xtrials(useind); %% indices into design.X structures
+    allepochdata(useind,:,:)=permute(TtofT.*squeeze(D(D.indchannel(channel_labels), Isamples(1):Isamples(2), Itrials)), [3 1 2]); %% get an epoch of data with channels in columns
 end; % for i
+
+% for i=1:Nwindows,     %% puts trials into epoch data according to order of design.X structures
+%     winstart=uniquewindows(i); %% window start
+%     cfg=[];
+%     cfg.keeptrials='yes';
+%     cfg.channel=channel_labels;
+%     cfg.feedback='off';
+%     useind=find(winstart==S.design.Xstartlatencies); %% indices into design.X structures
+%     cfg.trials=S.design.Xtrials(useind); %% trials starting at these times
+%     cfg.latency=[winstart winstart+S.design.Xwindowduration];
+%     subdata=ft_timelockanalysis(cfg,data); % subset of original data
+%     if length(subdata.time)~=Nsamples,
+%         error('Check the window specified is within epoch');
+%         
+%         end;
+%     allepochdata(useind,:,:)=squeeze(subdata.trial); %% get an epoch of data with channels in columns
+% end; % for i
 
 
 for i=1:Ntrials, %% read in all individual trial types
@@ -586,7 +562,7 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
             
             tstat(maskedgrid_inside_ind(i),iter)=c*B./SE;
             normdiff(maskedgrid_inside_ind(i),iter)=c*B/(weights*noise_id*weights'); %% maybe a factor missing here
-            %allB(maskedgrid_inside_ind(i))=B;
+            
     
         end; % for Niter
         
