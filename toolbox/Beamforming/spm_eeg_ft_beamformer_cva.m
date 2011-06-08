@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4343 2011-06-07 14:46:22Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4346 2011-06-08 10:04:13Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -723,7 +723,8 @@ for j=1:S.Niter, %% set up permutations in advance- so perms across grid points 
         
         [lastmsg, LASTID] = lastwarn;
         if ~isempty(lastmsg),
-            disp('rank problem');
+            disp('rank problem, zeroing eigenvals');
+            d=zeros(size(d));
         end;
         
         [q,r] = sort(-real(diag(d)));
