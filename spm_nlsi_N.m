@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4312 2011-04-19 19:51:22Z karl $
+% $Id: spm_nlsi_N.m 4348 2011-06-10 20:50:23Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -217,7 +217,7 @@ end
 try
     hE  = M.hE;
 catch
-    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 5;
+    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 4;
 end
 h       =  hE;              % initialize hyperparameters
  
@@ -226,7 +226,7 @@ h       =  hE;              % initialize hyperparameters
 try
     ihC = spm_inv(M.hC);
 catch
-    ihC = speye(nh,nh)*exp(8);
+    ihC = speye(nh,nh)*exp(4);
 end
 
 % unpack prior covariances
@@ -295,7 +295,7 @@ for ip = 1:64
     % check for dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
-        gi = 8;
+        gi = 16;
     else
         gi = 0;
     end
@@ -377,8 +377,8 @@ for ip = 1:64
             
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------
-            dh    = spm_dx(dFdhh,dFdh,{8});
-            h     = h + dh;
+            dh    = spm_dx(dFdhh,dFdh,{4});
+            h     = h + min(max(dh,-2),2);
  
             % convergence
             %--------------------------------------------------------------

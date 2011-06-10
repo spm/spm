@@ -4,8 +4,6 @@ function DCM = spm_dcm_csd(DCM)
 %
 % DCM
 %    name: name string
-%       M:  Forward model
-%              M.dipfit - lead-field specification
 %       xY: data   [1x1 struct]
 %       xU: design [1x1 struct]
 %
@@ -24,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_dcm_csd.m 4348 2011-06-10 20:50:23Z karl $
  
  
 % check options
@@ -51,7 +49,11 @@ Nc   = DCM.M.dipfit.Nc;
 DCM  = spm_dcm_erp_data(DCM);
 DCM.M.dipfit.model = model;
  
- 
+
+% Design model
+%==========================================================================
+if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
+
 % Neural mass model
 %==========================================================================
  
@@ -82,7 +84,7 @@ end
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_ssr_priors(pE,pC);
  
-% intial states and equations of motion
+% initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]    = spm_dcm_x_neural(pE,model);
  
@@ -127,15 +129,19 @@ DCM       = spm_dcm_csd_data(DCM);
 % complete model specification and invert
 %==========================================================================
 Nm        = size(DCM.M.U,2);                    % number of spatial modes
-Nt        = size(DCM.xY.y,1);                   % number of trials
 Nf        = size(DCM.xY.y{1},1);                % number of frequency bins
 DCM.M.l   = Nm;
 DCM.M.Hz  = DCM.xY.Hz;
  
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
-DCM.xY.Q    = {spm_Q(1/2,Nf,1)*diag(DCM.M.Hz)*spm_Q(1/2,Nf,1)};
-DCM.xY.X0   = sparse(Nf,0);
+q         = spm_Q(1/2,Nf,1)*diag(DCM.M.Hz)*spm_Q(1/2,Nf,1);
+d         = speye(Nm,Nm);                       % autospectra
+Q{1}      = kron(diag(d(:)),q);
+d         = 1 - speye(Nm,Nm);                   % crossspectra
+Q{2}      = kron(diag(d(:)),q);
+DCM.xY.Q  = Q;
+DCM.xY.X0 = sparse(Nf,0);
 
 
 % adjust gain to accommodate scaling differences among models and data
@@ -143,15 +149,15 @@ DCM.xY.X0   = sparse(Nf,0);
 
 % cross-spectral data
 %--------------------------------------------------------------------------
-y        = spm_vec(DCM.xY.y);
-scale    = mean(abs(y));
-DCM.xY.y = spm_unvec(y/scale,DCM.xY.y);
+y         = spm_vec(DCM.xY.y);
+scale     = mean(abs(y));
+DCM.xY.y  = spm_unvec(y/scale,DCM.xY.y);
 
-% check neural activity (without sensor noise) and extrinic coupling
+% check neural activity (without sensor noise) and extrinsic coupling
 %--------------------------------------------------------------------------
-pE.b     = pE.b - 32;
-pE.c     = pE.c - 32;
-scale    = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
+pE.b      = pE.b - 32;
+pE.c      = pE.c - 32;
+scale     = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
 while scale > 32
     pE.A  = spm_unvec(spm_vec(pE.A) - 1/8,pE.A);
     scale = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
@@ -163,9 +169,8 @@ DCM.M.U    = DCM.M.U/sqrt(scale)/2;
 % Variational Laplace: model inversion
 %==========================================================================
 [Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
-Ce           = exp(-Eh);
 
- 
+
 % Data ID
 %--------------------------------------------------------------------------
 try
@@ -199,7 +204,7 @@ M             = DCM.M;
 M.dipfit.type = 'LFP';
  
 qp        = Qp;
-qp.L      = sparse(1,Ns);           % set virtual electrode gain to unity
+qp.L      = ones(1,Ns);             % set virtual electrode gain to unity
 qp.b      = qp.b - 32;              % and suppress non-specific and
 qp.c      = qp.c - 32;              % specific channel noise
 
@@ -222,7 +227,7 @@ DCM.Pp = Pp;                   % conditional probability
 DCM.Hc = Hc;                   % conditional responses (y), channel space
 DCM.Rc = Ec;                   % conditional residuals (y), channel space
 DCM.Hs = Hs;                   % conditional responses (y), source space
-DCM.Ce = Ce;                   % ReML error covariance
+DCM.Ce = exp(-Eh);             % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 DCM.ID = ID;                   % data ID
  
@@ -235,5 +240,4 @@ if spm_check_version('matlab','7') >= 0
 else
     save(DCM.name, 'DCM');
 end
-assignin('base','DCM',DCM)
-return
+

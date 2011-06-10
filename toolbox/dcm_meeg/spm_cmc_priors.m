@@ -9,7 +9,6 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T - syaptic time constants
-%    pE.H - syaptic densities
 %    pE.S - activation function parameters
 %    pE.G - intrinsic connection strengths
 %
@@ -39,7 +38,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_cmc_priors.m 4348 2011-06-10 20:50:23Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -96,7 +95,6 @@ V.C    = C - C;
 m    = 4;                                         % number of intrinsic
 Q    = Q + speye(n,n);                            % allow intrinsic delays
 E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
-E.H  = sparse(n,1);   V.H  = sparse(n,1) + 1/16;  % synaptic density
 E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/16;  % intrinsic connectivity
 E.D  = sparse(n,n);   V.D  = Q/32;                % delay
 E.S  = 0;             V.S  = 1/32;                % slope of sigmoid

@@ -35,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 4348 2011-06-10 20:50:23Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -94,17 +94,17 @@ switch DCM.xY.modality
             errordlg({'Please specify source locations','in DCM.Lpos'})
         end
  
-        DCM.M.dipfit.modality  = DCM.xY.modality;
-        DCM.M.dipfit.Ns        = length(DCM.Sname);
-        DCM.M.dipfit.Nc        = length(DCM.xY.Ic);
+        DCM.M.dipfit.modality = DCM.xY.modality;
+        DCM.M.dipfit.Ns       = length(DCM.Sname);
+        DCM.M.dipfit.Nc       = length(DCM.xY.Ic);
  
         % otherwise assume LFP
         %------------------------------------------------------------------
     otherwise
  
-        DCM.M.dipfit.modality  = 'LFP';
-        DCM.M.dipfit.Ns        = length(DCM.Sname);
-        DCM.M.dipfit.Nc        = length(DCM.xY.Ic);
+        DCM.M.dipfit.modality = 'LFP';
+        DCM.M.dipfit.Ns       = length(DCM.Sname);
+        DCM.M.dipfit.Nc       = length(DCM.xY.Ic);
         return
 end
  

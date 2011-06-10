@@ -6,7 +6,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % M - neural mass model structure
 % U - trial-specific effects
 %
-% G - {G(N,nc,nc}} - cross-spectral density for nc channels {trials}
+% y - {y(N,nc,nc}} - cross-spectral density for nc channels {trials}
 %                  - for N frequencies in M.Hz [default 1:64Hz]
 % w - frequencies
 % s - directed transfer functions (complex)
@@ -15,7 +15,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_csd_mtf.m 4348 2011-06-10 20:50:23Z karl $
 
 
 % compute log-spectral density
@@ -71,6 +71,7 @@ end
 % trial-specific effects
 %==========================================================================
 try, X = U.X; catch, X = sparse(1,0); end
+if isempty(X),       X = sparse(1,0); end
 
 
 % cycle over trials

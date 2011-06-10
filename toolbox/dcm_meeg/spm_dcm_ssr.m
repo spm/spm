@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_dcm_ssr.m 4348 2011-06-10 20:50:23Z karl $
 
 
 % check options
@@ -116,7 +116,6 @@ DCM.xY.y   = spm_unvec(abs(spm_vec(DCM.xY.y)),DCM.xY.y);
 % complete model specification and invert
 %==========================================================================
 Nm         = size(DCM.M.U,2);                    % number of spatial modes
-Nt         = size(DCM.xY.y,1);                   % number of trials
 Nf         = size(DCM.xY.y{1},1);                % number of frequency bins
 DCM.M.l    = Nm;
 DCM.M.Hz   = DCM.xY.Hz;
@@ -129,7 +128,7 @@ DCM.xY.X0  = sparse(Nf,0);
 % adjust priors on gain to accomodate scaling differences among models
 %--------------------------------------------------------------------------
 Hc         = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
-DCM.M.U        = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
+DCM.M.U    = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
 
 
 % EM: inversion

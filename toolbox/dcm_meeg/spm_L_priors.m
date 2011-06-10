@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4335 2011-05-31 16:49:16Z rosalyn $
+% $Id: spm_L_priors.m 4348 2011-06-10 20:50:23Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -62,19 +62,19 @@ switch type
     
     case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
-        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;   % positions
-        pE.L    = sparse(3,n);   pC.L    = ones(3,n)*16;  % orientations
+        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;      % positions
+        pE.L    = sparse(3,n);   pC.L    = ones(3,n)*exp(8); % orientations
         
     case{'IMG'}
         %------------------------------------------------------------------
-        m       = dipfit.Nm;                              % number modes
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
-        pE.L    = sparse(m,n);   pC.L    = ones(m,n)*16;  % modes
+        m       = dipfit.Nm;                                 % number modes
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);      % positions
+        pE.L    = sparse(m,n);   pC.L    = ones(m,n)*exp(8); % modes
         
     case{'LFP'}
         %------------------------------------------------------------------
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);   % positions
-        pE.L    = sparse(1,m);   pC.L    = ones(1,m)*16;  % gains
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);      % positions
+        pE.L    = ones(1,m);     pC.L    = ones(1,m)*64;     % gains
         
     otherwise
         warndlg('Unknown spatial model')

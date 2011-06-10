@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4298 2011-04-07 18:13:04Z karl $
+% $Id: spm_fx_cmc.m 4348 2011-06-10 20:50:23Z karl $
  
  
 % get dimensions and configure state variables
@@ -46,19 +46,18 @@ x     = spm_unvec(x,M.x);           % neuronal states
  
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1 1 1/4]*200;               % extrinsic (forward and backward)  
+E  = [1 1/2 1 1/2]*200;             % extrinsic (forward and backward)  
 G  = [4 4 4 4 4 2 4 4 2 1]*200;     % intrinsic connections
 D  = [1 16];                        % delays (intrinsic, extrinsic)
-T  = [2 2 28 28];                   % synaptic time constants
-R  = 1;                             % slope of sigmoid activation function
+T  = [2 2 16 28];                   % synaptic time constants
+R  = 2/3;                           % slope of sigmoid activation function
  
- 
+
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 try, E = M.pF.E; end
 try, G = M.pF.G; end
 try, D = M.pF.D; end
-try, H = M.pF.H; end
 try, T = M.pF.T; end
 try, R = M.pF.R; end
  
@@ -148,7 +147,6 @@ f(:,1) = x(:,2);
 f(:,3) = x(:,4);
 f(:,5) = x(:,6);
 f(:,7) = x(:,8);
-f      = diag(exp(P.H))*f;
 f      = spm_vec(f);
  
  

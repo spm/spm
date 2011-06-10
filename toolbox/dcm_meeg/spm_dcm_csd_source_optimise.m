@@ -6,26 +6,31 @@ function [PF] = spm_dcm_csd_source_optimise
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_source_optimise.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_csd_source_optimise.m 4348 2011-06-10 20:50:23Z karl $
  
  
 % Initaislie fixed paramters
 %==========================================================================
-% PF.G  = [4 4 4 4 4 2 4 4 2 1]*200;
-% PF.T  = [2 2 28 24];
-% PF.D  = [1 16];
+% E  = [1 1/2 1 1/2]*200;             % extrinsic (forward and backward)  
+% G  = [4 4 4 4 4 4 4 4 2 1]*200;     % intrinsic connections
+% D  = [1 16];                        % delays (intrinsic, extrinsic)
+% T  = [2 2 16 28];                   % synaptic time constants
+% R  = 1;                           % slope of sigmoid activation function
 
-PF.G  = [1 1 1 1/2]*64;         % intrinsic rates (g1 g2 g3 g4)
-PF.H  = [4 64];                 % receptor densities (excitatory, inhibitory)
-PF.T  = [4 8];                  % synaptic constants (excitatory, inhibitory)
- 
-
+PF.G  = [4 4 4 4 4 4 4 4 2 1]*200;
+PF.D  = [1 16];
+PF.T  = [2 2 16 28];
 HZ    = [60 16]; model = 'CMC'; s = [3 7]; Hz = [1:128]';
-HZ    = [20 16]; model = 'SEP'; s = [7 9]; Hz = [1:64]';
+
+
+% PF.G  = [1 1 1 1/2]*64;         % intrinsic rates (g1 g2 g3 g4)
+% PF.H  = [4 64];                 % receptor densities (excitatory, inhibitory)
+% PF.T  = [4 8];                  % synaptic constants (excitatory, inhibitory)
+% HZ    = [20 16]; model = 'SEP'; s = [7 9]; Hz = [1:64]';
 
 N     = 512;
 n     = length(spm_vec(PF));
-sC    = speye(n,n)/2;
+sC    = speye(n,n)/32;
 for k = 1:4
     for i = 1:N
         

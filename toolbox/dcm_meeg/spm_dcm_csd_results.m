@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_dcm_csd_results.m 4348 2011-06-10 20:50:23Z karl $
  
  
 % get figure handle
@@ -42,6 +42,7 @@ Fgraph = spm_figure('GetWin','Graphics');
 colormap(gray)
 figure(Fgraph)
 clf
+
  
 % get action if neccessary
 %--------------------------------------------------------------------------
@@ -358,16 +359,15 @@ case{lower('Transfer functions')}
  
             % for each trial type
             %--------------------------------------------------------------
-            subplot(nm,nm,(i - 1)*nm + j),cla
+            subplot(nm,nm,(i - 1)*nm + j)
             for k = 1:nt
                 
                 dtf = abs(DCM.dtf{k}(:,i,j));
                 stf = dtf.*Gu(Hz,j);
-                dtf = dtf/max(dtf);
-                stf = stf/max(stf);
+                dtf = dtf/sum(dtf);
+                stf = stf/sum(stf);
                 
-                plot(Hz,dtf,   'color',co{k}), hold on
-                plot(Hz,stf,':','color',co{k}), hold off
+                plot(Hz,dtf,'color',co{k}), hold on
                 title(sprintf('Spectral transfer: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
                 axis square, spm_axis tight
@@ -405,7 +405,7 @@ case{lower('Cross-spectra (sources)')}
  
             % for each trial type
             %--------------------------------------------------------------
-            subplot(nm,nm,(i - 1)*nm + j),cla
+            subplot(nm,nm,(i - 1)*nm + j)
             for k = 1:nt
                 plot(Hz,abs(DCM.Hs{k}(:,i,j)),'color',co{k}), hold on
                 title(sprintf('CSD: %s to %s',name{j},name{i}))
@@ -460,7 +460,7 @@ case{lower('Cross-spectra (channels)')}
  
             % for each trial type
             %--------------------------------------------------------------
-            subplot(nm,nm,(i - 1)*nm + j),cla
+            subplot(nm,nm,(i - 1)*nm + j)
             for k = 1:nt
                 plot(Hz,abs(DCM.Hc{k}(:,i,j)),'color',co{k}), hold on
                 plot(Hz,abs(DCM.Hc{k}(:,i,j) + DCM.Rc{k}(:,i,j)),':','color',co{k})
@@ -569,7 +569,7 @@ case{lower('Coherence (channels)')}
                 
                 % for each trial type - coherence
                 %----------------------------------------------------------
-                subplot(nm,nm,(i - 1)*nm + j),cla
+                subplot(nm,nm,(i - 1)*nm + j)
                 for k = 1:nt
                     plot(Hz,coh{k}(:,i,j),'color',co{k}), hold on
                     plot(Hz,COH{k}(:,i,j),':','color',co{k}), hold on
@@ -583,7 +583,7 @@ case{lower('Coherence (channels)')}
             if j < i
                 % for each trial type - delay
                 %----------------------------------------------------------
-                subplot(nm,nm,(i - 1)*nm + j),cla
+                subplot(nm,nm,(i - 1)*nm + j)
                 for k = 1:nt
                     plot(Hz,1000*fsd{k}(:,i,j),'color',co{k}), hold on
                     plot(Hz,1000*FSD{k}(:,i,j),':','color',co{k}), hold on
