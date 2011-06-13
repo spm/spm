@@ -1,6 +1,6 @@
 function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Writes the filtered SPM as an image
-% FORMAT spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
+% FORMAT V0 = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 %
 % Z       - {1 x ?} vector point list of SPM values for MIP
 % XYZ     - {3 x ?} matrix of coordinates of points (voxel coordinates)
@@ -8,6 +8,10 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % M       - voxels -> mm matrix [default: spm_matrix(-(DIM+1)/2)]
 % descrip - description string [default: 'SPM-filtered']
 % F       - output file's basename [default: user query]
+%
+% FORMAT V0 = spm_write_filtered(xSPM)
+%
+% xSPM    - SPM results structure from spm_getSPM
 %
 % Vo      - output image volume information
 %__________________________________________________________________________
@@ -22,12 +26,26 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 4308 2011-04-14 17:57:35Z guillaume $
+% $Id: spm_write_filtered.m 4351 2011-06-13 17:18:25Z ged $
 
 
 %-Parse arguments
 %--------------------------------------------------------------------------
-if nargin<3, error('Insufficient arguments'); end
+if nargin < 2
+    if nargin == 0
+        try
+            xSPM = evalin('base', 'xSPM');
+        catch
+            error('Please run SPM results query first')
+        end
+    else
+        xSPM = Z;
+    end
+    Vo = spm_write_filtered(xSPM.Z, xSPM.XYZ, xSPM.DIM, xSPM.M);
+    return
+elseif nargin < 3
+    error('Insufficient arguments');
+end
 if nargin<4, M = spm_matrix(-(DIM+1)/2); end
 if nargin<5, descrip = 'SPM-filtered'; end
 if nargin<6, F = spm_input('Output filename',1,'s'); end
@@ -55,7 +73,7 @@ end
 
 %-Reconstruct (filtered) image from XYZ & Z pointlist
 %--------------------------------------------------------------------------
-Y      = zeros(DIM(1:3)');
+Y      = nan(DIM(1:3)');
 OFF    = XYZ(1,:) + DIM(1)*(XYZ(2,:)-1 + DIM(2)*(XYZ(3,:)-1));
 Y(OFF) = Z.*(Z > 0);
     
