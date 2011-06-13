@@ -31,9 +31,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: spm_eeg_artefact.m 4350 2011-06-13 16:31:02Z vladimir $
 
-SVNrev = '$Rev: 3798 $';
+SVNrev = '$Rev: 4350 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -90,6 +90,11 @@ for i = 1:numel(S.methods)
     
     if ~isempty(chanind)
         S1 =  S.methods(i).settings;
+
+        if isempty(S1)
+            S1 = [];
+        end
+        
         S1.D = D;
         S1.chanind = chanind;
 
