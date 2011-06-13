@@ -1,5 +1,5 @@
 function gl = spm_get_volumes(P)
-% Compute total volumes from grey matter images
+% Compute total volumes from tissue segmentations
 % FORMAT gl = spm_get_volumes(P)
 % P  - a matrix of image filenames
 % gl - a vector of volumes (in litres)
@@ -7,7 +7,7 @@ function gl = spm_get_volumes(P)
 % Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_volumes.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_get_volumes.m 4352 2011-06-13 17:27:46Z ged $
 
 
 if ~nargin

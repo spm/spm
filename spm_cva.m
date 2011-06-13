@@ -61,8 +61,8 @@ function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % for the canonical values are used after the data (and design matrix) have
 % been whitened; using the appropriate ReML estimate of non-sphericity.
 % 
-% CVA can be used to for decoding because the model employed by CVA design
-% not care about the direction of the mapping (hence canonical correlation
+% CVA can be used for decoding because the model employed by CVA does not
+% care about the direction of the mapping (hence canonical correlation
 % analysis). However, one cannot test for mappings between nonlinear
 % mixtures of regional activity and some experimental variable (this is
 % what the MVB was introduced for).
@@ -81,7 +81,7 @@ function [CVA] = spm_cva(xSPM,SPM,hReg,CVA)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_cva.m 4352 2011-06-13 17:27:46Z ged $
  
 
 % get figure handles
@@ -194,7 +194,6 @@ P     = pinv(X);
  
 % degrees of freedom
 %--------------------------------------------------------------------------
-[n,b] = size(X);                       
 [n,m] = size(Y);
 b     = rank(X);
 h     = min(b,m);
