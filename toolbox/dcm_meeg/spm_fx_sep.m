@@ -37,7 +37,7 @@ function [f,J,Q] = spm_fx_sep(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_sep.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_fx_sep.m 4353 2011-06-13 18:52:38Z karl $
  
  
 % get dimensions and configure state variables
@@ -153,7 +153,7 @@ D  = Di + De;
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-[Q,J] = spm_dcm_delay(M,P,D);
+Q  = inv(speye(length(J)) + D.*J);
 
 
 return
