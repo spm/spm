@@ -12,7 +12,7 @@ function X = spm_inv(A,TOL)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_inv.m 4349 2011-06-10 20:51:04Z karl $
+% $Id: spm_inv.m 4360 2011-06-14 16:46:37Z ged $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -27,4 +27,4 @@ end
 
 % inverse
 %--------------------------------------------------------------------------
-X     = inv(sparse(A) + speye(m,n)*TOL);
+X     = inv(A + speye(m,n)*TOL);
