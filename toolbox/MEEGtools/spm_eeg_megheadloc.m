@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_megheadloc.m 4358 2011-06-14 15:57:15Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -135,21 +135,21 @@ end
 
 for f=1:numel(D)
     hlc_chan_ind = spm_match_str(chanlabels(D{f}), hlc_chan_label);
-
+    
     Ntrl = D{f}.ntrials;
     Ntrls=Ntrls+Ntrl;
-
+    
     if length(hlc_chan_ind) == 9
-
+        
         if isfield(S, 'trialind') && ~isempty(S.trialind)
             trlsel = S.trialind;
         else
             trlsel = 1:Ntrl;
         end
-
+        
         for k = trlsel
             tmpdat  = D{f}(hlc_chan_ind, :, k);
-
+            
             header_fid = 0.01*D{f}.origheader.hc.dewar';
             cont_fid  = permute(reshape(tmpdat', [], 3, 3), [1 3 2]);
             
@@ -172,9 +172,9 @@ for f=1:numel(D)
             else
                 tracking_lost = 0;
             end
-                       
+            
             utmpdat = unique(tmpdat', 'rows')';
-           
+            
             if S.rejectwithin && ~tracking_lost
                 if size(utmpdat, 2) == 1
                     dN = 0;
@@ -199,7 +199,7 @@ for f=1:numel(D)
                     end
                 end
             end
-
+            
             if ~tracking_lost && (~S.rejectwithin || (max([dN dL dR])<S.trialthresh))
                 dat     = [dat median(tmpdat, 2)];
                 trlind = [trlind k];
@@ -216,45 +216,45 @@ for f=1:numel(D)
         if S.toplot
             subplot('position',[0.05 0.65 0.4 0.3]);
             pltdat = squeeze(mean(reshape(tmpdat', [], 3, 3), 1))';
-
+            
             pltdat = [pltdat; pltdat(1, :)];
-
+            
             if ~reject(D{f}, k)
                 h = plot3(pltdat(:, 1), pltdat(:, 2), pltdat(:, 3), ...
                     [colors{mod(f, length(colors))+1}]);
             else
                 h = plot3(pltdat(:, 1), pltdat(:, 2), pltdat(:, 3), 'r');
             end
-
+            
             hold on
-
+            
             if isfield(D{f}, 'origheader')
                 pltdat = header_fid;
             end
         end
     else
         warning(['The 9 headloc channels were not found in dataset ' D{f}.fname '. Using a single location']);
-
+        
         % This allows for handling also files without continuous head
         % localization in a consistent way. The single location is
         % replicated according to the number of trials in the file
-
+        
         if isfield(D{f}, 'origheader')
             utmpdat = 0.01*D{f}.origheader.hc.dewar(:);
         else
             error('Original header is required for this functionality.');
         end
-
+        
         if S.toplot
             subplot('position',[0.05 0.65 0.4 0.3]);
             pltdat = 0.01*D{f}.origheader.hc.dewar';
         end
-
+        
         dat     = [dat repmat(utmpdat, 1, Ntrl)];
         trlind = [trlind 1:Ntrl];
         fileind= [fileind f*ones(1, Ntrl)];
     end
-
+    
     if S.toplot
         h = plot3(pltdat(:, 1), pltdat(:, 2), pltdat(:, 3), ...
             ['o' colors{mod(f, length(colors))+1}], 'MarkerSize', 10);
@@ -271,104 +271,112 @@ end
 
 disp(['Accepted ' num2str(length(trlind)) '/' num2str(Ntrls) ' trials.']);
 
-if S.rejectbetween && length(trlind)>1 && ~all(all(isnan(dat)))
+captured = [];
+
+if  length(trlind)>1 && ~all(all(isnan(dat)))
     % If there was loss of tracking for just some of the trials, reject
     % them and continue with the rest.
     nanind = find(any(isnan(dat)));
     if ~isempty(nanind)
-        for i = length(nanind)
-            D{fileind(nanind(i))} = reject(D{fileind(nanind(i))}, trlind(nanind(i)), 1);
+        if S.rejectbetween
+            for i = length(nanind)
+                D{fileind(nanind(i))} = reject(D{fileind(nanind(i))}, trlind(nanind(i)), 1);
+            end
         end
         dat(:, nanind) = [];
         trlind(nanind) = [];
         fileind(nanind)= [];
     end
-
-    %%
-    % Here the idea is to put a 'sphere' or 'hypercylinder' in the space of trial location whose
-    % radius is 'threshold' and which captures as many trials as possible. For this we first look for the point around which the
-    % density of trials is maximal. We put the cylinder there and then try to
-    % optimize its position further to include more trials if possible.
-
-    % The density is compute in PCA space of at most 3 dimensions
-    [coeff, score, eigv] = princomp(dat');
-    %%
-    boundL=min(score);
-    boundU=max(score);
-    dim = max(find(abs(boundU-boundL)>S.threshold));
-    dim=min(dim,3);
-    %%
-    if ~isempty(dim)
-        disp(['First ' num2str(dim) ' PCs explain ' num2str(100*sum(eigv(1:dim))/sum(eigv)) '% of the variance.']);
+    
+    if S.rejectbetween
         %%
-        hcubesize=[];
-        for d=1:dim
-            gridres=(boundU(d)-boundL(d))./(2.^nextpow2((boundU(d)-boundL(d))/S.threshold));
-            edges{d} = boundL(d):gridres:boundU(d);
-            edges{d}(1)=edges{d}(1)-eps;
-            edges{d}(end)=edges{d}(end)+eps;
-            hcubesize=[hcubesize (length(edges{d})-1)];
-        end
-
-        hcube=squeeze(zeros([1 hcubesize]));
-        trlpos=zeros(1, size(score,1));
-        for i=1:size(score,1)
-            coord=[];
+        % Here the idea is to put a 'sphere' or 'hypercylinder' in the space of trial location whose
+        % radius is 'threshold' and which captures as many trials as possible. For this we first look for the point around which the
+        % density of trials is maximal. We put the cylinder there and then try to
+        % optimize its position further to include more trials if possible.
+        
+        % The density is compute in PCA space of at most 3 dimensions
+        [coeff, score, eigv] = princomp(dat');
+        %%
+        boundL=min(score);
+        boundU=max(score);
+        dim = max(find(abs(boundU-boundL)>S.threshold));
+        dim=min(dim,3);
+        %%
+        if ~isempty(dim)
+            disp(['First ' num2str(dim) ' PCs explain ' num2str(100*sum(eigv(1:dim))/sum(eigv)) '% of the variance.']);
+            %%
+            hcubesize=[];
             for d=1:dim
-                coord=[coord find(histc(score(i,d), edges{d}))];
+                gridres=(boundU(d)-boundL(d))./(2.^nextpow2((boundU(d)-boundL(d))/S.threshold));
+                edges{d} = boundL(d):gridres:boundU(d);
+                edges{d}(1)=edges{d}(1)-eps;
+                edges{d}(end)=edges{d}(end)+eps;
+                hcubesize=[hcubesize (length(edges{d})-1)];
             end
-
-            if dim>1
-                coord=num2cell(coord);
-                trlpos(i)=sub2ind(hcubesize, coord{:});
-            else
-                trlpos(i)=coord;
+            
+            hcube=squeeze(zeros([1 hcubesize]));
+            trlpos=zeros(1, size(score,1));
+            for i=1:size(score,1)
+                coord=[];
+                for d=1:dim
+                    coord=[coord find(histc(score(i,d), edges{d}))];
+                end
+                
+                if dim>1
+                    coord=num2cell(coord);
+                    trlpos(i)=sub2ind(hcubesize, coord{:});
+                else
+                    trlpos(i)=coord;
+                end
+                
+                hcube(trlpos(i))=hcube(trlpos(i))+1;
             end
-
-            hcube(trlpos(i))=hcube(trlpos(i))+1;
+            %%
+            [junk maxind]=max(hcube(:));
+            %%
+            center = mean(dat(:, find(trlpos==maxind)), 2);
+        else
+            disp('All trials within threshold borders');
+            center = mean(dat, 2);
         end
         %%
-        [junk maxind]=max(hcube(:));
+        
+        % Here the cylinder location is further optimized
+        options = optimset('Display', 'iter', 'TolFun', 1, 'TolX', S.threshold/10);
+        center = fminsearch(@(center) trials_captured(center, dat, S.threshold), center, options);
         %%
-        center = mean(dat(:, find(trlpos==maxind)), 2);
-    else
-        disp('All trials within threshold borders');
-        center = mean(dat, 2);
-    end
-    %%
-
-    % Here the cylinder location is further optimized
-    options = optimset('Display', 'iter', 'TolFun', 1, 'TolX', S.threshold/10);
-    center = fminsearch(@(center) trials_captured(center, dat, S.threshold), center, options);
-    %%
-    % This generates the final list of trials captured in the cylinder
-    [center, captured]= trials_captured(center, dat, S.threshold);
-    %%
-    if S.toplot
-        figure(pntfig);
-        subplot('position',[0.55 0.65 0.4 0.3]);
-
-        plot3(score(captured,1), score(captured,2), score(captured,3),'r.');
-        hold on
-        plot3(score(~captured,1), score(~captured,2), score(~captured,3),'.');
-
-        axis equal
-    end
-    %%
-    ufileind=unique(fileind(captured));
-    %%
-
-    for f = 1:numel(D)
-        origreject = reject(D{f});
-        D{f} = reject(D{f}, [], 1);
-        if ismember(f, ufileind) && any(captured & (fileind == f))
-            D{f} = reject(D{f}, trlind(captured & (fileind == f)), 0);
-            if any(origreject)
-                D{f} = reject(D{f}, find(origreject), 1);
+        % This generates the final list of trials captured in the cylinder
+        [center, captured]= trials_captured(center, dat, S.threshold);
+        %%
+        if S.toplot
+            figure(pntfig);
+            subplot('position',[0.55 0.65 0.4 0.3]);
+            
+            plot3(score(captured,1), score(captured,2), score(captured,3),'r.');
+            hold on
+            plot3(score(~captured,1), score(~captured,2), score(~captured,3),'.');
+            
+            axis equal
+        end
+        %%
+        ufileind=unique(fileind(captured));
+        %%
+        
+        for f = 1:numel(D)
+            origreject = reject(D{f});
+            D{f} = reject(D{f}, [], 1);
+            if ismember(f, ufileind) && any(captured & (fileind == f))
+                D{f} = reject(D{f}, trlind(captured & (fileind == f)), 0);
+                if any(origreject)
+                    D{f} = reject(D{f}, find(origreject), 1);
+                end
             end
         end
     end
-else
+end
+
+if isempty(captured)
     captured = ones(1, size(dat, 2));
 end
 
@@ -376,51 +384,51 @@ end
 %%
 % This generates the corrected grad structure
 if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trlind) && ~all(all(isnan(dat)))
-
+    
     newcoils=mean(dat(:, captured), 2);
-
+    
     nas = newcoils(1:3);
     lpa = newcoils(4:6);
     rpa = newcoils(7:9);
-
+    
     %compute transformation matrix from dewar to head coordinates
     M = spm_eeg_inv_headcoordinates(nas, lpa, rpa);
-
+    
     dewar = 0.01*D{1}.origheader.hc.dewar;
-
+    
     M1 = spm_eeg_inv_headcoordinates(dewar(:,1)', dewar(:,2)', dewar(:,3)');
-
+    
     grad = sensors(D{1}, 'MEG');
-
+    
     newgrad = ft_transform_sens(M*inv(M1), grad);
-
+    
     if S.toplot
         figure(pntfig);
         subplot('position',[0.05 0.05 0.9 0.5]);
-
-
+        
+        
         cfg = [];
         cfg.style = '3d';
         cfg.rotate = 0;
         cfg.grad = grad;
-
+        
         lay = ft_prepare_layout(cfg);
-
+        
         cfg.grad = newgrad;
-
+        
         newlay = ft_prepare_layout(cfg);
-
+        
         plot3(newlay.pos(:,1), newlay.pos(:,2), newlay.pos(:,3), '.r', 'MarkerSize', 5);
-
+        
         hold on
-
+        
         plot3(lay.pos(:,1), lay.pos(:,2), lay.pos(:,3), '.k');
-
+        
         axis equal off
     end
-
+    
     newfid = ft_transform_headshape(M*inv(M1), fiducials(D{1}));
-
+    
     for f = 1:numel(D)
         D{f} = sensors(D{f}, 'MEG', newgrad);
         D{f} = fiducials(D{f}, newfid);
