@@ -24,7 +24,7 @@ function ft_write_headshape(filename, bnd, varargin)
 
 % Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
 %
-% $Rev: 2549 $
+% $Rev: 3608 $
 
 fileformat = keyval('format', varargin);
 
@@ -72,6 +72,9 @@ switch fileformat
       fprintf(fid, '%-1.0f\n',num);
     end
     
+  case 'off'
+    write_off(filename,bnd.pnt,bnd.tri);
+
   case []
     error('you must specify the output format');
     

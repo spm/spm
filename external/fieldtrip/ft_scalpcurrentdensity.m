@@ -75,9 +75,13 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_scalpcurrentdensity.m 3604 2011-06-01 08:34:52Z jorhor $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'method'),        cfg.method = 'spline';    end
@@ -97,6 +101,8 @@ if ~isempty(cfg.inputfile)
   end
 end
 
+% store original datatype
+dtype = ft_datatype(data);
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'no');
 
@@ -233,16 +239,29 @@ end
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3604 2011-06-01 08:34:52Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 scd.cfg = cfg;
+
+% convert back to input type if necessary
+switch dtype
+    case 'timelock'
+        scd = ft_checkdata(scd, 'datatype', 'timelock');
+    otherwise
+        % keep the output as it is
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

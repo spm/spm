@@ -51,9 +51,13 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_combineplanar.m 3604 2011-06-01 08:34:52Z jorhor $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'demean'),        cfg.demean         = 'no';       end
@@ -76,7 +80,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar'});
+data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar'});
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'forbidden',   {'combinegrad'});
@@ -266,16 +270,26 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id  = '$Id: ft_combineplanar.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id  = '$Id: ft_combineplanar.m 3604 2011-06-01 08:34:52Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
+   
+% convert back to input type if necessary
+if istimelock
+   data = ft_checkdata(data, 'datatype', 'timelock');
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

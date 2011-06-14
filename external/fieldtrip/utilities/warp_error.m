@@ -42,7 +42,7 @@ function [dist] = warp_error(M, input, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_error.m 2640 2011-01-25 22:01:32Z roboos $
+% $Id: warp_error.m 3486 2011-05-10 09:29:30Z roboos $
 
 if ~isempty(M)
   % apply the warp to the input positions

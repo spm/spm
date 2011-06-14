@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 3262 2011-03-31 15:15:52Z roboos $
+% $Id: ft_read_headshape.m 3607 2011-06-01 10:33:57Z crimic $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -232,7 +232,6 @@ switch fileformat
     end
 
   case {'yokogawa_mrk', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw' }
-
     hdr = read_yokogawa_header(filename);
     marker = hdr.orig.matching_info.marker;
 
@@ -284,6 +283,57 @@ switch fileformat
     shape.fid.pnt(1:3,:)= shape.fid.pnt(sw_ind, :);
     shape.fid.label(1:3)= {'nas', 'lpa', 'rpa'};
 
+  case 'yokogawa_hsp'
+    fid = fopen(filename, 'rt');
+    
+    fidstart = false;
+    hspstart = false;
+    
+    % try to locate the fiducial positions
+    while ~fidstart && ~feof(fid)
+      line = fgetl(fid);
+      if ~isempty(strmatch('//Position of fiducials', line))
+        fidstart = true;
+      end
+    end
+    if fidstart
+      line_xpos = fgetl(fid);
+      line_ypos = fgetl(fid);
+      line_yneg = fgetl(fid);
+      xpos = sscanf(line_xpos(3:end), '%f');
+      ypos = sscanf(line_ypos(3:end), '%f');
+      yneg = sscanf(line_yneg(3:end), '%f');
+      shape.fid.pnt = [
+        xpos(:)'
+        ypos(:)'
+        yneg(:)'
+        ];
+      shape.fid.label = {
+        'X+'
+        'Y+'
+        'Y-'
+        };
+    end
+    
+    % try to locate the fiducial positions
+    while ~hspstart && ~feof(fid)
+      line = fgetl(fid);
+      if ~isempty(strmatch('//No of rows', line))
+        hspstart = true;
+      end
+    end
+    if hspstart
+      line = fgetl(fid);
+      siz = sscanf(line, '%f');
+      shape.pnt = zeros(siz(:)');
+      for i=1:siz(1)
+      line = fgetl(fid);
+      shape.pnt(i,:) = sscanf(line, '%f');
+      end
+    end
+    
+    fclose(fid);
+    
   case 'polhemus_fil'
     [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
 
@@ -326,6 +376,11 @@ switch fileformat
     [pnt, tri, nrm] = read_stl(filename);
     shape.pnt = pnt;
     shape.tri = tri;
+    
+  case 'off'
+    [pnt, plc] = read_off(filename);
+    shape.pnt  = pnt;
+    shape.tri  = plc;
 
   case 'mne_tri'
     % FIXME this should be implemented, consistent with ft_write_headshape

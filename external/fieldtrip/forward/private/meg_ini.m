@@ -46,7 +46,7 @@ function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_ini.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: meg_ini.m 3572 2011-05-24 10:12:03Z vlalit $
 
 if nargin==4
   if order>0;
@@ -108,8 +108,10 @@ b=dotproduct(n1rep,bt);
 
 
 ctc=gradbas'*gradbas;
-coeffs=inv(ctc)*gradbas'*b;
 
+warning('OFF', 'MATLAB:nearlySingularMatrix');
+coeffs=inv(ctc)*gradbas'*b;
+warning('ON', 'MATLAB:nearlySingularMatrix');
 
 
 return

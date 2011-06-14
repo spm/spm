@@ -16,7 +16,9 @@ function [trl] = trialfun_twoclass_classification(cfg)
 %   cfg.trialdef.prestim    = latency in seconds, e.g. 0.3
 %   cfg.trialdef.poststim   = latency in seconds, e.g. 0.7
 
-% Subversion does not use the Log keyword, use 'svn log <filename>' or 'svn -v log | less' to get detailled information
+% Copyright (C) 2009, DCCN
+%
+% $Id: trialfun_twoclass_classification.m 3497 2011-05-10 21:22:40Z roboos $
 
 % these are used to count the number of training items in each class
 persistent numtrain1

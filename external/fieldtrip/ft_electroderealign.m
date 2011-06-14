@@ -102,9 +102,13 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 3340 2011-04-14 15:45:36Z roboos $
+% $Id: ft_electroderealign.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 %text output
 disp('Close the figure to output new sensor positions');
@@ -124,7 +128,7 @@ if ~isfield(cfg, 'label'),         cfg.label = 'off';        end % show labels
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducials', 'fiducial'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial',  'fiducial'});
 cfg = ft_checkconfig(cfg, 'forbidden', 'outline');
-cfg = ft_checkconfig(cfg, 'renamedval',{'warp', 'rigidbody','homogenous'});
+cfg = ft_checkconfig(cfg, 'renamedval',{'warp', 'homogenous', 'rigidbody'});
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
@@ -174,8 +178,9 @@ if usetemplate
     tmp(i) = ft_convert_units(template(i), elec.unit); % ensure that the units are consistent with the electrodes
   end
   template = tmp;
-  
-elseif useheadshape
+end
+
+if useheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
     % use the headshape surface specified in the configuration
@@ -195,8 +200,6 @@ elseif useheadshape
     headshape.tri = projecttri(headshape.pnt);
   end
   headshape = ft_convert_units(headshape, elec.unit); % ensure that the units are consistent with the electrodes
-else
-  error('you should either specify template electrode positions, template fiducials or a head shape');
 end
 
 % remember the original electrode locations and labels
@@ -476,8 +479,10 @@ end
 % apply the spatial transformation to all electrodes, and replace the
 % electrode labels by their case-sensitive original values
 switch cfg.method
-  case {'template' 'fiducial', 'interactive'}
-    norm.pnt   = warp_apply(norm.m, orig.pnt,cfg.warp);
+  case 'template'
+    norm.pnt   = warp_apply(norm.m, orig.pnt, cfg.warp);
+  case {'fiducial' 'interactive'}
+    norm.pnt   = warp_apply(norm.m, orig.pnt);
   case 'manual'
     % the positions are already assigned in correspondence with the mesh
     norm = orig;
@@ -491,10 +496,15 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_electroderealign.m 3340 2011-04-14 15:45:36Z roboos $';
+cfg.version.id = '$Id: ft_electroderealign.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the exact configuration details in the output
 norm.cfg = cfg;
@@ -656,7 +666,13 @@ xlabel('x')
 ylabel('y')
 zlabel('z')
 
-
+if ~isempty(template)
+  if size(template.pnt, 2)==2
+    hs = plot(template.pnt(:,1), template.pnt(:,2), 'b.', 'MarkerSize', 20);
+  else
+    hs = plot3(template.pnt(:,1), template.pnt(:,2), template.pnt(:,3), 'b.', 'MarkerSize', 20);
+  end
+end
 
 if ~isempty(headshape)
   % plot the faces of the 2D or 3D triangulation
@@ -669,13 +685,6 @@ if ~isempty(headshape)
   camlight
 end
 
-if ~isempty(template)
-  if size(template.pnt, 2)==2
-    hs = plot(template.pnt(:,1), template.pnt(:,2), 'b.', 'MarkerSize', 20);
-  else
-    hs = plot3(template.pnt(:,1), template.pnt(:,2), template.pnt(:,3), 'b.', 'MarkerSize', 20);
-  end
-end
 
 if isfield(elec, 'fid') && ~isempty(elec.fid.pnt)
   ft_plot_sens(elec.fid,'style', 'r*');

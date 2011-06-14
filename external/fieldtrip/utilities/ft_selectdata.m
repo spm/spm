@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3371 2011-04-22 10:35:21Z jansch $
+% $Id: ft_selectdata.m 3668 2011-06-09 18:36:39Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -216,8 +216,13 @@ if length(data)>1 && ~israw,
   % FIXME this works for source data, does this also work for volume data?
   for k = 1:length(param)
     tmp = cell(1,length(data));
-    for m = 1:length(tmp)
-      tmp{m} = data{m}.(param{k});
+    % try to get the numeric data 'param{k}' if present
+    try
+      for m = 1:length(tmp)
+        tmp{m} = data{m}.(param{k});
+      end
+    catch
+      continue;
     end
     if ~iscell(tmp{1}),
       % this is for the 'normal' case
@@ -323,9 +328,12 @@ if length(data)>1 && ~israw,
 	  tmpinside = [tmpinside; data{k}.inside(:)+tmpnvox];
 	  tmpnvox   = tmpnvox+numel(data{k}.inside)+numel(data{k}.outside);
 	  sortflag  = 0;
-        else
-          tmp       = [tmp       getsubfield(data{k}, dimtok{catdim})'];
+        elseif strcmp(dimtok{catdim}, 'time') || strcmp(dimtok{catdim}, 'freq')
+          tmp       = [tmp(:)' data{k}.(dimtok{catdim})];
           sortflag  = 1;
+        else 
+          tmp       = [tmp(:); data{k}.(dimtok{catdim})];
+          sortflag  = 0;
 	end
       end
     end
@@ -370,7 +378,11 @@ if length(data)>1 && ~israw,
     [srt, ind] = sort(tmp, 2);
     data{1}.(dimtok{catdim}) = tmp(ind);
     for k = 1:length(param)
-      tmp     = getsubfield(data{1}, param{k});
+      try
+        tmp     = data{1}.(param{k});
+      catch
+        continue;
+      end
       tmp     = permute(tmp, [catdim setdiff(1:length(size(tmp)), catdim)]);
       tmp     = ipermute(tmp(ind,:,:,:,:), [catdim setdiff(1:length(size(tmp)), catdim)]);
       data{1}.(param{k}) = tmp;
@@ -380,7 +392,8 @@ if length(data)>1 && ~israw,
   end
   % remove unspecified parameters
   if ~issource,
-    rmparam = setdiff(parameterselection('all',data{1}),[param 'pos' 'inside' 'outside' 'freq' 'time']);
+    %rmparam = setdiff(parameterselection('all',data{1}),[param 'pos' 'inside' 'outside' 'freq' 'time']);
+    rmparam = {};
   else
     rmparam = setdiff(fieldnames(data{1}), [param(:)' paramdimord(:)' 'pos' 'inside' 'outside' 'dim' 'cfg' 'vol' 'cumtapcnt' 'orilabel' 'time' 'freq']);
   end
@@ -495,7 +508,7 @@ if selectfoi,
   end
 end
 
-if selecttoi,
+if selecttoi && ~israw,
   if length(seltoi)==1, seltoi(2) = seltoi; end;
   %seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
   seltoi = find(data.time>=seltoi(1) & data.time<=seltoi(2));
@@ -512,6 +525,10 @@ if israw,
 
   if selectchan,
     data = selfromraw(data, 'chan', selchan); 
+  end
+ 
+  if selecttoi,
+    data = selfromraw(data, 'latency', seltoi);
   end
 
 elseif isfreq,

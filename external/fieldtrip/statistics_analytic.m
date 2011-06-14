@@ -16,7 +16,6 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design);
 % 
 % The configuration can contain
 %   cfg.statistic        = string, statistic to compute for each sample or voxel (see below)
-%   cfg.design           = design matrix
 %   cfg.correctm         = apply multiple-comparison correction, 'no', 'bonferoni', 'holms', 'fdr' (default = 'no')
 %   cfg.alpha            = critical value for rejecting the null-hypothesis (default = 0.05)
 %   cfg.tail             = -1, 1 or 0 (default = 0)
@@ -56,7 +55,7 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_analytic.m 2938 2011-02-23 13:34:15Z sashae $
+% $Id: statistics_analytic.m 3650 2011-06-08 14:43:31Z johzum $
 
 ft_defaults
 

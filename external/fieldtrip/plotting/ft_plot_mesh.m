@@ -1,28 +1,25 @@
 function [hs] = ft_plot_mesh(bnd, varargin)
 
 % FT_PLOT_MESH visualizes the information of a mesh contained in the first
-% argument bnd. The boundary argument (bnd) contains typically 2 fields
-% called .pnt and .tri referring to vertices and triangulation of a mesh.
+% argument bnd. The boundary argument (bnd) typically contains two fields
+% called .pnt and .tri referring to the vertices and the triangulation of
+% the mesh.
 %
 % Use as
 %   ft_plot_mesh(bnd, ...)
+% or if you only want to plot the 3-D vertices
+%   ft_plot_mesh(pnt, ...)
 %
-% FT_PLOT_MESH also allows to plot only vertices by
-%   ft_plot_mesh(pnt)
-% where pnt is a list of 3d points cartesian coordinates.
-%
-% Graphic facilities are available for vertices, edges and faces. A list of
-% the arguments is given below with the correspondent admitted choices.
-%
-%     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx1 array where N is the number of vertices
-%     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'faceindex'     true or false
-%     'vertexindex'   true or false
-%     'facealpha'     transparency, between 0 and 1
+% Optional arguments should come in key-value pairs and can include
+%     'facecolor'   = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'vertexcolor' = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx1 array where N is the number of vertices
+%     'edgecolor'   = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%     'faceindex'   = true or false
+%     'vertexindex' = true or false
+%     'facealpha'   = transparency, between 0 and 1
 %
 % If you don't want the faces or vertices to be plotted, you should
-% specify facecolor or respectively edgecolor as 'none'.
+% specify the color as 'none'.
 %
 % Example
 %   [pnt, tri] = icosahedron162;
@@ -51,7 +48,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 3287 2011-04-05 12:02:23Z roboos $
+% $Id: ft_plot_mesh.m 3639 2011-06-07 12:08:14Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -61,10 +58,10 @@ if ~isstruct(bnd) && isnumeric(bnd) && size(bnd,2)==3
   % the input seems like a list of points, convert into something that resembles a mesh
   warning('off', 'MATLAB:warn_r14_stucture_assignment');
   bnd.pnt = bnd;
+elseif isfield(bnd, 'pos')
+  % the input seems to be a set of points from ft_prepare_sourcemodel or ft_dipolefitting
+  bnd.pnt = bnd.pos;
 end
-
-haspnt = isfield(bnd, 'pnt');
-hastri = isfield(bnd, 'tri');
 
 % get the optional input arguments
 facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),   facecolor='white';end
@@ -75,6 +72,9 @@ vertexindex = keyval('vertexindex', varargin); if isempty(vertexindex), vertexin
 vertexsize  = keyval('vertexsize',  varargin); if isempty(vertexsize),  vertexsize=10;end
 facealpha   = keyval('facealpha',   varargin); if isempty(facealpha),   facealpha=1;end
 tag         = keyval('tag',         varargin); if isempty(tag),         tag='';end
+
+haspnt = isfield(bnd, 'pnt');
+hastri = isfield(bnd, 'tri');
 
 if isempty(vertexcolor)
   if haspnt && hastri
@@ -117,18 +117,13 @@ if ~holdflag
   hold on
 end
 
-if ~isfield(bnd, 'tri')
-  bnd.tri = [];
-end
+pnt = bnd.pnt;
 
-if isfield(bnd, 'pnt')
-  % this is normal
-  pnt = bnd.pnt;
-elseif isfield(bnd, 'pos')
-  % this is the case for a cortical sheet source model from ft_prepare_sourcemodel
-  pnt = bnd.pos;
+if isfield(bnd, 'tri')
+  tri = bnd.tri;
+else
+  tri = [];
 end
-tri = bnd.tri;
 
 if ~isempty(pnt)
   hs = patch('Vertices', pnt, 'Faces', tri);

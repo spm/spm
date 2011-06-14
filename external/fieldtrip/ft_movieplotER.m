@@ -54,9 +54,13 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 3267 2011-04-04 07:38:47Z jansch $
+% $Id: ft_movieplotER.m 3568 2011-05-20 12:45:28Z eelspa $
 
-ft_defaults;
+ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();;
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
@@ -270,10 +274,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_movieplotER.m 3267 2011-04-04 07:38:47Z jansch $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_movieplotER.m 3568 2011-05-20 12:45:28Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version(); % this is helpful for debugging
+cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername(); % this is helpful for debugging
 
 if isfield(timelock, 'cfg')
   % remember the configuration details of the input data

@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 3402 2011-04-28 21:50:35Z ingnie $
+% $Id: ft_read_data.m 3584 2011-05-27 08:10:05Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -615,13 +615,13 @@ switch dataformat
         cumsamples = cumsum(nsamples);
         begblock = find(begsample<=cumsamples, 1, 'first');
         endblock = find(endsample<=cumsamples, 1, 'first');
-        datsig = read_mff_bin(fullsignalname, begblock, endblock);
+        datsig = read_mff_bin(fullsignalname, begblock, endblock, chanind_sig);
 
-        % select channels and concatenate in a matrix
+        % concatenate in a matrix
         if exist('dat', 'var')
-          dat{length(dat)+1} = cell2mat(datsig(chanind_sig,:));
+          dat{length(dat)+1} = cell2mat(datsig(:,:));
         else
-          dat{1} = cell2mat(datsig(chanind_sig,:));
+          dat{1} = cell2mat(datsig(:,:));
         end
         % select the desired samples from the concatenated blocks
         if begblock==1
@@ -712,7 +712,6 @@ switch dataformat
     % Neuroscan continuous data
     sample1    = begsample-1;
     ldnsamples = endsample-begsample+1; % number of samples to read
-    chanoi     = chanindx(:)';          % channels of interest
     if sample1<0
       error('begin sample cannot be for the beginning of the file');
     end
@@ -730,7 +729,7 @@ switch dataformat
     elseif strcmp(dataformat, 'ns_cnt32')
       tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'blockread', 1, 'dataformat', 'int32');
     end
-    dat = tmp.data(chanoi,:);
+    dat = tmp.data(chanindx,:);
 
   case 'ns_eeg'
     % Neuroscan epoched file
@@ -903,12 +902,12 @@ switch dataformat
 
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     % the data can be read with two toolboxes, iether the one from Yokogawa or the one from Maryland
-    if ft_hastoolbox('sqdproject')
-      % chgannels are counted 0-based, samples are counted 1-based
+    if ft_hastoolbox('sqdproject', 3) % don't error if it cannot be added
+      % channels are counted 0-based, samples are counted 1-based
       [dat, info] = sqdread(filename, 'channels', chanindx-1, 'samples', [begsample endsample]);
       dat = dat';
     else
-      ft_hastoolbox('yokogawa', 1);
+      ft_hastoolbox('yokogawa', 1); % error if it cannot be added
       dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
     end
     

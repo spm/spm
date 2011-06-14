@@ -41,9 +41,12 @@ function [data] = ft_rejectvisual(cfg, data);
 %   cfg.eegscale    = number, scaling to apply to the EEG channels prior to display
 %   cfg.eogscale    = number, scaling to apply to the EOG channels prior to display
 %   cfg.ecgscale    = number, scaling to apply to the ECG channels prior to display
+%   cfg.emgscale    = number, scaling to apply to the EMG channels prior to display
 %   cfg.megscale    = number, scaling to apply to the MEG channels prior to display
+%   cfg.gradscale   = number, scaling to apply to the MEG gradiometer channels prior to display (in addition to the cfg.megscale factor)
+%   cfg.magscale    = number, scaling to apply to the MEG magnetometer channels prior to display (in addition to the cfg.megscale factor)
 %
-% The scaling to the EEG, EOG, ECG and MEG channels is optional and can
+% The scaling to the EEG, EOG, ECG, EMG and MEG channels is optional and can
 % be used to bring the absolute numbers of the different channel types in
 % the same range (e.g. fT and uV). The channel types are determined from
 % the input data using FT_CHANNELSELECTION.
@@ -63,7 +66,7 @@ function [data] = ft_rejectvisual(cfg, data);
 % The following settings are usefull for identifying muscle artifacts:
 %   cfg.bpfilter    = 'yes'
 %   cfg.bpfreq      = [110 140]
-%   cfg.bpfiltord   = 10
+%   cfg.bpfiltord   =  8
 %   cfg.bpfilttype  = 'but'
 %   cfg.rectify     = 'yes'
 %   cfg.boxcar      = 0.2
@@ -132,12 +135,17 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 3171 2011-03-18 12:18:44Z johzum $
+% $Id: ft_rejectvisual.m 3681 2011-06-14 07:14:35Z jansch $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
+% cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -151,11 +159,14 @@ if ~isfield(cfg, 'alim'),        cfg.alim = [];                end
 if ~isfield(cfg, 'eegscale'),    cfg.eegscale = [];            end
 if ~isfield(cfg, 'eogscale'),    cfg.eogscale = [];            end
 if ~isfield(cfg, 'ecgscale'),    cfg.ecgscale = [];            end
+if ~isfield(cfg, 'emgscale'),    cfg.emgscale = [];            end
 if ~isfield(cfg, 'megscale'),    cfg.megscale = [];            end
+if ~isfield(cfg, 'gradscale'),   cfg.gradscale = [];           end
+if ~isfield(cfg, 'magscale'),    cfg.magscale = [];            end
 if ~isfield(cfg, 'inputfile'),   cfg.inputfile = [];           end
 if ~isfield(cfg, 'outputfile'),  cfg.outputfile = [];          end
 if ~isfield(cfg, 'plotlayout'),  cfg.plotlayout = 'square';    end
-
+if ~isfield(cfg, 'viewmode'),    cfg.viewmode   = 'remove';    end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -167,6 +178,9 @@ if ~isempty(cfg.inputfile)
     data = loadvar(cfg.inputfile, 'data');
   end
 end
+
+% store original datatype
+dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
@@ -246,11 +260,32 @@ if ~isempty(cfg.ecgscale)
     tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.ecgscale;
   end
 end
+if ~isempty(cfg.emgscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, ft_channelselection('EMG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.emgscale;
+  end
+end
 if ~isempty(cfg.megscale)
   scaled = 1;
   chansel = match_str(tmpdata.label, ft_channelselection('MEG', tmpdata.label));
   for i=1:length(tmpdata.trial)
     tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.megscale;
+  end
+end
+if ~isempty(cfg.gradscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, ft_channelselection('MEGGRAD', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.gradscale;
+  end
+end
+if ~isempty(cfg.magscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, ft_channelselection('MEGMAG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.magscale;
   end
 end
 
@@ -367,16 +402,29 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectvisual.m 3171 2011-03-18 12:18:44Z johzum $';
+cfg.version.id = '$Id: ft_rejectvisual.m 3681 2011-06-14 07:14:35Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
+
+% convert back to input type if necessary
+switch dtype 
+    case 'timelock'
+        data = ft_checkdata(data, 'datatype', 'timelock');
+    otherwise
+        % keep the output as it is
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

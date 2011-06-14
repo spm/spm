@@ -46,7 +46,7 @@ function [H] = rotate(f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rotate.m 2638 2011-01-25 21:50:19Z roboos $
+% $Id: rotate.m 3500 2011-05-11 06:59:09Z roboos $
 
 if numel(f)~=3
   error('incorrect input vector');

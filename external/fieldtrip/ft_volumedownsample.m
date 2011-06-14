@@ -39,9 +39,13 @@ function [down] = ft_volumedownsample(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_volumedownsample.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 %% ft_checkdata see below!!! %%
 
@@ -154,10 +158,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumedownsample.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_volumedownsample.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 

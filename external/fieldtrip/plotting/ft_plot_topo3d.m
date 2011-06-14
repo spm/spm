@@ -31,9 +31,9 @@ function ft_plot_topo3d(pnt, val, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo3d.m 3287 2011-04-05 12:02:23Z roboos $
+% $Id: ft_plot_topo3d.m 3646 2011-06-08 10:18:06Z crimic $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 topostyle     = keyval('topostyle',     varargin); if isempty(topostyle),     topostyle = 'color';    end
@@ -180,3 +180,5 @@ axis equal
 if ~holdflag
   hold off
 end
+
+warning(ws); %revert to original state

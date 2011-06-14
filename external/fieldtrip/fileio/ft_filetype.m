@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 3368 2011-04-20 18:30:11Z ingnie $
+% $Id: ft_filetype.m 3610 2011-06-01 16:11:08Z crimic $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -290,10 +290,6 @@ elseif filetype_check_extension(filename, '.mrk') && filetype_check_header(filen
   type = 'yokogawa_mrk';
   manufacturer = 'Yokogawa';
   content = 'headcoil locations';
-elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, char([0 0 0 0])) % FIXME, this detection should possibly be improved
-  type = 'yokogawa_mri';
-  manufacturer = 'Yokogawa';
-  content = 'anatomical MRI';
 elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'-coregis')) == 1
   type = 'yokogawa_coregis';
   manufacturer = 'Yokogawa';
@@ -312,6 +308,9 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'-Te
   manufacturer = 'Yokogawa';
 elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'-FLL')) == 1
   type = 'yokogawa_fll';
+  manufacturer = 'Yokogawa';
+elseif filetype_check_extension(filename, '.hsp')
+  type = 'yokogawa_hsp';
   manufacturer = 'Yokogawa';
   
   % known 4D/BTI file types
@@ -362,7 +361,13 @@ elseif filetype_check_extension(filename, '.rej')
   type = 'eep_rej';
   manufacturer = 'EEProbe';
   content = 'rejection marks';
-  
+
+  % the yokogawa_mri has to be checked prior to asa_mri, because this one is more strict
+elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, char(0)) % FIXME, this detection should possibly be improved
+  type = 'yokogawa_mri';
+  manufacturer = 'Yokogawa';
+  content = 'anatomical MRI';
+
   % known ASA file types
 elseif filetype_check_extension(filename, '.elc')
   type = 'asa_elc';
@@ -948,6 +953,8 @@ elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filen
   type = 'gifti';
   manufacturer = 'Neuroimaging Informatics Technology Initiative';
   content = 'tesselated surface description';
+elseif filetype_check_extension(filename, '.v')
+  type = 'vista_vol'; 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

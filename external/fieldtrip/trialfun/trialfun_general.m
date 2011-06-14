@@ -18,7 +18,7 @@ function [trl, event] = trialfun_general(cfg)
 %   cfg.trialdef.eventtype  = '?'
 % a list with the events in your datafile will be displayed on screen.
 %
-% See also DEFINETRIAL, PREPROCESSING
+% See also FT_DEFINETRIAL, FT_PREPROCESSING
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
@@ -114,19 +114,21 @@ elseif ischar(cfg.trialdef.eventvalue)
 end
 
 % select all events of the specified type and with the specified value
-for i=find(strcmp(cfg.trialdef.eventtype, {event.type}))
-  if isempty(cfg.trialdef.eventvalue)
-    sel = [sel i];
-    %if isnumeric(event(i).value)
-    %  val = [val event(i).value];
-    %end
-  elseif ~isempty(intersect(event(i).value, cfg.trialdef.eventvalue))
-    sel = [sel i];
-    %if isnumeric(event(i).value)
-    %  val = [val event(i).value];
-    %end  
+if ~isempty(cfg.trialdef.eventtype)
+  sel = ismember({event.type}, cfg.trialdef.eventtype);
+else
+  sel = true(size(event));
+end
+
+if ~isempty(cfg.trialdef.eventvalue)
+  % this cannot be done robustly in a single line of code
+  for i=1:numel(event)
+    sel(i) = sel(i) & ~isempty(intersect(event(i).value, cfg.trialdef.eventvalue));
   end
 end
+
+% convert from boolean vector into a list of indices
+sel = find(sel);  
 
 if usegui
   % Checks whether offset and duration are defined for all the selected
@@ -194,7 +196,6 @@ if ~isempty(val)
 end
 
 if usegui
-
     % This complicated line just computes the trigger times in seconds and
     % converts them to a cell array of strings to use in the GUI
     eventstrings = cellfun(@num2str, mat2cell((trl(:, 1)- trl(:, 3))./hdr.Fs , ones(1, size(trl, 1))), 'UniformOutput', 0);
@@ -216,7 +217,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that shows event table
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function show_event(event);
+function show_event(event)
 if isempty(event)
   fprintf('no events were found in the datafile\n');
   return
@@ -308,3 +309,4 @@ else
     trialdef.eventvalue=settings{selection,2};
   end
 end
+

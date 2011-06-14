@@ -38,9 +38,9 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 1816 2010-09-29 12:51:50Z crimic $
+% $Id: ft_plot_vol.m 3502 2011-05-11 07:27:57Z roboos $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
@@ -87,7 +87,6 @@ switch ft_voltype(vol)
   otherwise
     error('unsupported voltype')
 end
-
  
 % plot the triangulated surfaces of the volume conduction model
 for i=1:length(bnd)
@@ -95,4 +94,7 @@ for i=1:length(bnd)
     'vertexsize',vertexsize,'facecolor',facecolor,'edgecolor',edgecolor, ...
     'vertexcolor',vertexcolor,'facealpha',facealpha);
 end
+
+warning(ws); %revert to original state
+
 

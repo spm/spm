@@ -82,7 +82,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 3376 2011-04-22 12:45:14Z roboos $
+% $Id: ft_read_event.m 3640 2011-06-07 12:40:56Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -132,8 +132,8 @@ if isempty(detectflank)
   detectflank = 'up';
 end
 
-if ismember(eventformat, {'brainvision_eeg', 'brainvision_dat'})
-  [p, f, e] = fileparts(filename);
+if any(strcmp(eventformat, {'brainvision_eeg', 'brainvision_dat'}))
+  [p, f] = fileparts(filename);
   filename = fullfile(p, [f '.vhdr']);
   eventformat = 'brainvision_vhdr';
 end
@@ -146,7 +146,7 @@ if strcmp(eventformat, 'brainvision_vhdr')
   if ~isfield(hdr, 'MarkerFile') || isempty(hdr.MarkerFile)
     filename = [];
   else
-    [p, f, e] = fileparts(filename);
+    [p, f] = fileparts(filename);
     filename = fullfile(p, hdr.MarkerFile);
   end
 end
@@ -698,7 +698,7 @@ switch eventformat
     end
 
     % get event info from xml files
-    ft_hastoolbox('XML4MATV2', 1, 0);
+    ft_hastoolbox('XML4MAT', 1, 0);
     warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
     xmlfiles = dir( fullfile(filename, '*.xml'));
     disp('reading xml files to obtain event info... This might take a while if many events/triggers are present')
@@ -714,7 +714,7 @@ switch eventformat
     % construct info needed for FieldTrip Event
     eventNames = fieldnames(xml);
     begTime = hdr.orig.xml.info.recordTime;
-    begTime(11) = ' '; begTime(end-6:end) = [];
+    begTime(11) = ' '; begTime(end-5:end) = [];
     begSDV = datenum(begTime);
     % find out if there are epochs in this dataset
     if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
@@ -731,31 +731,39 @@ switch eventformat
     eventCount = 0;
     for iXml = 1:length(eventNames)
       for iEvent = 1:length(xml.(eventNames{iXml}))
-        eventCount = eventCount+1;
         eventTime  = xml.(eventNames{iXml})(iEvent).event.beginTime;
-        eventTime(11) = ' '; eventTime(end-6:end) = [];
-        eventSDV = datenum(eventTime);
-        eventOffset = round((eventSDV - begSDV)*24*60*60*hdr.Fs); %in samples
-        % eventSample   
-        if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
-          for iEpoch = 1:size(hdr.orig.epochdef,1)
-            [dum,dum2,dum3] = intersect(squeeze(Msamp2offset(2,iEpoch,:)), eventOffset);
-            if ~isempty(dum2)
-              EpochNum = iEpoch;
-              SampIndex = dum2;
-            end
-          end
-          eventSample = Msamp2offset(1,EpochNum,SampIndex);
+        eventTime(11) = ' '; eventTime(end-5:end) = [];
+        if strcmp('-',eventTime(21))
+          % event out of range (before recording started): do nothing.
         else
-          eventSample = eventOffset+1;
-        end
+          eventSDV = datenum(eventTime);
+          eventOffset = round((eventSDV - begSDV)*24*60*60*hdr.Fs); %in samples, relative to start of recording
+          if eventOffset < 0
+            % event out of range (before recording started): do nothing
+          else
+            eventCount = eventCount+1;
+            % calculate eventSample, relative to start of epoch
+            if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+              for iEpoch = 1:size(hdr.orig.epochdef,1)
+                [dum,dum2] = intersect(squeeze(Msamp2offset(2,iEpoch,:)), eventOffset);
+                if ~isempty(dum2)
+                  EpochNum = iEpoch;
+                  SampIndex = dum2;
+                end
+              end
+              eventSample = Msamp2offset(1,EpochNum,SampIndex);
+            else
+              eventSample = eventOffset+1;
+            end
 
-        event(eventCount).type     = eventNames{iXml}(8:end);
-        event(eventCount).sample   = eventSample;
-        event(eventCount).offset   = eventOffset;
-        event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
-        event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
-      end
+            event(eventCount).type     = eventNames{iXml}(8:end);
+            event(eventCount).sample   = eventSample;
+            event(eventCount).offset   = 0;
+            event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
+            event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
+          end  %if that takes care of non "-" events that are still out of range
+        end %if that takes care of "-" events, which are out of range
+      end %iEvent
     end
 
 
@@ -1179,17 +1187,21 @@ switch eventformat
     % read the events, apply filter is applicable
     nev = read_neuralynx_nev(filename, 'type', flt_type, 'value', flt_value, 'mintimestamp', flt_mintimestamp, 'maxtimestamp', flt_maxtimestamp, 'minnumber', flt_minnumber, 'maxnumber', flt_maxnumber);
 
-    % now get the values as cell array, since the struct function can work with those
-    value     = {nev.TTLValue};
-    timestamp = {nev.TimeStamp};
-    number    = {nev.EventNumber};
-    type      = repmat({'trigger'},size(value));
-    duration  = repmat({[]},size(value));
-    offset    = repmat({[]},size(value));
-    sample    = num2cell(round(double(cell2mat(timestamp) - hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1));
-    % convert it into a structure array
-    event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'duration', duration, 'offset', offset, 'number', number);
-
+    % the following code should only be executed if there are events,
+    % otherwise there will be an error subtracting an uint64 from an []
+    if ~isempty(nev)
+      % now get the values as cell array, since the struct function can work with those
+      value     = {nev.TTLValue};
+      timestamp = {nev.TimeStamp};
+      number    = {nev.EventNumber};
+      type      = repmat({'trigger'},size(value));
+      duration  = repmat({[]},size(value));
+      offset    = repmat({[]},size(value));
+      sample    = num2cell(round(double(cell2mat(timestamp) - hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1));
+      % convert it into a structure array
+      event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'duration', duration, 'offset', offset, 'number', number);
+    end
+    
   case 'neuralynx_cds'
     % this is a combined Neuralynx dataset with seperate subdirectories for the LFP, MUA and spike channels
     dirlist   = dir(filename);

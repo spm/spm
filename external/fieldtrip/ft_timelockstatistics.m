@@ -18,9 +18,10 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %
 % Furthermore, the configuration should contain
 %   cfg.method       = different methods for calculating the significance probability and/or critical value
-%                    'montecarlo' get Monte-Carlo estimates of the significance probabilities and/or critical values from the permutation distribution,
-%                    'analytic'   get significance probabilities and/or critical values from the analytic reference distribution (typically, the sampling distribution under the null hypothesis),
-%                    'stats'      use a parametric test from the Matlab statistics toolbox,
+%                    'montecarlo'    get Monte-Carlo estimates of the significance probabilities and/or critical values from the permutation distribution,
+%                    'analytic'      get significance probabilities and/or critical values from the analytic reference distribution (typically, the sampling distribution under the null hypothesis),
+%                    'stats'         use a parametric test from the Matlab statistics toolbox,
+%                    'crossvalidate' use crossvalidation to compute predictive performance
 %
 % The other cfg options depend on the method that you select. You
 % should read the help of the respective subfunction STATISTICS_XXX
@@ -58,9 +59,13 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_timelockstatistics.m 3658 2011-06-09 12:25:29Z marvger $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
@@ -120,10 +125,15 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockstatistics.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_timelockstatistics.m 3658 2011-06-09 12:25:29Z marvger $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration of the input data
 cfg.previous = [];

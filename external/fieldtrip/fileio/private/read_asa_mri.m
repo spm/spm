@@ -31,7 +31,7 @@ function [mri, seg, hdr] = read_asa_mri(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_mri.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_asa_mri.m 3474 2011-05-09 14:13:50Z roboos $
 
 hdr.Nrows     = read_asa(fn, 'NumberRows=', '%d');
 hdr.Ncolumns  = read_asa(fn, 'NumberColumns=', '%d');
@@ -190,7 +190,7 @@ if exist('headcoordinates', 'file')
   end
 
   % use the headcoordinates function (roboos/misc) to compute the transformaton matrix
-  hdr.transformMRI2Head = headcoordinates(hdr.fiducial.mri.nas, hdr.fiducial.mri.lpa, hdr.fiducial.mri.rpa, 1);
+  hdr.transformMRI2Head = headcoordinates(hdr.fiducial.mri.nas, hdr.fiducial.mri.lpa, hdr.fiducial.mri.rpa, 'asa');
   hdr.transformHead2MRI = inv(hdr.transformMRI2Head);
 
   % compute the fiducials in head coordinates

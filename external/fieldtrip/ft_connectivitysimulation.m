@@ -70,7 +70,10 @@ function [data] = ft_connectivitysimulation(cfg)
 % 
 %   Required cfg options:
 %      cfg.params   = matrix, [nsignal x nsignal x number of lags] specifying the
-%                             autoregressive coefficient parameters 
+%                             autoregressive coefficient parameters. A non-zero
+%                             element at cfg.params(i,j,k) means a
+%                             directional influence from signal j onto
+%                             signal i (at lag k).
 %      cfg.noisecov = matrix, [nsignal x nsignal] specifying the covariance
 %                             matrix of the innovation process
 % 
@@ -97,16 +100,22 @@ function [data] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 2422 2010-12-15 08:44:29Z jansch $
+% $Id: ft_connectivitysimulation.m 3586 2011-05-27 18:33:11Z jansch $
 
 % check input configuration for the generally applicable options
 cfg = ft_checkconfig(cfg, 'required', {'nsignal' 'ntrials' 'triallength' 'fsample' 'method'});
 cfg = ft_checkconfig(cfg, 'rename',   {'blc', 'demean'});
 
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
+
 % method specific defaults
 switch cfg.method
-case {'linear_mix'}
+case {'ar'}
   %method specific defaults
+  cfg = ft_checkconfig(cfg, 'required', {'params' 'noisecov'});
+case {'linear_mix'}
   if ~isfield(cfg, 'bpfilter'), cfg.bpfilter = 'yes';   end
   if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
   if ~isfield(cfg, 'demean'),   cfg.dmean    = 'yes';   end
@@ -118,8 +127,6 @@ case {'mvnrnd'}
   if ~isfield(cfg, 'demean'),   cfg.demean   = 'yes';   end
   if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
   cfg = ft_checkconfig(cfg, 'required', {'covmat' 'delay'}); 
-case {'ar'}
-  cfg = ft_checkconfig(cfg, 'required', {'params' 'noisecov'});
 otherwise
 end
 
@@ -134,6 +141,37 @@ for k = 1:cfg.nsignal
 end
 
 switch cfg.method
+
+case {'ar'}
+  
+  nlag    = size(cfg.params,3);
+  nsignal = cfg.nsignal;
+  params  = zeros(nlag*nsignal, nsignal);
+  for k = 1:nlag
+    %params(((k-1)*nsignal+1):k*nsignal,:) = cfg.params(:,:,k);
+    params(((k-1)*nsignal+1):k*nsignal,:) = cfg.params(:,:,k)';
+    % Use the transposition to make the implementation consistent with what
+    % comes out of ft_mvaranalysis. The transposition is introduced on May
+    % 13, 2011. This swaps the directional influence for existing scripts.
+  end 
+  for k = 1:cfg.ntrials
+    tmp   = zeros(nsignal, nsmp+nlag);
+    noise  = mvnrnd(zeros(nsignal,1), cfg.noisecov, nsmp+nlag)';
+    state0 = zeros(nsignal*nlag, 1);
+    for m = 1:nlag
+      indx = ((m-1)*nsignal+1):m*nsignal;
+      state0(indx) = params(indx,:)'*noise(:,m);    
+    end
+    tmp(:,1:nlag) = fliplr(reshape(state0, [nsignal nlag]));  
+    
+    for m = (nlag+1):(nsmp+nlag)
+       state0    = reshape(fliplr(tmp(:,(m-nlag):(m-1))), [nlag*nsignal 1]);
+       tmp(:, m) = params'*state0 + noise(:,m); 
+    end
+    trial{k} = tmp(:,nlag+1:end);
+    time{k}  = tim;
+  end  
+
 case {'linear_mix'}
 
   fltpad = 50; %hard coded to avoid filtering artifacts
@@ -218,31 +256,8 @@ case {'mvnrnd'}
     % define time axis for this trial
     time{k}  = tim;
   end
-case {'ar'}
-  nlag    = size(cfg.params,3);
-  nsignal = cfg.nsignal;
-  params  = zeros(nlag*nsignal, nsignal);
-  for k = 1:nlag
-    params(((k-1)*nsignal+1):k*nsignal,:) = cfg.params(:,:,k);
-  end 
-  for k = 1:cfg.ntrials
-    tmp   = zeros(nsignal, nsmp+nlag);
-    noise  = mvnrnd(zeros(nsignal,1), cfg.noisecov, nsmp+nlag)';
-    state0 = zeros(nsignal*nlag, 1);
-    for m = 1:nlag
-      indx = ((m-1)*nsignal+1):m*nsignal;
-      state0(indx) = params(indx,:)'*noise(:,m);    
-    end
-    tmp(:,1:nlag) = fliplr(reshape(state0, [nsignal nlag]));  
-    
-    for m = (nlag+1):(nsmp+nlag)
-       state0    = reshape(fliplr(tmp(:,(m-nlag):(m-1))), [nlag*nsignal 1]);
-       tmp(:, m) = params'*state0 + noise(:,m); 
-    end
-    trial{k} = tmp(:,nlag+1:end);
-    time{k}  = tim;
-  end  
-
+  
+  
 otherwise
   error('unknown method');
 end
@@ -256,10 +271,15 @@ data.label   = label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivitysimulation.m 2422 2010-12-15 08:44:29Z jansch $';
+cfg.version.id   = '$Id: ft_connectivitysimulation.m 3586 2011-05-27 18:33:11Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

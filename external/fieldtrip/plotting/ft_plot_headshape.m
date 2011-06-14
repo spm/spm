@@ -1,23 +1,26 @@
 function hs = ft_plot_headshape(headshape,varargin)
 
-% FT_PLOT_HEADSHAPE visualizes the shape of a head generated from a variety of files 
-% (like CTF and Polhemus). The headshape and fiducials can for example be used for coregistration.
+% FT_PLOT_HEADSHAPE visualizes the shape of a head from a variety of
+% acquisition system. Usually the head shape is measured with a
+% Polhemus tracker and some proprietary software (e.g. from CTF, BTi
+% or Yokogawa). The headshape and fiducials can be used for coregistration.
+% If present in the headshape, the location of the fiducials will also
+% be shown.
 %
 % Use as
-%   hs = ft_plot_headshape(shape, varargin)
+%   hs = ft_plot_headshape(shape, ...)
+% where the shape is a structure obtained from FT_READ_HEADSHAPE.
 %
-% Graphic facilities are available for vertices and fiducials (Nasion, Left, Right ...). A list of
-% the arguments is given below with the correspondent admitted choices.
-%
-%     'vertexcolor'   ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
-%     'fidcolor'      ['brain', 'cortex', 'skin', 'black', 'red', 'r', ..., [0.5 1 0], ...]
-%     'fidmarker'     ['.', '*', '+',  ...]
-%     'fidlabel'      ['yes', 'no', 1, 0, 'true', 'false']
-%     'transform'     transformation matrix for the fiducials, converts MRI
-%                       voxels into head shape coordinates
+% Optional arguments should come in key-value pairs and can include
+%   'vertexcolor' = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'fidcolor'    = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
+%   'fidmarker'   = ['.', '*', '+',  ...]
+%   'fidlabel'    = ['yes', 'no', 1, 0, 'true', 'false']
+%   'transform'   = transformation matrix for the fiducials, converts MRI
+%                   voxels into head shape coordinates
 %
 % Example
-%  [shape] = ft_read_headshape(filename);
+%   shape = ft_read_headshape(filename);
 %   ft_plot_headshape(shape)
 
 % Copyright (C) 2009, Cristiano Micheli
@@ -38,17 +41,23 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 3287 2011-04-05 12:02:23Z roboos $
+% $Id: ft_plot_headshape.m 3639 2011-06-07 12:08:14Z roboos $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
+
+if ~isstruct(headshape) && isnumeric(headshape) && size(headshape,2)==3
+  % the input seems like a list of points, convert into something that resembles a headshape
+  warning('off', 'MATLAB:warn_r14_stucture_assignment');
+  headshape.pnt = headshape;
+end
 
 % get the optional input arguments
 vertexcolor = keyval('vertexcolor', varargin); if isempty(vertexcolor), vertexcolor='r'; end
 facecolor   = keyval('facecolor',   varargin); if isempty(facecolor),   facecolor='none'; end
 edgecolor   = keyval('edgecolor',   varargin); if isempty(edgecolor),   edgecolor='none'; end
 fidcolor    = keyval('fidcolor',    varargin); if isempty(fidcolor), fidcolor='g'; end
-fidmarker   = keyval('fidmarker',   varargin); if isempty(fidmarker), fidmarker='.'; end
-fidlabel    = keyval('fidlabel',    varargin); if isempty(fidlabel), fidlabel='no'; end
+fidmarker   = keyval('fidmarker',   varargin); if isempty(fidmarker), fidmarker='*'; end
+fidlabel    = keyval('fidlabel',    varargin); if isempty(fidlabel), fidlabel='yes'; end
 transform   = keyval('transform',    varargin); if isempty(transform), transform=[]; end
 
 % start with empty return values
@@ -69,27 +78,28 @@ ft_plot_mesh(bnd, 'vertexcolor',vertexcolor,'vertexsize',10);
 if isfield(headshape, 'fid')
   fid = headshape.fid;
   if ~isempty(transform)
-    % plot the fiducials
-    fidc = fid.pnt;
-    try
-      fidc = warp_apply(transform, fidc);
-    end
-    hs = plot3(fidc(:,1), fidc(:,2), fidc(:,3), 'Marker',fidmarker,'MarkerEdgeColor',fidcolor);
-    % show the fiducial labels
-    if isfield(fid,'label') && istrue(fidlabel)
-      for node_indx=1:size(fidc,1)
-        str = sprintf('%s', fid.label{node_indx});
-        h   = text(fidc(node_indx, 1), fidc(node_indx, 2), fidc(node_indx, 3), str, ...
-                  'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle','Interpreter','none');
-        hs  = [hs; h];
-      end
-    end    
+    % spatially transform the fiducials
+    % FIXME what is the reason for this?
+    fid.pnt = warp_apply(transform, fid.pnt);
   end
-   
+  
+  % show the fiducial labels
+  for i=1:size(fid.pnt,1)
+    hs = plot3(fid.pnt(i,1), fid.pnt(i,2), fid.pnt(i,3), 'Marker',fidmarker,'MarkerEdgeColor',fidcolor);
+    if isfield(fid,'label') && istrue(fidlabel)
+      str = sprintf('%s', fid.label{i});
+      h   = text(fid.pnt(i, 1), fid.pnt(i, 2), fid.pnt(i, 3), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle','Interpreter','none');
+      hs  = [hs; h];
+    end
+  end
 end
+
 if nargout==0
   clear hs
 end
 if ~holdflag
   hold off
 end
+
+warning(ws); %revert to original state
+

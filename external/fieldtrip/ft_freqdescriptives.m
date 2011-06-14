@@ -65,9 +65,13 @@ function [output] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqdescriptives.m 3364 2011-04-20 16:33:15Z sashae $
+% $Id: ft_freqdescriptives.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -213,10 +217,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqdescriptives.m 3364 2011-04-20 16:33:15Z sashae $';
+cfg.version.id = '$Id: ft_freqdescriptives.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 try, cfg.previous = freq.cfg; end
 

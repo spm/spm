@@ -19,7 +19,7 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 % cfg.ylim               = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.zlim               = 'maxmin', 'maxabs' or [zmin zmax] (default = 'maxmin')
 % cfg.channel            = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
-% cfg.cohrefchannel      = name of reference channel for visualising coherence, can be 'gui'
+% cfg.refchannel         = name of reference channel for visualising connectivity, can be 'gui'
 % cfg.baseline           = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
 % cfg.baselinetype       = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials             = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -112,6 +112,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 3140 2011-03-16 17:03:16Z craric $
+% $Id: ft_topoplotTFR.m 3631 2011-06-07 09:45:34Z jansch $
 
 cfg=ft_topoplotER(cfg, varargin{:});

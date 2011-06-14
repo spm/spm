@@ -44,7 +44,7 @@ function h = uimage(varargin)
 %   2006/06/12: v1.00, first version.
 %   2006/06/14: v1.03, minor bug fixed; works in ML6.
 %
-% $Id: uimage.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: uimage.m 3643 2011-06-07 13:24:28Z crimic $
 
 error(nargchk(3,inf,nargin));
 
@@ -117,12 +117,12 @@ elseif ~evenx && ~eveny   % X and Y both uneven
     ye = linspace(y(1), y(end), ny);
 
     ce = zeros(ny,nx);
-
+    
     for i=1:nx
         for j=1:ny
             indi = find(x<=xe(i));
             indj = find(y<=ye(j));
-            ce(j,i) = c(indi(end), indj(end));
+            ce(j,i) = c(indj(end),indi(end));
         end;
     end;
 

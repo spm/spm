@@ -146,9 +146,13 @@ function [data] = ft_freqsimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqsimulation.m 2667 2011-01-26 15:09:30Z arjsto $
+% $Id: ft_freqsimulation.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set defaults
 if ~isfield(cfg, 'method'),        cfg.method = 'phalow_amphigh';         end
@@ -508,10 +512,15 @@ end
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_freqsimulation.m 2667 2011-01-26 15:09:30Z arjsto $';
+cfg.version.id   = '$Id: ft_freqsimulation.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

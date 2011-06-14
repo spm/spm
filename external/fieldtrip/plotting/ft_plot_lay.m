@@ -37,9 +37,9 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 3292 2011-04-05 14:36:34Z roboos $
+% $Id: ft_plot_lay.m 3646 2011-06-08 10:18:06Z crimic $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'hpos', 'vpos', 'point', 'box', 'label','labelsize','labeloffset', 'mask', 'outline', 'verbose','pointsymbol','pointcolor','pointsize'});
@@ -136,3 +136,5 @@ axis off
 if ~holdflag
   hold off
 end
+
+warning(ws); %revert to original state

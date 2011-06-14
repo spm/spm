@@ -159,9 +159,13 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 3404 2011-04-29 10:24:48Z jansch $
+% $Id: ft_freqanalysis.m 3645 2011-06-08 09:59:58Z jansch $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % defaults for optional input/ouputfile and feedback
 cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
@@ -181,7 +185,7 @@ elseif hasinputfile
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', 'yes', 'hasoffset', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', cfg.feedback, 'hasoffset', 'yes', 'hastrialdef', 'yes');
 
 % select trials of interest
 cfg.trials = ft_getopt(cfg, 'trials', 'all');
@@ -268,8 +272,10 @@ if ~specestflg
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % HERE THE OLD IMPLEMENTATION STARTS
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
   [freq] = feval(sprintf('ft_freqanalysis_%s',lower(cfg.method)), cfg, data);
   
+   
 else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % HERE THE NEW IMPLEMENTATION STARTS
@@ -788,10 +794,15 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 3404 2011-04-29 10:24:48Z jansch $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 3645 2011-06-08 09:59:58Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
+  
+  % add information about the function call to the configuration
+  cfg.callinfo.proctime = toc(ftFuncTimer);
+  cfg.callinfo.calltime = ftFuncClock;
+  cfg.callinfo.user = getusername();
   
   % remember the configuration details of the input data
   try cfg.previous = data.cfg; end
@@ -802,7 +813,7 @@ else
 end % IF OLD OR NEW IMPLEMENTATION
 
 % copy the trial specific information into the output
-if strcmp(cfg.keeptrials, 'yes') && isfield(data, 'trialinfo'),
+if isfield(cfg, 'keeptrials') && strcmp(cfg.keeptrials, 'yes') && isfield(data, 'trialinfo'),
   freq.trialinfo = data.trialinfo;
 end
 

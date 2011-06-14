@@ -10,25 +10,27 @@ function ft_write_data(filename, dat, varargin)
 % but that is not required since it will be added automatically.
 %
 % Additional options should be specified in key-value pairs and can be
-%   'header'         header structure, see FT_READ_HEADER
+%   'header'         header structure that describes the data, see FT_READ_HEADER
 %   'dataformat'     string, see below
 %   'append'         boolean, not supported for all formats
 %   'chanindx'       1xN array
 %
 % The supported dataformats are
+%   edf
+%   gdf
 %   brainvision_eeg
-%   matlab
+%   neuralynx_ncs
+%   neuralynx_sdma
+%   plexon_nex
 %   riff_wave
 %   fcdc_matbin
 %   fcdc_mysql
 %   fcdc_buffer
-%   plexon_nex
-%   neuralynx_ncs
-%   neuralynx_sdma
+%   matlab
 %
 % See also FT_READ_HEADER, FT_READ_DATA, FT_READ_EVENT, FT_WRITE_EVENT
 
-% Copyright (C) 2007-2010 Robert Oostenveld
+% Copyright (C) 2007-2011 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -46,7 +48,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_write_data.m 3524 2011-05-12 08:19:12Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global

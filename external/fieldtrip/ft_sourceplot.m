@@ -34,7 +34,7 @@ function [cfg] = ft_sourceplot(cfg, data)
 %   cfg.downsample    = downsampling for resolution reduction, integer value (default = 1) (orig: from surface)
 %   cfg.atlas         = string, filename of atlas to use (default = []) SEE FT_PREPARE_ATLAS
 %                        for ROI masking (see "masking" below) or in interactive mode (see "ortho-plotting" below)
-%   cfg.inputcoord    = 'mni' or 'tal', coordinate system of data used to lookup the label from the atlas
+%   cfg.coordsys      = 'mni' or 'tal', coordinate system of the input data, used to lookup the label from the atlas
 %
 % The following parameters can be used for the functional data:
 %   cfg.funcolormap   = colormap for functional data, see COLORMAP (default = 'auto')
@@ -157,30 +157,31 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_sourceplot.m 3674 2011-06-10 12:47:18Z sashae $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'inputcoordsys', 'coordsys'});
 
 %%% ft_checkdata see below!!! %%%
 
 % set default for inputfile
-if ~isfield(cfg, 'inputfile'), cfg.inputfile                  = [];    end
+cfg.inputfile = ft_getopt(cfg, 'inputfile', []);
 
 % load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
+hasdata      = (nargin>1);
+hasinputfile = ~isempty(cfg.inputfile);
+if hasdata && hasinputfile
+  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+elseif hasdata
+  % do nothing
+elseif hasinputfile
+  data = loadvar(cfg.inputfile, 'data');
+end 
 
 % set the common defaults
-if ~isfield(cfg, 'method'),              cfg.method = 'ortho';              end
+cfg.method = ft_getopt(cfg, 'method', 'ortho');
 if ~isfield(cfg, 'anaparameter'),
   if isfield(data, 'anatomy'),
     cfg.anaparameter = 'anatomy';
@@ -190,56 +191,61 @@ if ~isfield(cfg, 'anaparameter'),
 end
 
 % all methods
-if ~isfield(cfg, 'funparameter'),        cfg.funparameter = [];             end
-if ~isfield(cfg, 'maskparameter'),       cfg.maskparameter = [];            end
-if ~isfield(cfg, 'downsample'),          cfg.downsample = 1;                end
-if ~isfield(cfg, 'title'),               cfg.title = '';                    end
-if ~isfield(cfg, 'atlas'),               cfg.atlas = [];                    end
-if ~isfield(cfg, 'marker'),              cfg.marker = [];                   end %TODO implement marker
-if ~isfield(cfg, 'markersize'),          cfg.markersize = 5;                end
-if ~isfield(cfg, 'markercolor'),         cfg.markercolor = [1,1,1];         end
+cfg.funparameter  = ft_getopt(cfg, 'funparameter',  []);
+cfg.maskparameter = ft_getopt(cfg, 'maskparameter', []);
+cfg.downsample    = ft_getopt(cfg, 'downsample',    1);
+cfg.title         = ft_getopt(cfg, 'title',         '');
+cfg.atlas         = ft_getopt(cfg, 'atlas',         []);
+cfg.marker        = ft_getopt(cfg, 'marker',        []);
+cfg.markersize    = ft_getopt(cfg, 'markersize',    5);
+cfg.markercolor   = ft_getopt(cfg, 'markercolor',   [1 1 1]);
 
 % set the common defaults for the functional data
-if ~isfield(cfg, 'funcolormap'),         cfg.funcolormap = 'auto';          end
-if ~isfield(cfg, 'funcolorlim'),         cfg.funcolorlim = 'auto';          end;
+cfg.funcolormap   = ft_getopt(cfg, 'funcolormap',   'auto');
+cfg.funcolrolim   = ft_getopt(cfg, 'funcolorlim',   'auto');
 
 % set the common defaults for the statistical data
-if ~isfield(cfg, 'opacitymap'),         cfg.opacitymap = 'auto';            end;
-if ~isfield(cfg, 'opacitylim'),         cfg.opacitylim = 'auto';            end;
-if ~isfield(cfg, 'roi'),                cfg.roi = [];                       end;
+cfg.opacitymap    = ft_getopt(cfg, 'opacitymap',    'auto');
+cfg.opacitylim    = ft_getopt(cfg, 'opacitylim',    'auto');
+cfg.roi           = ft_getopt(cfg, 'roi',           []);
 
 % set the defaults per method
+
 % ortho
-if ~isfield(cfg, 'location'),            cfg.location = 'auto';              end
-if ~isfield(cfg, 'locationcoordinates'), cfg.locationcoordinates = 'head';   end
-if ~isfield(cfg, 'crosshair'),           cfg.crosshair = 'yes';              end
-if ~isfield(cfg, 'colorbar'),            cfg.colorbar  = 'yes';              end
-if ~isfield(cfg, 'axis'),                cfg.axis = 'on';                    end
-if ~isfield(cfg, 'interactive'),         cfg.interactive = 'no';             end
-if ~isfield(cfg, 'queryrange');          cfg.queryrange = 3;                 end
-if ~isfield(cfg, 'inputcoord');          cfg.inputcoord = [];                end
+cfg.location            = ft_getopt(cfg, 'location',            'auto');
+cfg.locationcoordinates = ft_getopt(cfg, 'locationcoordinates', 'head');
+cfg.crosshair           = ft_getopt(cfg, 'crosshair',           'yes'); 
+cfg.colorbar            = ft_getopt(cfg, 'colorbar',            'yes'); 
+cfg.axis                = ft_getopt(cfg, 'axis',                'on');  
+cfg.interactive         = ft_getopt(cfg, 'interactive',         'no');  
+cfg.queryrange          = ft_getopt(cfg, 'queryrange',          3);     
+cfg.coordsys            = ft_getopt(cfg, 'coordsys',            []);    
+cfg.units               = ft_getopt(cfg, 'units',               []);    
+
 if isfield(cfg, 'TTlookup'),
   error('TTlookup is old; now specify cfg.atlas, see help!');
 end
+
 % slice
-if ~isfield(cfg, 'nslices');            cfg.nslices = 20;                    end
-if ~isfield(cfg, 'slicedim');           cfg.slicedim = 3;                    end
-if ~isfield(cfg, 'slicerange');         cfg.slicerange = 'auto';             end
+cfg.nslices    = ft_getopt(cfg, 'nslices',    20);
+cfg.slicedim   = ft_getopt(cfg, 'slicedim',   3);
+cfg.slicerange = ft_getopt(cfg, 'slicerange', 'auto');
+
 % surface
-if ~isfield(cfg, 'downsample'),         cfg.downsample     = 1;              end
-if ~isfield(cfg, 'surfdownsample'),     cfg.surfdownsample = 1;              end
-if ~isfield(cfg, 'surffile'),           cfg.surffile = 'single_subj_T1.mat'; end % use a triangulation that corresponds with the collin27 anatomical template in MNI coordinates
-if ~isfield(cfg, 'surfinflated'),       cfg.surfinflated = [];               end
-if ~isfield(cfg, 'sphereradius'),       cfg.sphereradius = [];               end
-if ~isfield(cfg, 'projvec'),            cfg.projvec = [1];               end
-if ~isfield(cfg, 'projweight'),         cfg.projweight = ones(size(cfg.projvec));               end
-if ~isfield(cfg, 'projcomb'),           cfg.projcomb = 'mean';               end %or max
-if ~isfield(cfg, 'projthresh'),         cfg.projthresh = [];                 end 
-if ~isfield(cfg, 'distmat'),            cfg.distmat = [];                    end
-if ~isfield(cfg, 'camlight'),           cfg.camlight = 'yes';                end
-if ~isfield(cfg, 'renderer'),           cfg.renderer = 'opengl';             end
+cfg.downsample     = ft_getopt(cfg, 'downsample',     1);
+cfg.surfdownsample = ft_getopt(cfg, 'surfdownsample', 1);
+cfg.surffile       = ft_getopt(cfg, 'surffile',       'single_subj_T1.mat');% use a triangulation that corresponds with the collin27 anatomical template in MNI coordinates
+cfg.surfinflated   = ft_getopt(cfg, 'surfinflated',  []);
+cfg.sphereradius   = ft_getopt(cfg, 'sphereradius',  []);
+cfg.projvec        = ft_getopt(cfg, 'projvec',       1); 
+cfg.projweight     = ft_getopt(cfg, 'projweight',    ones(size(cfg.projvec)));
+cfg.projcomb       = ft_getopt(cfg, 'projcomb',      'mean'); %or max
+cfg.projthresh     = ft_getopt(cfg, 'projthresh',    []);                 
+cfg.distmat        = ft_getopt(cfg, 'distmat',       []);
+cfg.camlight       = ft_getopt(cfg, 'camlight',      'yes');
+cfg.renderer       = ft_getopt(cfg, 'renderer',      'opengl');
 if isequal(cfg.method,'surface')
-  if ~isfield(cfg, 'projmethod'),       error('specify cfg.projmethod');     end
+  if ~isfield(cfg, 'projmethod'), error('specify cfg.projmethod'); end 
 end
 
 % for backward compatibility
@@ -259,6 +265,30 @@ end
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
 
+% ensure that the data has interpretable spatial units
+if     ~isfield(data, 'unit') && ~isempty(cfg.units)
+  data.unit = cfg.units;
+elseif ~isfield(data, 'unit') &&  isempty(cfg.units)
+  data = ft_convert_units(data);
+elseif  isfield(data, 'unit') && ~isempty(cfg.units)
+  data = ft_convert_units(data, cfg.units);
+elseif  isfield(data, 'unit') &&  isempty(cfg.units)
+  % nothing to do
+end
+
+% ensure that the data has an interpretable coordinate system
+if     ~isfield(data, 'coordsys') && ~isempty(cfg.coordsys)
+  data.coordsys = cfg.coordsys;
+elseif ~isfield(data, 'coordsys') &&  isempty(cfg.coordsys) && ~isempty(cfg.atlas)
+  % only needed if an atlas was specified for volumelookup
+  data = ft_convert_coordsys(data);
+elseif  isfield(data, 'coordsys') && ~isempty(cfg.coordsys) && ~isempty(cfg.atlas)
+  % only needed if an atlas was specified for volumelookup
+  data = ft_convert_coordsys(data, cfg.units);
+elseif  isfield(data, 'coordsys') &&  isempty(cfg.coordsys)
+  % nothing to do
+end
+
 % select the functional and the mask parameter
 cfg.funparameter  = parameterselection(cfg.funparameter, data);
 cfg.maskparameter = parameterselection(cfg.maskparameter, data);
@@ -275,25 +305,24 @@ data = ft_volumedownsample(tmpcfg, data);
 %%% make the local variables:
 dim = data.dim;
 
-hasatlas = 0;
-if ~isempty(cfg.atlas)
+hasatlas = ~isempty(cfg.atlas);
+if hasatlas
   % initialize the atlas
-  hasatlas = 1;
   [p, f, x] = fileparts(cfg.atlas);
   fprintf(['reading ', f,' atlas coordinates and labels\n']);
   atlas = ft_prepare_atlas(cfg.atlas);
 end
 
-hasroi = 0;
-if ~isempty(cfg.roi)
+hasroi = ~isempty(cfg.roi);
+if hasroi
   if ~hasatlas
     error('specify cfg.atlas which belongs to cfg.roi')
   else
-    % get mask
-    hasroi = 1;
-    tmpcfg.roi = cfg.roi;
-    tmpcfg.atlas = cfg.atlas;
-    tmpcfg.inputcoord = cfg.inputcoord;
+    % get the mask
+    tmpcfg          = [];
+    tmpcfg.roi      = cfg.roi;
+    tmpcfg.atlas    = cfg.atlas;
+    tmpcfg.coordsys = cfg.coordsys;
     roi = ft_volumelookup(tmpcfg,data);
   end
 end
@@ -351,8 +380,13 @@ if hasfun && issubfield(data, 'dimord') && strcmp(data.dimord(end-2:end),'rgb')
   fcolmax = 1;
 elseif hasfun
   % determine scaling min and max (fcolmin fcolmax) and funcolormap
-  funmin = min(fun(:));
-  funmax = max(fun(:));
+  if ~isa(fun, 'logical')
+    funmin = min(fun(:));
+    funmax = max(fun(:));
+  else
+    funmin = 0;
+    funmax = 1;
+  end
   % smart lims: make from auto other string
   if isequal(cfg.funcolorlim,'auto')
     if sign(funmin)>-1 && sign(funmax)>-1
@@ -630,33 +664,49 @@ if isequal(cfg.method,'ortho')
       fprintf('press n/l/r on keyboard to record a fiducial position\n');
       fprintf('press q on keyboard to quit interactive mode\n');
     end
-
+    
     ijk = [xi yi zi 1]';
     xyz = data.transform * ijk;
-    if hasfun && ~hasatlas
-      val = fun(xi, yi, zi, qi);
-      if ~hasfreq && ~hastime,
-        fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3), val);
-      elseif hastime && hasfreq,
-        val = fun(xi, yi, zi, qi(1), qi(2));
-        fprintf('voxel %d, indices [%d %d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)' data.freq(qi(1)) data.time(qi(2))], val);
-      elseif hastime,
-        fprintf('voxel %d, indices [%d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)', data.time(qi(1))], val);
-      elseif hasfreq,
-        fprintf('voxel %d, indices [%d %d %d %d], %s coordinates [%.1f %.1f %.1f %.1f], value %f\n', [sub2ind(dim(1:3), xi, yi, zi), ijk(1:3)', qi], cfg.inputcoord, [xyz(1:3)', data.freq(qi)], val);
-      end
-    elseif hasfun && hasatlas
-      val = fun(xi, yi, zi, qi);
-      fprintf('voxel %d, indices [%d %d %d], %s coordinates [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), cfg.inputcoord, xyz(1:3), val);
-    elseif ~hasfun && ~hasatlas
-      fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3));
-    elseif ~hasfun && hasatlas
-      fprintf('voxel %d, indices [%d %d %d], %s coordinates [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), cfg.inputcoord, xyz(1:3));
+    
+    % construct a string with user feedback
+    str = sprintf('voxel %d, indices [%d %d %d]', sub2ind(dim(1:3), xi, yi, zi), ijk(1:3));
+
+    if isfield(data, 'coordsys') && isfield(data, 'unit')
+      str = sprintf('%s, %s coordinates [%.1f %.1f %.1f] %s', str, data.coordsys, xyz(1:3), data.unit);
+    elseif ~isfield(data, 'coordsys') && isfield(data, 'unit')
+      str = sprintf('%s, location [%.1f %.1f %.1f] %s', str, xyz(1:3), data.unit);
+    elseif isfield(data, 'coordsys') && ~isfield(data, 'unit')
+      str = sprintf('%s, %s coordinates [%.1f %.1f %.1f]', str, data.coordsys, xyz(1:3));
+    elseif ~isfield(data, 'coordsys') && ~isfield(data, 'unis')
+      str = sprintf('%s, location [%.1f %.1f %.1f]', str, xyz(1:3));
     end
+    
+    if hasfreq && hastime,
+      str = sprintf('%s, %.1f s, %.1f Hz', str, qi(1), qi(2));
+    elseif ~hasfreq && hastime,
+      str = sprintf('%s, %.1f s', str, qi(1));
+    elseif hasfreq && ~hastime,
+      str = sprintf('%s, %.1f Hz', str, qi(1));
+    end
+    
+    if hasfun
+      if ~hasfreq && ~hastime
+        val = fun(xi, yi, zi);
+      elseif ~hasfreq && hastime
+        val = fun(xi, yi, zi, qi);
+      elseif hasfreq && ~hastime
+        val = fun(xi, yi, zi, qi);
+      elseif hasfreq && hastime
+        val = fun(xi, yi, zi, qi(1), qi(2));
+      end
+      str = sprintf('%s, value %f', str, val);
+    end
+    
+    fprintf('%s\n', str);
 
     if hasatlas
       % determine the anatomical label of the current position
-      lab = atlas_lookup(atlas, (xyz(1:3)), 'inputcoord', cfg.inputcoord, 'queryrange', cfg.queryrange);
+      lab = atlas_lookup(atlas, (xyz(1:3)), 'inputcoord', data.coordsys, 'queryrange', cfg.queryrange);
       if isempty(lab)
         fprintf([f,' labels: not found\n']);
       else

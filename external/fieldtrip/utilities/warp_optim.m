@@ -1,6 +1,6 @@
 function [result, M] = warp_optim(input, target, method)
 
-% WARP_PNT determine intermediate positions using warping (deformation)
+% WARP_OPTIM determine intermediate positions using warping (deformation)
 % the input cloud of points is warped to match the target.
 % The strategy is to start with simpelest linear warp, followed by a more
 % elaborate linear warp, which then is followed by the nonlinear warps up
@@ -9,15 +9,23 @@ function [result, M] = warp_optim(input, target, method)
 % [result, M] = warp_pnt(input, target, method)
 %     input          contains the Nx3 measured 3D positions
 %     target         contains the Nx3 template 3D positions
-%     method         should be empty or any of 'nonlin1', 'nonlin2' ... 'nonlin5'
+%     method         should be any of 
+%                     'rigidbody'
+%                     'globalrescale'
+%                     'traditional' (default)
+%                     'nonlin1'
+%                     'nonlin2'
+%                     'nonlin3'
+%                     'nonlin4'
+%                     'nonlin5'
 %
-% The default is a traditional linear warp with rescaling in each
-% dimension. Optionally you can select a nonlinear warp of the 1st (affine)
-% up to the 5th order.
+% The default warping method is a traditional linear warp with individual
+% rescaling in each dimension. Optionally you can select a nonlinear warp
+% of the 1st (affine) up to the 5th order.
 %
-% This function depends on the OPTIM and WARPING toolboxes.
+% When available, this function will use the MATLAB optimization toolbox.
 
-% Copyright (C) 2000-2005, Robert Oostenveld
+% Copyright (C) 2000-20011, Robert Oostenveld
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -49,7 +57,7 @@ function [result, M] = warp_optim(input, target, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_optim.m 2640 2011-01-25 22:01:32Z roboos $
+% $Id: warp_optim.m 3509 2011-05-11 09:49:10Z roboos $
 
 global fb;
 
@@ -66,9 +74,8 @@ pos2 = target;
 % feval that is executed by the optimalization toolbox.
 warp_error = str2func('warp_error');
 
-
 % determine whether the Matlab Optimization toolbox is available and can be used
-if hastoolbox('optim')
+if ft_hastoolbox('optim')
   optimfun = @fminunc;
 else
   optimfun = @fminsearch;
@@ -92,9 +99,13 @@ end
 
 if fb; fprintf('distance = %f\n', warp_error([0 0 0 0 0 0], pos1, pos2, 'rigidbody')); end
 
+if isempty(method)
+  error('incorrect warping method specified');
+end
+
 % the warp is done in steps, starting simple and progressively getting more complex
 level = find(strcmp(method, {
-  'rigidbody'          % 1
+  'rigidbody'         % 1
   'globalrescale'     % 2
   'traditional'       % 3
   'nonlin1'           % 4
@@ -104,7 +115,7 @@ level = find(strcmp(method, {
   'nonlin5'           % 8
   }));
 
-if isempty(method)
+if isempty(level)
   error('incorrect warping method specified');
 end
 

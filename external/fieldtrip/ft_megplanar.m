@@ -86,9 +86,13 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 3380 2011-04-22 16:09:35Z jansch $
+% $Id: ft_megplanar.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
@@ -112,7 +116,7 @@ israw  = ft_datatype(data, 'raw');
 istlck = ft_datatype(data, 'timelock');  % this will be temporary converted into raw
 
 % check if the input data is valid for this function
-data  = ft_checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153'});
+data  = ft_checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153', 'yokogawa160', 'yokogawa64'});
 
 if istlck
   % the timelocked data has just been converted to a raw representation
@@ -278,10 +282,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 3380 2011-04-22 16:09:35Z jansch $';
+cfg.version.id   = '$Id: ft_megplanar.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try cfg.previous = data.cfg; end

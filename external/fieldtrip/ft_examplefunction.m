@@ -30,13 +30,17 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_examplefunction.m 3568 2011-05-20 12:45:28Z eelspa $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 hasdata = (nargin>1);
 if ~isempty(cfg.inputfile)
@@ -94,10 +98,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 3016 2011-03-01 19:09:40Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_examplefunction.m 3568 2011-05-20 12:45:28Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version(); % this is helpful for debugging
+cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername(); % this is helpful for debugging
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

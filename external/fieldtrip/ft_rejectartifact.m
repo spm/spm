@@ -76,9 +76,13 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 3098 2011-03-14 13:27:18Z eelspa $
+% $Id: ft_rejectartifact.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 if 0
   % this code snippet ensures that these functions are included in the
@@ -433,10 +437,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the artfctdef substructure
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectartifact.m 3098 2011-03-14 13:27:18Z eelspa $';
+cfg.version.id = '$Id: ft_rejectartifact.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

@@ -76,9 +76,13 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 3403 2011-04-28 22:05:14Z ingnie $
+% $Id: ft_databrowser.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set defaults for optional cfg.input and or cfg.outputfile
 if ~isfield(cfg, 'inputfile'),       cfg.inputfile = [];               end
@@ -474,10 +478,15 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 3403 2011-04-28 22:05:14Z ingnie $';
+cfg.version.id = '$Id: ft_databrowser.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')

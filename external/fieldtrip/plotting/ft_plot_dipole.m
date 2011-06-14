@@ -4,7 +4,7 @@ function ft_plot_dipole(pos, ori, varargin)
 % and a stick pointing along the dipole orientation
 %
 % Use as
-%   plot_dipole(pos, mom, ...)
+%   ft_plot_dipole(pos, mom, ...)
 % where pos and mom are the dipole mosition and moment. Optional
 % input arguments should be specified in key-value pairs and can
 % include
@@ -35,9 +35,9 @@ function ft_plot_dipole(pos, ori, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_dipole.m 3287 2011-04-05 12:02:23Z roboos $
+% $Id: ft_plot_dipole.m 3646 2011-06-08 10:18:06Z crimic $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 units       = keyval('units', varargin);       if isempty(units),         units = 'cm';        end
@@ -159,3 +159,4 @@ if ~holdflag
   hold off
 end
 
+warning(ws); %revert to original state

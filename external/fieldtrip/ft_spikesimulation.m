@@ -26,9 +26,13 @@ function data = ft_spikesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesimulation.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_spikesimulation.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'trlduration'),  cfg.trlduration = 1; end %  in seconds
@@ -101,10 +105,15 @@ end
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_spikesimulation.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_spikesimulation.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details
 data.cfg = cfg;

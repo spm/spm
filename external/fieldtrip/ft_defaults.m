@@ -25,7 +25,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 3265 2011-04-04 07:02:04Z roboos $
+% $Id: ft_defaults.m 3478 2011-05-10 07:37:00Z roboos $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -67,8 +67,11 @@ try
 end
 
 try
-  % this contains layouts and cortical meshes
-  ft_hastoolbox('template', 1, 1);
+  % these contains template layouts, MRIs and cortical meshes
+  ft_hastoolbox('template/layout', 1, 1);
+  ft_hastoolbox('template/anatomy', 1, 1);
+  ft_hastoolbox('template/headmodel', 1, 1);
+  ft_hastoolbox('template/electrode', 1, 1);
 end
 
 try

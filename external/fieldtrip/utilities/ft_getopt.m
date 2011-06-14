@@ -14,7 +14,7 @@ function val = ft_getopt(opt, key, default)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_getopt.m 2978 2011-02-27 17:13:16Z roboos $
+% $Id: ft_getopt.m 3597 2011-05-31 12:29:07Z jansch $
 
 if nargin<3
   default = [];
@@ -59,5 +59,9 @@ elseif isa(opt, 'cell')
   else
     error('multiple input arguments with the same name');
   end
-  
-end % isstruct or iscell
+
+elseif isempty(opt)
+  % input can be an empty variable (e.g. when calling a ft-function with
+  % ft_XXX([], data)
+  val = default;
+end % isstruct or iscell or isempty

@@ -21,7 +21,6 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %
 % The following options are relevant if you use a segmented MRI
 %   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 5)
-%   cfg.mriunits    = 'mm' or 'cm' (default is 'mm')
 %   cfg.sourceunits = 'mm' or 'cm' (default is 'cm')
 %   cfg.threshold   = 0.5, relative to the maximum value in the segmentation
 %
@@ -58,16 +57,16 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 3041 2011-03-02 10:17:16Z eelspa $
+% $Id: ft_prepare_singleshell.m 3672 2011-06-10 10:36:58Z jansch $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed', {'spheremesh', 'numvertices'});
+cfg = ft_checkconfig(cfg, 'deprecated', 'mriunits');
 
 % set the defaults
 if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels
-if ~isfield(cfg, 'mriunits');      cfg.mriunits = 'mm';     end
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 4000;  end % approximate number of vertices in sphere

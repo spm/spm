@@ -26,12 +26,17 @@ function write_off(filename, pnt, plc)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_off.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: write_off.m 3606 2011-06-01 10:23:22Z crimic $
 
 nedges = 0;
 fid  = fopen(filename, 'wb');
 npnt = size(pnt,1);
 nplc = size(plc,1);
+
+% check that the indexes of plc are correct (0 convention)
+if ~sum(any(plc==0))
+  plc = plc - 1;
+end
 
 fprintf(fid, 'OFF\n');
 fprintf(fid, '%d %d %d\n',npnt,nplc,nedges);

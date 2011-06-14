@@ -49,7 +49,7 @@ function [H] = globalrescale(f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: globalrescale.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: globalrescale.m 3501 2011-05-11 07:11:35Z roboos $
 
 % compute the homogenous transformation matrix for the translation
 T = translate(f([1 2 3]));

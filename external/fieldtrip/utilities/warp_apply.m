@@ -1,4 +1,4 @@
-function [warped] = warp_apply(M, input, method, tol);
+function [warped] = warp_apply(M, input, method, tol)
 
 % WARP_APPLY performs a 3D linear or nonlinear transformation on the input
 % coordinates, similar to those in AIR 3.08. You can find technical
@@ -57,7 +57,7 @@ function [warped] = warp_apply(M, input, method, tol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_apply.m 2922 2011-02-21 21:47:27Z roboos $
+% $Id$
 
 if nargin<4
   tol = [];

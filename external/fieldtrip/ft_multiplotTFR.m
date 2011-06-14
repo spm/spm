@@ -7,7 +7,8 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % Use as:
 %   ft_multiplotTFR(cfg, data)
 %
-% The data can be a time-frequency representation of power or coherence that 
+% The data can be a time-frequency representation of power or coherence
+% that 
 % was computed using the FT_FREQANALYSIS or FT_FREQDESCRIPTIVES functions.
 %
 % The configuration can have the following parameters:
@@ -26,7 +27,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % cfg.ylim             = 'maxmin' or [ymin ymax] (default = 'maxmin')
 % cfg.zlim             = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
 % cfg.channel          = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
-% cfg.cohrefchannel    = name of reference channel for visualising coherence, can be 'gui'
+% cfg.refchannel       = name of reference channel for visualising connectivity, can be 'gui'
 % cfg.baseline         = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
 % cfg.baselinetype     = 'absolute' or 'relative' (default = 'absolute')
 % cfg.trials           = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -104,13 +105,14 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 3397 2011-04-27 15:50:12Z craric $
+% $Id: ft_multiplotTFR.m 3644 2011-06-07 13:50:28Z crimic $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused', {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel', 'refchannel'});
 
 clf
 
@@ -221,6 +223,7 @@ end % if hasrpt
 % Read or create the layout that will be used for plotting:
 lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
+ft_plot_lay(lay, 'box', false);
 
 % Apply baseline correction:
 if ~strcmp(cfg.baseline, 'no')
@@ -238,20 +241,20 @@ haslabelcmb = isfield(data, 'labelcmb');
 
 if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
   % A reference channel is required:
-  if ~isfield(cfg, 'cohrefchannel')
+  if ~isfield(cfg, 'refchannel')
     error('no reference channel is specified');
   end
   
-  % check for cohrefchannel being part of selection
-  if ~strcmp(cfg.cohrefchannel,'gui')
-    if (isfull      && ~any(ismember(data.label, cfg.cohrefchannel))) || ...
-       (haslabelcmb && ~any(ismember(data.labelcmb(:), cfg.cohrefchannel)))
-      error('cfg.cohrefchannel is a not present in the (selected) channels)')
+  % check for refchannel being part of selection
+  if ~strcmp(cfg.refchannel,'gui')
+    if (isfull      && ~any(ismember(data.label, cfg.refchannel))) || ...
+       (haslabelcmb && ~any(ismember(data.labelcmb(:), cfg.refchannel)))
+      error('cfg.refchannel is a not present in the (selected) channels)')
     end
   end
   
   % Interactively select the reference channel
-  if strcmp(cfg.cohrefchannel, 'gui')
+  if strcmp(cfg.refchannel, 'gui')
     % Open a single figure with the channel layout, the user can click on a reference channel
     h = clf;
     ft_plot_lay(lay, 'box', false);
@@ -272,13 +275,13 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
   if ~isfull,
     % Convert 2-dimensional channel matrix to a single dimension:
     if isempty(cfg.matrixside)
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
+      sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
+      sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedforward')
       sel1 = [];
-      sel2 = strmatch(cfg.cohrefchannel, data.labelcmb(:,1), 'exact');
+      sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
     elseif strcmp(cfg.matrixside, 'feedback')
-      sel1 = strmatch(cfg.cohrefchannel, data.labelcmb(:,2), 'exact');
+      sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
       sel2 = [];
     end
     fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.zparam);
@@ -288,7 +291,7 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
     data           = rmfield(data, 'labelcmb');
   else
     % General case
-    sel               = match_str(data.label, cfg.cohrefchannel);
+    sel               = match_str(data.label, cfg.refchannel);
     siz               = [size(data.(cfg.zparam)) 1];
     if strcmp(cfg.matrixside, 'feedback') || isempty(cfg.matrixside)
       %FIXME the interpretation of 'feedback' and 'feedforward' depend on
@@ -510,8 +513,8 @@ end
 k = cellstrmatch('COMNT',lay.label);
 if ~isempty(k)
   comment = cfg.comment;
-  comment = sprintf('%0s\nxlim=[%.3g %.3g]', comment, xmin, xmax);
-  comment = sprintf('%0s\nylim=[%.3g %.3g]', comment, ymin, ymax);
+  comment = sprintf('%0s\nxlim=[%.3g %.3g]', comment, data.(cfg.xparam)(xmin), data.(cfg.xparam)(xmax));
+  comment = sprintf('%0s\nylim=[%.3g %.3g]', comment, data.(cfg.yparam)(ymin), data.(cfg.yparam)(ymax));
   comment = sprintf('%0s\nzlim=[%.3g %.3g]', comment, zmin, zmax);
   ft_plot_text(lay.pos(k,1), lay.pos(k,2), sprintf(comment), 'Fontsize', cfg.fontsize);
 end
@@ -604,11 +607,11 @@ for k=1:length(strlist)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION which is called by ft_select_channel in case cfg.cohrefchannel='gui'
+% SUBFUNCTION which is called by ft_select_channel in case cfg.refchannel='gui'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_multiplotTFR(label, cfg, varargin)
-cfg.cohrefchannel = label;
-fprintf('selected cfg.cohrefchannel = ''%s''\n', join(',', cfg.cohrefchannel));
+cfg.refchannel = label;
+fprintf('selected cfg.refchannel = ''%s''\n', join(',', cfg.refchannel));
 p = get(gcf, 'Position');
 f = figure;
 set(f, 'Position', p);

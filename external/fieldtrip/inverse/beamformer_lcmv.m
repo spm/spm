@@ -287,8 +287,8 @@ for i=1:size(dip.pos,1)
   end
   if keepfilter
     if ~isempty(subspace)
-      %dipout.filter{i} = filt*subspace;
-      dipout.filter{i} = filt*pinv(subspace);
+      dipout.filter{i} = filt*subspace;
+      %dipout.filter{i} = filt*pinv(subspace);
     else
       dipout.filter{i} = filt;
     end
@@ -356,7 +356,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 3009 $  $Date: 2009/03/23 21:14:42 $
+%   $Revision: 3515 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

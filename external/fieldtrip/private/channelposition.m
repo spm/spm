@@ -25,24 +25,15 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 3399 2011-04-27 16:00:13Z vlalit $
+% $Id: channelposition.m 3654 2011-06-09 07:38:36Z roboos $
 
-while isfield(sens, 'balance') && isfield(sens.balance, 'current') && ~strcmp(sens.balance.current, 'none')
-  fnames = setdiff(fieldnames(sens.balance), 'current');
-  indx   = find(ismember(fnames, sens.balance.current));
-
-  if length(indx)==1,
-    %  undo the synthetic gradient balancing
-    fprintf('undoing the %s balancing\n', sens.balance.current);
-    sens = ft_apply_montage(sens, getfield(sens.balance, sens.balance.current), 'inverse', 'yes', 'keepunused', 'yes');
-  else
-    warning('cannot undo %s balancing\n', sens.balance.current);
-    break
-  end
-end
+% remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
+sens = undobalancing(sens);
 
 switch ft_senstype(sens)
-  case {'ctf151', 'ctf275' 'bti148', 'bti248', 'itab153', 'yokogawa160'}
+  case {'ctf151', 'ctf275' 'bti148', 'bti248', 'itab153', 'yokogawa160', 'yokogawa64'}
+    % the following code is for all axial gradiometer systems
+    
     % remove the non-MEG channels altogether
     sel = ft_chantype(sens, 'meg');
     sens.label = sens.label(sel);
@@ -58,8 +49,10 @@ switch ft_senstype(sens)
     dist = sqrt(sum((sens.pnt - repmat(mean(sens.pnt), size(sens.pnt, 1), 1)).^2, 2));
 
     % put the corresponding distances instead of non-zero tra entries
-    dist = (abs(sens.tra)>0.5).*repmat(dist', size(sens.tra, 1), 1);
-
+    
+    maxval = repmat(max(abs(sens.tra),[],2), [1 size(sens.tra,2)]);
+    dist = (abs(sens.tra)>0.95.*maxval).*repmat(dist', size(sens.tra, 1), 1);
+    
     % put nans instead of the zero entries
     dist(~dist) = inf;
 
@@ -70,7 +63,7 @@ switch ft_senstype(sens)
     pnt = sens.pnt(ind, :);
     ori = sens.ori(ind, :);
 
-  case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar', 'itab153_planar', 'yokogawa160_planar'}
+  case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar'}
     % create a list with planar channel names
     chan = {};
     for i=1:length(sens.label)

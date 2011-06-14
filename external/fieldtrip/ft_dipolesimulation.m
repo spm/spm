@@ -32,6 +32,7 @@ function [simulated] = ft_dipolesimulation(cfg)
 % or by specifying a sine-wave signal
 %   cfg.dip.frequency    in Hz
 %   cfg.dip.phase        in radians
+%   cfg.dip.amplitude    per dipole
 %   cfg.ntrials          number of trials
 %   cfg.triallength      time in seconds
 %   cfg.fsample          sampling frequency in Hz
@@ -74,9 +75,13 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_dipolesimulation.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'dip'),        cfg.dip = [];             end
@@ -224,10 +229,15 @@ simulated.label   = sens.label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_dipolesimulation.m 2439 2010-12-15 16:33:34Z johzum $';
+cfg.version.id   = '$Id: ft_dipolesimulation.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

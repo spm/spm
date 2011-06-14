@@ -24,7 +24,7 @@ function [freq] = ft_freqanalysis_mvar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mvar.m 1980 2010-10-27 10:45:10Z jansch $
+% $Id: ft_freqanalysis_mvar.m 3538 2011-05-13 06:48:41Z jansch $
 
 if ~isfield(cfg, 'channel'),    cfg.channel    = 'all';          end
 if ~isfield(cfg, 'channelcmb'), cfg.channelcmb = {'all' 'all'};  end
@@ -35,7 +35,7 @@ if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'yes';          end
 if ~isfield(cfg, 'feedback'),   cfg.feedback   = 'none';         end
 
 if strcmp(cfg.foi, 'all'),
-  cfg.foi = (0:1:data.fsampleorig./2);
+  cfg.foi = (0:1:data.fsampleorig/2);
 end
 
 cfg.channel    = ft_channelselection(cfg.channel,      data.label);
@@ -97,7 +97,7 @@ else
   freq.dimord = 'chan_chan_freq';
 end
 freq.transfer  = h;
-freq.itransfer = a;
+%freq.itransfer = a;
 freq.noisecov  = data.noisecov;
 freq.crsspctrm = crsspctrm;
 freq.dof       = data.dof;
@@ -115,7 +115,7 @@ ncmb  = nchan*nchan;
 nfoi  = length(foi);
 
 %---z-transform frequency axis
-zfoi  = exp(-2.*pi.*i.*(foi./fsample));
+zfoi  = exp(-2.*pi.*1i.*(foi./fsample));
 
 %---reorganize the ar-parameters
 ar  = reshape(ar, [ncmb size(ar,2)./nchan]);

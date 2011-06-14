@@ -37,7 +37,9 @@ function [varargout] = ft_componentbrowser(cfg, comp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentbrowser.m 2675 2011-01-26 16:03:16Z jorhor $
+% $Id: ft_componentbrowser.m 3595 2011-05-31 08:28:31Z jorhor $
+
+warning('FT_COMPONENTBROWSER is deprecated, please use FT_DATABROWSER with cfg.viewmode = ''component'' instead.')
 
 ft_defaults
 

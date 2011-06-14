@@ -20,7 +20,6 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 % cfg.randomfactor, cfg.voxelthreshold, cfg.voxelstatistic
 %
 % Configuration options that can be specified:
-%   cfg.design           = design matrix
 %   cfg.numrandomization = number of randomizations, can be 'all'
 %   cfg.correctm         = apply multiple-comparison correction, 'no', 'max', cluster', 'bonferoni', 'holms', 'fdr' (default = 'no')
 %   cfg.alpha            = critical value for rejecting the null-hypothesis per tail (default = 0.05) 
@@ -97,7 +96,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 2939 2011-02-23 13:40:06Z sashae $
+% $Id: statistics_montecarlo.m 3651 2011-06-08 14:44:34Z johzum $
 
 ft_defaults
 
@@ -203,7 +202,6 @@ if strcmp(cfg.correctm, 'cluster')
     tmpcfg.dim            = cfg.dim;
     tmpcfg.alpha          = cfg.clusteralpha;
     tmpcfg.tail           = cfg.clustertail;
-    tmpcfg.design         = cfg.design;
     tmpcfg.ivar           = cfg.ivar;
     tmpcfg.uvar           = cfg.uvar;
     tmpcfg.cvar           = cfg.cvar;

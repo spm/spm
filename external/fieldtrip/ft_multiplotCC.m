@@ -35,7 +35,7 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_multiplotCC.m 3631 2011-06-07 09:45:34Z jansch $
 
 ft_defaults
 
@@ -106,7 +106,7 @@ for k=1:length(chNum) - 2
       config.xlim   = [k-0.5 k+0.5];
     end
     config.zparam = cfg.zparam;
-    config.cohrefchannel = Lbl(k);
+    config.refchannel = Lbl(k);
     config.colorbar = 'no';
     config.zlim     = scale;
     config.grid_scale = 30;

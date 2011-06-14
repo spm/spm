@@ -51,7 +51,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3422 2011-05-03 08:59:53Z roboos $
+% $Id: ft_checkdata.m 3616 2011-06-02 09:24:55Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -586,7 +586,7 @@ elseif isequal(hasoffset, 'no') && isfield(data, 'offset')
 end % if hasoffset
 
 if isequal(hasdim, 'yes') && ~isfield(data, 'dim')
-  data.dim = pos2dim3d(data.pos);
+  data.dim = pos2dim(data.pos);
 elseif isequal(hasdim, 'no') && isfield(data, 'dim')
     data = rmfield(data, 'dim');
 end % if hasdim
@@ -1017,6 +1017,13 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
   if ~isempty(strmatch('time',  dimtok)), ntim=numel(data.time);      else ntim = 1; end
   
   if ~isfield(data, 'label')
+    % ensure that the bivariate spectral factorization results can be
+    % processed. FIXME this is experimental and will not work if the user
+    % did something weird before
+    for k = 1:numel(data.labelcmb)
+      tmp = tokenize(data.labelcmb{k}, '[');
+      data.labelcmb{k} = tmp{1};
+    end
     data.label = unique(data.labelcmb(:));
   end
 
@@ -1527,9 +1534,9 @@ if isfield(data, 'dimord')
   %i.e. slice by slice
   try,
     if isfield(data, 'dim'),
-      data.dim = pos2dim3d(data.pos, data.dim);
+      data.dim = pos2dim(data.pos, data.dim);
     else
-      data.dim = pos2dim3d(data);
+      data.dim = pos2dim(data);
     end
   catch
   end

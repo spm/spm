@@ -39,9 +39,6 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %
 % See also FT_SOURCEANALYSIS, FT_SOURCEDESCRIPTIVES, FT_SOURCEGRANDAVERAGE
 
-% Undocumented local options:
-%   cfg.statistic
-
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -60,9 +57,13 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $
+% $Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % this wrapper should be compatible with the already existing statistical
 % functions that only work for source input data
@@ -83,24 +84,6 @@ if strcmp(cfg.implementation, 'old'),
     end
   end
   
-  if isfield(cfg, 'method')
-    % call the appropriate subfunction
-    if (strcmp(cfg.method, 'zero-baseline') || ...
-        strcmp(cfg.method, 'nai')           || ...
-        strcmp(cfg.method, 'pseudo-t')      || ...
-        strcmp(cfg.method, 'difference')    || ...
-        strcmp(cfg.method, 'anova1')        || ...
-        strcmp(cfg.method, 'kruskalwallis'))
-      % these are all statistical methods that are implemented in the old SOURCESTATISTICS_PARAMETRIC subfunction
-      cfg.statistic = cfg.method;
-      cfg.method    = 'parametric';
-    elseif strcmp(cfg.method, 'randomization')
-      cfg.method = 'randomization';
-    elseif strcmp(cfg.method, 'randcluster')
-      cfg.method = 'randcluster';
-    end
-  end
-  
   if strcmp(cfg.method, 'parametric')
     % use the source-specific statistical subfunction
     stat = sourcestatistics_parametric(cfg, varargin{:});
@@ -116,10 +99,15 @@ if strcmp(cfg.implementation, 'old'),
   
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
+  
+  % add information about the function call to the configuration
+  cfg.callinfo.proctime = toc(ftFuncTimer);
+  cfg.callinfo.calltime = ftFuncClock;
+  cfg.callinfo.user = getusername();
   
   % remember the configuration of the input data
   cfg.previous = [];
@@ -156,24 +144,6 @@ elseif strcmp(cfg.implementation, 'new')
     end
   end
   
-  if isfield(cfg, 'method')
-    % call the appropriate subfunction
-    if (strcmp(cfg.method, 'zero-baseline') || ...
-        strcmp(cfg.method, 'nai')           || ...
-        strcmp(cfg.method, 'pseudo-t')      || ...
-        strcmp(cfg.method, 'difference')    || ...
-        strcmp(cfg.method, 'anova1')        || ...
-        strcmp(cfg.method, 'kruskalwallis'))
-      % these are all statistical methods that are implemented in the old SOURCESTATISTICS_PARAMETRIC subfunction
-      cfg.statistic = cfg.method;
-      cfg.method    = 'parametric';
-    elseif strcmp(cfg.method, 'randomization')
-      cfg.method = 'randomization';
-    elseif strcmp(cfg.method, 'randcluster')
-      cfg.method = 'randcluster';
-    end
-  end
-
   if ismember('cfg.method', {'parametric' 'randomization' 'randcluster'}),
     % FIXME only supported for old-style source representation
     for i = 1:numel(varargin)
@@ -469,10 +439,15 @@ elseif strcmp(cfg.implementation, 'new')
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 2943 2011-02-24 07:17:06Z jansch $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $';
   
   % add information about the Matlab version used to the configuration
   cfg.version.matlab = version();
+  
+  % add information about the function call to the configuration
+  cfg.callinfo.proctime = toc(ftFuncTimer);
+  cfg.callinfo.calltime = ftFuncClock;
+  cfg.callinfo.user = getusername();
   
   % remember the configuration of the input data
   cfg.previous = [];

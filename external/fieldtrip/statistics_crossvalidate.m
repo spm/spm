@@ -42,7 +42,7 @@ function stat = statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_crossvalidate.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: statistics_crossvalidate.m 3658 2011-06-09 12:25:29Z marvger $
 
 ft_defaults
 
@@ -72,7 +72,7 @@ end
 assert(isfield(cfg,'design'));
 
 if ~isfield(cfg,'metric'), cv.metric = 'accuracy'; end
-if ~isfield(cfg,'sigtest'), cv.sigtest = 'mcnemar'; end
+if ~isfield(cfg,'sigtest'), cv.sigtest = 'binomial'; end
 
 % check for transfer learning; this is implemented by cfg.dataset,
 % indicating the dataset number for each element in the design matrix

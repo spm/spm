@@ -29,7 +29,7 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_headmovement.m 3474 2011-05-09 14:13:50Z roboos $
 
 
 ft_defaults
@@ -141,7 +141,7 @@ end
 %compute transformation matrix from dewar to head coordinates
 transform = zeros(4, 4, size(nas,1));
 for k = 1:size(transform, 3)
-  transform(:,:,k) = headcoordinates(nas(k,:), lpa(k,:), rpa(k,:), 0);
+  transform(:,:,k) = headcoordinates(nas(k,:), lpa(k,:), rpa(k,:), 'ctf');
 end
 
 npos        = size(transform, 3);

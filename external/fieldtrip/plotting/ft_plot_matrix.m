@@ -1,31 +1,35 @@
 function ft_plot_matrix(varargin)
 
-% FT_PLOT_MATRIX
+% FT_PLOT_MATRIX visualizes a matrix as an image, similar to IMAGESC.
+% The position, width and height can be controlled to allow multiple
+% matrices (i.e. channels) to be plotted in a topographic arrangement.
 %
 % Use as
 %   ft_plot_matrix(C, ...)
 % where C is a 2 dimensional MxN matrix, or
 %   ft_plot_matrix(X, Y, C, ...)
-% where X and Y describe the 1xN horizontal and 1xM vertical axes 
+% where X and Y describe the 1xN horizontal and 1xM vertical axes
 % respectively.
 %
-% Additional options should be specified in key-value pairs and can be
-%   'hpos'
-%   'vpos'
-%   'width'
-%   'height'
-%   'hlim'
-%   'vlim'
-%   'clim'
-%   'box'                can be 'yes' or 'no'
-%   'highlight' 
-%   'highlightstlyle'    can be 'saturation' or 'opacity'
-%   'tag'
+% Optional arguments should come in key-value pairs and can include
+%   clim            =
+%   box             = draw a box around the local axes, can be 'yes' or 'no'
+%   highlight       =
+%   highlightstlyle = can be 'saturation' or 'opacity'
+%   tag             =
+%
+% It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
+%   hpos        = horizontal position of the center of the local axes
+%   vpos        = vertical position of the center of the local axes
+%   width       = width of the local axes
+%   height      = height of the local axes
+%   hlim        = horizontal scaling limits within the local axes
+%   vlim        = vertical scaling limits within the local axes
 %
 % Example use
 %   ft_plot_matrix(randn(30,50), 'width', 1, 'height', 1, 'hpos', 0, 'vpos', 0)
 
-% Copyrights (C) 2009, Robert Oostenveld
+% Copyrights (C) 2009-2011, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -43,9 +47,9 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 1807 2010-09-29 12:30:27Z crimic $
+% $Id: ft_plot_matrix.m 3652 2011-06-09 07:02:22Z roboos $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 if nargin>2 && all(cellfun(@isnumeric, varargin(1:3)))
   % the function was called like imagesc(x, y, c, ...)
@@ -210,12 +214,12 @@ if ~isempty(highlight)
       
       % Transform cdat-values to have a 0-64 range, dependent on clim
       % (think of it as the data having an exact range of min=clim(1) to max=(clim2), convert this range to 0-64)
-      cdat = (cdat + -clim(1)) * (64 / (-clim(1) + clim(2))); 
+      cdat = (cdat + -clim(1)) * (64 / (-clim(1) + clim(2)));
       
       % Make sure NaNs are plotted as white pixels, even when using non-integer mask values
       satmask(isnan(cdat)) = 0;
       cdat(isnan(cdat)) = 32;
-           
+      
       % ind->rgb->hsv ||change saturation values||  hsv->rgb ->  plot
       rgbcdat = ind2rgb(uint8(floor(cdat)), colormap);
       hsvcdat = rgb2hsv(rgbcdat);
@@ -240,3 +244,5 @@ if box
   boxposition(4) = vpos + height/2;
   ft_plot_box(boxposition);
 end
+
+warning(ws); %revert to original state

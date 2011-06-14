@@ -32,6 +32,10 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 % is used to rate the minimum and maximum values. Furthermore, this
 % function does not support artifact- or filterpadding.
 %
+% When cfg.artfctdef.threshold.range is used, the within-channel
+% peak-to-peak range is checked against the specified maximum range (so not
+% the overall range across channels).
+%
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -61,9 +65,13 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_artifact_threshold.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -152,7 +160,18 @@ for trlop = 1:numtrl
   % compute the min, max and range over all channels and samples
   minval   = min(dat(:));
   maxval   = max(dat(:));
-  rangeval = maxval-minval;
+
+  % compute the range as the maximum of the peak-to-peak values for each
+  % channel
+  ptpval = max(dat, [], 2) - min(dat, [], 2);
+  
+  % track for bad trials for each channel
+  badChnInd = find(ptpval > artfctdef.range);
+  
+  % determine range and index of 'worst' channel
+  worstChanRange = max(ptpval);
+  worstChanInd = find(worstChanRange == ptpval);
+  
   % test the min, max and range against the specified thresholds
   if ~isempty(artfctdef.min) && minval<artfctdef.min
     fprintf('threshold artifact scanning: trial %d from %d exceeds min-threshold\n', trlop, numtrl);
@@ -160,8 +179,8 @@ for trlop = 1:numtrl
   elseif ~isempty(artfctdef.max) && maxval>artfctdef.max
     fprintf('threshold artifact scanning: trial %d from %d exceeds max-threshold\n', trlop, numtrl);
     artifact(end+1,1:2) = cfg.trl(trlop,1:2);
-  elseif ~isempty(artfctdef.range) && rangeval>artfctdef.range
-    fprintf('threshold artifact scanning: trial %d from %d exceeds range-threshold\n', trlop, numtrl);
+  elseif ~isempty(artfctdef.range) && worstChanRange>artfctdef.range
+    fprintf('threshold artifact scanning: trial %d from %d exceeds range-threshold; max-range channel = %s\n', trlop, numtrl, hdr.label{channelindx(worstChanInd)});
     artifact(end+1,1:2) = cfg.trl(trlop,1:2);
   else
     fprintf('threshold artifact scanning: trial %d from %d is ok\n', trlop, numtrl);
@@ -183,10 +202,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_artifact_threshold.m 3016 2011-03-01 19:09:40Z eelspa $';
+cfg.version.id = '$Id: ft_artifact_threshold.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

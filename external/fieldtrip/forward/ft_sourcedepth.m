@@ -32,7 +32,7 @@ function [depth] = ft_sourcedepth(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedepth.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: ft_sourcedepth.m 3573 2011-05-24 10:58:32Z crimic $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)
@@ -52,7 +52,7 @@ case {'singlesphere', 'concentric'}
   depth = sqrt(sum(tmp.^2, 2))-vol.r(vol.source); % positive if outside, negative if inside
 
 % boundary element model
-case {'bem' 'dipoli', 'bemcp', 'asa', 'avo', 'nolte', 'neuromag'}
+case {'bem' 'dipoli', 'bemcp', 'asa', 'avo', 'nolte', 'neuromag','openmeeg'}
   if isfield(vol, 'source')
     % use the specified source compartment
     pnt = vol.bnd(vol.source).pnt;

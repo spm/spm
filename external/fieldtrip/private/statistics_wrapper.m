@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 3394 2011-04-27 14:51:47Z arjsto $
+% $Id: statistics_wrapper.m 3657 2011-06-09 08:28:06Z johzum $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -245,6 +245,7 @@ end
 
 % get the design from the information in cfg and data.
 if ~isfield(cfg,'design')
+  warning('Please think about how you would create cfg.design.  Soon the call to prepare_design will be deprecated')
   cfg.design = data.design;
   [cfg] = prepare_design(cfg);
 end

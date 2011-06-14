@@ -40,9 +40,13 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 3380 2011-04-22 16:09:35Z jansch $
+% $Id: ft_denoise_synthetic.m 3604 2011-06-01 08:34:52Z jorhor $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % set the defaults
 if ~isfield(cfg, 'gradient'),   error('cfg.gradient must be specified'); end
@@ -61,6 +65,8 @@ if ~isempty(cfg.inputfile)
   end
 end
 
+% store original datatype
+dtype = ft_datatype(data);
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
 
 if ~ft_senstype(data, 'ctf')
@@ -119,16 +125,29 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_denoise_synthetic.m 3380 2011-04-22 16:09:35Z jansch $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 3604 2011-06-01 08:34:52Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
+
+% convert back to input type if necessary
+switch dtype 
+    case 'timelock'
+        data = ft_checkdata(data, 'datatype', 'timelock');
+    otherwise
+        % keep the output as it is
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 3105 2011-03-15 09:28:06Z jansch $
+% $Id: ft_prepare_layout.m 3654 2011-06-09 07:38:36Z roboos $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -691,17 +691,18 @@ return % function readlay
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lay = sens2lay(sens, rz, method, style)
 
+% remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
+sens = undobalancing(sens);
+
 fprintf('creating layout for %s system\n', ft_senstype(sens));
+
 % apply rotation
 if isempty(rz)
   switch ft_senstype(sens)
-    case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', ...
-            'bti248_planar', 'yokogawa160', 'yokogawa160_planar', 'magnetometer', 'meg'}
+    case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar', 'yokogawa160', 'yokogawa160_planar', 'yokogawa64', 'yokogawa64_planar', 'magnetometer', 'meg'}
       rz = 90;
     case {'neuromag122', 'neuromag306'}
       rz = 0; 
-    case {'yokogawa160','yokogawa160_planar'}
-      rz = 90;
     case 'electrode'
       rz = 90;
     otherwise

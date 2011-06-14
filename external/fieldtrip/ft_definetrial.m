@@ -81,9 +81,13 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 3378 2011-04-22 14:01:23Z roboos $
+% $Id: ft_definetrial.m 3568 2011-05-20 12:45:28Z eelspa $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -108,7 +112,19 @@ if isfield(cfg, 'trl')
   else
     event = [];
   end
+
 elseif isfield(cfg, 'trialfun')
+
+  % provide support for xxx and trialfun_xxx when the user specifies cfg.trialfun=xxx
+  if exist(cfg.trialfun, 'file')
+    % evaluate this function, this is the default
+  elseif exist(['trialfun_' cfg.trialfun], 'file')
+    % prepend trialfun to the function name
+    cfg.trialfun = ['trialfun_' cfg.trialfun];
+  else
+    error('cannot locate the specified trialfun (%s)', cfg.trialfun)
+  end
+
   % evaluate the user-defined function that gives back the trial definition
   fprintf('evaluating trialfunction ''%s''\n', cfg.trialfun);
   % determine the number of outpout arguments of the user-supplied trial function
@@ -128,14 +144,14 @@ elseif isfield(cfg, 'trialfun')
     [trl, event] = feval(cfg.trialfun, cfg);
   end
 else
-  error('no trialfunction specified, see DEFINETRIAL for help');
+  error('no trialfunction specified, see FT_DEFINETRIAL for help');
 end
 
 if isfield(cfg, 'trialdef') && isfield(cfg.trialdef, 'eventtype') && isequal(cfg.trialdef.eventtype, '?')
   % give a gentle message instead of an error
-  fprintf('no trials have been defined yet, see DEFINETRIAL for further help\n');
+  fprintf('no trials have been defined yet, see FT_DEFINETRIAL for further help\n');
 elseif size(trl,1)<1
-  error('no trials were defined, see DEFINETRIAL for help');
+  error('no trials were defined, see FT_DEFINETRIAL for help');
 end
 
 % add the new trials and events to the output configuration
@@ -149,10 +165,15 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_definetrial.m 3378 2011-04-22 14:01:23Z roboos $';
+cfg.version.id = '$Id: ft_definetrial.m 3568 2011-05-20 12:45:28Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
+  
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername();
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

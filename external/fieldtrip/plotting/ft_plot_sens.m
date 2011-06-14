@@ -10,6 +10,7 @@ function hs = ft_plot_sens(sens, varargin)
 % Optional input arguments should come in key-value pairs and can include
 %   'style'    plotting style for the points representing the channels, see plot3 (default = 'k.')
 %   'coil'     true/false, plot each individual coil or the channelposition (default = false)
+%   'label'    show the label, can be 'off', 'label', 'number' (default = 'off')
 %
 % Example
 %   sens = ft_read_sens('Subject01.ds');
@@ -33,9 +34,9 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 3287 2011-04-05 12:02:23Z roboos $
+% $Id: ft_plot_sens.m 3502 2011-05-11 07:27:57Z roboos $
 
-warning('on', 'MATLAB:divideByZero');
+ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'style', 'coil', 'label'});
@@ -91,4 +92,4 @@ if ~holdflag
   hold off
 end
 
-
+warning(ws); %revert to original state

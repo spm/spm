@@ -33,7 +33,7 @@ function [dat, baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_baselinecorrect.m 2271 2010-12-03 09:01:26Z jansch $
+% $Id: ft_preproc_baselinecorrect.m 3630 2011-06-07 09:21:09Z roboos $
 
 persistent hasbsxfun
 if isempty(hasbsxfun)
@@ -53,6 +53,9 @@ end
 
 % estimate the baseline and subtract it
 baseline = mean(dat(:,begsample:endsample), 2);
+
+% ensure that the data is not represented as integer, otherwise "minus" fails
+dat = double(dat);
 
 if hasbsxfun
   % it is even faster to do this
