@@ -1,13 +1,12 @@
-/* $Id: spm_mrf.c 4355 2011-06-14 12:06:41Z john $ */
+/* $Id: spm_mrf.c 4356 2011-06-14 12:16:24Z john $ */
 /* (c) John Ashburner (2010) */
 
 #include "mex.h"
 #include <math.h>
 #define MAXCLASSES 1024
 
-#ifndef __TMWTYPES__
 #define mwSize int
-#endif
+
 
 static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[], int code)
 {
