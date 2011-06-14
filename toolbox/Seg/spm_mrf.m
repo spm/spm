@@ -1,6 +1,5 @@
 function varargout = spm_mrf(varargin)
-%  Markov Random Field Code
-%
+% Markov Random Field Code - a compiled routine
 %_______________________________________________________________________
 %
 % FORMAT q1 = spm_mrf(q0,p,G,w)
@@ -45,7 +44,7 @@ function varargout = spm_mrf(varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mrf.m 4036 2010-08-06 14:45:17Z john $
+% $Id: spm_mrf.m 4357 2011-06-14 13:13:49Z guillaume $
 
-error('Not compiled for %s in MATLAB %s.\n\nThis could easily be done by typing:\n    mex spm_mrf.c -O\n', computer, version);
-
+%-This is merely the help file for the compiled routine
+error('spm_mrf.c not compiled - see Makefile')

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4199 2011-02-10 20:07:17Z guillaume $
+# $Id: Makefile 4357 2011-06-14 13:13:49Z guillaume $
 #
 ###############################################################################
 #
@@ -55,6 +55,7 @@ SUBDIRS =\
 	toolbox/DARTEL \
 	toolbox/FieldMap \
 	toolbox/HDW \
+	toolbox/Seg \
 	@xmltree/private
 
 ###############################################################################
