@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio_al_128.m 4088 2010-10-11 10:37:42Z chloe $
+% $Id: pm_defaults_Trio_al_128.m 4363 2011-06-15 09:33:44Z chloe $
 
 global pm_def
 
@@ -24,8 +24,8 @@ pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
                                       % 'PM' = load one or two
                                       % phase and magnitude image
                                       % pairs.
-pm_def.SHORT_ECHO_TIME = 5.0;        % Short echo time in ms for Trio
-pm_def.LONG_ECHO_TIME = 7.46;        % Long echo time in ms for Trio
+pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Trio
+pm_def.LONG_ECHO_TIME = 12.46;        % Long echo time in ms for Trio
 pm_def.MASKBRAIN = 1;                 % Do brain masking (1 or 0,
                       % 0 for EPI fieldmaps)
 
