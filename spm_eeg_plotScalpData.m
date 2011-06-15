@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 3062 2009-04-17 14:07:40Z jean $
+% $Id: spm_eeg_plotScalpData.m 4367 2011-06-15 17:04:45Z vladimir $
 
 ParentAxes = [];
 f = [];
@@ -49,6 +49,14 @@ else
     end
     if isfield(in,'noButtons')
         noButtons = ~~in.noButtons;
+    end
+    
+     if ~isfield(in,'cbar')
+        in.cbar = 1;
+     end
+    
+     if ~isfield(in,'plotpos')
+        in.plotpos = 1;
     end
 end
 
@@ -114,7 +122,11 @@ caxis(ParentAxes,clim);
 col = jet;
 col(1,:) = COLOR;
 colormap(ParentAxes,col)
-d.cbar = colorbar('peer',ParentAxes);
+
+if in.cbar
+    d.cbar = colorbar('peer',ParentAxes);
+end
+
 axis(ParentAxes,'off')
 axis(ParentAxes,'equal')
 axis(ParentAxes,'tight')
@@ -127,9 +139,12 @@ fpos(2,:) = fpos(2,:)./(dy);
 fpos(2,:) = 100-fpos(2,:);  % for display purposes (flipud imagesc)
 
 figure(f);
-d.hp = plot(ParentAxes,...
-    fpos(1,:),fpos(2,:),...
-    'ko');
+if in.plotpos
+    d.hp = plot(ParentAxes,...
+        fpos(1,:),fpos(2,:),...
+        'ko');
+end
+
 d.ht = text(fpos(1,:),fpos(2,:),cChanLabel,...
     'Parent',ParentAxes,...
     'visible','off');

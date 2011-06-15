@@ -22,6 +22,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.xY.It       - Indices of (ns) time bins
 %    DCM.xY.Ic       - Indices of (nc) good channels
 %    DCM.xY.name     - names of (nc) channels
+%    DCM.xY.coor2D   - 2D coordinates for plotting
  
 %
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
@@ -30,7 +31,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 4303 2011-04-12 15:23:15Z vladimir $
+% $Id: spm_dcm_erp_data.m 4367 2011-06-15 17:04:45Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -114,6 +115,7 @@ DCM.xY.name   = channels(Ic);
 DCM.xY.Ic     = Ic;
 DCM.xY.Time   = 1000*D.time; % PST (ms)
 DCM.xY.dt     = 1/D.fsample;
+DCM.xY.coor2D = D.coor2D(Ic);
 DCM.xY.xy     = {};
  
 % options

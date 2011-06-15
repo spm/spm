@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4313 2011-04-20 11:30:28Z karl $
+% $Id: spm_api_erp.m 4367 2011-06-15 17:04:45Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1189,6 +1189,7 @@ switch handles.DCM.options.analysis
             'Input',
             'Response',
             'Response (image)',
+            'Scalp maps',
             'Dipoles'};
         try
             set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
