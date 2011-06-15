@@ -78,7 +78,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 3624 2011-06-06 12:22:08Z jansch $
+% $Id: ft_connectivityanalysis.m 3687 2011-06-14 19:00:48Z jansch $
 
 %ft_defaults
 
@@ -301,12 +301,12 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         elseif isfield(data, 'powspctrm')
           data = ft_checkdata(data, 'cmbrepresentation', 'full');
         end
-        cfg    = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
-        
+        cfg = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
+        cfg.npsf.sfmethod = ft_getopt(cfg.npsf, 'sfmethod', 'multivariate'); 
+        cfg.feedback = cfg.npsf.feedback; 
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
-        cfg.npsf.method = ft_getopt(cfg.npsf, 'sfmethod', 'multivariate');
-        if strcmp(cfg.npsf.method, 'multivariate')
+        if strcmp(cfg.npsf.sfmethod, 'multivariate')
           cfg.channelcmb = cfg.npsf.channelcmb;
           try, cfg.block      = cfg.npsf.block;     end
           try, cfg.blockindx  = cfg.npsf.blockindx; end
@@ -317,7 +317,9 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         end
         optarg = ft_cfg2keyval(cfg.npsf);
         data   = csd2transfer(data, optarg{:});
-        inparam = {'transfer' 'noisecov' 'crsspctrm'};
+        if strcmp(cfg.method, 'granger') 
+          inparam = {'transfer' 'noisecov' 'crsspctrm'};
+        end
       end
     case 'source'
       if strcmp(inparam, 'crsspctrm')
@@ -567,7 +569,6 @@ switch cfg.method
           ix = ((k-1)*4+1):k*4;
           powindx(ix,:) = [1 1;4 1;1 4;4 4] + (k-1)*4;
         end
-      
       elseif isfield(data, 'labelcmb')
         % conditional (blockwise) needs linearly represented cross-spectra
         for k = 1:size(cfg.conditional,1)
@@ -808,7 +809,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 3624 2011-06-06 12:22:08Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3687 2011-06-14 19:00:48Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

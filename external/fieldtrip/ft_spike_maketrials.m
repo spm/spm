@@ -91,14 +91,16 @@ for iUnit = 1:nUnits
     trialNum = [];
     sel       = [];
     for iTrial = 1:nTrials
-      isVld = find(ts>=events(1,iTrial) & double(ts)<=events(2,iTrial));
-      trialNum = [trialNum ones(length(isVld),1)];
+      isVld = find(ts>=events(1,iTrial) &ts<=events(2,iTrial));
+      if ~isempty(isVld)
+          trialNum = [trialNum; iTrial*ones(length(isVld),1)];
+      end
       sel   = [sel; isVld(:)];
     end
-    ts  	 = ts(sel);
-
+   
     % subtract the event (t=0) from the timestamps directly, this can be double or uint64
-    if ~isempty(ts)  
+    if ~isempty(trialNum)  
+        ts  	 = ts(sel);        
         dt = ts - cfg.trl(trialNum,1); % error if empty
         dt = dt/cfg.timestampspersecond + cfg.trl(trialNum,3);    
     else

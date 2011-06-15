@@ -108,7 +108,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 3638 2011-06-07 11:57:18Z jorhor $
+% $Id: ft_multiplotER.m 3694 2011-06-15 08:38:15Z crimic $
 
 ft_defaults
 
@@ -307,6 +307,7 @@ end
 % Read or create the layout that will be used for plotting
 lay = ft_prepare_layout(cfg, varargin{1});
 cfg.layout = lay;
+ft_plot_lay(lay, 'box', false,'label','no','point','no');
 
 % Apply baseline correction
 if ~strcmp(cfg.baseline, 'no')

@@ -105,7 +105,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 3644 2011-06-07 13:50:28Z crimic $
+% $Id: ft_multiplotTFR.m 3694 2011-06-15 08:38:15Z crimic $
 
 ft_defaults
 
@@ -223,7 +223,7 @@ end % if hasrpt
 % Read or create the layout that will be used for plotting:
 lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
-ft_plot_lay(lay, 'box', false);
+ft_plot_lay(lay, 'box', false,'label','no','point','no');
 
 % Apply baseline correction:
 if ~strcmp(cfg.baseline, 'no')

@@ -95,7 +95,7 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_sourceinterpolate.m 3698 2011-06-15 10:17:41Z roboos $
 
 ft_defaults
 
@@ -390,6 +390,14 @@ elseif ~is2Dana && ~is2Dfun
   end
 end
 
+% these stay the same as the input anatomical MRI
+if isfield(anatomical, 'coordsys')
+  interp.coordsys = anatomical.coordsys;
+end
+if isfield(anatomical, 'unit')
+  interp.unit = anatomical.unit;
+end
+
 % accessing this field here is needed for the configuration tracking
 % by accessing it once, it will not be removed from the output cfg
 cfg.outputfile;
@@ -399,7 +407,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceinterpolate.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_sourceinterpolate.m 3698 2011-06-15 10:17:41Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
