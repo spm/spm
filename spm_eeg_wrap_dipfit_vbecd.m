@@ -1,4 +1,4 @@
-function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
+function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 % A cost function/wrapper to sit between non-linear optimisation spm_nlsi_gn.m
 % and dipole fit routine spm__eeg_inv_vbecd.m
 % sens and vol structures should be passed in M, where
@@ -10,10 +10,10 @@ function [y,outside]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 % U is unused
 % At the moment this removes the mean level from EEG data
 % and reduces the rank of the MEG leadfield 2 dimensions.
-
+%% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 4154 2011-01-11 14:39:36Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 4369 2011-06-20 14:50:27Z gareth $
 
 x=U.u; %% input , unused
 
@@ -36,6 +36,7 @@ MEGRANK=2; %% restricting rank of MEG data, could change this in future
 
 y=0;
 outside=0;
+leads=zeros(Ndips,3,numel(sens.label));
 for i=1:Ndips,
     
     pos=allpos(i,:);
@@ -44,16 +45,12 @@ for i=1:Ndips,
     % mean correction of LF, only for EEG data.
     if ft_senstype(sens, 'eeg')
         [tmp] = ft_compute_leadfield(pos, sens, vol);
-        tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
+        %tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
     else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
         [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
-%         if isfield(vol, 'type') && strcmp(vol.type,'nolte'), %% 
-%             %% this is a temp fix to make up for scaling changes in nolte
-%             %% model
-%             tmp=tmp.*1e-10;
-%         end;
     end
     gmn=tmp;
+    leads(i,:,:)=gmn';
     y=y+gmn*mom';
     outside = outside+ ~ft_inside_vol(pos,vol);
 end; % for i
