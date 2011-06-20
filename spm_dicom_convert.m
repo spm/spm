@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4334 2011-05-31 16:39:53Z john $
+% $Id: spm_dicom_convert.m 4368 2011-06-20 11:59:54Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -58,7 +58,7 @@ if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect),
     fspe = convert_spectroscopy(spect,root_dir,format);
 end;
 
-out.files = [fmos fstd fspe];
+out.files = [fmos(:); fstd(:); fspe(:)];
 if isempty(out.files)
     out.files = {''};
 end;
