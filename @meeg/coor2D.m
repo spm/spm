@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 3335 2009-08-25 16:37:02Z vladimir $
+% $Id: coor2D.m 4372 2011-06-21 21:26:46Z vladimir $
 
 
 megind = strmatch('MEG', chantype(this));
@@ -13,10 +13,14 @@ eegind = strmatch('EEG', chantype(this), 'exact');
 otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)
-    if ~isempty(megind)
-        ind = megind;
-    elseif ~isempty(eegind)
-        ind = eegind;
+    if nargin<3 || (size(val, 2)<nchannels(this))
+        if ~isempty(megind)
+            ind = megind;
+        elseif ~isempty(eegind)
+            ind = eegind;
+        else
+            ind = 1:nchannels(this);
+        end
     else
         ind = 1:nchannels(this);
     end
