@@ -18,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 4319 2011-04-28 15:27:17Z vladimir $
+% $Id: spm_eeg_downsample.m 4374 2011-06-22 11:59:56Z vladimir $
 
-SVNrev = '$Rev: 4319 $';
+SVNrev = '$Rev: 4374 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -163,7 +163,7 @@ fprintf('Elapsed time is %f seconds.\n',etime(clock,t0));               %-#
 
 %-Save new downsampled M/EEG dataset
 %--------------------------------------------------------------------------
-Dnew = fsample(Dnew, fsample_new);
+Dnew = fsample(Dnew, (P/Q)*D.fsample);
 D    = Dnew;
 D    = D.history('spm_eeg_downsample', S);
 save(D);
