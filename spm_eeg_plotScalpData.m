@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 4367 2011-06-15 17:04:45Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 4375 2011-06-23 10:00:06Z vladimir $
 
 ParentAxes = [];
 f = [];
@@ -49,15 +49,15 @@ else
     end
     if isfield(in,'noButtons')
         noButtons = ~~in.noButtons;
-    end
-    
-     if ~isfield(in,'cbar')
-        in.cbar = 1;
-     end
-    
-     if ~isfield(in,'plotpos')
-        in.plotpos = 1;
-    end
+    end     
+end
+
+if ~isfield(in,'cbar')
+    in.cbar = 1;
+end
+
+if ~isfield(in,'plotpos')
+    in.plotpos = 1;
 end
 
 if size(pos,2) ~= length(ChanLabel)
