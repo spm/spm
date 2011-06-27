@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4347 2011-06-09 14:42:46Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4377 2011-06-27 09:54:33Z gareth $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -80,7 +80,7 @@ if isempty(S.CorrectPvals),
     S.CorrectPvals=1;
     disp('outputing whole volume corrected p vals by default');
 end;
-    
+
 
 %% ============ Find or prepare head model
 
@@ -157,10 +157,14 @@ else
     TWOSAMPLETEST=0
 end;
 
-try S.design.X(:,1)-S.design.Xtrials-S.design.Xstartlatencies;
-catch
+if size(S.design.X(:,1),1)~=size(S.design.Xtrials,1)
     error('Design windows missepcified');
 end;
+if size(S.design.X(:,1),1)~=size(S.design.Xstartlatencies,1)
+    error('Design windows missepcified');
+end;
+
+
 
 X0  = X - X*c*pinv(c);  %% make sure X0 is orthogonal to X
 Xdesign   = full(X*c);
@@ -394,7 +398,20 @@ if ~isfield(S,'fixedweights'),
 end;
 
 if  isempty(S.gridpos),
-    cfg.resolution            = S.gridstep;
+    %cfg.resolution            = S.gridstep;
+    
+    mnigrid.xgrid = -100:S.gridstep:100;
+    mnigrid.ygrid = -120:S.gridstep:100;
+    mnigrid.zgrid = -50:S.gridstep:110;
+    
+    mnigrid.dim   = [length(mnigrid.xgrid) length(mnigrid.ygrid) length(mnigrid.zgrid)];
+    [X, Y, Z]  = ndgrid(mnigrid.xgrid, mnigrid.ygrid, mnigrid.zgrid);
+    mnigrid.pos   = [X(:) Y(:) Z(:)];
+    
+    cfg.grid.dim = mnigrid.dim;
+    cfg.grid.pos = spm_eeg_inv_transform_points(datareg.fromMNI, mnigrid.pos);
+
+    
 else
     disp('USING pre-specified gridpoints');
     cfg.grid.pos=S.gridpos; %% predefined grid
@@ -414,9 +431,10 @@ if isempty(S.bootstrap),
 end;
 
 cfg.feedback='off';
-cfg.inwardshift           = 0; % mm
+cfg.inwardshift           = -S.gridstep; % mm
 
 if ~isfield(S,'grid'),
+    
     disp('preparing leadfield');
     grid                      = ft_prepare_leadfield(cfg);
 else
@@ -566,13 +584,13 @@ for boot=1:Nboot,
             end; %
         end; % if S.dimauto
         
-        if length(freq_indtest)<redNfeatures,
+        if redNfeatures(2)>length(freq_indtest),
             disp(sprintf('reducing number of  power features to match bandwidth (from %d to %d) !!',redNfeatures(2),length(freq_indtest)));
             redNfeatures(2)=length(freq_indtest);
         end;
-        if length(freq_indtest)<redNfeatures*2,    % more features in evoked case
+        if redNfeatures(1)>length(freq_indtest)*2,    % more features in evoked case
             disp(sprintf('reducing number of evoked features to match bandwidth (from %d to %d) !!',redNfeatures(1),2*length(freq_indtest)));
-            redNfeatures(1)=2*length(freq_indtest);
+            redNfeatures(1)=length(freq_indtest)*2;
         end;
         
         if S.compUV
@@ -852,8 +870,7 @@ for boot=1:Nboot,
         stats(fband).dfmisc=[b h m];
         dispthresh_mv=max(stats(fband).CVAmax)/2; % default display thresholds
         max_mv=max(stats(fband).CVAmax); % default display thresholds
-        dispthresh_uv=max(stats(fband).tstat)/2;
-        max_uv=max(stats(fband).CVAmax); % default display thresholds
+        
         if S.Niter>1,
             %% get corrected p values for CVA
             allglobalmax=squeeze(max(stats(fband).CVAmax(:,:,1:end)));
@@ -871,6 +888,8 @@ for boot=1:Nboot,
         end; % if
         
         
+        
+        %
         
         csource=grid; %% only plot and write out unpermuted iteration
         gridpositions=csource.pos(csource.inside,:);
@@ -936,7 +955,7 @@ for boot=1:Nboot,
             
             stats(fband).alyt_thresh_Chi_05(1)=spm_invXcdf(1-alpha/(stats(fband).Nu_extrema),redNfeatures(1)*b); %% estimate of volumetric threshold for evoked
             stats(fband).alyt_thresh_Chi_05(2)=spm_invXcdf(1-alpha/(stats(fband).Nu_extrema),redNfeatures(2)*b); %% estimate of volumetric thres for induced
-         
+            
             
             
             
