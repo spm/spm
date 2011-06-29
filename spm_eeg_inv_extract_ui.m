@@ -1,6 +1,6 @@
 function [D] = spm_eeg_inv_extract_ui(varargin)
 % GUI for contrast of evoked responses and power for an MEG-EEG model
-% FORMAT [D] = spm_eeg_inv_extract_ui(D, val, PST)
+% FORMAT [D] = spm_eeg_inv_extract_ui(D, val, XYZ)
 % Sets:
 %
 %     D.contrast.woi   - time (ms) window of interest
@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_extract_ui(varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_extract_ui.m 4326 2011-05-13 14:13:17Z vladimir $
+% $Id: spm_eeg_inv_extract_ui.m 4378 2011-06-29 13:03:05Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -17,12 +17,16 @@ function [D] = spm_eeg_inv_extract_ui(varargin)
 
 D.inv{val}.source = [];
 
-try
-    D.inv{val}.source.XYZ = varargin{3};
-catch
+if nargin<3
     warndlg('Position in MNI coordinates should be provided');
     return
+elseif ~isequal(size(varargin{3}), [1, 3])
+    warndlg('A single point in MNI coordinates should be provided');
+    return
 end
+
+D.inv{val}.source.XYZ = varargin{3};
+
 
 % get source label
 %--------------------------------------------------------------------------
