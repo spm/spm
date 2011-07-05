@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 4269 2011-03-29 16:03:43Z guillaume $
+% $Id: spm_cfg_coreg.m 4380 2011-07-05 11:27:12Z volkmar $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
@@ -261,6 +261,10 @@ dep(1)            = cfg_dep;
 dep(1).sname      = 'Coregistered Images';
 dep(1).src_output = substruct('.','cfiles');
 dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+dep(2)            = cfg_dep;
+dep(2).sname      = 'Coregistration Matrix';
+dep(2).src_output = substruct('.','M');
+dep(2).tgt_spec   = cfg_findspec({{'strtype','r'}});
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

@@ -9,39 +9,23 @@ function out = spm_run_coreg_estwrite(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estwrite.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_run_coreg_estwrite.m 4380 2011-07-05 11:27:12Z volkmar $
 
 job = varargin{1};
 if isempty(job.other{1})
     job.other = {};
 end
 
-if numel(job.source) > 1 && numel(job.other) > 0,
-    error('This is not supposed to work.');
-end
-
 x  = spm_coreg(char(job.ref), char(job.source),job.eoptions);
 
-if numel(job.other)>0,
-    M  = spm_matrix(x);
-    PO = [job.source(:); job.other(:)];
-    MM = zeros(4,4,numel(PO));
-    for j=1:numel(PO),
-        MM(:,:,j) = spm_get_space(PO{j});
-    end
-    for j=1:numel(PO),
-        spm_get_space(PO{j}, M\MM(:,:,j));
-    end
-else
-    PO = job.source;
-    MM = zeros(4,4,numel(PO));
-    for j=1:numel(PO)
-        MM(:,:,j) = spm_get_space(PO{j});
-    end
-    for j=1:numel(PO),
-        M  = spm_matrix(x(j,:));
-        spm_get_space(PO{j}, M\MM(:,:,j));
-    end
+M  = spm_matrix(x);
+PO = [job.source(:); job.other(:)];
+MM = zeros(4,4,numel(PO));
+for j=1:numel(PO),
+    MM(:,:,j) = spm_get_space(PO{j});
+end
+for j=1:numel(PO),
+    spm_get_space(PO{j}, M\MM(:,:,j));
 end
 
 P            = char(job.ref{:},job.source{:},job.other{:});
@@ -54,7 +38,8 @@ flags.prefix = job.roptions.prefix;
 
 spm_reslice(P,flags);
 
-out.cfiles = [job.source(:); job.other(:)];
+out.cfiles = PO;
+out.M      = M;
 out.rfiles = cell(size(out.cfiles));
 for i=1:numel(out.cfiles),
     [pth,nam,ext,num] = spm_fileparts(out.cfiles{i});

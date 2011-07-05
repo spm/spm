@@ -9,7 +9,7 @@ function out = spm_run_coreg_estimate(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estimate.m 4161 2011-01-13 13:44:37Z volkmar $
+% $Id: spm_run_coreg_estimate.m 4380 2011-07-05 11:27:12Z volkmar $
 
 job = varargin{1};
 if isempty(job.other{1})
@@ -29,3 +29,4 @@ for j=1:numel(PO)
 end
 
 out.cfiles = PO;
+out.M      = M;
