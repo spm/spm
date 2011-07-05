@@ -9,7 +9,7 @@ function spm_run_results(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 3753 2010-03-05 13:06:47Z guillaume $
+% $Id: spm_run_results.m 4379 2011-07-05 09:01:10Z volkmar $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -52,11 +52,13 @@ for k = 1:numel(cspec)
                 error('Unknown data type.');
         end
         [hReg xSPM SPM] = spm_results_ui('Setup',xSPM);
-        TabDat = spm_list('List',xSPM,hReg);
+        if ~isempty(xSPM.XYZ)
+            TabDat = spm_list('List',xSPM,hReg);
+            assignin('base','TabDat',TabDat);
+        end
         if job.print
             spm_figure('Print');
         end
-        assignin('base','TabDat',TabDat);
         assignin('base', 'hReg', hReg);
         assignin('base', 'xSPM', xSPM);
         assignin('base', 'SPM',  SPM);
