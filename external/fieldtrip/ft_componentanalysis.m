@@ -61,7 +61,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_componentanalysis.m 3738 2011-06-29 09:32:53Z jansch $
 
 ft_defaults
 
@@ -323,12 +323,17 @@ switch cfg.method
     % start the decomposition
     % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
     state   = denss(state);  % this is for the DSS toolbox version 1.0
-    weights = state.W;
-    sphere  = state.V;
+    %weights = state.W;
+    %sphere  = state.V;
+    if size(state.A,1)==size(state.A,2)
+      weights  = inv(state.A);
+    else
+      weights  = pinv(state.A);
+    end
+    sphere   = eye(size(weights, 2));
     % remember the updated configuration details
     cfg.dss.denf      = state.denf;
     cfg.numcomponent  = state.sdim;
-    
   case 'sobi'
     % check for additional options, see SOBI for details
     if ~isfield(cfg, 'sobi')
@@ -454,10 +459,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_componentanalysis.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id   = '$Id: ft_componentanalysis.m 3738 2011-06-29 09:32:53Z jansch $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

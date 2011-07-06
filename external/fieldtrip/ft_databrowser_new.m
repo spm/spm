@@ -72,7 +72,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser_new.m 3656 2011-06-09 07:41:47Z roboos $
+% $Id: ft_databrowser_new.m 3779 2011-07-06 13:36:35Z jorhor $
 
 % FIXME these should be removed
 % FIXME document these
@@ -151,7 +151,7 @@ end
 
 if hasdata
   % check if the input data is valid for this function
-  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
   % fetch the header from the data structure in memory
   hdr = ft_fetch_header(data);
   
@@ -179,7 +179,13 @@ if hasdata
   end
   
   % this is how the input data is segmented
-  trlorg = [data.sampleinfo data.offset];
+  trlorg = zeros(numel(data.trial), 3);
+  trlorg(:,[1 2]) = data.sampleinfo;
+
+  % recreate offset vector (databrowser depends on this for visualisation)
+  for ntrl = 1:numel(data.trial)
+    trlorg(ntrl,3) = time2offset(data.time{ntrl}, data.fsample);
+  end
   Ntrials = size(trlorg, 1);
   
 else
@@ -503,10 +509,10 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser_new.m 3656 2011-06-09 07:41:47Z roboos $';
+cfg.version.id = '$Id: ft_databrowser_new.m 3779 2011-07-06 13:36:35Z jorhor $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
 
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
@@ -633,11 +639,11 @@ switch cfg.viewmode
     
   case {'vertical', 'component'}
     % the range should be in the displayed box
-    range(1) = max(opt.hpos(1), range(1));
-    range(2) = max(opt.hpos(1), range(2));
-    range(1) = min(opt.hpos(2), range(1));
-    range(2) = min(opt.hpos(2), range(2));
-    range = (range - opt.hpos(1)) / (opt.hpos(2) - opt.hpos(1)); % left side of the box becomes 0, right side becomes 1
+    range(1) = max(opt.hpos-opt.width/2, range(1));
+    range(2) = max(opt.hpos-opt.width/2, range(2));
+    range(1) = min(opt.hpos+opt.width/2, range(1));
+    range(2) = min(opt.hpos+opt.width/2, range(2));
+    range = (range-(opt.hpos-opt.width/2)) / opt.width; % left side of the box becomes 0, right side becomes 1
     range = range * (opt.hlim(2) - opt.hlim(1)) + opt.hlim(1);   % 0 becomes hlim(1), 1 becomes hlim(2)
     
     begsample = opt.trlvis(opt.trlop,1);
@@ -713,7 +719,13 @@ else
     key = [eventdata.Modifier{1} '+' key];
   end
 end
-
+% get focus back to figure
+if ~strcmp(get(h, 'type'), 'figure')
+    set(h, 'enable', 'off');
+    drawnow;
+    set(h, 'enable', 'on');
+end
+  
 h = getparent(h);
 opt = getappdata(h, 'opt');
 cfg = getappdata(h, 'cfg');
@@ -1074,15 +1086,15 @@ axis(ax)
 
 % determine a single local axis that encompasses all channels
 % this is in relative figure units
-hpos   = (ax(1)+ax(2))/2;
-vpos   = (ax(3)+ax(4))/2;
-width  = ax(2)-ax(1);
-height = ax(4)-ax(3);
+opt.hpos   = (ax(1)+ax(2))/2;
+opt.vpos   = (ax(3)+ax(4))/2;
+opt.width  = ax(2)-ax(1);
+opt.height = ax(4)-ax(3);
 
 % these determine the scaling inside the virtual axes
 % the hlim will be in seconds, the vlim will be in Tesla or Volt
-hlim = [tim(1) tim(end)];
-vlim = cfg.ylim;
+opt.hlim = [tim(1) tim(end)];
+opt.vlim = cfg.ylim;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1097,7 +1109,7 @@ for j = ordervec
   
   for k=1:numel(artbeg)
     h_artifact = ft_plot_box([tim(artbeg(k)) tim(artend(k)) -1 1], 'facecolor', opt.artcolors(j,:), 'edgecolor', 'none', 'tag', 'artifact',  ...
-      'hpos', hpos, 'vpos', vpos, 'width', width, 'height', height, 'hlim', hlim, 'vlim', [-1 1]);
+      'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
   end
 end % for each of the artifact channels
 
@@ -1112,11 +1124,11 @@ for k=1:length(event)
   catch
     eventstr = 'unknown';
   end
-  eventtim = (event(k).sample-begsample)/opt.fsample;
+  eventtim = (event(k).sample-begsample)/opt.fsample + opt.hlim(1);
   ft_plot_line([eventtim eventtim], [-1 1], 'tag', 'event', ...
-    'hpos', hpos, 'vpos', vpos, 'width', width, 'height', height, 'hlim', hlim, 'vlim', [-1 1]);
+    'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
   ft_plot_text(eventtim, 0.9, eventstr, 'tag', 'event', ...
-    'hpos', hpos, 'vpos', vpos, 'width', width, 'height', height, 'hlim', hlim, 'vlim', [-1 1]);
+    'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1127,8 +1139,8 @@ delete(findobj(h,'tag', 'timecourse'));
 if strcmp(cfg.viewmode, 'butterfly')
   set(gca,'ColorOrder',opt.chancolors(chanindx,:)) % plot vector does not clear axis, therefore this is possible
   ft_plot_vector(tim, dat, 'box', false, 'tag', 'timecourse', ...
-    'hpos', laytime.pos(1,1), 'vpos', laytime.pos(1,2), 'width', laytime.width(1), 'height', laytime.height(1), 'hlim', hlim, 'vlim', vlim);
-  
+    'hpos', laytime.pos(1,1), 'vpos', laytime.pos(1,2), 'width', laytime.width(1), 'height', laytime.height(1), 'hlim', opt.hlim, 'vlim', opt.vlim);
+   
 elseif any(strcmp(cfg.viewmode, {'vertical' 'component'}))
   for i = 1:length(chanindx)
     if strcmp(cfg.viewmode, 'component')
@@ -1141,26 +1153,21 @@ elseif any(strcmp(cfg.viewmode, {'vertical' 'component'}))
     if ~isempty(datsel) && ~isempty(laysel)
       ft_plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'tag', 'timecourse', 'HorizontalAlignment', 'right');
       ft_plot_vector(tim, dat(datsel, :), 'box', false, 'color', color, 'tag', 'timecourse', ...
-        'hpos', laytime.pos(laysel,1), 'vpos', laytime.pos(laysel,2), 'width', laytime.width(laysel), 'height', laytime.height(laysel), 'hlim', hlim, 'vlim', vlim);
+        'hpos', laytime.pos(laysel,1), 'vpos', laytime.pos(laysel,2), 'width', laytime.width(laysel), 'height', laytime.height(laysel), 'hlim', opt.hlim, 'vlim', opt.vlim);
     end
   end
-  
-  nticks = 11;
-  xTickLabel = cellstr(num2str( linspace(tim(1), tim(end), nticks)' , '%1.2f'))';
-  set(gca, 'xTick', linspace(ax(1), ax(2), nticks))
-  set(gca, 'xTickLabel', xTickLabel)
-  
+
   if length(chanindx)>19
     % no space for xticks
     yTickLabel = [];
   elseif length(chanindx)> 6
     % one tick per channel
     set(gca, 'yTick', sort([laytime.pos(:,2)+(laytime.height(laysel)/4); laytime.pos(:,2)-(laytime.height(laysel)/4)]))
-    yTickLabel = {num2str(-vlim(2)/2), num2str(vlim(2)/2)};
+    yTickLabel = {num2str(-opt.vlim(2)/2), num2str(opt.vlim(2)/2)};
   else
     % two ticks per channel
     set(gca, 'yTick', sort([laytime.pos(:,2)+(laytime.height(laysel)/2); laytime.pos(:,2)+(laytime.height(laysel)/4); laytime.pos(:,2)-(laytime.height(laysel)/4); laytime.pos(:,2)-(laytime.height(laysel)/2)]))
-    yTickLabel = {num2str(-vlim(2)), num2str(-vlim(2)/2), num2str(vlim(2)/2), num2str(vlim(2))};
+    yTickLabel = {num2str(-opt.vlim(2)), num2str(-opt.vlim(2)/2), num2str(opt.vlim(2)/2), num2str(opt.vlim(2))};
   end
   
   yTickLabel = repmat(yTickLabel, 1, length(chanindx));
@@ -1171,6 +1178,11 @@ else
   error('unknown viewmode "%s"', cfg.viewmode);
 end % if strcmp viewmode
 
+  nticks = 11;
+  xTickLabel = cellstr(num2str( linspace(tim(1), tim(end), nticks)' , '%1.2f'))';
+  set(gca, 'xTick', linspace(ax(1), ax(2), nticks))
+  set(gca, 'xTickLabel', xTickLabel)
+  
 if strcmp(cfg.viewmode, 'component')
   
   % determine the position of each of the original channels for the topgraphy
@@ -1212,7 +1224,6 @@ if strcmp(cfg.viewmode, 'component')
     
   end % if redraw_topo
   
-  set(gca, 'xTick', [])
   set(gca, 'yTick', [])
   
   ax(1) = min(laytopo.pos(:,1) - laytopo.width/2);
@@ -1221,11 +1232,6 @@ if strcmp(cfg.viewmode, 'component')
   ax(4) = max(laytime.pos(:,2) + laytime.height/2);
   axis(ax)
   
-  % remember the scaling of the horizontal axis, this is needed for mouse input
-  hpos(1) = laytime.pos(1,1) - laytime.width(1)/2; % the position of the left  side of the timecourse box
-  hpos(2) = laytime.pos(1,1) + laytime.width(1)/2; % the position of the right side of the timecourse box
-  opt.hlim = hlim;
-  opt.hpos = hpos;
   
 end % plotting topographies
 

@@ -141,15 +141,13 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 3631 2011-06-07 09:45:34Z jansch $
+% $Id: ft_topoplotER.m 3734 2011-06-29 08:14:36Z jorhor $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel' 'refchannel'}); 
-
-cla
 
 % set default for inputfile
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile = [];    end
@@ -195,8 +193,11 @@ end
 %data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'});
 
 % check for option-values to be renamed
-cfg = ft_checkconfig(cfg, 'renamedval',     {'electrodes',   'dotnum',    'numbers'});
-cfg = ft_checkconfig(cfg, 'renamedval',     {'zlim',         'absmax',    'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'electrodes',   'dotnum',      'numbers'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'zlim',         'absmax',      'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedforward', 'outflow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedback',    'inflow'});
+
 % check for renamed options
 cfg = ft_checkconfig(cfg, 'renamed',     {'electrodes',    'marker'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'emarker',       'markersymbol'});
@@ -229,42 +230,40 @@ cfg = ft_checkconfig(cfg, 'forbidden',  {'showlabels'});
 cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth'});
 
 % Set other config defaults:
-if ~isfield(cfg, 'xlim'),             cfg.xlim = 'maxmin';           end
-if ~isfield(cfg, 'ylim'),             cfg.ylim = 'maxmin';           end
-if ~isfield(cfg, 'zlim'),             cfg.zlim = 'maxmin';           end
-if ~isfield(cfg, 'style'),            cfg.style = 'both';            end
-if ~isfield(cfg, 'gridscale'),        cfg.gridscale = 67;            end
-if ~isfield(cfg, 'interplimits'),     cfg.interplimits = 'head';     end
-if ~isfield(cfg, 'interpolation'),    cfg.interpolation = 'v4';      end
-if ~isfield(cfg, 'contournum'),       cfg.contournum = 6;            end
-if ~isfield(cfg, 'colorbar'),         cfg.colorbar = 'no';           end
-if ~isfield(cfg, 'shading'),          cfg.shading = 'flat';          end
-if ~isfield(cfg, 'comment'),          cfg.comment = 'auto';          end
-if ~isfield(cfg, 'commentpos'),       cfg.commentpos = 'leftbottom'; end
-if ~isfield(cfg, 'fontsize'),         cfg.fontsize = 8;              end
-if ~isfield(cfg, 'baseline'),         cfg.baseline = 'no';           end   %to avoid warning in timelock/freqbaseline
-if ~isfield(cfg, 'trials'),           cfg.trials = 'all';            end
-if ~isfield(cfg, 'interactive'),      cfg.interactive = 'no';        end
-if ~isfield(cfg, 'hotkeys'),          cfg.hotkeys = 'no';            end
-if ~isfield(cfg, 'renderer'),         cfg.renderer = [];             end   % matlab sets the default
-if ~isfield(cfg, 'marker'),           cfg.marker = 'on';             end
-if ~isfield(cfg, 'markersymbol'),     cfg.markersymbol = 'o';        end
-if ~isfield(cfg, 'markercolor'),      cfg.markercolor = [0 0 0];     end
-if ~isfield(cfg, 'markersize'),       cfg.markersize = 2;            end
-if ~isfield(cfg, 'markerfontsize'),   cfg.markerfontsize = 8;        end
-if ~isfield(cfg, 'highlight'),        cfg.highlight = 'off';         end
-if ~isfield(cfg, 'highlightchannel'), cfg.highlightchannel = 'all';  end
-if ~isfield(cfg, 'highlightsymbol'),  cfg.highlightsymbol = '*';     end
-if ~isfield(cfg, 'highlightcolor'),   cfg.highlightcolor = [0 0 0];  end
-if ~isfield(cfg, 'highlightsize'),    cfg.highlightsize = 6;         end
-if ~isfield(cfg, 'highlightfontsize'),cfg.highlightfontsize = 8;     end
-if ~isfield(cfg, 'labeloffset'),      cfg.labeloffset = 0.005;       end
-if ~isfield(cfg, 'maskparameter'),    cfg.maskparameter = [];        end
-if ~isfield(cfg, 'component'),        cfg.component = [];            end
-if ~isfield(cfg, 'matrixside'),       cfg.matrixside = '';           end
-if ~isfield(cfg, 'channel'),          cfg.channel = 'all';           end
-
-%FIXME rename matrixside and cohrefchannel in more meaningful options
+cfg.xlim           = ft_getopt(cfg, 'xlim',          'maxmin');
+cfg.ylim           = ft_getopt(cfg, 'ylim',          'maxmin');
+cfg.zlim           = ft_getopt(cfg, 'zlim',          'maxmin');
+cfg.style          = ft_getopt(cfg, 'style',         'both');
+cfg.gridscale      = ft_getopt(cfg, 'gridscale',     67);
+cfg.interplimits   = ft_getopt(cfg, 'interplimits',  'head');
+cfg.interpolation  = ft_getopt(cfg, 'interpolation', 'v4');
+cfg.contournum     = ft_getopt(cfg, 'contournum',    6);
+cfg.colorbar       = ft_getopt(cfg, 'colorbar',      'no');
+cfg.shading        = ft_getopt(cfg, 'shading',       'flat');
+cfg.comment        = ft_getopt(cfg, 'comment',       'auto');
+cfg.commentpos     = ft_getopt(cfg, 'commentpos',    'leftbottom');
+cfg.fontsize       = ft_getopt(cfg, 'fontsize',      8);
+cfg.baseline       = ft_getopt(cfg, 'baseline',      'no'); %to avoid warning in timelock/freqbaseline
+cfg.trials         = ft_getopt(cfg, 'trials',        'all');
+cfg.interactive    = ft_getopt(cfg, 'interactive',   'no');
+cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',       'no');
+cfg.renderer       = ft_getopt(cfg, 'renderer',      []); % matlab sets the default
+cfg.marker         = ft_getopt(cfg, 'marker',        'on');
+cfg.markersymbol   = ft_getopt(cfg, 'markersymbol',  'o');
+cfg.markercolor    = ft_getopt(cfg, 'markercolor',   [0 0 0]);
+cfg.markersize     = ft_getopt(cfg, 'markersize',    2);
+cfg.markerfontsize = ft_getopt(cfg, 'markerfontsize', 8);
+cfg.highlight      = ft_getopt(cfg, 'highlight',     'off');
+cfg.highlightchannel  = ft_getopt(cfg, 'highlightchannel',  'all');
+cfg.highlightsymbol   = ft_getopt(cfg, 'highlightsymbol',   '*');
+cfg.highlightcolor    = ft_getopt(cfg, 'highlightcolor',    [0 0 0]);
+cfg.highlightsize     = ft_getopt(cfg, 'highlightsize',     6);
+cfg.highlightfontsize = ft_getopt(cfg, 'highlightfontsize', 8);
+cfg.labeloffset       = ft_getopt(cfg, 'labeloffset',       0.005);
+cfg.maskparameter     = ft_getopt(cfg, 'maskparameter',     []);
+cfg.component         = ft_getopt(cfg, 'component',         []);
+cfg.matrixside        = ft_getopt(cfg, 'matrixside',        'outflow');
+cfg.channel           = ft_getopt(cfg, 'channel',           'all');
 
 % compatibility for previous highlighting option
 if isnumeric(cfg.highlight)
@@ -339,18 +338,18 @@ dimtok = tokenize(dimord, '_');
 % Set x/y/zparam defaults according to datatype and dimord
 switch dtype
     case 'timelock'
-        if ~isfield(cfg, 'xparam'),      cfg.xparam = 'time';         end
-        if ~isfield(cfg, 'yparam'),      cfg.yparam = '';             end
-        if ~isfield(cfg, 'zparam'),      cfg.zparam = 'avg';          end
+        cfg.xparam = ft_getopt(cfg, 'xparam', 'time');
+        cfg.yparam = ft_getopt(cfg, 'yparam', '');
+        cfg.zparam = ft_getopt(cfg, 'zparam', 'avg');
     case 'freq'
-        if sum(ismember(dimtok, 'time'))
-            if ~isfield(cfg, 'xparam'),    cfg.xparam = 'time';         end
-            if ~isfield(cfg, 'yparam'),    cfg.yparam = 'freq';         end
-            if ~isfield(cfg, 'zparam'),    cfg.zparam = 'powspctrm';    end
+        if any(ismember(dimtok, 'time'))
+            cfg.xparam = ft_getopt(cfg, 'xparam', 'time');
+            cfg.yparam = ft_getopt(cfg, 'yparam', 'freq');
+            cfg.zparam = ft_getopt(cfg, 'zparam', 'powspctrm');
         else
-            if ~isfield(cfg, 'xparam'),    cfg.xparam = 'freq';         end
-            if ~isfield(cfg, 'yparam'),    cfg.yparam = '';             end
-            if ~isfield(cfg, 'zparam'),    cfg.zparam = 'powspctrm';    end
+            cfg.xparam = ft_getopt(cfg, 'xparam', 'freq');
+            cfg.yparam = ft_getopt(cfg, 'yparam', '');
+            cfg.zparam = ft_getopt(cfg, 'zparam', 'powspctrm');
         end
     case 'comp'
         % Add a pseudo-axis with the component numbers:
@@ -362,9 +361,9 @@ switch dtype
         end
         % Rename the field with topographic label information:
         data.label = data.topolabel;
-        if ~isfield(cfg, 'xparam'),      cfg.xparam='comp';         end
-        if ~isfield(cfg, 'yparam'),      cfg.yparam='';             end
-        if ~isfield(cfg, 'zparam'),      cfg.zparam='topo';         end
+        cfg.xparam = ft_getopt(cfg, 'xparam', 'comp');
+        cfg.yparam = ft_getopt(cfg, 'yparam', '');
+        cfg.zparam = ft_getopt(cfg, 'zparam', 'topo');
     otherwise
         % if the input data is not one of the standard data types, or if
         % the functional data is just one value per channel
@@ -384,7 +383,7 @@ if isfield(cfg, 'xparam') && isfield(cfg, 'zparam') && ~isfield(cfg, 'yparam')
 end
 
 % check whether rpt/subj is present and remove if necessary and whether
-hasrpt = sum(ismember(dimtok, {'rpt' 'subj'}));
+hasrpt = any(ismember(dimtok, {'rpt' 'subj'}));
 if strcmp(dtype, 'timelock') && hasrpt,
     tmpcfg        = [];
     tmpcfg.trials = cfg.trials;
@@ -504,10 +503,10 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
         if isempty(cfg.matrixside)
             sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
             sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
-        elseif strcmp(cfg.matrixside, 'feedforward')
+        elseif strcmp(cfg.matrixside, 'outflow')
             sel1 = [];
             sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
-        elseif strcmp(cfg.matrixside, 'feedback')
+        elseif strcmp(cfg.matrixside, 'inflow')
             sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
             sel2 = [];
         end
@@ -520,14 +519,15 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
         % General case
         sel               = match_str(data.label, cfg.refchannel);
         siz               = [size(data.(cfg.zparam)) 1];
-        if strcmp(cfg.matrixside, 'feedback') || isempty(cfg.matrixside)
-            %FIXME the interpretation of 'feedback' and 'feedforward' depend on
+        if strcmp(cfg.matrixside, 'inflow') || isempty(cfg.matrixside)
+            %the interpretation of 'inflow' and 'outflow' depend on
             %the definition in the bivariate representation of the data
+            %in FieldTrip the row index 'causes' the column index channel
             %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
             sel1 = 1:siz(1);
             sel2 = sel;
             meandir = 2;
-        elseif strcmp(cfg.matrixside, 'feedforward')
+        elseif strcmp(cfg.matrixside, 'outflow')
             %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
             sel1 = sel;
             sel2 = 1:siz(1);
@@ -736,6 +736,7 @@ elseif isnumeric(cfg.commentpos)
 end
 
 % Draw topoplot
+cla
 hold on
 % Set ft_plot_topo specific options
 if strcmp(cfg.interplimits,'head'),  interplimits = 'mask';

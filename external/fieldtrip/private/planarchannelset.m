@@ -27,7 +27,7 @@ function [planar] = planarchannelset(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: planarchannelset.m 3526 2011-05-12 14:12:37Z roboos $
+% $Id: planarchannelset.m 3776 2011-07-06 10:19:48Z roboos $
 
 switch lower(ft_senstype(data))
   case 'ctf151_planar'
@@ -791,6 +791,38 @@ switch lower(ft_senstype(data))
       planar{k,1} = sprintf('AG%03d_dH', k);
       planar{k,2} = sprintf('AG%03d_dV', k);
       planar{k,3} = sprintf('AG%03d',    k);
+    end
+
+  case 'yokogawa440_old_planar'
+    % this should be consistent with read_yokogawa_header, with
+    % ft_channelselection and with yokogawa2grad
+    planar = cell(440,3);
+    for i=1:440
+        if size(find(meg_zaxis+1==i),2)
+            planar{i,1} = sprintf('%03d_dH',    i-1);
+            planar{i,2} = sprintf('%03d_dV',    i-1);
+            planar{i,3} = sprintf('%03d',    i-1);
+        else
+            planar{i,1} = sprintf('%03d_dH',    i-1);
+            planar{i,2} = sprintf('%03d_dV',    i-1);
+            planar{i,3} = sprintf('%03d',    i-1);
+        end
+    end
+
+  case 'yokogawa440_planar'
+    % this should be consistent with read_yokogawa_header, with
+    % ft_channelselection and with yokogawa2grad
+    planar = cell(440,3);
+    for i=1:440
+        if size(find(meg_zaxis+1==i),2)
+            planar{i,1} = sprintf('AG%03d_dH',    i);
+            planar{i,2} = sprintf('AG%03d_dV',    i);
+            planar{i,3} = sprintf('AG%03d',    i);
+        else
+            planar{i,1} = sprintf('PG%03d_dH',    i);
+            planar{i,2} = sprintf('PG%03d_dV',    i);
+            planar{i,3} = sprintf('PG%03d',    i);
+        end
     end
 
   otherwise

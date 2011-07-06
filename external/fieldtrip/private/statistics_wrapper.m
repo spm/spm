@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 3657 2011-06-09 08:28:06Z johzum $
+% $Id: statistics_wrapper.m 3725 2011-06-22 10:33:44Z johzum $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -279,19 +279,22 @@ catch
   num = 1;
 end
 
+design=cfg.design;
+cfg=rmfield(cfg,'design'); % to not confuse lower level functions with both cfg.design and design input
+
 % perform the statistical test 
 if strcmp(func2str(statmethod),'statistics_montecarlo') % because statistics_montecarlo (or to be precise, clusterstat) requires to know whether it is getting source data, 
                                                         % the following (ugly) work around is necessary                                             
   if num>1
-    [stat, cfg] = statmethod(cfg, dat, cfg.design, 'issource',issource);
+    [stat, cfg] = statmethod(cfg, dat, design, 'issource',issource);
   else
-    [stat] = statmethod(cfg, dat, cfg.design, 'issource', issource);
+    [stat] = statmethod(cfg, dat, design, 'issource', issource);
   end
 else
   if num>1
-    [stat, cfg] = statmethod(cfg, dat, cfg.design);
+    [stat, cfg] = statmethod(cfg, dat, design);
   else
-    [stat] = statmethod(cfg, dat, cfg.design);
+    [stat] = statmethod(cfg, dat, design);
   end
 end
 

@@ -47,7 +47,7 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_freqgrandaverage.m 3710 2011-06-16 14:04:19Z eelspa $
 
 ft_defaults
 
@@ -265,10 +265,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqgrandaverage.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_freqgrandaverage.m 3710 2011-06-16 14:04:19Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

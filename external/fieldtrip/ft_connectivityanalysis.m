@@ -29,8 +29,13 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                 'dtf',       directed transfer function, support for freq and freqmvar data
 %                 'pdc',       partial directed coherence, support for freq and freqmvar data
 %                 'psi',       phaseslope index, support for freq and freqmvar data
-%                 'wpli',          weighted phase lag index
+%                 'wpli',      weighted phase lag index (signed one,
+%                              still have to take absolute value to get indication of
+%                              strength of interaction. Note: measure has
+%                              positive bias. Use wpli_debiased to avoid
+%                              this.
 %                 'wpli_debiased'  debiased weighted phase lag index
+%                                 (estimates squared wpli)
 %                 'ppc'        pairwise phase consistency
 %                 'wppc'       weighted pairwise phase consistency
 %
@@ -78,7 +83,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 3687 2011-06-14 19:00:48Z jansch $
+% $Id: ft_connectivityanalysis.m 3760 2011-07-02 16:29:16Z marvin $
 
 %ft_defaults
 
@@ -296,28 +301,26 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
           %FIXME this is fast but throws away the trial dimension, consider
           %a way to keep trial information if needed, but use the fast way
           %if possible
-          data = ft_checkdata(data, 'cmbrepresentation', 'fullfast');
+          data   = ft_checkdata(data, 'cmbrepresentation', 'fullfast');
+          hasrpt = 0;
           hasrpt = 0;
         elseif isfield(data, 'powspctrm')
           data = ft_checkdata(data, 'cmbrepresentation', 'full');
         end
-        cfg = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
-        cfg.npsf.sfmethod = ft_getopt(cfg.npsf, 'sfmethod', 'multivariate'); 
-        cfg.feedback = cfg.npsf.feedback; 
+        
+        tmpcfg = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
+        
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
-        if strcmp(cfg.npsf.sfmethod, 'multivariate')
-          cfg.channelcmb = cfg.npsf.channelcmb;
-          try, cfg.block      = cfg.npsf.block;     end
-          try, cfg.blockindx  = cfg.npsf.blockindx; end
-          % FIXME 
-          cfg.npsf = rmfield(cfg.npsf, 'channelcmb');
-          try, cfg.npsf = rmfield(cfg.npsf, 'block');     end
-          try, cfg.npsf = rmfield(cfg.npsf, 'blockindx'); end
-        end
-        optarg = ft_cfg2keyval(cfg.npsf);
+           tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
+           try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'block');     end
+           try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'blockindx'); end
+%         end
+        optarg = ft_cfg2keyval(tmpcfg.npsf);
         data   = csd2transfer(data, optarg{:});
-        if strcmp(cfg.method, 'granger') 
+        
+        % convert the inparam back to cell array in the case of granger
+        if strcmp(cfg.method, 'granger')
           inparam = {'transfer' 'noisecov' 'crsspctrm'};
         end
       end
@@ -569,6 +572,7 @@ switch cfg.method
           ix = ((k-1)*4+1):k*4;
           powindx(ix,:) = [1 1;4 1;1 4;4 4] + (k-1)*4;
         end
+      
       elseif isfield(data, 'labelcmb')
         % conditional (blockwise) needs linearly represented cross-spectra
         for k = 1:size(cfg.conditional,1)
@@ -586,7 +590,7 @@ switch cfg.method
         end
         data.label = newlabel;
       else
-        % do nothing
+        powindx = [];
       end
       
       %fs = cfg.fsample; %FIXME do we really need this, or is this related to how
@@ -778,7 +782,7 @@ switch dtype
     stat.dimord = dimord(2:end);
     stat.(outparam) = datout;
     if ~isempty(varout),
-      stat.([outparam,'sem']) = (varout/nrpt).^0.5;
+      stat.([outparam,'sem']) = (varout./nrpt).^0.5;
     end
   case 'source'
     stat         = [];
@@ -809,7 +813,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 3687 2011-06-14 19:00:48Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3760 2011-07-02 16:29:16Z marvin $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

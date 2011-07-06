@@ -38,7 +38,7 @@ function h = ft_plot_line(X, Y, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_line.m 3652 2011-06-09 07:02:22Z roboos $
+% $Id: ft_plot_line.m 3737 2011-06-29 08:56:57Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -108,5 +108,6 @@ else
 end % shortcut
 
 h = line(X, Y, 'Color', color, 'LineStyle', linestyle, 'LineWidth', linewidth);
+set(h, 'tag', tag);
 
 warning(ws); %revert to original state

@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 3248 2011-03-30 07:37:27Z jansch $
+% $Id: ft_compute_leadfield.m 3716 2011-06-21 11:25:51Z johzum $
 
 persistent warning_issued;
 
@@ -456,15 +456,18 @@ if strcmpi(reducerank,'yes')
   reducerank = size(lf,2) - 1;
 end
 if ~strcmp(reducerank, 'no') && reducerank<size(lf,2) && ~strcmp(ft_voltype(vol),'openmeeg')
-  % decompose the leadfield
-  [u, s, v] = svd(lf);
-  r = diag(s);
-  s(:) = 0;
-  for j=1:reducerank
-    s(j,j) = r(j);
-  end
-  % recompose the leadfield with reduced rank
-  lf = u * s * v';
+    % decompose the leadfield
+    for ii=1:Ndipoles
+        lftmp=lf(:,(3*ii-2):(3*ii));
+        [u, s, v] = svd(lftmp);
+        r = diag(s);
+        s(:) = 0;
+        for j=1:reducerank
+            s(j,j) = r(j);
+        end
+        % recompose the leadfield with reduced rank
+        lf(:,(3*ii-2):(3*ii)) = u * s * v';
+    end
 end
 
 % optionally apply leadfield normaliziation

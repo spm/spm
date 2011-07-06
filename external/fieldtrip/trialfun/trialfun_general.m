@@ -122,8 +122,17 @@ end
 
 if ~isempty(cfg.trialdef.eventvalue)
   % this cannot be done robustly in a single line of code
+  if ~iscell(cfg.trialdef.eventvalue)
+    valchar    = ischar(cfg.trialdef.eventvalue); 
+    valnumeric = isnumeric(cfg.trialdef.eventvalue); 
+  else
+    valchar    = ischar(cfg.trialdef.eventvalue{1});
+    valnumeric = isnumeric(cfg.trialdef.eventvalue{1});
+  end  
   for i=1:numel(event)
-    sel(i) = sel(i) & ~isempty(intersect(event(i).value, cfg.trialdef.eventvalue));
+    if (ischar(event(i).value) && valchar) || (isnumeric(event(i).value) && valnumeric)
+      sel(i) = sel(i) & ~isempty(intersect(event(i).value, cfg.trialdef.eventvalue));
+    end
   end
 end
 
@@ -186,12 +195,14 @@ for i=sel
     trl = [trl; [trlbeg trlend trloff]];
     if isnumeric(event(i).value), 
       val = [val; event(i).value];
+    else
+      val = [val; nan];
     end
   end
 end
 
 % append the vector with values
-if ~isempty(val)
+if ~isempty(val) && ~all(isnan(val))
   trl = [trl val];
 end
 

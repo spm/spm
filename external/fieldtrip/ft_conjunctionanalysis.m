@@ -197,8 +197,8 @@ end
 
 % add the version details of this function call to the configuration
 Cval.cfg.version.name   = mfilename('fullpath');
-Cval.cfg.version.id     = '$Id: ft_conjunctionanalysis.m 3626 2011-06-06 13:48:54Z roboos $';
-Cval.cfg.version.matlab = version();
+Cval.cfg.version.id     = '$Id: ft_conjunctionanalysis.m 3710 2011-06-16 14:04:19Z eelspa $';
+Cval.cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

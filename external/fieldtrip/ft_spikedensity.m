@@ -52,7 +52,7 @@ function [sdf sdfdata] = density(cfg,data)
 %     in TIMELOCKSTATISTICS for example.
 %   - SDFDATA is a raw DATA type structure that can be used itself in all functions that support
 %     raw data input (such as TIMELOCKANALYSIS, FREQANALYSIS).
-% $Id: ft_spikedensity.m 3144 2011-03-16 21:57:56Z marvin $
+% $Id: ft_spikedensity.m 3749 2011-06-30 23:33:35Z marvin $
 
 % Copyright (C) 2010, Martin Vinck
 % TODO: check that SDFDATA is indeed completely compatible!
@@ -147,7 +147,7 @@ if cfg.timwin(1)>0 || cfg.timwin(2)<0 || cfg.timwin(1)>=cfg.timwin(2)
   error('MATLAB:spikestation:density:cfg:timwin:noInclusionTimeZero',...
         'Please specify cfg.timwin(1)<=0 and cfg.timwin(2)>=0 and cfg.timwin(2)>cfg.timwin(1)')
 end
-fsample       = 1/data.fsample; % PLEASE DO NOT MESS WITH THIS LINE!
+fsample       = data.fsample; % PLEASE DO NOT MESS WITH THIS LINE!
 sampleTime    = 1/fsample;
 winTime       = [fliplr(0:-sampleTime:cfg.timwin(1)) (sampleTime):sampleTime:cfg.timwin(2)];
 nLeftSamples  = length(find(winTime<0));  
@@ -213,7 +213,7 @@ cfg.latency(2) = time(end);   % this is the used latency that should be stored i
 maxNumSamples  = length(time);
 
 % preallocate the sum, squared sum and degrees of freedom
-[s,ss]   = deal(zeros(nUnits, maxNumSamples)); % sum and sum of squares
+[s,ss]   = deal(NaN(nUnits, maxNumSamples)); % sum and sum of squares
 dof      = zeros(nUnits, length(s)); 
 
 if (strcmp(cfg.keeptrials,'yes')), singleTrials = zeros(nTrials,nUnits,size(s,2)); end
@@ -249,7 +249,7 @@ for iTrial = 1:nTrials
            sdfdata.time{iTrial}(iUnit,:)  = trialTime; % write back original time axis
         end
         
-        dofsel = true(1,length(y));
+        dofsel = ~isnan(y);%true(1,length(y));
         if strcmp(cfg.vartriallen,'yes')     
             padLeft  = zeros(1, samplesShift(iTrial));
             padRight = zeros(1,(maxNumSamples - nSamples - samplesShift(iTrial)));
@@ -257,8 +257,8 @@ for iTrial = 1:nTrials
             y        = [padLeft y padRight];            
             dofsel   = logical([padLeft dofsel padRight]);
         end
-        s(iUnit,:)        = s(iUnit,:)  + y;            % compute the sum
-        ss(iUnit,:)       = ss(iUnit,:) + y.^2;         % compute the squared sum
+        s(iUnit,:)        = nansum([s(iUnit,:);y]);            % compute the sum
+        ss(iUnit,:)       = nansum([ss(iUnit,:);y.^2]);         % compute the squared sum
         
         % count the number of samples that went into the sum
         dof(iUnit,dofsel) = dof(iUnit,dofsel) + 1;        

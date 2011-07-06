@@ -35,7 +35,7 @@ function [source] = ft_appendsource(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendsource.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_appendsource.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -62,7 +62,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'yes', 'hastrialdef', 'ifmakessense');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'yes', 'hassampleinfo', 'ifmakessense');
 end
 
 % use a helper function to select the consistent parts of the data and to concatenate it
@@ -70,10 +70,10 @@ source = ft_selectdata(varargin{:}, 'param',{'pow'});
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appendsource.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_appendsource.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

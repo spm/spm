@@ -95,7 +95,7 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_headmodelplot.m 3705 2011-06-15 13:59:35Z jansch $
 
 ft_defaults
 
@@ -166,7 +166,6 @@ if strcmp(cfg.plotgrid, 'yes')
     try, tmpcfg.threshold   = cfg.threshold;    end
     try, tmpcfg.spheremesh  = cfg.spheremesh;   end
     try, tmpcfg.inwardshift = cfg.inwardshift;  end
-    try, tmpcfg.mriunits    = cfg.mriunits;     end
     try, tmpcfg.sourceunits = cfg.sourceunits;  end
     [sourcegrid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
   end

@@ -71,7 +71,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 3604 2011-06-01 08:34:52Z jorhor $
+% $Id: ft_redefinetrial.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -211,7 +211,7 @@ elseif ~isempty(cfg.trl)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % ensure that sampleinfo is present, if this fails ft_fetch_data will crash
-  data = ft_checkdata(data, 'hastrialdef', 'yes');  
+  data = ft_checkdata(data, 'hassampleinfo', 'yes');  
 
   dataold = data;   % make a copy of the old data
   clear data        % this line is very important, we want to completely reconstruct the data from the old data!
@@ -321,10 +321,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_redefinetrial.m 3604 2011-06-01 08:34:52Z jorhor $';
+cfg.version.id = '$Id: ft_redefinetrial.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

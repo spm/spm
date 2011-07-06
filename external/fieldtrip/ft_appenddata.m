@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 3590 2011-05-28 18:59:50Z jansch $
+% $Id: ft_appenddata.m 3770 2011-07-04 11:48:03Z eelspa $
 
 ft_defaults
 
@@ -87,7 +87,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hastrialdef', 'yes');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hassampleinfo', 'yes');
 end
 
 % determine the dimensions of the data
@@ -103,22 +103,24 @@ end
 
 % try to locate the trial definition (trl) in the nested configuration and
 % check whether the input data contains trialinfo
-hastrialinfo = 0;
-trl = cell(1, Ndata);
-for i=1:Ndata
-  if isfield(varargin{i}, 'cfg')
-    trl{i} = ft_findcfg(varargin{i}.cfg, 'trl');
-  else
-    trl{i} = [];
-  end
-  if isempty(trl{i})
-    % a trial definition is expected in each continuous data set
-    warning('could not locate the trial definition ''trl'' in data structure %d', i);
-  end
-  hastrialinfo = isfield(varargin{i}, 'trialinfo') + hastrialinfo;
-end
-hastrialinfo = hastrialinfo==Ndata;
+% this is DEPRECATED - don't look in cfg-tree for stuff anymore
+% hastrialinfo = 0;
+% trl = cell(1, Ndata);
+% for i=1:Ndata
+%   if isfield(varargin{i}, 'cfg')
+%     trl{i} = ft_findcfg(varargin{i}.cfg, 'trl');
+%   else
+%     trl{i} = [];
+%   end
+%   if isempty(trl{i})
+%     % a trial definition is expected in each continuous data set
+%     warning('could not locate the trial definition ''trl'' in data structure %d', i);
+%   end
+%   hastrialinfo = isfield(varargin{i}, 'trialinfo') + hastrialinfo;
+% end
+% hastrialinfo = hastrialinfo==Ndata;
 
+hastrialinfo = 0;
 hassampleinfo = 0;
 sampleinfo = cell(1, Ndata);
 for i=1:Ndata
@@ -132,8 +134,10 @@ for i=1:Ndata
     warning('no ''sampleinfo'' field in data structure %d', i);
   end
   hassampleinfo = isfield(varargin{i}, 'sampleinfo') + hassampleinfo;
+  hastrialinfo = isfield(varargin{i}, 'trialinfo') + hastrialinfo;
 end
 hassampleinfo = hassampleinfo==Ndata;
+hastrialinfo = hastrialinfo==Ndata;
 
 % check the consistency of the labels across the input-structures
 alllabel = unique(label, 'first');
@@ -225,7 +229,7 @@ elseif cattrial
     % number of columns in trialinfo
   end
   % also concatenate the trial specification
-  cfg.trl = cat(1, trl{:});
+  %cfg.trl = cat(1, trl{:});
   
 elseif catlabel
   % concatenate the channels in each trial
@@ -304,10 +308,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 3590 2011-05-28 18:59:50Z jansch $';
+cfg.version.id = '$Id: ft_appenddata.m 3770 2011-07-04 11:48:03Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

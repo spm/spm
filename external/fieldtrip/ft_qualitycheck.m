@@ -232,8 +232,8 @@ if strcmp(cfg.analyze,'yes')
     
     % add the version details of this function call to the configuration
     cfg.version.name   = mfilename('fullpath');
-    cfg.version.id     = '$Id: ft_qualitycheck.m 3568 2011-05-20 12:45:28Z eelspa $';
-    cfg.version.matlab = version();
+    cfg.version.id     = '$Id: ft_qualitycheck.m 3710 2011-06-16 14:04:19Z eelspa $';
+    cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

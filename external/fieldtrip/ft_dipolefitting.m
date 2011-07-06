@@ -114,7 +114,6 @@ function [source] = ft_dipolefitting(cfg, data)
 % cfg.grid.outside, documented
 % cfg.symmetry, documented
 % cfg.mri
-% cfg.mriunits
 % cfg.smooth
 % cfg.sourceunits
 % cfg.threshold
@@ -147,7 +146,7 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 3603 2011-06-01 08:27:22Z crimic $
+% $Id: ft_dipolefitting.m 3710 2011-06-16 14:04:19Z eelspa $
 
 ft_defaults
 
@@ -347,7 +346,6 @@ if strcmp(cfg.gridsearch, 'yes')
   try, tmpcfg.threshold   = cfg.threshold;    end
   try, tmpcfg.spheremesh  = cfg.spheremesh;   end
   try, tmpcfg.inwardshift = cfg.inwardshift;  end
-  try, tmpcfg.mriunits    = cfg.mriunits;     end
   try, tmpcfg.sourceunits = cfg.sourceunits;  end
   [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
 
@@ -596,10 +594,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_dipolefitting.m 3603 2011-06-01 08:27:22Z crimic $';
+cfg.version.id = '$Id: ft_dipolefitting.m 3710 2011-06-16 14:04:19Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

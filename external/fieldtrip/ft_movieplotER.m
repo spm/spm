@@ -54,7 +54,7 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_movieplotER.m 3710 2011-06-16 14:04:19Z eelspa $
 
 ft_defaults
 
@@ -274,10 +274,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_movieplotER.m 3568 2011-05-20 12:45:28Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_movieplotER.m 3710 2011-06-16 14:04:19Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

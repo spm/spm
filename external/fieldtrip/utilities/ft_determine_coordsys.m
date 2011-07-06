@@ -40,7 +40,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 3662 2011-06-09 12:59:32Z roboos $
+% $Id: ft_determine_coordsys.m 3732 2011-06-29 07:49:26Z jorhor $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 
@@ -224,19 +224,19 @@ if dointeractive,
   
   % interactively determine orientation
   orientation = '   ';
-  while ~ismember(orientation(1), {'r', 'l', 'a', 'p', 's', 'i'})
+  while ~any(strcmp(orientation(1), {'r', 'l', 'a', 'p', 's', 'i'}))
     orientation(1) = smartinput('What is the anatomical label for the positive X-axis [r, l, a, p, s, i]? ', '');
   end
-  while ~ismember(orientation(2), {'r', 'l', 'a', 'p', 's', 'i'})
+  while ~any(strcmp(orientation(2), {'r', 'l', 'a', 'p', 's', 'i'}))
     orientation(2) = smartinput('What is the anatomical label for the positive Y-axis [r, l, a, p, s, i]? ', '');
   end
-  while ~ismember(orientation(3), {'r', 'l', 'a', 'p', 's', 'i'})
+  while ~any(strcmp(orientation(3), {'r', 'l', 'a', 'p', 's', 'i'}))
     orientation(3) = smartinput('What is the anatomical label for the positive Z-axis [r, l, a, p, s, i]? ', '');
   end
   
   % interactively determine origin
   origin = ' ';
-  while ~ismember(origin, {'a', 'i', 'n'})
+  while ~any(strcmp(origin, {'a', 'i', 'n'}))
     origin = input('Is the origin of the coordinate system at the a(nterior commissure), i(nterauricular), n(ot a landmark)? ', 's');
   end
   

@@ -16,7 +16,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %   cfg.method       = different methods for calculating the probability of the null-hypothesis,
 %                    'montecarlo'    uses a non-parametric randomization test to get a Monte-Carlo estimate of the probability,
 %                    'analytic'      uses a parametric test that results in analytic probability,
-%                    'stats'         uses a parametric test from the Matlab statistics toolbox,
+%                    'stats'         (soon deprecated) uses a parametric test from the Matlab statistics toolbox,
 %                    'parametric'    uses the Matlab statistics toolbox (very similar to 'stats'),
 %                    'randomization' uses randomization of the data prior to source reconstruction,
 %                    'randcluster'   uses randomization of the data prior to source reconstruction 
@@ -57,7 +57,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_sourcestatistics.m 3732 2011-06-29 07:49:26Z jorhor $
 
 ft_defaults
 
@@ -99,10 +99,10 @@ if strcmp(cfg.implementation, 'old'),
   
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 3732 2011-06-29 07:49:26Z jorhor $';
   
   % add information about the Matlab version used to the configuration
-  cfg.version.matlab = version();
+  cfg.callinfo.matlab = version();
   
   % add information about the function call to the configuration
   cfg.callinfo.proctime = toc(ftFuncTimer);
@@ -144,7 +144,7 @@ elseif strcmp(cfg.implementation, 'new')
     end
   end
   
-  if ismember('cfg.method', {'parametric' 'randomization' 'randcluster'}),
+  if any(strcmp(cfg.method, {'parametric' 'randomization' 'randcluster'}))
     % FIXME only supported for old-style source representation
     for i = 1:numel(varargin)
       varargin{i} = ft_checkdata(varargin{i}, 'sourcerepresentation', 'old');
@@ -439,10 +439,10 @@ elseif strcmp(cfg.implementation, 'new')
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 3568 2011-05-20 12:45:28Z eelspa $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 3732 2011-06-29 07:49:26Z jorhor $';
   
   % add information about the Matlab version used to the configuration
-  cfg.version.matlab = version();
+  cfg.callinfo.matlab = version();
   
   % add information about the function call to the configuration
   cfg.callinfo.proctime = toc(ftFuncTimer);

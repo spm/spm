@@ -99,7 +99,7 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_timelockanalysis.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -133,7 +133,7 @@ else
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -256,10 +256,12 @@ for i=1:ntrial
     case 1
       % include this trial only if the data are complete in all specified windows
       usetrial = 1;
-      if (begsamplatency(i)>latency(1) || endsamplatency(i)<latency(2))
+%       if (begsamplatency(i)>latency(1) || endsamplatency(i)<latency(2))
+%         usetrial = 0;
+%       elseif strcmp(cfg.covariance,'yes') && (begsamplatency(i)>cfg.covariancewindow(1) || endsamplatency(i)<cfg.covariancewindow(2))
+      if strcmp(cfg.covariance,'yes') && (begsamplatency(i)>cfg.covariancewindow(1) || endsamplatency(i)<cfg.covariancewindow(2))
         usetrial = 0;
-      elseif strcmp(cfg.covariance,'yes') && (begsamplatency(i)>cfg.covariancewindow(1) || endsamplatency(i)<cfg.covariancewindow(2))
-        usetrial = 0;
+        warning(['trial ' num2str(i) ' not used for avg computation because it was not used for covariance computation']);
       end
     case 2
       % include this trial if any data points are present in any of the specified windows
@@ -392,10 +394,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockanalysis.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_timelockanalysis.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

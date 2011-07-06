@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 3610 2011-06-01 16:11:08Z crimic $
+% $Id: ft_filetype.m 3709 2011-06-16 12:07:11Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -338,7 +338,7 @@ elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
   type = '4d';
   manufacturer = '4D/BTi';
   content = '';
-elseif length(filename)<=4 && exist([pwd,'/config']) %&& exist([pwd,'/hs_file'])
+elseif length(filename)<=4 && exist(fullfile(p,'config'), 'file') %&& exist(fullfile(p,'hs_file'), 'file')
   % this could be a 4D file with non-standard/processed name
   type = '4d';
   manufacturer = '4D/BTi';

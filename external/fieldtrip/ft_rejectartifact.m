@@ -76,7 +76,7 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_rejectartifact.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -193,9 +193,19 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  data = ft_checkdata(data, 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  data = ft_checkdata(data, 'hassampleinfo', 'yes');
   if isfield(data, 'sampleinfo')
-    trl = [data.sampleinfo data.offset(:)];
+    
+    trl = zeros(numel(data.trial), 3);
+    trl(:,[1 2]) = data.sampleinfo;
+    
+    % recreate offset vector (artifact functions depend on this)
+    % TODO: the artifact rejection stuff should be rewritten to avoid
+    % needing this workaround
+    for ntrl = 1:numel(data.trial)
+      trl(ntrl,3) = time2offset(data.time{ntrl}, data.fsample);
+    end
+    
     if isfield(data, 'trialinfo')
       trl(:, 3+(1:size(data.trialinfo,2))) = data.trialinfo;
     end
@@ -437,10 +447,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the artfctdef substructure
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectartifact.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_rejectartifact.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

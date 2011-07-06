@@ -87,7 +87,7 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 3587 2011-05-27 18:36:16Z jansch $
+% $Id: ft_mvaranalysis.m 3766 2011-07-04 10:44:39Z eelspa $
 
 % record start time and total processing time
 ftFuncTimer = tic();
@@ -144,7 +144,7 @@ if ~isempty(cfg.inputfile)
 end
 
 %check the input-data
-data = ft_checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
 
 %check configurations
 switch cfg.toolbox
@@ -458,10 +458,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_mvaranalysis.m 3587 2011-05-27 18:36:16Z jansch $';
+cfg.version.id   = '$Id: ft_mvaranalysis.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

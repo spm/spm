@@ -47,7 +47,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 3668 2011-06-09 18:36:39Z jansch $
+% $Id: ft_selectdata.m 3766 2011-07-04 10:44:39Z eelspa $
 
 % FIXME ROI selection is not yet implemented
 
@@ -71,8 +71,7 @@ for k = 1:length(data)
     dimord{k} = data{k}.dimord;
   end
   if strcmp(dtype{k}, 'raw'),
-    %ensure it to have an offset
-    data{k} = ft_checkdata(data{k}, 'datatype', 'raw', 'hasoffset', 'yes');
+    data{k} = ft_checkdata(data{k}, 'datatype', 'raw');
   end
   if strcmp(dtype{k}, 'source'),
     data{k} = ft_checkdata(data{k}, 'sourcerepresentation', 'new');

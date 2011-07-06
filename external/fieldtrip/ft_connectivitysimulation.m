@@ -100,7 +100,7 @@ function [data] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 3586 2011-05-27 18:33:11Z jansch $
+% $Id: ft_connectivitysimulation.m 3710 2011-06-16 14:04:19Z eelspa $
 
 % check input configuration for the generally applicable options
 cfg = ft_checkconfig(cfg, 'required', {'nsignal' 'ntrials' 'triallength' 'fsample' 'method'});
@@ -271,10 +271,10 @@ data.label   = label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivitysimulation.m 3586 2011-05-27 18:33:11Z jansch $';
+cfg.version.id   = '$Id: ft_connectivitysimulation.m 3710 2011-06-16 14:04:19Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

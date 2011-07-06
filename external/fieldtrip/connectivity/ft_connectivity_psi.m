@@ -28,6 +28,9 @@ function [c, v, n] = ft_connectivity_psi(input, varargin)
 % The output c contains the correlation/coherence, v is a variance estimate
 % which only can be computed if the data contains leave-one-out samples,
 % and n is the number of repetitions in the input data.
+% If the phase slope index is positive, then the first chan (1st dim) becomes
+% more lagged (or less leading) with higher frequency, indicating that it
+% is causally driven by the second channel (2nd dim)
 %
 % This is a helper function to FT_CONNECTIVITYANALYSIS
 %
@@ -51,7 +54,8 @@ function [c, v, n] = ft_connectivity_psi(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_psi.m 3292 2011-04-05 14:36:34Z roboos $
+% FIXME: interpretation of the slope
+% $Id: ft_connectivity_psi.m 3761 2011-07-02 17:09:44Z marvin $
 
 hasjack   = keyval('hasjack',   varargin); if isempty(hasjack),  hasjack = 0; end
 feedback  = keyval('feedback',  varargin); if isempty(feedback), feedback = 'none'; end
@@ -110,7 +114,8 @@ elseif length(strfind(dimord, 'chan'))==2 || length(strfind(dimord, 'pos'))==2,
     p1     = p1(:,ones(1,siz(3)),:,:,:,:);
     p2     = p2(ones(1,siz(2)),:,:,:,:,:);
     p      = ipermute(phaseslope(permute(c./sqrt(p1.*p2), pvec), nbin, normalize), pvec);
-    outsum = outsum + p;
+    p(isnan(p)) = 0;
+    outsum = outsum + p;    
     outssq = outssq + p.^2;
   end
   ft_progress('close');
@@ -121,13 +126,13 @@ n = siz(1);
 c = outsum./n;
 
 if n>1,
+  n = shiftdim(sum(~isnan(input),1),1);    
   if hasjack
     bias = (n-1).^2;
   else
     bias = 1;
   end
-  
-  v = bias*(outssq - (outsum.^2)./n)./(n - 1);
+  v = bias.*(outssq - (outsum.^2)./n)./(n - 1);
 else
   v = [];
 end
@@ -146,12 +151,12 @@ if strcmp(norm, 'yes')
   for k = 1:m
     begindx = max(1,k-n);
     endindx = min(m,k+n);
-    y(k,:,:,:,:) = imag(sum(x(begindx:endindx,:,:,:,:)./coh(begindx:endindx,:,:,:,:)));
+    y(k,:,:,:,:) = imag(nansum(x(begindx:endindx,:,:,:,:)./coh(begindx:endindx,:,:,:,:),1));
   end
 else
   for k = 1:m
     begindx = max(1,k-n);
     endindx = min(m,k+n);
-    y(k,:,:,:,:) = imag(sum(x(begindx:endindx,:,:,:,:)));
+    y(k,:,:,:,:) = imag(nansum(x(begindx:endindx,:,:,:,:),1));
   end
 end

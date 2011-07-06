@@ -65,7 +65,7 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 3683 2011-06-14 12:05:00Z stewhi $
+% $Id: ft_sourcegrandaverage.m 3710 2011-06-16 14:04:19Z eelspa $
 
 if 1,
   % original implementation
@@ -282,10 +282,10 @@ if 1,
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3683 2011-06-14 12:05:00Z stewhi $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3710 2011-06-16 14:04:19Z eelspa $';
   
   % add information about the Matlab version used to the configuration
-  cfg.version.matlab = version();
+  cfg.callinfo.matlab = version();
   
   % add information about the function call to the configuration
   cfg.callinfo.proctime = toc(ftFuncTimer);
@@ -376,10 +376,10 @@ ftFuncClock = clock();
     cfg.version.name = mfilename('fullpath');
   catch
   end
-  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3683 2011-06-14 12:05:00Z stewhi $';
+  cfg.version.id = '$Id: ft_sourcegrandaverage.m 3710 2011-06-16 14:04:19Z eelspa $';
   
   % add information about the Matlab version used to the configuration
-  cfg.version.matlab = version();
+  cfg.callinfo.matlab = version();
   
   % add information about the function call to the configuration
   cfg.callinfo.proctime = toc(ftFuncTimer);

@@ -23,8 +23,8 @@ function [simulated] = ft_dipolesimulation(cfg)
 %                    see FT_CHANNELSELECTION for details
 %
 % The dipoles position and orientation have to be specified with
-%   cfg.dip.pos     = [Rx Ry Rz]
-%   cfg.dip.mom     = [Qx Qy Qz]
+%   cfg.dip.pos     = [Rx Ry Rz] (size Nx3)
+%   cfg.dip.mom     = [Qx Qy Qz] (size 3xN)
 %
 % The timecourse of the dipole activity is given as a single vector or as a
 % cell-array with one vectors per trial
@@ -75,7 +75,7 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_dipolesimulation.m 3728 2011-06-22 12:21:57Z johzum $
 
 ft_defaults
 
@@ -229,10 +229,10 @@ simulated.label   = sens.label;
 
 % add version details to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_dipolesimulation.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id   = '$Id: ft_dipolesimulation.m 3728 2011-06-22 12:21:57Z johzum $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

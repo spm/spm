@@ -45,8 +45,8 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_wpli.m 3292 2011-04-05 14:36:34Z roboos $
-
+% $Id: ft_connectivity_wpli.m 3765 2011-07-02 18:23:56Z marvin $
+disp('there')
 feedback    = keyval('feedback', varargin); if isempty(feedback), feedback = 'none'; end
 debias      = keyval('debias',   varargin);
 dojack      = keyval('dojack',   varargin);
@@ -56,10 +56,10 @@ n = siz(1);
 ft_progress('init', feedback, 'computing metric...');
 if n>1
   input    = imag(input);        % make everything imaginary  
-  outsum   = nansum(input);      % compute the sum; this is 1 x size(2:end)
-  outsumW  = nansum(abs(input)); % normalization of the WPLI
+  outsum   = nansum(input,1);      % compute the sum; this is 1 x size(2:end)
+  outsumW  = nansum(abs(input),1); % normalization of the WPLI
   if debias
-    outssq   = nansum(input.^2);
+    outssq   = nansum(input.^2,1);
     wpli     = (outsum.^2 - outssq)./(outsumW.^2 - outssq); % do the pairwise thing in a handy way
   else
     wpli     = outsum./outsumW; % estimator of E(Im(X))/E(|Im(X)|)
@@ -70,7 +70,7 @@ else
   warning('ft_connectivity_wpli:nTrials', 'computation wpli requires >1 trial, returning NaNs');
 end
 
-[leave1outsum, leave1outssq] = deal(0);
+[leave1outsum, leave1outssq] = deal(zeros([1 siz(2:end)]));
 if dojack && n>2 % n needs to be larger than 2 to get a meaningful variance
   for k = 1:n
     s  = outsum  - input(k,:,:,:,:,:,:); % works for any array up to 7-D
@@ -83,12 +83,16 @@ if dojack && n>2 % n needs to be larger than 2 to get a meaningful variance
       num   = s; % this is estimator of E(Im(X))
       denom = sw; % estimator of E(|Im(X)|)
     end        
-    leave1outsum = leave1outsum + num./denom;
-    leave1outssq = leave1outssq + (num./denom).^2;                              
+    tmp          = num./denom; % avoids doing the division twice
+    tmp(isnan(tmp)) = 0; % added for nan support
+    leave1outsum = leave1outsum + tmp;% added this for nan support
+    leave1outssq = leave1outssq + tmp.^2; % added this for nan support                              
   end  
   % compute the sem here 
-  v = (n-1).^2*(leave1outssq - (leave1outsum.^2)./n)./(n - 1); % 11.5 efron, sqrt and 1/n done in ft_connectivityanalysis
+  n = nansum(~isnan(input),1); % this is the actual df when nans are found in the input matrix
+  v = (n-1).^2.*(leave1outssq - (leave1outsum.^2)./n)./(n - 1); % 11.5 efron, sqrt and 1/n done in ft_connectivityanalysis
   v = reshape(v,siz(2:end)); % remove the first singular dimension   
+  n = reshape(n,siz(2:end));  
 elseif dojack && n<=2
   v = NaN(siz(2:end));
 else

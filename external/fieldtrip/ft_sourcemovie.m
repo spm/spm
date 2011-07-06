@@ -22,7 +22,7 @@ function cfg = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_sourcemovie.m 3710 2011-06-16 14:04:19Z eelspa $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -179,10 +179,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourcemovie.m 3568 2011-05-20 12:45:28Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_sourcemovie.m 3710 2011-06-16 14:04:19Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

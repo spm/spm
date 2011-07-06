@@ -27,10 +27,10 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 3083 2011-03-10 10:42:04Z eelspa $
+% $Id: ft_fetch_data.m 3767 2011-07-04 10:44:42Z eelspa $
     
 % check whether input is data
-data = ft_checkdata(data, 'datatype', 'raw', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
     
 % get the options
 hdr           = keyval('header',        varargin);

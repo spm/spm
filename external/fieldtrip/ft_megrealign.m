@@ -105,7 +105,7 @@ function [interp] = ft_megrealign(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 3604 2011-06-01 08:34:52Z jorhor $
+% $Id: ft_megrealign.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -142,7 +142,7 @@ end
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'ismeg', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes', 'ismeg', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});
@@ -247,7 +247,6 @@ try, tmpcfg.smooth      = cfg.smooth;       end
 try, tmpcfg.threshold   = cfg.threshold;    end
 try, tmpcfg.spheremesh  = cfg.spheremesh;   end
 try, tmpcfg.inwardshift = cfg.inwardshift;  end
-try, tmpcfg.mriunits    = cfg.mriunits;     end
 try, tmpcfg.sourceunits = cfg.sourceunits;  end
 [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
 pos = grid.pos;
@@ -401,10 +400,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megrealign.m 3604 2011-06-01 08:34:52Z jorhor $';
+cfg.version.id   = '$Id: ft_megrealign.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

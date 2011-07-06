@@ -135,7 +135,7 @@ function [data] = ft_rejectvisual(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 3681 2011-06-14 07:14:35Z jansch $
+% $Id: ft_rejectvisual.m 3766 2011-07-04 10:44:39Z eelspa $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
@@ -183,7 +183,7 @@ end
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % for backward compatibility
 cfg = ft_checkconfig(cfg, 'renamedval',  {'metric',  'absmax',  'maxabs'});
@@ -316,26 +316,17 @@ end
 fprintf('%d trials marked as GOOD, %d trials marked as BAD\n', sum(trlsel), sum(~trlsel));
 fprintf('%d channels marked as GOOD, %d channels marked as BAD\n', sum(chansel), sum(~chansel));
 
-% trl is not specified in the function call, but the data is given ->
-% try to locate the trial definition (trl) in the nested configuration
-if isfield(data, 'sampleinfo')
-   trl  = [data.sampleinfo data.offset(:)];
-else
-  % a trial definition is expected in each continuous data set
-  trl  = [];
-  warning('could not locate the trial definition ''trl'' in the data structure');
-end
-
 % construct an artifact matrix from the trl matrix
-if ~isempty(trl)
-  % remember the sample numbers (begin and end) of each trial and each artifact
-  % updating the trl and creating a trlold makes it compatible with FT_REJECTARTIFACT
-  cfg.artifact = trl(~trlsel,1:2);
-  cfg.trl      = trl( trlsel,:);
+if isfield(data, 'sampleinfo')
+  cfg.artifact = data.sampleinfo(~trlsel,:);
 else
   % since sample numbers are unknown, it is not possible to remember them here
   cfg.artifact = [];
-  cfg.trl      = [];
+end
+
+% remove artifacts from trl-matrix if present (but do *not* reconstruct the trl)
+if isfield(cfg, 'trl')
+  cfg.trl = cfg.trl(trlsel,:);
 end
 
 % show the user which trials are removed
@@ -402,10 +393,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectvisual.m 3681 2011-06-14 07:14:35Z jansch $';
+cfg.version.id = '$Id: ft_rejectvisual.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

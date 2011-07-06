@@ -131,10 +131,10 @@ cfg = [];
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: spass2fieldtrip.m 3626 2011-06-06 13:48:54Z roboos $';
+cfg.version.id   = '$Id: spass2fieldtrip.m 3710 2011-06-16 14:04:19Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

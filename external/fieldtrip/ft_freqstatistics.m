@@ -62,7 +62,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 3658 2011-06-09 12:25:29Z marvger $
+% $Id: ft_freqstatistics.m 3733 2011-06-29 08:02:30Z jorhor $
 
 ft_defaults
 
@@ -314,10 +314,10 @@ stat.dimord = cfg.dimord; %FIXME squeeze out the appropriate dimords if avgoverf
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 3658 2011-06-09 12:25:29Z marvger $';
+cfg.version.id = '$Id: ft_freqstatistics.m 3733 2011-06-29 08:02:30Z jorhor $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

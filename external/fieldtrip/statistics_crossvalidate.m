@@ -42,7 +42,7 @@ function stat = statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_crossvalidate.m 3658 2011-06-09 12:25:29Z marvger $
+% $Id: statistics_crossvalidate.m 3725 2011-06-22 10:33:44Z johzum $
 
 ft_defaults
 
@@ -68,8 +68,6 @@ else
    cv = ft_mv_crossvalidator('mva',cfg.mva,'nfolds',cfg.nfolds,'compact',cfg.compact,'verbose',true);
 
 end
-
-assert(isfield(cfg,'design'));
 
 if ~isfield(cfg,'metric'), cv.metric = 'accuracy'; end
 if ~isfield(cfg,'sigtest'), cv.sigtest = 'binomial'; end

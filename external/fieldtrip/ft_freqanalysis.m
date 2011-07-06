@@ -44,6 +44,11 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                    specify cfg.pad as maxperlen AND the number of samples turns out to have
 %                    a large prime factor sum. This is because the FFTs will then be computed
 %                    very inefficiently.
+%   cfg.polyremoval = number (default = 1), specifying the order of the polynome which is fitted and subtracted from
+%                       time domain data prior to the spectral analysis. A value of 1 corresponds to a linear trend.
+%                       If just mean subtraction is requested, use a value of 0. If no removal is requested, specify -1.
+%                       see FT_PREPROC_POLYREMOVAL for details
+%                 
 %
 %  METHOD SPECIFIC OPTIONS AND DESCRIPTIONS
 %
@@ -159,7 +164,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 3645 2011-06-08 09:59:58Z jansch $
+% $Id: ft_freqanalysis.m 3775 2011-07-06 09:36:16Z roboos $
 
 ft_defaults
 
@@ -171,6 +176,8 @@ ftFuncClock = clock();
 cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
 cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
+cfg.inputlock  = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing peercellfun or another distributed computation
+cfg.outputlock = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing peercellfun or another distributed computation
 
 % load optional given inputfile as data
 hasdata      = (nargin>1);
@@ -181,11 +188,13 @@ if hasdata && hasinputfile
 elseif hasdata
   % nothing needs to be done
 elseif hasinputfile
+  mutexlock(cfg.inputlock);
   data = loadvar(cfg.inputfile, 'data');
+  mutexunlock(cfg.inputlock);
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', cfg.feedback, 'hasoffset', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', cfg.feedback, 'hassampleinfo', 'yes');
 
 % select trials of interest
 cfg.trials = ft_getopt(cfg, 'trials', 'all');
@@ -231,7 +240,7 @@ switch cfg.method
     
   case 'mtmfft'
     specestflg = 1;
-    cfg.taper = ft_getopt(cfg, 'taper', 'dpss');    
+    cfg.taper       = ft_getopt(cfg, 'taper', 'dpss');    
     if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
       error('you must specify a smoothing parameter with taper = dpss');
     end
@@ -290,6 +299,7 @@ else
   cfg.foi       = ft_getopt(cfg, 'foi',       []);
   cfg.foilim    = ft_getopt(cfg, 'foilim',    []);
   cfg.correctt_ftimwin = ft_getopt(cfg, 'correctt_ftimwin', 'no');
+  cfg.polyremoval = ft_getopt(cfg, 'polyremoval', 1);  
   
   % keeptrials and keeptapers should be conditional on cfg.output,
   % cfg.output = 'fourier' should always output tapers
@@ -432,9 +442,9 @@ else
   
   % options that don't change over trials
   if isfield(cfg,'tapsmofrq')
-    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq};
+    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq, 'polyremoval', cfg.polyremoval};
   else
-    options = {'pad', cfg.pad, 'freqoi', cfg.foi};
+    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'polyremoval', cfg.polyremoval};
   end
   
   
@@ -794,10 +804,10 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 3645 2011-06-08 09:59:58Z jansch $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 3775 2011-07-06 09:36:16Z roboos $';
   
   % add information about the Matlab version used to the configuration
-  cfg.version.matlab = version();
+  cfg.callinfo.matlab = version();
   
   % add information about the function call to the configuration
   cfg.callinfo.proctime = toc(ftFuncTimer);
@@ -819,5 +829,7 @@ end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)
+  mutexlock(cfg.outputlock);
   savevar(cfg.outputfile, 'freq', freq); % use the variable name "data" in the output file
+  mutexunlock(cfg.outputlock);
 end

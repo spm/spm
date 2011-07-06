@@ -59,7 +59,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 3658 2011-06-09 12:25:29Z marvger $
+% $Id: ft_timelockstatistics.m 3710 2011-06-16 14:04:19Z eelspa $
 
 ft_defaults
 
@@ -125,10 +125,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockstatistics.m 3658 2011-06-09 12:25:29Z marvger $';
+cfg.version.id = '$Id: ft_timelockstatistics.m 3710 2011-06-16 14:04:19Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

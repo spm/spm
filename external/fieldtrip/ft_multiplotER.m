@@ -108,16 +108,16 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 3694 2011-06-15 08:38:15Z crimic $
+% $Id: ft_multiplotER.m 3734 2011-06-29 08:14:36Z jorhor $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'zlim', 'absmax', 'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedforward', 'outflow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedback',    'inflow'});
 cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel', 'refchannel'});
-
-cla
 
 % set default for inputfile
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile = [];    end
@@ -162,7 +162,7 @@ if ~isfield(cfg,'linestyle'),     cfg.linestyle     = '-';                      
 if ~isfield(cfg,'linewidth'),     cfg.linewidth     = 0.5;                         end
 if ~isfield(cfg,'maskstyle'),     cfg.maskstyle     = 'box';                       end
 if ~isfield(cfg,'channel'),       cfg.channel       = 'all';                       end
-if ~isfield(cfg, 'matrixside'),   cfg.matrixside    = '';                          end
+if ~isfield(cfg, 'matrixside'),   cfg.matrixside    = 'outflow';                   end
 
 Ndata = numel(varargin);
 
@@ -228,7 +228,7 @@ switch dtype
     if ~isfield(cfg, 'yparam'),      cfg.yparam = '';             end
     if ~isfield(cfg, 'zparam'),      cfg.zparam = 'avg';          end
   case 'freq'
-    if sum(ismember(dimtok, 'time'))
+    if any(ismember(dimtok, 'time'))
       if ~isfield(cfg, 'xparam'),    cfg.xparam = 'time';         end
       if ~isfield(cfg, 'yparam'),    cfg.yparam = 'freq';         end %FIXME
       if ~isfield(cfg, 'zparam'),    cfg.zparam = 'powspctrm';    end
@@ -305,6 +305,7 @@ elseif strcmp(dtype, 'freq') && hasrpt,
 end
 
 % Read or create the layout that will be used for plotting
+cla
 lay = ft_prepare_layout(cfg, varargin{1});
 cfg.layout = lay;
 ft_plot_lay(lay, 'box', false,'label','no','point','no');
@@ -372,10 +373,10 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.zparam)
       if isempty(cfg.matrixside)
         sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
         sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
-      elseif strcmp(cfg.matrixside, 'feedforward')
+      elseif strcmp(cfg.matrixside, 'outflow')
         sel1 = [];
         sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
-      elseif strcmp(cfg.matrixside, 'feedback')
+      elseif strcmp(cfg.matrixside, 'inflow')
         sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
         sel2 = [];
       end
@@ -388,14 +389,15 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.zparam)
       % General case
       sel               = match_str(varargin{i}.label, cfg.refchannel);
       siz               = [size(varargin{i}.(cfg.zparam)) 1];
-      if strcmp(cfg.matrixside, 'feedback') || isempty(cfg.matrixside)
-        %FIXME the interpretation of 'feedback' and 'feedforward' depend on
+      if strcmp(cfg.matrixside, 'inflow') || isempty(cfg.matrixside)
+        %the interpretation of 'inflow' and 'outflow' depend on
         %the definition in the bivariate representation of the data
+        %in FieldTrip the row index 'causes' the column index channel
         %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
         sel1 = 1:siz(1);
         sel2 = sel;
         meandir = 2;
-      elseif strcmp(cfg.matrixside, 'feedforward')
+      elseif strcmp(cfg.matrixside, 'outflow')
         %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
         sel1 = sel;
         sel2 = 1:siz(1);
@@ -693,13 +695,21 @@ end
 % Draw x axis
 if strcmp(cfg.axes,'yes') || strcmp(cfg.axes, 'xy') || strcmp(cfg.axes,'x')
   xs =  xpos+width*(xlim-xlim(1))/(xlim(2)-xlim(1));
-  ys =  ypos+height*([0 0]-ylim(1))/(ylim(2)-ylim(1));
+  if prod(ylim) < 0 % this is equivalent to including 0
+    ys =  ypos+height*([0 0]-ylim(1))/(ylim(2)-ylim(1));
+  else
+    ys = [ypos ypos];
+  end
   ft_plot_vector(xs,ys,'color','k');
 end
 
 % Draw y axis
 if strcmp(cfg.axes,'yes') || strcmp(cfg.axes, 'xy') || strcmp(cfg.axes,'y')
-  xs =  xpos+width*([0 0]-xlim(1))/(xlim(2)-xlim(1));
+    if prod(xlim) < 0 % this is equivalent to including 0
+        xs =  xpos+width*([0 0]-xlim(1))/(xlim(2)-xlim(1));
+    else % if not, move the y-axis to the x-axis
+        xs =  [xpos xpos];
+    end
   ys =  ypos+height*(ylim-ylim(1))/(ylim(2)-ylim(1));
   ft_plot_vector(xs,ys,'color','k');
 end

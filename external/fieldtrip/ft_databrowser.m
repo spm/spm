@@ -76,7 +76,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_databrowser.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -121,7 +121,7 @@ if ~isempty(cfg.inputfile)
 end
 
 if hasdata
-  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+  data = ft_checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
   % fetch the header from memory
   hdr = ft_fetch_header(data);
   if ~isfield(cfg, 'continuous') && length(data.trial) == 1
@@ -177,7 +177,13 @@ if hasdata
   Nchans  = length(chansel);
   
   % this is how the input data is segmented
-  trlorg = [data.sampleinfo data.offset];
+  trlorg = zeros(numel(data.trial), 3);
+  trlorg(:,[1 2]) = data.sampleinfo;
+
+  % recreate offset vector (databrowser depends on this for visualisation)
+  for ntrl = 1:numel(data.trial)
+    trlorg(ntrl,3) = time2offset(data.time{ntrl}, data.fsample);
+  end
   Ntrials = size(trlorg, 1);
   
   if strcmp(cfg.viewmode, 'component')
@@ -478,10 +484,10 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 3568 2011-05-20 12:45:28Z eelspa $';
+cfg.version.id = '$Id: ft_databrowser.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

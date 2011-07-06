@@ -30,7 +30,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 3568 2011-05-20 12:45:28Z eelspa $
+% $Id: ft_examplefunction.m 3766 2011-07-04 10:44:39Z eelspa $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -55,7 +55,7 @@ end
 % ensure that the input data is valiud for this function, this will also do 
 % backward-compatibility conversions of old data that for example was 
 % read from an old *.mat file
-datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hastrialdef', 'yes', 'hasoffset', 'yes');
+datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -98,10 +98,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 3568 2011-05-20 12:45:28Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_examplefunction.m 3766 2011-07-04 10:44:39Z eelspa $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);

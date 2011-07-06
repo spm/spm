@@ -22,7 +22,6 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %
 % The following options are relevant if you use a segmented MRI
 %   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
-%   cfg.mriunits    = 'mm' or 'cm' (default = 'mm')
 %   cfg.sourceunits = 'mm' or 'cm' (default = 'cm')
 %   cfg.threshold   = 0.5, relative to the maximum value in the segmentation
 %
@@ -65,7 +64,7 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_prepare_localspheres.m 3705 2011-06-15 13:59:35Z jansch $
 
 ft_defaults
 
@@ -77,7 +76,6 @@ if ~isfield(cfg, 'maxradius'),     cfg.maxradius = 20;      end
 if ~isfield(cfg, 'baseline'),      cfg.baseline = 5;        end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';    end
 if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
-if ~isfield(cfg, 'mriunits');      cfg.mriunits = 'mm';     end
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end

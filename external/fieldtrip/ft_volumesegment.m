@@ -120,7 +120,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 3678 2011-06-13 08:28:54Z jansch $
+% $Id: ft_volumesegment.m 3735 2011-06-29 08:22:09Z jorhor $
 
 ft_defaults
 
@@ -232,7 +232,7 @@ end
 mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 
 % check whether spm is needed to generate tissue probability maps
-needtpm    = sum(ismember(cfg.output, {'tpm' 'brain' 'skullstrip'})) > 0;
+needtpm    = any(ismember(cfg.output, {'tpm' 'brain' 'skullstrip'}));
 hastpm     = isfield(mri, 'gray') && isfield(mri, 'white') && isfield(mri, 'csf');
 
 if needtpm && ~hastpm
@@ -242,7 +242,7 @@ else
   dotpm = 0;
 end
 
-needana    = sum(ismember(cfg.output, {'scalp' 'skullstrip'})) > 0 || dotpm;
+needana    = any(ismember(cfg.output, {'scalp' 'skullstrip'})) || dotpm;
 hasanatomy = isfield(mri, 'anatomy');
 if needana && ~hasanatomy
   error('the input volume needs an anatomy-field');
@@ -501,6 +501,9 @@ for k = 1:numel(cfg.output)
       % the original segment.anatomy
       if dosmooth, anatomy = dosmoothing(anatomy, cfg.smooth(k), 'anatomy'); end
       if dothresh, anatomy = threshold(anatomy,  cfg.threshold(k), 'anatomy'); end
+      % fill in the holes
+      anatomy = fill(anatomy); 
+
       segment.scalp = anatomy>0;
       removefields  = intersect(removefields, {'gray' 'white' 'csf' 'anatomy'});
       clear anatomy;    
@@ -524,10 +527,10 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 3678 2011-06-13 08:28:54Z jansch $';
+cfg.version.id = '$Id: ft_volumesegment.m 3735 2011-06-29 08:22:09Z jorhor $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
 
 % remember the configuration details of the input data
 if isfield(segment, 'cfg'),
@@ -569,3 +572,13 @@ for k = 1:N
   m(k,1) = sum(tmp(:)==k);
 end
 output   = double(tmp~=find(m==max(m))); clear tmp;
+
+function [output] = fill(input)
+  output = input;
+  dim = size(input);
+  for i=1:dim(2)
+    slice=squeeze(input(:,i,:));
+    im = imfill(slice,8,'holes');
+    output(:,i,:) = im;
+  end
+  

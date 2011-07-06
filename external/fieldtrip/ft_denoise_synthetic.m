@@ -40,7 +40,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 3604 2011-06-01 08:34:52Z jorhor $
+% $Id: ft_denoise_synthetic.m 3766 2011-07-04 10:44:39Z eelspa $
 
 ft_defaults
 
@@ -67,7 +67,7 @@ end
 
 % store original datatype
 dtype = ft_datatype(data);
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hastrialdef', 'yes');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 if ~ft_senstype(data, 'ctf')
   error('synthetic gradients can only be computed for CTF data');
@@ -125,10 +125,10 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_denoise_synthetic.m 3604 2011-06-01 08:34:52Z jorhor $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 3766 2011-07-04 10:44:39Z eelspa $';
 
 % add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
+cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
