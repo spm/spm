@@ -11,28 +11,28 @@ function D = spm_eeg_downsample(S)
 % D               - MEEG object (also written on disk)
 %__________________________________________________________________________
 % 
-% This function uses the Signal Processing toolbox from The MathWorks:
+% This function uses MATLAB Signal Processing Toolbox:
 %               http://www.mathworks.com/products/signal/
 % (function resample.m) if present and an homebrew version otherwise
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 4374 2011-06-22 11:59:56Z vladimir $
+% $Id: spm_eeg_downsample.m 4383 2011-07-06 15:55:39Z guillaume $
 
-SVNrev = '$Rev: 4374 $';
+SVNrev = '$Rev: 4383 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
 
-%-Test for the presence of Signal Processing Matlab toolbox
+%-Test for the presence of MATLAB Signal Processing Toolbox
 %--------------------------------------------------------------------------
-flag_TBX = license('checkout','signal_toolbox');
+flag_TBX = license('checkout','signal_toolbox') & ~isdeployed;
 if ~flag_TBX
     disp(['warning: using homemade resampling routine ' ...
-          'as signal toolbox is not available.']);
+          'as Signal Processing Toolbox is not available.']);
 end
 
 %-Get MEEG object
