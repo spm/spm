@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4209 2011-02-22 20:11:05Z guillaume $
+% $Id: spm_DesRep.m 4385 2011-07-08 16:53:38Z guillaume $
 
 
 
@@ -781,9 +781,9 @@ if desmtx && ~isempty(fnames)
         'YLim',[0,nScan]+0.5,'YDir','Reverse')
     for i = STick
         try
-            str  = fnames(i,:);
+            str  = strrep(fnames(i,:),'\','/');
         catch
-            str  = fnames{i};
+            str  = strrep(fnames{i},'\','/');
         end
         text(0,i,spm_str_manip(str,'Ca35'));
     end

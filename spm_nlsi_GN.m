@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_nlsi_GN.m 4385 2011-07-08 16:53:38Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -485,7 +485,7 @@ for k = 1:128
                 subplot(2,length(y),i)
                 plot(f{i},'ko'), hold on
                 plot(f{i} + e{i},'rx'), hold off
-                xlabel(sprintf('%s: %i','obsveration ',i))
+                xlabel(sprintf('%s: %i','observation ',i))
                 title(sprintf('%s: %i','prediction and response: E-Step',k))
                 grid on
             end

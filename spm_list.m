@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4384 2011-07-06 17:00:20Z guillaume $
+% $Id: spm_list.m 4385 2011-07-08 16:53:38Z guillaume $
 
 
 %==========================================================================
@@ -700,11 +700,14 @@ case 'table'                                                        %-Table
         'Interruptible','off','BusyAction','Cancel');
     if ispc
         uimenu(h,'Label','Export to Excel',...
-        'Tag','TD_Xdat',...
         'CallBack',...
         'spm_list(''xlslist'',get(get(gcbo,''Parent''),''UserData''))',...
         'Interruptible','off','BusyAction','Cancel');
     end
+    uimenu(h,'Label','Export to CSV file',...
+        'CallBack',...
+        'spm_list(''csvlist'',get(get(gcbo,''Parent''),''UserData''))',...
+        'Interruptible','off','BusyAction','Cancel');
 
     %-Setup registry
     %----------------------------------------------------------------------
@@ -819,6 +822,26 @@ case 'table'                                                        %-Table
         xlswrite(tmpfile, d);
         winopen(tmpfile);
     
+    %======================================================================
+    case 'csvlist'            %-Export table to comma-separated values file
+    %======================================================================
+    % FORMAT spm_list('CSVList',TabDat)
+
+        if nargin<2, error('Not enough input arguments.'); end
+        TabDat = varargin{2};
+        
+        tmpfile = [tempname '.csv'];
+        fid = fopen(tmpfile,'wt');
+        fprintf(fid,[repmat('%s,',1,11) '%d,,\n'],TabDat.hdr{1,:});
+        fprintf(fid,[repmat('%s,',1,12) '\n'],TabDat.hdr{2,:});
+        fmt = TabDat.fmt;
+        [fmt{2,:}] = deal(','); fmt = [fmt{:}];
+        fmt(end:end+1) = '\n'; fmt = strrep(fmt,' ',',');
+        for i=1:size(TabDat.dat,1)
+            fprintf(fid,fmt,TabDat.dat{i,:});
+        end
+        fclose(fid);
+        open(tmpfile);
     
     %======================================================================
     case 'setcoords'                                    %-Coordinate change

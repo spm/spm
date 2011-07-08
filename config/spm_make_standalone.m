@@ -15,11 +15,13 @@ function spm_make_standalone(outdir)
 %
 % The first command starts SPM in interactive mode with GUI. The second
 % executes a batch file or starts the Batch Editor if empty.
+%
+% See spm_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
-% John Ashburner
-% $Id: spm_make_standalone.m 4017 2010-07-26 17:14:31Z guillaume $
+% Guillaume Flandin
+% $Id: spm_make_standalone.m 4385 2011-07-08 16:53:38Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -101,4 +103,5 @@ if ~sts, warning('Copy of Contents.m failed.'); end
 mcc('-m', '-C', '-v', '-o',lower(spm('Ver')), 'spm_standalone.m',...
     '-d',outdir,...
     '-N','-p',fullfile(matlabroot,'toolbox','signal'),...
+    '-R','-singleCompThread',...
     '-a',spm('Dir'))
