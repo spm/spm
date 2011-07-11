@@ -4,7 +4,7 @@ function grad = yokogawa2grad(hdr)
 % compromise a gradiometer system into a structure that can be used
 % by FieldTrip.
 %
-% See also READ_HEADER, CTF2GRAD, BTI2GRAD, FIF2GRAD
+% See also FT_READ_HEADER, CTF2GRAD, BTI2GRAD, FIF2GRAD
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
@@ -24,7 +24,7 @@ function grad = yokogawa2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad.m 2618 2011-01-20 15:20:08Z jorhor $
+% $Id: yokogawa2grad.m 3802 2011-07-07 15:57:28Z roboos $
 
 if ~ft_hastoolbox('yokogawa')
     error('cannot determine whether Yokogawa toolbox is present');

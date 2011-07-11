@@ -44,7 +44,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 3710 2011-06-16 14:04:19Z eelspa $
+% $Id: ft_channelrepair.m 3819 2011-07-11 08:59:15Z jorhor $
 
 ft_defaults
 
@@ -55,7 +55,8 @@ ftFuncClock = clock();
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the default configuration
-if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4;         end
+cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
+
 if ~isfield(cfg, 'badchannel'),    cfg.badchannel = {};           end
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
@@ -98,7 +99,8 @@ end
 % get the selection of channels that are bad
 cfg.badchannel = ft_channelselection(cfg.badchannel, data.label);
 [goodchanlabels,goodchanindcs] = setdiff(data.label,cfg.badchannel);
-[goodsenslabels,goodsensindcs] = intersect(sens.label,goodchanlabels);
+connectivityMatrix = channelconnectivity(cfg, data);
+connectivityMatrix = connectivityMatrix(:, goodchanindcs); % all chans x good chans
 
 Ntrials = length(data.trial);
 Nchans = length(data.label);
@@ -107,29 +109,29 @@ Nsens  = length(sens.label);
 repair = eye(Nchans,Nchans);
 [badindx] = match_str(data.label, cfg.badchannel);
 
-for k=badindx(:)'
-  fprintf('repairing channel %s\n', data.label{k});
-  repair(k,k) = 0;
-  
-  sensindx = match_str(sens.label, data.label{k});
-  for l=goodsensindcs(:)'
-    distance = norm(sens.pnt(l,:)-sens.pnt(sensindx,:));
-    if distance<cfg.neighbourdist
-      % include this channel as neighbour, weigh with inverse distance
-      datlabindx = match_str(data.label, sens.label{l});
-      repair(k,datlabindx) = 1/distance;
-      fprintf('  using neighbour %s\n', sens.label{l});
-    end
-  end
-  
-  % normalise the repair matrix to unit weight
-  repair(k,:) = repair(k,:) ./ sum(repair(k,:));
+for k=badindx'
+    fprintf('repairing channel %s\n', data.label{k});
+    repair(k,k) = 0;
+    l = find(connectivityMatrix(k, :));
+    % get bad channels out
+    [a, b] = setdiff(data.label(l), data.label(badindx));
+    l(~ismember(find(l), b)) = [];    
+    % get corresponding ids for sens structure
+    [a, b] = match_str(sens.label, data.label(l));
+    goodsensindx = a(b);
+    [a, b] = match_str(sens.label, data.label(k));
+    badsensindx = a(b);
+    fprintf('\tusing neighbour %s\n', sens.label{goodsensindx});
+    distance = sqrt(sum((sens.pnt(goodsensindx,:) - repmat(sens.pnt(badsensindx, :), numel(goodsensindx), 1)).^2, 2));
+    repair(k,l) = (1./distance);
+    repair(k,l) = repair(k,l) ./ sum(repair(k,l));
 end
 
 % use sparse matrix to speed up computations
 repair = sparse(repair);
 
 % compute the repaired data for each trial
+fprintf('\n');
 for i=1:Ntrials
   fprintf('repairing bad channels for trial %d\n', i);
   interp.trial{i} = repair * data.trial{i};
@@ -161,7 +163,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelrepair.m 3710 2011-06-16 14:04:19Z eelspa $';
+cfg.version.id   = '$Id: ft_channelrepair.m 3819 2011-07-11 08:59:15Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

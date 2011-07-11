@@ -51,7 +51,7 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 3778 2011-07-06 10:36:01Z roboos $
+% $Id: ft_combineplanar.m 3800 2011-07-07 15:17:47Z roboos $
 
 ft_defaults
 
@@ -80,7 +80,7 @@ if ~isempty(cfg.inputfile)
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar', 'yokogawa440_planar', 'yokogawa440_old_planar'});
+data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar', 'yokogawa440_planar'});
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'forbidden',   {'combinegrad'});
@@ -270,7 +270,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id  = '$Id: ft_combineplanar.m 3778 2011-07-06 10:36:01Z roboos $';
+cfg.version.id  = '$Id: ft_combineplanar.m 3800 2011-07-07 15:17:47Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

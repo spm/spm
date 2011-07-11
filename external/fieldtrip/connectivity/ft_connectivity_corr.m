@@ -1,4 +1,4 @@
-function [c, v, n] = ft_connectivity_corr(input, varargin)
+function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 
 % FT_CONNECTIVITY_CORR computes correlation or coherence from a data-matrix
 % containing a covariance or cross-spectral density
@@ -56,7 +56,7 @@ function [c, v, n] = ft_connectivity_corr(input, varargin)
 %
 % FiXME: If output is angle, then jack-knifing should be done differently
 % since it's circular variable
-% $Id: ft_connectivity_corr.m 3762 2011-07-02 17:10:33Z marvin $
+% $Id: ft_connectivity_corr.m 3815 2011-07-09 18:03:12Z jansch $
 
 hasjack     = keyval('hasjack',     varargin); if isempty(hasjack),  hasjack  = 0;      end
 cmplx       = keyval('complex',     varargin); if isempty(cmplx),    cmplx    = 'abs';  end
@@ -87,14 +87,15 @@ if ~isempty(pchanindx),
   A  = zeros(newsiz);
   
   % FIXME this only works for data without time dimension
-  if numel(siz)>4, error('this only works for data without time'); end
+  if numel(siz)==5 && siz(5)>1, error('this only works for data without time'); end
   for j = 1:siz(1) %rpt loop
     AA = reshape(input(j, chan,  chan, : ), [nchan  nchan  siz(4:end)]);
     AB = reshape(input(j, chan,  pchan,: ), [nchan  npchan siz(4:end)]);
     BA = reshape(input(j, pchan, chan, : ), [npchan nchan  siz(4:end)]);
     BB = reshape(input(j, pchan, pchan, :), [npchan npchan siz(4:end)]);
     for k = 1:siz(4) %freq loop
-      A(j,:,:,k) = AA(:,:,k) - AB(:,:,k)*pinv(BB(:,:,k))*BA(:,:,k);
+      %A(j,:,:,k) = AA(:,:,k) - AB(:,:,k)*pinv(BB(:,:,k))*BA(:,:,k);
+      A(j,:,:,k) = AA(:,:,k) - AB(:,:,k)/(BB(:,:,k))*BA(:,:,k);
     end
   end
   input = A;
@@ -109,7 +110,7 @@ if (length(strfind(dimord, 'chan'))~=2 || length(strfind(dimord, 'pos'))>0) && ~
   
   outsum = zeros(siz(2:end));
   outssq = zeros(siz(2:end));
-  
+  outcnt = zeros(siz(2:end));
   ft_progress('init', feedback, 'computing metric...');
   for j = 1:siz(1)
     ft_progress(j/siz(1), 'computing metric for replicate %d from %d\n', j, siz(1));
@@ -120,8 +121,10 @@ if (length(strfind(dimord, 'chan'))~=2 || length(strfind(dimord, 'pos'))>0) && ~
     else
       denom = 1;
     end
-    outsum = outsum + complexeval(reshape(input(j,:,:,:,:), siz(2:end))./denom, cmplx);
-    outssq = outssq + complexeval(reshape(input(j,:,:,:,:), siz(2:end))./denom, cmplx).^2;
+    tmp    = complexeval(reshape(input(j,:,:,:,:), siz(2:end))./denom, cmplx);
+    outsum = outsum + tmp;
+    outssq = outssq + tmp.^2;
+    outcnt = outcnt + double(~isnan(tmp)); 
   end
   ft_progress('close');
   
@@ -129,6 +132,7 @@ elseif length(strfind(dimord, 'chan'))==2 || length(strfind(dimord, 'pos'))==2,
   % crossterms are described by chan_chan_therest
   outsum = zeros(siz(2:end));
   outssq = zeros(siz(2:end));
+  outcnt = zeros(siz(2:end));
   ft_progress('init', feedback, 'computing metric...');
   for j = 1:siz(1)
     ft_progress(j/siz(1), 'computing metric for replicate %d from %d\n', j, siz(1));
@@ -146,25 +150,34 @@ elseif length(strfind(dimord, 'chan'))==2 || length(strfind(dimord, 'pos'))==2,
       denom = 1;
     end
     tmp    = complexeval(reshape(input(j,:,:,:,:,:,:), siz(2:end))./denom, cmplx); % added this for nan support marvin
-    tmp(isnan(tmp)) = 0; % added for nan support
+    %tmp(isnan(tmp)) = 0; % added for nan support
     outsum = outsum + tmp;
     outssq = outssq + tmp.^2;
+    outcnt = outcnt + double(~isnan(tmp)); 
   end
   ft_progress('close');
   
 end
+
 n  = siz(1);
-n1 = shiftdim(sum(~isnan(input),1),1);
-c  = outsum./n1; % added this for nan support marvin
+if all(outcnt(:)==n)
+  outcnt = n;
+end
+
+%n1 = shiftdim(sum(~isnan(input),1),1);
+%c  = outsum./n1; % added this for nan support marvin
+c = outsum./outcnt;
 
 % correct the variance estimate for the under-estimation introduced by the jackknifing
 if n>1,
   if hasjack
-    bias = (n1-1).^2; % added this for nan support marvin
+    %bias = (n1-1).^2; % added this for nan support marvin
+    bias = (outcnt-1).^2;
   else
     bias = 1;
   end
-  v = bias.*(outssq - (outsum.^2)./n1)./(n1 - 1); % added this for nan support marvin
+  %v = bias.*(outssq - (outsum.^2)./n1)./(n1 - 1); % added this for nan support marvin
+  v = bias.*(outssq - (outsum.^2)./outcnt)./(outcnt-1);
 else
   v = [];
 end

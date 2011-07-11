@@ -75,7 +75,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 3710 2011-06-16 14:04:19Z eelspa $
+% $Id: ft_scalpcurrentdensity.m 3806 2011-07-08 09:14:58Z jorhor $
 
 ft_defaults
 
@@ -89,6 +89,8 @@ if ~isfield(cfg, 'conductivity'),  cfg.conductivity = 0.33;  end    % in S/m
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';       end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];       end
 if ~isfield(cfg, 'outputfile'),    cfg.outputfile = [];      end
+
+if strcmp(cfg.method, 'hjorth'),   cfg = ft_checkconfig(cfg, 'required', {'neighbours'}); end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -123,9 +125,7 @@ elseif isfield(data, 'elec')
   fprintf('using electrodes specified in the data\n');
   elec = data.elec;
 elseif isfield(cfg, 'layout')
-  fprintf('using the 2-D layout to determine the neighbours\n');
-  cfg.layout = ft_prepare_layout(cfg);
-  cfg.neighbours = ft_neighbourselection(cfg, data);
+  fprintf('using the 2-D layout to determine electrode position\n');   
   % create a dummy electrode structure, this is needed for channel selection
   elec = [];
   elec.label  = cfg.layout.label;
@@ -134,6 +134,7 @@ elseif isfield(cfg, 'layout')
 else
   error('electrode positions were not specified');
 end
+
 
 % remove all junk fields from the electrode array
 tmp = elec;
@@ -175,12 +176,6 @@ elseif strcmp(cfg.method, 'finite')
   elec = ft_apply_montage(elec, montage);
   
 elseif strcmp(cfg.method, 'hjorth')
-  % the Hjorth filter requires a specification of the neighbours
-  if ~isfield(cfg, 'neighbours')
-    tmpcfg      = [];
-    tmpcfg.elec = elec;
-    cfg.neighbours = ft_neighbourselection(tmpcfg, data);
-  end
   % convert the neighbourhood structure into a montage
   labelnew = {};
   labelorg = {};
@@ -239,7 +234,7 @@ end
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3710 2011-06-16 14:04:19Z eelspa $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3806 2011-07-08 09:14:58Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

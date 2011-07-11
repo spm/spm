@@ -22,7 +22,7 @@ function [vol] = read_ctf_hdm(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_hdm.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ctf_hdm.m 3805 2011-07-08 08:34:52Z roboos $
 
 vol   = [];
 ascii = read_ctf_ascii(filename);
@@ -33,7 +33,10 @@ vol.orig = ascii;
 if isfield(ascii, 'MultiSphere_Data')
   chans = fieldnames(ascii.MultiSphere_Data);
   % remove the fields SEARCH_RADIUS and HEADSHAPE_FILE
-  chans = chans(~(strcmp(chans, 'SEARCH_RADIUS') | strcmp(chans, 'HEADSHAPE_FILE')));
+  chans = chans(~strcmp(chans, 'SEARCH_RADIUS'));
+  chans = chans(~strcmp(chans, 'HEADSHAPE_FILE'));
+  chans = chans(~strcmp(chans, 'SURFACE_TYPE'));
+  chans = chans(~strcmp(chans, 'HEADPOS'));
   for i=1:length(chans)
     tmp = getfield(ascii.MultiSphere_Data, chans{i});
     vol.label{i} = chans{i};

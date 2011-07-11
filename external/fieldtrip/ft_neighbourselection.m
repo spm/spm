@@ -1,8 +1,15 @@
 function neighbours = ft_neighbourselection(cfg,data)
 
-% FT_NEIGHBOURSELECTION finds the neighbours of the channels on the basis of a
-% minimum neighbourhood distance (in cfg.neighbourdist). The positions of
-% the channel are specified in a gradiometer or electrode configuration or
+% FT_NEIGHBOURSELECTION finds the neighbours of the channels based on three 
+% different methods. Using the 'distance'-method, neighbourselection is
+% based on a minimum neighbourhood distance (in cfg.neighbourdist). The
+% 'triangulation'-method calculates a triangulation based on a
+% two-dimenstional projection of the sensor position. The 'template'-method
+% loads a default template for the given data type. Neighbourselection
+% should be verified using cfg.feedback ='yes' or by calling
+% ft_neighbourplot
+%
+% The positions of the channel are specified in a gradiometer or electrode configuration or
 % from a layout.
 % This configuration can be passed in three ways:
 %  (1) in a configuration field,
@@ -13,7 +20,7 @@ function neighbours = ft_neighbourselection(cfg,data)
 %   neighbours = ft_neighbourselection(cfg, data)
 %
 % The configuration can contain
-%   cfg.method        = 'distance' or 'triangulation' (default = 'distance')
+%   cfg.method        = 'distance', 'triangulation' or 'template' (default = 'distance')
 %   cfg.neighbourdist = number, maximum distance between neighbouring sensors (only for 'distance')
 %   cfg.elec          = structure with EEG electrode positions
 %   cfg.grad          = structure with MEG gradiometer positions
@@ -37,8 +44,11 @@ function neighbours = ft_neighbourselection(cfg,data)
 %        neighbours{3}.neighblabel = {'Cz', 'P4', 'P4P', 'Oz', 'P3P', 'P3'};
 %        etc.
 %        (Note that a channel is not considered to be a neighbour of itself.)
+%
+% See also FT_NEIGHBOURPLOT
 
-% Copyright (C) 2006-2008, Eric Maris, Robert Oostenveld
+
+% Copyright (C) 2006-2011, Eric Maris, Jörn M. Horschig, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -56,7 +66,7 @@ function neighbours = ft_neighbourselection(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_neighbourselection.m 3324 2011-04-11 08:17:52Z jansch $
+% $Id: ft_neighbourselection.m 3806 2011-07-08 09:14:58Z jorhor $
 
 ft_defaults
 
@@ -64,131 +74,120 @@ ft_defaults
 if ~isfield(cfg, 'feedback'),       cfg.feedback = 'no';         end
 if ~isfield(cfg, 'method'),         cfg.method   = 'distance';   end
 
+
 % FIXME: ugly temporary solution by sashae, see bugreport 575
-if ~ismember(cfg.method, {'distance', 'triangulation'})
-   cfg.method = 'distance';
+% TODO: remove this as users will be obliged to call this function manually
+if ~ismember(cfg.method, {'distance', 'triangulation', 'tri', 'template'})
+    cfg.method = 'distance';
 end
 
-% the default value for this is set later
-% if ~isfield(cfg, 'neighbourdist'),  cfg.neighbourdist = 4; end
-
-% get the the grad or elec if not present in the data
-sens = [];
-if isfield(cfg, 'grad')
-  fprintf('Obtaining the gradiometer configuration from the configuration.\n');
-  sens = cfg.grad;
-  % extract true channelposition
-  [sens.pnt,sens.label] = channelposition(sens);
-elseif isfield(cfg, 'elec')
-  fprintf('Obtaining the electrode configuration from the configuration.\n');
-  sens = cfg.elec;
-elseif isfield(cfg, 'gradfile')
-  fprintf('Obtaining the gradiometer configuration from a file.\n');
-  sens = ft_read_sens(cfg.gradfile);
-  % extract true channelposition
-  [sens.pnt, sens.label] = channelposition(sens);
-elseif isfield(cfg, 'elecfile')
-  fprintf('Obtaining the electrode configuration from a file.\n');
-  sens = ft_read_sens(cfg.elecfile);
-elseif isfield(cfg, 'layout')
-  fprintf('Using the 2-D layout to determine the neighbours\n');
-  lay = ft_prepare_layout(cfg);
-  sens = [];
-  sens.label = lay.label;
-  sens.pnt = lay.pos;
-  sens.pnt(:,3) = 0;
-elseif isfield(data, 'grad')
-  fprintf('Using the gradiometer configuration from the dataset.\n');
-  sens = data.grad;
-  % extract true channelposition
-    [sens.pnt, sens.label] = channelposition(sens);
-elseif isfield(data, 'elec')
-  fprintf('Using the electrode configuration from the dataset.\n');
-  sens = data.elec;
-end
-if ~isstruct(sens)
-  error('Did not find gradiometer or electrode information.');
-end;
-
-
-switch lower(cfg.method)
-    case 'distance'
-        % use a smart default for the distance
-        if ~isfield(cfg, 'neighbourdist')
-          sens = ft_checkdata(sens, 'hasunits', 'yes');
-          if isfield(sens, 'unit') && strcmp(sens.unit, 'm')
-            cfg.neighbourdist = 0.04;
-          elseif isfield(sens, 'unit') && strcmp(sens.unit, 'dm')
-            cfg.neighbourdist = 0.4;
-          elseif isfield(sens, 'unit') && strcmp(sens.unit, 'cm')
-            cfg.neighbourdist = 4;
-          elseif isfield(sens, 'unit') && strcmp(sens.unit, 'mm')
-            cfg.neighbourdist = 40;  
-          else
-            % don't provide a default in case the dimensions of the sensor array are unknown
-            error('Sensor distance is measured in an unknown unit type');
-          end
+% TODO: estimate sensor type
+if strcmp(cfg.method, 'template')
+    fprintf('Trying to load sensor neighbours from a template\n');
+    if ~isfield(cfg, 'template')
+        if ~isfield(cfg, 'layout')
+            error('You need to define a template or layout when ft_neighbourselection is called with cfg.method=''template''');
         end
-
-        neighbours = compneighbstructfromgradelec(sens, cfg.neighbourdist);
-    case {'triangulation', 'tri'} % the latter for reasons of simplicity
-        if size(sens.pnt, 2)==2 || all(sens.pnt(:,3)==0)
-            % the sensor positions are already on a 2D plane
-            prj = sens.pnt(:,1:2);
-        else
-            % project sensor on a 2D plane
-            prj = elproj(sens.pnt);
-        end
-        % make a 2d delaunay triangulation of the projected points 
-        tri = delaunay(prj(:,1), prj(:,2));
-        tri_x = delaunay(prj(:,1)./2, prj(:,2));
-        tri_y = delaunay(prj(:,1), prj(:,2)./2);
-        tri = [tri; tri_x; tri_y];
-        neighbours = compneighbstructfromtri(sens, tri);
-    otherwise
-        error('Method ''%s'' not known', cfg.method);
+        fprintf('Using the 2-D layout filename to determine the template filename\n');
+        cfg.template = [strtok(cfg.layout, '.') '_neighb.mat'];
+    end
+    if ~exist(cfg.template, 'file')
+        error('Template file could not be found - please check spelling or contact jm.horschig(at)donders.ru.nl if you want to create and share your own template!');
+    end
+    load(cfg.template);
+    fprintf('Successfully loaded neighbour structure from %s\n', cfg.template);
+else
+    % get the the grad or elec if not present in the data
+    sens = [];
+    if isfield(cfg, 'grad')
+        fprintf('Obtaining the gradiometer configuration from the configuration.\n');
+        sens = cfg.grad;
+        % extract true channelposition
+        [sens.pnt,sens.label] = channelposition(sens);
+    elseif isfield(cfg, 'elec')
+        fprintf('Obtaining the electrode configuration from the configuration.\n');
+        sens = cfg.elec;
+    elseif isfield(cfg, 'gradfile')
+        fprintf('Obtaining the gradiometer configuration from a file.\n');
+        sens = ft_read_sens(cfg.gradfile);
+        % extract true channelposition
+        [sens.pnt, sens.label] = channelposition(sens);
+    elseif isfield(cfg, 'elecfile')
+        fprintf('Obtaining the electrode configuration from a file.\n');
+        sens = ft_read_sens(cfg.elecfile);
+    elseif isfield(cfg, 'layout')
+        fprintf('Using the 2-D layout to determine the neighbours\n');
+        lay = ft_prepare_layout(cfg);
+        sens = [];
+        sens.label = lay.label;
+        sens.pnt = lay.pos;
+        sens.pnt(:,3) = 0;
+    elseif isfield(data, 'grad')
+        fprintf('Using the gradiometer configuration from the dataset.\n');
+        sens = data.grad;
+        % extract true channelposition
+        [sens.pnt, sens.label] = channelposition(sens);
+    elseif isfield(data, 'elec')
+        fprintf('Using the electrode configuration from the dataset.\n');
+        sens = data.elec;
+    end
+    if ~isstruct(sens)
+        error('Did not find gradiometer or electrode information or a layout.');
+    end;
+    
+    
+    switch lower(cfg.method)
+        case 'distance'
+            % use a smart default for the distance
+            if ~isfield(cfg, 'neighbourdist')
+                sens = ft_checkdata(sens, 'hasunits', 'yes');
+                if isfield(sens, 'unit') && strcmp(sens.unit, 'm')
+                    cfg.neighbourdist = 0.04;
+                elseif isfield(sens, 'unit') && strcmp(sens.unit, 'dm')
+                    cfg.neighbourdist = 0.4;
+                elseif isfield(sens, 'unit') && strcmp(sens.unit, 'cm')
+                    cfg.neighbourdist = 4;
+                elseif isfield(sens, 'unit') && strcmp(sens.unit, 'mm')
+                    cfg.neighbourdist = 40;
+                else
+                    % don't provide a default in case the dimensions of the sensor array are unknown
+                    error('Sensor distance is measured in an unknown unit type');
+                end
+            end
+            
+            neighbours = compneighbstructfromgradelec(sens, cfg.neighbourdist);
+        case {'triangulation', 'tri'} % the latter for reasons of simplicity
+            if size(sens.pnt, 2)==2 || all(sens.pnt(:,3)==0)
+                % the sensor positions are already on a 2D plane
+                prj = sens.pnt(:,1:2);
+            else
+                % project sensor on a 2D plane
+                prj = elproj(sens.pnt);
+            end
+            % make a 2d delaunay triangulation of the projected points
+            tri = delaunay(prj(:,1), prj(:,2));
+            tri_x = delaunay(prj(:,1)./2, prj(:,2));
+            tri_y = delaunay(prj(:,1), prj(:,2)./2);
+            tri = [tri; tri_x; tri_y];
+            neighbours = compneighbstructfromtri(sens, tri);
+        otherwise
+            error('Method ''%s'' not known', cfg.method);
+    end
 end
-
 k = 0;
 for i=1:length(neighbours)
-  k = k + length(neighbours{i}.neighblabel);
+    k = k + length(neighbours{i}.neighblabel);
 end
 fprintf('there are on average %.1f neighbours per channel\n', k/length(neighbours));
 
 if strcmp(cfg.feedback, 'yes')
-  % give some graphical feedback
-  if all(sens.pnt(:,3)==0)
-    % the sensor positions are already projected on a 2D plane
-    proj = sens.pnt(:,1:2);
-  else
-    % project the 3D positions onto a 2D plane
-    proj = elproj(sens.pnt);
-  end
-  figure
-  for i=1:length(neighbours)
-    cla
-    this = neighbours{i};
-    sel1 = match_str(sens.label, this.label);
-    sel2 = match_str(sens.label, this.neighblabel);
-    plot(proj(:,1), proj(:,2), 'k.');
-    hold on;
-    plot(proj(i,1), proj(i,2), 'k*');
-    axis equal
-    title(this.label);
-    axis off
-    for j=1:length(this.neighblabel)
-      x1 = proj(sel1,1);
-      y1 = proj(sel1,2);
-      x2 = proj(sel2(j),1);
-      y2 = proj(sel2(j),2);
-      X = [x1 x2];
-      Y = [y1 y2];
-      line(X, Y, 'color', 'r');
+    % give some graphical feedback
+    cfg.neighbours = neighbours;
+    if exist('data', 'var')
+        ft_neighbourplot(cfg, data);
+    else
+        ft_neighbourplot(cfg);
     end
-    drawnow
-    pause(1);
-    hold off;
-  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,7 +201,7 @@ nsensors = length(sens.label);
 % compute the distance between all sensors
 dist = zeros(nsensors,nsensors);
 for i=1:nsensors
-  dist(i,:) = sqrt(sum((sens.pnt(1:nsensors,:) - repmat(sens.pnt(i,:), nsensors, 1)).^2,2))';
+    dist(i,:) = sqrt(sum((sens.pnt(1:nsensors,:) - repmat(sens.pnt(i,:), nsensors, 1)).^2,2))';
 end;
 
 % find the neighbouring electrodes based on distance
@@ -215,8 +214,8 @@ channeighbstructmat = (channeighbstructmat .* ~eye(nsensors));
 % construct a structured cell array with all neighbours
 neighbours=cell(1,nsensors);
 for i=1:nsensors
-  neighbours{i}.label       = sens.label{i};
-  neighbours{i}.neighblabel = sens.label(find(channeighbstructmat(i,:)));
+    neighbours{i}.label       = sens.label{i};
+    neighbours{i}.neighblabel = sens.label(find(channeighbstructmat(i,:)));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -243,12 +242,12 @@ neighbours=cell(1,nsensors);
 alldist = [];
 noneighb = 0;
 for i=1:nsensors
-  neighbours{i}.label       = sens.label{i};
-  neighbidx                 = find(channeighbstructmat(i,:));
-  neighbours{i}.dist        = sqrt(sum((repmat(sens.pnt(i, :), numel(neighbidx), 1) - sens.pnt(neighbidx, :)).^2, 2));
-  alldist                   = [alldist; neighbours{i}.dist];
-  neighbours{i}.neighblabel = sens.label(neighbidx);
-  neighbours{i}.neighbidx   = neighbidx;
+    neighbours{i}.label       = sens.label{i};
+    neighbidx                 = find(channeighbstructmat(i,:));
+    neighbours{i}.dist        = sqrt(sum((repmat(sens.pnt(i, :), numel(neighbidx), 1) - sens.pnt(neighbidx, :)).^2, 2));
+    alldist                   = [alldist; neighbours{i}.dist];
+    neighbours{i}.neighblabel = sens.label(neighbidx);
+    neighbours{i}.neighbidx   = neighbidx;
 end
 
 neighbdist = mean(alldist)+3*std(alldist);
@@ -256,7 +255,7 @@ neighbdist = mean(alldist)+3*std(alldist);
 dismissedneighb = 0;
 alldist = [];
 for i=1:nsensors
-    idx                     = neighbours{i}.dist > neighbdist;    
+    idx                     = neighbours{i}.dist > neighbdist;
     dismissedneighb = dismissedneighb + sum(idx);
     neighbours{i}.dist(idx) = [];
     neighbours{i}.neighblabel(idx) = [];
