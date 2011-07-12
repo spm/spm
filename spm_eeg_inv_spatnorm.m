@@ -13,7 +13,7 @@ function mesh = spm_eeg_inv_spatnorm(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_eeg_inv_spatnorm.m 4389 2011-07-12 11:07:33Z john $
 
 spm('Pointer','Watch');
 
@@ -38,7 +38,7 @@ if ~(exist(def, 'file') && exist(mat, 'file'))
         'ngaus', {2,2,2,3,4,2},...
         'native',{[0 0],[0 0],[0 0],[0 0],[0 0],[0 0]},...
         'warped',{[0 0],[0 0],[0 0],[0 0],[0 0],[0 0]}),...
-        'warp',   struct('reg',4, 'affreg', 'mni', 'samp', 3, 'write', [0 1]));
+        'warp',   struct('reg',4, 'affreg', 'mni', 'samp', 3, 'write', [0 1],'mrf',0));
 
     spm_preproc_run(p);
 end
