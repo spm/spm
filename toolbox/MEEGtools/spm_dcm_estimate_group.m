@@ -16,7 +16,7 @@ function spm_dcm_estimate_group(DCMs, DD, P, pE, pC)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_dcm_estimate_group.m 4342 2011-06-06 12:44:56Z vladimir $
+% $Id: spm_dcm_estimate_group.m 4390 2011-07-13 18:04:22Z vladimir $
 
 % Disclaimer: this code is provided as an example and is not guaranteed to
 % work with data on which it was not tested. If it does not work for you,
@@ -49,7 +49,12 @@ for i = 1:size(DCMs, 1)
     % initialise with posteriors if required
     % -------------------------------------------------------------------------
     if isempty(pE)
-        cDCM.M = rmfield(cDCM.M,{'pE','pC'});
+        if isfield(cDCM.M,'pE')
+            cDCM.M = rmfield(cDCM.M,'pE');
+        end
+        if isfield(cDCM.M,'pC')
+            cDCM.M = rmfield(cDCM.M,'pC');
+        end
     elseif ~isequal(pE, 1)
         cDCM.M.pE = pE;
         if ~isempty(pC)

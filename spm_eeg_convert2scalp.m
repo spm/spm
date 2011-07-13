@@ -29,9 +29,9 @@ function [S, Pout] = spm_eeg_convert2scalp(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 4340 2011-06-02 13:15:31Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 4390 2011-07-13 18:04:22Z vladimir $
 
-SVNrev = '$Rev: 4340 $';
+SVNrev = '$Rev: 4390 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -159,8 +159,9 @@ else
     d  = D(Cind, :,:);
 end
 
-cl = D.condlist;
-Pout = {};
+cl    = D.condlist;
+Pout  = cell(1, D.nconditions);
+
 for i = 1 : D.nconditions    
     
     %-Make output directory for each condition
@@ -214,7 +215,9 @@ for i = 1 : D.nconditions
 
     end % for j = 1 : k
 
-    Pout{i} = char(Pout{i});
+    if ~isempty(Pout{i})
+        Pout{i} = char(Pout{i});
+    end
 end % for i = 1 : D.nconditions
 
 

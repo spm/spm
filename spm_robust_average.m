@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 3212 2009-06-19 15:20:48Z vladimir $
+% $Id: spm_robust_average.m 4390 2011-07-13 18:04:22Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -47,6 +47,8 @@ ores=1;
 nres=10;
 n=0;
 
+W = zeros(size(X));
+
 while max(abs(ores-nres))>sqrt(1E-8)
 
     ores=nres;
@@ -66,15 +68,26 @@ while max(abs(ores-nres))>sqrt(1E-8)
     end
 
     res = X-repmat(Y, size(X, 1), 1);
-
+    
     mad = nanmedian(abs(res-repmat(nanmedian(res), size(res, 1), 1)));
-    res = res./repmat(mad, size(res, 1), 1);
-    res = abs(res)-ks;
-    res(res<0)=0;
-    nres= (sum(res(~isnan(res)).^2));
-    W = (abs(res)<1) .* ((1 - res.^2).^2);
-    W(isnan(X)) = 0;
-    W(X == 0)   = 0; %Assuming X is a real measurement
+    
+    ind1 = find(mad==0);
+    ind2 = find(mad~=0);
+    
+    W(:, ind1) = ~res(:, ind1);
+    
+    if ~isempty(ind2)
+        res = res(:, ind2);
+        mad = mad(ind2);
+        
+        res = res./repmat(mad, size(res, 1), 1);
+        res = abs(res)-ks;
+        res(res<0) = 0;
+        nres = (sum(res(~isnan(res)).^2));
+        W(:, ind2)  = (abs(res)<1) .* ((1 - res.^2).^2);
+        W(isnan(X)) = 0;
+        W(X == 0 & ~repmat(all(~X), size(X, 1), 1)) = 0; %Assuming X is a real measurement        
+    end      
 end
 
 disp(['Robust averaging finished after ' num2str(n) ' iterations.']); 
