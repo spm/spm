@@ -19,9 +19,9 @@ function savexml(filename, varargin)
 %  See also SAVE, MAT2XML, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 2080 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 4393 $  $Date: 2003/07/10 13:50 $
 
-%  $Id: savexml.m 2080 2008-09-11 11:39:36Z guillaume $
+%  $Id: savexml.m 4393 2011-07-18 14:52:32Z guillaume $
 
 if nargin == 0
     filename = 'matlab.xml';
@@ -116,7 +116,11 @@ function t = xml_var2xml(t,v,uid)
             end
         case 'char'
             % TODO % char values should be in CData
-            t = add(t,uid,'chardata',v);
+            if size(v,1) > 1
+                t = add(t,uid,'chardata',v'); % row-wise order
+            else
+                t = add(t,uid,'chardata',v);
+            end
         case {'int8','uint8','int16','uint16','int32','uint32'}
             [t, uid] = add(t,uid,'element',class(v));
             % TODO % Handle integer formats (cannot use sprintf or num2str)

@@ -23,9 +23,9 @@ function varargout = loadxml(filename,varargin)
 %  See also LOAD, XML2MAT, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 1131 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 4393 $  $Date: 2003/07/10 13:50 $
 
-%  $Id: loadxml.m 1131 2008-02-06 11:17:09Z spm $
+%  $Id: loadxml.m 4393 2011-07-18 14:52:32Z guillaume $
 
 if nargin == 0
     filename = 'matlab.xml';
@@ -125,6 +125,15 @@ function v = xml_create_var(t,uid)
                 v = '';
             else
                 v = get(t,children(t,uid),'value');
+            end
+            try % this can fail if blank spaces are lost or entity escaping
+                if ~isempty(sz)
+                    if sz(1) > 1
+                        v = reshape(v,fliplr(sz))'; % row-wise order
+                    else
+                        v = reshape(v,sz);
+                    end
+                end
             end
         case  {'int8','uint8','int16','uint16','int32','uint32'}
             % TODO % Handle integer formats

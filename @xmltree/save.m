@@ -13,7 +13,7 @@ function varargout = save(tree, filename)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin <guillaume@artefact.tk>
-% $Id: save.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: save.m 4393 2011-07-18 14:52:32Z guillaume $
 
 error(nargchk(1,2,nargin));
 
@@ -126,8 +126,9 @@ function save_subtree(tree,fid,uid,order)
 
 %=======================================================================
 function str = entity(str)
-    str = strrep(str,'&','&amp;');
-    str = strrep(str,'<','&lt;');
-    str = strrep(str,'>','&gt;');
-    str = strrep(str,'"','&quot;');
-    str = strrep(str,'''','&apos;');
+    % This has the side effect of strtrim'ming the char array.
+    str = char(strrep(cellstr(str), '&',  '&amp;' ));
+    str = char(strrep(cellstr(str), '<',  '&lt;'  ));
+    str = char(strrep(cellstr(str), '>',  '&gt;'  ));
+    str = char(strrep(cellstr(str), '"',  '&quot;'));
+    str = char(strrep(cellstr(str), '''', '&apos;'));
