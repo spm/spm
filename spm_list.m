@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4385 2011-07-08 16:53:38Z guillaume $
+% $Id: spm_list.m 4396 2011-07-19 09:06:49Z volkmar $
 
 
 %==========================================================================
@@ -155,11 +155,11 @@ case 'table'                                                        %-Table
     
     %-Get number of maxima per cluster to be reported
     %----------------------------------------------------------------------
-    if length(varargin) > 2, Num = varargin{3}; else Num = 3; end
+    if length(varargin) > 2, Num = varargin{3}; else Num = spm_get_defaults('stats.results.volume.nbmax'); end
     
     %-Get minimum distance among clusters (mm) to be reported
     %----------------------------------------------------------------------
-    if length(varargin) > 3, Dis = varargin{4}; else Dis = 8; end
+    if length(varargin) > 3, Dis = varargin{4}; else Dis = spm_get_defaults('stats.results.volume.distmin'); end
     
     %-Get header string
     %----------------------------------------------------------------------
@@ -245,10 +245,26 @@ case 'table'                                                        %-Table
         'peak',     'p(unc)',       '\itp\rm_{uncorr}';...
         '',         'x,y,z {mm}',   [units{:}]}';...
         
+    xyzsgn = min(varargin{2}.XYZmm,[],2) < 0;
+    xyzexp = max(floor(log10(max(abs(varargin{2}.XYZmm),[],2)))+(max(abs(varargin{2}.XYZmm),[],2) >= 1),0);
+    voxexp = floor(log10(abs(VOX')))+(abs(VOX') >= 1);
+    xyzdec = max(-voxexp,0);
+    xyzwdt = xyzsgn+xyzexp+(xyzdec>0)+xyzdec;
+    voxwdt = max(voxexp,0)+(xyzdec>0)+xyzdec;
+    tmpfmt = cell(size(xyzwdt));
+    for k = 1:numel(xyzwdt)
+        tmpfmt{k} = sprintf('%%%d.%df ', xyzwdt(k), xyzdec(k));
+    end
+    xyzfmt = [tmpfmt{:}];
+    tmpfmt = cell(size(voxwdt));
+    for k = 1:numel(voxwdt)
+        tmpfmt{k} = sprintf('%%%d.%df ', voxwdt(k), xyzdec(k));
+    end
+    voxfmt = [tmpfmt{:}];
     TabDat.fmt = {  '%-0.3f','%g',...                          %-Set
         '%0.3f', '%0.3f','%0.0f', '%0.3f',...                  %-Cluster
         '%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...        %-Peak
-        '%3.0f %3.0f %3.0f'};                                  %-XYZ
+        xyzfmt};                                               %-XYZ
     
     %-Table filtering note
     %----------------------------------------------------------------------
@@ -289,15 +305,14 @@ case 'table'                                                        %-Table
         end
         TabDat.ftr{6,1} = 'Degrees of freedom = [%0.1f, %0.1f]';
         TabDat.ftr{6,2} = df;
-        strfmt = repmat('%0.1f ',1,numel(FWmm));
         TabDat.ftr{7,1} = ...
-            ['FWHM = ' strfmt units{:} '; ' strfmt '{voxels}'];
+            ['FWHM = ' voxfmt units{:} '; ' voxfmt '{voxels}'];
         TabDat.ftr{7,2} = [FWmm FWHM];
         TabDat.ftr{8,1} = ...
             'Volume: %0.0f = %0.0f voxels = %0.1f resels';
         TabDat.ftr{8,2} = [S*prod(VOX),S,R(end)];
         TabDat.ftr{9,1} = ...
-            ['Voxel size: ' strfmt units{:} '; (resel = %0.2f voxels)'];
+            ['Voxel size: ' voxfmt units{:} '; (resel = %0.2f voxels)'];
         TabDat.ftr{9,2} = [VOX,prod(FWHM)];
      else
         TabDat.ftr = {};
@@ -729,11 +744,11 @@ case 'table'                                                        %-Table
 
         %-Get number of maxima per cluster to be reported
         %------------------------------------------------------------------
-        if nargin < 4, Num = 32; else Num = varargin{4}; end
+        if nargin < 4, Num = spm_get_defaults('stats.results.svc.nbmax'); else Num = varargin{4}; end
         
         %-Get minimum distance among clusters (mm) to be reported
         %------------------------------------------------------------------
-        if nargin < 5, Dis = 4; else Dis = varargin{5}; end
+        if nargin < 5, Dis = spm_get_defaults('stats.results.svc.distmin'); else Dis = varargin{5}; end
 
         %-Get header string
         %------------------------------------------------------------------

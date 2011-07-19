@@ -54,7 +54,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 3950 2010-06-28 10:44:02Z guillaume $
+% $Id: spm_VOI.m 4396 2011-07-19 09:06:49Z volkmar $
 
 
 %-Parse arguments
@@ -62,8 +62,8 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 if nargin < 2,   error('insufficient arguments'), end
 if nargin < 3,   hReg = []; end
 
-Num      = 16;          % maxima per cluster
-Dis      = 04;          % distance among maxima (mm)
+Num      = spm_get_defaults('stats.results.svc.nbmax');   % maxima per cluster
+Dis      = spm_get_defaults('stats.results.svc.distmin'); % distance among maxima (mm)
 
 %-Title
 %--------------------------------------------------------------------------
