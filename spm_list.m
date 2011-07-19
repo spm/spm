@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4397 2011-07-19 11:59:12Z volkmar $
+% $Id: spm_list.m 4398 2011-07-19 15:31:24Z volkmar $
 
 
 %==========================================================================
@@ -254,8 +254,8 @@ case 'table'                                                        %-Table
         xyzfmt = '%3.0f %3.0f %3.0f';
         voxfmt = repmat('%0.1f ',1,numel(FWmm));
     else % 3D data, work out best precision based on voxel sizes and FOV
-        xyzsgn = min(xSPM.XYZmm,[],2) < 0;
-        xyzexp = max(floor(log10(max(abs(xSPM.XYZmm),[],2)))+(max(abs(xSPM.XYZmm),[],2) >= 1),0);
+        xyzsgn = min(xSPM.XYZmm(DIM,:),[],2) < 0;
+        xyzexp = max(floor(log10(max(abs(xSPM.XYZmm(DIM,:)),[],2)))+(max(abs(xSPM.XYZmm(DIM,:)),[],2) >= 1),0);
         voxexp = floor(log10(abs(VOX')))+(abs(VOX') >= 1);
         xyzdec = max(-voxexp,0);
         voxdec = max(-voxexp,1);
