@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4396 2011-07-19 09:06:49Z volkmar $
+% $Id: spm_list.m 4397 2011-07-19 11:59:12Z volkmar $
 
 
 %==========================================================================
@@ -245,22 +245,33 @@ case 'table'                                                        %-Table
         'peak',     'p(unc)',       '\itp\rm_{uncorr}';...
         '',         'x,y,z {mm}',   [units{:}]}';...
         
-    xyzsgn = min(varargin{2}.XYZmm,[],2) < 0;
-    xyzexp = max(floor(log10(max(abs(varargin{2}.XYZmm),[],2)))+(max(abs(varargin{2}.XYZmm),[],2) >= 1),0);
-    voxexp = floor(log10(abs(VOX')))+(abs(VOX') >= 1);
-    xyzdec = max(-voxexp,0);
-    xyzwdt = xyzsgn+xyzexp+(xyzdec>0)+xyzdec;
-    voxwdt = max(voxexp,0)+(xyzdec>0)+xyzdec;
-    tmpfmt = cell(size(xyzwdt));
-    for k = 1:numel(xyzwdt)
-        tmpfmt{k} = sprintf('%%%d.%df ', xyzwdt(k), xyzdec(k));
+    %-Coordinate Precisions
+    %----------------------------------------------------------------------
+    if isempty(xSPM.XYZmm) % empty results
+        xyzfmt = '%3.0f %3.0f %3.0f';
+        voxfmt = repmat('%0.1f ',1,numel(FWmm));
+    elseif ~any(strcmp(units{3},{'mm',''})) % 2D data
+        xyzfmt = '%3.0f %3.0f %3.0f';
+        voxfmt = repmat('%0.1f ',1,numel(FWmm));
+    else % 3D data, work out best precision based on voxel sizes and FOV
+        xyzsgn = min(xSPM.XYZmm,[],2) < 0;
+        xyzexp = max(floor(log10(max(abs(xSPM.XYZmm),[],2)))+(max(abs(xSPM.XYZmm),[],2) >= 1),0);
+        voxexp = floor(log10(abs(VOX')))+(abs(VOX') >= 1);
+        xyzdec = max(-voxexp,0);
+        voxdec = max(-voxexp,1);
+        xyzwdt = xyzsgn+xyzexp+(xyzdec>0)+xyzdec;
+        voxwdt = max(voxexp,0)+(voxdec>0)+voxdec;
+        tmpfmt = cell(size(xyzwdt));
+        for k = 1:numel(xyzwdt)
+            tmpfmt{k} = sprintf('%%%d.%df ', xyzwdt(k), xyzdec(k));
+        end
+        xyzfmt = [tmpfmt{:}];
+        tmpfmt = cell(size(voxwdt));
+        for k = 1:numel(voxwdt)
+            tmpfmt{k} = sprintf('%%%d.%df ', voxwdt(k), voxdec(k));
+        end
+        voxfmt = [tmpfmt{:}];
     end
-    xyzfmt = [tmpfmt{:}];
-    tmpfmt = cell(size(voxwdt));
-    for k = 1:numel(voxwdt)
-        tmpfmt{k} = sprintf('%%%d.%df ', voxwdt(k), xyzdec(k));
-    end
-    voxfmt = [tmpfmt{:}];
     TabDat.fmt = {  '%-0.3f','%g',...                          %-Set
         '%0.3f', '%0.3f','%0.0f', '%0.3f',...                  %-Cluster
         '%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...        %-Peak
