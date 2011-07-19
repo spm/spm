@@ -1,5 +1,5 @@
 /*
- * $Id: spm_project.c 1893 2008-07-08 15:05:40Z john $
+ * $Id: spm_project.c 4394 2011-07-19 08:25:59Z volkmar $
  */
  
 /*
@@ -31,21 +31,16 @@ spm_project.c
 #define	MAX(A, B)	((A) > (B) ? (A) : (B))
 #define	MIN(A, B)	((A) < (B) ? (A) : (B))
 
-#define DX 182
-#define DY 218
-#define DZ 182
-#define CX 89
-#define CY 125
-#define CZ 71
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 	double		*spm,*l,*v,*dim;
 	int 		m,m1,n,i,j,k, o;
 	int		x,y,z,xdim,ydim,zdim;
 	double		q;
+	double          *DXYZ, *CXYZ;
+	int             DX, DY, DZ, CX, CY, CZ;
 
-	if (nrhs != 3 || nlhs > 1) mexErrMsgTxt("Incorrect usage.");
+	if ( !(nrhs == 3 || nrhs == 5) || nlhs > 1) mexErrMsgTxt("Incorrect usage.");
 
 	for(k=0; k<nrhs; k++)
 		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
@@ -53,7 +48,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			mexErrMsgTxt("Arguments must be numeric, real, full and double.");
 
 	/* The values */
-	n    = mxGetN(prhs[0])*mxGetM(prhs[0]);
+	n    = mxGetNumberOfElements(prhs[0]);
 	v    = mxGetPr(prhs[0]);
 
 	/* The co-ordinates */
@@ -62,7 +57,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	l    = mxGetPr(prhs[1]);
 
 	/* Dimension information */
-	if (mxGetN(prhs[2])*mxGetM(prhs[2]) != 5)
+	if (mxGetNumberOfElements(prhs[2]) != 5)
 		mexErrMsgTxt("Incompatible size for dimensions vector.");
 	dim  = mxGetPr(prhs[2]);
 	xdim = (int) (fabs(dim[0]) + 0.99);
@@ -70,6 +65,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	zdim = (int) (fabs(dim[2]) + 0.99);
 	m    = (int) (dim[3]);
 	m1   = (int) (dim[4]);
+
+	if (nrhs == 3)
+	{
+	  DX = 182;
+	  DY = 218;
+	  DZ = 182;
+	  CX =  89;
+	  CY = 125;
+	  CZ =  71;
+	}
+	else
+	{
+	  if (mxGetNumberOfElements(prhs[3]) != 3)
+		mexErrMsgTxt("Incompatible size for DXYZ vector.");
+	  DXYZ = mxGetPr(prhs[3]);
+	  DX = (int) (DXYZ[0]);
+	  DY = (int) (DXYZ[1]);
+	  DZ = (int) (DXYZ[2]);
+	  if (mxGetNumberOfElements(prhs[4]) != 3)
+		mexErrMsgTxt("Incompatible size for CXYZ vector.");
+	  CXYZ = mxGetPr(prhs[4]);
+	  CX = (int) (CXYZ[0]);
+	  CY = (int) (CXYZ[1]);
+	  CZ = (int) (CXYZ[2]);
+	}
 
 	plhs[0] = mxCreateDoubleMatrix(m,m1,mxREAL);
 	spm     = mxGetPr(plhs[0]);
