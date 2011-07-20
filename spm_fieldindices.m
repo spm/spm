@@ -1,18 +1,18 @@
 function [i] = spm_fieldindices(X,varargin)
-% returns the indices of fields in a structure (and vice versa)
-% FORMAT [i]     = spm_fieldindices(X,feild1,feild2,...)
+% Return the indices of fields in a structure (and vice versa)
+% FORMAT [i]     = spm_fieldindices(X,field1,field2,...)
 % FORMAT [field] = spm_fieldindices(X,i1,i2,...)
 %
 % X         - structure
-% feild1,.. – fields
+% field1,.. - fields
 %
 % i         - vector of indices
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fieldindices.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_fieldindices.m 4400 2011-07-20 17:06:44Z guillaume $
  
  
 % create structure of zeros
