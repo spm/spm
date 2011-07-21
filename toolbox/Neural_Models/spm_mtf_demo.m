@@ -40,10 +40,8 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_mtf_demo.m 4402 2011-07-21 12:37:24Z karl $
  
-clear global
-clear
  
 % empirical data - sort and decimate
 %--------------------------------------------------------------------------
@@ -79,28 +77,39 @@ C     = sparse(n,1,1,n,1);
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
-[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
-[pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
+[pE,pC] = spm_dcm_neural_priors(A,B,C,'LFP');
+
+% augment with priors on spatial model
+%--------------------------------------------------------------------------
+[pE,pC]  = spm_L_priors(n,pE,pC);
+
+% augment with priors on endogenous inputs (neuronal) and noise
+%--------------------------------------------------------------------------
+[pE,pC]  = spm_ssr_priors(pE,pC);
+
+% intial states and equations of motion
+%--------------------------------------------------------------------------
+[x,fx]   = spm_dcm_x_neural(pE,'LFP');
+
 
 % create LFP model
 %--------------------------------------------------------------------------
-M.IS  = 'spm_lfp_mtf';
 M.FS  = 'spm_lfp_sqrt';
-M.f   = 'spm_fx_lfp';
+M.IS  = 'spm_lfp_mtf';
+M.f   = fx;
 M.g   = 'spm_gx_erp';
-M.x   = sparse(n,13);
+M.x   = x;
 M.n   = length(M.x(:));
 M.pE  = pE;
 M.pC  = pC;
-M.m   = length(B);
+M.m   = n;
 M.l   = 1;
 M.Hz  = f;
  
  
 % inversion (in frequency space)
 %==========================================================================
- 
+
 % data
 %--------------------------------------------------------------------------
 y     = spm_cond_units(y)*32;

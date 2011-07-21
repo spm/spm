@@ -1,5 +1,5 @@
 function [pE,pC] = spm_ssr_priors(pE,pC)
-% augments prior moments of a neural mass model for ssr analyese
+% augments prior moments of a neural mass model for ssr analyses
 % FORMAT [pE,pC] = spm_ssr_priors(pE,pC)
 %
 % pE - prior expectation
@@ -30,8 +30,11 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_ssr_priors.m 4402 2011-07-21 12:37:24Z karl $
  
+% catch
+%--------------------------------------------------------------------------
+try, pE.L; catch, pE.L = 1; end
 
 % number of LFP channels
 %--------------------------------------------------------------------------

@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_fx_lfp.m 4402 2011-07-21 12:37:24Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -160,7 +160,7 @@ for i = 1:n
     dsdx       = diag(dSdx(:,i));
     dsdx(1,13) = -dsdx(1,1);
     dfdu       = sparse(4,1,Ke,s,1);
-     
+    
     F{i}       = dfdx*x(:,i) + dfdS*S(:,i) + dfdu*U(i);
     J{i,i}     = dfdx + dfdS*dsdx;
     

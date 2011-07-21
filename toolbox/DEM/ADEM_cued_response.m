@@ -15,21 +15,21 @@
 % set switching cost as the hidden states at the second (contextual) level
 % are inferred. This provides a simple but very rich model of cued reaching
 % movements and set switching that is consistent with notions of salience
-% and affordance. Furthermore, we can simulate Parkinsonic lesions by
+% and affordance. Furthermore, we can simulate Parkinsonism by
 % reducing the precision of affordance – based cues. These are the visual
 % attributes that confer saliency on the current target. Reducing this
 % precision (for example, dopamine) delays and can even preclude set
 % switching, with associated costs in pointing accuracy. By completely
 % removing the precision of the salience or affordance cues, we obtain
-% autonomous behavior that is prescribed by the itinerant expectations of
+% autonomous behaviour that is prescribed by the itinerant expectations of
 % the agent. This can be regarded as perseveration in a pathological
-% setting or the emission of autonomous behavior in the absence of any
+% setting or the emission of autonomous behaviour in the absence of any
 % precise sensory information
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: ADEM_cued_response.m 4402 2011-07-21 12:37:24Z karl $
  
  
 % hidden causes and states
@@ -77,7 +77,10 @@ M(1).E.d = 2;                                % generalised motion
 %--------------------------------------------------------------------------
 V.o = exp(4) + sparse(2,1);                  % motor (proprioceptive)
 V.p = exp(4) + sparse(2,1);                  % target locations (visual)
-V.c = exp(4) + sparse(n,1);                  % target contrast (visual)
+V.c = exp(4) + sparse(n,1);                  % target salience  (visual)
+
+W.o = exp(4) + sparse(2,1);                  % motor (proprioceptive)
+W.a = exp(4) + sparse(n,1);                  % target salience  (visual)
  
  
 % level 1: Displacement dynamics and mapping to sensory/proprioception
@@ -87,7 +90,7 @@ M(1).g  = 'spm_gx_dem_cue';                  % prediction
 M(1).pE = P;                                 % target locations
 M(1).x  = x;                                 % hidden states
 M(1).V  = diag(spm_vec(V));                  % error precision
-M(1).W  = exp(4);                            % error precision
+M(1).W  = diag(spm_vec(W));                  % error precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -140,59 +143,91 @@ end
 DEM.G = G;
 DEM.M = M;
 DEM.C = C;
- 
-D     = 2 + (1:6)/2;            
+
+SIM   = 'sequence'
+D     = 2 + (1:6)/2;
 for i = 1:length(D)
- 
- 
-    % set precision of salience or affordance - V.c
-    %----------------------------------------------------------------------
-    ADEM{i}        = DEM;
-    V.c            = exp(D(i)) + sparse(n,1);
-    ADEM{i}.M(1).V = diag(spm_vec(V));
+    
+    switch SIM
+        
+        case {'affordance'}
+            % set precision of salience or affordance - V(1).c
+            %--------------------------------------------------------------
+            ADEM{i}        = DEM;
+            V.c            = exp(D(i)) + sparse(n,1);
+            ADEM{i}.M(1).V = diag(spm_vec(V));
+            
+        case {'motor'}
+            % set precision of salience or affordance - W(1).o
+            %--------------------------------------------------------------
+            ADEM{i}        = DEM;
+            W.o            = exp(D(i)) + sparse(2,1);
+            ADEM{i}.M(1).W = diag(spm_vec(W));
+            
+        case {'sequence'}
+            % set precision of salience or affordance - W(1).a
+            %--------------------------------------------------------------
+            ADEM{i}        = DEM;
+            W.a            = exp(D(i)) + sparse(n,1);
+            ADEM{i}.M(1).W = diag(spm_vec(W));
+            
+        case {'switching'}
+            % set precision of salience or affordance - V(2)
+            %--------------------------------------------------------------
+            ADEM{i}        = DEM;
+            ADEM{i}.M(2).V = exp(D(i));
+            
+    end
+    
     
     % solve
     %----------------------------------------------------------------------
     ADEM{i}        = spm_ADEM(ADEM{i});
     
 end
- 
- 
+
+
  
 % dynamics and movies
 %==========================================================================
  
 % normal
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
-spm_DEM_qU(ADEM{6}.qU)
+spm_figure('GetWin','Figure 1');i  = 6;
+spm_DEM_qU(ADEM{i}.qU)
  
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{6})
+spm_figure('GetWin','Figure 4');
+subplot(3,1,1)
+spm_dem_cue_movie(ADEM{i})
+title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
  
 % delayed set switching
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
-spm_DEM_qU(ADEM{3}.qU)
+spm_figure('GetWin','Figure 2'); i = 3;
+spm_DEM_qU(ADEM{i}.qU)
  
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{3})
+spm_figure('GetWin','Figure 4');
+subplot(3,1,2)
+spm_dem_cue_movie(ADEM{i})
+title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
  
 % failure to switch set
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3');
+spm_figure('GetWin','Figure 3'); i = 1;
 spm_DEM_qU(ADEM{2}.qU)
  
-subplot(3,2,5)
-spm_dem_cue_movie(ADEM{2})
+spm_figure('GetWin','Figure 4');
+subplot(3,1,3)
+spm_dem_cue_movie(ADEM{i})
+title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
  
  
 % reaction times and accuracy
 %==========================================================================
-spm_figure('GetWin','Figure 4'); clf
+spm_figure('GetWin','Figure 5'); clf
  
-C     = {'r','g','b','c','m'};
-for i = 1:length(C)
+C     = {'r','g','b','c','m','y'};
+for i = 1:length(D)
  
     % get behavioral performance
     %----------------------------------------------------------------------
@@ -201,14 +236,14 @@ for i = 1:length(C)
     % graphics
     %----------------------------------------------------------------------
     subplot(2,1,1), hold on
-    plot(on,rt,[C{i} ':'],on,rt,[C{i} '.'],'MarkerSize',24)
+    plot(on,rt,[C{i} '-'],on,rt,[C{i} '.'],'MarkerSize',24)
     xlabel('cue onset (sec)','FontSize',12)
     ylabel('milliseconds','FontSize',12)
     title('reaction times','FontSize',16)
     axis square, box off, hold off
  
     subplot(2,1,2), hold on
-    plot(on,ac,[C{i} ':'],on,ac,[C{i} '.'],'MarkerSize',24)
+    plot(on,ac,[C{i} '-'],on,ac,[C{i} '.'],'MarkerSize',24)
     xlabel('cue onset (sec)','FontSize',12)
     ylabel('inverse distance','FontSize',12)
     title('spatial error','FontSize',16)
@@ -217,18 +252,39 @@ for i = 1:length(C)
  
 end
  
- 
+
+return
+
+
 % demonstrate autonomous movement (by removing salient information)
 %==========================================================================
-DEM        = DEM;
-V.c        = exp(-2) + sparse(n,1);
-DEM.M(1).V = diag(spm_vec(V));
-DEM        = spm_ADEM(DEM);
+LDEM        = DEM;
+V.c         = exp(-2) + sparse(n,1);
+LDEM.M(1).V = diag(spm_vec(V));
+LDEM        = spm_ADEM(LDEM);
  
 % perseverative dynamics and trajectories
 %--------------------------------------------------------------------------
-spm_figure('GetWin','DEM');
-spm_DEM_qU(DEM.qU)
+spm_figure('GetWin','Figure 6'); clf
+spm_DEM_qU(LDEM.qU)
  
-subplot(3,2,5)
-spm_dem_cue_movie(DEM)
+spm_figure('GetWin','Figure 8');
+subplot(3,1,1)
+spm_dem_cue_movie(LDEM)
+title('Autonomous movements','FontSize',16)
+ 
+ 
+% now remove precision on empirical priors of motion
+%==========================================================================
+LDEM.M(1).W = exp(-3);
+LDEM        = spm_ADEM(LDEM);
+ 
+% perseverative dynamics and trajectories
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 7'); clf
+spm_DEM_qU(LDEM.qU)
+ 
+spm_figure('GetWin','Figure 8');
+subplot(3,1,2)
+spm_dem_cue_movie(LDEM)
+title('Confusion','FontSize',16)

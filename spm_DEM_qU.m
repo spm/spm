@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4247 2011-03-14 18:16:50Z karl $
+% $Id: spm_DEM_qU.m 4402 2011-07-21 12:37:24Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ end
 %--------------------------------------------------------------------------
 try
     g = length(X) + 1;                           
-    if issempty(X{end})
+    if isempty(X{end})
         g = g - 1;
     end
 catch

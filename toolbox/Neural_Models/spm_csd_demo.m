@@ -48,7 +48,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_csd_demo.m 4402 2011-07-21 12:37:24Z karl $
  
 clear global
 clear
@@ -130,17 +130,13 @@ axis square
 
 spm_demo_proceed
  
-% re-scale
-%--------------------------------------------------------------------------
-CSD    = spm_cond_units({CSD});
- 
  
 % inversion (in frequency space)
 %==========================================================================
  
 % data and confounds
 %--------------------------------------------------------------------------
-Y.y    = CSD;
+Y.y    = spm_lfp_mtf(P,M);
 nf     = size(Y.y{1},1);                  % number of frequency bins
 Y.Q    = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
  
