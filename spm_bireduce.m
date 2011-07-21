@@ -36,7 +36,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_bireduce.m 4401 2011-07-21 12:34:46Z karl $
 
 
 % set up
@@ -75,17 +75,18 @@ end
 [dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
 [dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
 f0           = spm_vec(f0);
+m            = length(dfdxu);          % m inputs
+n            = length(f0);             % n states
 
 % delay operator
 %--------------------------------------------------------------------------
 f0    = Q*f0;
 dfdx  = Q*dfdx;
 dfdu  = Q*dfdu;
-for i = length(dfdxu)
+for i = 1:m
     dfdxu{i} = Q*dfdxu{i};
 end
-m     = length(dfdxu);          % m inputs
-n     = length(f0);             % n states
+
 
 % Bilinear operators
 %==========================================================================
@@ -97,6 +98,7 @@ M0    = spm_cat({0                     []    ;
 
 % Bilinear operator - M1 = dM0/du
 %--------------------------------------------------------------------------
+M1    = {};
 for i = 1:m
     M1{i} = spm_cat({0,                                []        ;
                     (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});
