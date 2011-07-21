@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_contrasts.m 4403 2011-07-21 14:04:33Z guillaume $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -36,6 +36,7 @@ end
 if nargin < 2
     Ic   = 1:length(xCon);
 end
+Ic(Ic == 0) = [];
 
 %-Map parameter and hyperarameter files
 %--------------------------------------------------------------------------

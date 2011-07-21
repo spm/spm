@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 4022 2010-07-28 12:50:20Z guillaume $
+% $Id: spm_run_fmri_est.m 4403 2011-07-21 14:04:33Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -49,15 +49,13 @@ if isfield(job.method,'Classical')
             [c,I]     = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
             if all(I)
                 DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-            else
-                DxCon = [];
+                if isempty(SPM.xCon),
+                    SPM.xCon = DxCon;
+                else
+                    SPM.xCon(end+1) = DxCon;
+                end
+                SPM   = spm_contrasts(SPM,length(SPM.xCon));
             end
-            if isempty(SPM.xCon),
-                SPM.xCon = DxCon;
-            else
-                SPM.xCon(end+1) = DxCon;
-            end
-            SPM       = spm_contrasts(SPM,length(SPM.xCon));
         end
 
         %-Create t-contrasts
@@ -76,22 +74,20 @@ if isfield(job.method,'Classical')
                     sp1   = find(isspace(str), 1);
                     name  = ['Positive',str(sp1:end),'_',int2str(r)];
                 end
-
+                
                 [c,I]     = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
                 if all(I)
                     DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-                else
-                    DxCon = [];
+                    if isempty(SPM.xCon),
+                        SPM.xCon = DxCon;
+                    else
+                        SPM.xCon(end+1) = DxCon;
+                    end
+                    SPM   = spm_contrasts(SPM,length(SPM.xCon));
                 end
-                if isempty(SPM.xCon),
-                    SPM.xCon = DxCon;
-                else
-                    SPM.xCon(end+1) = DxCon;
-                end
-                SPM       = spm_contrasts(SPM,length(SPM.xCon));
             end
         end
-
+        
     end
     
     %-Computation results
