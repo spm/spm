@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_figure.m 4405 2011-07-22 12:54:59Z guillaume $
 
 
 %==========================================================================
@@ -1037,7 +1037,7 @@ function myscroll(obj,evt)
 ax = findobj(gcf,'Tag','textcont');
 cla(ax);
 [current, previous] = spm_authors;
-authors = {'*SPM8*' current{:} '' ...
+authors = {['*' spm('Ver') '*'] current{:} '' ...
            '*Previous versions*' previous{:} '' ...
            '*Thanks to the SPM community*'};
 x = 0.2;

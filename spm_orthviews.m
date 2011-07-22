@@ -152,7 +152,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4351 2011-06-13 17:18:25Z ged $
+% $Id: spm_orthviews.m 4405 2011-07-22 12:54:59Z guillaume $
 
 
 % The basic fields of st are:
@@ -1910,7 +1910,7 @@ switch lower(varargin{1}),
         % Add blobs to the image - in split colortable
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle; end;
-        spm_figure('Clear','Interactive');
+        spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
             for i = 1:numel(cm_handles),
@@ -1954,7 +1954,7 @@ switch lower(varargin{1}),
         % Add blobs to the image - in split colortable
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle; end;
-        spm_figure('Clear','Interactive');
+        spm_input('!DeleteInputObj');
         fname = spm_select(1,'image','select image');
         if ~isempty(fname)
             for i = 1:numel(cm_handles),
@@ -1983,7 +1983,7 @@ switch lower(varargin{1}),
         % Add blobs to the image - in full colour
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle; end;
-        spm_figure('Clear','Interactive');
+        spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
             c         = spm_input('Colour','+1','m',...
@@ -2038,7 +2038,7 @@ switch lower(varargin{1}),
         % Add truecolored image
         cm_handles = valid_handles(1:24);
         if varargin{2} == 2, cm_handles = get_current_handle;end;
-        spm_figure('Clear','Interactive');
+        spm_input('!DeleteInputObj');
         fname   = spm_select([1 Inf],'image','select image(s)');
         for k = 1:size(fname,1)
             c       = spm_input(sprintf('Image %d: Colour',k),'+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
