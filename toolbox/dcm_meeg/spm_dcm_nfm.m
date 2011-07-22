@@ -18,12 +18,12 @@ function DCM = spm_dcm_nfm(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
-%   options.type         - 'ECD', �LFP� or �IMG�     (see spm_erp_L)
+%   options.type         - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_nfm.m 4405 2011-07-22 12:54:59Z guillaume $
+% $Id: spm_dcm_nfm.m 4406 2011-07-22 12:57:58Z guillaume $
  
  
 % check options
