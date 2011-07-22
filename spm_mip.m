@@ -2,8 +2,8 @@ function spm_mip(Z,XYZ,M,units)
 % SPM maximum intensity projection
 % FORMAT spm_mip(Z,XYZ,M);
 % Z       - vector point list of SPM values for MIP
-% XYZ     - matrix of coordinates of points (Talairach coordinates)
-% M       - voxels - > mm matrix or size of voxels (mm)
+% XYZ     - matrix of coordinates of points (mip coordinates)
+% M       - voxels - > mip matrix or size of voxels (mm)
 % units   - defining space     [default {'mm' 'mm' 'mm'}]
 %         - Scalar specifies intensity of grid
 %_______________________________________________________________________
@@ -22,18 +22,20 @@ function spm_mip(Z,XYZ,M,units)
 % mip95 corresponds to the Talairach atlas, mip96 to the MNI templates.
 % The outline and grid are superimposed at intensity 0.4.
 %
+% A customised mip outline can be used instead of the default.
+%
 % A default colormap of 64 levels is assumed. The pointlist image is
 % scaled to fit in the interval [0.25,1]*64 for display. Flat images
 % are scaled to 1*64.
 %
-% If M or DIM are not specified, it is assumed the XYZ locations are
+% If M is not specified, it is assumed the XYZ locations are
 % in Talairach mm.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 4093 2010-10-15 12:57:53Z volkmar $
+% $Id: spm_mip.m 4404 2011-07-22 11:36:40Z volkmar $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -62,7 +64,8 @@ end
 
 %-Display format
 %==========================================================================
-load('MIP.mat');
+% load various grids, DXYZ, CXYZ, scale (see spm_mip_ui and spm_project)
+load(spm_get_defaults('stats.results.mipmat'));
 
 %-Single slice case
 %--------------------------------------------------------------------------
@@ -103,7 +106,7 @@ c    = [0 0 0 ;
         1 1 1 ] - 0.5;
 c    = c*M(1:3,1:3);
 dim  = [(max(c) - min(c)) size(mip)];
-d    = spm_project(Z,round(XYZ),dim);
+d    = spm_project(Z,round(XYZ),dim,DXYZ,CXYZ);
 mip  = max(d,Grid*mip);
 image(rot90((1 - mip)*64)); axis tight; axis off;
 

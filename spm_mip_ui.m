@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 4341 2011-06-03 11:24:02Z john $
+% $Id: spm_mip_ui.m 4404 2011-07-22 11:36:40Z volkmar $
 
 
 %==========================================================================
@@ -121,16 +121,6 @@ function varargout = spm_mip_ui(varargin)
 % xyz     - co-ordinates of voxel centre jumped to {3 x 1} vector
 % d       - (square) Euclidian distance jumped
 %
-% FORMAT spm_mip_ui('ShowGreens',xyz,h)
-% Shows green secondary cursors at location xyz
-% xyz     - {3 x 1} vector of Talairach coordinates for cursor
-%           [Default UserData of gco]
-% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
-%
-% FORMAT spm_mip_ui('HideGreens',h)
-% Hides green secondary marker points
-% h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
-%
 % FORMAT hMIPax = spm_mip_ui('FindMIPax',h)
 % Looks for / checks MIP axes 'Tag'ged 'hMIPax'... errors if no valid MIP axes
 % h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
@@ -161,10 +151,10 @@ end
 
 %-Axis offsets for 3d MIPs:
 %==========================================================================
-%-MIP pane dimensions and Talairach origin offsets
+%-MIP pane dimensions, origin offsets and #pixels per mm
 %-See spm_project.c for derivation
-DXYZ = [182 218 182];
-CXYZ = [091 127 073];
+mipmat = spm_get_defaults('stats.results.mipmat');
+load(mipmat, 'DXYZ', 'CXYZ', 'scale');
 % DMIP = [DXYZ(2)+DXYZ(1), DXYZ(1)+DXYZ(3)];
 %-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij' + rot90)
 % Transverse: [Po(1), Po(2)]
@@ -213,15 +203,22 @@ switch lower(varargin{1}), case 'display'
 
     %-Display (MIP) transformation matrix
     %----------------------------------------------------------------------
+    % Md maps various non-spatial data
+    % Ms maps spatial (mm) to pixel coordinates, it must not change
+    % mapping of non-spatial coordinates
+    % Ms is left-multiplied to Md
     if isequal(units,{'mm' 'mm' 'mm'})
         Md      = eye(4);
+        Ms      = diag([scale(1:3) 1]);
     elseif isequal(units,{'mm' 'mm' ''})
         Md      = eye(4);
         Md(3,4) = -100;  % out of field of view (MNI) 
+        Ms      = diag([scale(1:2) 1 1]);
     elseif isequal(units,{'mm' 'mm' 'ms'}) || isequal(units,{'mm' 'mm' 'Hz'})
         Md      = eye(4);
         Md(3,3) = 80 / (M(3,3)*DIM(3));
         Md(3,4) = -80 * M(3,4) / (M(3,3)*DIM(3));
+        Ms      = diag([scale(1:2) 1 1]);
     elseif isequal(units,{'Hz' 'ms' ''}) || isequal(units,{'Hz' 'Hz' ''})
         Md      = eye(4);
         Md(1,1) = -136 / (M(1,1)*DIM(1));
@@ -229,12 +226,14 @@ switch lower(varargin{1}), case 'display'
         Md(2,2) = 172 / (M(2,2)*DIM(2));
         Md(2,4) = -M(2,4)*172 / (M(2,2)*DIM(2)) - 100;
         Md(3,4) = -100;
+        Ms      = eye(4);
     elseif isequal(units,{'mm' 'mm' '%'})
         warning('Handling of data units changed: please re-estimate model.');
         units   = {'mm' 'mm' 'ms'};
         Md      = eye(4);
         Md(3,3) = 80 / (M(3,3)*DIM(3));
         Md(3,4) = -80 * M(3,4) / (M(3,3)*DIM(3));
+        Ms      = diag([scale(1:2) 1 1]);
     else
         error('Unknown data units.');
     end
@@ -251,7 +250,8 @@ switch lower(varargin{1}), case 'display'
 
     %-NB: spm_mip's `image` uses a newplot, & screws stuff without the figure.
     figure(F)
-    spm_mip(Z,Md(1:3,:)*[XYZ;ones(1,size(XYZ,2))],Md*M,units);
+    pXYZ = Ms*Md*[XYZ;ones(1,size(XYZ,2))];
+    spm_mip(Z,pXYZ(1:3,:),Ms*Md*M,units);
     hMIPim = get(gca,'Children');
 
 
@@ -269,7 +269,8 @@ switch lower(varargin{1}), case 'display'
 
     %-Create point markers
     %----------------------------------------------------------------------
-    xyz = Md(1:3,:)*[xyz(:);1];
+    xyz = Ms*Md*[xyz(:);1];
+    xyz = xyz(1:3);
     hX1r  = text(Po(1)+xyz(2),Po(2)+xyz(1),'<',...
         'Color','r','Fontsize',16,...
         'Tag','hX1r',...
@@ -339,6 +340,7 @@ switch lower(varargin{1}), case 'display'
         'Z',        Z,...
         'M',        M,...
         'Md',       Md,...
+        'Ms',       Ms,...
         'DIM',      DIM,...
         'hXr',      hXr))
 
@@ -401,24 +403,25 @@ switch lower(varargin{1}), case 'display'
         if ~any(strcmp(r,{'r','g'})), error('Invalid pointer colour spec'), end
         if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
         if nargin<2, xyz = spm_mip_ui('GetCoords',h); else xyz = varargin{2}; end
+        MD = get(h,'UserData');
         
         %-Get handles of marker points of appropriate colour from UserData of hMIPax
         %------------------------------------------------------------------
-        hX = getfield(get(h,'UserData'),['hX',r]);
+        hX = MD.(['hX',r]);
 
         %-Set marker points
         %------------------------------------------------------------------
         set(hX,'Units','Data')
         if length(hX)==1
-            tmp = get(varargin{3},'UserData');
-            vx  = sqrt(sum(tmp.M(1:3,1:3).^2));
-            tmp = tmp.M\[xyz ; 1];
+            vx  = sqrt(sum(MD.M(1:3,1:3).^2));
+            tmp = MD.M\[xyz ; 1];
             tmp = tmp(1:2).*vx(1:2)';
             set(hX,'Position',[tmp(1), tmp(2), 1])
         else
-            set(hX(1),'Position',[ Po(1) + xyz(2), Po(2) + xyz(1), 0])
-            set(hX(2),'Position',[ Po(1) + xyz(2), Po(3) - xyz(3), 0])
-            set(hX(3),'Position',[ Po(4) + xyz(1), Po(3) - xyz(3), 0])
+            pxyz = MD.Ms*[xyz(1:3);1];
+            set(hX(1),'Position',[ Po(1) + pxyz(2), Po(2) + pxyz(1), 0])
+            set(hX(2),'Position',[ Po(1) + pxyz(2), Po(3) - pxyz(3), 0])
+            set(hX(3),'Position',[ Po(4) + pxyz(1), Po(3) - pxyz(3), 0])
         end
 
 
@@ -514,6 +517,7 @@ switch lower(varargin{1}), case 'display'
             'hMIPxyz',  MD.hMIPxyz,...
             'M',        MD.M,...
             'Md',       MD.Md,...
+            'Ms',       MD.Ms,...
             'DIM',      MD.DIM,...
             'hX',       MD.hXr))
 
@@ -565,7 +569,7 @@ switch lower(varargin{1}), case 'display'
         %------------------------------------------------------------------
         MS  = get(cO,'UserData');
 
-        %-Work out where we are moving to - Use HandleGraphics to give positon
+        %-Work out where we are moving to - Use HandleGraphics to give position
         %------------------------------------------------------------------
         set(cF,'Units','pixels')
         d = get(cF,'CurrentPoint') - MS.MIPaxPos;
@@ -577,16 +581,17 @@ switch lower(varargin{1}), case 'display'
         %-Work out xyz, depending on which view is being manipulated
         %------------------------------------------------------------------
         sMarker = get(cO,'Tag');
+        pxyz = MS.Ms*[MS.xyz;1];
         if strcmp(sMarker,'hX1r')
-            xyz = [d(2) - Po(2); d(1) - Po(1); MS.xyz(3)];
+            xyz = [d(2) - Po(2); d(1) - Po(1); pxyz(3)];
         elseif strcmp(sMarker,'hX2r')
-            xyz = [MS.xyz(1); d(1) - Po(1); Po(3) - d(2)];
+            xyz = [pxyz(1); d(1) - Po(1); Po(3) - d(2)];
         elseif strcmp(sMarker,'hX3r')
-            xyz = [d(1) - Po(4); MS.xyz(2); Po(3) - d(2)];
+            xyz = [d(1) - Po(4); pxyz(2); Po(3) - d(2)];
         else
             error('Can''t work out which marker point')
         end
-        xyz = inv(MS.Md) * [xyz(:);1]; xyz = xyz(1:3);
+        xyz = inv(MS.Ms*MS.Md) * [xyz(:);1]; xyz = xyz(1:3);
         
         %-Round coordinates according to DragType & set in hMIPxyz's UserData
         %------------------------------------------------------------------
@@ -607,7 +612,8 @@ switch lower(varargin{1}), case 'display'
         %-Move marker points
         %------------------------------------------------------------------
         set(MS.hX,'Units','Data')
-        xyz2 = MS.Md(1:3,1:4) * [xyz(:);1];
+        xyz2 = MS.Ms * MS.Md * [xyz(:);1];
+        xyz2 = xyz2(1:3);
         set(MS.hX(1),'Position',[ Po(1) + xyz2(2), Po(2) + xyz2(1), 0])
         set(MS.hX(2),'Position',[ Po(1) + xyz2(2), Po(3) - xyz2(3), 0])
         set(MS.hX(3),'Position',[ Po(4) + xyz2(1), Po(3) - xyz2(3), 0])
