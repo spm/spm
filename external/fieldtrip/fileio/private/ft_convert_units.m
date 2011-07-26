@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 3212 2011-03-24 22:35:57Z jansch $
+% $Id: ft_convert_units.m 3886 2011-07-20 13:58:47Z jansch $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -187,6 +187,11 @@ if isfield(obj, 'transform'),
   obj.transform = H * obj.transform;
 end
 
+if isfield(obj, 'transformorig'),
+  H = diag([scale scale scale 1]);
+  obj.transformorig = H * obj.transformorig;
+end
+    
 % remember the unit
 obj.unit = target;
 

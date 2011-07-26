@@ -71,7 +71,7 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 3766 2011-07-04 10:44:39Z eelspa $
+% $Id: ft_redefinetrial.m 3826 2011-07-12 08:23:26Z jansch $
 
 ft_defaults
 
@@ -273,7 +273,7 @@ elseif ~isempty(cfg.trl)
   end
 elseif ~isempty(cfg.length)
   
-  data = ft_checkdata(data, 'hastrialdef', 'yes');
+  data = ft_checkdata(data, 'hassampleinfo', 'yes');
   
   %create dummy trl-matrix and recursively call ft_redefinetrial
   nsmp    = round(cfg.length*data.fsample);
@@ -321,7 +321,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_redefinetrial.m 3766 2011-07-04 10:44:39Z eelspa $';
+cfg.version.id = '$Id: ft_redefinetrial.m 3826 2011-07-12 08:23:26Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

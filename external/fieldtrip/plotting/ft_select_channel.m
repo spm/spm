@@ -57,7 +57,7 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 2214 2010-11-28 09:52:48Z arjsto $
+% $Id: ft_select_channel.m 3866 2011-07-18 15:31:48Z craric $
 
 % get optional input arguments
 multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
@@ -90,7 +90,7 @@ y     = info.y;
 label = info.label;
 
 % compute a tolerance measure
-distance = dist([x y]');
+distance = sqrt(abs(sum([x y]'.*[x y]',1))); 
 distance = triu(distance, 1);
 distance = distance(:);
 distance = distance(distance>0);

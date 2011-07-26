@@ -34,7 +34,7 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterstat.m 3002 2011-03-01 07:29:01Z arjsto $
+% $Id: clusterstat.m 3876 2011-07-20 08:04:29Z jorhor $
 
 % set the defaults
 if ~isfield(cfg,'orderedstats'),   cfg.orderedstats = 'no';    end
@@ -517,8 +517,8 @@ elseif strcmp(cfg.avgoverchan, 'yes')
 end
 channeighbstructmat = false(nchan,nchan);
 for chan=1:length(cfg.neighbours)
-    [seld] = match_str(cfg.channel, cfg.neighbours{chan}.label);
-    [seln] = match_str(cfg.channel, cfg.neighbours{chan}.neighblabel);
+    [seld] = match_str(cfg.channel, cfg.neighbours(chan).label);
+    [seln] = match_str(cfg.channel, cfg.neighbours(chan).neighblabel);
     if isempty(seld)
         % this channel was not present in the data
         continue;

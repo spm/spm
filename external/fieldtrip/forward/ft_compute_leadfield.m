@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 3716 2011-06-21 11:25:51Z johzum $
+% $Id: ft_compute_leadfield.m 3893 2011-07-21 15:55:49Z crimic $
 
 persistent warning_issued;
 
@@ -429,7 +429,10 @@ elseif iseeg
       lf = eeg_halfspace_medium_leadfield(pos, sens.pnt, vol);
       
     case 'halfspace_monopole'
-      lf = eeg_halfspace_monopole(pos, sens.pnt, vol);      
+      lf = eeg_halfspace_monopole(pos, sens.pnt, vol);  
+      
+    case 'strip_monopole'
+      lf = eeg_strip_monopole(pos, sens.pnt, vol);          
 
     case 'simbio'
       lf = leadfield_simbio(pos, sens, vol);

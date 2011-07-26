@@ -85,7 +85,7 @@ function [mri] = ft_volumerealign(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 3714 2011-06-20 14:19:06Z jansch $
+% $Id: ft_volumerealign.m 3888 2011-07-20 14:25:23Z jansch $
 
 ft_defaults
 
@@ -462,7 +462,7 @@ if ~isempty(realign)
   mri.transform = realign * mri.transform;
   mri.coordsys  = coordsys;
 else
-  warning('no coordinate system reallignment has been done');
+  warning('no coordinate system realignment has been done');
 end
 
 if exist('pnt', 'var')
@@ -478,7 +478,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 3714 2011-06-20 14:19:06Z jansch $';
+cfg.version.id = '$Id: ft_volumerealign.m 3888 2011-07-20 14:25:23Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
@@ -487,6 +487,8 @@ cfg.version.matlab = version();
 cfg.callinfo.proctime = toc(ftFuncTimer);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+
+if isfield(mri, 'cfg'), cfg.previous = mri.cfg; end
 
 % remember the configuration
 mri.cfg = cfg;

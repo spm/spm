@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3782 2011-07-06 14:46:50Z roboos $
+% $Id: ft_checkdata.m 3881 2011-07-20 09:39:41Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -906,6 +906,8 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'fullfast'),
   
   if isfield(data, 'trialinfo'),  data = rmfield(data, 'trialinfo'); end;
   if isfield(data, 'sampleinfo'), data = rmfield(data, 'sampleinfo'); end;
+  if isfield(data, 'cumsumcnt'),  data = rmfield(data, 'cumsumcnt');  end;
+  if isfield(data, 'cumtapcnt'),  data = rmfield(data, 'cumtapcnt');  end;
 
 end % convert to the requested bivariate representation
 

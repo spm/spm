@@ -1,9 +1,10 @@
-function [varargout] = ft_componentbrowser(cfg, comp)
+function [varargout] = ft_componentbrowser_old(cfg, comp)
 
 % FT_COMPONENTBROWSER plots topography and activations of ICA components
+% This function is deprecated, use FT_DATABROWSER with cfg.viewmode='template' instead.
 %
 % Use as
-%   ft_componentbrowser(cfg, comp)
+%   ft_componentbrowser_old(cfg, comp)
 % where comp is a FieldTrip structure obtained from FT_COMPONENTANALYSIS.
 %
 % The configuration has the following parameters:
@@ -37,7 +38,7 @@ function [varargout] = ft_componentbrowser(cfg, comp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentbrowser.m 3595 2011-05-31 08:28:31Z jorhor $
+% $Id: ft_componentbrowser_old.m 3862 2011-07-14 13:41:01Z jorhor $
 
 warning('FT_COMPONENTBROWSER is deprecated, please use FT_DATABROWSER with cfg.viewmode = ''component'' instead.')
 

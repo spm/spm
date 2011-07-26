@@ -12,11 +12,13 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %   cfg.channel     = Nx1 cell-array with selection of channels (default = 'all'),
 %                     see FT_CHANNELSELECTION for details
 %   cfg.latency     = [begin end] in seconds or 'all' (default = 'all')
+%   cfg.trials      = trials to be included or 'all'  (default = 'all')
 %   cfg.frequency   = [begin end], can be 'all'       (default = 'all')
 %   cfg.avgoverchan = 'yes' or 'no'                   (default = 'no')
 %   cfg.avgovertime = 'yes' or 'no'                   (default = 'no')
 %   cfg.avgoverfreq = 'yes' or 'no'                   (default = 'no')
 %   cfg.parameter   = string                          (default = 'powspctrm')
+%   cfg.neighbours  = see FT_NEIGHBOURSELECTION       (no default, required if cfg.correctm='cluster')
 %
 % Furthermore, the configuration should contain
 %   cfg.method       = different methods for calculating the significance probability and/or critical value
@@ -62,7 +64,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 3733 2011-06-29 08:02:30Z jorhor $
+% $Id: ft_freqstatistics.m 3876 2011-07-20 08:04:29Z jorhor $
 
 ft_defaults
 
@@ -81,6 +83,7 @@ cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
 cfg.parameter   = ft_getopt(cfg, 'parameter',   'powspctrm');
 cfg.channel     = ft_getopt(cfg, 'channel',     'all');
 cfg.latency     = ft_getopt(cfg, 'latency',     'all');
+cfg.trials      = ft_getopt(cfg, 'trials',      'all');
 cfg.frequency   = ft_getopt(cfg, 'frequency',   'all');
 cfg.avgoverchan = ft_getopt(cfg, 'avgoverchan', 'no');
 cfg.avgoverfreq = ft_getopt(cfg, 'avgoverfreq', 'no');
@@ -94,8 +97,13 @@ end
 
 % check whether channel neighbourhood information is needed and whether
 % this is present
-if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster') && ~isfield(cfg,'neighbours')
-  error('if you want to use clustering for multiple comparison correction you have to specify the spatial neighbourhood structure of your channels. See ft_neighbourselection');
+if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster') 
+    if ~isfield(cfg,'neighbours')
+        error('if you want to use clustering for multiple comparison correction you have to specify the spatial neighbourhood structure of your channels. See ft_neighbourselection');
+    elseif iscell(cfg.neighbours)
+        warning('Neighbourstructure is in old format - converting to structure array');
+        cfg.neighbours = fixneighbours(cfg.neighbours);
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -188,6 +196,11 @@ previous = cell(1,Ndata);
 for i=1:Ndata
   varargin{i} = ft_selectdata(varargin{i}, 'channel', cfg.channel,   'avgoverchan', cfg.avgoverchan);
   varargin{i} = ft_selectdata(varargin{i}, 'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq);
+  if Ndata==1 && ~ischar(cfg.trials)
+    varargin{i} = ft_selectdata(varargin{i}, 'rpt',     cfg.trials);
+  elseif Ndata>1 && ~ischar(cfg.trials)
+    error('subselection of trials is only allowed with a single data structure as input');
+  end
   if hastime,
     varargin{i} = ft_selectdata(varargin{i}, 'toilim', cfg.latency, 'avgovertime', cfg.avgovertime);
   end
@@ -314,7 +327,7 @@ stat.dimord = cfg.dimord; %FIXME squeeze out the appropriate dimords if avgoverf
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 3733 2011-06-29 08:02:30Z jorhor $';
+cfg.version.id = '$Id: ft_freqstatistics.m 3876 2011-07-20 08:04:29Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

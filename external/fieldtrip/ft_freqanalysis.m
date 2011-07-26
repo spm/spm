@@ -164,7 +164,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 3775 2011-07-06 09:36:16Z roboos $
+% $Id: ft_freqanalysis.m 3867 2011-07-19 07:08:50Z jansch $
 
 ft_defaults
 
@@ -791,7 +791,8 @@ else
   % accessing this field here is needed for the configuration tracking
   % by accessing it once, it will not be removed from the output cfg
   cfg.outputfile;
-  
+  cfg.outputlock;
+ 
   % get the output cfg
   cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
   
@@ -804,7 +805,7 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 3775 2011-07-06 09:36:16Z roboos $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 3867 2011-07-19 07:08:50Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.callinfo.matlab = version();

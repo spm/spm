@@ -25,7 +25,7 @@ function P2 = get_mirror_pos(P1,vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: get_mirror_pos.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: get_mirror_pos.m 3889 2011-07-21 13:52:32Z crimic $
 
 P2 = [];
 
@@ -52,6 +52,6 @@ else
   d = -dot(ori, plane(:,1:3)-P1(:,1:3), 2);
 
   % symmetric point
-  P2 = P1 + 2*d*ori;
+  P2 = P1 - 2*d*ori;
 end
 

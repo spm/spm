@@ -21,7 +21,7 @@ function ft_documentationreference(outdir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationreference.m 2829 2011-02-04 09:51:27Z jansch $
+% $Id: ft_documentationreference.m 3877 2011-07-20 08:05:09Z eelspa $
 
 ft_defaults
 
@@ -66,7 +66,10 @@ f12 = {f12.name}';
 f13 = dir(fullfile(p, 'connectivity', '*.m'));
 f13 = {f13.name}';
 
-funname = cat(1, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11);
+f14 = dir(fullfile(p, 'contrib', '*.m'));
+f14 = {f14.name}';
+
+funname = cat(1, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14);
 
 for i=1:length(funname)
   [p, funname{i}, x] = fileparts(funname{i});

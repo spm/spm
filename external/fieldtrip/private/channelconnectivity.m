@@ -13,8 +13,8 @@ else
         nchan = length(cfg.channel);
         connectivity = false(nchan,nchan);
         for chan=1:length(cfg.neighbours)
-            [seld] = match_str(cfg.channel, cfg.neighbours{chan}.label);
-            [seln] = match_str(cfg.channel, cfg.neighbours{chan}.neighblabel);
+            [seld] = match_str(cfg.channel, cfg.neighbours(chan).label);
+            [seln] = match_str(cfg.channel, cfg.neighbours(chan).neighblabel);
             if isempty(seld)
                 % this channel was not present in the data
                 continue;
@@ -23,13 +23,12 @@ else
                 connectivity(seld, seln) = true;
             end
         end
-    else
-        
+    else        
         nchan = length(data.label);
         connectivity = false(nchan,nchan);
         for chan=1:length(cfg.neighbours)
-            [seld] = match_str(data.label, cfg.neighbours{chan}.label);
-            [seln] = match_str(data.label, cfg.neighbours{chan}.neighblabel);
+            [seld] = match_str(data.label, cfg.neighbours(chan).label);
+            [seln] = match_str(data.label, cfg.neighbours(chan).neighblabel);
             if isempty(seld)
                 % this channel was not present in the data
                 continue;

@@ -16,8 +16,8 @@ function [interp] = ft_megplanar(cfg, data)
 %   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
 %
 % The methods orig, sincos and fitplane are all based on a neighbourhood
-% interpolation. For these methods you can specify
-%   cfg.neighbourdist  = default is 4 cm
+% interpolation. For these methods you need to specify
+%   cfg.neighbours     = neighbourhood structure, see FT_NEIGHBOURSELECTION
 %
 % In the 'sourceproject' method a minumum current estimate is done using a
 % large number of dipoles that are placed in the upper layer of the brain
@@ -51,7 +51,7 @@ function [interp] = ft_megplanar(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_COMBINEPLANAR
+% See also FT_COMBINEPLANAR, FT_NEIGHBOURSELECTION
 
 % This function depends on FT_PREPARE_BRAIN_SURFACE which has the following options:
 % cfg.headshape  (default set in FT_MEGPLANAR: cfg.headshape = 'headmodel'), documented
@@ -86,7 +86,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 3766 2011-07-04 10:44:39Z eelspa $
+% $Id: ft_megplanar.m 3876 2011-07-20 08:04:29Z jorhor $
 
 ft_defaults
 
@@ -99,6 +99,12 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 % set defaults
 if ~isfield(cfg, 'inputfile'),      cfg.inputfile  = [];          end
 if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];          end
+cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
+
+if iscell(cfg.neighbours)
+    warning('Neighbourstructure is in old format - converting to structure array');
+    cfg.neighbours = fixneighbours(cfg.neighbours);
+end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -131,16 +137,6 @@ end
 % set the default configuration
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';             end
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';              end
-% use a smart default for the distance
-if ~isfield(cfg, 'neighbourdist'),
-  if     isfield(data.grad, 'unit') && strcmp(data.grad.unit, 'cm')
-    cfg.neighbourdist = 4;
-  elseif isfield(data.grad, 'unit') && strcmp(data.grad.unit, 'mm')
-    cfg.neighbourdist = 40;
-  else
-    % don't provide a default in case the dimensions of the sensor array are unknown
-  end
-end
 if ~isfield(cfg, 'planarmethod'),  cfg.planarmethod = 'sincos';     end
 if strcmp(cfg.planarmethod, 'sourceproject')
   if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end % empty will result in the vol being used
@@ -164,16 +160,7 @@ if ~strcmp(cfg.trials, 'all')
   data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
-if     strcmp(cfg.planarmethod, 'orig')
-  montage = megplanar_orig(cfg, data.grad);
-  
-elseif strcmp(cfg.planarmethod, 'sincos')
-  montage = megplanar_sincos(cfg, data.grad);
-  
-elseif strcmp(cfg.planarmethod, 'fitplane')
-  montage = megplanar_fitplane(cfg, data.grad);
-  
-elseif strcmp(cfg.planarmethod, 'sourceproject')
+if strcmp(cfg.planarmethod, 'sourceproject')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Do an inverse computation with a simplified distributed source model
   % and compute forward again with the axial gradiometer array replaced by
@@ -252,19 +239,44 @@ elseif strcmp(cfg.planarmethod, 'sourceproject')
   end
   
 else
-  error('unknown method for computation of planar gradient');
-end % cfg.planarmethod
-
-if any(strcmp(cfg.planarmethod, {'orig', 'sincos', 'fitplane'}))
-  % apply the linear transformation to the data
-  interp  = ft_apply_montage(data, montage, 'keepunused', 'yes');
-  % also apply the linear transformation to the gradiometer definition
-  interp.grad = ft_apply_montage(data.grad, montage, 'balancename', 'planar', 'keepunused', 'yes');
-  % ensure that the old sensor type does not stick around, because it is now invalid
-  % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
-  if isfield(interp.grad, 'type')
-    interp.grad = rmfield(interp.grad, 'type');
-  end
+    % generically call megplanar_orig megplanar_sincos or megplanar_fitplante
+    fun = ['megplanar_'  cfg.planarmethod];
+    if ~exist(fun, 'file')
+        error('unknown method for computation of planar gradient');
+    end
+    
+    [sens.pnt, sens.ori, sens.label] = channelposition(data.grad);
+    cfg.channel = ft_channelselection(cfg.channel, sens.label);
+    
+    cfg.neighbsel = channelconnectivity(cfg);
+    
+    % determine
+    fprintf('average number of neighbours is %.2f\n', mean(sum(cfg.neighbsel)));
+    
+    Ngrad = length(sens.label);
+    cfg.distance = zeros(Ngrad,Ngrad);
+    
+    for i=1:Ngrad
+        j=find(cfg.neighbsel(i, :));
+        d = sqrt(sum((sens.pnt(j,:) - repmat(sens.pnt(i, :), numel(j), 1)).^2, 2));
+        cfg.distance(i,j) = d;
+        cfg.distance(j,i) = d;
+    end
+    
+    fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), data.grad.unit);
+    fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), data.grad.unit);
+ 
+    montage = eval([fun '(cfg, data.grad)']);
+    
+    % apply the linear transformation to the data
+    interp  = ft_apply_montage(data, montage, 'keepunused', 'yes');
+    % also apply the linear transformation to the gradiometer definition
+    interp.grad = ft_apply_montage(data.grad, montage, 'balancename', 'planar', 'keepunused', 'yes');
+    % ensure that the old sensor type does not stick around, because it is now invalid
+    % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
+    if isfield(interp.grad, 'type')
+        interp.grad = rmfield(interp.grad, 'type');
+    end
 end
 
 if istlck
@@ -282,7 +294,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 3766 2011-07-04 10:44:39Z eelspa $';
+cfg.version.id   = '$Id: ft_megplanar.m 3876 2011-07-20 08:04:29Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

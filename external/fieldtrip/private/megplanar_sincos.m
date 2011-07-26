@@ -21,29 +21,13 @@ function montage = megplanar_sincos(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: megplanar_sincos.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: megplanar_sincos.m 3830 2011-07-12 09:46:10Z jorhor $
+
+neighbsel = cfg.neighbsel;
+distance = cfg.distance;
 
 [pnt, ori, lab] = channelposition(grad);
 Ngrad = length(lab);
-distance = zeros(Ngrad,Ngrad);
-
-for i=1:Ngrad
-  for j=(i+1):Ngrad
-    distance(i,j) = norm(pnt(i,:)-pnt(j,:));
-    distance(j,i) = distance(i,j);
-  end
-end
-
-fprintf('minimum distance between gradiometers is %6.2f %s\n', min(distance(find(distance~=0))), grad.unit);
-fprintf('maximum distance between gradiometers is %6.2f %s\n', max(distance(find(distance~=0))), grad.unit);
-
-% select the channels that are neighbours, channel is not a neighbour of itself
-neighbsel = distance<cfg.neighbourdist;
-for i=1:Ngrad
-  neighbsel(i,i) = 0;
-end
-fprintf('average number of neighbours is %f\n', sum(neighbsel(:))./size(neighbsel,1));
-
 
 gradH = zeros(Ngrad, Ngrad);
 gradV = zeros(Ngrad, Ngrad);

@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 3770 2011-07-04 11:48:03Z eelspa $
+% $Id: ft_appenddata.m 3896 2011-07-25 11:59:11Z jansch $
 
 ft_defaults
 
@@ -217,8 +217,8 @@ elseif cattrial
   data = varargin{1};
   data.trial  = {};
   data.time   = {};
-  data.sampleinfo = [];
-  if hastrialinfo, data.trialinfo = []; end;
+  if hassampleinfo, data.sampleinfo = []; end
+  if hastrialinfo,  data.trialinfo  = []; end;
   for i=1:Ndata
     data.trial    = cat(2, data.trial,  varargin{i}.trial(:)');
     data.time     = cat(2, data.time,   varargin{i}.time(:)');
@@ -249,9 +249,9 @@ elseif catlabel
     if hassampleinfo && ~all(data.sampleinfo(:)==varargin{i}.sampleinfo(:))
       removesampleinfo = 1;
     end
-    if hastrialinfo && ~all(data.trialinfo(:)==varargin{i}.trialinfo(:))
-      removetrialinfo = 1;
-    end
+    %if hastrialinfo && ~all(data.trialinfo(:)==varargin{i}.trialinfo(:))
+    %  removetrialinfo = 1;
+    %end
   end
   
   for j=1:Ntrial
@@ -308,7 +308,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 3770 2011-07-04 11:48:03Z eelspa $';
+cfg.version.id = '$Id: ft_appenddata.m 3896 2011-07-25 11:59:11Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

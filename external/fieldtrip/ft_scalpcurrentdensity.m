@@ -75,7 +75,7 @@ function [scd] = ft_scalpcurrentdensity(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 3806 2011-07-08 09:14:58Z jorhor $
+% $Id: ft_scalpcurrentdensity.m 3876 2011-07-20 08:04:29Z jorhor $
 
 ft_defaults
 
@@ -90,7 +90,13 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';       end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];       end
 if ~isfield(cfg, 'outputfile'),    cfg.outputfile = [];      end
 
-if strcmp(cfg.method, 'hjorth'),   cfg = ft_checkconfig(cfg, 'required', {'neighbours'}); end
+if strcmp(cfg.method, 'hjorth')
+    cfg = ft_checkconfig(cfg, 'required', {'neighbours'});    
+    if iscell(cfg.neighbours)
+        warning('Neighbourstructure is in old format - converting to structure array');
+        cfg.neighbours = fixneighbours(cfg.neighbours);
+    end
+end
 
 % load optional given inputfile as data
 hasdata = (nargin>1);
@@ -180,15 +186,15 @@ elseif strcmp(cfg.method, 'hjorth')
   labelnew = {};
   labelorg = {};
   for i=1:length(cfg.neighbours)
-    labelnew  = cat(2, labelnew, cfg.neighbours{i}.label);
-    labelorg = cat(2, labelorg, cfg.neighbours{i}.neighblabel(:)');
+    labelnew  = cat(2, labelnew, cfg.neighbours(i).label);
+    labelorg = cat(2, labelorg, cfg.neighbours(i).neighblabel(:)');
   end
   labelorg = cat(2, labelnew, labelorg);
   labelorg = unique(labelorg);
   tra = zeros(length(labelnew), length(labelorg));
   for i=1:length(cfg.neighbours)
-    thischan   = match_str(labelorg, cfg.neighbours{i}.label);
-    thisneighb = match_str(labelorg, cfg.neighbours{i}.neighblabel);
+    thischan   = match_str(labelorg, cfg.neighbours(i).label);
+    thisneighb = match_str(labelorg, cfg.neighbours(i).neighblabel);
     tra(i, thischan) = 1;
     tra(i, thisneighb) = -1/length(thisneighb);
   end
@@ -234,7 +240,7 @@ end
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3806 2011-07-08 09:14:58Z jorhor $';
+cfg.version.id   = '$Id: ft_scalpcurrentdensity.m 3876 2011-07-20 08:04:29Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

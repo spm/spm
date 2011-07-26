@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 3725 2011-06-22 10:33:44Z johzum $
+% $Id: statistics_wrapper.m 3834 2011-07-12 10:03:54Z jorhor $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -238,7 +238,8 @@ elseif isfreq || istimelock
 
   % add gradiometer/electrode information to the configuration
   if ~isfield(cfg,'neighbours') && isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
-    cfg.neighbours = ft_neighbourselection(cfg,varargin{1});
+    error('You need to specify a neighbourstructure');
+    %cfg.neighbours = ft_neighbourselection(cfg,varargin{1});
   end
 
 end

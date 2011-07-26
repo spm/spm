@@ -24,7 +24,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_combined_ds.m 2892 2011-02-16 13:34:39Z crimic $
+% $Id: read_combined_ds.m 3865 2011-07-18 10:31:26Z jansch $
 
 needhdr = nargin==1 || isempty(hdr);
 needdat = nargin>1;
@@ -145,7 +145,7 @@ if needdat
 
   for i=1:nchans
     thischan = chanindx(i);
-    tmp = read_data(fname{thischan}, 'header', filehdr(thischan), 'dataformat', ftype{thischan}, 'begsample', begsample, 'endsample', endsample);
+    tmp = ft_read_data(fname{thischan}, 'header', filehdr(thischan), 'dataformat', ftype{thischan}, 'begsample', begsample, 'endsample', endsample);
     dat(i,:) = tmp;
   end
 end

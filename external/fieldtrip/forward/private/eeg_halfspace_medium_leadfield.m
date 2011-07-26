@@ -25,7 +25,7 @@ function [lf] = eeg_halfspace_medium_leadfield(rd, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_halfspace_medium_leadfield.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: eeg_halfspace_medium_leadfield.m 3895 2011-07-24 15:16:53Z crimic $
 
 siz = size(rd);
 if any(siz==1)
@@ -75,4 +75,35 @@ for i=1:Ndipoles
   else
     lf(:,(1:3) + 3*(i-1)) = (r1 ./ [R1 R1 R1]) + (r2 ./ [R2 R2 R2]);
   end
+end
+
+function P2 = get_mirror_pos(P1,vol)
+% calculates the position of a point symmetric to pnt with respect to a plane
+
+P2 = [];
+
+% define the plane
+pnt = vol.pnt;
+ori = vol.ori; % already normalized
+
+if abs(dot(P1-pnt,ori))<eps
+  warning(sprintf ('point %f %f %f lies in the symmetry plane',P1(1),P1(2),P1(3)))
+  P2 = P1;
+else
+  % define the plane in parametric form
+  % define a non colinear vector vc with respect to the plane normal
+  vc = [1 0 0];    
+  if abs(cross(ori, vc, 2))<eps
+      vc = [0 1 0];
+  end
+  % define plane's direction vectors
+  v1 = cross(ori, vc, 2);  v1 = v1/norm(v1);
+  v2 = cross(pnt, ori, 2); v2 = v2/norm(v2);
+  plane = [pnt v1 v2];
+ 
+  % distance plane-point P1
+  d = abs(dot(ori, plane(:,1:3)-P1(:,1:3), 2));
+
+  % symmetric point
+  P2 = P1 + 2*d*ori;
 end

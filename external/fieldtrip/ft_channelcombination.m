@@ -42,7 +42,7 @@ function [collect] = ft_channelcombination(channelcmb, datachannel, includeauto)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelcombination.m 3820 2011-07-11 09:18:33Z jansch $
+% $Id: ft_channelcombination.m 3825 2011-07-11 18:06:59Z jansch $
 
 ft_defaults
 
@@ -69,10 +69,14 @@ if numel(channelcmb)==2 && iscell(channelcmb{1}) && iscell(channelcmb{2})
   channelcmb{2} = ft_channelselection(channelcmb{2}, datachannel);
   n1  = numel(channelcmb{1});
   n2  = numel(channelcmb{2});
-  tmp = cell(n1*n2,2);
+  tmp = cell(n1*n2+n1+n2,2);
   for k = 1:n1
     tmp((k-1)*n2+(1:n2), 1) = channelcmb{1}(k);
     tmp((k-1)*n2+(1:n2), 2) = channelcmb{2};
+    tmp(n2*k+(1:n1),     1) = channelcmb{1};
+    tmp(n2*k+(1:n1),     2) = channelcmb{1};
+    tmp(n2*k+n1+(1:n2),  1) = channelcmb{2};
+    tmp(n2*k+n1+(1:n2),  2) = channelcmb{2};
   end
   collect = tmp;
   return;

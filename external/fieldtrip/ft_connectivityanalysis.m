@@ -84,7 +84,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 3818 2011-07-11 08:07:32Z jansch $
+% $Id: ft_connectivityanalysis.m 3875 2011-07-20 06:31:44Z jansch $
 
 %ft_defaults
 
@@ -153,7 +153,6 @@ if isfield(data, 'label'),
     selchan         = [selchan; cfg.partchannel];
   end
   data = ft_selectdata(data, 'channel', unique(selchan));
-
 elseif isfield(data, 'labelcmb')
   cfg.channel = ft_channelselection(cfg.channel, unique(data.labelcmb(:)));
   if ~isempty(cfg.partchannel)
@@ -292,7 +291,6 @@ end
 % FIXME throw an error if no replicates and cfg.method='plv'
 % FIXME trial selection has to be implemented still
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % data bookkeeping:
 % check whether the required inparam is present in the data
@@ -330,7 +328,6 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
           %if possible
           data   = ft_checkdata(data, 'cmbrepresentation', 'fullfast');
           hasrpt = 0;
-          hasrpt = 0;
         elseif isfield(data, 'powspctrm')
           data = ft_checkdata(data, 'cmbrepresentation', 'full');
         end
@@ -339,7 +336,7 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
-           tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
+           %tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
            try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'block');     end
            try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'blockindx'); end
 %         end
@@ -457,7 +454,6 @@ switch cfg.method
   case 'coh'
     % coherence (unsquared), if cfg.complex = 'imag' imaginary part of
     % coherency
-    
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
               'pownorm',  normpow,     'hasjack', hasjack};
     if ~isempty(cfg.pchanindx),
@@ -644,6 +640,7 @@ switch cfg.method
       end
       %fs = cfg.fsample; %FIXME do we really need this, or is this related to how
       %noisecov is defined and normalised?
+      if ~exist('powindx', 'var'), powindx = []; end
       fs = 1;
       [datout, varout, nrpt] = ft_connectivity_instantaneous(data.transfer, data.noisecov, data.crsspctrm, fs, hasjack, powindx);
       outparam = 'instantspctrm';
@@ -834,7 +831,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 3818 2011-07-11 08:07:32Z jansch $';
+cfg.version.id   = '$Id: ft_connectivityanalysis.m 3875 2011-07-20 06:31:44Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();

@@ -28,46 +28,6 @@ function [sens] = ft_transform_sens(transform, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_transform_sens.m 3517 2011-05-11 10:26:44Z roboos $
+% $Id: ft_transform_sens.m 3884 2011-07-20 13:37:03Z jansch $
 
-if ~all(size(transform)==4) || any(transform(4,:) ~= [0 0 0 1])
-  error('invalid transformation matrix');
-end
-
-if ft_senstype(sens, 'eeg')
-
-  % any normal coordinate transformation is in principle fine
-  % apply the translation, rotation and possibly scaling to the electrode positions
-  sens.pnt = apply(transform, sens.pnt);
-
-elseif ft_senstype(sens, 'meg')
-
-  % only a rigid body transformation (translation+rotation) without rescaling is allowed
-  rotation = eye(4);
-  rotation(1:3,1:3) = transform(1:3,1:3);
-
-  if abs(det(rotation)-1)>10*eps
-    error('only a rigid body transformation without rescaling is allowed for MEG sensors');
-  end
-
-  % apply the translation and rotation to the coil positions
-  sens.pnt = apply(transform, sens.pnt);
-  % the sensor coil orientations should be rotated but not translated
-  sens.ori = apply(rotation, sens.ori);
-
-else
-  error('unsupported or unrecognized type of sensors');
-end
-
-if isfield(sens, 'fid') && isfield(sens.fid, 'pnt')
-  % also apply the translation, rotation and scaling to the fiducial points
-  sens.fid.pnt = apply(transform, sens.pnt);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION that applies the homogenous transformation
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [new] = apply(transform, old)
-old(:,4) = 1;
-new = old * transform';
-new = new(:,1:3);
+sens = ft_transform_geometry(transform, sens);
