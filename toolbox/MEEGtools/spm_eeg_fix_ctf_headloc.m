@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 4250 2011-03-15 14:50:04Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 4408 2011-07-26 12:13:43Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -74,7 +74,9 @@ if ~isfield(S, 'quickfix')
     
     tmpdat  = D(D.indchannel(hlc_chan_label), :);
     
-    cont_fid  = permute(reshape(tmpdat', [], 3, 3), [1 3 2]);
+    tmpind = find(~any(tmpdat==0));
+    
+    cont_fid  = permute(reshape(tmpdat(:, tmpind)', [], 3, 3), [1 3 2]);
     
     if isfield(S, 'valid_fid')
         valid_fid = S.valid_fid;
@@ -111,13 +113,13 @@ if ~isfield(S, 'quickfix')
     end
     %%
     for i = 1:size(tmpdat, 1)
-        if any(~OK(i, :))
-            tmpdat(i, :) = interp1(D.time(OK(i, :)), tmpdat(i, OK(i, :)),  D.time, 'linear', 'extrap');
+        if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))
+            tmpdat(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
         end
     end
     D(D.indchannel(hlc_chan_label), :) = tmpdat;
     
-    dewarfid = 100*reshape(median(tmpdat, 2), 3, 3);
+    dewarfid = 100*reshape(median(tmpdat(:, tmpind), 2), 3, 3);
     %%
     D.origheader.hc.dewar = dewarfid;
     
@@ -186,7 +188,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spm_eeg_fix_ctf_headloc.m 4250 2011-03-15 14:50:04Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 4408 2011-07-26 12:13:43Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
