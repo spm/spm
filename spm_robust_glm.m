@@ -18,7 +18,7 @@ function [B, W] = spm_robust_glm(Y, X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner,  Vladimir Litvak
-% $Id: spm_robust_glm.m 3212 2009-06-19 15:20:48Z vladimir $
+% $Id: spm_robust_glm.m 4407 2011-07-26 12:13:00Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -48,7 +48,7 @@ end
 %--------------------------------------------------------------------------
 
 if size(X, 1) ~= size(Y, 1)
-    error('The number of rows in the design matriz should match dimension of interest.');
+    error('The number of rows in the design matrix should match dimension of interest.');
 end
 
 H = diag(X*inv(X'*X)*X');
