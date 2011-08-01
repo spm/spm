@@ -1,6 +1,6 @@
 function [A] = spm_matrix(P, order)
-% returns an affine transformation matrix
-% FORMAT [A] = spm_matrix(P, order)
+% Return an affine transformation matrix
+% FORMAT [A] = spm_matrix(P [,order])
 % P(1)  - x translation
 % P(2)  - y translation
 % P(3)  - z translation
@@ -14,10 +14,10 @@ function [A] = spm_matrix(P, order)
 % P(11) - y affine
 % P(12) - z affine
 %
-% order (optional) application order of transformations.
+% order - application order of transformations [Default: 'T*R*Z*S']
 %
 % A     - affine transformation matrix
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_matrix returns a matrix defining an orthogonal linear (translation,
 % rotation, scaling or affine) transformation given a vector of
@@ -37,59 +37,70 @@ function [A] = spm_matrix(P, order)
 %
 % SPM uses a PRE-multiplication format i.e. Y = A*X where X and Y are 4 x n
 % matrices of n coordinates.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% See also: spm_imatrix.m
+%__________________________________________________________________________
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_matrix.m 1149 2008-02-14 14:29:04Z volkmar $
+% $Id: spm_matrix.m 4414 2011-08-01 17:51:40Z guillaume $
 
 
-% pad P with 'null' parameters
-%---------------------------------------------------------------------------
+%-Special case: translation only
+%--------------------------------------------------------------------------
+if numel(P) == 3
+    A = eye(4);
+    A(1:3,4) = P(:);
+    return;
+end
+    
+%-Pad P with 'null' parameters
+%--------------------------------------------------------------------------
 q  = [0 0 0 0 0 0 1 1 1 0 0 0];
 P  = [P q((length(P) + 1):12)];
 
-% default multiplication order if not specified
-%---------------------------------------------------------------------------
-if nargin < 2
-    order = 'T*R*Z*S';
-end;
-
+%-Translation / Rotation / Scale / Shear
+%--------------------------------------------------------------------------
 T  =   [1   0   0   P(1);
         0   1   0   P(2);
         0   0   1   P(3);
         0   0   0   1];
 
-R1  =  [1    0      0          0;
-        0    cos(P(4))  sin(P(4))  0;
-        0   -sin(P(4))  cos(P(4))  0;
-        0    0      0          1];
+R1  =  [1   0           0           0;
+        0   cos(P(4))   sin(P(4))   0;
+        0  -sin(P(4))   cos(P(4))   0;
+        0   0           0           1];
 
-R2  =  [cos(P(5))  0    sin(P(5))  0;
-        0          1    0      0;
-       -sin(P(5))  0    cos(P(5))  0;
-        0          0    0          1];
+R2  =  [cos(P(5))   0   sin(P(5))   0;
+        0           1   0           0;
+       -sin(P(5))   0   cos(P(5))   0;
+        0           0   0           1];
 
-R3  =  [cos(P(6))   sin(P(6))   0  0;
-       -sin(P(6))   cos(P(6))   0  0;
-        0           0           1  0;
-        0           0       0  1];
+R3  =  [cos(P(6))   sin(P(6))   0   0;
+       -sin(P(6))   cos(P(6))   0   0;
+        0           0           1   0;
+        0           0           0   1];
 
 R   = R1*R2*R3;
 
-Z   =  [P(7)    0       0       0;
-        0       P(8)    0       0;
-        0       0       P(9)    0;
-        0       0       0       1];
+Z   =  [P(7)   0       0       0;
+        0      P(8)    0       0;
+        0      0       P(9)    0;
+        0      0       0       1];
 
-S   =  [1       P(10)   P(11)   0;
-        0       1   P(12)   0;
-        0       0       1   0;
-        0       0       0       1];
+S   =  [1      P(10)   P(11)   0;
+        0      1       P(12)   0;
+        0      0       1       0;
+        0      0       0       1];
 
-A = eval(sprintf('%s;', order));
-if ~isnumeric(A) || ndims(A) ~= 2 || any(size(A) ~= 4)
-    error('Order expression ''%s'' did not return a valid 4x4 matrix.', ...
-          order);
-end;
+%-Affine transformation matrix
+%--------------------------------------------------------------------------
+if nargin < 2
+    A = T*R*Z*S;
+else
+    A = eval(sprintf('%s;', order));
+    if ~isnumeric(A) || ~isequal(size(A),[4 4])
+        error('Invalid order expression ''%s''.', order);
+    end
+end
