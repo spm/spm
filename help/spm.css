@@ -1,0 +1,22 @@
+#footer {
+	margin: 0.5em 0em 0em 0em;
+	padding: 10px 10px 5px 20px;
+	border: 1px hidden #559;
+	background: #eef;
+	-moz-border-radius: 15px; /* Mozilla */
+	border-radius: 15px; /* CSS3 standard */
+}
+#footer>hr {
+	display:none;
+}
+#footer img {
+	vertical-align: middle;
+	margin-right:2px;
+}
+
+hr {
+    height:1px;
+    width:25em;
+    background-color:#000;
+    border:1px solid #FFF;
+}
