@@ -125,10 +125,10 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4415 2011-08-02 06:48:56Z volkmar $
+% $Id: spm_DesRep.m 4416 2011-08-02 11:18:08Z guillaume $
 
 
 
@@ -268,13 +268,12 @@ if nargin==0
     SPM = get(hC,'UserData');
     if isfield(SPM.xY,'VY')
         spm_DesRep('DesMtx',SPM.xX,...
-            reshape({SPM.xY.P},size(SPM.xY.VY)),SPM.xsDes);
+            reshape(cellstr(SPM.xY.P),size(SPM.xY.VY)),SPM.xsDes);
     end
     return;
 end
 
 switch lower(varargin{1})
-
 
 %=======================================================================
 case 'desrepui'                                    %-Design reporting UI
