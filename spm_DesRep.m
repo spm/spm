@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4412 2011-08-01 16:48:58Z guillaume $
+% $Id: spm_DesRep.m 4415 2011-08-02 06:48:56Z volkmar $
 
 
 
@@ -268,7 +268,7 @@ if nargin==0
     SPM = get(hC,'UserData');
     if isfield(SPM.xY,'VY')
         spm_DesRep('DesMtx',SPM.xX,...
-            reshape({SPM.xY.VY.fname},size(SPM.xY.VY)),SPM.xsDes);
+            reshape({SPM.xY.P},size(SPM.xY.VY)),SPM.xsDes);
     end
     return;
 end
