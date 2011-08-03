@@ -8,7 +8,7 @@ function [hdr,otherendian] = spm_read_hdr(fname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_read_hdr.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_read_hdr.m 4418 2011-08-03 12:00:13Z guillaume $
 
 
 fid         = fopen(fname,'r','native');

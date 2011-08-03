@@ -9,7 +9,7 @@ function [p] = spm_dirichlet(x,alpha);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Will Penny
-% $Id: spm_dirichlet.m 2544 2008-12-09 20:01:58Z guillaume $
+% $Id: spm_dirichlet.m 4418 2011-08-03 12:00:13Z guillaume $
 
 persistent runonce
 if isempty(runonce)

@@ -10,7 +10,7 @@ function [y] = spm_digamma(x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_digamma.m 1276 2008-03-28 18:29:19Z guillaume $
+% $Id: spm_digamma.m 4418 2011-08-03 12:00:13Z guillaume $
 
 persistent runonce
 if isempty(runonce)

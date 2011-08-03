@@ -192,7 +192,7 @@ function spm_adjmean_fmri_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_adjmean_fmri_ui.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_adjmean_fmri_ui.m 4418 2011-08-03 12:00:13Z guillaume $
 
 
 

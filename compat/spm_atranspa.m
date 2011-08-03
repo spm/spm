@@ -11,7 +11,7 @@ function C = spm_atranspa(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_atranspa.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_atranspa.m 4418 2011-08-03 12:00:13Z guillaume $
 
 persistent runonce
 if isempty(runonce)

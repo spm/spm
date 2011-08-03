@@ -15,7 +15,7 @@ function spm_chi2_plot(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_chi2_plot.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_chi2_plot.m 4418 2011-08-03 12:00:13Z guillaume $
 
 persistent runonce
 if isempty(runonce)

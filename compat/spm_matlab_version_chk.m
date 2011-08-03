@@ -19,7 +19,7 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 4145 2010-12-23 15:18:30Z guillaume $
+% $Id: spm_matlab_version_chk.m 4418 2011-08-03 12:00:13Z guillaume $
 
 %persistent runonce
 %if isempty(runonce)

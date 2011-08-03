@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 4385 2011-07-08 16:53:38Z guillaume $
+% $Id: spm_cfg_imcalc.m 4418 2011-08-03 12:00:13Z guillaume $
 
 % ---------------------------------------------------------------------
 % input Input Images
@@ -148,14 +148,13 @@ imcalc.tag     = 'imcalc';
 imcalc.name    = 'Image Calculator';
 imcalc.val     = {input output outdir expression options };
 imcalc.help    = {'The image calculator is for performing user-specified algebraic manipulations on a set of images, with the result being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as i1, i2, i3,... etc.'};
-imcalc.prog = @my_spm_imcalc_ui;
+imcalc.prog = @my_spm_imcalc;
 imcalc.vout = @vout;
 
 % =====================================================================
-function out = my_spm_imcalc_ui(job)
-%-Decompose job structure and run spm_imcalc_ui with arguments
+function out = my_spm_imcalc(job)
+%-Decompose job structure and run spm_imcalc with arguments
 %----------------------------------------------------------------------
-flags = {job.options.dmtx, job.options.mask, job.options.dtype, job.options.interp};
 [p,nam,ext,num] = spm_fileparts(job.output);
 if isempty(p)
     if isempty(job.outdir{1})
@@ -171,7 +170,7 @@ if isempty(num)
     num = ',1';
 end
 out.files{1} = fullfile(p,[nam ext num]);
-spm_imcalc_ui(strvcat(job.input{:}),out.files{1},job.expression,flags);
+spm_imcalc(char(job.input), out.files{1}, job.expression, job.options);
 
 % =====================================================================
 function dep = vout(job)
