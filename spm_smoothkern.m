@@ -1,28 +1,28 @@
 function krn = spm_smoothkern(fwhm,x,t)
 % Generate a Gaussian smoothing kernel
-% FORMAT krn = smoothing_kernel(fwhm,x,t)
-%     fwhm - full width at half maximum
-%     x    - position
-%     t    - either 0 (nearest neighbour) or 1 (linear).
-%            if only two arguments are passed, then a value
-%            of one is assumed.
-%     krn  - value of kernel at position x
+% FORMAT krn = spm_smoothkern(fwhm,x,t)
+% fwhm - full width at half maximum
+% x    - position
+% t    - either 0 (nearest neighbour) or 1 (linear).
+%        [Default: 1]
 %
-% For smoothing images, one should really convolve a Gaussian
-% with a sinc function.  For smoothing histograms, the
-% kernel should be a Gaussian convolved with the histogram
-% basis function used. This function returns a Gaussian
-% convolved with a triangular (1st degree B-spline) basis
-% function (by default). A Gaussian convolved with a hat
-% function (0th degree B-spline) can also be returned.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% krn  - value of kernel at position x
+%__________________________________________________________________________
+%
+% For smoothing images, one should really convolve a Gaussian with a sinc
+% function. For smoothing histograms, the kernel should be a Gaussian
+% convolved with the histogram basis function used. This function returns
+% a Gaussian convolved with a triangular (1st degree B-spline) basis 
+% function (by default). A Gaussian convolved with a hat function (0th 
+% degree B-spline) can also be returned.
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smoothkern.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_smoothkern.m 4419 2011-08-03 18:42:35Z guillaume $
 
 
-if nargin<3, t = 1; end;
+if nargin<3, t = 1; end
 
 % Variance from FWHM
 s = (fwhm/sqrt(8*log(2)))^2+eps;
@@ -52,6 +52,4 @@ else
     error('Only defined for nearest neighbour and linear interpolation.');
     % If anyone knows a nice formula for a sinc function convolved with a
     % a Gaussian, then that could be quite useful.
-end;
-return;
-
+end

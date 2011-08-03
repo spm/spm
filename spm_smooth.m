@@ -1,11 +1,11 @@
 function spm_smooth(P,Q,s,dtype)
 % 3 dimensional convolution of an image
-% FORMAT spm_smooth(P,Q,S,dtype)
-% P     - image to be smoothed (or 3D array)
+% FORMAT spm_smooth(P,Q,s,dtype)
+% P     - image(s) to be smoothed (or 3D array)
 % Q     - filename for smoothed image (or 3D array)
-% S     - [sx sy sz] Gaussian filter width {FWHM} in mm (or edges)
-% dtype - datatype [default: 0 == same datatype as P]
-%____________________________________________________________________________
+% s     - [sx sy sz] Gaussian filter width {FWHM} in mm (or edges)
+% dtype - datatype [Default: 0 == same datatype as P]
+%__________________________________________________________________________
 %
 % spm_smooth is used to smooth or convolve images in a file (maybe).
 %
@@ -18,49 +18,51 @@ function spm_smooth(P,Q,s,dtype)
 % If Q is not a string, it is used as the destination of the smoothed
 % image.  It must already be defined with the same number of elements
 % as the image.
-%
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 4172 2011-01-26 12:13:29Z guillaume $
+% $Id: spm_smooth.m 4419 2011-08-03 18:42:35Z guillaume $
 
 
-%-----------------------------------------------------------------------
+%-Parameters & Arguments
+%--------------------------------------------------------------------------
 if numel(s) == 1, s = [s s s]; end
-if nargin < 4, dtype = 0; end;
+if nargin < 4, dtype = 0; end
 
-if ischar(P), P = spm_vol(P); end;
+if ischar(P), P = spm_vol(P); end
 
-if isstruct(P),
-    for i= 1:numel(P),
+if isstruct(P)
+    for i= 1:numel(P)
         smooth1(P(i),Q,s,dtype);
     end
 else
     smooth1(P,Q,s,dtype);
 end
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function smooth1(P,Q,s,dtype)
+%==========================================================================
 function smooth1(P,Q,s,dtype)
-if isstruct(P),
+
+if isstruct(P)
     VOX = sqrt(sum(P.mat(1:3,1:3).^2));
 else
     VOX = [1 1 1];
-end;
+end
 
-if ischar(Q) && isstruct(P),
+if ischar(Q) && isstruct(P)
     [pth,nam,ext,num] = spm_fileparts(Q);
-    q         = fullfile(pth,[nam,ext]);
     Q         = P;
-    Q.fname   = q;
-    if ~isempty(num),
-        Q.n       = str2num(num);
-    end;
-    if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end;
+    Q.fname   = fullfile(pth,[nam,ext]);
+    if ~isempty(num)
+        Q.n   = str2num(num);
+    end
+    if ~isfield(Q,'descrip'), Q.descrip = sprintf('SPM compatible'); end
     Q.descrip = sprintf('%s - conv(%g,%g,%g)',Q.descrip, s);
 
-    if dtype~=0, % Need to figure out some rescaling.
+    if dtype~=0 % Need to figure out some rescaling
         Q.dt(1) = dtype;
         if ~isfinite(spm_type(Q.dt(1),'maxval')),
             Q.pinfo = [1 0 0]'; % float or double, so scalefactor of 1
@@ -73,7 +75,7 @@ if ischar(Q) && isstruct(P),
                 % Need to find the max and min values in original image
                 mx = -Inf;
                 mn =  Inf;
-                for pl=1:P.dim(3),
+                for pl=1:P.dim(3)
                     tmp = spm_slice_vol(P,spm_matrix([0 0 pl]),P.dim(1:2),0);
                     tmp = tmp(isfinite(tmp));
                     mx  = max(max(tmp),mx);
@@ -87,8 +89,8 @@ if ischar(Q) && isstruct(P),
     end
 end
 
-% compute parameters for spm_conv_vol
-%-----------------------------------------------------------------------
+%-Compute parameters for spm_conv_vol
+%--------------------------------------------------------------------------
 s  = s./VOX;                        % voxel anisotropy
 s1 = s/sqrt(8*log(2));              % FWHM -> Gaussian parameter
 
@@ -100,8 +102,6 @@ i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 
+if isstruct(Q), Q = spm_create_vol(Q); end
 
-if isstruct(Q), Q = spm_create_vol(Q); end;
 spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
-
-

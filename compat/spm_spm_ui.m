@@ -482,9 +482,9 @@ function varargout = spm_spm_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_spm_ui.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_spm_ui.m 4419 2011-08-03 18:42:35Z guillaume $
 
-SCCSid  = '$Rev: 4185 $';
+SCCSid  = '$Rev: 4419 $';
 
 %=======================================================================
 % - FORMAT specifications for programers

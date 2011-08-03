@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 4156 2011-01-11 19:03:31Z guillaume $
+% $Id: spm_coreg.m 4419 2011-08-03 18:42:35Z guillaume $
 
 %==========================================================================
 % References
@@ -166,8 +166,8 @@ H = spm_hist2(VG.uint8,VF.uint8, VF.mat\spm_matrix(x(:)')*VG.mat ,sg);
 
 % Smooth the histogram
 lim  = ceil(2*fwhm);
-krn1 = smoothing_kernel(fwhm(1),-lim(1):lim(1)) ; krn1 = krn1/sum(krn1); H = conv2(H,krn1);
-krn2 = smoothing_kernel(fwhm(2),-lim(2):lim(2))'; krn2 = krn2/sum(krn2); H = conv2(H,krn2);
+krn1 = spm_smoothkern(fwhm(1),-lim(1):lim(1)) ; krn1 = krn1/sum(krn1); H = conv2(H,krn1);
+krn2 = spm_smoothkern(fwhm(2),-lim(2):lim(2))'; krn2 = krn2/sum(krn2); H = conv2(H,krn2);
 
 % Compute cost function from histogram
 H  = H+eps;
@@ -295,48 +295,13 @@ end
 function V = smooth_uint8(V,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
-x  = -lim(1):lim(1); x = smoothing_kernel(fwhm(1),x); x  = x/sum(x);
-y  = -lim(2):lim(2); y = smoothing_kernel(fwhm(2),y); y  = y/sum(y);
-z  = -lim(3):lim(3); z = smoothing_kernel(fwhm(3),z); z  = z/sum(z);
+x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
 spm_conv_vol(V.uint8,V.uint8,x,y,z,-[i j k]);
-
-
-%==========================================================================
-% function krn = smoothing_kernel(fwhm,x)
-%==========================================================================
-function krn = smoothing_kernel(fwhm,x)
-
-% Variance from FWHM
-s = (fwhm/sqrt(8*log(2)))^2+eps;
-
-% The simple way to do it. Not good for small FWHM
-% krn = (1/sqrt(2*pi*s))*exp(-(x.^2)/(2*s));
-
-% For smoothing images, one should really convolve a Gaussian
-% with a sinc function.  For smoothing histograms, the
-% kernel should be a Gaussian convolved with the histogram
-% basis function used. This function returns a Gaussian
-% convolved with a triangular (1st degree B-spline) basis
-% function.
-
-% Gaussian convolved with 0th degree B-spline
-% int(exp(-((x+t))^2/(2*s))/sqrt(2*pi*s),t= -0.5..0.5)
-% w1  = 1/sqrt(2*s);
-% krn = 0.5*(erf(w1*(x+0.5))-erf(w1*(x-0.5)));
-
-% Gaussian convolved with 1st degree B-spline
-%  int((1-t)*exp(-((x+t))^2/(2*s))/sqrt(2*pi*s),t= 0..1)
-% +int((t+1)*exp(-((x+t))^2/(2*s))/sqrt(2*pi*s),t=-1..0)
-w1  =  0.5*sqrt(2/s);
-w2  = -0.5/s;
-w3  = sqrt(s/2/pi);
-krn = 0.5*(erf(w1*(x+1)).*(x+1) + erf(w1*(x-1)).*(x-1) - 2*erf(w1*x   ).* x)...
-      +w3*(exp(w2*(x+1).^2)     + exp(w2*(x-1).^2)     - 2*exp(w2*x.^2));
-
-krn(krn<0) = 0;
 
 
 %==========================================================================
