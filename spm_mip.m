@@ -1,19 +1,20 @@
-function spm_mip(Z,XYZ,M,units)
-% SPM maximum intensity projection
-% FORMAT spm_mip(Z,XYZ,M);
+function mip = spm_mip(Z,XYZ,M,units)
+% SPM Maximum Intensity Projection
+% FORMAT mip = spm_mip(Z,XYZ,M,units)
 % Z       - vector point list of SPM values for MIP
 % XYZ     - matrix of coordinates of points (mip coordinates)
 % M       - voxels - > mip matrix or size of voxels (mm)
 % units   - defining space     [default {'mm' 'mm' 'mm'}]
-%         - Scalar specifies intensity of grid
-%_______________________________________________________________________
+% mip     - maximum intensity projection
+%           if no output, the mip is displayed in current figure
+%__________________________________________________________________________
 %
 % If the data are 2 dimensional [DIM(3) = 1] the projection is simply an
 % image, otherwise:
 %
 % spm_mip creates and displays a maximum intensity projection of a point
 % list of voxel values (Z) and their location (XYZ) in three orthogonal
-% views of the brain.  It is assumed voxel locations conform to the space
+% views of the brain. It is assumed voxel locations conform to the space
 % defined in the atlas of Talairach and Tournoux (1988); unless the third
 % dimension is time.
 %
@@ -32,25 +33,25 @@ function spm_mip(Z,XYZ,M,units)
 % in Talairach mm.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston et al.
-% $Id: spm_mip.m 4404 2011-07-22 11:36:40Z volkmar $
+% Karl Friston
+% $Id: spm_mip.m 4422 2011-08-04 16:18:05Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
-try, units;                catch, units = {'mm' 'mm' 'mm'}; end
-try, M;                    catch, M = 1; end
+try, units; catch, units = {'mm' 'mm' 'mm'}; end
+try, M;     catch, M = 1; end
 Grid = 0.4;
 
-% transpose locations if necessary
+%-Transpose locations if necessary
 %--------------------------------------------------------------------------
 if size(XYZ,1) ~= 3, XYZ = XYZ';         end
 if size(Z,1)   ~= 1, Z   = Z';           end
 if size(M,1)   == 1, M   = speye(4,4)*M; end
 
 %-Scale & offset point list values to fit in [0.25,1]
-%==========================================================================
+%--------------------------------------------------------------------------
 Z    = Z - min(Z);
 mx   = max(Z);
 Scal = 8;
@@ -93,7 +94,7 @@ else
     mip = 4*grid_all + mask_all;
 end
 
-% Load mip and create maximum intensity projection
+%-Create maximum intensity projection
 %--------------------------------------------------------------------------
 mip  = mip/max(mip(:));
 c    = [0 0 0 ;
@@ -108,5 +109,10 @@ c    = c*M(1:3,1:3);
 dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim,DXYZ,CXYZ);
 mip  = max(d,Grid*mip);
-image(rot90((1 - mip)*64)); axis tight; axis off;
+mip  = rot90((1 - mip)*64);
 
+%-And display it
+%--------------------------------------------------------------------------
+if ~nargout
+    image(mip); axis tight; axis off;
+end
