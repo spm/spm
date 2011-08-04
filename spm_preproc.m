@@ -17,8 +17,17 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: spm_preproc.m 4423 2011-08-04 16:28:51Z guillaume $
 
+
+SVNid     = '$Rev: 4423 $';
+ 
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid     = spm('FnBanner',mfilename,SVNid);
+
+%-Parameters & Arguments
+%--------------------------------------------------------------------------
 opts0     = spm_get_defaults('preproc');
 opts0     = rmfield(opts0,'output');
 opts0.tpm = char(opts0.tpm); % In defaults, tpms are stored as cellstr
@@ -523,7 +532,10 @@ results.mn     = mn;
 results.vr     = vr;
 results.thresh = 0; %thresh;
 results.ll     = ll;
-return
+
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
+
 %=======================================================================
 
 %=======================================================================

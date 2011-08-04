@@ -47,9 +47,9 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 4419 2011-08-03 18:42:35Z guillaume $
+% $Id: spm_coreg.m 4423 2011-08-04 16:28:51Z guillaume $
 
-%==========================================================================
+%--------------------------------------------------------------------------
 % References
 %==========================================================================
 %
@@ -82,12 +82,18 @@ function x = spm_coreg(varargin)
 % Press, Teukolsky, Vetterling & Flannery (1992).
 % "Numerical Recipes in C (Second Edition)".
 % Published by Cambridge.
-%==========================================================================
+%--------------------------------------------------------------------------
+
+SVNid = '$Rev: 4423 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
     return;
 end
+
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SVNid);
 
 def_flags          = spm_get_defaults('coreg.estimate');
 def_flags.params   = [0 0 0  0 0 0];
@@ -148,6 +154,7 @@ for k=1:numel(VF)
     end
 end
 
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 
 %==========================================================================
 % function o = optfun(x,VG,VF,s,cf,fwhm)

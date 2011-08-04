@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_cfg_realign.m 4423 2011-08-04 16:28:51Z guillaume $
 
-rev = '$Rev: 4152 $';
+rev = '$Rev: 4423 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -108,8 +108,8 @@ wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
                 'This indicates which directions in the volumes the values should wrap around in.  For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
-                '    No wrapping - for PET or images that have already                   been spatially transformed. Also the recommended option if                   you are not really sure.'
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space).'
+                '    No wrapping - for PET or images that have already been spatially transformed. Also the recommended option if you are not really sure.'
+                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
 }';
 wrap.labels = {
                'No wrap'
@@ -218,8 +218,8 @@ wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
                 'This indicates which directions in the volumes the values should wrap around in.  For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
-                '    No wrapping - for PET or images that have already                   been spatially transformed.'
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space).'
+                '    No wrapping - for PET or images that have already been spatially transformed.'
+                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
 }';
 wrap.labels = {
                'No wrap'

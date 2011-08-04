@@ -1,30 +1,30 @@
 function spm_progress_bar(action,varargin)
 % Display a 'Progress Bar' in the 'Interactive' window
 % FORMAT spm_progress_bar('Init',height,xlabel,ylabel,flgs)
-% Initialises the bar in the 'Interactive' window.
+% Initialise the bar in the 'Interactive' window.
 % If flgs contains a 't', then use tex interpreter for labels.
 %
 % FORMAT spm_progress_bar('Set',value)
-% Sets the height of the bar itself.
+% Set the height of the bar itself.
 %
 % FORMAT spm_progress_bar('Clear')
-% Clears the 'Interactive' window.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Clear the 'Interactive' window.
+%__________________________________________________________________________
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 2914 2009-03-20 18:30:31Z guillaume $
+% $Id: spm_progress_bar.m 4423 2011-08-04 16:28:51Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
 % Find the interactive window and exit if not
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 if isempty(Finter), return; end
 
 switch lower(action)
     % Initialise
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     case 'init'
         error(nargchk(0,5,nargin));
         if nargin > 1, arg1 = varargin{1}; else arg1 = 1;           end
@@ -64,7 +64,7 @@ switch lower(action)
         drawnow;
         
     % Set
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     case 'set'
         error(nargchk(1,2,nargin));
         if nargin == 1, value = 0; else  value = varargin{1}; end
@@ -79,7 +79,7 @@ switch lower(action)
         end 
     
     % Clear
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     case 'clear'
         error(nargchk(1,1,nargin));
         pb = get(findobj(Finter,'Tag','ProgressBar'),'UserData');
@@ -92,7 +92,7 @@ switch lower(action)
         drawnow;
     
     % Error
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     otherwise
         error('Unknown action string');
 end
