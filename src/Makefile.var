@@ -1,8 +1,8 @@
 # Makefile default variables
 #
-# Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 4136 2010-12-09 22:22:28Z guillaume $
+# $Id: Makefile.var 4424 2011-08-05 17:26:05Z guillaume $
 #
 ###############################################################################
 #
@@ -38,13 +38,13 @@ MEXOPTS        = -O
 MEXEND         = 
 MOSUF          = o # mex output object suffix
 UNAME          = uname
-ISAINFO        = isainfo # SunOS only
 AR             = ar rcs
 COPY           = cp -f
 DEL            = rm -f
 MOVE           = mv -f
 TAR            = tar
 ZIP            = gzip -f
+REALPATH       = $(shell readlink -f $(shell which $(firstword $(1))))
 
 ifndef SUF
   ifndef PLATFORM
@@ -83,6 +83,7 @@ ifndef SUF
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
     endif
+    REALPATH   = $(shell which $(firstword $(1)))
   endif
   ##### Windows #####
   ifeq (windows,$(PLATFORM))
@@ -109,21 +110,6 @@ ifndef SUF
     MEXEND     = "
     MOSUF      = obj
     AR         = lib.exe /out:
-  endif
-  ##### SunOS #####
-  ifeq (SunOS,$(PLATFORM))
-    SUNBIT     = $(shell $(ISAINFO) -b)
-    ifeq (32,$(SUNBIT))
-      SUF      = mexsol
-      MEXOPTS  = -O -DSPM_BIGENDIAN
-    endif
-    ifeq (64,$(SUNBIT))
-      SUF      = mexs64
-      MEXOPTS  = -O -DSPM_BIGENDIAN
-    endif
-    ifndef SUF
-      $(error Unknowm platform $(PLATFORM)-$(SUNBIT))
-    endif
   endif
   #### Octave ####
   ifeq (octave,$(PLATFORM))

@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4357 2011-06-14 13:13:49Z guillaume $
+# $Id: Makefile 4424 2011-08-05 17:26:05Z guillaume $
 #
 ###############################################################################
 #
@@ -374,20 +374,6 @@ verb.mexmaci64:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (MacOS X, Intel 64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexsol:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (Solaris 32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.mexs64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (Solaris 64 bit)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
