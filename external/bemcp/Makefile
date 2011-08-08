@@ -2,7 +2,7 @@
 # EEG-BEM Makefile called by {SPM}/external/Makefile
 #
 # Christophe Phillips
-# $Id: Makefile 2990 2009-03-28 17:33:52Z guillaume $
+# $Id: Makefile 4426 2011-08-08 15:12:27Z guillaume $
 
 include ../../src/Makefile.var
 
@@ -11,7 +11,7 @@ BEMCPMEX = \
 	bem_Cij_cog.$(SUF) bem_Cij_cst.$(SUF) bem_Cij_lin.$(SUF) \
 	bem_Gi_cog.$(SUF) bem_Gi_vert.$(SUF)
 
-all: $(BEMCPMEX)
+all bemcp: $(BEMCPMEX)
 
 clean:
 
