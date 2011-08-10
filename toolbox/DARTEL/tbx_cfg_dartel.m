@@ -1,10 +1,10 @@
 function dartel = tbx_cfg_dartel
-% Configuration file for toolbox 'DARTEL Tools'
+% Configuration file for toolbox 'Dartel Tools'
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 4197 2011-02-08 18:57:11Z ged $
+% $Id: tbx_cfg_dartel.m 4428 2011-08-10 16:56:34Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -111,7 +111,7 @@ initial         = cfg_exbranch;
 initial.tag     = 'initial';
 initial.name    = 'Initial Import';
 initial.val     = {matnames odir bb vox image GM WM CSF };
-initial.help    = {'Images first need to be imported into a form that DARTEL can work with. If the default segmentation is used (ie the Segment button), then this involves taking the results of the segmentation (*_seg_sn.mat)/* \cite{ashburner05} */, in order to have rigidly aligned tissue class images. Typically, there would be imported grey matter and white matter images, but CSF images can also be included. The subsequent DARTEL alignment will then attempt to nonlinearly register these tissue class images together. If the new segmentation routine is used (from the toolbox), then this includes the option to generate ``imported'''' tissue class images. This means that a seperate importing step is not needed for it.'};
+initial.help    = {'Images first need to be imported into a form that Dartel can work with. If the default segmentation is used (ie the Segment button), then this involves taking the results of the segmentation (*_seg_sn.mat)/* \cite{ashburner05} */, in order to have rigidly aligned tissue class images. Typically, there would be imported grey matter and white matter images, but CSF images can also be included. The subsequent Dartel alignment will then attempt to nonlinearly register these tissue class images together. If the new segmentation routine is used (from the toolbox), then this includes the option to generate ``imported'''' tissue class images. This means that a seperate importing step is not needed for it.'};
 initial.prog = @spm_dartel_import;
 initial.vout = @vout_initial_import;
 % ---------------------------------------------------------------------
@@ -348,14 +348,14 @@ settings.name    = 'Settings';
 settings.val     = {template rform param optim };
 settings.help    = {'Various settings for the optimisation. The default values should work reasonably well for aligning tissue class images together.'};
 % ---------------------------------------------------------------------
-% warp Run DARTEL (create Templates)
+% warp Run Dartel (create Templates)
 % ---------------------------------------------------------------------
 warp         = cfg_exbranch;
 warp.tag     = 'warp';
-warp.name    = 'Run DARTEL (create Templates)';
+warp.name    = 'Run Dartel (create Templates)';
 warp.val     = {images settings };
 warp.check   = @check_dartel_template;
-warp.help    = {'Run the DARTEL nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds.'};
+warp.help    = {'Run the Dartel nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds.'};
 warp.prog = @spm_dartel_template;
 warp.vout = @vout_dartel_template;
 % ---------------------------------------------------------------------
@@ -567,14 +567,14 @@ settings.name    = 'Settings';
 settings.val     = {rform param optim };
 settings.help    = {'Various settings for the optimisation. The default values should work reasonably well for aligning tissue class images together.'};
 % ---------------------------------------------------------------------
-% warp1 Run DARTEL (existing Templates)
+% warp1 Run Dartel (existing Templates)
 % ---------------------------------------------------------------------
 warp1         = cfg_exbranch;
 warp1.tag     = 'warp1';
-warp1.name    = 'Run DARTEL (existing Templates)';
+warp1.name    = 'Run Dartel (existing Templates)';
 warp1.val     = {images settings };
 warp1.check   = @check_dartel_template;
-warp1.help    = {'Run the DARTEL nonlinear image registration procedure to match individual images to pre-existing template data. Start out with smooth templates, and select crisp templates for the later iterations.'};
+warp1.help    = {'Run the Dartel nonlinear image registration procedure to match individual images to pre-existing template data. Start out with smooth templates, and select crisp templates for the later iterations.'};
 warp1.prog = @spm_dartel_warp;
 warp1.vout = @vout_dartel_warp;
 % ---------------------------------------------------------------------
@@ -692,7 +692,7 @@ crt_warped.tag     = 'crt_warped';
 crt_warped.name    = 'Create Warped';
 crt_warped.val     = {flowfields images jactransf K interp };
 crt_warped.check   = @check_norm;
-crt_warped.help    = {'This allows spatially normalised images to be generated. Note that voxel sizes and bounding boxes can not be adjusted, and that there may be strange effects due to the boundary conditions used by the warping. Also note that the warped images are not in Talairach or MNI space. The coordinate system is that of the average shape and size of the subjects to which DARTEL was applied. In order to have MNI-space normalised images, then the Deformations Utility can be used to compose the individual DARTEL warps, with a deformation field that matches (e.g.) the Template grey matter generated by DARTEL, with one of the grey matter volumes released with SPM.'};
+crt_warped.help    = {'This allows spatially normalised images to be generated. Note that voxel sizes and bounding boxes can not be adjusted, and that there may be strange effects due to the boundary conditions used by the warping. Also note that the warped images are not in Talairach or MNI space. The coordinate system is that of the average shape and size of the subjects to which Dartel was applied. In order to have MNI-space normalised images, then the Deformations Utility can be used to compose the individual Dartel warps, with a deformation field that matches (e.g.) the Template grey matter generated by Dartel, with one of the grey matter volumes released with SPM.'};
 crt_warped.prog = @spm_dartel_norm;
 crt_warped.vout = @vout_norm;
 % ---------------------------------------------------------------------
@@ -796,7 +796,7 @@ flowfield.name    = 'Flow Field';
 flowfield.filter  = 'nifti';
 flowfield.ufilter = '^u_.*\.nii$';
 flowfield.num     = [1 1];
-flowfield.help    = {'DARTEL flow field for this subject.'};
+flowfield.help    = {'Dartel flow field for this subject.'};
 % ---------------------------------------------------------------------
 %
 % ---------------------------------------------------------------------
@@ -842,11 +842,11 @@ way.help   = {...
 % ---------------------------------------------------------------------
 template        = cfg_files;
 template.tag    = 'template';
-template.name   = 'DARTEL Template';
+template.name   = 'Dartel Template';
 template.filter = 'nifti';
 template.num    = [0 1];
 template.help   = {...
-['Select the final Template file generated by DARTEL. This will be affine '...
+['Select the final Template file generated by Dartel. This will be affine '...
  'registered with a TPM file, such that the resulting spatially normalised '...
  'images are closer aligned to MNI space. Leave empty if you do not wish to '...
  'incorporate a transform to MNI space '...
@@ -915,9 +915,9 @@ nrm.prog  = @spm_dartel_norm_fun;
 nrm.vout  = @vout_norm_fun;
 nrm.check = @check_norm_fun;
 nrm.help  = {[...
-'Normally, DARTEL generates warped images that align with the average-shaped template. ',...
+'Normally, Dartel generates warped images that align with the average-shaped template. ',...
 'This routine includes an initial affine regisration of the template (the final one ',...
-'generated by DARTEL), with the TPM data released with SPM.'],[...
+'generated by Dartel), with the TPM data released with SPM.'],[...
 '``Smoothed'''' (blurred) spatially normalised images are generated in such a ',...
 'way that the original signal is preserved. Normalised images are ',...
 'generated by a ``pushing'''' rather than a ``pulling'''' (the usual) procedure. ',...
@@ -930,6 +930,27 @@ nrm.help  = {[...
 'equavalent of generating smoothed ``modulated'''' spatially normalised ',...
 'images.  The other does the equivalent of smoothing the modulated ',...
 'normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.']};
+
+% ---------------------------------------------------------------------
+% template Dartel Template
+% ---------------------------------------------------------------------
+template        = cfg_files;
+template.tag    = 'template';
+template.name   = 'Dartel Template';
+template.filter = 'nifti';
+template.num    = [0 1];
+template.help   = {'Select the final Template file generated by Dartel.'};
+% ---------------------------------------------------------------------
+% popnorm Population to ICBM Registration
+% ---------------------------------------------------------------------
+popnorm         = cfg_exbranch;
+popnorm.tag     = 'popnorm';
+popnorm.name    = 'Population to ICBM Registration';
+popnorm.val     = {template};
+popnorm.help    = {'Estimate the mapping from the population average to ICBM space.'};
+popnorm.prog    = @spm_norm_population;
+popnorm.vout    = @vout_popnorm;
+
 % ---------------------------------------------------------------------
 % images Images
 % ---------------------------------------------------------------------
@@ -1119,17 +1140,17 @@ kernfun         = cfg_choice;
 kernfun.tag     = 'kernfun';
 kernfun.name    = 'Kernel Utilities';
 kernfun.help    = {
-                   'DARTEL can be used for generating matrices of dot-products for various kernel pattern-recognition procedures.'
+                   'Dartel can be used for generating matrices of dot-products for various kernel pattern-recognition procedures.'
                    'The idea of applying pattern-recognition procedures is to obtain a multi-variate characterisation of the anatomical differences among groups of subjects. These characterisations can then be used to separate (eg) healthy individuals from particular patient populations. There is still a great deal of methodological work to be done, so the types of kernel that can be generated here are unlikely to be the definitive ways of proceeding.  They are only just a few ideas that may be worth trying out. The idea is simply to attempt a vaguely principled way to combine generative models with discriminative models (see the ``Pattern Recognition and Machine Learning'''' book by Chris Bishop for more ideas). Better ways (higher predictive accuracy) will eventually emerge.'
                    'Various pattern recognition algorithms are available freely over the Internet. Possible approaches include Support-Vector Machines, Relevance-Vector machines and Gaussian Process Models. Gaussian Process Models probably give the most accurate probabilistic predictions, and allow kernels generated from different pieces of data to be most easily combined.'
 }';
 kernfun.values  = {reskern flokern};
 % ---------------------------------------------------------------------
-% dartel DARTEL Tools
+% dartel Dartel Tools
 % ---------------------------------------------------------------------
 dartel         = cfg_choice;
 dartel.tag     = 'dartel';
-dartel.name    = 'DARTEL Tools';
+dartel.name    = 'Dartel Tools';
 dartel.help    = {
                   'This toolbox is based around the ``A Fast Diffeomorphic Registration Algorithm'''' paper/* \cite{ashburner07} */. The idea is to register images by computing a ``flow field'''', which can then be ``exponentiated'''' to generate both forward and backward deformations. Currently, the software only works with images that have isotropic voxels, identical dimensions and which are in approximate alignment with each other. One of the reasons for this is that the approach assumes circulant boundary conditions, which makes modelling global rotations impossible. Another reason why the images should be approximately aligned is because there are interactions among the transformations that are minimised by beginning with images that are already almost in register. This problem could be alleviated by a time varying flow field, but this is currently computationally impractical.'
                   'Because of these limitations, images should first be imported. This involves taking the ``*_seg_sn.mat'''' files produced by the segmentation code of SPM5, and writing out rigidly transformed versions of the tissue class images, such that they are in as close alignment as possible with the tissue probability maps. Rigidly transformed original images can also be generated, with the option to have skull-stripped versions.'
@@ -1138,7 +1159,7 @@ dartel.help    = {
                   ''
                   'This toolbox is not yet seamlessly integrated into the SPM package. Eventually, the plan is to use many of the ideas here as the default strategy for spatial normalisation. The toolbox may change with future updates.  There will also be a number of other (as yet unspecified) extensions, which may include a variable velocity version (related to LDDMM). Note that the Fast Diffeomorphism paper only describes a sum of squares objective function. The multinomial objective function is an extension, based on a more appropriate model for aligning binary data to a template.'
 }';
-dartel.values  = {initial warp warp1 nrm crt_warped jacdet crt_iwarped kernfun };
+dartel.values  = {initial warp warp1 nrm crt_warped jacdet crt_iwarped popnorm kernfun };
 %dartel.num     = [0 Inf];
 
 %_______________________________________________________________________
@@ -1204,6 +1225,14 @@ dep = [tdep fdep];
 function dep = vout_dartel_warp(job)
 dep            = cfg_dep;
 dep.sname      = 'Flow Fields';
+dep.src_output = substruct('.','files','()',{':'});
+dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function dep = vout_popnorm(job)
+dep            = cfg_dep;
+dep.sname      = 'Pop2MNI';
 dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________

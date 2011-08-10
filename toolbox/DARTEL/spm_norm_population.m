@@ -10,13 +10,12 @@ function out = spm_norm_population(job)
 % $Id$
 
 % Hard coded stuff, that should maybe be customisable
-Ng  = fullfile(spm('Dir'),'toolbox','DARTEL','icbm152.nii');
+Ng  = nifti(fullfile(spm('Dir'),'toolbox','DARTEL','icbm152.nii'));
 prm = [0 0.05 0.05 0.00000001 0.05 2 2 6 0];
 
 if ~isempty(job.template{1})
-    Nf     = nifti(job.template{1});
+    Nf = nifti(job.template{1});
 else
-    Nf = nifti('Template_6.nii'); % Temporary stuff
     error('Incorrect Usage');
 end
 
