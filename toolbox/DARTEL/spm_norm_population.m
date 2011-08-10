@@ -7,7 +7,7 @@ function out = spm_norm_population(job)
 % (c) Wellcome Trust Centre for NeuroImaging (2011)
 
 % John Ashburner
-% $Id$
+% $Id: spm_norm_population.m 4429 2011-08-10 16:59:47Z john $
 
 % Hard coded stuff, that should maybe be customisable
 Ng  = nifti(fullfile(spm('Dir'),'toolbox','DARTEL','icbm152.nii'));
