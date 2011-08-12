@@ -39,7 +39,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 3986 2010-07-12 16:04:56Z vladimir $
+% $Id: spm_eeg_convert.m 4431 2011-08-12 18:53:02Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -315,7 +315,8 @@ else % Read by trials
         rejected = find(~inbounds);
 
         if ~isempty(rejected)
-            trl = trl(find(inbounds), :);
+            trl = trl(inbounds, :);
+            conditionlabels = conditionlabels(inbounds);
             warning([S.dataset ': Trials ' num2str(rejected) ' not read - out of bounds']);
         end
 

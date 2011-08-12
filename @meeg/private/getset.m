@@ -5,7 +5,7 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 3368 2009-09-07 22:50:35Z vladimir $
+% $Id: getset.m 4431 2011-08-12 18:53:02Z vladimir $
 
 this = struct(this);
 
@@ -30,7 +30,7 @@ if nargin <= 4
     end
 
     if iscell(res) && (numel(res) == 1) && (numel(getfield(this, parent)) == 1) &&...
-            strcmp(this.type, 'continuous')
+            strcmp(parent, 'trials') && strcmp(this.type, 'continuous')
         res = res{1};
     end
     
@@ -38,13 +38,17 @@ if nargin <= 4
 end
 
 % Set
-if nargin == 5
+if nargin == 5          
     % This might fail in some pathological cases, but not in what it's
     % supposed to be used for.
     if (isnumeric(values) || islogical(values)) && (length(values) == length(ind))
         values = num2cell(values);
     end
-
+    
+    if iscell(values) && ~(numel(values)==1 || numel(values) == length(ind))
+        error('Illegal assignment: cannot match values and indices.');
+    end        
+        
     for i = 1:length(ind)
         if iscell(values)
             this = setfield(this, parent, {ind(i)}, fieldname, values{i});
