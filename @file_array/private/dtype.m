@@ -9,7 +9,7 @@ function varargout = dtype(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: dtype.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: dtype.m 4433 2011-08-15 12:46:06Z christophe $
 
 
 
@@ -18,7 +18,7 @@ if nargin==2,
 elseif nargin==1,
     varargout{1} = ref(varargin{:});
 else
-    error('Wring number of arguments.');
+    error('Wrong number of arguments.');
 end;
 return;
 

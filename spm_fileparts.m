@@ -10,10 +10,11 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_fileparts.m 4205 2011-02-21 15:39:08Z guillaume $
+% $Id: spm_fileparts.m 4433 2011-08-15 12:46:06Z christophe $
 
 
 num = '';
+if ~ispc, fname = strrep(fname,'\',filesep); end
 [pth,nam,ext] = fileparts(fname);
 ind = find(ext==',');
 if ~isempty(ind)
