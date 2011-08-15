@@ -1,5 +1,5 @@
 function res = indtrial(this, label)
-% Method for getting channel indices based on channel labels
+% Method for getting trial indices based on channel labels
 % FORMAT  res = indtrial(this, label)
 % this       - MEEG object
 % label      - string or cell array of labels
@@ -9,7 +9,7 @@ function res = indtrial(this, label)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indtrial.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: indtrial.m 4432 2011-08-15 12:43:44Z christophe $
 
 if ischar(label)
     label = {label};

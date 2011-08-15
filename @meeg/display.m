@@ -5,7 +5,7 @@ function str = display(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: display.m 3219 2009-06-25 10:15:36Z vladimir $
+% $Id: display.m 4432 2011-08-15 12:43:44Z christophe $
 
 str = ['SPM M/EEG data object\n'...
     'Type: ' type(this) '\n'...
@@ -24,6 +24,21 @@ str = [str ...
     'Sampling frequency: ' num2str(fsample(this)) ' Hz\n'...
     'Loaded from file  %s\n\n'
     ];
+
+if numel(this.montage.M)>0
+    idx = montage(this,'getindex');
+    str = [str ...
+        num2str(montage(this,'getnumber')),' online montage(s) setup\n'...
+        'Current montage applied (0=none): ',num2str(idx),''];
+    if idx
+        str = [str ...
+            ' ,named: "',montage(this,'getname'),'"\n\n'];
+    else
+        str = [str '\n\n'];
+    end
+        
+
+end
 
 if strncmpi(transformtype(this),'TF',2)
     str = [str  'Use the syntax D(channels, frequencies, samples, trials) to access the data\n'];

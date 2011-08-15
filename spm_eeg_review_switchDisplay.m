@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 4432 2011-08-15 12:43:44Z christophe $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -26,10 +26,10 @@ switch D.PSD.VIZU.modality
     otherwise % plot data (EEG/MEG/OTHER)
 
         try
-            y = D.data.y(:,D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
+            y = D(:,D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
             % ! accelerates memory mapping reading
         catch
-            D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
+            D.PSD.VIZU.xlim = [1,min([5e2,D.nsamples])];
         end
         switch  D.PSD.VIZU.type
 
@@ -84,7 +84,7 @@ if isempty(I)
 
 else
 
-    if ~strcmp(D.transform.ID,'time')
+    if ~strcmp(transformtype(D),'time')
 
         uicontrol('style','text',...
             'units','normalized','Position',[0.14 0.84 0.7 0.04],...
@@ -93,7 +93,6 @@ else
             'tag','plotEEG')
 
     else
-
 
         D.PSD.VIZU.type = 1;
 
@@ -111,7 +110,6 @@ else
                 end
         end
         D = spm_eeg_review_uis(D,object);
-
 
     end
 
@@ -160,7 +158,7 @@ else
         % add buttons
         object.type = 'buttons';
         object.list = [5;7];
-        if strcmp(D.transform.ID,'time') % only for time data!
+        if strcmp(transformtype(D),'time') % only for time data!
             object.options.multSelect = 1;
             object.list = [object.list;4;6;11];
         else
@@ -223,7 +221,7 @@ if ~~D.PSD.source.VIZU.current
     D.PSD.handles.SubTabs_inv = h;
 
     trN = D.PSD.trials.current(1);
-    model = D.other.inv{invN}.inverse;
+    model = D.inv{invN}.inverse;
     D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
     D.PSD.source.VIZU.J(model.Is,:) = model.J{trN}*model.T';
     D.PSD.source.VIZU.miJ = min(min(D.PSD.source.VIZU.J));
@@ -272,7 +270,7 @@ if ~~D.PSD.source.VIZU.current
     end
 
     % Create mesh and related objects
-    Dmesh = D.other.inv{invN}.mesh;
+    Dmesh = D.inv{invN}.mesh;
     mesh.vertices = Dmesh.tess_mni.vert;
     mesh.faces = Dmesh.tess_mni.face;
     options.texture = J(:,indTime);
@@ -430,7 +428,6 @@ switch D.PSD.VIZU.uitable
     case 'on'
 
 
-
         if isempty(D.PSD.VIZU.fromTab) || ~isequal(D.PSD.VIZU.fromTab,'info')
             % delete graphical objects from other main tabs
             delete(findobj('tag','plotEEG'));
@@ -471,22 +468,23 @@ switch D.PSD.VIZU.uitable
 
             case 1 % channels info
                 object.list = [object.list;12;14];
-                nc = length(D.channels);
+                nc = D.nchannels;
                 table = cell(nc,5);
                 for i=1:nc
-                    table{i,1} = D.channels(i).label;
-                    table{i,2} = D.channels(i).type;
-                    if D.channels(i).bad
+                    table{i,1} = char(chanlabels(D,i));
+                    table{i,2} = char(chantype(D,i));
+                    if badchannels(D,i)
                         table{i,3} = 'yes';
                     else
                         table{i,3} = 'no';
                     end
-                    if ~isempty(D.channels(i).X_plot2D)
+                    Coor2D = coor2D(D,i);
+                    if ~isempty(Coor2D(1))
                         table{i,4} = 'yes';
                     else
                         table{i,4} = 'no';
                     end
-                    table{i,5} = D.channels(i).units;
+                    table{i,5} = units(D,i);
                 end
                 colnames = {'label','type','bad','position','units'};
                 [ht,hc] = spm_uitable(table,colnames);
@@ -502,7 +500,7 @@ switch D.PSD.VIZU.uitable
                 ok = 1;
                 if strcmp(D.type,'continuous')
                     try
-                        ne = length(D.trials(1).events);
+                        ne = length(events(D,1));
                         if ne == 0
                             ok = 0;
                         end
@@ -512,18 +510,19 @@ switch D.PSD.VIZU.uitable
                     end
                     if ne > 0
                         table = cell(ne,3);
+                        Events = events(D,1);
                         for i=1:ne
-                            table{i,1} = D.trials(1).label;
-                            table{i,2} = D.trials(1).events(i).type;
-                            table{i,3} = num2str(D.trials(1).events(i).value);
-                            if ~isempty(D.trials(1).events(i).duration)
-                                table{i,4} = num2str(D.trials(1).events(i).duration);
+                            table{i,1} = char(conditions(D,1));
+                            table{i,2} = Events(i).type;
+                            table{i,3} = num2str(Events(i).value);
+                            if ~isempty(Events(i).duration)
+                                table{i,4} = num2str(Events(i).duration);
                             else
                                 table{i,4} = [];
                             end
-                            table{i,5} = num2str(D.trials(1).events(i).time);
+                            table{i,5} = num2str(Events(i).time);
                             table{i,6} = 'Undefined';
-                            table{i,7} = num2str(D.trials(1).onset);
+                            table{i,7} = num2str(trialonset(D,1));
                         end
                         colnames = {'label','type','value','duration','time','bad','onset'};
                         [ht,hc] = spm_uitable(table,colnames);
@@ -539,13 +538,14 @@ switch D.PSD.VIZU.uitable
                             'tag','plotEEG');
                     end
                 else
-                    nt = length(D.trials);
+                    nt = D.ntrials;
                     table = cell(nt,3);
                     if strcmp(D.type,'single')
                         for i=1:nt
-                            table{i,1} = D.trials(i).label;
-                            ne = length(D.trials(i).events);
-                            if ne == 0 || ((ne == 1) && isequal(D.trials(i).events(1).type, 'no events'))
+                            table{i,1} = char(conditions(D,i));
+                            Events = events(D,i);
+                            ne = length(Events);
+                            if ne == 0 || ((ne == 1) && isequal(Events(1).type, 'no events'))
                                 table{i,2} = 'no events';
                                 table{i,3} = 'no events';
                                 table{i,4} = 'no events';
@@ -556,21 +556,21 @@ switch D.PSD.VIZU.uitable
                                 table{i,4} = 'multiple events';
                                 table{i,5} = 'multiple events';
                             else
-                                table{i,2} = D.trials(i).events.type;
-                                table{i,3} = num2str(D.trials(i).events.value);
-                                if ~isempty(D.trials(i).events.duration)
-                                    table{i,4} = num2str(D.trials(i).events.duration);
+                                table{i,2} = Events.type;
+                                table{i,3} = num2str(Events.value);
+                                if ~isempty(Events.duration)
+                                    table{i,4} = num2str(Events.duration);
                                 else
                                     table{i,4} = 'Undefined';
                                 end
-                                table{i,5} = num2str(D.trials(i).events.time);
+                                table{i,5} = num2str(Events.time);
                             end
-                            if D.trials(i).bad
+                            if badtrials(D,i)
                                 table{i,6} = 'yes';
                             else
                                 table{i,6} = 'no';
                             end
-                            table{i,7} = num2str(D.trials(i).onset);
+                            table{i,7} = num2str(trialonset(D,i));
                         end
                         colnames = {'label','type','value','duration','time','bad','onset'};
                         [ht,hc] = spm_uitable(table,colnames);
@@ -579,9 +579,9 @@ switch D.PSD.VIZU.uitable
                             'tag','plotEEG');
                     else
                         for i=1:nt
-                            table{i,1} = D.trials(i).label;
-                            table{i,2} = num2str(D.trials(i).repl);
-                            if D.trials(i).bad
+                            table{i,1} = char(conditions(D,i));
+                            table{i,2} = num2str(repl(D,i));
+                            if badtrials(D,i)
                                 table{i,3} = 'yes';
                             else
                                 table{i,3} = 'no';
@@ -610,44 +610,44 @@ switch D.PSD.VIZU.uitable
                     table = cell(Ninv,12);
                     for i=1:Ninv
                         try
-                            table{i,1} = [D.other.inv{isInv(i)}.comment{1},' '];
+                            table{i,1} = [D.inv{isInv(i)}.comment{1},' '];
                         catch
                             table{i,1} = ' ';
                         end
-                        table{i,2} = [D.other.inv{isInv(i)}.date(1,:)];
+                        table{i,2} = [D.inv{isInv(i)}.date(1,:)];
                         try
-                            table{i,3} = [D.other.inv{isInv(i)}.inverse.modality];
+                            table{i,3} = [D.inv{isInv(i)}.inverse.modality];
                         catch
                             try
-                                table{i,3} = [D.other.inv{isInv(i)}.modality];
+                                table{i,3} = [D.inv{isInv(i)}.modality];
                             catch
                                 table{i,3} = '?';
                             end
                         end
-                        table{i,4} = [D.other.inv{isInv(i)}.method];
+                        table{i,4} = [D.inv{isInv(i)}.method];
                         try
-                            table{i,5} = [num2str(length(D.other.inv{isInv(i)}.inverse.Is))];
+                            table{i,5} = [num2str(length(D.inv{isInv(i)}.inverse.Is))];
                         catch
                             try
-                                table{i,5} = [num2str(D.other.inv{isInv(i)}.inverse.n_dip)];
+                                table{i,5} = [num2str(D.inv{isInv(i)}.inverse.n_dip)];
                             catch
                                 table{i,5} = '?';
                             end
                         end
                         try
-                            table{i,6} = [D.other.inv{isInv(i)}.inverse.type];
+                            table{i,6} = [D.inv{isInv(i)}.inverse.type];
                         catch
                             table{i,6} = '?';
                         end
                         try
-                            table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.woi(1))),...
-                                ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.woi(2))),' ms'];
+                            table{i,7} = [num2str(floor(D.inv{isInv(i)}.inverse.woi(1))),...
+                                ' to ',num2str(floor(D.inv{isInv(i)}.inverse.woi(2))),' ms'];
                         catch
-                            table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.pst(1))),...
-                                ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.pst(end))),' ms'];
+                            table{i,7} = [num2str(floor(D.inv{isInv(i)}.inverse.pst(1))),...
+                                ' to ',num2str(floor(D.inv{isInv(i)}.inverse.pst(end))),' ms'];
                         end
                         try
-                            if D.other.inv{isInv(i)}.inverse.Han
+                            if D.inv{isInv(i)}.inverse.Han
                                 han = 'yes';
                             else
                                 han = 'no';
@@ -657,22 +657,22 @@ switch D.PSD.VIZU.uitable
                             table{i,8} = ['?'];
                         end
                         try
-                            table{i,9} = [num2str(D.other.inv{isInv(i)}.inverse.lpf),...
-                                ' to ',num2str(D.other.inv{isInv(i)}.inverse.hpf), 'Hz'];
+                            table{i,9} = [num2str(D.inv{isInv(i)}.inverse.lpf),...
+                                ' to ',num2str(D.inv{isInv(i)}.inverse.hpf), 'Hz'];
                         catch
                             table{i,9} = ['?'];
                         end
                         try
-                            table{i,10} = [num2str(size(D.other.inv{isInv(i)}.inverse.T,2))];
+                            table{i,10} = [num2str(size(D.inv{isInv(i)}.inverse.T,2))];
                         catch
                             table{i,10} = '?';
                         end
                         try
-                            table{i,11} = [num2str(D.other.inv{isInv(i)}.inverse.R2)];
+                            table{i,11} = [num2str(D.inv{isInv(i)}.inverse.R2)];
                         catch
                             table{i,11} = '?';
                         end
-                        table{i,12} = [num2str(sum(D.other.inv{isInv(i)}.inverse.F))];
+                        table{i,12} = [num2str(sum(D.inv{isInv(i)}.inverse.F))];
                     end
                     colnames = {'label','date','modality','model','#dipoles','method',...
                         'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};

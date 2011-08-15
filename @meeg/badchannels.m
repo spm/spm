@@ -5,9 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 4329 2011-05-19 20:54:36Z christophe $
-
-
+% $Id: badchannels.m 4432 2011-08-15 12:43:44Z christophe $
 
 if length(varargin) == 2 && ~isempty(varargin{1})
     % make sure that the two inputs for set are the same length
@@ -29,7 +27,11 @@ if numel(varargin) >= 2
     end
 end
 
-res = getset(this, 'channels', 'bad', varargin{:});
+if this.montage.Mind == 0
+    res = getset(this, 'channels', 'bad', varargin{:});
+else 
+    res = getset(this.montage.M(this.montage.Mind), 'channels', 'bad', varargin{:});
+end
 
 
 if isempty(varargin)

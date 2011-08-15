@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 3646 2009-12-16 16:01:03Z jean $
+% $Id: spm_eeg_review_callbacks.m 4432 2011-08-15 12:43:44Z christophe $
 
 spm('pointer','watch');
 drawnow expose
@@ -14,20 +14,18 @@ try
     handles = D.PSD.handles;
 end
 
-
-
 switch varargin{1}
-
 
     %% File I/O
     case 'file'
         switch varargin{2}
             case 'save'
                 D0 = D;
-                D = meeg(rmfield(D,'PSD'));
+                D = rmfield(D,'PSD');
                 save(D);
                 D = D0;
-                D.PSD.D0 = rmfield(D,'PSD');
+                Dtmp = rmfield(D,'PSD');
+                D.PSD.D0 = Dtmp; % single line doesn't seem to work with me
                 set(D.PSD.handles.hfig,'userdata',D)
                 set(D.PSD.handles.BUTTONS.pop1,...
                     'BackgroundColor',[0.8314 0.8157 0.7843])
@@ -43,13 +41,13 @@ switch varargin{1}
             case 'VIZU'
                 visuSensors             = varargin{3};
                 VIZU.visuSensors        = visuSensors;
-                VIZU.montage.clab       = {D.channels(visuSensors).label};
-                if strcmp(D.transform.ID,'time')
-                    M                       = sparse(length(visuSensors),length(D.channels));
+                VIZU.montage.clab       = chanlabels(D,visuSensors);
+                if strcmp(transformtype(D),'time')
+                    M                       = sparse(length(visuSensors),D.nchannels);
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
-                    nts                     = min([2e2,D.Nsamples]);
-                    decim                   = max([floor(D.Nsamples./nts),1]);
-                    data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
+                    nts                     = min([2e2,D.nsamples]);
+                    decim                   = max([floor(D.nsamples./nts),1]);
+                    data                    = D(visuSensors,1:decim:D.nsamples,:);
                     sd                      = mean(abs(data(:)-mean(data(:))));%std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*(sd+eps)/2;
                     v_data                  = 0.25.*data +repmat(offset,[1 size(data,2) size(data,3)]);
@@ -65,11 +63,11 @@ switch varargin{1}
                     VIZU.figname            = 'main visualization window';
                     VIZU.montage.M          = M;
                     VIZU.y2                 = permute(sum(data.^2,1),[2 3 1]);
-                    VIZU.sci                = size(VIZU.y2,1)./D.Nsamples;
+                    VIZU.sci                = size(VIZU.y2,1)./D.nsamples;
                 else
-                    nts                     = min([2e2,D.Nsamples*length(D.transform.frequencies)]);
-                    decim                   = max([floor(D.Nsamples*length(D.transform.frequencies)./nts),1]);
-                    data                    = D.data.y(visuSensors,:,1:decim:D.Nsamples,:);
+                    nts                     = min([2e2,D.nsamples*D.nfrequencies]);
+                    decim                   = max([floor(D.nsamples*D.nfrequencies)./nts,1]);
+                    data                    = D(visuSensors,:,1:decim:D.nsamples,:);
                     VIZU.ylim               = [min(data(:)) max(data(:))];
                 end
                 varargout{1} = VIZU;
@@ -87,15 +85,16 @@ switch varargin{1}
                 D = getUItable(D);
             case 'prep'
                 Finter = spm_figure('GetWin','Interactive');
-                D = struct(get(Finter, 'UserData'));
-                D0 = D.other(1).D0;
-                D.other = rmfield(D.other,{'PSD','D0'});
-                d1 = rmfield(D,'history');
-                d0 = rmfield(D0,'history');
+                D = get(Finter, 'UserData');
+                D0 = D.D0;
+                D = rmfield(D,{'PSD','D0'});
+                d1 = history(D,1,2,3); %reset history to []
+                d0 = history(D0,1,2,3);
                 if isequal(d1,d0)
                     % The objects only differ by their history
                     % => remove last operation from modified object
-                    D.history(end) = [];
+                    hh = history(D); hh(end) = [];
+                    D = history(D,hh);
                 end
                 spm_eeg_review(D);
                 hf = spm_figure('FindWin','Graphics');
@@ -105,7 +104,6 @@ switch varargin{1}
                 spm_eeg_review_callbacks('visu','update')
                 spm_clf(Finter)
         end
-
 
     %% Visualization callbacks
     case 'visu'
@@ -142,13 +140,13 @@ switch varargin{1}
                     case 'scalp'
                         D.PSD.VIZU.type = 2;
                 end
-                try,D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');end
+                try, D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');end
                 [D] = spm_eeg_review_switchDisplay(D);
-                try
+                 try %CP
                     updateDisp(D,1);
-                catch
-                    set(D.PSD.handles.hfig,'userdata',D);
-                end
+                 catch
+                     set(D.PSD.handles.hfig,'userdata',D);
+                 end
 
             %% Switch from 'standard' to 'scalp' display type
             case 'switch'
@@ -171,7 +169,8 @@ switch varargin{1}
             %% Scalp interpolation
             case 'scalp_interp'
 
-                if ~isempty([D.channels(:).X_plot2D])
+                XY_coor2D = coor2D(D);
+                if ~isempty(XY_coor2D(1,:))
                     x = round(mean(get(handles.axes(1),'xlim')));
                     ylim = get(handles.axes(1),'ylim');
                     if D.PSD.VIZU.type==1
@@ -186,7 +185,7 @@ switch varargin{1}
                             trN = D.PSD.trials.current(1);
                             in.trN = trN;
                     end
-                    in.gridTime = (1:D.Nsamples).*1e3./D.Fsample + D.timeOnset.*1e3;
+                    in.gridTime = (1:D.nsamples).*1e3./D.fsample + D.timeonset.*1e3;
                     in.unit = 'ms';
                     in.x = x;
                     in.handles = handles;
@@ -204,12 +203,11 @@ switch varargin{1}
                             I = D.PSD.other.I;
                             in.type = 'other';
                     end
-                    I = intersect(I,find(~[D.channels.bad]));
-                    try
-                        pos(:,1) = [D.channels(I).X_plot2D]';
-                        pos(:,2) = [D.channels(I).Y_plot2D]';
-                        labels = {D.channels(I).label};
-                        y = D.data.y(I,:,trN);
+                    I = intersect(I,find(~[D.badchannels(1:D.nchannels)]));
+                     try %CP
+                        pos = coor2D(D,I)';
+                        labels = chan(chanlabels(D,I));
+                        y = D(I,:,trN);
                         in.min = min(y(:));
                         in.max = max(y(:));
                         in.ind = I;
@@ -219,9 +217,9 @@ switch varargin{1}
                             D.PSD.handles.hli = in.hl;
                             set(D.PSD.handles.hfig,'userdata',D);
                         end
-                    catch
-                        msgbox('Get 2d positions for these channels!')
-                    end
+                     catch
+                         msgbox('Get 2d positions for these channels!')
+                     end
                 else
                     msgbox('Get 2d positions for EEG/MEG channels!')
                 end
@@ -236,17 +234,18 @@ switch varargin{1}
                 % get and plot 3D sensor positions
                 
                 try     % EEG
-                    try
-                        for i=1:numel(D.other.inv{end}.datareg)
-                            if isequal(D.other.inv{end}.datareg(i).modality,'EEG')
+                    try 
+                        for i=1:numel(D.inv{end}.datareg)
+                            if isequal(D.inv{end}.datareg(i).modality,'EEG')
                                 pos3d = spm_eeg_inv_transform_points(...
-                                    D.other.inv{end}.datareg(i).toMNI,...
-                                    D.other.inv{end}.datareg(i).sensors.pnt);
+                                    D.inv{end}.datareg(i).toMNI,...
+                                    D.inv{end}.datareg(i).sensors.pnt);
                             end
                         end
                         opt.figname = 'Coregistred EEG sensor positions';
                     catch
-                        pos3d = [D.sensors.eeg.pnt];
+                        EEGsens = sensors(D,'EEG');
+                        pos3d = EEGsens.pnt;
                         pos3d = pos3d(D.PSD.EEG.I,:);
                         opt.figname = 'Uncoregistred EEG sensor positions';
                     end
@@ -276,16 +275,17 @@ switch varargin{1}
                 try     % MEG
                     clear opt pos3d o labels
                     try % multimodal EEG/MEG
-                        for i=1:numel(D.other.inv{end}.datareg)
-                            if isequal(D.other.inv{end}.datareg(i).modality,'MEG')
+                        for i=1:numel(D.inv{end}.datareg)
+                            if isequal(D.inv{end}.datareg(i).modality,'MEG')
                                 pos3d = spm_eeg_inv_transform_points(...
-                                    D.other.inv{end}.datareg(i).toMNI,...
-                                    D.other.inv{end}.datareg(i).sensors.pnt);
+                                    D.inv{end}.datareg(i).toMNI,...
+                                    D.inv{end}.datareg(i).sensors.pnt);
                             end
                         end
                         opt.figname = 'Coregistred MEG sensor positions';
                     catch
-                        pos3d = [D.sensors.meg.pnt];
+                        MEGsens = sensors(D,'MEG');
+                        pos3d = MEGsens.pnt;
                         opt.figname = 'Uncoregistred MEG sensor positions';
                     end
                     pos3d(1,:);
@@ -392,10 +392,6 @@ switch varargin{1}
                     set(D.PSD.handles.hfig,'userdata',D)
                 end
 
-
-
-
-
             %% Contrast/intensity rescaling
             case 'iten_sc'
 
@@ -410,7 +406,6 @@ switch varargin{1}
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
                 updateDisp(D,3);
-
 
             %% Resize plotted data window ('standard' display type)
             case 'time_w'
@@ -427,13 +422,11 @@ switch varargin{1}
 
                 updateDisp(D,4)
 
-
             %% Scroll through data ('standard' display type)
             case 'slider_t'
 
                 offset = get(gco,'value');
                 updateDisp(D)
-
 
             %% Scroll through data page by page  ('standard' display type)
             case 'goOne'
@@ -445,7 +438,6 @@ switch varargin{1}
                 xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
                 D.PSD.VIZU.xlim = xlim;
                 updateDisp(D,4)
-
 
             %% Zoom
             case 'zoom'
@@ -488,8 +480,8 @@ switch varargin{1}
                         indAxes = get(gco,'userdata');
                         if ~~indAxes
                             hf = figure('color',[1 1 1]);
-                            chanLabel = D.channels(VIZU.visuSensors(indAxes)).label;
-                            if D.channels(VIZU.visuSensors(indAxes)).bad
+                            chanLabel = char(chanlabels(D,VIZU.visuSensors(indAxes)));
+                            if badchannels(D,VIZU.visuSensors(indAxes))
                                 chanLabel = [chanLabel,' (BAD)'];
                             end
                             set(hf,'name',['channel ',chanLabel])
@@ -499,13 +491,13 @@ switch varargin{1}
                             trN = D.PSD.trials.current(:);
                             Ntrials = length(trN);
 
-                            if strcmp(D.transform.ID,'time')
+                            if strcmp(transformtype(D),'time')
 
                                 leg = cell(Ntrials,1);
                                 col = lines;
                                 col = repmat(col(1:7,:),floor(Ntrials./7)+1,1);
                                 hp = get(handles.axes(indAxes),'children');
-                                pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
+                                pst = (0:1/D.fsample:(D.nsamples-1)/D.fsample) + D.timeonset;
                                 pst = pst*1e3;  % in msec
                                 for i=1:Ntrials
                                     datai = get(hp(Ntrials-i+1),'ydata')./VIZU.visu_scale;
@@ -518,7 +510,7 @@ switch varargin{1}
                                 xlabel(ha2,'time (in ms after time onset)')
                                 unit = 'unknown';
                                 try
-                                    unit = D.channels(VIZU.visuSensors(indAxes)).units;
+                                    unit = units(D,VIZU.visuSensors(indAxes));
                                 end
                                 if isequal(unit,'unknown')
                                     ylabel(ha2,'field intensity ')
@@ -526,12 +518,12 @@ switch varargin{1}
                                     ylabel(ha2,['field intensity (in ',unit,')'])
                                 end
                                 title(ha2,['channel ',chanLabel,...
-                                    ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
+                                    ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')'])
 
                             else % time-frequency data
 
-                                datai = squeeze(D.data.y(VIZU.visuSensors(indAxes),:,:,trN(1)));    
-                                pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
+                                datai = squeeze(D(VIZU.visuSensors(indAxes),:,:,trN(1)));    
+                                pst = (0:1/D.fsample:(D.nsamples-1)/D.fsample) + D.timeonset;
                                 pst = pst*1e3;  % in msec
                                 if any(size(datai)==1)
                                     hp2 = plot(datai,...
@@ -541,13 +533,13 @@ switch varargin{1}
                                     xlabel(ha2,'time (in ms after time onset)')
                                     ylabel(ha2,'power in frequency space')
                                     title(ha2,['channel ',chanLabel,...
-                                        ' (',D.channels(VIZU.visuSensors(indAxes)).type,')',...
-                                        ' -- frequency: ',num2str(D.transform.frequencies),' Hz'])
+                                        ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')',...
+                                        ' -- frequency: ',num2str(frequencies(D)),' Hz'])
                                 else
                                     nx = max([1,length(pst)./10]);
                                     xtick = floor(1:nx:length(pst));
-                                    ny = max([1,length(D.transform.frequencies)./10]);
-                                    ytick = floor(1:ny:length(D.transform.frequencies));
+                                    ny = max([1,length(frequencies(D))./10]);
+                                    ytick = floor(1:ny:length(frequencies(D)));
                                     hp2 = image(datai,...
                                         'CDataMapping','scaled',...
                                         'parent',ha2);
@@ -559,11 +551,11 @@ switch varargin{1}
                                         'xlim',[0.5 length(pst)+0.5],...
                                         'ylim',[0.5 size(datai,1)+0.5],...
                                         'ytick',ytick,...
-                                        'yticklabel',D.transform.frequencies(ytick));
+                                        'yticklabel',frequencies(D,ytick));
                                     xlabel(ha2,'time (in ms after time onset)')
                                     ylabel(ha2,'frequency (in Hz)')
                                     title(ha2,['channel ',chanLabel,...
-                                        ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
+                                        ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')'])
                                     caxis(ha2,VIZU.ylim)
                                 end
 
@@ -576,26 +568,25 @@ switch varargin{1}
 
             otherwise;disp('unknown command !')
 
-
         end
 
     %% Events callbacks accessible from uicontextmenu
     %% ('standard' display type when playing with 'continuous' data)
     case 'menuEvent'
 
-        Nevents = length(D.trials.events);
+        Events = events(D);
+        Nevents = length(Events);
 
-        x                       = [D.trials.events.time]';
-        x(:,2)                  = [D.trials.events.duration]';
+        x                       = [Events.time]';
+        x(:,2)                  = [Events.duration]';
         x(:,2)                  = sum(x,2);
 
         % Find the index of the selected event
         currentEvent = get(gco,'userdata');
-        eventType = D.trials.events(currentEvent).type;
-        eventValue = D.trials.events(currentEvent).value;
+        eventType = Events(currentEvent).type;
+        eventValue = Events(currentEvent).value;
         tit = ['Current event is selection #',num2str(currentEvent),...
             ' /',num2str(Nevents),' (type= ',eventType,', value=',num2str(eventValue),').'];
-
 
         switch varargin{2}
 
@@ -633,23 +624,23 @@ switch varargin{1}
                     try
                         eventType = answer{1};
                         eventValue = str2double(answer{2});
-                        D.trials.events(currentEvent).time = str2double(answer{3});
-                        D.trials.events(currentEvent).duration = str2double(answer{4});
-                        D.trials.events(currentEvent).type = eventType;
-                        D.trials.events(currentEvent).value = eventValue;
+                        Events(currentEvent).time = str2double(answer{3});
+                        Events(currentEvent).duration = str2double(answer{4});
+                        Events(currentEvent).type = eventType;
+                        Events(currentEvent).value = eventValue;
+                        D = events(D,1,Events);
                     end
 
                     updateDisp(D,2,currentEvent)
 
                 end
 
-
             % Execute actions accessible from the event contextmenu : go to next/previous event
             case 'goto'
 
 
                 here = mean(x(currentEvent,:));
-                values = [D.trials.events.value];
+                values = [Events.value];
                 xm = mean(x(values==eventValue,:),2);
                 if varargin{3} == 0
                     ind = find(xm < here);
@@ -659,25 +650,25 @@ switch varargin{1}
 
                 if ~isempty(ind)
                     if varargin{3} == 0
-                        offset = round(max(xm(ind))).*D.Fsample;
+                        offset = round(max(xm(ind))).*D.fsample;
                     else
-                        offset = round(min(xm(ind))).*D.Fsample;
+                        offset = round(min(xm(ind))).*D.fsample;
                     end
                     xlim0 = get(handles.axes,'xlim');
-                    if ~isequal(xlim0,[1 D.Nsamples])
+                    if ~isequal(xlim0,[1 D.nsamples])
                         length_window = round(xlim0(2)-xlim0(1));
                         if offset < round(0.5*length_window)
                             offset = round(0.5*length_window);
                             set(handles.BUTTONS.slider_step,'value',1);
-                        elseif offset > D.Nsamples-round(0.5*length_window)
-                            offset = D.Nsamples-round(0.5*length_window)-1;
+                        elseif offset > D.nsamples-round(0.5*length_window)
+                            offset = D.nsamples-round(0.5*length_window)-1;
                             set(handles.BUTTONS.slider_step,'value',get(handles.BUTTONS.slider_step,'max'));
                         else
                             set(handles.BUTTONS.slider_step,'value',offset);
                         end
                         xlim = [offset-round(0.5*length_window) offset+round(0.5*length_window)];
                         xlim(1) = max([xlim(1) 1]);
-                        xlim(2) = min([xlim(2) D.Nsamples]);
+                        xlim(2) = min([xlim(2) D.nsamples]);
                         D.PSD.VIZU.xlim = xlim;
                         updateDisp(D,4)
                     end
@@ -688,7 +679,8 @@ switch varargin{1}
             % Execute actions accessible from the event contextmenu : delete event
             case 'deleteEvent'
 
-                D.trials.events(currentEvent) = [];
+                Events(currentEvent) = [];
+                D = events(D,1,Events);
                 updateDisp(D,2)
 
         end
@@ -708,7 +700,7 @@ switch varargin{1}
                     try cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
-                status = any([D.trials(trN).bad]);
+                status = reject(D,trN);
                 try
                     if status
                         str = 'declare as not bad';
@@ -725,7 +717,7 @@ switch varargin{1}
             %% Switch event to 'bad' (when playing with 'epoched' data)
             case 'bad'
                 trN = D.PSD.trials.current;
-                status = any([D.trials(trN).bad]);
+                status = any(badtrials(D,trN));
                 str1 = 'not bad';
                 str2 = 'bad';
                 if status
@@ -739,9 +731,9 @@ switch varargin{1}
                 end
                 nt = length(trN);
                 for i=1:nt
-                    D.trials(trN(i)).bad = bad;
+                    D = badtrials(D,trN(i),bad);
                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
-                        ': ',D.trials(trN(i)).label,lab];
+                        ': ',char(conditions(D,trN(i))),lab];
                 end
                 set(D.PSD.handles.BUTTONS.list1,'string',D.PSD.trials.TrLabels);
                 ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
@@ -755,17 +747,19 @@ switch varargin{1}
             case 'add'
                 [x,tmp] = ginput(1);
                 x = round(x);
-                x(1) = min([max([1 x(1)]) D.Nsamples]);
-                Nevents = length(D.trials.events);
-                D.trials.events(Nevents+1).time = x./D.Fsample;
-                D.trials.events(Nevents+1).duration = 0;
-                D.trials.events(Nevents+1).type = 'Manual';
+                x(1) = min([max([1 x(1)]) D.nsamples]);
+                Events = events(D);
+                Nevents = length(Events);
+                Events(Nevents+1).time = x./D.fsample;
+                Events(Nevents+1).duration = 0;
+                Events(Nevents+1).type = 'Manual';
                 D.PSD.handles.PLOT.e(Nevents+1) = 0;
                 if Nevents > 0
-                    D.trials.events(Nevents+1).value = D.trials.events(Nevents).value;
+                    Events(Nevents+1).value = Events(Nevents).value;
                 else
-                    D.trials.events(Nevents+1).value = 0;
+                    Events(Nevents+1).value = 0;
                 end
+                D = events(D,1,Events);
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
@@ -777,8 +771,9 @@ switch varargin{1}
             %% (when playing with 'continuous' data)
             case 'goto'
                 here                    = get(handles.BUTTONS.slider_step,'value');
-                x                       = [D.trials.events.time]';
-                xm                      = x.*D.Fsample;
+                Events = events(D); %CP
+                x                       = [Events.time]';
+                xm                      = x.*D.fsample;
                 if varargin{3} == 0
                     ind = find(xm > here+1);
                 else
@@ -791,20 +786,19 @@ switch varargin{1}
                         offset          = round(min(xm(ind)));
                     end
                     xlim0               = get(handles.axes,'xlim');
-                    if ~isequal(xlim0,[1 D.Nsamples])
-                        length_window   = round(xlim0(2)-xlim0(1));
+                    if ~isequal(xlim0,[1 D.nsamples])
                         if offset < round(0.5*length_window)
                             offset      = round(0.5*length_window);
                             set(handles.BUTTONS.slider_step,'value',1);
-                        elseif offset > D.Nsamples-round(0.5*length_window)
-                            offset      = D.Nsamples-round(0.5*length_window)-1;
+                        elseif offset > D.nsamples-round(0.5*length_window)
+                            offset      = D.nsamples-round(0.5*length_window)-1;
                             set(handles.BUTTONS.slider_step,'value',get(handles.BUTTONS.slider_step,'max'));
                         else
                             set(handles.BUTTONS.slider_step,'value',offset);
                         end
                         xlim            = [offset-round(0.5*length_window) offset+round(0.5*length_window)];
                         xlim(1)         = max([xlim(1) 1]);
-                        xlim(2)         = min([xlim(2) D.Nsamples]);
+                        xlim(2)         = min([xlim(2) D.nsamples]);
                         D.PSD.VIZU.xlim    = xlim;
                         set(handles.BUTTONS.slider_step,'value',offset);
                         updateDisp(D,4)
@@ -825,12 +819,8 @@ switch varargin{1}
                 Finter = spm_figure('GetWin','Interactive');
                 D0 = D.PSD.D0;
                 D = rmfield(D,'PSD');
-                if isempty(D.other)
-                    D.other = struct([]);
-                end
-                D.other(1).PSD = 1;
-                D.other(1).D0 = D0;
-                D = meeg(D);
+                D.PSD = 1;
+                D.D0 = D0;
                 set(Finter, 'UserData', D);
                 hc = get(Finter,'children');
                 delete(hc(end));    % get rid of 'file' uimenu...
@@ -852,12 +842,12 @@ switch varargin{1}
 
 end
 
-
 % Check changes in the meeg object
-if isstruct(D)&& isfield(D,'PSD') && ...
+if isa(D,'meeg')&& isfield(D,'PSD') && ...
         isfield(D.PSD,'D0')
-    d1 = rmfield(D,{'history','PSD'});
-    d0 = rmfield(D.PSD.D0,'history');
+    d1 = rmfield(D,{'PSD'}); 
+    d1 = history(d1,1,2,3); %reset history to []
+    d0 = history(D.PSD.D0,1,2,3); %reset history to []  
     if isequal(d1,d0)
         set(D.PSD.handles.BUTTONS.pop1,...
             'BackgroundColor',[0.8314 0.8157 0.7843])
@@ -881,11 +871,8 @@ if ~exist('in','var')
 end
 handles = D.PSD.handles;
 
-
-
 % Create intermediary display variables : events
 figure(handles.hfig)
-
 
 % Get current event
 try
@@ -926,15 +913,18 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 end
                 % gather info for core display function
                 options.hp = handles.hfig;
-                options.Fsample = D.Fsample;
-                options.timeOnset = D.timeOnset;
+                options.Fsample = D.fsample;
+                options.timeOnset = D.timeonset;
+                if strcmp(D.PSD.VIZU.modality,'eeg') % R.L added if -- montage not defined for other modalities
                 options.M = VIZU.visu_scale*full(VIZU.montage.M);
-                options.bad = [D.channels(VIZU.visuSensors(:)).bad];
-                if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
+                end
+                options.bad = [badchannels(D,VIZU.visuSensors(:))];
+                Events = events(D);
+                if strcmp(D.PSD.type,'continuous') && ~isempty(Events)
                     trN = 1;
-                    Nevents = length(D.trials.events);
-                    x1 = {D.trials.events(:).type}';
-                    x2 = {D.trials.events(:).value}';
+                    Nevents = length(Events);
+                    x1 = {Events(:).type}';
+                    x2 = {Events(:).value}';
                     if ~iscellstr(x1)
                         [y1,i1,j1] = unique(cell2mat(x1));
                     else
@@ -947,9 +937,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     end
                     A = [j1(:),j2(:)];
                     [ya,ia,ja] = unique(A,'rows');
-                    options.events = rmfield(D.trials.events,{'duration','value'});
+                    options.events = rmfield(Events,{'duration','value'});
                     for i=1:length(options.events)
-                        options.events(i).time = options.events(i).time.*D.Fsample;% +1;
+                        options.events(i).time = options.events(i).time.*D.fsample;% +1;
                         options.events(i).type = ja(i);
                     end
                 end
@@ -963,13 +953,13 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     try
                         options.itw = round(D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
                     catch
-                        options.itw = 1:D.Nsamples;
+                        options.itw = 1:D.nsamples;
                     end
                 else
                     try
                         options.itw = round(D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
                     catch
-                        options.itw = 1:D.Nsamples;
+                        options.itw = 1:D.nsamples;
                     end
                     options.minSizeWindow = 20;
                 end
@@ -989,9 +979,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 % Use file_array for 'continuous' data.
                 if strcmp(D.PSD.type,'continuous')
                     options.transpose = 1;
-                    ud = spm_DisplayTimeSeries(D.data.y,options);
+                    ud = spm_DisplayTimeSeries(D,options);
                 else
-                    ud = spm_DisplayTimeSeries(D.data.y(:,:,trN(1))',options);
+                    ud = spm_DisplayTimeSeries(D(:,:,trN(1))',options);
                 end
                 % update D
                 D.PSD.handles.axes = ud.v.handles.axes;
@@ -1002,10 +992,11 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if isfield(options,'events')
                     D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
                     axes(D.PSD.handles.axes)
+                    Events = events(D,trN(1)); %CP
                     for i=1:length(options.events)
                         sc.currentEvent = i;
-                        sc.eventType    = D.trials(trN(1)).events(i).type;
-                        sc.eventValue   = D.trials(trN(1)).events(i).value;
+                        sc.eventType    = Events(i).type;
+                        sc.eventValue   = Events(i).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                     end
@@ -1013,8 +1004,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
-                    uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
-                    uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
+                    uimenu(cmenu,'Label',['type: ',char(chantype(D,VIZU.visuSensors(i)))]);
+                    uimenu(cmenu,'Label',['bad: ',num2str(badchannels(D,VIZU.visuSensors(i)))],...
                         'callback',@switchBC,'userdata',i,...
                         'BusyAction','cancel',...
                         'Interruptible','off');
@@ -1027,7 +1018,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
             % modify events properties (delete,add,time,...)
             if ismember(2,flags)
-                Nevents = length(D.trials.events);
+                Events = events(D);
+                Nevents = length(Events);
                 if Nevents < length(D.PSD.handles.PLOT.e)
                     action = 'delete';
                     try,delete(D.PSD.handles.PLOT.e),end
@@ -1037,8 +1029,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 end
                 col = lines;
                 col = col(1:7,:);
-                x1 = {D.trials.events(:).type}';
-                x2 = {D.trials.events(:).value}';
+                x1 = {Events(:).type}';
+                x2 = {Events(:).value}';
                 if ~iscellstr(x1)
                     [y1,i1,j1] = unique(cell2mat(x1));
                 else
@@ -1051,44 +1043,49 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 end
                 A = [j1(:),j2(:)];
                 [ya,ia,ja] = unique(A,'rows');
-                events = rmfield(D.trials.events,{'duration','value'});
+                levents = rmfield(Events,{'duration','value'});
                 switch action
                     case 'delete'
                         %spm_progress_bar('Init',Nevents,'Replacing events');
                         axes(D.PSD.handles.axes)
+                        Events = events(D,trN(1)); %CP
                         for i=1:Nevents
-                            events(i).time = D.trials.events(i).time.*D.Fsample;% +1;
-                            events(i).type = ja(i);
-                            events(i).col = mod(events(i).type+7,7)+1;
+                            levents(i).time = Events(i).time.*D.fsample;% +1;
+                            levents(i).type = ja(i);
+                            levents(i).col = mod(levents(i).type+7,7)+1;
                             D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,...
-                                events(i).time.*[1 1],...
+                                levents(i).time.*[1 1],...
                                 VIZU.ylim,...
-                                'color',col(events(i).col,:),...
+                                'color',col(levents(i).col,:),...
                                 'userdata',i,...
                                 'ButtonDownFcn','set(gco,''selected'',''on'')',...
                                 'Clipping','on');
                             % Add events uicontextmenu
                             sc.currentEvent = i;
-                            sc.eventType    = D.trials(trN(1)).events(i).type;
-                            sc.eventValue   = D.trials(trN(1)).events(i).value;
+                            sc.eventType    = Events(i).type; %CP 
+                            sc.eventValue   = Events(i).value;
                             sc.N_select     = Nevents;
                             psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                             %spm_progress_bar('Set',i)
                         end
                         %spm_progress_bar('Clear')
                     case 'modify'
-                        events(in).time = D.trials.events(in).time.*D.Fsample;% +1;
-                        events(in).type = ja(in);
-                        events(in).col = mod(events(in).type+7,7)+1;
-                        D.PSD.handles.PLOT.e(in) = plot(D.PSD.handles.axes,events(in).time.*[1 1],...
-                            VIZU.ylim,'color',col(events(in).col,:));
+                        Events = events(D); %CP
+                        levents(in).time = Events(in).time.*D.fsample;% +1;
+%                       CP, Question, why using the 1st trial here but the 
+%                       trN(1)_th one after on...
+                        levents(in).type = ja(in);
+                        levents(in).col = mod(levents(in).type+7,7)+1;
+                        D.PSD.handles.PLOT.e(in) = plot(D.PSD.handles.axes,levents(in).time.*[1 1],...
+                            VIZU.ylim,'color',col(levents(in).col,:));
                         set(D.PSD.handles.PLOT.e(in),'userdata',in,...
                             'ButtonDownFcn','set(gco,''selected'',''on'')',...
                             'Clipping','on');
                         % Add events uicontextmenu
                         sc.currentEvent = in;
-                        sc.eventType    = D.trials(trN(1)).events(in).type;
-                        sc.eventValue   = D.trials(trN(1)).events(in).value;
+                        Events = events(D,trN(1)); %CP
+                        sc.eventType    = Events(in).type;
+                        sc.eventValue   = Events(in).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(in),sc);
                 end     
@@ -1141,22 +1138,22 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
         case 2
 
-            if strcmp(D.transform.ID,'time')
+            if strcmp(transformtype(D),'time')
 
                 Ntrials = length(trN);
                 v_data = zeros(size(VIZU.montage.M,1),...
-                    size(D.data.y,2),Ntrials);
+                    size(D,2),Ntrials);
                 for i=1:Ntrials
-                    v_datai                 = full(VIZU.montage.M)*D.data.y(:,:,trN(i));
+                    v_datai                 = full(VIZU.montage.M)*D(:,:,trN(i));
                     v_datai                 = VIZU.visu_scale*(v_datai);
                     v_data(:,:,i)           = v_datai;
                 end
                 % Create graphical objects if absent
-                if ~isfield(handles,'PLOT')
-                    miY = min(v_data(:));
-                    maY = max(v_data(:));
+                if ~isfield(handles,'PLOT')                                        
+                    miY = min(v_data(~isnan(v_data(:))));
+                    maY = max(v_data(~isnan(v_data(:))));
                     
-                    if miY == 0 && maY == 0
+                    if (isempty(miY) && isempty(maY)) || (miY == 0 && maY == 0)
                         miY = -eps;
                         maY = eps;
                     else
@@ -1167,12 +1164,12 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     for i=1:length(VIZU.visuSensors)
                         cmenu = uicontextmenu;
                         uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
-                        uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
-                        uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
+                        uimenu(cmenu,'Label',['type: ',char(chantype(D,VIZU.visuSensors(i)))]);
+                        uimenu(cmenu,'Label',['bad: ',num2str(badchannels(D,VIZU.visuSensors(i)))],...
                             'callback',@switchBC,'userdata',i,...
                             'BusyAction','cancel',...
                             'Interruptible','off');
-                        status = D.channels(VIZU.visuSensors(i)).bad;
+                        status = badchannels(D,VIZU.visuSensors(i));
                         if ~status
                             color = [1 1 1];
                         else
@@ -1205,20 +1202,30 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 for i=1:length(VIZU.visuSensors)
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
-                    uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
+                    uimenu(cmenu,'Label',['type: ',char(chantype(D,VIZU.visuSensors(i)))]);
                     %                     uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
                     %                         'callback',@switchBC,'userdata',i,...
                     %                         'BusyAction','cancel',...
                     %                         'Interruptible','off');
-                    status = D.channels(VIZU.visuSensors(i)).bad;
+                    status = badchannels(D,VIZU.visuSensors(i));
                     if ~status
                         color = [1 1 1];
                     else
                         color = 0.75*[1 1 1];
                     end
-                    datai = squeeze(D.data.y(VIZU.visuSensors(i),:,:,trN(1)));
-                    miY = min(datai(:));
-                    maY = max(datai(:));
+                    datai = squeeze(D(VIZU.visuSensors(i),:,:,trN(1)));
+                    
+                    miY = min(datai(~isnan(datai(:))));
+                    maY = max(datai(~isnan(datai(:))));
+                    
+                    if (isempty(miY) && isempty(maY)) || (miY == 0 && maY == 0)
+                        miY = -eps;
+                        maY = eps;
+                    else
+                        miY = miY - miY.*1e-3;
+                        maY = maY + maY.*1e-3;
+                    end
+                    
                     if any(size(datai)==1)
                         D.PSD.handles.PLOT.im(i) = plot(datai,...
                             'parent',handles.axes(i),...
@@ -1257,7 +1264,7 @@ else  % source space
     invN = VIZU.isInv(D.PSD.source.VIZU.current);
     F  = VIZU.F;
     ID = VIZU.ID;
-    model = D.other.inv{invN}.inverse;
+    model = D.inv{invN}.inverse;
     t0 = get(D.PSD.handles.BUTTONS.slider_step,'value');
     tmp = (model.pst-t0).^2;
     indTime = find(tmp==min(tmp));
@@ -1316,18 +1323,18 @@ else  % source space
         set(D.PSD.handles.axes,'CLim',...
             [D.PSD.source.VIZU.miJ D.PSD.source.VIZU.maJ]);
         set(D.PSD.handles.mesh,...
-            'Vertices',D.other.inv{invN}.mesh.tess_mni.vert,...
-            'Faces',D.other.inv{invN}.mesh.tess_mni.face,...
+            'Vertices',D.inv{invN}.mesh.tess_mni.vert,...
+            'Faces',D.inv{invN}.mesh.tess_mni.face,...
             'facevertexcdata',tex);
         try; delete(D.PSD.handles.dipSpheres);end
-        if isfield(D.other.inv{invN}.inverse,'dipfit') ||...
-                ~isequal(D.other.inv{invN}.inverse.xyz,zeros(1,3))
+        if isfield(D.inv{invN}.inverse,'dipfit') ||...
+                ~isequal(D.inv{invN}.inverse.xyz,zeros(1,3))
             try
-                xyz = D.other.inv{invN}.inverse.dipfit.Lpos;
-                radius = D.other.inv{invN}.inverse.dipfit.radius;
+                xyz = D.inv{invN}.inverse.dipfit.Lpos;
+                radius = D.inv{invN}.inverse.dipfit.radius;
             catch
-                xyz = D.other.inv{invN}.inverse.xyz';
-                radius = D.other.inv{invN}.inverse.rad(1);
+                xyz = D.inv{invN}.inverse.xyz';
+                radius = D.inv{invN}.inverse.rad(1);
             end
             Np  = size(xyz,2);
             [x,y,z] = sphere(20);
@@ -1415,7 +1422,8 @@ switch D.PSD.VIZU.modality
         I = D.PSD.other.I;
         VIZU = D.PSD.other.VIZU;
 end
-status = D.channels(I(ind)).bad;
+status = badchannels(D,I(ind));
+% status = D.channels(I(ind)).bad;%CP
 if status
     status = 0;
     lineStyle = '-';
@@ -1425,11 +1433,11 @@ else
     lineStyle = ':';
     color = 0.75*[1 1 1];
 end
-D.channels(I(ind)).bad = status;
+D= badchannels(D,I(ind),status);
 set(D.PSD.handles.hfig,'userdata',D);
 cmenu = uicontextmenu;
 uimenu(cmenu,'Label',['channel ',num2str(I(ind)),': ',VIZU.montage.clab{ind}]);
-uimenu(cmenu,'Label',['type: ',D.channels(I(ind)).type]);
+uimenu(cmenu,'Label',['type: ',char(chantype(D,I(ind)))]);
 uimenu(cmenu,'Label',['bad: ',num2str(status)],...
     'callback',@switchBC,'userdata',ind,...
     'BusyAction','cancel',...
@@ -1448,8 +1456,9 @@ switch D.PSD.VIZU.type
         axes(D.PSD.handles.scale)
 end
 
-d1 = rmfield(D,{'history','PSD'});
-d0 = rmfield(D.PSD.D0,'history');
+d1 = rmfield(D,{'PSD'}); 
+d1 = history(d1,1,2,3); %reset history to []
+d0 = history(D.PSD.D0,1,2,3); %reset history to []  
 if isequal(d1,d0)
     set(D.PSD.handles.BUTTONS.pop1,...
         'BackgroundColor',[0.8314 0.8157 0.7843])
@@ -1495,14 +1504,14 @@ uimenu(cmenu,'label','Delete event','callback','spm_eeg_review_callbacks(''menuE
 
 %% Get info about source reconstruction
 function str = getInfo4Inv(D,invN)
-str{1} = ['Label: ',D.other.inv{invN}.comment{1}];
+str{1} = ['Label: ',D.inv{invN}.comment{1}];
 try
-    str{2} = ['Date: ',D.other.inv{invN}.date(1,:),', ',D.other.inv{invN}.date(2,:)];
+    str{2} = ['Date: ',D.inv{invN}.date(1,:),', ',D.inv{invN}.date(2,:)];
 catch
-    str{2} = ['Date: ',D.other.inv{invN}.date(1,:)];
+    str{2} = ['Date: ',D.inv{invN}.date(1,:)];
 end
-if isfield(D.other.inv{invN}.inverse, 'modality')
-    mod0 = D.other.inv{invN}.inverse.modality;
+if isfield(D.inv{invN}.inverse, 'modality')
+    mod0 = D.inv{invN}.inverse.modality;
     if ischar(mod0)
         mod = mod0;
     else
@@ -1514,7 +1523,7 @@ if isfield(D.other.inv{invN}.inverse, 'modality')
     str{3} = ['Modality: ',mod];
 else % For backward compatibility
     try
-        mod0 = D.other.inv{invN}.modality;
+        mod0 = D.inv{invN}.modality;
         if ischar(mod0)
             mod = mod0;
         else
@@ -1529,39 +1538,39 @@ else % For backward compatibility
     end
 end
     
-if strcmp(D.other.inv{invN}.method,'Imaging')
+if strcmp(D.inv{invN}.method,'Imaging')
     source = 'distributed';
 else
     source = 'equivalent current dipoles';
 end
-str{4} = ['Source model: ',source,' (',D.other.inv{invN}.method,')'];
+str{4} = ['Source model: ',source,' (',D.inv{invN}.method,')'];
 try
     str{5} = ['Nb of included dipoles: ',...
-        num2str(length(D.other.inv{invN}.inverse.Is)),...
-        ' / ',num2str(D.other.inv{invN}.inverse.Nd)];
+        num2str(length(D.inv{invN}.inverse.Is)),...
+        ' / ',num2str(D.inv{invN}.inverse.Nd)];
 catch
     str{5} = 'Nb of included dipoles: undefined';
 end
 try
-    str{6} = ['Inversion method: ',D.other.inv{invN}.inverse.type];
+    str{6} = ['Inversion method: ',D.inv{invN}.inverse.type];
 catch
     str{6} = 'Inversion method: undefined';
 end
 try
     try
         str{7} = ['Time window: ',...
-            num2str(floor(D.other.inv{invN}.inverse.woi(1))),...
-            ' to ',num2str(floor(D.other.inv{invN}.inverse.woi(2))),' ms'];
+            num2str(floor(D.inv{invN}.inverse.woi(1))),...
+            ' to ',num2str(floor(D.inv{invN}.inverse.woi(2))),' ms'];
     catch
         str{7} = ['Time window: ',...
-            num2str(floor(D.other.inv{invN}.inverse.pst(1))),...
-            ' to ',num2str(floor(D.other.inv{invN}.inverse.pst(end))),' ms'];
+            num2str(floor(D.inv{invN}.inverse.pst(1))),...
+            ' to ',num2str(floor(D.inv{invN}.inverse.pst(end))),' ms'];
     end
 catch
     str{7} = 'Time window: undefined';
 end
 try
-    if D.other.inv{invN}.inverse.Han
+    if D.inv{invN}.inverse.Han
         han = 'yes';
     else
         han = 'no';
@@ -1571,9 +1580,9 @@ catch
     str{8} = ['Hanning: undefined'];
 end
 try
-    if isfield(D.other.inv{invN}.inverse,'lpf')
-        str{9} = ['Band pass filter: ',num2str(D.other.inv{invN}.inverse.lpf),...
-            ' to ',num2str(D.other.inv{invN}.inverse.hpf), 'Hz'];
+    if isfield(D.inv{invN}.inverse,'lpf')
+        str{9} = ['Band pass filter: ',num2str(D.inv{invN}.inverse.lpf),...
+            ' to ',num2str(D.inv{invN}.inverse.hpf), 'Hz'];
     else
         str{9} = ['Band pass filter: default'];
     end
@@ -1582,19 +1591,19 @@ catch
 end
 try
     str{10} = ['Nb of temporal modes: ',...
-        num2str(size(D.other.inv{invN}.inverse.T,2))];
+        num2str(size(D.inv{invN}.inverse.T,2))];
 catch
     str{10} = 'Nb of temporal modes: undefined';
 end
 try
     str{11} = ['Variance accounted for: ',...
-        num2str(D.other.inv{invN}.inverse.R2),' %'];
+        num2str(D.inv{invN}.inverse.R2),' %'];
 catch
     str{11} = 'Variance accounted for: undefined';
 end
 try
     str{12} = ['Log model evidence (free energy): ',...
-        num2str(D.other.inv{invN}.inverse.F)];
+        num2str(D.inv{invN}.inverse.F)];
 catch
     str{12} = 'Log model evidence (free energy): undefined';
 end
@@ -1604,37 +1613,35 @@ end
 function str = getInfo4Data(D)
 str{1} = ['File name: ',fullfile(D.path,D.fname)];
 str{2} = ['Type: ',D.type];
-if ~strcmp(D.transform.ID,'time')
+if ~strcmp(transformtype(D),'time')
     str{2} = [str{2},' (time-frequency data, from ',...
-        num2str(D.transform.frequencies(1)),'Hz to ',...
-        num2str(D.transform.frequencies(end)),'Hz'];
-    if strcmp(D.transform.ID,'TF')
+        num2str(frequencies(D,1)),'Hz to ',...
+        num2str(frequencies(D,length(frequencies(D)))),'Hz'];
+    if strcmp(transformtype(D),'TF')
         str{2} = [str{2},')'];
     else
         str{2} = [str{2},': phase)'];
     end
 end
-delta_t = D.Nsamples./D.Fsample;
-gridTime = (1:D.Nsamples)./D.Fsample + D.timeOnset;
-str{3} = ['Number of time samples: ',num2str(D.Nsamples),' (',num2str(delta_t),' sec, from ',...
+delta_t = D.nsamples./D.fsample;
+gridTime = (1:D.nsamples)./D.fsample + D.timeonset;
+str{3} = ['Number of time samples: ',num2str(D.nsamples),' (',num2str(delta_t),' sec, from ',...
     num2str(gridTime(1)),'s to ',num2str(gridTime(end)),'s)'];
-str{4} = ['Time sampling frequency: ',num2str(D.Fsample),' Hz'];
-nb = length(find([D.channels.bad]));
-str{5} = ['Number of channels: ',num2str(length(D.channels)),' (',num2str(nb),' bad channels)'];
-nb = length(find([D.trials.bad]));
+str{4} = ['Time sampling frequency: ',num2str(D.fsample),' Hz'];
+nb = length(find(badchannels(D)));
+str{5} = ['Number of channels: ',num2str(D.nchannels),' (',num2str(nb),' bad channels)'];
+nb = sum(reject(D));
 if strcmp(D.type,'continuous')
-    if isfield(D.trials(1),'events')
-        str{6} = ['Number of events: ',num2str(length(D.trials(1).events))];
+    Events = events(D,1);
+    if ~isempty(Events)
+        str{6} = ['Number of events: ',num2str(length(Events))];
     else
         str{6} = ['Number of events: ',num2str(0)];
     end
 else
-    str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
+    str{6} = ['Number of trials: ',num2str(D.ntrials),' (',num2str(nb),' bad trials)'];
 end
 % try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
-
-
-
 
 %% extracting data from spm_uitable java object
 function [D] = getUItable(D)
@@ -1651,58 +1658,57 @@ end
 
 if length(cn) == 5  % channel info
     if ~emptyTable
-        nc = length(D.channels);
+        nc = D.nchannels;
         for i=1:nc
             if ~isempty(table(i,1))
-                D.channels(i).label = table(i,1);
+                D = chanlabels(D,i,table(i,1));
             end
             if ~isempty(table(i,2))
                 switch lower(table(i,2))
                     case 'eeg'
-                        D.channels(i).type = 'EEG';
+                        D = chantype(D,i,'EEG');
                     case 'meg'
-                        D.channels(i).type = 'MEG';
+                        D = chantype(D,i,'MEG');
                     case 'megplanar'
-                        D.channels(i).type = 'MEGPLANAR';
+                        D = chantype(D,i,'MEGPLANAR');
                     case 'megmag'
-                        D.channels(i).type = 'MEGMAG';
+                        D = chantype(D,i,'MEGMAG');
                     case 'meggrad'
-                        D.channels(i).type = 'MEGGRAD';
+                        D = chantype(D,i,'MEGGRAD');
                     case 'refmag'
-                        D.channels(i).type = 'REFMAG';
+                        D = chantype(D,i,'REFMAG');
                     case 'refgrad'
-                        D.channels(i).type = 'REFGRAD';     
+                        D = chantype(D,i,'REFGRAD');     
                     case 'lfp'
-                        D.channels(i).type = 'LFP';
+                        D = chantype(D,i,'LFP');
                     case 'eog'
-                        D.channels(i).type = 'EOG';
+                        D = chantype(D,i,'EOG');
                     case 'veog'
-                        D.channels(i).type = 'VEOG';
+                        D = chantype(D,i,'VEOG');
                     case 'heog'
-                        D.channels(i).type = 'HEOG';
+                        D = chantype(D,i,'HEOG');
                     case 'other'
-                        D.channels(i).type = 'Other';
+                        D = chantype(D,i,'Other');
                     otherwise
-                        D.channels(i).type = 'Other';
+                        D = chantype(D,i,'Other');
                 end
             end
             if ~isempty(table(i,3))
                 switch lower(table(i,3))
                     case 'yes'
-                        D.channels(i).bad = 1;
+                        D = badchannels(D,i,1);
                     otherwise
-                        D.channels(i).bad = 0;
+                        D = badchannels(D,i,0);
                 end
             end
             if ~isempty(table(i,5))
-                D.channels(i).units = table(i,5);
+                D = units(D,i,table(i,5));
             end
         end
         % Find indices of channel types (these might have been changed)
-        D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
-        D.PSD.MEG.I  = sort([find(strcmp('MEGMAG',{D.channels.type})),...
-            find(strcmp('MEGGRAD',{D.channels.type})) find(strcmp('MEG',{D.channels.type}))]);
-        D.PSD.MEGPLANAR.I  = find(strcmp('MEGPLANAR',{D.channels.type}));
+        D.PSD.EEG.I  = meegchannels(D,'EEG');
+        D.PSD.MEG.I  = sort(meegchannels(D,'MEG'));
+        D.PSD.MEGPLANAR.I  = meegchannels(D,'MEGPLANAR');
         D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
         if ~isempty(D.PSD.EEG.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
@@ -1734,8 +1740,9 @@ if length(cn) == 5  % channel info
 elseif length(cn) == 7
     if strcmp(D.type,'continuous')
         if ~emptyTable
-            ne = length(D.trials(1).events);
-            D.trials = rmfield(D.trials,'events');
+            Events = events(D,1);
+            ne = length(Events);
+            D = events(D,1,[]);
             j = 0;
             for i=1:ne
                 if isempty(table(i,1))&&...
@@ -1749,53 +1756,57 @@ elseif length(cn) == 7
                 else
                     j = j+1;
                     if ~isempty(table(i,2))
-                        D.trials(1).events(j).type = table(i,2);
+                        Events(j).type = table(i,2);
                     end
                     if ~isempty(table(i,3))
-                        D.trials(1).events(j).value = str2double(table(i,3));
+                        Events(j).value = str2double(table(i,3));
                     end
                     if ~isempty(table(i,4))
-                        D.trials(1).events(j).duration = str2double(table(i,4));
+                        Events(j).duration = str2double(table(i,4));
                     end
                     if ~isempty(table(i,5))
-                        D.trials(1).events(j).time = str2double(table(i,5));
+                        Events(j).time = str2double(table(i,5));
                     end
                 end
             end
+            D = events(D,1,Events);
         else
-            D.trials(1).events = [];
+            D = events(D,1,[]);
             delete(ht);
         end
     else
         if ~emptyTable
-            nt = length(D.trials);
+            nt = D.ntrials;
             for i=1:nt
                 if ~isempty(table(i,1))
-                    D.trials(i).label = table(i,1);
+                    D = conditions(D,i,table(i,1));
                 end
-                ne = length(D.trials(i).events);
+                Events = events(D,i);
+                ne = length(Events);
                 if ne<2
                     if ~isempty(table(i,2))
-                        D.trials(i).events.type = table(i,2);
+                        Events.type = table(i,2);
                     end
                     if ~isempty(table(i,3))
-                        D.trials(i).events.value = table(i,3);%str2double(table(i,3));
+                        Events.value = table(i,3);%str2double(table(i,3));
                     end
+                    D = events(D,i,Events);
                 end
                 if ~isempty(table(i,6))
                     switch lower(table(i,6))
                         case 'yes'
-                            D.trials(i).bad = 1;
+                            D = badtrials(D,i,1);
                         otherwise
-                            D.trials(i).bad = 0;
+                            D = badtrials(D,i,0);
                     end
                 end
-                if D.trials(i).bad
+                if badtrials(D,i)
                     str = ' (bad)';
                 else
                     str = ' (not bad)';
                 end
-                D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
+                D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ', ...
+                                            char(conditions(D,i)),str];
             end
         else
         end
@@ -1803,13 +1814,13 @@ elseif length(cn) == 7
 
 elseif length(cn) == 3
     if ~emptyTable
-        nt = length(D.trials);
+        nt = D.ntrials;
         for i=1:nt
             if ~isempty(table(i,1))
-                D.trials(i).label = table(i,1);
+                D = conditions(D,i,table(i,1));
             end
             D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
-                num2str(D.trials(i).repl),' events): ',D.trials(i).label];
+                num2str(repl(D,i)),' events): ',char(conditions(D,i))];
         end
     else
     end
@@ -1819,9 +1830,9 @@ elseif length(cn) == 12     % source reconstructions
     if ~emptyTable
         if ~~D.PSD.source.VIZU.current
             isInv = D.PSD.source.VIZU.isInv;
-            inv = D.other.inv;
+            inv = D.inv;
             Ninv = length(inv);
-            D.other = rmfield(D.other,'inv');
+            D = rmfield(D,'inv');
             oV = D.PSD.source.VIZU;
             D.PSD.source = rmfield(D.PSD.source,'VIZU');
             pst = [];
@@ -1831,7 +1842,7 @@ elseif length(cn) == 12     % source reconstructions
             for i=1:Ninv
                 if ~ismember(i,isInv)   % not 'imaging' inverse solutions
                     j = j+1;
-                    D.other.inv{j} = inv{i};
+                    D.inv{j} = inv{i};
                 else                    % 'imaging' inverse solutions
                     k = k+1;
                     if isempty(table(k,1))&&...
@@ -1852,8 +1863,8 @@ elseif length(cn) == 12     % source reconstructions
                         j = j+1;
                         l = l+1;
                         pst = [pst;inv{isInv(k)}.inverse.pst(:)];
-                        D.other.inv{j} = inv{isInv(k)};
-                        D.other.inv{j}.comment{1} = table(k,1);
+                        D.inv{j} = inv{isInv(k)};
+                        D.inv{j}.comment{1} = table(k,1);
                         D.PSD.source.VIZU.isInv(l) = j;
                         D.PSD.source.VIZU.F(l) = oV.F(k);
                         D.PSD.source.VIZU.labels{l} = table(k,1);
@@ -1863,17 +1874,17 @@ elseif length(cn) == 12     % source reconstructions
             end
         end
         if l >= 1
-            D.other.val = l;
+            D.val = l;
             D.PSD.source.VIZU.current = 1;
             D.PSD.source.VIZU.pst = unique(pst);
             D.PSD.source.VIZU.timeCourses = 1;
         else
-            try D.other = rmfield(D.other,'val');end
+            try D = rmfield(D,'val');end
             D.PSD.source.VIZU.current = 0;
         end
     else
-        try D.other = rmfield(D.other,'val');end
-        try D.other = rmfield(D.other,'inv');end
+        try D = rmfield(D,'val');end
+        try D = rmfield(D,'inv');end
         D.PSD.source.VIZU.current = 0;
         D.PSD.source.VIZU.isInv = [];
         D.PSD.source.VIZU.pst = [];

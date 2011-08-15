@@ -11,27 +11,25 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 3725 2010-02-16 12:26:24Z vladimir $
+% $Id: spm_eeg_review.m 4432 2011-08-15 12:43:44Z christophe $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
     if ~sts, return; end
     D = spm_eeg_load(D);
 end
-D = struct(D);
-
 
 %-- Initialize SPM figure
 D.PSD.handles.hfig = spm_figure('GetWin','Graphics');
-spm_clf(D.PSD.handles.hfig)
+spm_clf(D.PSD.handles.hfig);
 % Get default SPM graphics options --> revert back to defaults 
 D.PSD.SPMdefaults.col = get(D.PSD.handles.hfig,'colormap');
 D.PSD.SPMdefaults.renderer = get(D.PSD.handles.hfig,'renderer');
 
 %-- Create default userdata structure
 try D.PSD.source.VIZU.current = inv; end
-[D] = PSD_initUD(D);
-if ~strcmp(D.transform.ID,'time')
+    [D] = PSD_initUD(D);
+if ~strcmp(transformtype(D),'time')
     D.PSD.type = 'epoched';
     D.PSD.trials.current = 1;
     D.PSD.VIZU.type = 2;
@@ -60,7 +58,9 @@ set(D.PSD.handles.BUTTONS.pop1,...
     'deletefcn',@back2defaults)
 
 %-- Attach userdata to SPM graphics window
-D.PSD.D0 = rmfield(D,'PSD');
+Dtmp = rmfield(D,'PSD');
+D.PSD.D0 = Dtmp;
+%CP, some how, removing and adding a field in the object doesn't work directly...
 set(D.PSD.handles.hfig,...
     'units','normalized',...
     'color',[1 1 1],...
@@ -115,7 +115,7 @@ function [D] = PSD_initUD(D)
 D.PSD.VIZU.uitable = spm_uitable;
 
 %-- Initialize time window basic info --%
-D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
+D.PSD.VIZU.xlim = [1,min([5e2,nsamples(D)])];
 D.PSD.VIZU.info = 4; % show history
 D.PSD.VIZU.fromTab = [];
 
@@ -127,25 +127,27 @@ switch D.type
     
     case 'continuous'
         D.PSD.type = 'continuous';
-        if ~isempty(D.trials) && ~isempty(D.trials(1).events)
-            Nevents = length(D.trials.events);
+         if ntrials(D) && ~isempty(events(D,1)) 
+            Events = events(D);
+            Nevents = length(Events);
             for i =1:Nevents
-                if isempty(D.trials.events(i).duration)
-                    D.trials.events(i).duration = 0;
+                if isempty(Events(i).duration)
+                    Events(i).duration = 0;
                 end
-                if isempty(D.trials.events(i).value)
-                    D.trials.events(i).value = '0';
+                if isempty(Events(i).value)
+                    Events(i).value = '0';
                 end
-                if isempty(D.trials.events(i).type)
-                    D.trials.events(i).type = '0';
+                if isempty(Events(i).type)
+                    Events(i).type = '0';
                 end
-                if ~ischar(D.trials.events(i).value)
-                    D.trials.events(i).value = num2str(D.trials.events(i).value);
+                if ~ischar(Events(i).value)
+                    Events(i).value = num2str(Events(i).value);
                 end
-                if ~ischar(D.trials.events(i).type)
-                    D.trials.events(i).type = num2str(D.trials.events(i).type);
+                if ~ischar(Events(i).type)
+                    Events(i).type = num2str(Events(i).type);
                 end
             end
+            D = events(D,1,Events);
         end
         D.PSD.VIZU.type = 1;
         
@@ -153,40 +155,40 @@ switch D.type
     
     case 'single'
         D.PSD.type = 'epoched';
-        nTrials = length(D.trials);
+        nTrials = D.ntrials;
         D.PSD.trials.TrLabels = cell(nTrials,1);
+        bTrials = find(reject(D));
         for i = 1:nTrials
-            if D.trials(i).bad
+            if any(i==bTrials)
                 str = ' (bad)';
             else
                 str = ' (not bad)';
             end
             D.PSD.trials.TrLabels{i} = [...
-                'Trial ',num2str(i),': ',D.trials(i).label,str];
+                'Trial ',num2str(i),': ',char(conditions(D,i)) ,str];
         end
         D.PSD.trials.current = 1;
         D.PSD.VIZU.type = 1;
     case {'evoked','grandmean'}
         D.PSD.type = 'epoched';
-        nTrials = length(D.trials);
+        nTrials = D.ntrials;
         D.PSD.trials.TrLabels = cell(nTrials,1);
         for i = 1:nTrials
             D.PSD.trials.TrLabels{i} = [...
                 'Trial ',num2str(i),' (average of ',...
-                num2str(D.trials(i).repl),' events): ',...
-                D.trials(i).label];
-            D.trials(i).events = [];
+                num2str(repl(D,i)),' events): ',...
+                char(conditions(D,i))];
+            D = events(D,i,[]);
         end
         D.PSD.trials.current = 1;
         D.PSD.VIZU.type = 1;
 end
 
 %-- Initialize channel info --%
-nc = length(D.channels);
-D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
-D.PSD.MEG.I  = sort([find(strcmp('MEGMAG',{D.channels.type})),...
-    find(strcmp('MEGGRAD',{D.channels.type})) find(strcmp('MEG',{D.channels.type}))]);
-D.PSD.MEGPLANAR.I  = find(strcmp('MEGPLANAR',{D.channels.type}));
+nc = D.nchannels;
+D.PSD.EEG.I  = meegchannels(D,'EEG');
+D.PSD.MEG.I  = sort(meegchannels(D,'MEG'));
+D.PSD.MEGPLANAR.I  = meegchannels(D,'MEGPLANAR');
 D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
 %-- Get basic display variables (data range, offset,...)
 if ~isempty(D.PSD.EEG.I)
@@ -224,12 +226,12 @@ end
 
 
 %-- Initialize inverse field info --%
-if isfield(D.other,'inv') && ~isempty(D.other.inv)
-    isInv = zeros(length(D.other.inv),1);
-    for i=1:length(D.other.inv)
-        if isfield(D.other.inv{i},'inverse') && ...
-                isfield(D.other.inv{i}, 'method') && ...
-                strcmp(D.other.inv{i}.method,'Imaging')
+if isfield(D,'inv') && ~isempty(D.inv)
+    isInv = zeros(length(D.inv),1);
+    for i=1:length(D.inv)
+        if isfield(D.inv{i},'inverse') && ...
+                isfield(D.inv{i}, 'method') && ...
+                strcmp(D.inv{i}.method,'Imaging')
             isInv(i) = 1;
         end
     end
@@ -242,27 +244,27 @@ if isfield(D.other,'inv') && ~isempty(D.other.inv)
         ID = zeros(Ninv,1);
         pst = [];
         for i=1:Ninv
-            if ~isfield(D.other.inv{isInv(i)},'comment')
-                D.other.inv{isInv(i)}.comment{1} = num2str(i);
+            if ~isfield(D.inv{isInv(i)},'comment')
+                D.inv{isInv(i)}.comment{1} = num2str(i);
             end
-            if ~isfield(D.other.inv{isInv(i)},'date')
-                D.other.inv{isInv(i)}.date(1,:) = '?';
-                D.other.inv{isInv(i)}.date(2,:) = ' ';
+            if ~isfield(D.inv{isInv(i)},'date')
+                D.inv{isInv(i)}.date(1,:) = '?';
+                D.inv{isInv(i)}.date(2,:) = ' ';
             end
-            if isfield(D.other.inv{isInv(i)}.inverse,'R2') ...
-                   && isnan(D.other.inv{isInv(i)}.inverse.R2)
-                D.other.inv{isInv(i)}.inverse.R2 = [];
+            if isfield(D.inv{isInv(i)}.inverse,'R2') ...
+                   && isnan(D.inv{isInv(i)}.inverse.R2)
+                D.inv{isInv(i)}.inverse.R2 = [];
             end 
-            if isfield(D.other.inv{isInv(i)}.inverse, 'ID')
-                ID(i) = D.other.inv{isInv(i)}.inverse.ID;
+            if isfield(D.inv{isInv(i)}.inverse, 'ID')
+                ID(i) = D.inv{isInv(i)}.inverse.ID;
             else
                 ID(i) = nan;
             end
-            labels{i} = [D.other.inv{isInv(i)}.comment{1}];
+            labels{i} = [D.inv{isInv(i)}.comment{1}];
             callbacks{i} = ['spm_eeg_review_callbacks(''visu'',''inv'',',num2str(i),')'];
             try
-                F(i) = D.other.inv{isInv(i)}.inverse.F;
-                pst = [pst;D.other.inv{isInv(i)}.inverse.pst(:)];
+                F(i) = D.inv{isInv(i)}.inverse.F;
+                pst = [pst;D.inv{isInv(i)}.inverse.pst(:)];
             catch
                 continue
             end

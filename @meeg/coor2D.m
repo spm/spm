@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 4372 2011-06-21 21:26:46Z vladimir $
+% $Id: coor2D.m 4432 2011-08-15 12:43:44Z christophe $
 
 
 megind = strmatch('MEG', chantype(this));
@@ -47,12 +47,23 @@ if nargin < 3 || isempty(val)
     end
 
     if ~isempty(intersect(ind, eegind))
-        if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-            eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
-        elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-            eeg_xy = grid(length(eegind));
+        if this.montage.Mind==0
+            if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+                eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
+            elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+                eeg_xy = grid(length(eegind));
+            else
+                error('Either all or none of EEG channels should have 2D coordinates defined.');
+            end
         else
-            error('Either all or none of EEG channels should have 2D coordinates defined.');
+            if ~any(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D}))
+                eeg_xy = [this.montage.M(this.montage.Mind).channels(eegind).X_plot2D; ...
+                    this.montage.M(this.montage.Mind).channels(eegind).Y_plot2D];
+            elseif all(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D}))
+                eeg_xy = grid(length(eegind));
+            else
+                error('Either all or none of EEG channels should have 2D coordinates defined.');
+            end
         end
     end
 
@@ -81,16 +92,20 @@ if nargin < 3 || isempty(val)
             end
         end
     end
-    
+
     if nargin > 3 && ~isempty(mindist)
-       xy = shiftxy(xy,mindist); 
+        xy = shiftxy(xy,mindist);
     end
-    
+
     res = xy;
 else
-    this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
-    this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
-    
+    if this.montage.Mind==0
+        this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
+        this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
+    else
+        this = getset(this.montage.M(this.montage.Mind), 'channels', 'X_plot2D', ind, val(1, :));
+        this = getset(this.montage.M(this.montage.Mind), 'channels', 'Y_plot2D', ind, val(2, :));
+    end
     res = this;
 end
 
@@ -119,16 +134,16 @@ while (~isempty(i) && l<50)
     ydiff = repmat(y,length(y),1) - repmat(y',1,length(y));
     xydist= sqrt(xdiff.^2 + ydiff.^2); %euclidean distance between all sensor pairs
 
-    [i,j] = find(xydist<mindist*0.999); 
+    [i,j] = find(xydist<mindist*0.999);
     rm=(i<=j); i(rm)=[]; j(rm)=[]; %only look at i>j
-    
+
     for m = 1:length(i);
-       if (xydist(i(m),j(m)) == 0)
-           diffvec = [mindist./sqrt(2) mindist./sqrt(2)];
-       else
-           xydiff = [xdiff(i(m),j(m)) ydiff(i(m),j(m))];
-           diffvec = xydiff.*mindist./xydist(i(m),j(m)) - xydiff;
-       end
+        if (xydist(i(m),j(m)) == 0)
+            diffvec = [mindist./sqrt(2) mindist./sqrt(2)];
+        else
+            xydiff = [xdiff(i(m),j(m)) ydiff(i(m),j(m))];
+            diffvec = xydiff.*mindist./xydist(i(m),j(m)) - xydiff;
+        end
         x(i(m)) = x(i(m)) - diffvec(1)/2;
         y(i(m)) = y(i(m)) - diffvec(2)/2;
         x(j(m)) = x(j(m)) + diffvec(1)/2;

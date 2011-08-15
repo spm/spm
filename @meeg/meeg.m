@@ -97,11 +97,18 @@ function D = meeg(varargin)
 %       .inv - structure array corresponding to the forw/inv problem in MEEG.
 %       .ival - index of the 'inv' solution currently used.
 %
+% .montage - structure used to store info on on-line montage used
+%       .M contains transformation matrix of the montage and names of 
+%           original and new channels (+ new channels definition)
+%       .Mind indicates which montage to use
+
+
+
 % ______________________________________________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 3940 2010-06-21 12:51:19Z christophe $
+% $Id: meeg.m 4432 2011-08-15 12:43:44Z christophe $
 
 if nargin == 1
     if isstruct(varargin{1})
@@ -117,6 +124,7 @@ if nargin == 1
         return;
     end;
 end;
+display('not basic')
 
 D          = [];
 D.Nsamples = 0;

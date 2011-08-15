@@ -1,10 +1,16 @@
-function res = dtype(obj)
+function res = dtype(obj, value)
 % returns datatype of embedded file_array object
 % FORMAT dtype(obj)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: dtype.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: dtype.m 4432 2011-08-15 12:43:44Z christophe $
 
-res = obj.data.y.dtype;
+if nargin == 1
+    res = obj.data.y.dtype;
+else
+    obj.data.y.dtype = value;
+    obj.data.datatype = value;
+    res = obj;
+end

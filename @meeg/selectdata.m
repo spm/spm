@@ -1,4 +1,4 @@
-function res = selectdata(this, varargin) 
+function res = selectdata(this, varargin)
 % Selects data using channel labels, time and condition labels as indices
 % FORMAT res = selectdata(D, chanlabel, timeborders, condition)
 %        res = selectdata(D, chanlabel, freqborders, timeborders, condition)
@@ -12,7 +12,7 @@ function res = selectdata(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectdata.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: selectdata.m 4432 2011-08-15 12:43:44Z christophe $
 
 if this.Nsamples == 0
     res = [];
@@ -20,7 +20,7 @@ if this.Nsamples == 0
 end
 
 if (isequal(transformtype(this), 'time') && numel(varargin)<3) ||...
-   (strncmpi(transformtype(this),'TF',2) &&  numel(varargin)<4)
+        (strncmpi(transformtype(this),'TF',2) &&  numel(varargin)<4)
     error('Insufficient number of arguments for data selection');
 end
 
@@ -33,7 +33,7 @@ elseif strncmpi(transformtype(this),'TF',2)
     freqborders = varargin{2};
     timeborders = varargin{3};
     condition   = varargin{4};
-    
+
     if isempty(freqborders)
         freqind = 1:nfrequencies(this);
     else
@@ -61,8 +61,11 @@ else
     trialind = indtrial(this, condition);
 end
 
+ss.type = '()';
 if isequal(transformtype(this), 'time')
-    res = double(this.data.y(chanind, timeind, trialind));
+    ss.subs = {chanind, timeind, trialind};
+    res = subsref(this,ss);
 else
-    res = double(this.data.y(chanind, freqind, timeind, trialind));
+    ss.subs = {chanind, freqind, timeind, trialind};
+    res = subsref(this,ss);
 end

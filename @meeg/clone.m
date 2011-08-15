@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 4207 2011-02-22 10:48:36Z christophe $
+% $Id: clone.m 4432 2011-08-15 12:43:44Z christophe $
 
 if nargin < 4
     reset = 0;
@@ -23,6 +23,12 @@ if nargin < 3
     else
         dim = [nchannels(this), nfrequencies(this), nsamples(this), ntrials(this)];
     end
+end
+
+% if number of channels is modified, throw away montages
+if dim(1) ~= nchannels(this)
+    this = montage(this,'remove',1:montage(this,'getnumber'));
+    warning('Changing the number of channels, so throwing away online montages.');
 end
 
 new = this;
@@ -38,16 +44,14 @@ d = this.data.y; %
 d.fname = newFileName;
 dim_o = d.dim;
 
-% This takes care of an issue specific to data files with a scaling factor
-% which are not officially supported in SPM8 (float without scaling).
-% Also assuming scaling is the *same* for all channels...
-if dim(1)>dim_o(1) && length(d.scl_slope)>1
-    % adding channel to montage and scl_slope defined for old montage
-    %       -> need to increase size of scl_slope
+% This takes care of an issue specific to int data files which are not
+% officially supported in SPM8.
+if ~strncmpi(d.dtype, 'float', 5) && ...
+        dim(1)>dim_o(1) && length(d.scl_slope)>1
+    % adding channel and scl_slope defined -> need to increase scl_slope
     v_slope = mode(d.scl_slope);
     if length(v_slope)>1
-        warning(['Trying to guess the scaling factor for new channels.',...
-            ' This factor might be wrong now.']);        
+        warning('Trying to guess the scaling factor for new channels. This might be wrong.');        
     end
     d.scl_slope = [d.scl_slope' ones(1,dim(1)-dim_o(1))*v_slope]';
 end

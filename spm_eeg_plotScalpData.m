@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 4375 2011-06-23 10:00:06Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 4432 2011-08-15 12:43:44Z christophe $
 
 ParentAxes = [];
 f = [];
@@ -181,7 +181,7 @@ if ~noButtons
 end
 if ~isempty(in) && isfield(in,'handles')
     ud = get(in.handles.hfig,'userdata');
-    nT = ud.Nsamples;
+    nT = ud.nsamples;
     d.hti = uicontrol(f,...
         'style','text',...
         'BackgroundColor',COLOR,...
@@ -250,8 +250,8 @@ if ishandle(d.in.handles.hfig)
     else
         trN = d.in.trN;
     end
-    if isfield(D,'data')
-        Z = D.data.y(d.in.ind,v,trN);
+    try
+        Z = D(d.in.ind,v,trN);
         Z = Z(d.goodChannels);
 
         if strcmp(d.in.type, 'MEGPLANAR')
@@ -278,7 +278,8 @@ if ishandle(d.in.handles.hfig)
         end
         axis(d.ParentAxes,'image')
         drawnow
-    else
+    catch
+%     else
         error('Did not find the data!')
     end
 else

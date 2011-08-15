@@ -5,6 +5,10 @@ function res = nchannels(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: nchannels.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: nchannels.m 4432 2011-08-15 12:43:44Z christophe $
 
-res = length(this.channels);
+if this.montage.Mind==0
+    res = length(this.channels);
+else
+    res = length(this.montage.M(this.montage.Mind).channels);
+end

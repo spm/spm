@@ -5,28 +5,56 @@ function res = chanlabels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chanlabels.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: chanlabels.m 4432 2011-08-15 12:43:44Z christophe $
 
-if nargin == 3
-    ind = varargin{1};
-    label = varargin{2};
-    
-    if iscell(label) && length(label)>1
-        if ~isempty(ind) && length(ind)~=length(label)
-            error('Indices and values do not match');
-        end
-        
-        if length(label)>1
-            for i = 1:length(label)
-                for j = (i+1):length(label)
-                    if strcmp(label{i}, label{j})
-                        error('All labels must be different');
+if this.montage.Mind == 0
+    if nargin == 3
+        ind = varargin{1};
+        label = varargin{2};
+
+        if iscell(label) && length(label)>1
+            if ~isempty(ind) && length(ind)~=length(label)
+                error('Indices and values do not match');
+            end
+
+            if length(label)>1
+                for i = 1:length(label)
+                    for j = (i+1):length(label)
+                        if strcmp(label{i}, label{j})
+                            error('All labels must be different');
+                        end
                     end
                 end
             end
-        end
-        
-    end
-end
 
-res = getset(this, 'channels', 'label', varargin{:});
+        end
+    end
+
+    res = getset(this, 'channels', 'label', varargin{:});
+else
+% case with an online montage applied
+    if nargin == 3
+        ind = varargin{1};
+        label = varargin{2};
+
+        if iscell(label) && length(label)>1
+            if ~isempty(ind) && length(ind)~=length(label)
+                error('Indices and values do not match');
+            end
+
+            if length(label)>1
+                for i = 1:length(label)
+                    for j = (i+1):length(label)
+                        if strcmp(label{i}, label{j})
+                            error('All labels must be different');
+                        end
+                    end
+                end
+            end
+
+        end
+    end
+
+    res = getset(this.montage.M(this.montage.Mind), 'channels', 'label', varargin{:});
+    
+end

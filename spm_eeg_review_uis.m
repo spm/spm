@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_eeg_review_uis.m 4432 2011-08-15 12:43:44Z christophe $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -79,7 +79,7 @@ switch objects.type
                 'Interruptible','off',...
                 'tooltipstring','Decrease width of the plotted time window',...
                 'tag','plotEEG');
-            if isequal(D.PSD.VIZU.xlim,[1 D.Nsamples])
+            if isequal(D.PSD.VIZU.xlim,[1 D.nsamples])
                 set(D.PSD.handles.BUTTONS.vb3,'enable','off');
             end
         end
@@ -189,7 +189,7 @@ switch objects.type
                 'tooltipstring','Add event to current selection (1 mouse click)',...
                 'tag','plotEEG');
             % Selection buttons
-            Nevents = length(D.trials.events);
+            Nevents = length(events(D));
             if Nevents > 0
                 enab = 'on';
             else
@@ -280,7 +280,7 @@ switch objects.type
         
         if ismember(13,objects.list)  % switch 'bad' event status
             trN = D.PSD.trials.current;
-            status = any([D.trials(trN).bad]);
+            status = any(intersect(trN,find(reject(D))));
             if status
                 str = 'declare as not bad';
                 val = 0;
@@ -330,7 +330,6 @@ switch objects.type
 
     case 'axes'
 
-
         switch objects.what
 
 
@@ -365,10 +364,10 @@ switch objects.type
                             p(2,i) = y;
                         end
                     end
-                    if strcmp(D.transform.ID,'time')
-                        y = D.data.y(I,:,trN);
+                    if strcmp(transformtype(D),'time')
+                        y = D(I,:,trN);
                     else
-                        y = D.data.y(I,:,:,trN);
+                        y = D(I,:,:,trN);
                     end
                     miY = min(y(:));
                     maY = max(y(:));
@@ -451,7 +450,7 @@ switch objects.type
                             'NextPlot','replacechildren',...
                             'YLim',[miY maY],...
                             'YLimMode','manual',...
-                            'XLim',[1 D.Nsamples],...
+                            'XLim',[1 D.nsamples],...
                             'XLimMode','manual',...
                             'XTick',[],...
                             'YTick',[],...
@@ -460,23 +459,23 @@ switch objects.type
                             'hittest','off',...
                             'ALimMode','manual',...
                             'tag','plotEEG');
-                        if ~strcmp(D.transform.ID,'time')
-                            if length(D.transform.frequencies) == 1
+                        if ~strcmp(transformtype(D),'time')
+                            if length(frequencies(D)) == 1
                                 
                             else
                                 set(D.PSD.handles.axes(i),'ylim',...
-                                    [1 length(D.transform.frequencies)]);
+                                    [1 length(frequencies(D))]);
                             end
                         end
 
                     end
                     % create global scale axes
-                    if strcmp(D.transform.ID,'time') % only for time data!
+                    if strcmp(transformtype(D),'time') % only for time data!
                         D.PSD.handles.scale = axes('Parent', D.PSD.handles.hfig,...
                             'units','normalized',...
                             'color',0.95*[1 1 1],...
                             'xtick',1,...
-                            'xticklabel',[num2str(D.Nsamples.*1e3./D.Fsample),' ms'],...
+                            'xticklabel',[num2str(D.nsamples.*1e3./D.fsample),' ms'],... %CP
                             'ytick',1,...
                             'userdata',0,...
                             'tag','plotEEG',...
@@ -551,13 +550,7 @@ switch objects.type
                     'CLim',[miJ maJ],...
                     'visible','off',...
                     'hittest','off');
-                
-
-
         end
-        
-
-        
         
     case 'text'
         
@@ -596,10 +589,6 @@ switch objects.type
                     'BackgroundColor',0.95*[1 1 1],...
                     'tag','plotEEG');
                 
-                
-                
         end
-        
-        
         
 end

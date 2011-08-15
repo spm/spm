@@ -3,7 +3,7 @@ function ind = meegchannels(this, modality)
 % FORMAT ind = meegchannels(this, modality)
 %
 %  this      - MEEG object
-%  modality  - one of EEG, LFP, MEG (excluding planar), MEGPLANAR [optional]
+%  modality  - one of EEG, LFP, MEG (excluding planar), MEGPLANAR, MEEG [optional]
 %
 %  ind       - row vector of M/EEG channels
 %
@@ -12,7 +12,7 @@ function ind = meegchannels(this, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 3412 2009-09-22 16:04:22Z vladimir $
+% $Id: meegchannels.m 4432 2011-08-15 12:43:44Z christophe $
 
 type = chantype(this);
 

@@ -10,7 +10,10 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: chantype.m 4432 2011-08-15 12:43:44Z christophe $
 
-
-res = getset(this, 'channels', 'type', varargin{:});
+if this.montage.Mind==0
+    res = getset(this, 'channels', 'type', varargin{:});
+else
+    res = getset(this.montage.M(this.montage.Mind), 'channels', 'type', varargin{:});
+end

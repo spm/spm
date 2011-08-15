@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4331 2011-05-26 19:40:57Z christophe $
+% $Id: checkmeeg.m 4432 2011-08-15 12:43:44Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -62,33 +62,33 @@ else
     if ~isfield(meegstruct.trials, 'events')
         [meegstruct.trials.events] = deal([]);
     end
-    
+
     for k = 1:Ntrials
-        
+
         label = meegstruct.trials(k).label;
-        
+
         if iscell(label) && numel(label) == 1
             label = label{1};
         end
-        
+
         if isnumeric(label)
             label = num2str(label);
         end
-        
+
         if isa(label, 'char')
-           meegstruct.trials(k).label = label;
+            meegstruct.trials(k).label = label;
         else
-           meegstruct.trials(k).label = 'Unknown';
-           disp('checkmeeg: some trial labels were not strings, changing back to ''Unknown''');
-        end                        
-        
+            meegstruct.trials(k).label = 'Unknown';
+            disp('checkmeeg: some trial labels were not strings, changing back to ''Unknown''');
+        end
+
         if  length(meegstruct.trials(k).bad)>1 || ~ismember(meegstruct.trials(k).bad, [0, 1])
             disp(['checkmeeg: illegal value for bad flag in trial ' num2str(k) ', setting to zero.']);
             meegstruct.trials(k).bad = 0;
         end
-        
+
         event = meegstruct.trials(k).events;
-        
+
         if ~isempty(event) && ~(numel(event) == 1 && isequal(event.type, 'no events'))
             % make sure that all required elements are present
             if ~isfield(event, 'type'),     error('type field not defined for each event');  end
@@ -96,8 +96,8 @@ else
             if ~isfield(event, 'value'),    [event.value]    = deal([]);                     end
             if ~isfield(event, 'offset'),   [event.offset]   = deal(0);                      end
             if ~isfield(event, 'duration'), [event.duration] = deal([]);                     end
-            
-            
+
+
             % make sure that all numeric values are double
             for i=1:length(event)
                 if isnumeric(event(i).value)
@@ -107,7 +107,7 @@ else
                 event(i).offset    = double(event(i).offset);
                 event(i).duration  = double(event(i).duration);
             end
-            
+
             if ~isempty(event)
                 % sort the events on the sample on which they occur
                 % this has the side effect that events without time are discarded
@@ -117,14 +117,14 @@ else
         else
             event = [];
         end
-        
+
         meegstruct.trials(k).events = event;
     end
-    
+
     if ~isfield(meegstruct.trials, 'onset')
         [meegstruct.trials.onset] = deal(0);
     else
-        [meegstruct.trials(find(cellfun('isempty', {meegstruct.trials.onset}))).onset] = deal(0);    
+        [meegstruct.trials(find(cellfun('isempty', {meegstruct.trials.onset}))).onset] = deal(0);
     end
     if ~isfield(meegstruct.trials, 'repl')
         [meegstruct.trials.repl] = deal(1);
@@ -149,21 +149,21 @@ else
     else
         [meegstruct.channels(find(cellfun('isempty', {meegstruct.channels.bad}))).bad] = deal(0);
     end
-    
+
     for i = 1:Nchannels
         meegstruct.channels(i).bad = double(~~meegstruct.channels(i).bad);
-    end            
-    
+    end
+
     if ~isfield(meegstruct.channels, 'type')
         disp('checkmeeg: no channel type, assigning default');
         [meegstruct.channels.type] = deal('Other');
     end
-    
+
     % This is for backward compatibility with early SPM8b. Can be removed
     % after a while.
     ind = strmatch('MEGREF', {meegstruct.channels.type}, 'exact');
     [meegstruct.channels(ind).type] = deal('REF');
-    
+
     if ~isfield(meegstruct.channels, 'X_plot2D')
         [meegstruct.channels.X_plot2D] = deal([]);
         [meegstruct.channels.Y_plot2D] = deal([]);
@@ -214,11 +214,11 @@ else
         disp('checkmeeg: data type missing, assigning default');
         meegstruct.data.datatype = 'float32';
     end
-    
+
     if ~isfield(meegstruct.data, 'y')
         meegstruct.data.y=[];
     end
-    
+
     if isa(meegstruct.data.y, 'file_array')
         % catching up (unlikely case) where filearray.fname is
         % different from data.fnamedat -> set data.fnamedat
@@ -259,33 +259,37 @@ else
         end
         switch(meegstruct.transform.ID)
             case 'time'
-                meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
-                
+                meegstruct.data.y = file_array( ...
+                    fullfile(filepath, meegstruct.data.fnamedat), ...
+                    [Nchannels Nsamples Ntrials], ...
+                    meegstruct.data.datatype);
+
             case {'TF', 'TFphase'}
-                meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nfrequencies Nsamples Ntrials], meegstruct.data.datatype);
+                meegstruct.data.y = file_array( ...
+                    fullfile(filepath, meegstruct.data.fnamedat), ...
+                    [Nchannels Nfrequencies Nsamples Ntrials], ...
+                    meegstruct.data.datatype);
                 if Ntrials>1
                     expected_size = [Nchannels Nfrequencies Nsamples Ntrials];
                 else
                     expected_size = [Nchannels Nfrequencies Nsamples];
                 end
-                
+
             otherwise
                 error('Unknown transform type');
         end
         % and restore original file_array scale, if available (exist) & useful (~=[])
         if exist('sav_sc','var') && ~isempty(sav_sc) && ...
-                   size(meegstruct.data.y, 1) == length(sav_sc)            
+                size(meegstruct.data.y, 1) == length(sav_sc)
             meegstruct.data.y.scl_slope = sav_sc;
         end
         % and restore original file_array offset, if available (exist) & useful (~=0)
         if exist('sav_os','var') && sav_os
             meegstruct.data.y.offset = sav_os;
         end
-        
+
     end
-    
+
     switch(meegstruct.transform.ID)
         case 'time'
             if Ntrials>1
@@ -299,15 +303,13 @@ else
             else
                 expected_size = [Nchannels Nfrequencies Nsamples];
             end
-            
-            
+
+
         otherwise
             error('Unknown transform type');
     end
-    
     if any(size(meegstruct.data.y) ~= expected_size)
         disp('checkmeeg: data size does not match the header');
-        return;
     end
 end
 
@@ -422,6 +424,19 @@ if ~isfield(meegstruct, 'cache')
     meegstruct.cache = struct([]);
 end
 
+if ~isfield(meegstruct, 'montage')
+    meegstruct.montage = struct('M',[],'Mind',0);
+else
+    if ~isfield(meegstruct.montage,'M')
+        % ensure minimum info
+        meegstruct.montage = struct('M',[],'Mind',0);
+    elseif meegstruct.montage.Mind>numel(meegstruct.montage.M) || ...
+            meegstruct.montage.Mind<0
+        % check montage index, if not good -> 0
+        meegstruct.montage.Mind = 0;
+    end
+end
+
 % This makes sure the order of the fields in the struct is right. This
 % seems to matter to the class function.
 
@@ -441,7 +456,8 @@ fieldnames_order = {
     'transform'
     'other'
     'history'
-    'cache'};
+    'cache'
+    'montage'};
 
 [sel1, sel2] = match_str(fieldnames_order, fieldnames(meegstruct));
 tempcell = struct2cell(meegstruct);
@@ -466,17 +482,17 @@ end
 
 if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
         (strcmp(option, 'dcm') && ~isempty([eegind(:); megind(:)]))
-    
+
     if ~strcmp(meegstruct.transform.ID, 'time')
         disp('checkmeeg: incorrect data type for source reconstruction');
         return;
     end
-    
+
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
     end
-    
+
     if ~isempty(eegind)
         if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)
             disp('checkmeeg: EEG channel locations are not specified');
@@ -488,7 +504,7 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
             end
         end
     end
-    
+
     if ~isempty(megind)
         if ~isfield(meegstruct.sensors, 'meg') || isempty(meegstruct.sensors.meg)
             disp('checkmeeg: MEG channel locations are not specified');
@@ -500,12 +516,12 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
             end
         end
     end
-    
+
     if isempty(meegstruct.fiducials)
         disp('checkmeeg: no fiducials are defined');
         return;
     end
-    
+
     if ~isfield(meegstruct.fiducials, 'pnt') || isempty(meegstruct.fiducials.pnt)
         if ~isempty(eegind)
             % Copy EEG sensors to fiducials.
@@ -514,7 +530,7 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
             meegstruct.fiducials.pnt = sparse(0, 3);
         end
     end
-    
+
     if ~isfield(meegstruct.fiducials, 'fid') || ...
             ~all(isfield(meegstruct.fiducials.fid, {'pnt', 'label'})) ||...
             (length(meegstruct.fiducials.fid.label) ~= size(meegstruct.fiducials.fid.pnt, 1)) || ...
@@ -522,37 +538,37 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
         disp('checkmeeg: at least 3 fiducials with labels are required');
         return
     end
-    
+
     nzlbl = {'fidnz', 'nz', 'nas', 'nasion', 'spmnas'};
     lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl', 'le', 'l', 't9', 'spmlpa'};
     relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 'r', 't10', 'spmrpa'};
-    
+
     [sel1, nzind] = match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
         disp('checkmeeg: could not find the nasion fiducial');
     else
         nzind = nzind(1);
     end
-    
+
     [sel1, leind] = match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
     else
         leind = leind(1);
     end
-    
+
     [sel1, reind] = match_str(relbl, lower(meegstruct.fiducials.fid.label));
     if isempty(reind)
         disp('checkmeeg: could not find the right fiducial');
     else
         reind = reind(1);
     end
-    
+
     restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind(:)', leind(:)', reind(:)']);
-    
+
     meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind(:)', leind(:)', reind(:)', restind(:)']);
     meegstruct.fiducials.fid.pnt = meegstruct.fiducials.fid.pnt([nzind(:)', leind(:)', reind(:)', restind(:)'], :);
-    
+
     result = 1;
 end
 
