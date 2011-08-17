@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4368 2011-06-20 11:59:54Z john $
+% $Id: spm_dicom_convert.m 4436 2011-08-17 16:53:37Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -44,6 +44,7 @@ if nargin<4, format   = 'img'; end
 [images,other]    = select_tomographic_images(hdr);
 [spect,guff]      = select_spectroscopy_images(other);
 [mosaic,standard] = select_mosaic_images(images);
+[standard, guff]  = select_last_guff(standard, guff); % See email of Christoph Berger, 17/08/11
 
 fmos = {};
 fstd = {};
@@ -783,6 +784,14 @@ data = permute(reshape(read_spect_data(hdr{1},privdat),dim([4 5 1 2 3])), ...
 % plane = fliplr(plane);
 
 N.dat(:,:,:,:,:) = data;
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function [standard, guff] = select_last_guff(standard, guff)
+% See email of Christoph Berger, 17/08/11
+guff_IdX = find(cellfun(@(x) ~isfield(x,'ImageOrientationPatient'),standard));
+guff = [guff, standard(guff_IdX)]; standard(guff_IdX) = [];
 return;
 %_______________________________________________________________________
 
