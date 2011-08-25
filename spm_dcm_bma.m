@@ -23,7 +23,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_dcm_bma.m 4438 2011-08-25 11:56:07Z guillaume $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -166,13 +166,13 @@ else % Use an FFX
     post_ind = find(post>mp*oddsr);
     Nocc     = length(post_ind);
     disp(' ');
-    fprintf('%d models in Occams window',Nocc);
+    fprintf('%d models in Occams window:\n',Nocc);
 
     if Nocc == 0, return; end
 
     for occ = 1:Nocc,
         m = post_ind(occ);
-        fprintf('Model %d, p(m|Y)=%1.2f',m,post(m));
+        fprintf('\tModel %d, p(m|Y)=%1.2f\n',m,post(m));
     end
 
     % Renormalise post prob to Occam group

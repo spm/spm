@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_api_bmc.m 4438 2011-08-25 11:56:07Z guillaume $
 
 if nargin < 4 || isempty(xp)
     inf_method = 'FFX';
@@ -61,7 +61,7 @@ switch inf_method
         set(gca,'XTickLabel',1:nm)
         ylabel('Log-evidence (relative)','Fontsize',14)
         xlabel('Models','Fontsize',14)
-        title({'Bayesian Model Selection'},'Fontsize',14)
+        title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
         axis square
         grid on
         
@@ -70,7 +70,7 @@ switch inf_method
         set(gca,'XTick',1:nm)
         set(gca,'XTickLabel',1:nm)
         ylabel('Model Posterior Probability','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
+        title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
         xlabel('Models','Fontsize',14)
         axis square
         grid on
@@ -96,7 +96,7 @@ switch inf_method
             set(gca,'XTickLabel',family.names)
             ylabel(sprintf('Log-evidence (relative) *10e%d',orderm),'Fontsize',14)
             xlabel('Families','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
+            title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
             axis square
             grid on
             
@@ -106,7 +106,7 @@ switch inf_method
             set(gca,'XTickLabel',family.names)
             ylabel('Family Posterior Probability','Fontsize',14)
             xlabel('Families','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
+            title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
             axis square
             grid on
             
@@ -129,7 +129,7 @@ switch inf_method
         set(gca,'XTickLabel',1:nm)
         ylabel('Model Expected Probability','Fontsize',14)
         xlabel('Models','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
+        title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
         axis square
         grid on
         
@@ -139,7 +139,7 @@ switch inf_method
         set(gca,'XTickLabel',1:nm)
         ylabel('Model Exceedance Probability','Fontsize',14)
         xlabel('Models','Fontsize',14)
-        title('Bayesian Model Selection','Fontsize',14)
+        title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
         axis square
         grid on
         
@@ -161,7 +161,7 @@ switch inf_method
             set(gca,'XTickLabel',family.names)
             ylabel('Family Expected Probability','Fontsize',14)
             xlabel('Families','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
+            title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
             axis square
             grid on
             
@@ -171,7 +171,7 @@ switch inf_method
             set(gca,'XTickLabel',family.names)
             ylabel('Family Exceedance Probability','Fontsize',14)
             xlabel('Families','Fontsize',14)
-            title('Bayesian Model Selection','Fontsize',14)
+            title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
             axis square
             grid on
             
