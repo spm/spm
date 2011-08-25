@@ -1,4 +1,4 @@
-function spm_check_installation(action)
+function varargout = spm_check_installation(action)
 % Check SPM installation
 % FORMAT spm_check_installation('basic')
 % Perform a superficial check of SPM installation [default].
@@ -6,25 +6,30 @@ function spm_check_installation(action)
 % FORMAT spm_check_installation('full')
 % Perform an in-depth diagnostic of SPM installation.
 %
+% FORMAT rev = spm_check_installation('rev')
+% Return a lower bound of SPM SVN Revision number.
+% 
 % FORMAT spm_check_installation('build')
 % Build signature of SPM distribution as used by previous option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4288 2011-04-04 14:45:17Z guillaume $
+% $Id: spm_check_installation.m 4439 2011-08-25 17:47:07Z guillaume $
 
 if isdeployed, return; end
 
 %-Select action
 %--------------------------------------------------------------------------
 if ~nargin, action = 'basic'; end
-switch action
+switch lower(action)
     case 'basic'
         check_basic;
     case 'full'
         check_full;
+    case 'rev'
+        varargout = { get_rev };
     case 'build'
         build_signature;
     otherwise
@@ -417,6 +422,16 @@ end
 if dispc
     fprintf('No local change or out-of-date files\n');
 end
+
+%==========================================================================
+% FUNCTION get_rev
+%==========================================================================
+function rev = get_rev
+
+spm('Ver','',1);
+d   = spm('Dir');
+l   = generate_listing(d);
+rev = max([l.id]);
 
 %==========================================================================
 % FUNCTION build_signature

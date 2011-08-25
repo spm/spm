@@ -1,16 +1,17 @@
 function [pth,nam,ext,num] = spm_fileparts(fname)
 % Like fileparts, but separates off a comma separated list at the end
 % FORMAT [pth,nam,ext,num] = spm_fileparts(fname)
-% fname - original filename
-% pth   - path
-% nam   - filename
-% ext   - extension
-% num   - comma separated list of values
+% fname  - original filename
+%
+% pth    - path
+% nam    - filename
+% ext    - extension
+% num    - comma separated list of values
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_fileparts.m 4433 2011-08-15 12:46:06Z christophe $
+% $Id: spm_fileparts.m 4439 2011-08-25 17:47:07Z guillaume $
 
 
 num = '';

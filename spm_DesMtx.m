@@ -20,15 +20,6 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 %               for unconstrained factor effects ('-' or '~')
 %
 %                           ----------------
-% - Utilities:
-%
-% FORMAT i = spm_DesMtx('pds',v,m,n)
-% Patterned data setting function - inspired by MINITAB's "SET" command
-% v - base pattern vector
-% m - (scalar natural number) #replications of elements of v [default 1]
-% n - (scalar natural number) #repeats of pattern [default 1]
-% i - resultant pattern vector, with v's elements replicated m times,
-%     the resulting vector repeated n times.
 %
 % FORMAT [nX,nPnames] = spm_DesMtx('sca',X1,Pnames1,X2,Pnames2,...)
 % Produces a scaled design matrix nX with max(abs(nX(:))<=1, suitable
@@ -38,29 +29,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % nX                    - Scaled design matrix
 % nPnames               - Concatenated parameter names for columns of nX
 %
-% FORMAT Fnames = spm_DesMtx('Fnames',Pnames)
-% Converts parameter names into suitable filenames
-% Pnames - string mtx/cellstr containing parameter names
-% Fnames - filenames derived from Pnames. (cellstr)
-%
-% FORMAT TPnames = spm_DesMtx('TeXnames',Pnames)
-% Removes '*'s and '@'s from Pnames, so TPnames suitable for TeX interpretation
-% Pnames  - string mtx/cellstr containing parameter names
-% TPnames - TeX-ified parameter names
-%
-% FORMAT Map = spm_DesMtx('ParMap',aMap)
-% Returns Nx2 cellstr mapping (greek TeX) parameters to English names,
-% using the notation established in the SPMcourse notes.
-% aMap - (optional) Mx2 cellstr of additional or over-ride mappings
-% Map  - cellstr of parameter names (col1) and corresponding English names (col2)
-%
-% FORMAT EPnames = spm_DesMtx('ETeXnames',Pnames,aMap)
-% Translates greek (TeX) parameter names into English using mapping given by
-% spm_DesMtx('ParMap',aMap)
-% Pnames  - string mtx/cellstr containing parameter names
-% aMap    - (optional) Mx2 cellstr of additional or over-ride mappings
-% EPnames - cellstr of converted parameter names
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % Returns design matrix corresponding to given vectors containing
 % levels of a factor; two way interactions; covariates (n vectors);
@@ -197,22 +166,6 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 %
 %                           ----------------
 %
-% The "patterned data setting" (spm_DesMtx('pds'...) is a simple
-% utility for setting patterned indicator vectors, inspired by
-% MINITAB's "SET" command.
-%
-% The vector v has it's elements replicated m times, and the resulting
-% vector is itself repeated n times, giving a resultant vector i of
-% length n*m*length(v)
-%
-% Examples:
-%     spm_DesMtx('pds',1:3)       % = [1,2,3]
-%     spm_DesMtx('pds',1:3,2)     % = [1,1,2,2,3,3]
-%     spm_DesMtx('pds',1:3,2,3)   % = [1,1,2,2,3,3,1,1,2,2,3,3,1,1,2,2,3,3]
-% NB: MINITAB's "SET" command has syntax n(v)m:
-%
-%                           ----------------
-%
 % The design matrix scaling feature is designed to return a scaled
 % version of a design matrix, with values in [-1,1], suitable for
 % visualisation. Special care is taken to apply the same normalisation
@@ -221,7 +174,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % corresponding to columns of design matrix portions is via the parameter
 % names matrices. The design matrix may be passed in any number of
 % parts, provided the corresponding parameter names are given. It is
-% assummed that the block representing an effect is contained within a
+% assumed that the block representing an effect is contained within a
 % single partition. Partitions supplied without corresponding parameter
 % names are scaled on a column by column basis, the parameters labelled as
 % <UnSpec> in the returned nPnames matrix.
@@ -246,63 +199,62 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 %         but leaving zeros as zero.
 %       * Otherwise, block is scaled to cover [-1,1].
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 4137 2010-12-15 17:18:32Z guillaume $
-
+% $Id: spm_DesMtx.m 4439 2011-08-25 17:47:07Z guillaume $
 
 
 %-Parse arguments for recursive construction of design matrices
-%=======================================================================
-if nargin==0 error('Insufficient arguments'), end
+%==========================================================================
+if ~nargin, error('Insufficient arguments'); end
 
 if ischar(varargin{1})
     %-Non-recursive action string usage
     Constraint=varargin{1};
 elseif nargin>=2 && ~(ischar(varargin{2}) || iscell(varargin{2}))
-    [X1,Pnames1]=spm_DesMtx(varargin{1});
-    [X2,Pnames2]=spm_DesMtx(varargin{2:end});
-    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    [X1,Pnames1] = spm_DesMtx(varargin{1});
+    [X2,Pnames2] = spm_DesMtx(varargin{2:end});
+    X = [X1,X2]; Pnames = [Pnames1;Pnames2];
     return
 elseif nargin>=3 && ~(ischar(varargin{3}) || iscell(varargin{3}))
-    [X1,Pnames1]=spm_DesMtx(varargin{1:2});
-    [X2,Pnames2]=spm_DesMtx(varargin{3:end});
-    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    [X1,Pnames1] = spm_DesMtx(varargin{1:2});
+    [X2,Pnames2] = spm_DesMtx(varargin{3:end});
+    X = [X1,X2]; Pnames = [Pnames1;Pnames2];
     return
 elseif nargin>=4
-    [X1,Pnames1]=spm_DesMtx(varargin{1:3});
-    [X2,Pnames2]=spm_DesMtx(varargin{4:end});
-    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    [X1,Pnames1] = spm_DesMtx(varargin{1:3});
+    [X2,Pnames2] = spm_DesMtx(varargin{4:end});
+    X = [X1,X2]; Pnames = [Pnames1;Pnames2];
     return
 else
     %-If I is a vector, make it a column vector
-    I=varargin{1}; if size(I,1)==1, I=I'; end
+    I = varargin{1}; if size(I,1)==1, I=I'; end
     %-Sort out constraint and Factor/Covariate name parameters
-    if nargin<2, Constraint='-'; else Constraint=varargin{2}; end
-    if isempty(I), Constraint='mt'; end
-    if nargin<3, FCnames={}; else FCnames=varargin{3}; end
-    if char(FCnames), FCnames=cellstr(FCnames); end
+    if nargin<2, Constraint = '-'; else Constraint = varargin{2}; end
+    if isempty(I), Constraint = 'mt'; end
+    if nargin<3, FCnames = {}; else FCnames = varargin{3}; end
+    if char(FCnames), FCnames = cellstr(FCnames); end
 end
 
 
 
-switch Constraint, case 'mt'                              %-Empty I case
-%=======================================================================
+switch lower(Constraint), case 'mt'                          %-Empty I case
+%==========================================================================
 X      = [];
 Pnames = {};
 Index  = [];
 
 
 
-case {'C','X'}           %-Covariate effect, or ready-made design matrix
-%=======================================================================
+case {'c','x'}              %-Covariate effect, or ready-made design matrix
+%==========================================================================
 %-I contains a covariate (C), or is to be inserted "as is" (X)
 X = I;
 
 %-Construct parameter name index
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isempty(FCnames)
     if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else FCnames={'<X>'}; end
 end
@@ -320,10 +272,10 @@ end
 
 
 
-case {'-(1)','~(1)'}      %-Simple main effect ('~' ignores zero levels)
-%=======================================================================
+case {'-(1)','~(1)'}         %-Simple main effect ('~' ignores zero levels)
+%==========================================================================
 %-Sort out arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if size(I,2)>1, error('Simple main effect requires vector index'), end
 if any(I~=floor(I)), error('Non-integer indicator vector'), end
 if isempty(FCnames), FCnames = {'<Fac>'};
@@ -332,7 +284,7 @@ elseif length(FCnames)>1, error('Too many FCnames'), end
 nXrows = size(I,1);
 
 % Sort out unique factor levels - ignore zero level in '~(1)' usage
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if Constraint(1)~='~'
     [Index,idx,jdx] = unique(I');
     kdx = [1:nXrows];
@@ -348,7 +300,7 @@ else
 end
 
 %-Set up unconstrained X matrix & construct parameter name index
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 nXcols = length(Index);
 
 %-Columns in ascending order of corresponding factor level
@@ -364,8 +316,9 @@ end
 if nXcols==1, Pnames=FCnames; end
 
 
-case {'-','~'}     %-Main effect / interaction ('~' ignores zero levels)
-%=======================================================================
+
+case {'-','~'}        %-Main effect / interaction ('~' ignores zero levels)
+%==========================================================================
 if size(I,2)==1
     %-Main effect - process directly
     [X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
@@ -375,7 +328,7 @@ end
 if any((I(:))~=floor(I(:))), error('Non-integer indicator vector'), end
 
 % Sort out unique factor level combinations & build design matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Make "raw" index to unique effects
 nI     = I - ones(size(I,1),1)*min(I);
 tmp    = max(I)-min(I)+1;
@@ -400,7 +353,7 @@ end
 Index = I(kdx(idx),:)';
 
 %-Construct parameter name index
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isempty(FCnames)
     tmp = ['<Fac1>',sprintf('*<Fac%d>',2:size(I,2))];
 elseif length(FCnames)==size(I,2)
@@ -417,11 +370,11 @@ end
 
 
 
-case {'FxC','-FxC','~FxC'}           %-Factor dependent covariate effect
-%                                       ('~' ignores zero factor levels)
-%=======================================================================
+case {'fxc','-fxc','~fxc'}              %-Factor dependent covariate effect
+%                                          ('~' ignores zero factor levels)
+%==========================================================================
 %-Check
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if size(I,2)==1, error('FxC requires multi-column I'), end
 
 F = I(:,1:end-1);
@@ -441,7 +394,7 @@ else
 end
 
 %-Set up design matrix X & names matrix - ignore zero levels if '~FxC' use
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if Constraint(1)~='~',  [X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
     else       [X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
 X = X.*(C*ones(1,size(X,2)));
@@ -449,15 +402,15 @@ Pnames = cellstr([repmat([Cnames,'@'],size(Index,2),1),char(Pnames)]);
 
 
 
-case {'.','.0','+0','+0m'}              %-Constrained simple main effect
-%=======================================================================
+case {'.','.0','+0','+0m'}                 %-Constrained simple main effect
+%==========================================================================
 
 if size(I,2)~=1, error('Simple main effect requires vector index'), end
 
 [X,Pnames,Index] = spm_DesMtx(I,'-(1)',FCnames);
 
 %-Impose constraint if more than one effect
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Apply uniqueness constraints ('.' & '+0')  to last effect, which is
 % in last column, since column i corresponds to level Index(i)
 %-'.0' corner point constraint is applied to zero factor level only
@@ -482,14 +435,14 @@ end
 
 
 case {'.i','.i0','.j','.j0','.ij','.ij0','+i0','+j0','+ij0','+i0m','+j0m'}
-                                           %-Two way interaction effects
-%=======================================================================
+                                              %-Two way interaction effects
+%==========================================================================
 if size(I,2)~=2, error('Two way interaction requires Nx2 index'), end
 
 [X,Pnames,Index] = spm_DesMtx(I,'-',FCnames);
 
 %-Implicit sum to zero
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if any(strcmp(Constraint,{'+i0m','+j0m'}))
     SumIToZero = strcmp(Constraint,'+i0m');
     SumJToZero = strcmp(Constraint,'+j0m');
@@ -519,7 +472,7 @@ if any(strcmp(Constraint,{'+i0m','+j0m'}))
     end
 
 %-Explicit sum to zero
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
     SumIToZero = any(strcmp(Constraint,{'+i0','+ij0'}));
     SumJToZero = any(strcmp(Constraint,{'+j0','+ij0'}));
@@ -565,7 +518,7 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
     end
 
 %-Corner point constraints
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
     CornerPointI = any(strcmp(Constraint,{'.i','.i0','.ij','.ij0'}));
     CornerPointJ = any(strcmp(Constraint,{'.j','.j0','.ij','.ij0'}));
@@ -597,31 +550,13 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
 end
 
 
-case {'PDS','pds'}                          %-Patterned data set utility
-%=======================================================================
-% i = spm_DesMtx('pds',v,m,n)
-if nargin<4, n=1; else n=varargin{4}; end
-if nargin<3, m=1; else m=varargin{3}; end
-if nargin<2, varargout={[]}; return, else v=varargin{2}; end
-if any([size(n),size(m)])>1, error('n & m must be scalars'), end
-if any(([m,n]~=floor([m,n]))|([m,n]<1))
-    error('n & m must be natural numbers'), end
-if sum(size(v)>1)>1, error('v must be a vector'), end
-
-%-Computation
-%-----------------------------------------------------------------------
-si = ones(1,ndims(v)); si(find(size(v)>1))=n*m*length(v);
-X = reshape(repmat(v(:)',m,n),si);
-
-
-
-case {'Sca','sca'}                            %-Scale DesMtx for imaging
-%=======================================================================
-nX   = []; nPnames = {}; Carg = 2;
+case {'sca'}                               %-Scale DesMtx for visualisation
+%==========================================================================
+nX = []; nPnames = {}; Carg = 2;
 
 %-Loop through the arguments accumulating scaled design matrix nX
-%-----------------------------------------------------------------------
-while(Carg <= nargin)
+%--------------------------------------------------------------------------
+while Carg <= nargin
     rX = varargin{Carg}; Carg=Carg+1;
     if Carg<=nargin && ~isempty(varargin{Carg}) && ...
             (ischar(varargin{Carg}) || iscellstr(varargin{Carg}))
@@ -633,18 +568,18 @@ while(Carg <= nargin)
     rPnames = [rPnames,repmat(' ',size(rPnames,1),20)];
 
 
-    while(~isempty(rX))
+    while ~isempty(rX)
     if size(rX,2)>1 && max([1,find(rPnames(1,:)=='(')]) < ...
                     max([0,find(rPnames(1,:)==')')])
     %-Non-specific block: find the rest & column normalise round zero
-    %===============================================================
+    %======================================================================
         c1 = max(find(rPnames(1,:)=='('));
         d  = any(diff(abs(rPnames(:,1:c1))),2)...
             | ~any(rPnames(2:end,c1+1:end)==')',2);
         t  = min(find([d;1]));
 
         %-Normalise columns of block around zero
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         tmp = size(nX,2);
         nX  = [nX, zeros(size(rX,1),t)];
         for i=1:t
@@ -661,14 +596,14 @@ while(Carg <= nargin)
     elseif size(rX,2)>1 && max([1,find(rPnames(1,:)=='[')]) < ...
                     max([0,find(rPnames(1,:)==']')])
     %-Block: find the rest & normalise together
-    %===============================================================
+    %======================================================================
         c1 = max(find(rPnames(1,:)=='['));
         d  = any(diff(abs(rPnames(:,1:c1))),2)...
             | ~any(rPnames(2:end,c1+1:end)==']',2);
         t  = min(find([d;1]));
 
         %-Normalise block
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         nX = [nX,sf_tXsca(rX(:,1:t))];
         nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
         rX(:,1:t) = []; rPnames(1:t,:)=[];
@@ -677,14 +612,14 @@ while(Carg <= nargin)
     elseif size(rX,2)>1 && max([1,strfind(rPnames(1,:),'_{')]) < ...
                     max([0,find(rPnames(1,:)=='}')])
     %-Factor, interaction of factors, or FxC: find the rest...
-    %===============================================================
+    %======================================================================
         c1 = max(strfind(rPnames(1,:),'_{'));
         d  = any(diff(abs(rPnames(:,1:c1+1))),2)...
             | ~any(rPnames(2:end,c1+2:end)=='}',2);
         t  = min(find([d;1]));
 
         %-Normalise block
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         tX = rX(:,1:t);
         if any(rPnames(1,1:c1)=='@')    %-FxC interaction
             C         = tX(tX~=0);
@@ -693,12 +628,12 @@ while(Carg <= nargin)
         else                %-Straight interaction
             nX = [nX,sf_tXsca(tX)];
         end
-        nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+        nPnames   = [nPnames; cellstr(rPnames(1:t,:))];
         rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-    else                              %-Dunno! Just column normalise
-    %===============================================================
+    else                                     %-Dunno! Just column normalise
+    %======================================================================
         nX       = [nX,sf_tXsca(rX(:,1))];
         nPnames  = [nPnames; cellstr(rPnames(1,:))];
         rX(:,1)  = []; rPnames(1,:)=[];
@@ -711,92 +646,21 @@ X      = nX;
 Pnames = nPnames;
 
 
-case {'Fnames','fnames'}     %-Turn parameter names into valid filenames
-%=======================================================================
-% Fnames = spm_DesMtx('FNames',Pnames)
-if nargin<2, varargout={''}; return, end
-Fnames = varargin{2};
-for i=1:numel(Fnames)
-    str = Fnames{i};
-    str(str==',')='x';          %-',' to 'x'
-    str(str=='*')='-';          %-'*' to '-'
-    str(str=='@')='-';          %-'@' to '-'
-    str(str==' ')='_';          %-' ' to '_'
-    str(str=='/')='';           %- delete '/'
-    str(str=='.')='';           %- delete '.'
-    Fnames{i} = str;
-end
-Fnames = spm_str_manip(Fnames,'v');     %- retain only legal characters
-X = Fnames;
-
-
-case {'TeXnames','texnames'}   %-Remove '@' & '*' for TeX interpretation
-%=======================================================================
-% TPnames = spm_DesMtx('TeXnames',Pnames)
-if nargin<2, varargout={''}; return, end
-TPnames = varargin{2};
-for i=1:prod(size(TPnames))
-    str = TPnames{i};
-    str(str=='*')='';           %- delete '*'
-    str(str=='@')='';           %- delete '@'
-    TPnames{i} = str;
-end
-X = TPnames;
-
-
-case {'ParMap','parmap'}          %-Parameter mappings: greek to english
-%=======================================================================
-% Map = spm_DesMtx('ParMap',aMap)
-Map = { '\mu',      'const';...
-    '\theta',   'repl';...
-    '\alpha',   'cond';...
-    '\gamma',   'subj';...
-    '\rho',     'covint';...
-    '\zeta',    'global';...
-    '\epsilon', 'error'};
-if nargin<2, aMap={}; else aMap = varargin{2}; end
-if isempty(aMap), X=Map; return, end
-if ~(iscellstr(aMap) && ndims(aMap)==2), error('aMap must be an nx2 cellstr'), end
-for i=1:size(aMap,1)
-    j = find(strcmp(aMap{i,1},Map(:,1)));
-    if isempty(j)
-        Map=[aMap(i,:); Map];
-    else
-        Map(j,2) = aMap(i,2);
-    end
-end
-X = Map;
-
-
-case {'ETeXNames','etexnames'} %-Search & replace: for Englishifying TeX
-%=======================================================================
-% EPnames = spm_DesMtx('TeXnames',Pnames,aMap)
-if nargin<2, varargout={''}; return, end
-if nargin<3, aMap={}; else aMap = varargin{3}; end
-Map = spm_DesMtx('ParMap',aMap);
-EPnames = varargin{2};
-for i=1:size(Map,1)
-    EPnames = strrep(EPnames,Map{i,1},Map{i,2});
-end
-X = EPnames;
-
-
-otherwise                              %-Mis-specified arguments - ERROR
-%=======================================================================
+otherwise                                 %-Mis-specified arguments - ERROR
+%==========================================================================
 if ischar(varargin{1})
     error('unrecognised action string')
 else
     error('unrecognised constraint type')
 end
 
-%=======================================================================
 end
 
 
 
-%=======================================================================
-% - S U B F U N C T I O N S
-%=======================================================================
+%==========================================================================
+% function nX = sf_tXsca(tX)
+%==========================================================================
 function nX = sf_tXsca(tX)
 if nargin==0, nX=[]; return, end
 if abs(max(abs(tX(:)))-0.7)<(.3+1e-10)

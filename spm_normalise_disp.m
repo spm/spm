@@ -6,7 +6,7 @@ function spm_normalise_disp(matname,VF)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise_disp.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_normalise_disp.m 4439 2011-08-25 17:47:07Z guillaume $
 
 
 fg = spm_figure('FindWin','Graphics');
@@ -30,7 +30,7 @@ text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
     'Interpreter','none','Parent',ax);
 text(0,0.75, [ 'Image     : ' VF.fname],'FontSize',12,'FontWeight','Bold',...
     'Interpreter','none','Parent',ax);
-%text(0,0.7, [ 'Parameters : ' spm_str_manip(matname,'sd')],'FontSize',12,...
+%text(0,0.7, [ 'Parameters : ' spm_str_manip(matname,'s')],'FontSize',12,...
 %   'Interpreter','none','Parent',ax);
 
 %str = 'no flipping';

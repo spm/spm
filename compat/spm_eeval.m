@@ -52,7 +52,7 @@ function [p,msg] = spm_eeval(str,Type,n,m)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_eeval.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: spm_eeval.m 4439 2011-08-25 17:47:07Z guillaume $
 
 
 if nargin<4, m=[]; end

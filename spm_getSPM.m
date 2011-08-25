@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4225 2011-03-02 15:53:05Z guillaume $
+% $Id: spm_getSPM.m 4439 2011-08-25 17:47:07Z guillaume $
 
 
 %-GUI setup
@@ -468,12 +468,11 @@ elseif iscellstr(Im) && numel(Im) > 0
 end
 try
     titlestr = xSPM.title;
-    if isempty(titlestr)
-        titlestr = str;
-    end
 catch
-    titlestr = spm_input('title for comparison','+1','s',str);
+    %titlestr = spm_input('title for comparison','+1','s',str);
+    titlestr = '';
 end
+if isempty(titlestr), titlestr = str; end
 
 
 %-Bayesian or classical Inference?
