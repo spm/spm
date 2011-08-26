@@ -9,45 +9,53 @@ function [strout,R2] = spm_str_manip(strin,options)
 %__________________________________________________________________________
 % Each of the options is performed from left to right.
 % The options are:
-%       'r'              - remove trailing suffix
-%       's'              - remove trailing suffix -
-%                          only if it is either '.img', '.hdr', '.mat' or '.nii'
-%       'e'              - remove everything except the suffix
-%       'h'              - remove trailing pathname component
-%       'H'              - always remove trailing pathname component
-%                          (returns '.' for straight filenames like 'test.img')
-%                          (wheras 'h' option mimics csh & returns 'test.img' )
-%       't'              - remove leading pathname component
-%       ['f' num2str(n)] - remove all except first n characters
-%       ['l' num2str(n)] - remove all except last n characters
-%       ['k' num2str(n)] - produce a string of at most n characters long.
-%                          If the input string is longer than n, then
-%                          it is prefixed with '..' and the last n-2 characters
-%                          are returned.
-%       ['a' num2str(n)] - similar to above - except the leading directories
-%                          are replaced by './'.
-%                          eg. spm_str_manip('/dir1/dir2/file.img','a16') would
-%                          produce '../dir2/file.img'.
-%       'v'              - delete non valid filename characters
-%                          Valid are '.a..zA..Z01..9_-: ' & filesep
-%       'x'              - escape TeX special characters
-%       'p'              - canonicalise pathname (see spm_select('CPath',strin))
-%       'c'              - remove leading components common to all strings
-%                          returns leading component as a second output argument
-%       'C'              - returns single string compressed version of a
-%                          cellstr, such as '/data/pic{01,12,23}.img'.
-%                          Second argument is a structure with fields:
-%                            .s - start string (E.g. '/data/pic')
-%                            .m - middle bits cellstr (E.g.{'01','02','03'})
-%                            .e - end string (E.g. '.img')
-%       'd'              - deblank - this is always done!
-%
+%   'r'              - remove trailing suffix
+%   's'              - remove trailing suffix - only if it is either
+%                      '.img', '.hdr', '.mat', '.nii' or '.gii'
+%   'e'              - remove everything except the suffix
+%   'h'              - remove trailing pathname component
+%   'H'              - always remove trailing pathname component
+%                      (returns '.' for straight filenames like 'test.img')
+%                       (wheras 'h' option mimics csh & returns 'test.img' )
+%   't'              - remove leading pathname component
+%   ['f' num2str(n)] - remove all except first n characters
+%   ['l' num2str(n)] - remove all except last n characters
+%   ['k' num2str(n)] - produce a string of at most n characters long.
+%                      If the input string is longer than n, then
+%                      it is prefixed with '..' and the last n-2 characters
+%                      are returned.
+%   ['a' num2str(n)] - similar to above - except the leading directories
+%                      are replaced by './'.
+%                      eg. spm_str('/dir1/dir2/file.img','a16') would
+%                      produce '../dir2/file.img'.
+%   'v'              - delete non valid filename characters
+%                      Valid are '.a..zA..Z01..9_-: ' & filesep
+%   'x'              - escape TeX special characters
+%   'p'              - canonicalise pathname (see spm_select('CPath',...))
+%   'c'              - remove leading components common to all strings
+%                      returns leading component as a second output argument
+%   'C'              - returns single string compressed version of a
+%                      cellstr, such as '/data/pic{01,12,23}.img'.
+%                      Second argument is a structure with fields:
+%                        .s - start string (E.g. '/data/pic')
+%                        .m - middle bits cellstr (E.g.{'01','02','03'})
+%                        .e - end string (E.g. '.img')
+%   'd'              - deblank - this is always done!
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% This function is now deprecated, use spm_file when possible instead.
+%__________________________________________________________________________
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 4042 2010-08-25 11:18:59Z christophe $
+% $Id: spm_str_manip.m 4443 2011-08-26 15:45:36Z guillaume $
 
+
+% persistent runonce
+% if isempty(runonce)
+%     warning('spm_str_manip is deprecated. Use spm_file instead.');
+%     runonce = 1;
+% end
 
 if nargin<2, options=''; end
 if nargin<1, strout=[]; R2=''; return, end
@@ -58,18 +66,18 @@ strout   = cellstr(strin);
 bSStrOut = ischar(strin);
 R2       = '';
 
-while (~isempty(options))
+while ~isempty(options)
     o = 2;
 
-    % Read in optional numeric argument c
+    %-Read in optional numeric argument c
     %======================================================================
     opt = options(2:length(options));
     c = 0;
-    if (~isempty(opt)), b = opt(1); else b = '-'; end
-    while (b >= '0'+0 && b <= '9'+0)
+    if ~isempty(opt), b = opt(1); else b = '-'; end
+    while (b >= '0') && (b <= '9')
         c = c * 10 + opt(1)-'0';
         opt = opt(2:length(opt));
-        if (isempty(opt))
+        if isempty(opt)
             b = '-';
         else
             b = opt(1);
@@ -89,14 +97,14 @@ while (~isempty(options))
         %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             d2 = max([find(str == '.') 0]);
-            if (d2>d1), str = str(1:(d2-1)); end
+            if d2 > d1, str = str(1:(d2-1)); end
 
         case 'e'
         %-Remove all but the suffix
         %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
             d2 = max([find(str == '.') 0]);
-            if (d2>d1)
+            if d2 > d1
                 str = str((d2+1):length(str));
             else
                 str = '';
@@ -106,7 +114,7 @@ while (~isempty(options))
         %-Remove a trailing pathname component, leaving the head
         %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
-            if (d1>0)
+            if d1 > 0
                 str = str(1:(d1-1));
             end
 
@@ -114,7 +122,7 @@ while (~isempty(options))
         %-Remove a trailing pathname component, leaving the head
         %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
-            if (d1>0)
+            if d1 > 0
                 str = str(1:(d1-1));
             else
                 str = '.';
@@ -124,7 +132,7 @@ while (~isempty(options))
         %-Remove all leading  pathname  components, leaving the tail
         %------------------------------------------------------------------
             d1 = max([find(str == sep) 0]);
-            if (d1>0)
+            if d1 > 0
                 str = str((d1+1):length(str));
             end
 
@@ -143,7 +151,7 @@ while (~isempty(options))
         %-Last few characters, prefixed with '..'
         %------------------------------------------------------------------
             l = length(str);
-            if (l>c)
+            if l > c
                 str = ['..' str(l-c+2:l)];
             end
 
@@ -152,7 +160,7 @@ while (~isempty(options))
         %------------------------------------------------------------------
             m1   = find(str == sep);
             l    = length(str);
-            if (c < l)
+            if c < l
                 m2   = find(l-m1+1+2 <= c);
                 if ~isempty(m2)
                     str = ['.' str(m1(min(m2)):l)];
@@ -165,9 +173,10 @@ while (~isempty(options))
         %-Strip off '.img', '.hdr', '.nii' or '.mat' suffixes
         %------------------------------------------------------------------
             l = length(str);
-            if (l > 4)
-                if ismember(str((l-3):l),{'.img','.hdr','.nii','.mat'})
-                    str = spm_str_manip(str, 'r');
+            if l > 4
+                if ismember(str((l-3):l),...
+                        {'.img','.hdr','.nii','.gii','.mat'})
+                    str = spm_str(str, 'r');
                 end
             end
 
@@ -187,14 +196,14 @@ while (~isempty(options))
         case 'x'
         %-Escape TeX special characters
         %------------------------------------------------------------------
-            str    = strrep(str,'\','\\');
-            str    = strrep(str,'^','\^'); str   = strrep(str,'_','\_');
-            str    = strrep(str,'{','\{'); str   = strrep(str,'}','\}');
+            str = strrep(str,'\','\\');
+            str = strrep(str,'^','\^'); str   = strrep(str,'_','\_');
+            str = strrep(str,'{','\{'); str   = strrep(str,'}','\}');
         
         case 'p'
         %-Canonicalise pathname
         %------------------------------------------------------------------
-            str = strvcat(spm_select('CPath',cellstr(str)));
+            str = spm_select('CPath',str);
 
         case {'c','C','d'}
         %-Allow these options (implemented below)
