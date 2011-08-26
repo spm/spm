@@ -1,5 +1,5 @@
 function sendmail = spm_cfg_sendmail
-% SPM Configuration file for sendmail - DEPRECATED
+% SPM Configuration file for sendmail
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -92,16 +92,10 @@ params.help    = {'Preferences for your e-mail server (Internet SMTP server) and
 % ---------------------------------------------------------------------
 sendmail       = cfg_exbranch;
 sendmail.tag   = 'sendmail';
-sendmail.name  = 'Sendmail (Deprecated)';
+sendmail.name  = 'Sendmail';
 sendmail.val   = { recipient subject message attachments params};
-sendmail.help  = {
-    'Send a mail message (attachments optionals) to an address.'
-    ''
-    'This module is deprecated and has been moved to Util.'
-	'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the Util module instead.'
-}';
+sendmail.help  = {'Send a mail message (attachments optionals) to an address.'};
 sendmail.prog  = @spm_sendmail;
-sendmail.hidden = true;
 %_______________________________________________________________________
 
 %_______________________________________________________________________

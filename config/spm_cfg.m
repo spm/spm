@@ -1,77 +1,85 @@
 function spmjobs = spm_cfg
-% SPM Configuration file
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% SPM Configuration file for MATLABBATCH
+%__________________________________________________________________________
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4441 2011-08-26 12:57:15Z guillaume $
+% $Id: spm_cfg.m 4442 2011-08-26 14:53:10Z guillaume $
 
-%_______________________________________________________________________
-% temporal Temporal
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+% Temporal
+%--------------------------------------------------------------------------
 temporal         = cfg_choice;
 temporal.tag     = 'temporal';
 temporal.name    = 'Temporal';
 temporal.help    = {'Temporal pre-processing functions.'};
-temporal.values  = { spm_cfg_st};
-% ---------------------------------------------------------------------
-% spatial Spatial
-% ---------------------------------------------------------------------
+temporal.values  = { spm_cfg_st };
+
+%--------------------------------------------------------------------------
+% Spatial
+%--------------------------------------------------------------------------
 spatial         = cfg_choice;
 spatial.tag     = 'spatial';
 spatial.name    = 'Spatial';
 spatial.help    = {'Various spatial and other pre-processing functions.'};
-spatial.values  = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc spm_cfg_normalise spm_cfg_smooth};
-% ---------------------------------------------------------------------
-% stats Stats
-% ---------------------------------------------------------------------
+spatial.values  = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc spm_cfg_normalise spm_cfg_smooth };
+
+%--------------------------------------------------------------------------
+% Stats
+%--------------------------------------------------------------------------
 stats         = cfg_choice;
 stats.tag     = 'stats';
 stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi};
-% ---------------------------------------------------------------------
-% meeg preprocessing
-% ---------------------------------------------------------------------
+stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi };
+
+%--------------------------------------------------------------------------
+% M/EEG preprocessing
+%--------------------------------------------------------------------------
 meegprep        = cfg_choice;
 meegprep.tag    = 'preproc';
 meegprep.name   = 'M/EEG Preprocessing';
 meegprep.help   = {'M/EEG preprocessing.'};
-meegprep.values = {spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse}; 
-% ---------------------------------------------------------------------
-% meeg time-frequency
-% ---------------------------------------------------------------------
+meegprep.values = { spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse }; 
+
+%--------------------------------------------------------------------------
+% M/EEG time-frequency
+%--------------------------------------------------------------------------
 meegtf        = cfg_choice;
 meegtf.tag    = 'tf';
 meegtf.name   = 'M/EEG Time-frequency';
 meegtf.help   = {'M/EEG time-frequency.'};
-meegtf.values = {spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale}; 
-% ---------------------------------------------------------------------
-% meeg source reconstruction
-% ---------------------------------------------------------------------
+meegtf.values = { spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale }; 
+
+%--------------------------------------------------------------------------
+% M/EEG source reconstruction
+%--------------------------------------------------------------------------
 source        = cfg_choice;
 source.tag    = 'source';
 source.name   = 'M/EEG Source reconstruction';
 source.help   = {'M/EEG source reconstruction.'};
-source.values = {spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract}; 
-% ---------------------------------------------------------------------
-% meeg Meeg
-% ---------------------------------------------------------------------
+source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract }; 
+
+%--------------------------------------------------------------------------
+% M/EEG
+%--------------------------------------------------------------------------
 meeg         = cfg_choice;
 meeg.tag     = 'meeg';
 meeg.name    = 'M/EEG';
 meeg.help    = {'M/EEG functions.'};
-meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_epochs meegprep spm_cfg_eeg_average spm_cfg_eeg_review spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_convert2images meegtf source};
-% ---------------------------------------------------------------------
-% util Util
-% ---------------------------------------------------------------------
+meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_epochs meegprep spm_cfg_eeg_average spm_cfg_eeg_review spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_convert2images meegtf source };
+
+%--------------------------------------------------------------------------
+% Util
+%--------------------------------------------------------------------------
 util         = cfg_choice;
 util.tag     = 'util';
 util.name    = 'Util';
 util.help    = {'Various useful tools.'};
-util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_print spm_cfg_cat spm_cfg_exp_frames};
-% ---------------------------------------------------------------------
-% tools Tools
-% ---------------------------------------------------------------------
+util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_print spm_cfg_cat spm_cfg_exp_frames spm_cfg_sendmail };
+
+%--------------------------------------------------------------------------
+% Tools
+%--------------------------------------------------------------------------
 tools         = cfg_choice;
 tools.tag     = 'tools';
 tools.name    = 'Tools';
@@ -131,9 +139,10 @@ else
         end
     end
 end
-%_______________________________________________________________________
+
+%==========================================================================
 % spmjobs SPM
-%_______________________________________________________________________
+%==========================================================================
 spmjobs         = cfg_choice;
 spmjobs.tag     = 'spm';
 spmjobs.name    = 'SPM';
