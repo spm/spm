@@ -17,7 +17,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % 
-% $Id: spm_defaults.m 4396 2011-07-19 09:06:49Z volkmar $
+% $Id: spm_defaults.m 4440 2011-08-26 11:50:45Z guillaume $
 
 %-Prevent users from making direct calls to this function
 %-----------------------------------------------------------------------
@@ -53,6 +53,10 @@ defaults.ui.fs     = 14;  % unused
 % left/right handedness of the voxel indices is now done entirely by
 % spm_flip_analyze_images.m
 defaults.images.format  = 'img';  % used for DICOM, ECAT and MINC import
+
+% Toolboxes defaults
+%=======================================================================
+defaults.tbx.dir = { fullfile(spm('Dir'),'toolbox') };
 
 % DICOM Import defaults
 %=======================================================================

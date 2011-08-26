@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4392 2011-07-18 14:48:29Z guillaume $
+% $Id: spm.m 4440 2011-08-26 11:50:45Z guillaume $
 
 
 %=======================================================================
@@ -909,34 +909,40 @@ case 'tbs'                                %-Identify installed toolboxes
 % xTB = spm('TBs')
 %-----------------------------------------------------------------------
 
+xTB = [];
+
 % Toolbox directory
 %-----------------------------------------------------------------------
-Tdir  = fullfile(spm('Dir'),'toolbox');
-
-%-List of potential installed toolboxes directories
-%-----------------------------------------------------------------------
-if exist(Tdir,'dir')
-    d = dir(Tdir); 
-    d = {d([d.isdir]).name};
-    d = {d{cellfun('isempty',regexp(d,'^\.'))}};
-else
-    d = {};
+try
+    Tdir = spm_get_defaults('tbx.dir');
+catch
+    Tdir = { fullfile(spm('Dir'),'toolbox') };
 end
 
-
-%-Look for a "main" M-file in each potential directory
-%-----------------------------------------------------------------------
-xTB = [];
-for i = 1:length(d)
-    tdir = fullfile(Tdir,d{i});
-    fn   = cellstr(spm_select('List',tdir,['^.*' d{i} '\.m$']));
-
-    if ~isempty(fn{1}),
-        xTB(end+1).name = strrep(d{i},'_','');
-        xTB(end).prog   = spm_str_manip(fn{1},'r');
-        xTB(end).dir    = tdir;
+for i=1:numel(Tdir)
+    
+    %-List of potential installed toolboxes directories
+    %-------------------------------------------------------------------
+    if exist(Tdir{i},'dir')
+        d = dir(Tdir{i});
+        d = {d([d.isdir]).name};
+        d = {d{cellfun('isempty',regexp(d,'^\.'))}};
+    else
+        d = {};
     end
-
+    
+    %-Look for a "main" M-file in each potential directory
+    %-------------------------------------------------------------------
+    for j = 1:length(d)
+        tdir = fullfile(Tdir{i},d{j});
+        fn   = cellstr(spm_select('List',tdir,['^.*' d{j} '\.m$']));
+        if ~isempty(fn{1})
+            xTB(end+1).name = strrep(d{j},'_','');
+            xTB(end).prog   = spm_str_manip(fn{1},'r');
+            xTB(end).dir    = tdir;
+        end
+    end
+    
 end
 
 varargout{1} = xTB;

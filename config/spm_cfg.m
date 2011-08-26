@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4257 2011-03-18 15:28:29Z vladimir $
+% $Id: spm_cfg.m 4440 2011-08-26 11:50:45Z guillaume $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -85,69 +85,50 @@ tools.help    = {'Other tools', ...
                  ['See spm_cfg.m or MATLABBATCH documentation ' ...
                   'for information about the form of SPM''s configuration ' ...
                   'files.']};
+tools.values = {};
 if isdeployed
+    %-In compiled mode, cfg_master will take care of toolbox detection
     tools.values = spm_cfg_static_tools;
 else
-    %-Toolbox autodetection
-    % In compiled mode, cfg_master will take care of this
-    % Disable warnings when converting SPM5 toolboxes - set this to 'on' to
-    % debug problems with SPM5 toolboxes
-    warning('off','matlabbatch:cfg_struct2cfg:verb');
-    %-Get the list of toolbox directories
-    tbxdir = fullfile(spm('Dir'),'toolbox');
-    d  = dir(tbxdir); d = {d([d.isdir]).name};
-    dd = regexp(d,'^\.');
-    %(Beware, regexp returns an array if input cell array is of dim 0 or 1)
-    if ~iscell(dd), dd = {dd}; end
-    d  = {'' d{cellfun('isempty',dd)}};
-    ft = {}; dt = {};
-    ftc = {}; dtc = {};
-    %-Look for '*_cfg_*.m' or '*_config_*.m' files in these directories
-    for i=1:length(d)
-        d2 = fullfile(tbxdir,d{i});
-        di = dir(d2); di = {di(~[di.isdir]).name};
-        f2 = regexp(di,'.*_cfg_.*\.m$');
-        if ~iscell(f2), f2 = {f2}; end
-        fi = {di{~cellfun('isempty',f2)}};
-        if ~isempty(fi)
-            ft = {ft{:} fi{:}};
-            dt(end+1:end+length(fi)) = deal({d2});
-        else
-            % try *_config_*.m files, if toolbox does not have '*_cfg_*.m' files
-            f2 = regexp(di,'.*_config_.*\.m$');
+    %-Toolbox directories autodetection
+    try
+        tbxdir = spm_get_defaults('tbx.dir');
+    catch
+        tbxdir = { fullfile(spm('Dir'),'toolbox') };
+    end
+    for i=1:numel(tbxdir)
+        d  = dir(tbxdir{i});
+        d  = {d([d.isdir]).name};
+        d(strncmp('.',d,1)) = [];
+        d  = [{''} d];
+        ft = {}; dt = {};
+        %-Look for '*_cfg_*.m' files in these directories
+        for j=1:length(d)
+            d2 = fullfile(tbxdir{i},d{j});
+            di = dir(d2); di = {di(~[di.isdir]).name};
+            f2 = regexp(di,'.*_cfg_.*\.m$');
             if ~iscell(f2), f2 = {f2}; end
             fi = {di{~cellfun('isempty',f2)}};
-            ftc = {ftc{:} fi{:}};
-            dtc(end+1:end+length(fi)) = deal({d2});
-        end;        
-    end
-    if ~isempty(ft)||~isempty(ftc)
-        % The toolbox developer MUST add path to his/her toolbox in his/her 'prog'
-        % function, with a command line like:
-        % >> addpath(fullfile(spm('Dir'),'toolbox','mytoolbox'),'-end');
-        cwd = pwd;
-        j = 1;
-        for i=1:length(ft)
-            try
-                cd(dt{i});
-                tools.values{j} = feval(strtok(ft{i},'.'));
-                j = j + 1;
-            catch
-                disp(['Loading of toolbox ' fullfile(dt{i},ft{i}) ' failed.']);
+            if ~isempty(fi)
+                ft = {ft{:} fi{:}};
+                dt(end+1:end+length(fi)) = deal({d2});
             end
         end
-        for i=1:length(ftc)
-            try
-                cd(dtc{i});
-                % use cfg_struct2cfg to convert from SPM5 to matlabbatch
-                % configuration tree
-                tools.values{j} = cfg_struct2cfg(feval(strtok(ftc{i},'.')));
-                j = j + 1;
-            catch
-                disp(['Loading of toolbox ' fullfile(dtc{i},ftc{i}) ' failed.']);
+        if ~isempty(ft)
+            % The toolbox developer MUST add path to his/her toolbox in his/her
+            % 'prog' function, with a command line like:
+            % >> addpath(fullfile(spm('Dir'),'toolbox','mytoolbox'),'-end');
+            cwd = pwd;
+            for j=1:length(ft)
+                try
+                    cd(dt{j});
+                    tools.values{end+1} = feval(strtok(ft{j},'.'));
+                catch
+                    disp(['Loading of toolbox ' fullfile(dt{j},ft{j}) ' failed.']);
+                end
             end
+            cd(cwd);
         end
-        cd(cwd);
     end
 end
 %_______________________________________________________________________
