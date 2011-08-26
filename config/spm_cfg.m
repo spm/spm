@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4440 2011-08-26 11:50:45Z guillaume $
+% $Id: spm_cfg.m 4441 2011-08-26 12:57:15Z guillaume $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -138,47 +138,13 @@ spmjobs         = cfg_choice;
 spmjobs.tag     = 'spm';
 spmjobs.name    = 'SPM';
 spmjobs.help    = {
-                '%* Menu and Toolbar'
-                '/*\subsection*{Menu and Toolbar}*/'
-                'The "File" and "Edit" menu offer options to load, save and run a job and to modify the configuration of the batch system. For each application which is known to the batch system, a separate pulldown menu lists the available modules. Depending on the application, these modules may be grouped into submenus. Application specific defaults can be edited by choosing "Edit Defaults" from the application menu. The toolbar offers some shortcuts to frequently used operations (e.g. load, save, run).'
-                'Jobs are saved as MATLAB .m files. These files contain a MATLAB script, which can be executed in MATLAB to recreate the job variable. Multiple jobs can be loaded at once. This allows to concatenate parts of a job.'
+                '%* Statistical Parametric Mapping'
                 ''
-                '%* Top Left Panel'
-                '/*\subsection*{Top Left Panel}*/'
-                'The current job, which is represented as a list of executable modules. Modules marked with DEP depend on the successful execution of other modules in the job. Modules marked with X still require some values to be set before the job can be run, although an incompletely specified job can still be saved and loaded.'
+                'Statistical Parametric Mapping refers to the construction and assessment of spatially extended statistical processes used to test hypotheses about functional imaging data. These ideas have been instantiated in software that is called SPM.'
                 ''
-                '%* Top Right Panel'
-                '/*\subsection*{Top Right Panel}*/'
-                'These are the configuration details for the currently selected module. Items marked with DEP depend on the successful execution of other modules in the job. Items marked with X still require some values to be set before the job can be run. Depending on the kind of detail currently selected, a choice of buttons appears below the Centre Right Panel to manipulate the current value.'
+                'The SPM software package has been designed for the analysis of brain imaging data sequences. The sequences can be a series of images from different cohorts, or time-series from the same subject.'
                 ''
-                '%* Centre Right Panel'
-                '/*\subsection*{Centre Right Panel}*/'
-                'This panel shows the current value of the highlighted item (where relevant).'
+                'The current release is designed for the analysis of fMRI, PET, SPECT, EEG and MEG.'
                 ''
-                '%* Edit Buttons'
-                '/*\subsection*{Edit Buttons}*/'
-                'Depending on the type of configuration item, different edit buttons appear.'
-                '/*\begin{description}*/'
-                '/*\item[Files]*/'
-                '%* Files'
-                '"Select Files" opens a file selection dialog box to select multiple files. "Edit Value" opens a generic value edit dialog to edit the list of files. "Dependencies" offers a list of outputs from other modules that can be used as an input to this item.'
-                '/*\item[Generic Value]*/'
-                '%* Generic Value'
-                '"Edit Value" opens a generic value edit dialog to edit the list of files. "Dependencies" offers a list of outputs from other modules that can be used as an input to this item.'
-                '%* Menu'
-                '/*\item[Menu]*/'
-                '"Edit Value" opens a selection dialog showing allowed menu options.'
-                '%* Choice'
-                '/*\item[Choice]*/'
-                '"Edit Value" opens a selection dialog showing allowed menu options. Depending on the choosen option the module configuration may change.'
-                '%* Repeat'
-                '/*\item[Repeat]*/'
-                '"Add Item", "Replicate Item", "Delete Item" allow to add new repeated items, to replicate or to delete items from the list. If more than one item or item type exists, a dialog popup will appear listing the available options. Multiple selections are allowed.'
-                '/*\end{description}*/'
-                ''
-                '%* Bottom Panel'
-                '/*\subsection*{Bottom Panel}*/'
-                'This panel provides information about the meaning of the current item.'
-                '/*\begin{figure} \begin{center} \includegraphics[width=70mm]{images/batch_ui1} \includegraphics[width=70mm]{images/batch_ui2} \includegraphics[width=70mm]{images/ui3} \includegraphics[width=70mm]{images/ui4}\end{center} \caption{The SPM5 user interface. \emph{Top left:} The usual user-interface.  \emph{Top right:} The Defaults user-interface. \emph{Bottom left:} The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file). \emph{Bottom right:} more online help can be obtained via the main help button.} \end{figure} */'
 }';
 spmjobs.values  = { temporal spatial stats meeg util tools};
