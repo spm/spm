@@ -26,7 +26,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %                      are returned.
 %   ['a' num2str(n)] - similar to above - except the leading directories
 %                      are replaced by './'.
-%                      eg. spm_str('/dir1/dir2/file.img','a16') would
+%                      eg. spm_str_manip('/dir1/dir2/file.img','a16') would
 %                      produce '../dir2/file.img'.
 %   'v'              - delete non valid filename characters
 %                      Valid are '.a..zA..Z01..9_-: ' & filesep
@@ -48,7 +48,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 4443 2011-08-26 15:45:36Z guillaume $
+% $Id: spm_str_manip.m 4444 2011-08-26 16:47:14Z guillaume $
 
 
 % persistent runonce
@@ -176,7 +176,7 @@ while ~isempty(options)
             if l > 4
                 if ismember(str((l-3):l),...
                         {'.img','.hdr','.nii','.gii','.mat'})
-                    str = spm_str(str, 'r');
+                    str = spm_str_manip(str, 'r');
                 end
             end
 
