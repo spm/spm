@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4440 2011-08-26 11:50:45Z guillaume $
+% $Id: spm.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 %=======================================================================
@@ -938,7 +938,7 @@ for i=1:numel(Tdir)
         fn   = cellstr(spm_select('List',tdir,['^.*' d{j} '\.m$']));
         if ~isempty(fn{1})
             xTB(end+1).name = strrep(d{j},'_','');
-            xTB(end).prog   = spm_str_manip(fn{1},'r');
+            xTB(end).prog   = spm_file(fn{1},'basename');
             xTB(end).dir    = tdir;
         end
     end

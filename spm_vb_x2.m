@@ -7,10 +7,10 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % xCon - contrast info
 % ic   - contrast number
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_x2.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_x2.m 4445 2011-08-26 17:53:00Z guillaume $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
@@ -133,4 +133,4 @@ Vhandle = spm_write_vol(Vhandle,D);
 xCon(ic).Vcon = Vhandle;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_str_manip(Vhandle.fname,'t')));            %-#
+    sprintf('...written %s',spm_file(Vhandle.fname,'filename')));       %-#

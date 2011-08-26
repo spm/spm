@@ -86,10 +86,10 @@ function P = spm_realign(P,flags)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 4423 2011-08-04 16:28:51Z guillaume $
+% $Id: spm_realign.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
-SVNid = '$Rev: 4423 $';
+SVNid = '$Rev: 4445 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -529,7 +529,7 @@ spm_print;
 % function save_parameters(V)
 %==========================================================================
 function save_parameters(V)
-fname = [spm_str_manip(prepend(V(1).fname,'rp_'),'s') '.txt'];
+fname = spm_file(V(1).fname, 'prefix','rp_', 'ext','.txt');
 n = length(V);
 Q = zeros(n,6);
 for j=1:n
@@ -537,11 +537,3 @@ for j=1:n
     Q(j,:) = qq(1:6);
 end
 save(fname,'Q','-ascii');
-
-
-%==========================================================================
-% function PO = prepend(PI,pre)
-%==========================================================================
-function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);

@@ -75,7 +75,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 3723 2010-02-12 15:15:18Z guillaume $
+% $Id: spm_resss.m 4445 2011-08-26 17:53:00Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -126,4 +126,4 @@ end
 %-End
 %--------------------------------------------------------------------------
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_str_manip(Vo.fname,'t')))               %-#
+    sprintf('...written %s',spm_file(Vo.fname,'filename')))             %-#

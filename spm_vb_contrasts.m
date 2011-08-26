@@ -7,10 +7,10 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % xCon  Contrast info
 % ic    contrast number
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_contrasts.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 % Get approximate posterior covariance for ic
@@ -49,7 +49,7 @@ end
 %-Loop over voxels
 %=======================================================================
 Nvoxels = size(XYZ,2);
-Y       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
+Y       = NaN(reshape(SPM.xVol.DIM(1:3),1,[]));
 
 spm_progress_bar('Init',100,'Estimating posterior contrast variance','');
 
@@ -122,4 +122,4 @@ V = spm_write_vol(V,Y);
 SPM.PPM.Vcon_sd(ic) = V;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_str_manip(V.fname,'t')));            %-#
+    sprintf('...written %s',spm_file(V.fname,'filename')));          %-#

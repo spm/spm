@@ -7,17 +7,17 @@ function out = spm_run_voi(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 4269 2011-03-29 16:03:43Z guillaume $
+% $Id: spm_run_voi.m 4445 2011-08-26 17:53:00Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
 
 %-Load SPM.mat
 %--------------------------------------------------------------------------
-swd     = spm_str_manip(job.spmmat{1},'H');
+swd     = spm_file(job.spmmat{1},'fpath');
 load(fullfile(swd,'SPM.mat'));
 SPM.swd = swd;
 
@@ -151,7 +151,7 @@ end
 
 %==========================================================================
 function [SPM, xSPM] = getSPM(s)
-xSPM.swd       = spm_str_manip(s.spmmat{1},'H');
+xSPM.swd       = spm_file(s.spmmat{1},'fpath');
 xSPM.Ic        = s.contrast;
 xSPM.n         = s.conjunction;
 xSPM.u         = s.thresh;

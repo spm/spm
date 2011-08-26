@@ -6,44 +6,45 @@ function [xCon,SPM]= spm_bayes2_x2(SPM,XYZ,xCon,ic)
 % XYZ  - voxel list
 % xCon - contrast info
 % ic   - contrast number
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $$
+% $Id: spm_bayes2_x2.m 4445 2011-08-26 17:53:00Z guillaume $
         
 
-%- Compound Contrast
-%-----------------------------------------------------------------------
+%-Compound Contrast
+%--------------------------------------------------------------------------
 c  = xCon(ic).c;
 kc = size(c,2);
 
 %-Get posterior beta's
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Nk = size(SPM.xX.X,2);
 
-for k=1:Nk,
+for k=1:Nk
     beta(k,:) = spm_get_data(SPM.VCbeta(k),XYZ);
 end
 
-% Get noise hyperparameters
+%-Get noise hyperparameters
+%--------------------------------------------------------------------------
 Nh=length(SPM.PPM.l);
-for jj = 1:Nh,
-    hyper(jj).l   = spm_get_data(SPM.VHp(jj),XYZ);
+for jj = 1:Nh
+    hyper(jj).l = spm_get_data(SPM.VHp(jj),XYZ);
 end
  
 %-Get posterior SD beta's
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Nk = size(SPM.xX.X,2);
 
 %-Loop over voxels
-%=======================================================================
+%==========================================================================
 Nvoxels = size(XYZ,2);
-D       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
+D       = NaN(reshape(SPM.xVol.DIM(1:3),1,[]));
 
 spm_progress_bar('Init',100,'Estimating posterior contrast covariance','');
 
-for v=1:Nvoxels,
+for v=1:Nvoxels
     
     % Reconstruct approximation to voxel wise covariance matrix
     Sigma_post   = SPM.PPM.Cby;
@@ -73,8 +74,8 @@ xCon(ic).eidf=rank(V);
 
 spm_progress_bar('Clear');   
 
-% Create handle
-%-----------------------------------------------------------------------
+%-Create handle
+%--------------------------------------------------------------------------
 Vhandle = struct(...
     'fname',  sprintf('x2_%04d.img',ic),...
     'dim',    SPM.xVol.DIM',...
@@ -84,11 +85,11 @@ Vhandle = struct(...
     'descrip',sprintf('Chi^2 stat for Bayes multivar con %d: %s',ic,xCon(ic).name));
 
 %-Write image
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Vhandle = spm_create_vol(Vhandle);
 Vhandle = spm_write_vol(Vhandle,D);
 
 xCon(ic).Vcon = Vhandle;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_str_manip(Vhandle.fname,'t')));            %-#
+    sprintf('...written %s',spm_file(Vhandle.fname,'filename')));       %-#

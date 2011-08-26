@@ -2,50 +2,52 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 % Bayesian ANOVA for a region of interest
 % FORMAT [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 %
-% VOI_fname     VOI filename
-% SPM           SPM data structure
-% factor        data structure relating conditions to levels of factors
+% VOI_fname   - VOI filename
+% SPM         - SPM data structure
+% factor      - data structure relating conditions to levels of factors
 %
-% model         data structure describing models
+% model       - data structure describing models
 %               (m).F             model evidence
 %               (m).X             design matrix
-% post          Posterior probabilities of
+% post        - Posterior probabilities of
 %               .factor1        main effect of factor 1
 %               .factor2        main effect of factor 2
 %               .interaction    interaction
 %               .average        average
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_anova.m 4310 2011-04-18 16:07:35Z guillaume $     
+% $Id: spm_vb_roi_anova.m 4445 2011-08-26 17:53:00Z guillaume $     
 
-if nargin == 1
-    %-Get SPM.mat 
-    swd     = spm_str_manip(spm_select(1,'SPM.mat','Select SPM.mat'),'H');
-    load(fullfile(swd,'SPM.mat'));
-    SPM.swd = swd;
+
+if nargin < 2
+    [Pf, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd = spm_file(Pf,'fpath');
+    load(fullfile(swd,'SPM.mat'))
 end
 
-expr=['load ',VOI_fname];
-eval(expr);
+load(VOI_fname);
 
-Y=xY.y;
-xyz=xY.XYZmm;
-N=size(xyz,2);
-M=diag(SPM.xVol.M);
-m=1./abs(M(1:3));
-xyz=(m*ones(1,N)).*xyz;
+Y    = xY.y;
+xyz  = xY.XYZmm;
+N    = size(xyz,2);
+M    = diag(SPM.xVol.M);
+m    = 1./abs(M(1:3));
+xyz  = (m*ones(1,N)).*xyz;
 vxyz = spm_vb_neighbors(xyz',1);
 
-% Set number of AR coefficients
+%-Set number of AR coefficients
+%--------------------------------------------------------------------------
 try 
     SPM.PPM.AR_P;
 catch
     SPM.PPM.AR_P = 0;
 end
 
-% Specify type of prior for regression coefficients
+%-Specify type of prior for regression coefficients
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.W;
 catch
@@ -56,7 +58,8 @@ catch
     end
 end
 
-% Specify type of prior for AR coefficients
+%-Specify type of prior for AR coefficients
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.A;
 catch
@@ -69,6 +72,7 @@ end
     
 % Get matrices that will remove low-frequency drifts 
 % if high pass filters have been specified
+%--------------------------------------------------------------------------
 s=1;
 sess_nScan=length(SPM.xX.K(s).row);
 if size(SPM.xX.K(s).X0,2) > 0
@@ -76,24 +80,27 @@ if size(SPM.xX.K(s).X0,2) > 0
     hpf(s).R0=eye(sess_nScan)-X0*pinv(X0);
 else
     hpf(s).R0=eye(sess_nScan);
-end    
-% Filter data to remove low frequencies
-R0Y=hpf(s).R0*Y(SPM.Sess(s).row,:);
+end
 
-% Set optimisation parameters
+%-Filter data to remove low frequencies
+R0Y = hpf(s).R0*Y(SPM.Sess(s).row,:);
+
+%-Set optimisation parameters
+%--------------------------------------------------------------------------
 try
     SPM.PPM.maxits;
 catch
-    SPM.PPM.maxits=16;
+    SPM.PPM.maxits = 16;
 end
 try
     SPM.PPM.tol;
 catch
-    SPM.PPM.tol=0.00001;
+    SPM.PPM.tol = 0.00001;
 end
 
 
-% Specify basis functions
+%-Specify basis functions
+%--------------------------------------------------------------------------
 % SPM.xBF.name='hrf';
 % SPM.xBF.order=1;
 SPM.xBF.name='hrf (with time derivative)';
@@ -102,18 +109,17 @@ SPM.xBF.length=32;
 SPM.xBF = spm_get_bf(SPM.xBF);
 
 
-
-
 nf=length(factor);
 
 model = spm_vb_models (SPM,factor);
 
-% Fit models
-for m=1:6,
+%-Fit models
+%--------------------------------------------------------------------------
+for m=1:6
     
     if nf==2 || (nf==1 && (m==1 || m==2 || m==6))
         % fit model
-        SPM=original_SPM;
+        SPM = original_SPM;
         
         if ~(m==1 || m==6)
             % Get design matrix for relevant input set
@@ -169,7 +175,3 @@ elseif nf==1
     post.factor1=exp(F(1))/sum(exp(F));
     
 end
-
-
-
-

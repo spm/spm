@@ -1,26 +1,26 @@
 function spm_normalise_disp(matname,VF)
 % Display results of spatial normalisation
 % FORMAT spm_normalise_disp(matname)
-% matname - name of sn3d.mat file
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% matname - name of parameter file *_sn.mat
+%__________________________________________________________________________
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise_disp.m 4439 2011-08-25 17:47:07Z guillaume $
+% $Id: spm_normalise_disp.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 fg = spm_figure('FindWin','Graphics');
-if isempty(fg), return; end;
+if isempty(fg), return; end
 
-if nargin<1, matname = spm_select(1,'.*_sn.mat$','Select parameter file'); end;
+if nargin<1, matname = spm_select(1,'.*_sn.mat$','Select parameter file'); end
 
-if ischar(matname),
+if ischar(matname)
     t = load(deblank(matname));
-else %assume it is a structure
+else
     t = matname;
-end;
+end
 
-if nargin<2, VF = t.VF(1); end;
+if nargin<2, VF = t.VF(1); end
 
 Q = t.VG(1).mat*inv(t.Affine)/VF.mat;
 
@@ -30,7 +30,7 @@ text(0,0.90, 'Spatial Normalisation','FontSize',16,'FontWeight','Bold',...
     'Interpreter','none','Parent',ax);
 text(0,0.75, [ 'Image     : ' VF.fname],'FontSize',12,'FontWeight','Bold',...
     'Interpreter','none','Parent',ax);
-%text(0,0.7, [ 'Parameters : ' spm_str_manip(matname,'s')],'FontSize',12,...
+%text(0,0.7, [ 'Parameters : ' spm_file(matname,'basename')],'FontSize',12,...
 %   'Interpreter','none','Parent',ax);
 
 %str = 'no flipping';
@@ -47,7 +47,7 @@ text(0,0.45, sprintf('Z1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(3,:)),...
 d = [size(t.Tr) 1 1 1];
 d = d(1:3);
 
-if prod(d)>1 && isfinite(t.flags.reg),
+if prod(d)>1 && isfinite(t.flags.reg)
     text(0,0.35, sprintf('%d nonlinear iterations',t.flags.nits),...
         'Interpreter','none','Parent',ax);
     text(0,0.30, sprintf('%d x %d x %d basis functions',d),...
@@ -55,7 +55,7 @@ if prod(d)>1 && isfinite(t.flags.reg),
 else
     text(0,0.35, 'No nonlinear components',...
         'Interpreter','none','Parent',ax);
-end;
+end
 
 spm_orthviews('Reset');
 spm_orthviews('Image',t.VG(1).fname,[0.01 0.1 .48 .6]);
@@ -64,5 +64,3 @@ h2 = spm_orthviews('Image',VN,[.51 0.1 .48 .6]);
 spm_orthviews('Space',h2);
 spm_print;
 drawnow;
-return;
-

@@ -65,10 +65,10 @@ function [SPM] = spm_spm_Bayes(SPM)
 % mask are given value NaN.
 %
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_spm_Bayes.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 %-Say hello
@@ -80,7 +80,7 @@ Finter = spm('FigName','Stats: Bayesian estimation...');
 if ~nargin
     [Pf, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     if ~sts, return; end
-    swd = spm_str_manip(Pf,'H');
+    swd = spm_file(Pf,'fpath');
     load(fullfile(swd,'SPM.mat'))
     cd(swd)
 end

@@ -1,63 +1,82 @@
 function S = spm_cfg_eeg_tf
-% configuration file for M/EEG time-frequency analysis
+% Configuration file for M/EEG time-frequency analysis
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 4257 2011-03-18 15:28:29Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 4445 2011-08-26 17:53:00Z guillaume $
 
-rev = '$Rev: 4257 $';
 
-D = cfg_files;
-D.tag = 'D';
-D.name = 'File Name';
+%--------------------------------------------------------------------------
+% D
+%--------------------------------------------------------------------------
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Name';
 D.filter = 'mat';
-D.num = [1 1];
-D.help = {'Select the EEG mat file.'};
+D.num    = [1 1];
+D.help   = {'Select the M/EEG mat file.'};
 
-timewin = cfg_entry;
-timewin.tag = 'timewin';
-timewin.name = 'Time window';
+%--------------------------------------------------------------------------
+% timewin
+%--------------------------------------------------------------------------
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Time window';
 timewin.strtype = 'r';
-timewin.num = [1 2];
-timewin.val = {[-Inf Inf]};
-timewin.help = {'Time window (ms)'};
+timewin.num     = [1 2];
+timewin.val     = {[-Inf Inf]};
+timewin.help    = {'Time window (ms)'};
 
-frequencies = cfg_entry;
-frequencies.tag = 'frequencies';
-frequencies.name = 'Frequencies of interest';
+%--------------------------------------------------------------------------
+% frequencies
+%--------------------------------------------------------------------------
+frequencies         = cfg_entry;
+frequencies.tag     = 'frequencies';
+frequencies.name    = 'Frequencies of interest';
 frequencies.strtype = 'r';
-frequencies.num = [0 Inf];
-frequencies.val = {[]};
-frequencies.help = {'Frequencies of interest (as a vector), if empty 1-48 with optimal frequency bins ~1 Hz or above resolution'};
+frequencies.num     = [0 Inf];
+frequencies.val     = {[]};
+frequencies.help    = {'Frequencies of interest (as a vector), if empty 1-48 with optimal frequency bins ~1 Hz or above resolution'};
 
-specest_funs = dir(fullfile(spm('dir'), 'spm_eeg_specest_*.m'));
-specest_funs = {specest_funs(:).name};
-
-phase = cfg_menu;
-phase.tag = 'phase';
-phase.name = 'Save phase';
-phase.help = {'Save phase as well as power'};
+%--------------------------------------------------------------------------
+% phase
+%--------------------------------------------------------------------------
+phase        = cfg_menu;
+phase.tag    = 'phase';
+phase.name   = 'Save phase';
+phase.help   = {'Save phase as well as power'};
 phase.labels = {'yes', 'no'};
 phase.values = {1, 0};
-phase.val = {0};
+phase.val    = {0};
 
+%--------------------------------------------------------------------------
+% method
+%--------------------------------------------------------------------------
 method      = cfg_choice;
 method.tag  = 'method';
 method.name = 'Spectral estimation ';
+
+specest_funs = spm_select('List',spm('dir'),'^spm_eeg_specest_.*\.m$');
+specest_funs = cellstr(specest_funs);
 for i = 1:numel(specest_funs)
-    method.values{i} = feval(spm_str_manip(specest_funs{i}, 'r'));
+    method.values{i} = feval(spm_file(specest_funs{i},'basename'));
 end
 
+%--------------------------------------------------------------------------
+% M/EEG Time-Frequency Analysis
+%--------------------------------------------------------------------------
 S = cfg_exbranch;
 S.tag = 'analysis';
-S.name = 'M/EEG Time-Frequency analysis';
+S.name = 'M/EEG Time-Frequency Analysis';
 S.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase};
 S.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
 S.prog = @eeg_tf;
 S.vout = @vout_eeg_tf;
 S.modality = {'EEG'};
 
+%==========================================================================
+% function out = eeg_tf(job)
 %==========================================================================
 function out = eeg_tf(job)
 % construct the S struct
@@ -85,6 +104,8 @@ else
     out.Dtphname = {''};
 end
 
+%==========================================================================
+% function dep = vout_eeg_tf(job)
 %==========================================================================
 function dep = vout_eeg_tf(job)
 % return dependencies

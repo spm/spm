@@ -153,16 +153,18 @@
 % corresponding AR coefficient.
 % Voxels outside the analysis mask (mask.img) are given value NaN.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_spm_vb.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 %-Get SPM.mat if necessary
 %-----------------------------------------------------------------------
 if ~nargin
-    swd = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+    [Pf, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd = spm_file(Pf,'fpath');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
 end

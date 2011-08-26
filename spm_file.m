@@ -45,7 +45,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 4443 2011-08-26 15:45:36Z guillaume $
+% $Id: spm_file.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 needchar = ischar(str);
@@ -95,6 +95,7 @@ while ~isempty(options)
                 if ~isempty(ext) && ext(1) ~= '.'
                     ext = ['.' ext];
                 end
+                num = '';
             case 'filename'
                 nam = options{2};
                 ext = '';

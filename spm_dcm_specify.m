@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_dcm_specify.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 %-Interactive window
@@ -24,7 +24,7 @@ spm_input('Specify DCM:...  ',1,'d');
 %==========================================================================
 [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
 if ~sts, DCM = []; return; end
-swd = spm_str_manip(spmmatfile,'H');
+swd = spm_file(spmmatfile,'fpath');
 try
     load(fullfile(swd,'SPM.mat'))
 catch

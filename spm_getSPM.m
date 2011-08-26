@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4439 2011-08-25 17:47:07Z guillaume $
+% $Id: spm_getSPM.m 4445 2011-08-26 17:53:00Z guillaume $
 
 
 %-GUI setup
@@ -200,7 +200,7 @@ try
     sts = 1;
 catch
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-    swd = spm_str_manip(spmmatfile,'H');
+    swd = spm_file(spmmatfile,'fpath');
 end
 if ~sts, SPM = []; xSPM = []; return; end
 

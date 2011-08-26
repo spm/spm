@@ -7,9 +7,9 @@ function spm_run_results(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 4384 2011-07-06 17:00:20Z guillaume $
+% $Id: spm_run_results.m 4445 2011-08-26 17:53:00Z guillaume $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -17,7 +17,7 @@ for k = 1:numel(cspec)
     if (numel(cspec(k).contrasts) == 1) && isinf(cspec(k).contrasts)
         tmp    = load(job.spmmat{1});
         cspec1 = repmat(cspec(k),size(tmp.SPM.xCon));
-        for l=1:numel(tmp.SPM.xCon)
+        for l = 1:numel(tmp.SPM.xCon)
             cspec1(l).contrasts = l;
         end
         job1           = job;
@@ -25,7 +25,7 @@ for k = 1:numel(cspec)
         job1.conspec   = cspec1;
         spm_run_results(job1);
     else
-        xSPM.swd       = spm_str_manip(job.spmmat{1},'H');
+        xSPM.swd       = spm_file(job.spmmat{1},'fpath');
         xSPM.Ic        = job.conspec.contrasts;
         xSPM.u         = job.conspec.thresh;
         xSPM.Im        = [];

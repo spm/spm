@@ -43,29 +43,31 @@ function [F,pm] = spm_vb_roi_basis (VOI_fnames,SPM,bases,model)
 %
 % See W. Penny et al. (2007). Bayesian Model Comparison of Spatially 
 % Regularised General Linear Models. Human Brain Mapping.
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 3594 2009-11-24 16:28:48Z guillaume $
+% $Id: spm_vb_roi_basis.m 4445 2011-08-26 17:53:00Z guillaume $
 
-% check input parameters
+
+%-Check input parameters
 %--------------------------------------------------------------------------
 try 
     VOI_fnames;
 catch
-    VOI_fnames = cellstr(spm_select([1 Inf],'^VOI.*\.mat$',{'select VOIs'}));
+    VOI_fnames = cellstr(spm_select([1 Inf],'^VOI.*\.mat$','select VOIs'));
 end
 try 
     SPM;
 catch
-    swd = spm_str_manip(spm_select(1,'SPM.mat','Select SPM.mat'),'H');
-    load(fullfile(swd,'SPM.mat'));
-    SPM.swd = swd;
+    [Pf, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd = spm_file(Pf,'fpath');
+    load(fullfile(swd,'SPM.mat'))
 end
 try, bases; catch, bases = 'all'; end
 
-% check parameters
+%-Check parameters
 %--------------------------------------------------------------------------
 if strcmpi(bases,'user') && ~nargin == 4
     error('Models not specified.');
@@ -77,7 +79,7 @@ if nsess~=nVOIs
     error('SPM design specified for %d sessions and %d VOI files specified',nsess,nVOIs);
 end
 
-% Load VOIs
+%-Load VOIs
 %--------------------------------------------------------------------------
 for p=1:nVOIs
     load(VOI_fnames{p});

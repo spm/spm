@@ -5,10 +5,10 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % SPM - SPM data structure
 % Ic  - indices of xCon to compute
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4403 2011-07-21 14:04:33Z guillaume $
+% $Id: spm_contrasts.m 4445 2011-08-26 17:53:00Z guillaume $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -124,7 +124,7 @@ for i = 1:length(Ic)
                     xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
                     
                     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-                        '...written %s',spm_str_manip(xCon(ic).Vcon.fname,'t')))%-#
+                        '...written %s',spm_file(xCon(ic).Vcon.fname,'filename')))%-#
                     
                 end
                 
@@ -267,7 +267,7 @@ for i = 1:length(Ic)
         
         clear tmp Z
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
-            '...written %s',spm_str_manip(xCon(ic).Vspm.fname,'t')));   %-#
+            '...written %s',spm_file(xCon(ic).Vspm.fname,'filename'))); %-#
         
     end % (if isempty(xCon(ic)...)
     
