@@ -52,7 +52,7 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: pm_segment.m 4439 2011-08-25 17:47:07Z guillaume $
+% $Id: pm_segment.m 4446 2011-08-30 10:50:29Z guillaume $
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
@@ -198,7 +198,7 @@ if ~isempty(fg),
     text(0.5,0.80, 'Segmentation','FontSize',16,'FontWeight','Bold',...
         'HorizontalAlignment','center','Parent',ax);
 
-    text(0,0.65, ['Image:  ' spm_str_manip(VF(1).fname,'k50')],...
+    text(0,0.65, ['Image:  ' spm_file(VF(1).fname,'short50')],...
         'FontSize',14,'FontWeight','Bold','Parent',ax);
 
     text(0,0.40, 'Means:','FontSize',12,'FontWeight','Bold','Parent',ax);

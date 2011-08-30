@@ -8,7 +8,7 @@ function spm_hdw(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_hdw.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_hdw.m 4446 2011-08-30 10:50:29Z guillaume $
 
 for i=1:numel(job.data),
     run_warping(job.data(i).mov{1},job.data(i).ref{1},job.warp_opts,job.bias_opts);
@@ -32,10 +32,9 @@ VF.uint8      = bias_correction(VF,VG,bo.nits,bo.fwhm,bo.reg,bo.lmreg,sf);
 % Try loading pre-existing deformation fields.  Otherwise, create
 % deformation fields from uniform affine transformations.
 %-----------------------------------------------------------------------
-[pth,nme,ext,num] = spm_fileparts(VF.fname);
-ofname = fullfile(pth,['y_' nme '.nii']);
+ofname = spm_file(VF.fname,'prefix','y_','ext','.nii');
 Def    = cell(3,1);
-if exist(ofname)==2,
+if exist(ofname,'file')
     P      = [repmat(ofname,3,1), [',1,1';',1,2';',1,3']];
     VT     = spm_vol(P);
     if any(abs(VT(1).mat\VG.mat - eye(4))>0.00001),
@@ -45,7 +44,7 @@ if exist(ofname)==2,
     Def{2} = spm_load_float(VT(2));
     Def{3} = spm_load_float(VT(3));
     spm_affdef(Def{:},inv(VF.mat));
-else,
+else
     fprintf('Generating uniform affine transformation field\n');
     Def{1} = single(1:VG.dim(1))';
     Def{1} = Def{1}(:,ones(VG.dim(2),1),ones(VG.dim(3),1));
@@ -82,7 +81,7 @@ function [udat,sf] = loaduint8(V)
 % Load data from file indicated by V into an array of unsigned bytes.
 
 spm_progress_bar('Init',V.dim(3),...
-                ['Computing max/min of ' spm_str_manip(V.fname,'t')],...
+                ['Computing max/min of ' spm_file(V.fname,'filename')],...
                 'Planes complete');
 mx = -Inf;
 for p=1:V.dim(3),
@@ -91,7 +90,7 @@ for p=1:V.dim(3),
     spm_progress_bar('Set',p);
 end;
 spm_progress_bar('Init',V.dim(3),...
-        ['Loading ' spm_str_manip(V.fname,'t')],...
+        ['Loading ' spm_file(V.fname,'filename')],...
         'Planes loaded');
 sf = 255/mx;
 

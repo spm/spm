@@ -24,13 +24,13 @@ function bmask = pm_brain_mask(P,flags)
 % adding these components together then thresholding above zero.
 % A morphological opening is performed to get rid of stuff left outside of
 % the brain. Any leftover holes are filled. 
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 2616 2009-01-19 16:49:42Z chloe $
+% $Id: pm_brain_mask.m 4446 2011-08-30 10:50:29Z guillaume $
 
-if nargin < 2 | isempty(flags)
+if nargin < 2 || isempty(flags)
    flags.template=fullfile(spm('Dir'),'templates','T1.nii');
    flags.fwhm=5;
    flags.nerode=2;
@@ -57,10 +57,8 @@ vxs = sqrt(sum(P.mat(1:3,1:3).^2));
 fwhm = repmat(flags.fwhm,1,3)./vxs;
 bmask=fill_it(bmask,fwhm,flags.thresh); % Do fill to fill holes
 
-OP=P;
-brain_mask = [spm_str_manip(P.fname,'h') '/bmask',...
-                spm_str_manip(P.fname,'t')];
-OP.fname=brain_mask;
+OP=P
+OP.fname=spm_file(P.fname,'prefix','bmask');
 OP.descrip=sprintf('Mask:erode=%d,dilate=%d,fwhm=%d,thresh=%1.1f',flags.nerode,flags.ndilate,flags.fwhm,flags.thresh);
 spm_write_vol(OP,bmask);
 
@@ -112,8 +110,7 @@ end
 % others = 1.
 for i=1:NUM
     if i~=maxnc
-       nc=find(vol==i);
-       ovol(nc)=1;
+       ovol(vol==i)=1;
     end
 end
 

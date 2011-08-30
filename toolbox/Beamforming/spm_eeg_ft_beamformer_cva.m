@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4377 2011-06-27 09:54:33Z gareth $
+% $Id: spm_eeg_ft_beamformer_cva.m 4446 2011-08-30 10:50:29Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -979,7 +979,7 @@ for boot=1:Nboot,
             if S.bootstrap,
                 featurestr=sprintf('%s_bt%03d_',featurestr,boot);
             end; % if
-            outvol.fname= fullfile(D.path, dirname, ['chi_pw_'  spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
+            outvol.fname= fullfile(D.path, dirname, ['chi_pw_'  spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
             stats(fband).outfile_chi_pw=outvol.fname;
             outvol = spm_create_vol(outvol);
             spm_write_vol(outvol, sourceint_pow_maxchi.pow_maxchi);
@@ -995,7 +995,7 @@ for boot=1:Nboot,
             end; % if preview
             colormap(cmap);
             featurestr=[S.filenamestr 'Nf' num2str(redNfeatures(1))] ;
-            outvol.fname= fullfile(D.path, dirname, ['chi_ev_' spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
+            outvol.fname= fullfile(D.path, dirname, ['chi_ev_' spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.nii']);
             stats(fband).outfile_chi_ev=outvol.fname;
             outvol = spm_create_vol(outvol);
             spm_write_vol(outvol, sourceint_evoked_maxchi.evoked_maxchi);
@@ -1015,12 +1015,12 @@ for boot=1:Nboot,
             colormap(cmap);
             
             featurestr=[S.filenamestr 'Nf' num2str(redNfeatures(2))] ;
-            outvol.fname= fullfile(D.path, dirname, ['logp_pow_' spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr S.filenamestr '.nii']);
+            outvol.fname= fullfile(D.path, dirname, ['logp_pow_' spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr S.filenamestr '.nii']);
             stats(fband).outfile_logp_pow=outvol.fname;
             outvol = spm_create_vol(outvol);
             spm_write_vol(outvol, sourceint_logp_pow.logp_power);
             featurestr=[S.filenamestr 'Nf' num2str(redNfeatures(1))] ;
-            outvol.fname= fullfile(D.path, dirname, ['logp_evoked_' spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr S.filenamestr '.nii']);
+            outvol.fname= fullfile(D.path, dirname, ['logp_evoked_' spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr S.filenamestr '.nii']);
             stats(fband).outfile_logp_evoked=outvol.fname;
             outvol = spm_create_vol(outvol);
             spm_write_vol(outvol, sourceint_logp_evoked.logp_evoked);
@@ -1051,7 +1051,7 @@ for boot=1:Nboot,
         
     end; % for fband=1:Nbands
 end; %% bootstrap
-bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_str_manip(D.fname, 'r') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.mat']);
+bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.mat']);
 save(bootlist,'bttrials');
 
 end % function
@@ -1087,7 +1087,7 @@ cfg.downsample = 1;
 outvol = spm_vol(sMRI);
 outvol.dt(1) = spm_type('float32');
 featurestr=['Nf1'] ; %% only for 1 feature
-outvol.fname= fullfile(D.path, dirname, [sprintf('Trial%04d_Perm%04d_%s',trialnum,permnum,prefix)  spm_str_manip(D.fname, 'r') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
+outvol.fname= fullfile(D.path, dirname, [sprintf('Trial%04d_Perm%04d_%s',trialnum,permnum,prefix)  spm_file(D.fname, 'basename') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
 
 outvol = spm_create_vol(outvol);
 
@@ -1095,7 +1095,7 @@ spm_write_vol(outvol, sourceint_pow_maxchi.pow_maxchi);
 soutvol=outvol;
 mmsampling=min(abs(diag(soutvol.mat(1:3,1:3)))); %% get sampling of the output image
 Sfwhm=mmsampling*3; %% smooth by 3* this to get sufficiently sampled output image
-soutvol.fname= fullfile(D.path, dirname, [sprintf('S%dmmTrial%04d_Perm%04d_%s',Sfwhm,trialnum,permnum,prefix)  spm_str_manip(D.fname, 'r') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
+soutvol.fname= fullfile(D.path, dirname, [sprintf('S%dmmTrial%04d_Perm%04d_%s',Sfwhm,trialnum,permnum,prefix)  spm_file(D.fname, 'basename') '_' num2str(freqband(1)) '-' num2str(freqband(2)) 'Hz' featurestr '.nii']);
 
 spm_smooth(outvol,soutvol,Sfwhm);
 

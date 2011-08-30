@@ -21,7 +21,7 @@ function [outfilenames,ctf_inside,ctf_weights,fftnewdata]=spm_eeg_ft_beamformer_
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_mult.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_beamformer_mult.m 4446 2011-08-30 10:50:29Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -476,7 +476,7 @@ for f=1:Nbands,
     res = mkdir(D.path, dirname);
     outvol = spm_vol(sMRI);
     outvol.dt(1) = spm_type('float32');
-    outvol.fname= fullfile(D.path, dirname, ['Ht_pw_' spm_str_manip(D.fname, 'r') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
+    outvol.fname= fullfile(D.path, dirname, ['Ht_pw_' spm_file(D.fname, 'basename') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
     outfilenames=strvcat(outvol.fname);
     outvol = spm_create_vol(outvol);
     spm_write_vol(outvol, sourceint_H_tstat.pow_H_tstat);
@@ -484,14 +484,14 @@ for f=1:Nbands,
         %% normal t stat
         outvol = spm_vol(sMRI);
         outvol.dt(1) = spm_type('float32');
-        outvol.fname= fullfile(D.path, dirname, ['t_pw_' spm_str_manip(D.fname, 'r') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['t_pw_' spm_file(D.fname, 'basename') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
         outvol = spm_create_vol(outvol);
         outfilenames=strvcat(outvol.fname);
         spm_write_vol(outvol, sourceint_tstat.pow_tstat);
         %% write difference in weight normalised power
         outvol = spm_vol(sMRI);
         outvol.dt(1) = spm_type('float32');
-        outvol.fname= fullfile(D.path, dirname, ['N_pw_' spm_str_manip(D.fname, 'r') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['N_pw_' spm_file(D.fname, 'basename') '_' contrast_str '_' num2str(freqbands(f,1)) '-' num2str(freqbands(f,2)) 'Hz' '.nii']);
         outvol = spm_create_vol(outvol);
         outfilenames=strvcat(outvol.fname);
         spm_write_vol(outvol, sourceint_pow_diff.pow_diff);

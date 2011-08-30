@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 4238 2011-03-10 19:48:37Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 4446 2011-08-30 10:50:29Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -280,7 +280,7 @@ if isfield(S, 'makecorrimage') &&  S.makecorrimage
             suff = '';
         end
         
-        outvol.fname= fullfile(pwd, 'corrimages', ['corrimg_' spm_str_manip(D.fname, 'r') '_' S.sources.label{p} '_' suff '.nii']);
+        outvol.fname= fullfile(pwd, 'corrimages', ['corrimg_' spm_file(D.fname, 'basename') '_' S.sources.label{p} '_' suff '.nii']);
         outvol = spm_create_vol(outvol);
         spm_write_vol(outvol, sourceint.pow);
     end

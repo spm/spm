@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4344 2011-06-07 14:58:43Z gareth $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4446 2011-08-30 10:50:29Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -667,7 +667,7 @@ end; % if
     outvol = spm_vol(sMRI);
     outvol.dt(1) = spm_type('float32');
     
-        outvol.fname= fullfile(D.path, dirname, ['spmT_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['spmT_' spm_file(D.fname, 'basename') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
         
         stats(fband).outfile_pow_tstat=outvol.fname;
         outvol = spm_create_vol(outvol);
@@ -682,7 +682,7 @@ end; % if
             disp('Press any key to continue');
             pause;
         end; % if preview
-        outvol.fname= fullfile(D.path, dirname, ['spmNdiff_' spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
+        outvol.fname= fullfile(D.path, dirname, ['spmNdiff_' spm_file(D.fname, 'basename') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' S.filenamestr S.suffix_str featurestr '.nii']);
         
          stats(fband).outfile_normdiff=outvol.fname;
          outvol = spm_create_vol(outvol);
@@ -695,7 +695,7 @@ end; % for fband=1:Nbands
 
 end; % for boot   
 
-bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_str_manip(D.fname, 'r') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' featurestr '.mat']);
+bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_file(D.fname, 'basename') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' featurestr '.mat']);
 save(bootlist,'bttrials');
 
      
