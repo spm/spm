@@ -10,7 +10,7 @@ function [] = spm_bms_display(BMS,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 3458 2009-10-13 10:05:35Z maria $
+% $Id: spm_bms_display.m 4447 2011-08-30 13:29:21Z guillaume $
 
 % Main options (action)
 % =========================================================================
@@ -82,7 +82,7 @@ switch action
     AxPos = get(hResAx,'Position'); set(hResAx,'YLim',[0,AxPos(4)])
     h     = text(0,24,'BMSresults:','Parent',hResAx,...
         'FontWeight','Bold','FontSize',FS(14));
-    text(get(h,'Extent')*[0;0;1;0],24,spm_str_manip(pwd,'a30'),'Parent',hResAx)
+    text(get(h,'Extent')*[0;0;1;0],24,spm_file(pwd,'short30'),'Parent',hResAx)
     text(0,12,sprintf('Threshold: %0.2d',BMS.xSPM.thres),'Parent',hResAx)
     
     % Store handles of results section Graphics window objects

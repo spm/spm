@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_extract_ui(varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_extract_ui.m 4378 2011-06-29 13:03:05Z vladimir $
+% $Id: spm_eeg_inv_extract_ui.m 4447 2011-08-30 13:29:21Z guillaume $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ D.inv{val}.source.type = type;
 
 % output file name
 %--------------------------------------------------------------------------
-fname = spm_input('File name','+1','s', ['i' spm_str_manip(D.fname, 'r')]);
+fname = spm_input('File name','+1','s', ['i' spm_file(D.fname,'basename')]);
 D.inv{val}.source.fname = fullfile(D.path, [fname '.mat']);
 
 % extract

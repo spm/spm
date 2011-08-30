@@ -50,7 +50,7 @@ function spm_image(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4205 2011-02-21 15:39:08Z guillaume $
+% $Id: spm_image.m 4447 2011-08-30 13:29:21Z guillaume $
 
 
 global st
@@ -343,7 +343,7 @@ uicontrol(fg,'Style','Frame','Position',[305  25 280 325].*WS);
 uicontrol(fg,'Style','Text','Position' ,[310 330 50 016].*WS,...
     'HorizontalAlignment','right', 'String', 'File:');
 uicontrol(fg,'Style','Text','Position' ,[360 330 210 016].*WS,...
-    'HorizontalAlignment','left', 'String', spm_str_manip(st.vols{1}.fname,'k25'),'FontWeight','bold');
+    'HorizontalAlignment','left', 'String', spm_file(st.vols{1}.fname,'short25'),'FontWeight','bold');
 uicontrol(fg,'Style','Text','Position' ,[310 310 100 016].*WS,...
     'HorizontalAlignment','right', 'String', 'Dimensions:');
 uicontrol(fg,'Style','Text','Position' ,[410 310 160 016].*WS,...

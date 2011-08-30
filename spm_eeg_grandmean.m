@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 3897 2010-05-21 15:06:50Z vladimir $
+% $Id: spm_eeg_grandmean.m 4447 2011-08-30 13:29:21Z guillaume $
 
-SVNrev = '$Rev: 3897 $';
+SVNrev = '$Rev: 4447 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -236,9 +236,9 @@ end
 
 % generate new meeg object with new filenames
 if strncmp(D{1}.transformtype, 'TF',2)
-    Do = clone(Do, [spm_str_manip(S.Dout, 'r') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
+    Do = clone(Do, spm_file(S.Dout, 'ext','.dat'), [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
 else
-    Do = clone(Do, [spm_str_manip(S.Dout, 'r') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
+    Do = clone(Do, spm_file(S.Dout, 'ext','.dat'), [Do.nchannels Do.nsamples Ntypes]);
 end
 
 % for determining bad channels of the grandmean

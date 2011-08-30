@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4417 2011-08-02 13:38:19Z guillaume $
+% $Id: spm_DesRep.m 4447 2011-08-30 13:29:21Z guillaume $
 
 
 
@@ -261,7 +261,7 @@ function varargout = spm_DesRep(varargin)
 %_______________________________________________________________________
 
 
-SVNid = '$Rev: 4417 $'; 
+SVNid = '$Rev: 4447 $'; 
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -289,7 +289,7 @@ case 'desrepui'                                    %-Design reporting UI
 if nargin < 2
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     if ~sts, varargout = {[]}; return; end
-    swd = spm_str_manip(spmmatfile,'H');
+    swd = spm_file(spmmatfile,'fpath');
     try
         load(fullfile(swd,'SPM.mat'));
     catch

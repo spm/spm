@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_regions.m 4447 2011-08-30 13:29:21Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -255,7 +255,7 @@ else
     save(fullfile(SPM.swd,str),'Y','xY')
 end
 
-fprintf('   VOI saved as %s\n',spm_str_manip(fullfile(SPM.swd,str),'k55'));
+fprintf('   VOI saved as %s\n',spm_file(fullfile(SPM.swd,str),'short55'));
 
 %-Reset title
 %--------------------------------------------------------------------------

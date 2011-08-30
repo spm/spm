@@ -9,12 +9,12 @@ function D = spm_eeg_copy(S)
 %
 % D           - MEEG object of the new dataset
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 3262 2009-07-09 12:10:53Z vladimir $
+% $Id: spm_eeg_copy.m 4447 2011-08-30 13:29:21Z guillaume $
 
-% get MEEG object
+%-Get MEEG object
 %--------------------------------------------------------------------------
 try
     D   = S.D;
@@ -26,15 +26,15 @@ end
 
 D       = spm_eeg_load(D);
 
-% get filename for the new dataset
+%-Get filename for the new dataset
 %--------------------------------------------------------------------------
 if ~isfield(S, 'newname')
     S.newname = spm_input('New file name:', '+1', 's');
 end
 
-S.newname = [spm_str_manip(S.newname, 'rt') '.dat'];
+S.newname = [spm_file(S.newname,'basename') '.dat'];
 
-% copy dataset (.mat and .dat)
+%-Copy dataset (.mat and .dat)
 %--------------------------------------------------------------------------
 Dnew = clone(D, S.newname);
 [r, msg] = copyfile(fullfile(D.path, D.fnamedat), ...

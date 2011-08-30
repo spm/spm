@@ -1,7 +1,7 @@
 function D = spm_eeg_convert(S)
-% Main function for converting different M/EEG formats to SPM8 format.
+% Convert various M/EEG formats to SPM8 format
 % FORMAT D = spm_eeg_convert(S)
-% S                - can be string (file name) or struct (see below)
+% S                - string (filename) or struct (see below)
 %
 % If S is a struct it can have the optional following fields:
 % S.dataset        - file name
@@ -36,10 +36,10 @@ function D = spm_eeg_convert(S)
 %
 % % D              - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 4431 2011-08-12 18:53:02Z vladimir $
+% $Id: spm_eeg_convert.m 4447 2011-08-30 13:29:21Z guillaume $
 
 if ischar(S)
     temp      = S;
@@ -51,7 +51,7 @@ if ~isfield(S, 'dataset')
     error('Dataset must be specified.');
 end
 
-if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_str_manip(S.dataset,'tr')];  end
+if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_file(S.dataset,'basename')]; end
 if ~isfield(S, 'channels'),        S.channels = 'all';                                   end
 if ~isfield(S, 'timewindow'),      S.timewindow = [];                                    end
 if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                end %100 Mb
@@ -335,14 +335,9 @@ else % Read by trials
 end
 
 %--------- Prepare for reading the data
-
-[outpath, outfile] = fileparts(S.outfile);
-if isempty(outpath)
-    outpath = pwd;
-end
-if isempty(outfile)
-    outfile = 'spm8';
-end
+outpath = spm_file(S.outfile,'fpath');
+outfile = spm_file(S.outfile,'basename');
+if isempty(outfile), outfile = 'spm8'; end
 
 D.path = outpath;
 D.fname = [outfile '.mat'];

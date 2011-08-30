@@ -56,9 +56,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 4223 2011-03-02 10:30:45Z vladimir $
+% $Id: spm_eeg_merge.m 4447 2011-08-30 13:29:21Z guillaume $
 
-SVNrev = '$Rev: 4223 $';
+SVNrev = '$Rev: 4447 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -171,7 +171,7 @@ if isequal(S.recode, 'old')
     S.recode = {};
     for i = 1:Nfiles
         for j = 1:nconditions(D{i})
-            S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_str_manip(D{i}.fname, 'r')),...
+            S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_file(D{i}.fname, 'basename')),...
                 '+1', 's', D{i}.condlist{j});
         end
     end
@@ -244,7 +244,7 @@ if isequal(S.recode, 'same')
     Dout = conditions(Dout, [], clb);
 elseif isequal(S.recode, 'addfilename')
     for i = 1:numel(clb)
-        clb{i} = [clb{i} ' ' spm_str_manip(F{Find(i)}, 'r')];
+        clb{i} = [clb{i} ' ' spm_file(F{Find(i)}, 'basename')];
     end
     Dout = conditions(Dout, [], clb);
 elseif iscell(S.recode)
@@ -282,7 +282,7 @@ elseif isstruct(S.recode)
         
         for j = 1:length(ind)
             labelnew = S.recode(i).labelnew;
-            labelnew = strrep(labelnew, '#file#', spm_str_manip(F{Find(ind(j))}, 'r'));
+            labelnew = strrep(labelnew, '#file#', spm_file(F{Find(ind(j))}, 'basename'));
             labelnew = strrep(labelnew, '#labelorg#', clb(ind(j)));
             
             Dout     = conditions(Dout, ind(j), labelnew);

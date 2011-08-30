@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 4423 2011-08-04 16:28:51Z guillaume $
+% $Id: spm_coreg.m 4447 2011-08-30 13:29:21Z guillaume $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,7 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 4423 $';
+SVNid = '$Rev: 4447 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -231,7 +231,7 @@ if size(V.pinfo,2)==1 && V.pinfo(1) == 2
     mn = V.pinfo(2);
 else
     spm_progress_bar('Init',V.dim(3),...
-        ['Computing max/min of ' spm_str_manip(V.fname,'t')],...
+        ['Computing max/min of ' spm_file(V.fname,'filename')],...
         'Planes complete');
     mx = -Inf; mn =  Inf;
     for p=1:V.dim(3)
@@ -244,7 +244,7 @@ end
 
 % Another pass to find a maximum that allows a few hot-spots in the data.
 spm_progress_bar('Init',V.dim(3),...
-        ['2nd pass max/min of ' spm_str_manip(V.fname,'t')],...
+        ['2nd pass max/min of ' spm_file(V.fname,'filename')],...
         'Planes complete');
 nh = 2048;
 h  = zeros(nh,1);
@@ -260,7 +260,7 @@ mx  = (mn*nh-mx+tmp(1)*(mx-mn))/(nh-1);
 
 % Load data from file indicated by V into an array of unsigned bytes.
 spm_progress_bar('Init',V.dim(3),...
-    ['Loading ' spm_str_manip(V.fname,'t')],...
+    ['Loading ' spm_file(V.fname,'filename')],...
     'Planes loaded');
 udat = zeros(V.dim,'uint8');
 st = rand('state'); % st = rng;
@@ -350,8 +350,8 @@ set(ax,'DataAspectRatio',[1 1 1],...
     'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
     'XTick',[],'YTick',[]);
 title('Original Joint Histogram','Parent',ax);
-xlabel(spm_str_manip(VG.fname,'k22'),'Parent',ax);
-ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);
+xlabel(spm_file(VG.fname,'short22'),'Parent',ax);
+ylabel(spm_file(VF.fname,'short22'),'Parent',ax);
 
 H   = spm_hist2(VG.uint8,VF.uint8,VF.mat\spm_matrix(x(:)')*VG.mat,[1 1 1]);
 ax  = axes('Position',[0.6 0.5 0.35 0.3],'Visible','off','Parent',fig);
@@ -361,8 +361,8 @@ set(ax,'DataAspectRatio',[1 1 1],...
     'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
     'XTick',[],'YTick',[]);
 title('Final Joint Histogram','Parent',ax);
-xlabel(spm_str_manip(VG.fname,'k22'),'Parent',ax);
-ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);
+xlabel(spm_file(VG.fname,'short22'),'Parent',ax);
+ylabel(spm_file(VF.fname,'short22'),'Parent',ax);
 
 % Display ortho-views
 %--------------------------------------------------------------------------

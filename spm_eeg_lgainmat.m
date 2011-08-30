@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 4082 2010-10-07 16:11:48Z guillaume $
+% $Id: spm_eeg_lgainmat.m 4447 2011-08-30 13:29:21Z guillaume $
 
 
 % get gain or lead-field matrix
@@ -121,7 +121,7 @@ catch
     
     % Save
     %----------------------------------------------------------------------
-    D.inv{val}.gainmat = ['SPMgainmatrix_' spm_str_manip(D.fname, 'tr') '_' num2str(val) '.mat'];
+    D.inv{val}.gainmat = ['SPMgainmatrix_' spm_file(D.fname, 'basename') '_' num2str(val) '.mat'];
     save(fullfile(D.path, D.inv{val}.gainmat), 'G', 'label');
     save(D);
 end

@@ -6,12 +6,12 @@ function spm_eeg_convert_ui(S)
 % 
 % See spm_eeg_convert for a description of input structure S.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 3059 2009-04-15 18:09:13Z guillaume $
+% $Id: spm_eeg_convert_ui.m 4447 2011-08-30 13:29:21Z guillaume $
 
-SVNrev = '$Rev: 3059 $';
+SVNrev = '$Rev: 4447 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         else
             prefix = 'espm8_';
         end
-        S.outfile = spm_input('SPM M/EEG file name', '+1', 's', [prefix spm_str_manip(S.dataset,'tr')]);
+        S.outfile = spm_input('SPM M/EEG file name', '+1', 's', [prefix spm_file(S.dataset,'basename')]);
     end
     
 end
