@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4367 2011-06-15 17:04:45Z vladimir $
+% $Id: spm_api_erp.m 4448 2011-08-30 16:39:25Z guillaume $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -162,8 +162,9 @@ try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));        end
 try, set(handles.Hz1,'String', num2str(DCM.options.Fdcm(1)));        end
 try, set(handles.Hz2,'String', num2str(DCM.options.Fdcm(2)));        end
 try, set(handles.Rft,'String', num2str(DCM.options.Rft));            end
-try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);          end
-try, set(handles.h,           'Value', DCM.options.h);               end
+try, set(handles.Nmodes,       'Value', DCM.options.Nmodes);         end
+try, set(handles.h,            'Value', ...
+        find(str2double(get(handles.h,'String')) == DCM.options.h)); end
 try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
@@ -309,7 +310,8 @@ handles.DCM.options.Fdcm(2)  = str2num(get(handles.Hz2,   'String'));
 handles.DCM.options.Rft      = str2num(get(handles.Rft,   'String'));
 handles.DCM.options.onset    = str2num(get(handles.onset, 'String'));
 handles.DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
-handles.DCM.options.h        = get(handles.h,             'Value');
+detrend_val                  = str2double(get(handles.h,  'String'));
+handles.DCM.options.h        = detrend_val(get(handles.h, 'Value'));
 handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
