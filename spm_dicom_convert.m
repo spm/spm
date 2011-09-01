@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4436 2011-08-17 16:53:37Z john $
+% $Id: spm_dicom_convert.m 4451 2011-09-01 16:43:59Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -1234,7 +1234,7 @@ if hdr.HighBit>16
         dt  = [spm_type('uint32') be];
     end
 else
-    if hdr.PixelRepresentation || hdr.HighBit<=15
+    if hdr.PixelRepresentation || hdr.HighBit>=15
         dt  = [spm_type( 'int16') be];
     else
         dt  = [spm_type('uint16') be];
