@@ -1,23 +1,23 @@
 /*
- * $Id: bsplins.c 1137 2008-02-06 15:58:21Z spm $
+ * $Id: bsplins.c 4452 2011-09-02 10:45:26Z guillaume $
  * John Ashburner
  */
 
 /*
  * This code is based on that of Philippe Thevenaz, which I took from:
- *	http://bigwww.epfl.ch/algorithms.html
+ *  http://bigwww.epfl.ch/algorithms.html
  *
  * It has been substantially modified, so blame me (John Ashburner) if there
  * are any bugs. Many thanks to Philippe Thevenaz for advice with the code.
  *
  * See:
- *	M. Unser.
- *	"Splines: A Perfect Fit for Signal and Image Processing,"
- *	IEEE Signal Processing Magazine, 16(6):22-38 (1999)
+ *  M. Unser.
+ *  "Splines: A Perfect Fit for Signal and Image Processing,"
+ *  IEEE Signal Processing Magazine, 16(6):22-38 (1999)
  *
- *	P. Thevenaz and T. Blu and M. Unser.
- *	"Interpolation Revisited"
- *	IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
+ *  P. Thevenaz and T. Blu and M. Unser.
+ *  "Interpolation Revisited"
+ *  IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
  */
 
 
@@ -283,10 +283,10 @@ static double dwt7(double x)
 
 /***************************************************************************************
  * Generate B-spline basis functions
- * d	- degree of spline
- * x	- position relative to centre
- * i	- pointer to first voxel position in convolution
- * w	- vector of spline values
+ * d    - degree of spline
+ * x    - position relative to centre
+ * i    - pointer to first voxel position in convolution
+ * w    - vector of spline values
  *
  * Should really combine this function with wt2 to wt7 for most
  * efficiency (as for case 0).
@@ -336,10 +336,10 @@ static void weights(int d, double x, int *i, double w[])
 
 /***************************************************************************************
  * Generate derivatives of B-spline basis functions
- * d	- degree of spline
- * x	- position relative to centre
- * i	- pointer to first voxel position in convolution
- * w	- vector of spline values
+ * d    - degree of spline
+ * x    - position relative to centre
+ * i    - pointer to first voxel position in convolution
+ * w    - vector of spline values
  *
  * Should really combine this function with dwt2 to dwt7 for most
  * efficiency (as for case 0 and case 1).
@@ -389,8 +389,8 @@ static void dweights(int d, double x, int *i, double w[])
 
 /***************************************************************************************
  * Work out what to do with positions outside the FOV
- * i	- Co-ordinate (0<=i<m)
- * m	- dimension
+ * i    - Co-ordinate (0<=i<m)
+ * m    - dimension
  * returns reflected co-ordinate
  */
 static int mirror(int i, int m)
@@ -406,8 +406,8 @@ static int mirror(int i, int m)
 
 /***************************************************************************************
  * Work out what to do with positions outside the FOV
- * i	- Co-ordinate (0<=i<m)
- * m	- dimension
+ * i    - Co-ordinate (0<=i<m)
+ * m    - dimension
  * returns co-ordinate for Neumann boundary condition
  */
 static int neumann(int i, int m)
@@ -443,10 +443,10 @@ static int wrap(int i, int m)
 
 /***************************************************************************************
  * Resample a point
- * c	- Volume of B-spline coefficients
- * m0,m1,m2	- dimensions of c
- * x0,x1,x2	- co-ordinate to sample
- * d	- degrees of splines used
+ * c    - Volume of B-spline coefficients
+ * m0,m1,m2 - dimensions of c
+ * x0,x1,x2 - co-ordinate to sample
+ * d    - degrees of splines used
  * returns value of sampled point
  */
 static double sample(double c[], int m0, int m1, int m2,
@@ -491,11 +491,11 @@ int (*bnd[])())
 
 /***************************************************************************************
  * Resample a point and its gradients
- * c	- Volume of B-spline coefficients
- * m0,m1,m2	- dimensions of c
- * x0,x1,x2	- co-ordinate to sample
- * d	- degrees of splines used
- * pg0,pg1,pg2	- gradients
+ * c    - Volume of B-spline coefficients
+ * m0,m1,m2 - dimensions of c
+ * x0,x1,x2 - co-ordinate to sample
+ * d    - degrees of splines used
+ * pg0,pg1,pg2  - gradients
  * returns value of sampled point
  */
 static double dsample(double c[], int m0, int m1, int m2,
@@ -559,14 +559,14 @@ int (*bnd[])())
 
 /***************************************************************************************
  * Loop through data and resample the points
- * c	- Volume of B-spline coefficients
- * m0,m1,m2	- dimensions of c
- * n	- number of points to resample
- * x0,x1,x2	- array of co-ordinate to sample
- * d	- degree of spline used
- * cond	- code determining boundaries to mask at
- * bnd	- functions for dealing with edges
- * f	- resampled data
+ * c    - Volume of B-spline coefficients
+ * m0,m1,m2 - dimensions of c
+ * n    - number of points to resample
+ * x0,x1,x2 - array of co-ordinate to sample
+ * d    - degree of spline used
+ * cond - code determining boundaries to mask at
+ * bnd  - functions for dealing with edges
+ * f    - resampled data
  */
 #define TINY 5e-2
 
@@ -591,15 +591,15 @@ int cond, int (*bnd[])(), double f[])
 
 /***************************************************************************************
  * Loop through data and resample the points and their derivatives
- * c	- Volume of B-spline coefficients
- * m0,m1,m2	- dimensions of c
- * n	- number of points to resample
- * x0,x1,x2	- array of co-ordinate to sample
- * d	- degrees of splines used
- * cond	- code determining boundaries to mask at
- * bnd	- functions for dealing with edges
- * f	- resampled data
- * df0, df1, df2	- gradients
+ * c    - Volume of B-spline coefficients
+ * m0,m1,m2 - dimensions of c
+ * n    - number of points to resample
+ * x0,x1,x2 - array of co-ordinate to sample
+ * d    - degrees of splines used
+ * cond - code determining boundaries to mask at
+ * bnd  - functions for dealing with edges
+ * f    - resampled data
+ * df0, df1, df2    - gradients
  */
 static void dfun(double c[], int m0, int m1, int m2,
 int n, double x0[], double x1[], double x2[],int d[],
@@ -636,15 +636,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             f = function(c,x0,x1,x2,d)
                 c - B-spline coefficients
                 x0, x1, x2 - co-ordinates
-                d	- B-spline degree
-                f	- sampled function
+                d   - B-spline degree
+                f   - sampled function
        or:
             [f,df0,df1,df2] = function(c,x0,x1,x2,d)
                 c - B-spline coefficients
                 x0, x1, x2 - co-ordinates
-                d	- B-spline degree
-                f	- sampled function
-                df0, df1, df2	- sampled derivatives
+                d   - B-spline degree
+                f   - sampled function
+                df0, df1, df2   - sampled derivatives
      */
     if (nrhs < 5 || nlhs>4)
         mexErrMsgTxt("Incorrect usage.");

@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 4425 2011-08-05 18:38:14Z guillaume $
+# $Id: Makefile.var 4452 2011-09-02 10:45:26Z guillaume $
 #
 ###############################################################################
 #
@@ -34,7 +34,7 @@
 SHELL          = /bin/sh
 MAKE           = make
 MEXBIN         = mex
-MEXOPTS        = -O
+MEXOPTS        = -O -largeArrayDims
 MEXEND         = 
 MOSUF          = o # mex output object suffix
 UNAME          = uname

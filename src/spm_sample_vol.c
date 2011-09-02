@@ -1,5 +1,5 @@
 /*
- * $Id: spm_sample_vol.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_sample_vol.c 4452 2011-09-02 10:45:26Z guillaume $
  * John Ashburner
  */
 
@@ -14,76 +14,76 @@ mxArray *plhs[];
 const mxArray *prhs[];
 */
 {
-	MAPTYPE *map, *get_maps();
-	int m,n, k, hold;
-	double background=0.0;
+    MAPTYPE *map, *get_maps();
+    int m,n, k, hold;
+    double background=0.0;
 
-	if (nrhs != 5 || nlhs > 4)
-		mexErrMsgTxt("Incorrect usage.");
+    if (nrhs != 5 || nlhs > 4)
+        mexErrMsgTxt("Incorrect usage.");
 
-	map=get_maps(prhs[0], &n);
-	if (n!=1)
-	{
-		free_maps(map, n);
-		mexErrMsgTxt("Bad image handle dimensions.");
-	}
+    map=get_maps(prhs[0], &n);
+    if (n!=1)
+    {
+        free_maps(map, n);
+        mexErrMsgTxt("Bad image handle dimensions.");
+    }
 
-	for(k=1; k<=3; k++)
-		if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
-			mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
-		{
-			free_maps(map, 1);
-			mexErrMsgTxt("Coordinates must be numeric, real, full and double.");
-		}
+    for(k=1; k<=3; k++)
+        if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
+            mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
+        {
+            free_maps(map, 1);
+            mexErrMsgTxt("Coordinates must be numeric, real, full and double.");
+        }
 
-	m = mxGetM(prhs[1]);
-	n = mxGetN(prhs[1]);
-	if (mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n ||
-		mxGetM(prhs[3]) != m || mxGetN(prhs[3]) != n)
-		mexErrMsgTxt("Coordinates must have compatible dimensions.");
+    m = mxGetM(prhs[1]);
+    n = mxGetN(prhs[1]);
+    if (mxGetM(prhs[2]) != m || mxGetN(prhs[2]) != n ||
+        mxGetM(prhs[3]) != m || mxGetN(prhs[3]) != n)
+        mexErrMsgTxt("Coordinates must have compatible dimensions.");
 
-	if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) ||
-		mxIsSparse(prhs[4]) || !mxIsDouble(prhs[4]) ||
-		(mxGetM(prhs[4])*mxGetN(prhs[4]) != 1 && mxGetM(prhs[4])*mxGetN(prhs[4]) != 2))
-	{
-		free_maps(map, 1);
-		mexErrMsgTxt("Bad hold & background argument.");
-	}
+    if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) ||
+        mxIsSparse(prhs[4]) || !mxIsDouble(prhs[4]) ||
+        (mxGetM(prhs[4])*mxGetN(prhs[4]) != 1 && mxGetM(prhs[4])*mxGetN(prhs[4]) != 2))
+    {
+        free_maps(map, 1);
+        mexErrMsgTxt("Bad hold & background argument.");
+    }
 
-	hold = (int)(*(mxGetPr(prhs[4])));
+    hold = (int)(*(mxGetPr(prhs[4])));
 
-	if (abs(hold) > 127)
-	{
-		free_maps(map, 1);
-		mexErrMsgTxt("Bad hold value.");
-	}
+    if (abs(hold) > 127)
+    {
+        free_maps(map, 1);
+        mexErrMsgTxt("Bad hold value.");
+    }
 
-	if (mxGetM(prhs[4])*mxGetN(prhs[4]) > 1)
-		background = mxGetPr(prhs[4])[1];
+    if (mxGetM(prhs[4])*mxGetN(prhs[4]) > 1)
+        background = mxGetPr(prhs[4])[1];
 
-	if (nlhs<=1)
-	{
-		plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
+    if (nlhs<=1)
+    {
+        plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
 
-		resample(m*n, map, mxGetPr(plhs[0]),
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
-			hold, background);
-	}
-	else
-	{
-		if (hold==0)
-		{
-			free_maps(map, 1);
-			mexErrMsgTxt("This wont work for nearest neighbour resampling.");
-		}
-		plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
-		plhs[1] = mxCreateDoubleMatrix(m,n,mxREAL);
-		plhs[2] = mxCreateDoubleMatrix(m,n,mxREAL);
-		plhs[3] = mxCreateDoubleMatrix(m,n,mxREAL);
+        resample(m*n, map, mxGetPr(plhs[0]),
+            mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
+            hold, background);
+    }
+    else
+    {
+        if (hold==0)
+        {
+            free_maps(map, 1);
+            mexErrMsgTxt("This wont work for nearest neighbour resampling.");
+        }
+        plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(m,n,mxREAL);
+        plhs[2] = mxCreateDoubleMatrix(m,n,mxREAL);
+        plhs[3] = mxCreateDoubleMatrix(m,n,mxREAL);
 
-		resample_d(m*n, map, mxGetPr(plhs[0]),mxGetPr(plhs[1]),mxGetPr(plhs[2]),mxGetPr(plhs[3]),
-			mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
-			hold, background);
-	}
-	free_maps(map, 1);
+        resample_d(m*n, map, mxGetPr(plhs[0]),mxGetPr(plhs[1]),mxGetPr(plhs[2]),mxGetPr(plhs[3]),
+            mxGetPr(prhs[1]),mxGetPr(prhs[2]),mxGetPr(prhs[3]),
+            hold, background);
+    }
+    free_maps(map, 1);
 }
