@@ -20,7 +20,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_ROI.m 4454 2011-09-02 13:39:49Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -87,7 +87,9 @@ switch lower(xY.def)
             xY.spec = spm_vol(xY.spec);
         end
     end
-    str    = spm_str_manip(spm_file(xY.spec.fname,'short30'),'x');
+    str    = spm_file(xY.spec.fname,'short30');
+    str    = regexprep(str, {'\\' '\^' '_' '{' '}'}, ...
+        {'\\\\' '\\^' '\\_' '\\{' '\\}'}); % Escape TeX special characters
     xY.str = sprintf('image mask: %s',str); 
         
     case 'cluster'

@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4398 2011-07-19 15:31:24Z volkmar $
+% $Id: spm_list.m 4454 2011-09-02 13:39:49Z guillaume $
 
 
 %==========================================================================
@@ -187,7 +187,7 @@ case 'table'                                                        %-Table
     df        = xSPM.df;
     u         = xSPM.u;
     k         = xSPM.k;
-    uc        = xSPM.uc;
+    try, uc   = xSPM.uc; end
     try, QPs  = xSPM.Ps; end
     try, QPp  = xSPM.Pp; end
     try, QPc  = xSPM.Pc; end

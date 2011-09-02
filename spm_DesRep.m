@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_DesRep.m 4454 2011-09-02 13:39:49Z guillaume $
 
 
 
@@ -261,7 +261,7 @@ function varargout = spm_DesRep(varargin)
 %_______________________________________________________________________
 
 
-SVNid = '$Rev: 4447 $'; 
+SVNid = '$Rev: 4454 $'; 
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -790,7 +790,7 @@ if desmtx && ~isempty(fnames)
         catch
             str  = strrep(fnames{i},'\','/');
         end
-        text(0,i,spm_str_manip(str,'Ca35'));
+        text(0,i,spm_file(str,'short35'));
     end
 end
 
@@ -1123,31 +1123,31 @@ ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
 
 istr = 'none';
 switch get(gcbf,'SelectionType')
-case 'normal'
-    try, str = sprintf('X(%d,%d) = %g',ij(1),ij(2),...
-        subsref(get(gco,'UserData'),...
-        struct('type',{'.','()'},'subs',{'X',{ij(1),ij(2)}})));
-    catch, str='(no cached design matrix to surf)'; end
-case 'extend'
-    try, str = sprintf('Image %d: %s',ij(1),...
-        spm_str_manip(...
-        subsref(get(gco,'UserData'),...
-        struct('type',{'.','()'},...
-            'subs',{'fnames',{ij(1),':'}})),'Ca40'));
-    catch, str='(no cached image filenames to surf)'; end
-case 'alt'
-    try, str = sprintf('Parameter %d: %s',ij(2),...
-        subsref(get(gco,'UserData'),...
-        struct('type',{'.','{}'},'subs',{'Xnames',{ij(2)}})));
-        istr = 'tex';
-    catch, str='(no cached parameter names to surf)'; end
-case 'open'
-    try,    assignin('base','ans',subsref(get(gco,'UserData'),...
-            struct('type',{'.'},'subs',{'X'})))
-        evalin('base','ans')
-    catch,  fprintf('%s GUI: can''t find design matrix\n',mfilename)
-    end
-    return
+    case 'normal'
+        try, str = sprintf('X(%d,%d) = %g',ij(1),ij(2),...
+                subsref(get(gco,'UserData'),...
+                struct('type',{'.','()'},'subs',{'X',{ij(1),ij(2)}})));
+        catch, str='(no cached design matrix to surf)'; end
+    case 'extend'
+        try, str = sprintf('Image %d: %s',ij(1),...
+                char(spm_file(...
+                subsref(get(gco,'UserData'),...
+                struct('type',{'.','()'},...
+                'subs',{'fnames',{ij(1),':'}})),'short40')));
+        catch, str='(no cached image filenames to surf)'; end
+    case 'alt'
+        try, str = sprintf('Parameter %d: %s',ij(2),...
+                subsref(get(gco,'UserData'),...
+                struct('type',{'.','{}'},'subs',{'Xnames',{ij(2)}})));
+            istr = 'tex';
+        catch, str='(no cached parameter names to surf)'; end
+    case 'open'
+        try,    assignin('base','ans',subsref(get(gco,'UserData'),...
+                struct('type',{'.'},'subs',{'X'})))
+            evalin('base','ans')
+        catch,  fprintf('%s GUI: can''t find design matrix\n',mfilename)
+        end
+        return
 end
 
 set(h,'String',str,'Interpreter',istr)
