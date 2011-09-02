@@ -1,5 +1,5 @@
 /*
- * $Id: spm_brainwarp.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_brainwarp.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -78,7 +78,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
     double *Jz[3][3], *Jy[3][3], J[3][3];
     double *bz3[3], *by3[3], *bx3[3];
     double nsamp = 0.0;
-    int *dim1;
+    mwSize *dim1;
     double MW[16];
 
     if (VWF != (MAPTYPE *)0)

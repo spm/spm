@@ -1,20 +1,20 @@
 /*
- * $Id: spm_hist.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_hist.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
 #include "mex.h"
 
-void create_hist(int n, unsigned char c[], double f[], double h[])
+void create_hist(mwSize n, unsigned char c[], double f[], double h[])
 {
-    int i;
+    mwIndex i;
     for(i=0; i<n; i++)
         h[c[i]] += f[i];
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    int n;
+    mwSize n;
     if (nrhs != 2)
         mexErrMsgTxt("Incorrect usage.");
 
@@ -23,6 +23,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (!mxIsUint8(prhs[0])) mexErrMsgTxt("Incorrect usage.");
     if (!mxIsDouble(prhs[1])) mexErrMsgTxt("Incorrect usage.");
     plhs[0] = mxCreateDoubleMatrix(256,1,mxREAL);
-    create_hist(n, (unsigned char *)mxGetPr(prhs[0]), mxGetPr(prhs[1]),mxGetPr(plhs[0]));
+    create_hist(n,(unsigned char *)mxGetData(prhs[0]),mxGetPr(prhs[1]),mxGetPr(plhs[0]));
 }
-

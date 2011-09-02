@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_access.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_vol_access.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -25,10 +25,20 @@ int get_datasize(int type)
 
 int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, int hold, double background)
 {
-    extern void resample_uchar(), resample_schar(), resample_short(), resample_ushort(), 
-        resample_int(), resample_uint(), resample_float(), resample_double(), 
-        resample_short_s(), resample_ushort_s(), resample_int_s(), resample_uint_s(), 
-        resample_float_s(), resample_double_s();
+    extern void resample_uchar(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_schar(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_short(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_ushort(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_int(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_uint(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_float(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_double(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_short_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_ushort_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_int_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_uint_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_float_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_double_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
     if (vol->dtype == SPM_UNSIGNED_CHAR)
          resample_uchar(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
@@ -82,10 +92,20 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
 
 int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, double *gradz, double *x, double *y, double *z, int hold, double background)
 {
-    extern void resample_d_uchar(), resample_d_schar(), resample_d_short(), resample_d_ushort(),
-        resample_d_int(), resample_d_uint(), resample_d_float(), resample_d_double(),
-        resample_d_short_s(), resample_d_ushort_s(), resample_d_int_s(), resample_d_uint_s(),
-        resample_d_float_s(), resample_d_double_s();
+    extern void resample_d_uchar(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_schar(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_short(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_ushort(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_int(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_uint(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_float(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_double(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_short_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_ushort_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_int_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_uint_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_float_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_double_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
     if (vol->dtype == SPM_UNSIGNED_CHAR)
          resample_d_uchar(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],

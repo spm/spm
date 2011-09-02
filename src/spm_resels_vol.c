@@ -1,5 +1,5 @@
 /*
- * $Id: spm_resels_vol.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_resels_vol.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
  
@@ -78,8 +78,9 @@ static void resel_fun(int *curr, int *prev, /* current and previous planes */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     MAPTYPE *map, *get_maps();
-    int m,n,k,i;
-    int E[3], F[3], P, C;
+    mwSize m,n,k;
+    mwIndex i;
+    int nn, E[3], F[3], P, C;
     double *R, r[3], *img;
     int *curr, *prev, *tmpp;
 
@@ -88,24 +89,22 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Incorrect usage.");
     }
 
-    map = get_maps(prhs[0], &n);
-    if (n!=1)
+    map = get_maps(prhs[0], &nn);
+    if (nn!=1)
     {
-        free_maps(map, n);
+        free_maps(map, nn);
         mexErrMsgTxt("Bad image handle dimensions.");
     }
 
-    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
-        !mxIsDouble(prhs[1]))
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || !mxIsDouble(prhs[1]))
     {
         free_maps(map, 1);
         mexErrMsgTxt("Second argument must be numeric, real, full and double.");
-
     }
 
     if (mxGetM(prhs[1])*mxGetN(prhs[1]) != 3)
     {
-        free_maps(map, n);
+        free_maps(map, nn);
         mexErrMsgTxt("Second argument must contain three elements.");
     }
 

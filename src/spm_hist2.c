@@ -1,12 +1,12 @@
 /*
- * $Id: spm_hist2.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_hist2.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
 #include <math.h>
 #include "mex.h"
 
-float samp(const int d[3], unsigned char f[], float x, float y, float z)
+float samp(const mwSize d[3], unsigned char f[], float x, float y, float z)
 {
     int ix, iy, iz;
     float dx1, dy1, dz1, dx2, dy2, dz2;
@@ -32,7 +32,7 @@ float samp(const int d[3], unsigned char f[], float x, float y, float z)
     return(vf);
 }
 
-void hist2(double M[16], unsigned char g[], unsigned char f[], const int dg[3], const int df[3], 
+void hist2(double M[16], unsigned char g[], unsigned char f[], const mwSize dg[3], const mwSize df[3], 
 double H[65536], float s[3])
 {
     static float ran[] = {0.656619,0.891183,0.488144,0.992646,0.373326,0.531378,0.181316,0.501944,0.422195,
@@ -103,20 +103,20 @@ double H[65536], float s[3])
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    const int *dimsf, *dimsg;
+    const mwSize *dimsf, *dimsg;
     float s[3];
 
     if (nrhs>4 || nrhs<3 || nlhs>1) mexErrMsgTxt("Incorrect usage.");
 
     if (!mxIsNumeric(prhs[0]) || !mxIsUint8(prhs[0]) || mxIsComplex(prhs[0]))
         mexErrMsgTxt("Wrong sort of data (1).");
-    if (mxGetNumberOfDimensions(prhs[0]) != 3) mexErrMsgTxt("Wrong number of dims (1).");;
-    dimsg  = mxGetDimensions(prhs[0]);
+    if (mxGetNumberOfDimensions(prhs[0]) != 3) mexErrMsgTxt("Wrong number of dims (1).");
+    dimsg = mxGetDimensions(prhs[0]);
 
     if (!mxIsNumeric(prhs[1]) || !mxIsUint8(prhs[1]) || mxIsComplex(prhs[1]))
         mexErrMsgTxt("Wrong sort of data (2).");
-    if (mxGetNumberOfDimensions(prhs[0]) != 3) mexErrMsgTxt("Wrong number of dims (1).");;
-    dimsf  = mxGetDimensions(prhs[1]);
+    if (mxGetNumberOfDimensions(prhs[1]) != 3) mexErrMsgTxt("Wrong number of dims (2).");
+    dimsf = mxGetDimensions(prhs[1]);
 
     if (!mxIsNumeric(prhs[2]) || !mxIsDouble(prhs[2]) || mxIsComplex(prhs[2]))
         mexErrMsgTxt("Wrong sort of matrix.");
@@ -139,9 +139,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     plhs[0] = mxCreateDoubleMatrix(256,256,mxREAL);
 
-    hist2(mxGetPr(prhs[2]), (unsigned char *)mxGetPr(prhs[0]), (unsigned char *)mxGetPr(prhs[1]),
+    hist2(mxGetPr(prhs[2]), (unsigned char *)mxGetData(prhs[0]), (unsigned char *)mxGetData(prhs[1]),
         dimsg, dimsf, mxGetPr(plhs[0]), s);
 
 }
-
-

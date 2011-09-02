@@ -1,5 +1,5 @@
 /*
- * $Id: spm_dilate_erode.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_dilate_erode.c 4453 2011-09-02 10:47:25Z guillaume $
  * Jesper Andersson
  */
 
@@ -17,10 +17,10 @@
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int get_index(int            i,
-              int            j,
-              int            k,
-              unsigned int   dim[3])
+int get_index(int     i,
+              int     j,
+              int     k,
+              mwSize  dim[3])
 {
     if ((i<0) || (i>(dim[0]-1)) || (j<0) || (j>(dim[1]-1)) || (k<0) || (k>(dim[2]-1)))
         return(-1);
@@ -30,17 +30,17 @@ int get_index(int            i,
 
 /* Function doing the job. */
 
-void do_it(double         *iima,
-           unsigned int   dim[3],
-           double         *krnl,
-           unsigned int   kdim[3],
-           int            dilate,
-           double         *oima)
+void do_it(double  *iima,
+           mwSize  dim[3],
+           double  *krnl,
+           mwSize  kdim[3],
+           int     dilate,
+           double  *oima)
 {
-    int     i=0, j=0, k=0;
-    int     ki=0, kj=0, kk=0;
-    int     ndx=0, kndx=0;
-    double  kv=0.0;
+    mwIndex  i=0, j=0, k=0;
+    mwIndex  ki=0, kj=0, kk=0;
+    mwIndex  ndx=0, kndx=0;
+    double   kv=0.0;
   
     for (i=0; i<dim[0]; i++)
     {
@@ -82,20 +82,17 @@ void do_it(double         *iima,
 }
 
 
-/* Gateway function with error check. */
+/* Gateway function */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     char           *fnc_str;
-    int            ndim=0, krn_ndim=0;
+    mwSize            ndim=0, krn_ndim=0;
     int            n, i;
     int            dilate = 0;
-    int            buflen = 0;
-    const int      *cdim = NULL, *krn_cdim = NULL;
-    unsigned int   dim[3], kdim[3];
+    mwSize            buflen = 0;
+    const mwSize      *cdim = NULL, *krn_cdim = NULL;
+    mwSize   dim[3], kdim[3];
     double         *iima = NULL;
     double         *oima = NULL;
     double         *krnl = NULL;
@@ -105,7 +102,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
     if (nlhs < 1) mexErrMsgTxt("Not enough output arguments");
     if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
 
-    /* Get image. */
+    /* Get image */
 
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
     {
@@ -119,7 +116,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
     cdim = mxGetDimensions(prhs[0]);
     iima = mxGetPr(prhs[0]);
 
-    /* Fix dimensions to allow for 2D and 3D data. */
+    /* Fix dimensions to allow for 2D and 3D data */
 
     dim[0] = cdim[0]; dim[1] = cdim[1];
     if (ndim==2) {dim[2]=1; ndim=3;} else {dim[2]=cdim[2];} 
@@ -144,7 +141,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
     kdim[0]=krn_cdim[0]; kdim[1]=krn_cdim[1];
     if (krn_ndim==2) {kdim[2]=1; krn_ndim=3;} else {kdim[2]=krn_cdim[2];} 
 
-    /* Check if dilate or erode. */
+    /* Check if dilate or erode */
 
     if (!mxIsChar(prhs[2]) || (mxGetM(prhs[2]) != 1))
     {
@@ -162,7 +159,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
     if (!strcmp(fnc_str,"dilate")) {dilate = 1;}
     else {dilate = 0;}
    
-    /* Allocate and initialise output image. */
+    /* Allocate and initialise output image */
 
     plhs[0] = mxCreateNumericArray(mxGetNumberOfDimensions(prhs[0]),
                                    mxGetDimensions(prhs[0]),mxDOUBLE_CLASS,mxREAL);
@@ -176,4 +173,3 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 
     mxFree(fnc_str);
 }
-

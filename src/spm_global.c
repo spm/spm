@@ -1,19 +1,7 @@
 /*
- * $Id: spm_global.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_global.c 4453 2011-09-02 10:47:25Z guillaume $
+ * John Ashburner
  */
-
-/* returns the global mean for a memory mapped volume image
-  FORMAT [G] = spm_global(V)
-  V   - memory mapped volume
-  G   - mean global activity
- ____________________________________________________________________________
- 
-  spm_global returns the mean counts integrated over all the  
-  slices from the volume
- 
-  The mean is estimated after discounting voxels outside the object
-  using a criteria of greater than > (global mean)/8
-*/
 
 #include <math.h>
 #include "mex.h"

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_utils.c 4081 2010-10-07 14:04:44Z guillaume $
+ * $Id: spm_mesh_utils.c 4453 2011-09-02 10:47:25Z guillaume $
  * Guillaume Flandin
  */
 
@@ -49,9 +49,10 @@ void dijkstra(double *nghbr, double *dnghbr, int nv, int nb,
 void mexFunctionVolume(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     double vol, x1, x2, x3, y1, y2, y3, z1, z2, z3; 
-    double *f, *v;
-    mxArray *array;
-    int i, nv, nf;
+    double *f = NULL, *v = NULL;
+    mxArray *array = NULL;
+    mwSize nv, nf;
+    mwIndex i;
     
     if (nrhs == 0) mexErrMsgTxt("Not enough input arguments.");
     if (nrhs > 1) mexErrMsgTxt("Too many input arguments.");
@@ -83,7 +84,7 @@ void mexFunctionVolume(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[
 void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize i, j, k, n, d = 0;
-    mwIndex *Ir, *Jc;
+    mwIndex *Ir = NULL, *Jc = NULL;
     double *N = NULL, *D = NULL, *pr = NULL;
     
     if (nrhs == 0) mexErrMsgTxt("Not enough input arguments.");
@@ -120,7 +121,9 @@ void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
 /* Gateway Function for Dijkstra */
 void mexFunctionDijkstra(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    int i, nv, nb, ns, *source;
+    mwSize nv, nb, ns;
+    mwIndex i;
+    int *source = NULL;
     double distmax;
     
     if (nrhs < 4) mexErrMsgTxt("Not enough input arguments.");
@@ -134,7 +137,7 @@ void mexFunctionDijkstra(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     nb = mxGetN(prhs[0]);
     
     ns = mxGetNumberOfElements(prhs[2]);
-    source = mxMalloc(ns*sizeof(double));
+    source = mxMalloc(ns*sizeof(int));
     for (i=0;i<ns;i++) {
         source[i] = (int)mxGetPr(prhs[2])[i];
         if ((source[i]<0) || (source[i]>=nv)) mexErrMsgTxt("Invalid vertex index.");

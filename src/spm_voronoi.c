@@ -1,5 +1,5 @@
 /*
- * $Id: spm_voronoi.c 2052 2008-09-08 16:30:57Z guillaume $
+ * $Id: spm_voronoi.c 4453 2011-09-02 10:47:25Z guillaume $
  * Guillaume Flandin
  */
 
@@ -199,16 +199,16 @@ mask maskd5711[] = {{-1,  -2,  -2,  15.0},
 
 /* --- GEODESIC VORONOI SUBROUTINE --- */
 void geodesic_voronoi(double *img,         /* domain image mask */
-                      unsigned int *size,  /* size of domain image */
+                      mwSize *size,        /* size of domain image */
                       double *voxsize,     /* size of voxels (in mm) */
                       double *seeds,       /* positions of the seeds */
                       int nbseeds,         /* number of seeds*/
                       double *vor,         /* voronoi diagram */
                       double *dmap,        /* geodesic distance map */
                       char *dist) {        /* type of distance */
-    int i, j, a;
+    mwIndex i, j, a;
     int k = 1, l = 1, p = 1, s = 1;
-    unsigned int m = size[0], n = size[1], o = size[2];
+    mwSize m = size[0], n = size[1], o = size[2];
     
     mask *cmask = NULL;
     queue q;
@@ -349,12 +349,12 @@ void geodesic_voronoi(double *img,         /* domain image mask */
 }
 
 /* --- GATEWAY FUNCTION --- */
-void mexFunction(int nlhs, mxArray *plhs[],
-                 int nrhs, const mxArray *prhs[]) {
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
 
 double *img = NULL, *distmap = NULL, *vor = NULL;
 double *voxsize = NULL, *seeds = NULL;
-unsigned int size[3], sdist, nbseeds;
+mwSize size[3], nbseeds, sdist;
 char *dist = NULL;
 mxArray *dmap = NULL, *vord = NULL;
 
@@ -414,10 +414,10 @@ else {
 }
 
 /* Create mxArray's */
-dmap = mxCreateNumericArray(3, (const int*)size, mxDOUBLE_CLASS, mxREAL);
+dmap = mxCreateNumericArray(3, size, mxDOUBLE_CLASS, mxREAL);
 distmap = mxGetPr(dmap);
 
-vord = mxCreateNumericArray(3, (const int*)size, mxDOUBLE_CLASS, mxREAL);
+vord = mxCreateNumericArray(3, size, mxDOUBLE_CLASS, mxREAL);
 vor = mxGetPr(vord);
 
 /* Call the Geodesic Voronoi subroutine. */

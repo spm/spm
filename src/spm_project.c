@@ -1,27 +1,7 @@
 /*
- * $Id: spm_project.c 4399 2011-07-19 16:28:36Z guillaume $
+ * $Id: spm_project.c 4453 2011-09-02 10:47:25Z guillaume $
+ * John Ashburner
  */
- 
-/*
-
-spm_project.c
-% forms maximium intensity projections - a compiled routine
-% FORMAT spm_project(X,L,dims)
-% X    - a matrix of voxel values
-% L    - a matrix of locations in Talairach et Tournoux (1988) space
-% dims - assorted dimensions
-%        dims(1:3) - the sizes of the projected rectangles.
-%        dims(4:5) - the dimensions of the mip image.
-%____________________________________________________________________________
-%
-% spm_project 'fills in' a matrix (SPM) in the workspace to create
-% a maximum intensity projection according to a point list of voxel
-% values (V) and their locations (L) in the standard space described
-% in the atlas of Talairach & Tournoux (1988).
-%
-% see also spm_mip.m
-
-*/
 
 #include <math.h>
 #include <stdio.h>
@@ -33,7 +13,8 @@ spm_project.c
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     double *spm,*l,*v,*dim;
-    int    m,m1,n,i,j,k, o;
+    mwSize m,n;
+    int    m1,i,j,k, o;
     int    x,y,z,xdim,ydim,zdim;
     double q;
     double *DXYZ, *CXYZ;
@@ -90,7 +71,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       CZ = (int) (CXYZ[2]);
     }
 
-    plhs[0] = mxCreateDoubleMatrix(m,m1,mxREAL);
+    plhs[0] = mxCreateDoubleMatrix(m,(mwSize)m1,mxREAL);
     spm     = mxGetPr(plhs[0]);
 
     if (m == DY+DX && m1 == DZ+DX) /* MNI Space */

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_mapping.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -63,7 +63,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
     mxArray *tmp;
     double *pr;
     int num_dims, j, t, dtype = 0;
-    const int *dims;
+    const mwSize *dims;
     unsigned char *dptr;
 
     tmp=mxGetField(ptr,i,"dat");
@@ -107,9 +107,9 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
             mexErrMsgTxt("Wrong sized dim.");
         }
         pr = mxGetPr(tmp);
-        if (maps[i].dim[0] != (int)fabs(pr[0]) ||
-            maps[i].dim[1] != (int)fabs(pr[1]) ||
-            maps[i].dim[2] != (int)fabs(pr[2]))
+        if (maps[i].dim[0] != (mwSize)fabs(pr[0]) ||
+            maps[i].dim[1] != (mwSize)fabs(pr[1]) ||
+            maps[i].dim[2] != (mwSize)fabs(pr[2]))
         {
             free_maps(maps,i);
             mexErrMsgTxt("Incompatible volume dimensions in dim.");
@@ -429,7 +429,7 @@ static MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 {
     MAPTYPE *maps;
     int num_dims, i;
-    const int *dims;
+    const mwSize *dims;
 
     if (!mxIsStruct(ptr))
     {
@@ -461,7 +461,7 @@ static MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 {
     int num_dims, jj, t, dtype = 0;
-    const int *dims;
+    const mwSize *dims;
     MAPTYPE *maps;
     unsigned char *dptr;
 

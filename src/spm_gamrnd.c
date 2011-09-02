@@ -1,5 +1,5 @@
 /*
- * $Id: spm_gamrnd.c 3251 2009-07-06 17:29:44Z guillaume $
+ * $Id: spm_gamrnd.c 4453 2011-09-02 10:47:25Z guillaume $
  * Guillaume Flandin
  */
 
@@ -90,10 +90,8 @@ double GammaRand(double a)
  */
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]) {
-  int ndims, len, i;
-  int *dims = NULL;
-  double a, b;
-  double *o = NULL;
+  mwSize i, len, ndims, *dims = NULL;
+  double a, b, *o = NULL;
 
   if (nlhs > 1)
     mexErrMsgTxt("Too many output arguments.");
@@ -102,11 +100,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
     mexErrMsgTxt("Requires at least two input arguments.");
 
   ndims = (nrhs == 2) ? 1 : nrhs-2;
-  dims = (int*)mxMalloc(ndims*sizeof(int));
+  dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
   
   len = 1;
   for (i=0;i<ndims;i++) {
-    dims[i] = (nrhs == 2) ? 1 : (int)mxGetScalar(prhs[i+2]);
+    dims[i] = (nrhs == 2) ? 1 : (mwSize)mxGetScalar(prhs[i+2]);
     len *= dims[i];
   }
   

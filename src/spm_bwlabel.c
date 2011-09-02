@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 4178 2011-01-27 15:12:53Z guillaume $
+ * $Id: spm_bwlabel.c 4453 2011-09-02 10:47:25Z guillaume $
  * Jesper Andersson
  */
 
@@ -27,7 +27,7 @@
 #include <limits.h>
 #include "mex.h"
 
-/* Silly little macros. */
+/* Macros */
 
 #define index(A,B,C,DIM) ((C)*DIM[0]*DIM[1] + (B)*DIM[0] + (A))
 
@@ -39,52 +39,106 @@
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 #endif
 
+/* fill_tratab */
 
-/* Function prototypes. */
-
-unsigned int do_initial_labelling(double         *bw,   /* Binary map */
-                                  int            *dim,  /* Dimensions of bw */
-                                  unsigned int   conn,  /* Connectivity criterion */
-                                  unsigned int   *il,   /* Initially labelled map */
-                                  unsigned int   **tt); /* Translation table */
-
-unsigned int check_previous_slice(unsigned int *il,     /* Initial labelling map */
-                                  unsigned int r,       /* row */
-                                  unsigned int c,       /* column */
-                                  unsigned int sl,      /* slice */
-                                  int          dim[3],  /* dimensions of il */
-                                  unsigned int conn,    /* Connectivity criterion */
-                                  unsigned int *tt,     /* Translation table */
-                                  unsigned int ttn);    /* Size of translation table */
-
-void fill_tratab(unsigned int    *tt,      /* Translation table */
-                 unsigned int    ttn,      /* Size of translation table */
-                 unsigned int    *nabo,    /* Set of neighbours */
-                 unsigned int    nr_set);  /* Number of neighbours in nabo */
-
-double translate_labels(unsigned int    *il,     /* Map of initial labels. */
-                        int             dim[3],  /* Dimensions of il. */
-                        unsigned int    *tt,     /* Translation table. */
-                        unsigned int    ttn,     /* Size of translation table. */
-                        double          *l);     /* Final map of labels. */
-
-
-
-/* Here starts actual code. */
-
-unsigned int do_initial_labelling(double         *bw,   /* Binary map */
-                                  int            *dim,  /* Dimensions of bw */
-                                  unsigned int   conn,  /* Connectivity criterion */
-                                  unsigned int   *il,   /* Initially labelled map */
-                                  unsigned int   **tt)  /* Translation table */
+void fill_tratab(unsigned int  *tt,     /* Translation table */
+                 unsigned int  ttn,     /* Size of translation table */
+                 unsigned int  *nabo,   /* Set of neighbours */
+                 unsigned int  nr_set)  /* Number of neighbours in nabo */
 {
-   unsigned int     i = 0, j = 0;
-   unsigned int     nabo[8];
-   unsigned int     label = 1;
-   unsigned int     nr_set = 0;
-   unsigned int     l = 0;
-   unsigned int     sl=0, r=0, c=0;
-   unsigned int     ttn = 1000;
+   int           i = 0, j = 0, cntr = 0;
+   unsigned int  tn[9];
+   unsigned int  ltn = UINT_MAX;
+
+   /*
+   Find smallest terminal number in neighbourhood
+   */
+
+   for (i=0; i<nr_set; i++)
+   {
+      j = nabo[i];
+      cntr=0;
+      while (tt[j-1] != j) 
+      {
+         j = tt[j-1];
+         cntr++;
+         if (cntr>100) {printf("\nOoh no!!"); break;}
+      }
+      tn[i] = j;
+      ltn = MIN(ltn,j);
+   }
+   /*
+   Replace all terminal numbers in neighbourhood by the smallest one
+   */
+   for (i=0; i<nr_set; i++)
+   {
+      tt[tn[i]-1] = ltn;
+   }
+
+   return;
+}
+
+
+/* check_previous_slice */
+
+unsigned int check_previous_slice(unsigned int  *il,     /* Initial labelling map */
+                                  unsigned int  r,       /* row */
+                                  unsigned int  c,       /* column */
+                                  unsigned int  sl,      /* slice */
+                                  mwSize        dim[3],  /* dimensions of il */
+                                  unsigned int  conn,    /* Connectivity criterion */
+                                  unsigned int  *tt,     /* Translation table */
+                                  unsigned int  ttn)     /* Size of translation table */
+{
+   unsigned int l=0;
+   unsigned int nabo[9];
+   unsigned int nr_set = 0;
+
+   if (!sl) return(0);
+  
+   if (conn >= 6)
+   {
+      if ((l = il[index(r,c,sl-1,dim)])) {nabo[nr_set++] = l;}
+   }
+   if (conn >= 18)
+   {
+      if (r) {if ((l = il[index(r-1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (c) {if ((l = il[index(r,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (r < dim[0]-1) {if ((l = il[index(r+1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (c < dim[1]-1) {if ((l = il[index(r,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+   }
+   if (conn == 26)
+   {
+      if (r && c) {if ((l = il[index(r-1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if ((r < dim[0]-1) && c) {if ((l = il[index(r+1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if (r && (c < dim[1]-1)) {if ((l = il[index(r-1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+      if ((r < dim[0]-1) && (c < dim[1]-1)) {if ((l = il[index(r+1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
+   }
+
+   if (nr_set) 
+   {
+      fill_tratab(tt,ttn,nabo,nr_set);
+      return(nabo[0]);
+   }
+   else {return(0);}
+}
+
+
+/* do_initial_labelling */
+
+unsigned int do_initial_labelling(double        *bw,   /* Binary map */
+                                  mwSize        *dim,  /* Dimensions of bw */
+                                  unsigned int  conn,  /* Connectivity criterion */
+                                  unsigned int  *il,   /* Initially labelled map */
+                                  unsigned int  **tt)  /* Translation table */
+{
+   unsigned int  i = 0, j = 0;
+   unsigned int  nabo[8];
+   unsigned int  label = 1;
+   unsigned int  nr_set = 0;
+   unsigned int  l = 0;
+   mwIndex       sl, r, c;
+   unsigned int  ttn = 1000;
 
    *tt = (unsigned int *) mxCalloc(ttn,sizeof(unsigned int));
 
@@ -163,90 +217,14 @@ unsigned int do_initial_labelling(double         *bw,   /* Binary map */
    return(label-1);
 }
 
-unsigned int check_previous_slice(unsigned int *il,     /* Initial labelling map */
-                                  unsigned int r,       /* row */
-                                  unsigned int c,       /* column */
-                                  unsigned int sl,      /* slice */
-                                  int          dim[3],  /* dimensions of il */
-                                  unsigned int conn,    /* Connectivity criterion */
-                                  unsigned int *tt,     /* Translation table */
-                                  unsigned int ttn)     /* Size of translation table */
-{
-   unsigned int    l=0;
-   unsigned int    nabo[9];
-   unsigned int    nr_set = 0;
 
-   if (!sl) return(0);
-  
-   if (conn >= 6)
-   {
-      if ((l = il[index(r,c,sl-1,dim)])) {nabo[nr_set++] = l;}
-   }
-   if (conn >= 18)
-   {
-      if (r) {if ((l = il[index(r-1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if (c) {if ((l = il[index(r,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if (r < dim[0]-1) {if ((l = il[index(r+1,c,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if (c < dim[1]-1) {if ((l = il[index(r,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-   }
-   if (conn == 26)
-   {
-      if (r && c) {if ((l = il[index(r-1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if ((r < dim[0]-1) && c) {if ((l = il[index(r+1,c-1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if (r && (c < dim[1]-1)) {if ((l = il[index(r-1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-      if ((r < dim[0]-1) && (c < dim[1]-1)) {if ((l = il[index(r+1,c+1,sl-1,dim)])) {nabo[nr_set++] = l;}}
-   }
+/* translate_labels */
 
-   if (nr_set) 
-   {
-      fill_tratab(tt,ttn,nabo,nr_set);
-      return(nabo[0]);
-   }
-   else {return(0);}
-}
-
-void fill_tratab(unsigned int    *tt,      /* Translation table */
-                 unsigned int    ttn,      /* Size of translation table */
-                 unsigned int    *nabo,    /* Set of neighbours */
-                 unsigned int    nr_set)   /* Number of neighbours in nabo */
-{
-   int           i = 0, j = 0, cntr = 0;
-   unsigned int  tn[9];
-   unsigned int  ltn = UINT_MAX;
-
-   /*
-   Find smallest terminal number in neighbourhood
-   */
-
-   for (i=0; i<nr_set; i++)
-   {
-      j = nabo[i];
-      cntr=0;
-      while (tt[j-1] != j) 
-      {
-         j = tt[j-1];
-         cntr++;
-         if (cntr>100) {printf("\nOoh no!!"); break;}
-      }
-      tn[i] = j;
-      ltn = MIN(ltn,j);
-   }
-   /*
-   Replace all terminal numbers in neighbourhood by the smallest one
-   */
-   for (i=0; i<nr_set; i++)
-   {
-      tt[tn[i]-1] = ltn;
-   }
-
-   return;
-}
-
-double translate_labels(unsigned int    *il,     /* Map of initial labels. */
-                        int             dim[3],  /* Dimensions of il. */
-                        unsigned int    *tt,     /* Translation table. */
-                        unsigned int    ttn,     /* Size of translation table. */
-                        double          *l)      /* Final map of labels. */
+double translate_labels(unsigned int  *il,     /* Map of initial labels. */
+                        mwSize        dim[3],  /* Dimensions of il. */
+                        unsigned int  *tt,     /* Translation table. */
+                        unsigned int  ttn,     /* Size of translation table. */
+                        double        *l)      /* Final map of labels. */
 {
    int            n=0;
    int            i=0;
@@ -279,34 +257,31 @@ double translate_labels(unsigned int    *il,     /* Map of initial labels. */
 }
 
 
-/* Gateway function with error check. */
+/* Gateway function */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            ndim;
-   int            n, i;
-   int            dim[3];
-   const int      *cdim = NULL;
-   unsigned int   conn;
-   unsigned int   tmp1;
-   unsigned int   tmp2;
-   unsigned int   ttn = 0;
-   unsigned int   *il = NULL;
-   unsigned int   *tt = NULL;
-   double         *bw = NULL;
-   double         *l = NULL;
-   double         dconn = 0.0;
-   double         nl = 0.0;
+   mwSize        ndim;
+   int           n, i;
+   mwSize        dim[3];
+   const mwSize  *cdim = NULL;
+   unsigned int  conn;
+   mwSize        tmp1;
+   mwSize        tmp2;
+   unsigned int  ttn = 0;
+   unsigned int  *il = NULL;
+   unsigned int  *tt = NULL;
+   double        *bw = NULL;
+   double        *l = NULL;
+   double        dconn = 0.0;
+   double        nl = 0.0;
 
    if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
    if (nlhs < 2) mexErrMsgTxt("Not enough output arguments");
    if (nlhs > 2) mexErrMsgTxt("Too many output arguments.");
 
-   /* Get binary map. */
+   /* Get binary map */
 
    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
    {
@@ -326,7 +301,7 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    }
    bw = mxGetPr(prhs[0]);
 
-   /* Get connectedness criterion. */
+   /* Get connectedness criterion */
    
    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
    {
@@ -341,16 +316,12 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
       mexErrMsgTxt("spm_bwlabel: CONN must be 6, 18 or 26");
    }
 
-   /* Allocate memory for output. */
+   /* Allocate memory for output and initialise to 0 */
 
    plhs[0] = mxCreateNumericArray(ndim,dim,mxDOUBLE_CLASS,mxREAL);
    l = mxGetPr(plhs[0]);
-  
-   /* Initialise output maps to zero. */
-   /* => mxCreateNumericArray initializes all its real data elements to 0. */
-   /* memset(l,0,n*sizeof(double)); */
 
-   /* Allocate memory for initial labelling map. */
+   /* Allocate memory for initial labelling map */
 
    il = (unsigned int *) mxCalloc(n,sizeof(unsigned int));
 
@@ -369,10 +340,4 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    mxFree(il);
    mxFree(tt);
    
-   return;
 }
-
-
-
-
-

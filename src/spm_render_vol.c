@@ -1,5 +1,5 @@
 /*
- * $Id: spm_render_vol.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_render_vol.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -8,12 +8,8 @@
 #include "spm_mapping.h"
 #define RINT(A) floor((A)+0.5)
 
-void surface(mat, zbuff, xcords, ycords, zcords, xdim1, ydim1, vol, thresh)
-double  mat[16];
-double xcords[], ycords[], zcords[], zbuff[];
-MAPTYPE *vol;
-int xdim1, ydim1;
-double thresh;
+void surface(double mat[], double zbuff[], double xcords[], double ycords[], 
+        double zcords[], mwSize xdim1, mwSize ydim1, MAPTYPE *vol, double thresh)
 {
     /*
     Project the coordinates of voxels which lie on the surface of the object
@@ -122,32 +118,27 @@ double thresh;
         current = next;
         next    = tmp;
     }
-    mxFree((char *)dat);
-    mxFree((char *)current);
-    mxFree((char *)prev);
-    mxFree((char *)next);
+    mxFree(dat);
+    mxFree(current);
+    mxFree(prev);
+    mxFree(next);
 }
 
-void render(xcords, ycords, zcords, xdim1, ydim1, out, vol, light, thresh, nn)
-double light[3];
-double out[], xcords[], ycords[], zcords[];
-MAPTYPE *vol;
-int xdim1, ydim1;
-int nn;
-double thresh;
+void render(double xcords[], double ycords[], double zcords[], mwSize xdim1, 
+        mwSize ydim1, double out[], MAPTYPE *vol, double light[], double thresh, int nn)
 {
-    double  *filt, *filtp;
+    double *filt, *filtp;
     int dx, dy, dz, i, nnn;
     double *X, *Y, *Z, *dat;
 
-    nnn = (nn*2+1)*(nn*2+1)*(nn*2+1);
-    X  =(double *)mxCalloc(nnn, sizeof(double));
-    Y  =(double *)mxCalloc(nnn, sizeof(double));
-    Z  =(double *)mxCalloc(nnn, sizeof(double));
-    dat=(double *)mxCalloc(nnn, sizeof(double));
+    nnn  = (nn*2+1)*(nn*2+1)*(nn*2+1);
+    X    = (double *)mxCalloc(nnn, sizeof(double));
+    Y    = (double *)mxCalloc(nnn, sizeof(double));
+    Z    = (double *)mxCalloc(nnn, sizeof(double));
+    dat  = (double *)mxCalloc(nnn, sizeof(double));
+    filt = (double *)mxCalloc((nn*2+1)*(nn*2+1)*(nn*2+1), sizeof(double));
 
-    if ((filt = (double *)mxCalloc((nn*2+1)*(nn*2+1)*(nn*2+1), sizeof(double))) == (double *)0)
-        return;
+    if (filt == NULL) return;
 
     /* create a 3D 'filter' which should produce the appropriate shading */
     filtp = filt;
@@ -187,18 +178,16 @@ double thresh;
             out[i] = val;
         }
 
-    (void)mxFree((char *)filt);
-    (void)mxFree((char *)X);
-    (void)mxFree((char *)Y);
-    (void)mxFree((char *)Z);
-    (void)mxFree((char *)dat);
+    mxFree(filt);
+    mxFree(X);
+    mxFree(Y);
+    mxFree(Z);
+    mxFree(dat);
 }
 
-void initdat(dat, size,val)
-double dat[], val;
-int size;
+void initdat(double dat[], mwSize size, double val)
 {
-    int i;
+    mwIndex i;
     for(i=0; i<size; dat[i++] = val);
 }
 
@@ -206,17 +195,18 @@ int size;
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     MAPTYPE *map, *get_maps();
-    int m, n, k;
+    mwSize m, n, k;
+    int nn;
     double *mat;
     double *out, *odims, *params, *zbuff, *x, *y, *z;
     double light[3];
 
     if (nrhs != 4 || nlhs > 5) mexErrMsgTxt("Incorrect usage.");
 
-    map = get_maps(prhs[0], &n);
-    if (n!=1)
+    map = get_maps(prhs[0], &nn);
+    if (nn!=1)
     {
-        free_maps(map, n);
+        free_maps(map, nn);
         mexErrMsgTxt("Incorrect usage.");
     }
 
@@ -244,8 +234,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Output dimensions must have two elements.");
     }
     odims = mxGetPr(prhs[2]);
-    m = (int)odims[0];
-    n = (int)odims[1];
+    m = (mwSize)odims[0];
+    n = (mwSize)odims[1];
 
     if (mxGetM(prhs[3])*mxGetN(prhs[3]) != 2)
     {

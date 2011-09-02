@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_access.h 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_vol_access.h 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
  
@@ -14,10 +14,11 @@ typedef char *caddr_t;
 #else
 #include <sys/mman.h>
 #endif
+#include "mex.h"
 
 typedef struct maptype
 {
-    int dim[3];             /* Dimensions of the volume */
+    mwSize dim[3];          /* Dimensions of the volume */
     double *scale, *offset; /* Scalefactor and offset, such that true_intensity = vox*scale+offset */
     int dtype;              /* Data-type of volume */
     void **data;            /* Pointer to data */

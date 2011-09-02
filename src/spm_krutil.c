@@ -1,5 +1,5 @@
 /*
- * $Id: spm_krutil.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_krutil.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner & Jesper Andersson
  */
  
@@ -9,16 +9,11 @@
 
 /****************************************************************
  **
- ** This is an attempt to speed up the Matlab kron function a bit.
+ ** This is an attempt to speed up the MATLAB kron function a bit.
  ** It is used in the same way as kron (i.e. just replace e.g.
  ** C = kron(A,B); in your code by C = spm_kron(A,B)). It is
  ** roughly twice as fast as kron.
  ** N.B. Can only be used with full matrices (not sparse).
- **
- ** I did mess about with different ways of accessing the
- ** matrices quite a bit (yes, I tried pointers!) and this
- ** version turned out to be as fast as any, and still very
- ** easy to read/understand.
  **
  ** N,B.2 If you intend to call kron many times, each time
  ** adding to the same big matrix like in
@@ -38,24 +33,13 @@
  **    spm_kron_add(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2),AtA);
  ** end
  **
- ** which
- ** avoids the overhead of memory allocation for each call
- ** (roughly half the execution time, and saves loads of
- ** memory).
+ ** which avoids the overhead of memory allocation for each call
+ ** (roughly half the execution time, and saves loads of memory).
  **
  ***************************************************************/
-/* Jesper Andersson 3/12-03 */
  
-/* Silly little macro. */
+/* Macro */
 #define index(R,C,DIM) ((C-1)*DIM[0] + (R-1))
- 
-/* Function prototypes. */
-void kron(double          *m1,
-          unsigned int    *sz1,
-          double          *m2,
-          unsigned int    *sz2,
-          double          *bm,
-          unsigned int    *bsz);
  
 /*
    In this implementation I try to minimise the number
@@ -65,18 +49,18 @@ void kron(double          *m1,
    accessed.
 */
  
-void kron(double          *m1,
-          unsigned int    *sz1,
-          double          *m2,
-          unsigned int    *sz2,
-          double          *bm,
-          unsigned int    *bsz)
+void kron(double  *m1,
+          mwSize  *sz1,
+          double  *m2,
+          mwSize  *sz2,
+          double  *bm,
+          mwSize  *bsz)
 {
-   unsigned int   r1 = 0, c1 = 0;
-   unsigned int   r2 = 0, c2 = 0;
-   unsigned int   br = 0, bc = 0;
-   unsigned int   i2 = 0, im = 0;
-   double         v1 = 0.0;
+   mwIndex  r1 = 0, c1 = 0;
+   mwIndex  r2 = 0, c2 = 0;
+   mwIndex  br = 0, bc = 0;
+   mwIndex  i2 = 0, im = 0;
+   double   v1 = 0.0;
  
    for (c1=1; c1<=sz1[1]; c1++)
    {
@@ -101,24 +85,22 @@ void kron(double          *m1,
 }
  
  
-/* Gateway function with error check. */
-void mexFunction_kron(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+/* Gateway function with error check */
+
+void mexFunction_kron(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   unsigned int   sz1[2];
-   unsigned int   sz2[2];
-   unsigned int   bsz[2];
-   double         *m1 = NULL;
-   double         *m2 = NULL;
-   double         *bm = NULL;
+   mwSize  sz1[2];
+   mwSize  sz2[2];
+   mwSize  bsz[2];
+   double  *m1 = NULL;
+   double  *m2 = NULL;
+   double  *bm = NULL;
  
    if (nrhs == 0) mexErrMsgTxt("usage: BM=spm_kron(M1,M2)");
    if (nrhs != 2) mexErrMsgTxt("spm_kron: 2 input arguments required");
    if (nlhs != 1) mexErrMsgTxt("spm_kron: 1 output argument required");
  
-   /* Get first matrix. */
+   /* Get first matrix */
    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
    {
       mexErrMsgTxt("spm_kron: M1 must be numeric, real, full and double");
@@ -127,7 +109,7 @@ void mexFunction_kron(int             nlhs,      /* No. of output arguments */
    sz1[1] = mxGetN(prhs[0]);
    m1 = mxGetPr(prhs[0]);
  
-   /* And second matrix. */
+   /* And second matrix */
    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
    {
       mexErrMsgTxt("spm_kron: M2 must be numeric, real, full and double");
@@ -136,13 +118,13 @@ void mexFunction_kron(int             nlhs,      /* No. of output arguments */
    sz2[1] = mxGetN(prhs[1]);
    m2 = mxGetPr(prhs[1]);
  
-   /* Allocate memory for output. */
+   /* Allocate memory for output */
    bsz[0] = sz1[0]*sz2[0];
    bsz[1] = sz1[1]*sz2[1];
    plhs[0] = mxCreateNumericMatrix(bsz[0],bsz[1],mxDOUBLE_CLASS,mxREAL);
    bm = mxGetPr(plhs[0]);
  
-   /* Do the stuff. */
+   /* Do the stuff */
    kron(m1,sz1,m2,sz2,bm,bsz);
  
    return;
@@ -172,20 +154,11 @@ void mexFunction_kron(int             nlhs,      /* No. of output arguments */
  **    spm_kron_add(Bz1(sl,:)'*Bz2(sl,:),spm_krutil(tmp,Bx1,By1,Bx2,By2),AtA);
  ** end
  **
- ** N.B. the behaviour id spm_kron_add is very unusual from a
- ** Matlab perspective in that one of the input arguments gets
+ ** N.B. the behaviour in spm_kron_add is very unusual from a
+ ** MATLAB perspective in that one of the input arguments gets
  ** changed. Please keep this in mind.
  **
  ***************************************************************/
-/* Jesper Andersson 3/12-03 */
- 
-/* Function prototypes. */
-void kronadd(double          *m1,
-          unsigned int    *sz1,
-          double          *m2,
-          unsigned int    *sz2,
-          double          *bm,
-          unsigned int    *bsz);
  
 /*
    In this implementation I try to minimise the number
@@ -195,18 +168,18 @@ void kronadd(double          *m1,
    accessed.
 */
 
-void kronadd(double          *m1,
-          unsigned int    *sz1,
-          double          *m2,
-          unsigned int    *sz2,
-          double          *bm,
-          unsigned int    *bsz)
+void kronadd(double  *m1,
+             mwSize  *sz1,
+             double  *m2,
+             mwSize  *sz2,
+             double  *bm,
+             mwSize  *bsz)
 {
-   unsigned int   r1 = 0, c1 = 0;
-   unsigned int   r2 = 0, c2 = 0;
-   unsigned int   br = 0, bc = 0;
-   unsigned int   i2 = 0, im = 0;
-   double         v1 = 0.0;
+   mwIndex  r1 = 0, c1 = 0;
+   mwIndex  r2 = 0, c2 = 0;
+   mwIndex  br = 0, bc = 0;
+   mwIndex  i2 = 0, im = 0;
+   double   v1 = 0.0;
  
    for (c1=1; c1<=sz1[1]; c1++)
    {
@@ -232,18 +205,14 @@ void kronadd(double          *m1,
  
  
 /* Gateway function with error check. */
- 
-void mexFunction_kronadd(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+ void mexFunction_kronadd(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   unsigned int   sz1[2];
-   unsigned int   sz2[2];
-   unsigned int   bsz[2];
-   double         *m1 = NULL;
-   double         *m2 = NULL;
-   double         *bm = NULL;
+   mwSize  sz1[2];
+   mwSize  sz2[2];
+   mwSize  bsz[2];
+   double  *m1 = NULL;
+   double  *m2 = NULL;
+   double  *bm = NULL;
  
    if (nrhs == 0) mexErrMsgTxt("usage: spm_kron_add(M1,M2,BM)");
    if (nrhs != 3) mexErrMsgTxt("spm_kron_add: 3 input arguments required");
@@ -300,10 +269,10 @@ void mexFunction_kronadd(int             nlhs,      /* No. of output arguments *
  * b2  - basis functions - y
  * beta - resulting vector
 */
-void kronutil1(int n1, int n2, int m1, int m2,
+void kronutil1(mwSize n1, mwSize n2, mwSize m1, mwSize m2,
     double img[], double b1[], double b2[], double beta[])
 {
-    int j1,j2, i1,i2;
+    mwIndex j1,j2, i1,i2;
     double beta1[32];
 
     /* Zero beta */
@@ -342,10 +311,10 @@ void kronutil1(int n1, int n2, int m1, int m2,
  * b2  - basis functions - y
  * alpha - resulting matrix
 */
-void kronutil2(int n1, int n2, int m1, int m2,
+void kronutil2(mwSize n1, mwSize n2, mwSize m1, mwSize m2,
     double img[], double b1[], double b2[], double alpha[])
 {
-    int j11,j12, j21,j22, i1, i2;
+    mwIndex j11,j12, j21,j22, i1, i2;
     double alpha1[1024];
 
     /* Zero alpha */
@@ -406,10 +375,10 @@ void kronutil2(int n1, int n2, int m1, int m2,
 /********************************************************************************/
 /* alpha = kron(B1y,B1x)'*diag(img(:))*kron(B2y,B2x)
 */
-void kronutil3(int n1x, int n1y, int n2x, int n2y, int m1, int m2,
+void kronutil3(mwSize n1x, mwSize n1y, mwSize n2x, mwSize n2y, mwSize m1, mwSize m2,
     double img[], double b1x[], double b1y[], double b2x[], double b2y[], double alpha[])
 {
-    int j1x,j1y, j2x,j2y, i1, i2;
+    mwIndex j1x,j1y, j2x,j2y, i1, i2;
     double alpha1[1024];
 
     /* Zero alpha */
@@ -453,15 +422,15 @@ void kronutil3(int n1x, int n1y, int n2x, int n2y, int m1, int m2,
     }
 }
 
-/********************************************************************************/
+/* Function gateway */
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    unsigned int n1x, n1y, n2x, n2y, m1, m2;
+    mwSize n1x, n1y, n2x, n2y, m1, m2;
 
     double *alpha, *beta, *img, *b1x, *b1y, *b2x, *b2y;
 
-        if ((nrhs==3) && (nlhs==0))
+    if ((nrhs==3) && (nlhs==0))
     {
         mexFunction_kronadd(nlhs, plhs, nrhs, prhs);
         return;

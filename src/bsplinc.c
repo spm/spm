@@ -1,5 +1,5 @@
 /*
- * $Id: bsplinc.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: bsplinc.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
  
@@ -30,7 +30,7 @@
 #include "spm_mapping.h"
 
 
-/***************************************************************************************
+/**************************************************************************
 Starting periodic boundary condition based on Eq. 2.6 of Unser's 2nd 1993 paper.
     c - vector of unfiltered data
     m - length of c
@@ -79,7 +79,7 @@ static double cc_wrap(double c[], int m, double p)
     return(s/(1.0-pi));
 }
 
-/***************************************************************************************
+/**************************************************************************
 Starting mirrored boundary condition based on Eq. 2.6 of Unser's 2nd 1993 paper.
     c - vector of unfiltered data
     m - length of c
@@ -120,7 +120,7 @@ static double cc_mirror(double c[], int m, double p)
     }
 }
 
-/***************************************************************************************
+/**************************************************************************
 Starting Neumann boundary condition.  Many thanks to Philippe Thevenaz for the hints.
     c - vector of unfiltered data
     m - length of c
@@ -184,7 +184,7 @@ static double cc_neumann(double c[], int m, double p)
     }
 }
 
-/***************************************************************************************
+/**************************************************************************
 End periodic boundary condition
     c - first pass filtered data
     m - length of filtered data (must be > 1)
@@ -230,7 +230,7 @@ static double icc_wrap(double c[],int m, double p)
     return(s/(pi-1.0));
 }
 
-/***************************************************************************************
+/**************************************************************************
 End mirrored boundary condition
     c - first pass filtered data
     m - length of filtered data (must be > 1)
@@ -242,7 +242,7 @@ static double icc_mirror(double c[],int m, double p)
     return((p/(p*p-1.0))*(p*c[m-2]+c[m-1]));
 }
 
-/***************************************************************************************
+/**************************************************************************
 End Neumann boundary condition
     c - first pass filtered data
     m - length of filtered data (must be > 1)
@@ -303,7 +303,7 @@ static double icc_neumann(double c[],int m, double p)
     return((s*p)/(p2m-1.0));
 }
 
-/***************************************************************************************
+/**************************************************************************
 Compute gains required for zero-pole representation - see tf2zp.m in Matlab's
  Signal Processing Toolbox.
     p - poles
@@ -319,7 +319,7 @@ static double gain(double p[], int np)
     return(lambda);
 }
 
-/***************************************************************************************
+/**************************************************************************
 One dimensional recursive filtering - assuming wrapped boundaries
 See Eq. 2.5 of Unsers 2nd 1993 paper.
     c - original vector on input, coefficients on output
@@ -354,7 +354,7 @@ static void splinc_wrap(double c[], int m, double p[], int np)
     }
 }
 
-/***************************************************************************************
+/**************************************************************************
 One dimensional recursive filtering - assuming mirror boundaries
 See Eq. 2.5 of Unsers 2nd 1993 paper.
     c - original vector on input, coefficients on output
@@ -389,7 +389,7 @@ static void splinc_mirror(double c[], int m, double p[], int np)
     }
 }
 
-/***************************************************************************************
+/**************************************************************************
 One dimensional recursive filtering - assuming Neumann boundaries
     c - original vector on input, coefficients on output
     m - length of vector
@@ -424,7 +424,7 @@ static void splinc_neumann(double c[], int m, double p[], int np)
     }
 }
 
-/***************************************************************************************
+/**************************************************************************
 Return roots of B-spline kernels.
      d - degree of B-spline
      np - number of roots of magnitude less than one
@@ -477,7 +477,7 @@ static int get_poles(int d, int *np, double p[])
 }
 
 
-/***************************************************************************************
+/**************************************************************************
 Deconvolve the B-spline basis functions from the image volume
     vol - a handle for the volume to deconvolve
     c - the coefficients (arising from the deconvolution)
@@ -571,7 +571,7 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
     return(0);
 }
 
-/***************************************************************************************
+/**************************************************************************
 */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_get_lm.c 1790 2008-06-05 11:27:02Z spm $
+ * $Id: spm_get_lm.c 4453 2011-09-02 10:47:25Z guillaume $
  * Jesper Andersson
  */
 
@@ -16,7 +16,7 @@
 #include <string.h>
 #include "mex.h"
 
-/* Silly little macros. */
+/* Macros */
 
 #ifndef MIN
 #define MIN(A,B) ((A) > (B) ? (B) : (A))
@@ -27,89 +27,31 @@
 #endif
 
 
-/* Function prototypes. */
+/* get_index */
 
-unsigned int get_maxima(double        *vol,
-                        unsigned int  vdim[3],
-                        double        *list,
-                        unsigned int  nlist,
-                        unsigned int  cc,
-                        unsigned int  **lindex);
-
-int get_index(int       x,
-          int           y,
-          int           z,
-          unsigned int  dim[3]);
-
-int is_maxima(double        *v,
-              unsigned int  vdim[3],
-              int           x,
-              int           y,
-              int           z,
-              unsigned int  cc);
-
-/* Here starts actual code. */
-
-unsigned int get_maxima(double        *vol,
-                        unsigned int  vdim[3],
-                        double        *list,
-                        unsigned int  nlist,
-                        unsigned int  cc,
-                        unsigned int  **ldx)
+mwSignedIndex get_index(mwIndex x, mwIndex y, mwIndex z, mwSize dim[3])
 {
-   int           i = 0, j = 0;
-   int           ix = 0, iy = 0, iz = 0;
-   unsigned int  ldx_sz = 0, ldx_n = 0;
-
-   *ldx = (unsigned int *) mxCalloc((ldx_sz = 1000),sizeof(unsigned int));
-
-   for (i=0, j=0; i<nlist; i++, j+=3)
+   if (x < 1 || x > dim[0] || y < 1 || y > dim[1] || z < 1 || z > dim[2])
    {
-      /* 
-      ** Casting of double to int isn't properly defined in C
-      ** (i.e. wether it results in truncation or rounding), 
-      ** hence I add a small offset (0.1) to make sure it
-      ** works either way.
-      */
-
-      ix = ((int) (list[j]+0.1)); iy = ((int) (list[j+1]+0.1)); iz = ((int) (list[j+2]+0.1));
-      
-      if (get_index(ix,iy,iz,vdim) > 0)
-      {
-         if (is_maxima(vol,vdim,ix,iy,iz,cc))
-         {
-            if (ldx_n >= ldx_sz)
-            {
-               *ldx = (unsigned int *) mxRealloc(*ldx,(ldx_sz += 1000)*sizeof(unsigned int));
-            }
-            (*ldx)[ldx_n] = i+1;
-            ldx_n++;   
-         }
-      }
+       return(-1);
    }
-   return(ldx_n); 
+   else
+   {
+       return((z-1)*dim[0]*dim[1]+(y-1)*dim[0]+x-1);
+   }
 }
 
-
-int get_index(int       x,
-          int           y,
-          int           z,
-          unsigned int  dim[3])
-{
-   if (x < 1 || x > dim[0] || y < 1 || y > dim[1] || z < 1 || z > dim[2]) {return(-1);}
-   else {return((z-1)*dim[0]*dim[1]+(y-1)*dim[0]+x-1);}
-}
-
+/* is_maxima */
 
 int is_maxima(double        *v,
-              unsigned int  dim[3],
-              int           x,
-              int           y,
-              int           z,
+              mwSize        dim[3],
+              mwIndex       x,
+              mwIndex       y,
+              mwIndex       z,
               unsigned int  cc)
 {
-   int   ii = 0, i = 0;
-   double cv = 0.0;
+   mwSignedIndex ii = 0, i = 0;
+   double  cv = 0.0;
 
    if ((ii=get_index(x,y,z,dim))<0) {return(0);}
    cv = v[ii];
@@ -153,25 +95,69 @@ int is_maxima(double        *v,
    return(1);
 }
 
-/* Gateway function with error check. */
 
-void mexFunction(int            nlhs,      /* No. of output arguments */
-                 mxArray        *plhs[],   /* Output arguments. */ 
-                 int            nrhs,      /* No. of input arguments. */
-                 const mxArray  *prhs[])   /* Input arguments. */
+/* get_maxima */
+
+unsigned int get_maxima(double        *vol,
+                        mwSize        vdim[3],
+                        double        *list,
+                        mwSize        nlist,
+                        unsigned int  cc,
+                        mwIndex       **ldx)
 {
-   int                 i = 0, j = 0, k = 0;
-   int                 tmpint = 0;
-   const int           *pdim = NULL;
-   unsigned int        ndim = 0;
-   unsigned int        vdim[3];
-   unsigned int        ln = 0, lm = 0;
-   unsigned int        n_lindex = 0;
-   unsigned int        *lindex = NULL;
-   double              *vol = NULL;
-   double              *lp = NULL;
-   double              *list = NULL;
-   double              *plindex = NULL;
+   mwIndex  i = 0, j = 0;
+   mwIndex  ix = 0, iy = 0, iz = 0;
+   mwSize   ldx_sz = 0;
+   mwIndex  ldx_n = 0;
+
+   *ldx = (mwIndex *) mxCalloc((ldx_sz = 1024),sizeof(mwIndex));
+
+   for (i=0, j=0; i<nlist; i++, j+=3)
+   {
+      /* 
+      ** Casting of double to int isn't properly defined in C
+      ** (i.e. wether it results in truncation or rounding), 
+      ** hence I add a small offset (0.1) to make sure it
+      ** works either way.
+      */
+
+      ix = ((mwIndex) (list[j]+0.1));
+      iy = ((mwIndex) (list[j+1]+0.1));
+      iz = ((mwIndex) (list[j+2]+0.1));
+      
+      if (get_index(ix,iy,iz,vdim) > 0)
+      {
+         if (is_maxima(vol,vdim,ix,iy,iz,cc))
+         {
+            if (ldx_n >= ldx_sz)
+            {
+               *ldx = (mwIndex *) mxRealloc(*ldx,(ldx_sz += 1024)*sizeof(mwIndex));
+            }
+            (*ldx)[ldx_n] = i+1;
+            ldx_n++;   
+         }
+      }
+   }
+   return(ldx_n); 
+}
+
+
+/* Gateway function */
+
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   mwIndex       i = 0, j = 0, k = 0;
+   int           tmpint = 0;
+   const mwSize  *pdim = NULL;
+   mwSize        ndim = 0;
+   mwSize        vdim[3];
+   mwSize        ln = 0, lm = 0;
+   mwSize        n_lindex = 0;
+   mwIndex       *lindex = NULL;
+   double        *vol = NULL;
+   double        *lp = NULL;
+   double        *list = NULL;
+   double        *plindex = NULL;
    
    if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
@@ -191,7 +177,7 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
    }
    pdim = mxGetDimensions(prhs[0]);
    vdim[0] = pdim[0]; vdim[1] = pdim[1]; 
-   if (ndim == 2) {vdim[2]=1;} else {vdim[2]=pdim[2];} 
+   if (ndim == 2) { vdim[2] = 1; } else { vdim[2] = pdim[2]; } 
    vol = mxGetPr(prhs[0]);
 
    /* Get list of coordinates */
@@ -235,7 +221,7 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
 
    n_lindex = get_maxima(vol,vdim,list,ln,18,&lindex);
 
-   /* Turn indicies into doubles in a Matlab array. */
+   /* Turn indicies into doubles in a MATLAB array. */
 
    plhs[0] = mxCreateDoubleMatrix(1,n_lindex,mxREAL);
    plindex = mxGetPr(plhs[0]);
@@ -243,6 +229,4 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
 
    mxFree(list);
    mxFree(lindex);
-
-   return;
 }

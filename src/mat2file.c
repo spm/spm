@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 2896 2009-03-18 20:43:48Z guillaume $
+ * $Id: mat2file.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -314,10 +314,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     const mxArray *curr;
     one[0] = 1;
 
-    if (nrhs<3 || nlhs>0) mexErrMsgTxt("Incorrect usage.");
-
-    curr = prhs[0];
-    open_file(curr, &map);
+    if (nrhs < 3)
+        mexErrMsgTxt("Not enough input arguments.");
+    if (nlhs > 0)
+        mexErrMsgTxt("Too many output arguments.");
+    
+    /* First input argument: file_array structure */
+    open_file(prhs[0], &map);
 
     ndim = map.ndim;
     odim = map.dim;
@@ -327,14 +330,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         close_file(map);
         mexErrMsgTxt("Too many dimensions.");
     }
-    curr  = prhs[1];
-    if (mxGetClassID(curr) != map.dtype->clss)
+    
+    /* Second input argument: data */
+    if (mxGetClassID(prhs[1]) != map.dtype->clss)
     {
         close_file(map);
         mexErrMsgTxt("Incompatible class types.");
     }
-    idat  = mxGetData(curr);
+    idat  = mxGetData(prhs[1]);
 
+    /* Other input arguments: subscript vectors */
     for(i=0;i<nrhs-2; i++)
     {
         int j;
@@ -352,7 +357,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (mxGetNumberOfElements(curr) != idim[i])
         {
             close_file(map);
-            mexErrMsgTxt("Subscripted assignment dimension mismatch (2).");
+            mexErrMsgTxt("Subscripted assignment dimension mismatch.");
         }
 
         ptr[i] = (int *)mxGetData(curr);
@@ -360,7 +365,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             if (ptr[i][j]<1 || ptr[i][j]> ((i<ndim)?odim[i]:1))
             {
                 close_file(map);
-                mexErrMsgTxt("Index exceeds matrix dimensions (2).");
+                mexErrMsgTxt("Index exceeds matrix dimensions.");
             }
     }
 

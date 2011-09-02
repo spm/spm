@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bsplins.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_bsplins.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -606,7 +606,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int k, d[3], n, nd;
     int m0=1, m1=1, m2=1;
     double *x0, *x1, *x2, *c, *f, *df0, *df1, *df2;
-    const int *dims;
+    const mwSize *dims;
     int (*bnd[3])();
     int cond;
 

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_invdef.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_invdef.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -358,7 +358,7 @@ static REAL x[2][5][4][3] = {
    made faster.  Also set up a few relative file offsets. */
 static REAL ix[2][5][4][4];
 static int off[2][4][5];
-static void setup_consts(int dim[3])
+static void setup_consts(mwSize dim[3])
 {
     int i, j, k;
     for(k=0; k<2; k++)
@@ -372,13 +372,13 @@ static void setup_consts(int dim[3])
 
 /* Compute the inverse deformation field within a single cube */
 static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
-    int dim_f[3], float *iy0, float *iy1, float *iy2, REAL U[4][3], REAL V[4][3])
+    mwSize dim_f[3], float *iy0, float *iy1, float *iy2, REAL U[4][3], REAL V[4][3])
 {
     int i, j, k, vox[MAXV][3], nvox;
     REAL Y0[4][3], Y[4][3], M[4][3], IM[4][3];
 
     /* Determine tetrahedral arrangement */
-        k = (x0%2)==(x1%2)==(x2%2);
+    k = ((x0%2)==(x1%2)) && ((x0%2)==(x2%2));
  
     for(i=0; i<5; i++) /* Five tetrahedra within a cube */
     {
@@ -428,10 +428,10 @@ static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
 
 
 
-static void invert_field(int dim_g[3], float  y0[], float  y1[], float  y2[],
-                 int dim_f[3], float iy0[], float iy1[], float iy2[],  REAL U[4][3],  REAL V[4][3])
+static void invert_field(mwSize dim_g[3], float  y0[], float  y1[], float  y2[],
+                 mwSize dim_f[3], float iy0[], float iy1[], float iy2[],  REAL U[4][3],  REAL V[4][3])
 {
-    int x2, x1, x0;
+    mwIndex x2, x1, x0;
 
     setup_consts(dim_g);
 
@@ -457,19 +457,20 @@ static void invert_field(int dim_g[3], float  y0[], float  y1[], float  y2[],
 }
 
 /* Some regions of the inverse deformation may be undefined. */
-static void setnan(float *dat, int n)
+static void setnan(float *dat, mwSize n)
 {
-    int j;
+    mwIndex j;
     float NaN;
     NaN = mxGetNaN();
     for (j=0; j<n; j++) dat[j] = NaN;
 }
 
 
-static float *get_volume(const mxArray *ptr, int dims[3])
+static float *get_volume(const mxArray *ptr, mwSize dims[3])
 {
-    int nd, i;
-    const int *ldims;
+    mwSize nd;
+    mwIndex i;
+    const mwSize *ldims;
     if (mxIsStruct(ptr) || !mxIsNumeric(ptr) || mxIsComplex(ptr) ||
                 mxIsSparse(ptr) || !mxIsSingle(ptr))
         mexErrMsgTxt("Data must be a single precision floating point multi-dimensional array.");
@@ -477,9 +478,9 @@ static float *get_volume(const mxArray *ptr, int dims[3])
     nd = mxGetNumberOfDimensions(ptr);
     if (nd>3) mexErrMsgTxt("Too many dimensions in data.");
     ldims = mxGetDimensions(ptr);
-    for(i=0; i<nd; i++) dims[i] = ldims[i];
-    for(i=nd; i<3; i++) dims[i] = 1;
-    return((float *)mxGetPr(ptr));
+    for (i=0; i<nd; i++) dims[i] = ldims[i];
+    for (i=nd; i<3; i++) dims[i] = 1;
+    return((float *)mxGetData(ptr));
 }
 
 static void get_mat(const mxArray *ptr, REAL M[4][3])
@@ -487,10 +488,10 @@ static void get_mat(const mxArray *ptr, REAL M[4][3])
     int i, j;
     double *p;
 
-        if (!mxIsNumeric(ptr) || mxIsComplex(ptr) ||
-                mxIsComplex(ptr) || !mxIsDouble(ptr) || mxGetM(ptr) != 4 || mxGetN(ptr) != 4)
+        if (!mxIsNumeric(ptr) || mxIsComplex(ptr) || mxIsComplex(ptr) || 
+            !mxIsDouble(ptr) || mxGetM(ptr) != 4 || mxGetN(ptr) != 4)
                 mexErrMsgTxt("Affine transform matrix must be 4x4.");
-    p = (double *)mxGetPr(ptr);
+    p = mxGetPr(ptr);
 
     for(i=0; i<3; i++)
         for(j=0; j<4; j++)
@@ -502,11 +503,11 @@ static void get_mat(const mxArray *ptr, REAL M[4][3])
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    float  *y0=0,  *y1=0,  *y2=0, *iy0=0, *iy1=0, *iy2=0;
-    int dim_g[3], dim_f[3];
+    float *y0=0, *y1=0, *y2=0, *iy0=0, *iy1=0, *iy2=0;
+    mwSize dim_g[3], dim_f[3];
     REAL U[4][3], V[4][3];
 
-        if (nrhs != 6 || nlhs > 3) mexErrMsgTxt("Incorrect usage.");
+    if (nrhs != 6 || nlhs > 3) mexErrMsgTxt("Incorrect usage.");
 
     y0 = get_volume(prhs[0], dim_g);
     y1 = get_volume(prhs[1], dim_f);
@@ -520,9 +521,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mxIsComplex(prhs[3]) || !mxIsDouble(prhs[3]) || mxGetM(prhs[3]) * mxGetN(prhs[3]) != 3)
         mexErrMsgTxt("Output dimensions must be numeric, real, full, double and contain three elements.");
 
-    dim_f[0] = mxGetPr(prhs[3])[0];
-    dim_f[1] = mxGetPr(prhs[3])[1];
-    dim_f[2] = mxGetPr(prhs[3])[2];
+    dim_f[0] = (mwSize)mxGetPr(prhs[3])[0];
+    dim_f[1] = (mwSize)mxGetPr(prhs[3])[1];
+    dim_f[2] = (mwSize)mxGetPr(prhs[3])[2];
 
     get_mat(prhs[4],U);
     get_mat(prhs[5],V);
@@ -531,9 +532,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[1] = mxCreateNumericArray(3, dim_f,mxSINGLE_CLASS,mxREAL);
     plhs[2] = mxCreateNumericArray(3, dim_f,mxSINGLE_CLASS,mxREAL);
 
-    iy0 = (float *)mxGetPr(plhs[0]);
-    iy1 = (float *)mxGetPr(plhs[1]);
-    iy2 = (float *)mxGetPr(plhs[2]);
+    iy0 = (float *)mxGetData(plhs[0]);
+    iy1 = (float *)mxGetData(plhs[1]);
+    iy2 = (float *)mxGetData(plhs[2]);
 
     setnan(iy0, dim_f[0]*dim_f[1]*dim_f[2]);
     setnan(iy1, dim_f[0]*dim_f[1]*dim_f[2]);

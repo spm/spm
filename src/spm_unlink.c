@@ -1,5 +1,5 @@
 /*
- * $Id: spm_unlink.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_unlink.c 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
  */
 
@@ -19,7 +19,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (!mxIsNumeric(matptr))
         {
             char *str = NULL;
-            int k, stlen;
+            mwIndex k;
+            mwSize stlen;
             
             stlen = mxGetN(matptr);
             str = (char *)mxCalloc(stlen+1, sizeof(char));
