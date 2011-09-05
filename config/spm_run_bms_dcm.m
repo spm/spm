@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 4229 2011-03-04 15:01:34Z maria $
+% $Id: spm_run_bms_dcm.m 4461 2011-09-05 15:11:37Z guillaume $
 
 % input
 % -------------------------------------------------------------------------
@@ -153,9 +153,9 @@ else
                         % Load DCM (model)
                         tmp = job.sess_dcm{k}(h).mod_dcm{j};
                         if ~job.verify_id
-                            warning off MATLAB:load:variableNotFound
+                            st = warning('off','MATLAB:load:variableNotFound');
                             DCM.DCM = load(tmp, 'F', 'Ep', 'Cp');
-                            warning on MATLAB:load:variableNotFound
+                            warning(st);
                             if ~isfield(DCM.DCM, 'F')
                                 DCM     = load(tmp);
                             end
