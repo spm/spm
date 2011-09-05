@@ -10,9 +10,9 @@ function res = spm_eeg_specest_hilbert(S, data, time)
 %    S.frequencies - vector of frequencies
 %    S.order       - butterworth filter order (can be a vector with a value
 %                    per frequency)
-%                         
+%
 % Output:
-%  res - 
+%  res -
 %   If no input is provided the plugin returns a cfg branch for itself
 %
 %   If input is provided:
@@ -23,22 +23,14 @@ function res = spm_eeg_specest_hilbert(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_hilbert.m 3742 2010-03-02 15:15:43Z vladimir $
+% $Id: spm_eeg_specest_hilbert.m 4458 2011-09-05 14:10:34Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
 % Any parameters can be specified and they are then passed to the plugin
 % when it's called.
 %--------------------------------------------------------------------------
-if nargin == 0 
-    subsample = cfg_entry;
-    subsample.tag = 'subsample';
-    subsample.name = 'Subsample';
-    subsample.strtype = 'n';
-    subsample.num = [1 1];
-    subsample.val = {1};
-    subsample.help = {'Set to N to subsample the time axis to every Nth sample (to reduce the dataset size).'};
-    
+if nargin == 0
     freqres = cfg_entry;
     freqres.tag = 'freqres';
     freqres.name = 'Frequency resolution';
@@ -47,7 +39,23 @@ if nargin == 0
     freqres.val = {0.5};
     freqres.help = {'Frequency resolution.',...
         'Note: 1 Hz resolution means plus-minus 1 Hz, i.e. 2 Hz badwidth',...
-        'Either a single value or a vector of the same length as frequencies can be input'};
+        'Either a single value or a vector of the same length as frequencies can be input'};        
+     
+    typ = cfg_menu;
+    typ.tag = 'type';
+    typ.name = 'Filter type';
+    typ.labels = {'Butterworth', 'FIR'};
+    typ.values = {'but', 'fir'};
+    typ.val = {'but'};
+    typ.help = {'Select the filter type.'};    
+    
+    dir = cfg_menu;
+    dir.tag = 'dir';
+    dir.name = 'Filter direction';
+    dir.labels = {'Zero phase', 'Forward', 'Backward'};
+    dir.values = {'twopass', 'onepass', 'onepass-reverse'};
+    dir.val = {'twopass'};
+    dir.help = {'Select the filter direction.'};
     
     order = cfg_entry;
     order.tag = 'order';
@@ -56,12 +64,33 @@ if nargin == 0
     order.num = [1 Inf];
     order.val = {3};
     order.help = {'Butterworth filter order',...
-        'Either a single value or a vector of the same length as frequencies can be input'};
+        'Either a single value or a vector of the same length as frequencies can be input'};    
+    
+    flt = cfg_branch;
+    flt.tag = 'filter';
+    flt.name = 'Filter';
+    flt.val = {typ dir order};
+    
+    polyorder = cfg_menu;
+    polyorder.tag = 'polyorder';
+    polyorder.name = 'Polynomial trend removal order';
+    polyorder.labels = {'0', '1', '2', '3'};
+    polyorder.values = {0, 1, 2, 3};
+    polyorder.val = {1};
+    polyorder.help = {'Order of polynome for trend removal (0 for no detrending)'};
+    
+    subsample = cfg_entry;
+    subsample.tag = 'subsample';
+    subsample.name = 'Subsample';
+    subsample.strtype = 'n';
+    subsample.num = [1 1];
+    subsample.val = {1};
+    subsample.help = {'Set to N to subsample the time axis to every Nth sample (to reduce the dataset size).'};
     
     hilbert = cfg_branch;
     hilbert.tag = 'hilbert';
     hilbert.name = 'Hilbert transform';
-    hilbert.val = {freqres, order, subsample};
+    hilbert.val = {freqres, flt, polyorder, subsample};
     
     res = hilbert;
     
@@ -86,73 +115,7 @@ if ~isfield(S, 'freqres')
     S.freqres = max(1/dt, floor(dt)/dt);
 end
 
-if length(S.freqres) == 1
-    freqres = S.freqres*ones(1, length(S.frequencies));
-elseif length(S.freqres) == length(S.frequencies)
-    freqres = S.freqres;
-else
-    error('Frequency resolution should be either a scalar or a vector the same length as the number of frequencies.')
-end
-   
-if ~isfield(S, 'order')
-    S.order = 3;
-end
-
-if length(S.order) == 1
-    order = S.order*ones(1, length(S.frequencies));
-elseif length(S.order) == length(S.frequencies)
-    order = S.order;
-else
-    error('Filter order should be either a scalar or a vector the same length as the number of frequencies.')
-end
-
 %-Data dimensions
 %--------------------------------------------------------------------------
-Nchannels = size(data, 1);
-Nsamples = size(data, 2);
-Nfrequencies = length(S.frequencies);
-
-fsample = 1./diff(time(1:2));
-
-%-Initialize output struct
-%--------------------------------------------------------------------------
-res = [];
-res.freq = S.frequencies;
-res.time = time(1:S.subsample:end);
-res.fourier = zeros(Nchannels, Nfrequencies, length(res.time));
-
-%-Compute wavelet transform
-%--------------------------------------------------------------------------
-for j = 1:Nchannels
-    for i = 1:Nfrequencies
-        highpass = S.frequencies(i) + freqres(i);
-        lowpass  = S.frequencies(i) - freqres(i);
-        
-        if highpass < 1/dt
-            error(sprintf('Frequency %f.2 Hz is too low to be estimated from data segment of %f.3 sec.', S.frequencies(i), dt));
-        elseif lowpass < 1/dt
-            padding = floor(fsample./highpass);
-        else
-            padding = floor(fsample./lowpass);
-        end
-            
-        ind = [padding:-1:2 1:Nsamples (Nsamples-1):-1:(Nsamples-padding)];
-        
-        tmp = data(j, ind);
-        
-        if lowpass < 1/dt
-            tmp = ft_preproc_lowpassfilter(tmp, fsample, highpass, order(i));
-        else
-            tmp = ft_preproc_bandpassfilter(tmp, fsample, [lowpass highpass], order(i));
-        end
-        
-        tmp = spm_hilbert(tmp);
-        
-        % remove padding
-        tmp = tmp(padding:(padding+Nsamples-1));
-        
-        tmp = tmp(1:S.subsample:end);
-        
-        res.fourier(j, i, :) = tmp;
-    end
-end
+[res.fourier, res.freq, res.time] = ft_specest_hilbert(data, time, 'freqoi', S.frequencies, 'timeoi', time(1:S.subsample:end), 'width', S.freqres,...
+    'filttype', S.filter.type, 'filtorder', S.filter.order, 'filtdir', S.filter.dir, 'polyremoval', S.polyorder);
