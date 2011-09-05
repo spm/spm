@@ -20,7 +20,7 @@ function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rejectvisual_channel.m 3771 2011-07-04 13:38:23Z eelspa $
+% $Id: rejectvisual_channel.m 3913 2011-08-01 14:28:22Z eelspa $
 
 % determine the initial selection of trials and channels
 nchan = length(data.label);
@@ -29,6 +29,10 @@ cfg.channel = ft_channelselection(cfg.channel, data.label);
 trlsel  = logical(ones(1,ntrl));
 chansel = logical(zeros(1,nchan));
 chansel(match_str(data.label, cfg.channel)) = 1;
+
+% remove all non-wanted channels
+nchan = sum(chansel);
+data = ft_selectdata(data, 'channel', cfg.channel);
 
 % compute the sampling frequency from the first two timepoints
 fsample = 1/(data.time{1}(2) - data.time{1}(1));

@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 3895 2011-07-24 15:16:53Z crimic $
+% $Id: ft_prepare_vol_sens.m 4022 2011-08-25 16:13:20Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -359,8 +359,8 @@ elseif iseeg
         if is_in_empty
           dPplane1 = abs(dot(vol.ori1, vol.pnt1-P, 2));
           dPplane2 = abs(dot(vol.ori2, vol.pnt2-P, 2));
-          if dPplane1>md || dPplane2>md
-            error('Some electrodes are too distant from the plane: consider repositioning them')
+          if dPplane1>md && dPplane2>md
+            error('Some electrodes are too distant from the planes: consider repositioning them')
           elseif dPplane2>dPplane1
             % project point on nearest plane
             Ppr = pointproj(P,[vol.pnt1 vol.ori1]);
@@ -456,6 +456,12 @@ elseif iseeg
           end
         end
       end
+      
+    case 'fns'
+      if isfield(vol,'bnd')
+        [el, prj] = project_elec(sens.pnt, vol.bnd.pnt, vol.bnd.tri);
+      end
+      sens.tra = transfer_elec(vol.bnd.pnt, vol.bnd.tri, el);
       
     otherwise
       error('unsupported volume conductor model for EEG');

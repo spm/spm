@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 3800 2011-07-07 15:17:47Z roboos $
+% $Id: ft_prepare_layout.m 4011 2011-08-25 07:58:57Z jansch $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -106,6 +106,12 @@ skipcomnt = strcmp(cfg.skipcomnt, 'yes'); % in general a comment desired
 if isa(cfg.layout, 'config')
   % convert the nested config-object back into a normal structure
   cfg.layout = struct(cfg.layout);
+end
+
+% ensure that there is a label field in the data, which is needed for
+% ordered/vertical/butterfly modes
+if nargin>1 && ~isfield(data, 'label') && isfield(data, 'labelcmb')
+  data.label = unique(data.labelcmb(:));
 end
 
 % check whether cfg.layout already contains a valid layout structure (this can

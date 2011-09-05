@@ -40,13 +40,14 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 3766 2011-07-04 10:44:39Z eelspa $
+% $Id: ft_denoise_synthetic.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 % set the defaults
 if ~isfield(cfg, 'gradient'),   error('cfg.gradient must be specified'); end
@@ -125,15 +126,17 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_denoise_synthetic.m 3766 2011-07-04 10:44:39Z eelspa $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

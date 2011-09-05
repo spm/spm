@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 3479 2011-05-10 07:42:17Z roboos $
+% $Id: ft_read_mri.m 4040 2011-08-29 13:12:07Z jansch $
 
 % get the options
 fileformat  = keyval('format',      varargin);
@@ -78,7 +78,8 @@ elseif strcmp(fileformat, 'asa_mri')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(fileformat, 'minc')
   if ~(hasspm2 || hasspm5)
-    error('the SPM2 or SPM5 toolbox is required to read *.mnc files');
+    fprintf('the SPM2 or SPM5 toolbox is required to read *.mnc files\n');
+    ft_hastoolbox('spm2',1);
   end
   % use the functions from SPM
   hdr = spm_vol_minc(filename);
@@ -88,7 +89,8 @@ elseif strcmp(fileformat, 'minc')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(fileformat, 'nifti')
   if ~(hasspm5 || hasspm8)
-    error('the SPM5 or SPM8 toolbox is required to read *.nii files');
+    fprintf('the SPM5 or SPM8 toolbox is required to read *.nii files\n');
+    ft_hastoolbox('spm8',1);
   end
   % use the functions from SPM
   hdr = spm_vol_nifti(filename);

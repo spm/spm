@@ -10,9 +10,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 % computed using the FT_FREQANALYSIS function.
 %
 % The configuration can have the following parameters:
-% cfg.xparam        = field to be plotted on x-axis, e.g. 'time' (default depends on data.dimord)
-% cfg.yparam        = field to be plotted on y-axis, e.g. 'freq' (default depends on data.dimord)
-% cfg.zparam        = field to be plotted on z-axis, e.g. 'powspcrtrm' (default depends on data.dimord)
+% cfg.parameter     = field to be plotted on z-axis, e.g. 'powspcrtrm' (default depends on data.dimord)
 % cfg.maskparameter = field in the data to be used for masking of data
 %                     (not possible for mean over multiple channels, or when input contains multiple subjects
 %                     or trials)
@@ -64,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 3733 2011-06-29 08:02:30Z jorhor $
+% $Id: ft_singleplotTFR.m 4070 2011-08-30 21:42:52Z crimic $
 
 ft_defaults
 
@@ -76,6 +74,8 @@ cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedback',    'inflow'
 cfg = ft_checkconfig(cfg, 'renamed',     {'channelindex',  'channel'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'channelname',   'channel'});
 cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel', 'refchannel'});
+cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam','yparam'});
 
 
 
@@ -96,20 +96,20 @@ cfg.maskparameter = ft_getopt(cfg, 'maskparameter',[]);
 cfg.maskstyle     = ft_getopt(cfg, 'maskstyle',    'opacity');
 cfg.channel       = ft_getopt(cfg, 'channel',      'all');
 cfg.masknans      = ft_getopt(cfg, 'masknans',     'yes');
-cfg.matrixside    = ft_getopt(cfg, 'matrixside',   'outflow');
+cfg.matrixside    = ft_getopt(cfg, 'matrixside',   []);
 
 % for backward compatibility with old data structures
 data   = ft_checkdata(data, 'datatype', 'freq');
 dimord = data.dimord;
 dimtok = tokenize(dimord, '_');
 
-% Set x/y/zparam defaults
+% Set x/y/parameter defaults
 if ~any(ismember(dimtok, 'time'))
   error('input data needs a time dimension');
 else
   if ~isfield(cfg, 'xparam'),      cfg.xparam='time';                  end
   if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';                  end
-  if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end
+  if ~isfield(cfg, 'parameter'),      cfg.parameter='powspctrm';             end
 end
 
 if isfield(cfg, 'channel') && isfield(data, 'label')
@@ -120,6 +120,10 @@ end
 
 if isempty(cfg.channel)
   error('no channels selected');
+end
+
+if ~isfield(data, cfg.parameter)
+  error('data has no field ''%s''', cfg.parameter);
 end
 
 % check whether rpt/subj is present and remove if necessary and whether
@@ -135,16 +139,16 @@ if hasrpt,
   tmpcfg           = [];
   tmpcfg.trials    = cfg.trials;
   tmpcfg.jackknife = 'no';
-  if isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+  if isfield(cfg, 'parameter') && ~strcmp(cfg.parameter,'powspctrm')
     % freqdesctiptives will only work on the powspctrm field
     % hence a temporary copy of the data is needed
     tempdata.dimord    = data.dimord;
     tempdata.freq      = data.freq;
     tempdata.label     = data.label;
-    tempdata.powspctrm = data.(cfg.zparam);
+    tempdata.powspctrm = data.(cfg.parameter);
     tempdata.cfg       = data.cfg;
     tempdata           = ft_freqdescriptives(tmpcfg, tempdata);
-    data.(cfg.zparam)  = tempdata.powspctrm;
+    data.(cfg.parameter)  = tempdata.powspctrm;
     clear tempdata
   else
     data = ft_freqdescriptives(tmpcfg, data);
@@ -162,7 +166,15 @@ isfull  = length(selchan)>1;
 % Check for bivariate metric with a labelcmb
 haslabelcmb = isfield(data, 'labelcmb');
 
-if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
+% check whether the bivariate metric is the one requested to plot
+shouldPlotCmb = (haslabelcmb && ...
+  size(data.(cfg.parameter),selchan(1)) == size(data.labelcmb,1)) ...
+  || isfull; % this should work because if dimord has multiple chans (so isfull=1)
+             % then we can never plot anything without reference channel
+             % this is different when haslabelcmb=1; then the parameter
+             % requested to plot might well be a simple powspctrm
+
+if (isfull || haslabelcmb) && shouldPlotCmb
   % A reference channel is required:
   if ~isfield(cfg, 'refchannel')
     error('no reference channel is specified');
@@ -170,6 +182,11 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
   
   % check for refchannel being part of selection
   if ~strcmp(cfg.refchannel,'gui')
+    if haslabelcmb
+      cfg.refchannel = ft_channelselection(cfg.refchannel, unique(data.labelcmb(:)));
+    else
+      cfg.refchannel = ft_channelselection(cfg.refchannel, data.label);
+    end
     if (isfull      && ~any(ismember(data.label, cfg.refchannel))) || ...
        (haslabelcmb && ~any(ismember(data.labelcmb(:), cfg.refchannel)))
       error('cfg.refchannel is a not present in the (selected) channels)')
@@ -209,24 +226,24 @@ if (isfull || haslabelcmb) && isfield(data, cfg.zparam)
       sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
       sel2 = [];
     end
-    fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.zparam);
-    data.(cfg.zparam) = data.(cfg.zparam)([sel1;sel2],:,:);
+    fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.parameter);
+    data.(cfg.parameter) = data.(cfg.parameter)([sel1;sel2],:,:);
     data.label     = [data.labelcmb(sel1,1);data.labelcmb(sel2,2)];
     data.labelcmb  = data.labelcmb([sel1;sel2],:);
     data           = rmfield(data, 'labelcmb');
   else
     % General case
     sel               = match_str(data.label, cfg.refchannel);
-    siz               = [size(data.(cfg.zparam)) 1];
+    siz               = [size(data.(cfg.parameter)) 1];
     if strcmp(cfg.matrixside, 'inflow') || isempty(cfg.matrixside)
       %the interpretation of 'inflow' and 'outflow' depend on
       %the definition in the bivariate representation of the data  
-      %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
+      %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
       sel1 = 1:siz(1);
       sel2 = sel;
       meandir = 2;
     elseif strcmp(cfg.matrixside, 'outflow')
-      %data.(cfg.zparam) = reshape(mean(data.(cfg.zparam)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
+      %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
       sel1 = sel;
       sel2 = 1:siz(1);
       meandir = 1;
@@ -303,7 +320,7 @@ if length(sellab) > 1 && ~isempty(cfg.maskparameter)
   cfg.maskparameter = [];
 end
 
-dat = data.(cfg.zparam);
+dat = data.(cfg.parameter);
 if isfull
   dat = dat(sel1, sel2, ymin:ymax, xmin:xmax);
   dat = nanmean(dat, meandir);
@@ -391,7 +408,7 @@ else
 end
 hold on
 axis xy;
-set(gca,'Color','k')
+% set(gca,'Color','k')
 
 if isequal(cfg.colorbar,'yes')
   colorbar;

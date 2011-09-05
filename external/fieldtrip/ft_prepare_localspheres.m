@@ -64,11 +64,12 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 3705 2011-06-15 13:59:35Z jansch $
+% $Id: ft_prepare_localspheres.m 4008 2011-08-24 14:07:43Z jansch $
 
 ft_defaults
 
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed', {'spheremesh', 'numvertices'}); 
 
 % set the defaults
 if ~isfield(cfg, 'radius'),        cfg.radius = 8.5;        end
@@ -78,7 +79,7 @@ if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';    end
 if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
-if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 4000;   end
+if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 4000;   end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];      end

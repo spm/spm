@@ -27,6 +27,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %                    'stats'         use a parametric test from the Matlab statistics toolbox,
 %                    'crossvalidate' use crossvalidation to compute predictive performance
 %
+%   cfg.design       = Nxnumobservations: design matrix (for examples/advice, please see the Fieldtrip wiki,
+%                      especially cluster-permutation tutorial and the 'walkthrough' design-matrix section)
+%
 % The other cfg options depend on the method that you select. You
 % should read the help of the respective subfunction STATISTICS_XXX
 % for the corresponding configuration options and for a detailed
@@ -64,13 +67,14 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 3876 2011-07-20 08:04:29Z jorhor $
+% $Id: ft_freqstatistics.m 4101 2011-09-05 09:48:02Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -80,7 +84,7 @@ cfg = ft_checkconfig(cfg, 'forbidden',   {'transform'});
 % set the defaults
 cfg.inputfile   = ft_getopt(cfg, 'inputfile',   []);
 cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
-cfg.parameter   = ft_getopt(cfg, 'parameter',   'powspctrm');
+cfg.parameter   = ft_getopt(cfg, 'parameter',   []); % the default is assigned further down
 cfg.channel     = ft_getopt(cfg, 'channel',     'all');
 cfg.latency     = ft_getopt(cfg, 'latency',     'all');
 cfg.trials      = ft_getopt(cfg, 'trials',      'all');
@@ -97,13 +101,13 @@ end
 
 % check whether channel neighbourhood information is needed and whether
 % this is present
-if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster') 
-    if ~isfield(cfg,'neighbours')
-        error('if you want to use clustering for multiple comparison correction you have to specify the spatial neighbourhood structure of your channels. See ft_neighbourselection');
-    elseif iscell(cfg.neighbours)
-        warning('Neighbourstructure is in old format - converting to structure array');
-        cfg.neighbours = fixneighbours(cfg.neighbours);
-    end
+if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
+  if ~isfield(cfg,'neighbours')
+    error('if you want to use clustering for multiple comparison correction you have to specify the spatial neighbourhood structure of your channels. See ft_neighbourselection');
+  elseif iscell(cfg.neighbours)
+    warning('Neighbourstructure is in old format - converting to structure array');
+    cfg.neighbours = fixneighbours(cfg.neighbours);
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -111,7 +115,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 hasdata      = nargin>1;
-hasinputfile = ~isempty(cfg.inputfile); 
+hasinputfile = ~isempty(cfg.inputfile);
 
 if hasdata && hasinputfile
   error('cfg.inputfile should not be used in conjunction with giving input data to this function');
@@ -124,6 +128,13 @@ elseif hasinputfile
 end
 
 Ndata = numel(varargin);
+
+% set the parameter to default powspctrm only if present in the data
+if isempty(cfg.parameter) && isfield(varargin{1}, 'powspctrm')
+  cfg.parameter = 'powspctrm';
+elseif isempty(cfg.parameter)
+  error('You need to specify a cfg.parameter, because the default (powspctrm) is not present in the input data');
+end
 
 % check if the input data is valid for this function
 hastime  = false(Ndata,1);
@@ -185,61 +196,50 @@ if hastime
   end
   
   % overrule user-specified settings
-  cfg.latency = [max(cfg.latency(1), tmin), min(cfg.latency(2), tmax)];  
+  cfg.latency = [max(cfg.latency(1), tmin), min(cfg.latency(2), tmax)];
   fprintf('computing statistic over the time range [%1.3f %1.3f]\n', cfg.latency(1), cfg.latency(2));
 end
 
 % only do those channels present in the data
 cfg.channel = ft_channelselection(cfg.channel, chan);
 
-previous = cell(1,Ndata);
-for i=1:Ndata
-  varargin{i} = ft_selectdata(varargin{i}, 'channel', cfg.channel,   'avgoverchan', cfg.avgoverchan);
-  varargin{i} = ft_selectdata(varargin{i}, 'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq);
-  if Ndata==1 && ~ischar(cfg.trials)
-    varargin{i} = ft_selectdata(varargin{i}, 'rpt',     cfg.trials);
-  elseif Ndata>1 && ~ischar(cfg.trials)
+if ~ischar(cfg.trials)
+  if Ndata==1
+    varargin{1} = ft_selectdata(varargin{1}, 'rpt', cfg.trials);
+  else
     error('subselection of trials is only allowed with a single data structure as input');
   end
-  if hastime,
-    varargin{i} = ft_selectdata(varargin{i}, 'toilim', cfg.latency, 'avgovertime', cfg.avgovertime);
-  end
-  if isfield(varargin{i}, 'cfg')
-    previous{i} = varargin{i}.cfg;
-  else
-    previous{i} = [];
-  end
 end
 
-% get all data into one structure but keep sensor info just in case
-if isfield(varargin{1}, 'elec')
-  sensfield = 'elec';
-elseif isfield(varargin{1}, 'grad')
-  sensfield = 'grad';
-end
-
-if exist('sensfield', 'var')
-  sens = varargin{1}.(sensfield);
-end
-
-if Ndata>1,
-  data = ft_selectdata(varargin{:}, 'param', cfg.parameter);
+% intersect the data and combine it into one structure
+if hastime
+  data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
+    'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
+    'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
 else
-  data = varargin{1};
+  data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
+    'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
 end
-clear varargin;
 
-if exist('sens', 'var') && ~isfield(data, sensfield)
-  data.(sensfield) = sens;
+% keep the sensor info, just in case
+if isfield(varargin{1}, 'elec')
+  data.elec = varargin{1}.elec;
+elseif isfield(varargin{1}, 'grad')
+  data.grad = varargin{1}.grad;
 end
+
+% ensure that we don't touch this any more
+clear varargin;
 
 % create the 'dat' matrix here
 dat        = data.(cfg.parameter);
 siz        = size(dat);
 dimtok     = tokenize(data.dimord, '_');
-rptdim     = find(ismember(dimtok, {'rpt' 'subj'}));
+rptdim     = find(ismember(dimtok, {'rpt' 'subj' 'rpttap'}));
 permutevec = [setdiff(1:numel(siz), rptdim) rptdim];       % permutation vector to put the repetition dimension as last dimension
-reshapevec = [prod(siz(permutevec(1:end-1))) siz(rptdim)]; % reshape vector to reshape into 2D
+reshapevec = [prod(siz(permutevec(1:end-1))) siz(rptdim) 1]; % reshape vector to reshape into 2D
 dat        = reshape(permute(dat, permutevec), reshapevec);% actually reshape the data
 
 reduceddim = setdiff(1:numel(siz), rptdim);
@@ -248,7 +248,7 @@ cfg.dimord = '';
 for k = 1:numel(reduceddim)
   cfg.dimord = [cfg.dimord, '_', dimtok{reduceddim(k)}];
 end
-cfg.dimord = cfg.dimord(2:end); % store the dimord of the output in the cfg  
+cfg.dimord = cfg.dimord(2:end); % store the dimord of the output in the cfg
 
 if size(cfg.design,2)~=size(dat,2)
   error('the number of observations in the design does not match the number of observations in the data');
@@ -274,7 +274,7 @@ end
 % determine the number of output arguments
 num = nargout(statmethod);
 
-% perform the statistical test 
+% perform the statistical test
 if num>1
   [stat, cfg] = statmethod(cfg, dat, cfg.design);
 else
@@ -327,15 +327,17 @@ stat.dimord = cfg.dimord; %FIXME squeeze out the appropriate dimords if avgoverf
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 3876 2011-07-20 08:04:29Z jorhor $';
+cfg.version.id = '$Id: ft_freqstatistics.m 4101 2011-09-05 09:48:02Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
-  
+
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 % remember the configuration of the input data
 if exist('previous', 'var')
@@ -343,7 +345,7 @@ if exist('previous', 'var')
 else
   cfg.previous = [];
 end
-  
+
 % remember the exact configuration details in the output
 stat.cfg = cfg;
 

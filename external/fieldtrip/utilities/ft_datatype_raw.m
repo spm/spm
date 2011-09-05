@@ -66,10 +66,14 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 3768 2011-07-04 10:50:31Z eelspa $
+% $Id: ft_datatype_raw.m 4061 2011-08-30 19:25:56Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
-version = keyval('version', varargin); if isempty(version), version = 'latest'; end
+version       = ft_getopt(varargin, 'version', 'latest');
+hassampleinfo = ft_getopt(varargin, 'hassampleinfo', true);
+
+% convert from yes/no into true/false
+hassampleinfo = istrue(hassampleinfo);
 
 if strcmp(version, 'latest')
   version = '2010v2';
@@ -86,7 +90,7 @@ switch version
       data = rmfield(data, 'offset');
     end
 
-    if ~isfield(data, 'sampleinfo') || ~isfield(data, 'trialinfo')
+    if hassampleinfo && (~isfield(data, 'sampleinfo') || ~isfield(data, 'trialinfo'))
       % reconstruct it on the fly
       data = fixsampleinfo(data);
     end

@@ -115,6 +115,8 @@ function [dataout] = ft_preprocessing(cfg, data)
 % cfg.paddir = direction of padding, 'left'/'right'/'both' (default = 'both')
 % cfg.artfctdef
 % cfg.removemcg
+% cfg.montage (in combination with meg-data in the input) applies montage
+%              to both data and grad-structure)
 % You can use this function to read data from one format, filter it, and
 % write it to disk in another format. The reading is done either as one
 % long continuous segment or in multiple trials. This is achieved by
@@ -174,13 +176,14 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 3773 2011-07-04 16:09:47Z eelspa $
+% $Id: ft_preprocessing.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 if nargin==0
   help(mfilename);
@@ -318,6 +321,16 @@ if hasdata
     % do the preprocessing on the selected channels
     [dataout.trial{i}, dataout.label, dataout.time{i}, cfg] = preproc(data.trial{i}(rawindx,:), data.label(rawindx), data.fsample, cfg, time2offset(data.time{i},data.fsample));
   end % for all trials
+  
+  if isfield(dataout, 'grad') && isfield(cfg, 'montage') && ~strcmp(cfg.montage, 'no') && isstruct(cfg.montage)
+    % apply the montage also to the MEG-sensor description
+    if isfield(cfg.montage, 'type'),
+      bname = cfg.montage.type;
+    else
+      bname = 'preproc';
+    end
+    dataout.grad = ft_apply_montage(dataout.grad, cfg.montage, 'feedback', 'none', 'keepunused', 'yes', 'balancename', bname);
+  end
   
   % convert back to input type if necessary
   switch convert
@@ -558,15 +571,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 3773 2011-07-04 16:09:47Z eelspa $';
+cfg.version.id   = '$Id: ft_preprocessing.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
-  
+
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
+cfg.callinfo.user     = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

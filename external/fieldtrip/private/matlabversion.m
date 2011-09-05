@@ -37,7 +37,11 @@ function [inInterval] = matlabversion(min, max)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: matlabversion.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: matlabversion.m 4071 2011-08-31 07:29:59Z roboos $
+
+if nargin<2
+  max = min;
+end
 
 curVer = version();
 

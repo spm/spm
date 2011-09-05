@@ -30,7 +30,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 3844 2011-07-13 13:32:25Z eelspa $
+% $Id: ft_examplefunction.m 4096 2011-09-03 15:49:40Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -41,6 +41,7 @@ ft_defaults
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 hasdata = (nargin>1);
 if ~isempty(cfg.inputfile)
@@ -98,15 +99,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 3844 2011-07-13 13:32:25Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_examplefunction.m 4096 2011-09-03 15:49:40Z roboos $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername(); % this is helpful for debugging
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 if hasdata && isfield(data, 'cfg')
   % remember the configuration details of the input data

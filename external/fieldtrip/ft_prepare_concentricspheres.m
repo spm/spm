@@ -51,7 +51,7 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_prepare_concentricspheres.m 4095 2011-09-02 10:00:32Z johzum $
 
 ft_defaults
 
@@ -140,6 +140,7 @@ else
 end
 
 vol.type = 'concentric';
+vol=ft_convert_units(vol);
 
 % get the output cfg
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

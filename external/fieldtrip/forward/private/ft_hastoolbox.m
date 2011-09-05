@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 3873 2011-07-19 14:23:16Z tilsan $
+% $Id: ft_hastoolbox.m 4037 2011-08-29 12:58:03Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -103,6 +103,7 @@ url = {
   'XML4MAT'    'see http://www.mathworks.com/matlabcentral/fileexchange/6268-xml4mat-v2-0'
   'SQDPROJECT' 'see http://www.isr.umd.edu/Labs/CSSL/simonlab'
   'BCT'        'see http://www.brain-connectivity-toolbox.net/'
+  'CCA'        'see http://www.imt.liu.se/~magnus/cca or contact Magnus Borga'
   };
 
 if nargin<2
@@ -234,6 +235,8 @@ switch toolbox
     status = exist('sqdread.m', 'file') && exist('sqdwrite.m', 'file');
   case 'BCT'
     status = exist('macaque71.mat', 'file') && exist('motif4funct_wei.m', 'file');
+  case 'CCA'
+    status = exist('ccabss.m', 'file');
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;

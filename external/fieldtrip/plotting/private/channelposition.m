@@ -25,22 +25,27 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 3790 2011-07-07 09:02:56Z jansch $
+% $Id: channelposition.m 3976 2011-08-18 06:53:23Z jansch $
 
 % remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
 sens = undobalancing(sens);
 
 switch ft_senstype(sens)
   case {'ctf151', 'ctf275' 'bti148', 'bti248', 'itab153', 'yokogawa160', 'yokogawa64'}
-    % the following code is for all axial gradiometer systems
+    % the following code is for all axial gradiometer systems or
+    % magnetometer systems
+    getref = keyval('channel', varargin); if isempty(getref), getref = 0; end 
     
-    % remove the non-MEG channels altogether
+    %%%%%%%%%%%%%%%%%%%%%%%%%%
+    % do the MEG sensors first
+    %%%%%%%%%%%%%%%%%%%%%%%%%%
+    sensorig   = sens;
     sel = ft_chantype(sens, 'meg');
     sens.label = sens.label(sel);
     sens.tra   = sens.tra(sel,:);
 
     % subsequently remove the unused coils
-    used = any(abs(sens.tra)<0.5, 1);  % allow a little bit of rounding-off error
+    used = any(abs(sens.tra)>0.0001, 1);  % allow a little bit of rounding-off error
     sens.pnt = sens.pnt(used,:);
     sens.ori = sens.ori(used,:);
     sens.tra = sens.tra(:,used);
@@ -52,18 +57,74 @@ switch ft_senstype(sens)
     % put the corresponding distances instead of non-zero tra entries    
     maxval = repmat(max(abs(sens.tra),[],2), [1 size(sens.tra,2)]);
     maxval = min(maxval, ones(size(maxval))); %a value > 1 sometimes leads to problems; this is an empirical fix
-    dist = (abs(sens.tra)>0.9.*maxval).*repmat(dist', size(sens.tra, 1), 1);
+    dist = (abs(sens.tra)>0.7.*maxval).*repmat(dist', size(sens.tra, 1), 1);
     
     % put nans instead of the zero entries
     dist(~dist) = inf;
 
-    % use the matrix to find coils with minimal distance to the center, i.e. the bottom coil
+    % use the matrix to find coils with minimal distance to the center,
+    % i.e. the bottom coil in the case of axial gradiometers
+    % this only works for a full-rank unbalanced tra-matrix
+    
+    % add the additional constraint that coils cannot be used twice,
+    % i.e. for the position of 2 channels. A row of the dist matrix can end
+    % up with more than 1 (magnetometer array) or 2 (axial gradiometer array)
+    % non-zero entries when the input grad structure is rank-reduced
+    % FIXME: I don't know whether this works for a vector-gradiometer
+    % system. I t also does not work when the system has mixed gradiometers
+    % and magnetometers
+    numcoils = sum(isfinite(dist),2);
+    tmp      = mode(numcoils);
+    niter    = 0;
+    while ~all(numcoils==tmp)
+      niter    = niter + 1;
+      selmode  = find(numcoils==tmp);
+      selrest  = setdiff((1:size(dist,1))', selmode);
+      dist(selrest,sum(~isinf(dist(selmode,:)))>0) = inf;
+      numcoils = sum(isfinite(dist),2);
+      if niter>500
+          error('Failed to extract the positions of the channels. This is most likely due to the balancing matrix being rank deficient. Please replace data.grad with the original grad-structure obtained after reading the header.');
+      end
+    end
+    
     [junk, ind] = min(dist, [], 2);
+    
+    lab(sel) = sens.label;
+    pnt(sel,:) = sens.pnt(ind, :);
+    ori(sel,:) = sens.ori(ind, :);
 
-    lab = sens.label;
-    pnt = sens.pnt(ind, :);
-    ori = sens.ori(ind, :);
-
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % then do the references if needed
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if getref
+        sens = sensorig;
+        sel  = ft_chantype(sens, 'ref');
+        
+        sens.label = sens.label(sel);
+        sens.tra   = sens.tra(sel,:);
+        
+        % subsequently remove the unused coils
+        used = any(abs(sens.tra)>0.0001, 1);  % allow a little bit of rounding-off error
+        sens.pnt = sens.pnt(used,:);
+        sens.ori = sens.ori(used,:);
+        sens.tra = sens.tra(:,used);
+        
+        [nchan, ncoil] = size(sens.tra);
+        refpnt = zeros(nchan,3);
+        refori = zeros(nchan,3); % FIXME not sure whether this will work
+        for i=1:nchan
+            weight = abs(sens.tra(i,:));
+            weight = weight ./ norm(weight);
+            refpnt(i,:) = weight * sens.pnt;
+            refori(i,:) = weight * sens.ori;
+        end
+        reflab = sens.label;
+        
+        lab(sel) = reflab;
+        pnt(sel,:) = refpnt;
+        ori(sel,:) = refori;
+    end
+    
   case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar'}
     % create a list with planar channel names
     chan = {};
@@ -153,7 +214,7 @@ switch ft_senstype(sens)
   otherwise
     % compute the position for each electrode
 
-    if isfield(sens, 'tra')
+    if isfield(sens, 'tra') && isfield(sens, 'ori')
       % each channel depends on multiple sensors (electrodes or coils)
       % compute a weighted position for the channel
       [nchan, ncoil] = size(sens.tra);

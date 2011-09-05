@@ -81,7 +81,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 3857 2011-07-14 08:38:35Z roboos $
+% $Id: ft_senstype.m 4041 2011-08-29 13:26:40Z jansch $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -134,20 +134,20 @@ end
 % the input may be a data structure which then contains a grad/elec structure, a header or only the labels
 if isdata
   % preferably look at the data and not the header for the grad, because it might be re-balanced and/or planar
-  if isfield(input, 'hdr')
-    input = input.hdr;
-    isheader = true;
-  elseif isfield(input, 'grad')
+  if isfield(input, 'grad')
     sens = input.grad;
     isgrad = true;
+  elseif isfield(input, 'elec')
+    sens = input.elec;
+    iselec = true;
+  elseif isfield(input, 'hdr')
+    input = input.hdr;
+    isheader = true;
   elseif issubfield(input, 'hdr.grad')
     sens = input.hdr.grad;
     isgrad = true;
   elseif issubfield(input, 'hdr.elec')
     sens = input.hdr.elec;
-    iselec = true;
-  elseif isfield(input, 'elec')
-    sens = input.elec;
     iselec = true;
   elseif issubfield(input, 'hdr.label')
     sens.label = input.hdr.label;

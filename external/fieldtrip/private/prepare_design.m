@@ -1,4 +1,4 @@
-function [cfg] = prepare_design(cfg);
+function [cfg] = prepare_design(cfg)
 
 % PREPARE_DESIGN makes a design matrix on the basis of the information in
 % cfg (i.c., cfg.statistic, cfg.ext, and an initial design in cfg.design) 
@@ -61,7 +61,7 @@ function [cfg] = prepare_design(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_design.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: prepare_design.m 3939 2011-08-13 12:27:59Z jansch $
 
 % determine whether a beween or a within-units design is requested.
 if any(strcmp(cfg.statistic,{'indepsamplesT','indepsamplesregrT','indepsamplesZcoh','indepsamplesF'}))
@@ -137,11 +137,11 @@ elseif strcmp(designtype,'within')  % within-units conditions
       error('The number of rows in cfg.ext must be equal to the number of conditions or the number of replications (number of conditions times number of units-of-observation).');
     end;
     cfg.design(:,dimext(2)+1)=initialdesign(:,(end-1));
-    cfg.uvar = size(design,2)
+    cfg.uvar = size(design,2);
   end;
 end;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: prepare_design.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: prepare_design.m 3939 2011-08-13 12:27:59Z jansch $';
 

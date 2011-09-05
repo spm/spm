@@ -96,7 +96,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 3729 2011-06-23 15:26:04Z sashae $
+% $Id: statistics_montecarlo.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
@@ -422,3 +422,4 @@ for i=1:length(fn)
 end
 
 warning(ws); % revert to original state
+

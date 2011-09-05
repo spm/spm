@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 3880 2011-07-20 09:39:40Z jansch $
+% $Id: ft_checkdata.m 4087 2011-09-01 18:25:11Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -167,7 +167,7 @@ end
 % the ft_datatype_XXX functions ensures the consistency of the XXX datatype
 % and provides a detailled description of the dataformat and its history
 if     israw
-  data = ft_datatype_raw(data);
+  data = ft_datatype_raw(data, 'hassampleinfo', hassampleinfo);
 elseif isfreq
   data = ft_datatype_freq(data);
 elseif istimelock 
@@ -1715,11 +1715,11 @@ if isfield(data, 'dof'),        data = rmfield(data, 'dof'); end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [data] = chan2freq(data)
 data.dimord = [data.dimord '_freq'];
-data.freq   = nan;
+data.freq   = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [data] = chan2timelock(data)
 data.dimord = [data.dimord '_time'];
-data.time   = nan;
+data.time   = 0;

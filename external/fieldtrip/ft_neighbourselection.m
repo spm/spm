@@ -50,7 +50,7 @@ function neighbours = ft_neighbourselection(cfg,data)
 % See also FT_NEIGHBOURPLOT
 
 
-% Copyright (C) 2006-2011, Eric Maris, Jörn M. Horschig, Robert Oostenveld
+% Copyright (C) 2006-2011, Eric Maris, J?rn M. Horschig, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -68,7 +68,7 @@ function neighbours = ft_neighbourselection(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_neighbourselection.m 3887 2011-07-20 14:09:43Z jorhor $
+% $Id: ft_neighbourselection.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
@@ -111,6 +111,14 @@ else
     elseif hasdata && isfield(data, 'elec')
         fprintf('Using the electrode configuration from the dataset.\n');
         sens = data.elec;
+    elseif hasdata && isfield(data, 'pnt') && isfield(data, 'label')
+        % could be a sensor description
+        fprintf('Using the sensor positions in the data.\n');
+        sens = data;
+        if isfield(sens, 'ori') && isfield(sens, 'tra')
+            % looks like a MEG sensor array
+            [sens.pnt,sens.label] = channelposition(sens);
+        end
     elseif isfield(cfg, 'grad')
         fprintf('Obtaining the gradiometer configuration from the configuration.\n');
         sens = cfg.grad;

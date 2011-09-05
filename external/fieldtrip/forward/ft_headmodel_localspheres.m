@@ -143,4 +143,6 @@ for chan=1:Nchan
 end % for all channels
 
 vol.type = 'multisphere';
+vol      = ft_convert_units(vol); % ensure the object to have a unit
+
 

@@ -84,7 +84,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 3709 2011-06-16 12:07:11Z roboos $
+% $Id: ft_read_event.m 4003 2011-08-24 08:52:24Z crimic $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -949,6 +949,18 @@ switch eventformat
       event = db_select('fieldtrip.event', {'type', 'value', 'sample', 'offset', 'duration'});
     end
     
+  case 'gtec_mat'
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    if isempty(trigindx)
+      % these are probably trigger channels
+      trigindx = match_str(hdr.label, {'Display', 'Target'});
+    end
+    % use a helper function to read the trigger channels and detect the flanks
+    % pass all the other users options to the read_trigger function
+    event = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'dataformat', dataformat, 'detectflank', detectflank, 'trigshift', trigshift);
+    
   case {'itab_raw' 'itab_mhd'}
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -971,6 +983,23 @@ switch eventformat
     % read the events from a normal Matlab file
     tmp   = load(filename, 'event');
     event = tmp.event;
+    
+  case 'micromed_trc'
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'Trigger_Area') && isfield(hdr.orig, 'Tigger_Area_Length')
+      if ~isempty(trigindx)
+        trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift,'dataformat', 'micromed_trc');
+        event   = appendevent(event, trigger);
+      else
+        % routine that reads analog triggers in case no index is specified
+        event = read_micromed_event(filename);
+      end
+      
+    else
+      error('Not a correct event format')
+    end
     
   case {'mpi_ds', 'mpi_dap'}
     if isempty(hdr)

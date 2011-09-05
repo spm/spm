@@ -77,13 +77,14 @@ function [cfg] = ft_databrowser_old(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser_old.m 3862 2011-07-14 13:41:01Z jorhor $
+% $Id: ft_databrowser_old.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 % set defaults for optional cfg.input and or cfg.outputfile
 if ~isfield(cfg, 'inputfile'),       cfg.inputfile = [];               end
@@ -485,15 +486,17 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser_old.m 3862 2011-07-14 13:41:01Z jorhor $';
+cfg.version.id = '$Id: ft_databrowser_old.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 % remember the configuration details of the input data
 if hasdata && isfield(data, 'cfg')
@@ -575,6 +578,7 @@ fprintf('-----------------------------------------------------------------------
 fprintf('You can use the following buttons in the data viewer\n')
 fprintf('1-9                : select artifact type 1-9\n');
 fprintf('shift 1-9          : select previous artifact of type 1-9\n');
+fprintf('                     (does not work with numpad keys)\n');
 fprintf('control 1-9        : select next artifact of type 1-9\n');
 fprintf('alt 1-9            : select next artifact of type 1-9\n');
 fprintf('arrow-left         : previous trial\n');
@@ -583,7 +587,7 @@ fprintf('shift arrow-up     : increase vertical scaling\n');
 fprintf('shift arrow-down   : decrease vertical scaling\n');
 fprintf('shift arrow-left   : increase horizontal scaling\n');
 fprintf('shift arrow-down   : decrease horizontal scaling\n');
-fprintf('q            : quit\n');
+fprintf('q                  : quit\n');
 fprintf('------------------------------------------------------------------------------------\n')
 fprintf('\n')
 end
@@ -694,10 +698,7 @@ if isempty(eventdata)
   h = getparent(h);
 else
   % determine the key that was pressed on the keyboard
-  key = eventdata.Key;
-  if ~isempty(eventdata.Modifier)
-    key = [eventdata.Modifier{1} '+' key];
-  end
+  key = parseKeyboardEvent(eventdata);
 end
 
 switch key
@@ -1340,5 +1341,32 @@ end % switch viewmode
 fprintf('done\n');
 
 guidata(h, opt);
+end
+
+function key = parseKeyboardEvent(eventdata)
+
+  key = eventdata.Key;
+  
+  % handle possible numpad events (different for Windows and UNIX systems)
+  % NOTE: shift+numpad number does not work on UNIX, since the shift
+  % modifier is always sent for numpad events
+  if isunix()
+    shiftInd = match_str(eventdata.Modifier, 'shift');
+    if ~isnan(str2double(eventdata.Character)) && ~isempty(shiftInd)
+      % now we now it was a numpad keystroke (numeric character sent AND
+      % shift modifier present)
+      key = eventdata.Character;
+      eventdata.Modifier(shiftInd) = []; % strip the shift modifier
+    end
+  elseif ispc()
+    if strfind(eventdata.Key, 'numpad')
+      key = eventdata.Character;
+    end
+  end
+    
+  if ~isempty(eventdata.Modifier)
+    key = [eventdata.Modifier{1} '+' key];
+  end
+  
 end
 

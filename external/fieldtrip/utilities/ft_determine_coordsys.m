@@ -1,18 +1,18 @@
 function [data] = ft_determine_coordsys(data, varargin)
 
-% FT_DETERMINECOORDSYS plots a geometrical object, allowing you to perform a visual
-% check on the coordinatesystem, the units and on the anatomical labels for the
-% coordinate system axes.
+% FT_DETERMINE_COORDSYS plots a geometrical object, allowing you to perform
+% a visual check on the coordinatesystem, the units and on the anatomical
+% labels for the coordinate system axes.
 %
 % Use as
-%   [dataout] = ft_checkcoordsys(datain, varargin)
+%   [dataout] = ft_determine_coordsys(datain, 'key1', value1, ...)
 % where the input data structure can be
 %  - an anatomical MRI, which can be segmented
 %  - an electrode or gradiometer definition
 %  - a volume conduction model
 % or most other FieldTrip structures that represent geometrical information.
 %
-% The optional key-value pairs are
+% Additional optional input arguments come as key-value pairs. 
 %   interactive  = string, 'yes' or 'no' (default = 'yes')
 %
 % This function wil pop up a figure that allows you to check whether the
@@ -40,7 +40,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 3732 2011-06-29 07:49:26Z jorhor $
+% $Id: ft_determine_coordsys.m 4047 2011-08-29 15:43:16Z crimic $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 
@@ -76,6 +76,7 @@ switch unit
 end
 
 if isfield(data, 'coordsys') && ~isempty(data.coordsys)
+  label = cell(3,1);
   if length(data.coordsys)==3 && length(intersect(data.coordsys, 'rlasif'))==3
     for i=1:3
       switch data.coordsys(i)
@@ -125,6 +126,7 @@ end
 
 % plot the geometrical object
 % the plotting style depends on the data content
+figure;
 switch dtype
   case 'volume'
     if isfield(data, 'anatomy')
@@ -265,7 +267,7 @@ if ~isempty(str) && ~strcmp(str, 'unknown')
   strx = tokenize(str, '_');
   
   switch lower(strx{1})
-    case {'ras' 'itab' 'neuromag'}
+    case {'ras' 'itab' 'neuromag' 'spm' 'mni'}
       labelx = {'-X (left)'      '+X (right)'   };
       labely = {'-Y (posterior)' '+Y (anterior)'};
       labelz = {'-Z (inferior)'  '+Z (superior)'};

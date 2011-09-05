@@ -85,13 +85,14 @@ function [mri] = ft_volumerealign(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 3888 2011-07-20 14:25:23Z jansch $
+% $Id: ft_volumerealign.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial', 'fiducial'});
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -165,7 +166,7 @@ switch cfg.method
     
   case 'interactive'
     showcrosshair = true;
-    showmarkers   = true;
+    showmarkers   = 1;
     dat = mri.(cfg.parameter);
     nas = [];
     lpa = [];
@@ -186,11 +187,14 @@ switch cfg.method
     markerlabel = {};
     markercolor = {};
     while true % break when 'q' is pressed
-      fprintf('click with mouse button to reslice the display to a new position\n');
+      fprintf('click with the left mouse button to reslice the display to a new position\n');
+      fprintf('click with the right mouse button to mark a position\n');
+      fprintf('click with the middle mouse button to unmark the last marked position\n');
       fprintf('press n/l/r on keyboard to record the current position as fiducial location\n');
       fprintf('press a/p/z on keyboard to record the current position as anatomical landmark\n');
       fprintf('press the arrow keys on the keyboard to increment or decrement the slice number by one\n');
       fprintf('press c or C on the keyboard to show or hide the crosshair\n');
+      fprintf('press m or M on the keyboard to show or hide the marked positions\n');
       fprintf('press q on keyboard to quit interactive mode\n');
       
       xc = round(xc); xc = max(1,xc); xc = min(mri.dim(1),xc);
@@ -219,6 +223,10 @@ switch cfg.method
         showcrosshair = true;
       case 67  % 'C'
         showcrosshair = false;
+      case 109 % 'm'
+        showmarkers = 2;
+      case 77 % 'M'
+        showmarkers = 0;
       case 1 % left mouse click
         % update the view to a new position
         l1 = get(get(gca, 'xlabel'), 'string');
@@ -478,15 +486,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumerealign.m 3888 2011-07-20 14:25:23Z jansch $';
+cfg.version.id = '$Id: ft_volumerealign.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.version.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 if isfield(mri, 'cfg'), cfg.previous = mri.cfg; end
 
@@ -530,12 +540,18 @@ else
   h3 = handles{3};
 end
 
-if showmarkers
+if showmarkers==1
   markerpos = round(markers{1});
   markercolor = markers{3};
   sel1 = find(markerpos(:,2)==repmat(c(2),size(markerpos,1),1));
   sel2 = find(markerpos(:,1)==repmat(c(1),size(markerpos,1),1));
   sel3 = find(markerpos(:,3)==repmat(c(3),size(markerpos,1),1));
+elseif showmarkers==2
+  markerpos = round(markers{1});
+  markercolor = markers{3};
+  sel1 = 1:size(markerpos,1);
+  sel2 = 1:size(markerpos,1);
+  sel3 = 1:size(markerpos,1);
 end
 
 for k = 1:numel(updatepanel)
@@ -544,7 +560,6 @@ for k = 1:numel(updatepanel)
   if update==1
     subplot(h1);
     imagesc(x, z, squeeze(dat(:,yi,:))'); set(gca, 'ydir', 'normal')
-    axis equal; axis tight;
     xlabel('i'); ylabel('k');
     caxis([cmin cmax]);
     if showcrosshair
@@ -557,12 +572,12 @@ for k = 1:numel(updatepanel)
       end
       hold off;
     end
+    axis equal; axis tight;
   end
   
   if update==2
     subplot(h2);
     imagesc(y, z, squeeze(dat(xi,:,:))'); set(gca, 'ydir', 'normal')
-    axis equal; axis tight;
     xlabel('j'); ylabel('k');
     caxis([cmin cmax]);
     if showcrosshair
@@ -575,12 +590,12 @@ for k = 1:numel(updatepanel)
       end
       hold off;
     end  
+    axis equal; axis tight;
   end
   
   if update==3
     subplot(h3); 
     imagesc(x, y, squeeze(dat(:,:,zi))'); set(gca, 'ydir', 'normal')
-    axis equal; axis tight;
     xlabel('i'); ylabel('j');
     caxis([cmin cmax]);
     if showcrosshair
@@ -593,6 +608,7 @@ for k = 1:numel(updatepanel)
       end
       hold off;
     end
+    axis equal; axis tight;
   end
 
 end

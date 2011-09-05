@@ -106,13 +106,15 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 3710 2011-06-16 14:04:19Z eelspa $
+% $Id: ft_prepare_leadfield.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
+
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,15 +131,19 @@ if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];            end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
 
 hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
+if isfield(cfg,'grad')
+    data = []; % clear for memory reasons and because we won't use it
+    % need to check if data.grad and cfg.grad are same?
+    % need to warn/error user that we use cfg.grad and not data.grad?
 else
-  data = [];
+    if ~isempty(cfg.inputfile) && hasdata
+        error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+    elseif ~isempty(cfg.inputfile)
+        % the input data should be read from file
+        data = loadvar(cfg.inputfile, 'data');
+    elseif ~hasdata
+        error('Either data, cfg.inputfile, or cfg.grad must be specified');
+    end
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
@@ -266,15 +272,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_prepare_leadfield.m 3710 2011-06-16 14:04:19Z eelspa $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

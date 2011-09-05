@@ -51,13 +51,14 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 3800 2011-07-07 15:17:47Z roboos $
+% $Id: ft_combineplanar.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 % set the defaults
 if ~isfield(cfg, 'demean'),        cfg.demean         = 'no';       end
@@ -270,15 +271,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id  = '$Id: ft_combineplanar.m 3800 2011-07-07 15:17:47Z roboos $';
+cfg.version.id  = '$Id: ft_combineplanar.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

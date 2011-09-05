@@ -120,7 +120,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 3735 2011-06-29 08:22:09Z jorhor $
+% $Id: ft_volumesegment.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
@@ -334,8 +334,8 @@ if dotpm
        delete([cfg.name,'_seg3.mat']);
     elseif strcmp(cfg.write,'yes'),
       for j = 1:3
-        % put the original transformation-matrix in the headers
-        V(j).mat = original.transform;
+        % put the transformation-matrix in the headers
+        V(j).mat = mri.transform;
         % write the updated header information back to file ???????
         V(j) = spm_create_vol(V(j));
       end
@@ -395,8 +395,8 @@ if dotpm
        delete(fullfile(pathstr,['m',name,'.img']));
     elseif strcmp(cfg.write,'yes'),
       for j = 1:3
-        % put the original transformation-matrix in the headers
-        V(j).mat = original.transform;
+        % put the transformation-matrix in the headers
+        V(j).mat = mri.transform;
         % write the updated header information back to file ???????
         V(j) = spm_create_vol(V(j));
       end
@@ -527,7 +527,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 3735 2011-06-29 08:22:09Z jorhor $';
+cfg.version.id = '$Id: ft_volumesegment.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

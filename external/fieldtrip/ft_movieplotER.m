@@ -7,8 +7,7 @@ function ft_movieplotER(cfg, timelock)
 %   ft_movieplotER(cfg, timelock)
 % where the input data is from FT_TIMELOCKANALYSIS and the configuration
 % can contain
-%   cfg.xparam       = string, parameter over which the movie unrolls (default = 'time')
-%   cfg.zparam       = string, parameter that is color coded (default = 'avg')
+%   cfg.parameter    = string, parameter that is color coded (default = 'avg')
 %   cfg.xlim         = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.zlim         = 'maxmin', 'maxabs' or [zmin zmax] (default = 'maxmin')
 %   cfg.samperframe  = number, samples per fram (default = 1)
@@ -54,23 +53,26 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 3710 2011-06-16 14:04:19Z eelspa $
+% $Id: ft_movieplotER.m 4096 2011-09-03 15:49:40Z roboos $
 
 ft_defaults
 
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();;
+ftFuncMem   = memtic();
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
 
 % set defaults
 xlim         = ft_getopt(cfg, 'xlim',         'maxmin');
 zlim         = ft_getopt(cfg, 'zlim',         'maxmin');
 xparam       = ft_getopt(cfg, 'xparam',       'time');
-zparam       = ft_getopt(cfg, 'zparam',       'avg');
+parameter    = ft_getopt(cfg, 'parameter',       'avg');
 samperframe  = ft_getopt(cfg, 'samperframe',  1);
 framespersec = ft_getopt(cfg, 'framespersec', 5);
 framesfile   = ft_getopt(cfg, 'framesfile',   []);
@@ -100,17 +102,17 @@ layout = ft_prepare_layout(cfg);
 
 % update the configuration
 cfg.xparam = xparam;
-cfg.zparam = zparam;
+cfg.parameter = parameter;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the actual computation is done in the middle part
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 xparam = timelock.(xparam);
-zparam = timelock.(zparam);
+parameter = timelock.(parameter);
 
-if length(xparam)~=size(zparam,2)
-  error('inconsistent size of "%s" compared to "%s"', cfg.zparam, cfg.xparam);
+if length(xparam)~=size(parameter,2)
+  error('inconsistent size of "%s" compared to "%s"', cfg.parameter, cfg.xparam);
 end
 
 if ischar(xlim) && strcmp(xlim, 'maxmin')
@@ -133,7 +135,7 @@ end
 
 % make a subselection of the data
 xparam = xparam(xbeg:xend);
-zparam = zparam(seldat, xbeg:xend);
+parameter = parameter(seldat, xbeg:xend);
 clear xbeg xend
 
 % get the x and y coordinates and labels of the channels in the data
@@ -143,8 +145,8 @@ chanY = layout.pos(sellay,2);
 % get the z-range
 if ischar(zlim) && strcmp(zlim, 'maxmin')
   zlim    = [];
-  zlim(1) = min(zparam(:));
-  zlim(2) = max(zparam(:));
+  zlim(1) = min(parameter(:));
+  zlim(2) = max(parameter(:));
   % update the configuration
   cfg.zlim = zlim;
 elseif ischar(zlim) && strcmp(cfg.zlim,'maxabs')
@@ -191,7 +193,7 @@ if dointeractive,
   opt.chanX = chanX;
   opt.chanY = chanY;
   opt.tim   = xparam;
-  opt.dat   = zparam;
+  opt.dat   = parameter;
   opt.zlim  = zlim;
   opt.speed = 1;
   opt.cfg   = cfg;
@@ -237,10 +239,10 @@ else
   xdata = get(hs, 'xdata');
   ydata = get(hs, 'ydata');
   nanmask = get(hs, 'cdata');
-  for iFrame = 1:floor(size(zparam, 2)/samperframe)
+  for iFrame = 1:floor(size(parameter, 2)/samperframe)
 
     indx       = ((iFrame-1)*samperframe+1):iFrame*samperframe;
-    datavector = mean(zparam(:, indx), 2);
+    datavector = mean(parameter(:, indx), 2);
     datamatrix = griddata(chanX, chanY, datavector, xdata, ydata, 'cubic');
     set(hs, 'cdata',  datamatrix + nanmask);
     
@@ -274,15 +276,17 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_movieplotER.m 3710 2011-06-16 14:04:19Z eelspa $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_movieplotER.m 4096 2011-09-03 15:49:40Z roboos $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
 cfg.callinfo.user = getusername(); % this is helpful for debugging
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 if isfield(timelock, 'cfg')
   % remember the configuration details of the input data

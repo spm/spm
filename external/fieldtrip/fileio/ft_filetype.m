@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 3709 2011-06-16 12:07:11Z roboos $
+% $Id: ft_filetype.m 3985 2011-08-19 09:29:04Z vlalit $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -917,6 +917,10 @@ elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filen
   type = 'spmeeg_mat';
   manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
   content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB') && filetype_check_gtec_mat(filename)
+  type = 'gtec_mat';
+  manufacturer = 'Guger Technologies, http://www.gtec.at';
+  content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB') && filetype_check_ced_spike6mat(filename)
   type = 'ced_spike6mat';
   manufacturer = 'Cambridge Electronic Design Limited';
@@ -1032,7 +1036,7 @@ fnames = {
   'times'
   };
 
-res = (numel(intersect(fieldnames(var{1}), fnames)) == 10);
+res = (numel(intersect(fieldnames(var{1}), fnames)) >= 5);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that checks for a SPM eeg/meg mat file
@@ -1047,3 +1051,10 @@ res = res && numel(var)==1;
 res = res && strcmp('D', getfield(var, {1}, 'name'));
 res = res && strcmp('struct', getfield(var, {1}, 'class'));
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION that checks for a GTEC mat file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function res = filetype_check_gtec_mat(filename)
+% check the content of the *.mat file
+var = whos('-file', filename);
+res = length(intersect({'log', 'names'}, {var.name}))==2;

@@ -12,8 +12,7 @@ function ft_multiplotCC(cfg, data)
 % Undocumented local options:
 % cfg.layout  = layout filename or a structure produced by prepare_layout
 % cfg.xlim
-% cfg.xparam
-% cfg.zparam
+% cfg.parameter
 % This function requires input from FT_FREQSTATISTICS_SHIFTPREDICT
 % This function should be rewritten, using the clean topoplot implementation
 
@@ -35,19 +34,22 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 3706 2011-06-15 14:32:53Z crimic $
+% $Id: ft_multiplotCC.m 3907 2011-07-29 08:54:13Z eelspa $
 
 ft_defaults
+
+cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
 
 % if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151s.lay';       end;
 if ~isfield(cfg, 'xparam'),    cfg.xparam = 'foi';               end;
 if ~isfield(cfg, 'xlim'),      cfg.xlim   = 'all';               end;
-if ~isfield(cfg, 'zparam'),    cfg.zparam = 'avg.icohspctrm';    end;
+if ~isfield(cfg, 'parameter'),    cfg.parameter = 'avg.icohspctrm';    end;
 
 % for backward compatibility with old data structures
 data = ft_checkdata(data);
 
-if strcmp(cfg.zparam, 'avg.icohspctrm') && ~issubfield(data, 'avg.icohspctrm'),
+if strcmp(cfg.parameter, 'avg.icohspctrm') && ~issubfield(data, 'avg.icohspctrm'),
   data.avg.icohspctrm = abs(imag(data.avg.cohspctrm));
 end
 
@@ -66,7 +68,7 @@ if strcmp(data.dimord, 'refchan_chan_freq'),
   end
   tmpdata = data;
 else
-  dat   = getsubfield(data, cfg.zparam);
+  dat   = getsubfield(data, cfg.parameter);
   scale = [0 max(dat(:))-0.2];
 end
 
@@ -110,7 +112,7 @@ for k=1:length(chNum) - 2
       config.xparam = 'time';
       config.xlim   = [k-0.5 k+0.5];
     end
-    config.zparam = cfg.zparam;
+    config.parameter = cfg.parameter;
     config.refchannel = Lbl(k);
     config.colorbar = 'no';
     config.zlim     = scale;

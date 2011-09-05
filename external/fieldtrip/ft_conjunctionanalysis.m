@@ -43,6 +43,7 @@ ft_defaults
 % record start time and total processing time
 ftFuncTimer = tic();
 ftFuncClock = clock();
+ftFuncMem   = memtic();
 
 % input check
 if nargin < 3
@@ -197,13 +198,15 @@ end
 
 % add the version details of this function call to the configuration
 Cval.cfg.version.name   = mfilename('fullpath');
-Cval.cfg.version.id     = '$Id: ft_conjunctionanalysis.m 3710 2011-06-16 14:04:19Z eelspa $';
+Cval.cfg.version.id     = '$Id: ft_conjunctionanalysis.m 4096 2011-09-03 15:49:40Z roboos $';
 Cval.cfg.callinfo.matlab = version();
   
 % add information about the function call to the configuration
 cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
 cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % Matlab version used
+cfg.callinfo.user = getusername();
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [minstat] = minimumstatistics(variable1, variable2)

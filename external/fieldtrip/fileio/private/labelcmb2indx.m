@@ -44,7 +44,7 @@ function [indx] = labelcmb2indx(labelcmb, label)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: labelcmb2indx.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: labelcmb2indx.m 3968 2011-08-17 13:47:32Z jansch $
 
 if nargin==1,
   label = unique(labelcmb(:));
@@ -55,16 +55,19 @@ ncmb = size(labelcmb,1);
 indx = zeros(ncmb,2);
 
 nchan    = numel(label);
-autoindx = zeros(nchan,1);
 for k = 1:nchan
-  sel1 = strcmp(label{k}, labelcmb(:,1));
-  sel2 = strcmp(label{k}, labelcmb(:,2));
+  %sel1 = strcmp(label{k}, labelcmb(:,1));
+  %sel2 = strcmp(label{k}, labelcmb(:,2));
+  sel = strcmp(label{k}, labelcmb);
   if nargin==1,
-    autoindx = find(sel1 & sel2);
+    %autoindx = find(sel1 & sel2);
+    autoindx = find(sel(:,1) & sel(:,2), 1, 'first');
     if isempty(autoindx), error('the required autocombination is not found in the input'); end
   else
     autoindx = k;
   end
-  indx(sel1,1) = autoindx;
-  indx(sel2,2) = autoindx;
+  %indx(sel1,1) = autoindx;
+  %indx(sel2,2) = autoindx;
+  indx(sel(:,1),1) = autoindx;
+  indx(sel(:,2),2) = autoindx;
 end

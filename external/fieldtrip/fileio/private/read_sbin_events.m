@@ -32,7 +32,11 @@ function [EventCodes, segHdr, eventData] = read_sbin_events(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_events.m 2881 2011-02-15 06:04:44Z josdie $
+% $Id: read_sbin_events.m 3982 2011-08-19 03:18:48Z josdie $
+
+EventCodes = [];
+segHdr = [];
+eventData = [];
 
 fid=fopen([filename],'r');
 if fid==-1
@@ -112,6 +116,8 @@ else
         EventCodes(j,1:4)   = char(fread(fid,[1,4],'char',endian));
     end
 end
+
+if NEvent == 0, return; end
 
 %read the actual events
 if unsegmented
