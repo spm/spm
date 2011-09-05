@@ -593,177 +593,170 @@ int linsearch(int   *list,
 
 /* Gateway function with error check. */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            i=0;
-   int            ndim=0, lima_ndim=0;
-   int            nc=0, nr=0, ni=0;
-   const int      *cdim=NULL, *lima_cdim=NULL;
-   unsigned int   dim[3];
-   int            *nn=NULL;
-   int            *rs=NULL;
-   int            *rw=NULL;
-   int            *lima=NULL;
-   double         *pp=NULL;
-   double         *pm=NULL;
-   double         *d_tmp=NULL;
-   double         *opm=NULL;
-
-   if (nrhs == 0) mexErrMsgTxt("usage: pm = pm_merge_regions(pm,lima,i,j,n,p,rs)");
-   if (nrhs != 7) mexErrMsgTxt("pm_merge_regions: 7 input arguments required");
-   /*
+    mwIndex        i=0;
+    mwSize         ndim=0, lima_ndim=0;
+    mwSize         nc=0, nr=0, ni=0;
+    const mwSize   *cdim=NULL, *lima_cdim=NULL;
+    mwSize         dim[3];
+    int            *nn=NULL;
+    int            *rs=NULL;
+    int            *rw=NULL;
+    int            *lima=NULL;
+    double         *pp=NULL;
+    double         *pm=NULL;
+    double         *d_tmp=NULL;
+    double         *opm=NULL;
+    
+    if (nrhs == 0) mexErrMsgTxt("usage: pm = pm_merge_regions(pm,lima,i,j,n,p,rs)");
+    if (nrhs != 7) mexErrMsgTxt("pm_merge_regions: 7 input arguments required");
+    /*
    if (nlhs != 1) mexErrMsgTxt("pm_merge_regions: 1 output argument required");
-   */
-
-   /* Get phase map. */
-
-   if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
-   {
-      mexErrMsgTxt("pm_merge_regions: pm must be numeric, real, full and double");
-   }
-   ndim = mxGetNumberOfDimensions(prhs[0]);
-   if ((ndim < 2) | (ndim > 3))
-   {
-      mexErrMsgTxt("pm_merge_regions: pm must be 2 or 3-dimensional");
-   }
-   cdim = mxGetDimensions(prhs[0]);
-   pm = mxGetPr(prhs[0]);
-
-   /* Get image of labels. */
-
-   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
-   {
-      mexErrMsgTxt("pm_merge_regions: lima must be numeric, real, full and double");
-   }
-   lima_ndim = mxGetNumberOfDimensions(prhs[1]);
-   if (lima_ndim != ndim)
-   {
-      mexErrMsgTxt("pm_merge_regions: pm and lima must have same dimensionality");
-   }
-   lima_cdim = mxGetDimensions(prhs[1]);
-   for (i=0; i<ndim; i++)
-   {
-      if (cdim[i] != lima_cdim[i])
-      {
-         mexErrMsgTxt("pm_merge_regions: pm and lima must have same size");
-      }
-   }
-   d_tmp = mxGetPr(prhs[1]);
-
-   /* Fix dimensions to allow for 2D and 3D data. */
-
-   dim[0]=cdim[0]; dim[1]=cdim[1];
-   if (ndim==2) {dim[2]=1; ndim=3;} else {dim[2]=cdim[2];} 
-   for (i=0, ni=1; i<ndim; i++)
-   {
-      ni *= dim[i];
-   }
-
-   /* Convert double representation of lima into int's. */
-
-   lima = (int *) mxCalloc(ni,sizeof(int));
-   for (i=0; i<ni; i++) {lima[i] = ((int) (d_tmp[i]+0.1));} 
-
-   /* Get vector of row indicies into connectogram matrix */
-
-   if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
-   {
-      mexErrMsgTxt("pm_merge_regions: i must be numeric, real, full and double");
-   }
-   nc = mxGetM(prhs[2]);
-   d_tmp = mxGetPr(prhs[2]);
-   if (mxGetN(prhs[2]) != 1)
-   {
-      mexErrMsgTxt("pm_merge_regions: i must be a column matrix");
-   }
-   ii = (int *) mxCalloc(nc,sizeof(int));
-   for (i=0; i<nc; i++) {ii[i] = ((int) (d_tmp[i]+0.1));}
-
-   /* Get vector of column indicies into connectogram matrix */
-
-   if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
-   {
-      mexErrMsgTxt("pm_merge_regions: j must be numeric, real, full and double");
-   }
-   if (mxGetM(prhs[3]) != nc || mxGetN(prhs[3]) != 1)
-   {
-      mexErrMsgTxt("pm_merge_regions: j must be a column matrix of same size as i");
-   }
-   d_tmp = mxGetPr(prhs[3]);
-   jj = (int *) mxCalloc(nc,sizeof(int));
-   for (i=0; i<nc; i++) {jj[i] = ((int) (d_tmp[i]+0.1));}
-
-   /* Get entrys for first connectogram matrix (containing border sizes). */
-
-   if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) || mxIsSparse(prhs[4]) || !mxIsDouble(prhs[4]))
-   {
-      mexErrMsgTxt("pm_merge_regions: n must be numeric, real, full and double");
-   }
-   if (mxGetM(prhs[4]) != nc || mxGetN(prhs[4]) != 1)
-   {
-      mexErrMsgTxt("pm_merge_regions: n must be a column matrix of same size as i");
-   }
-   d_tmp = mxGetPr(prhs[4]);
-   nn = (int *) mxCalloc(nc,sizeof(int));
-   for (i=0; i<nc; i++) {nn[i] = ((int) (d_tmp[i]+0.1));}
-
-   /* Get entrys for second connectogram matrix (containing phase differences along borders). */
-
-   if (!mxIsNumeric(prhs[5]) || mxIsComplex(prhs[5]) || mxIsSparse(prhs[5]) || !mxIsDouble(prhs[5]))
-   {
-      mexErrMsgTxt("pm_merge_regions: p must be numeric, real, full and double");
-   }
-   if (mxGetM(prhs[5]) != nc || mxGetN(prhs[5]) != 1)
-   {
-      mexErrMsgTxt("pm_merge_regions: p must be a column matrix of same size as i");
-   }
-   d_tmp = mxGetPr(prhs[5]);
-   pp = (double *) mxCalloc(nc,sizeof(double)); /* Use local copy to avoid side effects. */
-   memcpy(pp,d_tmp,nc*sizeof(double));   
-
-   /* Get vector of region sizes (in voxels) */
-
-   if (!mxIsNumeric(prhs[6]) || mxIsComplex(prhs[6]) || mxIsSparse(prhs[6]) || !mxIsDouble(prhs[6]))
-   {
-      mexErrMsgTxt("pm_merge_regions: rs must be numeric, real, full and double");
-   }
-   nr = mxGetM(prhs[6]);
-   d_tmp = mxGetPr(prhs[6]);
-   if (mxGetN(prhs[6]) != 1)
-   {
-      mexErrMsgTxt("pm_merge_regions: rs must be a column matrix");
-   }
-   rs = (int *) mxCalloc(nr,sizeof(int));
-   for (i=0; i<nr; i++) {rs[i] = ((int) (d_tmp[i]+0.1));}
-   
-   /* Allocate mem for unwrapped output phasemap. */
-
-      plhs[0] = mxCreateNumericArray(mxGetNumberOfDimensions(prhs[0]),
-                                  mxGetDimensions(prhs[0]),mxDOUBLE_CLASS,mxREAL);
-   opm = mxGetPr(plhs[0]);
-   
-   rw = (int *) mxCalloc(nr,sizeof(int));
-
-   merge_regions(nn,pp,nc,rs,nr,rw);
-
-   for (i=0; i<ni; i++)
-   {
-      if (lima[i]) {opm[i] = pm[i] + 2.0*PI*rw[lima[i]-1];}
-      else {opm[i] = pm[i];}
-   }
-
-   mxFree(lima);     
-   mxFree(ii);     
-   mxFree(jj);     
-   mxFree(nn);
-   mxFree(pp);     
-   mxFree(rs);     
-
-   return;
+     */
+    
+    /* Get phase map. */
+    
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+    {
+        mexErrMsgTxt("pm_merge_regions: pm must be numeric, real, full and double");
+    }
+    ndim = mxGetNumberOfDimensions(prhs[0]);
+    if ((ndim < 2) | (ndim > 3))
+    {
+        mexErrMsgTxt("pm_merge_regions: pm must be 2 or 3-dimensional");
+    }
+    cdim = mxGetDimensions(prhs[0]);
+    pm = mxGetPr(prhs[0]);
+    
+    /* Get image of labels. */
+    
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+    {
+        mexErrMsgTxt("pm_merge_regions: lima must be numeric, real, full and double");
+    }
+    lima_ndim = mxGetNumberOfDimensions(prhs[1]);
+    if (lima_ndim != ndim)
+    {
+        mexErrMsgTxt("pm_merge_regions: pm and lima must have same dimensionality");
+    }
+    lima_cdim = mxGetDimensions(prhs[1]);
+    for (i=0; i<ndim; i++)
+    {
+        if (cdim[i] != lima_cdim[i])
+        {
+            mexErrMsgTxt("pm_merge_regions: pm and lima must have same size");
+        }
+    }
+    d_tmp = mxGetPr(prhs[1]);
+    
+    /* Fix dimensions to allow for 2D and 3D data. */
+    
+    dim[0]=cdim[0]; dim[1]=cdim[1];
+    if (ndim==2) {dim[2]=1; ndim=3;} else {dim[2]=cdim[2];}
+    for (i=0, ni=1; i<ndim; i++)
+    {
+        ni *= dim[i];
+    }
+    
+    /* Convert double representation of lima into int's. */
+    
+    lima = (int *) mxCalloc(ni,sizeof(int));
+    for (i=0; i<ni; i++) {lima[i] = ((int) (d_tmp[i]+0.1));}
+    
+    /* Get vector of row indicies into connectogram matrix */
+    
+    if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+    {
+        mexErrMsgTxt("pm_merge_regions: i must be numeric, real, full and double");
+    }
+    nc = mxGetM(prhs[2]);
+    d_tmp = mxGetPr(prhs[2]);
+    if (mxGetN(prhs[2]) != 1)
+    {
+        mexErrMsgTxt("pm_merge_regions: i must be a column matrix");
+    }
+    ii = (int *) mxCalloc(nc,sizeof(int));
+    for (i=0; i<nc; i++) {ii[i] = ((int) (d_tmp[i]+0.1));}
+    
+    /* Get vector of column indicies into connectogram matrix */
+    
+    if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+    {
+        mexErrMsgTxt("pm_merge_regions: j must be numeric, real, full and double");
+    }
+    if (mxGetM(prhs[3]) != nc || mxGetN(prhs[3]) != 1)
+    {
+        mexErrMsgTxt("pm_merge_regions: j must be a column matrix of same size as i");
+    }
+    d_tmp = mxGetPr(prhs[3]);
+    jj = (int *) mxCalloc(nc,sizeof(int));
+    for (i=0; i<nc; i++) {jj[i] = ((int) (d_tmp[i]+0.1));}
+    
+    /* Get entrys for first connectogram matrix (containing border sizes). */
+    
+    if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) || mxIsSparse(prhs[4]) || !mxIsDouble(prhs[4]))
+    {
+        mexErrMsgTxt("pm_merge_regions: n must be numeric, real, full and double");
+    }
+    if (mxGetM(prhs[4]) != nc || mxGetN(prhs[4]) != 1)
+    {
+        mexErrMsgTxt("pm_merge_regions: n must be a column matrix of same size as i");
+    }
+    d_tmp = mxGetPr(prhs[4]);
+    nn = (int *) mxCalloc(nc,sizeof(int));
+    for (i=0; i<nc; i++) {nn[i] = ((int) (d_tmp[i]+0.1));}
+    
+    /* Get entrys for second connectogram matrix (containing phase differences along borders). */
+    
+    if (!mxIsNumeric(prhs[5]) || mxIsComplex(prhs[5]) || mxIsSparse(prhs[5]) || !mxIsDouble(prhs[5]))
+    {
+        mexErrMsgTxt("pm_merge_regions: p must be numeric, real, full and double");
+    }
+    if (mxGetM(prhs[5]) != nc || mxGetN(prhs[5]) != 1)
+    {
+        mexErrMsgTxt("pm_merge_regions: p must be a column matrix of same size as i");
+    }
+    d_tmp = mxGetPr(prhs[5]);
+    pp = (double *) mxCalloc(nc,sizeof(double)); /* Use local copy to avoid side effects. */
+    memcpy(pp,d_tmp,nc*sizeof(double));
+    
+    /* Get vector of region sizes (in voxels) */
+    
+    if (!mxIsNumeric(prhs[6]) || mxIsComplex(prhs[6]) || mxIsSparse(prhs[6]) || !mxIsDouble(prhs[6]))
+    {
+        mexErrMsgTxt("pm_merge_regions: rs must be numeric, real, full and double");
+    }
+    nr = mxGetM(prhs[6]);
+    d_tmp = mxGetPr(prhs[6]);
+    if (mxGetN(prhs[6]) != 1)
+    {
+        mexErrMsgTxt("pm_merge_regions: rs must be a column matrix");
+    }
+    rs = (int *) mxCalloc(nr,sizeof(int));
+    for (i=0; i<nr; i++) {rs[i] = ((int) (d_tmp[i]+0.1));}
+    
+    /* Allocate mem for unwrapped output phasemap. */
+    
+    plhs[0] = mxCreateNumericArray(mxGetNumberOfDimensions(prhs[0]),
+            mxGetDimensions(prhs[0]),mxDOUBLE_CLASS,mxREAL);
+    opm = mxGetPr(plhs[0]);
+    
+    rw = (int *) mxCalloc(nr,sizeof(int));
+    
+    merge_regions(nn,pp,nc,rs,nr,rw);
+    
+    for (i=0; i<ni; i++)
+    {
+        if (lima[i]) {opm[i] = pm[i] + 2.0*PI*rw[lima[i]-1];}
+        else {opm[i] = pm[i];}
+    }
+    
+    mxFree(lima);
+    mxFree(ii);
+    mxFree(jj);
+    mxFree(nn);
+    mxFree(pp);
+    mxFree(rs);
+    
 }
-
-
-

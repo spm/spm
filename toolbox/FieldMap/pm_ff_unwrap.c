@@ -23,7 +23,7 @@ void ff_unwrap(double        *ipm,
                double        *vm,
                double        *iwm,
                double        *mask,
-               unsigned int  dim[3],
+               mwSize        dim[3],
                double        thres,
                double        *opm,
                double        *owm);
@@ -32,15 +32,15 @@ unsigned int ff_unwrap_dilate(double        *ipm,
                               double        *vm,
                               double        *iwm,
                               double        *mask,
-                              unsigned int  dim[3],
+                              mwSize        dim[3],
                               double        thres,
                               double        *opm,
                               double        *owm);
 
-double neighbour(int           i,
-                 int           j,
-                 int           k,
-                 unsigned int  dim[3],
+double neighbour(mwIndex       i,
+                 mwIndex       j,
+                 mwIndex       k,
+                 mwSize        dim[3],
                  double        *wm,
                  double        *pm,
                  int           cc);
@@ -49,143 +49,143 @@ void ff_unwrap(double        *ipm,
                double        *vm,
                double        *iwm,
                double        *mask,
-               unsigned int  dim[3],
+               mwSize        dim[3],
                double        thres,
                double        *opm,
                double        *owm)
 {
-   double *tpm[2] = {NULL,NULL};
-   double *twm[2] = {NULL,NULL};
-   double *tmp = NULL;
-
-   if (ff_unwrap_dilate(ipm,vm,iwm,mask,dim,thres,opm,owm))
-   {
-      tpm[0] = opm;
-      twm[0] = owm;
-      tpm[1] = (double *) mxCalloc(dim[0]*dim[1]*dim[2],sizeof(double));
-      twm[1] = (double *) mxCalloc(dim[0]*dim[1]*dim[2],sizeof(double));
-      while (ff_unwrap_dilate(tpm[0],vm,twm[0],mask,dim,thres,tpm[1],twm[1]))
-      {
-     tmp = tpm[0];
-         tpm[0] = tpm[1];
-         tpm[1] = tmp;
-     tmp = twm[0];
-         twm[0] = twm[1];
-         twm[1] = tmp;
-      }
-      if (tpm[1]==opm) 
-      {
-     mxFree(tpm[0]);
-         mxFree(twm[0]);
-      }
-      else
-      {
-     memcpy(opm,tpm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
-     memcpy(owm,twm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
-     mxFree(tpm[1]);
-         mxFree(twm[1]);
-      }
-   }
-
-   return;
+    double *tpm[2] = {NULL,NULL};
+    double *twm[2] = {NULL,NULL};
+    double *tmp = NULL;
+    
+    if (ff_unwrap_dilate(ipm,vm,iwm,mask,dim,thres,opm,owm))
+    {
+        tpm[0] = opm;
+        twm[0] = owm;
+        tpm[1] = (double *) mxCalloc(dim[0]*dim[1]*dim[2],sizeof(double));
+        twm[1] = (double *) mxCalloc(dim[0]*dim[1]*dim[2],sizeof(double));
+        while (ff_unwrap_dilate(tpm[0],vm,twm[0],mask,dim,thres,tpm[1],twm[1]))
+        {
+            tmp = tpm[0];
+            tpm[0] = tpm[1];
+            tpm[1] = tmp;
+            tmp = twm[0];
+            twm[0] = twm[1];
+            twm[1] = tmp;
+        }
+        if (tpm[1]==opm)
+        {
+            mxFree(tpm[0]);
+            mxFree(twm[0]);
+        }
+        else
+        {
+            memcpy(opm,tpm[1],dim[0]*dim[1]*dim[2]*sizeof(double));
+            memcpy(owm,twm[1],dim[0]*dim[1]*dim[2]*sizeof(double));
+            mxFree(tpm[1]);
+            mxFree(twm[1]);
+        }
+    }
+    
+    return;
 }
 
 unsigned int ff_unwrap_dilate(double        *ipm,
                               double        *vm,
                               double        *iwm,
                               double        *mask,
-                              unsigned int  dim[3],
+                              mwSize        dim[3],
                               double        thres,
                               double        *opm,
                               double        *owm)
 {
-   int           i=0, j=0, k=0;
-   int           ii = 0;
-   unsigned int  nwrapped = 0;
-   double        np = 0;
-
-   for (i=0; i<dim[0]; i++)
-   {
-      for (j=0; j<dim[1]; j++)
-      {
-         for (k=0; k<dim[2]; k++)
-         {
-        ii=index(i,j,k,dim);
-        if (mask[ii] && !iwm[ii] && vm[ii] < thres)
+    mwIndex       i=0, j=0, k=0;
+    int           ii = 0;
+    unsigned int  nwrapped = 0;
+    double        np = 0;
+    
+    for (i=0; i<dim[0]; i++)
+    {
+        for (j=0; j<dim[1]; j++)
         {
-           if (np = neighbour(i,j,k,dim,iwm,ipm,6))
-           {
-          owm[ii] = 1.0;
-                  opm[ii] = ipm[ii];
-                  while ((opm[ii] - np) > PI) {opm[ii] -= 2*PI;}
-                  while ((opm[ii] - np) < -PI) {opm[ii] += 2*PI;}
-                  nwrapped++;
-               }
-               else
-           {
-          owm[ii] = iwm[ii];
-                  opm[ii] = ipm[ii];
-               }
+            for (k=0; k<dim[2]; k++)
+            {
+                ii=index(i,j,k,dim);
+                if (mask[ii] && !iwm[ii] && vm[ii] < thres)
+                {
+                    if ((np = neighbour(i,j,k,dim,iwm,ipm,6)))
+                    {
+                        owm[ii] = 1.0;
+                        opm[ii] = ipm[ii];
+                        while ((opm[ii] - np) > PI) {opm[ii] -= 2*PI;}
+                        while ((opm[ii] - np) < -PI) {opm[ii] += 2*PI;}
+                        nwrapped++;
+                    }
+                    else
+                    {
+                        owm[ii] = iwm[ii];
+                        opm[ii] = ipm[ii];
+                    }
+                }
+                else
+                {
+                    owm[ii] = iwm[ii];
+                    opm[ii] = ipm[ii];
+                }
+            }
         }
-            else
-        {
-           owm[ii] = iwm[ii];
-               opm[ii] = ipm[ii];
-            }         
-         }
-      }
-   }
-
-   return(nwrapped);
+    }
+    
+    return(nwrapped);
 }
 
-double neighbour(int           i,
-                 int           j,
-                 int           k,
-                 unsigned int  dim[3],
+double neighbour(mwIndex       i,
+                 mwIndex       j,
+                 mwIndex       k,
+                 mwSize        dim[3],
                  double        *wm,
                  double        *pm,
                  int           cc)
 {
-   double    np = 0.0;
-   int       nn = 0;
-   int       ii = 0;
-
-   if (cc >= 6)
-   {
-      if (i && wm[ii=index(i-1,j,k,dim)]) {np+=pm[ii]; nn++;}
-      if (j && wm[ii=index(i,j-1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (k && wm[ii=index(i,j,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && wm[ii=index(i+1,j,k,dim)]) {np+=pm[ii]; nn++;}
-      if (j<(dim[1]-1) && wm[ii=index(i,j+1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (k<(dim[2]-1) && wm[ii=index(i,j,k+1,dim)]) {np+=pm[ii]; nn++;}
-   }
-   if (cc >= 18)
-   {
-      if (i && j && wm[ii=index(i-1,j-1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (i && k && wm[ii=index(i-1,j,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (j && k && wm[ii=index(i,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i && j<(dim[1]-1) && wm[ii=index(i-1,j+1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (j && i<(dim[0]-1) && wm[ii=index(i+1,j-1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (i && k<(dim[2]-1) && wm[ii=index(i-1,j,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (k && i<(dim[0]-1) && wm[ii=index(i+1,j,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (j && k<(dim[2]-1) && wm[ii=index(i,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (k && j<(dim[1]-1) && wm[ii=index(i,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && j<(dim[1]-1) && wm[ii=index(i+1,j+1,k,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && k<(dim[2]-1) && wm[ii=index(i+1,j,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
-   }
-   if (cc >= 26)
-   {
-      if (i && j && k && wm[ii=index(i-1,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i && j && k<(dim[2]-1) && wm[ii=index(i-1,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (i && j<(dim[1]-1) && k && wm[ii=index(i-1,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && j && k && wm[ii=index(i+1,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i && j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i-1,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && j && k<(dim[2]-1) && wm[ii=index(i+1,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && j<(dim[1]-1) && k && wm[ii=index(i+1,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
-      if (i<(dim[0]-1) && j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i+1,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
-   }
+    double    np = 0.0;
+    int       nn = 0;
+    int       ii = 0;
+    
+    if (cc >= 6)
+    {
+        if (i && wm[ii=index(i-1,j,k,dim)]) {np+=pm[ii]; nn++;}
+        if (j && wm[ii=index(i,j-1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (k && wm[ii=index(i,j,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && wm[ii=index(i+1,j,k,dim)]) {np+=pm[ii]; nn++;}
+        if (j<(dim[1]-1) && wm[ii=index(i,j+1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (k<(dim[2]-1) && wm[ii=index(i,j,k+1,dim)]) {np+=pm[ii]; nn++;}
+    }
+    if (cc >= 18)
+    {
+        if (i && j && wm[ii=index(i-1,j-1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (i && k && wm[ii=index(i-1,j,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (j && k && wm[ii=index(i,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i && j<(dim[1]-1) && wm[ii=index(i-1,j+1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (j && i<(dim[0]-1) && wm[ii=index(i+1,j-1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (i && k<(dim[2]-1) && wm[ii=index(i-1,j,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (k && i<(dim[0]-1) && wm[ii=index(i+1,j,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (j && k<(dim[2]-1) && wm[ii=index(i,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (k && j<(dim[1]-1) && wm[ii=index(i,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && j<(dim[1]-1) && wm[ii=index(i+1,j+1,k,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && k<(dim[2]-1) && wm[ii=index(i+1,j,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
+    }
+    if (cc >= 26)
+    {
+        if (i && j && k && wm[ii=index(i-1,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i && j && k<(dim[2]-1) && wm[ii=index(i-1,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (i && j<(dim[1]-1) && k && wm[ii=index(i-1,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && j && k && wm[ii=index(i+1,j-1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i && j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i-1,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && j && k<(dim[2]-1) && wm[ii=index(i+1,j-1,k+1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && j<(dim[1]-1) && k && wm[ii=index(i+1,j+1,k-1,dim)]) {np+=pm[ii]; nn++;}
+        if (i<(dim[0]-1) && j<(dim[1]-1) && k<(dim[2]-1) && wm[ii=index(i+1,j+1,k+1,dim)]) {np+=pm[ii]; nn++;}
+    }
 
    if (nn) return(np/((double) nn));
    else return(0.0);
@@ -193,16 +193,13 @@ double neighbour(int           i,
 
 /* Gateway function with error check. */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            ndim = 0, chk_ndim = 0;
-   int            n = 0, i = 0;
-   int            tm = 0, tn = 0;
-   const int      *cdim = NULL, *chk_cdim = NULL;
-   unsigned int   dim[3];
+   mwSize         ndim = 0, chk_ndim = 0;
+   mwIndex        n = 0, i = 0;
+   mwIndex        tm = 0, tn = 0;
+   const mwSize   *cdim = NULL, *chk_cdim = NULL;
+   mwSize         dim[3];
    double         *pm = NULL;
    double         *vm = NULL;
    double         *wm = NULL;
@@ -345,5 +342,3 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 
    return;
 }
-
-

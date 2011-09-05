@@ -1,5 +1,5 @@
 /*
- * $Id: spm_warp.c 2480 2008-11-19 17:47:49Z john $
+ * $Id: spm_warp.c 4462 2011-09-05 17:43:49Z guillaume $
  * John Ashburner
  */
 
@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include "mex.h"
 
-static float resample(unsigned char vol[], float x1, float x2, float x3, int dim[3])
+static float resample(unsigned char vol[], float x1, float x2, float x3, mwSize dim[3])
 {
     float out;
     if (x3>=1 && x3<dim[2] && x2>=1 && x2<dim[1] && x1>=1 && x1<dim[0])
@@ -44,7 +44,7 @@ static float resample(unsigned char vol[], float x1, float x2, float x3, int dim
     return(out);
 }
 
-static float resample_d(unsigned char vol[], float x1, float x2, float x3, int dim[3], float *gradx1, float *gradx2, float *gradx3)
+static float resample_d(unsigned char vol[], float x1, float x2, float x3, mwSize dim[3], float *gradx1, float *gradx2, float *gradx3)
 {
     float out;
     if (x3>=1 && x3<dim[2] && x2>=1 && x2<dim[1] && x1>=1 && x1<dim[0])
@@ -298,7 +298,7 @@ static void dfun_ss(Tettype *tet, float Y[4][3],
 
 static Tettype oddtets[32], eventets[8];
 
-static void setup_consts_sub(int dim[3], float x[3][3], Tettype *tet, float vox_g[3])
+static void setup_consts_sub(mwSize dim[3], float x[3][3], Tettype *tet, float vox_g[3])
 {
     int i;
     float X[4][3], dtx;
@@ -336,7 +336,7 @@ static void setup_consts_sub(int dim[3], float x[3][3], Tettype *tet, float vox_
     }
 }
 
-static void setup_consts(int dim[3], float vox_g[3])
+static void setup_consts(mwSize dim[3], float vox_g[3])
 {
     int i;
     static float xo[][3][3] = {
@@ -398,8 +398,8 @@ static void setup_consts(int dim[3], float vox_g[3])
 
 
 static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
-    int dim_g[3], unsigned char gvol[],
-    int dim_f[3], float vox_f[3], unsigned char fvol[],
+    mwSize dim_g[3], unsigned char gvol[],
+    mwSize dim_f[3], float vox_f[3], unsigned char fvol[],
     int msk, float lambda, float epsilon, float v, float scale,
     float *hf, float *hp, int *n, float *sumf, float *sumg, int *cnt, int sgn)
 {
@@ -407,10 +407,10 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
     float hf0, hf1;
     float hp0, hp1, dhp0, dhp1, dhp2;
     float f, df0, df1, df2, g;
-    float *y0, *y1, *y2;
+    float *y0=NULL, *y1=NULL, *y2=NULL;
     int i, iter, o;
     int flg = 0;
-    Tettype *tets;
+    Tettype *tets=NULL;
     int ntets;
 
     flg = 0;
@@ -577,10 +577,11 @@ static void tweek(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2,
 
 static void warp3d(unsigned char g[], unsigned char f[],
     float y0[], float y1[], float y2[],
-    int dim_g[3], float vox_g[3], int dim_f[3], float vox_f[3],
+    mwSize dim_g[3], float vox_g[3], mwSize dim_f[3], float vox_f[3],
     float *lambda, float *epsilon, float *sigma2, float *scale, int meth)
 {
-    int x2, x1, x0, n, cnt,sgn;
+    mwIndex x2, x1, x0;
+    int n, cnt,sgn;
     float hf = 0.0, hp = 0.0;
     float sumf, sumg;
     setup_consts(dim_g, vox_g);
@@ -665,9 +666,9 @@ static void warp3d(unsigned char g[], unsigned char f[],
     (void)mexPrintf("%.8g\n", hf/n);
 }
 
-static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y1[], float y2[], int dim_g[3], int dim_f[3])
+static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y1[], float y2[], mwSize dim_g[3], mwSize dim_f[3])
 {
-    int x0, x1, x2, o;
+    mwIndex x0, x1, x2, o;
     float scale = 0.0;
     float gpix, fpix;
     float sumg=0.0, sumf=0.0;
@@ -689,9 +690,11 @@ static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y
     return(scale);
 }
 
-static float get_sumsq(unsigned char g[], unsigned char f[], float y0[], float y1[], float y2[], int dim_g[3], int dim_f[3], float scale)
+static float get_sumsq(unsigned char g[], unsigned char f[], 
+        float y0[], float y1[], float y2[], mwSize dim_g[3], mwSize dim_f[3], float scale)
 {
-    int x0, x1, x2, o, n=0;
+    int n=0;
+    mwIndex x0, x1, x2, o;
     float sigma2 = 0.0, tmp;
     float gpix, fpix;
 
@@ -716,7 +719,7 @@ static float get_sumsq(unsigned char g[], unsigned char f[], float y0[], float y
 
 static void estimate_warps(unsigned char g[], unsigned char f[],
     float y0[], float y1[], float y2[],
-    int dim_g[3], float vox_g[3], int dim_f[3], float vox_f[3],
+    mwSize dim_g[3], float vox_g[3], mwSize dim_f[3], float vox_f[3],
     int its, float lambda, float epsilon, int meth)
 {
     int iter;
@@ -731,10 +734,11 @@ static void estimate_warps(unsigned char g[], unsigned char f[],
 }
 
 
-static float *get_def_volume(const mxArray *ptr, int dims[3])
+static float *get_def_volume(const mxArray *ptr, mwSize dims[3])
 {
-    int nd, i;
-    const int *ldims;
+    mwSize nd;
+    mwIndex i;
+    const mwSize *ldims=NULL;
     if (mxIsStruct(ptr) || !mxIsNumeric(ptr) || mxIsComplex(ptr) ||
                 mxIsSparse(ptr) || !mxIsSingle(ptr))
         mexErrMsgTxt("Deformations must be single precision floating point multi-dimensional arrays.");
@@ -754,12 +758,13 @@ static float *get_def_volume(const mxArray *ptr, int dims[3])
     return((float *)mxGetPr(ptr));
 }
 
-static unsigned char *get_uint8_volume(const mxArray *ptr, int dims[3])
+static unsigned char *get_uint8_volume(const mxArray *ptr, mwSize dims[3])
 {
-    int nd, i;
-    const int *ldims;
+    mwSize nd;
+    mwIndex i;
+    const mwSize *ldims=NULL;
     if (mxIsStruct(ptr) || !mxIsNumeric(ptr) || mxIsComplex(ptr) ||
-                mxIsSparse(ptr) || !mxIsUint8(ptr))
+        mxIsSparse(ptr) || !mxIsUint8(ptr))
         mexErrMsgTxt("Data must be uint8 multi-dimensional arrays.");
 
     nd = mxGetNumberOfDimensions(ptr);
@@ -772,15 +777,15 @@ static unsigned char *get_uint8_volume(const mxArray *ptr, int dims[3])
     for(i=nd; i<3; i++)
         dims[i] = 1;
 
-    return((unsigned char *)mxGetPr(ptr));
+    return((unsigned char *)mxGetData(ptr));
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    unsigned char *f=0, *g=0;
-    int dim_g[3], dim_f[3], its, meth, i;
+    unsigned char *f=NULL, *g=NULL;
+    mwSize dim_g[3], dim_f[3], its, meth, i;
     float lambda, epsilon, vox_g[3], vox_f[3];
-    float *y0, *y1, *y2;
+    float *y0=NULL, *y1=NULL, *y2=NULL;
 
     if (nrhs!=7 || nlhs>0) mexErrMsgTxt("Incorrect usage.");
 

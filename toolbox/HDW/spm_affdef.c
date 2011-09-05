@@ -1,5 +1,5 @@
 /*
- * $Id: spm_affdef.c 1140 2008-02-06 19:24:05Z spm $
+ * $Id: spm_affdef.c 4462 2011-09-05 17:43:49Z guillaume $
  * John Ashburner
  */
 
@@ -13,12 +13,14 @@
 
    I have used this style of programming here in order to save memory.
 */
+
 #include "mex.h"
 
-static float *get_volume(const mxArray *ptr, int dims[3])
+static float *get_volume(const mxArray *ptr, mwSize dims[3])
 {
-    int nd, i;
-    const int *ldims;
+    mwSize nd;
+    mwIndex i;
+    const mwSize *ldims;
     if (mxIsStruct(ptr) || !mxIsNumeric(ptr) || mxIsComplex(ptr) ||
                 mxIsSparse(ptr) || !mxIsSingle(ptr))
         mexErrMsgTxt("Data must be a single precision floating point multi-dimensional array.");
@@ -38,12 +40,12 @@ static float *get_volume(const mxArray *ptr, int dims[3])
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    float  *y0=0,  *y1=0,  *y2=0, *p=0;
-    int dim_g[3], dim_f[3];
-    double *M;
+    float  *y0=NULL,  *y1=NULL,  *y2=NULL, *p=NULL;
+    mwSize dim_g[3], dim_f[3];
+    double *M=NULL;
 
-        if (nrhs != 4 || nlhs >0)
-                mexErrMsgTxt("Inappropriate usage.");
+    if (nrhs != 4 || nlhs >0)
+        mexErrMsgTxt("Inappropriate usage.");
 
     y0 = get_volume(prhs[0], dim_g);
     y1 = get_volume(prhs[1], dim_f);

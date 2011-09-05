@@ -1,5 +1,5 @@
 /*
- * $Id: spm_def2det.c 1140 2008-02-06 19:24:05Z spm $
+ * $Id: spm_def2det.c 4462 2011-09-05 17:43:49Z guillaume $
  * John Ashburner
  */
 
@@ -74,7 +74,7 @@ static void mulMX(REAL A[4][3], REAL B[4][3], REAL C[4][3])
     A[3][2] = B[0][2]*C[3][0] + B[1][2]*C[3][1] + B[2][2]*C[3][2] + B[3][2];
 }
 
-static void setup_consts_sub(int dim[3], int x[3][3], Tettype *tet, REAL M[4][3])
+static void setup_consts_sub(mwSize dim[3], int x[3][3], Tettype *tet, REAL M[4][3])
 {
     REAL X[4][3], MX[4][3], dtx;
     X[0][0] = 0.0;
@@ -102,7 +102,7 @@ static void setup_consts_sub(int dim[3], int x[3][3], Tettype *tet, REAL M[4][3]
     tet->o3   = x[2][0]+dim[0]*(x[2][1]+dim[1]*x[2][2]);
 }
 
-static void setup_consts(int dim[3], REAL M[4][3])
+static void setup_consts(mwSize dim[3], REAL M[4][3])
 {
     int i;
     static int xo[][3][3] = {
@@ -193,7 +193,7 @@ static void get_jacmat(float *y0, float *y1, float *y2, Tettype tet, REAL J[3][3
 
 }
 
-static float subfunk(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2, int dim[3])
+static float subfunk(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2, mwSize dim[3])
 {
     Tettype *tets;
     int ntets, i, o;
@@ -221,9 +221,9 @@ static float subfunk(int x0, int x1, int x2, float *Y0, float *Y1, float *Y2, in
 
 
 
-static void gen_dets(float y1[], float y2[], float y3[], int dim[3], float dets[])
+static void gen_dets(float y1[], float y2[], float y3[], mwSize dim[3], float dets[])
 {
-    int x3, x2, x1, o;
+    mwIndex x3, x2, x1, o;
     float NaN;
     NaN = mxGetNaN();
 
@@ -262,10 +262,11 @@ static void gen_dets(float y1[], float y2[], float y3[], int dim[3], float dets[
     (void)printf("\n");
 }
 
-static float *get_volume(const mxArray *ptr, int dims[3])
+static float *get_volume(const mxArray *ptr, mwSize dims[3])
 {
-    int nd, i;
-    const int *ldims;
+    mwSize nd;
+    mwIndex i;
+    const mwSize *ldims;
     if (mxIsStruct(ptr) || !mxIsNumeric(ptr) || mxIsComplex(ptr) ||
                 mxIsSparse(ptr) || !mxIsSingle(ptr))
         mexErrMsgTxt("Data must be a single precision floating point multi-dimensional array.");
@@ -282,16 +283,16 @@ static void get_mat(const mxArray *ptr, REAL M[4][3])
 {
     int i, j;
     double *p;
-
-        if (!mxIsNumeric(ptr) || mxIsComplex(ptr) ||
-                mxIsComplex(ptr) || !mxIsDouble(ptr) || mxGetM(ptr) != 4 || mxGetN(ptr) != 4)
-                mexErrMsgTxt("Affine transform matrix must be 4x4.");
+    
+    if (!mxIsNumeric(ptr) || mxIsComplex(ptr) ||
+         mxIsComplex(ptr) || !mxIsDouble(ptr) || mxGetM(ptr) != 4 || mxGetN(ptr) != 4)
+        mexErrMsgTxt("Affine transform matrix must be 4x4.");
     p = (double *)mxGetPr(ptr);
-
+    
     for(i=0; i<3; i++)
         for(j=0; j<4; j++)
             M[j][i] = p[i+4*j];
-
+    
     if (p[3+4*0] != 0.0 || p[3+4*1] != 0.0 || p[3+4*2] != 0.0 || p[3+4*3] != 1.0)
         mexErrMsgTxt("No perspective projections allowed.");
 }
@@ -299,11 +300,11 @@ static void get_mat(const mxArray *ptr, REAL M[4][3])
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    float  *y0=0,  *y1=0,  *y2=0, *dt=0;
-    int dim[3], dimtmp[3];
+    float  *y0=NULL,  *y1=NULL,  *y2=NULL, *dt=NULL;
+    mwSize dim[3], dimtmp[3];
     REAL M[4][3];
 
-        if (nrhs != 4 || nlhs > 1) mexErrMsgTxt("Inappropriate usage.");
+    if (nrhs != 4 || nlhs > 1) mexErrMsgTxt("Inappropriate usage.");
 
     y0 = get_volume(prhs[0], dim);
     y1 = get_volume(prhs[1], dimtmp);
@@ -316,7 +317,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     get_mat(prhs[3],M);
 
     plhs[0] = mxCreateNumericArray(3, dim, mxSINGLE_CLASS, mxREAL);
-    dt = (float *)mxGetPr(plhs[0]);
+    dt = (float *)mxGetData(plhs[0]);
 
     setup_consts(dim, M);
     gen_dets(y0, y1, y2, dim, dt);

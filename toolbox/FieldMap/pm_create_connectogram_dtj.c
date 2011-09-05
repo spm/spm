@@ -4,7 +4,6 @@
 #include <limits.h>
 #include <string.h>
 
-/* Silly little macros. */
 
 #define index(A,B,C,DIM) ((C)*DIM[0]*DIM[1] + (B)*DIM[0] + (A))
 
@@ -16,90 +15,82 @@
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 #endif
 
-unsigned int make_vectors(double        *rima,
-                          double        *pm,
-                          unsigned int  dim[3],
-                          double        **ii,
-                          double        **jj,
-                          double        **nn,
-                          double        **pp);
-
 
 unsigned int make_vectors(double        *rima,
                           double        *pm,
-                          unsigned int  dim[3],
+                          mwSize        dim[3],
                           double        **ii,
                           double        **jj,
                           double        **nn,
                           double        **pp)
 {
-   int            cri = 0, nxti = 0;
-   int            sl=0, r=0, c=0;
-   double         cr = 0.0, nxt = 0.0;
-   unsigned int   i = 0;
-   size_t         size = 10000;
-
-   (*ii) = mxCalloc(size,sizeof(double));
-   (*jj) = mxCalloc(size,sizeof(double));
-   (*nn) = mxCalloc(size,sizeof(double));
-   (*pp) = mxCalloc(size,sizeof(double));
-
-   for (sl=0; sl<dim[2]; sl++)
-   {
-      for (c=0; c<dim[1]; c++)
-      {
-     for (r=0; r<dim[0]; r++)
-     {
-        if (cr = rima[cri = index(r,c,sl,dim)])
+    int            cri = 0, nxti = 0;
+    int            sl=0, r=0, c=0;
+    double         cr = 0.0, nxt = 0.0;
+    unsigned int   i = 0;
+    size_t         size = 10000;
+    
+    (*ii) = mxCalloc(size,sizeof(double));
+    (*jj) = mxCalloc(size,sizeof(double));
+    (*nn) = mxCalloc(size,sizeof(double));
+    (*pp) = mxCalloc(size,sizeof(double));
+    
+    for (sl=0; sl<dim[2]; sl++)
+    {
+        for (c=0; c<dim[1]; c++)
         {
-           if (i > (size-4))
-           {
-          size += 10000;
-          (*ii) = mxRealloc((*ii),size*sizeof(double));
-          (*jj) = mxRealloc((*jj),size*sizeof(double));
-          (*nn) = mxRealloc((*nn),size*sizeof(double));
-          (*pp) = mxRealloc((*pp),size*sizeof(double));
-               }
-           if (sl)
-           {
-          if ((nxt = rima[nxti = index(r,c,sl-1,dim)]) && (cr != nxt))
-          {
-                     (*ii)[i] = MIN(cr,nxt);
-                     (*jj)[i] = MAX(cr,nxt);
-                     (*nn)[i] = 1.0;
-                     if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
-                     else (*pp)[i] = pm[nxti] - pm[cri];
-             i++;
-                  }
-               }
-           if (c)
-           {
-          if ((nxt = rima[nxti = index(r,c-1,sl,dim)]) && (cr != nxt))
-          {
-                     (*ii)[i] = MIN(cr,nxt);
-                     (*jj)[i] = MAX(cr,nxt);
-                     (*nn)[i] = 1.0;
-                     if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
-                     else (*pp)[i] = pm[nxti] - pm[cri];
-             i++;
-                  }
-               }
-           if (r)
-           {
-          if ((nxt = rima[nxti = index(r-1,c,sl,dim)]) && (cr != nxt))
-          {
-                     (*ii)[i] = MIN(cr,nxt);
-                     (*jj)[i] = MAX(cr,nxt);
-                     (*nn)[i] = 1.0;
-                     if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
-                     else (*pp)[i] = pm[nxti] - pm[cri];
-             i++;
-                  }
-               }
+            for (r=0; r<dim[0]; r++)
+            {
+                if (cr = rima[cri = index(r,c,sl,dim)])
+                {
+                    if (i > (size-4))
+                    {
+                        size += 10000;
+                        (*ii) = mxRealloc((*ii),size*sizeof(double));
+                        (*jj) = mxRealloc((*jj),size*sizeof(double));
+                        (*nn) = mxRealloc((*nn),size*sizeof(double));
+                        (*pp) = mxRealloc((*pp),size*sizeof(double));
+                    }
+                    if (sl)
+                    {
+                        if ((nxt = rima[nxti = index(r,c,sl-1,dim)]) && (cr != nxt))
+                        {
+                            (*ii)[i] = MIN(cr,nxt);
+                            (*jj)[i] = MAX(cr,nxt);
+                            (*nn)[i] = 1.0;
+                            if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
+                            else (*pp)[i] = pm[nxti] - pm[cri];
+                            i++;
+                        }
+                    }
+                    if (c)
+                    {
+                        if ((nxt = rima[nxti = index(r,c-1,sl,dim)]) && (cr != nxt))
+                        {
+                            (*ii)[i] = MIN(cr,nxt);
+                            (*jj)[i] = MAX(cr,nxt);
+                            (*nn)[i] = 1.0;
+                            if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
+                            else (*pp)[i] = pm[nxti] - pm[cri];
+                            i++;
+                        }
+                    }
+                    if (r)
+                    {
+                        if ((nxt = rima[nxti = index(r-1,c,sl,dim)]) && (cr != nxt))
+                        {
+                            (*ii)[i] = MIN(cr,nxt);
+                            (*jj)[i] = MAX(cr,nxt);
+                            (*nn)[i] = 1.0;
+                            if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
+                            else (*pp)[i] = pm[nxti] - pm[cri];
+                            i++;
+                        }
+                    }
+                }
             }
-         }
-      }
-   }
+        }
+    }
 
    return(i);
 }
@@ -107,16 +98,13 @@ unsigned int make_vectors(double        *rima,
 
 /* Gateway function with error check. */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            ndim, pm_ndim;
+   mwSize         ndim, pm_ndim;
    int            n, i;
-   const int      *cdim = NULL, *pm_cdim = NULL;
-   unsigned int   dim[3];
-   unsigned int   nnz = 0;
+   const mwSize   *cdim = NULL, *pm_cdim = NULL;
+   mwSize         dim[3];
+   mwSize         nnz = 0;
    double         *rima = NULL;
    double         *pm = NULL;
    double         *ii = NULL, *jj = NULL;
@@ -201,8 +189,4 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 
    mxFree(ii); mxFree(jj); mxFree(nn); mxFree(pp);
    
-   return;
 }
-
-
-

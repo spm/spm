@@ -3,94 +3,85 @@
 #include <math.h>
 #include <limits.h>
 
-int getindex(int            i,
-          int            j,
-          int            k,
-          unsigned int   dim[3]);
-
-void smooth(double         *pm,
-            double         *wmap,
-            unsigned int   dim[3],
-            double         *krnl,
-            unsigned int   kdim[3],
-            double         *opm);
-
-
-void smooth(double         *pm,
-            double         *wmap,
-            unsigned int   dim[3],
-            double         *krnl,
-            unsigned int   kdim[3],
-            double         *opm)
-{
-   int            i=0, j=0, k=0;
-   int            ki=0, kj=0, kk=0;
-   int            ndx=0, kndx=0;
-   double         ii=0.0, wgt=0.0, twgt=0.0;
-  
-   for (i=0; i<dim[0]; i++)
-   {
-      for (j=0; j<dim[1]; j++)
-      {
-     for (k=0; k<dim[2]; k++)
-     {
-        ndx = getindex(i,j,k,dim);
-        twgt = 0.0;
-            ii = 0.0;
-        for (ki=0; ki<kdim[0]; ki++)
-        {
-           for (kj=0; kj<kdim[1]; kj++)
-           {
-              for (kk=0; kk<kdim[2]; kk++)
-              {
-                     kndx = getindex(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
-             if (kndx > -1)
-             {
-                wgt = krnl[getindex(ki,kj,kk,kdim)] * wmap[kndx];
-                        ii += pm[kndx] * wgt;
-                        twgt += wgt;
-                     }
-                  }
-               }
-            }
-            if (twgt)
-        {
-           opm[ndx] = ii/twgt;
-            }
-            else
-        {
-               opm[ndx]=pm[ndx];
-            }
-         }
-      }
-   }
-   return;
-}
 
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int getindex(int            i,
-          int            j,
-          int            k,
-          unsigned int   dim[3])
+int getindex(mwSignedIndex   i,
+             mwSignedIndex   j,
+             mwSignedIndex   k,
+             mwSize          dim[3])
 {
-   if (i<0 | i>(dim[0]-1) | j<0 | j>(dim[1]-1) | k<0 | k>(dim[2]-1)) return(-1);
-   else return(k*dim[0]*dim[1]+j*dim[0]+i);
+   if ((i<0) | (i>(dim[0]-1)) | 
+       (j<0) | (j>(dim[1]-1)) | 
+       (k<0) | (k>(dim[2]-1)))
+       return(-1);
+   else
+       return(k*dim[0]*dim[1]+j*dim[0]+i);
+}
+
+
+/* smooth */
+void smooth(double   *pm,
+        double       *wmap,
+        mwSize       dim[3],
+        double       *krnl,
+        mwSize       kdim[3],
+        double       *opm)
+{
+    mwIndex          i=0, j=0, k=0;
+    mwIndex          ki=0, kj=0, kk=0;
+    mwSignedIndex    ndx=0, kndx=0;
+    double           ii=0.0, wgt=0.0, twgt=0.0;
+    
+    for (i=0; i<dim[0]; i++)
+    {
+        for (j=0; j<dim[1]; j++)
+        {
+            for (k=0; k<dim[2]; k++)
+            {
+                ndx = getindex(i,j,k,dim);
+                twgt = 0.0;
+                ii = 0.0;
+                for (ki=0; ki<kdim[0]; ki++)
+                {
+                    for (kj=0; kj<kdim[1]; kj++)
+                    {
+                        for (kk=0; kk<kdim[2]; kk++)
+                        {
+                            kndx = getindex(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
+                            if (kndx > -1)
+                            {
+                                wgt = krnl[getindex(ki,kj,kk,kdim)] * wmap[kndx];
+                                ii += pm[kndx] * wgt;
+                                twgt += wgt;
+                            }
+                        }
+                    }
+                }
+                if (twgt)
+                {
+                    opm[ndx] = ii/twgt;
+                }
+                else
+                {
+                    opm[ndx]=pm[ndx];
+                }
+            }
+        }
+    }
+    return;
 }
 
 
 /* Gateway function with error check. */
 
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            ndim, wmap_ndim, krn_ndim;
-   int            n, i;
-   const int      *cdim = NULL, *wmap_cdim = NULL, *krn_cdim = NULL;
-   unsigned int   dim[3], kdim[3];
+   mwSize         ndim, wmap_ndim, krn_ndim;
+   mwIndex        n, i;
+   const mwSize   *cdim = NULL, *wmap_cdim = NULL, *krn_cdim = NULL;
+   mwSize         dim[3], kdim[3];
    double         *pm = NULL;
    double         *wmap = NULL;
    double         *opm = NULL;
@@ -171,5 +162,3 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    
    return;
 }
-
-

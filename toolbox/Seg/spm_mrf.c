@@ -1,18 +1,16 @@
-/* $Id: spm_mrf.c 4356 2011-06-14 12:16:24Z john $ */
+/* $Id: spm_mrf.c 4462 2011-09-05 17:43:49Z guillaume $ */
 /* (c) John Ashburner (2010) */
 
 #include "mex.h"
 #include <math.h>
 #define MAXCLASSES 1024
 
-#define mwSize int
-
 
 static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[], int code)
 {
     mwSize i0, i1, i2, k, m, n;
-    float a[MAXCLASSES], e[MAXCLASSES], *p0, *p1;
-    unsigned char *q0, *q1;
+    float a[MAXCLASSES], e[MAXCLASSES], *p0 = NULL, *p1 = NULL;
+    unsigned char *q0 = NULL, *q1 = NULL;
     int it;
 
     m = dm[0]*dm[1]*dm[2];
@@ -45,7 +43,7 @@ static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[]
                 for(i0=i0start; i0<dm[0]; i0+=2) /* Left -> Right */
                 {
                     float se;
-                    unsigned char *qq;
+                    unsigned char *qq = NULL;
 
                     /* Pointers to current voxel in first volume */
                     p0 = p1 + i0;
@@ -216,9 +214,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize i;
     mwSize dm[4];
-    float *p, w[3];
-    unsigned char *q;
-    float *G;
+    float *p = NULL, w[3];
+    unsigned char *q = NULL;
+    float *G = NULL;
     int code=0;
 
     if (nrhs<3 || nrhs>4 || nlhs>1)

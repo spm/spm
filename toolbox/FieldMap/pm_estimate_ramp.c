@@ -4,7 +4,6 @@
 #include <limits.h>
 #include <string.h>
 
-/* Silly little macros. */
 
 #define index(A,B,C,DIM) ((C)*DIM[0]*DIM[1] + (B)*DIM[0] + (A))
 
@@ -20,19 +19,6 @@
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 #endif
 
-double wrap(double  angle);
-
-void estimate_ramps(double          *pm,
-                    double          *mask,
-                    unsigned int    dim[3],
-                    double          ramp[3]);
-
-void remove_ramps(double          *mask,
-                  unsigned int    dim[3],
-                  double          ramp[3],
-                  double          *pm);
-
-
 
 double wrap(double  angle)
 {
@@ -44,87 +30,83 @@ double wrap(double  angle)
 
 void estimate_ramps(double          *pm,
                     double          *mask,
-                    unsigned int    dim[3],
+                    mwSize          dim[3],
                     double          ramp[3])
 {
-   int    i=0, j=0, k=0;
-   int    nx=0, ny=0, nz=0;
-   int    c=0, ci=0, cj=0, ck=0;
-
-   for (i=0; i<dim[0]; i++)
-   {
-      for (j=0; j<dim[1]; j++)
-      {
-         for (k=0; k<dim[2]; k++)
-     {
-        if (mask[c=index(i,j,k,dim)])
+    mwIndex i=0, j=0, k=0;
+    int     nx=0, ny=0, nz=0;
+    int     c=0, ci=0, cj=0, ck=0;
+    
+    for (i=0; i<dim[0]; i++)
+    {
+        for (j=0; j<dim[1]; j++)
         {
-           if ((i<(dim[0]-1)) && mask[ci=index(i+1,j,k,dim)])
-           {
-          ramp[0] += wrap(pm[ci]-pm[c]);
-                  nx++; 
-               }
-           if ((j<(dim[1]-1)) && mask[cj=index(i,j+1,k,dim)])
-           {
-          ramp[1] += wrap(pm[cj]-pm[c]);
-                  ny++;
-               }
-           if ((k<(dim[2]-1)) && mask[ck=index(i,j,k+1,dim)])
-           {
-          ramp[2] += wrap(pm[ck]-pm[c]);
-                  nz++;
-               }
+            for (k=0; k<dim[2]; k++)
+            {
+                if (mask[c=index(i,j,k,dim)])
+                {
+                    if ((i<(dim[0]-1)) && mask[ci=index(i+1,j,k,dim)])
+                    {
+                        ramp[0] += wrap(pm[ci]-pm[c]);
+                        nx++;
+                    }
+                    if ((j<(dim[1]-1)) && mask[cj=index(i,j+1,k,dim)])
+                    {
+                        ramp[1] += wrap(pm[cj]-pm[c]);
+                        ny++;
+                    }
+                    if ((k<(dim[2]-1)) && mask[ck=index(i,j,k+1,dim)])
+                    {
+                        ramp[2] += wrap(pm[ck]-pm[c]);
+                        nz++;
+                    }
+                }
             }
-         }
-      }
-   }
-
-   ramp[0] /= ((double) nx);
-   ramp[1] /= ((double) ny);
-   if (nz) ramp[2] /= ((double) nz);
-   else ramp[2] = 0.0;
-
-   return;
+        }
+    }
+    
+    ramp[0] /= ((double) nx);
+    ramp[1] /= ((double) ny);
+    if (nz) ramp[2] /= ((double) nz);
+    else ramp[2] = 0.0;
+    
+    return;
 }
 
 void remove_ramps(double          *mask,
-                  unsigned int    dim[3],
+                  mwSize          dim[3],
                   double          ramp[3],
                   double          *pm)
 {
-   int    i=0, j=0, k=0;
-   int    ii=0;
-
-   for (i=0; i<dim[0]; i++)
-   {
-      for (j=0; j<dim[1]; j++)
-      {
-         for (k=0; k<dim[2]; k++)
-     {
-        if (mask[ii=index(i,j,k,dim)])
+    mwIndex i=0, j=0, k=0;
+    int     ii=0;
+    
+    for (i=0; i<dim[0]; i++)
+    {
+        for (j=0; j<dim[1]; j++)
         {
-               pm[ii] -= ramp[0] * ((double) (i - ((double) (dim[0]-1.0))/2.0));
-           pm[ii] -= ramp[1] * ((double) (j - ((double) (dim[1]-1.0))/2.0));
-           pm[ii] -= ramp[2] * ((double) (k - ((double) (dim[2]-1.0))/2.0));
+            for (k=0; k<dim[2]; k++)
+            {
+                if (mask[ii=index(i,j,k,dim)])
+                {
+                    pm[ii] -= ramp[0] * ((double) (i - ((double) (dim[0]-1.0))/2.0));
+                    pm[ii] -= ramp[1] * ((double) (j - ((double) (dim[1]-1.0))/2.0));
+                    pm[ii] -= ramp[2] * ((double) (k - ((double) (dim[2]-1.0))/2.0));
+                }
             }
-         }
-      }
-   }
-
-   return;
+        }
+    }
+    
+    return;
 }
 
 /* Gateway function with error check. */
-
-void mexFunction(int             nlhs,      /* No. of output arguments */
-                 mxArray         *plhs[],   /* Output arguments. */ 
-                 int             nrhs,      /* No. of input arguments. */
-                 const mxArray   *prhs[])   /* Input arguments. */
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   int            ndim, mask_ndim;
-   int            n, i;
-   const int      *cdim = NULL, *mask_cdim = NULL;
-   unsigned int   dim[3];
+   mwSize         ndim, mask_ndim;
+   mwIndex        n, i;
+   const mwSize   *cdim = NULL, *mask_cdim = NULL;
+   mwSize         dim[3];
    double         *mask = NULL;
    double         *pm = NULL;
    double         *opm = NULL;
@@ -194,12 +176,4 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
    memcpy(opm,pm,n*sizeof(double));
    remove_ramps(mask,dim,ramps,opm);   
    
-   return;
 }
-
-
-
-
-
-
-
