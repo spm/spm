@@ -21,9 +21,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_average.m 4455 2011-09-05 11:56:45Z vladimir $
 
-SVNrev = '$Rev: 3497 $';
+SVNrev = '$Rev: 4455 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -54,19 +54,6 @@ end
 if strncmpi(D.transformtype,'TF',2) % TF and TFphase
     D = spm_eeg_average_TF(S);
     return
-end
-
-%-Backward compatibility
-%--------------------------------------------------------------------------
-persistent runonce
-if isfield(D, 'artefact')
-    if isempty(runonce)
-        warning(['Robust averaging in spm_eeg_artefact has been deprecated. ' ...
-            'Use the ''robust'' option in spm_eeg_average instead.']);
-        runonce = 1;
-    end
-    D = spm_eeg_average5(S);
-    return;
 end
 
 %-Configure robust averaging
