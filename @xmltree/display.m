@@ -3,15 +3,15 @@ function display(tree)
 % FORMAT display(tree)
 % 
 % tree - XMLTree object
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % This method is called when the semicolon is not used to terminate a
 % statement which returns an XMLTree.
-%_______________________________________________________________________
-% Copyright (C) 2002-2008  http://www.artefact.tk/
+%__________________________________________________________________________
+% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin <guillaume@artefact.tk>
-% $Id: display.m 1460 2008-04-21 17:43:18Z guillaume $
+% Guillaume Flandin
+% $Id: display.m 4460 2011-09-05 14:52:16Z guillaume $
 
 disp(' ');
 disp([inputname(1),' = ']);

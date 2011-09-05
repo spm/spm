@@ -19,11 +19,11 @@ function k = xml_findstr(s,p,i,n)
 %       xml_findstr(s,' ',10,1) returns 14
 %
 %   See also STRFIND, FINDSTR
-%_______________________________________________________________________
-% Copyright (C) 2002-2008  http://www.artefact.tk/
+%__________________________________________________________________________
+% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin <guillaume@artefact.tk>
-% $Id: xml_findstr.m 2271 2008-09-30 21:19:47Z guillaume $
+% Guillaume Flandin
+% $Id: xml_findstr.m 4460 2011-09-05 14:52:16Z guillaume $
 
 %error(sprintf('Missing MEX-file: %s', mfilename));
 

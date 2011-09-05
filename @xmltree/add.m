@@ -12,20 +12,19 @@ function varargout = add(tree,uid,type,parameter)
 %
 %        tree = add(tree,uid,type,parameter);
 %        [tree, new_uid] = add(tree,uid,type,parameter);
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % Add a node (element, chardata, cdata, pi or comment) in the XML Tree.
 % It adds a child to the element whose UID is iud.
 % Use attributes({'set','get','add','del','length'},...) function to 
 % deal with the attributes of an element node (initialized empty).
 % The tree parameter must be in input AND in output.
-%_______________________________________________________________________
-% Copyright (C) 2002-2008  http://www.artefact.tk/
+%__________________________________________________________________________
+% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin <guillaume@artefact.tk>
-% $Id: add.m 1460 2008-04-21 17:43:18Z guillaume $
+% Guillaume Flandin
+% $Id: add.m 4460 2011-09-05 14:52:16Z guillaume $
 
-error(nargchk(4,4,nargin));
 
 if ~isa(uid,'double')
     error('[XMLTree] UID must be a double array.');
