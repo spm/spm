@@ -13,7 +13,7 @@ function spm_progress_bar(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 4423 2011-08-04 16:28:51Z guillaume $
+% $Id: spm_progress_bar.m 4457 2011-09-05 14:04:22Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
@@ -26,7 +26,6 @@ switch lower(action)
     % Initialise
     %----------------------------------------------------------------------
     case 'init'
-        error(nargchk(0,5,nargin));
         if nargin > 1, arg1 = varargin{1}; else arg1 = 1;           end
         if nargin > 2, arg2 = varargin{2}; else arg2 = 'Computing'; end
         if nargin > 3, arg3 = varargin{3}; else arg3 = '';          end
@@ -66,7 +65,6 @@ switch lower(action)
     % Set
     %----------------------------------------------------------------------
     case 'set'
-        error(nargchk(1,2,nargin));
         if nargin == 1, value = 0; else  value = varargin{1}; end
         br = findobj(Finter,'Tag','ProgressBar');
         if ~isempty(br)
@@ -81,7 +79,6 @@ switch lower(action)
     % Clear
     %----------------------------------------------------------------------
     case 'clear'
-        error(nargchk(1,1,nargin));
         pb = get(findobj(Finter,'Tag','ProgressBar'),'UserData');
         spm_figure('Clear',Finter);
         if isstruct(pb)

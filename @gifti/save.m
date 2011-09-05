@@ -2,17 +2,16 @@ function save(this,filename,encoding)
 % Save GIfTI object in a GIfTI format file
 % FORMAT save(this,filename)
 % this      - GIfTI object
-% filename  - name of GIfTI file that will be created
+% filename  - name of GIfTI file to be created [Default: 'untitled.gii']
 % encoding  - optional argument to specify encoding format, among
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary,
-%             Collada (.dae), IDTF (.idtf).
+%             Collada (.dae), IDTF (.idtf). [Defallt: 'GZipBase64Binary']
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 4022 2010-07-28 12:50:20Z guillaume $
+% $Id: save.m 4457 2011-09-05 14:04:22Z guillaume $
 
-error(nargchk(1,3,nargin));
 
 % Check filename and file format
 %--------------------------------------------------------------------------

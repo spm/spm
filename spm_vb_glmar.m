@@ -6,8 +6,8 @@ function [block] = spm_vb_glmar (Y,block)
 %
 % block -  data structure containing the following fields:
 %
-%          .X              [T x k] the design matrix       
-%          .p              order of AR model               
+%          .X              [T x k] the design matrix
+%          .p              order of AR model
 %          .D              [N x N] spatial precision matrix
 %                          (see spm_vb_set_priors.m)
 %
@@ -39,23 +39,23 @@ function [block] = spm_vb_glmar (Y,block)
 %
 %          .b_lambda       [N x 1] temporal noise precisions
 %          .c_lambda
-%          .mean_lambda  
+%          .mean_lambda
 %
 %          MODEL COMPARISON AND COEFFICIENT RESELS:
 %
-%          .gamma_tot      [k x 1] Coefficient RESELS 
+%          .gamma_tot      [k x 1] Coefficient RESELS
 %          .F              Negative free energy (used for model selection)
-%          .F_record       [its x 1] record of F at each iteration                  
-%          .elapsed_seconds  estimation time 
+%          .F_record       [its x 1] record of F at each iteration
+%          .elapsed_seconds  estimation time
 %          PRIORS:
 %
 %          .b_alpha        [k x 1] spatial prior precisions for W
-%          .c_alpha    
-%          .mean_alpha 
+%          .c_alpha
+%          .mean_alpha
 %
 %          .b_beta         [p x 1] spatial prior precisions for AR
-%          .c_beta    
-%          .mean_beta 
+%          .c_beta
+%          .mean_beta
 %
 %          .b              [k x N] prior precision matrix
 %
@@ -71,21 +71,17 @@ function [block] = spm_vb_glmar (Y,block)
 %          .c_lambda_prior
 %
 %          There are other fields that are used internally
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_vb_glmar.m 4457 2011-09-05 14:04:22Z guillaume $
 
 
 t0 = clock;
 
-%-Check arguments
-%-----------------------------------------------------------------------
-error(nargchk(2,2,nargin));
-
 %-Set defaults
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [T N]   = size(Y);
 block.T = T;
 block.N = N;
@@ -98,7 +94,7 @@ end
 
 [tmp k] = size(X);
 if tmp ~= T
-   error('X is not of compatible size to Y.');
+    error('X is not of compatible size to Y.');
 end
 
 block.k = k;
@@ -110,13 +106,13 @@ if ~isfield(block,'Dw')
 end
 
 %-Initialise block
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 F      = 0;
 last_F = 0;
 block = spm_vb_init_block(Y,block);
 
 %-Run Variational Bayes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if block.verbose
     disp(' ');
     disp('Starting VB-GLM-AR-BLOCK');
@@ -151,11 +147,11 @@ for it = 1:block.maxits, % Loop over iterations
         delta_F=F-last_F;
         if it > 2
             if delta_F < 0
-                disp(sprintf('********** Warning: decrease in F of %1.4f per cent *************',100*(delta_F/F)));
+                fprintf('********** Warning: decrease in F of %1.4f per cent *************',100*(delta_F/F));
                 break;
             elseif abs(delta_F/F) < block.tol,
                 break;
-            end;     
+            end
         end
         last_F = F;
     end
@@ -166,8 +162,7 @@ if block.update_F
     block.Lav = Lav;
     block.KL  = KL;
 end
-    
+
 block = spm_vb_gamma(Y,block);
 
 block.elapsed_seconds = etime(clock,t0);
-
