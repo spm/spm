@@ -1,4 +1,4 @@
-function [h,ww] = freqs(b,a,w)
+function [h,ww] = spm_freqs(b,a,w)
 %FREQS Laplace-transform (s-domain) frequency response.  
 %   H = FREQS(B,A,W) returns the complex frequency response vector H 
 %   of the filter B/A:
@@ -84,7 +84,7 @@ if (nargin==3) && (na==1),      % Transfer function form.
   ep=roots(b);
   tz=roots(a);
 else                % State space form
-  if nargin==3, npts=c; [a,b,c,d] = spm_tf2ss(a,b); end
+  if nargin==3, npts=c; [a,b,c,d] = tf2ss(a,b); end
   ep=eig(a);
   tz=tzero(a,b,c,d);
 end

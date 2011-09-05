@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf_laplace(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf_laplace.m 1199 2008-03-11 15:11:02Z rosalyn $
+% $Id: spm_lfp_mtf_laplace.m 4459 2011-09-05 14:28:05Z guillaume $
 
 
 % compute log-spectral density
@@ -102,8 +102,8 @@ for  c = 1:size(X,1)
             % exogenous components
             %-----------------------------------------------------------
             for k =1:nu
-                [bi,ai]     =  spm_ss2tf(A,B,C(i,:),D(i,:),k);
-                [bj,aj]     =  spm_ss2tf(A,B,C(j,:),D(j,:),k);
+                [bi,ai]     =  ss2tf(A,B,C(i,:),D(i,:),k);
+                [bj,aj]     =  ss2tf(A,B,C(j,:),D(j,:),k);
                 Si          =  spm_freqs(bi,ai,w);
                 Sj          =  spm_freqs(bj,aj,w);
                 Gij         =  Si.*conj(Sj);
