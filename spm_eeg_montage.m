@@ -45,12 +45,12 @@ function [D, montage] = spm_eeg_montage(S)
 % correctly when no sensors are specified or when data and sensors are
 % consistent (which is ensured by spm_eeg_prep_ui).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: spm_eeg_montage.m 4464 2011-09-06 15:00:57Z guillaume $
 
-SVNrev = '$Rev: 4432 $';
+SVNrev = '$Rev: 4464 $';
 
 % Sequence of steps
 % 1/ Data re-reference: (a) write data on disk or (b) apply online montage
@@ -64,12 +64,6 @@ SVNrev = '$Rev: 4432 $';
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG montage'); spm('Pointer','Watch');
-
-% Check if called with argument S to ensure script back compatibility
-%--------------------------------------------------------------------------
-if nargin<1
-    use_GUI = 1;
-end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -97,7 +91,7 @@ end
 
 %-If called from a script, set 'online' field to 0 if it doesn't exist
 %--------------------------------------------------------------------------
-if use_GUI
+if ~nargin
     write_data = spm_input('Data re-reference', 1, 'b', ...
         'Write out data|online montage',[1 0]);
     
@@ -118,11 +112,9 @@ end
 Nmont = D.montage('getnumber');
 if ~isfield(S, 'montage')
     if Nmont
-        res = spm_input(txt_Q, '+1', ...
-            'gui|file|online');
+        res = spm_input(txt_Q, '+1', 'gui|file|online');
     else
-        res = spm_input(txt_Q, '+1', ...
-            'gui|file');
+        res = spm_input(txt_Q, '+1', 'gui|file');
     end
     switch res
         case 'gui'
@@ -163,7 +155,7 @@ if ~isfield(S, 'montage')
                 Lidx = 0:Nmont;
             end
             for ii=1:Nmont
-                txt_om = [txt_om, deblank(om_names(ii,:)), '|']; %#ok<AGROW>
+                txt_om = [txt_om, deblank(om_names(ii,:)), '|'];
                 if ii<Nmont, txt_om = [txt_om, '|']; end
             end
             Midx = spm_input('Pick online montage','+1','m', ...
@@ -177,12 +169,12 @@ if ischar(S.montage)
     try
         montage = load(S.montage);
     catch
-        error(sprintf('Could not read montage file %s.',S.montage));
+        error('Could not read montage file %s.',S.montage);
     end
     if ismember('montage', fieldnames(montage))
         S.montage = montage.montage;
     else
-        error(sprintf('Invalid montage file %s.',S.montage));
+        error('Invalid montage file %s.',S.montage);
     end
 elseif isnumeric(S.montage)
     Midx = S.montage;
@@ -213,7 +205,7 @@ if S.onlineopt ~= 2 % no need if switching between online montage
     add              = chlab(sort(ind));
     
     %-Get keepothers input field
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isfield(S, 'keepothers')
         if ~isempty(add)
             S.keepothers  = spm_input('Keep the other channels?', '+1', 'yes|no');
@@ -318,7 +310,7 @@ if write_data
     Dnew = spm_eeg_prep(S1);
     
     %-Apply montage to sensors
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     sensortypes = {'MEG', 'EEG'};
     for i = 1:length(sensortypes)
         sens = D.sensors(sensortypes{i});
@@ -358,7 +350,7 @@ if write_data
     %-Assign default EEG sensor positions if no positions are present or if
     % default locations had been assigned before but no longer cover all the
     % EEG channels.
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isempty(Dnew.meegchannels('EEG')) && (isempty(Dnew.sensors('EEG')) ||...
             (all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, Dnew.fiducials.fid.label)) && ...
             ~isempty(setdiff(Dnew.chanlabels(Dnew.meegchannels('EEG')), getfield(Dnew.sensors('EEG'), 'label')))))
@@ -371,7 +363,7 @@ if write_data
     end
     
     %-Create 2D positions for EEG by projecting the 3D positions to 2D
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isempty(Dnew.meegchannels('EEG')) && ~isempty(Dnew.sensors('EEG'))
         S1 = [];
         S1.task = 'project3D';
@@ -383,7 +375,7 @@ if write_data
     end
     
     %-Create 2D positions for MEG  by projecting the 3D positions to 2D
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isempty(Dnew.meegchannels('MEG')) && ~isempty(Dnew.sensors('MEG'))
         S1 = [];
         S1.task = 'project3D';
@@ -395,7 +387,7 @@ if write_data
     end
     
     %-Transfer the properties of channels not involved in the montage
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isempty(add) && strcmp(S.keepothers, 'yes')
         old_add_ind = D.indchannel(add);
         new_add_ind = Dnew.indchannel(add);
