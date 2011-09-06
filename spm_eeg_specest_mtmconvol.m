@@ -1,4 +1,4 @@
-function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
+function res = spm_eeg_specest_mtmconvol(S, data, time)
 % Plugin for spm_eeg_tf implementing spectral estimation using Fieldtrip's freqanalysis_mtmconvol
 % FORMAT res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 %
@@ -26,7 +26,7 @@ function res = spm_eeg_specest_ft_mtmconvol(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_ft_mtmconvol.m 3876 2010-05-07 18:51:03Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 4463 2011-09-06 10:53:01Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -68,12 +68,12 @@ if nargin == 0
     taper.values = {'hanning', 'rectwin', 'dpss', 'sine'};
     taper.val = {'sine'};
     
-    ft_mtmconvol = cfg_branch;
-    ft_mtmconvol.tag = 'ft_mtmconvol';
-    ft_mtmconvol.name = 'Fieldtrip multi-taper';
-    ft_mtmconvol.val = {taper, timeres, timestep, freqres};
+    mtmconvol = cfg_branch;
+    mtmconvol.tag = 'mtmconvol';
+    mtmconvol.name = 'Multi-taper';
+    mtmconvol.val = {taper, timeres, timestep, freqres};
     
-    res = ft_mtmconvol;
+    res = mtmconvol;
     
     return
 elseif nargin < 3
@@ -117,62 +117,20 @@ end
 
 %-Data dimensions
 %--------------------------------------------------------------------------
-Nchannels = size(data, 1);
-Nsamples = size(data, 2);
-Nfrequencies = length(S.frequencies);
-
 fsample = 1./diff(time(1:2));
+timeoi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
 
-%-Do the spectral analysis
-%--------------------------------------------------------------------------
-% This is a temporary solution to get the functionality that will soon
-% be replaced by a low level specest function
-
-ftraw = [];
-ftraw.trial = {data};
-ftraw.time = {time};
-ftraw.fsample = fsample;
-
-for i = 1:Nchannels
-    ftraw.label{i, 1} = ['Ch' num2str(i)];
-end
-
-cfg = [];
-cfg.output ='fourier';
-cfg.taper = S.taper;
-cfg.method          = 'mtmconvol';
-
-% This sets the centers of frequency bins at the optimal locations based on
-% the time window.
-cfg.foi             = S.frequencies; % Frequency axis
-numfoi              = length(cfg.foi);
-
-% This means that the time resolution is the same for all frequencies
-cfg.t_ftimwin       = zeros(1,numfoi);
-cfg.t_ftimwin(:)    =  timeres; % Time resolution
-
-cfg.tapsmofrq   = freqres;
-
-cfg.toi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
-
-if ismember(cfg.taper, {'dpss', 'sine'}) && ~(all(cfg.tapsmofrq==cfg.tapsmofrq(1)) && all(cfg.t_ftimwin==cfg.t_ftimwin(1)))
-    cfg.output ='pow';
-end
-
-freq = ft_freqanalysis(cfg, ftraw);
+[spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(data, time, 'taper', S.taper, 'timeoi', timeoi, 'freqoi', S.frequencies,...
+    'timwin', repmat(timeres, 1, length(S.frequencies)), 'tapsmofrq', freqres, 'verbose', 0);
 
 res = [];
-res.freq = freq.freq;
-res.time = freq.time;
+res.freq = freqoi;
+res.time = timeoi;
 
-if isfield(freq, 'fourierspctrm')
-    if ndims(freq.fourierspctrm) == 4 && size(freq.fourierspctrm, 1)>1
-        res.pow = spm_squeeze(mean(freq.fourierspctrm.*conj(freq.fourierspctrm), 1), 1);
-    elseif ndims(freq.fourierspctrm) == 4
-        res.fourier = spm_squeeze(freq.fourierspctrm, 1);
-    else
-        res.fourier = freq.fourierspctrm;
-    end
+if ndims(spectrum) == 4 && size(spectrum, 1)>1
+    res.pow = spm_squeeze(mean(spectrum.*conj(spectrum), 1), 1);
+elseif ndims(spectrum) == 4
+    res.fourier = spm_squeeze(spectrum, 1);
 else
-    res.pow = freq.powspctrm;
+    res.fourier = spectrum;
 end

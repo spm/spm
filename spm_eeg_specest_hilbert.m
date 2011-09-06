@@ -23,7 +23,7 @@ function res = spm_eeg_specest_hilbert(S, data, time)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_hilbert.m 4458 2011-09-05 14:10:34Z vladimir $
+% $Id: spm_eeg_specest_hilbert.m 4463 2011-09-06 10:53:01Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -118,4 +118,4 @@ end
 %-Data dimensions
 %--------------------------------------------------------------------------
 [res.fourier, res.freq, res.time] = ft_specest_hilbert(data, time, 'freqoi', S.frequencies, 'timeoi', time(1:S.subsample:end), 'width', S.freqres,...
-    'filttype', S.filter.type, 'filtorder', S.filter.order, 'filtdir', S.filter.dir, 'polyremoval', S.polyorder);
+    'filttype', S.filter.type, 'filtorder', S.filter.order, 'filtdir', S.filter.dir, 'polyremoval', S.polyorder, 'verbose', 0);
