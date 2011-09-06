@@ -5,7 +5,7 @@ function res = isequal(this, that)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: $
+% $Id: isequal.m 4465 2011-09-06 17:02:49Z guillaume $
 
 this = struct(this);
 that = struct(that);

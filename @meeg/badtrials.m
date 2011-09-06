@@ -5,7 +5,7 @@ function res = badtrials(this, varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: $
+% $Id: badtrials.m 4465 2011-09-06 17:02:49Z guillaume $
 
 
 

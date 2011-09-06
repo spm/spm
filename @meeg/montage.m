@@ -25,7 +25,7 @@ function [res] = montage(this,action,varargin)
 
 % Remy Lehembre & Christophe Phillips
 % Cyclotron Research Centre, University of Liège, Belgium
-% $Id: $
+% $Id: montage.m 4465 2011-09-06 17:02:49Z guillaume $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
