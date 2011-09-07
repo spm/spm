@@ -1,51 +1,51 @@
 function N = spm_ecat2nifti(fname,opts)
-% Import ECAT 7 images from CTI PET scanners.
+% Import ECAT 7 images from CTI PET scanners
 % FORMAT N = spm_ecat2nifti(fname)
-%  fname     - name of ECAT file
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% fname    - name of ECAT file
+% opts     - options structure
+%
+% N        - NIfTI object (written in current directory)
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_ecat2nifti.m 4466 2011-09-07 16:50:29Z guillaume $
 
 
 if nargin==1
-    opts = struct('ext','.nii');
+    opts = struct('ext',['.' spm_file_ext]);
 else
     if opts.ext(1) ~= '.', opts.ext = ['.' opts.ext]; end
 end
 
-fp       = fopen(fname,'r','ieee-be');
+fp = fopen(fname,'r','ieee-be');
 if fp == -1,
     error(['Can''t open "' fname '".']);
-    return;
 end
 
-mh       = ECAT7_mheader(fp);
+mh = ECAT7_mheader(fp);
 if ~strcmp(mh.MAGIC_NUMBER,'MATRIX70v') &&...
         ~strcmp(mh.MAGIC_NUMBER,'MATRIX71v') &&...
-        ~strcmp(mh.MAGIC_NUMBER,'MATRIX72v'),
+        ~strcmp(mh.MAGIC_NUMBER,'MATRIX72v')
+    fclose(fp);
     error(['"' fname '" does not appear to be ECAT 7 format.']);
-    fclose(fp);
-    return;
 end
 
-if mh.FILE_TYPE ~= 7,
+if mh.FILE_TYPE ~= 7
+    fclose(fp);
     error(['"' fname '" does not appear to be an image file.']);
-    fclose(fp);
-    return;
 end
 
-list     = s7_matlist(fp);
-matches  = find((list(:,4) == 1) | (list(:,4) == 2));
-llist    = list(matches,:);
+list    = s7_matlist(fp);
+matches = find((list(:,4) == 1) | (list(:,4) == 2));
+llist   = list(matches,:);
 
-for i=1:size(llist,1),
+for i=1:size(llist,1)
     sh(i) = ECAT7_sheader(fp,llist(i,2));
-end;
+end
 fclose(fp);
 
-for i=1:size(llist,1),
+for i=1:size(llist,1)
     dim      = [sh(i).X_DIMENSION sh(i).Y_DIMENSION sh(i).Z_DIMENSION];
     dtype    = [4 1];
     off      = 512*llist(i,2);
@@ -59,7 +59,7 @@ for i=1:size(llist,1),
     mat      = [[dircos*diag(step) dircos*start] ; [0 0 0 1]];
 
     matnum   = sprintf('%.8x',list(i,1));
-    [pth,nam,ext] = fileparts(fname);
+    nam      = spm_file(fname,'basename');
     fnameo   = fullfile(pwd,[nam '_' matnum opts.ext]);
     dato     = file_array(fnameo,dim,[4 spm_platform('bigend')],0,scale,inter);
 
@@ -72,15 +72,17 @@ for i=1:size(llist,1),
     N.descrip     = sh(i).ANNOTATION;
     N.timing = struct('toffset',sh(i).FRAME_START_TIME/1000,'tspace',sh(i).FRAME_DURATION/1000);
     create(N);
-    for j=1:dim(3),
+    for j=1:dim(3)
         N.dat(:,:,j) = dati(:,:,j);
-    end;
+    end
     N.extras     = struct('mh',mh,'sh',sh(i));
-end;
-return;
-%_______________________________________________________________________
+end
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function list = s7_matlist(fp)
+%==========================================================================
+function list = s7_matlist(fp)
 %S7_MATLIST List the available matrixes in an ECAT 7 file.
 %   LIST = S7_MATLIST(FP) lists the available matrixes
 %   in the file specified by FP.
@@ -94,7 +96,6 @@ return;
 %           2 - exists - ro
 %           3 - matrix deleted
 %
-function list = s7_matlist(fp)
 
 % I believe fp should be opened with:
 %     fp = fopen(filename,'r','ieee-be');
@@ -104,26 +105,26 @@ block = fread(fp,128,'int');
 if size(block,1) ~= 128
     list = [];
     return;
-end;
+end
 block = reshape(block,4,32);
 list  = [];
-while block(2,1) ~= 2,
-    if block(1,1)+block(4,1) ~= 31,
+while block(2,1) ~= 2
+    if block(1,1)+block(4,1) ~= 31
         list = []; return;
-    end;
+    end
     list = [list block(:,2:32)];
 
     fseek(fp,512*(block(2,1)-1),'bof');
     block = fread(fp,128,'int');
-    if size(block,1) ~= 128, list = []; return; end;
+    if size(block,1) ~= 128, list = []; return; end
     block = reshape(block,4,32);
 end
 list = [list block(:,2:(block(4,1)+1))];
 list = list';
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+%==========================================================================
+% function SHEADER=ECAT7_sheader(fid,record)
+%==========================================================================
 function SHEADER=ECAT7_sheader(fid,record)
 %
 % Sub header read routine for ECAT 7 image files
@@ -253,8 +254,10 @@ SHEADER = struct('DATA_TYPE', data_type, ...
     'RECON_TYPE', recon_type, ...
     'RECON_VIEWS', recon_views, ...
     'FILL', fill);
-return;
-%_______________________________________________________________________
+
+%==========================================================================
+% function [MHEADER]=ECAT7_mheader(fid)
+%==========================================================================
 function [MHEADER]=ECAT7_mheader(fid)
 %
 % Main header read routine for ECAT 7 image files
@@ -308,10 +311,10 @@ num_gates                = fread(fid,1,'uint16',0);
 num_bed_pos              = fread(fid,1,'uint16',0);
 init_bed_position        = fread(fid,1,'float32',0);
 bed_position = zeros(15,1);
-for bed=1:15,
+for bed=1:15
     tmp = fread(fid,1,'float32',0);
-    if ~isempty(tmp), bed_position(bed) = tmp; end;
-end;
+    if ~isempty(tmp), bed_position(bed) = tmp; end
+end
 plane_separation         = fread(fid,1,'float32',0);
 lwr_sctr_thres           = fread(fid,1,'uint16',0);
 lwr_true_thres           = fread(fid,1,'uint16',0);
@@ -404,5 +407,3 @@ MHEADER = struct('MAGIC_NUMBER', magic_number, ...
     'DATA_UNITS', data_units, ...
     'SEPTA_STATE', septa_state, ...
     'FILL', fill);
-return;
-%_______________________________________________________________________

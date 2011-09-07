@@ -1,27 +1,39 @@
 function [N,cdf] = spm_mnc2nifti(fname,opts)
-% Get header information etc. for MINC images.
-%  FORMAT spm_mnc2nifti(fname)
-%  fname - a MINC filename.
+% Import MINC images into NIfTI
+% FORMAT spm_mnc2nifti(fname)
+% fname - a MINC filename
+% opts  - options structure
 %
-% The MINC file format was developed by Peter Neelin at the Montréal
+% N     - NIfTI object (written in current directory)
+% cdf   - NetCDF data structure
+% 
+% The MINC file format was developed by Peter Neelin at the Montreal
 % Neurological Institute, and is based upon the NetCDF libraries.
 % The NetCDF documentation specifically recommends that people do not
 % write their own libraries for accessing the data.  This suggestion
 % was ignored.
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% See: http://en.wikibooks.org/wiki/MINC
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 2960 2009-03-26 11:32:34Z john $
+% $Id: spm_mnc2nifti.m 4466 2011-09-07 16:50:29Z guillaume $
 
 
-if nargin==1,
-    opts = struct('dtype',4,'ext','.img');
-end;
+if nargin==1
+    opts = struct('dtype',4, 'ext',['.' spm_file_ext]);
+else
+    if opts.ext(1) ~= '.', opts.ext = ['.' opts.ext]; end
+end
 
 cdf = spm_read_netcdf(fname);
-if isempty(cdf), warning(['"' fname '" does not appear to be MINC.']); return; end;
+if isempty(cdf)
+    error(['"' fname '" does not appear to be MINC.']);
+end
 
+%-Create file_array object
+%--------------------------------------------------------------------------
 idat = file_array;
 
 d_types     = [2   2   512   768     16   64 ; 256  256  4      8      16   64];
@@ -40,13 +52,13 @@ range       = [mns(signed+1,img.nc_type) mxs(signed+1,img.nc_type)];
 idat.offset = img.begin;
 
 
-if img.nc_type <=4,
+if img.nc_type <=4
     tmp = findvar(img.vatt_array,'valid_range');
-    if isempty(tmp),
+    if isempty(tmp)
         disp(['Can''t get valid_range for "' fname '" - having to guess']);
     else
         range = tmp.val;
-    end;
+    end
 
     fp   = fopen(fname,'r','ieee-be');
     imax = get_imax(fp, cdf, 'image-max', 1, idat.dim);
@@ -58,126 +70,128 @@ if img.nc_type <=4,
 else
     scale = 1;
     dcoff = 0;
-end;
+end
 
-
-% Extract affine transformation from voxel to world co-ordinates
-%-----------------------------------------------------------------------
+%-Extract affine transformation from voxel to world co-ordinates
+%--------------------------------------------------------------------------
 step  = [1 1 1];
 start = [0 0 0]';
 dircos = eye(3);
-for j=1:3,
+for j=1:3
     nam    = cdf.dim_array(img.dimid(nd+1-j)).name;
     space  = findvar(cdf.var_array,nam);
     tmp    = findvar(space.vatt_array,'step');
-    if ~isempty(tmp), step(j) = tmp.val; end;
+    if ~isempty(tmp), step(j) = tmp.val; end
     tmp    = findvar(space.vatt_array,'start');
-    if ~isempty(tmp), start(j) = tmp.val; else  start(j) = -dim(j)/2*step(j); end;
+    if ~isempty(tmp), start(j) = tmp.val; else  start(j) = -dim(j)/2*step(j); end
     tmp    = findvar(space.vatt_array,'direction_cosines');
-    if ~isempty(tmp),
-        if tmp.nc_type == 6,
+    if ~isempty(tmp)
+        if tmp.nc_type == 6
             dircos(:,j) = tmp.val(:);
-        elseif tmp.nc_type == 2,
+        elseif tmp.nc_type == 2
             dircos(:,j) = sscanf(tmp.val,'%g');
         end
-    end;
-end;
+    end
+end
 shiftm = [1 0 0 -1; 0 1 0 -1; 0 0 1 -1; 0 0 0 1];
 mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
 
+%-Create NIfTI object
+%--------------------------------------------------------------------------
 N          = nifti;
 dat        = file_array;
-[pth,nam,ext] = fileparts(fname);
+nam        = spm_file(fname,'basename');
 dat.fname  = fullfile(pwd,[nam opts.ext]);
 dat.dim    = idat.dim;
 dat.dtype  = [opts.dtype spm_platform('bigend')];
 dat.offset = 0;
 
-if ~spm_type(opts.dtype,'intt'),
+if ~spm_type(opts.dtype,'intt')
     dat.scl_slope = 1;
     dat.scl_inter = 0;
 else
     mn = Inf;
     mx = -Inf;
-    for i6=1:size(idat,6),
-        for i5=1:size(idat,5),
-            for i4=1:size(idat,4),
-                for i3=1:size(idat,3),
-                    if size(scale,3)==1,
+    for i6=1:size(idat,6)
+        for i5=1:size(idat,5)
+            for i4=1:size(idat,4)
+                for i3=1:size(idat,3)
+                    if size(scale,3)==1
                         scale1 = scale(:,:,1,i4,i5,i6);
                         dcoff1 = dcoff(:,:,1,i4,i5,i6);
                     else
                         scale1 = scale(:,:,i3,i4,i5,i6);
                         dcoff1 = dcoff(:,:,i3,i4,i5,i6);
                     end
-                    if numel(scale1)==1,
+                    if numel(scale1)==1
                         img = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
-                    elseif size(scale1,1)>1 && size(scale1,2)>1,
+                    elseif size(scale1,1)>1 && size(scale1,2)>1
                         img = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
-                    elseif size(scale1,1)==1,
+                    elseif size(scale1,1)==1
                         img = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
                                                              repmat(dcoff1,[size(idat,1) 1]);
                     else
                         img = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
                                                              repmat(dcoff1,[1 size(idat,2)]);
-                    end;
+                    end
                     img = img(isfinite(img));
-                    if ~isempty(img),
+                    if ~isempty(img)
                         mx  = max(mx,max(img));
                         mn  = min(mn,min(img));
-                    end;
-                end;
-            end;
-        end;
-    end;
+                    end
+                end
+            end
+        end
+    end
     dat.scl_slope = mx/spm_type(opts.dtype,'maxval');
-    if spm_type(opts.dtype,'minval')~=0,
+    if spm_type(opts.dtype,'minval')~=0
         dat.scl_slope = max(dat.scl_slope,mn/spm_type(opts.dtype,'minval'));
-    end;
+    end
     dat.scl_inter = 0;
-end;
+end
 
-N.dat  = dat;
-flp    = false;
-if det(mat)>0,
+N.dat   = dat;
+flp     = false;
+if det(mat)>0
     flp = true;
     mat = mat*[diag([-1 1 1]) [size(dat,1)+1 0 0]' ; 0 0 0 1];
-end;
+end
 N.mat  = mat;
 N.mat0 = mat;
 create(N);
-for i6=1:size(idat,6),
-    for i5=1:size(idat,5),
-        for i4=1:size(idat,4),
-            for i3=1:size(idat,3),
-                if size(scale,3)==1,
+for i6=1:size(idat,6)
+    for i5=1:size(idat,5)
+        for i4=1:size(idat,4)
+            for i3=1:size(idat,3)
+                if size(scale,3)==1
                     scale1 = scale(:,:,1,i4,i5,i6);
                     dcoff1 = dcoff(:,:,1,i5,i5,i6);
                 else
                     scale1 = scale(:,:,i3,i4,i5,i6);
                     dcoff1 = dcoff(:,:,i3,i4,i5,i6);
                 end
-                if numel(scale1)==1,
+                if numel(scale1)==1
                     slice = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
-                elseif size(scale1,1)>1 && size(scale1,2)>1,
+                elseif size(scale1,1)>1 && size(scale1,2)>1
                     slice = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
-                elseif size(scale1,1)==1,
+                elseif size(scale1,1)==1
                     slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
                                                            repmat(dcoff1,[size(idat,1) 1]);
                 else
                     slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
                                                            repmat(dcoff1,[1 size(idat,2)]);
-                end;
-                if flp, slice = flipud(slice); end;
+                end
+                if flp, slice = flipud(slice); end
                 N.dat(:,:,i3,i4,i5,i6) = slice;
-            end;
-        end;
-    end;
-end;
-return;
-%_______________________________________________________________________
+            end
+        end
+    end
+end
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function var = findvar(varlist, name)
+%==========================================================================
 function var = findvar(varlist, name)
 % Finds the structure in a list of structures that has a name element
 % matching the second argument.
@@ -185,27 +199,29 @@ for i=1:numel(varlist)
     if strcmp(varlist(i).name,name)
         var = varlist(i);
         return;
-    end;
-end;
+    end
+end
 var = [];
 %error(['Can''t find "' name '".']);
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function str = dtypestr(i)
+%==========================================================================
 function str = dtypestr(i)
 % Returns a string appropriate for reading or writing the CDF data-type.
 types = char('uint8','uint8','int16','int32','float32','float64');
 str   = deblank(types(i,:));
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function imax = get_imax(fp, cdf, strng, def, dim)
+%==========================================================================
 function imax = get_imax(fp, cdf, strng, def, dim)
 dim  = fliplr(dim);
 str  = findvar(cdf.var_array,strng);
 
-if ~isempty(str) && str.nc_type == 6,
+if ~isempty(str) && str.nc_type == 6
     fseek(fp,str.begin,'bof');
     nel  = str.vsize/(spm_type(dtypestr(str.nc_type),'bits')/8);
     imax = fread(fp,nel,dtypestr(str.nc_type))';
@@ -214,6 +230,4 @@ if ~isempty(str) && str.nc_type == 6,
     imax = reshape(imax,resh);
 else
     imax = def;
-end;
-return;
-
+end
