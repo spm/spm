@@ -3,9 +3,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_fmri_design.m 4468 2011-09-07 18:59:21Z guillaume $
 
-rev = '$Rev: 3691 $';
+rev = '$Rev: 4468 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -589,7 +589,7 @@ fmri_design.help    = {
                        ''
                        'In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two ''levels''. The ''first level'' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the ''Specify first level'' and ''Estimate'' options. The results of these analyses can then be presented as ''case studies''. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a ''Random-Effects (RFX) analysis'' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the ''summary-statistic'' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a ''second level'' model. '
 }';
-fmri_design.prog = @spm_run_fmri_design;
+fmri_design.prog = @spm_run_fmri_spec;
 fmri_design.vout = @vout_stats;
 fmri_design.modality = {'FMRI'};
 %-------------------------------------------------------------------------

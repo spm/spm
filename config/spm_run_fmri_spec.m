@@ -8,13 +8,15 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_run_fmri_spec.m 4468 2011-09-07 18:59:21Z guillaume $
 
 
 original_dir = pwd;
 my_cd(job.dir);
+
+design_only = ~isfield(job,'mask');
 
 %-Ask about overwriting files from previous analyses
 %--------------------------------------------------------------------------
@@ -45,7 +47,9 @@ end
 % Variables
 %--------------------------------------------------------------------------
 SPM.xY.RT = job.timing.RT;
-SPM.xY.P = [];
+if ~design_only
+    SPM.xY.P = [];
+end
 
 % Slice timing
 %--------------------------------------------------------------------------
@@ -112,8 +116,12 @@ for i = 1:numel(job.sess),
 
     % Image filenames
     %----------------------------------------------------------------------
-    SPM.nscan(i) = numel(sess.scans);
-    SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
+    if design_only
+        SPM.nscan(i) = sess.nscan;
+    else
+        SPM.nscan(i) = numel(sess.scans);
+        SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
+    end
     U = [];
 
     % Augment the singly-specified conditions with the multiple
@@ -298,11 +306,15 @@ SPM.xVi.form = job.cvi;
 
 % Let SPM configure the design
 %--------------------------------------------------------------------------
-SPM = spm_fmri_spm_ui(SPM);
-
-if ~isempty(job.mask)&&~isempty(job.mask{1})
-    SPM.xM.VM         = spm_vol(job.mask{:});
-    SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
+if design_only
+    SPM = spm_fMRI_design(SPM);
+else
+    SPM = spm_fmri_spm_ui(SPM);
+    
+    if ~isempty(job.mask)&&~isempty(job.mask{1})
+        SPM.xM.VM         = spm_vol(job.mask{:});
+        SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
+    end
 end
 
 %-Save SPM.mat
@@ -312,7 +324,7 @@ if spm_check_version('matlab','7') >= 0
     save('SPM.mat','-V6','SPM');
 else
     save('SPM.mat','SPM');
-end;
+end
 
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
