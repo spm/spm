@@ -48,9 +48,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 4464 2011-09-06 15:00:57Z guillaume $
+% $Id: spm_eeg_montage.m 4467 2011-09-07 17:18:22Z guillaume $
 
-SVNrev = '$Rev: 4464 $';
+SVNrev = '$Rev: 4467 $';
 
 % Sequence of steps
 % 1/ Data re-reference: (a) write data on disk or (b) apply online montage
@@ -101,9 +101,11 @@ if ~nargin
         txt_Q = 'How to specify the online montage?';
     end
 else
+    % old behaviour by default
     if ~isfield(S,'onlineopt')
-        S.onlineopt = 0; % old behaviour by default
+        S.onlineopt = 0;
     end
+    write_data = 1;
 end
 
 %-Get montage
