@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4470 2011-09-08 14:42:38Z guillaume $
+% $Id: spm_run_fmri_spec.m 4472 2011-09-08 17:42:32Z guillaume $
 
 
 original_dir = pwd;
@@ -50,18 +50,6 @@ SPM.xY.RT = job.timing.RT;
 if ~design_only
     SPM.xY.P = [];
 end
-
-% Slice timing
-%--------------------------------------------------------------------------
-% The following lines have the side effect of modifying the global
-% defaults variable. This is necessary to pass job.timing.fmri_t to
-% spm_hrf.m. The original values are saved here and restored at the end
-% of this function, after the design has been specified. The original
-% values may not be restored if this function crashes.
-olddefs.stats.fmri.fmri_t  = spm_get_defaults('stats.fmri.fmri_t');
-olddefs.stats.fmri.fmri_t0 = spm_get_defaults('stats.fmri.fmri_t0');
-spm_get_defaults('stats.fmri.t',  job.timing.fmri_t);
-spm_get_defaults('stats.fmri.t0', job.timing.fmri_t0);
 
 % Basis function variables
 %--------------------------------------------------------------------------
@@ -239,7 +227,17 @@ for i = 1:numel(job.sess),
         Cname{q} = sess.regress(q).name;
         C        = [C, sess.regress(q).val(:)];
     end
-
+%     % checks from spm_fMRI_design
+%     reg_rows = size(C,1);
+%     if (reg_rows > 0) && ~(reg_rows== k)
+%         str1='Error in spm_fMRI_design.m:';
+%         str2=sprintf('Session %d has %d scans but regressors have %d entries', s,k,reg_rows);
+%         str3='These numbers should match';
+%         warndlg({str1; str2; str3});
+%         return
+%     end
+    
+    
     % Augment the singly-specified regressors with the multiple regressors
     % specified in the regressors.mat file
     %----------------------------------------------------------------------
@@ -332,8 +330,6 @@ fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 my_cd(original_dir); % Change back dir
-spm_get_defaults('stats.fmri.fmri_t',olddefs.stats.fmri.fmri_t); % Restore old timing
-spm_get_defaults('stats.fmri.fmri_t0',olddefs.stats.fmri.fmri_t0); % parameters
 fprintf('Done\n')
 return
 

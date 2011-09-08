@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4470 2011-09-08 14:42:38Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4472 2011-09-08 17:42:32Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ fmri_t.help    = {
 }';
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
-fmri_t.def     = @(val)spm_get_defaults('stats.fmri.fmri_t', val{:});
+fmri_t.def     = @(val)spm_get_defaults('stats.fmri.t', val{:});
 
 %--------------------------------------------------------------------------
 % fmri_t0 Microtime onset
@@ -65,7 +65,7 @@ fmri_t0.help    = {
 }';
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
-fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.fmri_t0', val{:});
+fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.t0', val{:});
 
 %--------------------------------------------------------------------------
 % timing Timing parameters

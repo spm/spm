@@ -1,22 +1,22 @@
 function [xBF] = spm_get_bf(xBF)
-% fills in basis function structure
-% FORMAT [xBF] = spm_get_bf(xBF);
+% Fill in basis function structure
+% FORMAT [xBF] = spm_get_bf(xBF)
 %
 % xBF.dt      - time bin length {seconds}
 % xBF.name    - description of basis functions specified
+%               'hrf'
+%               'hrf (with time derivative)'
+%               'hrf (with time and dispersion derivatives)'
+%               'Fourier set'
+%               'Fourier set (Hanning)'
+%               'Gamma functions'
+%               'Finite Impulse Response'
+%               (any other specification will default to 'hrf')
 % xBF.length  - window length (seconds)
 % xBF.order   - order
-% xBF.bf      - Matrix of basis functions
+% xBF.T       - microtime resolution (for 'hrf*')
 %
-% xBF.name  'hrf'
-%       'hrf (with time derivative)'
-%       'hrf (with time and dispersion derivatives)'
-%       'Fourier set'
-%       'Fourier set (Hanning)'
-%       'Gamma functions'
-%       'Finite Impulse Response'};
-%
-% (any other specification will default to hrf)
+% xBF.bf      - array of basis functions
 %__________________________________________________________________________
 %
 % spm_get_bf prompts for basis functions to model event or epoch-related
@@ -25,25 +25,25 @@ function [xBF] = spm_get_bf(xBF)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_get_bf.m 3934 2010-06-17 14:58:25Z guillaume $
+% $Id: spm_get_bf.m 4472 2011-09-08 17:42:32Z guillaume $
  
  
-% length of time bin
+%-Length of time bin
 %--------------------------------------------------------------------------
 if ~nargin
     str    = 'time bin for basis functions {secs}';
     xBF.dt = spm_input(str,'+1','r',1/16,1);
 end
-dt   = xBF.dt;
+dt = xBF.dt;
  
  
-% assemble basis functions
+%-Assemble basis functions
 %==========================================================================
  
-% model event-related responses
+%-Model event-related responses
 %--------------------------------------------------------------------------
 if ~isfield(xBF,'name')
     spm_input('Hemodynamic Basis functions...',1,'d')
@@ -60,27 +60,26 @@ if ~isfield(xBF,'name')
     xBF.name = Ctype{Sel};
 end
  
-% get order and length parameters
+%-Get order and length parameters
 %--------------------------------------------------------------------------
 switch xBF.name
  
-    case {  'Fourier set','Fourier set (Hanning)',...
-        'Gamma functions','Finite Impulse Response'}
+    case {'Fourier set','Fourier set (Hanning)',...
+          'Gamma functions','Finite Impulse Response'}
     %----------------------------------------------------------------------
-    try,    l          = xBF.length;
-    catch,  l          = spm_input('window length {secs}',3,'e',32);
-        xBF.length = l;
+    try,   l          = xBF.length;
+    catch, l          = spm_input('window length {secs}',3,'e',32);
+           xBF.length = l;
     end
-    try,    h          = xBF.order;
-    catch,  h          = spm_input('order',4,'e',4);
-        xBF.order  = h;
+    try,   h          = xBF.order;
+    catch, h          = spm_input('order',4,'e',4);
+           xBF.order  = h;
     end
 end
- 
- 
- 
-% create basis functions
-%--------------------------------------------------------------------------
+
+
+%-Create basis functions
+%==========================================================================
 switch xBF.name
  
     case {'Fourier set','Fourier set (Hanning)'}
@@ -88,15 +87,15 @@ switch xBF.name
     pst   = [0:dt:l]';
     pst   = pst/max(pst);
  
-    % hanning window
+    %-Hanning window
     %----------------------------------------------------------------------
     if strcmp(xBF.name,'Fourier set (Hanning)')
-        g  = (1 - cos(2*pi*pst))/2;
+        g = (1 - cos(2*pi*pst))/2;
     else
-        g  = ones(size(pst));
+        g = ones(size(pst));
     end
  
-    % zeroth and higher Fourier terms
+    %-Zeroth and higher Fourier terms
     %----------------------------------------------------------------------
     bf    = g;
     for i = 1:h
@@ -116,56 +115,57 @@ switch xBF.name
  
     case {'NONE'}
     %----------------------------------------------------------------------
-    bf = 1;
+    bf    = 1;
  
 otherwise
- 
-    % canonical hemodynamic response function
+    %-Microtime resolution
     %----------------------------------------------------------------------
-    [bf p]         = spm_hrf(dt);
+    fMRI_T   = xBF.T;
+    
+    %-Canonical hemodynamic response function
+    %----------------------------------------------------------------------
+    [bf, p]      = spm_hrf(dt,[],fMRI_T);
  
-    % add time derivative
+    %-Add time derivative
     %----------------------------------------------------------------------
     if strfind(xBF.name,'time')
+
+        dp       = 1;
+        p(6)     = p(6) + dp;
+        D        = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
+        bf       = [bf D(:)];
+        p(6)     = p(6) - dp;
  
-        dp     = 1;
-        p(6)   = p(6) + dp;
-        D      = (bf(:,1) - spm_hrf(dt,p))/dp;
-        bf     = [bf D(:)];
-        p(6)   = p(6) - dp;
- 
-        % add dispersion derivative
+        %-Add dispersion derivative
         %------------------------------------------------------------------
         if strfind(xBF.name,'dispersion')
  
-            dp    = 0.01;
-            p(3)  = p(3) + dp;
-            D     = (bf(:,1) - spm_hrf(dt,p))/dp;
-            bf    = [bf D(:)];
+            dp   = 0.01;
+            p(3) = p(3) + dp;
+            D    = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
+            bf   = [bf D(:)];
         end
     end
  
-    % length and order
+    %-Length and order
     %----------------------------------------------------------------------
-    xBF.length = size(bf,1)*dt;
-    xBF.order  = size(bf,2);
+    xBF.length   = size(bf,1)*dt;
+    xBF.order    = size(bf,2);
  
 end
  
  
-% Orthogonalise and fill in basis function structure
+%-Orthogonalise and fill in basis function structure
 %--------------------------------------------------------------------------
-xBF.bf  =  spm_orth(bf);
+xBF.bf = spm_orth(bf);
  
  
 %==========================================================================
 %- S U B - F U N C T I O N S
 %==========================================================================
- 
-% compute Gamma functions
-%--------------------------------------------------------------------------
+
 function bf = spm_gamma_bf(u,h)
-% returns basis functions used for Volterra expansion
+% Return basis functions (Gamma functions) used for Volterra expansion
 % FORMAT bf = spm_gamma_bf(u,h);
 % u   - times {seconds}
 % h   - order

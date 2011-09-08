@@ -1,95 +1,87 @@
 function spm_defaults
-% Sets the defaults which are used by SPM
-%_______________________________________________________________________
+% Set the defaults which are used by SPM
+%__________________________________________________________________________
 %
-% This file is intended to be customised for the site.
-% Individual users can make copies which can be stored in their own
-% matlab subdirectories. If ~/matlab is ahead of the SPM directory
-% in the MATLABPATH, then the users own personal defaults are used.
+% If you want to customise some defaults for your installation, do not
+% modify this file directly, but create a file names spm_my_defaults.m
+% instead, accessible from MATLAB search path; e.g., it can be saved in
+% MATLAB Startup Folder: userhome/Documents/MATLAB.
 %
-% This function should not be called directly in any script or function
+% Example: create the following file to change the image file extension:
+% ----------- file /home/karl/Documents/MATLAB/spm_my_defauls.m -----------
+% global defaults
+% defaults.images.format = 'nii';
+%--------------------------------------------------------------------------
+%
+% spm_defaults should not be called directly in any script or function
 % (apart from SPM internals).
 % To load the defaults, use spm('Defaults',modality).
 % To get/set the defaults, use spm_get_defaults.
 %
-% Care must be taken when modifying this file.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%                 ** This file should not be edited **
+%__________________________________________________________________________
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
-% 
-% $Id: spm_defaults.m 4440 2011-08-26 11:50:45Z guillaume $
+% SPM
+% $Id: spm_defaults.m 4472 2011-09-08 17:42:32Z guillaume $
 
-%-Prevent users from making direct calls to this function
-%-----------------------------------------------------------------------
-persistent runonce
-try
-    if ~isdeployed && isempty(runonce)
-        d = dbstack;
-        if isempty(intersect({'spm','spm_get_defaults'},{d.name}))
-            fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
-                'Please use spm(''Defaults'',modality) ' ...
-                'or spm_get_defaults instead.\n']);
-            runonce = 1;
-        end
-    end
-end
 
 global defaults
 
 % Command Line Usage default
-%=======================================================================
+%==========================================================================
 defaults.cmdline  = 0;
 
 % User Interface defaults
-%=======================================================================
+%==========================================================================
 defaults.ui.print  = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.ps');
 defaults.ui.colour = [0.73 0.78 0.96];
 defaults.renderer  = 'zbuffer';
 defaults.ui.fs     = 14;  % unused
 
 % File format specific
-%=======================================================================
+%==========================================================================
 % Note that defaults.analyze.flip is no longer used.  Specifying the
 % left/right handedness of the voxel indices is now done entirely by
 % spm_flip_analyze_images.m
-defaults.images.format  = 'img';  % used for DICOM, ECAT and MINC import
+defaults.images.format  = 'img'; % alternative is 'nii'
 
 % Toolboxes defaults
-%=======================================================================
+%==========================================================================
 defaults.tbx.dir = { fullfile(spm('Dir'),'toolbox') };
 
 % DICOM Import defaults
-%=======================================================================
-defaults.dicom.root     = 'flat'; % Folder hierarchy
+%==========================================================================
+defaults.dicom.root = 'flat'; % Folder hierarchy
+
+% fMRI design defaults
+%==========================================================================
+defaults.stats.fmri.t   = 16;
+defaults.stats.fmri.t0  = 1;
+defaults.stats.fmri.hpf = 128;
+defaults.stats.fmri.cvi = 'AR(1)';
+
+% Mask defaults
+%==========================================================================
+defaults.mask.thresh    = 0.8;
 
 % Stats defaults
-%=======================================================================
-defaults.stats.maxmem       = 2^26;
-defaults.stats.maxres       = 64;
-defaults.stats.fmri.ufp     = 0.001;  % Upper tail F-probability
-defaults.stats.pet.ufp      = 0.05;
-defaults.stats.eeg.ufp      = 1;
-defaults.stats.topoFDR      = 1;
-defaults.stats.rft.nonstat  = 0;
+%==========================================================================
+defaults.stats.maxmem      = 2^26;
+defaults.stats.maxres      = 64;
+defaults.stats.fmri.ufp    = 0.001;  % Upper tail F-probability
+defaults.stats.pet.ufp     = 0.05;
+defaults.stats.eeg.ufp     = 1;
+defaults.stats.topoFDR     = 1;
+defaults.stats.rft.nonstat = 0;
 defaults.stats.results.volume.distmin =  8;
 defaults.stats.results.volume.nbmax   =  3;
 defaults.stats.results.svc.distmin    =  4;
 defaults.stats.results.svc.nbmax      = 16;
 defaults.stats.results.mipmat         = fullfile(spm('dir'),'MIP.mat');
 
-% Mask defaults
-%=======================================================================
-defaults.mask.thresh       = 0.8;
-
-% fMRI design defaults
-%=======================================================================
-defaults.stats.fmri.fmri_t  = 16;
-defaults.stats.fmri.fmri_t0 = 1;
-defaults.stats.fmri.hpf     = 128;
-defaults.stats.fmri.cvi     = 'AR(1)';
-
 % Filename prefix defaults
-%=======================================================================
+%==========================================================================
 defaults.slicetiming.prefix     = 'a';
 defaults.realign.write.prefix   = 'r';
 defaults.coreg.write.prefix     = 'r';
@@ -98,7 +90,7 @@ defaults.normalise.write.prefix = 'w';
 defaults.smooth.prefix          = 's';
 
 % Realignment defaults
-%=======================================================================
+%==========================================================================
 defaults.realign.estimate.quality = 0.9;
 defaults.realign.estimate.interp  = 2;
 defaults.realign.estimate.wrap    = [0 0 0];
@@ -111,7 +103,7 @@ defaults.realign.write.wrap       = [0 0 0];
 defaults.realign.write.which      = [2 1];
 
 % Unwarp defaults
-%=======================================================================
+%==========================================================================
 defaults.unwarp.estimate.rtm      = 0;
 defaults.unwarp.estimate.fwhm     = 4;
 defaults.unwarp.estimate.basfcn   = [12 12];
@@ -129,7 +121,7 @@ defaults.unwarp.estimate.expround = 'Average';
 %
 
 % Coregistration defaults
-%=======================================================================
+%==========================================================================
 defaults.coreg.estimate.cost_fun = 'nmi';
 defaults.coreg.estimate.sep      = [4 2];
 defaults.coreg.estimate.tol      = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
@@ -139,7 +131,7 @@ defaults.coreg.write.wrap        = [0 0 0];
 defaults.coreg.write.mask        = 0;
 
 % Spatial Normalisation defaults
-%=======================================================================
+%==========================================================================
 defaults.normalise.estimate.smosrc  = 8;
 defaults.normalise.estimate.smoref  = 0;
 defaults.normalise.estimate.regtype = 'mni';
@@ -154,7 +146,7 @@ defaults.normalise.write.interp     = 1;
 defaults.normalise.write.wrap       = [0 0 0];
 
 % VBM Preprocessing defaults
-%=======================================================================
+%==========================================================================
 defaults.preproc.tpm     = cellstr(char(...
     fullfile(spm('Dir'),'tpm','grey.nii'),...
     fullfile(spm('Dir'),'tpm','white.nii'),...
@@ -174,5 +166,54 @@ defaults.preproc.output.biascor = 1;
 defaults.preproc.output.cleanup = 0;
 
 % Smooth defaults
-%=======================================================================
-defaults.smooth.fwhm  = [8 8 8];
+%==========================================================================
+defaults.smooth.fwhm = [8 8 8];
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-Prevent users from making direct calls to spm_defaults
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+persistent runonce
+try
+    if ~isdeployed && isempty(runonce)
+        d = dbstack;
+        if isempty(intersect({'spm','spm_get_defaults'},{d.name}))
+            fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
+                'Please use spm(''Defaults'',modality) ' ...
+                'or spm_get_defaults instead.\n']);
+            runonce = 1;
+        end
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-Execute user-specified defaults files
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+def = defaults;
+user_defaults = 'spm_my_defaults.m';
+if exist(user_defaults,'file')
+    user_defaults_file = which(user_defaults,'-ALL');
+    for i=1:numel(user_defaults_file)
+        try
+            spm('run', user_defaults_file{i});
+        catch
+            lr = lasterror;
+            warning(lr.message);
+        end
+    end
+    if ~isequalwithequalnans(def,defaults)
+        fprintf('Defaults settings have been modified by file(s):\n');
+        for i=1:numel(user_defaults_file)
+            fprintf('  %s\n',user_defaults_file{i});
+        end
+        fn0 = fieldnames(def);
+        mf = fn0(~cellfun(@(x) isequalwithequalnans(def.(x),defaults.(x)),fn0));
+        if ~isempty(mf)
+            fprintf('Modified fields: ');
+            for i=1:numel(mf)
+                fprintf('%s ',mf{i});
+            end
+            fprintf('\n');
+        end
+    end
+end

@@ -170,10 +170,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %__________________________________________________________________________
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 4470 2011-09-08 14:42:38Z guillaume $
+% Karl Friston
+% $Id: spm_fmri_spm_ui.m 4472 2011-09-08 17:42:32Z guillaume $
 
-SVNid = '$Rev: 4470 $';
+SVNid = '$Rev: 4472 $';
 
 
 %==========================================================================
@@ -260,6 +260,7 @@ end
 
 SPM.xVi.form = cVi;
 
+
 %-Return if design-only specification
 %==========================================================================
 try, SPM.xY.P; catch, return; end
@@ -295,10 +296,13 @@ GM    = 100;
 q     = length(VY);
 g     = zeros(q,1);
 fprintf('%-40s: %30s','Calculating globals',' ')                        %-#
+spm_progress_bar('Init',q,'Calculating globals');
 for i = 1:q
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',i,q))%-#
     g(i) = spm_global(VY(i));
+    spm_progress_bar('Set',i)
 end
+spm_progress_bar('Clear');
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 
 %-Scale if specified (otherwise session specific grand mean scaling)
@@ -331,11 +335,7 @@ SPM.xGX.gSF = gSF;
 try
     gMT = SPM.xM.gMT;
 catch
-    try
-        gMT = spm_get_defaults('mask.thresh');
-    catch
-        gMT = 0.8; % 80% of mean
-    end
+    gMT = spm_get_defaults('mask.thresh');
 end
 TH = g.*gSF*gMT;
 
@@ -365,8 +365,12 @@ SPM.xsDes = struct(...
     'Global_normalisation', SPM.xGX.iGXcalc);
 
 
-%-Save SPM.mat
 %==========================================================================
+% - S A V E   A N D   D I S P L A Y
+%==========================================================================
+
+%-Save SPM.mat
+%--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
 if spm_check_version('matlab','7') >=0
     save('SPM.mat', 'SPM', '-V6');
@@ -376,8 +380,8 @@ end
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 
-%-Display Design report
-%==========================================================================
+%-Display design report
+%--------------------------------------------------------------------------
 if ~spm('CmdLine')
     fprintf('%-40s: ','Design reporting')                               %-#
     fname = cat(1,{SPM.xY.VY.fname}');

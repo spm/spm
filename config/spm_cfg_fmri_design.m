@@ -3,9 +3,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 4470 2011-09-08 14:42:38Z guillaume $
+% $Id: spm_cfg_fmri_design.m 4472 2011-09-08 17:42:32Z guillaume $
 
-rev = '$Rev: 4470 $';
+rev = '$Rev: 4472 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -53,7 +53,7 @@ fmri_t.help    = {
 }';
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
-fmri_t.def     = @(val)spm_get_defaults('stats.fmri.fmri_t', val{:});
+fmri_t.def     = @(val)spm_get_defaults('stats.fmri.t', val{:});
 % ---------------------------------------------------------------------
 % fmri_t0 Microtime onset
 % ---------------------------------------------------------------------
@@ -67,7 +67,7 @@ fmri_t0.help    = {
 }';
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
-fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.fmri_t0', val{:});
+fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.t0', val{:});
 % ---------------------------------------------------------------------
 % timing Timing parameters
 % ---------------------------------------------------------------------
