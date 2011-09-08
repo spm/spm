@@ -28,7 +28,7 @@ function [xBF] = spm_get_bf(xBF)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_get_bf.m 4472 2011-09-08 17:42:32Z guillaume $
+% $Id: spm_get_bf.m 4473 2011-09-08 18:07:45Z guillaume $
  
  
 %-Length of time bin
@@ -120,7 +120,11 @@ switch xBF.name
 otherwise
     %-Microtime resolution
     %----------------------------------------------------------------------
-    fMRI_T   = xBF.T;
+    try
+        fMRI_T   = xBF.T;
+    catch
+        fMRI_T   = spm_get_defaults('stats.fmri.t');
+    end
     
     %-Canonical hemodynamic response function
     %----------------------------------------------------------------------
