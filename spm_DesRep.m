@@ -79,8 +79,7 @@ function varargout = spm_DesRep(varargin)
 %     structure of the design is reflected in the sub-menu structure.
 %     Selecting a given session, and then trial/condition within the
 %     session, launches a comprehensive display of the parameters of
-%     that design. See spm_fMRI_design_show.m for further details of
-%     these displays.
+%     that design.
 %
 %     If not an fMRI design, then the Explore sub-menu has two options:
 %     "Files and factors" & "Covariates".
@@ -128,7 +127,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4454 2011-09-02 13:39:49Z guillaume $
+% $Id: spm_DesRep.m 4469 2011-09-08 10:58:07Z guillaume $
 
 
 
@@ -180,14 +179,16 @@ function varargout = spm_DesRep(varargin)
 % .nX     - Desgin matrix already scaled for display
 % .xKXs.X - temporally filtered design matrix (within space structure)
 % .X      - "raw" design matrix (as setup by spm{,_fmri}_ui routines)
-%
-% .name - [optional] px1 CellStr of parameter names
-%
+% .name   - [optional] px1 CellStr of parameter names
 % fnames  - [optional] nxv CellStr of filenames (i.e. reshape(cellstr(SPM.xY.P),size(V)))
 % xs      - [optional] structure of extra strings containing descriptive
-%          information which is printed at the foot of the page ('DesMtx' usage)
-%          The field names are used as sub-headings, the field values
-%          (which must be strings or CellStr) printed alongside.
+%           information which is printed at the foot of the page ('DesMtx' usage)
+%           The field names are used as sub-headings, the field values
+%           (which must be strings or CellStr) printed alongside.
+%
+% FORMAT spm_DesRep('fMRIDesMtx',SPM,s,i)
+% Interactive review of fMRI design matrix
+% Sess(s).U(i)  -  see spm_fMRI_design for session s, trial i.
 %
 % FORMAT spm_DesRep('Covs',xC,X,Xnames)
 % Plots the covariates and describes how they are included into the model.
@@ -261,7 +262,7 @@ function varargout = spm_DesRep(varargin)
 %_______________________________________________________________________
 
 
-SVNid = '$Rev: 4454 $'; 
+SVNid = '$Rev: 4469 $'; 
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -399,7 +400,7 @@ case 'fMRI'
         for k = 1:length(SPM.Sess(j).Fc)
             uimenu(h,'Label',SPM.Sess(j).Fc(k).name,...
                  'CallBack',[cb,...
-            sprintf('spm_fMRI_design_show(tmp,%d,%d);',j,k)],...
+            sprintf('spm_DesRep(''fMRIDesMtx'',tmp,%d,%d);',j,k)],...
                  'UserData',hC,...
                  'HandleVisibility','off')
         end
@@ -904,6 +905,94 @@ end
 %-Pop up the Graphics window
 %-----------------------------------------------------------------------
 figure(Fgraph)
+
+
+%=======================================================================
+case 'fmridesmtx'             %-Interactive review of fMRI design matrix
+%=======================================================================
+%spm_DesRep('fMRIDesMtx',SPM,s,i)
+SPM  = varargin{2};
+Sess = SPM.Sess;
+if nargin < 4, i = 1; else i = varargin{4}; end
+if nargin < 3, s = 1; else s = varargin{3}; end
+
+%-Get Graphics window
+%-----------------------------------------------------------------------
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph,0)
+
+
+% Trial-specific regressors - time domain
+%-----------------------------------------------------------------------
+sX    = SPM.xX.X(Sess(s).row,Sess(s).col);
+rX    = sX(:,Sess(s).Fc(i).i);
+subplot(2,2,1)
+plot(Sess(s).row,rX)
+xlabel('scan')
+ylabel('regressor[s]')
+title({'Time domain',['regressors for ' Sess(s).Fc(i).name]})
+grid on
+axis tight
+
+% Trial-specific regressors - frequency domain
+%-----------------------------------------------------------------------
+subplot(2,2,2)
+gX    = abs(fft(rX)).^2;
+gX    = gX*diag(1./sum(gX));
+q     = size(gX,1);
+Hz    = [0:(q - 1)]/(q*SPM.xY.RT);
+q     = 2:fix(q/2);
+plot(Hz(q),gX(q,:))
+HPF = SPM.xX.K(s).HParam;
+patch([0 1 1 0]/HPF,[0 0 1 1]*max(max(gX)),[1 1 1]*.9,'facealpha',.5);
+xlabel('Frequency (Hz)')
+ylabel('relative spectral density')
+h=title(['Frequency domain',sprintf('\n'), ' {\bf',num2str(HPF),'}', ...
+    ' second High-pass filter'],'Interpreter','Tex');
+grid on
+axis tight
+
+% if trial (as opposed to trial x trial interaction)
+%-----------------------------------------------------------------------
+if length(Sess(s).U) >= i
+
+    % Basis set and peristimulus sampling
+    %---------------------------------------------------------------
+    subplot(2,2,3)
+    dt   = Sess(s).U(i).dt;
+    RT   = SPM.xY.RT;
+    t    = [1:size(SPM.xBF.bf,1)]*dt;
+    pst  = Sess(s).U(i).pst;
+    plot(t,SPM.xBF.bf,pst,0*pst,'.','MarkerSize',16)
+    str  = sprintf('TR = %0.2fsecs',RT);
+    xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*dt)})
+    title({'Basis set and peristimulus sampling' SPM.xBF.name})
+    axis tight
+    grid on
+
+    % if a paramteric variate is specified
+    %---------------------------------------------------------------
+    for p = 1:length(Sess(s).U(i).P)
+
+        if Sess(s).U(i).P(p).h
+
+        % onsets and parametric modulation
+        %-------------------------------------------------------
+        subplot(2,2,4)
+        ons = Sess(s).U(i).ons;
+        plot(ons,Sess(s).U(i).P(p).P,'.','MarkerSize',8)
+        xlabel('time {secs}')
+        title('parameters')
+        grid on
+        hold on
+
+        end
+    end
+end
+
+%-Pop up Graphics figure window
+%-----------------------------------------------------------------------
+figure(Fgraph);
 
 
 %=======================================================================

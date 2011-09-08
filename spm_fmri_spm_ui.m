@@ -173,9 +173,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 4420 2011-08-04 11:32:51Z guillaume $
+% $Id: spm_fmri_spm_ui.m 4469 2011-09-08 10:58:07Z guillaume $
 
-SVNid  = '$Rev: 4420 $';
+SVNid  = '$Rev: 4469 $';
 
 %-GUI setup
 %--------------------------------------------------------------------------
@@ -192,7 +192,7 @@ if ~nargin
         %------------------------------------------------------------------
         if sf_abort, spm_clf(Finter), return, end
         SPM   = spm_fMRI_design;
-        spm_fMRI_design_show(SPM);
+        spm_DesRep('fMRIDesMtx',SPM);
         return
 
     else

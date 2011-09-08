@@ -8,7 +8,7 @@ function spm_fMRI_design_show(SPM,s,i)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design_show.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_fMRI_design_show.m 4469 2011-09-08 10:58:07Z guillaume $
 
 
 % SPM
