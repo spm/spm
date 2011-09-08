@@ -1,11 +1,11 @@
 function fmri_design = spm_cfg_fmri_design
 % SPM Configuration file for fMRI model specification (design only)
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 4468 2011-09-07 18:59:21Z guillaume $
+% $Id: spm_cfg_fmri_design.m 4470 2011-09-08 14:42:38Z guillaume $
 
-rev = '$Rev: 4468 $';
+rev = '$Rev: 4470 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -547,6 +547,16 @@ xGlobal.values = {
                   'None'
 }';
 xGlobal.val     = {'None'};
+%----------------------------------------------------------------------
+% gMT Masking threshold
+%----------------------------------------------------------------------
+gMT         = cfg_entry;
+gMT.tag     = 'mthresh';
+gMT.name    = 'Masking threshold';
+gMT.help    = {'Masking threshold, defined as percentage of globals.'};
+gMT.strtype = 'e';
+gMT.num     = [1 1];
+gMT.def     = @(val)spm_get_defaults('mask.thresh', val{:});
 % ---------------------------------------------------------------------
 % cvi Serial correlations
 % ---------------------------------------------------------------------
@@ -575,7 +585,7 @@ cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
 fmri_design         = cfg_exbranch;
 fmri_design.tag     = 'fmri_design';
 fmri_design.name    = 'fMRI model specification (design only)';
-fmri_design.val     = {dir timing generic generic1 bases volt xGlobal cvi };
+fmri_design.val     = {dir timing generic generic1 bases volt xGlobal gMT cvi };
 fmri_design.help    = {
                        'Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM paramaters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).'
                        ''

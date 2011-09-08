@@ -1,48 +1,45 @@
 function fmri_spec = spm_cfg_fmri_spec
 % SPM Configuration file for fMRI model specification
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4470 2011-09-08 14:42:38Z guillaume $
 
-rev = '$Rev: 3691 $';
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % dir Directory
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dir         = cfg_files;
 dir.tag     = 'dir';
 dir.name    = 'Directory';
 dir.help    = {'Select a directory where the SPM.mat file containing the specified design matrix will be written.'};
-dir.filter = 'dir';
+dir.filter  = 'dir';
 dir.ufilter = '.*';
 dir.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % units Units for design
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 units         = cfg_menu;
 units.tag     = 'units';
 units.name    = 'Units for design';
 units.help    = {'The onsets of events or blocks can be specified in either scans or seconds.'};
-units.labels = {
-                'Scans'
-                'Seconds'
-}';
-units.values = {
-                'scans'
-                'secs'
-}';
-% ---------------------------------------------------------------------
+units.labels  = {'Scans', 'Seconds'};
+units.values  = {'scans', 'secs'};
+
+%--------------------------------------------------------------------------
 % RT Interscan interval
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 RT         = cfg_entry;
 RT.tag     = 'RT';
 RT.name    = 'Interscan interval';
 RT.help    = {'Interscan interval, TR, (specified in seconds).  This is the time between acquiring a plane of one volume and the same plane in the next volume.  It is assumed to be constant throughout.'};
 RT.strtype = 'e';
 RT.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fmri_t Microtime resolution
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fmri_t         = cfg_entry;
 fmri_t.tag     = 'fmri_t';
 fmri_t.name    = 'Microtime resolution';
@@ -54,9 +51,10 @@ fmri_t.help    = {
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
 fmri_t.def     = @(val)spm_get_defaults('stats.fmri.fmri_t', val{:});
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fmri_t0 Microtime onset
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fmri_t0         = cfg_entry;
 fmri_t0.tag     = 'fmri_t0';
 fmri_t0.name    = 'Microtime onset';
@@ -68,9 +66,10 @@ fmri_t0.help    = {
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
 fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.fmri_t0', val{:});
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % timing Timing parameters
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 timing         = cfg_branch;
 timing.tag     = 'timing';
 timing.name    = 'Timing parameters';
@@ -80,9 +79,10 @@ timing.help    = {
                   ''
                   'Also, with longs TRs you may want to shift the regressors so that they are aligned to a particular slice.  This is effected by changing the microtime resolution and onset. '
 }';
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % scans Scans
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
@@ -90,36 +90,40 @@ scans.help    = {'Select the fMRI scans for this session.  They must all have th
 scans.filter = 'image';
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Condition Name'};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % onset Onsets
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 onset         = cfg_entry;
 onset.tag     = 'onset';
 onset.name    = 'Onsets';
 onset.help    = {'Specify a vector of onset times for this condition type. '};
 onset.strtype = 'e';
 onset.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % duration Durations
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 duration         = cfg_entry;
 duration.tag     = 'duration';
 duration.name    = 'Durations';
 duration.help    = {'Specify the event durations. Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.'};
 duration.strtype = 'e';
 duration.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % tmod Time Modulation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tmod         = cfg_menu;
 tmod.tag     = 'tmod';
 tmod.name    = 'Time Modulation';
@@ -139,27 +143,30 @@ tmod.labels = {
 }';
 tmod.values = {0 1 2 3 4 5 6};
 tmod.val    = {0};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 name1         = cfg_entry;
 name1.tag     = 'name';
 name1.name    = 'Name';
 name1.help    = {'Enter a name for this parameter.'};
 name1.strtype = 's';
 name1.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % param Values
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 param         = cfg_entry;
 param.tag     = 'param';
 param.name    = 'Values';
 param.help    = {'Enter a vector of values, one for each occurence of the event.'};
 param.strtype = 'e';
 param.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % poly Polynomial Expansion
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 poly         = cfg_menu;
 poly.tag     = 'poly';
 poly.name    = 'Polynomial Expansion';
@@ -173,48 +180,53 @@ poly.labels = {
                '6th order'
 }';
 poly.values = {1 2 3 4 5 6};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % pmod Parameter
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 pmod         = cfg_branch;
 pmod.tag     = 'pmod';
 pmod.name    = 'Parameter';
 pmod.val     = {name1 param poly };
 pmod.help    = {
-                'Model interractions with user specified parameters. This allows nonlinear effects relating to some other measure to be modelled in the design matrix.'
+                'Model interactions with user specified parameters. This allows nonlinear effects relating to some other measure to be modelled in the design matrix.'
                 ''
                 'Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate or, secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types).'
 }';
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Parametric Modulations
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic2         = cfg_repeat;
 generic2.tag     = 'generic';
 generic2.name    = 'Parametric Modulations';
 generic2.help    = {'The stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate. The events can be modulated by zero or more parameters.'};
 generic2.values  = {pmod };
 generic2.num     = [0 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % cond Condition
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cond         = cfg_branch;
 cond.tag     = 'cond';
 cond.name    = 'Condition';
 cond.val     = {name onset duration tmod generic2 };
 cond.check   = @cond_check;
 cond.help    = {'An array of input functions is contructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Conditions
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Conditions';
 generic1.help    = {'You are allowed to combine both event- and epoch-related responses in the same model and/or regressor. Any number of condition (event or epoch) types can be specified.  Epoch and event-related responses are modeled in exactly the same way by specifying their onsets [in terms of onset times] and their durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration.For factorial designs, one can later associate these experimental conditions with the appropriate levels of experimental factors. '};
 generic1.values  = {cond };
 generic1.num     = [0 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % multi Multiple conditions
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 multi         = cfg_files;
 multi.tag     = 'multi';
 multi.name    = 'Multiple conditions';
@@ -252,44 +264,49 @@ multi.help    = {
 multi.filter = 'mat';
 multi.ufilter = '.*';
 multi.num     = [0 1];
-% ---------------------------------------------------------------------
-% name Name
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+% name Regressor Name
+%--------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Enter name of regressor eg. First movement parameter'};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% val Value
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+% val Regressor Value
+%--------------------------------------------------------------------------
 val         = cfg_entry;
 val.tag     = 'val';
 val.name    = 'Value';
 val.help    = {'Enter the vector of regressor values'};
 val.strtype = 'e';
 val.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % regress Regressor
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 regress         = cfg_branch;
 regress.tag     = 'regress';
 regress.name    = 'Regressor';
 regress.val     = {name val };
 regress.help    = {'regressor'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Regressors
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic2         = cfg_repeat;
 generic2.tag     = 'generic';
 generic2.name    = 'Regressors';
 generic2.help    = {'Regressors are additional columns included in the design matrix, which may model effects that would not be convolved with the haemodynamic response.  One such example would be the estimated movement parameters, which may confound the data.'};
 generic2.values  = {regress };
 generic2.num     = [0 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % multi_reg Multiple regressors
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 multi_reg         = cfg_files;
 multi_reg.tag     = 'multi_reg';
 multi_reg.name    = 'Multiple regressors';
@@ -304,9 +321,10 @@ multi_reg.help    = {
 multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
 multi_reg.num     = [0 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % hpf High-pass filter
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hpf         = cfg_entry;
 hpf.tag     = 'hpf';
 hpf.name    = 'High-pass filter';
@@ -314,18 +332,20 @@ hpf.help    = {'The default high-pass filter cutoff is 128 seconds.Slow signal d
 hpf.strtype = 'e';
 hpf.num     = [1 1];
 hpf.def     = @(val)spm_get_defaults('stats.fmri.hpf', val{:});
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % sess Subject/Session
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 sess         = cfg_branch;
 sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
 sess.val     = {scans generic1 multi generic2 multi_reg hpf };
 sess.check   = @sess_check;
 sess.help    = {'The design matrix for fMRI data consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per fMRI scanning session for that subject.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Data & Design
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data & Design';
@@ -336,35 +356,39 @@ generic.help    = {
 }';
 generic.values  = {sess };
 generic.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Name of factor, eg. ''Repetition'' '};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % levels Levels
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 levels         = cfg_entry;
 levels.tag     = 'levels';
 levels.name    = 'Levels';
 levels.help    = {'Enter number of levels for this factor, eg. 2'};
 levels.strtype = 'e';
 levels.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fact Factor
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fact         = cfg_branch;
 fact.tag     = 'fact';
 fact.name    = 'Factor';
 fact.val     = {name levels };
 fact.help    = {'Add a new factor to your experimental design'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Factorial design
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Factorial design';
@@ -379,9 +403,10 @@ generic1.help    = {
 }';
 generic1.values  = {fact };
 generic1.num     = [0 Inf];
-% ---------------------------------------------------------------------
+
+%----------------------------------------------------------------------
 % derivs Model derivatives
-% ---------------------------------------------------------------------
+%----------------------------------------------------------------------
 derivs         = cfg_menu;
 derivs.tag     = 'derivs';
 derivs.name    = 'Model derivatives';
@@ -393,130 +418,145 @@ derivs.labels = {
 }';
 derivs.values = {[0 0] [1 0] [1 1]};
 derivs.val    = {[0 0]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % hrf Canonical HRF
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hrf         = cfg_branch;
 hrf.tag     = 'hrf';
 hrf.name    = 'Canonical HRF';
 hrf.val     = {derivs };
 hrf.help    = {'Canonical Hemodynamic Response Function. This is the default option. Contrasts of these effects have a physical interpretation and represent a parsimonious way of characterising event-related responses. This option is also useful if you wish to look separately at activations and deactivations (this is implemented using a t-contrast with a +1 or -1 entry over the canonical regressor). '};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % length Window length
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
 length.strtype = 'e';
 length.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'e';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fourier Fourier Set
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fourier         = cfg_branch;
 fourier.tag     = 'fourier';
 fourier.name    = 'Fourier Set';
 fourier.val     = {length order };
 fourier.help    = {'Fourier basis functions. This option requires an SPM{F} for inference.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % length Window length
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
 length.strtype = 'e';
 length.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'e';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fourier_han Fourier Set (Hanning)
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fourier_han         = cfg_branch;
 fourier_han.tag     = 'fourier_han';
 fourier_han.name    = 'Fourier Set (Hanning)';
 fourier_han.val     = {length order };
 fourier_han.help    = {'Fourier basis functions with Hanning Window - requires SPM{F} for inference.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % length Window length
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
 length.strtype = 'e';
 length.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'e';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % gamma Gamma Functions
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 gamma         = cfg_branch;
 gamma.tag     = 'gamma';
 gamma.name    = 'Gamma Functions';
 gamma.val     = {length order };
 gamma.help    = {'Gamma basis functions - requires SPM{F} for inference.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % length Window length
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
 length.strtype = 'e';
 length.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'e';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fir Finite Impulse Response
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fir         = cfg_branch;
 fir.tag     = 'fir';
 fir.name    = 'Finite Impulse Response';
 fir.val     = {length order };
 fir.help    = {'Finite impulse response - requires SPM{F} for inference.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % bases Basis Functions
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 bases         = cfg_choice;
 bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
 bases.val     = {hrf };
 bases.help    = {'The most common choice of basis function is the Canonical HRF with or without time and dispersion derivatives. '};
 bases.values  = {hrf fourier fourier_han gamma fir };
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % volt Model Interactions (Volterra)
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 volt         = cfg_menu;
 volt.tag     = 'volt';
 volt.name    = 'Model Interactions (Volterra)';
@@ -526,42 +566,51 @@ volt.help    = {
                 'For first order expansions the causes are simply convolved (e.g. stick functions) in U.u by the basis functions in bf to create a design matrix X.  For second order expansions new entries appear in ind, bf and name that correspond to the interaction among the orginal causes. The basis functions for these efects are two dimensional and are used to assemble the second order kernel. Second order effects are computed for only the first column of U.u.'
                 'Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate or, secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types).'
 }';
-volt.labels = {
-               'Do not model Interactions'
-               'Model Interactions'
-}';
-volt.values = {1 2};
-volt.val    = {1};
-% ---------------------------------------------------------------------
+volt.labels  = {'Do not model Interactions', 'Model Interactions'};
+volt.values  = {1 2};
+volt.val     = {1};
+
+%--------------------------------------------------------------------------
 % global Global normalisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xGlobal         = cfg_menu;
 xGlobal.tag     = 'global';
 xGlobal.name    = 'Global normalisation';
 xGlobal.help    = {'Global intensity normalisation'};
-xGlobal.labels = {
-                  'Scaling'
-                  'None'
-}';
-xGlobal.values = {
-                  'Scaling'
-                  'None'
-}';
+xGlobal.labels  = {'Scaling', 'None'};
+xGlobal.values  = {'Scaling', 'None'};
 xGlobal.val     = {'None'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+% gMT Masking threshold
+%--------------------------------------------------------------------------
+gMT         = cfg_entry;
+gMT.tag     = 'mthresh';
+gMT.name    = 'Masking threshold';
+gMT.help    = {'Masking threshold, defined as percentage of globals.'};
+gMT.strtype = 'e';
+gMT.num     = [1 1];
+gMT.def     = @(val)spm_get_defaults('mask.thresh', val{:});
+
+%--------------------------------------------------------------------------
 % mask Explicit mask
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Explicit mask';
-mask.val{1} = {''};
-mask.help    = {'Specify an image for explicitly masking the analysis. A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailble or no masking is required, then leave this field empty.'};
-mask.filter = 'image';
+mask.val{1}  = {''};
+mask.help    = {'Specify an image for explicitly masking the analysis. '
+    'If masking is not required, you can leave this field empty.'
+    ['A sensible option here is to use a segmention of structural images to specify a within-brain mask. ',...
+    'If you select that image as an explicit mask then only those voxels in the brain will be analysed. ',...
+    'This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels.']};
+mask.filter  = 'image';
 mask.ufilter = '.*';
 mask.num     = [0 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % cvi Serial correlations
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cvi         = cfg_menu;
 cvi.tag     = 'cvi';
 cvi.name    = 'Serial correlations';
@@ -572,22 +621,17 @@ cvi.help    = {
                ''
                'Serial correlation can be ignored if you choose the ''none'' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noisemodel (AR model order) is made under the estimation options. '
 }';
-cvi.labels = {
-              'none'
-              'AR(1)'
-}';
-cvi.values = {
-              'none'
-              'AR(1)'
-}';
+cvi.labels  = {'none', 'AR(1)'};
+cvi.values  = {'none', 'AR(1)'};
 cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % fmri_spec fMRI model specification
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fmri_spec         = cfg_exbranch;
 fmri_spec.tag     = 'fmri_spec';
 fmri_spec.name    = 'fMRI model specification';
-fmri_spec.val     = {dir timing generic generic1 bases volt xGlobal mask cvi };
+fmri_spec.val     = {dir timing generic generic1 bases volt xGlobal gMT mask cvi };
 fmri_spec.help    = {
                      'Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM paramaters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).'
                      ''
@@ -601,39 +645,37 @@ fmri_spec.help    = {
                      ''
                      'In SPM, analysis of data from multiple subjects typically proceeds in two stages using models at two ''levels''. The ''first level'' models are used to implement a within-subject analysis. Typically there will be as many first level models as there are subjects. Analysis proceeds as described using the ''Specify first level'' and ''Estimate'' options. The results of these analyses can then be presented as ''case studies''. More often, however, one wishes to make inferences about the population from which the subjects were drawn. This is an example of a ''Random-Effects (RFX) analysis'' (or, more properly, a mixed-effects analysis). In SPM, RFX analysis is implemented using the ''summary-statistic'' approach where contrast images from each subject are used as summary measures of subject responses. These are then entered as data into a ''second level'' model. '
 }';
-fmri_spec.prog = @spm_run_fmri_spec;
-fmri_spec.vout = @vout_stats;
+fmri_spec.prog    = @spm_run_fmri_spec;
+fmri_spec.vout    = @vout_stats;
 fmri_spec.modality = {'FMRI'};
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+
+%==========================================================================
 function t = cond_check(job)
 t   = {};
-if (numel(job.onset) ~= numel(job.duration)) && (numel(job.duration)~=1),
+if (numel(job.onset) ~= numel(job.duration)) && (numel(job.duration)~=1)
     t = {sprintf('"%s": Number of event onsets (%d) does not match the number of durations (%d).',...
         job.name, numel(job.onset),numel(job.duration))};
-end;
-for i=1:numel(job.pmod),
-    if numel(job.onset) ~= numel(job.pmod(i).param),
+end
+for i=1:numel(job.pmod)
+    if numel(job.onset) ~= numel(job.pmod(i).param)
         t = {t{:}, sprintf('"%s" & "%s":Number of event onsets (%d) does not equal the number of parameters (%d).',...
             job.name, job.pmod(i).name, numel(job.onset),numel(job.pmod(i).param))};
-    end;
-end;
-return;
-%-------------------------------------------------------------------------
+    end
+end
 
-%-------------------------------------------------------------------------
+
+%==========================================================================
 function t = sess_check(sess)
 t = {};
-for i=1:numel(sess.regress),
-    if numel(sess.scans) ~= numel(sess.regress(i).val),
+for i=1:numel(sess.regress)
+    if numel(sess.scans) ~= numel(sess.regress(i).val)
         t = {t{:}, sprintf('Num scans (%d) ~= Num regress[%d] (%d).',numel(sess.scans),i,numel(sess.regress(i).val))};
-    end;
-end;
-return;
-%-------------------------------------------------------------------------
+    end
+end
 
-%-------------------------------------------------------------------------
+
+%==========================================================================
 function dep = vout_stats(job)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'SPM.mat File';

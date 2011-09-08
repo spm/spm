@@ -40,8 +40,6 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %            VM:                    - Mask filehandles
 %            xs: [1x1 struct]       - cellstr description
 %
-% (see also spm_spm_ui)
-%
 %__________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
@@ -51,7 +49,7 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %
 % The design matrix defines the experimental design and the nature of
 % hypothesis testing to be implemented.  The design matrix has one row
-% for each scan and one column for each effect or explanatory variable.
+% for each scan and one column for each effect or explanatory variable
 % (e.g. regressor or stimulus function).  The parameters are estimated in
 % a least squares sense using the general linear model.  Specific profiles
 % within these parameters are tested using a linear compound or contrast
@@ -167,142 +165,59 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % hemodynamics with fMRI Friston KJ, NeuroImage 2:157-165
 %
 % Josephs O, Turner R and Friston KJ (1997) Event-related fMRI, Hum. Brain
-% Map. 0:00-00
+% Map. 5:243-248
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 4469 2011-09-08 10:58:07Z guillaume $
+% $Id: spm_fmri_spm_ui.m 4470 2011-09-08 14:42:38Z guillaume $
 
-SVNid  = '$Rev: 4469 $';
+SVNid = '$Rev: 4470 $';
 
-%-GUI setup
-%--------------------------------------------------------------------------
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 
-% get design matrix and/or data
 %==========================================================================
-if ~nargin
-
-    str = 'specify design or data';
-    if spm_input(str,1,'b',{'design','data'},[1 0]);
-
-        % specify a design
-        %------------------------------------------------------------------
-        if sf_abort, spm_clf(Finter), return, end
-        SPM   = spm_fMRI_design;
-        spm_DesRep('fMRIDesMtx',SPM);
-        return
-
-    else
-
-        % get design
-        %------------------------------------------------------------------
-        load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
-
-    end
-
-else
-
-    % get design matrix
-    %----------------------------------------------------------------------
-    SPM       = spm_fMRI_design(SPM);
-
-end
-
-% get Repeat time
-%--------------------------------------------------------------------------
-try
-    SPM.xY.RT;
-catch
-    SPM.xY.RT = spm_input('Interscan interval {secs}','+1');
-end
-
-% session and scan number
-%--------------------------------------------------------------------------
-nscan         = SPM.nscan;
-nsess         = length(nscan);
-
-% check data are specified
-%--------------------------------------------------------------------------
-try
-    SPM.xY.P;
-catch
-
-    % get filenames
-    %----------------------------------------------------------------------
-    P         = [];
-    for i = 1:nsess
-        str   = sprintf('select scans for session %0.0f',i);
-        q     = spm_select(nscan(i),'image',str);
-        P     = strvcat(P,q);
-    end
-
-    % place in data field
-    %----------------------------------------------------------------------
-    SPM.xY.P  = P;
-
-end
-
-
-% Assemble remaining design parameters
+% - D E S I G N   M A T R I X
 %==========================================================================
-SPM.SPMid     = spm('FnBanner',mfilename,SVNid);
+SPM   = spm_fMRI_design(SPM);
 
-
-% Global normalization
+%-Session and scan number
 %--------------------------------------------------------------------------
+nscan = SPM.nscan;
+nsess = length(nscan);
+
+
+%==========================================================================
+% - D E S I G N   P A R A M E T E R S
+%==========================================================================
+SPM.SPMid = spm('FnBanner',mfilename,SVNid);
+
+%-Global normalization
+%==========================================================================
 try
     SPM.xGX.iGXcalc;
 catch
-    spm_input('Global intensity normalisation...',1,'d',mfilename)
-    str             = 'remove Global effects';
-    SPM.xGX.iGXcalc = spm_input(str,'+1','scale|none',{'Scaling' 'None'});
+    error('Global intensity normalisation not specified.');
 end
 SPM.xGX.sGXcalc = 'mean voxel value';
 SPM.xGX.sGMsca  = 'session specific';
 
 
-% High-pass filtering and serial correlations
+%-High-pass filtering
 %==========================================================================
 
-% low frequency confounds
+%-Low frequency confounds
 %--------------------------------------------------------------------------
 try
-    myLastWarn = 0;
     HParam     = [SPM.xX.K(:).HParam];
     if length(HParam) == 1 
-        HParam = HParam*ones(1,nsess);
-    elseif length(HParam) ~= nsess
-        myLastWarn = 1;
-        error('Continue with manual HPF specification in the catch block');
+        HParam = repmat(HParam,1,nsess);
     end
 catch
-    % specify low frequency confounds
-    %----------------------------------------------------------------------
-    spm_input('Temporal autocorrelation options','+1','d',mfilename)
-    switch spm_input('High-pass filter?','+1','b','none|specify');
-
-        case 'specify'  % default in seconds
-            %--------------------------------------------------------------
-            HParam = spm_get_defaults('stats.fmri.hpf')*ones(1,nsess);
-            str    = 'cutoff period (secs)';
-            HParam = spm_input(str,'+1','e',HParam,[1 nsess]);
-
-        case 'none'     % Inf seconds (i.e. constant term only)
-            %--------------------------------------------------------------
-            HParam = Inf(1,nsess);
-    end
-    if myLastWarn
-        warning('SPM:InvalidHighPassFilterSpec',...
-            ['Different number of High-pass filter values and sessions.\n',...
-            'HPF filter configured manually. Design setup will proceed.']);
-        clear myLastWarn
-    end
+    error('High-pass filter not specified.');
 end
 
-% create and set filter struct
+%-Create and set filter structure
 %--------------------------------------------------------------------------
 for  i = 1:nsess
     K(i) = struct('HParam', HParam(i),...
@@ -311,19 +226,16 @@ for  i = 1:nsess
 end
 SPM.xX.K = spm_filter(K);
 
-% intrinsic autocorrelations (Vi)
-%--------------------------------------------------------------------------
+
+%-Intrinsic autocorrelations (Vi) for non-sphericity ReML estimation
+%==========================================================================
 try
     cVi   = SPM.xVi.form;
 catch
-    % Construct Vi structure for non-sphericity ReML estimation
-    %----------------------------------------------------------------------
-    str   = 'Correct for serial correlations?';
-    cVi   = {'none','AR(1)'};
-    cVi   = spm_input(str,'+1','b',cVi);
+    error('Serial correlations not specified.');
 end
 
-% create Vi struct
+%-Create Vi structure
 %--------------------------------------------------------------------------
 
 if ~ischar(cVi) % AR coefficient specified
@@ -333,33 +245,33 @@ if ~ischar(cVi) % AR coefficient specified
 
 else
     switch lower(cVi)
-
+        
         case 'none'     %  xVi.V is i.i.d
             %--------------------------------------------------------------
             SPM.xVi.V  = speye(sum(nscan));
             cVi        = 'i.i.d';
 
-
         otherwise       % otherwise assume AR(0.2) in xVi.Vi
             %--------------------------------------------------------------
             SPM.xVi.Vi = spm_Ce(nscan,0.2);
             cVi        = 'AR(0.2)';
-
     end
 end
 
 SPM.xVi.form = cVi;
 
+%-Return if design-only specification
+%==========================================================================
+try, SPM.xY.P; catch, return; end
+
 
 %==========================================================================
 % - C O N F I G U R E   D E S I G N
 %==========================================================================
-spm_clf(Finter);
-spm('FigName','Configuring, please wait...',Finter,CmdLine);
+
 spm('Pointer','Watch');
 
-
-% get file identifiers
+%-Get image files
 %==========================================================================
 
 %-Map files
@@ -368,11 +280,11 @@ fprintf('%-40s: ','Mapping files')                                      %-#
 VY    = spm_vol(SPM.xY.P);
 fprintf('%30s\n','...done')                                             %-#
 
-%-check internal consistency of images
+%-Check internal consistency of images
 %--------------------------------------------------------------------------
 spm_check_orientations(VY);
 
-%-place in xY
+%-Place mapped files in xY
 %--------------------------------------------------------------------------
 SPM.xY.VY = VY;
 
@@ -389,7 +301,7 @@ for i = 1:q
 end
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 
-% scale if specified (otherwise session specific grand mean scaling)
+%-Scale if specified (otherwise session specific grand mean scaling)
 %--------------------------------------------------------------------------
 gSF   = GM./g;
 if strcmpi(SPM.xGX.iGXcalc,'none')
@@ -404,25 +316,38 @@ for i = 1:q
     SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:)*gSF(i);
 end
 
-%-place global variates in global structure
+%-Place global variates in xGX
 %--------------------------------------------------------------------------
 SPM.xGX.rg  = g;
 SPM.xGX.GM  = GM;
 SPM.xGX.gSF = gSF;
 
 
-%-Masking structure automatically set to 80% of mean
+%-Masking
 %==========================================================================
+
+%-Masking threshold, as percentage of globals
+%--------------------------------------------------------------------------
 try
-    TH = g.*gSF*spm_get_defaults('mask.thresh');
+    gMT = SPM.xM.gMT;
 catch
-    TH = g.*gSF*0.8;
+    try
+        gMT = spm_get_defaults('mask.thresh');
+    catch
+        gMT = 0.8; % 80% of mean
+    end
 end
-SPM.xM = struct('T',    ones(q,1),...
-                'TH',   TH,...
-                'I',    0,...
-                'VM',   {[]},...
-                'xs',   struct('Masking','analysis threshold'));
+TH = g.*gSF*gMT;
+
+%-Place masking structure in xM
+%--------------------------------------------------------------------------
+SPM.xM = struct(...
+    'T',   ones(q,1),...
+	'TH',  TH,...
+    'gMT', gMT,...
+	'I',   0,...
+	'VM',  {[]},...
+	'xs',  struct('Masking','analysis threshold'));
 
 
 %-Design description - for saving and display
@@ -434,7 +359,7 @@ SPM.xsDes = struct(...
     'Number_of_sessions',   sprintf('%d',nsess),...
     'Trials_per_session',   sprintf('%-3d',ntr),...
     'Interscan_interval',   sprintf('%0.2f {s}',SPM.xY.RT),...
-    'High_pass_Filter',     sprintf('Cutoff: %d {s}',SPM.xX.K(1).HParam),...
+    'High_pass_Filter',     Fstr,...
     'Global_calculation',   SPM.xGX.sGXcalc,...
     'Grand_mean_scaling',   SPM.xGX.sGMsca,...
     'Global_normalisation', SPM.xGX.iGXcalc);
@@ -453,34 +378,11 @@ fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 %-Display Design report
 %==========================================================================
-if ~CmdLine
+if ~spm('CmdLine')
     fprintf('%-40s: ','Design reporting')                               %-#
     fname = cat(1,{SPM.xY.VY.fname}');
     spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
     fprintf('%30s\n','...done')                                         %-#
 end
 
-
-%-End: Cleanup GUI
-%==========================================================================
-spm_clf(Finter)
-spm('FigName','Stats: configured',Finter,CmdLine);
-spm('Pointer','Arrow')
-
-
-%==========================================================================
-%- S U B - F U N C T I O N S
-%==========================================================================
-
-function abort = sf_abort
-%==========================================================================
-if exist(fullfile(pwd,'SPM.mat'),'file')
-    str = { 'Current directory contains existing SPM file:',...
-            'Continuing will overwrite existing file!'};
-
-    abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
-    if abort, fprintf('%-40s: %30s\n\n',...
-            'Abort...   (existing SPM files)',spm('time')), end
-else
-    abort = 0;
-end
+spm('Pointer','Arrow');

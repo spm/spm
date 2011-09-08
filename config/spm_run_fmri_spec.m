@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4468 2011-09-07 18:59:21Z guillaume $
+% $Id: spm_run_fmri_spec.m 4470 2011-09-08 14:42:38Z guillaume $
 
 
 original_dir = pwd;
@@ -294,6 +294,10 @@ SPM.xGX.iGXcalc = job.global;
 SPM.xGX.sGXcalc = 'mean voxel value';
 SPM.xGX.sGMsca  = 'session specific';
 
+% Masking threshold
+%--------------------------------------------------------------------------
+SPM.xM.gMT = job.mthresh;
+
 % High Pass filter
 %--------------------------------------------------------------------------
 for i = 1:numel(job.sess),
@@ -306,12 +310,10 @@ SPM.xVi.form = job.cvi;
 
 % Let SPM configure the design
 %--------------------------------------------------------------------------
-if design_only
-    SPM = spm_fMRI_design(SPM);
-else
-    SPM = spm_fmri_spm_ui(SPM);
-    
-    if ~isempty(job.mask)&&~isempty(job.mask{1})
+SPM = spm_fmri_spm_ui(SPM);
+
+if ~design_only
+    if ~isempty(job.mask) && ~isempty(job.mask{1})
         SPM.xM.VM         = spm_vol(job.mask{:});
         SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
     end
