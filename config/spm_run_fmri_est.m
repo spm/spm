@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 4403 2011-07-21 14:04:33Z guillaume $
+% $Id: spm_run_fmri_est.m 4476 2011-09-09 18:13:50Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ if isfield(job.method,'Classical')
     
     %-Automatically set up contrasts for factorial designs
     %----------------------------------------------------------------------
-    if isfield(SPM,'factor') && SPM.factor(1).levels > 1
+    if isfield(SPM,'factor') && ~isempty(SPM.factor) && SPM.factor(1).levels > 1
 
         %-Generate contrasts
         %------------------------------------------------------------------
