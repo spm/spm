@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm.m 4475 2011-09-09 17:53:14Z guillaume $
 
 
 %=======================================================================
@@ -331,7 +331,6 @@ case lower(Modalities)       %-Initialise SPM in PET, fMRI, EEG modality
 %=======================================================================
 % spm(Modality)
 spm_check_installation('basic');
-try, feature('JavaFigures',0); end
 
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------

@@ -34,7 +34,7 @@ function R = spm_searchlight(SPM,searchopt,fun,varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_searchlight.m 3900 2010-05-25 16:17:13Z guillaume $
+% $Id: spm_searchlight.m 4475 2011-09-09 17:53:14Z guillaume $
 
 spm('FnBanner',mfilename);                                              %-#
 
@@ -244,8 +244,8 @@ VO(1:size(SLR,2)) = deal(struct(...
     'descrip', ['spm_searchlight: ' func2str(fun)]));
 
 for i=1:size(SLR,2)
-    VO(i).fname   = sprintf('%s_%04d.%s', ...
-        'searchlight',i,spm_get_defaults('images.format'));
+    VO(i).fname   = sprintf('%s_%04d%s', ...
+        'searchlight',i,spm_file_ext);
     VO(i).descrip = sprintf('%s (%04d)',VO(i).descrip,i);
 end
 for i=1:size(SLR,2)

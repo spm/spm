@@ -171,9 +171,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 4472 2011-09-08 17:42:32Z guillaume $
+% $Id: spm_fmri_spm_ui.m 4475 2011-09-09 17:53:14Z guillaume $
 
-SVNid = '$Rev: 4472 $';
+SVNid = '$Rev: 4475 $';
 
 
 %==========================================================================
@@ -191,17 +191,6 @@ nsess = length(nscan);
 % - D E S I G N   P A R A M E T E R S
 %==========================================================================
 SPM.SPMid = spm('FnBanner',mfilename,SVNid);
-
-%-Global normalization
-%==========================================================================
-try
-    SPM.xGX.iGXcalc;
-catch
-    error('Global intensity normalisation not specified.');
-end
-SPM.xGX.sGXcalc = 'mean voxel value';
-SPM.xGX.sGMsca  = 'session specific';
-
 
 %-High-pass filtering
 %==========================================================================
@@ -230,7 +219,7 @@ SPM.xX.K = spm_filter(K);
 %-Intrinsic autocorrelations (Vi) for non-sphericity ReML estimation
 %==========================================================================
 try
-    cVi   = SPM.xVi.form;
+    cVi  = SPM.xVi.form;
 catch
     error('Serial correlations not specified.');
 end
@@ -295,15 +284,14 @@ SPM.xY.VY = VY;
 GM    = 100;
 q     = length(VY);
 g     = zeros(q,1);
-fprintf('%-40s: %30s','Calculating globals',' ')                        %-#
+fprintf('%-40s: ','Calculating globals')                                %-#
 spm_progress_bar('Init',q,'Calculating globals');
 for i = 1:q
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',i,q))%-#
     g(i) = spm_global(VY(i));
     spm_progress_bar('Set',i)
 end
 spm_progress_bar('Clear');
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
+fprintf('%30s\n','...done')                                             %-#
 
 %-Scale if specified (otherwise session specific grand mean scaling)
 %--------------------------------------------------------------------------
@@ -322,9 +310,11 @@ end
 
 %-Place global variates in xGX
 %--------------------------------------------------------------------------
-SPM.xGX.rg  = g;
-SPM.xGX.GM  = GM;
-SPM.xGX.gSF = gSF;
+SPM.xGX.sGXcalc = 'mean voxel value';
+SPM.xGX.sGMsca  = 'session specific';
+SPM.xGX.rg      = g;
+SPM.xGX.GM      = GM;
+SPM.xGX.gSF     = gSF;
 
 
 %-Masking

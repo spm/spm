@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_run_voi.m 4475 2011-09-09 17:53:14Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -40,7 +40,7 @@ voi     = roi_eval(voi,job.expression);
 
 %-Save VOI as image
 %--------------------------------------------------------------------------
-V = struct('fname', fullfile(swd, ['VOI_' job.name '.' spm_get_defaults('images.format')]), ...
+V = struct('fname', fullfile(swd, ['VOI_' job.name spm_file_ext]), ...
     'dim',     SPM.xVol.DIM', ...
     'dt',      [spm_type('uint8') spm_platform('bigend')], ...
     'mat',     SPM.xVol.M, ...

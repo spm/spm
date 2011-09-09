@@ -1,5 +1,5 @@
 function out = spm_run_fmri_spec(job)
-% Set up the design matrix and run a design.
+% Setting up the general linear model for fMRI time-series
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4474 2011-09-09 15:20:38Z guillaume $
+% $Id: spm_run_fmri_spec.m 4475 2011-09-09 17:53:14Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -21,12 +21,12 @@ change_dir(job.dir{1});
 %-Ask about overwriting files from previous analyses
 %--------------------------------------------------------------------------
 if exist(fullfile(pwd,'SPM.mat'),'file')
-    str = { 'Current directory contains existing SPM file:',...
-        'Continuing will overwrite existing file!'};
+    str = {'Current directory contains existing SPM file:',...
+           'Continuing will overwrite existing file!'};
     if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
         fprintf('%-40s: %30s\n\n',...
             'Abort...   (existing SPM file)',spm('time'));
-        return
+        out = []; return
     end
 end
 
@@ -293,8 +293,6 @@ end
 %-Globals
 %--------------------------------------------------------------------------
 SPM.xGX.iGXcalc = job.global;
-%SPM.xGX.sGXcalc = 'mean voxel value';
-%SPM.xGX.sGMsca  = 'session specific';
 
 %-Masking threshold
 %--------------------------------------------------------------------------
