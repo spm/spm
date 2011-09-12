@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 4380 2011-07-05 11:27:12Z volkmar $
+% $Id: spm_cfg_coreg.m 4480 2011-09-12 14:34:50Z guillaume $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
@@ -108,7 +108,7 @@ estimate.help    = {
                     ''
                     'Registration parameters are stored in the headers of the "source" and the "other" images.'
 }';
-estimate.prog = @spm_run_coreg_estimate;
+estimate.prog = @spm_run_coreg;
 estimate.vout = @vout_estimate;
 % ---------------------------------------------------------------------
 % ref Image Defining Space
@@ -212,7 +212,7 @@ write.tag     = 'write';
 write.name    = 'Coregister: Reslice';
 write.val     = {refwrite source roptions };
 write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
-write.prog = @spm_run_coreg_reslice;
+write.prog = @spm_run_coreg;
 write.vout = @vout_reslice;
 % ---------------------------------------------------------------------
 % source Source Image
@@ -238,7 +238,7 @@ estwrite.help    = {
                     ''
                     'Registration parameters are stored in the headers of the "source" and the "other" images. These images are also resliced to match the source image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
 }';
-estwrite.prog = @spm_run_coreg_estwrite;
+estwrite.prog = @spm_run_coreg;
 estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 % coreg Coreg
