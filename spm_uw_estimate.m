@@ -1,5 +1,5 @@
 function ds = spm_uw_estimate(P,par)
-% Estimation of partial derivatives of EPI deformation fields.
+% Estimation of partial derivatives of EPI deformation fields
 %
 % FORMAT [ds] = spm_uw_estimate((P),(par))
 %
@@ -79,7 +79,12 @@ function ds = spm_uw_estimate(P,par)
 %                thereof).
 % .SS          - Sum of squared errors for each iteration.
 %
-%
+%__________________________________________________________________________
+% Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson
+% $Id: spm_uw_estimate.m 4482 2011-09-12 18:04:53Z guillaume $
+
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
 % evaluation of A'*A where A is a matrix with the partial
@@ -159,18 +164,16 @@ function ds = spm_uw_estimate(P,par)
 % 6. Option to include the Jacobian compression/stretching effects
 %    in the model for the estimation of the displacement fields.
 %    Our tests have indicated that this is NOT a good idea though. 
-%
-%_______________________________________________________________________
-%
-% Definition of some of the variables in this routine.
-%
-% 
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson
-% $Id: spm_uw_estimate.m 4310 2011-04-18 16:07:35Z guillaume $
 
+SVNid = '$Rev: 4482 $';
+
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SVNid);
+
+%-Parameters
+%--------------------------------------------------------------------------
 if nargin < 1 || isempty(P), P = spm_select(Inf,'image'); end
 if ~isstruct(P), P = spm_vol(P); end
 
@@ -421,15 +424,17 @@ spm_uw_show('FinTot');
 
 % Document outcome
 
-spm_print
+if ~isempty(spm_figure('FindWin','Graphics')), spm_print; end
 
-catch % Try block ends here
+catch
    cleanup(P,ds)
    spm_uw_show('FinTot');
-   fprintf('procedure terminated abnormally:\n%s',lasterr);
-end  % Catch block ends here.
+   fprintf('Unwarp terminated abnormally.\n');
+   rethrow(lasterror);
+end
 
-return
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

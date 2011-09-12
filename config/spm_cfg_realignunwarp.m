@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 4482 2011-09-12 18:04:53Z guillaume $
 
-rev = '$Rev: 4152 $';
+rev = '$Rev: 4482 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -489,29 +489,25 @@ realignunwarp.modality = {
 function dep = vout_rureslice(job)
 for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
-    cdep(1).sname      = sprintf('Unwarp Params Variable (Sess %d)', k);
-    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','ds');
-    cdep(1).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
-    cdep(2)            = cfg_dep;
-    cdep(2).sname      = sprintf('Unwarp Params File (Sess %d)', k);
-    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','dsfile');
-    cdep(2).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
+    cdep(1).sname      = sprintf('Unwarp Params File (Sess %d)', k);
+    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','dsfile');
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
     if job.uwroptions.uwwhich(1) == 2
-        cdep(3)            = cfg_dep;
-        cdep(3).sname      = sprintf('Unwarped Images (Sess %d)', k);
-        cdep(3).src_output = substruct('.','sess', '()',{k}, '.','uwrfiles');
-        cdep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-    end;
+        cdep(2)            = cfg_dep;
+        cdep(2).sname      = sprintf('Unwarped Images (Sess %d)', k);
+        cdep(2).src_output = substruct('.','sess', '()',{k}, '.','uwrfiles');
+        cdep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    end
     if k == 1
         dep = cdep;
     else
         dep = [dep cdep];
-    end;
-end;
+    end
+end
 
-if job.uwroptions.uwwhich(2),
-    dep(end+1)            = cfg_dep;
+if job.uwroptions.uwwhich(2)
+    dep(end+1)          = cfg_dep;
     dep(end).sname      = 'Unwarped Mean Image';
     dep(end).src_output = substruct('.','meanuwr');
     dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-end;
+end

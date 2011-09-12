@@ -4,7 +4,7 @@ function varargout = spm_uw_apply(ds,flags)
 % or
 % FORMAT P = spm_uw_apply(ds,[flags])
 %
-%               
+%
 % ds       - a structure created by spm_uw_estimate.m containing the fields:
 %            ds can also be an array of structures, each struct corresponding
 %            to one sesssion (it hardly makes sense to try and pool fields across
@@ -16,22 +16,22 @@ function varargout = spm_uw_apply(ds,flags)
 %            Naturally, there is still only one actual resampling (interpolation).
 %            It will be assumed that the same unwarping parameters have been used
 %            for all sessions (anything else would be truly daft).
-% 
-% .P              - Images used when estimating deformation field and/or
-%                   its derivative w.r.t. modelled factors. Note that this
-%                   struct-array may contain .mat fields that differ from
-%                   those you would observe with spm_vol(P(1).fname). This
-%                   is because spm_uw_estimate has an option to re-estimate
-%                   the movement parameters. The re-estimated parameters are
-%                   not written to disc (in the form of .mat files), but rather
-%                   stored in the P array in the ds struct.
+%
+% .P           - Images used when estimating deformation field and/or
+%                its derivative w.r.t. modelled factors. Note that this
+%                struct-array may contain .mat fields that differ from
+%                those you would observe with spm_vol(P(1).fname). This
+%                is because spm_uw_estimate has an option to re-estimate
+%                the movement parameters. The re-estimated parameters are
+%                not written to disc (in the form of .mat files), but rather
+%                stored in the P array in the ds struct.
 %
 % .order       - Number of basis functions to use for each dimension.
-%                If the third dimension is left out, the order for 
+%                If the third dimension is left out, the order for
 %                that dimension is calculated to yield a roughly
 %                equal spatial cut-off in all directions.
 %                Default: [8 8 *]
-% .sfP         - Static field supplied by the user. It should be a 
+% .sfP         - Static field supplied by the user. It should be a
 %                filename or handle to a voxel-displacement map in
 %                the same space as the first EPI image of the time-
 %                series. If using the FieldMap toolbox, realignment
@@ -50,12 +50,12 @@ function varargout = spm_uw_apply(ds,flags)
 %                Default: 1e5
 % .jm          - Jacobian Modulation. If set, intensity (Jacobian)
 %                deformations are included in the model. If zero,
-%                intensity deformations are not considered. 
+%                intensity deformations are not considered.
 % .fot         - List of indexes for first order terms to model
 %                derivatives for. Order of parameters as defined
-%                by spm_imatrix. 
+%                by spm_imatrix.
 %                Default: [4 5]
-% .sot         - List of second order terms to model second 
+% .sot         - List of second order terms to model second
 %                derivatives of. Should be an nx2 matrix where
 %                e.g. [4 4; 4 5; 5 5] means that second partial
 %                derivatives of rotation around x- and y-axis
@@ -79,8 +79,8 @@ function varargout = spm_uw_apply(ds,flags)
 %                squared) of a Taylor expansion of deformation fields.
 % .beta        - Coeffeicents of DCT basis functions for partial
 %                derivatives of deformation fields w.r.t. modelled
-%                effects. Scaled such that resulting deformation 
-%                fields have units mm^-1 or deg^-1 (and squares 
+%                effects. Scaled such that resulting deformation
+%                fields have units mm^-1 or deg^-1 (and squares
 %                thereof).
 % .SS          - Sum of squared errors for each iteration.
 %
@@ -106,7 +106,7 @@ function varargout = spm_uw_apply(ds,flags)
 %                 1   - reslice all the images.
 %
 %         udc - Values 1 or 2 are allowed
-%               1   - Do only unwarping (not correcting 
+%               1   - Do only unwarping (not correcting
 %                     for changing sampling density).
 %               2   - Do both unwarping and Jacobian correction.
 %
@@ -116,12 +116,21 @@ function varargout = spm_uw_apply(ds,flags)
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 4152 2011-01-11 14:13:35Z volkmar $
+% $Id: spm_uw_apply.m 4482 2011-09-12 18:04:53Z guillaume $
 
+
+SVNid = '$Rev: 4482 $';
+
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SVNid);
+
+%-Parameters
+%--------------------------------------------------------------------------
 tiny = 5e-2;
 
 def_flags        = spm_get_defaults('realign.write');
@@ -140,20 +149,20 @@ end
 % used during the estimation phase.
 %
 if ds(1).jm ~= 0
-   def_flags.udc = 2;
+    def_flags.udc = 2;
 end
 
 %
 % Replace defaults with user supplied values for all fields
-% defined by user. 
+% defined by user.
 %
 if nargin < 2 || isempty(flags)
-   flags = def_flags;
+    flags = def_flags;
 end
 for i=1:length(defnames)
-   if ~isfield(flags,defnames{i})
-      flags.(defnames{i}) = def_flags.(defnames{i});
-   end
+    if ~isfield(flags,defnames{i})
+        flags.(defnames{i}) = def_flags.(defnames{i});
+    end
 end
 if numel(flags.which) == 2
     flags.mean  = flags.which(2);
@@ -162,7 +171,7 @@ end
 
 ntot = 0;
 for i=1:length(ds)
-   ntot = ntot + length(ds(i).P);
+    ntot = ntot + length(ds(i).P);
 end
 
 hold = [repmat(flags.interp,1,3) flags.wrap];
@@ -178,81 +187,82 @@ linfun = inline('fprintf(''%-60s%s'', x,repmat(sprintf(''\b''),1,60))');
 % Make space for output P-structs if required
 %
 if nargout > 0
-   oP = cell(length(ds),1);
+    oP = cell(length(ds),1);
 end
 
-%
-% First, create mask if so required.
-%
-
+%-Create mask, if required
+%--------------------------------------------------------------------------
 if flags.mask || flags.mean,
-   linfun('Computing mask..');
-   spm_progress_bar('Init',ntot,'Computing available voxels',...
-                    'volumes completed');
-   [x,y,z] = ndgrid(1:ds(1).P(1).dim(1),1:ds(1).P(1).dim(2),1:ds(1).P(1).dim(3));
-   xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
-   if flags.mean
-      Count    = zeros(prod(ds(1).P(1).dim(1:3)),1);
-      Integral = zeros(prod(ds(1).P(1).dim(1:3)),1);
-   end
-
-   % if flags.mask 
-   msk = zeros(prod(ds(1).P(1).dim(1:3)),1);  
-   % end
-
-   tv = 1;
-   for s=1:length(ds)
-      def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-      Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
-      By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
-      Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-      if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-         T = ds(s).sfP.mat\ds(1).P(1).mat;
-         txyz = xyz * T';
-         c = spm_bsplinc(ds(s).sfP,ds(s).hold);
-         ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
-         ds(s).sfield = ds(s).sfield(:);
-         clear c txyz;
-      end 
-      for i=1:size(ds(s).beta,2)
-         def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
-      end
-      sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
-      for i = 1:numel(ds(s).P)
-         T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
-         txyz = xyz * T';
-         txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
-         tmp       = false(size(txyz,1),1);
-         if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(1)+tiny); end
-         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(i).dim(2)+tiny); end
-         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).P(i).dim(3)+tiny); end
-         sess_msk = sess_msk + real(tmp);
-         spm_progress_bar('Set',tv);
-         tv = tv+1;
-      end
-      msk = msk + sess_msk;
-      if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - sess_msk; end   % Changed 23/3-05
-  
-      %
-      % Include static field in estmation of mask.
-      %
-      if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-         T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
-         txyz = xyz * T';
-         tmp  = false(size(txyz,1),1);
-         if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(1)+tiny); end
-         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).sfP.dim(2)+tiny); end
-         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).sfP.dim(3)+tiny); end
-         msk = msk + real(tmp);
-      end
-      if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
-         ds(s).sfield = [];
-      end
-   end
-   if flags.mask, msk = find(msk ~= 0); end
+    fprintf('%-40s: %30s','Computing mask...','');                      %-#
+    spm_progress_bar('Init',ntot,'Computing available voxels',...
+        'volumes completed');
+    [x,y,z] = ndgrid(1:ds(1).P(1).dim(1),1:ds(1).P(1).dim(2),1:ds(1).P(1).dim(3));
+    xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
+    if flags.mean
+        Count    = zeros(prod(ds(1).P(1).dim(1:3)),1);
+        Integral = zeros(prod(ds(1).P(1).dim(1:3)),1);
+    end
+    
+    % if flags.mask
+    msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
+    % end
+    
+    tv = 1;
+    for s=1:length(ds)
+        def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
+        Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
+        By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
+        Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
+        if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
+            T = ds(s).sfP.mat\ds(1).P(1).mat;
+            txyz = xyz * T';
+            c = spm_bsplinc(ds(s).sfP,ds(s).hold);
+            ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
+            ds(s).sfield = ds(s).sfield(:);
+            clear c txyz;
+        end
+        for i=1:size(ds(s).beta,2)
+            def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
+        end
+        sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
+        for i = 1:numel(ds(s).P)
+            T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
+            txyz = xyz * T';
+            txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
+            tmp       = false(size(txyz,1),1);
+            if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(1)+tiny); end
+            if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(i).dim(2)+tiny); end
+            if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).P(i).dim(3)+tiny); end
+            sess_msk = sess_msk + real(tmp);
+            spm_progress_bar('Set',tv);
+            tv = tv+1;
+        end
+        msk = msk + sess_msk;
+        if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - sess_msk; end   % Changed 23/3-05
+        
+        %
+        % Include static field in estmation of mask.
+        %
+        if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
+            T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
+            txyz = xyz * T';
+            tmp  = false(size(txyz,1),1);
+            if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(1)+tiny); end
+            if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).sfP.dim(2)+tiny); end
+            if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).sfP.dim(3)+tiny); end
+            msk = msk + real(tmp);
+        end
+        if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
+            ds(s).sfield = [];
+        end
+    end
+    if flags.mask, msk = find(msk ~= 0); end
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');           %-#
 end
 
-linfun('Reslicing images..');
+%-Reslicing images
+%--------------------------------------------------------------------------
+fprintf('%-40s: %30s','Reslicing images...','');                        %-#
 spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
 
 jP       = ds(1).P(1);
@@ -262,124 +272,110 @@ jP.dt    = [spm_type('float64'), spm_platform('bigend')];
 jP.pinfo = [1 0]';
 tv       = 1;
 for s=1:length(ds)
-   def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-   Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
-   By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
-   Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-   if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-      T = ds(s).sfP.mat\ds(1).P(1).mat;
-      txyz = xyz * T';
-      c = spm_bsplinc(ds(s).sfP,ds(s).hold);
-      ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
-      ds(s).sfield = ds(s).sfield(:);
-      clear c txyz;
-   end 
-   for i=1:size(ds(s).beta,2)
-      def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
-   end
-   if flags.udc > 1
-      ddef_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-      dBy = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2),'diff');
-      for i=1:size(ds(s).beta,2)
-         ddef_array(:,i) = spm_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
-      end
-   end
-   for i = 1:length(ds(s).P)
-      linfun(['Reslicing volume ' num2str(tv) '..']);
-      %
-      % Read undeformed image.
-      %
-      T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
-      txyz = xyz * T';
-      if flags.udc > 1
-         [def,jac] = spm_get_image_def(ds(s).P(i),ds(s),def_array,ddef_array);
-      else
-         def = spm_get_image_def(ds(s).P(i),ds(s),def_array);
-      end
-      txyz(:,2) = txyz(:,2) + def;
-      if flags.udc > 1
-         jP.dat = reshape(jac,ds(s).P(i).dim(1:3));
-         jtxyz = xyz * T';
-         c = spm_bsplinc(jP.dat,hold);
-         jac = spm_bsplins(c,jtxyz(:,1),jtxyz(:,2),jtxyz(:,3),hold);
-      end      
-      c = spm_bsplinc(ds(s).P(i),hold);
-      ima = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),hold);
-      if flags.udc > 1
-         ima = ima .* jac;
-      end
-      %
-      % Write it if so required.
-      %
-      if flags.which
-         PO         = ds(s).P(i);
-         PO.fname   = prepend(PO.fname,flags.prefix);
-         PO.mat     = ds(1).P(1).mat;
-         PO.descrip = 'spm - undeformed';
-     ivol       = ima; 
-         if flags.mask
-        ivol(msk) = NaN;
-         end
-         ivol = reshape(ivol,PO.dim(1:3));
-         PO   = spm_create_vol(PO);
-         for ii=1:PO.dim(3),
-             PO = spm_write_plane(PO,ivol(:,:,ii),ii);
-         end;
-     if nargout > 0
-        oP{s}(i) = PO;
-     end
-      end
-      %
-      % Build up mean image if so required.
-      %
-      if flags.mean
-         Integral = Integral + nan2zero(ima);
-      end
-      spm_progress_bar('Set',tv);
-      tv = tv+1;
-   end
-   if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
-      ds(s).sfield = [];
-   end
+    def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
+    Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
+    By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
+    Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
+    if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
+        T = ds(s).sfP.mat\ds(1).P(1).mat;
+        txyz = xyz * T';
+        c = spm_bsplinc(ds(s).sfP,ds(s).hold);
+        ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
+        ds(s).sfield = ds(s).sfield(:);
+        clear c txyz;
+    end
+    for i=1:size(ds(s).beta,2)
+        def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
+    end
+    if flags.udc > 1
+        ddef_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
+        dBy = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2),'diff');
+        for i=1:size(ds(s).beta,2)
+            ddef_array(:,i) = spm_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
+        end
+    end
+    for i = 1:length(ds(s).P)
+        %
+        % Read undeformed image.
+        %
+        T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
+        txyz = xyz * T';
+        if flags.udc > 1
+            [def,jac] = spm_get_image_def(ds(s).P(i),ds(s),def_array,ddef_array);
+        else
+            def = spm_get_image_def(ds(s).P(i),ds(s),def_array);
+        end
+        txyz(:,2) = txyz(:,2) + def;
+        if flags.udc > 1
+            jP.dat = reshape(jac,ds(s).P(i).dim(1:3));
+            jtxyz = xyz * T';
+            c = spm_bsplinc(jP.dat,hold);
+            jac = spm_bsplins(c,jtxyz(:,1),jtxyz(:,2),jtxyz(:,3),hold);
+        end
+        c = spm_bsplinc(ds(s).P(i),hold);
+        ima = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),hold);
+        if flags.udc > 1
+            ima = ima .* jac;
+        end
+        %
+        % Write it if so required.
+        %
+        if flags.which
+            PO         = ds(s).P(i);
+            PO.fname   = spm_file(PO.fname, 'prefix',flags.prefix);
+            PO.mat     = ds(1).P(1).mat;
+            PO.descrip = 'spm - undeformed';
+            ivol       = ima;
+            if flags.mask
+                ivol(msk) = NaN;
+            end
+            ivol = reshape(ivol,PO.dim(1:3));
+            PO   = spm_create_vol(PO);
+            for ii=1:PO.dim(3)
+                PO = spm_write_plane(PO,ivol(:,:,ii),ii);
+            end
+            if nargout > 0
+                oP{s}(i) = PO;
+            end
+        end
+        %
+        % Build up mean image if so required.
+        %
+        if flags.mean
+            Integral = Integral + nan2zero(ima);
+        end
+        spm_progress_bar('Set',tv);
+        tv = tv+1;
+    end
+    if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
+        ds(s).sfield = [];
+    end
 end
+spm_progress_bar('Clear');
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
 
 if flags.mean
-   % Write integral image (16 bit signed)
-   %-----------------------------------------------------------
-   sw = warning('off','MATLAB:divideByZero'); 
-   Integral   = Integral./Count;
-   warning(sw);
-   PO         = ds(1).P(1);
-   [pth,nm,xt,vr] = spm_fileparts(deblank(ds(1).P(1).fname));
-   PO.fname       = fullfile(pth,['mean' flags.prefix nm xt vr]);
-   PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
-   PO.descrip = 'spm - mean undeformed image';
-   PO.dt      = [4 spm_platform('bigend')];
-   ivol = reshape(Integral,PO.dim);
-   spm_write_vol(PO,ivol);
+    fprintf('%-40s: %30s','Writing mean image...','');                  %-#
+    sw = warning('off','MATLAB:divideByZero');
+    Integral   = Integral./Count;
+    warning(sw);
+    PO         = ds(1).P(1);
+    PO.fname   = spm_file(ds(1).P(1).fname,'prefix','mean');
+    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
+    PO.descrip = 'spm - mean undeformed image';
+    PO.dt      = [spm_type('int16') spm_platform('bigend')];
+    ivol       = reshape(Integral,PO.dim);
+    spm_write_vol(PO,ivol);
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');           %-#
 end
-
-linfun(' ');
-spm_figure('Clear','Interactive');
 
 if nargout > 0
-   varargout{1} = oP;
+    varargout{1} = oP;
 end
 
-return;
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 
 
-%_______________________________________________________________________
-function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function vo = nan2zero(vi)
-vo = vi;
-vo(~isfinite(vo)) = 0;
-return;
-%_______________________________________________________________________
-
+%==========================================================================
+function v = nan2zero(v)
+v(~isfinite(v)) = 0;

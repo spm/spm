@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 4423 2011-08-04 16:28:51Z guillaume $
+% $Id: spm_cfg_realign.m 4482 2011-09-12 18:04:53Z guillaume $
 
-rev = '$Rev: 4423 $';
+rev = '$Rev: 4482 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -155,7 +155,7 @@ estimate.help    = {
                     ''
                     'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies). The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. These can be modelled as confounds within the general linear model/* \cite{friston95a}*/.'
 }';
-estimate.prog = @spm_run_realign_estimate;
+estimate.prog = @spm_run_realign;
 estimate.vout = @vout_estimate;
 % ---------------------------------------------------------------------
 % data Images
@@ -273,7 +273,7 @@ write.tag     = 'write';
 write.name    = 'Realign: Reslice';
 write.val     = {data roptions };
 write.help    = {'This function reslices a series of registered images such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'};
-write.prog = @spm_run_realign_reslice;
+write.prog = @spm_run_realign;
 write.vout = @vout_reslice;
 % ---------------------------------------------------------------------
 % data Session
@@ -306,7 +306,7 @@ estwrite.help    = {
                     ''
                     'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies) /* \cite{ashburner97bir}*/. The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. After realignment, the images are resliced such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
 }';
-estwrite.prog = @spm_run_realign_estwrite;
+estwrite.prog = @spm_run_realign;
 estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 % realign Realign

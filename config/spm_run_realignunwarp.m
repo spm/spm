@@ -1,4 +1,4 @@
-function out = spm_run_realignunwarp(varargin)
+function out = spm_run_realignunwarp(job)
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -6,17 +6,15 @@ function out = spm_run_realignunwarp(varargin)
 % job    - harvested job data structure (see matlabbatch help)
 % Output:
 % out    - computation results, usually a struct variable.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_run_realignunwarp.m 4482 2011-09-12 18:04:53Z guillaume $
 
-job = varargin{1};
 
-% assemble flags
-%-----------------------------------------------------------------------
-% assemble realignment estimation flags.
+%-Assemble flags
+%--------------------------------------------------------------------------
 flags.quality = job.eoptions.quality;
 flags.fwhm    = job.eoptions.fwhm;
 flags.sep     = job.eoptions.sep;
@@ -61,10 +59,9 @@ if uweflags.jm == 1
 else
     uwrflags.udc = 1;
 end
-%-----------------------------------------------------------------------
 
-% assemble files
-%-----------------------------------------------------------------------
+%-Assemble files
+%--------------------------------------------------------------------------
 P   = cell(size(job.data));
 sfP = cell(size(job.data));
 for i = 1:numel(job.data)
@@ -76,51 +73,45 @@ for i = 1:numel(job.data)
     end
 end
 
-% realign
-%-----------------------------------------------------------------------
+%-Realign
+%--------------------------------------------------------------------------
 spm_realign(P,flags);
 
+%-Unwarp Estimate
+%--------------------------------------------------------------------------
 for i = 1:numel(P)
     uweflags.sfP = sfP{i};
-
-    % unwarp estimate
-    %-------------------------------------------------------------------
     tmpP = spm_vol(P{i}(1,:));
     uweflags.M = tmpP.mat;
     ds = spm_uw_estimate(P{i},uweflags);
-    out.sess(i).ds = ds;
-    [path,name] = fileparts(P{i}(1,:));
-    out.sess(i).dsfile{1} =  fullfile(path,[name '_uw.mat']);
-
+    sess(i).ds = ds;
+    dsfile = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
     if spm_check_version('matlab','7') >= 0
-        save(out.sess(i).dsfile{1},'-V6','ds');
+        save(dsfile,'-V6','ds');
     else
-        save(out.sess(i).dsfile{1},'ds');
+        save(dsfile,'ds');
     end
 end
 
-% unwarp write - done at the single subject level since Batch
-% forwards one subjects data at a time for analysis, assuming
-% that subjects should be grouped as new spatial nodes. Sessions
-% should be within subjects.
-%-----------------------------------------------------------------------
-spm_uw_apply(cat(2,out.sess.ds),uwrflags);
+%-Unwarp Write - Sessions should be within subjects
+%--------------------------------------------------------------------------
+spm_uw_apply(cat(2,sess.ds),uwrflags);
+
+%-Dependencies
+%--------------------------------------------------------------------------
+for i=1:numel(P)
+    out.sess(i).dsfile{1} = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
+end
+
 switch job.uwroptions.uwwhich(1)
     case 0
         out.sess.uwrfiles  = {};
     case 2
-        for i = 1:numel(P)
-            out.sess(i).uwrfiles = cell(size(P{i},1),1);
-            for j=1:size(P{i},1)
-                [pth,nam,ext,num] = spm_fileparts(deblank(P{i}(j,:)));
-                out.sess(i).uwrfiles{j} = fullfile(pth,[job.uwroptions.prefix, ...
-                    nam, ext, num]);
-            end
+        for i=1:numel(P)
+            out.sess(i).uwrfiles = spm_file(cellstr(P{i}), ...
+                'prefix',job.uwroptions.prefix);
         end
 end
 if job.uwroptions.uwwhich(2)
-    [pth,nam,ext,num] = spm_fileparts(deblank(P{1}(1,:)));
-    out.meanuwr{1} = fullfile(pth,['mean', job.uwroptions.prefix, nam, ext, num]);
+    out.meanuwr{1} = spm_file(P{1}(1,:), 'prefix','mean');
 end
-
-return;

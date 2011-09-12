@@ -52,7 +52,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_file.m 4482 2011-09-12 18:04:53Z guillaume $
 
 
 needchar = ischar(str);
@@ -64,7 +64,7 @@ str = cellstr(str);
 %==========================================================================
 if numel(options) == 1
     for n=1:numel(str)
-        [pth,nam,ext,num] = spm_fileparts(str{n});
+        [pth,nam,ext,num] = spm_fileparts(deblank(str{n}));
         switch lower(options{1})
             case 'path'
                 str{n} = pth;
@@ -114,7 +114,7 @@ end
 %==========================================================================
 while ~isempty(options)
     for n=1:numel(str)
-        [pth,nam,ext,num] = spm_fileparts(str{n});
+        [pth,nam,ext,num] = spm_fileparts(deblank(str{n}));
         switch lower(options{1})
             case 'path'
                 pth = options{2};
