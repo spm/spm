@@ -37,9 +37,9 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 4372 2011-06-21 21:26:46Z vladimir $
+% $Id: spm_eeg_convert2images.m 4481 2011-09-12 15:33:44Z gareth $
 
-SVNrev = '$Rev: 4372 $';
+SVNrev = '$Rev: 4481 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -148,7 +148,7 @@ if strncmpi(D.transformtype, 'TF',2)
                 
                 %-Make subdirectory for each condition
                 %--------------------------------------------------------------------------
-                dname = sprintf('%dROI_TF_trialtype_%s', images.Nregion, cl{i});
+                dname = sprintf('%dROI_TF_trialtype_%s', images.Nregion, deblank(cl{i}));
                 [sts, msg] = mkdir(P, dname);
                 if ~sts, error(msg); end
                 dname = fullfile(P, dname);
