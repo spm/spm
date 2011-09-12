@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4475 2011-09-09 17:53:14Z guillaume $
+% $Id: spm_run_fmri_spec.m 4477 2011-09-12 10:19:01Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -54,7 +54,6 @@ SPM.xY.RT = job.timing.RT;
 %-Basis function parameters
 %--------------------------------------------------------------------------
 SPM.xBF.UNITS = job.timing.units;
-%SPM.xBF.dt    = job.timing.RT/job.timing.fmri_t;
 SPM.xBF.T     = job.timing.fmri_t;
 SPM.xBF.T0    = job.timing.fmri_t0;
 
@@ -86,7 +85,6 @@ else
     SPM.xBF.length = job.bases.(nam).length;
     SPM.xBF.order  = job.bases.(nam).order;
 end
-%SPM.xBF = spm_get_bf(SPM.xBF);
 
 %-Model interactions (Volterra)
 %--------------------------------------------------------------------------
@@ -262,7 +260,7 @@ for i = 1:numel(job.sess)
             R = [];
         end
         
-        if size(R,2) ~= SPM.nscan(i)
+        if size(R,1) ~= SPM.nscan(i)
             error('Length of regressor is not commensurate with data points.');
         end
         C  = [C, R];
