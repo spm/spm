@@ -1,17 +1,17 @@
-function out = spm_defs(job)
+function out = spm_deformations(job)
 % Various deformation field utilities.
-% FORMAT out = spm_defs(job)
-% job - a job created via spm_config_defs.m and spm_jobman.m
+% FORMAT out = spm_deformations(job)
+% job - a job created via spm_config_deformations.m and spm_jobman.m
 % out - a struct with fields
 %       .def    - file name of created deformation field
 %       .warped - file names of warped images
 %
-% See spm_config_defs.m for more information.
+% See spm_config_deformations.m for more information.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 4194 2011-02-05 18:08:06Z ged $
+% $Id: spm_deformations.m 4487 2011-09-13 16:30:43Z guillaume $
 
 [Def,mat] = get_comp(job.comp);
 [dpath ipath] = get_paths(job);

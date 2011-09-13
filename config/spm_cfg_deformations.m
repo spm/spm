@@ -1,10 +1,10 @@
-function conf = spm_cfg_defs
+function conf = spm_cfg_deformations
 % Configuration file for deformation jobs.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_cfg_deformations.m 4487 2011-09-13 16:30:43Z guillaume $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -243,7 +243,7 @@ interp.help    = {
 }';
 
 conf         = exbranch('Deformations','defs',{comp,saveas,applyto,savedir,interp});
-conf.prog    = @spm_defs;
+conf.prog    = @spm_deformations;
 conf.vout    = @vout;
 conf.help    = hsummary;
 return;
