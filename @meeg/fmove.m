@@ -6,11 +6,11 @@ function res = fmove(this, fname)
 % - path\filename -> data moved and renamed
 % - path          -> data moved only
 % - filename      -> data renamed only
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id:$
+% $Id: fmove.m 4484 2011-09-13 11:30:19Z guillaume $
 
 D = struct(this);
 
@@ -40,6 +40,4 @@ D.data.y.fname = fullfile(D.path,D.data.fnamedat);
 % move/rename data file
 movefile(orig_fnamedat,D.data.y.fname);
 delete(orig_pfname)
-save(fullfile(D.path,D.fname),'D')
-
-return
+save(fullfile(D.path,D.fname),'D','-V6')
