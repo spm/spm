@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4210 2011-02-23 11:02:32Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4485 2011-09-13 13:34:53Z gareth $
 
 %%
 % Load data, if necessary
@@ -200,6 +200,10 @@ end; % if eeg data
 
 
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
+if strcmp(upper(P.modality),'MEGPLANAR'),
+    disp('Changing DATA magnitude - this is a temporary fix !!');
+    dat_y=dat_y./50;
+end;
 
 
 %%
@@ -534,6 +538,11 @@ for ii=1:length(ltr)
   % 
 end
 
+%  [tmp] = ft_compute_leadfield([-42 15 48], P.forward.sens, P.forward.vol,'reducerank',2);
+%  estfield=tmp*[-21 -8 -45]';
+%  plot(P.y,estfield./1000,'x')
+%  axis equal
+ 
 D.inv{val}.inverse = inverse;
 
 %%
