@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 3607 2011-06-01 10:33:57Z crimic $
+% $Id: ft_read_headshape.m 4162 2011-09-13 11:26:02Z crimic $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -57,8 +57,9 @@ if ~exist(filename)
 end
 
 % get the options
-fileformat  = keyval('format',      varargin);
-coordinates = keyval('coordinates', varargin); if isempty(coordinates), coordinates = 'head'; end
+fileformat  = ft_getopt(varargin,'format','unknown');
+coordinates = ft_getopt(varargin,'coordinates', 'head');
+unit        = ft_getopt(varargin,'unit', 'cm');
 
 if isempty(fileformat)
   fileformat = ft_filetype(filename);
@@ -389,7 +390,18 @@ switch fileformat
   case 'mne_pos'
     % FIXME this should be implemented, consistent with ft_write_headshape
     keyboard
-
+    
+  case 'vista'
+    if ft_hastoolbox('simbio')
+      [nodes,elements,labels] = read_vista_mesh(filename);
+      shape.nd     = nodes;
+      shape.el     = elements;
+      shape.labels = labels;
+      shape.unit   = unit;
+    else
+      error('You need Simbio/Vista toolbox to read the .v files')
+    end
+    
   otherwise
     % try reading it from an electrode of volume conduction model file
     success = false;

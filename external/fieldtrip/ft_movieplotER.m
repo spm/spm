@@ -53,7 +53,7 @@ function ft_movieplotER(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_movieplotER.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
 
@@ -63,8 +63,8 @@ ftFuncClock = clock();;
 ftFuncMem   = memtic();
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
 cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
 
@@ -276,7 +276,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_movieplotER.m 4096 2011-09-03 15:49:40Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_movieplotER.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

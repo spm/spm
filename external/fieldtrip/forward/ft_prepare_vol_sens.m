@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 4022 2011-08-25 16:13:20Z crimic $
+% $Id: ft_prepare_vol_sens.m 4144 2011-09-11 17:59:04Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -460,8 +460,18 @@ elseif iseeg
     case 'fns'
       if isfield(vol,'bnd')
         [el, prj] = project_elec(sens.pnt, vol.bnd.pnt, vol.bnd.tri);
+        sens.tra = transfer_elec(vol.bnd.pnt, vol.bnd.tri, el);
+        % replace the original electrode positions by the projected positions
+        sens.pnt = prj;        
       end
-      sens.tra = transfer_elec(vol.bnd.pnt, vol.bnd.tri, el);
+
+    case 'simbio'
+      if isfield(vol,'bnd')
+        [el, prj] = project_elec(sens.pnt, vol.bnd.pnt, vol.bnd.tri);
+        sens.tra = transfer_elec(vol.bnd.pnt, vol.bnd.tri, el);
+        % replace the original electrode positions by the projected positions
+        sens.pnt = prj;         
+      end
       
     otherwise
       error('unsupported volume conductor model for EEG');

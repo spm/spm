@@ -44,7 +44,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_channelrepair.m 4158 2011-09-12 10:32:49Z jorhor $
 
 ft_defaults
 
@@ -104,6 +104,7 @@ end
 % get the selection of channels that are bad
 cfg.badchannel = ft_channelselection(cfg.badchannel, data.label);
 [goodchanlabels,goodchanindcs] = setdiff(data.label,cfg.badchannel);
+goodchanindcs = sort(goodchanindcs); % undo automatical sorting by setdiff
 connectivityMatrix = channelconnectivity(cfg, data);
 connectivityMatrix = connectivityMatrix(:, goodchanindcs); % all chans x good chans
 
@@ -117,9 +118,10 @@ repair = eye(Nchans,Nchans);
 for k=badindx'
     fprintf('repairing channel %s\n', data.label{k});
     repair(k,k) = 0;
-    l = find(connectivityMatrix(k, :));
+    l = goodchanindcs(find(connectivityMatrix(k, :)));
     % get bad channels out
     [a, b] = setdiff(data.label(l), data.label(badindx));
+    b = sort(b); % undo automatical sorting by setdiff
     l(~ismember(find(l), b)) = [];    
     % get corresponding ids for sens structure
     [a, b] = match_str(sens.label, data.label(l));
@@ -168,7 +170,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelrepair.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id   = '$Id: ft_channelrepair.m 4158 2011-09-12 10:32:49Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

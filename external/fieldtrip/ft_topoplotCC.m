@@ -53,17 +53,21 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 3016 2011-03-01 19:09:40Z eelspa $
+% $Id: ft_topoplotCC.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
 
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();;
+ftFuncMem   = memtic();
+
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+cfg = ft_checkconfig(cfg, 'required', {'foi', 'layout'});
 
 % check if the input data is valid for this function
 freq = ft_checkdata(freq, 'cmbrepresentation', 'sparse');
-
-% check if the input configuration is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'required', {'foi', 'layout'});
 
 % set the defaults
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text';        end
@@ -227,18 +231,30 @@ ft_progress('close');
 % improve the fit in the axis
 axis tight
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% deal with the output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % get the output cfg
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
-if nargout<1
-  clear cfg
-end
+% add the version details of this function call to the configuration
+cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
+cfg.version.id   = '$Id: ft_topoplotCC.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
 
+% add information about the Matlab version used to the configuration
+cfg.callinfo.matlab = version();
+
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername(); % this is helpful for debugging
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION for plotting arrows, see also fieldtrip/private/arrow
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function h = arrow(arrowbeg, arrowend, varargin)
 ends   = keyval('ends',   varargin);
 length = keyval('length', varargin); % the length of the arrow head, in figure units

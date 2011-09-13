@@ -69,7 +69,7 @@ function [freq] = ft_freqanalysis_mtmwelch(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mtmwelch.m 2721 2011-02-01 09:05:04Z jansch $
+% $Id: ft_freqanalysis_mtmwelch.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
 
@@ -137,3 +137,4 @@ end
 % only update the method and trials fields
 freq.cfg.method = cfg.method;
 freq.cfg.trials = cfg.trials;
+

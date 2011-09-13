@@ -42,7 +42,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_freqanalysis_tfr.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
 
@@ -175,17 +175,6 @@ freq.time      = indicvect(1:cfg.downsample:end);
 
 % get the output cfg
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
-% add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, i] = dbstack;
-  cfg.version.name = st(i);
-end
-cfg.version.id = '$Id: ft_freqanalysis_tfr.m 4096 2011-09-03 15:49:40Z roboos $';
 
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end

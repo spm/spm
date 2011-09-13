@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 3985 2011-08-19 09:29:04Z vlalit $
+% $Id: ft_filetype.m 4143 2011-09-11 17:07:31Z crimic $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -958,7 +958,9 @@ elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filen
   manufacturer = 'Neuroimaging Informatics Technology Initiative';
   content = 'tesselated surface description';
 elseif filetype_check_extension(filename, '.v')
-  type = 'vista_vol'; 
+  type = 'vista'; 
+  manufacturer = 'University of British Columbia, Canada, http://www.cs.ubc.ca/nest/lci/vista/vista.html';
+  content = 'A format for computer vision research, contains meshes or volumes';  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

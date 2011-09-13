@@ -40,7 +40,7 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_volume.m 2947 2011-02-24 12:31:23Z jansch $
+% $Id: ft_write_volume.m 4162 2011-09-13 11:26:02Z crimic $
 
 % get the options
 dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = ft_filetype(filename); end
@@ -74,6 +74,13 @@ switch dataformat
     %nifti data, using SPM
     V = volumewrite_spm(filename, dat, transform, spmversion); 
   
+  case {'vista'}
+    if ft_hastoolbox('simbio')
+      write_vista_vol(size(dat), dat, filename);
+    else
+      error('You need Simbio/Vista toolbox to write a .v file')
+    end
+    
   otherwise
     error('unsupported data format');
 end % switch dataformat

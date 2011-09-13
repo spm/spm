@@ -95,9 +95,17 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 3705 2011-06-15 13:59:35Z jansch $
+% $Id: ft_headmodelplot.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
+
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();;
+ftFuncMem   = memtic();
+
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % these are suitable RGB colors
 skin_surface   = [255 213 119]/255;
@@ -474,3 +482,25 @@ end % iseeg or ismeg
 lighting gouraud
 camlight
 hold off
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% deal with the output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% get the output cfg
+cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+
+% add the version details of this function call to the configuration
+cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
+cfg.version.id   = '$Id: ft_headmodelplot.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
+
+% add information about the Matlab version used to the configuration
+cfg.callinfo.matlab = version();
+
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername(); % this is helpful for debugging
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+

@@ -140,10 +140,16 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 4011 2011-08-25 07:58:57Z jansch $
+% $Id: ft_topoplotER.m 4155 2011-09-12 10:13:30Z roboos $
 
 ft_defaults
 
+% record start time and total processing time
+ftFuncTimer = tic();
+ftFuncClock = clock();;
+ftFuncMem   = memtic();
+
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel' 'refchannel'}); 
@@ -884,8 +890,27 @@ axis off;
 hold off;
 axis equal;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% deal with the output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % get the output cfg
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+
+% add the version details of this function call to the configuration
+cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
+cfg.version.id   = '$Id: ft_topoplotER.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
+
+% add information about the Matlab version used to the configuration
+cfg.callinfo.matlab = version();
+
+% add information about the function call to the configuration
+cfg.callinfo.proctime = toc(ftFuncTimer);
+cfg.callinfo.procmem  = memtoc(ftFuncMem);
+cfg.callinfo.calltime = ftFuncClock;
+cfg.callinfo.user = getusername(); % this is helpful for debugging
+fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting channels in case of cfg.refchannel='gui'

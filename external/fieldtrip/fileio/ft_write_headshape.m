@@ -24,9 +24,9 @@ function ft_write_headshape(filename, bnd, varargin)
 
 % Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
 %
-% $Rev: 3608 $
+% $Rev: 4162 $
 
-fileformat = keyval('format', varargin);
+fileformat = ft_getopt(varargin,'format','unknown');
 
 if ~isstruct(bnd)
   bnd.pnt = bnd;
@@ -74,7 +74,15 @@ switch fileformat
     
   case 'off'
     write_off(filename,bnd.pnt,bnd.tri);
-
+    
+  case 'vista'
+    if ft_hastoolbox('simbio')
+      % no conversion needed (works in voxel coordinates)
+      write_vista_mesh(filename,bnd.nd,bnd.el,bnd.labels); % bnd.tensor
+    else
+      error('You need Simbio/Vista toolbox to write a .v file')
+    end
+    
   case []
     error('you must specify the output format');
     

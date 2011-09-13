@@ -110,6 +110,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 3907 2011-07-29 08:54:13Z eelspa $
+% $Id: ft_topoplotTFR.m 4155 2011-09-12 10:13:30Z roboos $
 
-cfg=ft_topoplotER(cfg, varargin{:});
+cfg = ft_topoplotER(cfg, varargin{:});

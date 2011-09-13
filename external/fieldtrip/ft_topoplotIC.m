@@ -93,14 +93,20 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 3198 2011-03-23 03:42:45Z roboos $
+% $Id: ft_topoplotIC.m 4155 2011-09-12 10:13:30Z roboos $
 
-% config default
-if ~isfield(cfg, 'component'),             cfg.component = [];            end
+ft_defaults
+
+% this is just a wrapper function around ft_topoplotER, therefore it does not need to 
+% measure the time spent in this function with tic/toc
+% measure the memory usage with memtic/memtoc
+
+% set the defaults
+if ~isfield(cfg, 'component'), cfg.component = []; end
 
 % check whether cfg.component is speficied
 if isempty(cfg.component)
-        error('this function requires the cfg.component parameter for input')
+  error('this function requires the cfg.component parameter for input')
 end
 
 % add a dimord
@@ -111,8 +117,9 @@ selcomp = cfg.component;
 
 % allow multiplotting
 for i = 1:length(selcomp)
-    subplot(ceil(sqrt(length(selcomp))), ceil(sqrt(length(selcomp))), i);
-    cfg.component = selcomp(i);
-    ft_topoplotER(cfg, varargin{:});
-    title(['component ' num2str(selcomp(i))]);
+  subplot(ceil(sqrt(length(selcomp))), ceil(sqrt(length(selcomp))), i);
+  cfg.component = selcomp(i);
+  ft_topoplotER(cfg, varargin{:});
+  title(['component ' num2str(selcomp(i))]);
 end
+

@@ -86,7 +86,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_megplanar.m 4151 2011-09-12 08:33:22Z jansch $
 
 ft_defaults
 
@@ -220,25 +220,40 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   % compute the interpolation matrix
   transform = lfnew * prunedinv(lfold, cfg.pruneratio);
   
-  % interpolate the data towards the planar gradiometers
-  for i=1:Ntrials
-    fprintf('interpolating trial %d to planar gradiometer\n', i);
-    interp.trial{i} = transform * data.trial{i}(dataindx,:);
-  end % for Ntrials
-  
-  % all planar gradiometer channels are included in the output
-  interp.grad  = planar.grad;
-  interp.label = planar.grad.label;
-  
-  % copy the non-gradiometer channels back into the output data
-  other = setdiff(1:Nchan, dataindx);
-  for i=other
-    interp.label{end+1} = data.label{i};
-    for j=1:Ntrials
-      interp.trial{j}(end+1,:) = data.trial{j}(i,:);
-    end
+  planarmontage = [];
+  planarmontage.tra = transform;
+  planarmontage.labelorg = axial.grad.label;
+  planarmontage.labelnew = planar.grad.label;
+ 
+  % apply the linear transformation to the data
+  interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
+  % also apply the linear transformation to the gradiometer definition
+  interp.grad = ft_apply_montage(data.grad, planarmontage, 'balancename', 'planar', 'keepunused', 'yes');
+  % ensure that the old sensor type does not stick around, because it is now invalid
+  % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
+  if isfield(interp.grad, 'type')
+    interp.grad = rmfield(interp.grad, 'type');
   end
-  
+
+%   % interpolate the data towards the planar gradiometers
+%   for i=1:Ntrials
+%     fprintf('interpolating trial %d to planar gradiometer\n', i);
+%     interp.trial{i} = transform * data.trial{i}(dataindx,:);
+%   end % for Ntrials
+%   
+%   % all planar gradiometer channels are included in the output
+%   interp.grad  = planar.grad;
+%   interp.label = planar.grad.label;
+%   
+%   % copy the non-gradiometer channels back into the output data
+%   other = setdiff(1:Nchan, dataindx);
+%   for i=other
+%     interp.label{end+1} = data.label{i};
+%     for j=1:Ntrials
+%       interp.trial{j}(end+1,:) = data.trial{j}(i,:);
+%     end
+%   end
+%   
 else
     % generically call megplanar_orig megplanar_sincos or megplanar_fitplante
     fun = ['megplanar_'  cfg.planarmethod];
@@ -246,6 +261,7 @@ else
         error('unknown method for computation of planar gradient');
     end
     
+    sens = ft_convert_units(data.grad);
     [sens.pnt, sens.ori, sens.label] = channelposition(data.grad);
     cfg.channel = ft_channelselection(cfg.channel, sens.label);
     
@@ -264,15 +280,15 @@ else
         cfg.distance(j,i) = d;
     end
     
-    fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), data.grad.unit);
-    fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), data.grad.unit);
+    fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), sens.unit);
+    fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), sens.unit);
  
-    montage = eval([fun '(cfg, data.grad)']);
+    planarmontage = eval([fun '(cfg, data.grad)']);
     
     % apply the linear transformation to the data
-    interp  = ft_apply_montage(data, montage, 'keepunused', 'yes');
+    interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
     % also apply the linear transformation to the gradiometer definition
-    interp.grad = ft_apply_montage(data.grad, montage, 'balancename', 'planar', 'keepunused', 'yes');
+    interp.grad = ft_apply_montage(data.grad, planarmontage, 'balancename', 'planar', 'keepunused', 'yes');
     % ensure that the old sensor type does not stick around, because it is now invalid
     % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
     if isfield(interp.grad, 'type')
@@ -295,7 +311,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id   = '$Id: ft_megplanar.m 4151 2011-09-12 08:33:22Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

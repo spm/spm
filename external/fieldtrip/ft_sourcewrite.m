@@ -3,7 +3,7 @@ function ft_sourcewrite(cfg, volume)
 % FT_VOLUMEWRITE exports source analysis results to an Analyze MRI file
 % that can subsequently be read into BrainVoyager or MRIcro
 %
-% Warning: FT_NORMALISEVOLUME has been renamed to FT_VOLUMENORMALISE
+% Warning: FT_SOURCEWRITE has been renamed to FT_VOLUMEWRITE
 % Warning: backward compatibility will be removed in the future
 
 % Copyright (C) 2005-2006, F.C. Donders Centre
@@ -24,7 +24,7 @@ function ft_sourcewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcewrite.m 948 2010-04-21 18:02:21Z roboos $
+% $Id: ft_sourcewrite.m 4148 2011-09-12 08:09:50Z roboos $
 
 warning('SOURCEWRITE has been renamed to VOLUMEWRITE');
 warning('backward compatibility will be removed in the future');
