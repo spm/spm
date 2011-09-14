@@ -6,7 +6,7 @@ function V = spm_create_vol(V)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 4490 2011-09-14 16:22:27Z guillaume $
+% $Id: spm_create_vol.m 4491 2011-09-14 16:27:50Z guillaume $
 
 
 for i=1:numel(V)
@@ -59,9 +59,9 @@ V.fname  = deblank(V.fname);
 ext      = spm_file(V.fname,'ext');
 
 switch ext
-case {'.img'}
+case {'img'}
     minoff = 0;
-case {'.nii'}
+case {'nii'}
     minoff = 352;
 otherwise
     error(['".' ext '" is not a recognised extension.']);
