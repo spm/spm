@@ -62,74 +62,92 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4201 2011-02-15 10:52:00Z ged $
+% $Id: spm_write_sn.m 4490 2011-09-14 16:22:27Z guillaume $
 
 
-if isempty(V), return; end;
+SVNid = '$Rev: 4490 $';
+ 
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SVNid);
 
-if ischar(prm), prm = load(prm);  end;
-if ischar(V),   V   = spm_vol(V); end;
+%-Get images
+%--------------------------------------------------------------------------
+if isempty(V), return; end
 
-if nargin==3 && ischar(flags) && strcmpi(flags,'modulate'),
-    if nargout==0,
+if ischar(prm), prm = load(prm);  end
+if ischar(V),   V   = spm_vol(V); end
+
+%-Modulate
+%--------------------------------------------------------------------------
+if nargin==3 && ischar(flags) && strcmpi(flags,'modulate')
+    if nargout==0
         modulate(V,prm);
     else
         VO = modulate(V,prm);
-    end;
+    end
     return;
-end;
+end
 
+%-Get parameters
+%--------------------------------------------------------------------------
 def_flags        = spm_get_defaults('normalise.write');
 def_flags.prefix = 'w';
 
-if nargin < 3,
+if nargin < 3
     flags = def_flags;
 else
     fnms = fieldnames(def_flags);
-    for i=1:length(fnms),
-        if ~isfield(flags,fnms{i}),
+    for i=1:length(fnms)
+        if ~isfield(flags,fnms{i})
             flags.(fnms{i}) = def_flags.(fnms{i});
-        end;
-    end;
-end;
+        end
+    end
+end
 
+%-Mask
+%--------------------------------------------------------------------------
 [x,y,z,mat] = get_xyzmat(prm,flags.bb,flags.vox);
 
-if nargin==4,
-    if ischar(extras) && strcmpi(extras,'mask'),
+if nargin==4
+    if ischar(extras) && strcmpi(extras,'mask')
         VO = get_snmask(V,prm,x,y,z,flags.wrap);
         return;
-    end;
-    if iscell(extras),
+    end
+    if iscell(extras)
         msk = extras;
-    end;
-end;
+    end
+end
 
-if nargout>0 && length(V)>8,
+if nargout>0 && numel(V)>8
     error('Too many images to save in memory');
-end;
+end
 
+%-Warp images
+%--------------------------------------------------------------------------
 if ~exist('msk','var')
-    msk         = get_snmask(V,prm,x,y,z,flags.wrap);
-end;
+    msk = get_snmask(V,prm,x,y,z,flags.wrap);
+end
 
-if nargout==0,
-    if isempty(prm.Tr),
+if nargout==0
+    if isempty(prm.Tr)
         affine_transform(V,prm,x,y,z,mat,flags,msk);
     else
         nonlin_transform(V,prm,x,y,z,mat,flags,msk);
-    end;
+    end
 else
-    if isempty(prm.Tr),
+    if isempty(prm.Tr)
         VO = affine_transform(V,prm,x,y,z,mat,flags,msk);
     else
         VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk);
-    end;
-end;
+    end
+end
 
-return;
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
+
 %==========================================================================
-
+%-function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 %==========================================================================
 function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 
@@ -137,13 +155,13 @@ function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes/slices completed');
-for i=1:numel(V),
+for i=1:numel(V)
     VO     = make_hdr_struct(V(i),x,y,z,mat, flags.prefix);
     if flags.preserve
-        VO.fname = prepend(VO.fname,'m');
+        VO.fname = spm_file(VO.fname, 'prefix','m');
     end
     detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
-    if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
+    if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end
 
     %Dat= zeros(VO.dim(1:3));
     Dat = single(0);
@@ -151,29 +169,30 @@ for i=1:numel(V),
 
     C = spm_bsplinc(V(i),d);
 
-    for j=1:length(z),   % Cycle over planes
+    for j=1:length(z)   % Cycle over planes
         [X2,Y2,Z2]  = mmult(X,Y,z(j),V(i).mat\prm.VF(1).mat*prm.Affine);
         dat         = spm_bsplins(C,X2,Y2,Z2,d);
-        if flags.preserve, dat = dat*detAff; end;
+        if flags.preserve, dat = dat*detAff; end
         dat(msk{j}) = NaN;
 
         Dat(:,:,j) = single(dat);
 
-        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-    end;
-    if nargout~=0,
+        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end
+    end
+    if nargout~=0
         VO.pinfo  = [1 0]';
         VO.dt     = [spm_type('float32') spm_platform('bigend')];
         VO.dat    = Dat;
     else
         spm_write_vol(VO, Dat);
-    end;
+    end
     spm_progress_bar('Set',i);
-end;
+end
 spm_progress_bar('Clear');
-return;
-%==========================================================================
 
+
+%==========================================================================
+%-function VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk)
 %==========================================================================
 function VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk)
 
@@ -182,18 +201,18 @@ Tr = prm.Tr;
 BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
 BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
-if flags.preserve,
+if flags.preserve
     DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
     DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
     DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
-end;
+end
 d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
-for i=1:numel(V),
+for i=1:numel(V)
     VO     = make_hdr_struct(V(i),x,y,z,mat, flags.prefix);
     if flags.preserve
-        VO.fname = prepend(VO.fname,'m');
+        VO.fname = spm_file(VO.fname, 'prefix','m');
     end
     detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
 
@@ -204,7 +223,7 @@ for i=1:numel(V),
 
     C = spm_bsplinc(V(i),d);
 
-    for j=1:length(z),   % Cycle over planes
+    for j=1:length(z)   % Cycle over planes
         % Nonlinear deformations
         %------------------------------------------------------------------
         tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
@@ -218,7 +237,7 @@ for i=1:numel(V),
         dat         = spm_bsplins(C,X2,Y2,Z2,d);
         dat(msk{j}) = NaN;
 
-        if ~flags.preserve,
+        if ~flags.preserve
             Dat(:,:,j) = single(dat);
         else
             j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
@@ -229,47 +248,48 @@ for i=1:numel(V),
             %-----------------------------------------------------------------
             dat       = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
             Dat(:,:,j) = single(dat);
-        end;
-        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-    end;
-    if nargout==0,
+        end
+        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end
+    end
+    if nargout==0
         if flags.preserve, VO = rmfield(VO,'pinfo'); end
         VO = spm_write_vol(VO,Dat);
     else
         VO.pinfo  = [1 0]';
         VO.dt     = [spm_type('float32') spm_platform('bigend')];
         VO.dat    = Dat;
-    end;
+    end
     spm_progress_bar('Set',i);
-end;
+end
 spm_progress_bar('Clear');
-return;
-%==========================================================================
 
+
+%==========================================================================
+%-function VO = modulate(V,prm)
 %==========================================================================
 function VO = modulate(V,prm)
 
 spm_progress_bar('Init',numel(V),'Modulating','volumes completed');
-for i=1:numel(V),
+for i=1:numel(V)
     VO          = V(i);
     VO          = rmfield(VO,'pinfo');
-    VO.fname    = prepend(VO.fname,'m');
+    VO.fname    = spm_file(VO.fname, 'prefix','m');
     detAff      = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
     %Dat        = zeros(VO.dim(1:3));
     Dat         = single(0);
     Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
     [x,y,z,mat] = get_xyzmat(prm,NaN,NaN,VO);
 
-    if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
+    if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end
 
     Tr = prm.Tr;
 
-    if isempty(Tr),
+    if isempty(Tr)
         for j=1:length(z),   % Cycle over planes
             dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
             Dat(:,:,j) = single(dat);
-            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-        end;
+            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end
+        end
     else
         BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
         BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
@@ -278,7 +298,7 @@ for i=1:numel(V),
         DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
         DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-        for j=1:length(z),   % Cycle over planes
+        for j=1:length(z)   % Cycle over planes
 
             tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
             ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
@@ -294,63 +314,60 @@ for i=1:numel(V),
             dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
             Dat(:,:,j) = single(dat);
 
-            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-        end;
-    end;
+            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end
+        end
+    end
 
-    if nargout==0,
+    if nargout==0
         VO = spm_write_vol(VO,Dat);
     else
         VO.pinfo  = [1 0]';
         VO.dt     = [spm_type('float32') spm_platform('bigend')];
         VO.dat    = Dat;
-    end;
+    end
     spm_progress_bar('Set',i);
-end;
+end
 spm_progress_bar('Clear');
-return;
-%==========================================================================
 
+
+%==========================================================================
+%-function VO   = make_hdr_struct(V,x,y,z,mat,prefix)
 %==========================================================================
 function VO   = make_hdr_struct(V,x,y,z,mat,prefix)
 VO            = V;
-VO.fname      = prepend(V.fname,prefix);
+VO.fname      = spm_file(V.fname, 'prefix',prefix);
 VO.mat        = mat;
 VO.dim(1:3)   = [length(x) length(y) length(z)];
 VO.pinfo      = V.pinfo;
 VO.descrip    = 'spm - 3D normalized';
-return;
-%==========================================================================
 
+
+%==========================================================================
+%-function T2 = get_2Dtrans(T3,B,j)
 %==========================================================================
 function T2 = get_2Dtrans(T3,B,j)
 d   = [size(T3) 1 1 1];
 tmp = reshape(T3,d(1)*d(2),d(3));
 T2  = reshape(tmp*B(j,:)',d(1),d(2));
-return;
-%==========================================================================
 
-%_______________________________________________________________________
-function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
-return;
-%==========================================================================
 
+%==========================================================================
+%-function Mask = getmask(X,Y,Z,dim,wrp)
 %==========================================================================
 function Mask = getmask(X,Y,Z,dim,wrp)
 % Find range of slice
 tiny = 5e-2;
 Mask = true(size(X));
-if ~wrp(1), Mask = Mask & (X >= (1-tiny) & X <= (dim(1)+tiny)); end;
-if ~wrp(2), Mask = Mask & (Y >= (1-tiny) & Y <= (dim(2)+tiny)); end;
-if ~wrp(3), Mask = Mask & (Z >= (1-tiny) & Z <= (dim(3)+tiny)); end;
-return;
-%==========================================================================
+if ~wrp(1), Mask = Mask & (X >= (1-tiny) & X <= (dim(1)+tiny)); end
+if ~wrp(2), Mask = Mask & (Y >= (1-tiny) & Y <= (dim(2)+tiny)); end
+if ~wrp(3), Mask = Mask & (Z >= (1-tiny) & Z <= (dim(3)+tiny)); end
+
 
 %==========================================================================
+%-function [X2,Y2,Z2] = mmult(X1,Y1,Z1,Mult)
+%==========================================================================
 function [X2,Y2,Z2] = mmult(X1,Y1,Z1,Mult)
-if length(Z1) == 1,
+if length(Z1) == 1
     X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + (Mult(1,3)*Z1 + Mult(1,4));
     Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + (Mult(2,3)*Z1 + Mult(2,4));
     Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + (Mult(3,3)*Z1 + Mult(3,4));
@@ -358,10 +375,11 @@ else
     X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + Mult(1,3)*Z1 + Mult(1,4);
     Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + Mult(2,3)*Z1 + Mult(2,4);
     Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + Mult(3,3)*Z1 + Mult(3,4);
-end;
-return;
-%==========================================================================
+end
 
+
+%==========================================================================
+%-function msk = get_snmask(V,prm,x,y,z,wrap)
 %==========================================================================
 function msk = get_snmask(V,prm,x,y,z,wrap)
 % Generate a mask for where there is data for all images
@@ -377,17 +395,17 @@ BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
 BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
 
-if numel(V)>1 && any(any(diff(t,1,1))),
+if numel(V)>1 && any(any(diff(t,1,1)))
     spm_progress_bar('Init',length(z),'Computing available voxels','planes completed');
-    for j=1:length(z),   % Cycle over planes
+    for j=1:length(z)   % Cycle over planes
         Count = zeros(length(x),length(y));
-        if isempty(Tr),
+        if isempty(Tr)
             % Generate a mask for where there is data for all images
             %--------------------------------------------------------------
             for i=1:numel(V),
                 [X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
-            end;
+            end
         else
             % Nonlinear deformations
             %--------------------------------------------------------------
@@ -397,21 +415,22 @@ if numel(V)>1 && any(any(diff(t,1,1))),
 
             % Generate a mask for where there is data for all images
             %--------------------------------------------------------------
-            for i=1:numel(V),
+            for i=1:numel(V)
                 [X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
-            end;
-        end;
+            end
+        end
         msk{j} = uint32(find(Count ~= numel(V)));
         spm_progress_bar('Set',j);
-    end;
+    end
     spm_progress_bar('Clear');
 else
-    for j=1:length(z), msk{j} = uint32([]); end;
-end;
-return;
-%==========================================================================
+    for j=1:length(z), msk{j} = uint32([]); end
+end
 
+
+%==========================================================================
+%-function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 %==========================================================================
 function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 % The old voxel size and origin notation is used here.
@@ -426,10 +445,10 @@ function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 % bb  = sort(bb);
 % vox = abs(vox);
 
-if nargin<4,
+if nargin<4
     VG = prm.VG(1);
 
-    if all(~isfinite(bb(:))) && all(~isfinite(vox(:))),
+    if all(~isfinite(bb(:))) && all(~isfinite(vox(:)))
         x   = 1:VG.dim(1);
         y   = 1:VG.dim(2);
         z   = 1:VG.dim(3);
@@ -439,8 +458,8 @@ if nargin<4,
 end
 
 [bb0 vox0] = spm_get_bbox(VG, 'old');
-if ~all(isfinite(vox(:))), vox = vox0; end;
-if ~all(isfinite(bb(:))),  bb  = bb0;  end;
+if ~all(isfinite(vox(:))), vox = vox0; end
+if ~all(isfinite(bb(:))),  bb  = bb0;  end
 
 msk       = find(vox<0);
 bb        = sort(bb);
@@ -454,7 +473,7 @@ bb(:,msk) = flipud(bb(:,msk));
 
 M   = prm.VG(1).mat;
 vxg = sqrt(sum(M(1:3,1:3).^2));
-if det(M(1:3,1:3))<0, vxg(1) = -vxg(1); end;
+if det(M(1:3,1:3))<0, vxg(1) = -vxg(1); end
 ogn = M\[0 0 0 1]';
 ogn = ogn(1:3)';
 
@@ -478,22 +497,23 @@ if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
     Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
     mat = mat*Flp;
     x   = flipud(x(:))';
-end;
-return;
-%==========================================================================
+end
+
 
 %==========================================================================
+%-function VO = write_dets(P,bb,vox)
+%==========================================================================
 function VO = write_dets(P,bb,vox)
-if nargin==1,
+if nargin==1
     job = P;
     P   = job.P;
     bb  = job.bb;
     vox = job.vox;
-end;
+end
 
 spm_progress_bar('Init',numel(P),'Writing','volumes completed');
 
-for i=1:numel(V),
+for i=1:numel(V)
     prm = load(deblank(P{i}));
     [x,y,z,mat] = get_xyzmat(prm,bb,vox);
     Tr = prm.Tr;
@@ -504,20 +524,20 @@ for i=1:numel(V),
     DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
     DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-    [pth,nam,ext,nm] = spm_fileparts(P{i});
-    VO = struct('fname',fullfile(pth,['jy_' nam ext nm]),...
-        'dim',[numel(x),numel(y),numel(z)],...
-        'dt',[spm_type('float32') spm_platform('bigend')],...
-        'pinfo',[1 0 0]',...
-        'mat',mat,...
-        'n',1,...
-        'descrip','Jacobian determinants');
+    VO = struct(...
+        'fname',   spm_file(P{i}, 'prefix','jy_'),...
+        'dim',     [numel(x),numel(y),numel(z)],...
+        'dt',      [spm_type('float32') spm_platform('bigend')],...
+        'pinfo',   [1 0 0]',...
+        'mat',     mat,...
+        'n',       1,...
+        'descrip', 'Jacobian determinants');
     VO     = spm_create_vol(VO);
     detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
     Dat    = single(0);
     Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
-    for j=1:length(z),   % Cycle over planes
+    for j=1:length(z)   % Cycle over planes
         % Nonlinear deformations
         tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
         ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
@@ -531,11 +551,9 @@ for i=1:numel(V),
         %------------------------------------------------------------------
         dat       = (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
         Dat(:,:,j) = single(dat);
-        if numel(P)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-    end;
+        if numel(P)<5, spm_progress_bar('Set',i-1+j/length(z)); end
+    end
     VO = spm_write_vol(VO,Dat);
     spm_progress_bar('Set',i);
-end;
+end
 spm_progress_bar('Clear');
-return;
-%==========================================================================

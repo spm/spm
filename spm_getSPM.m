@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_getSPM.m 4490 2011-09-14 16:22:27Z guillaume $
 
 
 %-GUI setup
@@ -613,7 +613,9 @@ for i = 1:numel(Im)
     Z     = Z(Q);
     if isempty(Q)
         fprintf('\n')                                                   %-#
+        sw = warning('off','backtrace');
         warning('SPM:NoVoxels','No voxels survive masking at p=%4.2f',pm);
+        warning(sw);
         break
     end
 end
@@ -759,7 +761,9 @@ Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
+    sw = warning('off','backtrace');
     warning('SPM:NoVoxels','No voxels survive height threshold at u=%0.2g',u);
+    warning(sw);
 end
 
 
@@ -792,7 +796,9 @@ if ~isempty(XYZ)
     XYZ   = XYZ(:,Q);
     if isempty(Q)
         fprintf('\n');                                                  %-#
+        sw = warning('off','backtrace');
         warning('SPM:NoVoxels','No voxels survive extent threshold at k=%0.2g',k);
+        warning(sw);
     end
     
 else

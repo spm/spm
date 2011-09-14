@@ -56,15 +56,15 @@ function spm_reslice(P,flags)
 % The routine uses information in their headers and writes the realigned 
 % image files to the same subdirectory with a prefix.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 4179 2011-01-28 13:57:20Z volkmar $
+% $Id: spm_reslice.m 4490 2011-09-14 16:22:27Z guillaume $
 
 %__________________________________________________________________________
 %
 % The headers of the images contain a 4x4 affine transformation matrix 'M',
-% usually affected bu the `realignment' and `coregistration' modules.
+% usually affected by the `realignment' and `coregistration' modules.
 % What these matrices contain is a mapping from the voxel coordinates
 % (x0,y0,z0) (where the first voxel is at coordinate (1,1,1)), to 
 % coordinates in millimeters (x1,y1,z1).
@@ -81,8 +81,8 @@ function spm_reslice(P,flags)
 % Several spatial transformations (realignment, coregistration,
 % normalisation) can be combined into a single operation (without the
 % necessity of resampling the images several times).
-%
 %__________________________________________________________________________
+%
 % Refs:
 %
 % Friston KJ, Williams SR, Howard R Frackowiak RSJ and Turner R (1995)
@@ -95,6 +95,18 @@ function spm_reslice(P,flags)
 % for Functional MRI. Mag. Res. Med. 42(6):1014-1018
 %__________________________________________________________________________
 
+
+SVNid = '$Rev: 4490 $';
+ 
+%-Say hello
+%--------------------------------------------------------------------------
+SPMid = spm('FnBanner',mfilename,SVNid);
+
+%-Parameters
+%--------------------------------------------------------------------------
+if ~nargin || isempty(P), P = spm_select([2 Inf],'image'); end
+if iscellstr(P), P = char(P);    end
+if ischar(P),    P = spm_vol(P); end
 
 def_flags        = spm_get_defaults('realign.write');
 def_flags.prefix = 'r';
@@ -116,15 +128,18 @@ elseif ~isfield(flags,'mean')
     flags.mean  = 1; 
 end
 
-if ~nargin || isempty(P), P = spm_select([2 Inf],'image'); end
-if iscellstr(P), P = char(P);    end;
-if ischar(P),    P = spm_vol(P); end;
+%-Reslice
+%--------------------------------------------------------------------------
 reslice_images(P,flags);
+
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 
 
 %==========================================================================
+%-function reslice_images(P,flags)
+%==========================================================================
 function reslice_images(P,flags)
-% Reslices images volume by volume
+% Reslice images volume by volume
 % FORMAT reslice_images(P,flags)
 % See main function for a description of the input parameters
 
@@ -220,8 +235,7 @@ for i = 1:numel(P)
         end
         if write_vol
             VO         = P(i);
-            [pth,nm,xt,vr] = spm_fileparts(deblank(P(i).fname));
-            VO.fname   = fullfile(pth,[flags.prefix nm xt vr]);
+            VO.fname   = spm_file(P(i).fname, 'prefix',flags.prefix);
             VO.dim     = P(1).dim(1:3);
             VO.dt      = P(i).dt;
             VO.pinfo   = P(i).pinfo;
@@ -241,28 +255,28 @@ if flags.mean
     Integral    = Integral./Count;
     PO          = P(1);
     PO          = rmfield(PO,'pinfo');
-    [pth,nm,xt] = spm_fileparts(deblank(P(1).fname));
-    PO.fname    = fullfile(pth,['mean' nm xt]);
+    PO.fname    = spm_file(P(1).fname, 'prefix','mean');
     PO.pinfo    = [max(max(max(Integral)))/32767 0 0]';
     PO.descrip  = 'spm - mean image';
     PO.dt       = [spm_type('int16') spm_platform('bigend')];
     spm_write_vol(PO,Integral);
 end
 
-spm_figure('Clear','Interactive');
+spm_progress_bar('Clear');
 
 
 %==========================================================================
+%-function v = kspace3d(v,M)
+%==========================================================================
 function v = kspace3d(v,M)
-% 3D rigid body transformation performed as shears in 1D Fourier space.
-% FORMAT v1 = kspace3d(v,M)
-% Inputs:
-% v - the image stored as a 3D array.
-% M - the rigid body transformation matrix.
-% Output:
-% v - the transformed image.
+% 3D rigid body transformation performed as shears in 1D Fourier space
+% FORMAT v = kspace3d(v,M)
+% v        - image stored as a 3D array
+% M        - rigid body transformation matrix
 %
-% The routine is based on the excellent papers:
+% v        - transformed image
+%
+% References:
 % R. W. Cox and A. Jesmanowicz (1999)
 % Real-Time 3D Image Registration for Functional MRI
 % Magnetic Resonance in Medicine 42(6):1014-1018
@@ -270,7 +284,6 @@ function v = kspace3d(v,M)
 % W. F. Eddy, M. Fitzgerald and D. C. Noll (1996)
 % Improved Image Registration by Using Fourier Interpolation
 % Magnetic Resonance in Medicine 36(6):923-931
-%__________________________________________________________________________
 
 [S0,S1,S2,S3] = shear_decomp(M);
 
@@ -315,6 +328,8 @@ if any(g~=d), v = v(1:d(1),1:d(2),1:d(3)); end
 
 
 %==========================================================================
+%-function [S0,S1,S2,S3] = shear_decomp(A)
+%==========================================================================
 function [S0,S1,S2,S3] = shear_decomp(A)
 % Decompose rotation and translation matrix A into shears S0, S1, S2 and
 % S3, such that A = S0*S1*S2*S3. The original procedure is documented in:
@@ -342,6 +357,8 @@ S3 = [[S3 [0  0  0]'];[0 0 0 1]];
 
 
 %==========================================================================
+%-function [Mask,y1,y2,y3] = getmask(M,x1,x2,x3,dim,wrp)
+%==========================================================================
 function [Mask,y1,y2,y3] = getmask(M,x1,x2,x3,dim,wrp)
 tiny = 5e-2; % From spm_vol_utils.c
 y1   = M(1,1)*x1+M(1,2)*x2+(M(1,3)*x3+M(1,4));
@@ -353,6 +370,8 @@ if ~wrp(2), Mask = Mask & (y2 >= (1-tiny) & y2 <= (dim(2)+tiny)); end
 if ~wrp(3), Mask = Mask & (y3 >= (1-tiny) & y3 <= (dim(3)+tiny)); end
 
 
+%==========================================================================
+%-function vo = nan2zero(vi)
 %==========================================================================
 function vo = nan2zero(vi)
 vo = vi;
