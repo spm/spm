@@ -1,4 +1,4 @@
-function [] = spm_run_bms_vis(varargin)
+function spm_run_bms_vis(varargin)
 % Show results for Bayesian Model Selection Maps
 % SPM job execution function
 % takes a harvested job data structure (or no input) and calls SPM 
@@ -13,7 +13,7 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 3458 2009-10-13 10:05:35Z maria $
+% $Id: spm_run_bms_vis.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
@@ -36,7 +36,7 @@ spm('Clear',Finter);
 WS = spm('WinScale');
 FS = spm('FontSizes');
 
-% Select results (.img) from BMS Maps
+% Select results image from BMS Maps
 % -------------------------------------------------------------------------
 if file_str
    file_fname = job.file{1};
@@ -48,12 +48,12 @@ end
 load(file_fname);
 wd = fileparts(file_fname);
 
-% Select results (.img) from BMS Maps
+% Select results image from BMS Maps
 % -------------------------------------------------------------------------
 if image
    post = job.img{1};
 else
-   post = spm_select(1,'image','Select BMS Maps results (ex: ppm, alpha or epm image)',[],wd,'.img');
+   post = spm_select(1,'image','Select BMS Maps results (ex: ppm, alpha or epm image)',[],wd);
 end
 
 % Select threshold to apply to image

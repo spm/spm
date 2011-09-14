@@ -4,13 +4,15 @@ function [] = spm_bms_display(BMS,action)
 %
 % Input:
 % BMS    - BMS containing details of excurtion set
-% action - 'Init' (Initialise), 'do_plot' (plot voxel results), 'save' (save
-%          results as .img, 'overlays' (options overlays menu)
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% action - 'Init' (Initialise)
+%          'do_plot' (plot voxel results)
+%          'save' (save results as NIfTI image)
+%          'overlays' (options overlays menu)
+%__________________________________________________________________________
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_bms_display.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % Main options (action)
 % =========================================================================

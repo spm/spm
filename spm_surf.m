@@ -3,7 +3,7 @@ function varargout = spm_surf(P,mode,thresh)
 % FORMAT spm_surf(P,mode,thresh)
 %
 % P      - char array of filenames
-%          Usually, this will be c1xxx.img & c2xxx.img - grey and white
+%          Usually, this will be c1xxx.<ext> & c2xxx.<ext> - grey and white
 %          matter segments created using the segmentation routine.
 % mode   - operation mode [1: rendering, 2: surface, 3: both]
 % thresh - vector or threshold values for extraction [default: 0.5]
@@ -53,9 +53,9 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 4341 2011-06-03 11:24:02Z john $
+% $Id: spm_surf.m 4489 2011-09-14 11:27:38Z guillaume $
 
-SVNrev = '$Rev: 4341 $';
+SVNrev = '$Rev: 4489 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');

@@ -34,12 +34,12 @@ function [D, S, Pout] = spm_eeg_convert2images(S)
 % not the data, are returned in D as a cell vector of structs, and the
 % struct S is returned to allow for saving the history of function calls.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 4481 2011-09-12 15:33:44Z gareth $
+% $Id: spm_eeg_convert2images.m 4489 2011-09-14 11:27:38Z guillaume $
 
-SVNrev = '$Rev: 4481 $';
+SVNrev = '$Rev: 4489 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -157,10 +157,10 @@ if strncmpi(D.transformtype, 'TF',2)
                     
                     if strcmp(D.type, 'single')
                         % single trial data
-                        fname = sprintf('trial%04d.img', l);
+                        fname = [sprintf('trial%04d', l) spm_file_ext];
                     else
                         % evoked data
-                        fname = 'average.img';
+                        fname = ['average' spm_file_ext];
                     end
                     fname = fullfile(dname,fname);
                     

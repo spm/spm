@@ -12,15 +12,15 @@ function spm_vb_ppm_anova(SPM)
 % The factorial design is specified in SPM.factor. For a one-way ANOVA 
 % the images 
 %
-%   avg_effect.img
-%   main_effect.img
+%   avg_effect.<ext>
+%   main_effect.<ext>
 %
 % are produced. For a two-way ANOVA the following images are produced
 %
-%   avg_effect.img
-%   main_effect_'factor1'.img
-%   main_effect_'factor2'.img
-%   interaction.img
+%   avg_effect.<ext>
+%   main_effect_'factor1'.<ext>
+%   main_effect_'factor2'.<ext>
+%   interaction.<ext>
 %
 % These images can then be thresholded. For example a threshold of 4.6 
 % corresponds to a posterior effect probability of [exp(4.6)] = 0.999. 
@@ -29,7 +29,7 @@ function spm_vb_ppm_anova(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_vb_ppm_anova.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_ppm_anova.m 4489 2011-09-14 11:27:38Z guillaume $
 
     
 disp('Warning: spm_vb_ppm_anova only works for single session data.');
@@ -56,42 +56,42 @@ if nf==1
     % For a single factor
     
     % Average effect
-    image1 = fullfile(analysis_dir, 'model_1','LogEv.img');
-    image2 = fullfile(analysis_dir, 'model_2','LogEv.img');
-    imout  = fullfile(analysis_dir, 'avg_effect.img');
+    image1 = fullfile(analysis_dir, 'model_1',['LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, 'model_2',['LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['avg_effect' spm_file_ext]);
     img_subtract(image1,image2,imout);
     
     % Main effect of factor
-    image1 = fullfile(analysis_dir, 'model_2','LogEv.img');
-    image2 = fullfile(analysis_dir, 'LogEv.img');
-    imout  = fullfile(analysis_dir, 'main_effect.img');
+    image1 = fullfile(analysis_dir, 'model_2',['LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, ['LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['main_effect' spm_file_ext]);
     img_subtract(image1,image2,imout);
     
 elseif nf==2
     % For two factors
     
     % Average effect
-    image1 = fullfile(analysis_dir, 'model_1','LogEv.img');
-    image2 = fullfile(analysis_dir, 'model_2','LogEv.img');
-    imout  = fullfile(analysis_dir, 'avg_effect.img');
+    image1 = fullfile(analysis_dir, ['model_1','LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, ['model_2','LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['avg_effect' spm_file_ext]);
     img_subtract(image1,image2,imout);
     
     % Main effect of factor 1
-    image1 = fullfile(analysis_dir, 'model_2','LogEv.img');
-    image2 = fullfile(analysis_dir, 'model_3','LogEv.img');
-    imout  = fullfile(analysis_dir, ['main_effect_',SPM.factor(1).name,'.img']);
+    image1 = fullfile(analysis_dir, 'model_2',['LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, 'model_3',['LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['main_effect_',SPM.factor(1).name,spm_file_ext]);
     img_subtract(image1,image2,imout);
     
     % Main effect of factor 2
-    image1 = fullfile(analysis_dir, 'model_2','LogEv.img');
-    image2 = fullfile(analysis_dir, 'model_4','LogEv.img');
-    imout  = fullfile(analysis_dir, ['main_effect_',SPM.factor(2).name,'.img']);
+    image1 = fullfile(analysis_dir, 'model_2',['LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, 'model_4',['LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['main_effect_',SPM.factor(2).name,spm_file_ext]);
     img_subtract(image1,image2,imout);
     
     % Interaction
-    image1 = fullfile(analysis_dir, 'model_5','LogEv.img');
-    image2 = fullfile(analysis_dir, 'LogEv.img');
-    imout  = fullfile(analysis_dir, 'interaction.img');
+    image1 = fullfile(analysis_dir, 'model_5',['LogEv' spm_file_ext]);
+    image2 = fullfile(analysis_dir, ['LogEv' spm_file_ext]);
+    imout  = fullfile(analysis_dir, ['interaction' spm_file_ext]);
     img_subtract(image1,image2,imout);
     
 end

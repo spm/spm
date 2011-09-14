@@ -26,12 +26,12 @@ function [S, Pout] = spm_eeg_convert2scalp(S)
 % an effect if the bad channels are located at the edge of the setup, where
 % it is assumed that there is not enough data for interpolation.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convert2scalp.m 4390 2011-07-13 18:04:22Z vladimir $
+% $Id: spm_eeg_convert2scalp.m 4489 2011-09-14 11:27:38Z guillaume $
 
-SVNrev = '$Rev: 4390 $';
+SVNrev = '$Rev: 4489 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -183,7 +183,7 @@ for i = 1 : D.nconditions
 
         %-Create output image header (matching MNI space)
         %------------------------------------------------------------------
-        fname = fullfile(Pi, sprintf('trial%04d.img', Itrials(j)));
+        fname = fullfile(Pi, [sprintf('trial%04d', Itrials(j)) spm_file_ext]);
         
         Pout{i}{j} = fname;
         

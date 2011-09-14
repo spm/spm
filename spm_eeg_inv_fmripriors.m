@@ -30,7 +30,7 @@ function D = spm_eeg_inv_fmripriors(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_eeg_inv_fmripriors.m 4489 2011-09-14 11:27:38Z guillaume $
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -187,7 +187,7 @@ end
 %-Save clusters as an image of labels
 %--------------------------------------------------------------------------
 [pth,name] = fileparts(S.fmri);
-D.inv{val}.inverse.fmri.clusters = fullfile(pth,['cluster_' name '.img']);
+D.inv{val}.inverse.fmri.clusters = fullfile(pth,['cluster_' name spm_file_ext]);
 V = struct('fname',   D.inv{val}.inverse.fmri.clusters, ...
            'dim',     V.dim, ...
            'dt',      [spm_type('uint16') spm_platform('bigend')], ...

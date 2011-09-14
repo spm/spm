@@ -4,13 +4,13 @@ function spm_bms_display_ROI (BMS,mask,method)
 %
 % Input:
 % BMS    - BMS.mat file 
-% make   - region of interest image (.img)
+% mask   - region of interest image
 % method - inference method (FFX or RFX)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_ROI.m 3569 2009-11-13 15:51:07Z guillaume $
+% $Id: spm_bms_display_ROI.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -20,13 +20,12 @@ Fgraph = spm_figure('GetWin','Graphics');
 % -------------------------------------------------------------------------
 if nargin<1
     BMS    = spm_select(1,'^BMS.mat$','select BMS.mat files');
-    mask   = spm_select(1,'image','select ROI file (.img)');
+end
+if nargin<2
+    mask   = spm_select(1,'image','select ROI file');
+end
+if nargin<3
     method = spm_input('Inference method',+1,'b','FFX|RFX',['ffx';'rfx']);
-else
-    if nargin <2
-        mask   = spm_select(1,'image','select ROI file (.img)');
-        method = spm_input('Inference method',+1,'b','FFX|RFX',['ffx';'rfx']);
-    end
 end
 
 mask_image = spm_vol(mask);         % Mask image Vol

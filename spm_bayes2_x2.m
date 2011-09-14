@@ -7,10 +7,10 @@ function [xCon,SPM]= spm_bayes2_x2(SPM,XYZ,xCon,ic)
 % xCon - contrast info
 % ic   - contrast number
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_bayes2_x2.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_bayes2_x2.m 4489 2011-09-14 11:27:38Z guillaume $
         
 
 %-Compound Contrast
@@ -77,7 +77,7 @@ spm_progress_bar('Clear');
 %-Create handle
 %--------------------------------------------------------------------------
 Vhandle = struct(...
-    'fname',  sprintf('x2_%04d.img',ic),...
+    'fname',  [sprintf('x2_%04d',ic) spm_file_ext],...
     'dim',    SPM.xVol.DIM',...
     'dt',     [spm_type('float32') spm_platform('bigend')],... 
     'mat',    SPM.xVol.M,...

@@ -9,10 +9,10 @@ function spm_bms_partition(BMS)
 % PPM (images) for each of the subsets defined
 % xppm_subsetn.img (RFX) and ppm_subsetn.img (FFX)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_bms_partition.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -85,7 +85,7 @@ for j = 1:nb_subsets,
     for jj = 1:n_models_sub-1
         ftmp{j} = [ftmp{j},sprintf(' + i%d',jj+1)];
     end
-    fname       = fullfile(pth,sprintf('subset%d_%s.img',j,str_output));
+    fname       = fullfile(pth,[sprintf('subset%d_%s',j,str_output) spm_file_ext]);
     save_fn{j}  = fname;
     Vo = calc_im(j,data_vol,fname,ftmp);
 end

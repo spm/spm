@@ -225,7 +225,7 @@ function [SPM] = spm_spm(SPM)
 %
 % The following images are written to file
 %
-% mask.{img,hdr}                                   - analysis mask image
+% mask.<ext>                                     - analysis mask image
 % 8-bit (uint8) image of zero-s & one's indicating which voxels were
 % included in the analysis. This mask image is the intersection of the
 % explicit, implicit and threshold masks specified in the xM argument.
@@ -235,28 +235,28 @@ function [SPM] = spm_spm(SPM)
 %
 %                           ----------------
 %
-% beta_????.{img,hdr}                                 - parameter images
+% beta_????.<ext>                                   - parameter images
 % These are 32-bit (float32) images of the parameter estimates. The image
 % files are numbered according to the corresponding column of the
-% design matrix. Voxels outside the analysis mask (mask.img) are given
+% design matrix. Voxels outside the analysis mask (mask.<ext>) are given
 % value NaN.
 %
 %                           ----------------
 %
-% ResMS.{img,hdr}                    - estimated residual variance image
+% ResMS.<ext>                      - estimated residual variance image
 % This is a 64-bit (float64) image of the residual variance estimate.
 % Voxels outside the analysis mask are given value NaN.
 %
 %                           ----------------
 %
-% RPV.{img,hdr}                      - estimated resels per voxel image
+% RPV.<ext>                         - estimated resels per voxel image
 % This is a 64-bit (float64) image of the RESELs per voxel estimate.
 % Voxels outside the analysis mask are given value 0.  These images
 % reflect the nonstationary aspects the spatial autocorrelations.
 %
 %                           ----------------
 %
-% ResI_????.{img,hdr}        - standardised residual (temporary) images
+% ResI_????.<ext>           - standardised residual (temporary) images
 % These are 64-bit (float64) images of standardised residuals. At most
 % maxres images will be saved and used by spm_est_smoothness, after which
 % they will be deleted.
@@ -278,12 +278,12 @@ function [SPM] = spm_spm(SPM)
 %       NeuroImage 2:173-181
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4191 2011-02-03 13:30:02Z guillaume $
+% $Id: spm_spm.m 4489 2011-09-14 11:27:38Z guillaume $
  
-SVNid     = '$Rev: 4191 $';
+SVNid     = '$Rev: 4489 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -323,7 +323,8 @@ end
  
 %-Delete files from previous analyses
 %--------------------------------------------------------------------------
-if exist(fullfile(SPM.swd,'mask.img'),'file') == 2
+if exist(fullfile(SPM.swd,'mask.img'),'file') == 2 || ...
+   exist(fullfile(SPM.swd,'mask.nii'),'file') == 2
  
     str = {'Current directory contains SPM estimation files:',...
         'pwd = ',SPM.swd,...
@@ -506,14 +507,15 @@ if isfield(xX,'W')
  
     %-Initialise new mask name: current mask & conditions on voxels
     %----------------------------------------------------------------------
-    VM    = struct('fname',  'mask.img',...
-                   'dim',    DIM',...
-                   'dt',     [spm_type('uint8') spm_platform('bigend')],...
-                   'mat',    M,...
-                   'pinfo',  [1 0 0]',...
-                   'descrip','spm_spm:resultant analysis mask');
+    VM    = struct(...
+        'fname',  ['mask' spm_file_ext],...
+        'dim',    DIM',...
+        'dt',     [spm_type('uint8') spm_platform('bigend')],...
+        'mat',    M,...
+        'pinfo',  [1 0 0]',...
+        'descrip','spm_spm:resultant analysis mask');
     VM    = spm_create_vol(VM);
- 
+    
  
     %-Initialise beta image files
     %----------------------------------------------------------------------
@@ -526,7 +528,7 @@ if isfield(xX,'W')
         'descrip',  ''));
     
     for i = 1:nBeta
-        Vbeta(i).fname   = sprintf('beta_%04d.img',i);
+        Vbeta(i).fname   = [sprintf('beta_%04d',i) spm_file_ext];
         Vbeta(i).descrip = sprintf('spm_spm:beta (%04d) - %s',i,xX.name{i});
     end
     Vbeta = spm_create_vol(Vbeta);
@@ -534,7 +536,8 @@ if isfield(xX,'W')
  
     %-Initialise residual sum of squares image file
     %----------------------------------------------------------------------
-    VResMS = struct('fname',    'ResMS.img',...
+    VResMS = struct(...
+        'fname',    ['ResMS' spm_file_ext],...
         'dim',      DIM',...
         'dt',       [spm_type('float64') spm_platform('bigend')],...
         'mat',      M,...
@@ -554,7 +557,7 @@ if isfield(xX,'W')
         'descrip',  'spm_spm:StandardisedResiduals'));
  
     for i = 1:nSres
-        VResI(i).fname   = sprintf('ResI_%04d.img', i);
+        VResI(i).fname   = [sprintf('ResI_%04d', i) spm_file_ext];
         VResI(i).descrip = sprintf('spm_spm:ResI (%04d)', i);
     end
     VResI = spm_create_vol(VResI);

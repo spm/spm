@@ -120,43 +120,43 @@
 % The XYZ matrix contains the voxel coordinates of all voxels in the
 % analysis mask. The mask image is included for reference, but is not
 % explicitly used by the results section.
-% Note mask.img is only written if the selected space is 'Volume' or 
+% Note mask.<ext> is only written if the selected space is 'Volume' or 
 % 'Masked Volume' (ie not 'Slices')
 %
-% labels.{img,hdr}                                - block labels
+% labels.<ext>                                - block labels
 % 8-bit (uint8) image of zero-s & integers from 1 to max no. of blocks, 
 % e.g. slices or subvoumes, indicating which block a voxel belongs. 
 % This info is also stored in SPM.xVol.labels (same order as XYZ matrix),  
 % for all analysis space options.
 %
-% Cbeta_????.{img,hdr}  
+% Cbeta_????.<ext>  
 % These are 16-bit (float) images of the parameter posteriors. The image
 % files are numbered according to the corresponding column of the
 % design matrix.
-% Voxels outside the analysis mask (mask.img) are given value NaN.
+% Voxels outside the analysis mask (mask.<ext>) are given value NaN.
 %
-% SDbeta_????.{img,hdr} 
+% SDbeta_????.<ext> 
 % These are 16-bit (float) images of the standard deviation of parameter
 % posteriors. 
 % The image files are numbered according to the corresponding column of
 % the design matrix.
-% Voxels outside the analysis mask (mask.img) are given value NaN.
+% Voxels outside the analysis mask (mask.<ext>) are given value NaN.
 %
-% Sess%s%_SDerror.{img,hdr} 
+% Sess%s%_SDerror.<ext>
 % This is a 16-bit (float) image of the standard deviation of the error
 % for session s.
-% Voxels outside the analysis mask (mask.img) are given value NaN.
+% Voxels outside the analysis mask (mask.<ext>) are given value NaN.
 %
-% Sess%s%_AR_????.{img,hdr} 
+% Sess%s%_AR_????.<ext>
 % These are 16-bit (float) images of AR coefficients for session s.
 % The image files are numbered according to the order of the 
 % corresponding AR coefficient.
-% Voxels outside the analysis mask (mask.img) are given value NaN.
+% Voxels outside the analysis mask (mask.<ext>) are given value NaN.
 %_______________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_spm_vb.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -201,7 +201,8 @@ end
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if SPM.PPM.window
-    if exist(fullfile(pwd,'mask.img'),'file') == 2
+    if exist(fullfile(pwd,'mask.img'),'file') == 2 || ...
+       exist(fullfile(pwd,'mask.nii'),'file') == 2
         
         str   = {'Current directory contains SPM estimation files:',...
                  'pwd = ',pwd,...
@@ -284,7 +285,7 @@ Vbeta(1:nBeta) = deal(struct(...
             'descrip',  ''));
         
 for i = 1:nBeta
-    Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
+    Vbeta(i).fname   = [sprintf('Cbeta_%04d',i) spm_file_ext];
     Vbeta(i).descrip = sprintf('Posterior mean of beta (%04d) - %s',i,xX.name{i});
 end
 Vbeta = spm_create_vol(Vbeta);
@@ -300,7 +301,7 @@ VPsd(1:nPsd) = deal(struct(...
     'descrip',  ''));
     
 for i = 1:nPsd
-    VPsd(i).fname   = sprintf('SDbeta_%04d.img',i);
+    VPsd(i).fname   = [sprintf('SDbeta_%04d',i) spm_file_ext];
     VPsd(i).descrip = sprintf('Posterior SD of beta (%04d)',i);
 end
 VPsd = spm_create_vol(VPsd);
@@ -316,7 +317,7 @@ for s = 1:nsess
         'pinfo',    [1 0 0]',...
         'descrip',  '');
     
-    SPM.PPM.Sess(s).VHp.fname   = sprintf('Sess%d_SDerror.img',s);
+    SPM.PPM.Sess(s).VHp.fname   = [sprintf('Sess%d_SDerror',s) spm_file_ext];
     SPM.PPM.Sess(s).VHp.descrip = sprintf('Sess%d Error SD',s);
     SPM.PPM.Sess(s).VHp = spm_create_vol(SPM.PPM.Sess(s).VHp);
 end
@@ -343,7 +344,7 @@ for s=1:nsess
             'n',        1,...
             'private',  []);
         SPM.PPM.Sess(s).VAR(i).fname   = ...
-            sprintf('Sess%d_AR_%04d.img',s,i);
+            [sprintf('Sess%d_AR_%04d',s,i) spm_file_ext];
         SPM.PPM.Sess(s).VAR(i).descrip = ...
             sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
     end
@@ -365,7 +366,7 @@ end
 
 if SPM.PPM.update_F
     SPM.PPM.LogEv = struct(...
-        'fname',    'LogEv.img',...
+        'fname',    ['LogEv' spm_file_ext],...
         'dim',      DIM',...
         'dt',       [spm_type('float32') spm_platform('bigend')],... 
         'mat',      M,...
@@ -379,7 +380,7 @@ end
 %-----------------------------------------------------------------------
 for ic = 1:ncon
     SPM.xCon(ic).Vcon = struct(...
-        'fname',   sprintf('con_%04d.img',ic),...
+        'fname',   [sprintf('con_%04d',ic) spm_file_ext],...
         'dim',     DIM',...
         'dt',      [spm_type('float32') spm_platform('bigend')],...
         'mat',     M,...
@@ -387,7 +388,7 @@ for ic = 1:ncon
         'descrip', sprintf('SPM contrast - %d: %s',ic,SPM.xCon(ic).name));
     
     V = struct(...
-        'fname',   sprintf('con_sd_%04d.img',ic),...
+        'fname',   [sprintf('con_sd_%04d',ic) spm_file_ext],...
         'dim',     DIM',...
         'dt',      [spm_type('float32') spm_platform('bigend')],...
         'mat',     M,...
@@ -420,7 +421,7 @@ end
 %-Initialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
 VM = struct(...
-    'fname',    'mask.img',...
+    'fname',    ['mask' spm_file_ext],...
     'dim',      DIM',...
     'dt',       [spm_type('uint8') spm_platform('bigend')],...
     'mat',      M,...
@@ -495,7 +496,7 @@ end
 %-Initialise image containing labels of each block (slice or subvolume) 
 %-----------------------------------------------------------------------
 VLabel = struct(...
-    'fname',    'labels.img',...
+    'fname',    ['labels' spm_file_ext],...
     'dim',      DIM',...
     'dt',       [spm_type('uint8') spm_platform('bigend')],...
     'mat',      M,...

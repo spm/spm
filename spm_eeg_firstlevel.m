@@ -8,12 +8,12 @@ function spm_eeg_firstlevel(S)
 %    window         - start and end of a window in peri-stimulus time [ms]
 %    Pout           - output directory
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_eeg_firstlevel.m 4489 2011-09-14 11:27:38Z guillaume $
 
-SVNrev = '$Rev: 4447 $';
+SVNrev = '$Rev: 4489 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -101,7 +101,7 @@ for j = 1:Nf % over files
         Vcon               = Vbeta;
         Vcon.mat(3,3:4)    = [1.0 0.0];
         Vcon.mat0          = Vcon.mat;
-        Vcon.dat.fname     = sprintf('%s_con_%04d.img', spm_file(fnames{j},'basename'), i);
+        Vcon.dat.fname     = [sprintf('%s_con_%04d', spm_file(fnames{j},'basename'), i) spm_file_ext];
         Vcon.dat.scl_slope = 1.0;
         Vcon.dat.scl_inter = 0.0;
         Vcon.dat.dtype     = 'float32-le';

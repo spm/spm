@@ -12,32 +12,22 @@ function con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 %                   posterior for group 2)
 %
 % Output: contrast image (path)
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
-% Maria Joao
-% $Id: spm_bms_compare_groups.m 4310 2011-04-18 16:07:35Z guillaume $
+% Maria Joao Rosa
+% $Id: spm_bms_compare_groups.m 4489 2011-09-14 11:27:38Z guillaume $
 
-% Find graphics window
-% -------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
-
+%-Parameters
+%--------------------------------------------------------------------------
 if nargin < 3
-    
-    BMSfiles = spm_select([1 Inf],'^BMS.mat$','select BMS.mat files');
+    BMSfiles = spm_select(2,'^BMS\.mat$','select BMS.mat files');
     name     = spm_input('Contrast name ? ',1,'s');
-    contrast = spm_input('Contrast:','+1','b','A>B|A<B',['A>B';'A<B']);
-    dirct    = [pwd,filesep];
-    
+    contrast = spm_input('Contrast:','+1','b','A>B|A<B',['A>B';'A<B']);    
 end
 
-nfiles = size(BMSfiles,1);
-if nfiles ~=2
-    error('Please seclect two BMS.mat files (one for each group)!')
-end
-
-% Sort out log-evidence images dimensions
-% -------------------------------------------------------------------------
+%-Sort out log-evidence images dimensions
+%--------------------------------------------------------------------------
 load(deblank(BMSfiles(1,:)))
 Vol = spm_vol(BMS.map.rfx.alpha{1});
 
@@ -52,20 +42,16 @@ yords           = yords(:)';
 I               = 1:xdim*ydim;
 zords_init      = ones(1,xdim*ydim);
 
-% Setup images
-% -------------------------------------------------------------------------
-% Create con .img 
-con_image(1) = struct(...
-    'fname',    '',...
+%-Setup images
+%--------------------------------------------------------------------------
+con_image = struct(...
+    'fname',    fullfile(pwd,[name spm_file_ext]),...
     'dim',      DIM',...
     'dt',       [spm_type('float32') spm_platform('bigend')],...
     'mat',      M,...
     'pinfo',    [1 0 0]',...
-    'n', [1 1], ...
-    'descrip',  '');
-
-con_image(1).fname   = sprintf('%s%s.img',dirct,name);
-con_image(1).descrip = sprintf('Contrat image: %s',name);
+    'n',        [1 1], ...
+    'descrip',  sprintf('Contrat image: %s',name));
 
 % Create files
 con_image = spm_create_vol(con_image);
@@ -80,13 +66,13 @@ end
 ncon = length(ind);
 ngrp = size(BMSfiles,1);
 
-% Progress bar
-% -------------------------------------------------------------------------
+%-Progress bar
+%--------------------------------------------------------------------------
 spm_progress_bar('Init',zdim,'BMS Maps (Inference)','Slices complete');
 
-% Loop through image slices
-% -------------------------------------------------------------------------
-for z = 1:zdim,
+%-Loop through image slices
+%--------------------------------------------------------------------------
+for z = 1:zdim
     
     spm_progress_bar('Set',z);                  % Update progress bar
     j = NaN(xdim,ydim);                         % Init. image values
@@ -121,21 +107,20 @@ for z = 1:zdim,
             con_total(1,n) = xp;          % Cond. Expecta.
         end
         % Write images
-        j(non_nan)     = con_total(1,:);
-        con_image(1)   = spm_write_plane(con_image(1),j,z);
+        j(non_nan) = con_total(1,:);
+        con_image  = spm_write_plane(con_image,j,z);
 
     else
         % Write images when Nvoxels = 0
-        con_image(1) = spm_write_plane(con_image(1),j,z);
+        con_image  = spm_write_plane(con_image,j,z);
     end
         
 
 end % Loop over slices
 
-% Clear progress bar
-% -------------------------------------------------------------------------
+%-Clear progress bar
+%--------------------------------------------------------------------------
 spm_progress_bar('Clear');
-disp('Done.');
 
 % Output: path to new file
-con_image = [dirct,name,'.img'];
+con_image = con_image.fname;

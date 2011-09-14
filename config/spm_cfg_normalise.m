@@ -3,7 +3,7 @@ function normalise = spm_cfg_normalise
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 4486 2011-09-13 16:07:38Z guillaume $
+% $Id: spm_cfg_normalise.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -423,7 +423,7 @@ normalise.help    = {
                      ''
                      'The primarily use is for stereotactic normalisation to facilitate inter-subject averaging and precise characterisation of functional anatomy /* \cite{ashburner97bir} */.  It is not necessary to spatially normalise the data (this is only a pre-requisite  for  inter-subject averaging or reporting in the Talairach space).  If you wish to circumnavigate this step  (e.g. if you have single slice data or do not have an appropriate high resolution MRI scan) simply specify where you think the  anterior commissure  is  with  the  ORIGIN in the header of the first scan (using the ''Display'' facility) and proceed directly  to ''Smoothing''or ''Statistics''.'
                      ''
-                     'All normalised *.img scans are written to the same subdirectory as the original *.img, prefixed with a ''w'' (i.e. w*.img).  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
+                     'All normalised images are written to the same subdirectory as the original images, prefixed with a ''w''.  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
 }';
 normalise.values   = {est write estwrite };
 

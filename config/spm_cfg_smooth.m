@@ -1,18 +1,18 @@
 function smooth = spm_cfg_smooth
 % SPM Configuration file for Smooth
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_smooth.m 4489 2011-09-14 11:27:38Z guillaume $
 
-rev = '$Rev: 3691 $';
+
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
 data         = cfg_files;
 data.tag     = 'data';
 data.name    = 'Images to Smooth';
-data.help    = {'Specify the images to smooth. The smoothed images are written to the same subdirectories as the original *.img and are prefixed with a ''s'' (i.e. s*.img). The prefix can be changed by an option setting.'};
+data.help    = {'Specify the images to smooth. The smoothed images are written to the same subdirectories as the original images and are prefixed with a ''s''. The prefix can be changed by an option setting.'};
 data.filter = 'image';
 data.ufilter = '.*';
 data.num     = [0 Inf];

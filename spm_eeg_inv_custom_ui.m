@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 4032 2010-08-04 10:15:35Z vladimir $
+% $Id: spm_eeg_inv_custom_ui.m 4489 2011-09-14 11:27:38Z guillaume $
  
 % defaults from D is specified
 %==========================================================================
@@ -70,18 +70,17 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
         f = '(.*\.gii$)|(.*\.mat$)|(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
         [P, sts]   = spm_select(1, f, 'Select source priors');
         if sts
-            [p,f,e] = fileparts(P);
-            switch lower(e)
-                case '.gii'
+            switch lower(spm_file(P,'ext'))
+                case 'gii'
                     g = gifti(P);
                     inverse.pQ = cell(1,size(g.cdata,2));
                     for i=1:size(g.cdata,2)
                         inverse.pQ{i} = double(g.cdata(:,i));
                     end
-                case '.mat'
+                case 'mat'
                     load(P);
                     inverse.pQ = pQ;
-                case {'.img', '.nii'}
+                case {'img', 'nii'}
                     S.D = D;
                     S.fmri = P;
                     D = spm_eeg_inv_fmripriors(S);

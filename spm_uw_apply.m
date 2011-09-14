@@ -96,7 +96,7 @@ function varargout = spm_uw_apply(ds,flags)
 %
 %         mean - write mean image
 %                The average of all the realigned scans is written to
-%                mean*.img.
+%                mean*.<ext>.
 %
 %         interp - the interpolation method (see e.g. spm_bsplins.m).
 %
@@ -120,10 +120,10 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 4482 2011-09-12 18:04:53Z guillaume $
+% $Id: spm_uw_apply.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
-SVNid = '$Rev: 4482 $';
+SVNid = '$Rev: 4489 $';
 
 %-Say hello
 %--------------------------------------------------------------------------

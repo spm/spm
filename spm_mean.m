@@ -15,7 +15,7 @@ function spm_mean(P)
 % Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean.m 4419 2011-08-03 18:42:35Z guillaume $
+% $Id: spm_mean.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
 persistent runonce
@@ -24,7 +24,7 @@ if isempty(runonce)
     runonce = 1;
 end
 
-SVNid = '$Rev: 4419 $';
+SVNid = '$Rev: 4489 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ spm_check_orientations(Vi);
 
 %-Compute mean and write image
 %--------------------------------------------------------------------------
-Vo = struct('fname',    'mean.img',...
+Vo = struct('fname',    ['mean' spm_file_ext],...
             'dim',      Vi(1).dim(1:3),...
             'dt',       [spm_type('int16') spm_platform('bigend')],...
             'mat',      Vi(1).mat,...

@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 4418 2011-08-03 12:00:13Z guillaume $
+% $Id: spm_cfg_imcalc.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % ---------------------------------------------------------------------
 % input Input Images
@@ -24,7 +24,7 @@ output.name    = 'Output Filename';
 output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'};
 output.strtype = 's';
 output.num     = [1 Inf];
-output.val     = {'output.img'};
+output.val     = {'output'};
 % ---------------------------------------------------------------------
 % outdir Output Directory
 % ---------------------------------------------------------------------

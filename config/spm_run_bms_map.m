@@ -15,16 +15,16 @@ function out = spm_run_bms_map (job)
 % 'Bayesian Model Selection for Group Studies'.
 % Output files (for each model): 
 %       BMS.mat 
-%       Exceedance Probability Maps (*epm.img),
-%       Posterior Probability Maps (*ppm.img),
-%       Dirichlet Paramters (alpha) Maps (*alpha.img).
+%       Exceedance Probability Maps (*epm.<ext>),
+%       Posterior Probability Maps (*ppm.<ext>),
+%       Dirichlet Paramters (alpha) Maps (*alpha.<ext>).
 %
 % The Fixed-effects 'FFX' method adds together the log-evidences over 
 % subjects/sessions for each group, then compares the group log-ev's. 
 % This is also known as the Group Bayes Factor (GBF) approach [2]. 
 % Output files (for each model):
 %       BMS.mat 
-%       Posterior Probability Maps (*ppm.img).
+%       Posterior Probability Maps (*ppm.<ext>).
 %
 % BMS contains:
 %     BMS.fname
@@ -43,7 +43,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 3624 2009-12-09 11:07:38Z maria $
+% $Id: spm_run_bms_map.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
@@ -131,7 +131,7 @@ switch method
         % Save BMS data
         out.files{1} = fname;
             
-        % Create PPM .img files for each model
+        % Create PPM image files for each model
         model_ppm(1:nmodels) = struct(...
         'fname',    '',...
         'dim',      DIM',...
@@ -143,7 +143,7 @@ switch method
 
         % Load Vols for all subjects/models 
         for i = 1:nmodels,
-            model_ppm(i).fname   = sprintf('%s%s_model_ppm.img',direct,names{i});
+            model_ppm(i).fname   = [sprintf('%s%s_model_ppm',direct,names{i}) spm_file_ext];
             model_ppm(i).descrip = sprintf('PPM: %s model',names{i});
             BMS.map.ffx.ppm{i}   = model_ppm(i).fname;
             
@@ -189,7 +189,7 @@ switch method
         % BMS structure
         out.files{1}   = fname; 
     
-        % Create PPM .img files for each model
+        % Create PPM image files for each model
         model_exp_r(1:nmodels) = struct(...
         'fname',    '',...
         'dim',      DIM',...
@@ -200,7 +200,7 @@ switch method
         'descrip',  '');
    
         if do_ecp
-            % Create EPM .img files for each model
+            % Create EPM image files for each model
             model_xp(1:nmodels) = struct(...
             'fname',    '',...
             'dim',      DIM',...
@@ -212,7 +212,7 @@ switch method
         end
         
         if do_alpha
-            % Create alpha .img files for each model
+            % Create alpha image files for each model
             model_alpha(1:nmodels) = struct(...
             'fname',    '',...
             'dim',      DIM',...
@@ -225,16 +225,16 @@ switch method
         
         % Load Vols for all subjects/models
         for i = 1:nmodels,
-            model_exp_r(i).fname   = sprintf('%s%s_model_xppm.img',direct,names{i});
+            model_exp_r(i).fname   = [sprintf('%s%s_model_xppm',direct,names{i}) spm_file_ext];
             model_exp_r(i).descrip = sprintf('Exp_r: %s model',names{i});
             BMS.map.rfx.ppm{i}     = model_exp_r(i).fname;
             if do_ecp
-            model_xp(i).fname      = sprintf('%s%s_model_epm.img',direct,names{i});
+            model_xp(i).fname      = [sprintf('%s%s_model_epm',direct,names{i}) spm_file_ext];
             model_xp(i).descrip    = sprintf('XP: %s model',names{i});
             BMS.map.rfx.epm{i}     = model_xp(i).fname;
             end
             if do_alpha
-            model_alpha(i).fname   = sprintf('%s%s_model_alpha.img',direct,names{i});
+            model_alpha(i).fname   = [sprintf('%s%s_model_alpha',direct,names{i}) spm_file_ext];
             model_alpha(i).descrip = sprintf('Alpha: %s model',names{i});
             BMS.map.rfx.alpha{i}   = model_alpha(i).fname;
             end

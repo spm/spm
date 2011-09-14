@@ -12,9 +12,9 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 3308 2009-08-06 18:19:40Z vladimir $
+% $Id: spm_eeg_mask.m 4489 2011-09-14 11:27:38Z guillaume $
 
-SVNrev = '$Rev: 3308 $';
+SVNrev = '$Rev: 4489 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ end
 if ~isfield(S, 'outfile')
     [filename, pathname] = uiputfile({'*.img;*.nii'}, 'Select the mask file');
     [p,n,e] = fileparts(filename);
-    if isempty(e), filename = [filename '.img']; end
+    if isempty(e), filename = [filename spm_file_ext]; end
     S.outfile = fullfile(pathname, filename);
 end
 

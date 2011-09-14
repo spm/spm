@@ -51,15 +51,15 @@ function [SPM] = spm_spm_Bayes(SPM)
 %
 %                           ----------------
 %
-% Cbeta_????.{img,hdr}                     - conditional parameter images
+% Cbeta_????.<ext>                     - conditional parameter images
 % These are 16-bit (float) images of the conditional estimates. The image
 % files are numbered according to the corresponding column of the
-% design matrix. Voxels outside the analysis mask (mask.img) are given
+% design matrix. Voxels outside the analysis mask (mask.<ext>) are given
 % value NaN.
 %
 %                           ----------------
 %
-% CHp_????.{img,hdr}              - error covariance hyperparamter images
+% CHp_????.<ext>              - error covariance hyperparamter images
 % This is a 32-bit (double) image of the ReML error variance estimate.
 % for each separable partition (Session).  Voxels outside the analysis 
 % mask are given value NaN.
@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_spm_Bayes.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
 %-Say hello
@@ -118,7 +118,7 @@ Vbeta(1:nBeta) = deal(struct(...
             'pinfo',    [1 0 0]',...
             'descrip',  ''));
 for i = 1:nBeta
-    Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
+    Vbeta(i).fname   = [sprintf('Cbeta_%04d',i) spm_file_ext];
     Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
     spm_unlink(Vbeta(i).fname)
 end
@@ -141,7 +141,7 @@ VHp(1:nHp)    = deal(struct(...
             'pinfo',    [1 0 0]',...
             'descrip',  ''));
 for i = 1:nHp
-    VHp(i).fname   = sprintf('Hp_%04d.img',i);
+    VHp(i).fname   = [sprintf('Hp_%04d',i) spm_file_ext];
     VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
     spm_unlink(VHp(i).fname)
 end

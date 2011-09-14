@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_peb_ppi.m 4489 2011-09-14 11:27:38Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -112,7 +112,7 @@ function PPI = spm_peb_ppi(varargin)
 % PPI.ppi, PPI.Y and PPI.P columns respectively, will show regions with a
 % positive relationship to the interaction term, discounting any main
 % effects. Negative regressions can be examined with [-1 0 0]. A PPI random
-% effects analysis would involve taking the con*.img files from the [1 0 0]
+% effects analysis would involve taking the con* files from the [1 0 0]
 % t-contrast for each subject and forwarding them to a second level
 % analysis.
 

@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_est_smoothness.m 4489 2011-09-14 11:27:38Z guillaume $
 
 
 %-Assign input arguments
@@ -63,10 +63,10 @@ if nargin > 3
     return;
 end
 if nargin < 1
-    V   = spm_select(inf, '^ResI.*\.img$', 'Select residual images');
+    V   = spm_select(Inf,'image','Select residual images',{},pwd,'^ResI.*.{3}$');
 end
 if nargin < 2
-    VM  = spm_select(1, '^mask\.img$', 'Select mask image');
+    VM  = spm_select(1,'image','Select mask image',{},pwd,'^mask\..{3}$');
 end
 if nargin < 3, ndf = [NaN NaN]; end
 if length(ndf) ~= 2
@@ -89,7 +89,7 @@ edf    = ndf(2);
 
 %-Initialise RESELS per voxel image
 %--------------------------------------------------------------------------
-VRpv  = struct( 'fname','RPV.img',...
+VRpv  = struct( 'fname',['RPV' spm_file_ext],...
     'dim',      VM.dim(1:3),...
     'dt',       [spm_type('float64') spm_platform('bigend')],...
     'mat',      VM.mat,...
