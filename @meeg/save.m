@@ -1,13 +1,13 @@
 function res = save(this)
-% save an meeg object into a file
+% Save an meeg object into a file
 % FORMAT res = save(this)
 %
 % Converts an meeg object to struct and saves it.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: save.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 D = struct(this);

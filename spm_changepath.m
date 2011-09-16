@@ -18,7 +18,7 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 4078 2010-10-06 17:41:26Z guillaume $
+% $Id: spm_changepath.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Input arguments
@@ -57,7 +57,7 @@ if ischar(Sf)
             fprintf('=> Fixing %s\n',f);
             [sts, msg] = movefile(f,[f '.old']);
             if ~sts, error(msg); end
-            save(f ,'-struct','tmp','-V6');
+            save(f ,'-struct','tmp', spm_get_defaults('mat.format'));
         end
     end
 else

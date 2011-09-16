@@ -38,7 +38,7 @@ function spm_dcm_post_hoc(P)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4307 2011-04-14 16:45:43Z guillaume $
+% $Id: spm_dcm_post_hoc.m 4492 2011-09-16 12:11:09Z guillaume $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -255,11 +255,7 @@ for j = 1:N
     catch
         P{j} = fullfile(pwd,['DCM_opt_' date '.mat']);
     end
-    if spm_check_version('matlab','7') >= 0
-        save(P{j},'-V6','DCM','F','Ep','Cp');
-    else
-        save(P{j},'DCM','F','Ep','Cp');
-    end
+    save(P{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
     
 end
  

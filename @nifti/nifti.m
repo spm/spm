@@ -1,45 +1,45 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 4270 2011-03-29 16:26:26Z john $
+% $Id: nifti.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 switch nargin
 case 0,
     org = niftistruc;
     hdr = [];
-    for i=1:length(org),
+    for i=1:length(org)
         hdr.(org(i).label) = feval(org(i).dtype.conv,org(i).def);
-    end;
+    end
     h = struct('hdr',hdr,'dat',[],'extras',struct);
     h = class(h,'nifti');
 
 case 1
     if ischar(varargin{1})
-        if size(varargin{1},1)>1,
+        if size(varargin{1},1)>1
             h = nifti(cellstr(varargin{1}));
             return;
-        end;
+        end
         fname  = deblank(varargin{1});
         vol    = read_hdr(fname);
         extras = read_extras(fname);
 
-        if ~isfield(vol.hdr,'magic'),
+        if ~isfield(vol.hdr,'magic')
             vol.hdr = mayo2nifti1(vol.hdr);
 
             % For SPM99 compatibility
-            if isfield(extras,'M') && ~isfield(extras,'mat'),
+            if isfield(extras,'M') && ~isfield(extras,'mat')
                  extras.mat = extras.M;
-                 if spm_flip_analyze_images,
+                 if spm_flip_analyze_images
                      extras.mat = diag([-1 1 1 1])*extras.mat;
-                 end;
-            end;
+                 end
+            end
 
             % Over-ride sform if a .mat file exists
-            if isfield(extras,'mat') && size(extras.mat,3)>=1,
+            if isfield(extras,'mat') && size(extras.mat,3)>=1
                 mat            = extras.mat(:,:,1);
                 mat1           = mat*[eye(4,3) [1 1 1 1]'];
                 vol.hdr.srow_x = mat1(1,:);
@@ -48,20 +48,20 @@ case 1
                 vol.hdr.sform_code = 2;
                 vol.hdr.qform_code = 2;
                 vol.hdr = encode_qform0(mat,vol.hdr);
-            end;
-        end;
+            end
+        end
 
-        if isfield(extras,'M'), extras = rmfield(extras,'M'); end;
-        if isfield(extras,'mat') && size(extras.mat,3)<=1,
+        if isfield(extras,'M'), extras = rmfield(extras,'M'); end
+        if isfield(extras,'mat') && size(extras.mat,3)<=1
             extras = rmfield(extras,'mat');
-        end;
+        end
 
         dim   = double(vol.hdr.dim);
         dim   = dim(2:(dim(1)+1));
         dt    = double(vol.hdr.datatype);
         offs  = max(double(vol.hdr.vox_offset),0);
 
-        if ~vol.hdr.scl_slope && ~vol.hdr.scl_inter,
+        if ~vol.hdr.scl_slope && ~vol.hdr.scl_inter
             vol.hdr.scl_slope = 1;
         end;
         slope = double(vol.hdr.scl_slope);
@@ -78,14 +78,13 @@ case 1
         fnames = varargin{1};
         h(numel(fnames)) = struct('hdr',[],'dat',[],'extras',struct);
         h     = class(h,'nifti');
-        for i=1:numel(fnames),
+        for i=1:numel(fnames)
             h(i) = nifti(fnames{i});
-        end;
+        end
 
     else
         error('Dont know what to do yet.');
-    end;
+    end
 otherwise
     error('Dont know what to do yet');
-end;
-return;
+end

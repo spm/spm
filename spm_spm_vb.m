@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_spm_vb.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -1096,11 +1096,7 @@ end
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-if spm_check_version('matlab','7') >= 0
-    save('SPM.mat', 'SPM', '-V6');
-else
-    save('SPM.mat', 'SPM');
-end
+save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 

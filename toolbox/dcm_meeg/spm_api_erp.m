@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4448 2011-08-30 16:39:25Z guillaume $
+% $Id: spm_api_erp.m 4492 2011-09-16 12:11:09Z guillaume $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -256,7 +256,7 @@ if fpath
     handles.DCM.name = fullfile(fpath,file);
     set(handles.name,'String',file);
     DCM              = handles.DCM;
-    save(DCM.name,'DCM')
+    save(DCM.name,'DCM', spm_get_defaults('mat.format'))
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
     cd(fpath)

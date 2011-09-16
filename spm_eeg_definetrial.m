@@ -24,10 +24,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_definetrial.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
-SVNrev = '$Rev: 3833 $';
+SVNrev = '$Rev: 4492 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -248,7 +248,7 @@ if S.save
     [trlfilename, trlpathname] = uiputfile( ...
         {'*.mat', 'MATLAB File (*.mat)'}, 'Save trial definition as');
 
-    save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels');
+    save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels', spm_get_defaults('mat.format'));
 end
 
 %-Cleanup

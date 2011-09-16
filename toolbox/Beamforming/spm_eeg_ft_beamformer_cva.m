@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_eeg_ft_beamformer_cva.m 4492 2011-09-16 12:11:09Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -1052,7 +1052,7 @@ for boot=1:Nboot,
     end; % for fband=1:Nbands
 end; %% bootstrap
 bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_file(D.fname, 'basename') '_' num2str(freqbands(fband,1)) '-' num2str(freqbands(fband,2)) 'Hz' featurestr '.mat']);
-save(bootlist,'bttrials');
+save(bootlist,'bttrials', spm_get_defaults('mat.format'));
 
 end % function
 

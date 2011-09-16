@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_eeg_ft_beamformer_freq.m 4492 2011-09-16 12:11:09Z guillaume $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -283,7 +283,7 @@ if isfield(S, 'geteta') && S.geteta
         filtsource.pos = mnigrid.pos;
         filtsource.dim = mnigrid.dim;
     end
-    save(fullfile(D.path, 'ori.mat'), 'filtsource');
+    save(fullfile(D.path, 'ori.mat'), 'filtsource', spm_get_defaults('mat.format'));
 end
 %
 cfg.keepfilter   = 'no';

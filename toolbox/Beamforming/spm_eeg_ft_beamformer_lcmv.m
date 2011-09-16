@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4492 2011-09-16 12:11:09Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -696,7 +696,7 @@ end; % for fband=1:Nbands
 end; % for boot   
 
 bootlist= fullfile(D.path, dirname, ['bootlist_'  spm_file(D.fname, 'basename') '_' num2str(S.freqbands{fband}(1)) '-' num2str(S.freqbands{fband}(2)) 'Hz' featurestr '.mat']);
-save(bootlist,'bttrials');
+save(bootlist,'bttrials', spm_get_defaults('mat.format'));
 
      
 end % function

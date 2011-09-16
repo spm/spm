@@ -20,7 +20,7 @@ function spm_dartel_kernel(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_kernel.m 2210 2008-09-26 20:14:13Z john $
+% $Id: spm_dartel_kernel.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 P      = strvcat(job.flowfields);
@@ -52,7 +52,7 @@ for i=1:n,
     end
     input = job;
     typ   = 'flow1';
-    save(ofname,'Phi','input','typ');
+    save(ofname,'Phi','input','typ', spm_get_defaults('mat.format'));
 end
 spm_progress_bar('Clear');
 

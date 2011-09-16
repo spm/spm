@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_normalise.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -198,7 +198,7 @@ else
 end;
 clear VF1 VG1
 
-flags.version = '$Rev: 4489 $';
+flags.version = '$Rev: 4492 $';
 flags.date    = date;
 
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
@@ -211,11 +211,7 @@ if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
 if ~isempty(matname),
     fprintf('Saving Parameters..\n');
-    if spm_check_version('matlab','7') >= 0,
-        save(matname,'-V6','Affine','Tr','VF','VG','flags');
-    else
-        save(matname,'Affine','Tr','VF','VG','flags');
-    end;
+    save(matname,'Affine','Tr','VF','VG','flags', spm_get_defaults('mat.format'));
 end;
 return;
 %_______________________________________________________________________

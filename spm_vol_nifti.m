@@ -1,23 +1,24 @@
 function V = spm_vol_nifti(fname,n)
-%  Get header information for a NIFTI-1 image.
-%  FORMAT V = spm_vol_nifti(P)
-%  P - filename.
+%  Get header information for a NIFTI-1 image
+%  FORMAT V = spm_vol_nifti(P,n)
+%  P - filename
 %  n - volume id (a 1x2 array, e.g. [3,1])
 %  V - a structure containing the image volume information.
-%____________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol_nifti.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vol_nifti.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
-if nargin<2,  n = [1 1];      end;
-if ischar(n), n = str2num(n); end;
+if nargin<2,  n = [1 1];      end
+if ischar(n), n = str2num(n); end
+
 N  = nifti(fname);
 n  = [n 1 1];
 n  = n(1:2);
 dm = [N.dat.dim 1 1 1 1];
-if any(n>dm(4:5)), V = []; return; end;
+if any(n>dm(4:5)), V = []; return; end
 
 dt = struct(N.dat);
 dt = double([dt.dtype dt.be]);

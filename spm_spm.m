@@ -281,9 +281,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_spm.m 4492 2011-09-16 12:11:09Z guillaume $
  
-SVNid     = '$Rev: 4489 $';
+SVNid     = '$Rev: 4492 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -882,11 +882,7 @@ if ~isfield(xVi,'V')
     % If xX.W is not specified use W*W' = inv(V) to give ML estimators
     %----------------------------------------------------------------------
     if ~isfield(xX,'W')
-        if spm_check_version('matlab','7') >=0
-            save('SPM.mat','SPM','-V6');
-        else
-            save('SPM.mat','SPM');
-        end
+        save('SPM.mat','SPM', spm_get_defaults('mat.format'));
         clear
         load('SPM.mat');
         SPM = spm_spm(SPM);
@@ -978,11 +974,7 @@ SPM.swd        = pwd;
  
 %-Save analysis parameters in SPM.mat file
 %--------------------------------------------------------------------------
-if spm_check_version('matlab','7') >=0
-    save('SPM.mat','SPM','-V6');
-else
-    save('SPM.mat','SPM');
-end
+save('SPM.mat','SPM', spm_get_defaults('mat.format'));
  
 %==========================================================================
 %- E N D: Cleanup GUI

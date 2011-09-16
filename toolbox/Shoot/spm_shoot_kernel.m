@@ -18,7 +18,7 @@ function out = spm_shoot_kernel(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_kernel.m 4026 2010-07-29 13:45:50Z john $
+% $Id: spm_shoot_kernel.m 4492 2011-09-16 12:11:09Z guillaume $
 
 defs   = spm_shoot_defaults;
 rparam = defs.rparam;
@@ -51,7 +51,7 @@ for i=1:n,
     input        = job;
     input.rparam = rparam;
     typ          = 'initvel';
-    save(ofname,'K','input','typ');
+    save(ofname,'K','input','typ', spm_get_defaults('mat.format'));
 end
 spm_progress_bar('Clear');
 

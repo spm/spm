@@ -114,7 +114,7 @@ if fpath
     handles.DCM.name = fullfile(fpath,file);
     set(handles.name,'String',file);
     DCM              = handles.DCM;
-    save(DCM.name,'DCM')
+    save(DCM.name,'DCM', spm_get_defaults('mat.format'))
     cd(fpath)
 end
  

@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_dcm_specify.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Interactive window
@@ -353,8 +353,4 @@ DCM.options = options;
 
 %-Save
 %--------------------------------------------------------------------------
-if spm_check_version('matlab','7') >= 0
-    save(fullfile(swd,['DCM_' name '.mat']),'-V6','DCM');
-else
-    save(fullfile(swd,['DCM_' name '.mat']),'DCM');
-end
+save(fullfile(swd,['DCM_' name '.mat']),'DCM', spm_get_defaults('mat.format'));

@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 4461 2011-09-05 15:11:37Z guillaume $
+% $Id: spm_run_bms_dcm.m 4492 2011-09-16 12:11:09Z guillaume $
 
 % input
 % -------------------------------------------------------------------------
@@ -366,11 +366,7 @@ if strcmp(method,'FFX');
     BMS.DCM.ffx.bma     = bma;
     
     disp('Saving BMS.mat file...')
-    if spm_check_version('matlab','7') >= 0
-        save(fname,'-V6','BMS');
-    else
-        save(fname,'BMS');
-    end
+    save(fname,'BMS', spm_get_defaults('mat.format'));
     
     out.files{1} = fname;
     
@@ -453,11 +449,8 @@ else
     BMS.DCM.rfx.bma     = bma;
     
     disp('Saving BMS.mat file...')
-    if spm_check_version('matlab','7') >= 0
-        save(fname,'-V6','BMS');
-    else
-        save(fname,'BMS');
-    end
+    save(fname,'BMS', spm_get_defaults('mat.format'));
+
     out.files{1}= fname;
     
 end
@@ -466,11 +459,7 @@ end
 % -------------------------------------------------------------------------
 if ~ld_msp && data_se && ~ld_f
     disp('Saving model space...')
-    if spm_check_version('matlab','7') >= 0
-        save(fname_msp,'-V6','subj');
-    else
-        save(fname_msp,'subj');
-    end
+    save(fname_msp,'subj', spm_get_defaults('mat.format'));
 end
 
 % Data verification

@@ -12,7 +12,7 @@ function spm_bms_partition(BMS)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_bms_partition.m 4492 2011-09-16 12:11:09Z guillaume $
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -103,7 +103,7 @@ switch method
 end
 file_name           = BMS.fname;
 BMS.xSPM            = [];
-save(file_name,'BMS')
+save(file_name,'BMS', spm_get_defaults('mat.format'))
 
 % Return to results
 %==========================================================================

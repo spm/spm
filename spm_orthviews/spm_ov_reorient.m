@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4380 2011-07-05 11:27:12Z volkmar $
+% $Id: spm_ov_reorient.m 4492 2011-09-16 12:11:09Z guillaume $
 
-rev = '$Revision: 4380 $';
+rev = '$Revision: 4492 $';
 
 global st;
 if isempty(st)
@@ -179,7 +179,7 @@ switch cmd
             [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
             if ~isequal(f,0)
                 M = st.vols{volhandle}.premul;
-                save(fullfile(p,f),'M');
+                save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
             end
         end
         qu = questdlg({'Image positions are changed!', ...
@@ -206,7 +206,7 @@ switch cmd
                 [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
                 if ~isequal(f,0)
                     M = st.vols{volhandle}.premul;
-                    save(fullfile(p,f),'M');
+                    save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
                 end
             end
             qu=questdlg({'Image positions are changed!', ...

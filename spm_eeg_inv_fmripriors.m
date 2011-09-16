@@ -30,7 +30,7 @@ function D = spm_eeg_inv_fmripriors(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_eeg_inv_fmripriors.m 4492 2011-09-16 12:11:09Z guillaume $
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -216,11 +216,7 @@ if ~S.varcomp
     pQ = pQ*pQ';
 end
 
-if spm_check_version('matlab','7') >=0
-    save(D.inv{val}.inverse.fmri.priors,'pQ','-V6');
-else
-    save(D.inv{val}.inverse.fmri.priors,'pQ');
-end
+save(D.inv{val}.inverse.fmri.priors,'pQ', spm_get_defaults('mat.format'));
 
 %-Save D structure
 %--------------------------------------------------------------------------

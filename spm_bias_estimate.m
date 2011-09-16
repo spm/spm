@@ -21,7 +21,7 @@ function T = spm_bias_estimate(V,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_bias_estimate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_bias_estimate.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 def_flags = struct('nbins',256,'reg',0.01,'cutoff',30);
@@ -77,7 +77,7 @@ for iter = 1:128,
     [pth,nm] = fileparts(deblank(V.fname));
     S        = fullfile(pth,['bias_' nm '.mat']);
     %S       = ['bias_' nm '.mat'];
-    save(S,'V','T','h');
+    save(S,'V','T','h', spm_get_defaults('mat.format'));
     fprintf('%g %g\n', ll, lp);
 
     if iter==1,

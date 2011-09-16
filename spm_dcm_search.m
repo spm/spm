@@ -33,7 +33,7 @@ function spm_dcm_search(P)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_search.m 4492 2011-09-16 12:11:09Z guillaume $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -159,11 +159,7 @@ for j = 1:N
     
     % Save DCM
     %======================================================================
-    if spm_check_version('matlab','7') >= 0
-        save(P{j},'-V6','DCM','F','Ep','Cp');
-    else
-        save(P{j},'DCM','F','Ep','Cp');
-    end
+    save(P{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
     
     % Record free-energy
     %----------------------------------------------------------------------
@@ -238,11 +234,7 @@ DCM.PP = p;
 %--------------------------------------------------------------------------
 pth      = fileparts(P{1});
 filename = fullfile(pth,'DCM_optimum.mat');
-if spm_check_version('matlab','7') >= 0
-    save(filename,'-V6','DCM','F','Ep','Cp');
-else
-    save(filename,'DCM','F','Ep','Cp');
-end
+save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
  
 % Full model
 %--------------------------------------------------------------------------
@@ -251,8 +243,4 @@ Ep       = FUL.Ep;
 Cp       = FUL.Cp;
 F        = FUL.F;
 filename = fullfile(pth,'DCM_full');
-if spm_check_version('matlab','7') >= 0
-    save(filename,'-V6','DCM','F','Ep','Cp');
-else
-    save(filename,'DCM','F','Ep','Cp');
-end
+save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));

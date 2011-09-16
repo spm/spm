@@ -10,7 +10,7 @@ function res = fmove(this, fname)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: fmove.m 4484 2011-09-13 11:30:19Z guillaume $
+% $Id: fmove.m 4492 2011-09-16 12:11:09Z guillaume $
 
 D = struct(this);
 
@@ -40,4 +40,4 @@ D.data.y.fname = fullfile(D.path,D.data.fnamedat);
 % move/rename data file
 movefile(orig_fnamedat,D.data.y.fname);
 delete(orig_pfname)
-save(fullfile(D.path,D.fname),'D','-V6')
+save(meeg(D));

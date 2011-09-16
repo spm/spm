@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: Unwarp_batch.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: Unwarp_batch.m 4492 2011-09-16 12:11:09Z guillaume $
 
 which spm
 
@@ -139,7 +139,7 @@ for i=1:nsubs
       ads(j) = ds;
       [path,name,ext,ver] = fileparts(P{i}{j}(1,:));
       pefile = fullfile(path,[name '_uw.mat']);
-      save(pefile,'ds');
+      save(pefile,'ds', spm_get_defaults('mat.format'));
    end
         
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

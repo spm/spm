@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(job)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 4482 2011-09-12 18:04:53Z guillaume $
+% $Id: spm_run_realignunwarp.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Assemble flags
@@ -86,11 +86,7 @@ for i = 1:numel(P)
     ds = spm_uw_estimate(P{i},uweflags);
     sess(i).ds = ds;
     dsfile = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
-    if spm_check_version('matlab','7') >= 0
-        save(dsfile,'-V6','ds');
-    else
-        save(dsfile,'ds');
-    end
+    save(dsfile,'ds', spm_get_defaults('mat.format'));
 end
 
 %-Unwarp Write - Sessions should be within subjects

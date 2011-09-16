@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4477 2011-09-12 10:19:01Z guillaume $
+% $Id: spm_run_fmri_spec.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -323,12 +323,7 @@ end
 %-Save SPM.mat
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
-if spm_check_version('matlab','7') >= 0
-    save('SPM.mat','-V6','SPM');
-else
-    save('SPM.mat','SPM');
-end
-
+save('SPM.mat','SPM', spm_get_defaults('mat.format'));
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');

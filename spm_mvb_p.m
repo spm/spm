@@ -15,7 +15,7 @@ function [p] = spm_mvb_p(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_p.m 3656 2009-12-23 20:17:30Z karl $
+% $Id: spm_mvb_p.m 4492 2011-09-16 12:11:09Z guillaume $
  
 %-number of samples
 %--------------------------------------------------------------------------
@@ -110,6 +110,6 @@ MVB.p_value = p;
 % save results
 %--------------------------------------------------------------------------
 try
-   save(MVB.name,'MVB');
+   save(MVB.name,'MVB', spm_get_defaults('mat.format'));
 end
 assignin('base','MVB',MVB)

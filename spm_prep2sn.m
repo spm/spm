@@ -11,7 +11,7 @@ function [po,pin] = spm_prep2sn(p)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_prep2sn.m 4276 2011-03-31 11:25:34Z spm $
+% $Id: spm_prep2sn.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 if ischar(p), p = load(p); end
@@ -62,13 +62,8 @@ if ~nargout
     
     fnam_out  = fullfile(pth,[nam '_seg_sn.mat']);
     fnam_inv  = fullfile(pth,[nam '_seg_inv_sn.mat']);
-    if spm_check_version('matlab','7') >= 0
-        save(fnam_out,'-V6','-struct','po');
-        save(fnam_inv,'-V6','-struct','pin');
-    else
-        save(fnam_out,'-struct','po');
-        save(fnam_inv,'-struct','pin');
-    end
+    save(fnam_out,'-struct','po', spm_get_defaults('mat.format'));
+    save(fnam_inv,'-struct','pin', spm_get_defaults('mat.format'));
 end
 return;
 %==========================================================================

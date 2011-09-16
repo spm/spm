@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4475 2011-09-09 17:53:14Z guillaume $
+% $Id: spm_defaults.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 global defaults
@@ -44,8 +44,8 @@ defaults.ui.fs     = 14;  % unused
 % Note that defaults.analyze.flip is no longer used.  Specifying the
 % left/right handedness of the voxel indices is now done entirely by
 % spm_flip_analyze_images.m
-defaults.images.format  = 'img'; % alternative is 'nii'
-defaults.mat.format = '-V6';
+defaults.images.format  = 'img'; % options: 'img', 'nii'
+defaults.mat.format     = '-v6'; % options: '-mat', '-v6', '-v7.0', '-v7.3'
 
 % Toolboxes defaults
 %==========================================================================

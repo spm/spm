@@ -23,7 +23,7 @@ function DCM = spm_dcm_nfm(DCM)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_nfm.m 4406 2011-07-22 12:57:58Z guillaume $
+% $Id: spm_dcm_nfm.m 4492 2011-09-16 12:11:09Z guillaume $
  
  
 % check options
@@ -151,10 +151,5 @@ DCM.ID = ID;                   % data ID
 %--------------------------------------------------------------------------
 DCM.options.Nmodes = Nc;
  
-if spm_check_version('matlab','7') >= 0
-    save(DCM.name, '-V6', 'DCM');
-else
-    save(DCM.name, 'DCM');
-end
+save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
 assignin('base','DCM',DCM)
-return

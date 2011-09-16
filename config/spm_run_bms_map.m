@@ -43,7 +43,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_run_bms_map.m 4492 2011-09-16 12:11:09Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
@@ -173,7 +173,7 @@ switch method
         % Save data and BMS
         BMS.fname = fname;
         BMS.map.ffx.data = job.sess_map;
-        save(out.files{1},'BMS');
+        save(out.files{1},'BMS', spm_get_defaults('mat.format'));
 
     case 'RFX',  % Random Effects
         
@@ -265,7 +265,7 @@ switch method
         % Save data and BMS
         BMS.fname = fname;
         BMS.map.rfx.data = job.sess_map;
-        save(out.files{1},'BMS'); 
+        save(out.files{1},'BMS', spm_get_defaults('mat.format')); 
     
 end
 

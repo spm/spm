@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4334 2011-05-31 16:39:53Z john $
+% $Id: spm_preproc_run.m 4492 2011-09-16 12:11:09Z guillaume $
 
 if nargin == 1, arg = 'run'; end
 
@@ -103,7 +103,7 @@ for iter=1:nit,
 
         try
             [pth,nam] = fileparts(job.channel(1).vols{subj});
-            savefields(fullfile(pth,[nam '_seg8.mat']),res);
+            save(fullfile(pth,[nam '_seg8.mat']),'-struct',res, spm_get_defaults('mat.format'));
         catch
         end
 
@@ -161,23 +161,6 @@ elseif numel(job.channel)==0,
     msg = {'No data'};
 end
 return
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function savefields(fnam,p)
-if length(p)>1, error('Can''t save fields.'); end
-fn = fieldnames(p);
-if numel(fn)==0, return; end
-for i=1:length(fn)
-    eval([fn{i} '= p.' fn{i} ';']);
-end
-if spm_check_version('matlab','7') >= 0
-    save(fnam,'-V6',fn{:});
-else
-    save(fnam,fn{:});
-end
-
-return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________

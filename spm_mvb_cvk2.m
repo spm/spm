@@ -17,7 +17,7 @@ function [p,pc,R2] = spm_mvb_cvk2(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk2.m 3806 2010-04-06 14:42:32Z ged $
+% $Id: spm_mvb_cvk2.m 4492 2011-09-16 12:11:09Z guillaume $
  
  
 %-partition order
@@ -102,7 +102,7 @@ MVB.cvk     = struct('qX',qX,'qE',qE);
 
 % save results
 %--------------------------------------------------------------------------
-save(MVB.name,'MVB')
+save(MVB.name,'MVB', spm_get_defaults('mat.format'))
 assignin('base','MVB',MVB)
  
 % display and plot validation

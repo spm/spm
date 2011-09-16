@@ -101,32 +101,29 @@ function D = meeg(varargin)
 %       .M contains transformation matrix of the montage and names of 
 %           original and new channels (+ new channels definition)
 %       .Mind indicates which montage to use
-
-
-
-% ______________________________________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: meeg.m 4492 2011-09-16 12:11:09Z guillaume $
 
 if nargin == 1
     if isstruct(varargin{1})
-        [OK D] = checkmeeg(varargin{1}, 'basic');
+        [OK, D] = checkmeeg(varargin{1}, 'basic');
         if OK
             D  = class(D, 'meeg');
         else
             error('Struct not fit for conversion to meeg');
         end
         return;
-    elseif isa(varargin{1},'meeg'),
+    elseif isa(varargin{1},'meeg')
         D = varargin{1};
         return;
-    end;
-end;
+    end
+end
 display('not basic')
 
 D          = [];
 D.Nsamples = 0;
-[res D]    = checkmeeg(D);
+[res, D]   = checkmeeg(D);
 D          = class(D, 'meeg');

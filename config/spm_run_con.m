@@ -7,7 +7,7 @@ function out = spm_run_con(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 4454 2011-09-02 13:39:49Z guillaume $
+% $Id: spm_run_con.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 %-Change to the analysis directory
@@ -65,11 +65,7 @@ if job.delete && isfield(SPM,'xCon')
     
     %-Save SPM if no new contrasts are specified
     if isempty(job.consess)
-        if spm_check_version('matlab','7') >=0
-            save(fullfile(SPM.swd,'SPM.mat'), 'SPM', '-V6');
-        else
-            save(fullfile(SPM.swd,'SPM.mat'), 'SPM');
-        end
+        save(fullfile(SPM.swd,'SPM.mat'), 'SPM', spm_get_defaults('mat.format'));
     end
 end
 

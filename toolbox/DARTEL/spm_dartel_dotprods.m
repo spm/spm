@@ -7,7 +7,7 @@ function spm_dartel_dotprods(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 1780 2008-06-02 16:58:56Z john $
+% $Id: spm_dartel_dotprods.m 4492 2011-09-16 12:11:09Z guillaume $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);
@@ -70,5 +70,5 @@ end
 spm_progress_bar('Clear');
 input = job;
 typ   = 'images';
-save(ofname,'Phi','input','typ');
+save(ofname,'Phi','input','typ', spm_get_defaults('mat.format'));
 

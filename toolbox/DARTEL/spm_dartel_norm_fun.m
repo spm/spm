@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 4194 2011-02-05 18:08:06Z ged $
+% $Id: spm_dartel_norm_fun.m 4492 2011-09-16 12:11:09Z guillaume $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
@@ -94,7 +94,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
             clear mni
             mni.affine = Mmni/spm_klaff(Nt,tpm);
             mni.code   = 'MNI152';
-            save(fullfile(pth,[nam '_2mni.mat']),'mni');
+            save(fullfile(pth,[nam '_2mni.mat']),'mni', spm_get_defaults('mat.format'));
         end
         M = mat\mni.affine/Mt;
         %M = mat\Mmni*inv(spm_klaff(Nt,tpm))*inv(Mt);

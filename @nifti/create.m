@@ -1,74 +1,76 @@
-function create(obj,wrt)
+function create(obj,varargin)
 % Create a NIFTI-1 file
 % FORMAT create(obj)
 % This writes out the header information for the nifti object
 %
 % create(obj,wrt)
 % This also writes out an empty image volume if wrt==1
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: create.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: create.m 4492 2011-09-16 12:11:09Z guillaume $
 
 for i=1:numel(obj)
-    create_each(obj(i));
-end;
+    create_each(obj(i),varargin{:});
+end
 
-function create_each(obj)
-if ~isa(obj.dat,'file_array'),
-    error('Data must be a file-array');
-end;
+%==========================================================================
+%-function create_each(obj, wrt)
+%==========================================================================
+function create_each(obj, wrt)
+if ~isa(obj.dat,'file_array')
+    error('Data must be a file_array');
+end
+
 fname = obj.dat.fname;
-if isempty(fname),
+if isempty(fname)
     error('No filename to write to.');
-end;
+end
+
 dt = obj.dat.dtype;
 ok = write_hdr_raw(fname,obj.hdr,dt(end-1)=='B');
-if ~ok,
+if ~ok
     error(['Unable to write header for "' fname '".']);
-end;
+end
 
 write_extras(fname,obj.extras);
 
-if nargin>2 && any(wrt==1),
+if nargin>2 && any(wrt==1)
     % Create an empty image file if necessary
     d   = findindict(obj.hdr.datatype, 'dtype');
     dim = double(obj.hdr.dim(2:end));
     dim((double(obj.hdr.dim(1))+1):end) = 1;
     nbytes = ceil(d.size*d.nelem*prod(dim(1:2)))*prod(dim(3:end))+double(obj.hdr.vox_offset);
-    [pth,nam,ext] = fileparts(obj.dat.fname);
-
-    if any(strcmp(deblank(obj.hdr.magic),{'n+1','nx1'})),
+    
+    [pth,nam] = fileparts(obj.dat.fname);
+    if any(strcmp(deblank(obj.hdr.magic),{'n+1','nx1'}))
         ext = '.nii';
     else
         ext = '.img';
-    end;
+    end
     iname = fullfile(pth,[nam ext]);
     fp    = fopen(iname,'a+');
-    if fp==-1,
+    if fp==-1
         error(['Unable to create image for "' fname '".']);
-    end;
+    end
 
     fseek(fp,0,'eof');
     pos = ftell(fp);
-    if pos<nbytes,
+    if pos<nbytes
         bs      = 2048; % Buffer-size
         nbytes  = nbytes - pos;
         buf     = uint8(0);
         buf(bs) = 0;
         while(nbytes>0)
-            if nbytes<bs, buf = buf(1:nbytes); end;
+            if nbytes<bs, buf = buf(1:nbytes); end
             nw = fwrite(fp,buf,'uint8');
-            if nw<min(bs,nbytes),
+            if nw<min(bs,nbytes)
                 fclose(fp);
                 error(['Problem while creating image for "' fname '".']);
-            end;
+            end
             nbytes = nbytes - nw;
-        end;
-    end;
+        end
+    end
     fclose(fp);
-end;
-
-return;
-
+end

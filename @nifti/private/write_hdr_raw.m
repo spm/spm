@@ -1,15 +1,16 @@
 function ok = write_hdr_raw(fname,hdr,be)
-% Write a NIFTI-1 .hdr file.
+% Write a NIFTI-1 header
 % FORMAT ok = write_hdr_raw(fname,hdr,be)
-% fname - filename of image
-% hdr   - a structure containing hdr info
-% be    - whether big-endian or not
-% ok    - status (1=good, 0=bad)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% fname     - filename of image
+% hdr       - a structure containing hdr info
+% be        - whether big-endian or not [Default: native]
+%
+% ok        - status (1=good, 0=bad)
+%__________________________________________________________________________
+% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 2237 2008-09-29 17:39:53Z guillaume $
+% $Id: write_hdr_raw.m 4492 2011-09-16 12:11:09Z guillaume $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -24,18 +25,18 @@ if isfield(hdr,'magic')
         hname = fullfile(pth,[nam '.nii']);
     otherwise
         error('Bad header.');
-    end;
+    end
 else
     org   = mayostruc;
     hname = fullfile(pth,[nam '.hdr']);
-end;
+end
 
 if nargin >=3
     if be, mach = 'ieee-be';
     else   mach = 'ieee-le';
-    end;
+    end
 else       mach = 'native';
-end;
+end
 
 ok = true;
 if spm_existfile(hname),
@@ -43,35 +44,34 @@ if spm_existfile(hname),
 else
     fp = fopen(hname,'w+',mach);
 end
-if fp == -1,
+if fp == -1
     ok = false;
     return;
 end
 
 for i=1:length(org)
-    if isfield(hdr,org(i).label),
+    if isfield(hdr,org(i).label)
         dat = hdr.(org(i).label);
-        if length(dat) ~= org(i).len,
-            if length(dat)< org(i).len,
+        if length(dat) ~= org(i).len
+            if length(dat)< org(i).len
                 dat = [dat(:) ; zeros(org(i).len-length(dat),1)];
             else
                 dat = dat(1:org(i).len);
-            end;
-        end;
+            end
+        end
     else
         dat = org(i).def;
-    end;
+    end
     % fprintf('%s=\n',org(i).label)
     % disp(dat)
     len = fwrite(fp,dat,org(i).dtype.prec);
-    if len ~= org(i).len,
+    if len ~= org(i).len
         ok = false;
-    end;
-end;
+    end
+end
+
 fclose(fp);
-if ~ok,
+if ~ok
      fprintf('There was a problem writing to the header of\n');
      fprintf('"%s"\n', fname);
-end;
-return;
-
+end
