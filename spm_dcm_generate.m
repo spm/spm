@@ -1,9 +1,8 @@
-function varargout = spm_dcm_generate(syn_model,source_model,SNR)
+function varargout = spm_dcm_generate(syn_model,SNR)
 % Generate synthetic data from a DCM specification
-% FORMAT spm_dcm_generate(syn_model,source_model,SNR)
+% FORMAT spm_dcm_generate(syn_model,SNR)
 % 
 % syn_model     Name of synthetic DCM file
-% source_model  Type of souce model specification (see spm_dcm_create)
 % SNR           Signal to noise ratio (default=1)
 %
 % This routine will update the DCM.Y field as follows: 
@@ -12,10 +11,10 @@ function varargout = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.Q     Components of error precision
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_generate.m 4493 2011-09-16 15:33:32Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------

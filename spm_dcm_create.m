@@ -20,16 +20,15 @@ function spm_dcm_create(syn_model, source_model, SNR)
 % manual specification of nonlinear DCMs; however, these can be imported 
 % from existing files.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_create.m 4493 2011-09-16 15:33:32Z guillaume $
 
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
 set(Finter,'Name','Dynamic Causal Modelling')
-WS     = spm('WinScale');
 
 % check parameters and insert default values, if necessary
 %==========================================================================
@@ -51,11 +50,11 @@ switch upper(source_model)
         
         % Define model by GUI
         %==================================================================
-
+        
         % get cell array of region structures
         %------------------------------------------------------------------
         n = spm_input('Enter number of regions','+1','r',[],1);
-        for i=1:n,
+        for i=1:n
             str         = sprintf('Region %d',i);
             xY(i).name  = spm_input(['Name for ',str],'+1','s');
             % Make up spurious VOI info
@@ -64,189 +63,13 @@ switch upper(source_model)
             xY(i).XYZmm = [i i i]'*10;
             xY(i).s     = 1;
             xY(i).spec  = 1;
+            % for compatibility with spm_dcm_specify
+            xY(i).Sess  = 1;
+            xY(i).u     = 1;
+            xY(i).X0    = [];
         end
 
-        % inputs
-        %==================================================================
-
-        % global parameters
-        try
-            fMRI_T  = spm_get_defaults('stats.fmri.t');
-            fMRI_T0 = spm_get_defaults('stats.fmri.t0');
-        catch
-            fMRI_T  = 16;
-            fMRI_T0 = 1;
-        end;
-        SPM.xBF.T  = fMRI_T;
-        SPM.xBF.T0 = fMRI_T0;
-
-        spm_input('Basic parameters...',1,'d',mfilename)
-        SPM.xY.RT     = spm_input('Interscan interval {secs}','+1','r',[],1);
-        SPM.nscan     = spm_input(['scans per session e.g. 256'],'+1');
-        v             = SPM.nscan;
-        SPM.xBF.dt    = SPM.xY.RT/SPM.xBF.T;
-        str           = 'specify design in';
-        SPM.xBF.UNITS = spm_input(str,'+1','scans|secs');
-
-        Ui            = spm_get_ons(SPM,1);
-
-        % Change input format to DCM input format and correct 32 bin offset
-        % that is inserted by spm_get_ons
-        % (NB: for "normal" DCMs this is corrected for in spm_dcm_specify)
-        U.name = {};
-        U.u    = [];
-        for  i = 1:length(Ui)
-            U.u             = [U.u Ui(i).u(33:end,1)];
-            U.name{end + 1} = Ui(i).name{1};
-            % any parametric modulators?
-            if size(Ui(i).u,2) > 1
-                for j = 2:size(Ui(i).u,2)
-                    U.u             = [U.u Ui(i).u(33:end,j)];
-                    U.name{end + 1} = Ui(i).P(j-1).name;
-                end
-            end
-        end
-        U.dt = Ui(1).dt;
-
-        % graph connections
-        %==================================================================
-        m     = size(U.u,2);
-        a     = zeros(n,n);
-        c     = zeros(n,m);
-        b     = zeros(n,n,m);
-        d     = uicontrol(Finter,'String','done',...
-                          'Position',[200 050 060 020].*WS);
-        dx    = 35;
-        wx    = 30;
-        wy    = 20;
-
-        %-intrinsic connections
-        %------------------------------------------------------------------
-        spm_input('Specify intrinsic connections from',1,'d')
-        spm_input('to',3,'d')
-
-        for i = 1:n
-            str    = sprintf('%s %i',xY(i).name,i);
-            h1(i)  = uicontrol(Finter,'String',str,...
-                'Style','text',...
-                'HorizontalAlignment','right',...
-                'Position',[020 336-dx*i 080 020].*WS);
-            h2(i)  = uicontrol(Finter,'String',sprintf('%i',i),...
-                'Style','text',...
-                'Position',[100+dx*i 336 020 020].*WS);
-        end
-        for i = 1:n
-            for j = 1:n
-                cc=ceil([100+dx*j 340-dx*i wx wy].*WS);
-                h3(i,j) = uicontrol(Finter,...
-                    'Position',cc,...
-                    'Style','edit');
-                if i == j
-                    set(h3(i,j),'String','-1');
-                else
-                    set(h3(i,j),'String','0');
-                end
-            
-            end
-        end
-        drawnow
-
-        % wait for 'done'
-        %------------------------------------------------------------------
-        while(1)
-            pause(0.01)
-            if strcmp(get(gco,'Type'),'uicontrol')
-                if strcmp(get(gco,'String'),'done')
-                    for i = 1:n
-                        for j = 1:n
-                            a(i,j) = str2num(get(h3(i,j),'string'));
-                        end
-                    end
-                    delete([h1(:); h2(:); h3(:)])
-                    break
-                end
-            end
-        end
-
-
-        %-effects of causes
-        %------------------------------------------------------------------
-        for k = 1:m
-    
-            % buttons and labels
-            %--------------------------------------------------------------
-            str   = sprintf(...
-                'Effects of %-12s on regions... and connections',...
-                U.name{k});
-            spm_input(str,1,'d')
-        
-    
-            for i = 1:n
-                h1(i)  = uicontrol(Finter,'String',xY(i).name,...
-                    'Style','text',...
-                    'Position',[005 336-dx*i 080 020].*WS);
-                h2(i)  = uicontrol(Finter,...
-                    'Position',[080 340-dx*i wx wy].*WS,...
-                    'Style','edit');
-                set(h2(i),'String','0');
-            end
-            for i = 1:n
-                for j = 1:n
-                    cc=ceil([130+dx*j 340-dx*i wx wy].*WS);            
-                    h3(i,j) = uicontrol(Finter,...
-                        'Position',cc,...
-                        'Style','edit');
-                    set(h3(i,j),'String','0');
-                end
-            end
-            drawnow
-    
-            % wait for 'done'
-            %--------------------------------------------------------------
-            set(gcf,'CurrentObject',h2(1))
-            while(1)
-                pause(0.01)
-                if strcmp(get(gco,'Type'),'uicontrol')
-                    if strcmp(get(gco,'String'),'done')
-                
-                        % get c
-                        %--------------------------------------------------
-                        for i = 1:n
-                            c(i,k)   = str2double(get(h2(i),'string'));
-                        end
-                    
-                        % get b ensuring 2nd order effects are allowed
-                        %--------------------------------------------------
-                        for i = 1:n
-                            for j = 1:n
-                                b(i,j,k) = str2double(get(h3(i,j),'string'));
-                                if i == j && ~c(i,k)
-                                    b(i,j,k) = 0;
-                                end
-                            end
-                        end
-                        delete([h1(:); h2(:); h3(:)])
-                        spm_input('Thank you',1,'d')
-                        break
-                
-                    end
-                end
-            end
-        end
-        delete(d)
-        
-        % Copy to data structure
-        DCM.a   = ~(a==0);
-        DCM.b   = ~(b==0);
-        DCM.c   = ~(c==0);
-        DCM.A   = a;
-        DCM.B   = b;
-        DCM.C   = c;
-        DCM.U   = U;
-        DCM.xY  = xY;
-        DCM.v   = v;
-        DCM.n   = length(DCM.xY);
-        DCM.TE  = 0.04;   % default value for TE
+        DCM = spm_dcm_specify([],xY);
 
         
     case 'IMPORT'
@@ -257,6 +80,7 @@ switch upper(source_model)
         load(P)
 
     otherwise
+        
         % Import existing model (directly specified by directory & name)
         %==================================================================
         try
@@ -273,7 +97,16 @@ end
 X0    = ones(DCM.v,1);
 switch upper(source_model)
     case 'GUI'
-        Y.dt  = SPM.xY.RT;
+        % All fields have to be modified
+        %DCM.v    = xxx;
+        Y        = DCM.Y;
+        DCM.Ep.A = DCM.a;
+        DCM.Ep.B = DCM.b;
+        DCM.Ep.C = DCM.c;
+        DCM.Ep.D = DCM.d;
+        DCM.Ep.decay = sparse(DCM.n,1);
+        DCM.Ep.transit = sparse(DCM.n,1);
+        DCM.Ep.epsilon = sparse(1,1);
     otherwise
         try
             Y.dt = DCM.Y.dt;
@@ -282,19 +115,20 @@ switch upper(source_model)
         end
 end
 Y.X0  = X0;
-for i = 1:DCM.n,
+for i = 1:DCM.n
     Y.name{i} = DCM.xY(i).name;
 end
 Y.Q   = spm_Ce(ones(1,DCM.n)*DCM.v);
 DCM.Y = Y;
 
 
-%-Save and reset title
+%-Save
 %--------------------------------------------------------------------------
-save(['DCM_' syn_model '.mat'],'DCM', spm_get_defaults('mat.format'));
+dcm_filename = ['DCM_' syn_model '.mat'];
+save(dcm_filename,'DCM', spm_get_defaults('mat.format'));
 
-% Now generate synthetic output data
+% Generate synthetic output data
 %==========================================================================
-spm_dcm_generate(['DCM_' syn_model '.mat'],source_model,SNR);
+spm_dcm_generate(dcm_filename,SNR);
 
 spm('FigName',header);

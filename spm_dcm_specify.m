@@ -1,13 +1,13 @@
-function DCM = spm_dcm_specify
+function DCM = spm_dcm_specify(SPM,xY)
 % Specify inputs of a DCM
-% FORMAT [DCM] = spm_dcm_specify
+% FORMAT [DCM] = spm_dcm_specify(SPM,xY)
 %
 % DCM  - the DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_specify.m 4493 2011-09-16 15:33:32Z guillaume $
 
 
 %-Interactive window
@@ -22,13 +22,19 @@ spm_input('Specify DCM:...  ',1,'d');
 %==========================================================================
 % Get design and directory
 %==========================================================================
-[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-if ~sts, DCM = []; return; end
-swd = spm_file(spmmatfile,'fpath');
-try
-    load(fullfile(swd,'SPM.mat'))
-catch
-    error(['Cannot read ' fullfile(swd,'SPM.mat')]);
+if ~nargin || isempty(SPM)
+    [SPM, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, DCM = []; return; end
+end
+if ischar(SPM)
+    swd = spm_file(SPM,'fpath');
+    try
+        load(fullfile(swd,'SPM.mat'))
+    catch
+        error(['Cannot read ' fullfile(swd,'SPM.mat')]);
+    end
+else
+    swd = pwd;
 end
 
 
@@ -44,11 +50,17 @@ name  = spm_input('name for DCM_???.mat','+1','s');
 
 %-Get cell array of region structures
 %--------------------------------------------------------------------------
-P     = cellstr(spm_select([1 8],'^VOI.*\.mat$',{'select VOIs'},'',swd));
-m     = numel(P);
-for i = 1:m
-    p     = load(P{i},'xY');
-    xY(i) = p.xY;
+if nargin < 2 || isempty(xY)
+    [P, sts] = spm_select([1 8],'^VOI.*\.mat$',{'select VOIs'},'',swd);
+    if ~sts, DCM = []; return; end
+    P     = cellstr(P);
+    m     = numel(P);
+    for i = 1:m
+        p     = load(P{i},'xY');
+        xY(i) = p.xY;
+    end
+else
+    m = numel(xY);
 end
 
 
