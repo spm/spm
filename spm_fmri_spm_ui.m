@@ -171,9 +171,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_fmri_spm_ui.m 4494 2011-09-20 09:22:04Z ged $
 
-SVNid = '$Rev: 4492 $';
+SVNid = '$Rev: 4494 $';
 
 
 %==========================================================================
@@ -320,7 +320,7 @@ SPM.xGX.gSF     = gSF;
 %-Masking
 %==========================================================================
 
-%-Masking threshold, as percentage of globals
+%-Masking threshold, as proportion of globals
 %--------------------------------------------------------------------------
 try
     gMT = SPM.xM.gMT;

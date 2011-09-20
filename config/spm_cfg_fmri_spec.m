@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4472 2011-09-08 17:42:32Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4494 2011-09-20 09:22:04Z ged $
 
 
 %--------------------------------------------------------------------------
@@ -587,7 +587,7 @@ xGlobal.val     = {'None'};
 gMT         = cfg_entry;
 gMT.tag     = 'mthresh';
 gMT.name    = 'Masking threshold';
-gMT.help    = {'Masking threshold, defined as percentage of globals.'};
+gMT.help    = {'Masking threshold, defined as proportion of globals.'};
 gMT.strtype = 'e';
 gMT.num     = [1 1];
 gMT.def     = @(val)spm_get_defaults('mask.thresh', val{:});

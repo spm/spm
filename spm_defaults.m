@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_defaults.m 4494 2011-09-20 09:22:04Z ged $
 
 
 global defaults
@@ -72,7 +72,7 @@ defaults.stats.maxmem      = 2^26;
 defaults.stats.maxres      = 64;
 defaults.stats.fmri.ufp    = 0.001;  % Upper tail F-probability
 defaults.stats.pet.ufp     = 0.05;
-defaults.stats.eeg.ufp     = 1;
+defaults.stats.eeg.ufp     = 0.05;
 defaults.stats.topoFDR     = 1;
 defaults.stats.rft.nonstat = 0;
 defaults.stats.results.volume.distmin =  8;
