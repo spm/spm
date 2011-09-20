@@ -1,9 +1,9 @@
 function V = spm_vol(P)
-% Get header information for images.
+% Get header information for images
 % FORMAT V = spm_vol(P)
-% P - a matrix of filenames.
-% V - a vector of structures containing image volume information.
-% The elements of the structures are:
+% P - a char or cell array of filenames
+% V - a structure array containing image volume information
+%     The elements of the structures are:
 %       V.fname - the filename of the image.
 %       V.dim   - the x, y and z dimensions of the volume
 %       V.dt    - A 1x2 array.  First element is datatype (see spm_type).
@@ -24,17 +24,15 @@ function V = spm_vol(P)
 % The fields listed above are essential for the mex routines, but other
 % fields can also be incorporated into the structure.
 %
-% The images are not memory mapped at this step, but are mapped when
-% the mex routines using the volume information are called.
-%
 % Note that spm_vol can also be applied to the filename(s) of 4-dim
 % volumes. In that case, the elements of V will point to a series of 3-dim
 % images.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_vol.m 4495 2011-09-20 18:30:22Z guillaume $
+
 
 if ~nargin
     V = struct('fname',   {},...
@@ -45,58 +43,38 @@ if ~nargin
                'n',       {},...
                'descrip', {},...
                'private', {});
-    return;
-end
-
-% If is already a vol structure then just return
-if isstruct(P), V = P; return; end
-
-V = subfunc2(P);
-
-
-%==========================================================================
-function V = subfunc2(P)
-if iscell(P)
-    V = cell(size(P));
-    for j=1:numel(P)
-        if iscell(P{j})
-            V{j} = subfunc2(P{j});
-        else
-            V{j} = subfunc1(P{j});
-        end
-    end
+           
+elseif isempty(P)
+    V = spm_vol;
+    if iscell(P), V = {V}; end
+           
+elseif isstruct(P)
+    V = P;
+    
+elseif iscell(P)
+    V = cellfun(@spm_vol,P, 'UniformOutput',false);
+    
 else
-    V = subfunc1(P);
+    cnt = 0;
+    for i=1:size(P,1)
+        v = spm_vol_hdr(deblank(P(i,:)));
+        
+        f = fieldnames(v);
+        for j=1:numel(f)
+            [V(cnt+1:cnt+size(v,2),1).(f{j})] = deal(v.(f{j}));
+        end
+        cnt = cnt + size(v,2);
+    end
 end
 
-%==========================================================================
-function V = subfunc1(P)
-if isempty(P), V = []; return; end
-counter = 0;
-for i=1:size(P,1)
-    v = subfunc(P(i,:));
-    [V(counter+1:counter+size(v, 2),1).fname] = deal('');
-    [V(counter+1:counter+size(v, 2),1).dim]   = deal([0 0 0 0]);
-    [V(counter+1:counter+size(v, 2),1).mat]   = deal(eye(4));
-    [V(counter+1:counter+size(v, 2),1).pinfo] = deal([1 0 0]');
-    [V(counter+1:counter+size(v, 2),1).dt]    = deal([0 0]);
-    if isempty(v)
-        hread_error_message(P(i,:));
-        error(['Can''t get volume information for ''' P(i,:) '''']);
-    end
-
-    f = fieldnames(v);
-    for j=1:size(f,1)
-        eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
-    end
-    counter = counter + size(v,2);
-end
 
 %==========================================================================
-function V = subfunc(p)
-[pth,nam,ext,n1] = spm_fileparts(deblank(p));
+% function V = spm_vol_hdr(p)
+%==========================================================================
+function V = spm_vol_hdr(p)
+[pth,nam,ext,n] = spm_fileparts(p);
 p = fullfile(pth,[nam ext]);
-n = str2num(n1);
+n = str2num(n);
 if ~spm_existfile(p)
     error('File "%s" does not exist.', p);
 end
@@ -126,19 +104,7 @@ V = spm_vol_nifti(p,n);
 if isempty(n) && length(V.private.dat.dim) > 3
     V0(1) = V;
     for i = 2:V.private.dat.dim(4)
-        V0(i) = spm_vol_nifti(p, i);
+        V0(i) = spm_vol_nifti(V.private, i);
     end
     V = V0;
 end
-if ~isempty(V), return; end
-return;
-
-%==========================================================================
-function hread_error_message(q)
-str = {...
-    'Error reading information on:',...
-    ['        ',spm_file(q,'short40')],...
-    ' ',...
-    'Please check that it is in the correct format.'};
-spm('alert*',str,mfilename,sqrt(-1));
-return;

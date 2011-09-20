@@ -2,13 +2,13 @@ function M = spm_get_space(P,M)
 % Get/set the voxel-to-world mapping of an image
 % FORMAT M = spm_get_space(P)
 %            spm_get_space(P,M)
-% M - voxel-to-world mapping
 % P - image filename
+% M - voxel-to-world mapping
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_space.m 4208 2011-02-22 12:04:18Z guillaume $
+% $Id: spm_get_space.m 4495 2011-09-20 18:30:22Z guillaume $
 
 
 [pth,nam,ext,num] = spm_fileparts(P);
@@ -16,6 +16,7 @@ if ~isempty(num), n = str2num(num(2:end)); else n = [1 1]; end
 P = fullfile(pth,[nam ext]);
 
 N = nifti(P);
+
 if nargin==2
     N.mat_intent = 'Aligned';
     if n(1)==1
