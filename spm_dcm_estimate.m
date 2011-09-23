@@ -22,7 +22,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
 % DCM.options.centre                 % mean-centre inputs
-% DCM.options.P                      % Starting estimates for parameters
+% DCM.options.P                      % starting estimates for parameters
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_estimate.m 4496 2011-09-23 11:56:58Z klaas $
  
  
 %-Load DCM structure
@@ -139,7 +139,7 @@ end
  
 % check DCM.c (for endogenous DCMs)
 %--------------------------------------------------------------------------
-if isempty(DCM.c)
+if isempty(DCM.c) || ~any(spm_vec(DCM.c)) || length(U.u)==0  
     DCM.c  = zeros(n,1);
     DCM.b  = zeros(n,n,1);
     U.u    = zeros(v,1);
@@ -184,7 +184,7 @@ if ~DCM.options.endogenous
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
 else
     Ep = pE;
-    Eh = 3;
+    Eh = 3;  
     F  = 0;
 end
 
@@ -244,7 +244,7 @@ if DCM.options.stochastic
     DEM.M(1).W  = exp(9);                 % fixed precision (hidden-motion)
     DEM.M(2).V  = exp(4);                 % fixed precision (hidden-cause)
         
-    % for endgenous DCMs, allow neuronal hidden states to fluctuate
+    % for endogenous DCMs, allow neuronal hidden states to fluctuate
     % ---------------------------------------------------------------------
     if DCM.options.endogenous
         W           = exp(spm_vec(sparse(1:n,1,(6 - 16),n,5) + 16));
