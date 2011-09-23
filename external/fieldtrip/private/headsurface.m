@@ -36,7 +36,7 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headsurface.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: headsurface.m 4287 2011-09-23 12:17:38Z jansch $
 
 if nargin<1
   vol = [];
@@ -44,6 +44,10 @@ end
 
 if nargin<2
   sens = [];
+end
+
+if ~isempty(sens)
+  sens = fixsens(sens);
 end
 
 if nargin<3
@@ -124,7 +128,7 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)<5
 elseif ft_voltype(vol, 'multisphere')
   % local spheres MEG model, this also requires a gradiometer structure
   grad = sens;
-  if ~isfield(grad, 'tra') || ~isfield(grad, 'pnt')
+  if ~isfield(grad, 'tra') || ~isfield(grad, 'coilpos')
     error('incorrect specification for the gradiometer array');
   end
   Nchans   = size(grad.tra, 1);
@@ -134,7 +138,7 @@ elseif ft_voltype(vol, 'multisphere')
     error('there should be just as many spheres as coils');
   end
   % for each coil, determine a surface point using the corresponding sphere
-  vec = grad.pnt - vol.o;
+  vec = grad.coilpos - vol.o;
   nrm = sqrt(sum(vec.^2,2));
   vec = vec ./ [nrm nrm nrm];
   pnt = vol.o + vec .* [vol.r vol.r vol.r];

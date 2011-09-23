@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 4088 2011-09-01 18:25:12Z roboos $
+% $Id: ft_checkdata.m 4288 2011-09-23 12:17:44Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -69,6 +69,8 @@ function [data] = ft_checkdata(data, varargin)
 %   sensortype
 %   time2offset
 %   offset2time
+%   fixsens -> this is kept a separate function because it should also be
+%              called from other modules
 %
 % other potential uses for this function:
 %   time -> offset in freqanalysis
@@ -153,6 +155,9 @@ if ~isequal(feedback, 'no')
     fprintf('the input is mvar data\n');
   elseif isfreqmvar
     fprintf('the input is freqmvar data\n');
+  elseif ischan
+    nchan = length(data.label);
+    fprintf('the input is chan data\n');
   end
 end % give feedback
 
@@ -215,6 +220,8 @@ if ~isempty(dtype)
         okflag = okflag + ismvar;
       case 'freqmvar'
         okflag = okflag + isfreqmvar;
+      case 'chan'
+        okflag = okflag + ischan;
     end % switch dtype
   end % for dtype
  
@@ -570,6 +577,12 @@ end
 
 if isequal(hastrials, 'yes')
   okflag = isfield(data, 'trial');
+  if ~okflag && isfield(data, 'dimord')
+    % instead look in the dimord for rpt or subj
+    okflag = ~isempty(strfind(data.dimord, 'rpt')) || ...
+      ~isempty(strfind(data.dimord, 'rpttap')) || ...
+      ~isempty(strfind(data.dimord, 'subj'));
+  end
   if ~okflag
     error('This function requires data with a ''trial'' field');
   end % if okflag
@@ -616,13 +629,6 @@ end
 if issource && ~strcmp(haspow, 'no')
  data = fixsource(data, 'type', sourcerepresentation, 'haspow', haspow);
 end 
-
-if isfield(data, 'grad')
-  % ensure that the gradiometer balancing is specified
-  if ~isfield(data.grad, 'balance') || ~isfield(data.grad.balance, 'current')
-    data.grad.balance.current = 'none';
-  end
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner

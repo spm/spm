@@ -46,7 +46,7 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 4075 2011-08-31 10:21:19Z jansch $
+% $Id: ft_apply_montage.m 4287 2011-09-23 12:17:38Z jansch $
 
 % get optional input arguments
 keepunused = keyval('keepunused', varargin);  if isempty(keepunused), keepunused   = 'no';   end
@@ -84,6 +84,9 @@ end
 % use default transfer from sensors to channels if not specified
 if isfield(sens, 'pnt') && ~isfield(sens, 'tra')
   nchan = size(sens.pnt,1);
+  sens.tra = sparse(eye(nchan));
+elseif isfield(sens, 'chanpos') && ~isfield(sens, 'tra')
+  nchan = size(sens.chanpos,1);
   sens.tra = sparse(eye(nchan));
 end
 

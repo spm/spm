@@ -42,7 +42,7 @@ function cfg = ft_interactiverealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interactiverealign.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_interactiverealign.m 4287 2011-09-23 12:17:38Z jansch $
 
 ft_defaults
 
@@ -112,7 +112,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_interactiverealign.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_interactiverealign.m 4287 2011-09-23 12:17:38Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
@@ -297,34 +297,34 @@ if ~isempty(individual.headshape)
 end
 
 if ~isempty(template.elec)
-  hs = triplot(template.elec.pnt, [], [], 'nodes');
+  hs = triplot(template.elec.chanpos, [], [], 'nodes');
   set(hs, 'MarkerSize', 10);
   set(hs, 'Color', 'b');
   if isfield(template.elec, 'line')
-    hs = triplot(template.elec.pnt, template.elec.line, [], 'edges');
+    hs = triplot(template.elec.chanpos, template.elec.line, [], 'edges');
     try, set(hs, 'MarkerEdgeColor', 'b'); end
   end
 end
 
 if ~isempty(individual.elec)
-  hs = triplot(individual.elec.pnt, [], [], 'nodes');
+  hs = triplot(individual.elec.chanpos, [], [], 'nodes');
   set(hs, 'MarkerSize', 10);
   set(hs, 'Color', 'r');
   if isfield(individual.elec, 'line')
-    hs = triplot(individual.elec.pnt, elec.line, [], 'edges');
+    hs = triplot(individual.elec.chanpos, elec.line, [], 'edges');
     try, set(hs, 'MarkerEdgeColor', 'r'); end
   end
 end
 
 if ~isempty(template.grad)
-  hs = triplot(template.grad.pnt, [], [], 'nodes');
+  hs = triplot(template.grad.chanpos, [], [], 'nodes');
   set(hs, 'MarkerSize', 10);
   set(hs, 'Color', 'b');
   % FIXME also plot lines?
 end
 
 if ~isempty(individual.grad)
-  hs = triplot(individual.grad.pnt, [], [], 'nodes');
+  hs = triplot(individual.grad.chanpos, [], [], 'nodes');
   set(hs, 'MarkerSize', 10);
   set(hs, 'Color', 'r');
   % FIXME also plot lines?

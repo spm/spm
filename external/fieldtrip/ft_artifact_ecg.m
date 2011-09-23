@@ -57,7 +57,7 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 4152 2011-09-12 09:33:44Z roboos $
+% $Id: ft_artifact_ecg.m 4203 2011-09-14 14:20:49Z johzum $
 
 ft_defaults
 
@@ -87,7 +87,7 @@ if ~isfield(cfg.artfctdef.ecg,'inspect'),  cfg.artfctdef.ecg.inspect   = {'MLT' 
 if ~isfield(cfg.artfctdef.ecg,'pretim'),   cfg.artfctdef.ecg.pretim    = 0.05;          end
 if ~isfield(cfg.artfctdef.ecg,'psttim'),   cfg.artfctdef.ecg.psttim    = 0.3;           end
 if ~isfield(cfg.artfctdef.ecg,'mindist'),  cfg.artfctdef.ecg.mindist   = 0.5;           end
-if ~isfield(cfg.artfctdef.ecg,'interactive'),  cfg.artfctdef.ecg.interactive = 'yes';   end
+if ~isfield(cfg.artfctdef.ecg,'feedback'),  cfg.artfctdef.ecg.feedback = 'yes';   end
 if ~isfield(cfg, 'headerformat'),          cfg.headerformat            = [];            end
 if ~isfield(cfg, 'dataformat'),            cfg.dataformat              = [];            end
 if ~isfield(cfg, 'inputfile'),             cfg.inputfile               = [];            end
@@ -319,7 +319,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_artifact_ecg.m 4152 2011-09-12 09:33:44Z roboos $';
+cfg.version.id = '$Id: ft_artifact_ecg.m 4203 2011-09-14 14:20:49Z johzum $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

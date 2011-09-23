@@ -18,7 +18,7 @@ function [obj] = ft_convert_units(obj, target)
 %
 % Possible target units are 'm', 'dm', 'cm ' or 'mm'.
 %
-% See FT_READ_VOL, FT_READ_SENS
+% See FT_ESTIMATE_UNITS, FT_READ_VOL, FT_READ_SENS
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 3886 2011-07-20 13:58:47Z jansch $
+% $Id: ft_convert_units.m 4288 2011-09-23 12:17:44Z jansch $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -81,11 +81,11 @@ else
     unit = ft_estimate_units(size);
 
   elseif ft_senstype(obj, 'meg')
-    size = norm(range(obj.pnt));
+    size = norm(range(obj.chanpos));
     unit = ft_estimate_units(size);
 
   elseif ft_senstype(obj, 'eeg')
-    size = norm(range(obj.pnt));
+    size = norm(range(obj.chanpos));
     unit = ft_estimate_units(size);
 
   elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
@@ -95,7 +95,11 @@ else
   elseif isfield(obj, 'pos') && ~isempty(obj.pos)
     size = norm(range(obj.pos));
     unit = ft_estimate_units(size);
-
+  
+  elseif isfield(obj, 'chanpos') && ~isempty(obj.chanpos)
+    size = norm(range(obj.chanpos));
+    unit = ft_estimate_units(size);
+    
   elseif isfield(obj, 'transform') && ~isempty(obj.transform)
     % construct the corner points of the voxel grid in head coordinates
     xi = 1:obj.dim(1);
@@ -174,6 +178,9 @@ if isfield(obj, 'prj'),  obj.prj  = scale * obj.prj;  end
 
 % gradiometer array, electrode array, head shape or dipole grid
 if isfield(obj, 'pnt'), obj.pnt = scale * obj.pnt; end
+if isfield(obj, 'chanpos'), obj.chanpos = scale * obj.chanpos; end
+if isfield(obj, 'coilpos'), obj.coilpos = scale * obj.coilpos; end
+if isfield(obj, 'elecpos'), obj.elecpos = scale * obj.elecpos; end
 
 % fiducials
 if isfield(obj, 'fid') && isfield(obj.fid, 'pnt'), obj.fid.pnt = scale * obj.fid.pnt; end

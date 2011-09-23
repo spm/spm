@@ -21,12 +21,17 @@ function montage = megplanar_orig(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: megplanar_orig.m 3830 2011-07-12 09:46:10Z jorhor $
+% $Id: megplanar_orig.m 4287 2011-09-23 12:17:38Z jansch $
 
 neighbsel = cfg.neighbsel;
-distance = cfg.distance;
+distance  = cfg.distance;
 
-[pnt, ori, lab] = channelposition(grad);
+lab   = grad.label;
+tmp   = ft_channelselection('MEG', lab);
+sel   = match_str(lab, tmp);
+pnt   = grad.chanpos(sel,:);
+ori   = grad.chanori(sel,:);
+lab   = lab(sel);
 Ngrad = length(lab);
 
 gradH = zeros(Ngrad, Ngrad);
@@ -79,7 +84,7 @@ for k=1:Ngrad
   Zc  = -X*sin(PhiY) + Z*cos(PhiY);
   X2c = X2*cos(PhiY) + Z2*sin(PhiY);
   Y2c = Y2;
-  Z2c = -X2*sin(PhiY) + Z2*cos(PhiY);;
+  Z2c = -X2*sin(PhiY) + Z2*cos(PhiY);
 
   X = Xc;
   Y = Yc;

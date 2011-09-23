@@ -36,6 +36,9 @@ function comp = ft_datatype_comp(comp, varargin)
 %
 % Revision history:
 %
+% (2011/latest) The description of the sensors has changed: see FIXSENS for
+% information
+%
 % (2003/latest) The initial version was defined
 %
 % See also FT_DATATYPE, FT_DATATYPE_COMP, FT_DATATYPE_DIP, FT_DATATYPE_FREQ,
@@ -60,7 +63,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 3424 2011-05-03 09:08:15Z roboos $
+% $Id: ft_datatype_comp.m 4288 2011-09-23 12:17:44Z jansch $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end

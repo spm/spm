@@ -44,7 +44,7 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 4158 2011-09-12 10:32:49Z jorhor $
+% $Id: ft_channelrepair.m 4287 2011-09-23 12:17:38Z jansch $
 
 ft_defaults
 
@@ -129,7 +129,7 @@ for k=badindx'
     [a, b] = match_str(sens.label, data.label(k));
     badsensindx = a(b);
     fprintf('\tusing neighbour %s\n', sens.label{goodsensindx});
-    distance = sqrt(sum((sens.pnt(goodsensindx,:) - repmat(sens.pnt(badsensindx, :), numel(goodsensindx), 1)).^2, 2));
+    distance = sqrt(sum((sens.chanpos(goodsensindx,:) - repmat(sens.chanpos(badsensindx, :), numel(goodsensindx), 1)).^2, 2));
     repair(k,l) = (1./distance);
     repair(k,l) = repair(k,l) ./ sum(repair(k,l));
 end
@@ -170,7 +170,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelrepair.m 4158 2011-09-12 10:32:49Z jorhor $';
+cfg.version.id   = '$Id: ft_channelrepair.m 4287 2011-09-23 12:17:38Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

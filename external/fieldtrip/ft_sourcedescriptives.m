@@ -66,7 +66,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_sourcedescriptives.m 4251 2011-09-21 11:12:21Z crimic $
 
 ft_defaults
 
@@ -94,6 +94,7 @@ if ~isfield(cfg, 'keepcsd'),          cfg.keepcsd          = 'no';          end
 if ~isfield(cfg, 'fixedori'),         cfg.fixedori = 'over_trials';         end
 if ~isfield(cfg, 'inputfile'),        cfg.inputfile        = [];            end
 if ~isfield(cfg, 'outputfile'),       cfg.outputfile       = [];            end
+source.method = ft_getopt(source,'method',[]);
 
 % only works for minimumnormestimate
 if ~isfield(cfg, 'demean'),         cfg.demean         = 'yes';    end
@@ -946,7 +947,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourcedescriptives.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 4251 2011-09-21 11:12:21Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

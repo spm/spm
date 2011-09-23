@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_appenddata.m 4291 2011-09-23 12:46:31Z jansch $
 
 ft_defaults
 
@@ -164,7 +164,7 @@ if haselec || hasgrad,
     if haselec, sens{j} = varargin{j}.elec; end
     if hasgrad, sens{j} = varargin{j}.grad; end
     if j>1,
-      if numel(sens{j}.pnt) ~= numel(sens{1}.pnt) || any(sens{j}.pnt(:) ~= sens{1}.pnt(:)),
+      if numel(sens{j}.chanpos) ~= numel(sens{1}.chanpos) || any(sens{j}.chanpos(:) ~= sens{1}.chanpos(:)),
         removesens = 1;
         warning('sensor information does not seem to be consistent across the input arguments');
         break;
@@ -309,7 +309,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_appenddata.m 4291 2011-09-23 12:46:31Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

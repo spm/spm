@@ -21,8 +21,8 @@ function [planar] = constructplanargrad(cfg, grad)
 % The input grad can be a CTF type axial gradiometer definition, but
 % just as well be a magnetometer definition. This function only assumes
 % that
-%   grad.pnt
-%   grad.ori
+%   grad.coilpos
+%   grad.coilori
 %   grad.label
 % exist and that the first Nlabel channels in pnt and ori should be
 % used to compute the position of the coils in the planar gradiometer
@@ -46,7 +46,7 @@ function [planar] = constructplanargrad(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: constructplanargrad.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: constructplanargrad.m 4292 2011-09-23 13:30:22Z jansch $
 
 if ~isfield(cfg, 'planaraxial'),     cfg.planaraxial = 'yes';   end
 if ~isfield(cfg, 'baseline_axial'),  cfg.baseline_axial  = 5;   end
@@ -70,8 +70,8 @@ for chan=1:Nchan
   %   the z-axis pointing outwards from the head
   %   the x-axis pointing horizontal w.r.t. the head
   %   the y-axis pointing vertical, i.e. approximately towards the vertex
-  this_o = grad.pnt(chan,:);
-  this_z = grad.ori(chan,:);          
+  this_o = grad.chanpos(chan,:);
+  this_z = grad.chanori(chan,:);          
   this_z = this_z / norm(this_z);
   this_x = cross([0 0 1], this_z);
   if all(this_x==0)
@@ -94,7 +94,7 @@ end
 
 if strcmp(cfg.planaraxial, 'yes')
   % combine all the 8 coils into a single sensor
-  planar.pnt = [
+  planar.coilpos = [
     lo_posx
     lo_negx
     lo_posy
@@ -106,15 +106,15 @@ if strcmp(cfg.planaraxial, 'yes')
   ];
 
   % the orientation of all the coils of a single sensor should be the same
-  planar.ori = [
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
+  planar.coilori = [
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
   ];
 
   e = eye(Nchan);
@@ -128,7 +128,7 @@ if strcmp(cfg.planaraxial, 'yes')
 
 else
   % combine only the 4 lower coils into a single sensor
-  planar.pnt = [
+  planar.coilpos = [
     posx
     negx
     posy
@@ -136,11 +136,11 @@ else
   ];
 
   % the orientation of all the coils of a single gradiometer should be the same
-  planar.ori = [
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
-    grad.ori(1:Nchan,:)
+  planar.coilori = [
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
+    grad.coilori(1:Nchan,:)
   ];
 
   e = eye(Nchan);
@@ -161,6 +161,8 @@ end
 
 planar.label = planar.label(:);
 planar.tra   = planar.tra / cfg.baseline_planar;
+planar.chanpos = grad.chanpos;
+planar.chanori = grad.chanori;
 
 try
   planar.unit  = grad.unit;
@@ -168,7 +170,7 @@ end
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: constructplanargrad.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id   = '$Id: constructplanargrad.m 4292 2011-09-23 13:30:22Z jansch $';
 
 % rememember the exact configuration details in the output
 planar.cfg = cfg;

@@ -86,7 +86,7 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 4151 2011-09-12 08:33:22Z jansch $
+% $Id: ft_megplanar.m 4287 2011-09-23 12:17:38Z jansch $
 
 ft_defaults
 
@@ -262,7 +262,6 @@ else
     end
     
     sens = ft_convert_units(data.grad);
-    [sens.pnt, sens.ori, sens.label] = channelposition(data.grad);
     cfg.channel = ft_channelselection(cfg.channel, sens.label);
     
     cfg.neighbsel = channelconnectivity(cfg);
@@ -273,9 +272,9 @@ else
     Ngrad = length(sens.label);
     cfg.distance = zeros(Ngrad,Ngrad);
     
-    for i=1:Ngrad
+    for i=1:size(cfg.neighbsel,1)
         j=find(cfg.neighbsel(i, :));
-        d = sqrt(sum((sens.pnt(j,:) - repmat(sens.pnt(i, :), numel(j), 1)).^2, 2));
+        d = sqrt(sum((sens.chanpos(j,:) - repmat(sens.chanpos(i, :), numel(j), 1)).^2, 2));
         cfg.distance(i,j) = d;
         cfg.distance(j,i) = d;
     end
@@ -311,7 +310,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % store the configuration of this function call, including that of the previous function call
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 4151 2011-09-12 08:33:22Z jansch $';
+cfg.version.id   = '$Id: ft_megplanar.m 4287 2011-09-23 12:17:38Z jansch $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

@@ -36,17 +36,19 @@ function [pnt,tri]=head_surf(vol,grad,flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: head_surf.m 3010 2011-03-01 15:00:09Z eelspa $
+% $Id: head_surf.m 4287 2011-09-23 12:17:38Z jansch $
 
 if nargin<3
   flag = 1;
 end
 
+grad = fixsens(grad);
+
 Nchans = size(grad.tra, 1);
 Ncoils = size(grad.tra, 2);
 
 % for each coil, determine a surface point using the corresponding sphere
-vec = grad.pnt - vol.o;
+vec = grad.coilpos - vol.o;
 nrm = sqrt(sum(vec.^2,2));
 vec = vec ./ [nrm nrm nrm];
 pnt = vol.o + vec .* [vol.r vol.r vol.r];

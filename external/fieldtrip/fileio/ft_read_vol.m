@@ -33,7 +33,7 @@ function [vol] = ft_read_vol(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_vol.m 2620 2011-01-20 15:22:37Z jorhor $
+% $Id: ft_read_vol.m 4193 2011-09-13 22:03:03Z crimic $
 
 % test whether the file exists
 if ~exist(filename)
@@ -79,7 +79,7 @@ switch fileformat
     % read the triangulated boundary from the neuromag BEM model
     [vol.bnd.pnt, vol.bnd.tri, vol.bnd.nrm] = loadtri(vol.filename);
     vol.bnd.pnt = vol.bnd.pnt*100;  % convert to cm
-
+    
   otherwise
     error('unknown fileformat for volume conductor model');
 end

@@ -41,7 +41,6 @@ function [hdr] = ft_read_header(filename, varargin)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
 %   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
-%   GTec (*.mat)
 %
 % The following spike and LFP dataformats are supported (with some limitations)
 %   Plextor (*.nex, *.plx, *.ddt)
@@ -69,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 3981 2011-08-18 19:57:12Z roboos $
+% $Id: ft_read_header.m 4287 2011-09-23 12:17:38Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -103,7 +102,7 @@ if isempty(headerformat)
 end
 
 if isempty(cache),
-  if strcmp(headerformat, 'bci2000_dat') || strcmp(headerformat, 'eyelink_asc') || strcmp(headerformat, 'gtec_mat')
+  if strcmp(headerformat, 'bci2000_dat') || strcmp(headerformat, 'eyelink_asc')
     cache = true;
   else
     cache = false;
@@ -940,30 +939,6 @@ switch headerformat
       hdr.label = mxDeserialize(hdr.label);
     end
 
-  case 'gtec_mat'
-    % this is a simple MATLAB format, it contains a log and a names variable
-    tmp = load(headerfile);
-    log   = tmp.log;
-    names = tmp.names;
-    
-    hdr.label = cellstr(names);
-    hdr.nChans = size(log,1);
-    hdr.nSamples = size(log,2);
-    hdr.nSamplesPre = 0;
-    hdr.nTrials = 1; % assume continuous data, not epoched
-
-    % compute the sampling frequency from the time channel
-    sel = strcmp(hdr.label, 'Time');
-    time = log(sel,:);
-    
-    hdr.Fs = 1./(time(2)-time(1));
-    
-    % also remember the complete data upon request
-    if cache
-      hdr.orig.log = log;
-      hdr.orig.names = names;
-    end
-
   case {'itab_raw' 'itab_mhd'}
     % read the full header information frtom the binary header structure
     header_info = read_itab_mhd(headerfile);
@@ -1421,26 +1396,29 @@ switch headerformat
     hdr.nChans = length(hdr.label);
 
   case {'tdt_tsq', 'tdt_tev'}
-    tsq = read_tdt_tsq(headerfile);
-    k = 0;
-    chan = unique([tsq.channel]);
-    % loop over the physical channels
-    for i=1:length(chan)
-      chansel = [tsq.channel]==chan(i);
-      code = unique([tsq(chansel).code]);
-      % loop over the logical channels
-      for j=1:length(code)
-        codesel = [tsq.code]==code(j);
-        % find the first instance of this logical channel
-        this = find(chansel & codesel, 1);
-        % add it to the list of channels
-        k = k + 1;
-        frequency(k) = tsq(this).frequency;
-        label{k}     = [char(typecast(tsq(this).code, 'uint8')) num2str(tsq(this).channel)];
-        tsqorig(k)   = tsq(this);
-      end
-    end
-    % the above code is not complete
+    % FIXME the code below is not yet functional, it requires more input from the ESI in Frankfurt
+    %     tsq = read_tdt_tsq(headerfile);
+    %     k = 0;
+    %     chan = unique([tsq.channel]);
+    %     % loop over the physical channels
+    %     for i=1:length(chan)
+    %       chansel = [tsq.channel]==chan(i);
+    %       code = unique({tsq(chansel).code});
+    %       % loop over the logical channels
+    %       for j=1:length(code)
+    %         codesel = false(size(tsq));
+    %         for k=1:numel(codesel)
+    %           codesel(k) = identical(tsq(k).code, code{j});
+    %         end
+    %         % find the first instance of this logical channel
+    %         this = find(chansel(:) & codesel(:), 1);
+    %         % add it to the list of channels
+    %         k = k + 1;
+    %         frequency(k) = tsq(this).frequency;
+    %         label{k}     = [char(typecast(tsq(this).code, 'uint8')) num2str(tsq(this).channel)];
+    %         tsqorig(k)   = tsq(this);
+    %       end
+    %     end
     error('not yet implemented');
 
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'yokogawa_mrk'}
@@ -1488,7 +1466,14 @@ if checkUniqueLabels
     end
   end
 end
-  
+
+% ensure that the sensor description is up-to-date
+if isfield(hdr, 'grad')
+  hdr.grad = fixsens(hdr.grad);
+elseif isfield(hdr, 'elec')
+  hdr.elec = fixsens(hdr.elec);
+end
+
 % ensure that these are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up
 hdr.Fs          = double(hdr.Fs);

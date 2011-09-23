@@ -115,20 +115,6 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   cfg.downsample    = ratio for downsampling, which occurs after convolution (default = 1)
 %
 %
-%  MTMWELCH
-%   MTMWELCH performs frequency analysis on any time series
-%    trial data using the 'multitaper method' (MTM) based on discrete
-%    prolate spheroidal sequences (Slepian sequences) as tapers. Alternatively,
-%    you can use conventional tapers (e.g. Hanning).
-%    Besides multitapering, this function uses Welch's averaged, modified
-%    periodogram method. The data is divided into a number of sections with
-%    overlap, each section is windowed with the specified taper(s) and the
-%    powerspectra are computed and averaged over the sections in each trial.
-%    cfg.taper      = 'dpss', 'hanning' or many others, see WINDOW (default = 'dpss')
-%    cfg.foilim     = [begin end], frequency band of interest
-%    cfg.tapsmofrq  = number, the amount of spectral smoothing through
-%                     multi-tapering. Note that 4 Hz smoothing means
-%                     plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -139,7 +125,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_FREQANALYSIS_OLD, FT_FREQANALYSIS_MTMWELCH, FT_FREQANALYSIS_TFR
+% See also FT_FREQANALYSIS_OLD, FT_FREQANALYSIS_TFR
 
 % Undocumented local options:
 % cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based
@@ -164,7 +150,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_freqanalysis.m 4265 2011-09-22 08:28:58Z jansch $
 
 ft_defaults
 
@@ -268,6 +254,9 @@ switch cfg.method
     if ~isfield(cfg, 'filtdir'),          cfg.filtdir       = 'twopass';    end
     if ~isfield(cfg, 'width'),            cfg.width         = 1;            end
     cfg.method = 'hilbert';
+    
+  case 'mtmwelch' % mtmwelch is a special case, it is no longer maintained, and no specest function is intended for it
+    error('ft_freqanalysis_mtmwelch is deprecated, and is no longer maintained. You can still use this method by calling ft_freqanalysis_old')
     
   otherwise
     specestflg = 0;
@@ -672,12 +661,19 @@ else
       end %ifoi
         
     else
+      % keep tapers
+      if ~exist('tapcounter', 'var')
+        tapcounter = 0;
+      end
+      
       if strcmp(cfg.method,'mtmconvol')
         spectrum = permute(reshape(spectrum_mtmconvol,[nchan ntoi ntaper(1) nfoi]),[3 1 4 2]);
       end
-        
-      rptind = reshape(1:ntrials .* maxtap,[maxtap ntrials]);
-      currrptind = rptind(:,itrial);
+      
+      currrptind  = tapcounter + (1:maxtap);
+      tapcounter  = currrptind(end);
+      %rptind = reshape(1:ntrials .* maxtap,[maxtap ntrials]);
+      %currrptind = rptind(:,itrial);
       if powflg
         powspctrm(currrptind,:,:) = abs(spectrum).^2;
       end
@@ -806,7 +802,7 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 4096 2011-09-03 15:49:40Z roboos $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 4265 2011-09-22 08:28:58Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.callinfo.matlab = version();

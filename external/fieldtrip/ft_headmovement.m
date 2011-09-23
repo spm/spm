@@ -29,7 +29,7 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 3474 2011-05-09 14:13:50Z roboos $
+% $Id: ft_headmovement.m 4287 2011-09-23 12:17:38Z jansch $
 
 
 ft_defaults
@@ -46,6 +46,7 @@ hdr = ft_read_header(cfg.headerfile);
 %which according to ctf's documentation should contain the positions
 %of these channels directly (HDAC channels). FIXME
 grad            = ctf2grad(hdr.orig, 1);
+grad            = fixsens(grad); % ensure up-to-date sensor description (Oct 2011)
 
 %read HLC-channels
 %HLC0011 HLC0012 HLC0013 x, y, z coordinates of nasion-coil in m.
@@ -145,17 +146,17 @@ for k = 1:size(transform, 3)
 end
 
 npos        = size(transform, 3);
-ncoils      = size(grad.pnt,  1);
+ncoils      = size(grad.coilpos,  1);
 gradnew     = grad;
-gradnew.pnt = zeros(size(grad.pnt,1)*npos, size(grad.pnt,2));
-gradnew.ori = zeros(size(grad.pnt,1)*npos, size(grad.pnt,2));
+gradnew.coilpos = zeros(size(grad.coilpos,1)*npos, size(grad.coilpos,2));
+gradnew.coilori = zeros(size(grad.coilpos,1)*npos, size(grad.coilpos,2));
 gradnew.tra = repmat(grad.tra, [1 npos]);
 for m = 1:npos
   tmptransform                                = transform(:,:,m);
-  gradnew.pnt([(m-1)*ncoils+1]:[m*ncoils], :) = warp_apply(tmptransform, grad.pnt); %back to head-crd
+  gradnew.coilpos((m-1)*ncoils+1:(m*ncoils), :) = warp_apply(tmptransform, grad.coilpos); %back to head-crd
   tmptransform(1:3, 4)                        = 0; %keep rotation only
-  gradnew.ori([(m-1)*ncoils+1]:[m*ncoils], :) = warp_apply(tmptransform, grad.ori);
-  gradnew.tra(:, [(m-1)*ncoils+1]:[m*ncoils]) = grad.tra.*(numperbin(m)./sum(numperbin));
+  gradnew.coilori((m-1)*ncoils+1:(m*ncoils), :) = warp_apply(tmptransform, grad.coilori);
+  gradnew.tra(:, (m-1)*ncoils+1:(m*ncoils)) = grad.tra.*(numperbin(m)./sum(numperbin));
 end
 
 grad = gradnew;

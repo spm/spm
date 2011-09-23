@@ -1,4 +1,4 @@
-function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights); 
+function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights)
 % initializes MEG-forward calculation
 % usage: forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights); 
 % 
@@ -46,7 +46,7 @@ function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_ini.m 3572 2011-05-24 10:12:03Z vlalit $
+% $Id: meg_ini.m 4287 2011-09-23 12:17:38Z jansch $
 
 if nargin==4
   if order>0;
@@ -92,7 +92,7 @@ function coeffs=getcoeffs(device,vc,center,order)
 [nchan,ndum]=size(device);
 x1=vc(:,1:3)-repmat(center',ndip,1);
 n1=vc(:,4:6);
-x2=device(:,1:3)-repmat(center',nchan,1);;
+x2=device(:,1:3)-repmat(center',nchan,1);
 n2=device(:,4:6); 
 
 scale=10;
@@ -117,13 +117,13 @@ warning('ON', 'MATLAB:nearlySingularMatrix');
 return
 
 
-function field=getfield(source,device,coeffs,center,order);
+function field=getfield(source,device,coeffs,center,order)
 
 [ndip,ndum]=size(source);
 [nchan,ndum]=size(device);
 x1=source(:,1:3)-repmat(center',ndip,1);
 n1=source(:,4:6);
-x2=device(:,1:3)-repmat(center',nchan,1);;
+x2=device(:,1:3)-repmat(center',nchan,1);
 n2=device(:,4:6); 
 
 
@@ -175,7 +175,7 @@ out=reshape(outb,m,k);
 return; 
 
 
-function result=norms(x);
+function result=norms(x)
 
 [n,m,k]=size(x);
 

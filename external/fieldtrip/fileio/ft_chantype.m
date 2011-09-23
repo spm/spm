@@ -29,7 +29,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 3530 2011-05-12 14:15:17Z roboos $
+% $Id: ft_chantype.m 4287 2011-09-23 12:17:38Z jansch $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -40,6 +40,7 @@ end
 % determine the type of input
 isheader = isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
 isgrad   = isa(input, 'struct') && isfield(input, 'pnt') && isfield(input, 'ori');
+isgrad   = (isa(input, 'struct') && isfield(input, 'coilpos')) || isgrad;
 islabel  = isa(input, 'cell')   && isa(input{1}, 'char');
 
 hdr   = input;

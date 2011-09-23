@@ -39,7 +39,7 @@ function field=meg_forward(dip_par,forwpar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_forward.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: meg_forward.m 4287 2011-09-23 12:17:38Z jansch $
 
 device_sens=forwpar.device_sens;
 
@@ -76,7 +76,7 @@ function field=getfield_sphere(source,device,center);
 [nchan,ndum]=size(device);
 x1=source(:,1:3)-repmat(center',ndip,1);
 n1=source(:,4:6);
-x2=device(:,1:3)-repmat(center',nchan,1);;
+x2=device(:,1:3)-repmat(center',nchan,1);
 n2=device(:,4:6); 
 
 

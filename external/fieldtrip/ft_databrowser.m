@@ -21,6 +21,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.plotlabels              = 'yes' (default), 'no', 'some'; whether
 %                                 to plot channel labels in vertical viewmode ('some' plots one in every ten
 %                                 labels; useful when plotting a large number of channels at a time)
+%   cfg.ploteventlabels         = 'type=value', 'colorvalue' (default = 'type=value');
 %   cfg.viewmode                = string, 'butterfly', 'vertical', 'component' for visualizing components e.g. from an ICA (default is 'butterfly')
 %   cfg.artfctdef.xxx.artifact  = Nx2 matrix with artifact segments see FT_ARTIFACT_xxx functions
 %   cfg.selectfeature           = string, name of feature to be selected/added (default = 'visual')
@@ -76,7 +77,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_databrowser.m 4212 2011-09-14 19:06:02Z ingnie $
 
 % FIXME these should be removed
 % FIXME document these
@@ -121,6 +122,7 @@ if ~isfield(cfg, 'layout'),          cfg.layout = [];                     end
 if ~isfield(cfg, 'plotlabels'),      cfg.plotlabels = 'yes';              end
 if ~isfield(cfg, 'event'),           cfg.event = [];                      end % this only exists for backward compatibility and should not be documented
 if ~isfield(cfg, 'continuous'),      cfg.continuous = [];                 end % the default is set further down in the code, conditional on the input data
+if ~isfield(cfg, 'ploteventlabels'), cfg.ploteventlabels = 'type=value';  end
 
 if ~isfield(cfg, 'viewmode')
   % butterfly, vertical, component
@@ -368,6 +370,13 @@ artdata.label          = artlabel;
 artdata.fsample        = hdr.Fs;
 artdata.cfg.trl        = [1 datendsample 0];
 
+% determine amount of unique event types (for cfg.ploteventlabels)
+if ~isempty(event)
+  eventtypes = unique({event.type});
+else
+  eventtypes = [];
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set up the data structures used in the GUI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -402,7 +411,9 @@ opt.artcolors   = [0.9686 0.7608 0.7686; 0.7529 0.7098 0.9647; 0.7373 0.9725 0.6
 opt.chancolors  = chancolors;
 opt.cleanup     = false;      % this is needed for a corrent handling if the figure is closed (either in the corner or by "q")
 opt.chanindx    = [];         % this is used to check whether the component topographies need to be redrawn
-
+opt.eventtypes  = eventtypes;
+opt.eventtypescolors = [0 0 0; 1 0 0; 0 0 1; 0 1 0; 1 0 1; 0.5 0.5 0.5; 0 1 1; 1 1 0];
+opt.eventtypecolorlabels = {'black', 'red', 'blue', 'green', 'cyan', 'grey', 'light blue', 'yellow'};
 
 % determine labelling of channels
 if strcmp(cfg.plotlabels, 'yes')
@@ -533,7 +544,7 @@ end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_databrowser.m 4212 2011-09-14 19:06:02Z ingnie $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
@@ -1125,19 +1136,33 @@ end % for each of the artifact channels
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fprintf('plotting events...\n');
+if strcmp(cfg.ploteventlabels , 'colorvalue') && ~isempty(opt.event)
+  eventlabellegend = [];
+  for iType = 1:length(opt.eventtypes)
+    eventlabellegend = [eventlabellegend sprintf('%s = %s\n',opt.eventtypes{iType},opt.eventtypecolorlabels{iType})];
+  end
+  fprintf(eventlabellegend);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delete(findobj(h,'tag', 'event'));
 
 for k=1:length(event)
   try
-    eventstr = sprintf('%s=%s', event(k).type, num2str(event(k).value)); % value can be both number and string
+    if strcmp(cfg.ploteventlabels , 'type=value')
+      eventstr = sprintf('%s=%s', event(k).type, num2str(event(k).value)); % value can be both number and string
+      eventcol = 'k';
+    elseif strcmp(cfg.ploteventlabels , 'colorvalue')
+      eventcol = opt.eventtypescolors(match_str(opt.eventtypes, event(k).type),:);
+      eventstr = sprintf('%s', num2str(event(k).value)); % value can be both number and string
+    end
   catch
     eventstr = 'unknown';
+    eventcol = 'k';
   end
   eventtim = (event(k).sample-begsample)/opt.fsample + opt.hlim(1);
-  ft_plot_line([eventtim eventtim], [-1 1], 'tag', 'event', ...
+  ft_plot_line([eventtim eventtim], [-1 1], 'tag', 'event', 'color', eventcol, ...
     'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
-  ft_plot_text(eventtim, 0.9, eventstr, 'tag', 'event', ...
+  ft_plot_text(eventtim, 0.9, eventstr, 'tag', 'event', 'Color', eventcol, ...
     'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
 end
 

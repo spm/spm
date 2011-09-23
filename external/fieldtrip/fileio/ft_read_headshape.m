@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 4162 2011-09-13 11:26:02Z crimic $
+% $Id: ft_read_headshape.m 4287 2011-09-23 12:17:38Z jansch $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -355,7 +355,8 @@ switch fileformat
       % sort
       shape = tmp.bnd;
     elseif isfield(tmp, 'elec')
-      shape.fid.pnt   = tmp.elec.pnt;
+      tmp.elec        = fixsens(tmp.elec);
+      shape.fid.pnt   = tmp.elec.chanpos;
       shape.fid.label = tmp.elec.label;
     else
       error('no headshape found in Matlab file');
@@ -414,7 +415,7 @@ switch fileformat
         if ~ft_senstype(elec, 'eeg')
           error('headshape information can not be read from MEG gradiometer file');
         else
-          shape.fid.pnt   = elec.pnt;
+          shape.fid.pnt   = elec.chanpos;
           shape.fid.label = elec.label;
           success = 1;
         end
