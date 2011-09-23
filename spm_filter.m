@@ -26,7 +26,7 @@ function varargout = spm_filter(K,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_filter.m 4191 2011-02-03 13:30:02Z guillaume $
+% $Id: spm_filter.m 4498 2011-09-23 18:40:43Z guillaume $
 
 
 %-Configure filter
@@ -64,19 +64,29 @@ else
             K = spm_filter(K);
         end
         
-        for s = 1:length(K)
-            
-            % select data
-            %--------------------------------------------------------------
-            y = Y(K(s).row,:);
+        if numel(K) == 1 && length(K.row) == size(Y,1)
             
             % apply high pass filter
             %--------------------------------------------------------------
-            y = y - K(s).X0*(K(s).X0'*y);
+            Y = Y - K.X0*(K.X0'*Y);
             
-            % reset filtered data in Y
-            %--------------------------------------------------------------
-            Y(K(s).row,:) = y;
+        else
+            
+            for s = 1:length(K)
+                
+                % select data
+                %----------------------------------------------------------
+                y = Y(K(s).row,:);
+                
+                % apply high pass filter
+                %----------------------------------------------------------
+                y = y - K(s).X0*(K(s).X0'*y);
+                
+                % reset filtered data in Y
+                %----------------------------------------------------------
+                Y(K(s).row,:) = y;
+                
+            end
             
         end
         

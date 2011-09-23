@@ -1,4 +1,4 @@
-function H = spm_browser(url,F,pos,format)
+function [H, HC] = spm_browser(url,F,pos,format)
 % Display an HTML document within a MATLAB figure
 % FORMAT H = spm_browser(url,F,pos,[format])
 %
@@ -15,14 +15,13 @@ function H = spm_browser(url,F,pos,format)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 4411 2011-08-01 14:43:21Z guillaume $
+% $Id: spm_browser.m 4498 2011-09-23 18:40:43Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
 if nargin < 1
     url = 'http://www.fil.ion.ucl.ac.uk/spm/';
 end
-url     = strrep(url,'\','/');
 
 if nargin < 2 || isempty(F)
     F   = spm_figure('GetWin','Graphics');
@@ -45,7 +44,8 @@ end
 %--------------------------------------------------------------------------
 try
     % if usejava('awt') && spm_check_version('matlab','7.4') >= 0
-    if strcmpi(format,'html')
+    if strcmpi(format,'html') && any(strncmp(url,{'file','http','ftp:'},4))
+        url     = strrep(url,'\','/');
         browser = com.mathworks.mlwidgets.html.HTMLBrowserPanel(url);
     else
         browser = com.mathworks.mlwidgets.html.HTMLBrowserPanel;
@@ -53,6 +53,9 @@ try
     [H, HC] = javacomponent(browser,pos,F);
     if strcmpi(format,'wiki')
         H.setHtmlText(wiki2html(url));
+    end
+    if all(~strncmp(url,{'file','http','ftp:'},4))
+        H.setHtmlText(url);
     end
 catch
     H   = [];
