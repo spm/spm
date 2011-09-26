@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_preproc_run.m 4499 2011-09-26 14:40:56Z guillaume $
 
 if nargin == 1, arg = 'run'; end
 
@@ -103,7 +103,7 @@ for iter=1:nit,
 
         try
             [pth,nam] = fileparts(job.channel(1).vols{subj});
-            save(fullfile(pth,[nam '_seg8.mat']),'-struct',res, spm_get_defaults('mat.format'));
+            save(fullfile(pth,[nam '_seg8.mat']),'-struct','res', spm_get_defaults('mat.format'));
         catch
         end
 
