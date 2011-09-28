@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4494 2011-09-20 09:22:04Z ged $
+% $Id: spm_defaults.m 4502 2011-09-28 09:47:40Z volkmar $
 
 
 global defaults
@@ -79,7 +79,7 @@ defaults.stats.results.volume.distmin =  8;
 defaults.stats.results.volume.nbmax   =  3;
 defaults.stats.results.svc.distmin    =  4;
 defaults.stats.results.svc.nbmax      = 16;
-defaults.stats.results.mipmat         = fullfile(spm('dir'),'MIP.mat');
+defaults.stats.results.mipmat         = {fullfile(spm('dir'),'MIP.mat')};
 
 % Filename prefix defaults
 %==========================================================================

@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 4404 2011-07-22 11:36:40Z volkmar $
+% $Id: spm_mip_ui.m 4502 2011-09-28 09:47:40Z volkmar $
 
 
 %==========================================================================
@@ -153,7 +153,7 @@ end
 %==========================================================================
 %-MIP pane dimensions, origin offsets and #pixels per mm
 %-See spm_project.c for derivation
-mipmat = spm_get_defaults('stats.results.mipmat');
+mipmat = char(spm_get_defaults('stats.results.mipmat'));
 load(mipmat, 'DXYZ', 'CXYZ', 'scale');
 % DMIP = [DXYZ(2)+DXYZ(1), DXYZ(1)+DXYZ(3)];
 %-Coordinates of Talairach origin in multipane MIP image (Axes are 'ij' + rot90)
