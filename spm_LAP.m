@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_LAP.m 4503 2011-09-29 17:55:59Z guillaume $
  
  
 % find or create a DEM figure
@@ -782,37 +782,39 @@ for iN = 1:nN
  
     % graphics (states)
     %----------------------------------------------------------------------
-    figure(Fdem)
-    spm_DEM_qU(qU)
-    
-    % graphics (parameters and log-precisions)
-    %----------------------------------------------------------------------
-    if np && nb
-        subplot(2*nl,2,4*nl - 2)
-        plot(1:ns,spm_cat(qP.p))
-        set(gca,'XLim',[1 ns])
-        title('parameters (modes)','FontSize',16)
+    if exist('Fdem','var')
+        figure(Fdem)
+        spm_DEM_qU(qU)
         
-        subplot(2*nl,2,4*nl)
-        plot(1:ns,spm_cat(qH.p))
-        set(gca,'XLim',[1 ns])
-        title('log-precision','FontSize',16)
-        
-    elseif nb
-        subplot(nl,2,2*nl)
-        plot(1:ns,spm_cat(qH.p))
-        set(gca,'XLim',[1 ns])
-        title('log-precision','FontSize',16)
-        
-    elseif np
-        subplot(nl,2,2*nl)
-        plot(1:ns,spm_cat(qP.p))
-        set(gca,'XLim',[1 ns])
-        title('parameters (modes)','FontSize',16)
- 
+        % graphics (parameters and log-precisions)
+        %------------------------------------------------------------------
+        if np && nb
+            subplot(2*nl,2,4*nl - 2)
+            plot(1:ns,spm_cat(qP.p))
+            set(gca,'XLim',[1 ns])
+            title('parameters (modes)','FontSize',16)
+            
+            subplot(2*nl,2,4*nl)
+            plot(1:ns,spm_cat(qH.p))
+            set(gca,'XLim',[1 ns])
+            title('log-precision','FontSize',16)
+            
+        elseif nb
+            subplot(nl,2,2*nl)
+            plot(1:ns,spm_cat(qH.p))
+            set(gca,'XLim',[1 ns])
+            title('log-precision','FontSize',16)
+            
+        elseif np
+            subplot(nl,2,2*nl)
+            plot(1:ns,spm_cat(qP.p))
+            set(gca,'XLim',[1 ns])
+            title('parameters (modes)','FontSize',16)
+            
+        end
+        drawnow
     end
-    drawnow
- 
+    
     % report (EM-Steps)
     %----------------------------------------------------------------------
     try
@@ -890,8 +892,3 @@ DEM.F  = F(1:iN);             % [-ve] Free-energy
 DEM.S  = S(1:iN);             % [-ve] Free-action
 DEM.FC = FC;                  % Free-energy components
 DEM.CC = CC;                  % over iterations
-
-return
-
- 
- 
