@@ -5,12 +5,12 @@ function save(this,filename,encoding)
 % filename  - name of GIfTI file to be created [Default: 'untitled.gii']
 % encoding  - optional argument to specify encoding format, among
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary,
-%             Collada (.dae), IDTF (.idtf). [Defallt: 'GZipBase64Binary']
+%             Collada (.dae), IDTF (.idtf). [Default: 'GZipBase64Binary']
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 4457 2011-09-05 14:04:22Z guillaume $
+% $Id: save.m 4505 2011-09-30 11:45:58Z guillaume $
 
 
 % Check filename and file format
@@ -171,8 +171,14 @@ for i=1:length(this.data)
     fn = sort(fieldnames(this.data{i}.attributes));
     oo = repmat({o(5) '\n'},length(fn),1); oo{1} = '  '; oo{end} = '';
     for j=1:length(fn)
+        if strcmp(fn{j},'ExternalFileName')
+            [p,f,e] = fileparts(this.data{i}.attributes.(fn{j}));
+            attval = [f e];
+        else
+            attval = this.data{i}.attributes.(fn{j});
+        end
         fprintf(fid,'%s%s="%s"%s',oo{j,1},...
-            fn{j},this.data{i}.attributes.(fn{j}),sprintf(oo{j,2}));
+                fn{j},attval,sprintf(oo{j,2}));
     end
     fprintf(fid,'>\n');
     
@@ -222,6 +228,10 @@ for i=1:length(this.data)
             % uses native machine format
         case 'ExternalFileBinary'
             extfilename = this.data{i}.attributes.ExternalFileName;
+            dat = this.data{i}.data;
+            if isa(dat,'file_array')
+                dat = subsref(dat,substruct('()',repmat({':'},1,numel(dat.dim))));
+            end
             if ~def.offset
                 fide = fopen(extfilename,'w'); % uses native machine format
             else
@@ -231,7 +241,7 @@ for i=1:length(this.data)
                 error('Unable to write file %s: permission denied.',extfilename);
             end
             fseek(fide,0,1);
-            fwrite(fide,this.data{i}.data,tp.class);
+            fwrite(fide,dat,tp.class);
             def.offset = ftell(fide);
             fclose(fide);
         otherwise

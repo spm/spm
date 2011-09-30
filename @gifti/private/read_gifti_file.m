@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: read_gifti_file.m 4505 2011-09-30 11:45:58Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -90,10 +90,10 @@ for i=1:str2double(s(1).attributes.Dimensionality)
     s(1).attributes = rmfield(s(1).attributes,f);
 end
 s(1).attributes = rmfield(s(1).attributes,'Dimensionality');
-try
+if isfield(s(1).attributes,'ExternalFileName') && ...
+        ~isempty(s(1).attributes.ExternalFileName)
     s(1).attributes.ExternalFileName = fullfile(fileparts(filename),...
         s(1).attributes.ExternalFileName);
-catch
 end
     
 c = children(t,uid);
@@ -149,14 +149,23 @@ switch s.Encoding
         d = typecast(dunzip(sb(base64decode(get(t,children(t,uid),'value')))), tp.cast);
 
     case 'ExternalFileBinary'
-        fid = fopen(s.ExternalFileName,'r');
-        if fid == -1
-            error('[GIFTI] Unable to read binary file %s.',s.ExternalFileName);
+        [p,f,e] = fileparts(s.ExternalFileName);
+        if isempty(p)
+            s.ExternalFileName = fullfile(pwd,[f e]);
         end
-        fseek(fid,str2double(s.ExternalFileOffset),0);
-        d = sb(fread(fid,prod(s.Dim),['*' tp.class]));
-        fclose(fid);
-
+        if true
+            fid = fopen(s.ExternalFileName,'r');
+            if fid == -1
+                error('[GIFTI] Unable to read binary file %s.',s.ExternalFileName);
+            end
+            fseek(fid,str2double(s.ExternalFileOffset),0);
+            d = sb(fread(fid,prod(s.Dim),['*' tp.class]));
+            fclose(fid);
+        else
+            d = file_array(s.ExternalFileName, s.Dim, tp.class, ...
+                str2double(s.ExternalFileOffset),1,0,'ro');
+        end
+        
     otherwise
         error('[GIFTI] Unknown data encoding: %s.',s.Encoding);
 end
