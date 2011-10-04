@@ -86,7 +86,7 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_LS.m 4098 2010-10-22 19:46:28Z karl $
+% $Id: spm_nlsi_LS.m 4508 2011-10-04 16:19:32Z Darren $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -316,7 +316,7 @@ for k = 1:64
         
         % subplot prediction
         %------------------------------------------------------------------
-        figure(Fsi)
+        set(0,'CurrentFigure',Fsi)
         x    = (1:ns)*Y.dt;
         xLab = 'time (seconds)';
         try

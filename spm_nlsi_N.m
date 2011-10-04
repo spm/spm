@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4353 2011-06-13 18:52:38Z karl $
+% $Id: spm_nlsi_N.m 4508 2011-10-04 16:19:32Z Darren $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -500,7 +500,7 @@ for ip = 1:64
  
         % subplot prediction
         %------------------------------------------------------------------
-        figure(Fsi)
+        set(0,'CurrentFigure',Fsi)
         
         subplot(3,1,1)
         plot(yt,x)
