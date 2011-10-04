@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_regions.m 4511 2011-10-04 17:57:46Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -95,6 +95,10 @@ end
 if ~isfield(xY,'Ic')
     q     = 0;
     Con   = {'<don''t adjust>'};
+    if isempty([SPM.xX.iB SPM.xX.iG])
+        q(end + 1) = NaN;
+        Con{end + 1} = '<adjust for everything>';
+    end
     for i = 1:length(SPM.xCon)
         if strcmp(SPM.xCon(i).STAT,'F')
             q(end + 1) = i;
@@ -144,7 +148,7 @@ y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
 
 %-Remove null space of contrast
 %--------------------------------------------------------------------------
-if xY.Ic
+if xY.Ic ~= 0
 
     %-Parameter estimates: beta = xX.pKX*xX.K*y
     %----------------------------------------------------------------------
@@ -152,7 +156,11 @@ if xY.Ic
 
     %-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
     %----------------------------------------------------------------------
-    y     = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
+    if ~isnan(xY.Ic)
+        y = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
+    else
+        y = y - SPM.xX.xKXs.X * beta;
+    end
 
 end
 

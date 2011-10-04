@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_cfg_voi.m 4511 2011-10-04 17:57:46Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -337,7 +337,7 @@ spmmat.num     = [1 1];
 adjust         = cfg_entry;
 adjust.tag     = 'adjust';
 adjust.name    = 'Adjust data';
-adjust.help    = {'Index of F-contrast used to adjust data. Enter ''0'' for no adjustment.'}';
+adjust.help    = {'Index of F-contrast used to adjust data. Enter ''0'' for no adjustment. Enter ''NaN'' for adjusting for everything.'}';
 adjust.strtype = 'e';
 adjust.num     = [1 1];
 
