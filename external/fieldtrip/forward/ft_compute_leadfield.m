@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_compute_leadfield.m 4335 2011-10-03 13:14:27Z crimic $
 
 persistent warning_issued;
 
@@ -98,7 +98,9 @@ if ~isstruct(sens) && size(sens,2)==3
 end
 
 % ensure that the description of the sensors is up-to-date (Oct 2011)
-sens = fixsens(sens);
+if isfield(sens,'pnt')
+  sens = fixsens(sens);
+end
 
 % determine whether it is EEG or MEG
 iseeg = ft_senstype(sens, 'eeg');

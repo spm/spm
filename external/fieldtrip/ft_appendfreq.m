@@ -29,7 +29,7 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 4101 2011-09-05 09:48:02Z roboos $
+% $Id: ft_appendfreq.m 4305 2011-09-26 19:40:23Z roboos $
 
 ft_defaults
 
@@ -106,10 +106,10 @@ switch cfg.appenddim
       % we need to check whether the other dimensions are the same.
       % if not, consider some tolerance.
       boolval1 = checkchan(varargin{:}, 'identical');
-      boolval2 = checkfreq(varargin{:}, 'identical');
+      boolval2 = checkfreq(varargin{:}, 'identical', tol);
       
       if isfield(varargin{1}, 'time'),
-        boolval3 = checktime(varargin{:}, 'identical');
+        boolval3 = checktime(varargin{:}, 'identical', tol);
         if boolval1 && boolval2 && boolval3
           % each of the input datasets contains a single repetition (perhaps an average), these can be concatenated
           tmpcfg.appenddim = 'rpt';
@@ -131,6 +131,7 @@ switch cfg.appenddim
         end
       end
       
+      if ~isempty(tmpcfg.inputfile), tmpcfg = rmfield(tmpcfg, 'inputfile'); end;
       freq = ft_appendfreq(tmpcfg, varargin{:});
       return;
     end % determining the dimension for appending
@@ -159,6 +160,7 @@ switch cfg.appenddim
         tmpcfg.appenddim = 'freq';
       end
     end
+    if ~isempty(tmpcfg.inputfile), tmpcfg = rmfield(tmpcfg, 'inputfile'); end;
     freq = ft_appendfreq(tmpcfg, varargin{:});
     return;
     
@@ -285,7 +287,7 @@ end %for k = 1:numel(param)
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appendfreq.m 4101 2011-09-05 09:48:02Z roboos $';
+cfg.version.id = '$Id: ft_appendfreq.m 4305 2011-09-26 19:40:23Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

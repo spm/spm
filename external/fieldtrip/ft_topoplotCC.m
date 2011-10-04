@@ -53,7 +53,7 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_topoplotCC.m 4328 2011-10-03 12:02:31Z jansch $
 
 ft_defaults
 
@@ -184,8 +184,8 @@ for i=1:ncmb
   ft_progress(i/ncmb, 'plotting connection %d from %d (%s -> %s)\n', i, ncmb, beglabel{i}, endlabel{i});
 
   if widthparam(i)>0
-    begindx = strmatch(beglabel{i}, lay.label);
-    endindx = strmatch(endlabel{i}, lay.label);
+    begindx = strcmp(beglabel{i}, lay.label);
+    endindx = strcmp(endlabel{i}, lay.label);
     xbeg = lay.pos(begindx,1);
     ybeg = lay.pos(begindx,2);
     xend = lay.pos(endindx,1);
@@ -240,7 +240,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_topoplotCC.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_topoplotCC.m 4328 2011-10-03 12:02:31Z jansch $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

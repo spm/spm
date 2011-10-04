@@ -44,9 +44,12 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 2643 2011-01-25 22:26:13Z crimic $
+% $Id: ft_prepare_bemmodel.m 4306 2011-09-27 07:52:27Z eelspa $
 
 ft_defaults
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 if ~isfield(cfg, 'tissue'),         cfg.tissue = [8 12 14];                  end
 if ~isfield(cfg, 'numvertices'),    cfg.numvertices = [1 2 3] * 500;         end

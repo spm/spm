@@ -40,7 +40,7 @@ function [data] = ft_denoise_synthetic(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_denoise_synthetic.m 4307 2011-09-27 07:54:10Z eelspa $
 
 ft_defaults
 
@@ -48,6 +48,9 @@ ft_defaults
 ftFuncTimer = tic();
 ftFuncClock = clock();
 ftFuncMem   = memtic();
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'gradient'),   error('cfg.gradient must be specified'); end
@@ -126,7 +129,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_denoise_synthetic.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_denoise_synthetic.m 4307 2011-09-27 07:54:10Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

@@ -93,9 +93,12 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_topoplotIC.m 4306 2011-09-27 07:52:27Z eelspa $
 
 ft_defaults
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % this is just a wrapper function around ft_topoplotER, therefore it does not need to 
 % measure the time spent in this function with tic/toc

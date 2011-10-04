@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_prepare_layout.m 4306 2011-09-27 07:52:27Z eelspa $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -78,6 +78,10 @@ if (nargin<2), data = []; end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set default configuration options
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+
 if ~isfield(cfg, 'rotate'),     cfg.rotate = [];                end  % [] => rotation is determined based on the type of sensors
 if ~isfield(cfg, 'style'),      cfg.style = '2d';               end
 if ~isfield(cfg, 'projection'), cfg.projection = 'polar';       end

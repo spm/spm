@@ -4,10 +4,12 @@ function opt = ft_checkopt(opt, key, allowedtype, allowedval)
 % structure or cell-array with key-value pairs.
 %
 % Use as
+%   opt = ft_checkopt(opt, key)
+%   opt = ft_checkopt(opt, key, allowedtype)
 %   opt = ft_checkopt(opt, key, allowedtype, allowedval)
 %
 % For allowedtype you can specify a string or a cell-array with multiple
-% strings. All the default MATLAB types can be specified, for example
+% strings. All the default MATLAB types can be specified, which includes
 %   'double'
 %   'logical'
 %   'char'
@@ -30,14 +32,15 @@ function opt = ft_checkopt(opt, key, allowedtype, allowedval)
 % with multiple values.
 %
 % This function will give an error or it returns the input configuration
-% structure or cell-array without modifications. Any match on allowedtype and
-% any match on allowedval is sufficient to let this function pass.
+% structure or cell-array without modifications. A match on any of the 
+% allowed types and any of the allowed values is sufficient to let this 
+% function pass.
 %
 % See also FT_GETOPT, FT_SETOPT
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_checkopt.m 4202 2011-09-14 12:52:50Z roboos $
+% $Id: ft_checkopt.m 4294 2011-09-25 10:12:46Z roboos $
 
 if nargin<3
   allowedtype = {};

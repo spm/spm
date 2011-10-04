@@ -52,11 +52,13 @@ function [sdf sdfdata] = density(cfg,data)
 %     in TIMELOCKSTATISTICS for example.
 %   - SDFDATA is a raw DATA type structure that can be used itself in all functions that support
 %     raw data input (such as TIMELOCKANALYSIS, FREQANALYSIS).
-% $Id: ft_spikedensity.m 3749 2011-06-30 23:33:35Z marvin $
+% $Id: ft_spikedensity.m 4306 2011-09-27 07:52:27Z eelspa $
 
 % Copyright (C) 2010, Martin Vinck
 % TODO: check that SDFDATA is indeed completely compatible!
 
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 defaults.timwin         = {[-0.05 0.05]};          

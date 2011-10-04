@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_prepare_vol_sens.m 4334 2011-10-03 13:11:40Z crimic $
 
 % get the options
 % fileformat = keyval('fileformat',  varargin);
@@ -67,7 +67,9 @@ if isempty(channel),  channel = sens.label;   end
 if isempty(order),    order = 10;             end
 
 % ensure that the sensor description is up-to-date
-sens = fixsens(sens);
+if isfield(sens,'pnt')
+  sens = fixsens(sens);
+end
 
 % determine whether the input contains EEG or MEG sensors
 iseeg = ft_senstype(sens, 'eeg');

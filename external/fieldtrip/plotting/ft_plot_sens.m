@@ -34,12 +34,14 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_plot_sens.m 4331 2011-10-03 12:42:38Z crimic $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
 % ensure up-to-date description of sensors (Aug 2011)
-sens = fixsens(sens);
+if isfield(sens,'pnt')
+  sens = fixsens(sens);
+end
 
 % get the optional input arguments
 keyvalcheck(varargin, 'optional', {'style', 'coil', 'label'});

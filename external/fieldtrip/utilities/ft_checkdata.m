@@ -50,7 +50,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_checkdata.m 4323 2011-10-03 09:45:13Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -513,8 +513,8 @@ if issource || isvolume,
   % reshape each of the source reconstructed parameters
   if issource && isfield(data, 'dim') && prod(data.dim)==size(data.pos,1)
     dim = [prod(data.dim) 1];
-  elseif issource && any(~cellfun('isempty',strfind(fieldnames(data), 'dimord')))
-    dim = [size(data.pos,1) 1]; %sparsely represented source structure new style
+  %elseif issource && any(~cellfun('isempty',strfind(fieldnames(data), 'dimord')))
+  %  dim = [size(data.pos,1) 1]; %sparsely represented source structure new style
   elseif isfield(data, 'dim'),
     dim = [data.dim 1];
   elseif issource

@@ -17,8 +17,12 @@ function dataout = ft_rejectconfound(cfg, datain)
 % The following configuration options are supported:
 %   cfg.reject      = vector, [1 X Nconfounds], listing the confounds that
 %                     are to be rejected (default = 'all')
-%   cfg.normalize   = string, 'yes' or 'no', normalization to 
-%                     make the confounds orthogonal (default = 'yes') 
+%   cfg.normalize   = string, 'yes' or 'no', normalization to
+%                     make the confounds orthogonal (default = 'yes')
+%   cfg.statistics  = string, 'yes' or 'no', whether to add the statistics
+%                     to the output (default = 'no')
+%   cfg.model       = string, 'yes' or 'no', whether to add the model to
+%                     the output (default = 'no')
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -33,7 +37,7 @@ function dataout = ft_rejectconfound(cfg, datain)
 
 % Copyrights (C) 2011, Robert Oostenveld, Arjen Stolk, Lennart Verhagen
 %
-% $Id: ft_rejectconfound.m 4246 2011-09-19 15:26:14Z arjsto $
+% $Id: ft_rejectconfound.m 4340 2011-10-04 13:54:02Z arjsto $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -76,7 +80,7 @@ regr = ft_getopt(cfg, 'confound');  % there is no default value
 nconf = size(regr,2);
 conflist = 1:nconf;
 if ~isfield(cfg, 'reject') || strcmp(cfg.reject, 'all') % default
-  cfg.reject = conflist(1:end); % to be removed  
+  cfg.reject = conflist(1:end); % to be removed
 else
   cfg.reject = intersect(conflist, cfg.reject); % to be removed
 end
@@ -133,39 +137,75 @@ if istimelock
       end
       
       % get the data on which the contribution of the confounds has to be estimated
-      dat = reshape(datain.trial, [nrpt, nchan*ntime]);              
+      dat = reshape(datain.trial, [nrpt, nchan*ntime]);
       
       % estimate and remove the confounds
       fprintf('estimating the regression weights and removing the confounds \n');
       beta = regr\dat;                                                        % B = X\Y
-      Yc   = dat - regr(:, cfg.reject) * beta(cfg.reject, :);                 % Yclean = Y - X * X\Y
+      model = regr(:, cfg.reject) * beta(cfg.reject, :);                      % model = confounds * weights = X * X\Y
+      Yc = dat - model;                                                       % Yclean = Y - X * X\Y
       
       % put the clean data back into place
       dataout.trial = reshape(Yc, [nrpt, nchan, ntime]); clear Yc;
-      dataout.beta  = reshape(beta, [nconf, nchan, ntime]); 
+      
+      % update descriptives when already present
+      if isfield(dataout, 'var') % remove (old) var
+        dataout = rmfield(dataout, 'var');
+      end
+      if isfield(dataout, 'dof') % remove (old) degrees of freedom
+        dataout = rmfield(dataout, 'dof');
+      end
+      if isfield(dataout, 'avg') % remove (old) avg and reaverage
+        fprintf('updating descriptives \n');
+        dataout = rmfield(dataout, 'avg');
+        tempcfg            = [];
+        tempcfg.keeptrials = 'yes';
+        dataout = ft_timelockanalysis(tempcfg, dataout); % reaveraging
+      end
+      
+      % make a nested timelock structure that contains the model
+      if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
+        fprintf('outputting the model which contains the confounds x weights \n');
+        dataout.model.trial   = reshape(model, [nrpt, nchan, ntime]); clear model;
+        dataout.model.dimord  = dataout.dimord;
+        dataout.model.time    = dataout.time;
+        dataout.model.label   = dataout.label;
+        if isfield(dataout, 'avg')
+          % also average the model
+          tempcfg            = [];
+          tempcfg.keeptrials = 'yes';
+          dataout.model      = ft_timelockanalysis(tempcfg, dataout.model); % reaveraging
+        end
+      end
       
       % beta statistics
-      fprintf('performing statistics on the regression weights \n');
-      dfe        = nrpt - nconf;                                              % degrees of freedom 
-      err        = dat - regr * beta;                                         % err = Y - X * B
-      mse        = sum((err).^2)/dfe;                                         % mean squared error
-      covar      = diag(regr'*regr)';                                         % regressor covariance
-      bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
-      tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
-      prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
-      clear err; clear mse; clear dat; clear regr; clear beta; clear bvar;
-      dataout.stat     = reshape(tval, [nconf, nchan, ntime]); clear tval;
-      dataout.prob     = reshape(prob, [nconf, nchan, ntime]); clear prob;
-            
+      if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
+        fprintf('performing statistics on the regression weights \n');
+        dfe        = nrpt - nconf;                                              % degrees of freedom
+        err        = dat - regr * beta;                                         % err = Y - X * B
+        mse        = sum((err).^2)/dfe;                                         % mean squared error
+        covar      = diag(regr'*regr)';                                         % regressor covariance
+        bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
+        tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
+        prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
+        clear err; clear mse; clear dat; clear regr; clear bvar;
+        dataout.stat     = reshape(tval, [nconf, nchan, ntime]); clear tval;
+        dataout.prob     = reshape(prob, [nconf, nchan, ntime]); clear prob;
+        % FIXME: drop in replace tcdf from the statfun/private dir
+      end
+      
+      % add the beta weights to the output
+      dataout.beta     = reshape(beta, [nconf, nchan, ntime]); clear beta;
+      
     otherwise
       error('unsupported dimord "%s"', datain.dimord);
   end % switch
   
-elseif isfreq 
+elseif isfreq
   
   switch datain.dimord
     case {'rpt_chan_freq_time', 'subj_chan_freq_time', 'rpttap_chan_freq_time', 'rpt_chan_freq', 'subj_chan_freq', 'rpttap_chan_freq'}
-
+      
       % descriptives
       nrpt  = size(datain.powspctrm, 1);
       nchan = size(datain.powspctrm, 2);
@@ -180,7 +220,7 @@ elseif isfreq
       end
       
       % get the data on which the contribution of the confounds has to be estimated
-      dat = reshape(datain.powspctrm, [nrpt, nchan*nfreq*ntime]); 
+      dat = reshape(datain.powspctrm, [nrpt, nchan*nfreq*ntime]);
       
       % estimate and remove the confounds
       fprintf('estimating the regression weights and removing the confounds \n');
@@ -189,11 +229,12 @@ elseif isfreq
       
       % put the clean data back into place
       dataout.powspctrm = reshape(Yc, [nrpt, nchan, nfreq, ntime]); clear Yc;
-      dataout.beta      = reshape(beta, [nconf, nchan, nfreq, ntime]); 
-      
+      dataout.beta      = reshape(beta, [nconf, nchan, nfreq, ntime]);
+            
       % beta statistics
+      if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
       fprintf('performing statistics on the regression weights \n');
-      dfe        = nrpt - nconf;                                              % degrees of freedom 
+      dfe        = nrpt - nconf;                                              % degrees of freedom
       err        = dat - regr * beta;                                         % err = Y - X * B
       mse        = sum((err).^2)/dfe;                                         % mean squared error
       covar      = diag(regr'*regr)';                                         % regressor covariance
@@ -203,7 +244,8 @@ elseif isfreq
       clear err; clear mse; clear bvar; clear dat; clear regr; clear beta;
       dataout.stat  = reshape(tval, [nconf, nchan, nfreq, ntime]); clear tval;
       dataout.prob  = reshape(prob, [nconf, nchan, nfreq, ntime]); clear prob;
-            
+      end
+      
     otherwise
       error('unsupported dimord "%s"', datain.dimord);
   end % switch
@@ -226,7 +268,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_rejectconfound.m 4246 2011-09-19 15:26:14Z arjsto $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_rejectconfound.m 4340 2011-10-04 13:54:02Z arjsto $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

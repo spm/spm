@@ -69,7 +69,7 @@ function mvar = ft_datatype_mvar(mvar, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_mvar.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_datatype_mvar.m 4301 2011-09-26 15:31:57Z jansch $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = keyval('version', varargin); if isempty(version), version = 'latest'; end
@@ -92,7 +92,7 @@ switch version
     end
     
     if isfield(mvar, 'elec')
-      mvar.grad = fixsens(mvar.grad);
+      mvar.elec = fixsens(mvar.elec);
     end
   
   case '2008'

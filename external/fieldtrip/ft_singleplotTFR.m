@@ -62,7 +62,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_singleplotTFR.m 4316 2011-09-29 11:39:42Z jansch $
 
 ft_defaults
 
@@ -113,9 +113,9 @@ dimtok = tokenize(dimord, '_');
 if ~any(ismember(dimtok, 'time'))
   error('input data needs a time dimension');
 else
-  if ~isfield(cfg, 'xparam'),      cfg.xparam='time';                  end
-  if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';                  end
-  if ~isfield(cfg, 'parameter'),      cfg.parameter='powspctrm';             end
+  xparam = 'time';
+  yparam = 'freq';
+  cfg.parameter = ft_getopt(cfg, 'parameter', 'powspctrm');
 end
 
 if isfield(cfg, 'channel') && isfield(data, 'label')
@@ -269,52 +269,52 @@ end
 
 % Get physical x-axis range:
 if strcmp(cfg.xlim,'maxmin')
-  xmin = min(data.(cfg.xparam));
-  xmax = max(data.(cfg.xparam));
+  xmin = min(data.(xparam));
+  xmax = max(data.(xparam));
 else
   xmin = cfg.xlim(1);
   xmax = cfg.xlim(2);
 end
 
 % Replace value with the index of the nearest bin
-if ~isempty(cfg.xparam)
-  xmin = nearest(data.(cfg.xparam), xmin);
-  xmax = nearest(data.(cfg.xparam), xmax);
+if ~isempty(xparam)
+  xmin = nearest(data.(xparam), xmin);
+  xmax = nearest(data.(xparam), xmax);
 end
 
 % Get physical y-axis range:
 if strcmp(cfg.ylim,'maxmin')
-  ymin = min(data.(cfg.yparam));
-  ymax = max(data.(cfg.yparam));
+  ymin = min(data.(yparam));
+  ymax = max(data.(yparam));
 else
   ymin = cfg.ylim(1);
   ymax = cfg.ylim(2);
 end
 
 % Replace value with the index of the nearest bin
-if ~isempty(cfg.yparam)
-  ymin = nearest(data.(cfg.yparam), ymin);
-  ymax = nearest(data.(cfg.yparam), ymax);
+if ~isempty(yparam)
+  ymin = nearest(data.(yparam), ymin);
+  ymax = nearest(data.(yparam), ymax);
 end
 
-% test if X and Y are linearly spaced (to within 10^-12): % FROM UIMAGE
-x = data.(cfg.xparam)(xmin:xmax);
-y = data.(cfg.yparam)(ymin:ymax);
-dx = min(diff(x));  % smallest interval for X
-dy = min(diff(y));  % smallest interval for Y
-evenx = all(abs(diff(x)/dx-1)<1e-12);     % true if X is linearly spaced
-eveny = all(abs(diff(y)/dy-1)<1e-12);     % true if Y is linearly spaced
-
-% masking only possible for evenly spaced axis
-if strcmp(cfg.masknans, 'yes') && (~evenx || ~eveny)
-  warning('(one of the) axis are not evenly spaced -> nans cannot be masked out ->  cfg.masknans is set to ''no'';')
-  cfg.masknans = 'no';
-end
-
-if ~isempty(cfg.maskparameter) && (~evenx || ~eveny)
-  warning('(one of the) axis are not evenly spaced -> no masking possible -> cfg.maskparameter cleared')
-  cfg.maskparameter = [];
-end
+% % test if X and Y are linearly spaced (to within 10^-12): % FROM UIMAGE
+% x = data.(xparam)(xmin:xmax);
+% y = data.(yparam)(ymin:ymax);
+% dx = min(diff(x));  % smallest interval for X
+% dy = min(diff(y));  % smallest interval for Y
+% evenx = all(abs(diff(x)/dx-1)<1e-12);     % true if X is linearly spaced
+% eveny = all(abs(diff(y)/dy-1)<1e-12);     % true if Y is linearly spaced
+% 
+% % masking only possible for evenly spaced axis
+% if strcmp(cfg.masknans, 'yes') && (~evenx || ~eveny)
+%   warning('(one of the) axis are not evenly spaced -> nans cannot be masked out ->  cfg.masknans is set to ''no'';')
+%   cfg.masknans = 'no';
+% end
+% 
+% if ~isempty(cfg.maskparameter) && (~evenx || ~eveny)
+%   warning('(one of the) axis are not evenly spaced -> no masking possible -> cfg.maskparameter cleared')
+%   cfg.maskparameter = [];
+% end
 
 % perform channel selection
 selchannel = ft_channelselection(cfg.channel, data.label);
@@ -374,8 +374,8 @@ if ~isempty(cfg.maskparameter)
 end
 siz        = size(dat);
 datamatrix = reshape(mean(dat, 1), siz(2:end));
-xvector    = data.(cfg.xparam)(xmin:xmax);
-yvector    = data.(cfg.yparam)(ymin:ymax);
+xvector    = data.(xparam)(xmin:xmax);
+yvector    = data.(yparam)(ymin:ymax);
 
 % Get physical z-axis range (color axis):
 if strcmp(cfg.zlim,'maxmin')
@@ -458,7 +458,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_singleplotTFR.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_singleplotTFR.m 4316 2011-09-29 11:39:42Z jansch $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

@@ -67,9 +67,12 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_recodeevent.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_recodeevent.m 4306 2011-09-27 07:52:27Z eelspa $
 
 ft_defaults
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'eventtype'),  cfg.eventtype   = [];             end

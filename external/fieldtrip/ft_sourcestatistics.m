@@ -57,7 +57,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $
 
 ft_defaults
 
@@ -100,7 +100,7 @@ if strcmp(cfg.implementation, 'old'),
   
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 4096 2011-09-03 15:49:40Z roboos $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.callinfo.matlab = version();
@@ -442,7 +442,7 @@ elseif strcmp(cfg.implementation, 'new')
 
   % add version information to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 4096 2011-09-03 15:49:40Z roboos $';
+  cfg.version.id = '$Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $';
   
   % add information about the Matlab version used to the configuration
   cfg.callinfo.matlab = version();
@@ -554,7 +554,10 @@ else
     dat(:,k) = tmp(:);
   end
 end
-cfg.dim     = varargin{1}.dim;
-cfg.inside  = varargin{1}.inside; %FIXME take the intersection between all inputs
+%cfg.dim     = varargin{1}.dim;
+%cfg.inside  = varargin{1}.inside; %FIXME take the intersection between all inputs
+%FIXME don't do the previous lines in order to take the unfolded inside
+%across the dimensions in the input and to get the 4D dimensionality
+%correct
 cfg.dimord  = 'voxel';
 cfg.origdim = [cfg.dim siz(2:end-1)];

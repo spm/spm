@@ -56,7 +56,7 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 4291 2011-09-23 12:46:31Z jansch $
+% $Id: ft_appenddata.m 4306 2011-09-27 07:52:27Z eelspa $
 
 ft_defaults
 
@@ -64,6 +64,9 @@ ft_defaults
 ftFuncTimer = tic();
 ftFuncClock = clock();
 ftFuncMem   = memtic();
+
+% enable configuration tracking
+cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
@@ -174,14 +177,26 @@ if haselec || hasgrad,
 end
 
 % check whether the data are obtained from the same datafile
-origfile1      = ft_findcfg(varargin{1}.cfg, 'datafile');
+
 removesampleinfo = 0;
 removetrialinfo  = 0;
-for j=2:Ndata
-  if ~isempty(origfile1) && ~strcmp(origfile1, ft_findcfg(varargin{j}.cfg, 'datafile')),
-    removesampleinfo = 1;
-    warning('input data comes from different datafiles');
-    break;
+try
+  origfile1      = ft_findcfg(varargin{1}.cfg, 'datafile');
+  for j=2:Ndata
+    if ~isempty(origfile1) && ~strcmp(origfile1, ft_findcfg(varargin{j}.cfg, 'datafile')),
+      removesampleinfo = 1;
+      warning('input data comes from different datafiles; removing sampleinfo field');
+      break;
+    end
+  end
+catch err
+  if strcmp(err.identifier, 'MATLAB:nonExistentField')
+    % this means no data.cfg is present; should not be treated as a fatal
+    % error, so throw warning instead
+    warning('cannot determine from which datafiles the data is taken');
+  else
+    % not sure which error, probably a bigger problem
+    throw(err); 
   end
 end
 
@@ -309,7 +324,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 4291 2011-09-23 12:46:31Z jansch $';
+cfg.version.id = '$Id: ft_appenddata.m 4306 2011-09-27 07:52:27Z eelspa $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

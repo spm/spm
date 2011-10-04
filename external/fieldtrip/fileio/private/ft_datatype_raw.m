@@ -69,7 +69,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 4288 2011-09-23 12:17:44Z jansch $
+% $Id: ft_datatype_raw.m 4302 2011-09-26 15:31:58Z jansch $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');
@@ -96,7 +96,7 @@ switch version
     end
     
     if isfield(data, 'elec')
-      data.grad = fixsens(data.grad);
+      data.elec = fixsens(data.elec);
     end
     
     if ~isfield(data, 'fsample')

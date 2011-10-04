@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 4232 2011-09-16 09:08:24Z roboos $
+% $Id: ft_hastoolbox.m 4329 2011-10-03 12:15:47Z crimic $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -98,6 +98,7 @@ url = {
   'PEER'       'see http://fieldtrip.fcdonders.nl/development/peer'
   'FREESURFER' 'see http://surfer.nmr.mgh.harvard.edu/fswiki'
   'SIMBIO'     'see https://www.mrt.uni-jena.de/simbio/index.php/Main_Page'
+  'VGRID'      'see http://www.rheinahrcampus.de/~medsim/vgrid/manual.html'
   'FNS'        'see http://hhvn.nmsu.edu/wiki/index.php/FNS'
   'GIFTI'      'see http://www.artefact.tk/software/matlab/gifti'
   'XML4MAT'    'see http://www.mathworks.com/matlabcentral/fileexchange/6268-xml4mat-v2-0'
@@ -227,7 +228,13 @@ switch toolbox
   case 'FNS'
     status  = exist('elecsfwd', 'file') && exist('img_get_gray', 'file');
   case 'SIMBIO'
-    status  = exist('ipm_linux_opt_Venant', 'file') && exist('sb_write_dip.m','file');
+    status  = exist('ipm_linux_opt', 'file') && exist('sb_write_dip.m','file');
+  case 'VGRID'
+    if ~ft_hastoolbox('simbio')
+      error('you need to install simbio too!')
+    end
+    prefix = fileparts(which('sb_write_dip.m'));
+    status = exist([prefix '/vgrid1.3.1/program/vgrid'], 'file');
   case 'GIFTI'
     status  = exist('gifti', 'file');
   case 'XML4MAT'
