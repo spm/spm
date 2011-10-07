@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int_J.m 4517 2011-10-07 19:19:59Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -73,9 +73,9 @@ M       = M(1);
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
 try
-    f  = fcnchk(M.f,'x','u','P','M');
+    f   = fcnchk(M.f,'x','u','P','M');
 catch
-    f  = inline('sparse(0,1)','x','u','P','M');
+    f   = inline('sparse(0,1)','x','u','P','M');
     M.n = 0;
     M.x = sparse(0,0);
 end
@@ -131,7 +131,7 @@ for i = 1:size(U.u,1)
     % input
     %----------------------------------------------------------------------
     try
-        u  = U.u(i,:);
+        u = U.u(i,:);
     end
 
     % dx(t)/dt and Jacobian df/dx
@@ -145,7 +145,7 @@ for i = 1:size(U.u,1)
 
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
-    x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
+    x      = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
 
     % output - implement g(x)
     %----------------------------------------------------------------------

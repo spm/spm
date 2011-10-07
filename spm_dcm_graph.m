@@ -7,7 +7,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4099 2010-10-22 19:47:37Z karl $
+% $Id: spm_dcm_graph.m 4517 2011-10-07 19:19:59Z karl $
  
  
 % display parameters
@@ -56,7 +56,8 @@ for i = 1:length(A)
             % associate colour with the strongest influence
             %--------------------------------------------------------------
             if abs(A(i,j)) > abs(A(j,i)), c = j; else, c = i; end
-            line(L(1,[i j]),L(2,[i j]),L(3,[i j]),'Color',col{c},...
+            k   = rem(c - 1,length(col)) + 1;
+            line(L(1,[i j]),L(2,[i j]),L(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
                 'LineWidth',W(i,j));
         end
@@ -71,7 +72,7 @@ end
 %--------------------------------------------------------------------------
 D      = diag(sum(W));
 G      = D - W;
-[U V]  = eig(pinv(G));
+[U V]  = eig(full(spm_pinv(G)));
 U      = U*sqrt(V);
 [V i]  = sort(-diag(V));
 U      = U(:,i(1:3))';
@@ -106,7 +107,8 @@ for i = 1:length(A)
             % associate colour with the strongest influence
             %--------------------------------------------------------------
             if abs(A(i,j)) > abs(A(j,i)), c = j; else, c = i; end
-            line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{c},...
+            k   = rem(c - 1,length(col)) + 1;
+            line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
                 'LineWidth',W(i,j));
         end

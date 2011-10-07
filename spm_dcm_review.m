@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4057 2010-08-31 15:23:39Z guillaume $
+% $Id: spm_dcm_review.m 4517 2011-10-07 19:19:59Z karl $
 
 
 %-Get DCM structure
@@ -46,7 +46,12 @@ catch
     l  = DCM.n;
 end
 
-
+% Fontsize
+%------------------------------------------------------------------
+if l > 0,  fs = 12; end
+if l > 8,  fs = 10; end
+if l > 16, fs = 8;  end
+ 
 % experimental input specific reports
 %----------------------------------------------------------------------
 for i = 1:m
@@ -295,7 +300,7 @@ switch action
         subplot(2,1,1)
         spm_dcm_graph(DCM.xY);
         title('Regional locations','FontSize',16)
-
+        
         % table
         %------------------------------------------------------------------
         subplot(2,1,2)
@@ -303,7 +308,7 @@ switch action
         line([0 4],[y y])
         y = y - 1;
         text(0.0,y,'Name',         'FontSize',14)
-        text(1.0,y,'Voxels',       'FontSize',14)
+        text(1.2,y,'Voxels',       'FontSize',14)
         text(2.0,y,'Location (mm)','FontSize',14)
         y = y - 1;
         line([0 4],[y y],'LineWidth',4)
@@ -313,9 +318,9 @@ switch action
             N    = length(DCM.xY(i).s);
             L    = DCM.xY(i).xyz;
             r    = DCM.xY(i).spec;
-            text(0,y,name, 'FontWeight','bold',        'FontSize',12)
-            text(1,y,sprintf('%0.0f',N),               'FontSize',12)
-            text(2,y,sprintf('%-4.0f %-4.0f %-4.0f',L),'FontSize',12)
+            text(0.0,y,name, 'FontWeight','bold',        'FontSize',fs)
+            text(1.5,y,sprintf('%0.0f',N),               'FontSize',fs)
+            text(2.0,y,sprintf('%-4.0f %-4.0f %-4.0f',L),'FontSize',fs)
             y = y - 1;
         end
         line([0 4],[y y])
@@ -359,24 +364,26 @@ switch action
     % Outputs
     %======================================================================
     case {'outputs'}
-
+        
         % graph
         %------------------------------------------------------------------
         x     = [1:DCM.v]*DCM.Y.dt;
-        for i = 1:l
-            subplot(l,1,i);
+        k     = min(l,8);
+        for i = 1:k
+            subplot(k,1,i);
             try
                 plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),':');
                 title([DCM.Y.name{i} ': responses and predictions' ],'FontSize',16);
                 xlabel('time {seconds}');
-                legend('predicted', 'observed')
             catch
                 plot(x,DCM.Y.y(:,i));
                 title([DCM.Y.name{i} ': responses' ],'FontSize',16);
                 xlabel('time {seconds}');
             end
         end
-
+        try
+            legend('predicted', 'observed')
+        end
 
     %======================================================================
     % Kernels
@@ -386,7 +393,6 @@ switch action
         % input effects
         %------------------------------------------------------------------
         x     = (1:DCM.M.N)*DCM.M.dt;
-        d     = 2/DCM.M.dt;
         for i = 1:m
 
             % input effects - neuronal
@@ -399,8 +405,8 @@ switch action
             title(['neuronal responses to ' DCM.U.name{i}],'FontSize',12)
             xlabel('time {seconds}')
             for j = 1:l
-                text(x(j*d),y(j*d,j),DCM.Y.name{j},...
-                    'FontWeight','bold','FontSize',12,...
+                text(x(j),y(j,j),DCM.Y.name{j},...
+                    'FontWeight','bold','FontSize',fs,...
                     'HorizontalAlignment','Center')
             end
 
@@ -415,8 +421,8 @@ switch action
             title('hemodynamic responses','FontSize',12)
             xlabel('time {seconds}')
             for j = 1:l
-                text(x(j*d),k(j*d,j),DCM.Y.name{j},...
-                    'FontWeight','bold','FontSize',12,...
+                text(x(j),k(j,j),DCM.Y.name{j},...
+                    'FontWeight','bold','FontSize',fs,...
                     'HorizontalAlignment','Center')
             end
 

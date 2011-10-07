@@ -1,24 +1,27 @@
-function spm_fp_display_density(M,x)
+function [F,X] = spm_fp_display_density(M,x)
 % Quiver plot of flow and equilibrium density
-% FORMAT spm_fp_display_density(M,x)
+% FORMAT [F,X] = spm_fp_display_density(M,x)
 %
 % M   - model specifying flow; M(1).f;
 % x   - cell array of domain or support
+%
+% F   - flow
+% X   - evaluation points
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_display_density.m 2494 2008-11-26 20:08:15Z karl $
+% $Id: spm_fp_display_density.m 4517 2011-10-07 19:19:59Z karl $
  
 % evaluation points and equilibria
 %--------------------------------------------------------------------------
 n             = length(x);
-[M0,q0,X,x,f] = spm_fp(M,x);
+[M0,q0,X,x,F] = spm_fp(M,x);
  
 % flow fields
 %--------------------------------------------------------------------------
 for i = 1:n
-    f(i,:) = f(i,:)/max(eps + abs(f(i,:)));
+    f(i,:) = F(i,:)/max(eps + abs(F(i,:)));
 end
 
 

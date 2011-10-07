@@ -10,7 +10,7 @@ function spm_dcm_display(varargin)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_dcm_display.m 4517 2011-10-07 19:19:59Z karl $
  
  
 % input arguments
@@ -32,7 +32,7 @@ end
 
 % graphics parameters
 %--------------------------------------------------------------------------
-col   = {'r','g','b','c','y','m','r','g','b','c','y','m'};
+col   = {'r','g','b','c','y','m'};
 rad   = 16;                   % radius of self-connections
 w     = 4;                    % line width
 M     = 32;                   % MarkerSize for regions
@@ -111,7 +111,8 @@ for i = 1:length(a)
  
                 % line
                 %----------------------------------------------------------
-                h = line(L(1,[i j]),L(2,[i j]),'Color',col{j},...
+                k = rem(j - 1,length(col)) + 1;
+                h = line(L(1,[i j]),L(2,[i j]),'Color',col{k},...
                         'LineStyle',':',...
                         'LineWidth',w);
  
@@ -138,11 +139,12 @@ for i = 1:length(a)
  
                 % line
                 %----------------------------------------------------------
+                k     = rem(i - 1,length(col)) + 1;
                 u     = L(1,i);
                 v     = L(2,i);
                 u     = Q(1,:) + u;
                 v     = Q(2,:) + v;
-                h     = line(u,v,'Color',col{i},'LineStyle',':','LineWidth',w);
+                h     = line(u,v,'Color',col{k},'LineStyle',':','LineWidth',w);
  
                 % if significant
                 %----------------------------------------------------------
@@ -172,11 +174,12 @@ for i = 1:size(c,1)
  
         % line
         %------------------------------------------------------------------
+        k     = rem(i - 1,length(col)) + 1;
         u     = L(1,i);
         v     = L(2,i);
         u     = [u (rad + u)];
         v     = [v v];
-        h     = line(u,v,'Color',col{i},'LineStyle',':','LineWidth',w);
+        h     = line(u,v,'Color',col{k},'LineStyle',':','LineWidth',w);
  
         % if significant
         %------------------------------------------------------------------
@@ -202,9 +205,9 @@ end
 %--------------------------------------------------------------------------
 hold on
 for i = 1:m
- 
+    k = rem(i - 1,length(col)) + 1;
     line(L(1,i),L(2,i),...
-        'Color',col{i},...
+        'Color',col{k},...
         'Marker','.',...
         'LineStyle','none',...
         'MarkerSize',98);

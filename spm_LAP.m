@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4503 2011-09-29 17:55:59Z guillaume $
+% $Id: spm_LAP.m 4517 2011-10-07 19:19:59Z karl $
  
  
 % find or create a DEM figure
@@ -577,15 +577,13 @@ for iN = 1:nN
             %--------------------------------------------------------------
             try
                 dLdBB = dLdBB*(1 - 1/ns) + dLdbb/ns;
-
             catch
                 dLdBB = dLdbb + Ib*32;
             end
 
             % whiten gradient (and curvatures) with regularised precision
             %--------------------------------------------------------------
-            IB    = diag(diag(dLdBB));
-            Cb    = spm_inv(dLdBB + IB*exp(dt));
+            Cb    = spm_inv(dLdBB + diag(diag(dLdBB))*exp(dt));
             dLdb  = Cb*dLdb;
             dHdb  = Cb*dHdb;
             
