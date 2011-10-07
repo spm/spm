@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_dcm_ind_results.m 4521 2011-10-07 20:00:40Z vladimir $
  
  
 % get figure handle
@@ -188,7 +188,7 @@ case{lower('Time-frequency')}
             title({sprintf('trial %i: %s ',i,DCM.Sname{j});
                   'observed (adjusted for confounds)'})
               
-            clim = caxis;  
+            clim = caxis;
             cmax(i, j) = max(clim);  
  
             subplot(nt*2,nr,(i - 1)*2*nr + nr + j)
@@ -201,7 +201,7 @@ case{lower('Time-frequency')}
         end
     end
  
-    cmax = mean(cmax);
+    cmax = mean(cmax, 1);
  
     for i = 1:nt
         for j = 1:nr

@@ -8,8 +8,8 @@ function [E,V] = spm_erp_priors(A,B,C)
 %
 % synaptic parameters
 %--------------------------------------------------------------------------
-%    pE.T - syaptic time constants
-%    pE.H - syaptic densities
+%    pE.T - synaptic time constants
+%    pE.H - synaptic densities
 %    pE.S - activation function parameters
 %    pE.G - intrinsic connection strengths
 %
@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_erp_priors.m 4521 2011-10-07 20:00:40Z vladimir $
  
 % default: a single source model
 %--------------------------------------------------------------------------
