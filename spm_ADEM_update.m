@@ -5,14 +5,14 @@ function [DEM] = spm_ADEM_update(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM_update.m 3758 2010-03-08 11:47:24Z guillaume $
+% $Id: spm_ADEM_update.m 4516 2011-10-07 19:18:32Z karl $
  
 % update states and action
 %--------------------------------------------------------------------------
 n     = length(DEM.M);
 for i = 1:(n - 1)
     DEM.M(i).x  = spm_unvec(DEM.qU.x{i}(:,end),DEM.M(i).x);
-    DEM.M(i).pE = spm_unvec(DEM.qP.P{i},DEM.M(i).pE);
+    DEM.M(i).pE = DEM.qP.P{i};
 end
 for i = 1:n
     DEM.M(i).v  = spm_unvec(DEM.qU.v{i}(:,end),DEM.M(i).v);

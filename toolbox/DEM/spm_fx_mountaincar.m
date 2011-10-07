@@ -2,7 +2,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % state equations for mountain car problem
 % FORMAT f = spm_fx_mountaincar(x,v,P)
 % FORMAT f = spm_fx_mountaincar(x,v,a,P)
-% FORMAT f = spm_fx_mountaincar(x,v,P,M)
+% FORMAT f = spm_fx_mountaincar(x,v,P,eta)
 % x    - [x, x']
 % v    - exogenous force
 % a    - action
@@ -26,7 +26,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 4339 2011-06-02 13:04:49Z karl $
+% $Id: spm_fx_mountaincar.m 4516 2011-10-07 19:18:32Z karl $
  
  
 % determine controlled forces (a)

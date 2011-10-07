@@ -114,7 +114,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 4322 2011-05-04 15:28:08Z karl $
+% $Id: spm_ADEM.m 4516 2011-10-07 19:18:32Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -209,7 +209,7 @@ nh    = length(Q);                         % number of hyperparameters
 xP    = spm_cat(spm_diag({M.xP}));
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
-Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-8));
+Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-4));
 Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
