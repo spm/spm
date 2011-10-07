@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 4511 2011-10-04 17:57:46Z guillaume $
+% $Id: spm_regions.m 4512 2011-10-07 15:41:24Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -95,7 +95,7 @@ end
 if ~isfield(xY,'Ic')
     q     = 0;
     Con   = {'<don''t adjust>'};
-    if isempty([SPM.xX.iB SPM.xX.iG])
+    if isempty([SPM.xX.iH SPM.xX.iC])
         q(end + 1) = NaN;
         Con{end + 1} = '<adjust for everything>';
     end
