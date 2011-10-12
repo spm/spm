@@ -1,15 +1,23 @@
 function spm_dcm_graph(xY,A)
 % Region and anatomical graph display
 % FORMAT spm_dcm_graph(xY,A)
+% FORMAT spm_dcm_graph(DCM)
 % xY    - cell of region structures (see spm_regions)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4517 2011-10-07 19:19:59Z karl $
- 
- 
+% $Id: spm_dcm_graph.m 4524 2011-10-12 17:03:55Z karl $
+
+
+% defaults
+%--------------------------------------------------------------------------
+try
+    A   = xY.Ep.A;
+    xY  = xY.xY;
+end
+
 % display parameters
 %--------------------------------------------------------------------------
 col   = {'b','g','r','c','m','y','k','w'};
@@ -40,7 +48,7 @@ for i = 1:m
     set(h.handles.ht(i),'FontWeight','bold')
 end
 set(h.handles.mesh,'FaceAlpha',1/16);
-if nargin < 2, return, end
+if ~exist('A','var'), return, end
  
  
 % Connections
@@ -91,7 +99,8 @@ U       = real(U*80/max(abs(U(:))));
 subplot(2,1,2);cla
 set(gca,'position',[0 0 1 .5])
 options.ParentAxes = gca;
-g      = spm_eeg_displayECD(U,[],16,name,options);
+if m > 8; i = 8; else, i = 16; end
+g      = spm_eeg_displayECD(U,[],i,name,options);
 delete(g.handles.mesh)
 delete(findobj(get(gcf,'Children'),'Type','uicontrol'))
 for i = 1:m
@@ -100,8 +109,8 @@ end
  
 % Connections
 %--------------------------------------------------------------------------
-for i = 1:length(A)
-    for j = (i + 1):length(A)
+for i = 1:m
+    for j = (i + 1):m
         if W(i,j)
             
             % associate colour with the strongest influence

@@ -48,7 +48,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4496 2011-09-23 11:56:58Z klaas $
+% $Id: spm_dcm_estimate.m 4524 2011-10-12 17:03:55Z karl $
  
  
 %-Load DCM structure
@@ -159,6 +159,26 @@ end
 % priors (and initial states)
 %--------------------------------------------------------------------------
 [pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
+
+% eigenvector constraints on pC for large models
+%--------------------------------------------------------------------------
+nmax = 8;
+if n > nmax
+    
+    % remove confounds and find principal (nmax) modes
+    %----------------------------------------------------------------------
+    y       = Y.y - Y.X0*(pinv(Y.X0)*Y.y);
+    V       = spm_svd(y');
+    V       = V(:,1:nmax);
+    
+    % remove minor modes from priors on A
+    %----------------------------------------------------------------------
+    j       = 1:(n*n);
+    V       = kron(V*V',V*V');
+    pC(j,j) = V*pC(j,j)*V';
+    
+end
+
 
 % complete model specification
 %--------------------------------------------------------------------------
