@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4312 2011-04-19 19:51:22Z karl $
+% $Id: spm_dcm_ind_data.m 4526 2011-10-15 17:41:50Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -231,7 +231,7 @@ if ~TFinput
     for i = 1:Nf
         fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
         
-        W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
+        W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i), DCM.xY.Hz(1));
         N    = fix(length(W{1})/2);
         W    = W{1}.*(abs(W{1}) > exp(-8));
         W    = spm_convmtx(W',Ns);
