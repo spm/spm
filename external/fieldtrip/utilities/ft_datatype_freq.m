@@ -73,10 +73,10 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 4301 2011-09-26 15:31:57Z jansch $
+% $Id: ft_datatype_freq.m 4388 2011-10-09 09:55:08Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
-version = keyval('version', varargin); if isempty(version), version = 'latest'; end
+version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011';

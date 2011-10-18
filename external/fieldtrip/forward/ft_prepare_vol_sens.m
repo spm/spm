@@ -55,21 +55,15 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 4334 2011-10-03 13:11:40Z crimic $
+% $Id: ft_prepare_vol_sens.m 4487 2011-10-17 12:52:07Z roboos $
 
-% get the options
-% fileformat = keyval('fileformat',  varargin);
-channel = keyval('channel',  varargin);  % cell-array with channel labels
-order   = keyval('order',    varargin);  % order of expansion for Nolte method; 10 should be enough for real applications; in simulations it makes sense to go higher
+% get the optional input arguments
+% fileformat = ft_getopt(varargin, 'fileformat');
+channel = ft_getopt(varargin, 'channel', sens.label);   % cell-array with channel labels, default is all
+order   = ft_getopt(varargin, 'order', 10);             % order of expansion for Nolte method; 10 should be enough for real applications; in simulations it makes sense to go higher
 
-% set the defaults
-if isempty(channel),  channel = sens.label;   end
-if isempty(order),    order = 10;             end
-
-% ensure that the sensor description is up-to-date
-if isfield(sens,'pnt')
-  sens = fixsens(sens);
-end
+% ensure that the sensor description is up-to-date (Aug 2011)
+sens = fixsens(sens);
 
 % determine whether the input contains EEG or MEG sensors
 iseeg = ft_senstype(sens, 'eeg');

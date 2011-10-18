@@ -34,10 +34,14 @@ function [mask] = atlas_mask(atlas, mri, label, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_mask.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: atlas_mask.m 4439 2011-10-12 10:17:09Z roboos $
 
 % get the optional input arguments
-inputcoord = keyval('inputcoord', varargin); if isempty(inputcoord),  error('specify inputcoord');   end
+inputcoord = ft_getopt(varargin, 'inputcoord');
+
+if isempty(inputcoord)
+  error('you must specify inputcoord');
+end
 
 if ischar(label)
   label = {label};

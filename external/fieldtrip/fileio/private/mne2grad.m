@@ -1,11 +1,13 @@
 function [grad,elec] = mne2grad(hdr)
 
-% MNE2GRAD creates gradiometer definition for FIFF dataset
+% MNE2GRAD creates gradiometer definition for FIFF dataset, based on the MATLAB
+% reading functions from the MNE toolbox.
 %
 % Use as
 %   [grad,elec] = mne2grad(hdr)
 %
-% See also CTF2GRAD, BTI2GRAD
+% See also CTF2GRAD, BTI2GRAD, FIF2GRAD, ITAB2GRAD, YOKOGAWA2GRAD,
+% FT_READ_SENS, FT_READ_HEADER
 
 % Laurence Hunt 03/12/2008 (with thanks to Joachim Gross's original script based on fiff_access). lhunt@fmrib.ox.ac.uk
 % 
@@ -25,7 +27,7 @@ function [grad,elec] = mne2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 1529 2010-08-19 11:26:12Z vlalit $
+% $Id: mne2grad.m 4493 2011-10-17 19:38:58Z roboos $
 
 grad = [];
 

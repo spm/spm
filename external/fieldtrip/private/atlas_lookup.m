@@ -34,11 +34,15 @@ function [label] = atlas_lookup(atlas, pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_lookup.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: atlas_lookup.m 4439 2011-10-12 10:17:09Z roboos $
 
 % get the optional input arguments
-queryrange  = keyval('queryrange', varargin);  if isempty(queryrange),  queryrange = 3;                end
-inputcoord  = keyval('inputcoord', varargin);  if isempty(inputcoord),  error('specify inputcoord');   end
+queryrange  = ft_getopt(varargin, 'queryrange', 3);
+inputcoord  = ft_getopt(varargin, 'inputcoord');
+
+if isempty(inputcoord)
+  error('you must specify inputcoord');
+end
 
 if isempty(intersect(queryrange, [1 3 5 7 9 11]))
   error('incorrect query range, should be one of [1 3 5 7 9 11]');

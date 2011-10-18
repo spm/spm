@@ -35,16 +35,16 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 3389 2011-04-26 13:58:48Z vlalit $
+% $Id: ft_select_range.m 4384 2011-10-08 12:00:17Z roboos $
 
 % get the optional arguments
-event    = keyval('event',    varargin);
-callback = keyval('callback', varargin);
-multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
-xrange   = keyval('xrange',   varargin); if isempty(xrange), xrange = true; end
-yrange   = keyval('yrange',   varargin); if isempty(yrange), yrange = true; end
-clear    = keyval('clear',   varargin);  if isempty(clear),  clear = false; end
-contextmenu = keyval('contextmenu', varargin); % this will be displayed following a right mouse click
+event       = ft_getopt(varargin, 'event');
+callback    = ft_getopt(varargin, 'callback');
+multiple    = ft_getopt(varargin, 'multiple', false);
+xrange      = ft_getopt(varargin, 'xrange',   true);
+yrange      = ft_getopt(varargin, 'yrange',   true);
+clear       = ft_getopt(varargin, 'clear',    false);
+contextmenu = ft_getopt(varargin, 'contextmenu'); % this will be displayed following a right mouse click
 
 % convert 'yes/no' string to boolean value
 multiple  = istrue(multiple);

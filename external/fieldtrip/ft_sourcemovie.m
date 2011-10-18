@@ -22,7 +22,7 @@ function cfg = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 4149 2011-09-12 08:11:00Z roboos $
+% $Id: ft_sourcemovie.m 4370 2011-10-06 15:19:23Z crimic $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -222,12 +222,12 @@ set(p, 'string', 'play')
 % note that "p" is needed further down
 
 hx = uicontrol('style', 'text');
-set(hx, 'position', [pos(3)-130 20 100 20]);
+set(hx, 'position', [pos(3)-140 20 120 20]);
 set(hx, 'string', sprintf('%s = ', cfg.xparam));
 set(hx, 'horizontalalignment', 'left');
 
 hy = uicontrol('style', 'text');
-set(hy, 'position', [pos(3)-130 45 100 20]);
+set(hy, 'position', [pos(3)-140 45 120 20]);
 set(hy, 'string', sprintf('%s = ', cfg.yparam));
 set(hy, 'horizontalalignment', 'left');
 
@@ -286,7 +286,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourcemovie.m 4149 2011-09-12 08:11:00Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_sourcemovie.m 4370 2011-10-06 15:19:23Z crimic $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

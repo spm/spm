@@ -26,9 +26,18 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 % applied to the first. In effect the resulting montage will first do
 % montage1, then montage2.
 %
+% As an example, a bipolar montage could look like this
+%   bipolar.labelorg  = {'1', '2', '3', '4'}
+%   bipolar.labelnew  = {'1-2', '2-3', '3-4'}
+%   bipolar.tra       = [
+%     +1 -1  0  0 
+%      0 +1 -1  0 
+%      0  0 +1 -1
+%   ];
+%
 % See also FT_READ_SENS, FT_TRANSFORM_SENS
 
-% Copyright (C) 2008, Robert Oostenveld
+% Copyright (C) 2008-2011, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -46,13 +55,13 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 4288 2011-09-23 12:17:44Z jansch $
+% $Id: ft_apply_montage.m 4490 2011-10-17 19:34:19Z roboos $
 
 % get optional input arguments
-keepunused = keyval('keepunused', varargin);  if isempty(keepunused), keepunused   = 'no';   end
-inverse    = keyval('inverse',    varargin);  if isempty(inverse),    inverse      = 'no';   end
-feedback   = keyval('feedback',   varargin);  if isempty(feedback),   feedback     = 'text'; end
-bname      = keyval('balancename', varargin); if isempty(bname),      bname        = '';     end
+keepunused = ft_getopt(varargin, 'keepunused',  'no');
+inverse    = ft_getopt(varargin, 'inverse',     'no');
+feedback   = ft_getopt(varargin, 'feedback',    'text'); 
+bname      = ft_getopt(varargin, 'balancename', '');
 
 % check the consistency of the input sensor array or data
 if isfield(sens, 'labelorg') && isfield(sens, 'labelnew')
@@ -74,11 +83,11 @@ if strcmp(inverse, 'yes')
   tmp.tra      = full(montage.tra);
   if rank(tmp.tra) < length(tmp.tra)
     warning('the linear projection for the montage is not full-rank, the resulting data will have reduced dimensionality');
-    tmp.tra      = pinv(tmp.tra);
+    tmp.tra = pinv(tmp.tra);
   else
-    tmp.tra      = inv(tmp.tra);
+    tmp.tra = inv(tmp.tra);
   end
-  montage      = tmp;
+  montage = tmp;
 end
 
 % use default transfer from sensors to channels if not specified
@@ -166,10 +175,48 @@ elseif isfield(sens, 'tra')
   else
     sens.tra = montage.tra * sens.tra;
   end
+
+  % The montage operates on the coil weights in sens.tra, but the output
+  % channels can be different. If possible, we want to keep the original
+  % channel specific information.
+  [sel1, sel2] = match_str(montage.labelnew, sens.label);
+  keepchans = size(sel1,1)==numel(montage.labelnew);
+
+  if isfield(sens, 'chanpos')
+    if keepchans
+      sens.chanpos = sens.chanpos(sel2,:);
+    else
+      sens = rmfield(sens, 'chanpos');
+    end
+  end
+
+  if isfield(sens, 'chanori')
+    if keepchans
+      sens.chanori = sens.chanori(sel2,:);
+    else
+      sens = rmfield(sens, 'chanori');
+    end
+  end
+
+  if isfield(sens, 'chantype')
+    if keepchans
+      sens.chantype = sens.chantype(sel2,:);
+    else
+      sens = rmfield(sens, 'chantype');
+    end
+  end
+
+  if isfield(sens, 'chanunit')
+    if keepchans
+      sens.chanunit = sens.chanunit(sel2,:);
+    else
+      sens = rmfield(sens, 'chanunit');
+    end
+  end
+
   sens.label = montage.labelnew;
 
-  % keep track of the order of the balancing and which one is the current
-  % one
+  % keep track of the order of the balancing and which one is the current one
   if strcmp(inverse, 'yes')
     if isfield(sens, 'balance')% && isfield(sens.balance, 'previous')
       if isfield(sens.balance, 'previous') && numel(sens.balance.previous)>=1
@@ -210,7 +257,7 @@ elseif isfield(sens, 'tra')
         bname = [bname, num2str(length(sel)+1)];
       end
     end
-    
+
     if isfield(sens, 'balance') && isfield(sens.balance, 'current')
       if ~isfield(sens.balance, 'previous')
         sens.balance.previous = {};
@@ -221,8 +268,6 @@ elseif isfield(sens, 'tra')
     end
   end
 
-  
-  
 elseif isfield(sens, 'trial')
   % apply the montage to the raw data that was preprocessed using fieldtrip
   data = sens;
@@ -295,3 +340,4 @@ end
 function y = indx2logical(x, n)
 y = false(1,n);
 y(x) = true;
+

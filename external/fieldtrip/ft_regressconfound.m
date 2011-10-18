@@ -1,12 +1,12 @@
-function dataout = ft_rejectconfound(cfg, datain)
+function dataout = ft_regressconfound(cfg, datain)
 
-% FT_REJECTCONFOUND estimates the regression weight of a set of confounds
+% FT_REGRESSCONFOUND estimates the regression weight of a set of confounds
 % (GLM) and removes the estimated contribution from the single-trial data
 %
 % Use as
-%  timelock = ft_rejectconfound(cfg, timelock)
+%  timelock = ft_regressconfound(cfg, timelock)
 % or
-%  freq = ft_rejectconfound(cfg, freq)
+%  freq = ft_regressconfound(cfg, freq)
 %
 % where datain comes from FT_TIMELOCKANALYSIS or FT_FREQANALYSIS with
 % keeptrials = 'yes' and cfg is a configuratioun structure that should
@@ -37,7 +37,7 @@ function dataout = ft_rejectconfound(cfg, datain)
 
 % Copyrights (C) 2011, Robert Oostenveld, Arjen Stolk, Lennart Verhagen
 %
-% $Id: ft_rejectconfound.m 4340 2011-10-04 13:54:02Z arjsto $
+% $Id: ft_rejectconfound.m 4375 2011-10-07 09:16:45Z arjsto $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -268,7 +268,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_rejectconfound.m 4340 2011-10-04 13:54:02Z arjsto $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_rejectconfound.m 4375 2011-10-07 09:16:45Z arjsto $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
@@ -288,6 +288,13 @@ clear datain;
 
 % remember the exact configuration details in the output
 dataout.cfg = cfg;
+
+% discard the gradiometer information because the weightings have been
+% changed
+if isfield(dataout, 'grad')
+  warning('discarding gradiometer information because the weightings have been changed');
+  dataout = rmfield(dataout, 'grad');
+end
 
 % the output data should be saved to a MATLAB file
 if ~isempty(cfg.outputfile)

@@ -31,18 +31,19 @@ function cortex = read_nimh_cortex(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nimh_cortex.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_nimh_cortex.m 4437 2011-10-12 10:04:45Z roboos $
 
 % get the optional input arguments
-feedback = keyval('feedback', varargin); if isempty(feedback), feedback = 'no'; end
-begtrial = keyval('begtrial', varargin); if isempty(begtrial), begtrial = 1;   end
-endtrial = keyval('endtrial', varargin); if isempty(endtrial), endtrial = inf; end
+feedback = ft_getopt(varargin, 'feedback', 'no');
+begtrial = ft_getopt(varargin, 'begtrial', 1);
+endtrial = ft_getopt(varargin, 'endtrial', inf);
 % reading the epp and eog data is optional
-epp = keyval('epp', varargin); if isempty(epp), epp = 'yes'; end
-eog = keyval('eog', varargin); if isempty(eog), eog = 'yes'; end
+epp = ft_getopt(varargin, 'epp', 'yes');
+eog = ft_getopt(varargin, 'eog', 'yes');
 
-skipepp   = strcmp(epp, 'no');
-skipeog   = strcmp(eog, 'no');
+% convert 'yes' or 'no' into boolean
+skipepp   = ~istrue(epp);
+skipeog   = ~istrue(eog);
 clear epp eog
 
 % this will hold the result

@@ -69,13 +69,13 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 3423 2011-05-03 09:08:12Z roboos $
+% $Id: ft_datatype_source.m 4388 2011-10-09 09:55:08Z roboos $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields 
 % was really in 2007
 
 % get the optional input arguments, which should be specified as key-value pairs
-version = keyval('version', varargin); if isempty(version), version = 'latest'; end
+version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011';

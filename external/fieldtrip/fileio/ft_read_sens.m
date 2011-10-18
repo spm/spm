@@ -51,7 +51,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_read_sens.m 4493 2011-10-17 19:38:58Z roboos $
 
 % test whether the file exists
 if ~exist(filename)
@@ -59,12 +59,7 @@ if ~exist(filename)
 end
 
 % get the options
-fileformat = keyval('fileformat',  varargin);
-
-% determine the filetype
-if isempty(fileformat)
-  fileformat = ft_filetype(filename);
-end
+fileformat = ft_getopt(varargin, 'fileformat', ft_filetype(filename));
 
 switch fileformat
 
@@ -227,7 +222,7 @@ switch fileformat
     error('unknown fileformat for electrodes or gradiometers');
 end
 
-% ensure the description to be in the new convention
+% ensure that the sensor description is up-to-date
 sens = fixsens(sens);
 
 if ft_senstype(sens, 'eeg')

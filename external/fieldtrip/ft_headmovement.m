@@ -29,7 +29,7 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_headmovement.m 4460 2011-10-13 14:34:18Z roboos $
 
 
 ft_defaults
@@ -41,17 +41,22 @@ if ~isfield(cfg, 'numclusters'), cfg.numclusters = 12; end
 cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 hdr = ft_read_header(cfg.headerfile);
 
-%work with gradiometers in dewar coordinates, since HLCs are also 
-%in dewar coords. at present I did not find the nas, lpa, rpa channels,
-%which according to ctf's documentation should contain the positions
-%of these channels directly (HDAC channels). FIXME
-grad            = ctf2grad(hdr.orig, 1);
-grad            = fixsens(grad); % ensure up-to-date sensor description (Oct 2011)
+% work with gradiometers in dewar coordinates, since HLCs are also 
+% in dewar coords. at present I did not find the nas, lpa, rpa channels,
+% which according to ctf's documentation should contain the positions
+% of these channels directly (HDAC channels). FIXME
+grad_head       = ctf2grad(hdr.orig, 0);
+grad_dewar      = ctf2grad(hdr.orig, 1);
+grad_head       = fixsens(grad_head);  % ensure up-to-date sensor description (Oct 2011)
+grad_dewar      = fixsens(grad_dewar); % ensure up-to-date sensor description (Oct 2011)
 
-%read HLC-channels
-%HLC0011 HLC0012 HLC0013 x, y, z coordinates of nasion-coil in m.
-%HLC0021 HLC0022 HLC0023 x, y, z coordinates of lpa-coil in m.
-%HLC0031 HLC0032 HLC0033 x, y, z coordinates of rpa-coil in m.
+grad         = grad_dewar;        % we want to work with dewar coordinates, ...
+grad.chanpos = grad_head.chanpos; % except the chanpos, which should remain in head coordinates
+
+% read HLC-channels
+% HLC0011 HLC0012 HLC0013 x, y, z coordinates of nasion-coil in m.
+% HLC0021 HLC0022 HLC0023 x, y, z coordinates of lpa-coil in m.
+% HLC0031 HLC0032 HLC0033 x, y, z coordinates of rpa-coil in m.
 tmpcfg              = [];
 tmpcfg.dataset      = cfg.dataset;
 tmpcfg.trl          = cfg.trl;

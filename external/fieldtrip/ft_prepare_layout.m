@@ -62,7 +62,7 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_prepare_layout.m 4353 2011-10-05 14:20:15Z jansch $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
@@ -260,7 +260,7 @@ elseif ischar(cfg.gradfile)
 
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
   % ensure the sensor description to be according to latest convention
-  [data.grad] = fixsens(data.grad);
+  [cfg.grad] = fixsens(cfg.grad);
   
   fprintf('creating layout from cfg.grad\n');
   lay = sens2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);

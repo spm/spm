@@ -96,7 +96,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: statistics_montecarlo.m 4478 2011-10-17 09:54:25Z roevdmei $
 
 ft_defaults
 
@@ -109,6 +109,8 @@ cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'yes', 'max'});
 cfg = ft_checkconfig(cfg, 'required',    {'statistic'});
 cfg = ft_checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
 cfg = ft_checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
+
 
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha    = 0.05;            end
@@ -123,6 +125,11 @@ if ~isfield(cfg, 'wvar'),                cfg.wvar     = [];              end
 if ~isfield(cfg, 'correcttail'),         cfg.correcttail = 'no';         end % for the number of tails in a two-sided test
 if ~isfield(cfg, 'randomseed'),          cfg.randomseed = 'yes';         end
 if ~isfield(cfg, 'precondition'),        cfg.precondition = [];          end
+
+% explicit check for option 'yes' in cfg.correctail.
+if strcmp(cfg.correcttail,'yes')
+  error('cfg.correcttail = ''yes'' is not allowed, use either ''prob'', ''alpha'' or ''no''')
+end
 
 if strcmp(cfg.correctm, 'cluster')
   % set the defaults for clustering
@@ -149,9 +156,8 @@ if strcmp(cfg.correcttail,'no') && cfg.tail==0 && cfg.alpha==0.05
   warning('doing a two-sided test without correcting p-values or alpha-level, p-values and alpha-level will reflect one-sided tests per tail')
 end
 
-% get the single keyval for issource out
-issource = keyval('issource', varargin); if isempty(issource), issource = 0; end
-
+% get the issource out flag
+issource = ft_getopt(varargin, 'issource', false);
 
 % for backward compatibility
 if size(design,2)~=size(dat,2)

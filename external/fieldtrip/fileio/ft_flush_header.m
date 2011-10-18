@@ -26,10 +26,10 @@ function ft_flush_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_flush_header.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_flush_header.m 4437 2011-10-12 10:04:45Z roboos $
 
 % set the defaults
-headerformat = keyval('headerformat', varargin); if isempty(headerformat), headerformat = ft_filetype(filename); end
+headerformat = ft_getopt(varargin, 'headerformat', headerformat = ft_filetype(filename));
 
 switch headerformat
   case 'disp'

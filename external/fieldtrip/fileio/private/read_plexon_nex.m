@@ -41,29 +41,15 @@ function [varargout] = read_plexon_nex(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_plexon_nex.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_plexon_nex.m 4437 2011-10-12 10:04:45Z roboos $
 
 % parse the optional input arguments
-hdr       = keyval('header', varargin);
-channel   = keyval('channel', varargin);
-feedback  = keyval('feedback', varargin);
-tsonly    = keyval('tsonly', varargin);
-begsample = keyval('begsample', varargin);
-endsample = keyval('endsample', varargin);
-
-% set the defaults
-if isempty(feedback)
-  feedback=0;
-end
-if isempty(tsonly)
-  tsonly=0;
-end
-if isempty(begsample)
-  begsample=1;
-end
-if isempty(endsample)
-  endsample=Inf;
-end
+hdr       = ft_getopt(varargin, 'header');
+channel   = ft_getopt(varargin, 'channel');
+feedback  = ft_getopt(varargin, 'feedback', false);
+tsonly    = ft_getopt(varargin, 'tsonly', false);
+begsample = ft_getopt(varargin, 'begsample', 1);
+endsample = ft_getopt(varargin, 'endsample', inf);
 
 % start with empty return values and empty data
 varargout = {};

@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 4330 2011-10-03 12:15:48Z crimic $
+% $Id: ft_hastoolbox.m 4399 2011-10-09 15:19:41Z crimic $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -226,7 +226,7 @@ switch toolbox
   case 'FREESURFER'
     status  = exist('MRIread', 'file') && exist('vox2ras_0to1', 'file');
   case 'FNS'
-    status  = exist('elecsfwd', 'file') && exist('img_get_gray', 'file');
+    status  = exist('elecsfwd', 'file');
   case 'SIMBIO'
     status  = exist('ipm_linux_opt', 'file') && exist('sb_write_dip.m','file');
   case 'VGRID'

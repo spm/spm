@@ -5,7 +5,7 @@ function hs = ft_plot_sens(sens, varargin)
 % Use as
 %   ft_plot_sens(sens, ...)
 % where the first argument is the sensor array as returned by READ_SENS
-% or PREPARE_VOL_SENS. 
+% or PREPARE_VOL_SENS.
 %
 % Optional input arguments should come in key-value pairs and can include
 %   'style'    plotting style for the points representing the channels, see plot3 (default = 'k.')
@@ -34,23 +34,17 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 4331 2011-10-03 12:42:38Z crimic $
+% $Id: ft_plot_sens.m 4487 2011-10-17 12:52:07Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
-% ensure up-to-date description of sensors (Aug 2011)
-if isfield(sens,'pnt')
-  sens = fixsens(sens);
-end
+% ensure that the sensor description is up-to-date (Aug 2011)
+sens = fixsens(sens);
 
 % get the optional input arguments
-keyvalcheck(varargin, 'optional', {'style', 'coil', 'label'});
-style = keyval('style', varargin); if isempty(style), style = 'k.'; end
-coil  = keyval('coil',  varargin); if isempty(coil), coil = false; end
-label = keyval('label', varargin); if isempty(label), label = 'off'; end
-
-% convert yes/no string into boolean value
-coil = istrue(coil);
+style = ft_getopt(varargin, 'style',  'k.');
+coil  = ft_getopt(varargin, 'coil',   false);
+label = ft_getopt(varargin, 'label',  'off');
 
 % everything is added to the current figure
 holdflag = ishold;
@@ -58,7 +52,7 @@ if ~holdflag
   hold on
 end
 
-if coil
+if istrue(coil)
   % simply plot the position of all coils or electrodes
   if isfield(sens, 'coilpos')
     pnt = sens.coilpos;
@@ -88,7 +82,7 @@ else
       end % switch
       text(sens.chanpos(i,1), sens.chanpos(i,2), sens.chanpos(i,3), str);
     end % for
-  end % if     
+  end % if
   
 end
 

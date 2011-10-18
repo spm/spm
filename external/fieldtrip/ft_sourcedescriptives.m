@@ -66,7 +66,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 4251 2011-09-21 11:12:21Z crimic $
+% $Id: ft_sourcedescriptives.m 4481 2011-10-17 11:22:08Z jorhor $
 
 ft_defaults
 
@@ -94,7 +94,6 @@ if ~isfield(cfg, 'keepcsd'),          cfg.keepcsd          = 'no';          end
 if ~isfield(cfg, 'fixedori'),         cfg.fixedori = 'over_trials';         end
 if ~isfield(cfg, 'inputfile'),        cfg.inputfile        = [];            end
 if ~isfield(cfg, 'outputfile'),       cfg.outputfile       = [];            end
-source.method = ft_getopt(source,'method',[]);
 
 % only works for minimumnormestimate
 if ~isfield(cfg, 'demean'),         cfg.demean         = 'yes';    end
@@ -110,12 +109,15 @@ if ~isempty(cfg.inputfile)
   if hasdata
     error('cfg.inputfile should not be used in conjunction with giving input data to this function');
   else
-    data = loadvar(cfg.inputfile, 'source');
+    source = loadvar(cfg.inputfile, 'source');
   end
 end
 
 % check if the input data is valid for this function
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
+
+% get desired method from source structure
+source.method = ft_getopt(source,'method',[]);
 
 % this is required for backward compatibility with the old sourceanalysis
 if isfield(source, 'method') && strcmp(source.method, 'randomized')
@@ -947,7 +949,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourcedescriptives.m 4251 2011-09-21 11:12:21Z crimic $';
+cfg.version.id = '$Id: ft_sourcedescriptives.m 4481 2011-10-17 11:22:08Z jorhor $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

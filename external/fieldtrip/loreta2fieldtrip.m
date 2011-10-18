@@ -31,7 +31,7 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: loreta2fieldtrip.m 4385 2011-10-08 12:04:37Z roboos $
 
 ft_defaults
 
@@ -41,7 +41,7 @@ ftFuncClock = clock();
 ftFuncMem   = memtic();
 
 % get the optional input arguments
-timeframe  =  keyval('timeframe', varargin); % will be empty if not specified
+timeframe = ft_getopt(varargin, 'timeframe'); % will be empty if not specified
 
 % start with an empty source structure
 source  =  [];
@@ -117,7 +117,7 @@ cfg.filename  = filename;
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: loreta2fieldtrip.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id   = '$Id: loreta2fieldtrip.m 4385 2011-10-08 12:04:37Z roboos $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

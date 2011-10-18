@@ -72,11 +72,11 @@ function spike = ft_datatype_spike(spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_spike.m 3423 2011-05-03 09:08:12Z roboos $
+% $Id: ft_datatype_spike.m 4388 2011-10-09 09:55:08Z roboos $
 
 
 % get the optional input arguments, which should be specified as key-value pairs
-version = keyval('version', varargin); if isempty(version), version = 'latest'; end
+version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2007';

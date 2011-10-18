@@ -37,11 +37,11 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 1880 2010-10-07 15:06:37Z roevdmei $
+% $Id: specest_nanfft.m 4439 2011-10-12 10:17:09Z roboos $
 
 % get the optional arguments
-basis     = keyval('basis',     varargin);
-datatype  = keyval('datatype',  varargin);
+basis     = ft_getopt(varargin, 'basis');
+datatype  = ft_getopt(varargin, 'datatype');
 
 % datatype = 0, no missing data
 % datatype = 1, the missing data is at the same location for all channels

@@ -140,7 +140,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 4316 2011-09-29 11:39:42Z jansch $
+% $Id: ft_topoplotER.m 4357 2011-10-06 08:43:35Z jansch $
 
 ft_defaults
 
@@ -164,7 +164,7 @@ hasdata      = nargin>1;
 hasinputfile = ~isempty(cfg.inputfile);
 
 Ndata = numel(varargin);
-if isnumeric(varargin{end})
+if ~isempty(varargin) && isnumeric(varargin{end})
   Ndata = Ndata - 1;
   indx  = varargin{end};
 else
@@ -173,9 +173,13 @@ end
 
 if Ndata>1 && ~isnumeric(varargin{end})
   for k=1:Ndata
+    
     if k>1
       % create a new figure for the additional input arguments
-      figure
+      % ensure new figures are all in the same size/position
+      p = get(gcf, 'Position');
+      f = figure();
+      set(f, 'Position', p);
     end
     ft_topoplotER(cfg, varargin{1:Ndata}, indx);
     indx = indx + 1;
@@ -447,8 +451,11 @@ if ~ischar(cfg.xlim) && length(cfg.xlim)>2
   cfg.interactive = 'no';
   xlims = cfg.xlim;
   % Iteratively call topoplotER with different xlim values:
+  nplots = numel(xlims)-1;
+  nyplot = ceil(sqrt(nplots));
+  nxplot = ceil(nplots./nyplot);
   for i=1:length(xlims)-1
-    subplot(ceil(sqrt(length(xlims)-1)), ceil(sqrt(length(xlims)-1)), i);
+    subplot(nxplot, nyplot, i);
     cfg.xlim = xlims(i:i+1);
     ft_topoplotER(cfg, data);
   end
@@ -899,7 +906,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_topoplotER.m 4316 2011-09-29 11:39:42Z jansch $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_topoplotER.m 4357 2011-10-06 08:43:35Z jansch $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

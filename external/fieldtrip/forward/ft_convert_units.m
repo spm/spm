@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_convert_units.m 4417 2011-10-10 16:33:08Z crimic $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -70,7 +70,7 @@ else
       case 'nolte'
         size = norm(range(obj.bnd.pnt));
 
-      case {'bem' 'dipoli' 'bemcp' 'asa' 'avo'}
+      case {'bem' 'dipoli' 'bemcp' 'asa' 'avo' 'openmeeg'}
         size = norm(range(obj.bnd(1).pnt));
 
       otherwise

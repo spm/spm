@@ -1,4 +1,4 @@
-function [grad] = ctf2grad(hdr, dewar);
+function [grad] = ctf2grad(hdr, dewar)
 
 % CTF2GRAD converts a CTF header to a gradiometer structure that can be
 % understood by FieldTrip and Robert Oostenveld's low-level forward and
@@ -6,7 +6,8 @@ function [grad] = ctf2grad(hdr, dewar);
 % different implementations of the low-level code for CTF data. Each of
 % these implementations is dealt with here.
 %
-% See also READ_HEADER, FIF2GRAD, BTI2GRAD, YOKOGAWA2GRAD
+% See also BTI2GRAD, FIF2GRAD, MNE2GRAD, ITAB2GRAD, YOKOGAWA2GRAD,
+% FT_READ_SENS, FT_READ_HEADER
 
 % undocumented option: it will return the gradiometer information in dewar
 % coordinates if second argument is present and non-zero
@@ -29,7 +30,7 @@ function [grad] = ctf2grad(hdr, dewar);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 3388 2011-04-26 10:07:03Z jansch $
+% $Id: ctf2grad.m 4494 2011-10-17 19:38:59Z roboos $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -46,9 +47,10 @@ end
 
 % start with empty gradiometer
 grad = [];
-grad.pnt = [];
-grad.ori = [];
-grad.tra = [];
+grad.pnt  = [];
+grad.ori  = [];
+grad.tra  = [];
+grad.unit = 'cm'; % the res4 file always represents it in centimeter
 
 % meg channels are 5, refmag 0, refgrad 1, ADCs 18
 % UPPT001 is 11

@@ -25,8 +25,6 @@ function [c, v, n] = ft_connectivity_ppc(input, varargin)
 % The output c contains the ppc, v is a leave-one-out variance estimate
 % which is only computed if dojack = 1,and n is the number of repetitions in the input data.
 % 
-% This is a helper function to FT_CONNECTIVITYANALYSIS
-% 
 % See also FT_CONNECTIVITYANALYSIS
 
 % Copyright (C) 2011, Martin Vinck 
@@ -47,11 +45,11 @@ function [c, v, n] = ft_connectivity_ppc(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_ppc.m 3292 2011-04-05 14:36:34Z roboos $
+% $Id: ft_connectivity_ppc.m 4387 2011-10-09 09:19:43Z roboos $
 
-feedback    = keyval('feedback', varargin); if isempty(feedback), feedback = 'none'; end
-weighted    = keyval('weighted', varargin);
-dojack      = keyval('dojack',   varargin);
+feedback    = ft_getopt(varargin, 'feedback', 'none');
+weighted    = ft_getopt(varargin, 'weighted');
+dojack      = ft_getopt(varargin, 'dojack');
 
 siz = size(input);
 n = siz(1);

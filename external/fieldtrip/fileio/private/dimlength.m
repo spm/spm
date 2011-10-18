@@ -18,7 +18,7 @@ function [n, fn] = dimlength(data, seldim, fld)
 
 % Copyright (C) 2010, Jan-Mathijs Schoffelen
 %
-% $Id: dimlength.m 4276 2011-09-22 18:20:08Z jansch $
+% $Id: dimlength.m 4485 2011-10-17 11:48:54Z jansch $
 
 if nargin<3
   fld = 'dimord';
@@ -106,12 +106,19 @@ else
         
       elseif strcmp(data.(fld)(1:4), 'rpt_')
         n  = [];
+        % generic solution for XXXspctrm
+        fnames = fieldnames(data);
+        tmp    = find(~cellfun('isempty', strfind(fnames, 'spctrm')));
+        for k = 1:numel(tmp)
+          n = [n size(data.(fnames{tmp(k)}), 1)];
+        end
+        % some other possibilities
         if isfield(data, 'cov'),           n = [n size(data.cov,           1)]; end
-        if isfield(data, 'crsspctrm'),     n = [n size(data.crsspctrm,     1)]; end
-        if isfield(data, 'powcovspctrm'),  n = [n size(data.powcovspctrm,  1)]; end
-        if isfield(data, 'powspctrm'),     n = [n size(data.powspctrm,     1)]; end
+        %if isfield(data, 'crsspctrm'),     n = [n size(data.crsspctrm,     1)]; end
+        %if isfield(data, 'powcovspctrm'),  n = [n size(data.powcovspctrm,  1)]; end
+        %if isfield(data, 'powspctrm'),     n = [n size(data.powspctrm,     1)]; end
         if isfield(data, 'trial'),         n = [n size(data.trial,         1)]; end
-        if isfield(data, 'fourierspctrm'), n = [n size(data.fourierspctrm, 1)]; end
+        %if isfield(data, 'fourierspctrm'), n = [n size(data.fourierspctrm, 1)]; end
         if isfield(data, 'individual'),    n = [n size(data.individual,    1)]; end
         if isfield(data, 'stat'),          n = [n size(data.stat,          1)]; end
         if ~all(n==n(1))

@@ -109,7 +109,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 4322 2011-10-03 08:29:19Z jansch $
+% $Id: ft_multiplotER.m 4357 2011-10-06 08:43:35Z jansch $
 
 ft_defaults
 
@@ -141,7 +141,7 @@ end
 if hasdata
   % do nothing
 elseif hasinputfile
-  if ~ischar(cfg.inputfile)
+  if ischar(cfg.inputfile)
     cfg.inputfile = {cfg.inputfile};
   end
   for i = 1:numel(cfg.inputfile)
@@ -655,7 +655,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_multiplotER.m 4322 2011-10-03 08:29:19Z jansch $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_multiplotER.m 4357 2011-10-06 08:43:35Z jansch $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

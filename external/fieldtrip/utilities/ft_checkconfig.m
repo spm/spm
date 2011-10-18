@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 4253 2011-09-21 11:25:37Z crimic $
+% $Id: ft_checkconfig.m 4416 2011-10-10 13:37:01Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -69,6 +69,7 @@ global ft_default
 if isempty(ft_default)
   ft_default = struct;
 end
+
 fieldsused = fieldnames(ft_default);
 for i=1:length(fieldsused)
   fn = fieldsused{i};
@@ -77,16 +78,16 @@ for i=1:length(fieldsused)
   end
 end
 
-renamed         = keyval('renamed',         varargin);
-renamedval      = keyval('renamedval',      varargin);
-required        = keyval('required',        varargin);
-deprecated      = keyval('deprecated',      varargin);
-unused          = keyval('unused',          varargin);
-forbidden       = keyval('forbidden',       varargin);
-createsubcfg    = keyval('createsubcfg',    varargin);
-ckeckfilenames  = keyval('dataset2files',   varargin);
-checksize       = keyval('checksize',       varargin); if isempty(checksize), checksize = 'off';  end
-trackconfig     = keyval('trackconfig',     varargin);
+renamed         = ft_getopt(varargin, 'renamed');
+renamedval      = ft_getopt(varargin, 'renamedval');
+required        = ft_getopt(varargin, 'required');
+deprecated      = ft_getopt(varargin, 'deprecated');
+unused          = ft_getopt(varargin, 'unused');
+forbidden       = ft_getopt(varargin, 'forbidden');
+createsubcfg    = ft_getopt(varargin, 'createsubcfg');
+ckeckfilenames  = ft_getopt(varargin, 'dataset2files');
+checksize       = ft_getopt(varargin, 'checksize', 'off');
+trackconfig     = ft_getopt(varargin, 'trackconfig');
 
 if ~isempty(trackconfig) && strcmp(trackconfig, 'on')
   % infer from the user configuration whether tracking should be enabled
@@ -208,6 +209,12 @@ if ~isempty(forbidden)
   end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% backward compatibility for the changed gradiometer definition
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if isfield(cfg, 'grad')
+  cfg.grad = fixsens(cfg.grad);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % createsubcfg
@@ -582,7 +589,9 @@ for i=1:numel(fieldsorig)
     elseif iscell(cfg(k).(fieldsorig{i})) && strcmp(fieldsorig{i}, 'previous')
       % run recursively on 'previous' fields that are cells
       for j=1:numel(cfg(k).(fieldsorig{i}))
-        cfg(k).(fieldsorig{i}){j} = checksizefun(cfg(k).(fieldsorig{i}){j}, max_size);
+        if isstruct(cfg(k).(fieldsorig{i}){j}) 
+          cfg(k).(fieldsorig{i}){j} = checksizefun(cfg(k).(fieldsorig{i}){j}, max_size);
+        end
       end
     end
   end

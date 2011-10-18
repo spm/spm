@@ -42,19 +42,19 @@ function varargout = interp_ungridded(pntin, pntout, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_ungridded.m 3269 2011-04-04 13:08:21Z jansch $
+% $Id: interp_ungridded.m 4439 2011-10-12 10:17:09Z roboos $
 
 if nargin<3
   error('Not enough input arguments.');
 end
 
 % get the optional arguments
-projmethod   = keyval('projmethod',    varargin);   % required
-sphereradius = keyval('sphereradius',  varargin);   % required for some projection methods
-distmat      = keyval('distmat',       varargin);   % will be computed if needed and not present
-triin        = keyval('triin',         varargin);   % not yet implemented
-triout       = keyval('triout',        varargin);   
-val          = keyval('data',          varargin);   % functional data defined at pntin
+projmethod   = ft_getopt(varargin, 'projmethod');     % required
+sphereradius = ft_getopt(varargin, 'sphereradius');   % required for some projection methods
+distmat      = ft_getopt(varargin, 'distmat');        % will be computed if needed and not present
+triin        = ft_getopt(varargin, 'triin');          % not yet implemented
+triout       = ft_getopt(varargin, 'triout');   
+val          = ft_getopt(varargin, 'data');           % functional data defined at pntin
 
 hasval  = ~isempty(val);
 npntin  = size(pntin, 1);

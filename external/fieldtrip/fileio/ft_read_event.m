@@ -84,7 +84,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 4003 2011-08-24 08:52:24Z crimic $
+% $Id: ft_read_event.m 4437 2011-10-12 10:04:45Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -105,14 +105,14 @@ if iscell(filename)
 end
 
 % get the options
-eventformat      = ft_getopt(varargin, 'eventformat');
+eventformat      = ft_getopt(varargin, 'eventformat', ft_filetype(filename));
 hdr              = ft_getopt(varargin, 'header');
-detectflank      = ft_getopt(varargin, 'detectflank');   % up, down or both
-trigshift        = ft_getopt(varargin, 'trigshift');     % default is assigned in subfunction
-trigindx         = ft_getopt(varargin, 'trigindx');      % this allows to override the automatic trigger channel detection and is useful for Yokogawa
+detectflank      = ft_getopt(varargin, 'detectflank', 'up');   % up, down or both
+trigshift        = ft_getopt(varargin, 'trigshift');           % default is assigned in subfunction
+trigindx         = ft_getopt(varargin, 'trigindx');            % this allows to override the automatic trigger channel detection and is useful for Yokogawa
 headerformat     = ft_getopt(varargin, 'headerformat');
 dataformat       = ft_getopt(varargin, 'dataformat');
-threshold        = ft_getopt(varargin, 'threshold');   % this is used for analog channels
+threshold        = ft_getopt(varargin, 'threshold');           % this is used for analog channels
 
 % this allows to read only events in a certain range, supported for selected data formats only
 flt_type         = ft_getopt(varargin, 'type');
@@ -130,16 +130,6 @@ timeout          = ft_getopt(varargin, 'timeout', 5); % seconds
 
 % convert from 'yes'/'no' into boolean
 blocking = istrue(blocking);
-
-% determine the filetype
-if isempty(eventformat)
-  eventformat = ft_filetype(filename);
-end
-
-% default is to search only for rising or up-going flanks
-if isempty(detectflank)
-  detectflank = 'up';
-end
 
 if any(strcmp(eventformat, {'brainvision_eeg', 'brainvision_dat'}))
   [p, f] = fileparts(filename);

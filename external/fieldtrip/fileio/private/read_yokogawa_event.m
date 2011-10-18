@@ -28,7 +28,7 @@ function [event] = read_yokogawa_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_event.m 3376 2011-04-22 12:45:14Z roboos $
+% $Id: read_yokogawa_event.m 4437 2011-10-12 10:04:45Z roboos $
 
 % ensure that the required toolbox is on the path
 ft_hastoolbox('yokogawa', 1);
@@ -37,9 +37,9 @@ event   = [];
 handles = definehandles;
 
 % get the options, the default is set below
-trigindx    = keyval('trigindx', varargin);
-threshold   = keyval('threshold', varargin);
-detectflank = keyval('detectflank', varargin);
+trigindx    = ft_getopt(varargin, 'trigindx');
+threshold   = ft_getopt(varargin, 'threshold');
+detectflank = ft_getopt(varargin, 'detectflank');
 
 % read the dataset header
 hdr = read_yokogawa_header(filename);

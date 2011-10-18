@@ -36,14 +36,14 @@ function [selected] = ft_select_point3d(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point3d.m 1821 2010-09-29 12:59:59Z crimic $
+% $Id: ft_select_point3d.m 4384 2011-10-08 12:00:17Z roboos $
 
 % get optional input arguments
-nearest  = keyval('nearest', varargin); if isempty(nearest), nearest = true; end
-multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
+nearest  = ft_getopt(varargin, 'nearest',  true);
+multiple = ft_getopt(varargin, 'multiple', false);
 
 % ensure that it is boolean
-nearest = istrue(nearest);
+nearest  = istrue(nearest);
 multiple = istrue(multiple);
 
 % get the object handles
@@ -86,7 +86,7 @@ while ~done
   k = waitforbuttonpress;
   [p v vi facev facei] = select3d(h);
   key = get(gcf,'CurrentCharacter'); % which key was pressed (if any)?
-
+  
   if strcmp(key, 'q')
     % finished selecting points
     done = true;
@@ -99,7 +99,7 @@ while ~done
     end % if nearest
     fprintf('selected point at [%f %f %f]\n', selected(end,1), selected(end,2), selected(end,3));
   end
-
+  
   if ~multiple
     done = true;
   end

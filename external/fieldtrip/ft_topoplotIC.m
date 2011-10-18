@@ -93,7 +93,7 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_topoplotIC.m 4348 2011-10-05 07:28:14Z jansch $
 
 ft_defaults
 
@@ -119,8 +119,11 @@ varargin{:}.dimord = 'chan_comp';
 selcomp = cfg.component;
 
 % allow multiplotting
+nplots = numel(selcomp);
+nyplot = ceil(sqrt(nplots));
+nxplot = ceil(nplots./nyplot);
 for i = 1:length(selcomp)
-  subplot(ceil(sqrt(length(selcomp))), ceil(sqrt(length(selcomp))), i);
+  subplot(nxplot, nyplot, i);
   cfg.component = selcomp(i);
   ft_topoplotER(cfg, varargin{:});
   title(['component ' num2str(selcomp(i))]);

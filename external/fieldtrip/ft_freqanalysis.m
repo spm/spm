@@ -150,7 +150,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis.m 4265 2011-09-22 08:28:58Z jansch $
+% $Id: ft_freqanalysis.m 4423 2011-10-11 10:24:48Z roevdmei $
 
 ft_defaults
 
@@ -518,6 +518,19 @@ else
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Memory allocation
+    % memory allocation for mtmfft is slightly different because of the possiblity of variable number of tapers over trials (when using dpss), the below exception
+    % is made so memory can still be allocated fully (see bug #1025
+    if strcmp(cfg.method, 'mtmfft') && strcmp(cfg.taper,'dpss')
+      trllength = cellfun(@numel,data.time);
+      % determine number of tapers per trial
+      ntaptrl = sum(floor((2 .* (trllength./data.fsample) .* cfg.tapsmofrq) - 1)); % I floored it for now, because I don't know whether this formula is accurate in all cases, by flooring the memory allocated 
+                                                                                   % will most likely be less than it should be, but this would still have the same effect of 'not-crashing-matlabs'.
+                                                                                   % I do have the feeling a round would be 100% accurate, but atm I cannot check this in Percival and Walden
+                                                                                   % - roevdmei
+    else
+      ntaptrl = ntrials .* maxtap; % the way it used to be in all cases (before bug #1025)
+    end
+    
     % by default, everything is has the time dimension, if not, some specifics are performed
     if itrial == 1
       % allocate memory to output variables
@@ -531,10 +544,10 @@ else
         if csdflg, crsspctrm     = complex(nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision)); end
         if fftflg, fourierspctrm = complex(nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision));       end
         dimord    = 'rpt_chan_freq_time';
-      elseif keeprpt == 4 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'yes'         % FIXME this works only if all frequencies have the same number of tapers (ancient fixme)
-        if powflg, powspctrm     = zeros(ntrials*maxtap,nchan,nfoi,ntoi,cfg.precision);             end
-        if csdflg, crsspctrm     = complex(zeros(ntrials*maxtap,nchancmb,nfoi,ntoi,cfg.precision)); end
-        if fftflg, fourierspctrm = complex(zeros(ntrials*maxtap,nchan,nfoi,ntoi,cfg.precision));    end
+      elseif keeprpt == 4 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'yes'         
+        if powflg, powspctrm     = zeros(ntaptrl,nchan,nfoi,ntoi,cfg.precision);        end % 
+        if csdflg, crsspctrm     = complex(zeros(ntaptrl,nchancmb,nfoi,ntoi,cfg.precision)); end
+        if fftflg, fourierspctrm = complex(zeros(ntaptrl,nchan,nfoi,ntoi,cfg.precision));    end
         dimord    = 'rpttap_chan_freq_time';
       end
       if ~hastime
@@ -802,7 +815,7 @@ else
   
   % add information about the version of this function to the configuration
   cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_freqanalysis.m 4265 2011-09-22 08:28:58Z jansch $';
+  cfg.version.id = '$Id: ft_freqanalysis.m 4423 2011-10-11 10:24:48Z roevdmei $';
   
   % add information about the Matlab version used to the configuration
   cfg.callinfo.matlab = version();

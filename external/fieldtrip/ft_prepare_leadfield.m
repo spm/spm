@@ -106,7 +106,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_prepare_leadfield.m 4359 2011-10-06 09:28:10Z crimic $
 
 ft_defaults
 
@@ -131,7 +131,7 @@ if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];            end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
 
 hasdata = (nargin>1);
-if isfield(cfg,'grad')
+if isfield(cfg,'grad') || isfield(cfg,'elec')
     data = []; % clear for memory reasons and because we won't use it
     % need to check if data.grad and cfg.grad are same?
     % need to warn/error user that we use cfg.grad and not data.grad?
@@ -272,7 +272,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_prepare_leadfield.m 4096 2011-09-03 15:49:40Z roboos $';
+cfg.version.id = '$Id: ft_prepare_leadfield.m 4359 2011-10-06 09:28:10Z crimic $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

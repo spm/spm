@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_read_headshape.m 4437 2011-10-12 10:04:45Z roboos $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -57,13 +57,9 @@ if ~exist(filename)
 end
 
 % get the options
-fileformat  = ft_getopt(varargin,'format','unknown');
+fileformat  = ft_getopt(varargin,'format',  ft_filetype(filename));
 coordinates = ft_getopt(varargin,'coordinates', 'head');
 unit        = ft_getopt(varargin,'unit', 'cm');
-
-if isempty(fileformat)
-  fileformat = ft_filetype(filename);
-end
 
 % start with an empty structure
 shape           = [];

@@ -38,20 +38,19 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 3502 2011-05-11 07:27:57Z roboos $
+% $Id: ft_plot_vol.m 4384 2011-10-08 12:00:17Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
-keyvalcheck(varargin, 'forbidden', {'faces', 'edges', 'vertices'});
-faceindex   = keyval('faceindex',   varargin);   if isempty(faceindex),faceindex = 'none';end
-vertexindex = keyval('vertexindex',   varargin); if isempty(vertexindex),vertexindex ='none';end
-vertexsize  = keyval('vertexsize',    varargin); if isempty(vertexsize),  vertexsize = 10;    end
-facecolor   = keyval('facecolor',     varargin); if isempty(facecolor),facecolor = 'white'; end 
-vertexcolor = keyval('vertexcolor',   varargin); if isempty(vertexcolor),vertexcolor ='none';end
-edgecolor   = keyval('edgecolor',     varargin); if isempty(edgecolor),edgecolor = 'k';end
-facealpha   = keyval('facealpha',     varargin); if isempty(facealpha),facealpha = 1;end 
-map         = keyval('colormap',      varargin);
+faceindex   = ft_getopt(varargin, 'faceindex',   'none');
+vertexindex = ft_getopt(varargin, 'vertexindex', 'none');
+vertexsize  = ft_getopt(varargin, 'vertexsize',  10);
+facecolor   = ft_getopt(varargin, 'facecolor',   'white');
+vertexcolor = ft_getopt(varargin, 'vertexcolor', 'none');
+edgecolor   = ft_getopt(varargin, 'edgecolor',   'k');
+facealpha   = ft_getopt(varargin, 'facealpha',   1);
+map         = ft_getopt(varargin, 'colormap');
 
 faceindex   = istrue(faceindex);
 vertexindex = istrue(vertexindex);
@@ -70,7 +69,7 @@ switch ft_voltype(vol)
       bnd(i).pnt(:,3) = pnt(:,3)*vol.r(i) + vol.o(3);
       bnd(i).tri = tri;
     end
-
+    
   case 'multisphere'
     bnd = [];
     for i=1:length(vol.label)
@@ -79,15 +78,15 @@ switch ft_voltype(vol)
       bnd(i).pnt(:,3) = pnt(:,3)*vol.r(i) + vol.o(i,3);
       bnd(i).tri = tri;
     end
-
+    
   case {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'nolte'}
     % these already contain one or multiple triangulated surfaces for the boundaries
     bnd = vol.bnd;
-
+    
   otherwise
     error('unsupported voltype')
 end
- 
+
 % plot the triangulated surfaces of the volume conduction model
 for i=1:length(bnd)
   ft_plot_mesh(bnd(i),'faceindex',faceindex,'vertexindex',vertexindex, ...

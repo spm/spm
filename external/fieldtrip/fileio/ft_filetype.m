@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 4143 2011-09-11 17:07:31Z crimic $
+% $Id: ft_filetype.m 4437 2011-10-12 10:04:45Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -95,7 +95,7 @@ if strcmp(class(filename), 'memmapfile'),
 end
 
 % % get the optional arguments
-% checkheader = keyval('checkheader', varargin); if isempty(checkheader), checkheader=1; end
+% checkheader = ft_getopt(varargin, 'checkheader', true);
 %
 % if ~checkheader
 %   % assume that the header is always ok, e.g when the file does not yet exist
@@ -446,6 +446,11 @@ elseif filetype_check_extension(filename, '.mnc')
   content = 'MRI image data';
 elseif filetype_check_extension(filename, '.nii')
   type = 'nifti';
+  content = 'MRI image data';
+  
+  % known FSL file types
+elseif filetype_check_extension(filename, '.nii.gz')
+  type = 'nifti_fsl';
   content = 'MRI image data';
   
   % known LORETA file types

@@ -25,12 +25,12 @@ function ft_flush_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_flush_event.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: ft_flush_event.m 4437 2011-10-12 10:04:45Z roboos $
 
 % TODO implement filtering
 
 % set the defaults
-eventformat = keyval('eventformat', varargin); if isempty(eventformat), eventformat = ft_filetype(filename); end
+eventformat = ft_getopt(varargin, 'eventformat',  ft_filetype(filename));
 
 switch eventformat
   case 'disp'

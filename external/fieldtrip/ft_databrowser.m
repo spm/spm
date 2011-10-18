@@ -77,7 +77,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 4319 2011-09-29 16:10:26Z roevdmei $
+% $Id: ft_databrowser.m 4379 2011-10-07 13:48:03Z roevdmei $
 
 % Undocumented options
 % cfg.enablefftbutton = 'yes'/'no' - roevdmei
@@ -438,6 +438,10 @@ h = figure;
 setappdata(h, 'opt', opt);
 setappdata(h, 'cfg', cfg);
 
+% set zoom option to on
+% zoom(h,'on')
+% set(zoom(h),'actionPostCallback',@zoom_drawlabels_cb)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set up the figure and callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -566,15 +570,17 @@ if nargout
   
   if strcmp(cfg.enablepreprocedit,'yes')
     % add the updated preproc to the output
-    browsecfg = getappdata(h, 'cfg');
-    cfg.preproc = browsecfg.preproc;
+    try
+      browsecfg = getappdata(h, 'cfg');
+      cfg.preproc = browsecfg.preproc;
+    end
   end
   
 end % if nargout
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_databrowser.m 4319 2011-09-29 16:10:26Z roevdmei $';
+cfg.version.id = '$Id: ft_databrowser.m 4379 2011-10-07 13:48:03Z roevdmei $';
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
@@ -592,6 +598,7 @@ if hasdata && isfield(data, 'cfg')
 end
 
 end % main function
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

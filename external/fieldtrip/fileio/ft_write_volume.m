@@ -40,17 +40,15 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_volume.m 4162 2011-09-13 11:26:02Z crimic $
+% $Id: ft_write_volume.m 4437 2011-10-12 10:04:45Z roboos $
 
 % get the options
-dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = ft_filetype(filename); end
-transform     = keyval('transform',     varargin); if isempty(transform),  transform  = eye(4);                end
-spmversion    = keyval('spmversion',    varargin);
-
-if isempty(spmversion), spmversion = 'SPM8'; end
+dataformat    = ft_getopt(varargin, 'dataformat', ft_filetype(filename));
+transform     = ft_getopt(varargin, 'transform', eye(4));
+spmversion    = ft_getopt(varargin, 'spmversion', 'SPM8');
 
 if strcmp(dataformat, 'nifti') && strcmp(spmversion, 'SPM2') 
-  error('nifti can only be written by spm versions newer than spm2');
+  error('nifti can only be written by SPM5 or later');
 end
 
 switch dataformat

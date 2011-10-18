@@ -53,7 +53,7 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4328 2011-10-03 12:02:31Z jansch $
+% $Id: ft_topoplotCC.m 4385 2011-10-08 12:04:37Z roboos $
 
 ft_defaults
 
@@ -240,7 +240,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_topoplotCC.m 4328 2011-10-03 12:02:31Z jansch $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_topoplotCC.m 4385 2011-10-08 12:04:37Z roboos $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();
@@ -256,8 +256,8 @@ fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, 
 % SUBFUNCTION for plotting arrows, see also fieldtrip/private/arrow
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h = arrow(arrowbeg, arrowend, varargin)
-ends   = keyval('ends',   varargin);
-length = keyval('length', varargin); % the length of the arrow head, in figure units
+ends   = ft_getopt(varargin, 'ends');
+length = ft_getopt(varargin, 'length'); % the length of the arrow head, in figure units
 color  = [0 0 0]; % in RGB
 
 direction = (arrowend - arrowbeg);

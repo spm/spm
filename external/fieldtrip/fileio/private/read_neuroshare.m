@@ -42,24 +42,19 @@ function [nsout] = read_neuroshare(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuroshare.m 2298 2010-12-06 20:47:12Z roboos $
+% $Id: read_neuroshare.m 4437 2011-10-12 10:04:45Z roboos $
 
 % check the availability of the required neuroshare toolbox
 hastoolbox('neuroshare', 1);
 
 % get the optional input arguments
-dataformat    = keyval('dataformat',    varargin);
-begsample     = keyval('begsample',     varargin);
-endsample     = keyval('endsample',     varargin);
-chanindx      = keyval('chanindx',      varargin);
-readevent     = keyval('readevent',     varargin);
-readspike     = keyval('readspike',     varargin);
-readanalog    = keyval('readanalog',    varargin);
-
-% set defaults
-if isempty(readevent);  readevent  = 'no'; end
-if isempty(readspike);  readspike  = 'no'; end
-if isempty(readanalog); readanalog = 'no'; end
+dataformat    = ft_getopt(varargin, 'dataformat');
+begsample     = ft_getopt(varargin, 'begsample');
+endsample     = ft_getopt(varargin, 'endsample');
+chanindx      = ft_getopt(varargin, 'chanindx');
+readevent     = ft_getopt(varargin, 'readevent', 'no');
+readspike     = ft_getopt(varargin, 'readspike', 'no');
+readanalog    = ft_getopt(varargin, 'readanalog', 'no');
 
 % determine the filetype
 if isempty(dataformat)

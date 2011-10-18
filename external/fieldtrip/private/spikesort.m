@@ -46,8 +46,7 @@ function [numA, numB, indA, indB] = spikesort(numA, numB, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spikesort.m 952 2010-04-21 18:29:51Z roboos $
-
+% $Id: spikesort.m 4439 2011-10-12 10:17:09Z roboos $
 
 % use global flag for debugging
 global fb
@@ -56,7 +55,7 @@ if isempty(fb)
 end
 
 % get the options
-presort = keyval('presort', varargin);
+presort = ft_getopt(varargin, 'presort');
 
 if any(size(numA)~=size(numB))
   error('input dimensions should be the same');

@@ -1,9 +1,11 @@
 function grad = itab2grad(header_info)
 
-% ITAB2GRAD converts the original Chieti ITAB header structure into a gradiometer
-% definition that is compatible with FieldTrip forward and inverse computations
+% ITAB2GRAD converts the original Chieti ITAB header structure into
+% a gradiometer definition that is compatible with FieldTrip forward
+% and inverse computations
 %
-% See also READ_HEADER
+% See also CTF2GRAD, BTI2GRAD, FIF2GRAD, MNE2GRAD, YOKOGAWA2GRAD,
+% FT_READ_SENS, FT_READ_HEADER
 
 % Copyright (C) 2009, Robert Oostenveld, Donders Institute for Brain, Cognition and Behaviour
 % Copyright (C) 2009, Stefania Della Penna, ITAB, University Chiety, Italy
@@ -24,7 +26,7 @@ function grad = itab2grad(header_info)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: itab2grad.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: itab2grad.m 4493 2011-10-17 19:38:58Z roboos $
 
 grad = struct;
 

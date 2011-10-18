@@ -1,4 +1,4 @@
-function [spike] = ft_read_spike(filename, varargin);
+function [spike] = ft_read_spike(filename, varargin)
 
 % FT_READ_SPIKE reads spike timestamps and waveforms from various data
 % formats.
@@ -35,15 +35,10 @@ function [spike] = ft_read_spike(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 1981 2010-10-27 10:47:32Z jansch $
+% $Id: ft_read_spike.m 4437 2011-10-12 10:04:45Z roboos $
 
 % get the options
-spikeformat   = keyval('spikeformat',   varargin);
-
-% determine the filetype
-if isempty(spikeformat)
-  spikeformat = ft_filetype(filename);
-end
+spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));
 
 switch spikeformat
   case {'neuralynx_ncs' 'plexon_ddt'}

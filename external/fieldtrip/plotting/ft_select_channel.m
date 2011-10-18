@@ -57,16 +57,13 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 3866 2011-07-18 15:31:48Z craric $
+% $Id: ft_select_channel.m 4384 2011-10-08 12:00:17Z roboos $
 
 % get optional input arguments
-multiple = keyval('multiple', varargin); if isempty(multiple), multiple = false; end
-callback = keyval('callback', varargin);
+multiple = ft_getopt(varargin, 'multiple', false);
+callback = ft_getopt(varargin, 'callback');
 
-% convert 'yes/no' string to boolean value
-multiple  = istrue(multiple);
-
-if multiple
+if istrue(multiple)
   % the selection is done using select_range, which will subsequently call select_channel_multiple
   set(gcf, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', 'WindowButtonDownFcn'});
   set(gcf, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', true, 'callback', {@select_channel_multiple, callback}, 'event', 'WindowButtonUpFcn'});
@@ -90,7 +87,7 @@ y     = info.y;
 label = info.label;
 
 % compute a tolerance measure
-distance = sqrt(abs(sum([x y]'.*[x y]',1))); 
+distance = sqrt(abs(sum([x y]'.*[x y]',1)));
 distance = triu(distance, 1);
 distance = distance(:);
 distance = distance(distance>0);

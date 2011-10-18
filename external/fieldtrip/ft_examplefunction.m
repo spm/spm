@@ -30,7 +30,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_examplefunction.m 4343 2011-10-04 19:12:19Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
@@ -42,21 +42,6 @@ ft_defaults
 ftFuncTimer = tic();
 ftFuncClock = clock();
 ftFuncMem   = memtic();
-
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    datain = loadvar(cfg.inputfile, 'data');
-  end
-end
-
-% ensure that the input data is valiud for this function, this will also do 
-% backward-compatibility conversions of old data that for example was 
-% read from an old *.mat file
-datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
@@ -74,6 +59,22 @@ cfg = ft_checkopt(cfg, 'method', 'char', {'mtm', 'convol'});
 % get the options
 method    = ft_getopt(cfg, 'method');        % there is no default
 vartrllen = ft_getopt(cfg, 'vartrllen', 2);  % the default is 2
+
+% the data can be specified as input variable or can be read from file
+hasdata = (nargin>1);
+if ~isempty(cfg.inputfile)
+  % the input data should be read from file
+  if hasdata
+    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
+  else
+    datain = loadvar(cfg.inputfile, 'data');
+  end
+end
+
+% ensure that the input data is valid for this function, this will also do 
+% backward-compatibility conversions of old data that for example was 
+% read from an old *.mat file
+datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the actual computation is done in the middle part
@@ -99,7 +100,7 @@ cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 % add the version details of this function call to the configuration
 cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 4096 2011-09-03 15:49:40Z roboos $'; % this will be auto-updated by the revision control system
+cfg.version.id   = '$Id: ft_examplefunction.m 4343 2011-10-04 19:12:19Z roboos $'; % this will be auto-updated by the revision control system
 
 % add information about the Matlab version used to the configuration
 cfg.callinfo.matlab = version();

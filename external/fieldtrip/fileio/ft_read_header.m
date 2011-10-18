@@ -68,13 +68,12 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_read_header.m 4437 2011-10-12 10:04:45Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
 persistent cacheheader        % for caching
 persistent db_blob            % for fcdc_mysql
-persistent fakechannelwarning % this warning should be given only once
 
 if isempty(db_blob)
   db_blob = 0;
@@ -86,20 +85,10 @@ if ~exist(filename, 'file') && ~strcmp(ft_filetype(filename), 'ctf_shm') && ~str
 end
 
 % get the options
-headerformat = keyval('headerformat', varargin);
-fallback     = keyval('fallback',     varargin);
-cache        = keyval('cache',        varargin);
-retry        = keyval('retry',        varargin); if isempty(retry), retry = false; end % for fcdc_buffer
-
-% SK: I added this as a temporary fix to prevent 1000000 voxel names
-% to be checked for uniqueness. fMRI users will probably never use
-% channel names for anything.
-checkUniqueLabels = true;
-
-% determine the filetype
-if isempty(headerformat)
-  headerformat = ft_filetype(filename);
-end
+headerformat = ft_getopt(varargin, 'headerformat', ft_filetype(filename));
+fallback     = ft_getopt(varargin, 'fallback');
+cache        = ft_getopt(varargin, 'cache');
+retry        = ft_getopt(varargin, 'retry', false); % for fcdc_buffer
 
 if isempty(cache),
   if strcmp(headerformat, 'bci2000_dat') || strcmp(headerformat, 'eyelink_asc')
@@ -108,6 +97,11 @@ if isempty(cache),
     cache = false;
   end
 end
+
+% SK: I added this as a temporary fix to prevent 1000000 voxel names
+% to be checked for uniqueness. fMRI users will probably never use
+% channel names for anything.
+checkUniqueLabels = true;
 
 % start with an empty header
 hdr = [];
@@ -193,11 +187,8 @@ switch headerformat
     elseif isfield(parameters, 'ChannelNames') && isfield(parameters.ChannelNames, 'Values') && ~isempty(parameters.ChannelNames.Values)
       hdr.label       = parameters.ChannelNames.Values;
     else
-      if isempty(fakechannelwarning) || ~fakechannelwarning
-        % give this warning only once
-        warning('creating fake channel names');
-        fakechannelwarning = true;
-      end
+      % give this warning only once
+      warning_once('creating fake channel names');
       for i=1:hdr.nChans
         hdr.label{i} = sprintf('%d', i);
       end
@@ -224,11 +215,8 @@ switch headerformat
     elseif isfield(orig, 'label') && ischar(orig.label)
       hdr.label = tokenize(orig.label, ' ');
     else
-      if isempty(fakechannelwarning) || ~fakechannelwarning
-        % give this warning only once
-        warning('creating fake channel names');
-        fakechannelwarning = true;
-      end
+      % give this warning only once
+      warning_once('creating fake channel names');
       for i=1:hdr.nChans
         hdr.label{i} = sprintf('%d', i);
       end
@@ -515,11 +503,8 @@ switch headerformat
     hdr.Fs                  = 1000/median(diff(asc.dat(1,:)));  % these timestamps are in miliseconds
     hdr.FirstTimeStamp      = asc.dat(1,1);
     hdr.TimeStampPerSample  = median(diff(asc.dat(1,:)));
-    if isempty(fakechannelwarning) || ~fakechannelwarning
-      % give this warning only once
-      warning('creating fake channel names');
-      fakechannelwarning = true;
-    end
+    % give this warning only once
+    warning_once('creating fake channel names');
     for i=1:hdr.nChans
       hdr.label{i} = sprintf('%d', i);
     end
@@ -889,11 +874,8 @@ switch headerformat
       if isfield(orig, 'channel_names')
         hdr.label = orig.channel_names;
       else
-        if isempty(fakechannelwarning) || ~fakechannelwarning
-          % give this warning only once
-          warning('creating fake channel names');
-          fakechannelwarning = true;
-        end
+        % give this warning only once
+        warning_once('creating fake channel names');
         hdr.label = cell(hdr.nChans,1);
         if hdr.nChans < 2000 % don't do this for fMRI etc.
           for i=1:hdr.nChans
@@ -914,11 +896,8 @@ switch headerformat
 		checkUniqueLabels = false; % no need to check these
 	  case 1
 		% hase generated fake channels
-	  	if isempty(fakechannelwarning) || ~fakechannelwarning
-          % give this warning only once
-          warning('creating fake channel names');
-          fakechannelwarning = true;
-        end
+        % give this warning only once
+        warning_once('creating fake channel names');
 		checkUniqueLabels = false; % no need to check these
 	  case 2
 	    % got labels from chunk, check those
@@ -970,11 +949,8 @@ switch headerformat
     hdr.nSamplesPre = 0; % continuous
     hdr.nTrials     = 1; % continuous
     hdr.label       = cell(1,hdr.nChans);
-    if isempty(fakechannelwarning) || ~fakechannelwarning
-      % give this warning only once
-      warning('creating fake channel names');
-      fakechannelwarning = true;
-    end
+    % give this warning only once
+    warning('creating fake channel names');
     for i=1:hdr.nChans
       hdr.label{i} = sprintf('%3d', i);
     end
@@ -1292,11 +1268,8 @@ switch headerformat
     hdr.nSamplesPre = 0;      % continuous
     hdr.nTrials     = 1;      % continuous
     hdr.label       = cell(1,hdr.nChans);
-    if isempty(fakechannelwarning) || ~fakechannelwarning
-      % give this warning only once
-      warning('creating fake channel names');
-      fakechannelwarning = true;
-    end
+    % give this warning only once
+    warning('creating fake channel names');
     for i=1:hdr.nChans
       hdr.label{i} = sprintf('%d', i);
     end

@@ -78,9 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 4335 2011-10-03 13:14:27Z crimic $
-
-persistent warning_issued;
+% $Id: ft_compute_leadfield.m 4487 2011-10-17 12:52:07Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -92,25 +90,23 @@ if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   return;
 end
 
+% get the optional input arguments
+reducerank     = ft_getopt(varargin, 'reducerank', 'no');
+normalize      = ft_getopt(varargin, 'normalize' , 'no');
+normalizeparam = ft_getopt(varargin, 'normalizeparam', 0.5);
+weight         = ft_getopt(varargin, 'weight');
+
 if ~isstruct(sens) && size(sens,2)==3
   % definition of electrode positions only, restructure it
   sens = struct('pnt', sens);
 end
 
-% ensure that the description of the sensors is up-to-date (Oct 2011)
-if isfield(sens,'pnt')
-  sens = fixsens(sens);
-end
+% ensure that the sensor description is up-to-date (Aug 2011)
+sens = fixsens(sens);
 
 % determine whether it is EEG or MEG
 iseeg = ft_senstype(sens, 'eeg');
 ismeg = ft_senstype(sens, 'meg');
-
-% get the optional input arguments
-reducerank     = keyval('reducerank', varargin); if isempty(reducerank), reducerank = 'no'; end
-normalize      = keyval('normalize' , varargin); if isempty(normalize ), normalize  = 'no'; end
-normalizeparam = keyval('normalizeparam', varargin); if isempty(normalizeparam ), normalizeparam = 0.5; end
-weight         = keyval('weight', varargin);
 
 % multiple dipoles can be represented either as a 1x(N*3) vector or as a
 % as a Nx3 matrix, i.e. [x1 y1 z1 x2 y2 z2] or [x1 y1 z1; x2 y2 z2]
@@ -260,11 +256,8 @@ elseif ismeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % magnetic dipole instead of electric (current) dipole in an infinite vacuum
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      if isempty(warning_issued)
-        % give the warning only once
-        warning('assuming magnetic dipole in an infinite vacuum');
-        warning_issued = 1;
-      end
+      % give the warning only once
+      warning_once('assuming magnetic dipole in an infinite vacuum');
 
       pnt = sens.coilpos; % position of each coil
       ori = sens.coilori; % orientation of each coil
@@ -423,11 +416,7 @@ elseif iseeg
 
     case 'infinite'
       % the conductivity of the medium is not known
-      if isempty(warning_issued)
-        % give the warning only once
-        warning('assuming electric dipole in an infinite medium with unit conductivity');
-        warning_issued = 1;
-      end
+      warning_once('assuming electric dipole in an infinite medium with unit conductivity');
       lf = inf_medium_leadfield(pos, sens.elecpos, 1);
   
     case 'halfspace'
@@ -509,3 +498,13 @@ if ~isempty(weight)
     lf(:,3*(i-1)+3) = lf(:,3*(i-3)+1) * weight(i); % the leadfield for the z-direction
   end
 end
+
+% add a comment about the output units (head model geometrical points and conductivity)
+if isfield(vol,'unit')
+  gunit = vol.unit;
+else
+  gunit = 'unknown';
+end
+cunit = sprintf('S/%s',gunit);
+str = sprintf('The input units are %s for points and %s for conductivity',gunit,cunit);
+warning_once(str)

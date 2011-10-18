@@ -1,7 +1,7 @@
 function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 
 % FT_CONNECTIVITY_CORR computes correlation or coherence from a data-matrix
-% containing a covariance or cross-spectral density
+% containing a covariance or cross-spectral density.
 %
 % Use as
 %   [c, v, n] = ft_connectivity_corr(input, varargin)
@@ -12,27 +12,39 @@ function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 %   Repetitions x Channelcombination (x Frequency) (x Time)
 % 
 % The first dimension should be singleton if the input already contains
-% an average
+% an average. Furthermore, the input data can be complex-valued cross
+% spectral densities, or real-valued covariance estimates. If the former
+% is the case, the output will be coherence (or a derived metric), if the
+% latter is the case, the output will be the correlation coefficient.
 %
 % Additional input arguments come as key-value pairs:
 %
 % hasjack  0 or 1 specifying whether the Repetitions represent
 %                   leave-one-out samples
-% complex  'abs', 'angle', 'real', 'imag', 'complex' for post-processing of
-%                   coherency
+% complex  'abs', 'angle', 'real', 'imag', 'complex', 'logabs' for 
+%                   post-processing of coherency
 % feedback 'none', 'text', 'textbar' type of feedback showing progress of
 %                   computation
 % dimord          specifying how the input matrix should be interpreted
-% powindx
-% pownorm
-% pchanindx
-% allchanindx
+% powindx         required if the input data contain linearly indexed 
+%                   channel pairs. should be an Nx2 matrix indexing on each 
+%                   row for the respective channel pair the indices of the 
+%                   corresponding auto-spectra
+% pownorm         flag that specifies whether normalisation with the product
+%                   of the power should be performed (thus should be true when
+%                   correlation/coherence is requested, and false when covariance
+%                   or cross-spectral density is requested).
+%
+% Partialisation can be performed when the input data is (chan x chan).
+% The following options need to be specified: 
+% 
+% pchanindx       index-vector to the channels that need to be partialised 
+% allchanindx     index-vector to all channels that are used (including the 
+%                  "to-be-partialised" ones).
 %
 % The output c contains the correlation/coherence, v is a variance estimate
 % which only can be computed if the data contains leave-one-out samples,
 % and n is the number of repetitions in the input data.
-% 
-% This is a helper function to FT_CONNECTIVITYANALYSIS
 % 
 % See also FT_CONNECTIVITYANALYSIS
 
@@ -54,18 +66,19 @@ function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% FiXME: If output is angle, then jack-knifing should be done differently
-% since it's circular variable
-% $Id: ft_connectivity_corr.m 3815 2011-07-09 18:03:12Z jansch $
+% $Id: ft_connectivity_corr.m 4387 2011-10-09 09:19:43Z roboos $
 
-hasjack     = keyval('hasjack',     varargin); if isempty(hasjack),  hasjack  = 0;      end
-cmplx       = keyval('complex',     varargin); if isempty(cmplx),    cmplx    = 'abs';  end
-feedback    = keyval('feedback',    varargin); if isempty(feedback), feedback = 'none'; end
-dimord      = keyval('dimord',      varargin);
-powindx     = keyval('powindx',     varargin);
-pownorm     = keyval('pownorm',     varargin); if isempty(pownorm),  pownorm  = 0;      end
-pchanindx   = keyval('pchanindx',   varargin);
-allchanindx = keyval('allchanindx', varargin);
+% FiXME: If output is angle, then jack-knifing should be done
+% differently since it is a circular variable
+
+hasjack     = ft_getopt(varargin, 'hasjack', 0);
+cmplx       = ft_getopt(varargin, 'complex', 'abs');
+feedback    = ft_getopt(varargin, 'feedback', 'none');
+dimord      = ft_getopt(varargin, 'dimord');
+powindx     = ft_getopt(varargin, 'powindx');
+pownorm     = ft_getopt(varargin, 'pownorm', 0);
+pchanindx   = ft_getopt(varargin, 'pchanindx');
+allchanindx = ft_getopt(varargin, 'allchanindx');
 
 if isempty(dimord)
   error('input parameters should contain a dimord'); 

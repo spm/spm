@@ -33,7 +33,7 @@ function [vol] = ft_read_vol(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_vol.m 4193 2011-09-13 22:03:03Z crimic $
+% $Id: ft_read_vol.m 4437 2011-10-12 10:04:45Z roboos $
 
 % test whether the file exists
 if ~exist(filename)
@@ -41,12 +41,7 @@ if ~exist(filename)
 end
 
 % get the options
-fileformat = keyval('fileformat',  varargin);
-
-% determine the filetype
-if isempty(fileformat)
-  fileformat = ft_filetype(filename);
-end
+fileformat = ft_getopt(varargin, 'fileformat', ft_filetype(filename));
 
 switch fileformat
   case 'matlab'
