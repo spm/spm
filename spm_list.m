@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4454 2011-09-02 13:39:49Z guillaume $
+% $Id: spm_list.m 4532 2011-10-21 14:25:53Z karl $
 
 
 %==========================================================================
@@ -262,13 +262,13 @@ case 'table'                                                        %-Table
         xyzwdt = xyzsgn+xyzexp+(xyzdec>0)+xyzdec;
         voxwdt = max(voxexp,0)+(voxdec>0)+voxdec;
         tmpfmt = cell(size(xyzwdt));
-        for k = 1:numel(xyzwdt)
-            tmpfmt{k} = sprintf('%%%d.%df ', xyzwdt(k), xyzdec(k));
+        for i = 1:numel(xyzwdt)
+            tmpfmt{i} = sprintf('%%%d.%df ', xyzwdt(i), xyzdec(i));
         end
         xyzfmt = [tmpfmt{:}];
         tmpfmt = cell(size(voxwdt));
-        for k = 1:numel(voxwdt)
-            tmpfmt{k} = sprintf('%%%d.%df ', voxwdt(k), voxdec(k));
+        for i = 1:numel(voxwdt)
+            tmpfmt{i} = sprintf('%%%d.%df ', voxwdt(i), voxdec(i));
         end
         voxfmt = [tmpfmt{:}];
     end
