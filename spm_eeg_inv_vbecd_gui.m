@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4485 2011-09-13 13:34:53Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 4534 2011-10-24 18:35:52Z guillaume $
 
 %%
 % Load data, if necessary
@@ -15,6 +15,8 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 if nargin<1
     D = spm_eeg_load;
 end
+
+DISTTHRESH=120; %% mm distance from centre of brain classified as inside the head
 
 %%
 % Check if the forward model was prepared & handle the other info bits
@@ -98,7 +100,7 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
          
             %disp('Fixing sphere centre !');
             %P.forward.vol.o=[0 0 28]; P.forward.vol.r=100;
-            mnivol = ft_transform_vol(M1, P.forward.vol); %% used for inside head calculation
+            %mnivol = ft_transform_vol(M1, P.forward.vol); %% used for inside head calculation
             
             
         end
@@ -260,7 +262,11 @@ while adding_dips
             while 1
                 s0mni = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
                 
-                outside = ~ft_inside_vol(s0mni',mnivol);
+                %outside = ~ft_inside_vol(s0mni',mnivol);
+                
+                distcentre=sqrt(dot(s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert),s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert))); %% 
+                outside=(distcentre>DISTTHRESH);
+                    
                 s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
                 s0=s0(1:3);
                 
@@ -296,7 +302,7 @@ while adding_dips
             str2='Prior moment variance (nAm2)';
             diags_w0_mni = spm_input(str2, 1+tr_q+dip_q+2,'e',priormomvardefault)';
             dip_pr(dip_q).mu_w0 =orM1*w0_mni;
-            S_w0_ctf=orM1*w0_mni*orM1';
+            S_w0_ctf=orM1*diag(diags_w0_mni)*orM1';
             
              
         else
@@ -325,7 +331,11 @@ while adding_dips
                 s0mni = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
                 syms0mni=s0mni;
                 syms0mni(1)=-syms0mni(1);
-                outside = ~ft_inside_vol(s0mni',mnivol);
+                
+                
+                distcentre=sqrt(dot(s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert),s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert))); %% 
+                outside=(distcentre>DISTTHRESH);
+                
                 s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
                 
                 s0sym=D.inv{val}.datareg.fromMNI*[syms0mni' 1]';
