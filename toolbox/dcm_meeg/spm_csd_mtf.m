@@ -15,7 +15,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_csd_mtf.m 4536 2011-10-27 15:48:00Z rosalyn $
 
 
 % compute log-spectral density
@@ -23,6 +23,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 
 % frequencies of interest
 %--------------------------------------------------------------------------
+
 try
     dt = 1/(2*round(M.Hz(end)));
     N  = 1/dt;
@@ -32,8 +33,8 @@ catch
     dt = 1/N;
     If = 1:N/2;
 end
-f    = [1:N/2]';                         % frequencies
-w    = f(If);                            % frequencies selected
+f    = [1:N/2]' ;                       % frequencies
+w    = f(If)    ;                       % frequencies selected
 
 % number of channels and exogenous (neuronal) inputs
 %--------------------------------------------------------------------------
@@ -89,7 +90,7 @@ for  c = 1:size(X,1)
         
         % extrinsic connections
         %------------------------------------------------------------------
-        for j = 1:length(A)
+        for j = 1:length(Q.A)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
         
