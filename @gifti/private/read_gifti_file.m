@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 4505 2011-09-30 11:45:58Z guillaume $
+% $Id: read_gifti_file.m 4538 2011-11-02 13:46:57Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -64,11 +64,26 @@ end
 
 %==========================================================================
 function s = gifti_LabelTable(t,uid)
-s = struct('name',{}, 'index',[]);
+s = struct('name',{}, 'key',[], 'rgba',[]);
 c = children(t,uid);
 for i=1:length(c)
     a = attributes(t,'get',c(i));
-    s(1).index(i) = str2double(a.val);
+    for j=1:numel(a)
+        s(1).key(i,1:4) = NaN;
+        switch lower(a{j}.key)
+            case 'key'
+                s(1).key(i) = str2double(a{j}.val);
+            case 'red'
+                s(1).rgba(i,1) = str2double(a{j}.val);
+            case 'green'
+                s(1).rgba(i,2) = str2double(a{j}.val);
+            case 'blue'
+                s(1).rgba(i,3) = str2double(a{j}.val);
+            case 'alpha'
+                s(1).rgba(i,4) = str2double(a{j}.val);
+            otherwise
+        end
+    end
     s(1).name{i}  = get(t,children(t,c(i)),'value');
 end
 
