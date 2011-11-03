@@ -1,0 +1,15 @@
+The FieldTrip peer toolbox implements peer-to-peer distributed
+computing using MATLAB without the need for a centralized server/manager.
+
+The FieldTrip project is an initiative of the Donders Institute for
+Brain, Cognition and Behaviour. Together with collaborating institutes,
+we are developing and implementing methods for the analysis of MEG
+and EEG data.
+
+This software is free but copyrighted software, distributed
+under the terms of the GNU General Public Licence as published by
+the Free Software Foundation (either version 2, or at your option
+any later version). See the file COPYING for more details.
+
+Copyright (C) 2010, Robert Oostenveld, Nijmegen, The Netherlands
+
