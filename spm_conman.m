@@ -244,7 +244,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_conman.m 4546 2011-11-04 13:14:42Z guillaume $
 
 
 %==========================================================================
@@ -492,7 +492,7 @@ if (nargin==0) || ~ischar(varargin{1})
     
     %-Save SPM.mat only if SPM structure as changed
     if ~isequal(tmpSPM,SPM)
-    	save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+        save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
     end
 
     %-Reset and hide SelFileWin

@@ -3,7 +3,7 @@ function sendmail = spm_cfg_sendmail
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_sendmail.m 4442 2011-08-26 14:53:10Z guillaume $
+% $Id: spm_cfg_sendmail.m 4546 2011-11-04 13:14:42Z guillaume $
 
 % ---------------------------------------------------------------------
 % Recipient
@@ -98,7 +98,7 @@ sendmail.help  = {
     'Send a mail message (attachments optionals) to an address.'
     ''
     'This module is deprecated and has been moved to Util.'
-	'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the Util module instead.'
+    'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the Util module instead.'
 }';
 sendmail.prog  = @spm_sendmail;
 sendmail.hidden = true;
