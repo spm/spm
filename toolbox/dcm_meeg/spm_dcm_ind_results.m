@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4521 2011-10-07 20:00:40Z vladimir $
+% $Id: spm_dcm_ind_results.m 4547 2011-11-04 13:49:59Z karl $
  
  
 % get figure handle
@@ -77,18 +77,14 @@ switch(lower(Action))
         end
     end
     
-    cx = spm_percentile(spm_vec(TF), [5 95]);
-    
     % loop over trials, sources (predicted and observed)
     %----------------------------------------------------------------------
-    colormap(jet)
     for i = 1:nt
         for j = 1:nr
            
             subplot(2*nt,nr,(i - 1)*nr + j)
             imagesc(pst,Hz,TF{i,j}')
             axis xy
-            caxis(cx);
             xlabel('pst (ms)')
             ylabel('frequency')
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));
